@@ -13,6 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "eslint .",
+    "check:deploy-configs": "node scripts/check-deployment-configs.mjs",
+    "check:landing": "pnpm --filter @zigoals/web exec wrangler deploy --config ../../landing/wrangler.jsonc --name zigoals --dry-run",
     "verify:network": "node scripts/verify-network.mjs",
     "doctor": "node scripts/doctor.mjs"
   },
