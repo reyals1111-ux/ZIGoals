@@ -8,10 +8,10 @@
 | Owner evidence, existing release verification | COMPLETE | Structured M5 records; exact M4 source only |
 | Independent hosted smoke, privacy, performance, DNS | COMPLETE | Completed sample with findings; no repeat needed |
 | Landing deployment config fix | COMPLETE | Commit42adede, 14 targeted tests, real non-uploading dry run, independent review clean |
-| Wallet reconnect | IN PROGRESS | Commit a14dd30; focused53 and browser2 pass; scoped review pending |
-| Observed landing overflow and icons | NOT STARTED | Bounded local fix planned; live state unchanged |
+| Wallet reconnect | COMPLETE | Commit a14dd30; focused53 and browser2 pass; scoped review approved with two documented minor findings |
+| Observed landing overflow and icons | IN PROGRESS | Commit3fbb561; targeted checks passed, scoped review pending; live state unchanged |
 | Rust and dependency checks | COMPLETE | Rust25, format/Clippy/schema; fresh advisory/integrity records |
-| Full integrated JS/build/browser/workerd/restart | NOT STARTED | Run once after implementation; exact totals pending |
+| Full integrated JS/build/browser/workerd/restart | IN PROGRESS | Final gate underway; exact totals pending |
 | Final independent branch review | NOT STARTED | Review all code/docs and remaining findings after checks |
 | Push, PR, current CI observation | NOT STARTED | Push feature branch, create unmerged PR, observe actual runs |
 
@@ -25,7 +25,7 @@ Freshly fetched clean `6be2de74f22f676e6a633ed05208decebb0dbff3`.
 
 ## 3. Branch SHA
 
-Latest completed implementation at this checkpoint: `a14dd30`. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
+Latest completed implementation at this checkpoint: `3fbb561`. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
 
 ## 4. Files changed
 
@@ -130,11 +130,11 @@ Fresh pnpm production/full scans:0vulnerabilities; Rust119dependencies:0vulnerab
 
 ## 19. Contract review
 
-No contract code changed. Fresh Rust25 tests, format, Clippy, schema and generated types passed. Idle remains the only executable strategy; funding/upload permission and later explicit financial approval remain gates. Final focused M5 review pending. This is not a professional security audit.
+No contract code changed. Focused inspection confirmed owner/active-goal checks before mutation; exactly one configured nonzero deposit denom; checked balances/liabilities; withdrawal only to the owner; admin pause affects deposits only, preserving withdrawal; nonpayable non-deposit methods. Fresh Rust25 tests, format, Clippy, schema and generated types passed. Idle remains the only executable strategy; funding/upload permission and later explicit financial approval remain gates. Final focused M5 review pending. This is not a professional security audit.
 
 ## 20. Frontend/security review
 
-Task1 spec and quality review approved with no findings. Task2 scoped review in progress; presentation fix and final whole-branch review pending. Mode guards continue to refuse unknown/missing/public/local financial preparation and execution at low-level boundaries. Final integrated checks will confirm the unchanged protections.
+Task1 spec and quality review approved with no findings. Task2 spec/quality approved with two minor findings: overly broad new-tab label documentation and existing middleware deprecation. Presentation fix and final whole-branch review pending. Mode guards continue to refuse unknown/missing/public/local financial preparation and execution at low-level boundaries. Final integrated checks will confirm the unchanged protections.
 
 ## 21. JavaScript
 
@@ -192,4 +192,4 @@ After M5 validation: review the actual PR/diff/evidence and green CI, then decid
 
 ### Resume instructions
 
-Read this checklist, `git status --short`, current branch log and `.superpowers/sdd/M5_IMPLEMENTATION_PLAN/progress.md` if present. Do not restart M1–M5 or repeat completed hosted/dependency evidence. Finish Task2 review, then Task3, then one full acceptance gate. Runtime PATH starts `/Users/AIUSER/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin`. Commands from root: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, local production browser tests/restart, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`, local workerd tests, `pnpm check:deploy-configs`, `pnpm check:landing`, `node scripts/check-secrets.mjs`, `git diff --check`. Use separate owned local ports, preserve other servers. Update exact results, commit logical work, push this branch and create PR against main; observe quality/reproducibility CI without issuance. Never merge/deploy/sign.
+Read this checklist, `git status --short`, current branch log and `.superpowers/sdd/M5_IMPLEMENTATION_PLAN/progress.md` if present. Do not restart M1–M5 or repeat completed hosted/dependency evidence. Finish Task3 and its review, then one full acceptance gate. Runtime PATH starts `/Users/AIUSER/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin`. Commands from root: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, local production browser tests/restart, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`, local workerd tests, `pnpm check:deploy-configs`, `pnpm check:landing`, `node scripts/check-secrets.mjs`, `git diff --check`. Use separate owned local ports, preserve other servers. Update exact results, commit logical work, push this branch and create PR against main; observe quality/reproducibility CI without issuance. Never merge/deploy/sign.

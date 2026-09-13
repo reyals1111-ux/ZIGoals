@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-09-13T19:55:41.011583+00:00",
+  "status": "IN_PROGRESS",
+  "node": "24.19.0",
+  "pnpm": "11.19.0",
+  "rust": {
+    "status": "PASS",
+    "tests": 25,
+    "failed": 0,
+    "format": "PASS",
+    "clippy": "PASS",
+    "schemaGeneratedDrift": "PASS",
+    "sourceUnchangedFrom": "6be2de74f22f676e6a633ed05208decebb0dbff3",
+    "logPaths": [
+      "/tmp/zigoals-m5-rust-fmt.log",
+      "/tmp/zigoals-m5-clippy.log",
+      "/tmp/zigoals-m5-rust-tests.log",
+      "/tmp/zigoals-m5-schema.log"
+    ]
+  },
+  "javascriptFinal": {
+    "status": "NOT_RUN"
+  },
+  "browserFinal": {
+    "status": "NOT_RUN"
+  },
+  "workerdFinal": {
+    "status": "NOT_RUN"
+  },
+  "productionMutation": false
+}
