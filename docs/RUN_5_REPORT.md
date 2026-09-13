@@ -1,6 +1,6 @@
 # Run 5 — live Alpha hardening
 
-**Checkpoint: LOCAL_VERIFIED; final review and GitHub CI IN PROGRESS.** Production is read-only. This report distinguishes completed evidence from validation/publication still pending. No deployment, release issuance, contract upload, signing, broadcast, DNS/email mutation or outreach occurred.
+**LOCAL_VERIFIED / CI_VERIFIED for the exact recorded sources.** Final publication status is tied to [PR #5 Checks](https://github.com/reyals1111-ux/ZIGoals/pull/5/checks) and the owner handoff. Production is read-only. This report separates live owner evidence, independent public observations, local validation, recorded CI and the final PR-head publication check. No deployment, release issuance, contract upload, signing, broadcast, DNS/email mutation or outreach occurred.
 
 | Cluster | State | Evidence / next action |
 |---|---|---|
@@ -12,8 +12,8 @@
 | Observed landing overflow and icons | COMPLETE | Commit3fbb561; focused6 passed and scoped review approved; live state unchanged |
 | Rust and dependency checks | COMPLETE | Rust25, format/Clippy/schema; fresh advisory/integrity records |
 | Full integrated JS/build/browser/workerd/restart | COMPLETE | JS496, Rust25, browser44, workerd12; build/lint/types/restart/config/dryruns/secrets pass |
-| Final independent branch review | IN PROGRESS | All task reviews approved; final whole-branch review pending |
-| Push, PR, current CI observation | IN PROGRESS | Checkpoints pushed; create unmerged PR and observe actual runs |
+| Final independent branch review | COMPLETE | No Critical/Important findings; overwrite minor fixed; one nonblocking README wording minor retained |
+| Push, PR, recorded CI | COMPLETE | PR5 open/unmerged; quality34780059304 and canonical34780059329 green on recorded source; final publication checks linked above |
 
 ## 1. Starting main
 
@@ -25,7 +25,7 @@ Freshly fetched clean `6be2de74f22f676e6a633ed05208decebb0dbff3`.
 
 ## 3. Branch SHA
 
-Latest product change: `3fbb561`; test/docs correction: `8f39661`. Clean Next gate source `35a9778`; clean Alpha package source `fd44640b7222c38d524aab1d2a91da0b5fce3a39`, `dirty:false`. Later report-only commits do not change the tested application. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
+Latest product change: `3fbb561`; test/docs correction: `8f39661`. Clean Next gate source `35a9778`; clean Alpha package source `fd44640b7222c38d524aab1d2a91da0b5fce3a39`, `dirty:false`. The final manual-probe safety fix is `cd70aba7d40ac0e79420f4cddac7c7cd2ea7ed39`; it changes no application code and passed targeted CLI/syntax/lint checks. The final response and PR head identify the report-bearing full SHA without a self-referential embedded hash; obtain locally with `git rev-parse HEAD`.
 
 ## 4. Files changed
 
@@ -56,6 +56,7 @@ Changed files through this local acceptance checkpoint:
 - `docs/security/SECURITY_CHECKLIST.md`
 - `docs/social/BUILD_LOG.md`
 - `docs/testing/ALPHA_TESTER_GUIDE.md`
+- `docs/verification/m5/CI_RESULTS.json`
 - `docs/verification/m5/CLOUDFLARE_READ_ONLY.json`
 - `docs/verification/m5/DEPENDENCY_SCAN.json`
 - `docs/verification/m5/HOSTED_PERFORMANCE.json`
@@ -65,6 +66,7 @@ Changed files through this local acceptance checkpoint:
 - `docs/verification/m5/PUBLIC_DNS.json`
 - `docs/verification/m5/README.md`
 - `docs/verification/m5/RELEASE_VERIFICATION.json`
+- `docs/verification/m5/REVIEW.md`
 - `docs/verification/m5/SOURCE_INTEGRITY.json`
 - `landing/.assetsignore`
 - `landing/index.html`
@@ -113,7 +115,7 @@ Wrangler resolves `assets.directory` relative to its config. `./landing` inside 
 
 ## 14. Exact artifact observations
 
-Downloaded Wasm255532bytes: `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. Attested manifest1993bytes: `300c68e3c052d88e10e16d4a813ea209b2bec70c6b8a81e3fb940415a254741a`. [RELEASE_VERIFICATION.json](verification/m5/RELEASE_VERIFICATION.json) records policy, provenance and timestamps. Future PR reproducibility bytes will be recorded separately; matching bytes alone do not attest another source.
+Downloaded Wasm255532bytes: `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. Attested manifest1993bytes: `300c68e3c052d88e10e16d4a813ea209b2bec70c6b8a81e3fb940415a254741a`. [RELEASE_VERIFICATION.json](verification/m5/RELEASE_VERIFICATION.json) records policy, provenance and timestamps. M5 unsigned canonical run34780059329 independently built and compared the same255532-byte/hash artifact from actual synthetic merge `87733431b199bdda53af053b8713164d04e7d679` for feature03a8cff. Downloaded bytes/source/validator verification passed locally; [CI_RESULTS.json](verification/m5/CI_RESULTS.json) contains the actual manifest. Matching bytes do not attest M5 or authorize upload.
 
 ## 15. Privacy
 
@@ -135,11 +137,11 @@ Fresh pnpm production/full scans:0vulnerabilities; Rust119dependencies:0vulnerab
 
 ## 19. Contract review
 
-No contract code changed. Focused inspection confirmed owner/active-goal checks before mutation; exactly one configured nonzero deposit denom; checked balances/liabilities; withdrawal only to the owner; admin pause affects deposits only, preserving withdrawal; nonpayable non-deposit methods. Fresh Rust25 tests, format, Clippy, schema and generated types passed. Idle remains the only executable strategy; funding/upload permission and later explicit financial approval remain gates. The unchanged low-level frontend quote/execute/sign/broadcast guards were also inspected; final independent whole-branch review pending. This is not a professional security audit.
+No contract code changed. Focused inspection confirmed owner/active-goal checks before mutation; exactly one configured nonzero deposit denom; checked balances/liabilities; withdrawal only to the owner; admin pause affects deposits only, preserving withdrawal; nonpayable non-deposit methods. Fresh Rust25 tests, format, Clippy, schema and generated types passed. Idle remains the only executable strategy; funding/upload permission and later explicit financial approval remain gates. The unchanged low-level frontend quote/execute/sign/broadcast guards were also inspected; independent whole-branch review found no Critical/Important issue. This is not a professional security audit.
 
 ## 20. Frontend/security review
 
-Task1 spec and quality review approved with no findings. Task2 spec/quality approved; its new-tab wording minor and the integrated-test synchronization failure were corrected in8f39661 and independently re-reviewed. Task3 approved with no findings. Existing middleware deprecation remains documented for future compatibility work. Final whole-branch review pending. Mode guards continue to refuse unknown/missing/public/local financial preparation and execution at low-level boundaries. Final integrated checks will confirm the unchanged protections.
+Task1 spec and quality review approved with no findings. Task2 spec/quality approved; its new-tab wording minor and the integrated-test synchronization failure were corrected in8f39661 and independently re-reviewed. Task3 approved with no findings. Existing middleware deprecation remains documented for future compatibility work. Independent whole-branch review found0Critical/0Important/1Minor: the manual probe could overwrite an existing output directory. Exclusive mkdir fixed it in cd70aba; empty/nonempty directory CLI checks proved EEXIST before Chrome with sentinel bytes preserved. Scoped re-review found no Critical/Important breakage and retained one minor README introductory wording inconsistency. [Full review/disposition](verification/m5/REVIEW.md). Mode guards continue to refuse unknown/missing/public/local financial preparation and execution at low-level boundaries. Final integrated checks will confirm the unchanged protections.
 
 ## 21. JavaScript
 
@@ -159,19 +161,19 @@ Task1 spec and quality review approved with no findings. Task2 spec/quality appr
 
 ## 25. GitHub CI
 
-**NOT STARTED** for M5; no green-CI claim. Existing owner release run verification is separate. Push/open PR and observe actual quality and reproducibility runs before completion.
+**CI_VERIFIED:** quality [34780059304](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34780059304) and canonical reproducibility [34780059329](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34780059329) both succeeded for feature03a8cff/synthetic87733431. CI totals:496JS,25Rust,44Next browser,10workerd (local12 additionally tests explicit wallet reload on workerd). Both independent canonical builds and their comparison passed; actual downloaded artifact was reverified locally. Existing Next middleware and two upstream Buffer notices remain. No issuance occurred. Later probe-safety/report commits require their own green PR-head checks, observed in the final owner handoff; never substitute the recorded source for a newer head.
 
 ## 26. PR
 
-**NOT CREATED** at checkpoint. Create against main and leave open/unmerged; do not guess PR number.
+[PR #5](https://github.com/reyals1111-ux/ZIGoals/pull/5) is OPEN and unmerged against main, initial reviewed head `03a8cffdee352b10565ed8ef04d8e58f2af16f37`. [Current checks/head](https://github.com/reyals1111-ux/ZIGoals/pull/5/checks) identify subsequent evidence/fix publication; Run5 does not merge it.
 
 ## 27. Blockers
 
-Test wallet0ZIG; funding/upload permission pending; Goal Manager/code/checksum absent; real financial signing NOT RUN; Valdora canonical interface pending; WME executable interface unverified. Private email routing/forwarding/delivery uninspected. No contract deployment is required or authorized in M5.
+Test wallet0ZIG; funding/upload permission pending; Goal Manager/code/checksum absent; real financial signing NOT RUN; Valdora canonical interface pending; WME executable interface unverified. Private email routing/forwarding/delivery uninspected. These remain later financial/integration gates, not unfinished M5 implementation. No contract deployment is required or authorized in M5.
 
 ## 28. Risks
 
-Free CPU capacity concern above; live320px overflow/favicon findings remain until reviewed deployment; bounded privacy/performance samples; two unmaintained dependencies and upstream tool warnings; independent code review is not an audit. Public DNS/dashboard confirmed active domains, proxied separate Workers, MX/SPF and DKIM presence. DMARC lookup failed and dashboard suggests adding it; no DNS change authorized. No mail delivery test was performed.
+Free CPU capacity concern above; live320px overflow/favicon findings remain until reviewed deployment; bounded privacy/performance samples; two unmaintained dependencies and upstream tool warnings; independent code review is not an audit. Public DNS/dashboard confirmed active domains, proxied separate Workers, MX/SPF and DKIM presence. DMARC lookup failed and dashboard suggests adding it; no DNS change authorized. No mail delivery test was performed. One nonblocking README phrase about creating the manual probe output directory is inconsistent; use the precise procedure below. Existing output directories are safely rejected before any browser/request.
 
 ## 29. Exact owner next steps
 
@@ -179,7 +181,7 @@ After M5 validation: review the actual PR/diff/evidence and green CI, then decid
 
 ## 30. Next five highest-value tasks
 
-1. Complete integrated checks, final review and unmerged green PR.
+1. Owner review the unmerged PR, exact current-head green checks and evidence, then decide whether to merge.
 2. Owner review/merge and separately approved web deployment/retest of reconnect, small-screen layout and icons.
 3. Investigate measured Free CPU capacity with controlled evidence, without paid changes by default.
 4. Archive exact attested M4 candidate and optionally issue a later reviewed exact-main candidate.
@@ -194,7 +196,10 @@ After M5 validation: review the actual PR/diff/evidence and green CI, then decid
 - Existing requested checkout/branch: owner preference; cost if wrong is later worktree isolation.
 - Explicit reconnect Outcome B: avoids assuming universal silent permission; cost if wrong is one unnecessary click.
 - Bounded320px/icon fixes: observed hosted defects within hardening scope; cost if wrong is a small reversible presentation diff.
+- Retain the nonblocking introductory README wording inconsistency after the one final fix wave; exclusive mkdir and the adjacent must-not-exist rule are correct, and this report gives the exact procedure. Cost if wrong: one rejected local probe attempt, without evidence loss or production action. The [review disposition](verification/m5/REVIEW.md) records the process constraint.
 
-### Resume instructions
+### Exact manual probe rule and handoff
 
-Read this checklist, `git status --short`, current branch log and `.superpowers/sdd/M5_IMPLEMENTATION_PLAN/progress.md` if present. Do not restart M1–M5 or repeat completed hosted/dependency evidence. All implementation and local gates are complete. Finish final whole-branch review and actual PR/CI observation; do not repeat completed local suites without a new change/failure. Runtime PATH starts `/Users/AIUSER/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin`. Commands from root: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, local production browser tests/restart, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`, local workerd tests, `pnpm check:deploy-configs`, `pnpm check:landing`, `node scripts/check-secrets.mjs`, `git diff --check`. Use separate owned local ports, preserve other servers. Update exact results, commit logical work, push this branch and create PR against main; observe quality/reproducibility CI without issuance. Never merge/deploy/sign.
+For an optional later hosted observation, ensure the parent directory exists and choose a new, **nonexistent** output path beneath it. Do not pre-create the output directory; `node scripts/verify-hosted-alpha.mjs /tmp/zigoals-new-observation` creates it exclusively. Existing empty/nonempty directories fail with EEXIST before Chrome starts, preserving prior files. M5 did not repeat the hosted checks for this guard fix.
+
+Implementation, independent review and all local gates are complete; immutable initial PR checks are green. Final publication is complete only after the then-current PR-head checks are green; the final owner handoff records that exact SHA and run IDs. Read this report, CI_RESULTS, current PR checks and branch status before resuming. Do not restart prior milestones or repeat completed evidence without a new reason. The branch must remain open/unmerged and clean. Production Cloudflare/DNS/email/financial state remains read-only; separately approved owner operations stay in their runbooks.

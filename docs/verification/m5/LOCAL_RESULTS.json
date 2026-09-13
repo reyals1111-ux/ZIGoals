@@ -225,5 +225,18 @@
   "warnings": [
     "Existing Next middleware convention deprecation; retained for adapter compatibility.",
     "Isolated standalone script lint emitted React auto-detection warning; final full lint had no warning."
-  ]
+  ],
+  "manualEvidenceRetentionFix": {
+    "source": "cd70aba7d40ac0e79420f4cddac7c7cd2ea7ed39",
+    "checks": {
+      "existingEmptyDirectory": "REJECTED_EEXIST",
+      "existingNonemptyDirectory": "REJECTED_EEXIST",
+      "sentinelUnchanged": true,
+      "nodeSyntax": "PASS",
+      "eslint": "PASS",
+      "diffCheck": "PASS"
+    },
+    "freshHostedProbeRun": false,
+    "applicationCodeChanged": false
+  }
 }

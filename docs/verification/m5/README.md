@@ -10,6 +10,8 @@ Records separate owner observations, independent live reads, local validation an
 | [HOSTED_PERFORMANCE.json](HOSTED_PERFORMANCE.json) | Small live response and initial browser resource sample. Separate later dashboard CPU snapshot; no load-test or Core Web Vitals claim. |
 | [CLOUDFLARE_READ_ONLY.json](CLOUDFLARE_READ_ONLY.json) | Read-only UI: Workers Free, active-version median CPU30.43ms, zero displayed errors in Last24h, Alpha domains/bindings. Capacity risk relative to stated10ms. |
 | [PUBLIC_DNS.json](PUBLIC_DNS.json) | Public A/MX/SPF/DKIM answers and read-only dashboard Worker/DNS table; unsuccessful DMARC lookup. Private routing/forwarding and mail delivery not inspected. No writes. |
+| [CI_RESULTS.json](CI_RESULTS.json) | Actual quality/canonical run IDs, source-pinned totals and downloaded unsigned artifact verification; final publication checks remain linked to the PR head. |
+| [REVIEW.md](REVIEW.md) | Independent whole-branch and scoped fix review; no Critical/Important findings, one retained nonblocking wording minor. |
 | [LOCAL_RESULTS.json](LOCAL_RESULTS.json) | LOCAL_VERIFIED:496 JS,25 Rust,44 production browser,12 workerd; clean build identities, restart evidence and retained initial test failure. |
 | [DEPENDENCY_SCAN.json](DEPENDENCY_SCAN.json) | Fresh production/full npm and RustSec scans; zero vulnerability findings, two unmaintained Rust notices, existing official download-action warning. |
 
