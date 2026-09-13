@@ -1,10 +1,15 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import {
   metadataKey,
   type GoalBackup,
   type GoalMetadata,
 } from "@zigoals/shared-types";
-import { importMetadata, loadMetadata, saveMetadata } from "./storage";
+import {
+  importMetadata,
+  loadMetadata,
+  saveMetadata,
+  withStorageLock,
+} from "./storage";
 
 class MemoryStorage implements Storage {
   readonly data = new Map<string, string>();
@@ -59,7 +64,6 @@ for (const [name, write] of Object.entries(writers)) {
   test.each([
     ["malformed JSON", "  { damaged\n"],
     ["empty stored value", ""],
-    ["unknown version", JSON.stringify({ ...backup(), schemaVersion: 2 })],
     [
       "invalid nested metadata",
       JSON.stringify(backup({ "2": { ...plan, name: "" } })),
@@ -252,4 +256,51 @@ test("import validates merged UTF-8 bytes before changing active plans", () => {
     ),
   ).toThrow(/1 MB/i);
   expect([...storage.data]).toEqual([[key, original]]);
+});
+
+for (const [name, write] of Object.entries(writers)) {
+  test(`${name} refuses future metadata without touching any key`, () => {
+    const storage = new MemoryStorage();
+    const raw = JSON.stringify({ ...backup(), schemaVersion: 2 });
+    storage.setItem(key, raw);
+    expect(() => write(storage)).toThrow(/unsupported|newer/i);
+    expect([...storage.data]).toEqual([[key, raw]]);
+  });
+}
+test("stale metadata save refuses to overwrite another tab's plan", () => {
+  const storage = new MemoryStorage();
+  saveMetadata(storage, chain, owner, "1", plan);
+  const before = [...storage.data];
+  expect(() =>
+    saveMetadata(storage, chain, owner, "1", { ...plan, name: "Stale" }, null),
+  ).toThrow(/changed|review/i);
+  expect([...storage.data]).toEqual(before);
+});
+
+test("stale import refuses to overwrite newer plans without touching bytes", () => {
+  const storage = new MemoryStorage();
+  const initial = JSON.stringify(backup());
+  storage.setItem(key, initial);
+  const newer = JSON.stringify(
+    backup({ "1": { ...plan, name: "Changed elsewhere" } }),
+  );
+  storage.setItem(key, newer);
+  expect(() => importMetadata(storage, initial, chain, owner, initial)).toThrow(
+    /changed|review/i,
+  );
+  expect([...storage.data]).toEqual([[key, newer]]);
+});
+test("unavailable Web Locks refuses an application write", async () => {
+  vi.stubGlobal("navigator", {});
+  let written = false;
+  try {
+    await expect(
+      withStorageLock(key, () => {
+        written = true;
+      }),
+    ).rejects.toThrow(/cross-tab storage.*unavailable/i);
+    expect(written).toBe(false);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

@@ -12,7 +12,7 @@ import {
   type Confirmed,
   type TransactionUpdate,
 } from "./transaction";
-import { LOCAL_OWNER } from "./local-ledger";
+import { applyLocal, initialLedger, LOCAL_OWNER } from "./local-ledger";
 
 const api = vi.hoisted(() => ({
   connect: vi.fn(),
@@ -61,6 +61,19 @@ function goal(owner: string, id: string): Goal {
     metadata_commitment: null,
   };
 }
+const privatePlan = {
+  name: "Private trip",
+  category: "Travel" as const,
+  targetValue: "1200",
+  currency: "ZIG" as const,
+  targetDate: "2027-01-01",
+  startingAmount: "0",
+  monthlyContribution: "10",
+  riskPreference: "Conservative" as const,
+  liquidityPreference: "Anytime" as const,
+  deadlineFlexible: false,
+  notes: "",
+};
 function Controls() {
   const s = useGoals();
   return createElement(
@@ -88,6 +101,11 @@ function Controls() {
       { onClick: () => void s.prepare({ kind: "create" }) },
       "Prepare transaction",
     ),
+    createElement(
+      "button",
+      { onClick: () => void s.prepare({ kind: "create" }, privatePlan) },
+      "Prepare private goal",
+    ),
   );
 }
 async function click(text: string) {
@@ -97,6 +115,7 @@ async function click(text: string) {
   expect(button, `button ${text}`).toBeDefined();
   await act(async () => {
     button!.click();
+    await new Promise((resolve) => setTimeout(resolve, 20));
   });
 }
 function scope() {
@@ -107,6 +126,12 @@ function scope() {
 beforeEach(async () => {
   vi.clearAllMocks();
   vi.stubGlobal("indexedDB", new IDBFactory());
+  Object.defineProperty(navigator, "locks", {
+    configurable: true,
+    value: {
+      request: async (_key: string, callback: () => unknown) => callback(),
+    },
+  });
   api.reconcile.mockResolvedValue({ records: [], warnings: [] });
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   window.localStorage.clear();
@@ -442,3 +467,117 @@ test.each(["available", "unavailable"])(
     expect(api.execute).not.toHaveBeenCalled();
   },
 );
+
+test("scoped external local writes reload balances and cancel a reviewed simulation", async () => {
+  await click("Prepare transaction");
+  expect(container.textContent).toContain("Confirm simulation");
+  const next = applyLocal(
+    initialLedger(),
+    { kind: "create" },
+    new Date().toISOString(),
+  );
+  await act(async () => {
+    localStorage.setItem("zigoals:local-ledger:v1", JSON.stringify(next));
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "zigoals:local-ledger:v1",
+        storageArea: localStorage,
+      }),
+    );
+  });
+  expect(scope().goals).toEqual(["1"]);
+  expect(container.textContent).not.toContain("Confirm simulation");
+});
+test("confirmation checks stored revision even before another tab's event arrives", async () => {
+  await click("Prepare transaction");
+  const next = applyLocal(
+    initialLedger(),
+    { kind: "create" },
+    new Date().toISOString(),
+  );
+  const raw = JSON.stringify(next);
+  localStorage.setItem("zigoals:local-ledger:v1", raw);
+  await click("Confirm simulation");
+  expect(localStorage.getItem("zigoals:local-ledger:v1")).toBe(raw);
+  expect(container.textContent).toMatch(/changed.*review/i);
+});
+test("unrelated storage scopes leave the active review intact", async () => {
+  await click("Prepare transaction");
+  await act(async () =>
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "zigoals:metadata:v1:other:wallet",
+        storageArea: localStorage,
+      }),
+    ),
+  );
+  expect(container.textContent).toContain("Confirm simulation");
+});
+test("external same-scope journal intent cancels testnet review before signing", async () => {
+  await click("Connect Keplr");
+  await click("Prepare transaction");
+  expect(container.textContent).toContain("Approve in Keplr");
+  const channel = new BroadcastChannel("zigoals:transaction-journal");
+  await act(async () => {
+    channel.postMessage({
+      chainId: "zig-test-2",
+      wallet: ownerA,
+      contract: "zig1contract",
+    });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  });
+  channel.close();
+  expect(container.textContent).not.toContain("Approve in Keplr");
+  expect(api.execute).not.toHaveBeenCalled();
+});
+
+test("private plan review describes a future save and storage failure does not claim success", async () => {
+  await click("Prepare private goal");
+  expect(container.textContent).toContain(
+    "will be saved on this device after confirmation",
+  );
+  expect(
+    localStorage.getItem(
+      "zigoals:metadata:v1:local-simulation:local-demo-user",
+    ),
+  ).toBeNull();
+  const original = Storage.prototype.setItem;
+  const storage = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(function (this: Storage, key, value) {
+      if (key.startsWith("zigoals:metadata:")) throw Error("Quota exceeded");
+      return original.call(this, key, value);
+    });
+  try {
+    await click("Confirm simulation");
+    expect(scope().goals).toEqual(["1"]);
+    expect(container.textContent).toContain("private plan could not be saved");
+    expect(
+      localStorage.getItem(
+        "zigoals:metadata:v1:local-simulation:local-demo-user",
+      ),
+    ).toBeNull();
+  } finally {
+    storage.mockRestore();
+  }
+});
+test("durable journal revisions stop signing even when the external event was missed", async () => {
+  await click("Connect Keplr");
+  await click("Prepare transaction");
+  await act(async () => {
+    await new TransactionJournal().create(
+      newOperation({
+        chainId: "zig-test-2",
+        wallet: ownerA,
+        contract: "zig1contract",
+        action: "create",
+        amount: "0",
+        denom: "azig",
+      }),
+    );
+  });
+  // Same-document fixture writes deliberately omit the external notification.
+  await click("Approve in Keplr");
+  expect(container.textContent).toMatch(/history changed.*review again/i);
+  expect(api.execute).not.toHaveBeenCalled();
+});

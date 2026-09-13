@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { TESTNET } from "@zigoals/chain-config";
+import { metadataKey } from "@zigoals/shared-types";
 import type {
   GoalMetadata,
   GoalBackup,
@@ -28,7 +29,12 @@ import {
   type LocalGoal,
   type Activity,
 } from "../lib/local-ledger";
-import { loadMetadata, saveMetadata, importMetadata } from "../lib/storage";
+import {
+  loadMetadata,
+  saveMetadata,
+  importMetadata,
+  withStorageLock,
+} from "../lib/storage";
 import {
   connectKeplr,
   readBalance,
@@ -45,12 +51,20 @@ import {
 } from "../lib/transaction";
 import {
   JOURNAL_DATABASE,
+  JOURNAL_SOURCE,
+  journalRevision,
   TransactionJournal,
   pendingDescription,
   type JournalRecord,
 } from "../lib/transaction-journal";
 const LEDGER_KEY = "zigoals:local-ledger:v1";
-type Pending = { action: LocalAction; quote?: Quote; metadata?: GoalMetadata };
+type Pending = {
+  action: LocalAction;
+  quote?: Quote;
+  metadata?: GoalMetadata;
+  storageRevision: string | null;
+  metadataRevision: string | null;
+};
 type TransactionOutcome = TransactionDetails & {
   id: string;
   owner: string;
@@ -106,6 +120,7 @@ function useGoalState() {
   const [loaded, setLoaded] = useState(false);
   const [localLedgerHealthy, setLocalLedgerHealthy] = useState(false);
   const revision = useRef(0);
+  const metadataRaw = useRef<string | null>(null);
   const [journalRecords, setJournalRecords] = useState<JournalRecord[]>([]);
   const [journalWarnings, setJournalWarnings] = useState<string[]>([]);
   const journalRefresh = useRef<() => Promise<void>>(async () => {});
@@ -114,6 +129,20 @@ function useGoalState() {
   const activeScope = useRef({ mode, owner });
   activeScope.current = { mode, owner };
   const chain = mode === "local" ? LOCAL_CHAIN : TESTNET.chainId;
+  function readPlans(planChain: string, planOwner: string) {
+    metadataRaw.current = localStorage.getItem(
+      metadataKey(planChain, planOwner),
+    );
+    return loadMetadata(localStorage, planChain, planOwner);
+  }
+  function invalidateReview() {
+    revision.current++;
+    setPending(undefined);
+    setStatus("IDLE");
+    setMessage(
+      "This account's data changed in another tab. Review again before continuing.",
+    );
+  }
   function localLoad() {
     try {
       const raw = localStorage.getItem(LEDGER_KEY);
@@ -139,7 +168,7 @@ function useGoalState() {
       setError(String(e));
     }
     try {
-      setMetadata(loadMetadata(localStorage, LOCAL_CHAIN, LOCAL_OWNER));
+      setMetadata(readPlans(LOCAL_CHAIN, LOCAL_OWNER));
     } catch (e) {
       setError((previous) => `${previous} ${String(e)}`.trim());
     }
@@ -161,6 +190,26 @@ function useGoalState() {
     window.addEventListener("keplr_keystorechange", changed);
     return () => window.removeEventListener("keplr_keystorechange", changed);
   }, []);
+  useEffect(() => {
+    const changed = (event: StorageEvent) => {
+      if (event.storageArea !== localStorage) return;
+      const plansChanged =
+        event.key === null || event.key === metadataKey(chain, owner);
+      const ledgerChanged =
+        mode === "local" && (event.key === null || event.key === LEDGER_KEY);
+      if (!plansChanged && !ledgerChanged) return;
+      invalidateReview();
+      try {
+        if (ledgerChanged) localLoad();
+        if (plansChanged) setMetadata(readPlans(chain, owner));
+      } catch (error) {
+        if (plansChanged) setMetadata(undefined);
+        setError(String(error));
+      }
+    };
+    window.addEventListener("storage", changed);
+    return () => window.removeEventListener("storage", changed);
+  }, [chain, mode, owner]);
   useEffect(() => {
     let stopped = false;
     let loading = false;
@@ -243,7 +292,19 @@ function useGoalState() {
       typeof BroadcastChannel !== "undefined"
         ? new BroadcastChannel(JOURNAL_DATABASE)
         : undefined;
-    if (channel) channel.onmessage = changed;
+    if (channel)
+      channel.onmessage = (event: MessageEvent) => {
+        const data = event.data;
+        if (
+          data?.source === JOURNAL_SOURCE ||
+          data?.chainId !== chain ||
+          data?.wallet !== owner
+        )
+          return;
+        if (mode === "testnet" && data.contract === CONTRACT_ADDRESS)
+          invalidateReview();
+        void load();
+      };
     return () => {
       stopped = true;
       window.removeEventListener("zigoals:journal-change", changed);
@@ -255,7 +316,7 @@ function useGoalState() {
     if (mode === "local") {
       localLoad();
       try {
-        setMetadata(loadMetadata(localStorage, chain, owner));
+        setMetadata(readPlans(chain, owner));
       } catch (e) {
         setError(
           "Goal plans could not be read. Financial controls remain available. " +
@@ -271,7 +332,7 @@ function useGoalState() {
     setGoals(g);
     setBalance(b);
     try {
-      setMetadata(loadMetadata(localStorage, chain, owner));
+      setMetadata(readPlans(chain, owner));
     } catch (e) {
       setError(
         "Private plans need recovery. Your onchain funds are still accessible. " +
@@ -321,7 +382,7 @@ function useGoalState() {
       setGoals(g);
       setWalletState("CONNECTED");
       try {
-        setMetadata(loadMetadata(localStorage, TESTNET.chainId, address));
+        setMetadata(readPlans(TESTNET.chainId, address));
       } catch (e) {
         setError("Private plans need recovery. " + String(e));
       }
@@ -358,7 +419,7 @@ function useGoalState() {
       setError(String(e));
     }
     try {
-      setMetadata(loadMetadata(localStorage, LOCAL_CHAIN, LOCAL_OWNER));
+      setMetadata(readPlans(LOCAL_CHAIN, LOCAL_OWNER));
     } catch (e) {
       setMetadata(undefined);
       setError((previous) => `${previous} ${String(e)}`.trim());
@@ -386,11 +447,26 @@ function useGoalState() {
     try {
       if (mode === "local") {
         if (!ledger.current) throw Error(LOCAL_LEDGER_ERROR);
-        applyLocal(ledger.current, action, new Date().toISOString());
-        setPending({ action, metadata: plan });
+        const storageRevision = localStorage.getItem(LEDGER_KEY);
+        const stored =
+          storageRevision === null
+            ? initialLedger()
+            : parseLocalLedger(storageRevision);
+        applyLocal(stored, action, new Date().toISOString());
+        setPending({
+          action,
+          metadata: plan,
+          storageRevision,
+          metadataRevision: metadataRaw.current,
+        });
       } else {
         if (!window.keplr || walletState !== "CONNECTED")
           throw Error("Reconnect your wallet first.");
+        const records = await new TransactionJournal().load(chain, owner);
+        const storageRevision = journalRevision(
+          records.records,
+          CONTRACT_ADDRESS,
+        );
         const quote = await quoteExecute(
           window.keplr,
           owner,
@@ -400,7 +476,13 @@ function useGoalState() {
         );
         if (current !== revision.current)
           throw Error("Account changed. Review again.");
-        setPending({ action, quote, metadata: plan });
+        setPending({
+          action,
+          quote,
+          metadata: plan,
+          storageRevision,
+          metadataRevision: metadataRaw.current,
+        });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -447,18 +529,26 @@ function useGoalState() {
     };
     try {
       if (scope.mode === "local") {
-        if (!ledger.current) throw Error(LOCAL_LEDGER_ERROR);
-        const next = applyLocal(
-          ledger.current,
-          action,
-          new Date().toISOString(),
-        );
-        localStorage.setItem(LEDGER_KEY, JSON.stringify(next));
-        ledger.current = next;
-        setGoals(next.goals);
-        setBalance(next.balance);
-        setActivity(next.activity);
-        if (action.kind === "create") createdId = next.goals.at(-1)?.id;
+        await withStorageLock(LEDGER_KEY, () => {
+          if (
+            current !== revision.current ||
+            localStorage.getItem(LEDGER_KEY) !== pending.storageRevision
+          )
+            throw Error(
+              "Local data changed in another tab. Review again before confirming.",
+            );
+          const raw = localStorage.getItem(LEDGER_KEY);
+          const stored = raw === null ? initialLedger() : parseLocalLedger(raw);
+          const next = applyLocal(stored, action, new Date().toISOString());
+          // Validate timestamps and conservation before persisting any bytes.
+          parseLocalLedger(JSON.stringify(next));
+          localStorage.setItem(LEDGER_KEY, JSON.stringify(next));
+          ledger.current = next;
+          setGoals(next.goals);
+          setBalance(next.balance);
+          setActivity(next.activity);
+          if (action.kind === "create") createdId = next.goals.at(-1)?.id;
+        });
         setStatus("SUCCESS");
         setMessage(
           "Local simulation completed. No onchain transaction was sent.",
@@ -466,12 +556,31 @@ function useGoalState() {
       } else {
         if (!pending.quote || !window.keplr)
           throw Error("Review the transaction again.");
-        const tx = await executeQuote(
-          window.keplr,
-          pending.quote,
-          () => revision.current,
-          updateTransaction,
-          outcome?.id,
+        const wallet = window.keplr;
+        const quote = pending.quote;
+        const tx = await withStorageLock(
+          `${JOURNAL_DATABASE}:${scope.chain}:${scope.owner}:${CONTRACT_ADDRESS}`,
+          async () => {
+            const loaded = await new TransactionJournal().load(
+              scope.chain,
+              scope.owner,
+            );
+            if (
+              current !== revision.current ||
+              journalRevision(loaded.records, CONTRACT_ADDRESS) !==
+                pending.storageRevision
+            )
+              throw Error(
+                "Transaction history changed in another tab. Review again before signing.",
+              );
+            return executeQuote(
+              wallet,
+              quote,
+              () => revision.current,
+              updateTransaction,
+              outcome?.id,
+            );
+          },
         );
         const attrs = tx.events
           .filter(
@@ -517,14 +626,24 @@ function useGoalState() {
         }
       }
       if (createdId && plan) {
+        const goalId = createdId;
         try {
-          const saved = saveMetadata(
-            localStorage,
-            scope.chain,
-            scope.owner,
-            createdId,
-            plan,
+          const saved = await withStorageLock(
+            metadataKey(scope.chain, scope.owner),
+            () =>
+              saveMetadata(
+                localStorage,
+                scope.chain,
+                scope.owner,
+                goalId,
+                plan,
+                pending.metadataRevision,
+              ),
           );
+          if (current === revision.current)
+            metadataRaw.current = localStorage.getItem(
+              metadataKey(scope.chain, scope.owner),
+            );
           if (current === revision.current) {
             setMetadata(saved.record);
             if (saved.recovery)
@@ -569,9 +688,17 @@ function useGoalState() {
       setBusy(false);
     }
   }
-  function recover(id: string, plan: GoalMetadata) {
+  async function recover(id: string, plan: GoalMetadata) {
+    const expectedRaw = metadataRaw.current;
+    const current = revision.current;
     try {
-      const saved = saveMetadata(localStorage, chain, owner, id, plan);
+      const saved = await withStorageLock(metadataKey(chain, owner), () => {
+        if (current !== revision.current)
+          throw Error("Goal plans changed. Review again.");
+        return saveMetadata(localStorage, chain, owner, id, plan, expectedRaw);
+      });
+      if (current !== revision.current) return;
+      metadataRaw.current = localStorage.getItem(metadataKey(chain, owner));
       setMetadata(saved.record);
       setMessage(
         saved.recovery
@@ -585,9 +712,17 @@ function useGoalState() {
       setError(String(e));
     }
   }
-  function importPlans(raw: string) {
+  async function importPlans(raw: string) {
+    const expectedRaw = metadataRaw.current;
+    const current = revision.current;
     try {
-      const imported = importMetadata(localStorage, raw, chain, owner);
+      const imported = await withStorageLock(metadataKey(chain, owner), () => {
+        if (current !== revision.current)
+          throw Error("Goal plans changed. Review again.");
+        return importMetadata(localStorage, raw, chain, owner, expectedRaw);
+      });
+      if (current !== revision.current) return;
+      metadataRaw.current = localStorage.getItem(metadataKey(chain, owner));
       setMetadata(imported.record);
       setMessage(
         imported.recovery

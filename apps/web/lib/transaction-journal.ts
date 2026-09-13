@@ -1,6 +1,7 @@
 import { z } from "zod";
 export const JOURNAL_DATABASE = "zigoals:transaction-journal";
 export const JOURNAL_LIMIT = 1000;
+export const JOURNAL_SOURCE = crypto.randomUUID();
 const states = [
   "AWAITING_SIGNATURE",
   "BROADCASTING",
@@ -115,12 +116,17 @@ const nextStates: Record<JournalState, readonly JournalState[]> = {
   FAILED: [],
   REJECTED: [],
 };
-function announce() {
+function announce(record: JournalRecord) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event("zigoals:journal-change"));
   if (typeof BroadcastChannel !== "undefined") {
     const channel = new BroadcastChannel(JOURNAL_DATABASE);
-    channel.postMessage("changed");
+    channel.postMessage({
+      source: JOURNAL_SOURCE,
+      chainId: record.chainId,
+      wallet: record.wallet,
+      contract: record.contract,
+    });
     channel.close();
   }
 }
@@ -192,7 +198,7 @@ export class TransactionJournal {
     } finally {
       db.close();
     }
-    announce();
+    announce(parsed);
   }
   async transition(
     operationId: string,
@@ -226,7 +232,33 @@ export class TransactionJournal {
               ...patch,
               updatedAt: Math.max(Date.now(), previous.updatedAt),
             });
-            store.put(result);
+            // The scan and write share a readwrite transaction, serialized by
+            // IndexedDB even across tabs. Include unreadable rows in identity
+            // protection; a future schema must not lose its signed hash claim.
+            if (result.hash) {
+              const scan = store.openCursor();
+              scan.onsuccess = () => {
+                const cursor = scan.result;
+                if (!cursor) {
+                  store.put(result);
+                  return;
+                }
+                const other = cursor.value;
+                if (
+                  other.operationId !== operationId &&
+                  other.chainId === result.chainId &&
+                  typeof other.hash === "string" &&
+                  other.hash.toUpperCase() === result.hash
+                ) {
+                  failure = Error(
+                    "This signed transaction hash already belongs to another operation. No duplicate broadcast is allowed.",
+                  );
+                  tx.abort();
+                  return;
+                }
+                cursor.continue();
+              };
+            } else store.put(result);
           } catch (error) {
             failure = error;
             tx.abort();
@@ -241,7 +273,7 @@ export class TransactionJournal {
               ),
           );
       });
-      announce();
+      announce(result);
       return result;
     } finally {
       db.close();
@@ -276,13 +308,22 @@ export class TransactionJournal {
           else if (
             parsed.data.chainId === chainId &&
             parsed.data.wallet === wallet
-          )
+          ) {
             records.push(parsed.data);
+            if (!plausibleJournalTime(parsed.data))
+              warnings.add(
+                "Implausible transaction timestamps were preserved and excluded from automatic receipt recovery.",
+              );
+          }
           cursor.continue();
         };
         tx.oncomplete = () =>
           resolve({
-            records: records.sort((a, b) => b.createdAt - a.createdAt),
+            records: records.sort(
+              (a, b) =>
+                Number(plausibleJournalTime(b)) -
+                  Number(plausibleJournalTime(a)) || b.createdAt - a.createdAt,
+            ),
             warnings: [...warnings],
           });
         tx.onabort = tx.onerror = () =>
@@ -296,4 +337,45 @@ export class TransactionJournal {
       db.close();
     }
   }
+}
+
+export function plausibleJournalTime(
+  record: JournalRecord,
+  now = Date.now(),
+): boolean {
+  return (
+    record.createdAt <= record.updatedAt && record.updatedAt <= now + 300000
+  );
+}
+export function recoveryCandidates(
+  records: JournalRecord[],
+  limit = 20,
+  now = Date.now(),
+): JournalRecord[] {
+  return records
+    .filter(
+      (record) =>
+        !!record.hash &&
+        !isTerminal(record.state) &&
+        plausibleJournalTime(record, now),
+    )
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, limit);
+}
+// Order independent, scoped revision based on durable records, not notification timing.
+export function journalRevision(
+  records: JournalRecord[],
+  contract: string,
+): string {
+  return JSON.stringify(
+    records
+      .filter((record) => record.contract === contract)
+      .map((record) => [
+        record.operationId,
+        record.state,
+        record.hash,
+        record.updatedAt,
+      ])
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+  );
 }

@@ -71,8 +71,8 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="mode-strip">
           <span className="mode-dot" />
           {s.mode === "local"
-            ? "LOCAL SIMULATION · Stored in this browser · No blockchain transactions"
-            : `KEPLR TESTNET · ${s.walletState.replaceAll("_", " ").toLowerCase()}`}
+            ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
+            : `KEPLR TESTNET · Mode: this tab · ${s.walletState.replaceAll("_", " ").toLowerCase()}`}
           <span className="wallet-balance">
             {formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG{" "}
             {s.mode === "local" ? "demo balance" : "wallet balance"}
@@ -204,7 +204,8 @@ export function Shell({ children }: { children: ReactNode }) {
           )}
           {s.pending.metadata && (
             <p>
-              {s.pending.metadata.name} · Private plan saved on this device.
+              {s.pending.metadata.name} · Private plan will be saved on this
+              device after confirmation.
             </p>
           )}
           <dl className="metrics">
