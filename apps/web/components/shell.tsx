@@ -94,6 +94,11 @@ export function Shell({ children }: { children: ReactNode }) {
             {s.message}
           </div>
         )}
+        {s.journalWarnings.map((warning) => (
+          <div key={warning} className="notice" role="alert">
+            {warning}
+          </div>
+        ))}
         {s.transactionOutcomes.length > 0 && (
           <section aria-label="Testnet transaction outcomes" aria-live="polite">
             {s.transactionOutcomes.map((tx) => (
@@ -129,6 +134,7 @@ export function Shell({ children }: { children: ReactNode }) {
                     </a>
                   )}
                   {tx.note && <p>{tx.note}</p>}
+                  {tx.storageWarning && <p role="alert">{tx.storageWarning}</p>}
                 </div>
               </div>
             ))}

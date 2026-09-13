@@ -8,7 +8,13 @@ export interface Confirmed {
     attributes: readonly { key: string; value: string }[];
   }[];
 }
+import type { JournalState } from "./transaction-journal";
 export interface TransactionDriver {
+  hash?: (bytes: Uint8Array) => Promise<string>;
+  persist?: (
+    state: JournalState,
+    details?: TransactionDetails,
+  ) => Promise<void>;
   assertFresh: () => Promise<void>;
   sign: () => Promise<Uint8Array>;
   broadcast: (bytes: Uint8Array) => Promise<string>;
@@ -16,6 +22,8 @@ export interface TransactionDriver {
 }
 export interface TransactionDetails {
   hash?: string;
+  storageWarning?: string;
+  code?: number;
   height?: number;
   uncertain?: boolean;
   message?: string;
@@ -40,24 +48,63 @@ export async function runTransaction(
 ): Promise<Confirmed> {
   let sent = false;
   let hash: string | undefined;
+  let storageWarning: string | undefined;
   try {
+    await driver.persist?.("AWAITING_SIGNATURE");
     await driver.assertFresh();
     update("AWAITING_SIGNATURE");
     const bytes = await driver.sign();
     await driver.assertFresh();
-    update("BROADCASTING");
+    hash = await driver.hash?.(bytes);
+    await driver.persist?.("BROADCASTING", { hash });
+    await driver.assertFresh();
+    update("BROADCASTING", { hash });
     sent = true;
-    hash = await driver.broadcast(bytes);
-    update("CONFIRMING", { hash });
+    const broadcastHash = await driver.broadcast(bytes);
+    if (hash && broadcastHash.toUpperCase() !== hash)
+      throw Error(
+        "Broadcast returned a different transaction hash. Check the signed transaction before retrying.",
+      );
+    hash = hash ?? broadcastHash;
+    try {
+      await driver.persist?.("CONFIRMING", { hash });
+    } catch {
+      storageWarning =
+        "Transaction status was not saved. Keep the signed hash and check its receipt.";
+    }
+    update("CONFIRMING", { hash, storageWarning });
     const result = await driver.confirm(hash);
-    if (result.code !== 0)
+    if (result.code !== 0) {
+      try {
+        await driver.persist?.("FAILED", {
+          hash,
+          height: result.height,
+          code: result.code,
+        });
+      } catch {
+        storageWarning =
+          "Receipt proven, but its status was not saved. Keep the transaction hash.";
+      }
+      if (storageWarning)
+        update("FAILED", { hash, height: result.height, storageWarning });
       throw new TransactionFailure(
         "The chain rejected this action. The deposit or withdrawal was not applied; a network fee may have been charged.",
         "FAILED",
         false,
         hash,
       );
-    update("SUCCESS", { hash, height: result.height });
+    }
+    try {
+      await driver.persist?.("CONFIRMED", {
+        hash,
+        height: result.height,
+        code: result.code,
+      });
+    } catch {
+      storageWarning =
+        "Receipt proven, but its status was not saved. Keep the transaction hash.";
+    }
+    update("SUCCESS", { hash, height: result.height, storageWarning });
     return result;
   } catch (error) {
     const message =
@@ -75,10 +122,25 @@ export async function runTransaction(
             sent,
             hash,
           );
+    try {
+      if (!(sent && !failure.uncertain))
+        await driver.persist?.(
+          failure.uncertain
+            ? "UNKNOWN_AFTER_BROADCAST"
+            : failure.state === "REJECTED"
+              ? "REJECTED"
+              : "FAILED",
+          failure.hash && sent ? { hash: failure.hash } : undefined,
+        );
+    } catch {
+      storageWarning =
+        "Transaction status was not saved. Keep the signed hash and check its receipt.";
+    }
     update(failure.state, {
       hash: failure.hash,
       uncertain: failure.uncertain,
       message: failure.message,
+      storageWarning,
     });
     throw failure;
   }

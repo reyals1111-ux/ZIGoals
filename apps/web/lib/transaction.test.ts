@@ -132,3 +132,71 @@ test.each(["included failure", "confirmation timeout"])(
     });
   },
 );
+
+test("durable signed hash survives lost broadcast transport", async () => {
+  const states: unknown[] = [];
+  const d = base();
+  d.hash = async () => "A".repeat(64);
+  d.persist = async (state, details) => {
+    states.push({ state, ...details });
+  };
+  d.broadcast = async () => {
+    throw Error("Transport lost");
+  };
+  await expect(runTransaction(d, () => {})).rejects.toMatchObject({
+    uncertain: true,
+    hash: "A".repeat(64),
+  });
+  expect(states).toContainEqual({
+    state: "BROADCASTING",
+    hash: "A".repeat(64),
+  });
+  expect(states.at(-1)).toMatchObject({ state: "UNKNOWN_AFTER_BROADCAST" });
+});
+test("failed durable barrier stops broadcast", async () => {
+  const d = base();
+  let sent = false;
+  d.persist = async (state) => {
+    if (state === "BROADCASTING") throw Error("Storage full");
+  };
+  d.broadcast = async () => {
+    sent = true;
+    return "HASH";
+  };
+  await expect(runTransaction(d, () => {})).rejects.toThrow("Storage full");
+  expect(sent).toBe(false);
+});
+test("receipt proof survives post-confirmation storage failure with visible warning", async () => {
+  const d = base();
+  const updates: unknown[] = [];
+  d.persist = async (state) => {
+    if (state === "CONFIRMED") throw Error("Storage lost");
+  };
+  await expect(
+    runTransaction(d, (state, details) => {
+      updates.push({ state, ...details });
+    }),
+  ).resolves.toMatchObject({ code: 0 });
+  expect(updates.at(-1)).toMatchObject({
+    state: "SUCCESS",
+    storageWarning: expect.stringContaining("not saved"),
+  });
+});
+test("post-broadcast storage failures are visible alongside uncertainty", async () => {
+  const d = base();
+  const updates: unknown[] = [];
+  d.persist = async (state) => {
+    if (state === "CONFIRMING" || state === "UNKNOWN_AFTER_BROADCAST")
+      throw Error("Storage lost");
+  };
+  d.confirm = async () => {
+    throw Error("RPC timeout");
+  };
+  await expect(
+    runTransaction(d, (state, details) => updates.push({ state, ...details })),
+  ).rejects.toThrow();
+  expect(updates.at(-1)).toMatchObject({
+    uncertain: true,
+    storageWarning: expect.stringContaining("not saved"),
+  });
+});

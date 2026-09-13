@@ -1,4 +1,9 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { TransactionJournal } from "./transaction-journal";
+import { signedTransactionHash } from "./receipt-reconciliation";
 import { toBech32 } from "@cosmjs/encoding";
 import { TESTNET } from "@zigoals/chain-config";
 import type { Keplr } from "./wallet";
@@ -62,6 +67,7 @@ function networkResponse(url: string) {
 }
 beforeEach(() => {
   vi.resetModules();
+  vi.stubGlobal("indexedDB", new IDBFactory());
   vi.stubEnv("NEXT_PUBLIC_GOAL_MANAGER_ADDRESS", contract);
   vi.stubEnv("NEXT_PUBLIC_GOAL_MANAGER_CODE_ID", "7");
   vi.stubGlobal("fetch", async (url: string) => networkResponse(url));
@@ -304,4 +310,85 @@ test("account change during the final RPC freshness read prevents broadcast", as
   finalCheck.resolve();
   await expect(execution).rejects.toThrow("Wallet or fee estimate changed");
   expect(signing.broadcastTxSync).not.toHaveBeenCalled();
+});
+
+test.each([
+  "lost transport",
+  "success",
+  "bad receipt",
+  "blocked storage",
+  "altered signed action",
+])("durable wallet execution: %s", async (scenario) => {
+  clients.read.mockResolvedValue(readClient());
+  let signedBytes = new Uint8Array();
+  let sends = 0;
+  const signing = {
+    getChainId: async () => TESTNET.chainId,
+    simulate: async () => 100000,
+    sign: async (
+      _: string,
+      messages: {
+        typeUrl: string;
+        value: Parameters<typeof MsgExecuteContract.encode>[0];
+      }[],
+    ) => {
+      const raw = TxRaw.fromPartial({
+        bodyBytes: TxBody.encode(
+          TxBody.fromPartial({
+            messages: messages.map((message) => ({
+              typeUrl: message.typeUrl,
+              value: MsgExecuteContract.encode(
+                scenario === "altered signed action"
+                  ? { ...message.value, contract: "zig1othercontract" }
+                  : message.value,
+              ).finish(),
+            })),
+          }),
+        ).finish(),
+        signatures: [new Uint8Array([1])],
+      });
+      signedBytes = new Uint8Array(TxRaw.encode(raw).finish());
+      return raw;
+    },
+    broadcastTxSync: async () => {
+      sends++;
+      if (scenario === "lost transport") throw Error("Lost transport");
+      return signedTransactionHash(signedBytes);
+    },
+    getTx: async () => ({
+      hash: await signedTransactionHash(signedBytes),
+      tx: scenario === "bad receipt" ? new Uint8Array([2]) : signedBytes,
+      height: 12,
+      code: 0,
+      events: [],
+    }),
+    disconnect: () => {},
+  };
+  clients.signing.mockResolvedValue(signing);
+  const { quoteExecute, executeQuote } = await import("./wallet");
+  const keplr = wallet().keplr;
+  const quote = await quoteExecute(keplr, owner, 1, { create_goal: {} });
+  if (scenario === "blocked storage") vi.stubGlobal("indexedDB", undefined);
+  const execution = executeQuote(
+    keplr,
+    quote,
+    () => 1,
+    () => {},
+  );
+  if (scenario === "success")
+    await expect(execution).resolves.toMatchObject({ height: 12 });
+  else await expect(execution).rejects.toThrow();
+  if (scenario === "blocked storage" || scenario === "altered signed action")
+    expect(sends).toBe(0);
+  else {
+    const restored = await new TransactionJournal().load(
+      TESTNET.chainId,
+      owner,
+    );
+    expect(restored.records).toHaveLength(1);
+    expect(restored.records[0]).toMatchObject({
+      hash: await signedTransactionHash(signedBytes),
+      state: scenario === "success" ? "CONFIRMED" : "UNKNOWN_AFTER_BROADCAST",
+    });
+  }
 });

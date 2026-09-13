@@ -33,6 +33,7 @@ import {
   connectKeplr,
   readBalance,
   readGoals,
+  reconcileTransactions,
   quoteExecute,
   executeQuote,
   CONTRACT_ADDRESS,
@@ -42,16 +43,49 @@ import {
   TransactionFailure,
   type TransactionDetails,
 } from "../lib/transaction";
+import {
+  JOURNAL_DATABASE,
+  TransactionJournal,
+  pendingDescription,
+  type JournalRecord,
+} from "../lib/transaction-journal";
 const LEDGER_KEY = "zigoals:local-ledger:v1";
 type Pending = { action: LocalAction; quote?: Quote; metadata?: GoalMetadata };
 type TransactionOutcome = TransactionDetails & {
-  id: number;
+  id: string;
   owner: string;
   chain: string;
   action: LocalAction["kind"];
   state: TransactionState;
   note?: string;
 };
+function journalOutcome(record: JournalRecord): TransactionOutcome {
+  return {
+    id: record.operationId,
+    owner: record.wallet,
+    chain: record.chainId,
+    action: record.action,
+    state:
+      record.state === "CONFIRMED"
+        ? "SUCCESS"
+        : record.state === "UNKNOWN_AFTER_BROADCAST"
+          ? "FAILED"
+          : record.state,
+    hash: record.hash,
+    height: record.height,
+    uncertain: [
+      "BROADCASTING",
+      "CONFIRMING",
+      "UNKNOWN_AFTER_BROADCAST",
+    ].includes(record.state),
+    message:
+      record.state === "FAILED"
+        ? record.hash
+          ? "The chain rejected this action; a network fee may have been charged."
+          : "This action stopped before a broadcast was recorded."
+        : pendingDescription(record),
+  };
+}
 function useGoalState() {
   const router = useRouter();
   const [mode, setMode] = useState<"local" | "testnet">("local");
@@ -72,7 +106,9 @@ function useGoalState() {
   const [loaded, setLoaded] = useState(false);
   const [localLedgerHealthy, setLocalLedgerHealthy] = useState(false);
   const revision = useRef(0);
-  const transactionId = useRef(0);
+  const [journalRecords, setJournalRecords] = useState<JournalRecord[]>([]);
+  const [journalWarnings, setJournalWarnings] = useState<string[]>([]);
+  const journalRefresh = useRef<() => Promise<void>>(async () => {});
   const actionBusy = useRef(false);
   const ledger = useRef<LocalLedger | null>(null);
   const activeScope = useRef({ mode, owner });
@@ -125,6 +161,89 @@ function useGoalState() {
     window.addEventListener("keplr_keystorechange", changed);
     return () => window.removeEventListener("keplr_keystorechange", changed);
   }, []);
+  useEffect(() => {
+    let stopped = false;
+    let loading = false;
+    let reloadRequested = false;
+    let firstLoad = true;
+    const journal = new TransactionJournal();
+    const load = async (reconcile = false) => {
+      if (stopped || mode !== "testnet" || !owner) return;
+      if (loading) {
+        reloadRequested = true;
+        return;
+      }
+      loading = true;
+      try {
+        const loaded = await journal.load(chain, owner);
+        if (stopped) return;
+        setJournalRecords((previous) =>
+          loaded.records.map((record) => {
+            const proven = previous.find(
+              (item) =>
+                item.operationId === record.operationId &&
+                (item.state === "CONFIRMED" || item.state === "FAILED"),
+            );
+            return proven ?? record;
+          }),
+        );
+        if (firstLoad) {
+          setJournalWarnings(loaded.warnings);
+          firstLoad = false;
+        } else
+          setJournalWarnings((previous) => [
+            ...new Set([...previous, ...loaded.warnings]),
+          ]);
+        if (reconcile) {
+          const recovered = await reconcileTransactions(
+            loaded.records,
+            journal,
+          );
+          if (stopped) return;
+          setJournalRecords((previous) =>
+            previous.map(
+              (record) =>
+                recovered.records.find(
+                  (item) => item.operationId === record.operationId,
+                ) ?? record,
+            ),
+          );
+          setJournalWarnings((previous) => [
+            ...new Set([...previous, ...recovered.warnings]),
+          ]);
+        }
+      } catch (error) {
+        if (!stopped)
+          setJournalWarnings([
+            error instanceof Error
+              ? error.message
+              : "Transaction history is unavailable. Stored data was preserved.",
+          ]);
+      } finally {
+        loading = false;
+        if (reloadRequested && !stopped) {
+          reloadRequested = false;
+          void load();
+        }
+      }
+    };
+    journalRefresh.current = () => load(true);
+    void load(true);
+    const changed = () => {
+      void load();
+    };
+    window.addEventListener("zigoals:journal-change", changed);
+    const channel =
+      typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel(JOURNAL_DATABASE)
+        : undefined;
+    if (channel) channel.onmessage = changed;
+    return () => {
+      stopped = true;
+      window.removeEventListener("zigoals:journal-change", changed);
+      channel?.close();
+    };
+  }, [chain, mode, owner]);
   async function refresh() {
     const current = revision.current;
     if (mode === "local") {
@@ -140,6 +259,7 @@ function useGoalState() {
       return;
     }
     if (!owner) return;
+    await journalRefresh.current();
     const [g, b] = await Promise.all([readGoals(owner), readBalance(owner)]);
     if (current !== revision.current) return;
     setGoals(g);
@@ -296,7 +416,7 @@ function useGoalState() {
     let outcome: TransactionOutcome | undefined =
       scope.mode === "testnet"
         ? {
-            id: ++transactionId.current,
+            id: crypto.randomUUID(),
             owner: scope.owner,
             chain: scope.chain,
             action: action.kind,
@@ -345,6 +465,7 @@ function useGoalState() {
           pending.quote,
           () => revision.current,
           updateTransaction,
+          outcome?.id,
         );
         const attrs = tx.events
           .filter(
@@ -482,7 +603,39 @@ function useGoalState() {
     goals,
     balance,
     activity,
-    transactionOutcomes,
+    transactionOutcomes: [
+      ...transactionOutcomes.map((outcome) => {
+        const proven = journalRecords.find(
+          (record) =>
+            record.operationId === outcome.id &&
+            (record.state === "CONFIRMED" ||
+              (record.state === "FAILED" && record.hash)),
+        );
+        return proven ? { ...outcome, ...journalOutcome(proven) } : outcome;
+      }),
+      ...journalRecords
+        .filter(
+          (record) =>
+            mode === "testnet" &&
+            record.wallet === owner &&
+            record.chainId === chain &&
+            !transactionOutcomes.some(
+              (outcome) => outcome.id === record.operationId,
+            ),
+        )
+        .map(journalOutcome),
+    ],
+    journalRecords: journalRecords.filter(
+      (record) =>
+        mode === "testnet" &&
+        record.wallet === owner &&
+        record.chainId === chain,
+    ),
+    journalWarnings: mode === "testnet" && owner ? journalWarnings : [],
+    historySource:
+      mode === "local"
+        ? ("LOCAL_SIMULATION" as const)
+        : ("TESTNET_CHAIN" as const),
     metadata,
     error,
     message,

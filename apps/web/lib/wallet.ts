@@ -20,6 +20,18 @@ import {
   type Confirmed,
   type TransactionUpdate,
 } from "./transaction";
+import {
+  newOperation,
+  TransactionJournal,
+  type JournalRecord,
+} from "./transaction-journal";
+import {
+  signedTransactionHash,
+  verifySignedOperation,
+  verifyReceipt,
+  reconcileKnownReceipt,
+  receiptDeadline,
+} from "./receipt-reconciliation";
 export interface Keplr {
   enable(chain: string): Promise<void>;
   experimentalSuggestChain(
@@ -212,12 +224,56 @@ export async function executeQuote(
   quote: Quote,
   currentRevision: () => number,
   onState: TransactionUpdate,
+  operationId?: string,
 ): Promise<Confirmed> {
   const assertCurrent = () => {
     if (currentRevision() !== quote.revision || Date.now() > quote.expiresAt)
       throw Error("Wallet or fee estimate changed. Review the action again.");
   };
   assertCurrent();
+  const execute = quote.message.value as MsgExecuteContract;
+  const message = JSON.parse(
+    new TextDecoder().decode(execute.msg),
+  ) as ExecuteMsg;
+  if (
+    !(
+      "create_goal" in message ||
+      "deposit" in message ||
+      "withdraw" in message ||
+      "close_goal" in message
+    )
+  )
+    throw Error("This action is not supported by the transaction journal.");
+  const action =
+    "create_goal" in message
+      ? "create"
+      : "deposit" in message
+        ? "deposit"
+        : "withdraw" in message
+          ? "withdraw"
+          : "close";
+  const operation = newOperation({
+    chainId: TESTNET.chainId,
+    wallet: quote.owner,
+    contract: execute.contract,
+    action,
+    goalId:
+      "create_goal" in message
+        ? undefined
+        : "deposit" in message
+          ? message.deposit.goal_id
+          : "withdraw" in message
+            ? message.withdraw.goal_id
+            : message.close_goal.goal_id,
+    amount:
+      "withdraw" in message
+        ? message.withdraw.amount
+        : (execute.funds[0]?.amount ?? "0"),
+    denom: TESTNET.nativeAsset.baseDenom,
+  });
+  if (operationId) operation.operationId = operationId;
+  const journal = new TransactionJournal();
+  await journal.create(operation);
   const signer = await keplr.getOfflineSignerAuto(TESTNET.chainId);
   assertCurrent();
   const client = await SigningCosmWasmClient.connectWithSigner(
@@ -243,6 +299,19 @@ export async function executeQuote(
     return await runTransaction(
       {
         assertFresh: fresh,
+        hash: async (bytes) => {
+          verifySignedOperation(operation, bytes);
+          return signedTransactionHash(bytes);
+        },
+        persist: async (state, details) => {
+          if (state === "AWAITING_SIGNATURE") return;
+          const saved = await journal.transition(operation.operationId, {
+            state,
+            ...details,
+          });
+          if (state === "BROADCASTING" && saved.state !== "BROADCASTING")
+            throw Error("This operation cannot be broadcast again.");
+        },
         sign: async () => {
           const verified = await verifiedClient();
           verified.disconnect();
@@ -255,14 +324,15 @@ export async function executeQuote(
         confirm: async (hash) => {
           const end = Date.now() + 60000;
           while (Date.now() < end) {
-            const tx = await client.getTx(hash);
-            if (tx)
-              return {
-                hash,
-                height: tx.height,
-                code: tx.code,
-                events: tx.events,
-              };
+            const tx = await receiptDeadline(client.getTx(hash));
+            if (tx) {
+              if (
+                (await receiptDeadline(client.getChainId())) !==
+                operation.chainId
+              )
+                throw Error("Wrong RPC network during confirmation.");
+              return verifyReceipt({ ...operation, hash }, tx);
+            }
             await new Promise((resolve) => setTimeout(resolve, 1500));
           }
           throw Error(
@@ -275,4 +345,42 @@ export async function executeQuote(
   } finally {
     client.disconnect();
   }
+}
+
+/** Bounded, read-only receipt recovery. Never signs or broadcasts. */
+export async function reconcileTransactions(
+  records: JournalRecord[],
+  journal = new TransactionJournal(),
+) {
+  const candidates = records
+    .filter(
+      (record) =>
+        record.hash &&
+        ["BROADCASTING", "CONFIRMING", "UNKNOWN_AFTER_BROADCAST"].includes(
+          record.state,
+        ),
+    )
+    .slice(0, 20);
+  if (!candidates.length)
+    return { records: [] as JournalRecord[], warnings: [] as string[] };
+  const recovered: JournalRecord[] = [];
+  const warnings: string[] = [];
+  const client = await receiptDeadline(CosmWasmClient.connect(TESTNET.rpcUrl));
+  try {
+    for (const record of candidates) {
+      if (record.chainId !== TESTNET.chainId) continue;
+      const patch = await reconcileKnownReceipt(record, client);
+      try {
+        recovered.push(await journal.transition(record.operationId, patch));
+      } catch {
+        recovered.push({ ...record, ...patch });
+        warnings.push(
+          "Receipt status was not saved. Keep the transaction hash; stored history may be older than the proven receipt.",
+        );
+      }
+    }
+  } finally {
+    client.disconnect();
+  }
+  return { records: recovered, warnings };
 }

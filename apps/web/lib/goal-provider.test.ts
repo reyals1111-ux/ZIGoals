@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { newOperation, TransactionJournal } from "./transaction-journal";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { Goal } from "@zigoals/shared-types/contract";
@@ -18,6 +20,7 @@ const api = vi.hoisted(() => ({
   execute: vi.fn(),
   readGoals: vi.fn(),
   readBalance: vi.fn(),
+  reconcile: vi.fn(),
   push: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
@@ -31,6 +34,7 @@ vi.mock("./wallet", () => ({
   readGoals: api.readGoals,
   readBalance: api.readBalance,
   CONTRACT_ADDRESS: "zig1contract",
+  reconcileTransactions: api.reconcile,
 }));
 const ownerA = "zig1originalwallet";
 const ownerB = "zig1newwallet";
@@ -76,6 +80,11 @@ function Controls() {
     ),
     createElement(
       "button",
+      { onClick: () => void s.refresh() },
+      "Refresh journal",
+    ),
+    createElement(
+      "button",
       { onClick: () => void s.prepare({ kind: "create" }) },
       "Prepare transaction",
     ),
@@ -97,6 +106,8 @@ function scope() {
 }
 beforeEach(async () => {
   vi.clearAllMocks();
+  vi.stubGlobal("indexedDB", new IDBFactory());
+  api.reconcile.mockResolvedValue({ records: [], warnings: [] });
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   window.localStorage.clear();
   window.keplr = {} as NonNullable<Window["keplr"]>;
@@ -234,3 +245,100 @@ test.each([
     expect(outcome?.textContent).toContain(notice);
   },
 );
+
+test("reconnect restores only its durable wallet history and keeps stale signatures honest", async () => {
+  const journal = new TransactionJournal();
+  await act(async () => {
+    await journal.create(
+      newOperation({
+        chainId: "zig-test-2",
+        wallet: ownerA,
+        contract: "zig1contract",
+        action: "create",
+        amount: "0",
+        denom: "azig",
+      }),
+    );
+  });
+  await click("Connect Keplr");
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 40));
+  });
+  expect(container.textContent).toContain("No broadcast is recorded");
+  expect(container.textContent).toContain(ownerA);
+  api.connect.mockResolvedValue(ownerB);
+  await act(async () => {
+    window.dispatchEvent(new Event("keplr_keystorechange"));
+  });
+  await click("Connect Keplr");
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 40));
+  });
+  expect(container.textContent).not.toContain(ownerA);
+  expect(container.textContent).not.toContain("No broadcast is recorded");
+});
+
+test("recovered receipt proof replaces a live uncertain outcome", async () => {
+  const journal = new TransactionJournal();
+  let record: ReturnType<typeof newOperation>;
+  api.execute.mockImplementation(
+    async (_wallet, _quote, _revision, update, operationId) => {
+      record = {
+        ...newOperation({
+          chainId: "zig-test-2",
+          wallet: ownerA,
+          contract: "zig1contract",
+          action: "create",
+          amount: "0",
+          denom: "azig",
+        }),
+        operationId,
+      };
+      await journal.create(record);
+      await journal.transition(operationId, {
+        state: "BROADCASTING",
+        hash: "A".repeat(64),
+      });
+      return runTransaction(
+        {
+          assertFresh: async () => {},
+          sign: async () => new Uint8Array([1]),
+          broadcast: async () => "A".repeat(64),
+          confirm: async () => {
+            throw Error("RPC timeout");
+          },
+        },
+        update,
+      );
+    },
+  );
+  await click("Connect Keplr");
+  await click("Prepare transaction");
+  await click("Approve in Keplr");
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  });
+  expect(
+    container.querySelector('[aria-label="Testnet transaction outcomes"]')
+      ?.textContent,
+  ).toContain("Confirmation is uncertain");
+  api.reconcile.mockImplementation(async () => ({
+    records: [
+      await journal.transition(record.operationId, {
+        state: "CONFIRMED",
+        height: 12,
+        code: 0,
+      }),
+    ],
+    warnings: [],
+  }));
+  await click("Refresh journal");
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  });
+  const result = container.querySelector(
+    '[aria-label="Testnet transaction outcomes"]',
+  )?.textContent;
+  expect(result).toContain("Confirmed on testnet at block 12");
+  expect(result).not.toContain("Confirmation is uncertain");
+});
