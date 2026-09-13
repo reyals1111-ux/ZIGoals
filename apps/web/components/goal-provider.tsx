@@ -59,6 +59,7 @@ import {
   type JournalRecord,
 } from "../lib/transaction-journal";
 const LEDGER_KEY = "zigoals:local-ledger:v1";
+const WALLET_RECONNECT_HINT_KEY = "zigoals:wallet-reconnect-hint:v1";
 type Pending = {
   action: LocalAction;
   quote?: Quote;
@@ -120,6 +121,7 @@ function useGoalState() {
   const [pending, setPending] = useState<Pending>();
   const [loaded, setLoaded] = useState(false);
   const [localLedgerHealthy, setLocalLedgerHealthy] = useState(false);
+  const [walletReconnectHint, setWalletReconnectHint] = useState(false);
   const revision = useRef(0);
   const metadataRaw = useRef<string | null>(null);
   const [journalRecords, setJournalRecords] = useState<JournalRecord[]>([]);
@@ -163,6 +165,13 @@ function useGoalState() {
     }
   }
   useEffect(() => {
+    try {
+      setWalletReconnectHint(
+        sessionStorage.getItem(WALLET_RECONNECT_HINT_KEY) === "true",
+      );
+    } catch {
+      setWalletReconnectHint(false);
+    }
     try {
       localLoad();
     } catch (e) {
@@ -383,6 +392,11 @@ function useGoalState() {
       setGoals(g);
       setWalletState("CONNECTED");
       try {
+        sessionStorage.setItem(WALLET_RECONNECT_HINT_KEY, "true");
+      } catch {
+        // Connection remains usable when tab storage is unavailable.
+      }
+      try {
         setMetadata(readPlans(TESTNET.chainId, address));
       } catch (e) {
         setError("Private plans need recovery. " + String(e));
@@ -407,6 +421,12 @@ function useGoalState() {
   }
   function useLocal() {
     revision.current++;
+    try {
+      sessionStorage.removeItem(WALLET_RECONNECT_HINT_KEY);
+    } catch {
+      // Storage availability must not prevent returning to Local demo.
+    }
+    setWalletReconnectHint(false);
     setPending(undefined);
     setMode("local");
     setOwner(LOCAL_OWNER);
@@ -743,6 +763,7 @@ function useGoalState() {
     chain,
     owner,
     walletState,
+    walletReconnectHint,
     goals,
     balance,
     activity,

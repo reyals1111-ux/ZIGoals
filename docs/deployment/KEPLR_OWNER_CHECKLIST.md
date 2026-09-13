@@ -1,6 +1,14 @@
 # Real Keplr owner checks
 
-Run this on the trusted ZIGoals local preview using the owner's existing Keplr installation and a dedicated testnet account. Do not enter a seed/key in the app, terminal or chat. Results below are **NOT RUN with a real extension** in Run2. Automated wallet-boundary tests are separate evidence.
+For a fresh check, use the intended trusted ZIGoals origin with the owner's existing Keplr installation and a dedicated testnet account. Do not enter a seed/key in the app, terminal or chat. Automated wallet-boundary tests are separate evidence.
+
+Current owner-hosted evidence is recorded in [`docs/verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json`](../verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json). It covers the real extension at `https://alpha.zigoals.app` and `https://zigoals-alpha.reyals1111.workers.dev`, including rejected and approved connection attempts and reload behavior. It records no financial signing or broadcast. This owner observation does not relabel or replace the historical Run 2 rows below, which remain **NOT RUN with a real extension**.
+
+## Reload and reconnect expectation
+
+Reload intentionally returns the app to Local demo without restoring a wallet, address, balance, goals or financial capability. After a successful explicit connection in the same tab, the app may show **Reconnect Keplr** after reload using only a versioned boolean in tab-scoped session storage. That hint is presentation only and must never be treated as wallet permission or authorization.
+
+Only the reconnect button may start the existing connection flow. Keplr may remember browser permission and reconnect without another prompt, or it may still ask the owner to unlock or approve access. Choosing **Local demo** clears the tab hint. A new tab starts with **Connect Keplr**. Missing, invalid or unavailable tab storage must leave Local demo usable and must not call Keplr automatically.
 
 Record browser/Keplr versions, app commit, date, public test account, and PASS/FAIL/NOT RUN for each row. Keep wallet screenshots private if they expose unrelated accounts. No funds are needed through row8. Rows9–12 require the verified testnet deployment and test funds.
 
@@ -21,4 +29,4 @@ Record browser/Keplr versions, app commit, date, public test account, and PASS/F
 
 Wrong-network handling is covered locally by mocked wrong-chain REST/RPC/signer responses. Do not redirect a real wallet to a malicious endpoint to test this. If Keplr shows a different chain, stale denom, unexpected account, contract, funds, fee or message, reject and stop. A successful connection is not a successful contract smoke test.
 
-If a real extension prompt requires interaction, the owner performs it. No real-extension result is claimed here. Browser availability/security-policy failure during Run2 prevented normal browser inspection; it does not prove whether Keplr is installed.
+If a real extension prompt requires interaction, the owner performs it. No real-extension result is claimed for the historical Run 2 rows. Browser availability/security-policy failure during Run 2 prevented normal browser inspection; it does not prove whether Keplr was installed for that run.
