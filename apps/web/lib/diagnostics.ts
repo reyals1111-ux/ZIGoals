@@ -1,4 +1,4 @@
-import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import type { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { deployedManifest } from "./deployment-config";
 import { verifyContractEvidence } from "./contract-evidence";
 import { TESTNET, verifyNetwork } from "@zigoals/chain-config";
@@ -82,6 +82,7 @@ export async function readDiagnostics(
       try {
         return await Promise.race([
           (async () => {
+            const { CosmWasmClient } = await import("@cosmjs/cosmwasm-stargate");
             client = await CosmWasmClient.connect(TESTNET.rpcUrl);
             if (cancelled) {
               client.disconnect();

@@ -1,0 +1,101 @@
+name: Manual release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Full reviewed main-branch SHA (must equal the selected ref)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  authorize-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Restrict issuance to exact reviewed main commit
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          test "$EXPECTED_COMMIT" = "$GITHUB_SHA"
+          [[ "$EXPECTED_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+  quality:
+    needs: authorize-source
+    uses: ./.github/workflows/ci.yml
+  reproducibility:
+    needs: authorize-source
+    uses: ./.github/workflows/reproducibility.yml
+  cargo-advisories:
+    needs: authorize-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      # Audit-tool compiler is separate from the Rust 1.85.1 contract compiler.
+      - run: rustup toolchain install 1.88.0 --profile minimal
+      - run: cargo +1.88.0 install cargo-audit --version 0.22.2 --locked --root .toolchain/audit
+      - run: .toolchain/audit/bin/cargo-audit audit --file Cargo.lock --db .toolchain/advisory-db
+  verify-candidate:
+    needs: [quality, reproducibility, cargo-advisories]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - run: rustup toolchain install 1.85.1 --profile minimal
+      - run: cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reproducible-${{ github.sha }}
+          path: candidate
+      - name: Verify downloaded bytes before attesting
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        run: node scripts/release/verify.mjs verify "$EXPECTED_COMMIT" .toolchain/check/bin/cosmwasm-check candidate
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: validated-for-issuance-${{ github.sha }}
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 30
+  issue-candidate:
+    needs: verify-candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # No checkout, dependency install or repository code runs with OIDC authority.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: validated-for-issuance-${{ github.sha }}
+          path: candidate
+      - name: Attest exact Wasm and its manifest
+        id: attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            candidate/zigoals_goal_manager.wasm
+            candidate/artifact-manifest.json
+      - name: Retain signed bundle with candidate
+        env:
+          BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
+        run: cp "$BUNDLE_PATH" candidate/attestation.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 90

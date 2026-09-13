@@ -1,0 +1,189 @@
+{
+  "note": "Section payload equality only; not semantic equivalence or cause attribution.",
+  "linux": [
+    {
+      "id": 1,
+      "offset": 8,
+      "length": 248,
+      "sha256": "a6a66443f3927988827caf046a6cd0d95354e9424164dc1e2b17dd1becca460b"
+    },
+    {
+      "id": 2,
+      "offset": 259,
+      "length": 519,
+      "sha256": "0e5d1dd3becefccb2402d056a020eeec49ba1c8e256ee21f84b7fada23244553"
+    },
+    {
+      "id": 3,
+      "offset": 781,
+      "length": 366,
+      "sha256": "9b8c82a2118df3b4f4dce1cc931f9b5c8088e102ae72c1976ba671368d24e7d3"
+    },
+    {
+      "id": 4,
+      "offset": 1150,
+      "length": 7,
+      "sha256": "e019774c83b851700bbd73f7e4813b0a188149b2e28f7ed4ba1f37cda8e06ee2"
+    },
+    {
+      "id": 5,
+      "offset": 1159,
+      "length": 3,
+      "sha256": "f0b84402ff5181a6f998d07e5832d16de5bd3ea4e32e542da814690a734e0950"
+    },
+    {
+      "id": 6,
+      "offset": 1164,
+      "length": 25,
+      "sha256": "c745f991080811a287c8b002e5ce90e2722a799b03bc1ed7edcf73b71e79bb2d"
+    },
+    {
+      "id": 7,
+      "offset": 1191,
+      "length": 314,
+      "sha256": "f9dc8648c7133b0248aa6aeb290f1d5ae2850329407734dd7ad8faf40fe270b1"
+    },
+    {
+      "id": 9,
+      "offset": 1508,
+      "length": 284,
+      "sha256": "485b60dd657c9137dfb1ceeffbdcc576d7c93c87d2379cb034a88d041067780f"
+    },
+    {
+      "id": 10,
+      "offset": 1795,
+      "length": 229766,
+      "sha256": "286b754234abb6235df805e394f4f283cf6a16a900038396df42674ad98102eb"
+    },
+    {
+      "id": 11,
+      "offset": 231565,
+      "length": 23963,
+      "sha256": "97d7ce6e6204f9656af96ae24bd55d0f683e8697a0fbd06681d7a4082bba5aa5"
+    }
+  ],
+  "mac": [
+    {
+      "id": 1,
+      "offset": 8,
+      "length": 248,
+      "sha256": "a6a66443f3927988827caf046a6cd0d95354e9424164dc1e2b17dd1becca460b"
+    },
+    {
+      "id": 2,
+      "offset": 259,
+      "length": 519,
+      "sha256": "0e5d1dd3becefccb2402d056a020eeec49ba1c8e256ee21f84b7fada23244553"
+    },
+    {
+      "id": 3,
+      "offset": 781,
+      "length": 366,
+      "sha256": "def7525ec25ea41d2cbfc26af12c2dfaf401008c2dcdb5e5dc3ea10cb9d85874"
+    },
+    {
+      "id": 4,
+      "offset": 1150,
+      "length": 7,
+      "sha256": "e019774c83b851700bbd73f7e4813b0a188149b2e28f7ed4ba1f37cda8e06ee2"
+    },
+    {
+      "id": 5,
+      "offset": 1159,
+      "length": 3,
+      "sha256": "f0b84402ff5181a6f998d07e5832d16de5bd3ea4e32e542da814690a734e0950"
+    },
+    {
+      "id": 6,
+      "offset": 1164,
+      "length": 25,
+      "sha256": "c745f991080811a287c8b002e5ce90e2722a799b03bc1ed7edcf73b71e79bb2d"
+    },
+    {
+      "id": 7,
+      "offset": 1191,
+      "length": 314,
+      "sha256": "f9dc8648c7133b0248aa6aeb290f1d5ae2850329407734dd7ad8faf40fe270b1"
+    },
+    {
+      "id": 9,
+      "offset": 1508,
+      "length": 284,
+      "sha256": "52a930a3e6677104b4c16fc0e2179581cc657e8368420c4c69d8cb9090c05fcd"
+    },
+    {
+      "id": 10,
+      "offset": 1795,
+      "length": 229766,
+      "sha256": "0197388111fae6cab1cbd74160349f6176bb3b7d17dfea7b539aad465212e1f1"
+    },
+    {
+      "id": 11,
+      "offset": 231565,
+      "length": 23963,
+      "sha256": "a158d76dda3933df3218cdb7c57b00ea3753402b1f9f60f6db597eabb470c254"
+    }
+  ],
+  "comparison": [
+    {
+      "section": 1,
+      "linuxLength": 248,
+      "macLength": 248,
+      "equal": true
+    },
+    {
+      "section": 2,
+      "linuxLength": 519,
+      "macLength": 519,
+      "equal": true
+    },
+    {
+      "section": 3,
+      "linuxLength": 366,
+      "macLength": 366,
+      "equal": false
+    },
+    {
+      "section": 4,
+      "linuxLength": 7,
+      "macLength": 7,
+      "equal": true
+    },
+    {
+      "section": 5,
+      "linuxLength": 3,
+      "macLength": 3,
+      "equal": true
+    },
+    {
+      "section": 6,
+      "linuxLength": 25,
+      "macLength": 25,
+      "equal": true
+    },
+    {
+      "section": 7,
+      "linuxLength": 314,
+      "macLength": 314,
+      "equal": true
+    },
+    {
+      "section": 9,
+      "linuxLength": 284,
+      "macLength": 284,
+      "equal": false
+    },
+    {
+      "section": 10,
+      "linuxLength": 229766,
+      "macLength": 229766,
+      "equal": false
+    },
+    {
+      "section": 11,
+      "linuxLength": 23963,
+      "macLength": 23963,
+      "equal": false
+    }
+  ]
+}

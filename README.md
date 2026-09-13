@@ -1,9 +1,9 @@
 # ZIGoals
 The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
 
-Milestones 1 and 2 provide a **local alpha**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
+Milestones 1–4 provide an **unaudited Alpha implementation**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
 
-Run 2 adds durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes remain disabled.
+The Alpha includes durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes remain disabled.
 
 Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
 
@@ -16,8 +16,8 @@ Use Node **24.19.0** (`.node-version` and `.nvmrc`) and pnpm **11.19.0** (`packa
 First run `node scripts/doctor.mjs` (or `pnpm run doctor`). It only reads local prerequisites and checks the optional local Docker socket; it does not install tools or query the chain. `ERROR` blocks the relevant prerequisite; `WARNING` identifies optional tools or uncommitted work. **Use `pnpm run doctor`, with `run`: `pnpm doctor` is pnpm's own unrelated command.** The owner's Node 22.23.1 could start the development server but does not meet the pinned, CI-tested version; switch the current terminal to 24.19.0 before installing or verifying. Then:
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm dev
+pnpm install --frozen-lockfile --ignore-scripts
+NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev
 ```
 
 Open [the local app](http://127.0.0.1:3100/app). No wallet, environment file, API key, Docker service, or chain connection is required for the local demo. It starts with 1,000 simulated ZIG. Create a goal, review it, add funds, withdraw, and close it when empty. Starting balance in the wizard is a planning input; funds enter the goal only through the separate Add funds action.
@@ -30,7 +30,7 @@ Names, targets, dates and notes stay in browser storage. Export them from Settin
 pnpm lint
 pnpm typecheck
 pnpm test
-pnpm build
+NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build
 pnpm audit --prod --audit-level high
 pnpm verify:network
 ```
@@ -58,19 +58,19 @@ cargo schema --locked
 node contracts/goal-manager/scripts/generate-types.mjs
 ```
 
-For this checkout's isolated `.toolchain` installation, first use the environment setup in the [contract README](contracts/goal-manager/README.md). That document also gives the pinned Binaryen and `cosmwasm-check` installation and validated Wasm build. Use `artifacts/zigoals_goal_manager.wasm` produced by that script, never raw Cargo output. The local optimization/validation passed; the Docker workspace optimizer was not run because its daemon was unavailable.
+For this checkout's isolated `.toolchain` installation, first use the environment setup in the [contract README](contracts/goal-manager/README.md). That document also gives the pinned Binaryen and `cosmwasm-check` installation and validated Wasm build. Its `artifacts/zigoals_goal_manager.wasm` is a developer verification build, never release authority. Future upload must use the two-job canonical Linux process in [ADR-005](docs/architecture/ADR-005-canonical-release-build.md), followed by [download and attestation verification](docs/deployment/VERIFY_RELEASE_ARTIFACT.md).
 
 ## Testnet gate
 
 Read [current chain evidence](docs/research/ZIGCHAIN_CURRENT_STATE.md) and the [deployment runbook](docs/deployment/TESTNET.md). Live reads on 2026-09-13 confirmed `zig-test-2`, `azig`, 18 decimals, and `v5.0.0-patch-1`. The client rechecks identity and denomination, simulates fees, checks the signer around approval, and requires a verified immutable deployment before financial actions.
 
-The owner still needs dedicated-wallet test funds and confirmed upload permission. No faucet retries, upload, instantiation, mainnet transaction, or external outreach occurred. The preparation script only reads the network and emits a manifest with null deployment IDs:
+The owner still needs dedicated-wallet test funds and confirmed upload permission. No faucet retries, upload, instantiation, mainnet transaction, or external outreach occurred. After downloading and independently verifying a canonical REPRODUCIBLE candidate, preparation validates its actual bytes/source/environment before public network reads and emits an unsigned manifest with null deployment IDs. Use the independently trusted full source SHA and downloaded directory from the [verification guide](docs/deployment/VERIFY_RELEASE_ARTIFACT.md), replacing the two placeholders below:
 
 ```bash
-node scripts/prepare-deployment.mjs
+node scripts/prepare-deployment.mjs EXPECTED_FULL_COMMIT CANDIDATE_DIRECTORY .toolchain/check/bin/cosmwasm-check
 ```
 
-After a separately verified deployment, validate the strict [v2 public manifest](docs/deployment/MANIFEST_V2.md), place it in `apps/web/config/deployment.json` and rebuild. Legacy address/code-ID environment variables no longer enable actions. Never put a seed phrase, private key, wallet password or API credential in the app. Real owner connection checks A–H passed; real signing and deployed-contract smoke tests remain pending.
+After a separately verified deployment, validate the strict [v2 public manifest](docs/deployment/MANIFEST_V2.md), place it in `apps/web/config/deployment.json` and explicitly rebuild with `NEXT_PUBLIC_APP_ENVIRONMENT=TESTNET_DEPLOYED`. Public undeployed mode independently blocks financial execution even with a deployed manifest. Legacy address/code-ID environment variables no longer enable actions. Never put a seed phrase, private key, wallet password or API credential in the app. Real owner connection checks A–H passed; real signing and deployed-contract smoke tests remain pending.
 
 ## Repository map
 
@@ -93,4 +93,10 @@ See the [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md), [thr
 
 For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.md), [contributing](CONTRIBUTING.md), [privacy](docs/PRIVACY.md) and [security reporting](SECURITY.md). Settings includes read-only connection diagnostics with separate RPC/REST outcomes and a build identifier.
 
-Milestone 3: [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [open PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.
+Milestone 3 merged at `7d354e3` with successful [post-merge main CI](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34764912650): [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [merged PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.
+
+## Milestone 4 release and public Alpha preparation
+
+The public web Alpha is **PREPARED_NOT_DEPLOYED**: there is no verified Alpha URL. The isolated Cloudflare package supports simulation, safe diagnostics and optional wallet connection only. Its production scripts use fresh CSP nonces; real Keplr compatibility under the new policy remains unverified. Cloudflare browser access was blocked by unavailable admin-policy verification, and Wrangler was unauthenticated. Existing apex and email settings were preserved.
+
+Use [Cloudflare setup and owner steps](docs/deployment/CLOUDFLARE_ALPHA.md), [publication checklist](docs/deployment/PUBLIC_ALPHA_CHECKLIST.md), [release process](docs/release/RELEASE_PROCESS.md), [Run 4 report](docs/RUN_4_REPORT.md) and [current evidence](docs/verification/m4/README.md). Two independent Linux builds produced matching Wasm; the candidate remains NOT_APPROVED. Manual main-only attestation, contract upload and real financial signing have not run. [PR #3](https://github.com/reyals1111-ux/ZIGoals/pull/3) remains for owner review, unmerged.

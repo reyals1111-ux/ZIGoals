@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zigoals.app/schemas/release-artifact-v1.json",
+  "title": "Unapproved canonical build evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "approval",
+    "source",
+    "environment",
+    "artifact",
+    "independentBuildCount",
+    "builds"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "status": {
+      "enum": [
+        "BUILD_VERIFIED",
+        "REPRODUCIBLE"
+      ]
+    },
+    "approval": {
+      "const": "NOT_APPROVED"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "tree",
+        "cargoLockSha256",
+        "sourceDateEpoch"
+      ],
+      "properties": {
+        "commit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "tree": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "cargoLockSha256": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sourceDateEpoch": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9999999999
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "platform",
+        "arch",
+        "osRelease",
+        "imageOS",
+        "imageVersion",
+        "rust",
+        "cargo",
+        "node",
+        "binaryen",
+        "validator",
+        "target",
+        "flags",
+        "locale",
+        "timezone"
+      ],
+      "properties": {
+        "policy": {
+          "const": "canonical-linux-v1"
+        },
+        "platform": {
+          "const": "linux"
+        },
+        "arch": {
+          "const": "x64"
+        },
+        "osRelease": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "imageOS": {
+          "const": "ubuntu24"
+        },
+        "imageVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "rust": {
+          "const": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7"
+        },
+        "cargo": {
+          "const": "cargo 1.85.1 (d73d2caf9 2024-12-31)"
+        },
+        "node": {
+          "const": "24.19.0"
+        },
+        "binaryen": {
+          "const": "wasm-opt version 123 (version_123)"
+        },
+        "validator": {
+          "const": "Contract checking 2.2.2"
+        },
+        "target": {
+          "const": "wasm32-unknown-unknown"
+        },
+        "flags": {
+          "const": "-C target-feature=-reference-types,-multivalue; remap source=/src cargo=/cargo rustup=/rustup; optimizer=-Oz --signext-lowering"
+        },
+        "locale": {
+          "const": "C"
+        },
+        "timezone": {
+          "const": "UTC"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "sizeBytes"
+      ],
+      "properties": {
+        "name": {
+          "const": "zigoals_goal_manager.wasm"
+        },
+        "sha256": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        }
+      }
+    },
+    "independentBuildCount": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "builds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "repository",
+          "runId",
+          "runAttempt",
+          "job",
+          "builtAt",
+          "validation"
+        ],
+        "properties": {
+          "repository": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+          },
+          "runId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "runAttempt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "job": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "builtAt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+          },
+          "validation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tool",
+              "version",
+              "passed"
+            ],
+            "properties": {
+              "tool": {
+                "const": "cosmwasm-check"
+              },
+              "version": {
+                "const": "2.2.2"
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "BUILD_VERIFIED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "independentBuildCount": {
+            "const": 1
+          },
+          "builds": {
+            "minItems": 1,
+            "maxItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "REPRODUCIBLE"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "independentBuildCount": {
+            "const": 2
+          },
+          "builds": {
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    }
+  ]
+}

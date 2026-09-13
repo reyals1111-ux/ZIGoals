@@ -1226,3 +1226,23 @@ a {
 }
 
 .break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+
+/* Public Alpha: small-screen controls remain reachable with a software keyboard. */
+button, a, input, select, textarea { touch-action: manipulation; }
+textarea { max-width: 100%; width: 100%; box-sizing: border-box; }
+:focus-visible { outline: 3px solid var(--accent, #b8ec93); outline-offset: 3px; }
+.dialog { max-height: calc(100dvh - 2rem); overflow-y: auto; }
+@media (max-width: 380px) {
+  header, .network-banner { flex-wrap: wrap; }
+  .wallet { flex-wrap: wrap; }
+  .actions { flex-wrap: wrap; }
+  .actions > button { flex: 1 1 120px; }
+  input, select, textarea { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Unbroken private goal names must not expand a mobile layout viewport. */
+h1, h2, h3 { overflow-wrap: anywhere; }
+.page-heading > div { min-width: 0; }

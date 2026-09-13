@@ -1,27 +1,11 @@
-import { createHash } from "node:crypto";
+import { verifyCandidate } from "../release/manifest.mjs";
 import { deploymentSchema } from "../../packages/shared-types/src/deployment.ts";
-export function buildPreparedManifest(
-  bytes,
-  report,
-  now = new Date().toISOString(),
-) {
-  const sha256 = createHash("sha256").update(bytes).digest("hex");
-  if (
-    report.artifact !== "artifacts/zigoals_goal_manager.wasm" ||
-    report.sha256 !== sha256 ||
-    report.bytes !== bytes.length ||
-    report.validation?.passed !== true
-  )
-    throw Error(
-      "Build evidence does not match the actual validated artifact. Rebuild first.",
-    );
-  const e = report.environment;
-  if (
-    !e?.rust?.startsWith("rustc 1.85.1 ") ||
-    !e.binaryen?.startsWith("wasm-opt version 123 ") ||
-    e.cosmwasmCheck !== "Contract checking 2.2.2"
-  )
-    throw Error("Build evidence uses an unsupported toolchain.");
+// Pure formatting boundary: canonical byte/schema/source-commit checks are repeated
+// here; the CLI additionally verifies trusted git objects and runs the validator.
+export function buildPreparedManifest({ bytes, candidate, expectedCommit, now = new Date().toISOString() }) {
+  verifyCandidate({ expectedCommit, manifest: candidate, wasm: bytes });
+  const e = candidate.environment;
+  const sha256 = candidate.artifact.sha256;
   return deploymentSchema.parse({
     schemaVersion: 2,
     status: "PREPARED_NOT_DEPLOYED",
@@ -40,14 +24,14 @@ export function buildPreparedManifest(
     pauseAdmin: null,
     contractName: "crates.io:zigoals-goal-manager",
     contractVersion: "0.1.0",
-    gitCommit: report.sourceCommit,
+    gitCommit: candidate.source.commit,
     buildEnvironment: {
       platform: e.platform,
       arch: e.arch,
       rust: "1.85.1",
       binaryen: "123",
       cosmwasmCheck: "2.2.2",
-      sourceDirty: report.sourceDirty,
+      sourceDirty: false,
     },
     preparedAt: now,
     deploymentTimestamp: null,

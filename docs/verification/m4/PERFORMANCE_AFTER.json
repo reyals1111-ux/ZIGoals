@@ -1,0 +1,80 @@
+{
+  "recordedAt": "2026-09-13T17:01:41.013Z",
+  "base": "http://127.0.0.1:3103",
+  "method": "One cold isolated desktop Chrome context per route, local production server, no network/CPU throttling; diagnostic sample, not Core Web Vitals field data or a benchmark score.",
+  "samples": [
+    {
+      "path": "/app",
+      "domContentLoadedMs": 35,
+      "loadMs": 81.30000001192093,
+      "documentBytes": 4050,
+      "scriptRequests": 13,
+      "scriptEncodedBytes": 292820,
+      "scriptDecodedBytes": 1093916,
+      "resourceOrigins": [
+        "http://127.0.0.1:3103"
+      ],
+      "horizontalOverflow": false,
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 80
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 80
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "path": "/app/settings",
+      "domContentLoadedMs": 30.400000005960464,
+      "loadMs": 73.09999999403954,
+      "documentBytes": 4793,
+      "scriptRequests": 12,
+      "scriptEncodedBytes": 279613,
+      "scriptDecodedBytes": 1061277,
+      "resourceOrigins": [
+        "http://127.0.0.1:3103"
+      ],
+      "horizontalOverflow": false,
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 64
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 64
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "path": "/app/ecosystem",
+      "domContentLoadedMs": 36.70000001788139,
+      "loadMs": 79.2000000178814,
+      "documentBytes": 24330,
+      "scriptRequests": 11,
+      "scriptEncodedBytes": 275855,
+      "scriptDecodedBytes": 1051206,
+      "resourceOrigins": [
+        "http://127.0.0.1:3103"
+      ],
+      "horizontalOverflow": false,
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 72
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 72
+        }
+      ],
+      "pageErrors": []
+    }
+  ],
+  "sourceCommit": "790a50d57def9e20210d71667f7a7523e1549fe3"
+}

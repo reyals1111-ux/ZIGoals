@@ -1,0 +1,79 @@
+{
+  "recordedAt": "2026-09-13T15:37:12.266Z",
+  "base": "http://127.0.0.1:3102",
+  "method": "One cold isolated desktop Chrome context per route, local production server, no network/CPU throttling; diagnostic sample, not Core Web Vitals field data or a benchmark score.",
+  "samples": [
+    {
+      "path": "/app",
+      "domContentLoadedMs": 13.299999982118607,
+      "loadMs": 116.7999999821186,
+      "documentBytes": 2957,
+      "scriptRequests": 13,
+      "scriptEncodedBytes": 577954,
+      "scriptDecodedBytes": 2645037,
+      "resourceOrigins": [
+        "http://127.0.0.1:3102"
+      ],
+      "horizontalOverflow": false,
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 100
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 100
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "path": "/app/settings",
+      "domContentLoadedMs": 27.799999982118607,
+      "loadMs": 100.2999999821186,
+      "documentBytes": 3699,
+      "scriptRequests": 12,
+      "scriptEncodedBytes": 575345,
+      "scriptDecodedBytes": 2637044,
+      "resourceOrigins": [
+        "http://127.0.0.1:3102"
+      ],
+      "horizontalOverflow": false,
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 60
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 60
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "path": "/app/ecosystem",
+      "domContentLoadedMs": 28.900000005960464,
+      "loadMs": 102.80000001192093,
+      "documentBytes": 22771,
+      "scriptRequests": 12,
+      "scriptEncodedBytes": 575345,
+      "scriptDecodedBytes": 2637044,
+      "resourceOrigins": [
+        "http://127.0.0.1:3102"
+      ],
+      "horizontalOverflow": false,
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 56
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 56
+        }
+      ],
+      "pageErrors": []
+    }
+  ]
+}

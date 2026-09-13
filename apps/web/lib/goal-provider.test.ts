@@ -14,6 +14,8 @@ import {
 } from "./transaction";
 import { applyLocal, initialLedger, LOCAL_OWNER } from "./local-ledger";
 
+vi.mock("./app-environment", () => ({ FINANCIAL_EXECUTION_ALLOWED: true, APP_ENVIRONMENT: "TESTNET_DEPLOYED", assertFinancialExecutionAllowed: () => {} }));
+
 const api = vi.hoisted(() => ({
   connect: vi.fn(),
   quote: vi.fn(),

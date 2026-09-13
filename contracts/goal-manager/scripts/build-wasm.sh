@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+echo "DEVELOPMENT BUILD: non-authoritative; use scripts/release/build.mjs for canonical evidence." >&2
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 cd "$ROOT"
 if [[ -x "$ROOT/.toolchain/cargo/bin/cargo" ]]; then
