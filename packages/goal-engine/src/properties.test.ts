@@ -79,6 +79,10 @@ describe.each(SEEDS)('seeded projection invariants, seed=%i', seed => {
       expect(Number.isInteger(result.contributionPeriodsRemaining)).toBe(true);
       expect(result.contributionPeriodsRemaining).toBeGreaterThanOrEqual(0);
       expect(result.contributionPeriodsRemaining).toBeLessThanOrEqual(1200);
+      expect(Number.isFinite(result.completionHorizonPeriods)).toBe(true);
+      expect(Number.isInteger(result.completionHorizonPeriods)).toBe(true);
+      expect(result.completionHorizonPeriods).toBeGreaterThanOrEqual(0);
+      expect(result.completionHorizonPeriods).toBeLessThanOrEqual(1200);
       expect(result.shortfallAtTargetDate === '0' || result.surplusAtTargetDate === '0').toBe(true);
       const remaining = units(input.targetValue) - units(input.currentValue);
       expect(units(result.amountRemaining)).toBe(remaining > 0n ? remaining : 0n);
