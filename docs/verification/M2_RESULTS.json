@@ -1,0 +1,236 @@
+{
+  "recordedAt": "2026-09-13T03:29:09.115400+00:00",
+  "testedCodeCommit": "2a9ac7079be558ea321413bf52ba03de4dd56acc",
+  "startingBranch": "feat/m1-foundation",
+  "startingCommit": "b87cbe86e5b07641621b7db358ddcba9caa1cdc9",
+  "environment": {
+    "node": "24.19.0",
+    "pnpm": "11.19.0",
+    "rust": "1.85.1",
+    "binaryen": "123.0.0",
+    "cosmwasmCheck": "2.2.2"
+  },
+  "baseline": {
+    "install": "passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "unitPassed": 220,
+    "rustPassed": 24,
+    "productionBuild": "passed",
+    "wasmValidator": "passed",
+    "wasmChecksumUnchanged": true
+  },
+  "unit": {
+    "total": 297,
+    "passed": 297,
+    "failed": 0,
+    "pending": 0,
+    "files": [
+      {
+        "path": "packages/chain-config/src/index.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/ecosystem-ui.test.ts",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/goal-provider.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/local-ledger.test.ts",
+        "tests": 57,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/receipt-reconciliation.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/storage.test.ts",
+        "tests": 31,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/transaction-journal.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/transaction.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/wallet.test.ts",
+        "tests": 21,
+        "status": "passed"
+      },
+      {
+        "path": "packages/goal-engine/src/index.test.ts",
+        "tests": 75,
+        "status": "passed"
+      },
+      {
+        "path": "packages/shared-types/src/index.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "path": "packages/ecosystem-registry/src/registry.test.ts",
+        "tests": 36,
+        "status": "passed"
+      },
+      {
+        "path": "packages/strategy-types/src/index.test.ts",
+        "tests": 2,
+        "status": "passed"
+      }
+    ]
+  },
+  "browser": {
+    "build": "Next.js production, local port 3101",
+    "projects": [
+      "Desktop Chrome",
+      "iPhone 13 emulation in Chrome"
+    ],
+    "stats": {
+      "startTime": "2026-09-13T03:27:24.895Z",
+      "duration": 11320.096000000001,
+      "expected": 18,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "realKeplrExtension": false
+  },
+  "contract": {
+    "boundaryPassed": 6,
+    "integrationPassed": 18,
+    "failed": 0,
+    "fmt": "passed",
+    "clippyWarningsDenied": "passed",
+    "schemaAndGeneratedTypesUnchanged": true,
+    "sourceUnchangedSinceM1": true,
+    "wasmValidator": "1/1 passed",
+    "wasmBytes": 258540,
+    "wasmSha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+    "cleanSameHostRebuild": "byte-identical",
+    "containerBuild": "NOT RUN; Docker daemon unavailable",
+    "independentHostBuild": "NOT RUN"
+  },
+  "frontend": {
+    "frozenOfflineInstall": "passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "productionDependencyAudit": "No known vulnerabilities found"
+  },
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile --offline --store-dir /Users/AIUSER/Library/pnpm/store",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm lint",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm test --reporter=default --reporter=json --outputFile.json=/tmp/zigoals-m2-final-unit.json",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm build",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm audit --prod --audit-level high",
+      "result": "passed"
+    },
+    {
+      "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/zigoals-m2-final-browser.json PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 pnpm --filter @zigoals/web exec playwright test --reporter=list,json",
+      "result": "passed"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "passed"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "result": "passed"
+    },
+    {
+      "command": "cargo test --workspace --locked",
+      "result": "passed"
+    },
+    {
+      "command": "cargo schema --locked",
+      "result": "passed"
+    },
+    {
+      "command": "node contracts/goal-manager/scripts/generate-types.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --exit-code -- contracts/goal-manager/schema packages/shared-types/src/contract.generated.ts",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/check-secrets.mjs",
+      "result": "passed; tracked-file pattern scan, not a complete secret audit"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "passed after removing documentation trailing whitespace"
+    },
+    {
+      "command": "git diff --exit-code b87cbe86e5b07641621b7db358ddcba9caa1cdc9 -- landing/index.html landing/wrangler.jsonc LICENSE contracts/goal-manager packages/goal-engine",
+      "result": "passed; unchanged"
+    }
+  ],
+  "preservedAssets": [
+    {
+      "path": "landing/index.html",
+      "unchanged": true,
+      "sha256": "e2f7dd2598b682d6db27f2fa85cd6458b9b39ca244ab9b41b025c06a6a2d200a"
+    },
+    {
+      "path": "landing/wrangler.jsonc",
+      "unchanged": true,
+      "sha256": "e2a76a2a0f2394cebe9af89386e2c251486737050947e13a48252bc0ba8bd422"
+    },
+    {
+      "path": "LICENSE",
+      "unchanged": true,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    }
+  ],
+  "review": {
+    "task2": "clean after fixes",
+    "task4": "clean after fixes",
+    "finalIntegration": "PENDING",
+    "deferredFindings": [],
+    "rulings": []
+  },
+  "deployment": "PREPARED_NOT_DEPLOYED",
+  "liveSigningTested": false,
+  "liveContractSmokeTested": false,
+  "transactionSent": false,
+  "hostedCi": "NOT RUN; connected publication blocked",
+  "remotePublication": {
+    "status": "BLOCKED",
+    "attempts": 1,
+    "error": "GitHub API error 403: Resource not accessible by integration",
+    "remoteFeatureBranchCreated": false,
+    "pullRequestCreated": false
+  }
+}

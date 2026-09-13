@@ -1,9 +1,11 @@
 # ZIGoals
 The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
 
-Milestone 1 is a **local alpha**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
+Milestones 1 and 2 provide a **local alpha**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
 
-Publication is currently blocked by missing command-line Git sign-in and a **403** from the connected GitHub write API. The feature branch and complete commit history are preserved locally; hosted CI has not run.
+Run 2 adds durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes remain disabled.
+
+Publication remains blocked by a **403 Resource not accessible by integration** from the connected GitHub write API. The feature branch and complete commit history are preserved locally; hosted CI has not run.
 
 The existing `landing/index.html`, `landing/wrangler.jsonc`, and Apache-2.0 license are preserved. No Cloudflare deployment or production settings were changed.
 
@@ -18,7 +20,7 @@ pnpm dev
 
 Open [the local app](http://127.0.0.1:3100/app). No wallet, environment file, API key, Docker service, or chain connection is required for the local demo. It starts with 1,000 simulated ZIG. Create a goal, review it, add funds, withdraw, and close it when empty. Starting balance in the wizard is a planning input; funds enter the goal only through the separate Add funds action.
 
-Names, targets, dates and notes stay in browser storage. Export them from Settings before clearing site data. Backups contain private information. Testnet metadata is isolated by network and wallet; removing metadata does not remove the onchain withdrawal path. Clearing local demo storage does remove its simulated ledger.
+Names, targets, dates and notes stay in browser storage. Export them from Settings before clearing site data. Backups contain private information. Testnet metadata is isolated by network and wallet; removing metadata does not remove the onchain withdrawal path. Clearing local demo storage does remove its simulated ledger. Known testnet outcomes are retained in a separate IndexedDB journal; clearing site data can also erase that history. Recovery checks known receipts only and never automatically resubmits a transaction.
 
 ## Verify the implementation
 
@@ -37,7 +39,7 @@ Browser tests require Google Chrome. Install a test browser with `pnpm --filter 
 pnpm --filter @zigoals/web exec playwright test
 ```
 
-The desktop and mobile tests exercise the local lifecycle, metadata backup/recovery, wallet-unavailable state and review-dialog keyboard navigation. They do not prove live Keplr signing or testnet execution. CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml); local command results and hosted CI results are separate evidence.
+The desktop and mobile tests exercise the local lifecycle, metadata backup/recovery, wallet-unavailable state, review-dialog keyboard navigation, journal reload/account scope/corruption, and the read-only ecosystem page. They do not prove live Keplr signing or testnet execution. CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml); local command results and hosted CI results are separate evidence.
 
 ## Contract development
 
@@ -74,10 +76,13 @@ After a separately verified deployment, copy `.env.example` to `apps/web/.env.lo
 | `packages/goal-engine` | Exact decimal planning; Funding Health always uses 0% return |
 | `packages/chain-config` | Testnet facts, live guards and integer denomination conversion |
 | `packages/shared-types` | Validated private metadata and Rust-generated contract messages |
-| `packages/strategy-types` | Idle descriptor and explicit future liquidity/capability types |
+| `packages/strategy-types` | Optional product-role, eligibility and liquidity metadata; separate non-executable FundingRoute |
+| `packages/ecosystem-registry` | Strict sourced provider records and validated explorer/Hub navigation; no execution authority |
 | `contracts/goal-manager` | Owner-only native idle custody, schema, tests and build script |
 | `docs` | Architecture, evidence, product scope, security, deployment and future gates |
 
 Valdora and WME integration are [deferred pending canonical interfaces](docs/research/VALDORA_STZIG.md). No invented messages, yield, stablecoin backing, fiat access or delegated wealth-management features are present. The demo's 1:1 display conversion is illustrative and never affects base-unit accounting.
 
-See the [implementation report](docs/IMPLEMENTATION_REPORT.md), [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md), and [truthful build log draft](docs/social/BUILD_LOG.md).
+For Run 2 use the [29-part report](docs/RUN_2_REPORT.md), [ecosystem integration map](docs/research/ZIGCHAIN_ECOSYSTEM_INTEGRATION_MAP.md), [owner deployment checklist](docs/deployment/OWNER_TESTNET_CHECKLIST.md) and [real Keplr procedure](docs/deployment/KEPLR_OWNER_CHECKLIST.md).
+
+See the [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md), [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md), and [truthful build log draft](docs/social/BUILD_LOG.md).

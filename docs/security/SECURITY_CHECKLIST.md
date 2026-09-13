@@ -27,3 +27,20 @@ This records implementation and local evidence, not an independent security audi
 Independent engine and contract code reviews passed. The final integration review approved all five Important and two Minor repairs, with 145 focused tests independently rerun. The parent verification passed 220 unit/component and 14 production-build browser cases. See ../verification/M1_RESULTS.json.
 
 Remaining boundaries: browser storage is private by location, not encrypted against device compromise/XSS; backups need private storage. Public RPC responses are trusted transport inputs, not independently verified light-client proofs. Contract identity checks rely on the reviewed code ID/address configured by the operator; a deployment must separately verify its onchain checksum. Contracts can retain accidental direct transfers as unsweepable surplus. An immutable contract requires a new deployment for future upgrades. No assurance extends to private SDKs, unimplemented strategies, fiat, mainnet or production operations.
+
+
+## Milestone 2 additions
+
+| Control | Evidence / scope |
+|---|---|
+| Durable send boundary | Scoped version 1 IndexedDB journal; signed hash persisted before broadcast; blocked storage prevents submission |
+| Receipt identity | TxRaw hash and decoded sender/contract/message/funds match the recorded operation; missing/mismatch stays uncertain |
+| Recovery bounds | Bounded records/receipt passes/deadlines; aggregate event attributes and text bytes capped after review |
+| Scope/corruption | Reconnect/account switch, valid+damaged history and original wallet outcomes covered in unit/browser tests |
+| Verified public links | Fixed origin/route catalogue; strict identifiers/chain matching; Range detail and asset paths remain unavailable |
+| Registry authority | Strict bounded sourced records; lifecycle does not enable execution; all external fund-moving capabilities disabled |
+| Public research content | Internal owner/agent coordination excluded from shipped catalogue after task review; exact contract citations and review dates checked |
+| Reproducibility | Clean isolated same-toolchain Wasm build equals M1 checksum; no Docker/hosted claim |
+| Owner execution | Real Keplr and 18-step tiny testnet exit checklist prepared, all live outcomes still NOT RUN |
+
+Exact final commands/results and independent review outcomes are in `../verification/M2_RESULTS.json` and `../RUN_2_REPORT.md`. Remaining trust in browser/device, public RPC transport and reviewed deployment configuration is unchanged. This is an implementation review, not a professional security audit.

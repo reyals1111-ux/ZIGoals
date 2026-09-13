@@ -1,4 +1,4 @@
-# Milestone1 threat model
+# Milestone 1 threat model
 
 Assets: recorded native idle positions, withdrawal authority, private plans, signing intent and deployed-code identity. Boundaries: browser/extensions/localStorage → Keplr signer → RPC/REST → immutable Goal Manager → bank module. Local demo is a separate, untrusted simulation and has no asset custody. This review is not an audit.
 
@@ -22,3 +22,20 @@ Assets: recorded native idle positions, withdrawal authority, private plans, sig
 | Storage loss / import denial of service |1MB/1000-goal bound and strict whole-envelope validation before one write; backups recommended; financial controls do not depend on plans. Large but valid date plans fail closed at projection, not financial access. |
 
 Web headers: CSP restricts connections to official testnet and local preview; denies objects/frames, base-uri/form-action self; nosniff; referrer policy; no camera/microphone/geolocation. Current Next inline scripts require unsafe-inline: nonce-based production CSP and HSTS at HTTPS app ingress remain release requirements. Do not label this as a hardened mainnet frontend.
+
+## Milestone 2 boundaries
+
+| Added threat | Control / remaining boundary |
+|---|---|
+| Lost browser session during signing/broadcast | Scoped version 1 IndexedDB journal; operation ID and signed hash stored before broadcast. Persistence failure at that barrier prevents submission. A restart never automatically replays a transaction. |
+| Stale pending record | Time alone cannot establish rejection/failure; stale signing/broadcast state stays unresolved until evidence. No “funds safe” inference from missing hash/receipt. |
+| False confirmation / unrelated successful tx | Reconciliation must match signed TxRaw hash and decoded sender, contract, execute message and funds on the verified testnet. Verified nonzero code means included failure; unavailable/malformed/mismatched receipts stay uncertain. RPC is still trusted transport, not a consensus-proof-verifying light client. |
+| Cross-wallet confusion / concurrent writes | Records retain original chain/wallet/operation ID; IndexedDB atomic transitions and terminal-state protection; account changes invalidate financial UI, preserving original operation attribution. Multiple browser tabs do not share a single mutable localStorage envelope. |
+| Corrupted/unsupported history / storage denial | Strict record validation, bounded scans, damaged-record warning, no blanket deletion; unrelated valid records remain accessible. Same-origin compromise can still delete or forge local storage; chain evidence is needed for recovered receipts. Clearing site data removes the journal. |
+| Malicious explorer URL | Compiled route catalogue, fixed HTTPS origins, strict tx hash, Bech32 and block validation, encoded path component, exact chain matching. Missing routes return no URL. Link presence is never confirmation. |
+| Registry trust confusion | Separate research lifecycle and verified informational capabilities; execution gate always false. Mutating a lifecycle value cannot grant signing or add an explorer route. Research metadata is not an audit or endorsement. |
+| Provider metadata / XSS | Bounded strict schema and HTTPS references; React text escaping; no HTML injection. Provenance requires product-specific documented source/date and unknown relationships are omitted. Evidence claims still require human/source review; a schema does not prove them. |
+| Hub implicit financial action | Static links contain no wallet, amount, memo or routing instructions. Hub is a separate application which may open its own network; owner verifies there. ZIGoals does not connect, stake, vote or bridge on the owner's behalf. |
+| Stale strategy/issuer claims | Product-scoped eligibility/certification and current security state are recorded separately from broad branding. FundingRoute and StrategyAdapter remain separate. No RWA, swaps, leverage, Valdora or WME execution enabled. |
+
+Test coverage and reviewer findings are recorded in the Run 2 verification report after the final pass. This table describes controls, not an independent security audit or real-extension/live-contract validation.
