@@ -70,7 +70,7 @@ The owner still needs dedicated-wallet test funds and confirmed upload permissio
 node scripts/prepare-deployment.mjs
 ```
 
-After a separately verified deployment, copy `.env.example` to `apps/web/.env.local` and fill only the public contract address/code ID. Never put a seed phrase, private key, wallet password or API credential in the app. Keplr connection code is implemented, but real extension signing, existing-chain metadata behavior and deployment smoke tests remain pending.
+After a separately verified deployment, validate the strict [v2 public manifest](docs/deployment/MANIFEST_V2.md), place it in `apps/web/config/deployment.json` and rebuild. Legacy address/code-ID environment variables no longer enable actions. Never put a seed phrase, private key, wallet password or API credential in the app. Real owner connection checks A–H passed; real signing and deployed-contract smoke tests remain pending.
 
 ## Repository map
 
@@ -90,3 +90,5 @@ Valdora and WME integration are [deferred pending canonical interfaces](docs/res
 For Run 2 use the [29-part report](docs/RUN_2_REPORT.md), [ecosystem integration map](docs/research/ZIGCHAIN_ECOSYSTEM_INTEGRATION_MAP.md), [owner deployment checklist](docs/deployment/OWNER_TESTNET_CHECKLIST.md) and [real Keplr procedure](docs/deployment/KEPLR_OWNER_CHECKLIST.md).
 
 See the [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md), [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md), and [truthful build log draft](docs/social/BUILD_LOG.md).
+
+For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.md), [contributing](CONTRIBUTING.md), [privacy](docs/PRIVACY.md) and [security reporting](SECURITY.md). Settings includes read-only connection diagnostics with separate RPC/REST outcomes and a build identifier.
