@@ -124,7 +124,12 @@
         "completedAt": "2026-09-13T14:44:59Z",
         "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34763386600/job/103739993106"
       }
-    ]
+    ],
+    "testsConfirmedFromLogs": {
+      "javascript": 399,
+      "browser": 30,
+      "rust": 25
+    }
   },
   "linuxComparison": {
     "crossHostByteIdentical": false,
