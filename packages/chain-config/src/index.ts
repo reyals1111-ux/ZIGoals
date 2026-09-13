@@ -1,4 +1,4 @@
-import testnet from "./testnet.json";
+import testnet from "./testnet.json" with { type: "json" };
 export interface NativeAssetConfig {
   symbol: "ZIG";
   displayDenom: "ZIG";
@@ -15,12 +15,37 @@ export interface NetworkConfig {
   nativeAsset: NativeAssetConfig;
   gasPrice: string;
 }
-// Live node + bank metadata verified 2026-09-13. Always revalidate before signing.
-export const TESTNET: Readonly<NetworkConfig> = Object.freeze({
-  ...testnet,
-  nativeAsset: Object.freeze(testnet.nativeAsset),
-}) as Readonly<NetworkConfig>;
-
+/** Refuse malformed public config before it reaches wallet/fee construction. */
+export function validateNetworkConfig(input: unknown): Readonly<NetworkConfig> {
+  const n = input as Partial<NetworkConfig> | null;
+  if (
+    !n ||
+    n.network !== "testnet" ||
+    n.chainId !== "zig-test-2" ||
+    n.rpcUrl !== "https://testnet-rpc.zigchain.com" ||
+    n.restUrl !== "https://testnet-api.zigchain.com" ||
+    n.grpcUrl !== "grpc-t.zigchain.nodestake.org:443" ||
+    n.addressPrefix !== "zig" ||
+    n.gasPrice !== "2500000000" ||
+    n.nativeAsset?.symbol !== "ZIG" ||
+    n.nativeAsset.displayDenom !== "ZIG" ||
+    n.nativeAsset.baseDenom !== "azig" ||
+    n.nativeAsset.decimals !== 18
+  )
+    throw Error("Unsupported or incomplete public testnet configuration.");
+  return Object.freeze({
+    network: n.network,
+    chainId: n.chainId,
+    rpcUrl: n.rpcUrl,
+    restUrl: n.restUrl,
+    grpcUrl: n.grpcUrl,
+    addressPrefix: n.addressPrefix,
+    gasPrice: n.gasPrice,
+    nativeAsset: Object.freeze({ ...n.nativeAsset }),
+  });
+}
+// Source values are validated before exposure; live identity is rechecked before signing.
+export const TESTNET = validateNetworkConfig(testnet);
 export function assertTestnet(config: NetworkConfig): void {
   if (config.network !== "testnet" || config.chainId !== "zig-test-2")
     throw new Error("This build supports ZIGChain Testnet only.");
@@ -62,6 +87,7 @@ export function safeMaximum(balance: string, fee: string): string {
 export async function verifyNetwork(
   config: NetworkConfig = TESTNET,
   fetcher: typeof fetch = fetch,
+  expectedVersion?: string,
 ): Promise<void> {
   assertTestnet(config);
   const read = async (path: string) => {
@@ -82,6 +108,8 @@ export async function verifyNetwork(
   const metadata = bank.metadata;
   if (
     node.default_node_info?.network !== config.chainId ||
+    (expectedVersion !== undefined &&
+      node.application_version?.version !== expectedVersion) ||
     staking.params?.bond_denom !== config.nativeAsset.baseDenom ||
     metadata?.base !== config.nativeAsset.baseDenom ||
     !metadata.denom_units?.some(

@@ -9,6 +9,6 @@ Updated 2026-09-13 for Milestone 3. The app is an unaudited local alpha with gua
 - Live read at `2026-09-13T13:48:05.680Z`: `zig-test-2`, `azig`, 18 decimals, height 7748162. Node info reports `v5.0.0-patch-1`, wasmd `v0.55.1`, wasmvm/v2 `v2.2.4` (and a legacy wasmvm v1 dependency). Sources: [RPC status](https://testnet-rpc.zigchain.com/status), [node info](https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info).
 - Known validated Mac artifact: 258,540 bytes, SHA256 `090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25`. Prior Linux CI validated a different SHA256 `43f7ebb8b18fc8108d64173018e6e2b37308c69e476a4edb0a9cf9b9905d6f73`; M3 adds downloadable build evidence to investigate. Cross-host byte identity is not established.
 - External blockers: 0 test ZIG; Discord approval pending; whitelist not requested yet; no deployment; Valdora inquiry sent by owner with no reply; no WME canonical interface. No repeated faucet or outreach attempts.
-- Current development is on `feat/m3-readiness`. M3 verification/publication results will be recorded here after they actually complete.
+- M3 work originates from `feat/m3-readiness`. M3 verification/publication results will be recorded here after they actually complete.
 
 Historical [M1](IMPLEMENTATION_REPORT.md) and [M2](RUN_2_REPORT.md) reports remain unchanged; earlier publication-blocked statements there describe their original run, not today's status.

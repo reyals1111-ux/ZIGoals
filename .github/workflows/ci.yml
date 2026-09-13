@@ -48,6 +48,12 @@ jobs:
       - run: cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check
       - run: npm install --prefix .toolchain/wasm-tools --ignore-scripts --no-audit --no-fund binaryen@123.0.0
       - run: bash contracts/goal-manager/scripts/build-wasm.sh
+      - run: |
+          npm install --global pnpm@11.19.0
+          pnpm install --frozen-lockfile
+          cargo schema --locked
+          node contracts/goal-manager/scripts/generate-types.mjs
+          git diff --exit-code -- contracts/goal-manager/schema packages/shared-types/src/contract.generated.ts
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: goal-manager-linux-${{ github.sha }}
@@ -57,9 +63,3 @@ jobs:
             artifacts/build-report.json
           if-no-files-found: error
           retention-days: 30
-      - run: |
-          npm install --global pnpm@11.19.0
-          pnpm install --frozen-lockfile
-          cargo schema --locked
-          node contracts/goal-manager/scripts/generate-types.mjs
-          git diff --exit-code -- contracts/goal-manager/schema packages/shared-types/src/contract.generated.ts
