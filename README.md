@@ -92,3 +92,5 @@ For Run 2 use the [29-part report](docs/RUN_2_REPORT.md), [ecosystem integration
 See the [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md), [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md), and [truthful build log draft](docs/social/BUILD_LOG.md).
 
 For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.md), [contributing](CONTRIBUTING.md), [privacy](docs/PRIVACY.md) and [security reporting](SECURITY.md). Settings includes read-only connection diagnostics with separate RPC/REST outcomes and a build identifier.
+
+Milestone 3: [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [open PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.

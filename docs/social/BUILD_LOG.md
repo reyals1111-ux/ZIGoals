@@ -35,3 +35,8 @@ Draft 3:
 > ZIGoals now has a read-only environment check and connection diagnostics. Prepared deployment manifests keep real IDs empty, and the client checks actual code identity and checksum before a financial action. Nothing has been deployed and no external strategy is enabled. Funding Health still assumes zero investment return.
 
 Use final hosted CI and cross-host build facts only after the M3 report records the observed results. Do not call different hashes reproducible or imply funding/whitelist approval, a live integration, certification, partnership, guaranteed return or mainnet readiness. No build-log post was sent during this run.
+
+Draft 4 — verified hosted result:
+> GitHub now checks the ZIGoals alpha and retains the actual Wasm build evidence. The Linux and Mac artifacts both validate but have different hashes. We investigated source-path and build-layout differences and documented the remaining limit: cross-host byte identity is not established. Nothing is deployed, and no external strategy has been enabled.
+
+Evidence: M3_REPRODUCIBILITY.md and successful GitHub run34763386600. Owner-review draft only; not published.

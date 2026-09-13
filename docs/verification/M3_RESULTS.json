@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "milestone": 3,
-  "recordedAt": "2026-09-13T14:33:42.558302+00:00",
+  "recordedAt": "2026-09-13T14:53:21.070898+00:00",
   "startingMain": "b6686ba37473e531baa223d1c72eb5162dae683d",
   "branch": "feat/m3-readiness",
   "localVerifiedCommit": "28cbf9f2c452942246c2b0c33578cde067e11d9c",
@@ -101,10 +101,61 @@
     }
   },
   "hostedM3": {
-    "status": "PENDING_PUBLICATION"
+    "status": "success",
+    "event": "pull_request",
+    "runId": 34763386600,
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34763386600",
+    "branchHead": "d3538c8b6a9794d739ecdcb5573b361f14498e73",
+    "testedMergeCommit": "dc0e7b556df4462084e7dc68956b4e4fa72c96da",
+    "jobs": [
+      {
+        "name": "web",
+        "jobId": 103739992936,
+        "conclusion": "success",
+        "startedAt": "2026-09-13T14:41:25Z",
+        "completedAt": "2026-09-13T14:43:23Z",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34763386600/job/103739992936"
+      },
+      {
+        "name": "contract",
+        "jobId": 103739993106,
+        "conclusion": "success",
+        "startedAt": "2026-09-13T14:41:24Z",
+        "completedAt": "2026-09-13T14:44:59Z",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34763386600/job/103739993106"
+      }
+    ]
   },
   "linuxComparison": {
-    "status": "PENDING_DOWNLOAD"
+    "crossHostByteIdentical": false,
+    "mac": {
+      "bytes": 258540,
+      "sha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25"
+    },
+    "linux": {
+      "bytes": 255948,
+      "sha256": "43f7ebb8b18fc8108d64173018e6e2b37308c69e476a4edb0a9cf9b9905d6f73"
+    },
+    "sameCargoLock": true,
+    "sameOptimizerArgs": true,
+    "sameWasmTarget": true,
+    "sameImports": true,
+    "sameExports": true,
+    "importCount": 24,
+    "exportCount": 17,
+    "localValidationOfDownloadedArtifact": "passed cosmwasm-check2.2.2",
+    "pathRemapExperiment": {
+      "temporaryOnly": true,
+      "bytes": 255948,
+      "sha256": "5956b595f313257b9bd68d93fe7dc39bc929a1e0f57d57112696c63efc54d543",
+      "byteIdenticalToLinux": false,
+      "byteReduction": 2592,
+      "changedFlag": "--remap-path-prefix=<local-cargo-home>=/home/runner/.cargo",
+      "retainedTargetFlags": "-C target-feature=-reference-types,-multivalue",
+      "productionArtifactModified": false
+    },
+    "finding": "Embedded absolute dependency source paths explain the measured size difference under a controlled path-remap build. Remapped output still differs in code/table layout; residual byte difference is not fully isolated. ABI and validation equality do not establish semantic equivalence.",
+    "releaseImplication": "Checksum difference alone is not a deployment blocker; approve one exact artifact and verify its uploaded code checksum. Cross-host byte reproducibility is NOT ESTABLISHED."
   },
   "ownerEvidence": "M3_KEPLR_OWNER_RESULTS.md",
   "noTransactionSent": true,
@@ -117,5 +168,18 @@
     "RPC transport trusted; no reorg quorum/light-client proof",
     "Browser crash/eviction/deletion can remove local history",
     "Finite seeded regression tests are not exhaustive fuzzing or independent audit"
-  ]
+  ],
+  "reviews": {
+    "scopedTasks": "four approved",
+    "wholeBranch": "approved, no Critical or Important finding",
+    "finalDocFixCommit": "456657ce22b95fc251361ef9ffa6ace10455dcb0",
+    "scopedRereview": "approved",
+    "independentProfessionalAudit": false
+  },
+  "pullRequest": {
+    "number": 2,
+    "url": "https://github.com/reyals1111-ux/ZIGoals/pull/2",
+    "state": "OPEN",
+    "merged": false
+  }
 }
