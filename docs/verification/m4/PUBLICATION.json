@@ -39,11 +39,11 @@
   },
   "hostingLimits": "Current 64 MiB raw size fits; Free 10ms CPU suitability remains unverified; no paid service enabled",
   "finalLocalAcceptance": {
-    "sourceCommit": "736f195dba26fb14bde8228a7939c13d6f06d490",
+    "sourceCommit": "790a50d57def9e20210d71667f7a7523e1549fe3",
     "mode": "PUBLIC_ALPHA_UNDEPLOYED",
     "dirty": false,
-    "rawKiB": 9361.11,
-    "gzipKiB": 1753.53,
+    "rawKiB": 9361.17,
+    "gzipKiB": 1753.57,
     "assetFiles": 32,
     "workerdCasesPassed": 8
   }

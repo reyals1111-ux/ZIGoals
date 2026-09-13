@@ -12,7 +12,7 @@ Fetched and verified clean main at `7d354e3c72fa671abc100facf908b247fb992cc0`. M
 
 ## 3. Branch and commits
 
-Work is on `feat/m4-release-alpha`, targeting main in [PR #3](https://github.com/reyals1111-ux/ZIGoals/pull/3). Logical commits cover design, current baseline, canonical tooling, public safety and hosting, release handoff integration, and final evidence. Verified implementation head: `736f195`. Core commits: `f2e3a21`/`60e80db` release tooling; `0f6f023` public Alpha; `f70c98c`/`9dc2f5f` canonical preparation and current guidance; `1edf000`/`736f195` review test repairs. Subsequent documentation commits record evidence without changing contract semantics.
+Work is on `feat/m4-release-alpha`, targeting main in [PR #3](https://github.com/reyals1111-ux/ZIGoals/pull/3). Logical commits cover design, current baseline, canonical tooling, public safety and hosting, release handoff integration, and final evidence. Verified final implementation head: `790a50d57def9e20210d71667f7a7523e1549fe3`. Core commits: `f2e3a21`/`60e80db` release tooling; `0f6f023` public Alpha; `f70c98c`/`9dc2f5f` canonical preparation and current guidance; `1edf000`/`736f195` review test repairs. Commit `790a50d` closes the final canonical-metadata and report findings; subsequent documentation commits record evidence without changing contract semantics.
 
 ## 4. Baseline tests
 
@@ -28,11 +28,11 @@ Normalized source/Cargo/Rustup/target paths, clean source checks, explicitly con
 
 ## 7. Two-build checksum results
 
-First actual [canonical run 34767074194](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074194) produced two independently built, validated **255,532-byte** Wasm files with matching SHA256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. The actual build checkout was synthetic PR merge `9a0f7681617e8fd98d1e44221bca7aab3bc4fcad`, distinct from feature head `60e80db`. Downloaded bytes and comparison were independently reverified locally. The integrated source has been pushed for fresh hosted checks; the first candidate above remains the observed canonical evidence until those checks finish.
+First actual [canonical run 34767074194](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074194) produced two independently built, validated **255,532-byte** Wasm files with matching SHA256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. The actual build checkout was synthetic PR merge `9a0f7681617e8fd98d1e44221bca7aab3bc4fcad`, distinct from feature head `60e80db`. Downloaded bytes and comparison were independently reverified locally. Integrated [canonical run34769568351](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34769568351) also passed, from actual synthetic source `8b0e513974136c583b9a5b66e0f7d7ce31658dee` for feature736f195. Both downloaded files again matched the same size/hash; local compare and verification against fetched Git objects and the real validator passed. [Structured evidence](verification/m4/IMPLEMENTATION_HOSTED_RESULTS.json) records exact jobs and source.
 
 ## 8. Canonical artifact status and hash
 
-The canonical candidate status is **REPRODUCIBLE**, with approval **NOT_APPROVED**. Matching builds do not authorize upload. The manifest records exact source/tree, Cargo.lock, tools, environment, run/job identities, size and digest. [Candidate evidence](verification/m4/FIRST_PR_CANDIDATE.json) is metadata for the actual first unsigned PR artifact, not proof by itself.
+The canonical candidate status is **REPRODUCIBLE**, with approval **NOT_APPROVED**. Matching builds do not authorize upload. The manifest records exact source/tree, Cargo.lock, tools, environment, run/job identities, size and digest. [Integrated candidate evidence](verification/m4/IMPLEMENTATION_PR_CANDIDATE.json) is metadata for the actual unsigned8b0e513 PR artifact; the earlier candidate is retained separately. Neither metadata file is proof by itself.
 
 ## 9. Provenance and attestation
 
@@ -52,7 +52,7 @@ Official GitHub native keyless attestation is implemented for the exact Wasm and
 
 ## 13. Public Alpha deployment status
 
-**PREPARED_NOT_DEPLOYED.** The clean `0f6f023` package built and passed actual local workerd tests and a non-uploading dry run: 9,361.11 KiB raw / 1,753.55 KiB gzip, 32 assets. Browser access to Cloudflare was later denied because the admin-enforced policy could not be verified; normal retry confirmed the same block. Wrangler reported `loggedIn:false`. Final integrated clean package `736f195` also passed, with9361.11 KiB raw/1753.53 KiB gzip and8 workerd cases. No authentication workaround, upload or Worker creation occurred. The unsubmitted UI form was not a deployment.
+**PREPARED_NOT_DEPLOYED.** The clean `0f6f023` package built and passed actual local workerd tests and a non-uploading dry run: 9,361.11 KiB raw / 1,753.55 KiB gzip, 32 assets. Browser access to Cloudflare was later denied because the admin-enforced policy could not be verified; normal retry confirmed the same block. Wrangler reported `loggedIn:false`. Final integrated clean package `790a50d` also passed, with9361.17 KiB raw/1753.57 KiB gzip and8 workerd cases. No authentication workaround, upload or Worker creation occurred. The unsubmitted UI form was not a deployment.
 
 ## 14. Exact Alpha URL
 
@@ -84,7 +84,7 @@ Alpha app fonts/images/social card are local. The protected apex landing page re
 
 ## 21. Dependency and supply-chain findings
 
-Production and full pnpm advisory scans after hosting dependencies reported **zero vulnerabilities**. Cargo scan covered 119 dependencies with zero vulnerability findings and two unmaintained notices: derivative 2.2.0 (RUSTSEC-2024-0388) and paste 1.0.15 (RUSTSEC-2024-0436). Lock integrity and allowed source origins were inspected; installation scripts for esbuild/workerd/unrs-resolver remain denied. Adapter build tooling expands trusted dependencies. Installed license metadata includes LGPL native libvips, CC-BY compatibility data and MPL tooling; retain upstream notices. This is not legal certification or assurance against unknown vulnerabilities. CodeQL/dependency-review capabilities were evaluated using official documentation but not enabled or claimed run. All checkout/setup-node/upload/download actions now declare supported Node24 runtimes with exact official pins; initial hosted Node20 deprecation annotations motivated the update. Final hosted annotation verification is pending.
+Production and full pnpm advisory scans after hosting dependencies reported **zero vulnerabilities**. Cargo scan covered 119 dependencies with zero vulnerability findings and two unmaintained notices: derivative 2.2.0 (RUSTSEC-2024-0388) and paste 1.0.15 (RUSTSEC-2024-0436). Lock integrity and allowed source origins were inspected; installation scripts for esbuild/workerd/unrs-resolver remain denied. Adapter build tooling expands trusted dependencies. Installed license metadata includes LGPL native libvips, CC-BY compatibility data and MPL tooling; retain upstream notices. This is not legal certification or assurance against unknown vulnerabilities. CodeQL/dependency-review capabilities were evaluated using official documentation but not enabled or claimed run. All checkout/setup-node/upload/download actions now declare supported Node24 runtimes with exact official pins; initial hosted Node20 deprecation annotations motivated the update. Actual integrated hosted logs confirm those runtime/color-conflict warnings are gone; the separate upstream download-action deprecation is disclosed below.
 
 ## 22. Contract review
 
@@ -92,7 +92,7 @@ Production and full pnpm advisory scans after hosting dependencies reported **ze
 
 ## 23. Frontend review
 
-[Fresh baseline review](verification/m4/FRONTEND_REVIEW.md) found no material custody bypass and identified weak remote goal/balance parsing. M4 now rejects noncanonical/out-of-range integers, invalid owner/denom/strategy/status/commitment fields, oversized pages and nonprogressing numeric cursors; unknown remote fields are discarded. Release, public Alpha and canonical-preparation task reviews approved the changes. Minor schema/tamper, complete Cookie-header capture and exact preparation-error assertions were corrected and re-reviewed without new breakage. Whole-branch review is pending at this evidence checkpoint.
+[Fresh baseline review](verification/m4/FRONTEND_REVIEW.md) found no material custody bypass and identified weak remote goal/balance parsing. M4 now rejects noncanonical/out-of-range integers, invalid owner/denom/strategy/status/commitment fields, oversized pages and nonprogressing numeric cursors; unknown remote fields are discarded. Release, public Alpha and canonical-preparation task reviews approved the changes. Minor schema/tamper, complete Cookie-header capture and exact preparation-error assertions were corrected and re-reviewed without new breakage. The [whole-branch review](verification/m4/FINAL_REVIEW.md) found no Critical/Important issue. Its two nonblocking canonical metadata/report accuracy findings were corrected in790a50d and [re-reviewed successfully](verification/m4/FINAL_REREVIEW.md).
 
 ## 24. Privacy and network egress
 
@@ -108,7 +108,7 @@ Persistent environment and per-tab connection-only labels, clearer disabled acti
 
 ## 27. Performance
 
-Cold local production `/app` loaded **292,821 encoded JavaScript bytes**, down from **577,954** before lazy loading the signing transport (about 49.3%). Settings: 279,617; Ecosystem: 275,856. No sampled page errors/external resource origins or horizontal overflow. These are unthrottled local diagnostic samples, not field Core Web Vitals, hosted CPU or latency guarantees. Current Workers code size fits the documented 64 MiB raw limit; Free's 10ms CPU budget remains unproven for dynamic SSR.
+Cold local production `/app` loaded **292,820 encoded JavaScript bytes**, down from **577,954** before lazy loading the signing transport (about 49.3%). Settings:279,613; Ecosystem:275,855. The final cold sample used clean790a50d. No sampled page errors/external resource origins or horizontal overflow. These are unthrottled local diagnostic samples, not field Core Web Vitals, hosted CPU or latency guarantees. Current Workers code size fits the documented 64 MiB raw limit; Free's 10ms CPU budget remains unproven for dynamic SSR.
 
 ## 28. Threat model
 
@@ -120,17 +120,17 @@ Canonical ADR, schema/validator, verification and release process, Cloudflare se
 
 ## 30. New tests and totals
 
-**476 JavaScript tests in 25 files, 25 Rust tests, 36 production desktop/mobile browser cases and 8 actual local workerd cases passed** on clean implementation commit `736f195`. Lint/types/build/Rust formatting/Clippy/schema/generated-type drift and limited tracked secret-pattern checks passed. [Exact case matrix](verification/m4/TEST_MATRIX.json) and [structured local results](verification/m4/LOCAL_RESULTS.json) record scope; the JavaScript increase from the399-test baseline is77 and browser increase is6.. New coverage exercises release schema/source/environment/hash comparison and tampering; canonical-only preparation; public/invalid mode refusal through transaction boundaries; strict RPC fields/pages; header/nonce/spoofed-origin handling; safe diagnostic copy; local lifecycle and private egress under CSP. Full Chrome process restart on the clean M4 app retained four records, uncertain hash, damaged rows/warnings and account scope with **zero signer calls, broadcasts and page errors**.
+**476 JavaScript tests in 25 files, 25 Rust tests, 36 production desktop/mobile browser cases and 8 actual local workerd cases passed** on clean final implementation commit `790a50d`. Lint/types/build/Rust formatting/Clippy/schema/generated-type drift and limited tracked secret-pattern checks passed. [Exact case matrix](verification/m4/TEST_MATRIX.json) and [structured local results](verification/m4/LOCAL_RESULTS.json) record scope; the JavaScript increase from the399-test baseline is77 and browser increase is6.. New coverage exercises release schema/source/environment/hash comparison and tampering; canonical-only preparation; public/invalid mode refusal through transaction boundaries; strict RPC fields/pages; header/nonce/spoofed-origin handling; safe diagnostic copy; local lifecycle and private egress under CSP. Full Chrome process restart on the clean M4 app retained four records, uncertain hash, damaged rows/warnings and account scope with **zero signer calls, broadcasts and page errors**.
 
 Failures were retained: canonical preparation initially rejected the new input and its legacy CLI import attempted network access before local validation (DNS failure); initial mode/CSP/parser missing-implementation regressions; five browser trace ENOENT failures from concurrent runs sharing an output directory; two missing per-tab labels; the real 320px overflow; a social-origin local assertion affected by Next's deliberate loopback normalization. Each implementation/test-harness issue was corrected and rerun. Remaining warnings include deprecated middleware required by adapter compatibility and two upstream Node DEP0005 `Buffer()` deprecations from pinned official `download-artifact` v8.0.1 in successful canonical [run 34769568351](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34769568351). The action pins and permissions remain unchanged. Earlier local test tooling emitted inherited NO_COLOR/FORCE_COLOR warnings; normalized final invocations and CI no longer emit that conflict or the Node 20 action-runtime warning. The web job doctor’s absent Rust toolchain (contract checks run separately), detached synthetic HEAD and missing build-cache notices are expected informational output, not test failures.
 
 ## 31. GitHub CI
 
-First M4 quality [run 34767074157](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074157) passed **431 JavaScript, 25 Rust and 30 browser cases** before Task2. The independent canonical run also passed. Integrated source `736f195` has been pushed; new hosted quality/Workers and canonical comparison checks are pending at this evidence checkpoint.
+First M4 quality [run 34767074157](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074157) passed **431 JavaScript, 25 Rust and 30 browser cases** before Task2. The independent canonical run also passed. Integrated [quality run34769568353](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34769568353) and [canonical run34769568351](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34769568351) both succeeded:476 JavaScript,25 Rust,36 Next browser and8 workerd cases. Downloaded canonical files were independently verified. These immutable records identify736f195/its synthetic8b0e513 source; the later canonical metadata fix has separate clean local acceptance. The [PR Checks](https://github.com/reyals1111-ux/ZIGoals/pull/3/checks) identify each subsequently pushed evidence/review revision; never substitute one source SHA for another.
 
 ## 32. M4 PR status
 
-[PR #3](https://github.com/reyals1111-ux/ZIGoals/pull/3) targets main. It is open and currently draft while integrated hosted checks and whole-branch review finish.. No merge or force push occurred. Main remains the merged M3 baseline until the owner chooses to merge.
+[PR #3](https://github.com/reyals1111-ux/ZIGoals/pull/3) targets main. It is open and unmerged for owner review. Source review and local acceptance are complete; hosted checks attach to each pushed head. No review verdict grants deployment or upload permission.. No merge or force push occurred. Main remains the merged M3 baseline until the owner chooses to merge.
 
 ## 33. ZIGChain blockers
 
@@ -170,3 +170,9 @@ Owner-review drafts only; none posted. Full drafts and evidence are in [BUILD_LO
 > The ZIGoals public Alpha package supports fictional goals and local simulation, with wallet connection kept separate from financial execution. Its production script policy uses fresh nonces. Private plan fields stayed local in the tested flows; hosting still sees ordinary requests and goal IDs.
 
 > The isolated Cloudflare Alpha package is prepared and locally tested. Publication is still pending account access and live HTTPS verification. The existing zigoals.app landing and email settings were preserved. No onchain deployment or return claim is being made.
+
+## Rulings I made
+
+- Continue in the existing checkout on user-specified feat/m4-release-alpha — user explicitly requested existing workspace and autonomous implementation — cost if wrong: owner must switch branches to inspect main.
+- The detailed user implementation brief supplies design/execution authorization; no separate brainstorming approval stop — user explicitly says BEGIN NOW and continue autonomously — cost if wrong: reversible feature-branch rework.
+- PR builds receive no OIDC; manual attestation/issuance restricted to reviewed main with exact expected commit — prevent unreviewed source from receiving release authority — cost if wrong: attestation cannot be observed until owner merges workflow.

@@ -1,6 +1,6 @@
 {
-  "recordedAt": "2026-09-13T16:47:24.690591+00:00",
-  "sourceCommit": "736f195dba26fb14bde8228a7939c13d6f06d490",
+  "recordedAt": "2026-09-13T17:03:59.929150+00:00",
+  "sourceCommit": "790a50d57def9e20210d71667f7a7523e1549fe3",
   "javascript": {
     "files": 25,
     "passed": 476,
@@ -9,7 +9,8 @@
   "rust": {
     "passed": 25,
     "failed": 0,
-    "scope": "6 boundary +18 integration +1 seeded invariant; unchanged contract"
+    "scope": "6 boundary +18 integration +1 seeded invariant; unchanged contract",
+    "unchangedInputsVerifiedAgainst": "736f195dba26fb14bde8228a7939c13d6f06d490"
   },
   "browser": {
     "nextProductionPassed": 36,
@@ -17,10 +18,10 @@
     "externalBoundaries": "mocked, no real signer or blockchain submission"
   },
   "chromeRestart": {
-    "recordedAt": "2026-09-13T16:45:42.535Z",
+    "recordedAt": "2026-09-13T17:01:38.109Z",
     "status": "passed",
     "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
-    "appUrl": "http://127.0.0.1:3104/app/activity",
+    "appUrl": "http://127.0.0.1:3103/app/activity",
     "recordsRetained": 4,
     "unknownHashRetained": true,
     "corruptRecordPreserved": true,
@@ -31,7 +32,7 @@
     "pageErrors": [],
     "realKeplr": false,
     "networkAndWallet": "mocked external boundaries; no live transaction",
-    "sourceCommit": "736f195dba26fb14bde8228a7939c13d6f06d490"
+    "sourceCommit": "790a50d57def9e20210d71667f7a7523e1549fe3"
   },
   "checks": {
     "lint": "passed",
@@ -47,12 +48,12 @@
   "alphaBuild": {
     "environment": "PUBLIC_ALPHA_UNDEPLOYED",
     "version": "0.1.0",
-    "commit": "736f195dba26fb14bde8228a7939c13d6f06d490",
+    "commit": "790a50d57def9e20210d71667f7a7523e1549fe3",
     "dirty": false
   },
   "dryRun": {
-    "rawKiB": 9361.11,
-    "gzipKiB": 1753.53,
+    "rawKiB": 9361.17,
+    "gzipKiB": 1753.57,
     "assets": 32
   },
   "warnings": [
@@ -64,5 +65,10 @@
     "real signing or broadcast",
     "main-only manual attestation",
     "professional audit"
-  ]
+  ],
+  "finalReviewRepairs": {
+    "canonicalEntryMetadata": "Rendered /app canonical from served origin, no private ID/query",
+    "diagnosticReport": "Narrowed to actual copied fields",
+    "regression": "Missing canonical RED; clean Next/workerd GREEN before full final acceptance"
+  }
 }

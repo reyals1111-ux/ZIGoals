@@ -6,6 +6,8 @@ These files distinguish measured local/hosted results from source review, histor
 |---|---|
 | [LOCAL_RESULTS.json](LOCAL_RESULTS.json), [TEST_MATRIX.json](TEST_MATRIX.json) | Final implementation local checks and exact collected case names/totals |
 | [MINOR_REREVIEW.md](MINOR_REREVIEW.md) | Both test-evidence review repairs and normalized browser test colors |
+| [IMPLEMENTATION_HOSTED_RESULTS.json](IMPLEMENTATION_HOSTED_RESULTS.json), [IMPLEMENTATION_PR_CANDIDATE.json](IMPLEMENTATION_PR_CANDIDATE.json) | Integrated476/25/36/8 hosted checks and second independently verified canonical run; exact synthetic source8b0e513 |
+| [FINAL_REVIEW.md](FINAL_REVIEW.md), [FINAL_REREVIEW.md](FINAL_REREVIEW.md) | Whole-branch review and single consolidated fix-wave approval |
 | [BASELINE.json](BASELINE.json) | Fresh clean merged M3 baseline and actual main-push CI |
 | [FIRST_HOSTED_RESULTS.json](FIRST_HOSTED_RESULTS.json) | First actual M4 quality run and two independent canonical jobs, downloaded bytes and local re-verification |
 | [FIRST_PR_CANDIDATE.json](FIRST_PR_CANDIDATE.json) | Strict metadata for the first unsigned REPRODUCIBLE candidate; NOT_APPROVED |
