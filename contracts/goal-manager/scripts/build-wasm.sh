@@ -17,6 +17,4 @@ mkdir -p artifacts
 # canonicalizes those encodings; no custom byte rewriting or runtime changes.
 node "$BINARYEN_JS" target/wasm32-unknown-unknown/release/zigoals_goal_manager.wasm \
   -Oz --signext-lowering -o artifacts/zigoals_goal_manager.wasm
-"$COSMWASM_CHECK" artifacts/zigoals_goal_manager.wasm
-shasum -a 256 artifacts/zigoals_goal_manager.wasm > artifacts/checksums.txt
-cat artifacts/checksums.txt
+COSMWASM_CHECK="$COSMWASM_CHECK" BINARYEN_JS="$BINARYEN_JS" node scripts/wasm-build-report.mjs

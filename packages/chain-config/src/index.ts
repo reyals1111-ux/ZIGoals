@@ -1,3 +1,4 @@
+import testnet from "./testnet.json";
 export interface NativeAssetConfig {
   symbol: "ZIG";
   displayDenom: "ZIG";
@@ -16,20 +17,10 @@ export interface NetworkConfig {
 }
 // Live node + bank metadata verified 2026-09-13. Always revalidate before signing.
 export const TESTNET: Readonly<NetworkConfig> = Object.freeze({
-  network: "testnet",
-  chainId: "zig-test-2",
-  rpcUrl: "https://testnet-rpc.zigchain.com",
-  restUrl: "https://testnet-api.zigchain.com",
-  grpcUrl: "grpc-t.zigchain.nodestake.org:443",
-  addressPrefix: "zig",
-  nativeAsset: Object.freeze({
-    symbol: "ZIG",
-    displayDenom: "ZIG",
-    baseDenom: "azig",
-    decimals: 18,
-  }),
-  gasPrice: "2500000000",
-});
+  ...testnet,
+  nativeAsset: Object.freeze(testnet.nativeAsset),
+}) as Readonly<NetworkConfig>;
+
 export function assertTestnet(config: NetworkConfig): void {
   if (config.network !== "testnet" || config.chainId !== "zig-test-2")
     throw new Error("This build supports ZIGChain Testnet only.");

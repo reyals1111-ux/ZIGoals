@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "eslint .",
-    "verify:network": "node scripts/verify-network.mjs"
+    "verify:network": "node scripts/verify-network.mjs",
+    "doctor": "node scripts/doctor.mjs"
   },
   "devDependencies": {
     "@types/jsdom": "30.0.0",

@@ -5,13 +5,15 @@ Milestones 1 and 2 provide a **local alpha**: deterministic goal planning, a tes
 
 Run 2 adds durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes remain disabled.
 
-Publication remains blocked by a **403 Resource not accessible by integration** from the connected GitHub write API. The feature branch and complete commit history are preserved locally; hosted CI has not run.
+Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
 
 The existing `landing/index.html`, `landing/wrangler.jsonc`, and Apache-2.0 license are preserved. No Cloudflare deployment or production settings were changed.
 
 ## Run locally
 
-Use Node **24.19.0** (`.node-version`) and pnpm **11.19.0** (`packageManager`). Install those with your preferred version manager, then:
+Use Node **24.19.0** (`.node-version` and `.nvmrc`) and pnpm **11.19.0** (`packageManager`). Use your preferred version manager. With an existing [nvm installation](https://github.com/nvm-sh/nvm#nvmrc), run `nvm install` then `nvm use` in this directory. [fnm](https://github.com/Schniz/fnm) also supports these pin files. No global shell changes are required by this repository.
+
+First run `node scripts/doctor.mjs` (or `pnpm run doctor`). It only reads local prerequisites and checks the optional local Docker socket; it does not install tools or query the chain. `ERROR` blocks the relevant prerequisite; `WARNING` identifies optional tools or uncommitted work. **Use `pnpm run doctor`, with `run`: `pnpm doctor` is pnpm's own unrelated command.** The owner's Node 22.23.1 could start the development server but does not meet the pinned, CI-tested version; switch the current terminal to 24.19.0 before installing or verifying. Then:
 
 ```bash
 pnpm install --frozen-lockfile
