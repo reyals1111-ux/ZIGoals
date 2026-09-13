@@ -200,3 +200,11 @@ test("post-broadcast storage failures are visible alongside uncertainty", async 
     storageWarning: expect.stringContaining("not saved"),
   });
 });
+
+test("definite execution failure uses copy applicable to every supported action", async () => {
+  const driver = base();
+  driver.confirm = async (hash) => ({ hash, height: 12, code: 5, events: [] });
+  await expect(runTransaction(driver, () => {})).rejects.toThrow(
+    "The action was not applied; a network fee may have been charged.",
+  );
+});

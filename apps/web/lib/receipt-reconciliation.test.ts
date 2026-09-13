@@ -121,3 +121,63 @@ test("a hung RPC is bounded and remains uncertain", async () => {
     ),
   ).resolves.toMatchObject({ state: "UNKNOWN_AFTER_BROADCAST" });
 });
+
+test.each([
+  [
+    "aggregate attributes",
+    Array.from({ length: 3 }, () => ({
+      type: "wasm",
+      attributes: Array.from({ length: 171 }, () => ({ key: "k", value: "v" })),
+    })),
+  ],
+  [
+    "aggregate ASCII text bytes",
+    Array.from({ length: 2 }, () => ({
+      type: "wasm",
+      attributes: [{ key: "k", value: "a".repeat(40000) }],
+    })),
+  ],
+  [
+    "aggregate UTF-8 text bytes",
+    Array.from({ length: 2 }, () => ({
+      type: "wasm",
+      attributes: [{ key: "k", value: "€".repeat(12000) }],
+    })),
+  ],
+  [
+    "aggregate event type bytes",
+    Array.from({ length: 600 }, () => ({
+      type: "€".repeat(50),
+      attributes: [],
+    })),
+  ],
+])(
+  "oversized %s remains uncertain even when individual fields fit",
+  async (_, events) => {
+    const { record, receipt } = await fixture();
+    const oversized = { ...receipt, events };
+    await expect(verifyReceipt(record, oversized)).rejects.toThrow(
+      /event.*limit/i,
+    );
+    await expect(
+      reconcileKnownReceipt(record, {
+        getChainId: async () => identity.chainId,
+        getTx: async () => oversized,
+      }),
+    ).resolves.toEqual({ state: "UNKNOWN_AFTER_BROADCAST" });
+  },
+);
+
+test("ordinary multi-event UTF-8 receipt remains verifiable", async () => {
+  const { record, receipt } = await fixture();
+  const events = [
+    {
+      type: "execute",
+      attributes: [{ key: "sender", value: identity.wallet }],
+    },
+    { type: "wasm", attributes: [{ key: "result", value: "€".repeat(1000) }] },
+  ];
+  await expect(
+    verifyReceipt(record, { ...receipt, events }),
+  ).resolves.toMatchObject({ code: 0, events });
+});

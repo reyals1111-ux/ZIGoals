@@ -62,25 +62,36 @@ export async function verifyReceipt(
   )
     throw Error("Malformed receipt outcome.");
   verifySignedOperation(record, receipt.tx);
-  if (
-    !Array.isArray(receipt.events) ||
-    receipt.events.length > 1000 ||
-    receipt.events.some(
-      (event) =>
-        typeof event.type !== "string" ||
-        event.type.length > 256 ||
-        !Array.isArray(event.attributes) ||
-        event.attributes.length > 1000 ||
-        event.attributes.some(
-          (attr: { key: string; value: string }) =>
-            typeof attr.key !== "string" ||
-            attr.key.length > 1024 ||
-            typeof attr.value !== "string" ||
-            attr.value.length > 65536,
-        ),
-    )
-  )
+  // Bounds apply across the receipt, not independently to each nested array.
+  // Count array lengths before walking attributes and bound strings before encoding.
+  const maxAttributes = 512;
+  const maxTextBytes = 64 * 1024;
+  let attributeCount = 0;
+  let textBytes = 0;
+  const encoder = new TextEncoder();
+  const consumeText = (value: unknown, maxLength: number) => {
+    if (typeof value !== "string" || value.length > maxLength)
+      throw Error("Malformed receipt events.");
+    if (value.length > maxTextBytes - textBytes)
+      throw Error("Receipt event text limit exceeded.");
+    textBytes += encoder.encode(value).byteLength;
+    if (textBytes > maxTextBytes)
+      throw Error("Receipt event text limit exceeded.");
+  };
+  if (!Array.isArray(receipt.events) || receipt.events.length > 1000)
     throw Error("Malformed receipt events.");
+  for (const event of receipt.events) {
+    consumeText(event.type, 256);
+    if (!Array.isArray(event.attributes))
+      throw Error("Malformed receipt events.");
+    attributeCount += event.attributes.length;
+    if (attributeCount > maxAttributes)
+      throw Error("Receipt event attribute limit exceeded.");
+    for (const attribute of event.attributes) {
+      consumeText(attribute.key, 1024);
+      consumeText(attribute.value, 65536);
+    }
+  }
   return {
     hash: record.hash,
     code: receipt.code,

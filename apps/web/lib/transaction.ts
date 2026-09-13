@@ -88,7 +88,7 @@ export async function runTransaction(
       if (storageWarning)
         update("FAILED", { hash, height: result.height, storageWarning });
       throw new TransactionFailure(
-        "The chain rejected this action. The deposit or withdrawal was not applied; a network fee may have been charged.",
+        "The chain rejected this action. The action was not applied; a network fee may have been charged.",
         "FAILED",
         false,
         hash,
