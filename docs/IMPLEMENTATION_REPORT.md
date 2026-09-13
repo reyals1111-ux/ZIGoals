@@ -1,6 +1,6 @@
 # ZIGoals Milestone 1 engineering report
 
-Execution date: 2026-09-13. Local implementation, public read-only research and deployment preparation. Final local verification passed on Node 24.19.0. Hosted CI and real signing are separate evidence; see the publication status below.
+Execution date: 2026-09-13. Local implementation, public read-only research and deployment preparation. Final local verification passed on Node 24.19.0. Hosted CI was not executed because remote publication was denied. Real signing remains a separate external gate.
 
 ## 1. Executive summary
 
@@ -41,7 +41,7 @@ The four ADRs, three research reports, whitelist-request draft, four roadmap doc
 
 ## 8. Git branch and commit summary
 
-Work is isolated on `feat/m1-foundation`, forked from the original main commit. Initial logical commits cover repository/design scaffold (`17f3157`), engine implementation (`fa67307`), exact annual-boundary correction (`5b27fa3`), and the Goal Manager/schema/toolchain (`63fff6e`). Further commits: pinned tooling/CI (`075fcf6`), chain/metadata foundation (`3892852`), wallet/local data (`7f487de`), and responsive flows/tests (`dcbfc97`). Readiness documents follow separately. Remote publication is attempted after local verification; the handoff reports the actual outcome. Main has not been merged or replaced.
+Work is isolated on `feat/m1-foundation`, forked from the original main commit. Initial logical commits cover repository/design scaffold (`17f3157`), engine implementation (`fa67307`), exact annual-boundary correction (`5b27fa3`), and the Goal Manager/schema/toolchain (`63fff6e`). Further commits: pinned tooling/CI (`075fcf6`), chain/metadata foundation (`3892852`), wallet/local data (`7f487de`), and responsive flows/tests (`dcbfc97`). Readiness documents follow separately. Readiness documentation is committed as f576ccd. Publication is BLOCKED: non-interactive git push failed because no command-line credentials are configured; the connected GitHub create-tree API returned403 Resource not accessible by integration. No remote feature branch was created. All local commits remain intact; a separate documentation follow-up records this blocker. Main has not been merged or replaced.
 
 ## 9. Commands actually run
 
@@ -111,18 +111,18 @@ No issue was classified Critical or High by the independent reviews. Medium/Impo
 
 ## 21. Remaining risks and blockers
 
-Dedicated test funds, verified upload permission, real Keplr testing, deployment checksum/inclusion verification, a passing hosted CI run, container reproducibility and an independent security review remain release gates. The app relies on configured public endpoints rather than light-client proofs. Browser metadata is not encrypted against device compromise or XSS; backups must be protected. Real activity is session-local with public verification links, not a complete indexed history. Demo fiat conversion is not a price feed. External strategy, SDK, fiat and mainnet capabilities are unavailable. No claim of audited custody, guaranteed returns or production readiness follows from local tests.
+Dedicated test funds, verified upload permission, real Keplr testing, deployment checksum/inclusion verification, GitHub Contents-write access or an authenticated Git remote, hosted CI execution, container reproducibility and an independent security review remain release gates. The app relies on configured public endpoints rather than light-client proofs. Browser metadata is not encrypted against device compromise or XSS; backups must be protected. Real activity is session-local with public verification links, not a complete indexed history. Demo fiat conversion is not a price feed. External strategy, SDK, fiat and mainnet capabilities are unavailable. No claim of audited custody, guaranteed returns or production readiness follows from local tests.
 
 ## 22. Exactly what the owner must do next
 
-1. Run or inspect the local alpha and export any plans worth retaining. No wallet or funding is needed for this.
+1. Run or inspect the local alpha and export any plans worth retaining. No wallet or funding is needed for this. To publish, grant the connected GitHub integration repository Contents-write access (and permission to update workflow files), or authenticate command-line Git yourself; then push feat/m1-foundation. Do not send credentials in chat. The supplied source archive and Git bundle preserve the implementation and local history.
 2. When the existing support request resolves, provide the dedicated testnet **public address**, funding confirmation and upload-approval evidence. Do not supply a seed phrase/private key or repeat unsuccessful faucet requests.
 3. Follow the runbook for a separately reviewed owner-signed testnet upload/instantiation and tiny withdrawal smoke test. Do not configure the app's contract address/code ID until checksum, immutable admin state and included transactions are verified.
 4. Pass along the already-requested Valdora canonical source/schema response when it arrives. Mainnet and production deployment require a later explicit decision.
 
 ## 23. Next five highest-value engineering tasks
 
-1. Execute hosted CI and a clean container Wasm reproducibility check; publish artifact/source checksums.
+1. Restore repository publication access, push the verified feature branch and execute hosted CI plus a clean container Wasm reproducibility check.
 2. Verify real Keplr connection, account changes, network/denom display and cancellation with the dedicated test wallet.
 3. After funding/whitelist gates clear, deploy the reviewed immutable testnet contract and verify the full bank/event/withdrawal lifecycle.
 4. Persist and reconcile scoped transaction outcomes across browser restarts, using indexed chain history and recoverable metadata backups.

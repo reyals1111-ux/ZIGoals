@@ -107,5 +107,11 @@
   ],
   "deployment": "PREPARED_NOT_DEPLOYED",
   "liveSigningTested": false,
-  "hostedCi": "not yet executed"
+  "hostedCi": "not executed; publication blocked by missing CLI credentials and connected GitHub create-tree403",
+  "remotePublication": {
+    "status": "BLOCKED",
+    "nativeGit": "no command-line username/sign-in",
+    "connectedGitHub": "create-tree403 Resource not accessible by integration",
+    "remoteFeatureBranchCreated": false
+  }
 }

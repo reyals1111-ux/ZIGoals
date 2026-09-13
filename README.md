@@ -3,6 +3,8 @@ The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress 
 
 Milestone 1 is a **local alpha**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
 
+Publication is currently blocked by missing command-line Git sign-in and a **403** from the connected GitHub write API. The feature branch and complete commit history are preserved locally; hosted CI has not run.
+
 The existing `landing/index.html`, `landing/wrangler.jsonc`, and Apache-2.0 license are preserved. No Cloudflare deployment or production settings were changed.
 
 ## Run locally
