@@ -132,3 +132,29 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.screenshot({path:`/tmp/zigoals-m4-alpha-${info.project.name}-320.png`,fullPage:true});
   expect(errors).toEqual([]);
 });
+
+
+test("public icon and robots bypass nonce work while lookalike HTML retains CSP", async ({request}) => {
+  for (const route of ["/icon.svg", "/robots.txt", "/social-card.svg", "/social-card.png"]) {
+    const response = await request.get(route);
+    expect(response.status()).toBe(200);
+    const h = response.headers();
+    expect(h["content-security-policy"]).toBeUndefined();
+    expect(h["cache-control"]).not.toContain("no-store");
+    expect(h["x-frame-options"]).toBe("DENY");
+    expect(h["x-content-type-options"]).toBe("nosniff");
+    expect(h["referrer-policy"]).toBe("no-referrer");
+    expect(h["x-robots-tag"]).toContain("noindex");
+    expect(h["strict-transport-security"]).toBe("max-age=31536000");
+    if (route === "/robots.txt") {
+      expect(h["content-type"]).toContain("text/plain");
+      expect(await response.text()).toBe("User-Agent: *\nDisallow: /\n\n");
+    }
+  }
+  for (const route of ["/favicon.ico", "/icon.svg/app", "/robots.txt/app", "/social-cardXpng", "/_next/image/app"]) {
+    const response = await request.get(route);
+    expect(response.status()).toBe(404);
+    expect(response.headers()["content-security-policy"]).toContain("'nonce-");
+    expect(response.headers()["cache-control"]).toContain("no-store");
+  }
+});
