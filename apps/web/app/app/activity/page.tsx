@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ExplorerLinks } from "../../../components/explorer-links";
 import { useGoals } from "../../../components/goal-provider";
 import {
   pendingDescription,
@@ -76,14 +77,16 @@ export default function ActivityPage() {
                     : ""}
                 </span>
                 {record.hash && (
-                  <a
-                    href={TESTNET.explorerTxBaseUrl + record.hash}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ overflowWrap: "anywhere" }}
-                  >
-                    Transaction {record.hash}
-                  </a>
+                  <div>
+                    <p style={{ overflowWrap: "anywhere" }}>
+                      Transaction {record.hash}
+                    </p>
+                    <ExplorerLinks
+                      chainId={record.chainId}
+                      kind="transaction"
+                      identifier={record.hash}
+                    />
+                  </div>
                 )}
               </div>
             ))
@@ -116,15 +119,6 @@ export default function ActivityPage() {
                       " ZIG"
                     : ""}
                 </span>
-                {a.hash && (
-                  <a
-                    href={TESTNET.explorerTxBaseUrl + a.hash}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Explorer ↗
-                  </a>
-                )}
               </div>
             ))
           ) : (

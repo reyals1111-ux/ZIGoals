@@ -1,0 +1,1508 @@
+[
+  {
+    "id": "valdora",
+    "name": "Valdora",
+    "roles": [
+      "LIQUID_STAKING",
+      "VAULT",
+      "DISTRIBUTOR"
+    ],
+    "website": "https://valdora.finance/",
+    "documentation": [
+      "https://docs.valdora.finance/",
+      "https://docs.valdora.finance/smart-contracts",
+      "https://docs.valdora.finance/liquid-staking/architecture",
+      "https://docs.valdora.finance/liquid-staking/unstaking-and-redemption",
+      "https://docs.valdora.finance/vaults/introduction"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Published addresses; staker and a vault returned live LCD contract metadata."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Published staker/token addresses; staker returned live LCD contract metadata."
+      }
+    ],
+    "contracts": [
+      {
+        "chainId": "zigchain-1",
+        "address": "zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55",
+        "purpose": "mainnetStaker",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2",
+        "purpose": "mainnetStzigToken",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp",
+        "purpose": "mainnetStablecoinYieldVault",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig17vuryz6f9ndyzh4f72r8s48wgqxx5p6047flwc3urvna0f06swgqa77qp2",
+        "purpose": "mainnetQuantVault",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq",
+        "purpose": "mainnetOpportunisticCreditVault",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1626xrgk3qrphu3gs8dh2eewjchsjtzf2epdw3675qp4g66n7zr4sqsaks9",
+        "purpose": "mainnetSpaceXVault",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk",
+        "purpose": "mainnetCoreIncomeVault",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zig-test-2",
+        "address": "zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69",
+        "purpose": "testnetStaker",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zig-test-2",
+        "address": "zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr",
+        "purpose": "testnetStzigToken",
+        "evidence": {
+          "url": "https://docs.valdora.finance/smart-contracts",
+          "title": "Valdora Smart Contracts",
+          "supports": "Published mainnet and testnet addresses."
+        },
+        "status": "DOCUMENTED"
+      }
+    ],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "No public canonical message schema or deployed checksum-to-source mapping was found.",
+      "Normal liquid-staking redemption is delayed and includes a later claim step.",
+      "Provider security claims were not backed by a public audit report tied to current deployments.",
+      "Vault roles must not collapse curator, originator, custodian, servicer, and distributor responsibilities."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation.",
+      "note": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation."
+    },
+    "notes": "The owner already emailed canonical schema questions; do not send duplicate outreach. ZIG Markets curator attribution is explicit for named Valdora vaults, but no shared-vault or broader responsibility is inferred. Integration surface: Non-executable liquid-staking and vault descriptors. Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter. API/contracts: addresses available; canonical message schemas and public API not found in reviewed sources",
+    "sources": [
+      {
+        "url": "https://docs.valdora.finance/smart-contracts",
+        "title": "Valdora Smart Contracts",
+        "supports": "Published mainnet and testnet addresses."
+      },
+      {
+        "url": "https://docs.valdora.finance/liquid-staking/architecture",
+        "title": "Liquid Staking Architecture",
+        "supports": "stZIG exchange-ratio model."
+      },
+      {
+        "url": "https://docs.valdora.finance/liquid-staking/unstaking-and-redemption",
+        "title": "Unstaking and Redemption",
+        "supports": "Burn, queue, and claim lifecycle."
+      },
+      {
+        "url": "https://docs.valdora.finance/security",
+        "title": "Valdora Security",
+        "supports": "Provider audit, multisig, and circuit-breaker statements only."
+      },
+      {
+        "url": "https://docs.valdora.finance/vaults/stablecoin-yield-vault",
+        "title": "Stablecoin Yield Vault",
+        "supports": "Vault description and product-level ZIG Markets curator attribution."
+      },
+      {
+        "url": "https://public-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55",
+        "title": "ZIGChain mainnet contract record: Valdora staker",
+        "supports": "Live contract record and code ID."
+      },
+      {
+        "url": "https://testnet-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69",
+        "title": "ZIGChain testnet contract record: Valdora staker",
+        "supports": "Live contract record and code ID."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "oroswap",
+    "name": "OroSwap",
+    "roles": [
+      "DEX",
+      "LIQUIDITY_ROUTER"
+    ],
+    "website": "https://www.oroswap.org/",
+    "documentation": [
+      "https://docs.oroswap.org/",
+      "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
+      "https://github.com/oroswap/oroswap-deployments"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Published deployment and live LCD router record."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Published deployment and live LCD router record."
+      }
+    ],
+    "contracts": [
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85",
+        "purpose": "mainnetFactory",
+        "evidence": {
+          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
+          "title": "OroSwap Router",
+          "supports": "Router execute and simulation interfaces."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy",
+        "purpose": "mainnetRouter",
+        "evidence": {
+          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
+          "title": "OroSwap Router",
+          "supports": "Router execute and simulation interfaces."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zig-test-2",
+        "address": "zig17a7mlm84taqmd3enrpcxhrwzclj9pga8efz83vrswnnywr8tv26s7mpq30",
+        "purpose": "testnetFactory",
+        "evidence": {
+          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
+          "title": "OroSwap Router",
+          "supports": "Router execute and simulation interfaces."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zig-test-2",
+        "address": "zig1g00t6pxg3xn7vk0vt29zu9vztm3wsq5t5wegutlg94uddju0yr5sye3r3a",
+        "purpose": "testnetRouter",
+        "evidence": {
+          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
+          "title": "OroSwap Router",
+          "supports": "Router execute and simulation interfaces."
+        },
+        "status": "DOCUMENTED"
+      }
+    ],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Current deployed checksum-to-source mapping was not established.",
+      "Exact fee, decimals, rounding, price impact, quote freshness, and simulation response semantics require pinning.",
+      "The audited snapshot predates current repository/deployment state.",
+      "A documented CW20 response-data caveat affects receipt interpretation.",
+      "Mainnet deployment-manifest chain metadata conflicts with current official ZIGChain chain ID."
+    ],
+    "audits": [
+      {
+        "url": "https://www.halborn.com/audits/oroswap/cosmwasm-contracts-632648",
+        "title": "Halborn OroSwap CosmWasm Contracts Audit",
+        "supports": "Audit scope, commits, findings, remediation status, and formula caveat."
+      }
+    ],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "OroSwap says the protocol is non-custodial and does not require KYC, with access restricted in OFAC-sanctioned regions; implementation must still apply application policy and jurisdiction review.",
+      "note": "OroSwap says the protocol is non-custodial and does not require KYC, with access restricted in OFAC-sanctioned regions; implementation must still apply application policy and jurisdiction review."
+    },
+    "notes": "Do not reimplement generic AMM quote math; Halborn documents an acknowledged formula difference. Future execution needs asset/pair allowlists, minimum receive, max spread, quote freshness, failure classification, and receipt verification. Integration surface: Read-only route discovery and router simulation design. No trading UX and no fund-moving execution. API/contracts: public CosmWasm router source, execute/query surface, and deployments available",
+    "sources": [
+      {
+        "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
+        "title": "OroSwap Router",
+        "supports": "Router execute and simulation interfaces."
+      },
+      {
+        "url": "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/mainnet.json",
+        "title": "OroSwap ZIGChain mainnet deployment",
+        "supports": "Mainnet addresses and recorded chain metadata."
+      },
+      {
+        "url": "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/testnet.json",
+        "title": "OroSwap ZIGChain testnet deployment",
+        "supports": "Testnet addresses."
+      },
+      {
+        "url": "https://docs.oroswap.org/docs/getting-started/swap/",
+        "title": "OroSwap Swap Guide",
+        "supports": "Provider UI slippage and price-impact description."
+      },
+      {
+        "url": "https://docs.oroswap.org/docs/oroswap_faq/",
+        "title": "OroSwap FAQ",
+        "supports": "Provider non-custodial, KYC, and regional restriction statements."
+      },
+      {
+        "url": "https://www.halborn.com/audits/oroswap/cosmwasm-contracts-632648",
+        "title": "Halborn OroSwap CosmWasm Contracts Audit",
+        "supports": "Audit scope, commits, findings, remediation status, and formula caveat."
+      },
+      {
+        "url": "https://public-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy",
+        "title": "ZIGChain mainnet contract record: OroSwap router",
+        "supports": "Live router contract metadata."
+      },
+      {
+        "url": "https://testnet-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig1g00t6pxg3xn7vk0vt29zu9vztm3wsq5t5wegutlg94uddju0yr5sye3r3a",
+        "title": "ZIGChain testnet contract record: OroSwap router",
+        "supports": "Live router contract metadata."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "permapod",
+    "name": "PermaPod",
+    "roles": [
+      "LENDING",
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://permapod.xyz/",
+    "documentation": [
+      "https://permapod.gitbook.io/",
+      "https://github.com/permapod-zigchain/permapod-skills",
+      "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Public client configuration and live LCD records for configured contracts."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "DOCUMENTED",
+        "note": "Public client configuration is partial; several contract fields are empty."
+      }
+    ],
+    "contracts": [
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1jy2amze7fxcmessewv65jq5kupsxae2n96yech9g8d8rp5vnv74qxlddqk",
+        "purpose": "mainnetAddressProvider",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1s3frrzltqaxvuzffvxg89uuad6nkcyqe3ucvrahynznaek3mhe4s75puyu",
+        "purpose": "mainnetRedBank",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1nr48m8vv6kutnse3scxsg96pxmeyzj8hkn6rf9mstdtmmcn8h2tsm54kmz",
+        "purpose": "mainnetOracle",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1ma6e2dgkuu62fc66rn4msrnv89tyws75jpzz5kkk5pn4uf2cat5quevjw0",
+        "purpose": "mainnetParams",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig17etzyt9qu5dlga2d09ql34rcnkxgtwx544pp9reuqp9fmcp2lkjqdjf754",
+        "purpose": "mainnetIncentives",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig172v7euptv09z2pvj2khntlzel2fq5pcpp9g7lxpc889hvp74mjmsa5ev2p",
+        "purpose": "mainnetHealth",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1jul327luptcp9vcl6x4ws9xh6c3seuzsmmzj8n6e6qqgdplrvnzsh4t3ky",
+        "purpose": "mainnetCreditManager",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1kpeynqhd0qlq5v2yg2chja0lcakqkzvmpdl4eq573sdnh6vh7dnspd5zv9",
+        "purpose": "mainnetAccountNft",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1m6rezhkz28d2kk4ge25kcexzc244cses9a4d6jfqln26zqvzk80syqe6ke",
+        "purpose": "mainnetRewardsCollector",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      },
+      {
+        "chainId": "zigchain-1",
+        "address": "zig1s36zdllvn4fvxzlq4uvsm42stt5rqz6dqsmy2l3rdu3rqjvc90kqrvw0wj",
+        "purpose": "mainnetZapper",
+        "evidence": {
+          "url": "https://github.com/permapod-zigchain",
+          "title": "PermaPod GitHub organization",
+          "supports": "Current public repository inventory."
+        },
+        "status": "DOCUMENTED"
+      }
+    ],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "An unresolved non-primary incident alert exists, while no provider postmortem or remediation mapping was found.",
+      "The public client predates that alert and cannot prove whether affected code remains deployed.",
+      "The Halborn audit scope was the Oracle suite, not all currently deployed contracts.",
+      "No public core-contract repository or deployed checksum-to-source mapping was found.",
+      "The testnet configuration is incomplete."
+    ],
+    "audits": [
+      {
+        "url": "https://www.halborn.com/audits/permapod/permapod-core-contracts-zigchain-54eb8c",
+        "title": "Halborn PermaPod audit",
+        "supports": "Oracle-only scope, assessed commits, findings, and follow-up caveat."
+      }
+    ],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "No current public eligibility, KYC, or jurisdiction policy was verified in the accessible primary sources.",
+      "note": "No current public eligibility, KYC, or jurisdiction policy was verified in the accessible primary sources."
+    },
+    "notes": "The repository security self-check covers the query client and is not a smart-contract audit. Neither remediation nor continued deployment of affected code can be inferred from provider silence or live address existence. Execution requires primary incident facts, affected-contract mapping, remediation provenance, current full-protocol audit coverage, and testnet evidence. Integration surface: Read-only protocol, rates, position health, rewards, and vault metadata queries after schema pinning. No fund-moving or leverage path. API/contracts: public read-only query client and configured addresses; public core-contract source unavailable",
+    "sources": [
+      {
+        "url": "https://github.com/permapod-zigchain",
+        "title": "PermaPod GitHub organization",
+        "supports": "Current public repository inventory."
+      },
+      {
+        "url": "https://github.com/permapod-zigchain/permapod-skills",
+        "title": "PermaPod read-only skills",
+        "supports": "Read-only query surface and no-signing boundary."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+        "title": "PermaPod public client configuration",
+        "supports": "Mainnet and partial testnet contract addresses."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/SECURITY_CHECK.md",
+        "title": "PermaPod client security self-check",
+        "supports": "Scope-limited review of the no-signing query client."
+      },
+      {
+        "url": "https://www.halborn.com/audits/permapod/permapod-core-contracts-zigchain-54eb8c",
+        "title": "Halborn PermaPod audit",
+        "supports": "Oracle-only scope, assessed commits, findings, and follow-up caveat."
+      },
+      {
+        "url": "https://public-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig1s3frrzltqaxvuzffvxg89uuad6nkcyqe3ucvrahynznaek3mhe4s75puyu",
+        "title": "ZIGChain mainnet contract record: PermaPod Red Bank",
+        "supports": "Live configured-contract metadata."
+      },
+      {
+        "url": "https://defillama.com/protocol/permapod?events=false&fees=true&tvl=false",
+        "title": "DefiLlama PermaPod protocol page",
+        "supports": "Non-primary incident research lead only; not accepted as verified fact."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "nawa",
+    "name": "Nawa",
+    "roles": [
+      "VAULT",
+      "CURATOR"
+    ],
+    "website": "https://www.nawa.finance/",
+    "documentation": [
+      "https://www.nawa.finance/",
+      "https://github.com/Nawa-Finance",
+      "https://www.nawa.finance/audits/Nawa_Audit_1.pdf",
+      "https://www.nawa.finance/audits/Nawa_Audit_2.pdf"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "UNCONFIRMED",
+        "note": "Provider site shows ZIGChain products; no executable deployment was verified."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "UNCONFIRMED",
+        "note": "No public testnet deployment evidence found."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "No Amanie-hosted certificate or current certifier confirmation was found.",
+      "Hosted Halborn audits concern older EVM/CoreDAO code and are not mapped to a current ZIGChain deployment.",
+      "The first audit's detailed matrix includes partially solved, acknowledged, and risk-accepted findings despite an overall addressed summary.",
+      "No current public source repository, contract address, schema, liquidity terms, or code mapping was found."
+    ],
+    "audits": [
+      {
+        "url": "https://www.nawa.finance/audits/Nawa_Audit_1.pdf",
+        "title": "Nawa Halborn Audit 1",
+        "supports": "Older EVM/CoreDAO scope, commits, findings, and statuses."
+      },
+      {
+        "url": "https://www.nawa.finance/audits/Nawa_Audit_2.pdf",
+        "title": "Nawa Halborn Audit 2",
+        "supports": "Older EVM/CoreDAO diff-review scope and findings."
+      }
+    ],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "The provider markets to institutions and individuals, but current eligibility, KYC, and jurisdiction rules were not verified.",
+      "note": "The provider markets to institutions and individuals, but current eligibility, KYC, and jurisdiction rules were not verified."
+    },
+    "notes": "Required attribution: Nawa states that Amanie Advisors reviewed/certified the strategies; certifier confirmation remains unverified. Liquidity, redemption, capacity, eligibility, and deployment evidence remain open blockers. Integration surface: Attributed certification and product metadata only; possible future GoalPolicy input after certifier verification. No vault execution. API/contracts: no current public ZIGChain contract, schema, API, or source repository verified",
+    "sources": [
+      {
+        "url": "https://www.nawa.finance/",
+        "title": "Nawa",
+        "supports": "Provider product, ZIGChain, certification, and audit statements."
+      },
+      {
+        "url": "https://github.com/Nawa-Finance",
+        "title": "Nawa GitHub organization",
+        "supports": "Current public repository inventory."
+      },
+      {
+        "url": "https://www.nawa.finance/audits/Nawa_Audit_1.pdf",
+        "title": "Nawa Halborn Audit 1",
+        "supports": "Older EVM/CoreDAO scope, commits, findings, and statuses."
+      },
+      {
+        "url": "https://www.nawa.finance/audits/Nawa_Audit_2.pdf",
+        "title": "Nawa Halborn Audit 2",
+        "supports": "Older EVM/CoreDAO diff-review scope and findings."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "zig-markets",
+    "name": "ZIG Markets",
+    "roles": [
+      "CURATOR",
+      "DISTRIBUTOR"
+    ],
+    "website": "https://zigmarkets.com/",
+    "documentation": [
+      "https://zigmarkets.com/",
+      "https://zigmarkets.com/legal/terms-and-conditions"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "UNCONFIRMED",
+        "note": "Provider and ZIGChain describe ecosystem/distribution roles; no executable deployment was found."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "UNCONFIRMED",
+        "note": "No public testnet interface found."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Legal references to APIs do not establish a usable public integration surface.",
+      "Current live regulator status, exact activity scope, and crypto-asset authorization were not independently confirmed.",
+      "Originator, custodian, servicer, curator, and distributor roles must remain distinct."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "PRODUCT_DEPENDENT",
+      "jurisdiction": "Terms target a restricted/sophisticated audience and permit KYC/AML, sanctions screening, local eligibility controls, and geoblocking; regulated services may be supplied by licensed partners/entities.",
+      "note": "Terms target a restricted/sophisticated audience and permit KYC/AML, sanctions screening, local eligibility controls, and geoblocking; regulated services may be supplied by licensed partners/entities."
+    },
+    "notes": "The provider claims Merritt Administrators Pty Ltd holds South African FSP 46517 Category II. An FSCA notice verifies the entity/number and a 2022 lifting of suspension, but it is not a current full-scope license-register check. Do not infer ORIGINATOR, CUSTODY, SERVICING, or shared-vault responsibility. Integration surface: Product-level curator and distributor attribution where a primary source identifies ZIG Markets. No executable API. API/contracts: legal terms mention APIs and vault interfaces; no public API documentation or contract schema found",
+    "sources": [
+      {
+        "url": "https://zigmarkets.com/",
+        "title": "ZIG Markets",
+        "supports": "Provider role and license statements."
+      },
+      {
+        "url": "https://zigmarkets.com/legal/terms-and-conditions",
+        "title": "ZIG Markets Terms and Conditions",
+        "supports": "Service scope, audience, access controls, and licensed-partner boundaries."
+      },
+      {
+        "url": "https://www.fsca.co.za/Notices/FSCA%20FAIS%20Notice%2093%20of%202022.pdf",
+        "title": "FSCA FAIS Notice 93 of 2022",
+        "supports": "Merritt Administrators entity/FSP number and lifting of suspension in 2022."
+      },
+      {
+        "url": "https://docs.valdora.finance/vaults/stablecoin-yield-vault",
+        "title": "Valdora Stablecoin Yield Vault",
+        "supports": "Specific ZIG Markets curator attribution."
+      },
+      {
+        "url": "https://docs.zigchain.com/about-zigchain/glossary",
+        "title": "ZIGChain Glossary",
+        "supports": "Ecosystem description of ZIG Markets and WME."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "zignaly",
+    "name": "Zignaly",
+    "roles": [
+      "DISTRIBUTOR"
+    ],
+    "website": "https://zignaly.com/",
+    "documentation": [
+      "https://zignaly.com/z-indexes",
+      "https://help.zignaly.com/en/articles/13731033-understanding-z-indexes-services-composition",
+      "https://zignaly.com/legal/api-agreement/",
+      "https://help.zignaly.com/en/articles/9044409-kyc-how-to-verify-your-account"
+    ],
+    "networks": [
+      {
+        "chainId": "eip155:56",
+        "status": "DOCUMENTED",
+        "note": "Provider product documentation."
+      },
+      {
+        "chainId": "zigchain-1",
+        "status": "UNCONFIRMED",
+        "note": "No contract, WME object, or executable ZIGChain integration was found."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "No stable public Z-Index/strategy metadata API schema or identifiers were verified.",
+      "No WME or ZIGChain deployment relationship was established.",
+      "Hosted custody, withdrawal, liquidity, KYC, and regional restrictions apply.",
+      "A stable provider URL for 2026 incident notices was not recovered, so no incident conclusion is used."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "REQUIRED",
+      "jurisdiction": "KYC is mandatory to deposit and invest. The current restricted-residence list includes Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela, and named occupied regions.",
+      "note": "KYC is mandatory to deposit and invest. The current restricted-residence list includes Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela, and named occupied regions."
+    },
+    "notes": "Zignaly is modeled as distribution, consistent with the owner-requested boundary. The API license agreement proves legal API terms exist, not that a suitable public integration API is available. Integration surface: Human-readable product and strategy-composition metadata only. Exchange API keys are outside the ZIGoals integration boundary. API/contracts: public human-readable product metadata; legal API agreement exists; no suitable documented product API or ZIGChain contract found",
+    "sources": [
+      {
+        "url": "https://zignaly.com/z-indexes",
+        "title": "Zignaly Z-Indexes",
+        "supports": "Hosted product, funding, withdrawal, and metadata description."
+      },
+      {
+        "url": "https://zignaly.com/z-indexes/basics/how-z-indexes-work",
+        "title": "How Z-Indexes Work",
+        "supports": "Rules, allocation, rebalancing, and oversight model."
+      },
+      {
+        "url": "https://help.zignaly.com/en/articles/13731033-understanding-z-indexes-services-composition",
+        "title": "Understanding Z-Indexes Services Composition",
+        "supports": "Public human-readable allocation and strategy composition."
+      },
+      {
+        "url": "https://help.zignaly.com/en/articles/6885234-faq-s-for-wealth-managers",
+        "title": "Zignaly Wealth Manager FAQ",
+        "supports": "Exchange API-key context."
+      },
+      {
+        "url": "https://zignaly.com/legal/api-agreement/",
+        "title": "Zignaly API License Agreement",
+        "supports": "Legal existence of an API license without a discovered suitable public schema."
+      },
+      {
+        "url": "https://help.zignaly.com/en/articles/9044409-kyc-how-to-verify-your-account",
+        "title": "Zignaly KYC Guide",
+        "supports": "Mandatory KYC and restricted-residence list."
+      },
+      {
+        "url": "https://zignaly.com/legal",
+        "title": "Zignaly Legal",
+        "supports": "Provider entity and regulatory statements."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "wme",
+    "name": "ZIGChain Wealth Management Engine (WME)",
+    "roles": [
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://docs.zigchain.com/wealth-management-engine/",
+    "documentation": [
+      "https://docs.zigchain.com/wealth-management-engine/",
+      "https://docs.zigchain.com/about-zigchain/glossary",
+      "https://docs.zigchain.com/v2/builders/js-sdk/introduction",
+      "https://github.com/ZIGChain/zigchain-examples"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "ANNOUNCED",
+        "note": "WME is described as ZIGChain infrastructure; no public deployed interface was verified."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "UNCONFIRMED",
+        "note": "No public testnet deployment or example was found."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Implementation documentation explicitly remains in preparation.",
+      "No public authorization, custody, strategy-object, amount, lifecycle, or failure semantics were found.",
+      "Public repository absence does not prove a private or forthcoming interface does not exist."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "No WME-specific eligibility, KYC, or jurisdiction interface was found.",
+      "note": "No WME-specific eligibility, KYC, or jurisdiction interface was found."
+    },
+    "notes": "General token-factory and IBC SDK examples do not establish a WME API. Remain non-executable until official schemas and testnet evidence are published and verified. Integration surface: Architecture boundary for a future WMEAdapter only. API/contracts: no public ABI, protobuf/service definition, contract address, message schema, SDK method, or example flow found",
+    "sources": [
+      {
+        "url": "https://docs.zigchain.com/wealth-management-engine/",
+        "title": "ZIGChain Wealth Management Engine",
+        "supports": "Architecture description and explicit content-preparation status."
+      },
+      {
+        "url": "https://docs.zigchain.com/about-zigchain/glossary",
+        "title": "ZIGChain Glossary",
+        "supports": "Current WME ecosystem definition."
+      },
+      {
+        "url": "https://docs.zigchain.com/v2/builders/js-sdk/introduction",
+        "title": "ZIGChain JavaScript SDK Introduction",
+        "supports": "Current general SDK scope; no WME surface established."
+      },
+      {
+        "url": "https://github.com/ZIGChain",
+        "title": "ZIGChain GitHub organization",
+        "supports": "Current public repository inventory."
+      },
+      {
+        "url": "https://github.com/ZIGChain/zigchain-examples",
+        "title": "ZIGChain Examples",
+        "supports": "Current public examples do not include a WME flow."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "zamanat",
+    "name": "Zamanat",
+    "roles": [
+      "CURATOR",
+      "DISTRIBUTOR",
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://www.zamanathq.com/",
+    "documentation": [
+      "https://www.zamanathq.com/news/zamanat-fund-launch"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "ANNOUNCED",
+        "note": "ZM1 launch announced for ZIGChain; on-chain issuance not independently verified. Testnet unconfirmed."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Private-credit losses, illiquidity and fund/token legal mapping need product diligence."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "PRODUCT_DEPENDENT",
+      "jurisdiction": "ZM1: Professional Clients, limited DIFC distribution, whitelist; not offered for onshore UAE transactions. Explicitly not an Islamic Fund or marketed as Shariah-compliant.",
+      "note": "ZM1: Professional Clients, limited DIFC distribution, whitelist; not offered for onshore UAE transactions. Explicitly not an Islamic Fund or marketed as Shariah-compliant."
+    },
+    "notes": "Zamanat sponsors; Truleum manages; Apex administers. USD 100 million is a target, not verified assets raised. Integration surface: Product metadata and sponsor provenance; subscription integration requires the fund manager and final terms. API/contracts: No canonical ZM1 contract, ABI or subscription API identified in the inspected release.",
+    "sources": [
+      {
+        "url": "https://www.zamanathq.com/",
+        "title": "Zamanat platform",
+        "supports": "Platform orchestration and broader Shariah positioning."
+      },
+      {
+        "url": "https://www.zamanathq.com/news/zamanat-fund-launch",
+        "title": "Zamanat launches tokenized private credit fund",
+        "supports": "September 10 launch, named fund parties, tokenization intention, professional-client and religious-status limitations."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "defa-invoicemate",
+    "name": "DeFa / InvoiceMate",
+    "roles": [
+      "ORIGINATOR",
+      "LENDING",
+      "CURATOR"
+    ],
+    "website": "https://imdefa.com/",
+    "documentation": [
+      "https://imdefa.com/",
+      "https://invoicemate.net/"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "UNCONFIRMED",
+        "note": "Provider claims limited-access invoice pools live on ZIGChain private mainnet; independent deployment verification and testnet remain unconfirmed."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Page markets insurance/protection; coverage, exclusions and recoveries were not independently verified.",
+      "Invoice defaults, servicing, lockups and loss allocation require explicit terms."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Investor access is by application; investor KYC and jurisdiction terms remain unconfirmed. Borrower onboarding is distinct from investor eligibility.",
+      "note": "Investor access is by application; investor KYC and jurisdiction terms remain unconfirmed. Borrower onboarding is distinct from investor eligibility."
+    },
+    "notes": "The inspected page contains overlapping product descriptions and tenors; no marketing terms were promoted to canonical execution parameters. Integration surface: Origination and pool metadata candidate, pending an authenticated product specification. API/contracts: Site describes USDC deposits and DLP receipts; Docs and Audit links are marked Coming Soon. No canonical pool address/schema identified.",
+    "sources": [
+      {
+        "url": "https://imdefa.com/",
+        "title": "DeFa by InvoiceMate",
+        "supports": "Private-mainnet claim, receivables pools, USDC/DLP descriptions, application access, Docs and Audit marked Coming Soon."
+      },
+      {
+        "url": "https://www.linkedin.com/posts/defaprimitive_our-first-pools-are-now-live-on-zigchain-activity-7445092712699277312-hA9E",
+        "title": "DeFa: first pools now live on ZIGChain",
+        "supports": "Provider claims ZIGChain pool launch with limited access."
+      },
+      {
+        "url": "https://invoicemate.net/",
+        "title": "InvoiceMate",
+        "supports": "Invoice financing, borrower onboarding and risk-assessment positioning."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "beehive",
+    "name": "Beehive",
+    "roles": [
+      "ORIGINATOR",
+      "LENDING",
+      "SERVICING"
+    ],
+    "website": "https://www.beehive.ae/",
+    "documentation": [
+      "https://www.beehive.ae/investors",
+      "https://www.beehive.ae/islamic-finance"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "ANNOUNCED",
+        "note": "ZIGChain partnership explores programmable GCC private credit. A deployed ZIG product and testnet are unconfirmed."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Provider warns of borrower default, capital loss and delays; transfer/sale of financing is not guaranteed."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "PRODUCT_DEPENDENT",
+      "jurisdiction": "Investor application and local restrictions apply. Islamic Window, Murabaha and Shariyah Review Bureau oversight are provider-attributed claims; no new ZIG product certification was verified.",
+      "note": "Investor application and local restrictions apply. Islamic Window, Murabaha and Shariyah Review Bureau oversight are provider-attributed claims; no new ZIG product certification was verified."
+    },
+    "notes": "Business-investor financing is direct; provider says it does not select businesses for investors. Do not assume a pooled curator role. Integration surface: Originator/servicing evidence and future product eligibility; existing marketplace is not a verified ZIG vault. API/contracts: No public ZIG contract or execution schema identified in inspected provider pages.",
+    "sources": [
+      {
+        "url": "https://www.linkedin.com/posts/beehivefintech_smes-we-hear-you-access-to-funding-should-activity-7452647245906255872-JBo9",
+        "title": "Beehive: partnership with ZIGChain",
+        "supports": "Exploration of compliant programmable GCC private-credit infrastructure."
+      },
+      {
+        "url": "https://www.beehive.ae/",
+        "title": "Beehive",
+        "supports": "SME lending marketplace, direct business-investor contracts, default and liquidity warnings."
+      },
+      {
+        "url": "https://www.beehive.ae/investors",
+        "title": "Beehive investors",
+        "supports": "Investor onboarding and country-dependent eligibility; provider does not choose businesses for investors."
+      },
+      {
+        "url": "https://www.beehive.ae/islamic-finance",
+        "title": "Beehive Islamic finance",
+        "supports": "Provider statements about Islamic Window, Murabaha and Shariyah Review Bureau oversight."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "ondo",
+    "name": "Ondo Finance",
+    "roles": [
+      "ORIGINATOR",
+      "DISTRIBUTOR"
+    ],
+    "website": "https://ondo.finance/",
+    "documentation": [
+      "https://docs.ondo.finance/api-reference/overview",
+      "https://docs.ondo.finance/addresses",
+      "https://docs.ondo.finance/ondo-stocks/eligibility",
+      "https://docs.ondo.finance/openapi.json"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "ANNOUNCED",
+        "note": "Ondo Stocks docs list Ethereum, BNB Chain and Solana. ZIGChain announces integration; direct ZIG deployment and testnet are unconfirmed."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Underlying market risk, custody, issuer rights and trading/redemption windows are product-specific. Do not treat stock exposure as cash yield."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "REQUIRED",
+      "jurisdiction": "Ondo Stocks prohibits US persons and specified jurisdictions including Canada; EEA/UK issuance requires professional/qualified status. Other product rules differ; KYC and complete current list govern.",
+      "note": "Ondo Stocks prohibits US persons and specified jurisdictions including Canada; EEA/UK issuance requires professional/qualified status. Other product rules differ; KYC and complete current list govern."
+    },
+    "notes": "A ZIGChain integration announcement does not override Ondo product eligibility or prove native CosmWasm execution. Integration surface: Metadata/price integration only after access and terms review; ecosystem wrapper must be verified separately. API/contracts: Published REST OpenAPI and gRPC schema; whitelisted mint/redemption flow. API access requires onboarding. No ZIG address found in inspected canonical directory.",
+    "sources": [
+      {
+        "url": "https://www.linkedin.com/posts/zigchain_ondo-finance-did-the-hard-work-of-bringing-activity-7470083640316747776-QfeJ",
+        "title": "ZIGChain: Ondo integration",
+        "supports": "Official ecosystem integration announcement, without a ZIG execution specification."
+      },
+      {
+        "url": "https://docs.ondo.finance/api-reference/overview",
+        "title": "Ondo Stocks API overview",
+        "supports": "REST/gRPC schemas, supported chains, whitelisted primary-purchaser flow and API onboarding."
+      },
+      {
+        "url": "https://docs.ondo.finance/addresses",
+        "title": "Ondo smart contract addresses",
+        "supports": "Canonical address directory; no ZIG entry identified in the inspected directory."
+      },
+      {
+        "url": "https://docs.ondo.finance/ondo-stocks/eligibility",
+        "title": "Ondo Stocks eligibility",
+        "supports": "Product-specific jurisdiction prohibitions and qualified/professional investor requirements."
+      },
+      {
+        "url": "https://ondo.finance/ondo-stocks",
+        "title": "Ondo Stocks",
+        "supports": "Underlying equity/ETF exposure and market-access descriptions."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "taurus",
+    "name": "Taurus",
+    "roles": [
+      "CUSTODY",
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://www.taurushq.com/",
+    "documentation": [
+      "https://docs.taurushq.com/protect-capital/docs/supported-networks",
+      "https://docs.taurushq.com/protect-capital/docs/supported-assets-stablecoins-and-tokenisation"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "DOCUMENTED",
+        "note": "Taurus-PROTECT announces native ZIG custody; mainnet network list includes ZIG. ZIG testnet support not established by inspected list."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Custody permissions, operational controls and supported transaction types require tenant-specific verification."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "PRODUCT_DEPENDENT",
+      "jurisdiction": "Announcement targets banks, financial institutions and professional investors; ZIGoals eligibility and onboarding are unconfirmed.",
+      "note": "Announcement targets banks, financial institutions and professional investors; ZIGoals eligibility and onboarding are unconfirmed."
+    },
+    "notes": "Published support is a vendor statement; no custody account, API call or transaction was performed. Integration surface: Institutional custody/issuance infrastructure metadata; client-tenant integration would be a separate project. API/contracts: Taurus-CAPITAL documents Zigchain TokenFactory support. Public support tables do not establish a ZIGoals client API entitlement or arbitrary vault support.",
+    "sources": [
+      {
+        "url": "https://www.taurushq.com/stories/taurus-integrates-zigchain-to-expand-digital-asset-wealth-generation-opportunities-for-financial-institutions/",
+        "title": "Taurus integrates ZIGChain",
+        "supports": "April 23, 2026 announcement of native ZIG custody through Taurus-PROTECT."
+      },
+      {
+        "url": "https://docs.taurushq.com/protect-capital/docs/supported-networks",
+        "title": "Taurus supported networks",
+        "supports": "ZIG in mainnet network support list."
+      },
+      {
+        "url": "https://docs.taurushq.com/protect-capital/docs/supported-assets-stablecoins-and-tokenisation",
+        "title": "Taurus supported assets and tokenisation",
+        "supports": "Zigchain TokenFactory support for Taurus-CAPITAL; not an arbitrary vault ABI."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "apex-group",
+    "name": "Apex Group",
+    "roles": [
+      "SERVICING"
+    ],
+    "website": "https://www.apexgroup.com/",
+    "documentation": [
+      "https://www.apexgroup.com/",
+      "https://www.globenewswire.com/news-release/2025/07/25/3121771/0/en/Apex-Group-and-ZIGChain-Forge-Strategic-Alliance-to-Launch-Tokenized-Fund-Infrastructure.html"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "ANNOUNCED",
+        "note": "ZIGChain alliance announced; Apex named ZM1 administrator. A chain-native product API and testnet remain unconfirmed."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "NAV, reconciliations, investor register and reporting responsibilities require a product-specific service agreement."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Institutional service engagement is distinct from fund-investor eligibility; ZM1 terms govern that fund.",
+      "note": "Institutional service engagement is distinct from fund-investor eligibility; ZM1 terms govern that fund."
+    },
+    "notes": "Alliance participants and Tokeny technology do not establish a compatible ZIG execution ABI. Integration surface: Administrator and servicing provenance for explicitly identified funds. API/contracts: Public fund-service and portal descriptions found; no canonical ZIG vault contract or open product API established.",
+    "sources": [
+      {
+        "url": "https://www.zamanathq.com/news/zamanat-fund-launch",
+        "title": "Zamanat launches tokenized private credit fund",
+        "supports": "September 10 launch, named fund parties, tokenization intention, professional-client and religious-status limitations."
+      },
+      {
+        "url": "https://www.apexgroup.com/",
+        "title": "Apex Group",
+        "supports": "Fund administration, transfer agency, portals and institutional services."
+      },
+      {
+        "url": "https://www.globenewswire.com/news-release/2025/07/25/3121771/0/en/Apex-Group-and-ZIGChain-Forge-Strategic-Alliance-to-Launch-Tokenized-Fund-Infrastructure.html",
+        "title": "ZIGChain-issued Apex alliance release",
+        "supports": "July 25, 2025 tokenized-fund infrastructure alliance; primary issuer release hosted by wire."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "noble",
+    "name": "Noble",
+    "roles": [
+      "FUNDING_RAIL"
+    ],
+    "website": "https://noble.xyz/",
+    "documentation": [
+      "https://docs.zigchain.com/integration-guides/ibc-channel-list",
+      "https://help.circle.com/support/en/a-closer-look-at-usdc-on-noble-and-the-ibc-protocol?id=kb_article_view&sysparm_article=KB0010582",
+      "https://www.circle.com/blog/circle-is-discontinuing-support-for-usdc-and-cctp-v1-on-noble"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Documented zigchain-1 channel-3 to noble-1 channel-175, and zig-test-2 channel-44 to grand-1 channel-704; both ZIG-side channels observed OPEN. Circle announces Noble USDC/CCTP sunset; current open IBC state does not remove issuer dependency."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Documented zigchain-1 channel-3 to noble-1 channel-175, and zig-test-2 channel-44 to grand-1 channel-704; both ZIG-side channels observed OPEN. Circle announces Noble USDC/CCTP sunset; current open IBC state does not remove issuer dependency."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "New Circle Mint minting ends 2026-10-13. Noble USDC/CCTP pause is scheduled for 2027-01-12; Noble receives no CCTP V2.",
+      "Relayers, client freshness, issuer controls and destination receipt remain unverified."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Circle Mint and APIs support native Noble USDC, not arbitrary IBC vouchers. Product onboarding and compliance still apply.",
+      "note": "Circle Mint and APIs support native Noble USDC, not arbitrary IBC vouchers. Product onboarding and compliance still apply."
+    },
+    "notes": "Do not present the historical native-USDC support page as assurance of continuing availability after the issuer sunset. Testnet asset mapping was not verified. Integration surface: Funding-route research only; exclude from an enabled new USDC route until sunset/replacement design is resolved. API/contracts: IBC channel query works. Official registry identifies Noble USDC; denomination-trace RPC verification was unavailable (HTTP 501).",
+    "sources": [
+      {
+        "url": "https://help.circle.com/support/en/a-closer-look-at-usdc-on-noble-and-the-ibc-protocol?id=kb_article_view&sysparm_article=KB0010582",
+        "title": "Circle: USDC on Noble and IBC",
+        "supports": "Native issuance on Noble and IBC-transfer distinction."
+      },
+      {
+        "url": "https://www.circle.com/blog/circle-is-discontinuing-support-for-usdc-and-cctp-v1-on-noble",
+        "title": "Circle discontinues Noble USDC and CCTP V1",
+        "supports": "September 10, 2026 issuer sunset notice and deadlines."
+      },
+      {
+        "url": "https://developers.circle.com/circle-mint/supported-chains-and-currencies",
+        "title": "Circle Mint supported chains and currencies",
+        "supports": "Circle Mint support boundary; not direct support for IBC vouchers on every appchain."
+      },
+      {
+        "url": "https://docs.zigchain.com/integration-guides/ibc-channel-list",
+        "title": "ZIGChain IBC channel list",
+        "supports": "Mainnet/testnet counterparty chains and channel pairs."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ZIGChain/networks/main/zigchain-1/api-nodes.txt",
+        "title": "ZIGChain mainnet API nodes",
+        "supports": "Official node list includes the queried Numia LCD."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ZIGChain/networks/main/zig-test-2/api-nodes.txt",
+        "title": "ZIGChain testnet API nodes",
+        "supports": "Official node list includes the queried testnet Numia LCD."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/assets/ibc/usdc.mainnet.json",
+        "title": "ZIGChain Noble USDC asset metadata",
+        "supports": "Published denomination, decimals, trace path and channel mapping."
+      },
+      {
+        "url": "https://public-zigchain-lcd.numia.xyz/ibc/core/channel/v1/channels/channel-3/ports/transfer",
+        "title": "ZIG-side live IBC channel state",
+        "supports": "Observed OPEN channel, counterparty channel, ICS20 version and response height."
+      },
+      {
+        "url": "https://public-zigchain-testnet-lcd.numia.xyz/ibc/core/channel/v1/channels/channel-44/ports/transfer",
+        "title": "ZIG-side live IBC channel state",
+        "supports": "Observed OPEN channel, counterparty channel, ICS20 version and response height."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "axelar",
+    "name": "Axelar",
+    "roles": [
+      "BRIDGE",
+      "FUNDING_RAIL"
+    ],
+    "website": "https://axelar.network/",
+    "documentation": [
+      "https://docs.axelar.dev/resources/static-configs/static-configs/",
+      "https://docs.axelar.dev/learn/security/",
+      "https://docs.zigchain.com/integration-guides/ibc-channel-list"
+    ],
+    "networks": [
+      {
+        "chainId": "zigchain-1",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Canonical configs match mainnet zigchain-1 channel-1/182 and testnet zig-test-2 channel-0/612; both ZIG-side channels observed OPEN."
+      },
+      {
+        "chainId": "zig-test-2",
+        "status": "LIVE_READ_VERIFIED",
+        "note": "Canonical configs match mainnet zigchain-1 channel-1/182 and testnet zig-test-2 channel-0/612; both ZIG-side channels observed OPEN."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "RESEARCH_METADATA"
+    ],
+    "status": "RESEARCHED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Axelar documents validator security and gateway rate limits; current deployed route security and receipt handling remain unverified.",
+      "18-decimal ZIG.axl is not interchangeable with native gas denomination without a verified conversion."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "No provider account/eligibility flow tested; source venue and route restrictions remain product-specific and unconfirmed.",
+      "note": "No provider account/eligibility flow tested; source venue and route restrictions remain product-specific and unconfirmed."
+    },
+    "notes": "Testnet config key zigchain-3 maps externalChainId zig-test-2. Never use the config key as the wallet network id. Registry and Axelar config agree on ZIG.axl metadata; direct denom-trace RPC returned HTTP 501. Integration surface: Separate FundingRoute for a verified source-to-destination asset path; no strategy classification. API/contracts: Public typed config maps unit-zig and its Ethereum/Sepolia origins. Bridge execution and native conversion were not tested.",
+    "sources": [
+      {
+        "url": "https://docs.axelar.dev/resources/static-configs/static-configs/",
+        "title": "Axelar static configs",
+        "supports": "Canonical mainnet/testnet JSON locations and typed config interfaces."
+      },
+      {
+        "url": "https://docs.axelar.dev/learn/security/",
+        "title": "Axelar security overview",
+        "supports": "Validator security, gateway rate limits and audit references; not deployment-specific audit verification."
+      },
+      {
+        "url": "https://docs.zigchain.com/integration-guides/ibc-channel-list",
+        "title": "ZIGChain IBC channel list",
+        "supports": "Mainnet/testnet counterparty chains and channel pairs."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ZIGChain/networks/main/zigchain-1/api-nodes.txt",
+        "title": "ZIGChain mainnet API nodes",
+        "supports": "Official node list includes the queried Numia LCD."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ZIGChain/networks/main/zig-test-2/api-nodes.txt",
+        "title": "ZIGChain testnet API nodes",
+        "supports": "Official node list includes the queried testnet Numia LCD."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/assets/ibc/zig-axl.mainnet.json",
+        "title": "ZIGChain ZIG (Axelar) asset metadata",
+        "supports": "Published denomination, decimals, trace path and channel mapping."
+      },
+      {
+        "url": "https://axelar-mainnet.s3.us-east-2.amazonaws.com/configs/mainnet-config-1.x.json",
+        "title": "Axelar mainnet configuration",
+        "supports": "Current ZIG chain, channel and unit-zig asset mapping."
+      },
+      {
+        "url": "https://axelar-testnet.s3.us-east-2.amazonaws.com/configs/testnet-config-1.x.json",
+        "title": "Axelar testnet configuration",
+        "supports": "Current ZIG chain, channel and unit-zig asset mapping."
+      },
+      {
+        "url": "https://public-zigchain-lcd.numia.xyz/ibc/core/channel/v1/channels/channel-1/ports/transfer",
+        "title": "ZIG-side live IBC channel state",
+        "supports": "Observed OPEN channel, counterparty channel, ICS20 version and response height."
+      },
+      {
+        "url": "https://public-zigchain-testnet-lcd.numia.xyz/ibc/core/channel/v1/channels/channel-0/ports/transfer",
+        "title": "ZIG-side live IBC channel state",
+        "supports": "Observed OPEN channel, counterparty channel, ICS20 version and response height."
+      }
+    ],
+    "phase": "FUTURE_GATED"
+  },
+  {
+    "id": "range",
+    "name": "Range",
+    "roles": [
+      "EXPLORER",
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://app.range.org/zigchain-testnet/general",
+    "documentation": [
+      "https://docs.zigchain.com/users/tools/block-explorers"
+    ],
+    "networks": [
+      {
+        "chainId": "zig-test-2",
+        "status": "DOCUMENTED",
+        "note": "Official testnet homepage only. Detail routes and public API schemas unconfirmed; browser policy verification unavailable. No portfolio or full-history integration."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "EXPLORER_HOME"
+    ],
+    "status": "INTEGRATED",
+    "verification": "READ_ONLY_ROUTES_VERIFIED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Third-party service availability and accuracy; opening an explorer does not prove inclusion."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Public information access; third-party terms apply.",
+      "note": "No wallet/account required by ZIGoals for these links."
+    },
+    "notes": "Official testnet homepage only. Detail routes and public API schemas unconfirmed; browser policy verification unavailable. No portfolio or full-history integration.",
+    "sources": [
+      {
+        "url": "https://docs.zigchain.com/users/tools/block-explorers",
+        "title": "Official ZIGChain block explorers",
+        "supports": "Lists Range and ZIGScan mainnet/testnet homepages and canonical Hub destinations."
+      }
+    ],
+    "phase": "READ_ONLY"
+  },
+  {
+    "id": "zigscan",
+    "name": "ZIGScan",
+    "roles": [
+      "EXPLORER"
+    ],
+    "website": "https://testnet.zigscan.org/",
+    "documentation": [
+      "https://docs.zigchain.com/users/tools/block-explorers"
+    ],
+    "networks": [
+      {
+        "chainId": "zig-test-2",
+        "status": "DOCUMENTED",
+        "note": "Public source confirms tx/account/contract route shapes; homepage emits block links. Asset route unconfirmed. Link navigation is not receipt verification."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "EXPLORER_HOME",
+      "EXPLORER_TRANSACTION",
+      "EXPLORER_ACCOUNT",
+      "EXPLORER_BLOCK",
+      "EXPLORER_CONTRACT"
+    ],
+    "status": "INTEGRATED",
+    "verification": "READ_ONLY_ROUTES_VERIFIED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Third-party service availability and accuracy; opening an explorer does not prove inclusion."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Public information access; third-party terms apply.",
+      "note": "No wallet/account required by ZIGoals for these links."
+    },
+    "notes": "Public source confirms tx/account/contract route shapes; homepage emits block links. Asset route unconfirmed. Link navigation is not receipt verification.",
+    "sources": [
+      {
+        "url": "https://docs.zigchain.com/users/tools/block-explorers",
+        "title": "Official ZIGChain block explorers",
+        "supports": "Lists Range and ZIGScan mainnet/testnet homepages and canonical Hub destinations."
+      }
+    ],
+    "phase": "READ_ONLY"
+  },
+  {
+    "id": "zigchain-hub",
+    "name": "ZIGChain Hub",
+    "roles": [
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://hub.zigchain.com/",
+    "documentation": [
+      "https://docs.zigchain.com/users/hub/"
+    ],
+    "networks": [
+      {
+        "chainId": "external-network-selection",
+        "status": "DOCUMENTED",
+        "note": "Canonical overview/validators/governance/staking/bridge information links only. Hub may retain its own network and offers financial actions; no automatic wallet connection or routing. Direct HTTP access returned403; routes verified in official docs."
+      }
+    ],
+    "contracts": [],
+    "capabilities": [
+      "HUB_LINKS"
+    ],
+    "status": "INTEGRATED",
+    "verification": "READ_ONLY_ROUTES_VERIFIED",
+    "lastVerified": "2026-09-13",
+    "risks": [
+      "Verify the network in Hub; ZIGoals does not perform staking, voting or bridging."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Public information access; third-party terms apply.",
+      "note": "No wallet/account required by ZIGoals for these links."
+    },
+    "notes": "Canonical overview/validators/governance/staking/bridge information links only. Hub may retain its own network and offers financial actions; no automatic wallet connection or routing. Direct HTTP access returned403; routes verified in official docs.",
+    "sources": [
+      {
+        "url": "https://docs.zigchain.com/users/tools/block-explorers",
+        "title": "Official ZIGChain block explorers",
+        "supports": "Lists Range and ZIGScan mainnet/testnet homepages and canonical Hub destinations."
+      }
+    ],
+    "phase": "READ_ONLY"
+  }
+]

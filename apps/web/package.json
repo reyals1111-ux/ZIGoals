@@ -21,7 +21,8 @@
     "@cosmjs/encoding": "0.38.1",
     "cosmjs-types": "0.11.0",
     "decimal.js": "10.6.0",
-    "zod": "4.6.2"
+    "zod": "4.6.2",
+    "@zigoals/ecosystem-registry": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "19.2.2",

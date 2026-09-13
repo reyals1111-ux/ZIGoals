@@ -10,8 +10,6 @@ export interface NetworkConfig {
   rpcUrl: string;
   restUrl: string;
   grpcUrl?: string;
-  explorerTxBaseUrl: string;
-  explorerAccountBaseUrl: string;
   addressPrefix: string;
   nativeAsset: NativeAssetConfig;
   gasPrice: string;
@@ -23,8 +21,6 @@ export const TESTNET: Readonly<NetworkConfig> = Object.freeze({
   rpcUrl: "https://testnet-rpc.zigchain.com",
   restUrl: "https://testnet-api.zigchain.com",
   grpcUrl: "grpc-t.zigchain.nodestake.org:443",
-  explorerTxBaseUrl: "https://testnet.zigscan.org/tx/",
-  explorerAccountBaseUrl: "https://testnet.zigscan.org/address/",
   addressPrefix: "zig",
   nativeAsset: Object.freeze({
     symbol: "ZIG",

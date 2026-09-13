@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
+import { ExplorerLinks } from "./explorer-links";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const path = usePathname();
@@ -122,16 +123,16 @@ export function Shell({ children }: { children: ReactNode }) {
                             tx.state.replaceAll("_", " ").toLowerCase())}
                   </p>
                   {tx.hash && (
-                    <a
-                      href={
-                        TESTNET.explorerTxBaseUrl + encodeURIComponent(tx.hash)
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ overflowWrap: "anywhere" }}
-                    >
-                      Transaction {tx.hash}
-                    </a>
+                    <div>
+                      <p style={{ overflowWrap: "anywhere" }}>
+                        Transaction {tx.hash}
+                      </p>
+                      <ExplorerLinks
+                        chainId={tx.chain}
+                        kind="transaction"
+                        identifier={tx.hash}
+                      />
+                    </div>
                   )}
                   {tx.note && <p>{tx.note}</p>}
                   {tx.storageWarning && <p role="alert">{tx.storageWarning}</p>}

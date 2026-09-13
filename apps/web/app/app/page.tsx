@@ -67,6 +67,18 @@ export default function Dashboard() {
           </p>
         </section>
       )}
+      <section className="ecosystem-invitation">
+        <div>
+          <strong>Explore the ZIGChain ecosystem</strong>
+          <p>
+            Public verification tools, official Hub links and sourced provider
+            research.
+          </p>
+        </div>
+        <Link href="/app/ecosystem" className="text-link">
+          Explore the ecosystem →
+        </Link>
+      </section>
       <aside className="principle">
         <span aria-hidden="true">◇</span>
         <div>

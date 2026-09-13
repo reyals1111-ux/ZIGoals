@@ -1,4 +1,5 @@
 "use client";
+import { ExplorerLinks } from "../../../../components/explorer-links";
 import { use, useState } from "react";
 import Link from "next/link";
 import Decimal from "decimal.js";
@@ -370,14 +371,12 @@ export default function GoalDetail({
                   ? formatUnits(a.amount, TESTNET.nativeAsset.decimals) + " ZIG"
                   : ""}
               </span>
-              {a.hash && (
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={TESTNET.explorerTxBaseUrl + a.hash}
-                >
-                  View transaction ↗
-                </a>
+              {s.mode === "testnet" && a.hash && (
+                <ExplorerLinks
+                  chainId={s.chain}
+                  kind="transaction"
+                  identifier={a.hash}
+                />
               )}
             </div>
           ))}
@@ -423,13 +422,11 @@ export default function GoalDetail({
           </div>
         </dl>
         {s.mode === "testnet" && (
-          <a
-            href={TESTNET.explorerAccountBaseUrl + CONTRACT_ADDRESS}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open explorer ↗
-          </a>
+          <ExplorerLinks
+            chainId={s.chain}
+            kind="contract"
+            identifier={CONTRACT_ADDRESS}
+          />
         )}
       </details>
     </>

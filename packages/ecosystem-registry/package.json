@@ -1,0 +1,8 @@
+{
+  "name": "@zigoals/ecosystem-registry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./providers": "./src/providers.ts" },
+  "dependencies": { "@cosmjs/encoding": "0.38.1", "zod": "4.6.2" }
+}
