@@ -106,18 +106,28 @@ export function evaluateGoal(input: GoalInput): GoalEvaluation {
   let periods = 0;
   while (periods < HORIZON && scheduledDate(anchor, periods + 1) <= input.targetDate) periods++;
   // Round only the rate to 80 places; retain 160-digit internal money precision.
-  const growth = rate.plus(1).pow(new D(1).div(12)).toDecimalPlaces(80);
+  const annualGrowth = rate.plus(1);
+  const growth = annualGrowth.pow(new D(1).div(12)).toDecimalPlaces(80);
   const remaining = D.max(target.minus(current), ZERO);
   const completed = current.gte(target);
 
-  let projected = current;
-  let principalGrowth = current;
-  let contributionFactor = ZERO;
-  for (let month = 0; month < periods; month++) {
-    projected = projected.mul(growth).plus(contribution);
-    principalGrowth = principalGrowth.mul(growth);
-    contributionFactor = contributionFactor.mul(growth).plus(1);
+  // Express q^n as (1 + annualReturn)^floor(n/12) × q^(n mod 12).
+  // Complete years use the supplied annual factor, never the rounded q^12.
+  // Summing those same powers gives the end-of-period contribution annuity.
+  // This preserves exact annual thresholds without tolerating real money gaps.
+  const powers: Decimal[] = [new D(1)];
+  const annuities: Decimal[] = [ZERO];
+  function scenarioAt(period: number) {
+    while (powers.length <= period) {
+      const n = powers.length;
+      powers.push(n >= 12 ? powers[n - 12]!.mul(annualGrowth) : powers[n - 1]!.mul(growth));
+      annuities.push(annuities[n - 1]!.plus(powers[n - 1]!));
+    }
+    const principalGrowth = current.mul(powers[period]!);
+    const contributionFactor = annuities[period]!;
+    return { principalGrowth, contributionFactor, projected: principalGrowth.plus(contribution.mul(contributionFactor)) };
   }
+  const { projected, principalGrowth, contributionFactor } = scenarioAt(periods);
   const required = completed ? ZERO : periods === 0 ? remaining : D.max(target.minus(principalGrowth).div(contributionFactor), ZERO);
   const fundingRequired = periods === 0 ? remaining : remaining.div(periods);
   const zeroReturnFinal = current.plus(contribution.mul(periods));
@@ -151,10 +161,8 @@ export function evaluateGoal(input: GoalInput): GoalEvaluation {
     if (unreachable) {
       completionStatus = 'unreachable';
     } else {
-      let balance = current;
       for (let period = 1; period <= HORIZON; period++) {
-        balance = balance.mul(growth).plus(contribution);
-        if (balance.gte(target)) {
+        if (scenarioAt(period).projected.gte(target)) {
           completionDate = scheduledDate(anchor, period);
           completionStatus = 'projected';
           break;

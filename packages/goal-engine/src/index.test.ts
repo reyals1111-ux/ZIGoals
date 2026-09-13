@@ -142,3 +142,28 @@ describe('required annuity and numeric rate boundaries', () => {
     expect(evaluateGoal({ ...base, annualReturnAssumption: 1e-7 })).toEqual(evaluateGoal({ ...base, annualReturnAssumption: '0.0000001' }));
   });
 });
+
+describe('exact effective annual thresholds', () => {
+  it.each([
+    ['0.06', '1060'], ['0.08', '1080'], ['0.5', '1500'], ['1', '2000'],
+  ])('preserves exact annual growth at return %s', (annualReturnAssumption, targetValue) => {
+    expect(evaluateGoal({ ...base, targetValue, currentValue: '1000', plannedMonthlyContribution: '0', annualReturnAssumption })).toMatchObject({
+      projectedValueAtTargetDate: targetValue, requiredContribution: '0',
+      projectedCompletionDate: '2025-01-31', projectedCompletionStatus: 'projected',
+    });
+  });
+  it('preserves an exact multi-year principal threshold', () => {
+    expect(evaluateGoal({ ...base, targetValue: '1123.6', currentValue: '1000', targetDate: '2026-01-31', plannedMonthlyContribution: '0', annualReturnAssumption: '0.06' })).toMatchObject({ requiredContribution: '0', projectedValueAtTargetDate: '1123.6', projectedCompletionDate: '2026-01-31' });
+  });
+  it('does not forgive a real smallest-unit gap beside an exact annual threshold', () => {
+    expect(evaluateGoal({ ...base, targetValue: '1060.000000000000000001', currentValue: '1000', plannedMonthlyContribution: '0', annualReturnAssumption: '0.06' })).toMatchObject({
+      projectedValueAtTargetDate: '1060', shortfallAtTargetDate: '0.000000000000000001',
+      requiredContribution: '0.000000000000000001', projectedCompletionDate: '2025-02-28',
+    });
+  });
+  it('does not forgive a smallest-unit gap beside a large annual threshold', () => {
+    expect(evaluateGoal({ ...base, targetValue: '1060000000000000000000000000000.000000000000000001', currentValue: '1000000000000000000000000000000', plannedMonthlyContribution: '0', annualReturnAssumption: '0.06' })).toMatchObject({
+      shortfallAtTargetDate: '0.000000000000000001', requiredContribution: '0.000000000000000001', projectedCompletionDate: '2025-02-28',
+    });
+  });
+});
