@@ -1,0 +1,111 @@
+{
+  "recordedAt": "2026-09-13T01:57:52.193185+00:00",
+  "environment": {
+    "node": "24.19.0",
+    "pnpm": "11.19.0",
+    "rust": "1.85.1",
+    "cosmwasmCheck": "2.2.2",
+    "binaryen": "123.0.0"
+  },
+  "unit": {
+    "total": 220,
+    "passed": 220,
+    "failed": 0,
+    "files": [
+      {
+        "path": "apps/web/lib/goal-provider.test.ts",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/local-ledger.test.ts",
+        "tests": 57,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/storage.test.ts",
+        "tests": 31,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/transaction.test.ts",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "path": "apps/web/lib/wallet.test.ts",
+        "tests": 16,
+        "status": "passed"
+      },
+      {
+        "path": "packages/chain-config/src/index.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "path": "packages/goal-engine/src/index.test.ts",
+        "tests": 75,
+        "status": "passed"
+      },
+      {
+        "path": "packages/shared-types/src/index.test.ts",
+        "tests": 18,
+        "status": "passed"
+      }
+    ]
+  },
+  "browser": {
+    "build": "Next.js production, local port3101",
+    "projects": [
+      "Desktop Chrome",
+      "iPhone 13 emulation in Chrome"
+    ],
+    "stats": {
+      "startTime": "2026-09-13T01:56:00.509Z",
+      "duration": 6374.458,
+      "expected": 14,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "contract": {
+    "command": "cargo test --workspace --locked",
+    "integrationPassed": 18,
+    "boundaryPassed": 6,
+    "failed": 0,
+    "fmt": "passed",
+    "clippyWarningsDenied": "passed",
+    "schemaAndGeneratedTypesUnchanged": true,
+    "wasmValidator": "1/1 passed",
+    "wasmSha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+    "dockerOptimizer": "not run; daemon unavailable"
+  },
+  "frontend": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "frozenOfflineInstall": "passed",
+    "productionDependencyAudit": "No known vulnerabilities found"
+  },
+  "preservedAssets": [
+    {
+      "path": "landing/index.html",
+      "unchanged": true,
+      "sha256": "e2f7dd2598b682d6db27f2fa85cd6458b9b39ca244ab9b41b025c06a6a2d200a"
+    },
+    {
+      "path": "landing/wrangler.jsonc",
+      "unchanged": true,
+      "sha256": "e2a76a2a0f2394cebe9af89386e2c251486737050947e13a48252bc0ba8bd422"
+    },
+    {
+      "path": "LICENSE",
+      "unchanged": true,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    }
+  ],
+  "deployment": "PREPARED_NOT_DEPLOYED",
+  "liveSigningTested": false,
+  "hostedCi": "not yet executed"
+}
