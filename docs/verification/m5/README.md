@@ -19,7 +19,7 @@ Actual hosted findings: landing width335 at viewport320 (other measured widths f
 
 The safe diagnostics fallback was inspected and contained only build/mode/session and endpoint status/time. Current chain checksum/code/contract remained NOT DEPLOYED. Real Keplr proof is the separately supplied owner evidence; M5's isolated browser never connected a wallet.
 
-To repeat the manual hosted probe from repository root, with Node24.19.0 and pnpm11.19.0 dependencies installed:
+To repeat the manual hosted probe from repository root, with Node24.19.0 and pnpm11.19.0 dependencies installed, first create an existing parent directory and a new output directory beneath it. Existing output directories are rejected before the browser starts, so prior records cannot be overwritten:
 
 ```sh
 node scripts/verify-hosted-alpha.mjs /tmp/zigoals-hosted-new-observation

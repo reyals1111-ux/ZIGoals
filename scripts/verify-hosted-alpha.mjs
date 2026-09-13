@@ -8,7 +8,7 @@ const require = createRequire(new URL('../apps/web/package.json', import.meta.ur
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
 if (!output) throw Error('Provide a new evidence output directory.');
-await mkdir(output, { recursive: true });
+await mkdir(output);
 const alpha = 'https://alpha.zigoals.app';
 const fallback = 'https://zigoals-alpha.reyals1111.workers.dev';
 const apex = 'https://zigoals.app';
