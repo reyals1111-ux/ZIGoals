@@ -19,7 +19,12 @@
     ]
   },
   "javascriptFinal": {
-    "status": "NOT_RUN"
+    "status": "PASS",
+    "tests": 496,
+    "files": 26,
+    "failed": 0,
+    "source": "35a9778",
+    "log": "/tmp/zigoals-m5-final-javascript.log"
   },
   "browserFinal": {
     "status": "NOT_RUN"
@@ -27,5 +32,112 @@
   "workerdFinal": {
     "status": "NOT_RUN"
   },
-  "productionMutation": false
+  "productionMutation": false,
+  "webGate": {
+    "phase": "web",
+    "source": "35a977890b2bbfbbd2413058d2ebad6f39b9accc",
+    "startedAt": "2026-09-13T20:04:21.952944+00:00",
+    "steps": [
+      {
+        "name": "lint",
+        "command": [
+          "pnpm",
+          "lint"
+        ],
+        "exitCode": 0,
+        "seconds": 2.63,
+        "log": "/tmp/zigoals-m5-final-lint.log"
+      },
+      {
+        "name": "typecheck",
+        "command": [
+          "pnpm",
+          "typecheck"
+        ],
+        "exitCode": 0,
+        "seconds": 2.58,
+        "log": "/tmp/zigoals-m5-final-typecheck.log"
+      },
+      {
+        "name": "javascript",
+        "command": [
+          "pnpm",
+          "test",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=/tmp/zigoals-m5-final-js.json"
+        ],
+        "exitCode": 0,
+        "seconds": 3.49,
+        "log": "/tmp/zigoals-m5-final-javascript.log"
+      },
+      {
+        "name": "next-build",
+        "command": [
+          "pnpm",
+          "build"
+        ],
+        "exitCode": 0,
+        "seconds": 5.37,
+        "log": "/tmp/zigoals-m5-final-next-build.log"
+      },
+      {
+        "name": "deployment-configs",
+        "command": [
+          "pnpm",
+          "check:deploy-configs"
+        ],
+        "exitCode": 0,
+        "seconds": 0.29,
+        "log": "/tmp/zigoals-m5-final-deployment-configs.log"
+      },
+      {
+        "name": "landing-dryrun",
+        "command": [
+          "pnpm",
+          "check:landing"
+        ],
+        "exitCode": 0,
+        "seconds": 1.06,
+        "log": "/tmp/zigoals-m5-final-landing-dryrun.log"
+      },
+      {
+        "name": "secrets",
+        "command": [
+          "node",
+          "scripts/check-secrets.mjs"
+        ],
+        "exitCode": 0,
+        "seconds": 0.08,
+        "log": "/tmp/zigoals-m5-final-secrets.log"
+      }
+    ]
+  },
+  "browserInitial": {
+    "status": "FAILED",
+    "passed": 43,
+    "failed": 1,
+    "total": 44,
+    "failure": "wallet-reload.spec.ts:70 assertion before async connect completion",
+    "log": "/tmp/zigoals-m5-final-browser.log",
+    "fixCommit": "8f39661",
+    "fix": "Wait for connected address after each explicit connection; no product code changed"
+  },
+  "browserRestart": {
+    "recordedAt": "2026-09-13T20:06:22.843Z",
+    "status": "passed",
+    "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+    "appUrl": "http://127.0.0.1:3107/app/activity",
+    "recordsRetained": 4,
+    "unknownHashRetained": true,
+    "corruptRecordPreserved": true,
+    "corruptionAndNetworkWarningsVisible": true,
+    "accountScopeVerified": true,
+    "signerCalls": 0,
+    "broadcastRequests": 0,
+    "pageErrors": [],
+    "realKeplr": false,
+    "networkAndWallet": "mocked external boundaries; no live transaction",
+    "resultPath": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-browser-restart-dMAcK5/result.json"
+  }
 }

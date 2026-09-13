@@ -9,7 +9,7 @@
 | Independent hosted smoke, privacy, performance, DNS | COMPLETE | Completed sample with findings; no repeat needed |
 | Landing deployment config fix | COMPLETE | Commit42adede, 14 targeted tests, real non-uploading dry run, independent review clean |
 | Wallet reconnect | COMPLETE | Commit a14dd30; focused53 and browser2 pass; scoped review approved with two documented minor findings |
-| Observed landing overflow and icons | IN PROGRESS | Commit3fbb561; targeted checks passed, scoped review pending; live state unchanged |
+| Observed landing overflow and icons | COMPLETE | Commit3fbb561; focused6 passed and scoped review approved; live state unchanged |
 | Rust and dependency checks | COMPLETE | Rust25, format/Clippy/schema; fresh advisory/integrity records |
 | Full integrated JS/build/browser/workerd/restart | IN PROGRESS | Final gate underway; exact totals pending |
 | Final independent branch review | NOT STARTED | Review all code/docs and remaining findings after checks |
@@ -25,7 +25,7 @@ Freshly fetched clean `6be2de74f22f676e6a633ed05208decebb0dbff3`.
 
 ## 3. Branch SHA
 
-Latest completed implementation at this checkpoint: `3fbb561`. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
+Latest completed implementation/test correction at this checkpoint: `8f39661`. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
 
 ## 4. Files changed
 
@@ -138,7 +138,7 @@ Task1 spec and quality review approved with no findings. Task2 spec/quality appr
 
 ## 21. JavaScript
 
-Final total **PENDING**. Starting baseline476 passed; Task1 full suite490 passed; Task2 focused53 passed. Final lint/typecheck/full suite and production build remain required. Use Node24.19.0/pnpm11.19.0.
+**LOCAL_VERIFIED:496passed in26files**,0failed, on35a9778. Lint/typecheck/production build/config/landing dryrun/secret pattern gate passed with Node24.19.0/pnpm11.19.0. Existing middleware deprecation remains; no dependency upgrade.
 
 ## 22. Rust
 
@@ -146,7 +146,7 @@ Final total **PENDING**. Starting baseline476 passed; Task1 full suite490 passed
 
 ## 23. Browser
 
-Final total **PENDING**; required prior baseline36. Task2 mocked-provider reload desktop/mobile2 passed against a local development server. Full production suite and process-restart recovery still required; mocks do not replace real owner extension evidence.
+Final total **PENDING**. First final production run:44cases,43passed,1failed. New reconnect test read the marker before asynchronous connection completed; corrected in8f39661 by waiting for the connected-address state. Failure retained in local evidence. Full Chrome restart passed with4records retained, account separation, damaged/uncertain records preserved,0signer calls,0broadcasts and0page errors. Corrected final suite remains to record. Mocks do not replace real owner extension evidence.
 
 ## 24. Workerd
 
