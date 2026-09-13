@@ -1,6 +1,6 @@
 # Alpha privacy notes
 
-This describes the current repository's app, not an assurance about every future hosted service. ZIGoals has no app account, goal-sync server, advertising tracker or analytics collection in this implementation. Production hosting/access-log policies have not been assessed in this run.
+This describes the current repository's app, not an assurance about every future hosted service. ZIGoals has no app account, goal-sync server, advertising tracker or application telemetry. Hosting providers still operate infrastructure logs and aggregate analytics; this document does not promise a particular retention policy or anonymity from the host.
 
 Goal names, targets, dates, categories, notes and preferences are saved in this browser's localStorage, scoped by network and wallet. The local simulation ledger also stays there. This is local storage, **not encryption**: someone with access to the browser profile, a malicious extension or compromised same-origin code may read or change it.
 
@@ -8,7 +8,13 @@ Testnet transaction history uses a separate IndexedDB journal. It retains public
 
 Connecting Keplr requires the owner's approval and exposes the selected public account to the app. Requests to public ZIGChain RPC/REST services may reveal the visitor's IP and queried public account/contract/hash to those operators. Checking diagnostics also contacts those endpoints. Explorer/Hub/provider links open external services with their own practices. ZIGoals does not transfer private plan text to them.
 
+The web host receives ordinary page and asset requests, including IP/browser information and request paths. A goal detail path such as `/app/goals/<id>` exposes that identifier to the host even for a simulated goal; the path does not include its name, target, date or notes. Browser history, screenshots, clipboard tools, device backups and extensions may expose additional information independently of ZIGoals. HTTPS and a restrictive CSP do not protect data from compromised permitted origin code or a hostile extension.
+
+An undeployed public Alpha supports local simulation and optional connection/read-only checks. A future explicitly deployed-testnet build would send intended messages, public accounts, contract identifiers and amounts to RPC for fee simulation and transaction submission. Those public transaction inputs are separate from private planning fields. No claim about this future path substitutes for the deployment and owner-approval gates.
+
 Exported goal backups contain private planning information in readable JSON. Store them privately and remove personal data before sharing a reproduction. The backup is not a wallet backup and does not include funds, keys, the local ledger or the transaction journal. Import applies only to the matching network/wallet; matching IDs replace saved plans after validation.
+
+Storage is separate for each origin. A preview hostname and a later custom Alpha domain do not share plans, simulated balances or history. A private backup can transfer supported planning metadata manually; changing a hostname or rolling back the frontend does not migrate or erase browser data.
 
 Clearing this site's browser data removes private plans, simulated funds and local transaction history. It does **not** erase public chain data, revoke Keplr permission or remove funds already held by a deployed contract. Revocation is performed in Keplr. Confirmed onchain messages, amounts, addresses and optional metadata commitments are public and generally cannot be erased by deleting browser data. Withdrawals remain available without private goal metadata once a reviewed deployment exists.
 
