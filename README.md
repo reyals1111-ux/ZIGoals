@@ -7,7 +7,7 @@ The Alpha includes durable scoped testnet transaction outcomes, known-receipt re
 
 Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
 
-The owner has deployed the public web Alpha and apex landing. M5 only changes repository code, tests and documentation; it does not mutate production. The Apache-2.0 license is retained.
+The owner has deployed the public web Alpha and apex landing. M6 only changes repository code, tests and documentation; it does not mutate production. The Apache-2.0 license is retained.
 
 ## Run locally
 
@@ -95,12 +95,12 @@ For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.
 
 Milestone 3 merged at `7d354e3` with successful [post-merge main CI](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34764912650): [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [merged PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.
 
-## Live public Alpha and Milestone 5
+## Live public Alpha and Milestone 6
 
 **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE:** [Open the Alpha](https://alpha.zigoals.app/app), with [Workers fallback](https://zigoals-alpha.reyals1111.workers.dev/app). The [apex landing](https://zigoals.app) links to the official Alpha. Simulation + wallet connection only; **CONTRACT_NOT_DEPLOYED**. `PUBLIC_ALPHA_UNDEPLOYED` means the financial contract is absent, even though the web app is deployed.
 
-M4 PR #3 and landing PR #4 are merged. Live Alpha source is `3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72`; M5 starts from main `6be2de74f22f676e6a633ed05208decebb0dbff3`. The owner tested actual Keplr rejection and reconnection on both hosted origins under production CSP, with no financial signing or broadcast. This closes the earlier M4 hosted-extension evidence gap; automated wallet mocks remain a separate type of evidence.
+M5 PR #5 is merged and owner-deployed. Live Alpha source is `01ebf00f7a177ab86fb41b52164fa7f5320f644c`, version `d37151a2-d6fd-4744-8b5c-ca4c3da4c433`. The owner verified the icon, CSP, real Keplr connection, Local Demo after reload, explicit reconnect, diagnostics and320px layouts with no financial signing/broadcast. Workers Paid is active. M6 investigates CPU, moves static metadata to direct assets and proposes a2000ms CPU guardrail; production remains unchanged.
 
 The owner issued [candidate run 34772005556](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34772005556) for exact source `3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72`. Both Wasm and manifest attestations were independently verified in M5. Status: **ATTESTED_CANDIDATE_NOT_APPROVED**. This does not attest later main/M5 commits or authorize chain upload. Test ZIG remains owner-observed 0; funding, upload permission and external interfaces remain pending.
 
-Use [current status](docs/STATUS.md), [Run 5 report](docs/RUN_5_REPORT.md), [M5 evidence](docs/verification/m5/README.md), [Alpha operations](docs/deployment/CLOUDFLARE_ALPHA.md), [apex operations](docs/deployment/LANDING.md), and [release verification](docs/deployment/VERIFY_RELEASE_ARTIFACT.md). Historical [Run 4](docs/RUN_4_REPORT.md) retains what was known then. M5 changes require owner review/merge and a separate owner deployment before appearing live.
+Use [current status](docs/STATUS.md), [Run 6 report](docs/RUN_6_REPORT.md), [CPU owner checklist](docs/deployment/CPU_OWNER_CHECKLIST.md), [Run 5 report](docs/RUN_5_REPORT.md), [M5 evidence](docs/verification/m5/README.md), [Alpha operations](docs/deployment/CLOUDFLARE_ALPHA.md), [apex operations](docs/deployment/LANDING.md), and [release verification](docs/deployment/VERIFY_RELEASE_ARTIFACT.md). Historical [Run 4](docs/RUN_4_REPORT.md) retains what was known then. M6 changes require owner review/merge and a separate owner deployment before appearing live.

@@ -32,7 +32,7 @@ Owner one-hour version-specific sample: P50~67.98ms, P90~160ms, P99/P99.9~200ms;
 
 ## 8. Privacy sanitization
 
-No raw tail logs may enter Git. Store only whitelisted route/CPU/wall/status/outcome/version/generalized time. Owner samples supplied already sanitized.
+Owner data and local wall evidence are sanitized. Tested trace helper constructs only whitelisted scalar fields and rounded UTC hour;13 synthetic privacy/parser tests pass. No live tail opened. Owner recipe disables Wrangler disk logs and pipes directly into sanitizer, never raw files.
 
 ## 9. Static paths
 
@@ -84,7 +84,7 @@ No nonce removal/reuse, unsafe script sources, broad caching, import/tree-shakin
 
 ## 21. Measurement tooling
 
-Bounded wall CLI implemented,19 targeted tests pass. Fixed3 routes,1–20 requests each,10s timeout,2MiB body cap, no credentials/redirects/body/header/raw-error storage. Arithmetic median and nearest-rank p90/p95.
+Bounded wall CLI (19 tests) plus streaming offline trace sanitizer (13 tests). See CPU_OWNER_CHECKLIST for exact commands, version filtering, limits, metric distinctions and missing/asset-only evidence handling.
 
 ## 22. Local before/after
 
@@ -132,7 +132,7 @@ Review unmerged green PR; merge only if approved; sync exact main; build/dryrun;
 
 ## 33. Post-deploy measurement
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Exact-version one-hour dashboard and15 controlled GET procedure in deployment/CPU_OWNER_CHECKLIST.md. Baseline vs M6 placeholders remain PENDING until owner separately deploys and measures. No live result inferred.
 
 ## 34. Remaining risks
 

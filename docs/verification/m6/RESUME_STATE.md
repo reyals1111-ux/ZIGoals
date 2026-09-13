@@ -2,15 +2,14 @@
 
 - Starting clean fetched main: `01ebf00f7a177ab86fb41b52164fa7f5320f644c`.
 - Branch: `feat/m6-cpu-efficiency`; existing requested workspace retained.
-- Latest pushed checkpoint before this commit: `36ec428e7020ba7b4d348642288eb81e296002d8`. This checkpoint contains static routing/cap/SSR analysis; resolve its SHA with `git log -1` after push.
-- COMPLETE: owner/local baseline +19-test measurement CLI; exact matcher correction; public icon/robots; preserved static security headers; proposed2000ms cap; SSR/CSP/import audit note.
-- IN PROGRESS: save implementation checkpoint, then documentation and final integrated gate.
-- NOT STARTED: after build/profile/wall comparison; owner CPU checklist/sanitized tail procedure; full gate; independent security/performance review; PR/current-head CI.
-- Last tests: static/config red failures confirmed;48/48 targeted tests now pass, targeted ESLint clean, diff whitespace clean. New browser regression has NOT RUN yet. Earlier baseline build/dryrun/startup and19 measurement tests passed.
-- Findings/decisions: exact exclusions retain HTML CSP on near-miss paths; favicon absent404 now protected. Icon+robots move to public asset routing, with no business logic changes.2000ms cap is3.71x observed539ms; local dev does not enforce production CPU limits. No import rewrite justified by sparse profile/source inventory.
-- Next exact task: write CPU_OWNER_CHECKLIST and repeatable sanitized-tail instructions. Then stop only M6 loopback preview8791 (baseline parent72268/workerd72282, verify PID command first); build from clean checkpoint for matched after evidence and final browser/workerd suites. Baseline evidence must NOT be re-collected.
-- Final gate outstanding: lint/types/allJS, config/landingdryrun, Nextbuild/browser/restart, Alphabuild/dryrun/startup/wall/workerd, Rustfmt/Clippy/tests/schema/drift/secret scan. No contract files changed.
-- Evidence: LOCAL_BASELINE_WALL.json and LOCAL_BASELINE_ANALYSIS.json pin clean31430b build; /tmp/zigoals-m6-baseline.* retains local profile/bundle. M6_SSR_CSP_ANALYSIS records primary references and inference limits.
-- Working tree should be clean after checkpoint push. No more than one cluster uncommitted/unpushed.
+- Latest pushed checkpoint before this commit: `9cb73aab9f3f02160a56dd1fd65bd724384da922`. This checkpoint adds tested trace sanitizer, owner checklist and current-state docs.
+- COMPLETE: baseline, wall CLI, static asset/matcher fix,2000ms cap, SSR/CSP note, sanitized-tail helper and owner comparison procedure. Current status now reflects owner-deployed M5/Workers Paid.
+- IN PROGRESS: final integrated acceptance and one independent security/performance review.
+- NOT STARTED: matched after build/profile/wall evidence, full gate, final report counts, PR/current-head CI.
+- Last tests:19 measurement tests,48 static/config tests,13 sanitizer tests pass (red/green observed); targeted ESLint/config/secret-pattern checks and diff whitespace pass. New browser case and full suite NOT RUN yet.
+- Known findings: see baseline JSON and SSR note; no new CPU attribution or live evidence claimed. Source/import/contract/lockfile state preserved except intended static metadata routing. Tail schema with absent metrics yields null, no matching samples is not zero CPU. Helper tested synthetically; no live tail opened.
+- Next exact commands: run final lint/typecheck/JS/Next build/config/landingdryrun/secret gate; use production Next loopback3108 for all browser tests + verify-browser-restart. Stop only baseline M6 Wrangler port8791 after rechecking PIDs72268/72282, then build Alpha from this clean checkpoint. Run dryrun/startup once and first-request wall CLI on fresh8791 BEFORE browser/readiness HTTP probes. Run public-alpha/diagnostics/wallet-reload in workerd. Finally Rustfmt/Clippy/tests/schema/generated drift once. Toolchain locations and commands in CPU plan + repository CI; Node24 runtime is required.
+- After evidence: summarize local before/after, exact totals and review; commit/push; open unmerged PR and verify current-head CI; checkpoint report/resume before final response. Do not repeat baseline/research/full suites without a real failure or code change.
+- Working tree should be clean after checkpoint push. /tmp/zigoals-m6-baseline.* and tracked baseline evidence allow continuation without rerunning them.
 - Production mutations: NONE. No deploy, billing/limits/account/DNS/email change, financial action, contract change or external outreach authorized.
 - On usage/resource warning: finish current safe atomic change, targeted test, update this file/report, commit/push and stop with exact next command.
