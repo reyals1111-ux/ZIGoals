@@ -10,16 +10,16 @@
   "pauseAdmin": null,
   "contractName": "crates.io:zigoals-goal-manager",
   "contractVersion": "0.1.0",
-  "gitCommit": "fb1fb88a04edb1e79c87ba35dd36d10a87c7ed8f",
+  "gitCommit": "28cbf9f2c452942246c2b0c33578cde067e11d9c",
   "buildEnvironment": {
     "platform": "darwin",
     "arch": "arm64",
     "rust": "1.85.1",
     "binaryen": "123",
     "cosmwasmCheck": "2.2.2",
-    "sourceDirty": true
+    "sourceDirty": false
   },
-  "preparedAt": "2026-09-13T14:13:55.413Z",
+  "preparedAt": "2026-09-13T14:31:49.380Z",
   "rpcUsed": "https://testnet-rpc.zigchain.com",
   "restUsed": "https://testnet-api.zigchain.com",
   "status": "PREPARED_NOT_DEPLOYED",

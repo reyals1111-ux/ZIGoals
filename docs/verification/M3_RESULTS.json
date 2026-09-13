@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "milestone": 3,
+  "recordedAt": "2026-09-13T14:33:42.558302+00:00",
+  "startingMain": "b6686ba37473e531baa223d1c72eb5162dae683d",
+  "branch": "feat/m3-readiness",
+  "localVerifiedCommit": "28cbf9f2c452942246c2b0c33578cde067e11d9c",
+  "baseline": {
+    "javascriptTests": 299,
+    "rustTests": 24,
+    "browser": {
+      "startTime": "2026-09-13T13:48:46.314Z",
+      "duration": 8080.608,
+      "expected": 18,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "restart": "passed"
+  },
+  "local": {
+    "javascriptTests": 399,
+    "javascriptFiles": 21,
+    "failedJavaScriptTests": 0,
+    "rustTests": 25,
+    "browser": {
+      "startTime": "2026-09-13T14:31:41.517Z",
+      "duration": 12785.34,
+      "expected": 30,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "browserErrors": [],
+    "restart": {
+      "recordedAt": "2026-09-13T14:31:56.095Z",
+      "status": "passed",
+      "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+      "appUrl": "http://127.0.0.1:3101/app/activity",
+      "recordsRetained": 4,
+      "unknownHashRetained": true,
+      "corruptRecordPreserved": true,
+      "corruptionAndNetworkWarningsVisible": true,
+      "accountScopeVerified": true,
+      "signerCalls": 0,
+      "broadcastRequests": 0,
+      "pageErrors": [],
+      "realKeplr": false,
+      "networkAndWallet": "mocked external boundaries; no live transaction"
+    },
+    "lint": "passed",
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "rustfmt": "passed",
+    "clippy": "passed",
+    "schemaAndTypesDrift": "none",
+    "credentialPatternScan": "passed; limited pattern scan only",
+    "frozenInstall": "passed",
+    "productionAudit": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    }
+  },
+  "newTestCounts": {
+    "javascript": 100,
+    "rust": 1,
+    "browser": 12
+  },
+  "macWasm": {
+    "schemaVersion": 1,
+    "artifact": "artifacts/zigoals_goal_manager.wasm",
+    "sourceCommit": "28cbf9f2c452942246c2b0c33578cde067e11d9c",
+    "sourceDirty": false,
+    "builtAt": "2026-09-13T14:30:34.122Z",
+    "bytes": 258540,
+    "sha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+    "environment": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "osRelease": "25.6.0",
+      "node": "24.19.0",
+      "rust": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: aarch64-apple-darwin\nrelease: 1.85.1\nLLVM version: 19.1.7",
+      "binaryen": "wasm-opt version 123 (version_123)",
+      "cosmwasmCheck": "Contract checking 2.2.2",
+      "cargoLockSha256": "79aee297543060d068666823087e6304e1f5806f4a6534984ab5b389fa105565",
+      "optimizerArgs": [
+        "-Oz",
+        "--signext-lowering"
+      ],
+      "target": "wasm32-unknown-unknown"
+    },
+    "referenceSha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+    "referenceMatch": true,
+    "validation": {
+      "tool": "cosmwasm-check",
+      "passed": true,
+      "output": "Available capabilities: {\"iterator\", \"cosmwasm_1_1\", \"cosmwasm_2_0\", \"cosmwasm_1_4\", \"cosmwasm_2_1\", \"staking\", \"stargate\", \"cosmwasm_1_2\", \"cosmwasm_1_3\", \"cosmwasm_2_2\"}\n\nartifacts/zigoals_goal_manager.wasm: pass\n\nAll contracts (1) passed checks!"
+    }
+  },
+  "hostedM3": {
+    "status": "PENDING_PUBLICATION"
+  },
+  "linuxComparison": {
+    "status": "PENDING_DOWNLOAD"
+  },
+  "ownerEvidence": "M3_KEPLR_OWNER_RESULTS.md",
+  "noTransactionSent": true,
+  "noContractDeployed": true,
+  "limits": [
+    "No real signer/broadcast/deployed-action tests",
+    "Manual account switch not run; no new wallet required",
+    "Participating same-origin tabs only",
+    "Local clock plausibility is not trusted time",
+    "RPC transport trusted; no reorg quorum/light-client proof",
+    "Browser crash/eviction/deletion can remove local history",
+    "Finite seeded regression tests are not exhaustive fuzzing or independent audit"
+  ]
+}
