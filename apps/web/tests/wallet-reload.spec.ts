@@ -3,6 +3,7 @@ import { toBech32 } from "@cosmjs/encoding";
 
 const reconnectHintKey = "zigoals:wallet-reconnect-hint:v1";
 const mockOwner = toBech32("zig", new Uint8Array(20).fill(9));
+const connectedLabel = `${mockOwner.slice(0, 8)}…${mockOwner.slice(-4)}`;
 
 test("mock Keplr reconnect stays explicit and tab scoped across reload", async ({
   context,
@@ -65,6 +66,9 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
   await page.getByRole("button", { name: "Connect Keplr" }).click();
   await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   await expect.poll(() => mockCalls).toEqual(["suggest", "enable", "getKey"]);
+  await expect(
+    page.getByRole("button", { name: connectedLabel, exact: true }),
+  ).toBeVisible();
   expect(
     await page.evaluate((key) => sessionStorage.getItem(key), reconnectHintKey),
   ).toBe("true");
@@ -100,6 +104,9 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
     "enable",
     "getKey",
   ]);
+  await expect(
+    page.getByRole("button", { name: connectedLabel, exact: true }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Local demo" }).click();
   expect(

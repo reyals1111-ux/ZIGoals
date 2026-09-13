@@ -8,7 +8,7 @@ Current owner-hosted evidence is recorded in [`docs/verification/m5/OWNER_LIVE_A
 
 Reload intentionally returns the app to Local demo without restoring a wallet, address, balance, goals or financial capability. After a successful explicit connection in the same tab, the app may show **Reconnect Keplr** after reload using only a versioned boolean in tab-scoped session storage. That hint is presentation only and must never be treated as wallet permission or authorization.
 
-Only the reconnect button may start the existing connection flow. Keplr may remember browser permission and reconnect without another prompt, or it may still ask the owner to unlock or approve access. Choosing **Local demo** clears the tab hint. A new tab starts with **Connect Keplr**. Missing, invalid or unavailable tab storage must leave Local demo usable and must not call Keplr automatically.
+Only the reconnect button may start the existing connection flow. Keplr may remember browser permission and reconnect without another prompt, or it may still ask the owner to unlock or approve access. Choosing **Local demo** clears the tab hint. A fresh independent tab starts with **Connect Keplr**; a tab opened or duplicated from the current tab may initially copy its presentation-only session storage marker. Missing, invalid or unavailable tab storage must leave Local demo usable and must not call Keplr automatically.
 
 Record browser/Keplr versions, app commit, date, public test account, and PASS/FAIL/NOT RUN for each row. Keep wallet screenshots private if they expose unrelated accounts. No funds are needed through row8. Rows9–12 require the verified testnet deployment and test funds.
 
