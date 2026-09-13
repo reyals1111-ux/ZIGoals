@@ -1,0 +1,62 @@
+{
+  "recordedAt": "2026-09-13T19:44:43.629936+00:00",
+  "evidenceSource": "INDEPENDENT_READ_ONLY_CLOUDFLARE_DASHBOARD",
+  "observedDuring": "M5 interactive dashboard inspection immediately before record creation; UI time range was Last 24 hours.",
+  "worker": "zigoals-alpha",
+  "plan": "Workers Free",
+  "planEvidence": "Workers plans page marked Free as Current plan; highlights Up to 10 ms CPU time per request.",
+  "window": "Last 24 hours",
+  "versionFilter": "All deployed versions",
+  "overview": {
+    "invocations": 947,
+    "cpuTimeHeadlineMs": 19,
+    "cpuTimeHeadlineAggregation": "Not established from headline; do not label as per-version median.",
+    "errors": 0,
+    "wallTimeHeadlineMs": 27,
+    "requestDurationHeadlineMs": 27,
+    "assetRequests": 428,
+    "assetCacheHitRatePercent": 91.36,
+    "subrequests": 0
+  },
+  "activeDeployment": {
+    "versionPrefix": "c3843317",
+    "trafficPercent": 100,
+    "requestsPerSecond": 0.2,
+    "errorRatePercent": 0,
+    "medianCpuMs": 30.43
+  },
+  "errorsByInvocationStatus": {
+    "exceededMemory": 0,
+    "exceededCpuTimeLimits": 0,
+    "internal": 0,
+    "loadShed": 0,
+    "uncaughtException": 0
+  },
+  "domainAndBindings": {
+    "customDomain": "alpha.zigoals.app",
+    "workersDev": "zigoals-alpha.reyals1111.workers.dev",
+    "routes": [],
+    "bindings": [
+      "ASSETS",
+      "WORKER_SELF_REFERENCE -> zigoals-alpha"
+    ],
+    "workersLogs": "Disabled",
+    "workersTraces": "Disabled"
+  },
+  "zoneOverview": {
+    "domain": "zigoals.app",
+    "status": "Active",
+    "zonePlan": "Free",
+    "note": "Zone Free was observed separately; Workers plans page independently confirmed Workers Free."
+  },
+  "assessment": "CAPACITY_RISK: active-version median CPU30.43ms exceeds advertised Free10ms. Zero displayed errors does not establish sustainable headroom; no outage inferred. Confirm under representative use and investigate SSR CPU before broader rollout. No caching/CSP weakening or paid plan change was made.",
+  "limitsReference": "https://developers.cloudflare.com/workers/platform/limits/",
+  "limitations": [
+    "Dashboard snapshot is bounded to displayed version/window; metrics can lag and are not a load test.",
+    "No per-request CPU trace, percentile distribution or memory profile was captured.",
+    "Do not treat browser wall time as CPU or claim Core Web Vitals.",
+    "Private email forwarding/routing configuration remains uninspected."
+  ],
+  "productionMutations": false,
+  "paidResourceChanges": false
+}

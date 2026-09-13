@@ -1,10 +1,11 @@
-# Landing Alpha CTA — unpublished proposal
+# Landing Alpha CTA — published owner-reviewed copy
 
-The production landing stays unchanged in Milestone 4. After a public Alpha is actually deployed, its safety mode is verified and the owner reviews it, a later landing change may add:
+The original proposal was prepared during M4. The owner later merged PR #4 and deployed the apex Worker. This current reference records the resulting live copy; the historical Run 4 report is unchanged.
 
-```html
-<a href="https://alpha.zigoals.app/app" target="_blank" rel="noopener noreferrer">Explore the Alpha →</a>
-<p>Simulation only. Goal Manager is not deployed. No blockchain transaction will be sent.</p>
-```
+- Exact CTA: **Explore the Alpha →**
+- Destination: **https://alpha.zigoals.app/app**
+- Target/rel: `_blank` / `noopener noreferrer`
+- **Public Alpha · Simulation + wallet connection only.**
+- **Goal Manager is not deployed. No blockchain transaction will be sent.**
 
-This is proposed copy, not evidence that the destination is live. Confirm the exact working URL and a public undeployed build before enabling it. Keep the existing branding and email contact. Do not add wallet addresses, goals, referral parameters, APY, partner claims or trackers to the link.
+The owner visually verified the click. M5's [structured owner evidence](../verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json) and independent hosted checks distinguish their provenance. Preserve this wording, existing X/GitHub links, branding and email contact. No referral parameters, financial claims or trackers are added. Future apex changes use the separate [landing runbook](LANDING.md) after owner review; M5 does not redeploy it.

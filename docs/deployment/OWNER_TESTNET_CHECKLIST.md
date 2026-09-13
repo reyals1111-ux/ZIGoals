@@ -1,6 +1,6 @@
 # Owner testnet deployment and exit checklist
 
-**Prepared, not deployed.** Use only `zig-test-2`; never mainnet or real funds. Stop on any mismatch. Funding and upload permission remain external prerequisites. No faucet request or transaction is automated by this checklist.
+**Financial contract prepared, not deployed.** The public web Alpha is live; that does not enable this checklist’s financial operations. Use only `zig-test-2`; never mainnet or real funds. Stop on any mismatch. Funding and upload permission remain external prerequisites. No faucet request or transaction is automated by this checklist.
 
 1. **Public developer address.** Select the dedicated Keplr test account; compare its full public `zig…` address in wallet/app/support approval. Never copy a seed or key.
 2. **Test balance.** Read the official REST bank balance; denom must be `azig`, display precision18. Reserve estimated fees separately from the tiny smoke deposit. Zero balance means stop.
@@ -25,3 +25,5 @@
 Abort on mismatched chain/denom/address/checksum/code/admin, stale account, unexpected permission/message/funds/fee, inability to verify upload permission, receipt uncertainty or accounting mismatch. Do not retry ambiguous broadcasts. For a deployed defect, pause new deposits only if that authority exists, preserve user withdrawals, disable the frontend configuration and investigate. An immutable contract cannot be rolled back or patched in place; replacement requires a new reviewed deployment. Existing funds never move automatically to a replacement.
 
 Use the complete [runbook](TESTNET.md) and [real Keplr checks](KEPLR_OWNER_CHECKLIST.md). The current v2 application manifest intentionally retains null live IDs/hashes and `PREPARED_NOT_DEPLOYED`; no transaction has been sent. Discord approval remains pending and whitelist has not yet been requested.
+
+The existing attested candidate applies only to source `3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72` ([M5 verification](../verification/m5/RELEASE_VERIFICATION.json)). Its status is ATTESTED_CANDIDATE_NOT_APPROVED. The owner-observed test account still has 0 ZIG. Do not substitute later-source bytes or infer upload permission from web deployment.

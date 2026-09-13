@@ -1,0 +1,100 @@
+{
+  "observedAt": "2026-09-13T19:23:56.856Z",
+  "evidenceSource": "PUBLIC_DNS_QUERIES",
+  "checks": [
+    {
+      "name": "zigoals.app",
+      "type": "A",
+      "status": "ANSWER",
+      "answer": [
+        "104.21.35.136",
+        "172.67.175.91"
+      ]
+    },
+    {
+      "name": "alpha.zigoals.app",
+      "type": "A",
+      "status": "ANSWER",
+      "answer": [
+        "172.67.175.91",
+        "104.21.35.136"
+      ]
+    },
+    {
+      "name": "zigoals.app",
+      "type": "MX",
+      "status": "ANSWER",
+      "answer": [
+        {
+          "exchange": "route2.mx.cloudflare.net",
+          "priority": 75,
+          "type": "MX"
+        },
+        {
+          "exchange": "route3.mx.cloudflare.net",
+          "priority": 23,
+          "type": "MX"
+        },
+        {
+          "exchange": "route1.mx.cloudflare.net",
+          "priority": 44,
+          "type": "MX"
+        }
+      ]
+    },
+    {
+      "name": "zigoals.app",
+      "type": "TXT",
+      "status": "ANSWER",
+      "answer": [
+        "v=spf1 include:_spf.mx.cloudflare.net ~all"
+      ]
+    },
+    {
+      "name": "_dmarc.zigoals.app",
+      "type": "TXT",
+      "status": "UNAVAILABLE",
+      "error": "ENOTFOUND"
+    }
+  ],
+  "mutations": false,
+  "limitations": [
+    "Public and dashboard DNS observations do not verify email delivery or private forwarding/routing configuration.",
+    "No forwarding destination read or published.",
+    "DNS-only/public DKIM presence is not a successful message-signature or deliverability test."
+  ],
+  "dkimPublicCheck": {
+    "observedAt": "2026-09-13T19:46:11.969Z",
+    "name": "cf2024-1._domainkey.zigoals.app",
+    "status": "ANSWER",
+    "dkim1": true,
+    "valueSha256": [
+      "7edf37256212f306d474921bcabff1e6abea831924737f785c040c8e6b5e8241"
+    ]
+  },
+  "dashboardObservation": {
+    "recordedAt": "2026-09-13T19:46:11.969Z",
+    "source": "READ_ONLY_CLOUDFLARE_DNS_TABLE",
+    "zone": "zigoals.app",
+    "setup": "Full",
+    "displayedRecords": 7,
+    "workers": [
+      {
+        "name": "alpha.zigoals.app",
+        "worker": "zigoals-alpha",
+        "proxy": "Proxied"
+      },
+      {
+        "name": "zigoals.app",
+        "worker": "zigoals",
+        "proxy": "Proxied"
+      }
+    ],
+    "mxMatchesPublicAnswers": true,
+    "spfMatchesPublicAnswer": true,
+    "dkimRecordPresent": "cf2024-1._domainkey.zigoals.app",
+    "dmarc": "Dashboard recommends Add a DMARC record; public query returned ENOTFOUND. No change made.",
+    "forwardingDestinationsInspected": false,
+    "mutations": false
+  }
+}
