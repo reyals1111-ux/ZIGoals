@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ExplorerLinks } from "../components/explorer-links";
 import { StrategyTransparency } from "../components/strategy-transparency";
+import EcosystemPage from "../app/app/ecosystem/page";
 import { idleStrategy } from "@zigoals/strategy-types";
 
 test("transaction verification links have trusted origins and cannot redirect", () => {
@@ -61,4 +62,16 @@ test("transparency escapes provider text and omits unconfirmed attribution", () 
   expect(html).not.toContain("<img");
   expect(html).not.toContain("Invented relationship");
   expect(html).toContain("Not audited");
+  expect(html).toContain(
+    'Reviewed <time dateTime="2026-09-13">2026-09-13</time>',
+  );
+});
+
+test("public ecosystem page omits internal owner outreach coordination", () => {
+  const html = renderToStaticMarkup(createElement(EcosystemPage));
+  expect(html).not.toMatch(/\b(?:emailed|outreach|owner-requested)\b/i);
+  expect(html).toContain("Canonical execute/query messages");
+  expect(html).toContain(
+    "External investment and funding integrations are disabled.",
+  );
 });

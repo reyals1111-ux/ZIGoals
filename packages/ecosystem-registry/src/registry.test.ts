@@ -187,3 +187,74 @@ describe("current evidence snapshot", () => {
     ).toBe(true);
   });
 });
+
+describe("public evidence attribution", () => {
+  it("omits private owner outreach while preserving the Valdora integration gate", async () => {
+    const { ecosystemProviders } = await import("./providers");
+    for (const record of ecosystemProviders)
+      expect(record.notes).not.toMatch(
+        /\b(?:emailed|outreach|owner-requested)\b/i,
+      );
+    const valdora = ecosystemProviders.find(
+      (record) => record.id === "valdora",
+    )!;
+    expect(valdora.notes).toContain(
+      "Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter.",
+    );
+    expect(canExecuteProvider(valdora)).toBe(false);
+  });
+  it.each([
+    [
+      "oroswap",
+      "mainnetFactory",
+      "zigchain-1",
+      "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/mainnet.json",
+    ],
+    [
+      "oroswap",
+      "mainnetRouter",
+      "zigchain-1",
+      "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/mainnet.json",
+    ],
+    [
+      "oroswap",
+      "testnetFactory",
+      "zig-test-2",
+      "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/testnet.json",
+    ],
+    [
+      "oroswap",
+      "testnetRouter",
+      "zig-test-2",
+      "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/testnet.json",
+    ],
+    [
+      "permapod",
+      "mainnetRedBank",
+      "zigchain-1",
+      "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+    ],
+    [
+      "permapod",
+      "mainnetOracle",
+      "zigchain-1",
+      "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+    ],
+  ])(
+    "%s %s cites the correct deployment evidence",
+    async (providerId, purpose, chainId, url) => {
+      const { ecosystemProviders } = await import("./providers");
+      const provider = ecosystemProviders.find(
+        (record) => record.id === providerId,
+      )!;
+      const contract = provider.contracts.find(
+        (record) => record.purpose === purpose,
+      )!;
+      expect(contract.chainId).toBe(chainId);
+      expect(contract.evidence).toEqual(
+        provider.sources.find((source) => source.url === url),
+      );
+      expect(contract.evidence.url).toBe(url);
+    },
+  );
+});

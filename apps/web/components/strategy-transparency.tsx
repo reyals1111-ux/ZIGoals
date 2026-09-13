@@ -42,7 +42,11 @@ export function StrategyTransparency({
                   rel="noopener noreferrer"
                 >
                   Source ↗
-                </a>
+                </a>{" "}
+                <span>
+                  Reviewed{" "}
+                  <time dateTime={entry.verifiedAt}>{entry.verifiedAt}</time>
+                </span>
               </dd>
             </div>
           ))}

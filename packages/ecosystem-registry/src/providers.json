@@ -146,7 +146,7 @@
       "jurisdiction": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation.",
       "note": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation."
     },
-    "notes": "The owner already emailed canonical schema questions; do not send duplicate outreach. ZIG Markets curator attribution is explicit for named Valdora vaults, but no shared-vault or broader responsibility is inferred. Integration surface: Non-executable liquid-staking and vault descriptors. Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter. API/contracts: addresses available; canonical message schemas and public API not found in reviewed sources",
+    "notes": "ZIG Markets curator attribution is explicit for named Valdora vaults, but no shared-vault or broader responsibility is inferred. Integration surface: Non-executable liquid-staking and vault descriptors. Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter. API/contracts: addresses available; canonical message schemas and public API not found in reviewed sources",
     "sources": [
       {
         "url": "https://docs.valdora.finance/smart-contracts",
@@ -217,9 +217,9 @@
         "address": "zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85",
         "purpose": "mainnetFactory",
         "evidence": {
-          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
-          "title": "OroSwap Router",
-          "supports": "Router execute and simulation interfaces."
+          "url": "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/mainnet.json",
+          "title": "OroSwap ZIGChain mainnet deployment",
+          "supports": "Mainnet addresses and recorded chain metadata."
         },
         "status": "DOCUMENTED"
       },
@@ -228,9 +228,9 @@
         "address": "zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy",
         "purpose": "mainnetRouter",
         "evidence": {
-          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
-          "title": "OroSwap Router",
-          "supports": "Router execute and simulation interfaces."
+          "url": "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/mainnet.json",
+          "title": "OroSwap ZIGChain mainnet deployment",
+          "supports": "Mainnet addresses and recorded chain metadata."
         },
         "status": "DOCUMENTED"
       },
@@ -239,9 +239,9 @@
         "address": "zig17a7mlm84taqmd3enrpcxhrwzclj9pga8efz83vrswnnywr8tv26s7mpq30",
         "purpose": "testnetFactory",
         "evidence": {
-          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
-          "title": "OroSwap Router",
-          "supports": "Router execute and simulation interfaces."
+          "url": "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/testnet.json",
+          "title": "OroSwap ZIGChain testnet deployment",
+          "supports": "Testnet addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -250,9 +250,9 @@
         "address": "zig1g00t6pxg3xn7vk0vt29zu9vztm3wsq5t5wegutlg94uddju0yr5sye3r3a",
         "purpose": "testnetRouter",
         "evidence": {
-          "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
-          "title": "OroSwap Router",
-          "supports": "Router execute and simulation interfaces."
+          "url": "https://github.com/oroswap/oroswap-deployments/blob/main/zigchain/testnet.json",
+          "title": "OroSwap ZIGChain testnet deployment",
+          "supports": "Testnet addresses."
         },
         "status": "DOCUMENTED"
       }
@@ -358,9 +358,9 @@
         "address": "zig1jy2amze7fxcmessewv65jq5kupsxae2n96yech9g8d8rp5vnv74qxlddqk",
         "purpose": "mainnetAddressProvider",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -369,9 +369,9 @@
         "address": "zig1s3frrzltqaxvuzffvxg89uuad6nkcyqe3ucvrahynznaek3mhe4s75puyu",
         "purpose": "mainnetRedBank",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -380,9 +380,9 @@
         "address": "zig1nr48m8vv6kutnse3scxsg96pxmeyzj8hkn6rf9mstdtmmcn8h2tsm54kmz",
         "purpose": "mainnetOracle",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -391,9 +391,9 @@
         "address": "zig1ma6e2dgkuu62fc66rn4msrnv89tyws75jpzz5kkk5pn4uf2cat5quevjw0",
         "purpose": "mainnetParams",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -402,9 +402,9 @@
         "address": "zig17etzyt9qu5dlga2d09ql34rcnkxgtwx544pp9reuqp9fmcp2lkjqdjf754",
         "purpose": "mainnetIncentives",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -413,9 +413,9 @@
         "address": "zig172v7euptv09z2pvj2khntlzel2fq5pcpp9g7lxpc889hvp74mjmsa5ev2p",
         "purpose": "mainnetHealth",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -424,9 +424,9 @@
         "address": "zig1jul327luptcp9vcl6x4ws9xh6c3seuzsmmzj8n6e6qqgdplrvnzsh4t3ky",
         "purpose": "mainnetCreditManager",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -435,9 +435,9 @@
         "address": "zig1kpeynqhd0qlq5v2yg2chja0lcakqkzvmpdl4eq573sdnh6vh7dnspd5zv9",
         "purpose": "mainnetAccountNft",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -446,9 +446,9 @@
         "address": "zig1m6rezhkz28d2kk4ge25kcexzc244cses9a4d6jfqln26zqvzk80syqe6ke",
         "purpose": "mainnetRewardsCollector",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       },
@@ -457,9 +457,9 @@
         "address": "zig1s36zdllvn4fvxzlq4uvsm42stt5rqz6dqsmy2l3rdu3rqjvc90kqrvw0wj",
         "purpose": "mainnetZapper",
         "evidence": {
-          "url": "https://github.com/permapod-zigchain",
-          "title": "PermaPod GitHub organization",
-          "supports": "Current public repository inventory."
+          "url": "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts",
+          "title": "PermaPod public client configuration",
+          "supports": "Mainnet and partial testnet contract addresses."
         },
         "status": "DOCUMENTED"
       }
@@ -726,7 +726,7 @@
       "jurisdiction": "KYC is mandatory to deposit and invest. The current restricted-residence list includes Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela, and named occupied regions.",
       "note": "KYC is mandatory to deposit and invest. The current restricted-residence list includes Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela, and named occupied regions."
     },
-    "notes": "Zignaly is modeled as distribution, consistent with the owner-requested boundary. The API license agreement proves legal API terms exist, not that a suitable public integration API is available. Integration surface: Human-readable product and strategy-composition metadata only. Exchange API keys are outside the ZIGoals integration boundary. API/contracts: public human-readable product metadata; legal API agreement exists; no suitable documented product API or ZIGChain contract found",
+    "notes": "Zignaly is modeled as a distribution provider. The API license agreement proves legal API terms exist, not that a suitable public integration API is available. Integration surface: Human-readable product and strategy-composition metadata only. Exchange API keys are outside the ZIGoals integration boundary. API/contracts: public human-readable product metadata; legal API agreement exists; no suitable documented product API or ZIGChain contract found",
     "sources": [
       {
         "url": "https://zignaly.com/z-indexes",
