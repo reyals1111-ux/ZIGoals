@@ -1,0 +1,185 @@
+{
+  "recordedAt": "2026-09-13T16:10:16.032Z",
+  "stage": "First release-tooling PR run; final M4 source requires new CI",
+  "sourceCommit": "9a0f7681617e8fd98d1e44221bca7aab3bc4fcad",
+  "quality": {
+    "id": 34767074157,
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074157",
+    "event": "pull_request",
+    "headSha": "60e80db16a272b121792947dd5e892c2802f4804",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 103749837584,
+        "name": "contract",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074157/job/103749837584",
+        "conclusion": "success",
+        "startedAt": "2026-09-13T15:56:16Z",
+        "completedAt": "2026-09-13T15:59:02Z"
+      },
+      {
+        "id": 103749837613,
+        "name": "web",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074157/job/103749837613",
+        "conclusion": "success",
+        "startedAt": "2026-09-13T15:56:15Z",
+        "completedAt": "2026-09-13T15:58:05Z"
+      }
+    ]
+  },
+  "reproducibility": {
+    "id": 34767074194,
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074194",
+    "event": "pull_request",
+    "headSha": "60e80db16a272b121792947dd5e892c2802f4804",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 103749837475,
+        "name": "canonical-build-b",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074194/job/103749837475",
+        "conclusion": "success",
+        "startedAt": "2026-09-13T15:56:16Z",
+        "completedAt": "2026-09-13T15:58:13Z"
+      },
+      {
+        "id": 103749837549,
+        "name": "canonical-build-a",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074194/job/103749837549",
+        "conclusion": "success",
+        "startedAt": "2026-09-13T15:56:16Z",
+        "completedAt": "2026-09-13T15:58:40Z"
+      },
+      {
+        "id": 103750141215,
+        "name": "compare",
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34767074194/job/103750141215",
+        "conclusion": "success",
+        "startedAt": "2026-09-13T15:58:43Z",
+        "completedAt": "2026-09-13T16:00:40Z"
+      }
+    ]
+  },
+  "totals": {
+    "javascript": 431,
+    "rust": 25,
+    "browser": 30
+  },
+  "measured": [
+    {
+      "leg": "a",
+      "sizeBytes": 255532,
+      "sha256": "9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10",
+      "manifest": {
+        "schemaVersion": 1,
+        "status": "BUILD_VERIFIED",
+        "approval": "NOT_APPROVED",
+        "source": {
+          "commit": "9a0f7681617e8fd98d1e44221bca7aab3bc4fcad",
+          "tree": "160defb99b1e4936699b4669ca53d854e6e59175",
+          "cargoLockSha256": "79aee297543060d068666823087e6304e1f5806f4a6534984ab5b389fa105565",
+          "sourceDateEpoch": 1789314970
+        },
+        "environment": {
+          "policy": "canonical-linux-v1",
+          "platform": "linux",
+          "arch": "x64",
+          "osRelease": "6.17.0-1022-azure",
+          "imageOS": "ubuntu24",
+          "imageVersion": "20260907.300.1",
+          "rust": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7",
+          "cargo": "cargo 1.85.1 (d73d2caf9 2024-12-31)",
+          "node": "24.19.0",
+          "binaryen": "wasm-opt version 123 (version_123)",
+          "validator": "Contract checking 2.2.2",
+          "target": "wasm32-unknown-unknown",
+          "flags": "-C target-feature=-reference-types,-multivalue; remap source=/src cargo=/cargo rustup=/rustup; optimizer=-Oz --signext-lowering",
+          "locale": "C",
+          "timezone": "UTC"
+        },
+        "artifact": {
+          "name": "zigoals_goal_manager.wasm",
+          "sha256": "9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10",
+          "sizeBytes": 255532
+        },
+        "independentBuildCount": 1,
+        "builds": [
+          {
+            "repository": "reyals1111-ux/ZIGoals",
+            "runId": "34767074194",
+            "runAttempt": "1",
+            "job": "canonical-build-a",
+            "builtAt": "2026-09-13T15:58:36.630Z",
+            "validation": {
+              "tool": "cosmwasm-check",
+              "version": "2.2.2",
+              "passed": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "leg": "b",
+      "sizeBytes": 255532,
+      "sha256": "9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10",
+      "manifest": {
+        "schemaVersion": 1,
+        "status": "BUILD_VERIFIED",
+        "approval": "NOT_APPROVED",
+        "source": {
+          "commit": "9a0f7681617e8fd98d1e44221bca7aab3bc4fcad",
+          "tree": "160defb99b1e4936699b4669ca53d854e6e59175",
+          "cargoLockSha256": "79aee297543060d068666823087e6304e1f5806f4a6534984ab5b389fa105565",
+          "sourceDateEpoch": 1789314970
+        },
+        "environment": {
+          "policy": "canonical-linux-v1",
+          "platform": "linux",
+          "arch": "x64",
+          "osRelease": "6.17.0-1022-azure",
+          "imageOS": "ubuntu24",
+          "imageVersion": "20260907.300.1",
+          "rust": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7",
+          "cargo": "cargo 1.85.1 (d73d2caf9 2024-12-31)",
+          "node": "24.19.0",
+          "binaryen": "wasm-opt version 123 (version_123)",
+          "validator": "Contract checking 2.2.2",
+          "target": "wasm32-unknown-unknown",
+          "flags": "-C target-feature=-reference-types,-multivalue; remap source=/src cargo=/cargo rustup=/rustup; optimizer=-Oz --signext-lowering",
+          "locale": "C",
+          "timezone": "UTC"
+        },
+        "artifact": {
+          "name": "zigoals_goal_manager.wasm",
+          "sha256": "9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10",
+          "sizeBytes": 255532
+        },
+        "independentBuildCount": 1,
+        "builds": [
+          {
+            "repository": "reyals1111-ux/ZIGoals",
+            "runId": "34767074194",
+            "runAttempt": "1",
+            "job": "canonical-build-b",
+            "builtAt": "2026-09-13T15:58:09.858Z",
+            "validation": {
+              "tool": "cosmwasm-check",
+              "version": "2.2.2",
+              "passed": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "localDownloadVerification": {
+    "passed": true,
+    "validator": "cosmwasm-check2.2.2",
+    "checks": "Actual bytes/hash/size; both independent manifests; source tree/Cargo.lock/commit epoch against fetched Git objects; actual validator on both downloads plus comparison artifact"
+  },
+  "authority": "Unsigned PR reproducibility evidence, NOT_APPROVED; no attestation or upload authorization",
+  "annotations": [
+    "Inherited Node20 action declarations were forced to Node24; supported Node24 action updates queued before final CI."
+  ]
+}

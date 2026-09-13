@@ -1,0 +1,50 @@
+{
+  "status": "PREPARED_NOT_DEPLOYED",
+  "alphaUrl": null,
+  "deploymentId": null,
+  "packageSource": "0f6f0235a0fac6ff8756f93e58316147457fc112",
+  "mode": "PUBLIC_ALPHA_UNDEPLOYED",
+  "dirty": false,
+  "dryRun": {
+    "rawKiB": 9361.11,
+    "gzipKiB": 1753.55,
+    "assetFiles": 32,
+    "bindings": [
+      "ASSETS",
+      "WORKER_SELF_REFERENCE"
+    ]
+  },
+  "localWorkerdBrowserCasesPassed": 6,
+  "cloudflareBrowserAccess": "BLOCKED: admin-enforced policy could not be verified; no bypass",
+  "wranglerAuthenticated": false,
+  "published": false,
+  "apex": {
+    "beforeAfterBodyIdentical": true,
+    "sha256": "e2f7dd2598b682d6db27f2fa85cd6458b9b39ca244ab9b41b025c06a6a2d200a",
+    "worker": "zigoals",
+    "observedActiveVersion": "9a2cc4f1",
+    "existingLatestAutomaticBuild": "FAILED before M4; existing manual version remains live"
+  },
+  "dnsEmail": {
+    "initialInventory": "apex Worker; 3 Cloudflare MX; SPF; DKIM; no alpha record",
+    "changedByRun": false,
+    "finalDashboardComparison": "NOT RUN: browser policy verification unavailable",
+    "mailDeliveryTest": "NOT RUN"
+  },
+  "keplrM4": {
+    "connectionAttempt": "PENDING when last observed",
+    "approvalOrCancellationVerified": false,
+    "realCspCompatibility": "NOT VERIFIED",
+    "signing": "NOT RUN"
+  },
+  "hostingLimits": "Current 64 MiB raw size fits; Free 10ms CPU suitability remains unverified; no paid service enabled",
+  "finalLocalAcceptance": {
+    "sourceCommit": "736f195dba26fb14bde8228a7939c13d6f06d490",
+    "mode": "PUBLIC_ALPHA_UNDEPLOYED",
+    "dirty": false,
+    "rawKiB": 9361.11,
+    "gzipKiB": 1753.53,
+    "assetFiles": 32,
+    "workerdCasesPassed": 8
+  }
+}

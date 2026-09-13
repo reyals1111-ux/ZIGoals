@@ -21,7 +21,7 @@ Assets: recorded native idle positions, withdrawal authority, private plans, sig
 | Supply chain | Exact direct version pins + lockfiles, build-script denial by default, CI install frozen, security audit command; Rust crate versions locked. Dependencies and host toolchain remain trusted inputs. |
 | Storage loss / import denial of service |1MB/1000-goal bound and strict whole-envelope validation before one write; backups recommended; financial controls do not depend on plans. Large but valid date plans fail closed at projection, not financial access. |
 
-Web headers: CSP restricts connections to official testnet and local preview; denies objects/frames, base-uri/form-action self; nosniff; referrer policy; no camera/microphone/geolocation. Current Next inline scripts require unsafe-inline: nonce-based production CSP and HSTS at HTTPS app ingress remain release requirements. Do not label this as a hardened mainnet frontend.
+Historical M1 headers allowed inline scripts. M4 replaces that production policy with per-response nonce scripts and no unsafe-inline/unsafe-eval script allowance, restricted canonical RPC/REST connections, denied objects/frames/base URLs, nosniff, no-referrer and limited browser permissions. HSTS applies to HTTPS responses. Inline style attributes remain a documented CSS exception. Local runtime verification is separate from unperformed public HTTPS and real-extension checks; this is not a mainnet frontend.
 
 ## Milestone 2 boundaries
 

@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-09-13T16:45:42.535Z",
+  "status": "passed",
+  "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+  "appUrl": "http://127.0.0.1:3104/app/activity",
+  "recordsRetained": 4,
+  "unknownHashRetained": true,
+  "corruptRecordPreserved": true,
+  "corruptionAndNetworkWarningsVisible": true,
+  "accountScopeVerified": true,
+  "signerCalls": 0,
+  "broadcastRequests": 0,
+  "pageErrors": [],
+  "realKeplr": false,
+  "networkAndWallet": "mocked external boundaries; no live transaction",
+  "sourceCommit": "736f195dba26fb14bde8228a7939c13d6f06d490"
+}

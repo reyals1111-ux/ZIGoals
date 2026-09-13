@@ -40,3 +40,21 @@ Draft 4 — verified hosted result:
 > GitHub now checks the ZIGoals alpha and retains the actual Wasm build evidence. The Linux and Mac artifacts both validate but have different hashes. We investigated source-path and build-layout differences and documented the remaining limit: cross-host byte identity is not established. Nothing is deployed, and no external strategy has been enabled.
 
 Evidence: M3_REPRODUCIBILITY.md and successful GitHub run34763386600. Owner-review draft only; not published.
+
+## Milestone 4 drafts — owner review only, not published
+
+Draft 1 — merged baseline:
+> The first three ZIGoals engineering milestones are merged. A fresh check passed the existing JavaScript, Rust and production browser suites, plus full browser restart recovery. Real Keplr connection evidence is recorded separately. Goal Manager is still not deployed, and financial signing remains untested.
+
+Draft 2 — observed release engineering:
+> ZIGoals now compares the Goal Manager Wasm from two independent clean Linux builds. The release verifier checks the actual bytes, source commit and toolchain evidence before accepting a candidate. Reproducible does not mean approved for upload: testnet funding, upload permission and owner authorization remain separate gates.
+
+Draft 3 — locally verified Alpha safeguards:
+> The ZIGoals web Alpha separates local simulation from wallet connection. Its undeployed public mode blocks financial execution at the transaction boundary, and the production browser policy uses fresh script nonces. Private goal plans stay in the browser in the tested flows; the host still sees ordinary requests and goal IDs in page paths. This is experimental software, not a security audit or a promise of returns.
+
+Draft 4 — prepared hosting, publication pending:
+> The isolated ZIGoals Cloudflare Alpha package is prepared and locally tested. Publication is still pending permitted account access and live HTTPS verification. The existing zigoals.app landing and email settings were preserved. Goal Manager is not deployed and no return claim is being made.
+
+Attach only links, hashes, totals and URLs confirmed in the final Run4 report. Do not publish this draft automatically, claim an attestation that has not run, imply ZIGChain approval or describe the web preview as an onchain deployment. Keep the separate apex landing CTA unpublished until owner review.
+
+Evidence: [Run 4](../RUN_4_REPORT.md), [canonical hosted results](../verification/m4/FIRST_HOSTED_RESULTS.json), [publication status](../verification/m4/PUBLICATION.json). All drafts remain unpublished.

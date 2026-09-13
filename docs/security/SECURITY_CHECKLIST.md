@@ -55,3 +55,20 @@ Exact final commands/results and independent review outcomes are in `../verifica
 - Separate read-only diagnostics show network status and safe build/account context. RPC trust, local-clock assumptions, abrupt-shutdown/eviction loss and first-terminal receipt behavior remain documented limitations.
 - SECURITY.md, privacy notes, alpha guide and bug form use hello@zigoals.app and prohibit sharing secrets/private backups. Mainnet, external strategies and deployment remain disabled.
 - CI checks PRs and main pushes and retains validated Linux build evidence. Current M3 totals, actual hosted result and cross-host comparison are recorded in STATUS and RUN_3_REPORT after verification; earlier sections above retain historical evidence.
+
+## Milestone 4 current additions
+
+| Control | Evidence / remaining gate |
+|---|---|
+| Canonical release authority | Two fresh Linux jobs, actual bytes/source/environment verification; developer builds rejected by preparation; NOT_APPROVED |
+| Keyless provenance | Main-only manual workflow with isolated official-action OIDC job; implemented, attestation NOT RUN |
+| Public financial refusal | Explicit build policy checked through preparation/signing/broadcast independently of manifest shape |
+| Production browser policy | Fresh dynamic nonce CSP, frame/object denial, no-referrer/nosniff/permissions/noindex/no-store; HTTPS HSTS; CSS inline exception documented |
+| Untrusted RPC | Canonical bounded integer and field validation, owner/denom/idle/state checks, bounded monotonically increasing pages |
+| Private diagnostics | Safe whitelist and clipboard fallback; no full address, balance, plan, backup or arbitrary endpoint error text |
+| Egress and accessibility | Production browser tests and actual local workerd checks; private sentinels, small phone/keyboard/reduced-motion flows |
+| Hosting isolation | zigoals-alpha package with no apex routes/paid bindings; PREPARED_NOT_DEPLOYED; access blocked, no DNS/mail writes |
+| Supply chain | Current advisory/lock/action/runtime/license review; Cargo unmaintained notices retained; no CodeQL execution claim |
+| Independent review | Fresh contract/frontend and release/public task reviews, followed by branch review; engineering review, not professional audit |
+
+Exact final evidence and unresolved hosting/real-Keplr/attestation limits are in [Run 4](../RUN_4_REPORT.md) and [M4 evidence](../verification/m4/README.md). Historical checklist sections above describe their original milestone.
