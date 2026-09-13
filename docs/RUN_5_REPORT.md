@@ -1,6 +1,6 @@
 # Run 5 — live Alpha hardening
 
-**Checkpoint: IN PROGRESS.** Production is read-only. This report distinguishes completed evidence from validation/publication still pending. No deployment, release issuance, contract upload, signing, broadcast, DNS/email mutation or outreach occurred.
+**Checkpoint: LOCAL_VERIFIED; final review and GitHub CI IN PROGRESS.** Production is read-only. This report distinguishes completed evidence from validation/publication still pending. No deployment, release issuance, contract upload, signing, broadcast, DNS/email mutation or outreach occurred.
 
 | Cluster | State | Evidence / next action |
 |---|---|---|
@@ -11,9 +11,9 @@
 | Wallet reconnect | COMPLETE | Commit a14dd30; focused53 and browser2 pass; scoped review approved with two documented minor findings |
 | Observed landing overflow and icons | COMPLETE | Commit3fbb561; focused6 passed and scoped review approved; live state unchanged |
 | Rust and dependency checks | COMPLETE | Rust25, format/Clippy/schema; fresh advisory/integrity records |
-| Full integrated JS/build/browser/workerd/restart | IN PROGRESS | Final gate underway; exact totals pending |
-| Final independent branch review | NOT STARTED | Review all code/docs and remaining findings after checks |
-| Push, PR, current CI observation | NOT STARTED | Push feature branch, create unmerged PR, observe actual runs |
+| Full integrated JS/build/browser/workerd/restart | COMPLETE | JS496, Rust25, browser44, workerd12; build/lint/types/restart/config/dryruns/secrets pass |
+| Final independent branch review | IN PROGRESS | All task reviews approved; final whole-branch review pending |
+| Push, PR, current CI observation | IN PROGRESS | Checkpoints pushed; create unmerged PR and observe actual runs |
 
 ## 1. Starting main
 
@@ -25,17 +25,20 @@ Freshly fetched clean `6be2de74f22f676e6a633ed05208decebb0dbff3`.
 
 ## 3. Branch SHA
 
-Latest completed implementation/test correction at this checkpoint: `8f39661`. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
+Latest product change: `3fbb561`; test/docs correction: `8f39661`. Clean Next gate source `35a9778`; clean Alpha package source `fd44640b7222c38d524aab1d2a91da0b5fce3a39`, `dirty:false`. Later report-only commits do not change the tested application. Final publication SHA pending; obtain with `git rev-parse HEAD`. The final response/PR head identifies the report-bearing commit without a self-referential embedded hash.
 
 ## 4. Files changed
 
-Checkpoint inventory (final inventory will be refreshed):
+Changed files through this local acceptance checkpoint:
 
 - `.github/workflows/ci.yml`
 - `README.md`
+- `apps/web/app/icon.svg`
 - `apps/web/components/goal-provider.tsx`
 - `apps/web/components/shell.tsx`
 - `apps/web/lib/goal-provider.test.ts`
+- `apps/web/tests/landing.spec.ts`
+- `apps/web/tests/public-alpha.spec.ts`
 - `apps/web/tests/wallet-reload.spec.ts`
 - `docs/PRIVACY.md`
 - `docs/RUN_5_REPORT.md`
@@ -57,12 +60,14 @@ Checkpoint inventory (final inventory will be refreshed):
 - `docs/verification/m5/DEPENDENCY_SCAN.json`
 - `docs/verification/m5/HOSTED_PERFORMANCE.json`
 - `docs/verification/m5/HOSTED_SMOKE.json`
+- `docs/verification/m5/LOCAL_RESULTS.json`
 - `docs/verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json`
 - `docs/verification/m5/PUBLIC_DNS.json`
 - `docs/verification/m5/README.md`
 - `docs/verification/m5/RELEASE_VERIFICATION.json`
 - `docs/verification/m5/SOURCE_INTEGRITY.json`
 - `landing/.assetsignore`
+- `landing/index.html`
 - `landing/wrangler.jsonc`
 - `package.json`
 - `scripts/check-deployment-configs.mjs`
@@ -88,7 +93,7 @@ Checkpoint inventory (final inventory will be refreshed):
 
 ## 9. Keplr reload decision
 
-Outcome B: Local Demo on reload with an explicit **Reconnect Keplr** action after a prior successful connection. A versioned tab-scoped boolean is a presentation hint only; no account, balance, financial mode or wallet permission is persisted. Mount/reload performs no extension access. Explicit Local Demo clears the hint. Keplr permission may be remembered but its APIs do not establish a universal prompt-free restoration guarantee. Existing connect cancellation/account-change isolation remains; no signer acquisition is added. Targeted provider/wallet53 and mocked browser2 checks passed; integrated production checks pending.
+Outcome B: Local Demo on reload with an explicit **Reconnect Keplr** action after a prior successful connection. A versioned tab-scoped boolean is a presentation hint only; no account, balance, financial mode or wallet permission is persisted. Mount/reload performs no extension access. Explicit Local Demo clears the hint. Keplr permission may be remembered but its APIs do not establish a universal prompt-free restoration guarantee. Existing connect cancellation/account-change isolation remains; no signer acquisition is added. Targeted provider/wallet53 and mocked browser2 checks passed; integrated production44 and workerd12 checks passed.
 
 ## 10. Landing config root cause and fix
 
@@ -96,7 +101,7 @@ Wrangler resolves `assets.directory` relative to its config. `./landing` inside 
 
 ## 11. Landing dry run
 
-**LOCAL_VERIFIED:** pinned Wrangler4.131.1 reproduced the failure and then passed `pnpm check:landing` from repository root without upload. At Task1, only index.html survived the asset allowlist; dry run reported0.37KiB upload estimate/0.25KiB gzip and exited without publishing. [LANDING.md](deployment/LANDING.md) is the canonical dry-run, separate owner-only deployment and rollback runbook. Recheck after any icon asset adjustment.
+**LOCAL_VERIFIED:** pinned Wrangler4.131.1 reproduced the failure and then passed `pnpm check:landing` from repository root without upload. At Task1, only index.html survived the asset allowlist; dry run reported0.37KiB upload estimate/0.25KiB gzip and exited without publishing. [LANDING.md](deployment/LANDING.md) is the canonical dry-run, separate owner-only deployment and rollback runbook. The apex embedded SVG icon preserves this index-only allowlist; final integrated dry run repeated successfully.
 
 ## 12. Alpha/apex isolation
 
@@ -130,11 +135,11 @@ Fresh pnpm production/full scans:0vulnerabilities; Rust119dependencies:0vulnerab
 
 ## 19. Contract review
 
-No contract code changed. Focused inspection confirmed owner/active-goal checks before mutation; exactly one configured nonzero deposit denom; checked balances/liabilities; withdrawal only to the owner; admin pause affects deposits only, preserving withdrawal; nonpayable non-deposit methods. Fresh Rust25 tests, format, Clippy, schema and generated types passed. Idle remains the only executable strategy; funding/upload permission and later explicit financial approval remain gates. Final focused M5 review pending. This is not a professional security audit.
+No contract code changed. Focused inspection confirmed owner/active-goal checks before mutation; exactly one configured nonzero deposit denom; checked balances/liabilities; withdrawal only to the owner; admin pause affects deposits only, preserving withdrawal; nonpayable non-deposit methods. Fresh Rust25 tests, format, Clippy, schema and generated types passed. Idle remains the only executable strategy; funding/upload permission and later explicit financial approval remain gates. The unchanged low-level frontend quote/execute/sign/broadcast guards were also inspected; final independent whole-branch review pending. This is not a professional security audit.
 
 ## 20. Frontend/security review
 
-Task1 spec and quality review approved with no findings. Task2 spec/quality approved with two minor findings: overly broad new-tab label documentation and existing middleware deprecation. Presentation fix and final whole-branch review pending. Mode guards continue to refuse unknown/missing/public/local financial preparation and execution at low-level boundaries. Final integrated checks will confirm the unchanged protections.
+Task1 spec and quality review approved with no findings. Task2 spec/quality approved; its new-tab wording minor and the integrated-test synchronization failure were corrected in8f39661 and independently re-reviewed. Task3 approved with no findings. Existing middleware deprecation remains documented for future compatibility work. Final whole-branch review pending. Mode guards continue to refuse unknown/missing/public/local financial preparation and execution at low-level boundaries. Final integrated checks will confirm the unchanged protections.
 
 ## 21. JavaScript
 
@@ -146,11 +151,11 @@ Task1 spec and quality review approved with no findings. Task2 spec/quality appr
 
 ## 23. Browser
 
-Final total **PENDING**. First final production run:44cases,43passed,1failed. New reconnect test read the marker before asynchronous connection completed; corrected in8f39661 by waiting for the connected-address state. Failure retained in local evidence. Full Chrome restart passed with4records retained, account separation, damaged/uncertain records preserved,0signer calls,0broadcasts and0page errors. Corrected final suite remains to record. Mocks do not replace real owner extension evidence.
+**LOCAL_VERIFIED:44passed**,0failed in the corrected final production run. First integrated run:44cases,43passed,1failed. New reconnect test read the marker before asynchronous connection completed; corrected in8f39661 by waiting for the connected-address state. Failure retained in local evidence. Full Chrome restart passed with4records retained, account separation, damaged/uncertain records preserved,0signer calls,0broadcasts and0page errors. The corrected full suite passed in16.3s; no production-code change was needed for that test fix. Mocks do not replace real owner extension evidence.
 
 ## 24. Workerd
 
-Final total **PENDING**; required prior baseline8. Build Alpha, dry-run and run workerd gates plus relevant reconnect/icon coverage locally. No live deployment.
+**LOCAL_VERIFIED:12passed**,0failed in7.2s, exceeding prior8. Actual local workerd on8790 ran public-alpha, diagnostics and wallet-reload desktop/mobile cases, including explicit icon resolution. Clean Alpha sourcefd44640;34assets,9382.72KiB raw/1759.82KiB gzip; only ASSETS and Alpha self-reference bindings. Non-uploading dry run passed. No live deployment.
 
 ## 25. GitHub CI
 
@@ -192,4 +197,4 @@ After M5 validation: review the actual PR/diff/evidence and green CI, then decid
 
 ### Resume instructions
 
-Read this checklist, `git status --short`, current branch log and `.superpowers/sdd/M5_IMPLEMENTATION_PLAN/progress.md` if present. Do not restart M1–M5 or repeat completed hosted/dependency evidence. Finish Task3 and its review, then one full acceptance gate. Runtime PATH starts `/Users/AIUSER/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin`. Commands from root: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, local production browser tests/restart, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`, local workerd tests, `pnpm check:deploy-configs`, `pnpm check:landing`, `node scripts/check-secrets.mjs`, `git diff --check`. Use separate owned local ports, preserve other servers. Update exact results, commit logical work, push this branch and create PR against main; observe quality/reproducibility CI without issuance. Never merge/deploy/sign.
+Read this checklist, `git status --short`, current branch log and `.superpowers/sdd/M5_IMPLEMENTATION_PLAN/progress.md` if present. Do not restart M1–M5 or repeat completed hosted/dependency evidence. All implementation and local gates are complete. Finish final whole-branch review and actual PR/CI observation; do not repeat completed local suites without a new change/failure. Runtime PATH starts `/Users/AIUSER/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin`. Commands from root: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, local production browser tests/restart, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`, local workerd tests, `pnpm check:deploy-configs`, `pnpm check:landing`, `node scripts/check-secrets.mjs`, `git diff --check`. Use separate owned local ports, preserve other servers. Update exact results, commit logical work, push this branch and create PR against main; observe quality/reproducibility CI without issuance. Never merge/deploy/sign.

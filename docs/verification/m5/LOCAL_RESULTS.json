@@ -1,6 +1,6 @@
 {
-  "recordedAt": "2026-09-13T19:55:41.011583+00:00",
-  "status": "IN_PROGRESS",
+  "recordedAt": "2026-09-13T20:11:56.804733+00:00",
+  "status": "LOCAL_VERIFIED",
   "node": "24.19.0",
   "pnpm": "11.19.0",
   "rust": {
@@ -23,14 +23,49 @@
     "tests": 496,
     "files": 26,
     "failed": 0,
-    "source": "35a9778",
+    "source": "35a977890b2bbfbbd2413058d2ebad6f39b9accc",
     "log": "/tmp/zigoals-m5-final-javascript.log"
   },
   "browserFinal": {
-    "status": "NOT_RUN"
+    "status": "PASS",
+    "tests": 44,
+    "failed": 0,
+    "productBuildSource": "35a977890b2bbfbbd2413058d2ebad6f39b9accc",
+    "testFixSource": "8f3966173b37afa2c4bcc5087750fa1c876f6379",
+    "log": "/tmp/zigoals-m5-final-browser-corrected.log",
+    "seconds": 16.3
   },
   "workerdFinal": {
-    "status": "NOT_RUN"
+    "status": "PASS",
+    "tests": 12,
+    "failed": 0,
+    "source": "fd44640b7222c38d524aab1d2a91da0b5fce3a39",
+    "seconds": 7.2,
+    "gate": {
+      "phase": "workerd",
+      "source": "fd44640b7222c38d524aab1d2a91da0b5fce3a39",
+      "startedAt": "2026-09-13T20:10:35.562581+00:00",
+      "steps": [
+        {
+          "name": "workerd",
+          "command": [
+            "pnpm",
+            "--filter",
+            "@zigoals/web",
+            "exec",
+            "playwright",
+            "test",
+            "public-alpha.spec.ts",
+            "diagnostics.spec.ts",
+            "wallet-reload.spec.ts",
+            "--output=/tmp/zigoals-m5-final-workerd-results"
+          ],
+          "exitCode": 0,
+          "seconds": 7.76,
+          "log": "/tmp/zigoals-m5-final-workerd.log"
+        }
+      ]
+    }
   },
   "productionMutation": false,
   "webGate": {
@@ -139,5 +174,56 @@
     "realKeplr": false,
     "networkAndWallet": "mocked external boundaries; no live transaction",
     "resultPath": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-browser-restart-dMAcK5/result.json"
-  }
+  },
+  "alphaBuild": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "fd44640b7222c38d524aab1d2a91da0b5fce3a39",
+    "dirty": false
+  },
+  "alphaGate": {
+    "phase": "alpha",
+    "source": "fd44640b7222c38d524aab1d2a91da0b5fce3a39",
+    "startedAt": "2026-09-13T20:09:44.793314+00:00",
+    "steps": [
+      {
+        "name": "alpha-build",
+        "command": [
+          "pnpm",
+          "--filter",
+          "@zigoals/web",
+          "build:alpha"
+        ],
+        "exitCode": 0,
+        "seconds": 9.07,
+        "log": "/tmp/zigoals-m5-final-alpha-build.log"
+      },
+      {
+        "name": "alpha-dryrun",
+        "command": [
+          "pnpm",
+          "--filter",
+          "@zigoals/web",
+          "check:alpha"
+        ],
+        "exitCode": 0,
+        "seconds": 1.48,
+        "log": "/tmp/zigoals-m5-final-alpha-dryrun.log"
+      }
+    ]
+  },
+  "alphaDryRun": {
+    "rawKiB": 9382.72,
+    "gzipKiB": 1759.82,
+    "assets": 34,
+    "bindings": [
+      "WORKER_SELF_REFERENCE:zigoals-alpha",
+      "ASSETS"
+    ],
+    "uploaded": false
+  },
+  "warnings": [
+    "Existing Next middleware convention deprecation; retained for adapter compatibility.",
+    "Isolated standalone script lint emitted React auto-detection warning; final full lint had no warning."
+  ]
 }

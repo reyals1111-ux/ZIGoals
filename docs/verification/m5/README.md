@@ -10,7 +10,7 @@ Records separate owner observations, independent live reads, local validation an
 | [HOSTED_PERFORMANCE.json](HOSTED_PERFORMANCE.json) | Small live response and initial browser resource sample. Separate later dashboard CPU snapshot; no load-test or Core Web Vitals claim. |
 | [CLOUDFLARE_READ_ONLY.json](CLOUDFLARE_READ_ONLY.json) | Read-only UI: Workers Free, active-version median CPU30.43ms, zero displayed errors in Last24h, Alpha domains/bindings. Capacity risk relative to stated10ms. |
 | [PUBLIC_DNS.json](PUBLIC_DNS.json) | Public A/MX/SPF/DKIM answers and read-only dashboard Worker/DNS table; unsuccessful DMARC lookup. Private routing/forwarding and mail delivery not inspected. No writes. |
-| [LOCAL_RESULTS.json](LOCAL_RESULTS.json) | Resumable local gate record; pending stages are explicit until final acceptance. |
+| [LOCAL_RESULTS.json](LOCAL_RESULTS.json) | LOCAL_VERIFIED:496 JS,25 Rust,44 production browser,12 workerd; clean build identities, restart evidence and retained initial test failure. |
 | [DEPENDENCY_SCAN.json](DEPENDENCY_SCAN.json) | Fresh production/full npm and RustSec scans; zero vulnerability findings, two unmaintained Rust notices, existing official download-action warning. |
 
 The completed hosted sample captured **83 application/page/resource requests**, reading each request's URL, body and `allHeaders()`. None contained the tested fictional name, target, date or note. Alpha traffic used only its origin and canonical RPC/REST. Existing apex Google Fonts requests were separately identified. Browser-managed implicit favicon requests appeared as console 404s outside those request events, so this is bounded application-flow evidence, not a universal browser traffic/privacy guarantee.
