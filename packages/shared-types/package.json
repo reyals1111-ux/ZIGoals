@@ -5,9 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./contract": "./src/contract.generated.ts"
+    "./contract": "./src/contract.generated.ts",
+    "./deployment": "./src/deployment.ts"
   },
   "dependencies": {
-    "zod": "4.6.2"
+    "zod": "4.6.2",
+    "@cosmjs/encoding": "0.38.1"
   }
 }

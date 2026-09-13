@@ -22,6 +22,7 @@ import {
 } from "./transaction";
 import {
   newOperation,
+  recoveryCandidates,
   TransactionJournal,
   type JournalRecord,
 } from "./transaction-journal";
@@ -45,9 +46,12 @@ declare global {
     keplr?: Keplr;
   }
 }
-export const CONTRACT_ADDRESS =
-  process.env.NEXT_PUBLIC_GOAL_MANAGER_ADDRESS ?? "";
-const EXPECTED_CODE_ID = process.env.NEXT_PUBLIC_GOAL_MANAGER_CODE_ID ?? "";
+import { verifyContractEvidence } from "./contract-evidence";
+import {
+  deployedManifest,
+  requireConfiguredDeployment,
+} from "./deployment-config";
+export const CONTRACT_ADDRESS = deployedManifest?.contractAddress ?? "";
 export async function connectKeplr(
   keplr: Keplr,
   onAdding: () => void,
@@ -84,34 +88,15 @@ export async function readBalance(address: string): Promise<string> {
   return data.balance.amount;
 }
 async function verifiedClient() {
-  await verifyNetwork();
+  const manifest = requireConfiguredDeployment();
+  await verifyNetwork(TESTNET, fetch, manifest.chainVersion);
   const client = await CosmWasmClient.connect(TESTNET.rpcUrl);
   try {
     if ((await client.getChainId()) !== TESTNET.chainId)
       throw Error("Wrong RPC network.");
-    if (!CONTRACT_ADDRESS || !EXPECTED_CODE_ID)
-      throw Error(
-        "Testnet contract deployment is pending. Local demo is available.",
-      );
     if (fromBech32(CONTRACT_ADDRESS, 90).prefix !== "zig")
       throw Error("Invalid Goal Manager address.");
-    const info = await client.getContract(CONTRACT_ADDRESS);
-    if (String(info.codeId) !== EXPECTED_CODE_ID || info.admin)
-      throw Error(
-        "Contract deployment does not match the approved immutable code manifest.",
-      );
-    const config = await client.queryContractSmart(CONTRACT_ADDRESS, {
-      config: {},
-    });
-    const version = await client.queryContractSmart(CONTRACT_ADDRESS, {
-      contract_version: {},
-    });
-    if (
-      config.native_denom !== TESTNET.nativeAsset.baseDenom ||
-      version.contract !== "crates.io:zigoals-goal-manager" ||
-      version.version !== "0.1.0"
-    )
-      throw Error("Goal Manager version or denomination mismatch.");
+    await verifyContractEvidence(client, manifest);
     return client;
   } catch (e) {
     client.disconnect();
@@ -235,14 +220,12 @@ export async function executeQuote(
   const message = JSON.parse(
     new TextDecoder().decode(execute.msg),
   ) as ExecuteMsg;
-  if (
-    !(
-      "create_goal" in message ||
-      "deposit" in message ||
-      "withdraw" in message ||
-      "close_goal" in message
-    )
-  )
+  if (!(
+    "create_goal" in message ||
+    "deposit" in message ||
+    "withdraw" in message ||
+    "close_goal" in message
+  ))
     throw Error("This action is not supported by the transaction journal.");
   const action =
     "create_goal" in message
@@ -352,15 +335,7 @@ export async function reconcileTransactions(
   records: JournalRecord[],
   journal = new TransactionJournal(),
 ) {
-  const candidates = records
-    .filter(
-      (record) =>
-        record.hash &&
-        ["BROADCASTING", "CONFIRMING", "UNKNOWN_AFTER_BROADCAST"].includes(
-          record.state,
-        ),
-    )
-    .slice(0, 20);
+  const candidates = recoveryCandidates(records);
   if (!candidates.length)
     return { records: [] as JournalRecord[], warnings: [] as string[] };
   const recovered: JournalRecord[] = [];

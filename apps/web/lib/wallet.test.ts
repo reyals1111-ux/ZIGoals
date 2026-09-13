@@ -7,6 +7,11 @@ import { signedTransactionHash } from "./receipt-reconciliation";
 import { toBech32 } from "@cosmjs/encoding";
 import { TESTNET } from "@zigoals/chain-config";
 import type { Keplr } from "./wallet";
+import { deployedFixture } from "../../../packages/shared-types/src/deployment.fixture";
+vi.mock("./deployment-config", () => ({
+  deployedManifest: deployedFixture(),
+  requireConfiguredDeployment: () => deployedFixture(),
+}));
 
 const clients = vi.hoisted(() => ({
   read: vi.fn(),
@@ -51,7 +56,10 @@ function wallet() {
 }
 function networkResponse(url: string) {
   const data = url.includes("node_info")
-    ? { default_node_info: { network: "zig-test-2" } }
+    ? {
+        default_node_info: { network: "zig-test-2" },
+        application_version: { version: "v5.0.0-patch-1" },
+      }
     : url.includes("staking")
       ? { params: { bond_denom: "azig" } }
       : url.includes("denoms_metadata")
@@ -177,16 +185,39 @@ test("wallet rejection stops before enabling or reading its account", async () =
 function readClient(overrides = {}) {
   return {
     getChainId: async () => "zig-test-2",
-    getContract: async () => ({ codeId: 7, admin: undefined }),
+    getContract: async () => ({ codeId: 7, admin: undefined, creator: owner }),
+    getCodeDetails: async () => ({ checksum: "ab".repeat(32) }),
     queryContractSmart: async (_: string, query: object) =>
       "config" in query
-        ? { native_denom: "azig" }
+        ? { native_denom: "azig", admin: null }
         : { contract: "crates.io:zigoals-goal-manager", version: "0.1.0" },
     disconnect: vi.fn(),
     ...overrides,
   };
 }
 test.each([
+  [
+    "creator",
+    { getContract: async () => ({ codeId: 7, creator: contract }) },
+    "immutable code manifest",
+  ],
+  [
+    "code checksum",
+    { getCodeDetails: async () => ({ checksum: "cd".repeat(32) }) },
+    "checksum mismatch",
+  ],
+  [
+    "missing checksum",
+    { getCodeDetails: async () => ({}) },
+    "checksum mismatch",
+  ],
+  [
+    "pause admin",
+    {
+      queryContractSmart: async () => ({ native_denom: "azig", admin: owner }),
+    },
+    "version or denomination mismatch",
+  ],
   [
     "RPC network",
     { getChainId: async () => "zig-mainnet" },
@@ -212,7 +243,7 @@ test.each([
     {
       queryContractSmart: async (_: string, query: object) =>
         "config" in query
-          ? { native_denom: "azig" }
+          ? { native_denom: "azig", admin: null }
           : { contract: "crates.io:zigoals-goal-manager", version: "99.0.0" },
     },
     "version or denomination mismatch",
@@ -391,4 +422,22 @@ test.each([
       state: scenario === "success" ? "CONFIRMED" : "UNKNOWN_AFTER_BROADCAST",
     });
   }
+});
+
+test("changed chain software blocks financial preflight before signer acquisition", async () => {
+  vi.stubGlobal("fetch", async (url: string) =>
+    url.includes("node_info")
+      ? new Response(
+          JSON.stringify({
+            default_node_info: { network: "zig-test-2" },
+            application_version: { version: "v6" },
+          }),
+        )
+      : networkResponse(url),
+  );
+  const { quoteExecute } = await import("./wallet");
+  await expect(
+    quoteExecute(wallet().keplr, owner, 1, { create_goal: {} }),
+  ).rejects.toThrow(/Network or denomination changed/);
+  expect(clients.signing).not.toHaveBeenCalled();
 });
