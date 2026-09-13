@@ -36,7 +36,7 @@ Remaining boundaries: browser storage is private by location, not encrypted agai
 | Durable send boundary | Scoped version 1 IndexedDB journal; signed hash persisted before broadcast; blocked storage prevents submission |
 | Receipt identity | TxRaw hash and decoded sender/contract/message/funds match the recorded operation; missing/mismatch stays uncertain |
 | Recovery bounds | Bounded records/receipt passes/deadlines; aggregate event attributes and text bytes capped after review |
-| Scope/corruption | Reconnect/account switch, valid+damaged history and original wallet outcomes covered in unit/browser tests |
+| Scope/corruption | Reconnect/account switch, valid+damaged history and original wallet outcomes covered in unit/browser tests; full Chrome exit/relaunch and simultaneous corruption/network warnings verified |
 | Verified public links | Fixed origin/route catalogue; strict identifiers/chain matching; Range detail and asset paths remain unavailable |
 | Registry authority | Strict bounded sourced records; lifecycle does not enable execution; all external fund-moving capabilities disabled |
 | Public research content | Internal owner/agent coordination excluded from shipped catalogue after task review; exact contract citations and review dates checked |

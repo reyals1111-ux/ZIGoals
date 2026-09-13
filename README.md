@@ -39,6 +39,8 @@ Browser tests require Google Chrome. Install a test browser with `pnpm --filter 
 pnpm --filter @zigoals/web exec playwright test
 ```
 
+For a full Chrome exit and relaunch with the same isolated test profile, keep the production server running and run `node scripts/verify-browser-restart.mjs`. It verifies retained transaction records, uncertain hashes, damaged-history warnings and account isolation. The wallet and external network responses are mocked; it never uses the owner's browser profile or requests a real signature.
+
 The desktop and mobile tests exercise the local lifecycle, metadata backup/recovery, wallet-unavailable state, review-dialog keyboard navigation, journal reload/account scope/corruption, and the read-only ecosystem page. They do not prove live Keplr signing or testnet execution. CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml); local command results and hosted CI results are separate evidence.
 
 ## Contract development

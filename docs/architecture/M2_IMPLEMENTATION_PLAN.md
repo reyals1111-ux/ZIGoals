@@ -57,5 +57,5 @@ Files: packages/ecosystem-registry, packages/strategy-types, apps/web/components
 
 - [x] Add precise human Keplr and testnet deployment checklist with immutable admin/checksum/receipt/event/abort gates.
 - [x] Update threat model/checklist and draft-only Build Log; prepare local PR description if access blocked.
-- [ ] Final full verification, diff/secret/landing checks, whole-branch review and Important fixes.
-- [ ] Produce 29-part Run-2 report, separate local/hosted/live evidence and updated source/history bundle.
+- [x] Final full verification, diff/secret/landing checks, whole-branch review and Important fixes.
+- [x] Produce 29-part Run-2 report, separate local/hosted/live evidence and prepare the updated source/history bundle. Final package validation is recorded in the accompanying M2 HANDOFF.

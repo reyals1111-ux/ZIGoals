@@ -1,6 +1,6 @@
 # ZIGoals — Run 2 report
 
-Final local verification passed on code commit `2a9ac70`; the final integration review is in progress. Exact local evidence is recorded in [M2_RESULTS.json](verification/M2_RESULTS.json). This report does not claim hosted CI, real-extension testing, deployment, an audit or real-fund readiness.
+Milestone 2 implementation and local verification are complete on tested code commit `78331c1`. The final review and scoped repair review are clean. Exact evidence is in [M2_RESULTS.json](verification/M2_RESULTS.json). Hosted CI, real Keplr signing and deployment remain unexecuted; this is not a security audit or real-fund readiness claim.
 
 ## 1. Starting branch/head
 
@@ -92,11 +92,11 @@ Fresh reads reconfirmed `zig-test-2`, `v5.0.0-patch-1`, `azig`, 18 decimals. Reg
 
 ## 23. Security review findings
 
-Task reviews found and repaired aggregate receipt payload bounds, action-neutral failure wording, internal coordination in public metadata, exact contract citations and visible provenance dates. Final integration review status is pending. Threat model/checklist cover stale state, account mismatch, corrupt storage, false confirmation, metadata/link injection and registry trust confusion. No assurance extends to real funds, third-party contracts, mainnet or compromised devices/RPCs.
+Task reviews found and repaired aggregate receipt payload bounds, action-neutral failure wording, internal coordination in public metadata, exact contract citations and visible provenance dates. The whole-branch review approved the work. A subsequent full-Chrome restart check exposed a warning-preservation defect when damaged history coincided with an RPC error. That defect was fixed with two regressions, and the scoped re-review approved it. No findings remain open. [Review evidence](verification/M2_REVIEW.md). Threat model/checklist cover stale state, account mismatch, corrupt storage, false confirmation, metadata/link injection and registry trust confusion. No assurance extends to real funds, third-party contracts, mainnet or compromised devices/RPCs.
 
 ## 24. Exact verification commands/results
 
-**297 JavaScript tests across 13 files, 24 Rust tests and 18 production browser tests passed**, with zero failures or skipped browser tests. Install, lint, typecheck, production build, format, clippy, schema regeneration and production dependency audit passed. The exact integrated command/results record is in [M2_RESULTS.json](verification/M2_RESULTS.json). Pinned environments: Node 24.19.0, pnpm 11.19.0, Rust 1.85.1, Binaryen 123, cosmwasm-check 2.2.2. Final commands include:
+**299 JavaScript tests across 13 files, 24 Rust tests and 18 production browser tests passed**, with zero failures or skipped browser tests. Install, lint, typecheck, production build, format, clippy, schema regeneration and production dependency audit passed. The exact integrated command/results record is in [M2_RESULTS.json](verification/M2_RESULTS.json). Pinned environments: Node 24.19.0, pnpm 11.19.0, Rust 1.85.1, Binaryen 123, cosmwasm-check 2.2.2. Final commands include:
 
 ```bash
 pnpm install --frozen-lockfile --offline --store-dir /Users/AIUSER/Library/pnpm/store
@@ -113,13 +113,14 @@ cargo schema --locked
 node contracts/goal-manager/scripts/generate-types.mjs
 git diff --exit-code -- contracts/goal-manager/schema packages/shared-types/src/contract.generated.ts
 node scripts/check-secrets.mjs
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 node scripts/verify-browser-restart.mjs
 ```
 
-The explicit store path is this checkout's existing dependency cache, not a project requirement. Browser tests use isolated test profiles. Local process/network sandbox limitations were resolved through authorized escalation; they are not product test failures. Initial targeted red tests and each scoped review fix are documented separately. Results were read from actual command completion and test reports; the command list alone is not evidence of execution.
+The explicit store path is this checkout's existing dependency cache, not a project requirement. Browser tests use isolated test profiles. The standalone full-process restart verifier also passed: four records, unknown hash, damaged bytes, both warnings and wallet isolation persisted across Chrome exit/relaunch, with zero signer calls, broadcast requests or page errors. Wallet/network boundaries were mocked. The Rust source remains unchanged from the freshly tested M1 contract. Local process/network sandbox limitations were resolved through authorized escalation; they are not product test failures. [Final regression red/green commands](verification/M2_FIX_TESTS.md) and [review findings](verification/M2_REVIEW.md) preserve the focused repair evidence. Results were read from actual command completion and test reports; the command list alone is not evidence of execution.
 
 ## 25. Branch/commit summary
 
-Original M1 history is retained on `feat/m1-foundation`. Run 2 uses logical design, transaction, ecosystem, review-repair, evidence and handoff commits. Final verified code/report heads and commit list are recorded with the bundled source/history at handoff. No merge/force push or changes to landing/Worker/LICENSE.
+Original M1 history is retained on `feat/m1-foundation`. Run 2 uses logical design, transaction, ecosystem, review-repair, evidence and handoff commits. Final tested implementation head is `78331c1`; the exact final source/history head, full logical commit list and package checksums are recorded in `deliverables/M2/HANDOFF.md` and `SHA256SUMS.txt` alongside the bundle. That handoff also gives the explicit feature-branch restore command. No merge/force push or changes to landing/Worker/LICENSE.
 
 ## 26. Remaining blockers
 

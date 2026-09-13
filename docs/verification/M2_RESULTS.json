@@ -1,6 +1,6 @@
 {
-  "recordedAt": "2026-09-13T03:29:09.115400+00:00",
-  "testedCodeCommit": "2a9ac7079be558ea321413bf52ba03de4dd56acc",
+  "recordedAt": "2026-09-13T03:50:56.629512+00:00",
+  "testedCodeCommit": "78331c146bdefc12357a5f25dc5f47643dbe43aa",
   "startingBranch": "feat/m1-foundation",
   "startingCommit": "b87cbe86e5b07641621b7db358ddcba9caa1cdc9",
   "environment": {
@@ -21,16 +21,11 @@
     "wasmChecksumUnchanged": true
   },
   "unit": {
-    "total": 297,
-    "passed": 297,
+    "total": 299,
+    "passed": 299,
     "failed": 0,
     "pending": 0,
     "files": [
-      {
-        "path": "packages/chain-config/src/index.test.ts",
-        "tests": 11,
-        "status": "passed"
-      },
       {
         "path": "apps/web/lib/ecosystem-ui.test.ts",
         "tests": 3,
@@ -38,7 +33,7 @@
       },
       {
         "path": "apps/web/lib/goal-provider.test.ts",
-        "tests": 6,
+        "tests": 8,
         "status": "passed"
       },
       {
@@ -72,6 +67,16 @@
         "status": "passed"
       },
       {
+        "path": "packages/ecosystem-registry/src/registry.test.ts",
+        "tests": 36,
+        "status": "passed"
+      },
+      {
+        "path": "packages/chain-config/src/index.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
         "path": "packages/goal-engine/src/index.test.ts",
         "tests": 75,
         "status": "passed"
@@ -79,11 +84,6 @@
       {
         "path": "packages/shared-types/src/index.test.ts",
         "tests": 18,
-        "status": "passed"
-      },
-      {
-        "path": "packages/ecosystem-registry/src/registry.test.ts",
-        "tests": 36,
         "status": "passed"
       },
       {
@@ -100,8 +100,8 @@
       "iPhone 13 emulation in Chrome"
     ],
     "stats": {
-      "startTime": "2026-09-13T03:27:24.895Z",
-      "duration": 11320.096000000001,
+      "startTime": "2026-09-13T03:48:35.595Z",
+      "duration": 7734.214,
       "expected": 18,
       "skipped": 0,
       "unexpected": 0,
@@ -195,6 +195,14 @@
     {
       "command": "git diff --exit-code b87cbe86e5b07641621b7db358ddcba9caa1cdc9 -- landing/index.html landing/wrangler.jsonc LICENSE contracts/goal-manager packages/goal-engine",
       "result": "passed; unchanged"
+    },
+    {
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 node scripts/verify-browser-restart.mjs",
+      "result": "passed against rebuilt production app; full Chrome process close/relaunch, mocked wallet/network"
+    },
+    {
+      "command": "local Markdown link-target check on Run2 changed documentation",
+      "result": "passed; no missing local targets"
     }
   ],
   "preservedAssets": [
@@ -217,7 +225,12 @@
   "review": {
     "task2": "clean after fixes",
     "task4": "clean after fixes",
-    "finalIntegration": "PENDING",
+    "wholeBranchReviewedHead": "029bbff30aea54d2c7fe23977d15811ea5e0086a",
+    "initialWholeBranch": "approved with zero findings",
+    "additionalVerificationFinding": "corruption warning replaced by reconciliation exception",
+    "additionalFindingFixCommit": "78331c146bdefc12357a5f25dc5f47643dbe43aa",
+    "scopedFixReview": "all findings addressed; no new breakage",
+    "finalIntegration": "clean",
     "deferredFindings": [],
     "rulings": []
   },
@@ -232,5 +245,22 @@
     "error": "GitHub API error 403: Resource not accessible by integration",
     "remoteFeatureBranchCreated": false,
     "pullRequestCreated": false
+  },
+  "fullBrowserProcessRestart": {
+    "recordedAt": "2026-09-13T03:48:45.078Z",
+    "status": "passed",
+    "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+    "appUrl": "http://127.0.0.1:3101/app/activity",
+    "recordsRetained": 4,
+    "unknownHashRetained": true,
+    "corruptRecordPreserved": true,
+    "corruptionAndNetworkWarningsVisible": true,
+    "accountScopeVerified": true,
+    "signerCalls": 0,
+    "broadcastRequests": 0,
+    "pageErrors": [],
+    "realKeplr": false,
+    "networkAndWallet": "mocked external boundaries; no live transaction",
+    "resultPath": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-browser-restart-dy39Yp/result.json"
   }
 }
