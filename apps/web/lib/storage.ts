@@ -25,11 +25,28 @@ export function loadMetadata(
 function mergeMetadata(
   storage: Storage,
   incoming: GoalBackup,
+  expectedRaw?: string | null,
 ): MetadataWriteResult {
   const chain = incoming.chainId;
   const owner = incoming.walletAddress;
   const key = metadataKey(chain, owner);
   const previousRaw = storage.getItem(key);
+  if (expectedRaw !== undefined && previousRaw !== expectedRaw)
+    throw Error(
+      "Goal plans changed in another tab. Review again before saving.",
+    );
+  if (previousRaw !== null) {
+    let version: unknown;
+    try {
+      version = JSON.parse(previousRaw)?.schemaVersion;
+    } catch {
+      /* damaged bytes are quarantined below */
+    }
+    if (typeof version === "number" && version > 1)
+      throw Error(
+        "Goal plans use a newer unsupported version. Stored data was preserved.",
+      );
+  }
   let previous = emptyMetadata(chain, owner);
   let damaged = false;
   if (previousRaw !== null) {
@@ -68,6 +85,7 @@ export function saveMetadata(
   owner: string,
   id: string,
   metadata: GoalMetadata,
+  expectedRaw?: string | null,
 ): MetadataWriteResult {
   if (!/^[1-9]\d{0,19}$/.test(id)) throw new Error("Invalid goal ID.");
   const incoming = parseBackup(
@@ -78,14 +96,28 @@ export function saveMetadata(
     chain,
     owner,
   );
-  return mergeMetadata(storage, incoming);
+  return mergeMetadata(storage, incoming, expectedRaw);
 }
 export function importMetadata(
   storage: Storage,
   raw: string,
   chain: string,
   owner: string,
+  expectedRaw?: string | null,
 ): MetadataWriteResult {
   const backup = parseBackup(raw, chain, owner);
-  return mergeMetadata(storage, backup);
+  return mergeMetadata(storage, backup, expectedRaw);
+}
+
+// All application writers use the same origin-wide key lock. Without Web Locks,
+// refusing a write is safer than silently weakening cross-tab protection.
+export async function withStorageLock<T>(
+  key: string,
+  write: () => T | Promise<T>,
+): Promise<T> {
+  if (!globalThis.navigator?.locks)
+    throw Error(
+      "Safe cross-tab storage is unavailable in this browser. No action was applied.",
+    );
+  return navigator.locks.request(key, write);
 }

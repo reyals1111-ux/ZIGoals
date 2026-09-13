@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "artifact": "artifacts/zigoals_goal_manager.wasm",
+  "sourceCommit": "28cbf9f2c452942246c2b0c33578cde067e11d9c",
+  "sourceDirty": false,
+  "builtAt": "2026-09-13T14:30:34.122Z",
+  "bytes": 258540,
+  "sha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.6.0",
+    "node": "24.19.0",
+    "rust": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: aarch64-apple-darwin\nrelease: 1.85.1\nLLVM version: 19.1.7",
+    "binaryen": "wasm-opt version 123 (version_123)",
+    "cosmwasmCheck": "Contract checking 2.2.2",
+    "cargoLockSha256": "79aee297543060d068666823087e6304e1f5806f4a6534984ab5b389fa105565",
+    "optimizerArgs": [
+      "-Oz",
+      "--signext-lowering"
+    ],
+    "target": "wasm32-unknown-unknown"
+  },
+  "referenceSha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+  "referenceMatch": true,
+  "validation": {
+    "tool": "cosmwasm-check",
+    "passed": true,
+    "output": "Available capabilities: {\"iterator\", \"cosmwasm_1_1\", \"cosmwasm_2_0\", \"cosmwasm_1_4\", \"cosmwasm_2_1\", \"staking\", \"stargate\", \"cosmwasm_1_2\", \"cosmwasm_1_3\", \"cosmwasm_2_2\"}\n\nartifacts/zigoals_goal_manager.wasm: pass\n\nAll contracts (1) passed checks!"
+  }
+}

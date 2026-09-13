@@ -39,3 +39,17 @@ Web headers: CSP restricts connections to official testnet and local preview; de
 | Stale strategy/issuer claims | Product-scoped eligibility/certification and current security state are recorded separately from broad branding. FundingRoute and StrategyAdapter remain separate. No RWA, swaps, leverage, Valdora or WME execution enabled. |
 
 Test coverage and reviewer findings are recorded in the Run 2 verification report after the final pass. This table describes controls, not an independent security audit or real-extension/live-contract validation.
+
+## Milestone 3 controls and limits
+
+| Threat | Change / remaining exposure |
+|---|---|
+| Lost updates or duplicate intent in participating tabs | Scoped Web Locks, fresh durable revisions under the lock and external-event invalidation stop stale local-ledger/metadata commits and stale testnet confirmations. Modes are per tab. Old/nonparticipating code, other origins/devices and hostile same-origin scripts are outside this cooperative guarantee; reload old tabs. |
+| Future schema or duplicate signed hash | Future metadata/IndexedDB versions are refused without replacing active bytes. Atomic journal hash ownership rejects another operation claiming the same normalized signed hash, including retained future-schema claims. Storage denial stops the send barrier; no fallback silently sends. |
+| Timestamp starvation / impossible local history | Future or reversed journal times remain stored with warnings and are excluded from receipt priority. Local ledger chronology/plausibility fails closed. This uses the local clock with tolerance, not trusted network time; fix a wrong device clock before relying on ordering. |
+| Forged or partial deployment configuration | Strict v2 states keep prepared IDs null. Actual preflight checks code ID/creator/checksum, cw2 identity/version, denomination, software version and both admin expectations. A reviewed clean build and owner-observed receipts remain external prerequisites. Structural validation alone cannot prove chain activity. |
+| Misleading diagnostics / stale account result | Read-only separate RPC/REST observations, freshness checks, public build identity, shortened account and account-scoped result cancellation. RPC/REST operator responses remain trusted; a healthy endpoint is not deployment approval. |
+| First terminal receipt / reorg disagreement | The first terminal journal result is retained. No light-client proof, finality quorum or reorg reversal is implemented. Conflicting evidence requires investigation; never auto-rebroadcast to resolve it. |
+| Abrupt shutdown / eviction / quota | Persisted hash before send improves recovery but cannot guarantee browser durability under OS crash, eviction or profile deletion. Preserve known public hashes and inspect chain evidence. Missing data or missing receipts never proves no funds moved. |
+
+The seeded contract and engine tests improve regression detection but are finite deterministic examples, not exhaustive fuzzing or an independent audit. Real owner Keplr A–H connection evidence is recorded separately; real signer/deployed-action tests remain NOT RUN. Private reporting: hello@zigoals.app.

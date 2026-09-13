@@ -5,6 +5,7 @@ import {
   safeMaximum,
   TESTNET,
   assertTestnet,
+  validateNetworkConfig,
 } from "./index";
 test("base units preserve single atomic unit at 18 decimals", () => {
   expect(parseUnits("1.000000000000000001", 18)).toBe(1000000000000000001n);
@@ -32,4 +33,21 @@ test("mainnet and lookalike IDs are blocked", () => {
     assertTestnet({ ...TESTNET, network: "mainnet", chainId: "zigchain-1" }),
   ).toThrow();
   expect(() => assertTestnet({ ...TESTNET, chainId: "zig-test-3" })).toThrow();
+});
+
+test.each([
+  { gasPrice: "" },
+  { gasPrice: "-1" },
+  { addressPrefix: "cosmos" },
+  { grpcUrl: null },
+  { nativeAsset: { ...TESTNET.nativeAsset, symbol: "ETH" } },
+  { nativeAsset: { ...TESTNET.nativeAsset, displayDenom: null } },
+  { nativeAsset: { ...TESTNET.nativeAsset, decimals: 6 } },
+])("malformed transaction configuration cannot be exported: %j", (patch) => {
+  expect(() => validateNetworkConfig({ ...TESTNET, ...patch })).toThrow();
+});
+test("validated network is deeply frozen", () => {
+  const n = validateNetworkConfig(TESTNET);
+  expect(Object.isFrozen(n)).toBe(true);
+  expect(Object.isFrozen(n.nativeAsset)).toBe(true);
 });

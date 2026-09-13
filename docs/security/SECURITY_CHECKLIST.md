@@ -44,3 +44,14 @@ Remaining boundaries: browser storage is private by location, not encrypted agai
 | Owner execution | Real Keplr and 18-step tiny testnet exit checklist prepared, all live outcomes still NOT RUN |
 
 Exact final commands/results and independent review outcomes are in `../verification/M2_RESULTS.json` and `../RUN_2_REPORT.md`. Remaining trust in browser/device, public RPC transport and reviewed deployment configuration is unchanged. This is an implementation review, not a professional security audit.
+
+## Milestone 3 current additions
+
+- REAL OWNER PASS A–H covers actual Keplr connection/rejection/reconnect/retained-permission/revocation/stale-approval behavior. Manual account switch and real signing/action/restart-chain tests remain NOT RUN; no second wallet is required solely for testing.
+- Deterministic multi-owner contract sequences check conservation, liabilities, full rollback, pagination and paused exits; engine properties include finite horizons and exact-money/month-end regressions with deliberate mutation checks.
+- Participating same-origin tabs coordinate commits and refuse stale reviews; actual two-tab browser cases cover funds, metadata, journal and per-tab mode. Old/nonparticipating app versions are outside the lock guarantee.
+- Future metadata/database versions and suspicious timestamps retain data; duplicate signed hashes cannot be owned by multiple journal operations. No receipt replay/indexer/reorg proof was added.
+- Strict v2 public manifest plus actual code checksum/creator/admin/cw2/denom/version checks guards financial execution. Preparation remains unsigned and revalidates actual Wasm; structural manifest validation explicitly does not establish deployment.
+- Separate read-only diagnostics show network status and safe build/account context. RPC trust, local-clock assumptions, abrupt-shutdown/eviction loss and first-terminal receipt behavior remain documented limitations.
+- SECURITY.md, privacy notes, alpha guide and bug form use hello@zigoals.app and prohibit sharing secrets/private backups. Mainnet, external strategies and deployment remain disabled.
+- CI checks PRs and main pushes and retains validated Linux build evidence. Current M3 totals, actual hosted result and cross-host comparison are recorded in STATUS and RUN_3_REPORT after verification; earlier sections above retain historical evidence.

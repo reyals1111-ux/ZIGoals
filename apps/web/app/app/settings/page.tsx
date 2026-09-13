@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useGoals } from "../../../components/goal-provider";
+import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
+import { shortAccount } from "../../../lib/diagnostics";
 import { loadMetadata } from "../../../lib/storage";
 export default function Settings() {
   const s = useGoals();
@@ -91,6 +93,12 @@ export default function Settings() {
           </button>
         </section>
       </div>
+      <ConnectionDiagnostics
+        key={`${s.chain}:${s.owner}`}
+        chain={s.chain}
+        owner={s.owner}
+        balance={s.balance}
+      />
       <section className="panel">
         <h2>About this alpha</h2>
         <dl className="metrics">
@@ -100,7 +108,7 @@ export default function Settings() {
           </div>
           <div>
             <dt>Wallet / demo identity</dt>
-            <dd>{s.owner || "Disconnected"}</dd>
+            <dd>{shortAccount(s.owner)}</dd>
           </div>
           <div>
             <dt>Goal metadata</dt>

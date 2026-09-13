@@ -5,13 +5,15 @@ Milestones 1 and 2 provide a **local alpha**: deterministic goal planning, a tes
 
 Run 2 adds durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes remain disabled.
 
-Publication remains blocked by a **403 Resource not accessible by integration** from the connected GitHub write API. The feature branch and complete commit history are preserved locally; hosted CI has not run.
+Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
 
 The existing `landing/index.html`, `landing/wrangler.jsonc`, and Apache-2.0 license are preserved. No Cloudflare deployment or production settings were changed.
 
 ## Run locally
 
-Use Node **24.19.0** (`.node-version`) and pnpm **11.19.0** (`packageManager`). Install those with your preferred version manager, then:
+Use Node **24.19.0** (`.node-version` and `.nvmrc`) and pnpm **11.19.0** (`packageManager`). Use your preferred version manager. With an existing [nvm installation](https://github.com/nvm-sh/nvm#nvmrc), run `nvm install` then `nvm use` in this directory. [fnm](https://github.com/Schniz/fnm) also supports these pin files. No global shell changes are required by this repository.
+
+First run `node scripts/doctor.mjs` (or `pnpm run doctor`). It only reads local prerequisites and checks the optional local Docker socket; it does not install tools or query the chain. `ERROR` blocks the relevant prerequisite; `WARNING` identifies optional tools or uncommitted work. **Use `pnpm run doctor`, with `run`: `pnpm doctor` is pnpm's own unrelated command.** The owner's Node 22.23.1 could start the development server but does not meet the pinned, CI-tested version; switch the current terminal to 24.19.0 before installing or verifying. Then:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -68,7 +70,7 @@ The owner still needs dedicated-wallet test funds and confirmed upload permissio
 node scripts/prepare-deployment.mjs
 ```
 
-After a separately verified deployment, copy `.env.example` to `apps/web/.env.local` and fill only the public contract address/code ID. Never put a seed phrase, private key, wallet password or API credential in the app. Keplr connection code is implemented, but real extension signing, existing-chain metadata behavior and deployment smoke tests remain pending.
+After a separately verified deployment, validate the strict [v2 public manifest](docs/deployment/MANIFEST_V2.md), place it in `apps/web/config/deployment.json` and rebuild. Legacy address/code-ID environment variables no longer enable actions. Never put a seed phrase, private key, wallet password or API credential in the app. Real owner connection checks A–H passed; real signing and deployed-contract smoke tests remain pending.
 
 ## Repository map
 
@@ -88,3 +90,7 @@ Valdora and WME integration are [deferred pending canonical interfaces](docs/res
 For Run 2 use the [29-part report](docs/RUN_2_REPORT.md), [ecosystem integration map](docs/research/ZIGCHAIN_ECOSYSTEM_INTEGRATION_MAP.md), [owner deployment checklist](docs/deployment/OWNER_TESTNET_CHECKLIST.md) and [real Keplr procedure](docs/deployment/KEPLR_OWNER_CHECKLIST.md).
 
 See the [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md), [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md), and [truthful build log draft](docs/social/BUILD_LOG.md).
+
+For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.md), [contributing](CONTRIBUTING.md), [privacy](docs/PRIVACY.md) and [security reporting](SECURITY.md). Settings includes read-only connection diagnostics with separate RPC/REST outcomes and a build identifier.
+
+Milestone 3: [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [open PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.

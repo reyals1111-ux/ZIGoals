@@ -292,6 +292,9 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   await page.getByLabel("Or paste backup JSON").fill(backup);
   await page.getByRole("button", { name: "Import backup" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Goal plans imported" }),
+  ).toBeVisible();
   await page.goto("/app/goals/1");
   await expect(
     page.getByRole("heading", { name: "Kyoto in spring" }),

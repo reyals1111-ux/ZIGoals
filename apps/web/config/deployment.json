@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "environment": "testnet",
+  "chainId": "zig-test-2",
+  "chainVersion": "v5.0.0-patch-1",
+  "denom": "azig",
+  "decimals": 18,
+  "wasmSha256": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+  "migrationAdmin": null,
+  "pauseAdmin": null,
+  "contractName": "crates.io:zigoals-goal-manager",
+  "contractVersion": "0.1.0",
+  "gitCommit": "28cbf9f2c452942246c2b0c33578cde067e11d9c",
+  "buildEnvironment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "rust": "1.85.1",
+    "binaryen": "123",
+    "cosmwasmCheck": "2.2.2",
+    "sourceDirty": false
+  },
+  "preparedAt": "2026-09-13T14:31:49.380Z",
+  "rpcUsed": "https://testnet-rpc.zigchain.com",
+  "restUsed": "https://testnet-api.zigchain.com",
+  "status": "PREPARED_NOT_DEPLOYED",
+  "codeId": null,
+  "contractAddress": null,
+  "uploadTx": null,
+  "instantiateTx": null,
+  "deployerPublicAddress": null,
+  "deploymentTimestamp": null,
+  "explorerVerification": {
+    "status": "NOT_VERIFIED",
+    "url": null,
+    "verifiedAt": null
+  }
+}

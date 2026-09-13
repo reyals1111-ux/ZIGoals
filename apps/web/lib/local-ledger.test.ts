@@ -227,3 +227,17 @@ test.each<[string, (ledger: LocalLedger) => void]>([
   expect(() => parseLocalLedger(raw)).toThrow(/local demo data is damaged/i);
   expect(JSON.stringify(ledger)).toBe(raw);
 });
+
+test.each(["future", "reversed"])(
+  "rejects %s activity times without mutation",
+  (kind) => {
+    const ledger = fundedLedger();
+    ledger.activity[0]!.timestamp =
+      kind === "future"
+        ? new Date(Date.now() + 86400000).toISOString()
+        : "2026-09-12T01:00:00.000Z";
+    const raw = JSON.stringify(ledger);
+    expect(() => parseLocalLedger(raw)).toThrow(/damaged/i);
+    expect(JSON.stringify(ledger)).toBe(raw);
+  },
+);

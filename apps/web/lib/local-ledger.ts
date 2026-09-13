@@ -50,7 +50,12 @@ const localAmount = z
   );
 const localTimestamp = z.string().refine((value) => {
   const date = new Date(value);
-  return Number.isFinite(date.getTime()) && date.toISOString() === value;
+  return (
+    Number.isFinite(date.getTime()) &&
+    date.toISOString() === value &&
+    date.getTime() >= 0 &&
+    date.getTime() <= Date.now() + 300000
+  );
 });
 const localGoalSchema = z.strictObject({
   id: localId,
@@ -100,8 +105,12 @@ export function parseLocalLedger(raw: string): LocalLedger {
     >();
     // Replay the complete local-only history without mutating persisted data.
     // This checks both conservation and the displayed activity against funds.
+    let previousTime = 0;
     for (let index = ledger.activity.length - 1; index >= 0; index--) {
       const event = ledger.activity[index]!;
+      const time = Date.parse(event.timestamp);
+      if (time < previousTime) throw Error();
+      previousTime = time;
       const amount = BigInt(event.amount);
       if (event.action === "Goal created") {
         if (event.goalId !== String(history.size + 1) || amount !== 0n)
