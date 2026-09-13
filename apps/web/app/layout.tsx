@@ -7,6 +7,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const origin = (await headers()).get("x-zigoals-origin");
   return {
     metadataBase: origin ? new URL(origin) : undefined,
+    // Use the public entry for every Alpha screen, excluding private goal IDs and queries.
+    alternates: origin ? { canonical: new URL("/app", origin).href } : undefined,
     robots: { index: false, follow: false, nocache: true },
     openGraph: {
       title: "ZIGoals Alpha",

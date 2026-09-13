@@ -50,6 +50,8 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   // NextURL intentionally normalizes loopback addresses to localhost.
   if (socialUrl.hostname === "127.0.0.1") socialUrl.hostname = "localhost";
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", socialUrl.href);
+  const canonicalUrl = new URL("/app", socialUrl.origin).href;
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonicalUrl);
   const other=await request.get("/app"); expect(other.headers()["content-security-policy"]).not.toBe(h["content-security-policy"]);
   expect(await page.locator("script").evaluateAll(nodes=>nodes.every(n=>((n as HTMLScriptElement).nonce?.length ?? 0)>0))).toBe(true);
   // Inject into the received HTML: DevTools evaluate-created scripts are privileged.
@@ -63,6 +65,9 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   await expect(page.getByRole("heading",{name:"Your data. Your control."})).toBeVisible();
   await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures");
   expect(await page.locator('a[target="_blank"]').evaluateAll(nodes=>nodes.every(n=>n.getAttribute("rel")?.includes("noopener")&&n.getAttribute("rel")?.includes("noreferrer")))).toBe(true);
+  await page.goto("/app/goals/987654321?view=canonical-probe");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonicalUrl);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   expect(errors).toEqual([]);
 });
 

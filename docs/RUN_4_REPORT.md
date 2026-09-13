@@ -80,7 +80,7 @@ Production browser and actual workerd tests verify nonce freshness, rendering/na
 
 ## 20. External resources
 
-App fonts/images/social card are local. Actual production route samples recorded only the local app resource origin and no page errors; connection diagnostics legitimately use configured ZIGChain services. No Google Analytics, advertising pixel or application analytics was added. External informational links remain explicit navigation to fixed reviewed origins.
+Alpha app fonts/images/social card are local. The protected apex landing page retains its existing Google Fonts dependency (`fonts.googleapis.com` and `fonts.gstatic.com` in `landing/index.html`); that landing dependency was not changed. Actual Alpha production route samples recorded only the local app resource origin and no page errors; connection diagnostics legitimately use configured ZIGChain services. No Google Analytics, advertising pixel or application analytics was added. External informational links remain explicit navigation to fixed reviewed origins.
 
 ## 21. Dependency and supply-chain findings
 
@@ -100,11 +100,11 @@ Production browser tests inspect request URLs, headers and bodies across fiction
 
 ## 25. Diagnostics and bug reports
 
-Safe copied diagnostics use an explicit whitelist: build version/commit/mode, chain/deployment, wallet yes/no, endpoint status, bounded browser class and timestamp. No full address, balance, plan, backup or raw error body. Clipboard denial has a manual-copy textarea fallback. Public bug-template and private `hello@zigoals.app` links warn against secrets/private backups/personal finances; no report was sent.
+Safe copied diagnostics use an explicit whitelist: build version/commit/mode, session label (local simulation or Keplr testnet connection), RPC/REST status and UTC verification timestamp. No full address, balance, plan, backup or raw error body. Clipboard denial has a manual-copy textarea fallback. Public bug-template and private `hello@zigoals.app` links warn against secrets/private backups/personal finances; no report was sent.
 
 ## 26. UX and accessibility
 
-Persistent environment and per-tab connection-only labels, clearer disabled actions, 320px heading wrapping/min-width, keyboard flow, reduced-motion checks and local social metadata preserve the established visual identity. A real narrow-screen defect expanded the layout to 546px for an unbroken goal name; fixed and covered by an exact 320px regression. Desktop/mobile screenshots were inspected. No product redesign occurred.
+Persistent environment and per-tab connection-only labels, clearer disabled actions, 320px heading wrapping/min-width, keyboard flow, reduced-motion checks and local social metadata preserve the established visual identity. A real narrow-screen defect expanded the layout to 546px for an unbroken goal name; fixed and covered by an exact 320px regression. Desktop/mobile screenshots were inspected. No product redesign occurred. Canonical metadata deliberately identifies `/app` on the runtime-served origin for every Alpha screen, excluding goal IDs and query strings; no public hostname is invented and noindex remains enabled.
 
 ## 27. Performance
 
@@ -122,7 +122,7 @@ Canonical ADR, schema/validator, verification and release process, Cloudflare se
 
 **476 JavaScript tests in 25 files, 25 Rust tests, 36 production desktop/mobile browser cases and 8 actual local workerd cases passed** on clean implementation commit `736f195`. Lint/types/build/Rust formatting/Clippy/schema/generated-type drift and limited tracked secret-pattern checks passed. [Exact case matrix](verification/m4/TEST_MATRIX.json) and [structured local results](verification/m4/LOCAL_RESULTS.json) record scope; the JavaScript increase from the399-test baseline is77 and browser increase is6.. New coverage exercises release schema/source/environment/hash comparison and tampering; canonical-only preparation; public/invalid mode refusal through transaction boundaries; strict RPC fields/pages; header/nonce/spoofed-origin handling; safe diagnostic copy; local lifecycle and private egress under CSP. Full Chrome process restart on the clean M4 app retained four records, uncertain hash, damaged rows/warnings and account scope with **zero signer calls, broadcasts and page errors**.
 
-Failures were retained: canonical preparation initially rejected the new input and its legacy CLI import attempted network access before local validation (DNS failure); initial mode/CSP/parser missing-implementation regressions; five browser trace ENOENT failures from concurrent runs sharing an output directory; two missing per-tab labels; the real 320px overflow; a social-origin local assertion affected by Next's deliberate loopback normalization. Each implementation/test-harness issue was corrected and rerun. Known remaining build warning: deprecated middleware required by adapter compatibility. Earlier local test tooling emitted inherited NO_COLOR/FORCE_COLOR warnings; normalized final invocations and CI no longer emit that conflict.
+Failures were retained: canonical preparation initially rejected the new input and its legacy CLI import attempted network access before local validation (DNS failure); initial mode/CSP/parser missing-implementation regressions; five browser trace ENOENT failures from concurrent runs sharing an output directory; two missing per-tab labels; the real 320px overflow; a social-origin local assertion affected by Next's deliberate loopback normalization. Each implementation/test-harness issue was corrected and rerun. Remaining warnings include deprecated middleware required by adapter compatibility and two upstream Node DEP0005 `Buffer()` deprecations from pinned official `download-artifact` v8.0.1 in successful canonical [run 34769568351](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34769568351). The action pins and permissions remain unchanged. Earlier local test tooling emitted inherited NO_COLOR/FORCE_COLOR warnings; normalized final invocations and CI no longer emit that conflict or the Node 20 action-runtime warning. The web job doctor’s absent Rust toolchain (contract checks run separately), detached synthetic HEAD and missing build-cache notices are expected informational output, not test failures.
 
 ## 31. GitHub CI
 
@@ -142,7 +142,7 @@ No response was supplied in this conversation. Valdora remains pending; WME has 
 
 ## 35. Remaining risks
 
-Real Keplr under the M4/hosted CSP, public HTTPS behavior/Free CPU and account publishing are unverified. Manual main attestation has not run. Canonical matching bytes do not prove safety, cross-host identity or independence from a common compromised toolchain. RPC is trusted transport; browser/device/origin compromise, storage loss and uncertain receipts remain boundaries. Cargo maintenance warnings and expanded adapter dependencies remain disclosed. No professional audit or live contract exists.
+Real Keplr under the M4/hosted CSP, public HTTPS behavior/Free CPU and account publishing are unverified. Manual main attestation has not run. Canonical matching bytes do not prove safety, cross-host identity or independence from a common compromised toolchain. RPC is trusted transport; browser/device/origin compromise, storage loss and uncertain receipts remain boundaries. Cargo maintenance warnings, expanded adapter dependencies and the upstream `download-artifact` `Buffer()` deprecation remain disclosed; the latter did not fail the canonical run. No professional audit or live contract exists.
 
 ## 36. Exactly what the owner does next
 
