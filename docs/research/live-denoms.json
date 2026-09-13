@@ -1,0 +1,26 @@
+{
+  "retrievedAt": "2026-09-13T00:58:38.352Z",
+  "data": [
+    {
+      "description": "The native staking and gas token of ZIGChain (18-decimal base denom azig).",
+      "denom_units": [
+        {
+          "denom": "azig",
+          "exponent": 0,
+          "aliases": []
+        },
+        {
+          "denom": "zig",
+          "exponent": 18,
+          "aliases": []
+        }
+      ],
+      "base": "azig",
+      "display": "zig",
+      "name": "ZIG",
+      "symbol": "ZIG",
+      "uri": "",
+      "uri_hash": ""
+    }
+  ]
+}

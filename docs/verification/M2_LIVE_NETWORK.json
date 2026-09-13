@@ -1,0 +1,12 @@
+{
+  "retrievedAt": "2026-09-13T02:51:05.408Z",
+  "chainId": "zig-test-2",
+  "baseDenom": "azig",
+  "decimals": 18,
+  "rpc": "https://testnet-rpc.zigchain.com",
+  "rest": "https://testnet-api.zigchain.com",
+  "height": "7741138",
+  "blockTime": "2026-09-13T02:50:54.247655784Z",
+  "applicationVersion": "v5.0.0-patch-1",
+  "versionEvidenceUrl": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info"
+}

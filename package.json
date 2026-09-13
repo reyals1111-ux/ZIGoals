@@ -1,0 +1,29 @@
+{
+  "name": "zigoals",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": "24.19.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @zigoals/web dev",
+    "build": "pnpm --filter @zigoals/web build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "verify:network": "node scripts/verify-network.mjs"
+  },
+  "devDependencies": {
+    "@types/jsdom": "30.0.0",
+    "@types/node": "22.18.6",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.3.5",
+    "fake-indexeddb": "6.2.5",
+    "jsdom": "30.0.1",
+    "json-schema-to-typescript": "15.0.4",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  }
+}

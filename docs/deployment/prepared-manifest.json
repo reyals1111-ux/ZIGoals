@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "status": "PREPARED_NOT_DEPLOYED",
+  "network": "testnet",
+  "chain_id": "zig-test-2",
+  "native_denom": "azig",
+  "decimals": 18,
+  "code_id": null,
+  "contract_address": null,
+  "checksum": "090b19225a93fc191810426973001ab400452799d1925aadddadef1fc0cc6e25",
+  "upload_tx": null,
+  "instantiate_tx": null,
+  "deployer_public_address": null,
+  "timestamp": "2026-09-13T03:17:39.683Z",
+  "git_commit": "fed5c84e7b00b9988e97862281944deb4fec0f21",
+  "contract_version": "0.1.0",
+  "rpc": "https://testnet-rpc.zigchain.com",
+  "instantiate_msg": {
+    "admin": null,
+    "native_denom": "azig"
+  },
+  "chain_admin": null,
+  "blockers": [
+    "Owner faucet funding unresolved",
+    "Owner upload whitelisting unverified"
+  ],
+  "transaction_sent": false
+}
