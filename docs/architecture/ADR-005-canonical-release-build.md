@@ -30,10 +30,12 @@ Resolved directly through the official repositories' commit API on 2026-09-13. U
 
 | Official action | Tag | Commit |
 |---|---|---|
-| actions/checkout | v4 | `11d5960a326750d5838078e36cf38b85af677262` |
-| actions/setup-node | v4 | `49933ea5288caeca8642d1e84afbd3f7d6820020` |
-| actions/upload-artifact | v4 | `ea165f8d65b6e75b540449e92b4886f43607fa02` |
-| actions/download-artifact | v5 | `634f93cb2916e3fdff6788551b99b062d0335ce0` |
+| actions/checkout | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| actions/setup-node | v7.0.0 | `820762786026740c76f36085b0efc47a31fe5020` |
+| actions/upload-artifact | v7.0.1 | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` |
+| actions/download-artifact | v8.0.1 | `3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c` |
 | actions/attest | v4 | `1e69f48acb82d1966a394da916b4c1698aa569d6` |
 
 Sources: the corresponding `https://api.github.com/repos/actions/<name>/commits/<tag>` API responses; action documentation lives in each [official actions repository](https://github.com/actions).
+
+The first hosted M4 runs annotated inherited Node20 actions being forced to Node24. The current pins above declare Node24 themselves. Setup-node automatic package-manager caching is explicitly disabled; archive/extraction and same-run artifact name behavior remain unchanged. Checkout never enables unsafe privileged PR checkout, and all quality/canonical checkouts disable persisted credentials. No build flags or contract bytes were changed for this maintenance update.

@@ -25,13 +25,19 @@ function readEvidence(directory) {
   if (!statSync(wasmPath).isFile() || statSync(wasmPath).size > 10_000_000) throw new Error('Wasm must be a file <= 10 MB');
   return { manifest: JSON.parse(readFileSync(manifestPath, 'utf8')), wasm: readFileSync(wasmPath), wasmPath };
 }
+// Shared read-only entry point for downloaded candidate consumers. No logging,
+// network access or executable path is selected from the downloaded manifest.
+export function verifyCandidateDirectory({ expectedCommit, directory, validator }) {
+  const input = readEvidence(directory);
+  verifyCandidate({ expectedCommit, ...input });
+  verifySourceCheckout(expectedCommit, input.manifest.source);
+  runValidator(validator, input.wasmPath);
+  return input;
+}
 export function main(args) {
   const [command, expectedCommit, validator, ...directories] = args;
   if (command === 'verify' && directories.length === 1) {
-    const input = readEvidence(directories[0]);
-    verifyCandidate({ expectedCommit, ...input });
-    verifySourceCheckout(expectedCommit, input.manifest.source);
-    runValidator(validator, input.wasmPath);
+    const input = verifyCandidateDirectory({ expectedCommit, directory: directories[0], validator });
     console.log(`Verified REPRODUCIBLE, NOT_APPROVED: ${input.manifest.artifact.sha256} (${input.wasm.length} bytes), source ${expectedCommit}`);
   } else if (command === 'compare' && directories.length === 3) {
     const left = readEvidence(directories[0]);
