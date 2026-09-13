@@ -37,7 +37,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          pnpm --filter @zigoals/web exec playwright test
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
       - run: pnpm --filter @zigoals/web preview:alpha > /tmp/zigoals-alpha.log 2>&1 &
@@ -50,7 +50,7 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:8788/app >/dev/null
-          pnpm --filter @zigoals/web exec playwright test public-alpha.spec.ts diagnostics.spec.ts --output=/tmp/zigoals-alpha-results
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test public-alpha.spec.ts diagnostics.spec.ts --output=/tmp/zigoals-alpha-results
       - run: node scripts/check-secrets.mjs
   contract:
     runs-on: ubuntu-latest

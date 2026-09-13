@@ -1,6 +1,42 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { toBech32 } from "@cosmjs/encoding";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
+function captureRequestEgress(page: Page) {
+  type Capture = { record: string } | { error: unknown };
+  const pending: Promise<Capture>[] = [];
+  page.on("request", request => {
+    pending.push(request.allHeaders().then(headers => ({
+      record: JSON.stringify({ url: request.url(), headers, body: request.postData() }),
+    })).catch(error => ({ error })));
+  });
+  return async () => {
+    const records: string[] = [];
+    let drained = 0;
+    // New request events can arrive while earlier header captures are resolving.
+    while (drained < pending.length) {
+      const batch = pending.slice(drained);
+      drained += batch.length;
+      for (const capture of await Promise.all(batch)) {
+        if ("error" in capture)
+          throw new Error("Complete request-header capture failed.", { cause: capture.error });
+        records.push(capture.record);
+      }
+    }
+    return records.join("\n");
+  };
+}
+
+test("egress capture detects a sentinel carried only in an HttpOnly cookie", async ({page, context, baseURL}) => {
+  await context.addCookies([{
+    name: "alpha_capture_probe", value: sentinel, httpOnly: true,
+    url: new URL(baseURL!).origin,
+  }]);
+  const capture = captureRequestEgress(page);
+  await page.goto("/app");
+  await page.waitForLoadState("networkidle");
+  expect(await page.evaluate(() => document.cookie)).not.toContain(sentinel);
+  expect(await capture()).toContain(`alpha_capture_probe=${sentinel}`);
+});
 test("strict production headers, fresh nonce, navigation and script rejection", async ({page,request}) => {
   const errors:string[]=[]; page.on("pageerror",e=>errors.push(e.message));
   const response=await page.goto("/app");
@@ -32,8 +68,8 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
 
 test("private lifecycle, backup, diagnostics and connection remain bounded under production CSP", async ({page},info) => {
   await page.setViewportSize({width:320,height:568}); await page.emulateMedia({reducedMotion:"reduce"});
-  const egress:string[]=[];const errors:string[]=[];
-  page.on("request",r=>egress.push(JSON.stringify({url:r.url(),headers:r.headers(),body:r.postData()})));
+  const capture = captureRequestEgress(page);
+  const errors:string[]=[];
   page.on("pageerror",e=>errors.push(e.message));
   await page.route("https://testnet-**.zigchain.com/**",async route=>{
     const url=route.request().url();
@@ -70,7 +106,8 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
   await page.getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   expect(await page.evaluate(()=>Reflect.get(window,"signerCalls"))).toBe(0);
-  expect(egress.join("\n")).not.toContain(sentinel);
+  await page.waitForLoadState("networkidle");
+  expect(await capture()).not.toContain(sentinel);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:`/tmp/zigoals-m4-alpha-${info.project.name}-320.png`,fullPage:true});
   expect(errors).toEqual([]);
