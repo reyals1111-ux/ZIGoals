@@ -15,4 +15,8 @@ export function middleware(request: NextRequest) {
   if (https) response.headers.set("Strict-Transport-Security", "max-age=31536000");
   return response;
 }
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|social-card.svg|social-card.png).*)"] };
+export const config = {
+  // Public files and reserved Next asset endpoints only. Missing favicon.ico
+  // is HTML (404), so it deliberately retains the nonce policy.
+  matcher: ["/((?!_next/static(?:/|$)|_next/image$|(?:icon\\.svg|robots\\.txt|social-card\\.svg|social-card\\.png)$).*)"],
+};

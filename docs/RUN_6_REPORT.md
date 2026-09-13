@@ -40,7 +40,7 @@ Baseline workerd: icon+robots200 with nonce/no-store and absent from direct asse
 
 ## 10. Middleware
 
-Current exclusions miss icon/robots and use loose prefix/unescaped-dot patterns. Exact static matching and public file moves planned; HTML nonce logic retained.
+Implemented exact static exclusions and reserved Next endpoint boundaries. Missing favicon404 now retains CSP; loose prefix/dot bypasses removed.48 targeted static/config tests pass; browser integration pending.
 
 ## 11. Cold/warm findings
 
@@ -60,27 +60,27 @@ SSR source maps contain CosmJS, Zod, Decimal, registry and goal-engine sources (
 
 ## 15. SSR/CSP
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+See architecture/M6_SSR_CSP_ANALYSIS.md for all10 questions. Retain dynamic nonce HTML. Current16.3.5 Turbopack has SRI plumbing; external-file SRI is not a demonstrated inline-payload CSP replacement.
 
 ## 16. OpenNext
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Matching public assets bypass the Worker; default server handler imports lazily after middleware. Move static metadata to public files; retain OpenNext configuration and SSR. No new storage/bindings.
 
 ## 17. vinext assessment
 
-No migration authorized; research only if consequential to the architecture note.
+Current Cloudflare guidance recommends beta vinext and documents existing OpenNext maintenance. No installation/compatibility run/migration: cost and behavior unknown for this app.
 
 ## 18. Optimizations implemented
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Public icon/robots; explicit same-origin icon metadata; exact matcher; static response security headers; reviewed2000ms CPU cap plus config regressions.
 
 ## 19. Optimizations rejected
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+No nonce removal/reuse, unsafe script sources, broad caching, import/tree-shaking hacks, library upgrades, custom Worker patches or framework migration. Source presence alone does not justify risky import changes.
 
 ## 20. CPU cap
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+2000ms proposed cap,3.71x owner539ms and15x below default30000ms. CPU is not wall time or a monthly spend cap;1102/exceededCpu possible. Requires exact-version owner rollout monitoring; NOT deployed.
 
 ## 21. Measurement tooling
 

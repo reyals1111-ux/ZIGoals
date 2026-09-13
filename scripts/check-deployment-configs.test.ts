@@ -121,3 +121,15 @@ test("validation fails without the narrow landing asset allowlist", () => {
     'landing/.assetsignore must allow only "index.html"',
   );
 });
+
+
+test.each([undefined, 10, 539, 1000, 5001, 30000, "2000"])("Alpha CPU cap cannot silently drift from reviewed 2000ms: %s", cpu_ms => {
+  const configs = pair();
+  configs.alpha.limits = {cpu_ms};
+  expect(validateDeploymentConfigs({...configs,root:repositoryRoot})).toContain("Alpha limits.cpu_ms must be the reviewed 2000ms guardrail");
+});
+test.each([true, ["/*"], undefined])("Alpha must explicitly serve matching assets before Worker: %s", run_worker_first => {
+  const configs = pair();
+  configs.alpha.assets.run_worker_first = run_worker_first;
+  expect(validateDeploymentConfigs({...configs,root:repositoryRoot})).toContain("Alpha assets.run_worker_first must be false");
+});

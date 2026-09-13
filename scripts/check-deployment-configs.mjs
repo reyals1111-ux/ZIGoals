@@ -60,6 +60,12 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
   if (alpha?.assets?.binding !== "ASSETS") {
     errors.push('Alpha assets.binding must be "ASSETS"');
   }
+  if (alpha?.assets?.run_worker_first !== false) {
+    errors.push("Alpha assets.run_worker_first must be false");
+  }
+  if (alpha?.limits?.cpu_ms !== 2000) {
+    errors.push("Alpha limits.cpu_ms must be the reviewed 2000ms guardrail");
+  }
   const landingRoutes = inspectRoutes(landing);
   const alphaRoutes = inspectRoutes(alpha);
   if (landingRoutes.malformed) {
