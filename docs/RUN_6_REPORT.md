@@ -1,6 +1,6 @@
 # Run 6 — CPU efficiency and repeatable measurement
 
-**IN PROGRESS.** Use [RESUME_STATE](verification/m6/RESUME_STATE.md) for completed/current/pending work and exact next steps. Production remains read-only.
+**Local work complete; PR #6 opened and left unmerged.** [Resume state](verification/m6/RESUME_STATE.md) identifies the checkpoint. Final exact-head CI is recorded in the PR description/checks without changing the commit being checked. Production mutations = **NONE**.
 
 ## 1. Starting main SHA
 
@@ -12,11 +12,42 @@ feat/m6-cpu-efficiency
 
 ## 3. Final branch SHA
 
-IN PROGRESS; exact checkpoint identity in git and RESUME_STATE.md.
+Reviewed/tested implementation: `0380e6a6b8b667709c5674c7abb22089674bc509`. The final branch tip including evidence-only documentation is recorded as `headRefOid` in [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6) and in the final handoff. A commit cannot embed its own SHA; no application/test changes follow this tested source.
 
 ## 4. Files changed
 
-Scaffold plus `scripts/measure-alpha-performance{,.test}.mjs`, `LOCAL_BASELINE_WALL.json`, `LOCAL_BASELINE_ANALYSIS.json`; final exact manifest pending.
+- `README.md`
+- `apps/web/app/layout.tsx`
+- `apps/web/app/robots.ts`
+- `apps/web/lib/public-safety.test.ts`
+- `apps/web/middleware.ts`
+- `apps/web/next.config.ts`
+- `apps/web/public/_headers`
+- `apps/web/public/icon.svg`
+- `apps/web/public/robots.txt`
+- `apps/web/tests/public-alpha.spec.ts`
+- `apps/web/wrangler.alpha.jsonc`
+- `docs/RUN_6_REPORT.md`
+- `docs/STATUS.md`
+- `docs/architecture/M6_CPU_PLAN.md`
+- `docs/architecture/M6_SSR_CSP_ANALYSIS.md`
+- `docs/deployment/CLOUDFLARE_ALPHA.md`
+- `docs/deployment/CPU_OWNER_CHECKLIST.md`
+- `docs/verification/m6/CPU_BASELINE.json`
+- `docs/verification/m6/LOCAL_AFTER_ANALYSIS.json`
+- `docs/verification/m6/LOCAL_AFTER_ROUTES.json`
+- `docs/verification/m6/LOCAL_AFTER_WALL.json`
+- `docs/verification/m6/LOCAL_BASELINE_ANALYSIS.json`
+- `docs/verification/m6/LOCAL_BASELINE_WALL.json`
+- `docs/verification/m6/LOCAL_VERIFICATION.json`
+- `docs/verification/m6/README.md`
+- `docs/verification/m6/RESUME_STATE.md`
+- `scripts/check-deployment-configs.mjs`
+- `scripts/check-deployment-configs.test.ts`
+- `scripts/measure-alpha-performance.mjs`
+- `scripts/measure-alpha-performance.test.mjs`
+- `scripts/sanitize-alpha-tail.mjs`
+- `scripts/sanitize-alpha-tail.test.mjs`
 
 ## 5. Workers Paid context
 
@@ -36,23 +67,23 @@ Owner data and local wall evidence are sanitized. Tested trace helper constructs
 
 ## 9. Static paths
 
-Baseline workerd: icon+robots200 with nonce/no-store and absent from direct asset package. Favicon404 and no nonce; social SVG/PNG200 via asset binding; _next/image400 without input; dynamic subpath404 retains nonce.29 direct assets, zero HTML.
+Baseline icon/robots200 carried nonce/no-store and were absent from29direct assets. After: direct public files,200 without nonce/no-store, static security headers preserved;30assets, zeroHTML. Hashed Next assets remain immutable, social cards direct, _next/image exact handler. Explicit icon resolves; legacy favicon remains404.
 
 ## 10. Middleware
 
-Implemented exact static exclusions and reserved Next endpoint boundaries. Missing favicon404 now retains CSP; loose prefix/dot bypasses removed.48 targeted static/config tests pass; browser integration pending.
+Exact filename and reserved-path boundaries replace loose prefix/dot exclusions. HTML/favicon404/lookalikes retain nonce/no-store; matcher, production-browser and workerd tests pass. Encoded /icon%2Esvg307 is asset normalization; encoded subpaths404 retain CSP.
 
 ## 11. Cold/warm findings
 
-Fresh local process /app first261.595ms wall then10.934–18.831ms. Plausible lazy Next/route initialization, not causal proof for owner285/539ms CPU spikes.
+First fresh-process /app wall261.595→249.302ms with much cheaper later requests. Generated entry imports Next server handler lazily during fetch. Next/React/route/module initialization plausibly contributes; middleware/JIT/SSR costs not separately quantified. Owner539/285ms CPU spikes remain unattributed.
 
 ## 12. Startup profile
 
-Wrangler4.131.1 check startup is verified local Miniflare entry import, not app fetch.16 samples:19.018ms active,2.536ms GC,77.415ms idle. Too sparse for module CPU attribution.
+Local Wrangler startup sampled19.018→17.429ms active,16→15samples. Imports Worker entry without calling app fetch. Sparse/hardware-specific evidence, not invocation CPU or a proven startup win. Deployed startup_time_ms NOT obtained; upload forbidden.
 
 ## 13. Server bundle
 
-Baseline dryrun9382.72KiB / gzip1759.83KiB. OpenNext global entry imports middleware/images/context; fetch lazily imports server handler. Metafile contains393 inputs, including bundled Next/React and precompiled SSR chunks.
+Bundle9382.72→8740.99KiB (~6.84% smaller), gzip1759.83→1621.67KiB (~7.85%). Server metafile393→382inputs. Next app-route runtime disappears when the metadata handlers are removed. No generated Worker patch.
 
 ## 14. Heavy dependencies
 
@@ -72,7 +103,7 @@ Current Cloudflare guidance recommends beta vinext and documents existing OpenNe
 
 ## 18. Optimizations implemented
 
-Public icon/robots; explicit same-origin icon metadata; exact matcher; static response security headers; reviewed2000ms CPU cap plus config regressions.
+Public icon/robots, explicit icon metadata, tighter matcher, static security headers, proposed2000ms cap/config tests, bounded wall CLI and trace sanitizer. No business logic/contract/dependency/UX changes.
 
 ## 19. Optimizations rejected
 
@@ -88,39 +119,39 @@ Bounded wall CLI (19 tests) plus streaming offline trace sanitizer (13 tests). S
 
 ## 22. Local before/after
 
-Baseline only: local /app median14.188ms, settings13.07ms, icon10.13ms. Matched after run pending; no production improvement claim.
+[Matched local evidence](verification/m6/README.md): /app median wall14.188→22.834ms; settings13.070→14.626ms; icon10.130→7.946ms. Dynamic medians did not improve. Five samples/route, fresh processes, identical CLI/order/spacing. Static bypass and smaller bundle are supported; production CPU improvement is NOT established.
 
 ## 23. Security regressions
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+All local gates pass: nonce/injected-script refusal/production script policy/canonical connect-src/frame/nosniff/referrer/noindex/no-store, HTTPS middleware HSTS, static headers and financial refusal. One independent security/performance code review found0Critical/Important/Minor issues at0380e6a (not a professional audit). Actual encoded workerd probes also preserve HTML boundaries.
 
 ## 24. Privacy regressions
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+13sanitizer privacy/parser tests and browser egress/backup/diagnostic/reload checks pass. No raw traces collected; private goals remain local. Chrome restart preserves scoped/damaged history without replay; signerCalls0/broadcastRequests0. Existing local-profile and infrastructure path-visibility risks remain documented.
 
 ## 25. JavaScript total
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+**559 passed**,28files (496baseline +63new). One full final local JS gate; targeted red/green tests preceded it.
 
 ## 26. Rust total
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+**25 passed** (6+18+1),0failures. Rustfmt/Clippy/schema/generated drift pass. No contract/package/lockfile diff; Rust suite run once.
 
 ## 27. Browser total
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+**46 passed**, desktop/mobile (44baseline +2static cases), plus full Chrome restart/recovery. Hosted real-extension evidence remains owner-supplied and distinct from mocks.
 
 ## 28. Workerd total
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+**14 passed** local workerd (public-alpha,diagnostics,wallet-reload). CI subset expected12(public-alpha+diagnostics). Production/Alpha builds, Alpha/landing dryruns, config/lint/types/secret checks pass. No dependency changes; CI retains existing supply-chain checks.
 
 ## 29. CI runs
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Exact final-head Milestone quality and Canonical reproducibility run IDs/URLs/job outcomes/head are recorded in [PR #6 description/checks](https://github.com/reyals1111-ux/ZIGoals/pull/6/checks) after the evidence checkpoint push. This avoids a documentation commit changing the SHA whose CI it reports. Verify `gh pr view 6 --repo reyals1111-ux/ZIGoals --json headRefOid,statusCheckRollup`. Local commands/results: [LOCAL_VERIFICATION.json](verification/m6/LOCAL_VERIFICATION.json).
 
 ## 30. PR
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+[PR #6: Milestone 6 — reduce Alpha Worker CPU overhead](https://github.com/reyals1111-ux/ZIGoals/pull/6), main target, unmerged. Connected app creation returned403; existing authenticated GitHub CLI succeeded.
 
 ## 31. Production mutations
 
@@ -128,7 +159,7 @@ NONE. No deployment, rollback, billing, production limit, DNS/email, chain actio
 
 ## 32. Owner next steps
 
-Review unmerged green PR; merge only if approved; sync exact main; build/dryrun; record rollback version; separately authorize Alpha deployment; retest security/Keplr/mobile; measure exact deployed version and compare.
+Owner: review PR #6 and exact-head CI; merge only if approved; sync clean exact main; run `pnpm check:deploy-configs`, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`; inspect alpha-build.json; record current rollback version; separately approve Alpha deployment; retest CSP/real Keplr/reload/reconnect/mobile/no financial signing; perform CPU_OWNER_CHECKLIST. No apex/contract/billing changes.
 
 ## 33. Post-deploy measurement
 
@@ -136,8 +167,10 @@ Exact-version one-hour dashboard and15 controlled GET procedure in deployment/CP
 
 ## 34. Remaining risks
 
-Spike cause unproven; tiny CPU samples and missing wall data; local timings are not Cloudflare invocation CPU. Goal Manager remains absent, wallet0ZIG, real financial signing NOT RUN.
+Production CPU/cap enforcement awaits owner rollout. Tiny CPU/wall samples and sparse profile limit attribution. Dynamic HTML remains SSR; local dynamic medians did not improve. A2s cap may terminate legitimate outliers and does not bound monthly spend. Goal Manager/code ID absent; wallet0ZIG; real financial signing NOT RUN.
 
 ## 35. Next three performance tasks
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+1. Owner exact-version postdeploy dashboard/tail comparison, including failures and first requests.
+2. If spikes persist, one targeted invocation profile separating lazy Next/React/route initialization from middleware; change imports only with attribution.
+3. If costs justify it, a separate strict static-shell/hash/SRI or vinext feasibility milestone with equivalent security and matched CPU evidence.

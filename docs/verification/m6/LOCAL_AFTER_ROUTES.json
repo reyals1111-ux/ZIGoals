@@ -1,0 +1,149 @@
+{
+  "metric": "local_workerd_routing_not_cpu",
+  "buildSource": "0380e6a6b8b667709c5674c7abb22089674bc509",
+  "rows": [
+    {
+      "route": "/app",
+      "status": 200,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-store, max-age=0",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/app/settings",
+      "status": 200,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-store, max-age=0",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/icon.svg",
+      "status": 200,
+      "type": "image/svg+xml",
+      "nonce": false,
+      "cache": "public, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/robots.txt",
+      "status": 200,
+      "type": "text/plain; charset=utf-8",
+      "nonce": false,
+      "cache": "public, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/favicon.ico",
+      "status": 404,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/social-card.svg",
+      "status": 200,
+      "type": "image/svg+xml",
+      "nonce": false,
+      "cache": "public, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/social-card.png",
+      "status": 200,
+      "type": "image/png",
+      "nonce": false,
+      "cache": "public, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/_next/image",
+      "status": 400,
+      "type": "text/plain;charset=UTF-8",
+      "nonce": false,
+      "cache": null,
+      "frame": null,
+      "nosniff": null,
+      "noindex": null,
+      "hsts": null
+    },
+    {
+      "route": "/icon.svg/app",
+      "status": 404,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/icon%2Esvg",
+      "status": 307,
+      "type": null,
+      "nonce": false,
+      "cache": null,
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/icon.svg%2fapp",
+      "status": 404,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/robots%2Etxt/app",
+      "status": 404,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    },
+    {
+      "route": "/_next%2fstatic/nope",
+      "status": 404,
+      "type": "text/html; charset=utf-8",
+      "nonce": true,
+      "cache": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "frame": "DENY",
+      "nosniff": "nosniff",
+      "noindex": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
+      "hsts": "max-age=31536000"
+    }
+  ]
+}

@@ -1,15 +1,15 @@
 # M6 resume state
 
-- Starting clean fetched main: `01ebf00f7a177ab86fb41b52164fa7f5320f644c`.
-- Branch: `feat/m6-cpu-efficiency`; existing requested workspace retained.
-- Latest pushed checkpoint before this commit: `9cb73aab9f3f02160a56dd1fd65bd724384da922`. This checkpoint adds tested trace sanitizer, owner checklist and current-state docs.
-- COMPLETE: baseline, wall CLI, static asset/matcher fix,2000ms cap, SSR/CSP note, sanitized-tail helper and owner comparison procedure. Current status now reflects owner-deployed M5/Workers Paid.
-- IN PROGRESS: final integrated acceptance and one independent security/performance review.
-- NOT STARTED: matched after build/profile/wall evidence, full gate, final report counts, PR/current-head CI.
-- Last tests:19 measurement tests,48 static/config tests,13 sanitizer tests pass (red/green observed); targeted ESLint/config/secret-pattern checks and diff whitespace pass. New browser case and full suite NOT RUN yet.
-- Known findings: see baseline JSON and SSR note; no new CPU attribution or live evidence claimed. Source/import/contract/lockfile state preserved except intended static metadata routing. Tail schema with absent metrics yields null, no matching samples is not zero CPU. Helper tested synthetically; no live tail opened.
-- Next exact commands: run final lint/typecheck/JS/Next build/config/landingdryrun/secret gate; use production Next loopback3108 for all browser tests + verify-browser-restart. Stop only baseline M6 Wrangler port8791 after rechecking PIDs72268/72282, then build Alpha from this clean checkpoint. Run dryrun/startup once and first-request wall CLI on fresh8791 BEFORE browser/readiness HTTP probes. Run public-alpha/diagnostics/wallet-reload in workerd. Finally Rustfmt/Clippy/tests/schema/generated drift once. Toolchain locations and commands in CPU plan + repository CI; Node24 runtime is required.
-- After evidence: summarize local before/after, exact totals and review; commit/push; open unmerged PR and verify current-head CI; checkpoint report/resume before final response. Do not repeat baseline/research/full suites without a real failure or code change.
-- Working tree should be clean after checkpoint push. /tmp/zigoals-m6-baseline.* and tracked baseline evidence allow continuation without rerunning them.
-- Production mutations: NONE. No deploy, billing/limits/account/DNS/email change, financial action, contract change or external outreach authorized.
-- On usage/resource warning: finish current safe atomic change, targeted test, update this file/report, commit/push and stop with exact next command.
+- Starting clean fetched main: `01ebf00f7a177ab86fb41b52164fa7f5320f644c`. Branch: `feat/m6-cpu-efficiency`.
+- Latest pushed checkpoint before this evidence commit: `0380e6a6b8b667709c5674c7abb22089674bc509`. This commit adds records only. Exact final SHA: `git rev-parse HEAD` / PR headRefOid; also recorded in PR description after push.
+- COMPLETE: owner/local baseline; static routing/matcher fix;2000ms cap; wall CLI; trace sanitizer; SSR/CSP/import analysis; owner checklist; before/after evidence; full local gate; independent review; [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6) opened and unmerged.
+- IN PROGRESS at checkpoint: current-head CI. Final outcome/URLs/head recorded in PR description/checks after push, without changing tested source. Do not rerun local suites just to check CI.
+- NOT STARTED (owner-only, outside M6 execution): merge, deployment, production CPU comparison. No implementation remains unless CI reveals a real defect.
+- Last validation:559JS,25Rust,46production browser,14workerd; full Chrome restart; lint/types/config/landingdryrun/Nextbuild/Alphabuild/dryrun/secret/Rustfmt/Clippy/schema/generated drift pass. Commands/source in LOCAL_VERIFICATION.json. No application/test edits after reviewed clean0380e6a.
+- Review: one independent Astra security/performance code/config/docs review,0Critical/Important/Minor; not professional audit. Parent checked actual workerd static and encoded lookalike paths.
+- Findings: direct icon/robots preserve200/security headers; HTML keeps nonce/no-store. Bundle9382.72→8740.99KiB. Icon median wall10.13→7.946ms; dynamic medians did not improve. Startup19.018→17.429ms is sparse local import evidence, not invocation CPU. Owner539ms spike cause unproven.
+- Next exact command: `gh pr view 6 --repo reyals1111-ux/ZIGoals --json state,headRefOid,statusCheckRollup`. Compare head with local HEAD; inspect failures only if needed. Both Milestone quality and Canonical reproducibility green + open/unmerged PR means M6 complete. Record run URLs in PR description, not a new commit solely recording its own CI.
+- Evidence: this directory README and CPU_OWNER_CHECKLIST. Raw local logs/profiles under /tmp/zigoals-m6-*; no raw production traces collected. Do not repeat sufficient baseline/research evidence.
+- Working tree should be clean after checkpoint commit/push. Prior branches/previews preserved. Stop only M6 loopback ports3108/8791 when done; inspect PID command first.
+- Production mutations: NONE. No upload/deploy/rollback, DNS/email/billing/live limits/paid products/contract/signing/outreach. M6 remains undeployed; owner reports Workers Paid and live source01ebf00f7a177ab86fb41b52164fa7f5320f644c.
+- On usage/resource warning: finish safe atomic action, targeted validation, update report/resume, commit/push and stop clean. PR must stay unmerged.
