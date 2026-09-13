@@ -24,6 +24,18 @@ describe('strict canonical release evidence', () => {
   it.each(['APPROVED_FOR_TESTNET_UPLOAD', 'UNKNOWN', 'BUILD_VERIFIED'])('rejects invalid candidate status %s', status => expect(() => verifyCandidate({ expectedCommit: commit, manifest: { ...candidate(), status }, wasm })).toThrow());
   it('rejects approval even when every digest matches', () => expect(() => verifyCandidate({ expectedCommit: commit, manifest: { ...candidate(), approval: 'APPROVED_FOR_TESTNET_UPLOAD' }, wasm })).toThrow());
   it('rejects changed bytes despite matching REPRODUCIBLE metadata', () => expect(() => verifyCandidate({ expectedCommit: commit, manifest: candidate(), wasm: Buffer.from('altered') })).toThrow());
+  it('rejects same-length byte tampering against unchanged matching metadata', () => {
+    const manifest = candidate();
+    const mutatedWasm = Buffer.from(wasm);
+    mutatedWasm[0] ^= 1;
+    expect(mutatedWasm.length).toBe(manifest.artifact.sizeBytes);
+    expect(() => verifyCandidate({ expectedCommit: commit, manifest, wasm: mutatedWasm })).toThrow('Actual Wasm bytes/hash/size mismatch');
+  });
+  it('rejects an unexpected Cargo version through the published schema policy', () => {
+    const manifest = candidate();
+    manifest.environment.cargo = 'cargo 1.86.0';
+    expect(() => validateManifest(manifest)).toThrow('manifest.environment.cargo: wrong constant');
+  });
   it('rejects expected source mismatch', () => expect(() => verifyCandidate({ expectedCommit: 'd'.repeat(40), manifest: candidate(), wasm })).toThrow());
   it.each(['size', 'lock', 'tree', 'environment', 'validator', 'count', 'identity'])('rejects %s disagreement', kind => {
     const other = build('build-b');

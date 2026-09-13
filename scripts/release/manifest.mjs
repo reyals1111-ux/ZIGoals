@@ -40,7 +40,6 @@ function check(value, rule, path = 'manifest') {
 export function validateManifest(manifest) {
   if (Buffer.byteLength(JSON.stringify(manifest) ?? '') > 32768) fail('Manifest exceeds 32 KiB');
   check(manifest, schema);
-  if (manifest.environment.cargo !== 'cargo 1.85.1 (d73d2caf9 2024-12-31)') fail('Unexpected Cargo version');
   if (manifest.independentBuildCount !== manifest.builds.length) fail('Independent build count disagrees');
   for (const build of manifest.builds) if (!Number.isFinite(Date.parse(build.builtAt)) || new Date(build.builtAt).toISOString() !== build.builtAt) fail('Invalid measured timestamp');
   const identities = manifest.builds.map(b => `${b.repository}/${b.runId}/${b.runAttempt}/${b.job}`);
