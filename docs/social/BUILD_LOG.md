@@ -58,3 +58,17 @@ Draft 4 — prepared hosting, publication pending:
 Attach only links, hashes, totals and URLs confirmed in the final Run4 report. Do not publish this draft automatically, claim an attestation that has not run, imply ZIGChain approval or describe the web preview as an onchain deployment. Keep the separate apex landing CTA unpublished until owner review.
 
 Evidence: [Run 4](../RUN_4_REPORT.md), [canonical hosted results](../verification/m4/FIRST_HOSTED_RESULTS.json), [publication status](../verification/m4/PUBLICATION.json). All drafts remain unpublished.
+
+## Milestone 5 drafts — owner review only, not published
+
+The earlier milestone drafts above are historical and must not be posted as current facts. New evidence: [owner live observations](../verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json), [release verification](../verification/m5/RELEASE_VERIFICATION.json), [Run 5](../RUN_5_REPORT.md).
+
+> The ZIGoals public web Alpha is available at alpha.zigoals.app/app. It supports simulation and optional wallet connection. Goal Manager is not deployed, and no financial signature or blockchain transaction is part of this Alpha.
+
+> Real Keplr rejection and reconnection were owner-tested on both hosted Alpha origins under the production CSP. The app remained usable after rejection. The test wallet had 0 ZIG; no fee prompt, financial signature or broadcast occurred.
+
+> Our first canonical contract candidate has a GitHub-native attestation for its exact reviewed source commit. That is build provenance, not approval to upload a contract. Funding and upload permission remain separate gates.
+
+> Run 5 checks the live Alpha, records evidence with its source, and hardens the two separate website deployment paths. Reloads keep Local Demo and reconnect stays an explicit choice. Repository changes still require owner review and a separate deployment.
+
+No post was sent. Do not add partnership, audit, users, TVL, funding, mainnet or return claims.

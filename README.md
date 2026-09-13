@@ -7,7 +7,7 @@ The Alpha includes durable scoped testnet transaction outcomes, known-receipt re
 
 Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
 
-The existing `landing/index.html`, `landing/wrangler.jsonc`, and Apache-2.0 license are preserved. No Cloudflare deployment or production settings were changed.
+The owner has deployed the public web Alpha and apex landing. M5 only changes repository code, tests and documentation; it does not mutate production. The Apache-2.0 license is retained.
 
 ## Run locally
 
@@ -95,8 +95,12 @@ For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.
 
 Milestone 3 merged at `7d354e3` with successful [post-merge main CI](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34764912650): [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [merged PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.
 
-## Milestone 4 release and public Alpha preparation
+## Live public Alpha and Milestone 5
 
-The public web Alpha is **PREPARED_NOT_DEPLOYED**: there is no verified Alpha URL. The isolated Cloudflare package supports simulation, safe diagnostics and optional wallet connection only. Its production scripts use fresh CSP nonces; real Keplr compatibility under the new policy remains unverified. Cloudflare browser access was blocked by unavailable admin-policy verification, and Wrangler was unauthenticated. Existing apex and email settings were preserved.
+**PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE:** [Open the Alpha](https://alpha.zigoals.app/app), with [Workers fallback](https://zigoals-alpha.reyals1111.workers.dev/app). The [apex landing](https://zigoals.app) links to the official Alpha. Simulation + wallet connection only; **CONTRACT_NOT_DEPLOYED**. `PUBLIC_ALPHA_UNDEPLOYED` means the financial contract is absent, even though the web app is deployed.
 
-Use [Cloudflare setup and owner steps](docs/deployment/CLOUDFLARE_ALPHA.md), [publication checklist](docs/deployment/PUBLIC_ALPHA_CHECKLIST.md), [release process](docs/release/RELEASE_PROCESS.md), [Run 4 report](docs/RUN_4_REPORT.md) and [current evidence](docs/verification/m4/README.md). Two independent Linux builds produced matching Wasm; the candidate remains NOT_APPROVED. Manual main-only attestation, contract upload and real financial signing have not run. [PR #3](https://github.com/reyals1111-ux/ZIGoals/pull/3) remains for owner review, unmerged.
+M4 PR #3 and landing PR #4 are merged. Live Alpha source is `3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72`; M5 starts from main `6be2de74f22f676e6a633ed05208decebb0dbff3`. The owner tested actual Keplr rejection and reconnection on both hosted origins under production CSP, with no financial signing or broadcast. This closes the earlier M4 hosted-extension evidence gap; automated wallet mocks remain a separate type of evidence.
+
+The owner issued [candidate run 34772005556](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34772005556) for exact source `3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72`. Both Wasm and manifest attestations were independently verified in M5. Status: **ATTESTED_CANDIDATE_NOT_APPROVED**. This does not attest later main/M5 commits or authorize chain upload. Test ZIG remains owner-observed 0; funding, upload permission and external interfaces remain pending.
+
+Use [current status](docs/STATUS.md), [Run 5 report](docs/RUN_5_REPORT.md), [M5 evidence](docs/verification/m5/README.md), [Alpha operations](docs/deployment/CLOUDFLARE_ALPHA.md), [apex operations](docs/deployment/LANDING.md), and [release verification](docs/deployment/VERIFY_RELEASE_ARTIFACT.md). Historical [Run 4](docs/RUN_4_REPORT.md) retains what was known then. M5 changes require owner review/merge and a separate owner deployment before appearing live.

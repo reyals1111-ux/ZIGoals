@@ -13,6 +13,12 @@
 
   <meta name="theme-color" content="#050a1c" />
 
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050a1c'/%3E%3Cpath d='M16 18h32L24 46h24' fill='none' stroke='%2311d8f2' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+  />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -428,6 +434,8 @@
     .visual {
       position: relative;
 
+      min-width: 0;
+
       min-height: 460px;
 
       display: flex;
@@ -438,8 +446,8 @@
     .halo {
       position: absolute;
 
-      width: 330px;
-      height: 330px;
+      width: min(330px, 100%);
+      aspect-ratio: 1;
 
       border-radius: 50%;
 

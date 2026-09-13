@@ -1,0 +1,115 @@
+{
+  "observedAt": "2026-09-13T19:23:05.641455+00:00",
+  "evidenceSource": "GITHUB_API_AND_LOCAL_VERIFICATION",
+  "status": "ATTESTED_CANDIDATE_NOT_APPROVED",
+  "workflow": {
+    "databaseId": 34772005556,
+    "headSha": "3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72",
+    "conclusion": "success",
+    "status": "completed",
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34772005556",
+    "createdAt": "2026-09-13T17:34:34Z",
+    "updatedAt": "2026-09-13T17:40:49Z"
+  },
+  "jobs": [
+    {
+      "name": "authorize-source",
+      "conclusion": "success"
+    },
+    {
+      "name": "cargo-advisories",
+      "conclusion": "success"
+    },
+    {
+      "name": "reproducibility / canonical-build-a",
+      "conclusion": "success"
+    },
+    {
+      "name": "reproducibility / canonical-build-b",
+      "conclusion": "success"
+    },
+    {
+      "name": "quality / web",
+      "conclusion": "success"
+    },
+    {
+      "name": "quality / contract",
+      "conclusion": "success"
+    },
+    {
+      "name": "reproducibility / compare",
+      "conclusion": "success"
+    },
+    {
+      "name": "verify-candidate",
+      "conclusion": "success"
+    },
+    {
+      "name": "issue-candidate",
+      "conclusion": "success"
+    }
+  ],
+  "localVerifierOutput": "Verified REPRODUCIBLE, NOT_APPROVED: 9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10 (255532 bytes), source 3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72",
+  "attestedFiles": [
+    {
+      "name": "zigoals_goal_manager.wasm",
+      "bytes": 255532,
+      "sha256": "9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10",
+      "result": "PASS",
+      "verifiedIdentity": {
+        "subjectAlternativeName": {
+          "subjectAlternativeName": "",
+          "regexp": "^https://github\\.com/reyals1111-ux/ZIGoals/\\.github/workflows/release-candidate\\.yml"
+        },
+        "issuer": {
+          "issuer": "",
+          "regexp": ".*"
+        },
+        "runnerEnvironment": "github-hosted"
+      },
+      "verifiedTimestamps": [
+        {
+          "type": "Tlog",
+          "uri": "https://rekor.sigstore.dev",
+          "timestamp": "2026-09-13T19:40:44+02:00"
+        }
+      ]
+    },
+    {
+      "name": "artifact-manifest.json",
+      "bytes": 1993,
+      "sha256": "300c68e3c052d88e10e16d4a813ea209b2bec70c6b8a81e3fb940415a254741a",
+      "result": "PASS",
+      "verifiedIdentity": {
+        "subjectAlternativeName": {
+          "subjectAlternativeName": "",
+          "regexp": "^https://github\\.com/reyals1111-ux/ZIGoals/\\.github/workflows/release-candidate\\.yml"
+        },
+        "issuer": {
+          "issuer": "",
+          "regexp": ".*"
+        },
+        "runnerEnvironment": "github-hosted"
+      },
+      "verifiedTimestamps": [
+        {
+          "type": "Tlog",
+          "uri": "https://rekor.sigstore.dev",
+          "timestamp": "2026-09-13T19:40:44+02:00"
+        }
+      ]
+    }
+  ],
+  "verificationPolicy": {
+    "repo": "reyals1111-ux/ZIGoals",
+    "signerWorkflow": "reyals1111-ux/ZIGoals/.github/workflows/release-candidate.yml",
+    "sourceDigest": "3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72",
+    "signerDigest": "3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72",
+    "sourceRef": "refs/heads/main",
+    "denySelfHostedRunners": true,
+    "bundle": "release artifact attestation.jsonl"
+  },
+  "issuanceTriggeredByM5": false,
+  "chainApproval": false,
+  "scope": "Exact M4 merge source only. Does not attest current main, M5 branch or future source."
+}

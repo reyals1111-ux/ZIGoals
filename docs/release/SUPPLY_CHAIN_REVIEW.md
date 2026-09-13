@@ -1,6 +1,6 @@
-# M4 release supply-chain review
+# Release supply-chain review
 
-Review scope: current M4 release infrastructure, contract/application lockfiles and the pinned OpenNext/Workers hosting toolchain on 2026-09-13. Results below distinguish the initial release-tooling scan from the subsequent hosting dependency scans. Later dependency changes require new audit and install-script review.
+Historical baseline scope: M4 release infrastructure, contract/application lockfiles and the pinned OpenNext/Workers hosting toolchain on 2026-09-13. Results below distinguish the initial release-tooling scan from the subsequent hosting dependency scans. Later dependency changes require new audit and install-script review.
 
 ## Sources and execution privileges
 
@@ -34,3 +34,9 @@ The repository Apache-2.0 license is retained. The installed macOS package metad
 GitHub dependency review can inspect newly changed lockfile dependencies in public-repository PRs when the dependency graph is enabled. We retain lockfile review and actual pnpm/RustSec scans here; no additional dependency-review action is added without confirming graph snapshots and its benefit beyond those gates. [Official dependency-review behavior](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependency-review).
 
 Current CodeQL documentation includes JavaScript/TypeScript, Rust and GitHub Actions workflow support. It could add data-flow/workflow findings, but enabling a new code-scanning service and interpreting its initial results is separate from implementing deterministic candidate issuance. We do not claim CodeQL ran or provides CosmWasm semantic coverage. [Official CodeQL supported languages and setup](https://docs.github.com/en/code-security/concepts/code-scanning/codeql/codeql-code-scanning). No repository settings were changed.
+
+## M5 refresh
+
+Fresh production and full pnpm scans returned zero vulnerability advisories for 133 and 846 dependencies respectively. Rust audit refreshed the database successfully; its latest returned commit remains `b50980aad8b8f14f77e25a97b32dd94bf008b0af` (2026-09-09), with 119 locked dependencies, zero vulnerability findings and the same derivative/paste unmaintained notices. Frozen offline installation passed and `pnpm store status` reported untouched packages. No dependency versions changed. See [dated M5 scan](../verification/m5/DEPENDENCY_SCAN.json).
+
+The existing successful owner issuance logs still contain the official download-artifact `DEP0005 Buffer()` deprecation. It is not suppressed or replaced with a custom action. M5 leaves the full-SHA action pins and OIDC isolation unchanged. Advisory scans and integrity checks are bounded evidence, not a professional security audit.

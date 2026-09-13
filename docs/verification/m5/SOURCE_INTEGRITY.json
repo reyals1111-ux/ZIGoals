@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-09-13T19:39:09.338942+00:00",
+  "comparedTo": "6be2de74f22f676e6a633ed05208decebb0dbff3",
+  "lockAndInstallPolicyDiff": "UNCHANGED",
+  "contractSourceDiff": "UNCHANGED",
+  "frozenOfflineInstall": "PASS",
+  "pnpmStoreStatus": "Packages in the store are untouched",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "79aee297543060d068666823087e6304e1f5806f4a6534984ab5b389fa105565"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "b1a3da15463ea52b793e3a5c7bca2b3448a8a19961133454865269e360a7e5c6"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "sha256": "4784b9ccdb8864d8b873dba18af692ca402f48bd11691c540d693766103c73d2"
+    },
+    {
+      "path": "scripts/release/toolchain/package-lock.json",
+      "sha256": "87aa929ddd30e2b6f045e69520bc870a695ca04caa68a9066a2c6b95845c5ca1"
+    }
+  ],
+  "limitations": [
+    "Pins and byte integrity do not constitute a dependency source audit.",
+    "Procedural macros/build-time code and official CI/toolchain remain trust boundaries."
+  ]
+}

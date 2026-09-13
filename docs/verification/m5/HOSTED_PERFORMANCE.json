@@ -1,0 +1,84 @@
+{
+  "observedAt": "2026-09-13T19:36:03.609Z",
+  "status": "SMALL_SAMPLE_ONLY",
+  "responseSamples": [
+    {
+      "url": "https://alpha.zigoals.app/app",
+      "elapsedMs": 129,
+      "decodedBodyBytes": 14264,
+      "httpStatus": 200
+    },
+    {
+      "url": "https://alpha.zigoals.app/app",
+      "elapsedMs": 50,
+      "decodedBodyBytes": 14264,
+      "httpStatus": 200
+    },
+    {
+      "url": "https://alpha.zigoals.app/app",
+      "elapsedMs": 53,
+      "decodedBodyBytes": 14264,
+      "httpStatus": 200
+    },
+    {
+      "url": "https://zigoals-alpha.reyals1111.workers.dev/app",
+      "elapsedMs": 120,
+      "decodedBodyBytes": 14378,
+      "httpStatus": 200
+    },
+    {
+      "url": "https://zigoals-alpha.reyals1111.workers.dev/app",
+      "elapsedMs": 62,
+      "decodedBodyBytes": 14378,
+      "httpStatus": 200
+    },
+    {
+      "url": "https://zigoals.app/",
+      "elapsedMs": 121,
+      "decodedBodyBytes": 13228,
+      "httpStatus": 200
+    },
+    {
+      "url": "https://zigoals.app/",
+      "elapsedMs": 45,
+      "decodedBodyBytes": 13228,
+      "httpStatus": 200
+    }
+  ],
+  "alphaInitialScriptEncodedBytes": 300063,
+  "alphaInitialScriptRequests": 12,
+  "navigation": [
+    {
+      "type": "navigate",
+      "responseStart": 127,
+      "responseEnd": 131.90000000596046,
+      "domContentLoadedEventEnd": 212.40000000596046,
+      "loadEventEnd": 276.40000000596046,
+      "transferSize": 4091,
+      "encodedBodySize": 3791,
+      "decodedBodySize": 14264
+    }
+  ],
+  "workerErrorResponsesObserved": 0,
+  "cloudflareCpuMs": 30.43,
+  "cpuMetricsSource": "CLOUDFLARE_READ_ONLY.json: active-deployment Median CPU time; separate later dashboard snapshot",
+  "accountPlanIndependentlyVerified": true,
+  "coreWebVitalsMeasured": false,
+  "assessment": "CAPACITY_RISK: active-version median CPU30.43ms exceeds advertised Free10ms. Zero displayed errors does not establish sustainable headroom; no outage inferred. Confirm under representative use and investigate SSR CPU before broader rollout. No caching/CSP weakening or paid plan change was made.",
+  "limitsReference": "https://developers.cloudflare.com/workers/platform/limits/",
+  "freeLimitsAtReview": {
+    "requestsPerDay": 100000,
+    "cpuMsPerRequest": 10,
+    "memoryMiB": 128,
+    "startupSeconds": 1,
+    "workerCodeMiB": 64
+  },
+  "paidResourcesEnabled": false,
+  "accountPlan": "Workers Free",
+  "cloudflareDashboardErrors": 0,
+  "cloudflareDashboardWindow": "Last 24 hours",
+  "limitations": [
+    "Client request sample and dashboard aggregate are separate observations; they are not attributable one-to-one.",
+    "Active-version median CPU exceeds the stated Free allowance despite zero displayed errors; sustained suitability is not established."
+  ]
+}

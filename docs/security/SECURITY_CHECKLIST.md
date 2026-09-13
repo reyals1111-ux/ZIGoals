@@ -56,7 +56,7 @@ Exact final commands/results and independent review outcomes are in `../verifica
 - SECURITY.md, privacy notes, alpha guide and bug form use hello@zigoals.app and prohibit sharing secrets/private backups. Mainnet, external strategies and deployment remain disabled.
 - CI checks PRs and main pushes and retains validated Linux build evidence. Current M3 totals, actual hosted result and cross-host comparison are recorded in STATUS and RUN_3_REPORT after verification; earlier sections above retain historical evidence.
 
-## Milestone 4 current additions
+## Milestone 4 historical additions
 
 | Control | Evidence / remaining gate |
 |---|---|
@@ -72,3 +72,10 @@ Exact final commands/results and independent review outcomes are in `../verifica
 | Independent review | Fresh contract/frontend and release/public task reviews, followed by branch review; engineering review, not professional audit |
 
 Exact final evidence and unresolved hosting/real-Keplr/attestation limits are in [Run 4](../RUN_4_REPORT.md) and [M4 evidence](../verification/m4/README.md). Historical checklist sections above describe their original milestone.
+
+## Milestone 5 current state
+
+- Public web **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE**, financial **CONTRACT_NOT_DEPLOYED**. Actual owner hosted-Keplr rejection and reconnection close the earlier M4 extension gap; no financial signing or broadcast occurred.
+- First manual issuance succeeded for exact `3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72`; M5 independently verified downloaded bytes and native Wasm/manifest attestations. **ATTESTED_CANDIDATE_NOT_APPROVED** does not attest M5 or authorize upload.
+- M5 keeps explicit reconnect on reload with no passive extension access. The session hint is presentation only. Lowest-level financial refusal, tab/account races, private egress, CSP and deployment-target isolation remain regression gates.
+- [M5 evidence](../verification/m5/README.md) and [Run 5](../RUN_5_REPORT.md) distinguish owner/independent/local/CI results. Neither Worker nor any DNS/email/paid resource is changed during M5; private email routing remains unverified. Read-only Cloudflare metrics showed Workers Free and active median CPU30.43ms, exceeding the stated10ms allowance despite zero displayed errors; capacity remains a risk.

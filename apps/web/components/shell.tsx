@@ -64,7 +64,9 @@ export function Shell({ children }: { children: ReactNode }) {
                 ? "Adding testnet…"
                 : s.walletState === "CONNECTED"
                   ? `${s.owner.slice(0, 8)}…${s.owner.slice(-4)}`
-                  : "Connect Keplr"}
+                  : s.walletReconnectHint
+                    ? "Reconnect Keplr"
+                    : "Connect Keplr"}
           </button>
         </div>
       </header>
@@ -94,6 +96,13 @@ export function Shell({ children }: { children: ReactNode }) {
         {s.message && (
           <div role="status" className="notice">
             {s.message}
+          </div>
+        )}
+        {s.mode === "local" && s.walletReconnectHint && (
+          <div role="status" className="notice">
+            Reloads intentionally start in Local demo. Reconnect Keplr to
+            restore your wallet view. Browser permission may be remembered,
+            but Keplr may still prompt.
           </div>
         )}
         {s.journalWarnings.map((warning) => (

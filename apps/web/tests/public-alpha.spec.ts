@@ -1,6 +1,21 @@
 import { test, expect, type Page } from "@playwright/test";
 import { toBech32 } from "@cosmjs/encoding";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
+
+test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
+  const response = await page.goto("/app");
+  const icon = page.locator('link[rel="icon"]');
+  await expect(icon).toHaveAttribute("type", "image/svg+xml");
+  const href = await icon.getAttribute("href");
+  expect(href).toBeTruthy();
+  const iconUrl = new URL(href!, response!.url());
+  expect(iconUrl.origin).toBe(new URL(response!.url()).origin);
+  const iconResponse = await request.get(iconUrl.href);
+  expect(iconResponse.status()).toBe(200);
+  expect(iconResponse.headers()["content-type"]).toContain("image/svg+xml");
+  expect((await iconResponse.body()).byteLength).toBeGreaterThan(0);
+});
+
 function captureRequestEgress(page: Page) {
   type Capture = { record: string } | { error: unknown };
   const pending: Promise<Capture>[] = [];

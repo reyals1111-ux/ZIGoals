@@ -40,6 +40,7 @@ vi.mock("./wallet", () => ({
 }));
 const ownerA = "zig1originalwallet";
 const ownerB = "zig1newwallet";
+const reconnectHintKey = "zigoals:wallet-reconnect-hint:v1";
 let root: Root;
 let container: HTMLDivElement;
 function deferred<T>() {
@@ -125,6 +126,19 @@ function scope() {
     container.querySelector('[data-testid="scope"]')!.textContent!,
   );
 }
+async function remount() {
+  await act(async () => root.unmount());
+  root = createRoot(container);
+  await act(async () =>
+    root.render(
+      createElement(
+        GoalProvider,
+        null,
+        createElement(Shell, null, createElement(Controls)),
+      ),
+    ),
+  );
+}
 beforeEach(async () => {
   vi.clearAllMocks();
   vi.stubGlobal("indexedDB", new IDBFactory());
@@ -137,6 +151,7 @@ beforeEach(async () => {
   api.reconcile.mockResolvedValue({ records: [], warnings: [] });
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   window.localStorage.clear();
+  window.sessionStorage.clear();
   window.keplr = {} as NonNullable<Window["keplr"]>;
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true;
@@ -172,6 +187,102 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
+test("a tab-scoped connection hint changes only the reconnect presentation after reload", async () => {
+  window.sessionStorage.setItem(reconnectHintKey, "true");
+  await remount();
+
+  expect(scope()).toMatchObject({
+    mode: "local",
+    owner: LOCAL_OWNER,
+    balance: "1000000000000000000000",
+    status: "IDLE",
+  });
+  expect(api.connect).not.toHaveBeenCalled();
+  expect(container.textContent).toContain("Reloads intentionally start in Local demo");
+  expect(
+    [...container.querySelectorAll("button")].some(
+      (button) => button.textContent === "Reconnect Keplr",
+    ),
+  ).toBe(true);
+});
+
+test("only a successful explicit connection saves the reconnect hint", async () => {
+  expect(window.sessionStorage.getItem(reconnectHintKey)).toBeNull();
+
+  await click("Connect Keplr");
+
+  expect(scope()).toMatchObject({ mode: "testnet", owner: ownerA });
+  expect(api.connect).toHaveBeenCalledTimes(1);
+  expect(window.sessionStorage.getItem(reconnectHintKey)).toBe("true");
+});
+
+test("rejected explicit connection does not create a reconnect hint", async () => {
+  api.connect.mockRejectedValueOnce(Error("Request rejected"));
+
+  await click("Connect Keplr");
+
+  expect(scope()).toMatchObject({ mode: "testnet", owner: "", balance: "0" });
+  expect(container.textContent).toContain("Request rejected");
+  expect(window.sessionStorage.getItem(reconnectHintKey)).toBeNull();
+});
+
+test("invalid reconnect hint fails closed without requesting wallet access", async () => {
+  window.sessionStorage.setItem(reconnectHintKey, '{"wallet":"untrusted"}');
+
+  await remount();
+
+  expect(scope()).toMatchObject({ mode: "local", owner: LOCAL_OWNER });
+  expect(api.connect).not.toHaveBeenCalled();
+  expect(container.textContent).not.toContain("Reconnect Keplr");
+});
+
+test("unavailable tab storage leaves both local mode and explicit connection usable", async () => {
+  const getItem = Storage.prototype.getItem;
+  const setItem = Storage.prototype.setItem;
+  const get = vi
+    .spyOn(Storage.prototype, "getItem")
+    .mockImplementation(function (this: Storage, key) {
+      if (this === window.sessionStorage) throw Error("Storage unavailable");
+      return getItem.call(this, key);
+    });
+  const set = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(function (this: Storage, key, value) {
+      if (this === window.sessionStorage) throw Error("Storage unavailable");
+      return setItem.call(this, key, value);
+    });
+  try {
+    await remount();
+    expect(scope()).toMatchObject({ mode: "local", owner: LOCAL_OWNER });
+    expect(api.connect).not.toHaveBeenCalled();
+
+    await click("Connect Keplr");
+    expect(scope()).toMatchObject({ mode: "testnet", owner: ownerA });
+    expect(api.connect).toHaveBeenCalledTimes(1);
+  } finally {
+    get.mockRestore();
+    set.mockRestore();
+  }
+});
+
+test("choosing Local demo clears the reconnect hint for later reloads", async () => {
+  window.sessionStorage.setItem(reconnectHintKey, "true");
+  await remount();
+
+  await click("Local demo");
+  expect(window.sessionStorage.getItem(reconnectHintKey)).toBeNull();
+  await remount();
+
+  expect(scope()).toMatchObject({ mode: "local", owner: LOCAL_OWNER });
+  expect(api.connect).not.toHaveBeenCalled();
+  expect(container.textContent).not.toContain("Reloads intentionally start in Local demo");
+  expect(
+    [...container.querySelectorAll("button")].some(
+      (button) => button.textContent === "Connect Keplr",
+    ),
+  ).toBe(true);
+});
+
 test("late connection status cannot disable reconnect after returning to local mode", async () => {
   const network = deferred<void>();
   api.connect.mockImplementation(
@@ -191,6 +302,7 @@ test("late connection status cannot disable reconnect after returning to local m
   await click("Local demo");
   await act(async () => network.resolve());
   expect(scope()).toMatchObject({ mode: "local", owner: LOCAL_OWNER });
+  expect(window.sessionStorage.getItem(reconnectHintKey)).toBeNull();
   const button = [...container.querySelectorAll("button")].find(
     (b) => b.textContent === "Connect Keplr",
   );

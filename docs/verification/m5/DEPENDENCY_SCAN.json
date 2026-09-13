@@ -1,0 +1,70 @@
+{
+  "observedAt": "2026-09-13T19:23:05.641455+00:00",
+  "node": "24.19.0",
+  "pnpm": "11.19.0",
+  "production": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 52,
+    "devDependencies": 0,
+    "optionalDependencies": 81,
+    "totalDependencies": 133
+  },
+  "full": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 98,
+    "devDependencies": 713,
+    "optionalDependencies": 154,
+    "totalDependencies": 846
+  },
+  "rust": {
+    "database": {
+      "advisory-count": 1243,
+      "last-commit": "b50980aad8b8f14f77e25a97b32dd94bf008b0af",
+      "last-updated": "2026-09-09T12:49:52+02:00"
+    },
+    "lockfile": {
+      "dependency-count": 119
+    },
+    "vulnerabilities": {
+      "found": false,
+      "count": 0,
+      "list": []
+    },
+    "warnings": [
+      {
+        "package": "derivative",
+        "version": "2.2.0",
+        "id": "RUSTSEC-2024-0388",
+        "kind": "unmaintained"
+      },
+      {
+        "package": "paste",
+        "version": "1.0.15",
+        "id": "RUSTSEC-2024-0436",
+        "kind": "unmaintained"
+      }
+    ]
+  },
+  "upstreamDownloadArtifactNotice": {
+    "observedInRun": 34772005556,
+    "warning": "DEP0005 Buffer() is deprecated",
+    "status": "Existing official pinned action warning; successful run; not suppressed or vendored."
+  },
+  "upgrades": [],
+  "limitations": [
+    "Fresh queries against then-current advisory services; not proof of absence of unknown vulnerabilities.",
+    "Rust database refresh succeeded; latest returned commit still dated 2026-09-09."
+  ]
+}
