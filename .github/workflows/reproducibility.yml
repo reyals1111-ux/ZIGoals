@@ -1,0 +1,77 @@
+name: Canonical reproducibility
+on:
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: canonical-build-${{ matrix.leg }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        leg: [a, b]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+      # Each matrix leg receives a fresh hosted VM. No cache or target download.
+      - run: rustup toolchain install 1.85.1 --profile minimal --target wasm32-unknown-unknown
+      - run: cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check
+      - run: npm ci --prefix scripts/release/toolchain --ignore-scripts --no-audit --no-fund
+      - name: Build from clean source and target
+        env:
+          EXPECTED_COMMIT: ${{ github.sha }}
+          RELEASE_BUILD_JOB: canonical-build-${{ matrix.leg }}
+        run: |
+          set -o pipefail
+          node scripts/release/build.mjs "$EXPECTED_COMMIT" "$RUNNER_TEMP/build-output" 2>&1 | tee "$RUNNER_TEMP/build.log"
+      - name: Retain diagnostic evidence, including on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: canonical-build-${{ matrix.leg }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/build-output/
+            ${{ runner.temp }}/build.log
+          if-no-files-found: warn
+          retention-days: 30
+  compare:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+      - run: rustup toolchain install 1.85.1 --profile minimal
+      - run: cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: canonical-build-a-${{ github.sha }}
+          path: ${{ runner.temp }}/left
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: canonical-build-b-${{ github.sha }}
+          path: ${{ runner.temp }}/right
+      - name: Compare actual bytes, source, environment and rerun both validators
+        env:
+          EXPECTED_COMMIT: ${{ github.sha }}
+        run: node scripts/release/verify.mjs compare "$EXPECTED_COMMIT" .toolchain/check/bin/cosmwasm-check "$RUNNER_TEMP/left/build-output" "$RUNNER_TEMP/right/build-output" "$RUNNER_TEMP/reproducible"
+      # Success-only publication; failed comparison leaves raw diagnostic artifacts.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: reproducible-${{ github.sha }}
+          path: ${{ runner.temp }}/reproducible/
+          if-no-files-found: error
+          retention-days: 30
