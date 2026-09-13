@@ -141,3 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Milestone development artifacts
+/target/
+/artifacts/
+/.toolchain/
+/.superpowers/
+*.bak-*
+playwright-report/
+test-results/
