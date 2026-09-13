@@ -16,7 +16,7 @@ IN PROGRESS; exact checkpoint identity in git and RESUME_STATE.md.
 
 ## 4. Files changed
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Scaffold plus `scripts/measure-alpha-performance{,.test}.mjs`, `LOCAL_BASELINE_WALL.json`, `LOCAL_BASELINE_ANALYSIS.json`; final exact manifest pending.
 
 ## 5. Workers Paid context
 
@@ -36,27 +36,27 @@ No raw tail logs may enter Git. Store only whitelisted route/CPU/wall/status/out
 
 ## 9. Static paths
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Baseline workerd: icon+robots200 with nonce/no-store and absent from direct asset package. Favicon404 and no nonce; social SVG/PNG200 via asset binding; _next/image400 without input; dynamic subpath404 retains nonce.29 direct assets, zero HTML.
 
 ## 10. Middleware
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Current exclusions miss icon/robots and use loose prefix/unescaped-dot patterns. Exact static matching and public file moves planned; HTML nonce logic retained.
 
 ## 11. Cold/warm findings
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Fresh local process /app first261.595ms wall then10.934–18.831ms. Plausible lazy Next/route initialization, not causal proof for owner285/539ms CPU spikes.
 
 ## 12. Startup profile
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Wrangler4.131.1 check startup is verified local Miniflare entry import, not app fetch.16 samples:19.018ms active,2.536ms GC,77.415ms idle. Too sparse for module CPU attribution.
 
 ## 13. Server bundle
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Baseline dryrun9382.72KiB / gzip1759.83KiB. OpenNext global entry imports middleware/images/context; fetch lazily imports server handler. Metafile contains393 inputs, including bundled Next/React and precompiled SSR chunks.
 
 ## 14. Heavy dependencies
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+SSR source maps contain CosmJS, Zod, Decimal, registry and goal-engine sources (inventory in LOCAL_BASELINE_ANALYSIS.json). Signing clients already dynamically imported behind financial refusal. Bundle presence is not proof of per-request execution; no import rewrite justified yet.
 
 ## 15. SSR/CSP
 
@@ -84,11 +84,11 @@ NOT STARTED; will be filled with observed evidence, not assumptions.
 
 ## 21. Measurement tooling
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Bounded wall CLI implemented,19 targeted tests pass. Fixed3 routes,1–20 requests each,10s timeout,2MiB body cap, no credentials/redirects/body/header/raw-error storage. Arithmetic median and nearest-rank p90/p95.
 
 ## 22. Local before/after
 
-NOT STARTED; will be filled with observed evidence, not assumptions.
+Baseline only: local /app median14.188ms, settings13.07ms, icon10.13ms. Matched after run pending; no production improvement claim.
 
 ## 23. Security regressions
 

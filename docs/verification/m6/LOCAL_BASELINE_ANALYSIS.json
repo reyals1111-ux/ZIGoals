@@ -1,0 +1,84 @@
+{
+  "recordedAt": "2026-09-13T22:52:43.988795+00:00",
+  "build": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "31430b75a257345025bff996c55b0f1447b34b31",
+    "dirty": false
+  },
+  "runtime": {
+    "node": "24.19.0",
+    "next": "16.3.5",
+    "opennext": "1.20.6",
+    "wrangler": "4.131.1",
+    "host": "local macOS arm64"
+  },
+  "startup": {
+    "metric": "local_sampled_import_startup_not_invocation_cpu",
+    "windowUs": 102487,
+    "sampledUs": 96433,
+    "activeUs": 19018,
+    "idleUs": 77415,
+    "gcUs": 2536,
+    "sampleCount": 16,
+    "sampledFunctionUs": {
+      "(idle)": 77415,
+      "(program)": 12703,
+      "(garbage collector)": 2536,
+      "(anonymous)": 2514,
+      "construct": 1265
+    }
+  },
+  "dryRunBundle": {
+    "totalKiB": 9382.72,
+    "gzipKiB": 1759.83
+  },
+  "assets": {
+    "count": 29,
+    "htmlCount": 0,
+    "iconDirectAsset": false,
+    "robotsDirectAsset": false
+  },
+  "ssrSourceMapInventory": {
+    "@cosmjs": {
+      "uniqueSourceModules": 174,
+      "originalSourceBytes": 22377
+    },
+    "cosmjs-types": {
+      "uniqueSourceModules": 77,
+      "originalSourceBytes": 8953
+    },
+    "zod": {
+      "uniqueSourceModules": 89,
+      "originalSourceBytes": 847907
+    },
+    "decimal.js": {
+      "uniqueSourceModules": 1,
+      "originalSourceBytes": 127787
+    },
+    "ecosystem-registry": {
+      "uniqueSourceModules": 3,
+      "originalSourceBytes": 63451
+    },
+    "goal-engine": {
+      "uniqueSourceModules": 1,
+      "originalSourceBytes": 9863
+    },
+    "shared-types": {
+      "uniqueSourceModules": 2,
+      "originalSourceBytes": 7375
+    },
+    "polyfill": {
+      "uniqueSourceModules": 1,
+      "originalSourceBytes": 251
+    }
+  },
+  "measurementScriptSha256": "dfb7889270bd16e2d4339658cab029bea0471dc9225bb4e97387421bcf78aae1",
+  "limitations": [
+    "One local startup profile, 16 samples; cannot attribute individual application modules reliably.",
+    "Original source bytes are an inventory, not emitted bundle contribution or executed CPU; dynamically loaded modules may appear.",
+    "Wrangler profile imports the Worker entry but does not invoke the application fetch handler.",
+    "First /app request in a fresh local process; 5 sequential requests per route, 200ms spacing, no warmup. Wall time includes fetch/body/client overhead; not Cloudflare CPU.",
+    "No production measurements or mutations performed."
+  ]
+}
