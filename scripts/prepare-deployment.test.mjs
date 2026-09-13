@@ -49,7 +49,13 @@ test("refuses same-length tampering and independently expected source mismatch",
 });
 const directories = [];
 afterEach(() => { for (const dir of directories.splice(0)) rmSync(dir, { recursive: true, force: true }); });
-test.each(["single", "bytes", "source", "environment", "validator"])("CLI preparation rejects %s before any network request", async kind => {
+test.each([
+  ["single", "Candidate requires two independently verified builds"],
+  ["bytes", "Actual Wasm bytes/hash/size mismatch"],
+  ["source", "Source tree, Cargo.lock or source-date epoch differs from the trusted commit"],
+  ["environment", "manifest.environment.node: wrong constant"],
+  ["validator", "spawnSync /nonexistent/trusted-validator ENOENT"],
+])("CLI preparation rejects %s before any network request", async (kind, expectedError) => {
   const { prepareDeployment } = await import("./prepare-deployment.mjs");
   const dir = mkdtempSync(join(tmpdir(), "zigoals-preparation-")); directories.push(dir);
   const report = candidate(); const wasm = Buffer.from(bytes);
@@ -60,6 +66,6 @@ test.each(["single", "bytes", "source", "environment", "validator"])("CLI prepar
   writeFileSync(join(dir, "artifact-manifest.json"), JSON.stringify(report));
   writeFileSync(join(dir, "zigoals_goal_manager.wasm"), wasm);
   const fetcher = vi.fn();
-  await expect(prepareDeployment({ expectedCommit, candidateDir: dir, validator: "/nonexistent/trusted-validator" }, fetcher)).rejects.toThrow();
+  await expect(prepareDeployment({ expectedCommit, candidateDir: dir, validator: "/nonexistent/trusted-validator" }, fetcher)).rejects.toThrow(expectedError);
   expect(fetcher).not.toHaveBeenCalled();
 });
