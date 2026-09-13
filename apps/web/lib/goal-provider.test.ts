@@ -342,3 +342,103 @@ test("recovered receipt proof replaces a live uncertain outcome", async () => {
   expect(result).toContain("Confirmed on testnet at block 12");
   expect(result).not.toContain("Confirmation is uncertain");
 });
+
+test.each(["available", "unavailable"])(
+  "damaged history survives receipt lookup failure and resets warnings for a new %s scope",
+  async (nextStorage) => {
+    const journal = new TransactionJournal();
+    const operation = newOperation({
+      chainId: "zig-test-2",
+      wallet: ownerA,
+      contract: "zig1contract",
+      action: "create",
+      amount: "0",
+      denom: "azig",
+    });
+    const damaged = {
+      operationId: "future-record",
+      version: 999,
+      original: "preserve original content",
+    };
+    await act(async () => {
+      await journal.create(operation);
+      await journal.transition(operation.operationId, {
+        state: "BROADCASTING",
+        hash: "A".repeat(64),
+      });
+      await journal.transition(operation.operationId, {
+        state: "UNKNOWN_AFTER_BROADCAST",
+      });
+      await journal.create(
+        newOperation({
+          chainId: "zig-test-2",
+          wallet: ownerB,
+          contract: "zig1contract",
+          action: "create",
+          amount: "0",
+          denom: "azig",
+        }),
+      );
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open("zigoals:transaction-journal", 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      await new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction("operations", "readwrite");
+        transaction.objectStore("operations").put(damaged);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+      db.close();
+    });
+    api.reconcile.mockRejectedValueOnce(Error("Alice receipt lookup failed"));
+    await click("Connect Keplr");
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    });
+    expect(container.textContent).toContain("Unreadable or unsupported");
+    expect(container.textContent).toContain("Alice receipt lookup failed");
+    expect(container.textContent).toContain("Confirmation is uncertain");
+    expect(container.textContent).toContain("A".repeat(64));
+    const load =
+      nextStorage === "unavailable"
+        ? vi
+            .spyOn(TransactionJournal.prototype, "load")
+            .mockRejectedValue(Error("Bob journal unavailable"))
+        : undefined;
+    try {
+      api.connect.mockResolvedValue(ownerB);
+      await act(async () => {
+        window.dispatchEvent(new Event("keplr_keystorechange"));
+      });
+      await click("Connect Keplr");
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      });
+      expect(container.textContent).not.toContain(
+        "Alice receipt lookup failed",
+      );
+      if (nextStorage === "available")
+        expect(container.textContent).toContain("Unreadable or unsupported");
+      else {
+        expect(container.textContent).toContain("Bob journal unavailable");
+        expect(container.textContent).not.toContain(
+          "Unreadable or unsupported",
+        );
+      }
+    } finally {
+      load?.mockRestore();
+    }
+    const retained = await journal.load("zig-test-2", ownerA);
+    expect(retained.records).toMatchObject([
+      {
+        operationId: operation.operationId,
+        state: "UNKNOWN_AFTER_BROADCAST",
+        hash: "A".repeat(64),
+      },
+    ]);
+    expect(retained.warnings.join(" ")).toContain("Unreadable or unsupported");
+    expect(api.execute).not.toHaveBeenCalled();
+  },
+);

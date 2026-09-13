@@ -213,12 +213,18 @@ function useGoalState() {
           ]);
         }
       } catch (error) {
-        if (!stopped)
-          setJournalWarnings([
+        if (!stopped) {
+          const warning =
             error instanceof Error
               ? error.message
-              : "Transaction history is unavailable. Stored data was preserved.",
-          ]);
+              : "Transaction history is unavailable. Stored data was preserved.";
+          // Only merge warnings after this scope has loaded its own history.
+          // A first-load failure must replace any previous account's warnings.
+          const resetWarnings = firstLoad;
+          setJournalWarnings((previous) =>
+            resetWarnings ? [warning] : [...new Set([...previous, warning])],
+          );
+        }
       } finally {
         loading = false;
         if (reloadRequested && !stopped) {
