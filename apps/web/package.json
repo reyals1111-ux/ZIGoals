@@ -5,28 +5,33 @@
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3100",
     "build": "next build",
-    "start": "next start --hostname 127.0.0.1 --port 3100"
+    "start": "next start --hostname 127.0.0.1 --port 3100",
+    "build:alpha": "node scripts/build-alpha.mjs",
+    "preview:alpha": "wrangler dev --config wrangler.alpha.jsonc --ip 127.0.0.1 --port 8788",
+    "check:alpha": "wrangler deploy --config wrangler.alpha.jsonc --dry-run"
   },
   "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "0.38.1",
+    "@cosmjs/encoding": "0.38.1",
+    "@cosmjs/proto-signing": "0.38.1",
+    "@cosmjs/stargate": "0.38.1",
+    "@zigoals/chain-config": "workspace:*",
+    "@zigoals/ecosystem-registry": "workspace:*",
+    "@zigoals/goal-engine": "workspace:*",
+    "@zigoals/shared-types": "workspace:*",
+    "@zigoals/strategy-types": "workspace:*",
+    "cosmjs-types": "0.11.0",
+    "decimal.js": "10.6.0",
     "next": "16.3.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "@zigoals/goal-engine": "workspace:*",
-    "@zigoals/chain-config": "workspace:*",
-    "@zigoals/shared-types": "workspace:*",
-    "@zigoals/strategy-types": "workspace:*",
-    "@cosmjs/cosmwasm-stargate": "0.38.1",
-    "@cosmjs/stargate": "0.38.1",
-    "@cosmjs/proto-signing": "0.38.1",
-    "@cosmjs/encoding": "0.38.1",
-    "cosmjs-types": "0.11.0",
-    "decimal.js": "10.6.0",
-    "zod": "4.6.2",
-    "@zigoals/ecosystem-registry": "workspace:*"
+    "zod": "4.6.2"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.6",
+    "@playwright/test": "1.63.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "@playwright/test": "1.63.0"
+    "wrangler": "4.131.1"
   }
 }

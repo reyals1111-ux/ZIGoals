@@ -1,12 +1,8 @@
-import {
-  CosmWasmClient,
-  SigningCosmWasmClient,
-} from "@cosmjs/cosmwasm-stargate";
-import { calculateFee, GasPrice } from "@cosmjs/stargate";
+import { assertFinancialExecutionAllowed } from "./app-environment";
+import { parseBalance, parseGoalPage } from "./rpc-response";
 import { fromBech32, toUtf8 } from "@cosmjs/encoding";
 import type { OfflineSigner, EncodeObject } from "@cosmjs/proto-signing";
-import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import type { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
   TESTNET,
   verifyNetwork,
@@ -79,17 +75,12 @@ export async function readBalance(address: string): Promise<string> {
   );
   if (!response.ok) throw Error("Testnet balance is unavailable.");
   const data = await response.json();
-  if (
-    !data.balance ||
-    data.balance.denom !== TESTNET.nativeAsset.baseDenom ||
-    !/^\d+$/.test(data.balance.amount)
-  )
-    throw Error("Testnet returned an invalid balance.");
-  return data.balance.amount;
+  return parseBalance(data);
 }
 async function verifiedClient() {
   const manifest = requireConfiguredDeployment();
   await verifyNetwork(TESTNET, fetch, manifest.chainVersion);
+  const { CosmWasmClient } = await import("@cosmjs/cosmwasm-stargate");
   const client = await CosmWasmClient.connect(TESTNET.rpcUrl);
   try {
     if ((await client.getChainId()) !== TESTNET.chainId)
@@ -110,22 +101,13 @@ export async function readGoals(owner: string): Promise<Goal[]> {
     const goals: Goal[] = [];
     let start_after: string | undefined;
     for (let page = 0; page < 100; page++) {
-      const response = (await client.queryContractSmart(CONTRACT_ADDRESS, {
+      const response = await client.queryContractSmart(CONTRACT_ADDRESS, {
         goals_by_owner: { owner, start_after, limit: 100 },
-      })) as { goals: Goal[] };
-      if (
-        !Array.isArray(response.goals) ||
-        response.goals.some(
-          (g) =>
-            g.owner !== owner ||
-            g.base_denom !== TESTNET.nativeAsset.baseDenom ||
-            !/^\d+$/.test(g.position_units),
-        )
-      )
-        throw Error("Invalid Goal Manager response.");
-      goals.push(...response.goals);
-      if (response.goals.length < 100) return goals;
-      start_after = response.goals.at(-1)?.id;
+      });
+      const parsed = parseGoalPage(response, owner, start_after);
+      goals.push(...parsed);
+      if (parsed.length < 100) return goals;
+      start_after = parsed.at(-1)?.id;
     }
     throw Error("Goal list is too large to load completely.");
   } finally {
@@ -149,6 +131,12 @@ export async function quoteExecute(
   msg: ExecuteMsg,
   amount = "0",
 ): Promise<Quote> {
+  assertFinancialExecutionAllowed();
+  const [{ SigningCosmWasmClient }, { calculateFee, GasPrice }, { MsgExecuteContract }] = await Promise.all([
+    import("@cosmjs/cosmwasm-stargate"),
+    import("@cosmjs/stargate"),
+    import("cosmjs-types/cosmwasm/wasm/v1/tx"),
+  ]);
   const check = await verifiedClient();
   check.disconnect();
   const key = await keplr.getKey(TESTNET.chainId);
@@ -211,6 +199,12 @@ export async function executeQuote(
   onState: TransactionUpdate,
   operationId?: string,
 ): Promise<Confirmed> {
+  assertFinancialExecutionAllowed();
+  requireConfiguredDeployment();
+  const [{ SigningCosmWasmClient }, { TxRaw }] = await Promise.all([
+    import("@cosmjs/cosmwasm-stargate"),
+    import("cosmjs-types/cosmos/tx/v1beta1/tx"),
+  ]);
   const assertCurrent = () => {
     if (currentRevision() !== quote.revision || Date.now() > quote.expiresAt)
       throw Error("Wallet or fee estimate changed. Review the action again.");
@@ -296,6 +290,7 @@ export async function executeQuote(
             throw Error("This operation cannot be broadcast again.");
         },
         sign: async () => {
+          assertFinancialExecutionAllowed();
           const verified = await verifiedClient();
           verified.disconnect();
           await fresh();
@@ -303,7 +298,11 @@ export async function executeQuote(
             await client.sign(quote.owner, [quote.message], quote.fee, ""),
           ).finish();
         },
-        broadcast: (bytes) => client.broadcastTxSync(bytes),
+        broadcast: (bytes) => {
+          assertFinancialExecutionAllowed();
+          requireConfiguredDeployment();
+          return client.broadcastTxSync(bytes);
+        },
         confirm: async (hash) => {
           const end = Date.now() + 60000;
           while (Date.now() < end) {
@@ -340,6 +339,7 @@ export async function reconcileTransactions(
     return { records: [] as JournalRecord[], warnings: [] as string[] };
   const recovered: JournalRecord[] = [];
   const warnings: string[] = [];
+  const { CosmWasmClient } = await import("@cosmjs/cosmwasm-stargate");
   const client = await receiptDeadline(CosmWasmClient.connect(TESTNET.rpcUrl));
   try {
     for (const record of candidates) {

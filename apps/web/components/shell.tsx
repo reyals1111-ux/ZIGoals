@@ -1,4 +1,5 @@
 "use client";
+import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
@@ -18,8 +19,8 @@ export function Shell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <div className="network-banner">
-        <strong>ZIGCHAIN TESTNET</strong>
-        <span>Demo assets have no monetary value.</span>
+        <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
+        <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
       </div>
       <header>
         <Link href="/app" className="brand" aria-label="ZIGoals home">
@@ -72,7 +73,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <span className="mode-dot" />
           {s.mode === "local"
             ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
-            : `KEPLR TESTNET · Mode: this tab · ${s.walletState.replaceAll("_", " ").toLowerCase()}`}
+            : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`}
           <span className="wallet-balance">
             {formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG{" "}
             {s.mode === "local" ? "demo balance" : "wallet balance"}
@@ -143,10 +144,11 @@ export function Shell({ children }: { children: ReactNode }) {
         )}
         <main id="main">{children}</main>
         <footer>
-          <span>Your goals. Onchain.</span>
+          <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
           <span>
             Independent project · Unaudited alpha · Idle strategy only
           </span>
+          <span><a href="https://github.com/reyals1111-ux/ZIGoals/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer">Report a bug</a> · <a href="mailto:hello@zigoals.app">Private security contact</a> · Never share secrets, private backups or wallet details.</span>
         </footer>
       </div>
       {s.pending && (

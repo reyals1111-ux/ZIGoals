@@ -1,4 +1,5 @@
 "use client";
+import { FINANCIAL_EXECUTION_ALLOWED, assertFinancialExecutionAllowed } from "../lib/app-environment";
 import {
   createContext,
   useContext,
@@ -467,6 +468,7 @@ function useGoalState() {
           records.records,
           CONTRACT_ADDRESS,
         );
+        assertFinancialExecutionAllowed();
         const quote = await quoteExecute(
           window.keplr,
           owner,
@@ -800,7 +802,7 @@ function useGoalState() {
       loaded &&
       (mode === "local"
         ? localLedgerHealthy
-        : walletState === "CONNECTED" && !!CONTRACT_ADDRESS),
+        : FINANCIAL_EXECUTION_ALLOWED && walletState === "CONNECTED" && !!CONTRACT_ADDRESS),
   };
 }
 type GoalContext = ReturnType<typeof useGoalState>;

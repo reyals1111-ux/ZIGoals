@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { TESTNET, formatUnits } from "@zigoals/chain-config";
+import { APP_ENVIRONMENT } from "../lib/app-environment";
+import { diagnosticSummary } from "../lib/diagnostic-summary";
 import { deployment } from "../lib/deployment-config";
 import {
   readDiagnostics,
@@ -20,6 +22,8 @@ export function ConnectionDiagnostics({
   const [result, setResult] = useState<Diagnostics | null>(null);
   const [checking, setChecking] = useState(false);
   const generation = useRef(0);
+  const [copyStatus, setCopyStatus] = useState("");
+  const [fallback, setFallback] = useState("");
   useEffect(
     () => () => {
       generation.current++;
@@ -34,6 +38,30 @@ export function ConnectionDiagnostics({
       if (id === generation.current) setResult(next);
     } finally {
       if (id === generation.current) setChecking(false);
+    }
+  }
+  async function copySummary() {
+    const summary = diagnosticSummary({
+      environment: APP_ENVIRONMENT,
+      version: process.env.NEXT_PUBLIC_APP_VERSION ?? "",
+      commit: process.env.NEXT_PUBLIC_APP_COMMIT ?? "",
+      scope: chain === TESTNET.chainId ? "testnet" : "local",
+      rpc: result ? result.rpc.ok ? "healthy" : "unavailable" : "not checked",
+      rest: result ? result.rest.ok ? "healthy" : "unavailable" : "not checked",
+      checkedAt: result?.checkedAt,
+    });
+    const id = generation.current;
+    try {
+      await navigator.clipboard.writeText(summary);
+      if (id === generation.current) {
+        setCopyStatus("Safe diagnostic summary copied.");
+        setFallback("");
+      }
+    } catch {
+      if (id === generation.current) {
+        setFallback(summary);
+        setCopyStatus("Clipboard unavailable. Select and copy the safe summary below.");
+      }
     }
   }
   const manifest = deployment.success ? deployment.data : null;
@@ -137,6 +165,15 @@ export function ConnectionDiagnostics({
       >
         {checking ? "Checking public endpoints…" : "Check connection"}
       </button>
+      <button className="secondary" onClick={() => void copySummary()}>Copy safe diagnostics</button>
+      <p role="status">{copyStatus}</p>
+      {fallback && (
+        <label>
+          Safe diagnostic summary
+          <textarea readOnly value={fallback} rows={11}
+            onFocus={event => event.currentTarget.select()} />
+        </label>
+      )}
       <p className="fine" role="status">
         Checks query public RPC/REST endpoints. No wallet approval or
         transaction is requested. Endpoint responses are trusted observations,

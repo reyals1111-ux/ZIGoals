@@ -75,6 +75,7 @@ function networkResponse(url: string) {
 }
 beforeEach(() => {
   vi.resetModules();
+  vi.stubEnv("NEXT_PUBLIC_APP_ENVIRONMENT", "TESTNET_DEPLOYED");
   vi.stubGlobal("indexedDB", new IDBFactory());
   vi.stubEnv("NEXT_PUBLIC_GOAL_MANAGER_ADDRESS", contract);
   vi.stubEnv("NEXT_PUBLIC_GOAL_MANAGER_CODE_ID", "7");
@@ -440,4 +441,41 @@ test("changed chain software blocks financial preflight before signer acquisitio
     quoteExecute(wallet().keplr, owner, 1, { create_goal: {} }),
   ).rejects.toThrow(/Network or denomination changed/);
   expect(clients.signing).not.toHaveBeenCalled();
+});
+
+test.each(["PUBLIC_ALPHA_UNDEPLOYED", "LOCAL_DEMO", "garbage", "", undefined])("mode %s blocks direct quote and execution despite valid deployment", async (mode) => {
+  vi.stubEnv("NEXT_PUBLIC_APP_ENVIRONMENT", mode);
+  clients.read.mockResolvedValue(readClient());
+  const { quoteExecute, executeQuote } = await import("./wallet");
+  const keplr = wallet().keplr;
+  const signer = vi.spyOn(keplr, "getOfflineSignerAuto");
+  await expect(quoteExecute(keplr, owner, 1, { create_goal: {} })).rejects.toThrow("Financial actions are unavailable");
+  await expect(executeQuote(keplr, {} as import("./wallet").Quote, () => 1, () => {})).rejects.toThrow("Financial actions are unavailable");
+  expect(signer).not.toHaveBeenCalled();
+  expect(clients.signing).not.toHaveBeenCalled();
+});
+
+test("public build refuses an otherwise valid previously prepared deployed quote", async () => {
+  clients.read.mockResolvedValue(readClient());
+  const signing = {getChainId:async()=>TESTNET.chainId,simulate:async()=>100000,disconnect:vi.fn(),sign:vi.fn(),broadcastTxSync:vi.fn()};
+  clients.signing.mockResolvedValue(signing);
+  const keplr = wallet().keplr;
+  const { quoteExecute } = await import("./wallet");
+  const quote = await quoteExecute(keplr,owner,1,{create_goal:{}});
+  vi.stubEnv("NEXT_PUBLIC_APP_ENVIRONMENT","PUBLIC_ALPHA_UNDEPLOYED");
+  vi.resetModules();
+  const getSigner = vi.spyOn(keplr,"getOfflineSignerAuto");
+  const {executeQuote} = await import("./wallet");
+  await expect(executeQuote(keplr,quote,()=>1,()=>{})).rejects.toThrow("Financial actions are unavailable");
+  expect(getSigner).not.toHaveBeenCalled();
+  expect(signing.sign).not.toHaveBeenCalled();
+  expect(signing.broadcastTxSync).not.toHaveBeenCalled();
+});
+test("readGoals validates untrusted contract pages and releases its client", async () => {
+  const base = readClient();
+  const read = readClient({queryContractSmart:async(address:string,query:object)=>"goals_by_owner" in query?{goals:[{id:"1",owner,base_denom:"azig",position_units:1}]}:base.queryContractSmart(address,query)});
+  clients.read.mockResolvedValue(read);
+  const {readGoals}=await import("./wallet");
+  await expect(readGoals(owner)).rejects.toThrow("Invalid Goal Manager response");
+  expect(read.disconnect).toHaveBeenCalledOnce();
 });

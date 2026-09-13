@@ -150,3 +150,8 @@ vite.config.ts.timestamp-*
 *.bak-*
 playwright-report/
 test-results/
+
+# Isolated Alpha build output
+.open-next/
+.wrangler/
+.dev.vars*

@@ -24,6 +24,7 @@ const build = publicBuildIdentity();
 const config: NextConfig = {
   devIndicators: false,
   env: {
+    NEXT_PUBLIC_APP_ENVIRONMENT: process.env.NEXT_PUBLIC_APP_ENVIRONMENT ?? "INVALID_CONFIGURATION",
     NEXT_PUBLIC_APP_VERSION: pkg.version,
     NEXT_PUBLIC_APP_COMMIT: build.commit,
     NEXT_PUBLIC_APP_DIRTY: String(build.dirty),
@@ -42,17 +43,10 @@ const config: NextConfig = {
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Referrer-Policy", value: "no-referrer" },
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline'" +
-              (process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "") +
-              "; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com ws://127.0.0.1:3100; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
           },
         ],
       },
