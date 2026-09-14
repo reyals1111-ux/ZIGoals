@@ -1,6 +1,6 @@
 # Public Alpha publication checklist
 
-Current web state: **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE** at https://alpha.zigoals.app/app. The owner also deployed the apex CTA. This checklist governs a future separately owner-approved Alpha update; M5 performs no production mutation and grants no contract/signing/DNS/email permission.
+Current web state: **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE** at https://alpha.zigoals.app/app. **M6: COMPLETED + MERGED + DEPLOYED + OWNER-VERIFIED LIVE**, source `0c953a00d9f3e615289ae286549c74298b95dbdc`, Worker version `00799604-7999-4ef4-b75f-268d8a459f6f`. The owner also deployed the apex CTA. This checklist governs a future separately owner-approved Alpha update; housekeeping performs no production action and grants no contract/signing/DNS/email permission. Current Alpha remains simulation + wallet connection only, Goal Manager/Code ID **NOT DEPLOYED**, no financial signing/broadcast.
 
 ## Required evidence before upload
 
@@ -12,7 +12,7 @@ Current web state: **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE** at https://al
 - Observe request URL, headers and bodies for private sentinel names, targets, dates and notes through tested flows. Record actual public route/transport disclosures; do not promise secrecy from extensions, hosting access logs or compromised origins.
 - Verify diagnostics/clipboard output contains safe build and environment fields, no full account, balances, plan, backup, token or arbitrary error body. Check ordinary bug and private security-contact links.
 - Inspect desktop, small phone, keyboard/reduced-motion, empty/error states and no horizontal overflow. Measure the production asset/runtime baseline.
-- Build and test the actual hosting package in the Workers runtime. Read dry-run output and free-plan compatibility limits. No implicit R2/database/paid-plan creation.
+- Build and test the actual hosting package in the Workers runtime. Read dry-run output and the reviewed current-plan limits. M6's owner-reported plan is Workers Paid; its 2000ms limit is present in deployed config but not separately confirmed by dashboard/version view. No implicit R2/database/paid-plan creation.
 
 ## Isolate publication
 
@@ -25,10 +25,10 @@ Current web state: **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE** at https://al
 
 ## Rollback and handoff
 
-Restore the last verified Alpha Worker version or detach/disable only its Alpha domain/route. Preserve the apex Worker and email. The owner-supplied known-good Alpha version is `c3843317-2105-4a18-bfb3-53067e81999b`; inspect current history and record the actual safe rollback version before any later update. Retain exact package/source evidence and describe the observed failure.
+Restore the last verified Alpha Worker version or detach/disable only its Alpha domain/route. Preserve the apex Worker and email. The owner-verified M6 version is `00799604-7999-4ef4-b75f-268d8a459f6f`; inspect current history and record the actual safe rollback version before any later update. Retain exact package/source evidence and describe the observed failure. Duplicate HSTS and X-Robots-Tag values on dynamic `/app` are a minor cleanup candidate, not a rollback issue.
 
 Browser data belongs to each origin. Changing from a preview hostname to the custom domain does not transfer local plans. Users may export/import their private metadata backup themselves; never collect these backups. A frontend rollback does not erase browser data. Once a contract is deployed, rollback needs a separately reviewed compatibility/exit plan.
 
-Leave the feature PR open and unmerged with actual checks and known limitations. No contract funds exist in this run. Funding, upload permission, real signing and onchain reconciliation remain separate owner-controlled gates.
+M6 implementation PR #6 is merged. Leave the separate housekeeping PR open and unmerged with actual checks and known limitations. Funding, upload permission, real signing and onchain reconciliation remain separate owner-controlled gates.
 
-The first hosted real-Keplr gate is owner-verified at both origins. Retest after a material CSP/wallet update; injected mocks remain a separate regression signal. [M5 evidence](../verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json), [exact Alpha commands](CLOUDFLARE_ALPHA.md), [apex commands](LANDING.md).
+The first hosted real-Keplr gate is owner-verified at both origins. M6 real Keplr/reconnect, Testnet diagnostics and 320px checks passed; icon/robots are direct static assets. [M6 owner evidence](../verification/m6/OWNER_POST_DEPLOY.json) and the [CPU comparison](CPU_OWNER_CHECKLIST.md) close the rollout: static-routing optimization succeeded; dynamic Next/OpenNext SSR CPU did not improve in this window. Retest after a future material CSP/wallet update; injected mocks remain a separate regression signal. [M5 evidence](../verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json), [exact Alpha commands](CLOUDFLARE_ALPHA.md), [apex commands](LANDING.md).
