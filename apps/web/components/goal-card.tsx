@@ -47,7 +47,7 @@ export function GoalCard({
                 : "◎"}
         </span>
         <span className="eyebrow">{plan?.category ?? "Plan unavailable"}</span>
-        <span className="badge">
+        <span className="badge" data-health={goal.status === "closed" ? "CLOSED" : result?.fundingHealth}>
           {goal.status === "closed"
             ? "Closed"
             : (result?.fundingHealth.replaceAll("_", " ") ?? "Recover plan")}
@@ -70,21 +70,25 @@ export function GoalCard({
       </p>
       {result && (
         <>
-          <div
-            className="progress"
-            role="progressbar"
-            aria-label={`${plan?.name} progress`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.min(100, Number(result.progressPct))}
-          >
-            <span
-              style={{ width: `${Math.min(100, Number(result.progressPct))}%` }}
-            />
-          </div>
-          <div className="card-row">
-            <strong>{new Decimal(result.progressPct).toFixed(1)}%</strong>
-            <span>Target {plan?.targetDate}</span>
+          <div className="goal-progress">
+            <div
+              className="goal-progress-ring"
+              role="progressbar"
+              aria-label={`${plan?.name} progress`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.min(100, Number(result.progressPct))}
+            >
+              <svg viewBox="0 0 88 88" aria-hidden="true" focusable="false">
+                <circle className="ring-track" cx="44" cy="44" r="38" />
+                <circle className="ring-value" cx="44" cy="44" r="38" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 44 44)" />
+              </svg>
+              <strong aria-hidden="true">{new Decimal(result.progressPct).toFixed(1)}%</strong>
+            </div>
+            <div className="goal-progress-caption">
+              <strong>Of your goal funded</strong>
+              <span>Target {plan?.targetDate}</span>
+            </div>
           </div>
           <div className="card-bottom">
             <div>

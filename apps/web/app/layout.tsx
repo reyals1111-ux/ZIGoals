@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import "./globals.css";
+import "./visual-theme.css";
 export async function generateMetadata(): Promise<Metadata> {
   // Middleware overwrites this header from the URL being served, never a supplied header.
   const origin = (await headers()).get("x-zigoals-origin");
