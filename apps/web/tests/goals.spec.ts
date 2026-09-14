@@ -221,9 +221,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Turn today’s ZIG into tomorrow’s you." }),
   ).toBeVisible();
-  await expect(
-    page.getByText("LOCAL SIMULATION", { exact: false }),
-  ).toBeVisible();
+  await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.getByRole("link", { name: "Plan my first goal" }).click();
   await page.getByRole("button", { name: "Travel", exact: true }).click();
   await page.getByRole("button", { name: "Continue" }).click();

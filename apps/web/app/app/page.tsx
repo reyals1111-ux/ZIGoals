@@ -55,7 +55,7 @@ export default function Dashboard() {
           <h2 id="destination-title">A destination for<br className="mobile-break" /> your <span className="nebula-text">next chapter.</span></h2>
           <p>
             A home. A safety net. A trip you’ve been waiting for.
-            <br />
+            <br />{" "}
             Give your ZIG a purpose.
           </p>
           <Link href="/app/goals/new" className="primary">
