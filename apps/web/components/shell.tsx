@@ -52,7 +52,7 @@ export function Shell({ children }: { children: ReactNode }) {
             Local demo
           </button>
           <button
-            className="secondary"
+            className="secondary wallet-connect"
             onClick={() => void s.connect()}
             disabled={
               s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
