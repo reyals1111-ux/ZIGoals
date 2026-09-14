@@ -1,6 +1,6 @@
 # Run 6 — CPU efficiency and repeatable measurement
 
-**Local work complete; PR #6 opened and left unmerged.** [Resume state](verification/m6/RESUME_STATE.md) identifies the checkpoint. Final exact-head CI is recorded in the PR description/checks without changing the commit being checked. Production mutations = **NONE**.
+**COMPLETED + MERGED + DEPLOYED + OWNER-VERIFIED LIVE.** [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6) merged at live source `0c953a00d9f3e615289ae286549c74298b95dbdc`; the owner deployed Worker version `00799604-7999-4ef4-b75f-268d8a459f6f` at 100% traffic. [Post-deploy evidence](verification/m6/OWNER_POST_DEPLOY.json) and [resume state](verification/m6/RESUME_STATE.md) close the rollout. Historical implementation/local results below retain their original source scope; this documentation housekeeping performs no production action.
 
 ## 1. Starting main SHA
 
@@ -12,9 +12,9 @@ feat/m6-cpu-efficiency
 
 ## 3. Final branch SHA
 
-Reviewed/tested implementation: `0380e6a6b8b667709c5674c7abb22089674bc509`. The final branch tip including evidence-only documentation is recorded as `headRefOid` in [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6) and in the final handoff. A commit cannot embed its own SHA; no application/test changes follow this tested source.
+Reviewed/tested implementation: `0380e6a6b8b667709c5674c7abb22089674bc509`. Final implementation branch tip including evidence-only documentation: `1ed639df909cf2f8c2f17241fc91264920e570c0`, confirmed by [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6). Merged/live source: `0c953a00d9f3e615289ae286549c74298b95dbdc`. The separate housekeeping branch does not change the deployed source identity.
 
-## 4. Files changed
+## 4. Original implementation files changed
 
 - `README.md`
 - `apps/web/app/layout.tsx`
@@ -53,17 +53,17 @@ Reviewed/tested implementation: `0380e6a6b8b667709c5674c7abb22089674bc509`. The 
 
 OWNER_OBSERVED: Workers Paid, $5/month + usage. Free10ms is no longer the immediate availability constraint. No plan/billing changes by M6.
 
-## 6. Production CPU baseline
+## 6. Historical M5 production CPU baseline
 
 Owner one-hour version-specific sample: P50~67.98ms, P90~160ms, P99/P99.9~200ms;79invocations,74assets,100%asset cache hit,0subrequests/errors. Tiny controlled samples are separate; see CPU_BASELINE.json.
 
-## 7. Controlled route samples
+## 7. Historical M5 controlled route samples
 
 /app [539,26,34,285,23] median34ms; /app/settings [32,18,19,16,18] median18ms; /icon.svg [60,29,12,9,6] median12ms. Wall data unavailable, not invented.
 
 ## 8. Privacy sanitization
 
-Owner data and local wall evidence are sanitized. Tested trace helper constructs only whitelisted scalar fields and rounded UTC hour;13 synthetic privacy/parser tests pass. No live tail opened. Owner recipe disables Wrangler disk logs and pipes directly into sanitizer, never raw files.
+Owner data and local wall evidence are sanitized. Tested trace helper constructs only whitelisted scalar fields and rounded UTC hour;13 synthetic privacy/parser tests pass in the implementation gate. No live tail was opened during implementation. The owner subsequently supplied ten sanitized production records, rechecked from the saved capture during housekeeping. Owner recipe disables Wrangler disk logs and pipes directly into sanitizer, never raw files.
 
 ## 9. Static paths
 
@@ -79,7 +79,7 @@ First fresh-process /app wall261.595→249.302ms with much cheaper later request
 
 ## 12. Startup profile
 
-Local Wrangler startup sampled19.018→17.429ms active,16→15samples. Imports Worker entry without calling app fetch. Sparse/hardware-specific evidence, not invocation CPU or a proven startup win. Deployed startup_time_ms NOT obtained; upload forbidden.
+Local Wrangler startup sampled19.018→17.429ms active,16→15samples. Imports Worker entry without calling app fetch. Sparse/hardware-specific evidence, not invocation CPU or a proven startup win. Deployment startup timing was not obtained during implementation, which did not upload. These local values are not production startup measurements.
 
 ## 13. Server bundle
 
@@ -103,7 +103,7 @@ Current Cloudflare guidance recommends beta vinext and documents existing OpenNe
 
 ## 18. Optimizations implemented
 
-Public icon/robots, explicit icon metadata, tighter matcher, static security headers, proposed2000ms cap/config tests, bounded wall CLI and trace sanitizer. No business logic/contract/dependency/UX changes.
+Public icon/robots, explicit icon metadata, tighter matcher, static security headers, 2000ms cap/config tests, bounded wall CLI and trace sanitizer. These changes are merged and owner-deployed. No business logic/contract/dependency/UX changes.
 
 ## 19. Optimizations rejected
 
@@ -111,7 +111,7 @@ No nonce removal/reuse, unsafe script sources, broad caching, import/tree-shakin
 
 ## 20. CPU cap
 
-2000ms proposed cap,3.71x owner539ms and15x below default30000ms. CPU is not wall time or a monthly spend cap;1102/exceededCpu possible. Requires exact-version owner rollout monitoring; NOT deployed.
+The **2000ms** CPU limit is present in the config deployed from `0c953a00d9f3e615289ae286549c74298b95dbdc`, but **not separately confirmed by dashboard/version view**. It was chosen at3.71x the historical owner539ms sample and15x below the documented30000ms default. CPU is not wall time or a monthly spend cap;1102/`exceededCpu` remains possible. The exact-version last-1h owner window recorded zero `exceededCpu` events; this does not independently prove cap enforcement or future headroom.
 
 ## 21. Measurement tooling
 
@@ -147,30 +147,34 @@ All local gates pass: nonce/injected-script refusal/production script policy/can
 
 ## 29. CI runs
 
-Exact final-head Milestone quality and Canonical reproducibility run IDs/URLs/job outcomes/head are recorded in [PR #6 description/checks](https://github.com/reyals1111-ux/ZIGoals/pull/6/checks) after the evidence checkpoint push. This avoids a documentation commit changing the SHA whose CI it reports. Verify `gh pr view 6 --repo reyals1111-ux/ZIGoals --json headRefOid,statusCheckRollup`. Local commands/results: [LOCAL_VERIFICATION.json](verification/m6/LOCAL_VERIFICATION.json).
+Final implementation-head CI for `1ed639df909cf2f8c2f17241fc91264920e570c0` is recorded in [PR #6 description/checks](https://github.com/reyals1111-ux/ZIGoals/pull/6/checks): [Milestone quality 34789167639](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34789167639) and [Canonical reproducibility 34789167630](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34789167630), both successful. These are historical implementation checks, not new housekeeping test runs. Local commands/results: [LOCAL_VERIFICATION.json](verification/m6/LOCAL_VERIFICATION.json).
 
 ## 30. PR
 
-[PR #6: Milestone 6 — reduce Alpha Worker CPU overhead](https://github.com/reyals1111-ux/ZIGoals/pull/6), main target, unmerged. Connected app creation returned403; existing authenticated GitHub CLI succeeded.
+[PR #6: Milestone 6 — reduce Alpha Worker CPU overhead](https://github.com/reyals1111-ux/ZIGoals/pull/6), merged into main at `0c953a00d9f3e615289ae286549c74298b95dbdc`. GitHub records merge time `2026-09-13T23:27:53Z`. The separate documentation housekeeping PR remains unmerged.
 
 ## 31. Production mutations
 
-NONE. No deployment, rollback, billing, production limit, DNS/email, chain action or outreach.
+Implementation originally performed none. The owner subsequently deployed the reviewed M6 Alpha, including its configured 2000ms CPU limit, as version `00799604-7999-4ef4-b75f-268d8a459f6f`. This housekeeping performs no deployment, rollback, Cloudflare, billing, DNS/email, contract or chain change.
 
-## 32. Owner next steps
+## 32. Owner rollout checks completed
 
-Owner: review PR #6 and exact-head CI; merge only if approved; sync clean exact main; run `pnpm check:deploy-configs`, `pnpm --filter @zigoals/web build:alpha`, `pnpm --filter @zigoals/web check:alpha`; inspect alpha-build.json; record current rollback version; separately approve Alpha deployment; retest CSP/real Keplr/reload/reconnect/mobile/no financial signing; perform CPU_OWNER_CHECKLIST. No apex/contract/billing changes.
+Owner verified the exact deployed version, CSP/security headers, real Keplr connection, Local Demo after refresh, explicit reconnect, Testnet diagnostics and 320px layout. `icon.svg` and `robots.txt` are direct static assets. Current Alpha remains simulation + wallet connection only; Goal Manager/Code ID **NOT DEPLOYED**, no financial signing/broadcast. Duplicate HSTS and X-Robots-Tag values on dynamic `/app` are a minor cleanup candidate, not a rollback issue.
 
 ## 33. Post-deploy measurement
 
-Exact-version one-hour dashboard and15 controlled GET procedure in deployment/CPU_OWNER_CHECKLIST.md. Baseline vs M6 placeholders remain PENDING until owner separately deploys and measures. No live result inferred.
+Completed owner observations are retained in [OWNER_POST_DEPLOY.json](verification/m6/OWNER_POST_DEPLOY.json) and the [CPU comparison/checklist](deployment/CPU_OWNER_CHECKLIST.md). `/app` CPU [524,42,33,28,42], median **42ms** (baseline34ms); `/app/settings` [25,29,26,37,27], median **27ms** (baseline18ms). All ten dynamic records are HTTP200/outcome `ok`. `/icon.svg` has no Worker invocation and five HTTP200 client requests with cache-hit corroboration: **asset bypass / Worker CPU N/A**, not0ms.
+
+Cloudflare exact-version **last 1 hour**: CPU P50 **120ms**, P90 **229ms**, P99 **428ms**, P99.9 **428ms**; **61 invocations**, **12 asset requests**, **100% cache hit**, **0 subrequests**, **0 errors**, **0 exceededCpu events**. The absolute dashboard window was not supplied; the controlled capture records only the rounded UTC hour `2026-09-14T19:00:00.000Z`.
+
+**Static-routing optimization succeeded; dynamic Next/OpenNext SSR CPU did not improve in this window.** Bundle remains **~6.84% smaller**. Neither the controlled medians nor dashboard percentiles demonstrate a dynamic CPU improvement; these are separate small observations, not matched production distributions or causal attribution.
 
 ## 34. Remaining risks
 
-Production CPU/cap enforcement awaits owner rollout. Tiny CPU/wall samples and sparse profile limit attribution. Dynamic HTML remains SSR; local dynamic medians did not improve. A2s cap may terminate legitimate outliers and does not bound monthly spend. Goal Manager/code ID absent; wallet0ZIG; real financial signing NOT RUN.
+Tiny CPU/wall samples and sparse profiles limit attribution; the `/app`524ms spike persists. Dynamic HTML remains SSR and dynamic CPU did not improve in this window. Dashboard/version view did not independently confirm the deployed-config cap; a2s cap may terminate legitimate outliers and does not bound monthly spend. Goal Manager/Code ID absent; wallet last owner-observed0ZIG; real financial signing NOT RUN. Duplicate dynamic HSTS/X-Robots-Tag values remain a minor cleanup candidate.
 
-## 35. Next three performance tasks
+## 35. Next roadmap gate; performance work deferred
 
-1. Owner exact-version postdeploy dashboard/tail comparison, including failures and first requests.
-2. If spikes persist, one targeted invocation profile separating lazy Next/React/route initialization from middleware; change imports only with attribution.
-3. If costs justify it, a separate strict static-shell/hash/SRI or vinext feasibility milestone with equivalent security and matched CPU evidence.
+The post-deploy dashboard/tail comparison is complete. No numbered M7 is currently defined. The next documented product gate is [owner testnet readiness and first idle-contract deployment/exit proof](deployment/OWNER_TESTNET_CHECKLIST.md): obtain test funds and confirmed upload permission, approve the exact attested artifact, then separately authorize deployment and the tiny deposit/partial withdrawal/full withdrawal/close checks. The existing candidate is still **ATTESTED_CANDIDATE_NOT_APPROVED** for its own source, not for M6. This identifies the gate without starting it. Simulation-only feedback can use the existing [Alpha tester guide](testing/ALPHA_TESTER_GUIDE.md).
+
+Astra Run #7 is deferred. If separately prioritized later, the next CPU investigation should attribute persistent lazy Next/React/route initialization versus middleware costs before changing imports. A static-shell/hash/SRI or vinext experiment remains a separate feasibility decision requiring equivalent security and matched CPU evidence.

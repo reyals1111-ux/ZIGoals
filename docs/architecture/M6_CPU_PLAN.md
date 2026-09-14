@@ -1,5 +1,7 @@
 # M6 CPU efficiency plan
 
+**Historical implementation plan; rollout closed.** M6 is **COMPLETED + MERGED + DEPLOYED + OWNER-VERIFIED LIVE**, source `0c953a00d9f3e615289ae286549c74298b95dbdc`, Worker version `00799604-7999-4ef4-b75f-268d8a459f6f`. The original execution scope below ended at an unmerged PR; the owner subsequently merged, deployed and verified it. See the [completed report](../RUN_6_REPORT.md) and [owner post-deploy evidence](../verification/m6/OWNER_POST_DEPLOY.json). Future-tense steps below are retained as the original plan, not outstanding tasks or authorization to repeat them.
+
 Scope is bounded performance hardening of the existing Next/OpenNext app. Preserve per-response nonce CSP, current UX, local privacy, explicit reconnect and financial refusal. User authorizes conservative implementation decisions without additional design approval; no production mutation. Work directly in the requested checkout/branch. No migration, dependency upgrade or speculative refactor.
 
 ## Cluster 0 — durable scaffold and owner baseline
