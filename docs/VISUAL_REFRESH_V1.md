@@ -1,8 +1,9 @@
 # Visual Refresh v1 — checkpoint
 - Base: `4dd859db5ea1f20fe14cc8c3c3a70b728b55fbcb`; branch: `feat/visual-refresh-v1`.
 - COMPLETE: shared surface/color/health/motion tokens, navigation, safety banner and wallet/button styling. Targeted ESLint and repository typecheck passed.
-- NOT STARTED: dashboard hero, orbital empty state, stat hierarchy and Goal-card progress rings.
-- NOT STARTED: focused production browser tests, desktop/320×800 screenshots, Alpha build/dry-run and unmerged PR.
+- COMPLETE: dashboard hero, orbital SVG empty state, stat hierarchy, circular Goal progress and health colors; calculations unchanged.
+- IN PROGRESS: focused production browser tests, desktop/320×800 screenshots and Alpha build/dry-run. NOT STARTED: unmerged PR.
 - Safety boundary: presentation only; wallet, financial guards, private data, contracts, CSP, static routing and Cloudflare configuration unchanged. No deployment or merge.
-- Resume: finish shared-style validation/checkpoint, then dashboard markup/styles; use targeted tests and one production visual inspection.
+- Validation: relevant ESLint, typecheck and 57 targeted wallet/public-safety tests passed. Browser tests are prepared but not yet run.
+- Resume: build with `pnpm --filter @zigoals/web build:alpha`, then `check:alpha`; run dashboard/goals/wallet-reload/public-alpha Playwright tests against a local Alpha preview and inspect screenshots.
 - Deferred to Visual Refresh v2: dedicated secondary-page layouts, cinematic imagery and further motion polish.

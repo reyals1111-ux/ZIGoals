@@ -219,7 +219,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/app");
   await expect(
-    page.getByRole("heading", { name: "Your goals." }),
+    page.getByRole("heading", { name: "Turn today’s ZIG into tomorrow’s you." }),
   ).toBeVisible();
   await expect(
     page.getByText("LOCAL SIMULATION", { exact: false }),
@@ -256,6 +256,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Kyoto in spring" }),
   ).toBeVisible();
+  await expect(page.getByRole("progressbar", { name: "Kyoto in spring progress" })).toHaveAttribute("aria-valuenow", /^8\.333/);
   await page.screenshot({
     path: `/tmp/zigoals-${testInfo.project.name}-dashboard.png`,
     fullPage: true,
