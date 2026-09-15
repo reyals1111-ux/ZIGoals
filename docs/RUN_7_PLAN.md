@@ -15,7 +15,7 @@
 - CSS/SVG art only; no raster mockup background, remote fonts, chart/animation library, or CSP relaxation.
 
 ## Composition and design decisions
-- 224px desktop sidebar; content split into wide cinematic primary column and quieter 300px companion rail at 1440px. Tablet reduces the rail; mobile has a compact header/core navigation and a deliberate short daily summary.
+- 216px desktop sidebar (190px on smaller desktops); content split into wide cinematic primary column and quieter 300px companion rail at 1440px. Tablet reduces the rail; mobile has a compact header/core navigation and a deliberate short daily summary.
 - A curved planetary horizon, sparse stars, nebula glow and original destination art recreate the reference's depth. Build individual vector layers, never a screenshot backdrop.
 - Four surface levels and semantic nebula/health tokens; Goals use orbit rings, Habits cadence/heatmaps, Health aurora/gauges, Activity a timeline.
 - Three original ZG marks live in `docs/brand/run7/`; chosen SVG in public assets is consumed by one BrandMark. Existing static `/icon.svg` route stays static.
@@ -36,7 +36,7 @@
 - [x] **6 Health:** `lib/health.ts`, `lib/health.test.ts`, `components/health/`, `app/app/health/page.tsx`; targets, foods, meal diary/edit/removal, deterministic recipe calculations, weight/trend/history, manual activity. Test arithmetic, units, recipe snapshots, corrections, reload/corruption/exports and sentinel egress; checkpoint.
 - [x] **7 Integration:** local unified activity, Ecosystem presentation retaining exact statuses, grouped Settings with secondary diagnostics and separate private exports. Migration test with representative V1 Goal/reconnect keys; checkpoint.
 - [x] **8 Refinement:** up to three substantive 1440px comparisons to the reference, then 1280/768/390/320×800; keyboard/focus/reduced motion and touch controls. No fake state or dead actions. Save screenshots and checkpoint.
-- [ ] **9 Gate:** full lint/types/JS tests, production Next build, OpenNext Alpha build/dry-run, deployment-config validation, relevant desktop/mobile/workerd/CSP/wallet/private-egress suites. No local Rust rebuild. Measure gzip delta from ~1623 KiB; investigate >10%. One final bounded independent read-only review, resolve real issues, checkpoint/push, open PR, inspect/fix CI, final visual package.
+- [x] **9 Gate:** full lint/types/JS tests, production Next build, OpenNext Alpha build/dry-run, deployment-config validation, relevant desktop/mobile/workerd/CSP/wallet/private-egress suites. No local Rust rebuild. Gzip grew ~4%. One final bounded independent read-only review completed and its finding fixed. [PR #9](https://github.com/reyals1111-ux/ZIGoals/pull/9) is open/unmerged; all five PR checks passed. Final visual package and evidence are in the report.
 
 ## Execution discipline
 Small coherent commits are pushed at each phase. Pure domain tests precede new behavior; visual changes use browser evidence instead of tests that merely mirror CSS. A bounded Habit and Health implementation track may run alongside shared UI work with exclusive file ownership; integration and all commits remain controlled here. Avoid exploratory agents and repeated whole-suite runs. On a usage/resource warning, finish only the current safe atomic edit, validate, push, record exact remaining work, and stop with no merge.

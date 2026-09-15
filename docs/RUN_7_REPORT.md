@@ -4,6 +4,8 @@
 
 Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`, verified clean main and fetched origin before branching. Branch: `feat/run7-visual-v2-habits-health`. Objective: one ZIGoals product connecting Today, Goals, Habits and Health while preserving every existing financial boundary and broader ZIGChain direction.
 
+**[PR #9 — open and unmerged](https://github.com/reyals1111-ux/ZIGoals/pull/9).** All five PR checks passed on review-package head `2db283ae7cf80ddf6322bcdbd4af6bc2728c9329`. This report's closing update changes documentation only; the PR checks show the latest head status.
+
 | Phase | State | Delivered |
 |---|---|---|
 | 0 Audit/current truth | COMPLETE | Exact base/toolchain/reference verified; current README/STATUS/V1 truth reconciled; historical M4–M6 reports preserved. |
@@ -15,7 +17,7 @@ Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`, verified clean main and fetche
 | 6 Health | COMPLETE | Explicit targets, custom foods, snapshot-safe recipes/diary, integer nutrition, historical dates, weight/trends and manual activity. |
 | 7 Activity/Settings/Ecosystem | COMPLETE | Unified private history plus preserved Goal receipts; truthful integration map; separate backups/imports, grouped Settings and secondary diagnostics. |
 | 8 Visual refinement | COMPLETE | Three meaningful composition passes, final production screenshots; nine routes checked at 1440/1280/768/390/320×800, reduced motion and mobile controls. |
-| 9 Validation/PR/CI | IN PROGRESS | Local gates complete; final unmerged PR and PR-triggered CI inspection next. |
+| 9 Validation/PR/CI | COMPLETE | Local gates complete; PR #9 open/unmerged; web, contract, both canonical builds and byte comparison all passed. |
 
 ## Production and contract truth
 
@@ -46,11 +48,13 @@ Nova Health source was inspected read-only in the documented Hermes dashboard pa
 - Worker upload: **9029.61 KiB**, gzip **1687.49 KiB**. Compared with owner-supplied approximate V1 baselines (~8745/~1623 KiB), growth is ~3.3% raw / **~4.0% gzip**. Below the 10% investigation threshold. New local product modules explain the bounded increase; documentation screenshots are excluded from runtime assets.
 - One independent read-only review: no higher-severity finding. A P3 rejected Health draft issue was reproduced and fixed; desktop/mobile regression passed. The full suite also exposed a text-selector mismatch from a decorative wallet arrow; using SVG preserved the exact original label and all 20 Goal-provider tests passed.
 
-The final documentation/visual-package commit does not change the validated runtime source. CI status will be recorded after PR creation; no local result is being presented as hosted CI evidence.
+Hosted CI independently passed [Milestone quality](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639247) and [Canonical reproducibility](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639274): **610 JS tests, all 80 desktop/mobile browser tests in one run, 12 focused Workers security tests**, contract checks, both canonical builds and their byte comparison. Hosted Alpha dry run measured 9029.12 KiB / gzip 1687.32 KiB, consistent with the local result. Exact successful check metadata is retained in [ci.json](verification/run7/ci.json). These normal PR reproducibility checks do not issue or approve a release candidate.
+
+The final documentation/visual-package commits do not change the validated runtime source. No local result is being presented as hosted CI evidence. No required product work remains in progress or not started; only the explicitly deferred capabilities below and the owner's visual review remain.
 
 ## Checkpoints
 
-`edb31d6` truth/plan → `b850355` foundation → `42e2e7b` shell → `5b135f6` Habits → `b929d02` Health → `2ddfed0` Today → `3b061c3` Goals → `36ff8f1` private integration → `6889ffe` refined/reviewed implementation → `176f209` Ecosystem test selector. Every checkpoint was pushed.
+`edb31d6` truth/plan → `b850355` foundation → `42e2e7b` shell → `5b135f6` Habits → `b929d02` Health → `2ddfed0` Today → `3b061c3` Goals → `36ff8f1` private integration → `6889ffe` refined/reviewed implementation → `176f209` Ecosystem test selector → `2db283a` visual evidence and local validation. Every checkpoint was pushed. The closing documentation commit records CI without changing application code; its exact head is listed in PR #9.
 
 ## Limits and next owner actions
 

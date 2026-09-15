@@ -58,5 +58,18 @@
   "productionMutations": "NONE",
   "chainActions": "NONE",
   "releaseCandidatesGenerated": "NONE",
-  "prCi": "Pending PR creation"
+  "prCi": {
+    "url": "https://github.com/reyals1111-ux/ZIGoals/pull/9",
+    "head": "2db283ae7cf80ddf6322bcdbd4af6bc2728c9329",
+    "conclusion": "PASS",
+    "checks": 5,
+    "qualityRun": 34958639247,
+    "reproducibilityRun": 34958639274,
+    "jsTestsPassed": 610,
+    "browserTestsPassed": 80,
+    "workersSecurityTestsPassed": 12,
+    "workerUploadKiB": 9029.12,
+    "workerGzipKiB": 1687.32,
+    "note": "Successful review-package head; closing documentation commit changes no application code. Latest head checks are shown on the PR."
+  }
 }
