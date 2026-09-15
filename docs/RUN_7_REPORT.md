@@ -11,8 +11,8 @@ Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. Branch: `feat/run7-visual-v2-h
 | 4 Goals V2 | COMPLETE | Active/All/Closed destinations, guided visual planning, large orbital detail and scoped supporting Habits. Goal Engine math unchanged. Eight focused Goal/recovery/dashboard browser checks and typecheck passed. |
 | 5 Habits | COMPLETE | Private CRUD, daily/weekday rule history, counts, streaks, heatmap, scoped Goal links. 13 domain tests and five desktop/mobile scenarios verified; 320px controls inspected. |
 | 6 Health | COMPLETE | Targets, foods, snapshot-safe recipes/diary, integer macros, weight/trends and manual activity. 22 domain tests and five desktop/mobile scenarios verified; 1440/320 screenshots inspected. |
-| 7 Activity/Ecosystem/Settings | IN PROGRESS | Unified activity, truthful integration map, grouped Settings and safe module-specific backup UI; aggregate import/privacy browser tests next. |
-| 8 Visual refinement | NOT STARTED | 1440/1280/768/390/320 screenshots, accessibility. |
+| 7 Activity/Ecosystem/Settings | COMPLETE | Unified local timeline plus preserved receipts, truthful network map, grouped Settings/secondary diagnostics, separate private exports and confirmed imports. Six desktop/mobile migration/restore/diagnostic checks and desktop sentinel test passed; full production rerun pending. |
+| 8 Visual refinement | IN PROGRESS | Refined horizon, destination art and compact populated cards. Repeatable fictional local fixtures exercise nine routes at five widths. Final screenshots next. |
 | 9 Validation/PR/CI | NOT STARTED | Full relevant web gate; no local Rust rebuild. |
 
 Current production is owner-verified V1: `zigoals-alpha` / `af45987b-f792-4755-a9e6-f58bb49f0cfe`, source equal to the base above. Rollback `00799604-7999-4ef4-b75f-268d8a459f6f`. Goal Manager/Code ID **NOT DEPLOYED**. Simulation + wallet connection only; financial signing/broadcast disabled. Production mutations in Run #7: **NONE**.
@@ -32,3 +32,5 @@ Habits commit: `5b135f6`. Health schema, precision, snapshot semantics and limit
 Health commit: `b929d02`. Today screenshot pass 1 is recorded under `/tmp/zigoals-run7-today-pass1`; final curated screenshots will be committed after Phase 8. Goal card artwork is presentation only; Goal Engine calls and values are unchanged.
 
 Today checkpoint: `2ddfed0`. Goals presentation preserves all existing prepare/withdraw/close guards and financial calculations. Ecosystem/Settings styles share the same V2 surface foundation; integration validation follows.
+
+Goals checkpoint: `3b061c3`. Module backup downloads preserve original malformed bytes; validated imports explicitly replace only the selected module and quarantine the old record. Future schema downgrade is refused. Existing Goal metadata, funds and reconnect namespaces were verified unchanged. Browser privacy captures include request headers, URLs, bodies, console and wallet-call instrumentation; no sentinel or wallet call observed on the completed desktop pass.

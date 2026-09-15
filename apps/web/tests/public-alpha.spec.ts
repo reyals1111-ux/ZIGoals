@@ -119,6 +119,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   const backup=await page.evaluate(()=>localStorage.getItem("zigoals:metadata:v1:local-simulation:local-demo-user")!);
   const edited=JSON.parse(backup); edited.goals["1"].name=sentinel+"_EDIT"; edited.goals["1"].notes=sentinel+"_NOTE";
   await page.getByLabel("Or paste backup JSON").fill(JSON.stringify(edited)); await page.getByRole("button",{name:"Import backup"}).click();
+  await page.getByText("Advanced Diagnostics", {exact:true}).click();
   await page.getByRole("button",{name:"Check connection"}).click(); await expect(page.getByText("Verified zig-test-2 · height 77")).toBeVisible();
   await page.getByRole("button",{name:"Copy safe diagnostics"}).click();
   const safe=page.getByLabel("Safe diagnostic summary"); await expect(safe).toBeVisible(); expect(await safe.inputValue()).not.toContain(sentinel);

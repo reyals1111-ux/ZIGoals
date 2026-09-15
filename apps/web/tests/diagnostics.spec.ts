@@ -9,6 +9,7 @@ test("read-only diagnostics keep deployment disabled and display separate public
     await route.fulfill({json:body});
   });
   await page.goto('/app/settings');
+  await page.getByText('Advanced Diagnostics', {exact:true}).click();
   const panel=page.getByRole('region',{name:'Connection diagnostics'});
   await expect(panel.getByText('LOCAL SIMULATION',{exact:true})).toBeVisible();
   await expect(panel.getByRole('button',{name:'Check connection'})).toBeEnabled();
