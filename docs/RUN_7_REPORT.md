@@ -1,5 +1,7 @@
 # Astra Run 7 — product expansion and Visual V2
 
+**Latest correction: [V2.1 owner visual-fidelity polish](#v21-owner-visual-fidelity-polish).** The sections above that checkpoint preserve the original V2 implementation evidence.
+
 **[Visual review package](verification/run7/README.md)** · [Today desktop](verification/run7/today-1440.png) · [Today mobile](verification/run7/today-390.png) · [Goals](verification/run7/goals-1440.png) · [Habits](verification/run7/habits-1440.png) · [Health](verification/run7/health-1440.png) · [Logo concepts](brand/run7/concepts.png)
 
 Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`, verified clean main and fetched origin before branching. Branch: `feat/run7-visual-v2-habits-health`. Objective: one ZIGoals product connecting Today, Goals, Habits and Health while preserving every existing financial boundary and broader ZIGChain direction.
@@ -67,8 +69,12 @@ Review the screenshots and three marks, then inspect the PR and optionally run t
 Continuation starts at `85e2a56536d8078da5c7acbcf99c98c0b63fcac3` on the existing Run 7 branch and PR #9. No product architecture or domain logic expansion. Production mutations: **NONE**.
 
 - COMPLETE: inspect owner's final mockup, detailed crops and current V2 screenshot; prepare three text-free cinematic backgrounds plus a mobile hero derivative (247,490 bytes total WebP).
-- IN PROGRESS: all 17 owner corrections: selected navigation, stable varied rings, spectrum text, activity icons, cinematic wallet, hero controls/pillars, destination art, quote removal, page/sidebar/hero/footer continuity, compact account control, Habits/Health palette, dominant wordmark, replaceable existing mark, retained simplified Goal art.
-- NOT STARTED: screenshot refinement, final validation, PR update and CI verification.
+- COMPLETE (implementation): all 17 owner corrections: selected navigation, stable varied rings, spectrum text, activity icons, cinematic wallet, hero controls/pillars, destination art, quote removal, page/sidebar/hero/footer continuity, compact account control, Habits/Health palette, dominant wordmark, replaceable existing mark, retained simplified Goal art.
+- COMPLETE: three desktop refinement passes and 390/320 mobile visual checks. All nine routes fit 1440/1280/768/390/320×800 with reduced motion. A 6px tablet decorative overflow was measured, corrected at its source and the affected gate rerun successfully.
+- IN PROGRESS: final production build/browser/Alpha gates, durable visual package and PR/CI update.
+- NOT STARTED: owner visual review (no merge/deployment).
 - Preserved: all Goal/financial calculations, wallet connect handlers, storage, Habits/Health models, privacy/egress boundaries, contract/release/Cloudflare architecture.
 - Assets and provenance: see `docs/design/V21_ARTWORK.md`. Actual supplied image set contains 18 images; references are matched by content where numbering diverges from the brief.
 - First V2.1 checkpoint: typecheck and changed-component lint passed; desktop visual/identity test passed (1/1), with Today/Habits/Health captures in `/tmp/zigoals-v21-pass1`. Pass 1 found a visible hero/background seam and a tight wallet crop; refine these before final captures. No change to connection handlers or domain functions.
+
+- Second V2.1 checkpoint: full lint, TypeScript, 610/610 JS tests and deployment-config validation PASS. Two V2.1 identity/layout tests PASS. Artwork now totals 294,232 bytes (~287 KiB) including shared starfield/footer crops. Wallet retains the same connect handler; its connected chevron is decorative and the tooltip identifies the existing refresh action.

@@ -24,6 +24,7 @@ export default function Dashboard() {
             <div className="hero-actions"><Link className="primary" href="/app/goals/new">+ Create a goal</Link><a href="#how-it-works" className="secondary"><span className="play-medallion"><AppIcon name="play" luminous/></span> See how it works</a></div>
             <p className="hero-truth">Testnet Alpha · simulated financial progress · private daily tracking</p>
           </div>
+          <p className="hero-slogan" aria-hidden="true">A brighter<br/>tomorrow.</p>
           <div className="hero-pillars" aria-label="Your connected journey">
             <div><span className="icon-medallion"><AppIcon name="goals" size={32} luminous/></span><span><strong>Your goals</strong><small>Give your ZIG a purpose.</small></span></div>
             <div><span className="icon-medallion"><AppIcon name="future" size={30} luminous/></span><span><strong>Your future</strong><small>Build habits. Live well.</small></span></div>

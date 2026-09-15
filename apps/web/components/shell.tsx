@@ -65,6 +65,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
           <button
             className="secondary wallet-connect"
+            title={s.walletState === "CONNECTED" ? "Refresh your Keplr connection" : undefined}
             onClick={() => void s.connect()}
             disabled={
               s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
@@ -81,7 +82,7 @@ export function Shell({ children }: { children: ReactNode }) {
                     ? "Reconnect Keplr"
                     : "Connect Keplr"}
             {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG · Testnet</small>}</span>
-            <AppIcon name={s.walletState === "CONNECTED" ? "refresh" : "arrow"} size={14}/>
+            <AppIcon name={s.walletState === "CONNECTED" ? "chevron" : "arrow"} size={14}/>
           </button>
         </div>
       </header>

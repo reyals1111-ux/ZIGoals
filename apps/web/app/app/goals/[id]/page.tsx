@@ -9,6 +9,7 @@ import { useGoals } from "../../../../components/goal-provider";
 import { GoalWizard } from "../../../../components/goal-wizard";
 import { displayAmount } from "../../../../components/goal-card";
 import { DemoPriceProvider } from "../../../../lib/valuation";
+import { visualTone } from "../../../../components/visual-tone";
 import { SceneArt } from "../../../../components/scene-art";
 import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
 import { CONTRACT_ADDRESS } from "../../../../lib/wallet";
@@ -85,7 +86,7 @@ export default function GoalDetail({
     }
   }
   return (
-    <div className="goal-detail-page">
+    <div className="goal-detail-page" data-tone={visualTone(id)}>
       <Link href="/app/goals" className="text-link">
         ← All goals
       </Link>

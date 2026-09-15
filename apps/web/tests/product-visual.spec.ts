@@ -15,7 +15,10 @@ test("populated product fits every required viewport with reduced motion and sco
       if (name === "habits") await expect(page.getByRole("article", { name: "Review my spending", exact: true })).toBeVisible();
       if (name === "health") await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("Morning oats");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} at ${width}`).toBe(true);
-      if (process.env.RUN7_CAPTURE === "1") await page.screenshot({ path: info.outputPath(`${name}-${width}.png`), fullPage: true, animations: "disabled" });
+      if (process.env.RUN7_CAPTURE === "1") {
+        await page.screenshot({ path: info.outputPath(`${name}-${width}.png`), fullPage: true, animations: "disabled", scale: "css" });
+        if (name === "today") await page.screenshot({ path: info.outputPath(`${name}-${width}-viewport.png`), animations: "disabled", scale: "css" });
+      }
       if (name === "today") expect(await page.locator(".ambient-light").first().evaluate(node => getComputedStyle(node).animationName)).toBe("none");
     }
   }
