@@ -10,7 +10,7 @@ Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. Branch: `feat/run7-visual-v2-h
 | 3 Today | NOT STARTED | Cinematic composition + real module summaries. |
 | 4 Goals V2 | NOT STARTED | Index, wizard/detail presentation, scoped Habit links. |
 | 5 Habits | COMPLETE | Private CRUD, daily/weekday rule history, counts, streaks, heatmap, scoped Goal links. 13 domain tests and five desktop/mobile scenarios verified; 320px controls inspected. |
-| 6 Health | IN PROGRESS | Dedicated implementation track; Nova model reviewed read-only, deterministic domain tests and UI underway. |
+| 6 Health | COMPLETE | Targets, foods, snapshot-safe recipes/diary, integer macros, weight/trends and manual activity. 22 domain tests and five desktop/mobile scenarios verified; 1440/320 screenshots inspected. |
 | 7 Activity/Ecosystem/Settings | NOT STARTED | Unified local history and module backups. |
 | 8 Visual refinement | NOT STARTED | 1440/1280/768/390/320 screenshots, accessibility. |
 | 9 Validation/PR/CI | NOT STARTED | Full relevant web gate; no local Rust rebuild. |
@@ -26,3 +26,5 @@ Phase 0 commit: `edb31d6`. Shell checkpoint: `42e2e7b`. Today integration and Go
 Foundation checkpoint: `b850355`. Shell full typecheck initially identified only in-progress Habit test fixture strictness; those were routed to the module track for correction. No wallet/provider/financial code changed.
 
 Habits checkpoint: strict versioned local schema and historical schedule semantics documented in `product/HABITS_V1.md`. Parent verification: 51 combined Habit/Health/storage/date tests passed. No existing Goal key or financial calculation changed.
+
+Habits commit: `5b135f6`. Health schema, precision, snapshot semantics and limitations: `product/HEALTH_V1.md`. Both modules remain independent of wallet and Goal namespaces. Settings backup UI and aggregate privacy tests remain Phase 7/9 work.
