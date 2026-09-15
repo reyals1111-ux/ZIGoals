@@ -13,7 +13,7 @@ Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. Branch: `feat/run7-visual-v2-h
 | 6 Health | COMPLETE | Targets, foods, snapshot-safe recipes/diary, integer macros, weight/trends and manual activity. 22 domain tests and five desktop/mobile scenarios verified; 1440/320 screenshots inspected. |
 | 7 Activity/Ecosystem/Settings | COMPLETE | Unified local timeline plus preserved receipts, truthful network map, grouped Settings/secondary diagnostics, separate private exports and confirmed imports. Six desktop/mobile migration/restore/diagnostic checks and desktop sentinel test passed; full production rerun pending. |
 | 8 Visual refinement | IN PROGRESS | Refined horizon, destination art and compact populated cards. Repeatable fictional local fixtures exercise nine routes at five widths. Final screenshots next. |
-| 9 Validation/PR/CI | NOT STARTED | Full relevant web gate; no local Rust rebuild. |
+| 9 Validation/PR/CI | IN PROGRESS | Full lint, TypeScript and 610 JS tests passed. Config/credential checks passed. Production Next/Alpha builds, final browser/security checks and PR/CI next. |
 
 Current production is owner-verified V1: `zigoals-alpha` / `af45987b-f792-4755-a9e6-f58bb49f0cfe`, source equal to the base above. Rollback `00799604-7999-4ef4-b75f-268d8a459f6f`. Goal Manager/Code ID **NOT DEPLOYED**. Simulation + wallet connection only; financial signing/broadcast disabled. Production mutations in Run #7: **NONE**.
 
@@ -34,3 +34,7 @@ Health commit: `b929d02`. Today screenshot pass 1 is recorded under `/tmp/zigoal
 Today checkpoint: `2ddfed0`. Goals presentation preserves all existing prepare/withdraw/close guards and financial calculations. Ecosystem/Settings styles share the same V2 surface foundation; integration validation follows.
 
 Goals checkpoint: `3b061c3`. Module backup downloads preserve original malformed bytes; validated imports explicitly replace only the selected module and quarantine the old record. Future schema downgrade is refused. Existing Goal metadata, funds and reconnect namespaces were verified unchanged. Browser privacy captures include request headers, URLs, bodies, console and wallet-call instrumentation; no sentinel or wallet call observed on the completed desktop pass.
+
+Integration checkpoint: `36ff8f1`. Independent read-only review found one minor rejected-Health-draft issue; corrected shared mutation error handling preserves drafts when the stored record still reads, while corrupted records stay blocked. Targeted desktop/mobile regression and aggregate sentinel checks: 4/4 passed. Full Goal-provider tests: 20/20 after replacing the decorative wallet arrow with an SVG (exact labels retained). No higher-severity finding.
+
+Visual pass 2: populated screenshots inspected for Today, Goals/detail/create, Habits and Health. Nine routes fit all five required widths; final refinements condense mobile check-ins, style filters, add real streak/linked-Goal and Health macro/weight/step summaries, and retain semantic controls. Local fictional fixtures are test-only. Production build and final screenshot gate are next.

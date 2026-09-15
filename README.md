@@ -1,5 +1,5 @@
 # ZIGoals
-The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
+**Goals, Habits & Health.** The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
 
 Milestones 1–4 provide an **unaudited Alpha implementation**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
 
@@ -8,6 +8,8 @@ The Alpha includes durable scoped testnet transaction outcomes, known-receipt re
 Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
 
 The owner has deployed Visual Refresh v1 (merged PR #8) on the public web Alpha. M6 and PR #7 housekeeping remain completed historical work. Run #7 adds a unified Today / Goals / Habits / Health experience on a feature branch; production remains unchanged. The Apache-2.0 license is retained.
+
+Run #7 adds private Habit schedules/streaks, nutrition/recipes/weight tracking and one connected Today dashboard. The [V2 product specification](docs/product/VISUAL_V2.md) explains the routes, data model and visual system; the [Run #7 report](docs/RUN_7_REPORT.md) records review evidence. Health/Habit data stays in this browser and has separate versioned backups in Settings. No cloud sync or medical/AI backend is implied.
 
 ## Run locally
 

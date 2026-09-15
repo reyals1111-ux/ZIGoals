@@ -1,5 +1,24 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test("rejected food validation keeps the draft and existing private records recoverable", async ({ page }) => {
+  await page.goto("/app/health");
+  await food(page, "Existing oats");
+  const original = await page.evaluate(() => localStorage.getItem("zigoals:health:v1"));
+  await page.getByRole("button", { name: "New food", exact: true }).click();
+  const form = page.getByRole("form", { name: "Food details" });
+  for (const [label, value] of [["Food name", "   "], ["Serving weight (g)", "80"], ["Calories (kcal)", "120"], ["Protein (g)", "4"], ["Carbs (g)", "20"], ["Fat (g)", "3"]]) await form.getByLabel(label!).fill(value!);
+  await form.getByRole("button", { name: "Save food", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Could not save" })).toBeVisible();
+  await expect(form).toBeVisible();
+  await expect(form.getByLabel("Serving weight (g)")).toHaveValue("80");
+  expect(await page.evaluate(() => localStorage.getItem("zigoals:health:v1"))).toBe(original);
+  await form.getByLabel("Food name").fill("Corrected food");
+  await form.getByRole("button", { name: "Save food", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Food saved");
+  await expect(page.getByRole("heading", { name: "Existing oats", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Corrected food", exact: true })).toBeVisible();
+});
+
 async function food(page: Page, name = "Test oats") {
   await page.getByRole("button", { name: "Foods & recipes", exact: true }).click();
   await page.getByRole("button", { name: "New food", exact: true }).click();

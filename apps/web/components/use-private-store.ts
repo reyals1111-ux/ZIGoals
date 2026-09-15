@@ -35,17 +35,21 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
     if (!loaded) throw Error("Private data is still loading.");
     try { publish(await updatePrivateStore(localStorage, key, schema, createEmpty, updater)); }
     catch {
+      // A rejected draft or full storage is not a corrupt store. Preserve forms
+      // when the original record still reads; block only an actual read failure.
+      refresh();
       const message = "Could not save private data. Nothing was applied. Check storage access or restore a valid backup in Settings.";
-      setError(message); throw Error(message);
+      throw Error(message);
     }
-  }, [loaded, publish, key, schema, createEmpty]);
+  }, [loaded, publish, key, schema, createEmpty, refresh]);
   const importData = useCallback(async (raw: string) => {
     try { publish(await importPrivateStore(localStorage, key, schema, raw)); }
     catch {
+      refresh();
       const message = "Backup could not be imported. Check its module, version and size. Existing private data was preserved.";
-      setError(message); throw Error(message);
+      throw Error(message);
     }
-  }, [key, schema, publish]);
+  }, [key, schema, publish, refresh]);
   const exportData = useCallback(() => localStorage.getItem(key) ?? JSON.stringify(createEmpty()), [key, createEmpty]);
   return { data, loaded, error, update, importData, exportData, refresh };
 }

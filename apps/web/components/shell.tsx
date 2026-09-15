@@ -80,7 +80,7 @@ export function Shell({ children }: { children: ReactNode }) {
                   : s.walletReconnectHint
                     ? "Reconnect Keplr"
                     : "Connect Keplr"}
-            {s.walletState !== "CONNECTED" && <span aria-hidden="true">→</span>}
+            {s.walletState !== "CONNECTED" && <AppIcon name="arrow" size={14}/>}
           </button>
         </div>
       </header>
