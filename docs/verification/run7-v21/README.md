@@ -1,12 +1,14 @@
 # V2.1 owner visual review
 
-**[FINAL Today · 1440](today-1440-viewport.png)** · **[BEFORE Today](before-v2.png)** · **[FINAL Today · mobile](today-390-viewport.png)** · [Habits](habits-1440.png) · [Health](health-1440.png)
+**[FINAL Today · 1440](today-1440-no-slogan.png)** · **[BEFORE Today](before-v2.png)** · **[FINAL Today · mobile](today-390-viewport.png)** · [Habits](habits-1440.png) · [Health](health-1440.png)
 
-![Final Today at 1440px](today-1440-viewport.png)
+![Final Today at 1440px](today-1440-no-slogan.png)
 
-[Full Today](today-1440.png) · [Full mobile Today](today-390.png) · [320 × 800](today-320-viewport.png) · [Goals](goals-1440.png) · [Goal detail](goal-detail-1440.png) · [Mobile Habits](habits-390.png) · [Mobile Health](health-390.png) · [Owner's final mockup](owner-reference.png)
+[Prior full Today (before decorative text removal)](today-1440.png) · [Full mobile Today](today-390.png) · [320 × 800](today-320-viewport.png) · [Goals](goals-1440.png) · [Goal detail](goal-detail-1440.png) · [Mobile Habits](habits-390.png) · [Mobile Health](health-390.png) · [Owner's final mockup](owner-reference.png)
 
-These final screenshots come from clean implementation **`bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5`**, in a local production Next preview. They contain fictional Local Demo fixtures, never owner data or actual wallet balances. The application does not auto-seed them. The before image and canonical reference are the owner's supplied files; their financial examples are visual references, not application state.
+The lead 1440px screenshot records the final hero micro-correction: only the decorative cursive overlay is removed. All other pixels exactly match the approved 1440px screenshot; all runtime artwork files are byte-identical. [Verification](hero-micro-correction.json).
+
+The remaining screenshots come from clean implementation **`bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5`**, in a local production Next preview. They contain fictional Local Demo fixtures, never owner data or actual wallet balances. The application does not auto-seed them. The before image and canonical reference are the owner's supplied files; their financial examples are visual references, not application state.
 
 Three desktop passes addressed artwork/composition, shared-background continuity and the final responsive crop. A tablet overflow of 6px was traced to an expanded decorative pseudo-element, corrected to the actual gutter, and retested. All nine routes fit 1440/1280/768/390/320×800; reduced motion is respected. [Screenshot hashes](screenshots.json), [validation](validation.json), [static asset checks](static-assets.json) and [artwork provenance](../../design/V21_ARTWORK.md) are retained.
 
@@ -32,7 +34,7 @@ Three desktop passes addressed artwork/composition, shared-background continuity
 
 The wallet connection handler is unchanged. The connected chevron is decorative; the tooltip names its existing connection-refresh action, with no invented dropdown menu. Local Demo shows simulated funds and its own badge; a real connected view shows Testnet and the real truncated address/balance. No onchain integration or financial action was enabled. The hero's Onchain pillar explicitly labels the vision and Alpha simulation.
 
-Review the after/before/reference, then Today, Habits and Health on phone. [PR #9](https://github.com/reyals1111-ux/ZIGoals/pull/9) stays **open, unmerged and undeployed**. Photo recognition, wearable sync, AI, cloud sync and all other Run 7 deferrals remain unchanged. The owner still needs to approve the visual result.
+Review the after/before/reference, then Today, Habits and Health on phone. [PR #9](https://github.com/reyals1111-ux/ZIGoals/pull/9) stays **open, unmerged and undeployed**. Photo recognition, wearable sync, AI, cloud sync and all other Run 7 deferrals remain unchanged. The owner approved V2.1, requesting only the hero cursive-text removal now shown above.
 
 To reproduce the local fictional gallery after a production build and local preview:
 

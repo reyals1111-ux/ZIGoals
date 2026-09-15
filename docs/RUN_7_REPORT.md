@@ -66,7 +66,7 @@ Review the screenshots and three marks, then inspect the PR and optionally run t
 
 ## V2.1 owner visual-fidelity polish
 
-**[FINAL Today 1440](verification/run7-v21/today-1440-viewport.png) · [BEFORE Today](verification/run7-v21/before-v2.png) · [FINAL mobile](verification/run7-v21/today-390-viewport.png) · [Habits](verification/run7-v21/habits-1440.png) · [Health](verification/run7-v21/health-1440.png) · [Full review package and 17-item checklist](verification/run7-v21/README.md)**
+**[FINAL Today 1440](verification/run7-v21/today-1440-no-slogan.png) · [BEFORE Today](verification/run7-v21/before-v2.png) · [FINAL mobile](verification/run7-v21/today-390-viewport.png) · [Habits](verification/run7-v21/habits-1440.png) · [Health](verification/run7-v21/health-1440.png) · [Full review package and 17-item checklist](verification/run7-v21/README.md)**
 
 Continuation base: `85e2a56536d8078da5c7acbcf99c98c0b63fcac3`. Existing branch and PR #9 retained. Checkpoints: `74574ae` cinematic art/identity → **`bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5`** refined, validated implementation. Later review-package commits change documentation/images only; exact latest head is recorded on PR #9.
 
@@ -82,3 +82,13 @@ Continuation base: `85e2a56536d8078da5c7acbcf99c98c0b63fcac3`. Existing branch a
 - **Production mutations: NONE.** V1 live Worker/source/rollback and undeployed Goal Manager/Code ID remain as recorded above. No signing, broadcasting, infrastructure mutation, release-candidate creation, faucet use or outreach.
 
 Next owner action: compare the final Today with the before/reference, inspect mobile/Habits/Health, and review the existing unmerged PR. Reproduce screenshots using the gallery command if desired. Merge/deploy remains a separate owner-authorized task.
+
+## Final owner micro-correction — hero decoration
+
+- **COMPLETE:** removed only the absolute-positioned, `aria-hidden` Today hero cursive overlay and its unused CSS. The text was not baked into the WebP; no asset reconstruction was needed.
+- **COMPLETE:** normal hero copy, sidebar quote, all layout, colors, functionality and all public artwork remain unchanged.
+- **COMPLETE:** one [1440px Today capture](verification/run7-v21/today-1440-no-slogan.png), visually inspected. Exactly 6396 pixels differ from the approved screenshot, entirely within the removed overlay at x925–1050/y388–465; every other pixel is identical. No erased box or retouching artifact.
+- **COMPLETE:** existing desktop V2.1 browser test plus isolated Today capture assertions passed (2/2); TypeScript, targeted TSX lint and production Next build passed.
+- **NOT REQUIRED:** Alpha build/dry-run repeat, because runtime artwork is byte-identical. Prior exact clean Alpha evidence above remains historical. No full JS/Rust rerun for this three-line deletion.
+- **COMPLETE:** [machine-readable verification](verification/run7-v21/hero-micro-correction.json). Continuation base `7445e90fd4a8f3f50207deb99bfd89d4514662ea`; final commit and CI recorded on PR #9.
+- **COMPLETE:** implementation and local verification; delivery stays on the existing branch/PR #9, which records the exact pushed head and CI. **NOT STARTED / NOT AUTHORIZED:** merge, deployment, chain actions. Production mutations: **NONE**.

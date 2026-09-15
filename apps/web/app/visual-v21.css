@@ -168,13 +168,11 @@ body { background: var(--cosmic-dark); }
 .health-page .health-form :is(input,select):focus-visible, .health-page .health-search input:focus-visible { outline-color: var(--brand-cyan); }
 .today-page .health-today-meter span { background: var(--nebula-emphasis); }
 .today-page .health-today-macros span:nth-child(1) strong { color: var(--brand-cyan); }.today-page .health-today-macros span:nth-child(2) strong { color: #bfaaff; }.today-page .health-today-macros span:nth-child(3) strong { color: #f5a0ff; }
-.hero-slogan { position: absolute; right: 23px; bottom: 103px; margin: 0; color: #b2d8ff; font-family: "Snell Roundhand", "Segoe Script", cursive; font-style: italic; font-size: 28px; line-height: 1.2; text-align: center; text-shadow: 0 0 12px #5ba4ff55; transform: rotate(-8deg); pointer-events: none; }
 .habits-workspace .habit-constellation::before { border-color: #39d6ff70; }.habits-workspace .habit-constellation::after { border-color: #da74ff70; }
 .habits-workspace .habit-constellation i:nth-child(odd) { background: var(--brand-cyan); box-shadow: 0 0 18px var(--brand-blue); }.habits-workspace .habit-constellation i:nth-child(even) { background: var(--brand-magenta); box-shadow: 0 0 18px var(--brand-violet); }
 .habits-workspace .habit-constellation > span { color: #97e5ff; text-shadow: 0 0 35px #bd64ff; }
 .goal-detail-page .ring-value { stroke: var(--item-start); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--item-start) 40%, transparent)); }
 @media (min-width: 1280px) { .habits-workspace .habit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }.habits-workspace .habit-grid .habit-card { padding: 22px; }.habits-workspace .habit-card-heading h2 { font-size: 19px; }.habits-workspace .habit-grid .habit-completion { padding-block: 13px; }.habits-workspace .habit-grid .habit-metrics { padding-block: 16px; } }
-@media (max-width: 1250px) { .hero-slogan { display: none; } }
 @media (min-width: 1600px) { .today-layout { grid-template-columns: minmax(0, 1fr) 380px; }.today-hero { min-height: 408px; }.today-hero h1 { font-size: 58px; } }
 @media (min-width: 1001px) and (max-width: 1250px) { .today-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; }.today-hero h1 { font-size: 37px; }.today-hero .hero-actions a { padding-inline: 17px; font-size: 13px; }.hero-pillars { gap: 7px; padding-inline: 14px; }.hero-pillars > div { gap: 7px; }.icon-medallion { width: 35px; height: 35px; }.icon-medallion svg { width: 25px; }.hero-pillars small { font-size: 8px; }.hero-pillars strong { font-size: 10px; } }
 @media (max-width: 1100px) { .app-sidebar .brand .brand-wordmark { font-size: 33px; }.product-descriptor { font-size: 9px; } }
