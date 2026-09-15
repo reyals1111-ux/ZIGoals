@@ -28,7 +28,7 @@
 
 ## Phases and checks
 - [x] **0 Audit:** exact clean base, versions, reference and V1 read; current docs reconciled, historical reports preserved. Review doc diff, checkpoint and push.
-- [ ] **1 Foundation:** `app/visual-theme.css`, `components/brand-mark.tsx`, `components/scene-art.tsx`, `public/icon.svg`, `docs/brand/run7/`; semantic surfaces and restrained reduced-motion-safe animations. Inspect original mark comparison. Lint/types and static icon tests; checkpoint.
+- [x] **1 Foundation:** `app/visual-theme.css`, `components/brand-mark.tsx`, `components/scene-art.tsx`, `public/icon.svg`, `docs/brand/run7/`; semantic surfaces and restrained reduced-motion-safe animations. Inspect original mark comparison. Lint/types and static icon tests; checkpoint.
 - [ ] **2 Shell:** `components/shell.tsx` plus shell CSS; seven real routes, desktop sidebar/mobile core navigation, existing exact wallet handlers/dialogs and safety text. Existing wallet-reload/route tests; checkpoint.
 - [ ] **3 Today:** `app/app/page.tsx`, Today components; reference composition, truthful Goal summaries, daily Habit actions, Health summary and recent local activity. Implement connected cards after module data is available; new persistence is an explicit dependency adjustment ahead of final Today wiring. Empty/populated layout tests; checkpoint.
 - [ ] **4 Goals:** dedicated `app/app/goals/page.tsx`; update `goal-card.tsx`, wizard/detail presentation and scoped supporting Habit links. Preserve old URLs and exact financial math/actions. Run existing Goal lifecycle and damaged-storage tests; checkpoint.

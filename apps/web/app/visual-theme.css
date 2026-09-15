@@ -1,12 +1,12 @@
 /* Visual Refresh v1: shared presentation tokens. Product behavior stays in components. */
 :root {
-  --surface-0: #050914;
-  --surface-1: #0b1323;
-  --surface-2: #111e34;
-  --brand-cyan: #57e2ef;
-  --brand-blue: #7aa8ff;
-  --brand-violet: #b2a1ff;
-  --brand-magenta: #ee9bdc;
+  --surface-0: #050a18;
+  --surface-1: #0b1327;
+  --surface-2: #102139;
+  --brand-cyan: #63e7ff;
+  --brand-blue: #4e8cff;
+  --brand-violet: #826cff;
+  --brand-magenta: #c664ff;
   --health-ahead: #6ee6cb;
   --health-on-track: #7fcaff;
   --health-behind: #f3c57d;
