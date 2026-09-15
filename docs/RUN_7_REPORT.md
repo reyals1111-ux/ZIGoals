@@ -1,5 +1,14 @@
 # Astra Run 7 — product expansion and Visual V2
 
+## Owner rollout closure — V2.1
+
+**MERGED + DEPLOYED + OWNER-VERIFIED LIVE.** The [Strategy continuation](chatgpt-conversation://6aa48a36-f198-83ed-a195-c95f8640afce) records the owner's final confirmation: “Visual good, Keplr connect/reload/reconnect good, Habit good, Health good, mobile good.”
+PR #9 merged at `d0ce4481bbe4be67356602be7106edc516239e8f`; owner-reported Worker `zigoals-alpha` version `dd86bc45-0fcd-45e2-b8c4-5ec278d1cb80` serves 100%, with V1 rollback `af45987b-f792-4755-a9e6-f58bb49f0cfe`.
+The owner supplied exact-main clean build/dry-run, HTTP/security/routes and browser verification. This closes the pending acceptance/merge/deploy statements in the historical checkpoints below; those checkpoints retain what was known then.
+Subsequent Alpha updates use the [manual owner-approved deployment workflow](deployment/MANUAL_ALPHA_WORKFLOW.md). Adding that workflow performs no deployment. Goal Manager and Code ID remain absent; financial/mainnet, apex, DNS/email and automatic deployment-on-merge remain outside scope.
+
+## Historical implementation checkpoints
+
 **Latest correction: [V2.1 owner visual-fidelity polish](#v21-owner-visual-fidelity-polish).** The sections above that checkpoint preserve the original V2 implementation evidence.
 
 **[Visual review package](verification/run7/README.md)** · [Today desktop](verification/run7/today-1440.png) · [Today mobile](verification/run7/today-390.png) · [Goals](verification/run7/goals-1440.png) · [Habits](verification/run7/habits-1440.png) · [Health](verification/run7/health-1440.png) · [Logo concepts](brand/run7/concepts.png)

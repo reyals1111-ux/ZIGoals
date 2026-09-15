@@ -1,0 +1,139 @@
+name: Manual Alpha deployment
+run-name: Alpha ${{ inputs.expected_commit }} approved by ${{ github.actor }}
+
+# Deliberately no push, pull_request, workflow_run, workflow_call or schedule.
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Full reviewed current main SHA (40 lowercase hexadecimal characters)
+        required: true
+        type: string
+      owner_approval:
+        description: I approve deploying this exact main commit to zigoals-alpha only
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+# Global for this Worker, including owner approval, rollback capture and smoke.
+# Never interrupt an upload to make room for a newer dispatch.
+concurrency:
+  group: zigoals-alpha-deployment
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+  OWNER_APPROVAL: ${{ inputs.owner_approval }}
+  NEXT_TELEMETRY_DISABLED: "1"
+  NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
+  WRANGLER_SEND_METRICS: "false"
+
+jobs:
+  authorize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Reject unauthorized refs, actors and reruns before checkout
+        run: |
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = reyals1111-ux/ZIGoals
+          test "$GITHUB_ACTOR" = reyals1111-ux
+          test "$GITHUB_TRIGGERING_ACTOR" = reyals1111-ux
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_REF" = refs/heads/main
+          test "$OWNER_APPROVAL" = true
+          [[ "$EXPECTED_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+          test "$EXPECTED_COMMIT" = "$GITHUB_SHA"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.19.0"
+          package-manager-cache: false
+      - name: Verify current main and configured owner environment protection
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/alpha-deploy.mjs authorize
+
+  deploy:
+    needs: authorize
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment:
+      name: alpha
+      url: https://alpha.zigoals.app/app
+    outputs:
+      new_version_id: ${{ steps.publish.outputs.new_version_id }}
+      rollback_version_id: ${{ steps.publish.outputs.rollback_version_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.19.0"
+          package-manager-cache: false
+      - run: npm install --global pnpm@11.19.0
+      - name: Verify exact main after owner approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/alpha-deploy.mjs source
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Deployment config and regression gates
+        run: |
+          pnpm check:deploy-configs
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+      - name: Build and dry-run Alpha without deployment credentials
+        run: |
+          pnpm --filter @zigoals/web build:alpha
+          pnpm --filter @zigoals/web check:alpha
+      - name: Verify clean exact-source Alpha build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/alpha-deploy.mjs build
+      - name: Capture current rollback version and validate live Alpha
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ALPHA_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_ALPHA_API_TOKEN }}
+        run: node scripts/alpha-deploy.mjs capture
+      - name: Retain rollback evidence before any upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: alpha-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/zigoals-alpha-evidence/*.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ALPHA_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_ALPHA_API_TOKEN }}
+        run: node scripts/alpha-deploy.mjs deploy
+      - name: Report version IDs even after failure
+        if: ${{ always() }}
+        run: node scripts/alpha-deploy.mjs summary
+      - name: Retain final deployment evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: alpha-deployment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/zigoals-alpha-evidence/*.json
+            ${{ runner.temp }}/zigoals-alpha-evidence/wrangler-output.jsonl
+          if-no-files-found: warn
+          retention-days: 90
