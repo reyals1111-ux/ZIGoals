@@ -6,7 +6,7 @@ Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. Branch: `feat/run7-visual-v2-h
 |---|---|---|
 | 0 Audit/current truth | COMPLETE | Exact main and fetched origin verified clean; pinned versions verified; full owner brief/reference inspected; README/STATUS/V1 checkpoint reconciled. |
 | 1 Brand/design foundation | COMPLETE | Orbit Weave chosen after three-mark visual comparison; single static SVG/BrandMark, shared scene artwork and V2 surfaces/motion. 40 targeted storage/date/static-safety tests and relevant lint passed. |
-| 2 Shell/navigation | NOT STARTED | Seven routes; wallet/safety semantics preserved. |
+| 2 Shell/navigation | COMPLETE | Sidebar + compact mobile navigation, dedicated Goals route and central BrandMark. Four shell/reconnect browser checks passed (desktop/mobile); widths 1440/1280/768/390/320 fit. Relevant lint passed. |
 | 3 Today | NOT STARTED | Cinematic composition + real module summaries. |
 | 4 Goals V2 | NOT STARTED | Index, wizard/detail presentation, scoped Habit links. |
 | 5 Habits | IN PROGRESS | Dedicated implementation track; generic locked/versioned store and local dates complete, domain/UI tests underway. |
@@ -22,3 +22,5 @@ Contract candidate remains owner-reported **REPRODUCIBLE / NOT_APPROVED**, run `
 Nova Health source located read-only in the documented Hermes dashboard workspace; personal data is not inspected. No documented ZIGoals-specific second-brain recording workflow found in this repository; no external path invented.
 
 Phase 0 commit: `edb31d6`. Resume with Phase 2 shell; module implementations run in bounded parallel tracks because Today needs their private projections. Generic storage (16 tests) preserves all existing Goal namespaces, serializes changes with Web Locks, quarantines prior bytes before explicit import and refuses future-version downgrade. New schemas have a 2 MB limit. Preserve historical M4/M5/M6 reports; retain duplicate dynamic HSTS/X-Robots-Tag as a documented minor issue unless responsible code needs changing. No external testnet action or live check is needed for this product run.
+
+Foundation checkpoint: `b850355`. Shell full typecheck initially identified only in-progress Habit test fixture strictness; those were routed to the module track for correction. No wallet/provider/financial code changed.
