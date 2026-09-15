@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-09-15T18:08:10.052Z",
+  "origin": "http://127.0.0.1:8794",
+  "records": [
+    {
+      "path": "/art/v21/hero.webp",
+      "status": 200,
+      "bytes": 126518,
+      "sha256": "82aa6704f13826475b76bf172eb40c7b74d34af7d9db2d9bad07e30582345c96",
+      "contentType": "image/webp",
+      "cspNonce": false
+    },
+    {
+      "path": "/art/v21/hero-mobile.webp",
+      "status": 200,
+      "bytes": 40312,
+      "sha256": "1032d37e988ee243f87a2f91db1eff49eecf5aa0cf10ef1a2b51a046cd332914",
+      "contentType": "image/webp",
+      "cspNonce": false
+    },
+    {
+      "path": "/art/v21/wallet.webp",
+      "status": 200,
+      "bytes": 33526,
+      "sha256": "f3b25fdead5441b65a3ccf3d110c9d9ef432822a3e0e45da452a934bd0400270",
+      "contentType": "image/webp",
+      "cspNonce": false
+    },
+    {
+      "path": "/art/v21/destination.webp",
+      "status": 200,
+      "bytes": 47134,
+      "sha256": "9111cae8b119155ac568b2dac214142a42286e402bbbd7cc830cbf3d7986a7be",
+      "contentType": "image/webp",
+      "cspNonce": false
+    },
+    {
+      "path": "/art/v21/space.webp",
+      "status": 200,
+      "bytes": 16496,
+      "sha256": "f2d329ed84bdcf5e35e4519e0b7d866bb51af70ab0da5b6fd7103e5c2c3e2b67",
+      "contentType": "image/webp",
+      "cspNonce": false
+    },
+    {
+      "path": "/art/v21/horizon.webp",
+      "status": 200,
+      "bytes": 30246,
+      "sha256": "b230e5c547bdb0eace288358516efbb1ae2985c7ef7b05a9db3eae66a10abd97",
+      "contentType": "image/webp",
+      "cspNonce": false
+    }
+  ]
+}

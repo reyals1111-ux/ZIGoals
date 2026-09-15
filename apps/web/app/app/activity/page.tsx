@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { ActivityFeed } from "../../../components/activity-feed";
 import Link from "next/link";
 import { ExplorerLinks } from "../../../components/explorer-links";
 import { useGoals } from "../../../components/goal-provider";
@@ -9,8 +11,10 @@ import {
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 export default function ActivityPage() {
   const s = useGoals();
+  const [category, setCategory] = useState("ALL");
+  const [limit, setLimit] = useState(30);
   return (
-    <>
+    <div className="activity-page">
       <div className="page-heading">
         <div>
           <p className="eyebrow">Every step forward</p>
@@ -22,6 +26,7 @@ export default function ActivityPage() {
           </p>
         </div>
       </div>
+      <section className="panel activity-timeline" aria-label="Unified private activity"><div className="activity-filter-row"><div><p className="eyebrow">YOUR PROGRESS, IN MOMENTS</p><h2>One journey. Every step.</h2></div><nav className="tab-row view-tabs" aria-label="Activity categories">{["ALL", "GOAL", "HABIT", "HEALTH"].map(value => <button key={value} aria-pressed={category === value} onClick={() => { setCategory(value); setLimit(30); }}>{value === "ALL" ? "All" : value[0] + value.slice(1).toLowerCase()}</button>)}</nav></div><ActivityFeed limit={limit} category={category} onMore={() => setLimit(value => value + 30)}/><p className="fine">Habit and Health entries reflect current saved logs. Corrections update this view; removing a log removes it here. This is private browser history, separate from testnet receipts.</p></section>
       <p className="eyebrow">
         {s.historySource} ·{" "}
         {s.mode === "local"
@@ -99,7 +104,7 @@ export default function ActivityPage() {
         </section>
       )}
       {s.mode === "local" && (
-        <section className="panel">
+        <details className="panel legacy-goal-history"><summary>Detailed Goal simulation history</summary>
           {s.activity.length ? (
             s.activity.map((a, i) => (
               <div className="activity-row" key={i}>
@@ -125,13 +130,13 @@ export default function ActivityPage() {
             <div className="empty-small">
               <h2>Your next step starts here.</h2>
               <p>Creating and funding a goal will appear in your activity.</p>
-              <Link href="/app" className="text-link">
+              <Link href="/app/goals" className="text-link">
                 Go to goals →
               </Link>
             </div>
           )}
-        </section>
+        </details>
       )}
-    </>
+    </div>
   );
 }

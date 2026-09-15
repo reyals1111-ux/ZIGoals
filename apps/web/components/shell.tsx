@@ -6,6 +6,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
+import { Wordmark } from "./brand-mark";
+import { AppIcon } from "./app-icon";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const path = usePathname();
@@ -18,30 +20,40 @@ export function Shell({ children }: { children: ReactNode }) {
       <a className="skip" href="#main">
         Skip to content
       </a>
-      <div className="network-banner">
-        <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
-        <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
-      </div>
-      <header>
+      <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
-          ZIG<span>oals</span>
-          <small>ALPHA</small>
+          <Wordmark />
         </Link>
-        <nav aria-label="Main navigation">
+        <p className="product-descriptor">Goals, Habits &amp; Health</p>
+        <nav className="app-nav" aria-label="Main navigation">
           {[
-            ["/app", "Goals"],
-            ["/app/activity", "Activity"],
-            ["/app/settings", "Settings"],
-          ].map(([href, label]) => (
-            <Link
-              key={href}
-              href={href!}
-              aria-current={path === href ? "page" : undefined}
-            >
-              {label}
+            ["/app", "Today", "today"],
+            ["/app/goals", "Goals", "goals"],
+            ["/app/habits", "Habits", "habits"],
+            ["/app/health", "Health", "health"],
+            ["/app/ecosystem", "Ecosystem", "ecosystem"],
+            ["/app/activity", "Activity", "activity"],
+            ["/app/settings", "Settings", "settings"],
+          ].map(([href, label, icon]) => (
+            <Link key={href} href={href!}
+              className={icon === "ecosystem" ? "nav-divider" : undefined}
+              aria-current={(href === "/app" ? path === href : path === href || path.startsWith(`${href}/`)) ? "page" : undefined}>
+              <AppIcon name={icon!} luminous={href === "/app" ? path === href : path === href || path.startsWith(`${href}/`)} /><span>{label}</span>
             </Link>
           ))}
         </nav>
+        <div className="sidebar-destination">
+          <p>Real goals.<br /><span className="nebula-text">A brighter tomorrow.</span></p>
+          <div className="sidebar-horizon" aria-hidden="true" />
+          <small>THE GOAL LAYER FOR ZIGCHAIN</small>
+        </div>
+      </aside>
+      <div className="app-content">
+      <header className="app-topbar">
+        <div className="network-banner">
+          <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
+          <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
+        </div>
         <div className="wallet">
           <button
             className="quiet"
@@ -53,12 +65,14 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
           <button
             className="secondary wallet-connect"
+            title={s.walletState === "CONNECTED" ? "Refresh your Keplr connection" : undefined}
             onClick={() => void s.connect()}
             disabled={
               s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
             }
           >
-            {s.walletState === "CONNECTING"
+            <AppIcon name="wallet" size={24} luminous />
+            <span className="wallet-identity">{s.walletState === "CONNECTING"
               ? "Connecting…"
               : s.walletState === "ADDING_TESTNET"
                 ? "Adding testnet…"
@@ -67,6 +81,8 @@ export function Shell({ children }: { children: ReactNode }) {
                   : s.walletReconnectHint
                     ? "Reconnect Keplr"
                     : "Connect Keplr"}
+            {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG · Testnet</small>}</span>
+            <AppIcon name={s.walletState === "CONNECTED" ? "chevron" : "arrow"} size={14}/>
           </button>
         </div>
       </header>
@@ -153,12 +169,14 @@ export function Shell({ children }: { children: ReactNode }) {
         )}
         <main id="main">{children}</main>
         <footer>
+          <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
           <span>
             Independent project · Unaudited alpha · Idle strategy only
           </span>
           <span><a href="https://github.com/reyals1111-ux/ZIGoals/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer">Report a bug</a> · <a href="mailto:hello@zigoals.app">Private security contact</a> · Never share secrets, private backups or wallet details.</span>
         </footer>
+      </div>
       </div>
       {s.pending && (
         <dialog

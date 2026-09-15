@@ -1,3 +1,4 @@
+import { AppIcon } from "../../../components/app-icon";
 import Link from "next/link";
 import { explorers, hubLinks } from "@zigoals/ecosystem-registry";
 import { ecosystemProviders } from "@zigoals/ecosystem-registry/providers";
@@ -6,7 +7,7 @@ import { StrategyTransparency } from "../../../components/strategy-transparency"
 
 export default function EcosystemPage() {
   return (
-    <>
+    <div className="ecosystem-page">
       <div className="page-heading">
         <div>
           <p className="eyebrow">An open ecosystem</p>
@@ -16,10 +17,11 @@ export default function EcosystemPage() {
             ZIGChain.
           </p>
         </div>
-        <Link href="/app" className="text-link">
+        <Link href="/app/goals" className="text-link">
           Back to goals →
         </Link>
       </div>
+      <section className="ecosystem-map" aria-label="ZIGChain integration readiness"><div className="network-emblem" aria-hidden="true"><AppIcon name="ecosystem" size={74}/></div><div><p className="eyebrow">THE GOAL LAYER FOR ZIGCHAIN</p><h2>Connected by purpose.</h2><p>One Goal Manager architecture. A growing strategy ecosystem, connected only when its interfaces are verified.</p></div><ul><li><strong>ZIGChain Testnet</strong><span>VERIFIED NETWORK · WALLET CONNECTION</span></li><li><strong>Goal Manager</strong><span>NOT DEPLOYED</span></li><li><strong>Valdora</strong><span>PENDING CANONICAL INTERFACE</span></li><li><strong>WME</strong><span>FUTURE · UNVERIFIED</span></li></ul></section>
       <section className="panel" aria-label="Onchain verification tools">
         <h2>Check the public record.</h2>
         <p>
@@ -138,6 +140,6 @@ export default function EcosystemPage() {
             </details>
           ))}
       </div>
-    </>
+    </div>
   );
 }

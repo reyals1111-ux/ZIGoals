@@ -1,0 +1,68 @@
+"use client";
+import { useRef, useState } from "react";
+import type { z } from "zod";
+import { habitDataSchema } from "../lib/habits";
+import { healthSchema } from "../lib/health";
+import { parsePrivateData, PRIVATE_MAX_BYTES } from "../lib/private-storage";
+import { useHabits } from "./habits/use-habits";
+import { useHealth } from "./health/use-health";
+
+type BackupStore = { loaded: boolean; error: string; exportData: () => string; importData: (raw: string) => Promise<void>; refresh: () => void };
+function ModuleBackup<T>({ name, schema, store, describe }: { name: string; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string }) {
+  const [raw, setRaw] = useState("");
+  const [summary, setSummary] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const selection = useRef(0);
+  function download() {
+    try {
+      const url = URL.createObjectURL(new Blob([store.exportData()], { type: "application/json" }));
+      const anchor = document.createElement("a");
+      anchor.href = url; anchor.download = `zigoals-${name.toLowerCase()}-v1.json`;
+      anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setMessage("Backup download started. Keep this file private."); setError("");
+    } catch { setError("The original data could not be read. Check browser storage access."); }
+  }
+  async function selectFile(file?: File) {
+    const current = ++selection.current;
+    setRaw(""); setSummary(""); setConfirmed(false); setError(""); setMessage("");
+    if (!file) return;
+    try {
+      if (file.size > PRIVATE_MAX_BYTES) throw Error();
+      const text = await file.text();
+      const data = parsePrivateData(text, schema);
+      if (current !== selection.current) return;
+      setRaw(text); setSummary(describe(data));
+    } catch { if (current === selection.current) setError("Choose a valid version 1 backup for this module, under 2 MB. Existing data was not changed."); }
+  }
+  async function restore() {
+    if (!confirmed || !raw || busy) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await store.importData(raw);
+      setRaw(""); setSummary(""); setConfirmed(false);
+      setMessage(`${name} restored. Previous stored bytes were preserved in a local recovery record.`);
+    } catch { setError("Restore failed. Existing data was preserved. A newer stored version cannot be replaced by this app."); }
+    finally { setBusy(false); }
+  }
+  return <section className="panel module-backup" aria-label={`${name} backup`}>
+    <p className="eyebrow">{name.toUpperCase()} · PRIVATE BROWSER DATA</p><h3>{name} backup</h3>
+    <p>Export all {name.toLowerCase()} records, including history. These files contain personal information and no wallet credentials.</p>
+    {store.error && <p className="notice">Stored data needs attention. Export its original bytes before restoring. <button className="text-link" onClick={store.refresh}>Retry reading</button></p>}
+    <button className="secondary" disabled={!store.loaded || busy} onClick={download}>Export {name}</button>
+    <details className="backup-restore"><summary>Restore {name} from a file</summary><p className="fine">This replaces this module only. Export a separate copy first. Current Goals and the other module are kept.</p>
+      <label>Choose {name} backup<input type="file" accept="application/json,.json" disabled={busy} onChange={event => void selectFile(event.target.files?.[0])}/></label>
+      {raw && <><p className="backup-preview">Valid version 1 backup · {summary}</p><label className="checkbox"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={busy}/>Replace my {name.toLowerCase()} with this backup.</label><button className="primary" disabled={!confirmed || busy} onClick={() => void restore()}>{busy ? "Restoring…" : `Restore ${name}`}</button></>}
+    </details>
+    {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
+  </section>;
+}
+export function PrivateBackups() {
+  const habits = useHabits(), health = useHealth();
+  return <div className="private-backup-grid">
+    <ModuleBackup name="Habits" schema={habitDataSchema} store={habits} describe={data => `${data.habits.length} habits · ${data.habits.reduce((sum, habit) => sum + habit.entries.length, 0)} check-ins`}/>
+    <ModuleBackup name="Health" schema={healthSchema} store={health} describe={data => `${data.foods.length} foods · ${data.recipes.length} recipes · ${data.diary.length} meals · ${data.weights.length} weights · ${data.activity.length} activities`}/>
+  </div>;
+}

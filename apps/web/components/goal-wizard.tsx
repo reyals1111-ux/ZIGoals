@@ -8,6 +8,7 @@ import {
 import { evaluateGoal } from "@zigoals/goal-engine";
 import { useGoals } from "./goal-provider";
 import { displayAmount } from "./goal-card";
+import { SceneArt } from "./scene-art";
 function defaults(): GoalMetadata {
   const d = new Date();
   d.setUTCFullYear(d.getUTCFullYear() + 1);
@@ -60,7 +61,7 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
     });
   } catch {}
   return (
-    <section className="wizard">
+    <section className="wizard wizard-v2">
       <ol className="steps" aria-label="Goal creation progress">
         {steps.map((label, i) => (
           <li key={label} aria-current={step === i ? "step" : undefined}>
@@ -69,6 +70,7 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
           </li>
         ))}
       </ol>
+      <div className="wizard-story" aria-hidden="true"><SceneArt scene={plan.category === "Travel" ? "mountains" : plan.category === "First Home" ? "home" : "horizon"}/><div><small>YOUR NEXT CHAPTER</small><strong>{step === 0 ? "It starts with a destination." : plan.name || plan.category}</strong><span>One clear plan. A little progress, often.</span></div></div>
       <div className="wizard-content">
         <p className="eyebrow">Step {step + 1} of 5</p>
         {step === 0 ? (
@@ -272,6 +274,7 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
                 <dd>Idle only</dd>
               </div>
             </dl>
+            <div className="supporting-habit-note"><strong>Make room for the everyday.</strong><p>After saving, link a habit to this Goal from Habits — a weekly check-in or a contribution reminder. Completing a habit never moves funds.</p></div>
             <p className="notice">
               {recoverId
                 ? "This saves private planning data only."

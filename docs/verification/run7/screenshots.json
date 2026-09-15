@@ -1,0 +1,59 @@
+{
+  "source": "6889ffe7510dda8d4f7394eb1a5016121bd804b3",
+  "fixture": "apps/web/tests/fixtures/run7-demo.ts",
+  "state": "fictional local review data; no wallet; reduced motion; Next production preview",
+  "files": {
+    "activity-1440.png": {
+      "bytes": 502513,
+      "sha256": "131753b3a87cf7312e17b5171d693cb3fcc7f306149c0da24a5bee84cd5f9edb"
+    },
+    "create-goal-1440.png": {
+      "bytes": 435738,
+      "sha256": "3c69d97375134f8e0451131e049ec5fb8f20f7e3095569acbc15602dc7a1cba6"
+    },
+    "ecosystem-1440.png": {
+      "bytes": 756841,
+      "sha256": "4bfbb59c135b9827451e1389484509efb20c1db9f82c5dd2c7ac6a7050873425"
+    },
+    "goal-detail-1440.png": {
+      "bytes": 505721,
+      "sha256": "3be35e4a7542c4aac8b172b7aad498c2b83ca254c053386d327743d20b5123f3"
+    },
+    "goals-1440.png": {
+      "bytes": 490120,
+      "sha256": "a5f856186ddf9f9c5094a681d9f122c80e92390bd865532e57aa6dc609ddaffb"
+    },
+    "habits-1440.png": {
+      "bytes": 855205,
+      "sha256": "11f1e70e377241b6ee88a24b97a95926bc2e4018fa979de176e1a76bc392def8"
+    },
+    "habits-390.png": {
+      "bytes": 2516560,
+      "sha256": "c6aee983305186acb6375c7fa2a202b6c2926a0f9055ba471971dd5a0c6d05c3"
+    },
+    "health-1440.png": {
+      "bytes": 530565,
+      "sha256": "7bdd8364626856f429b57dd05450ab3d6087ac8f11d5a95268d54db96195a3ed"
+    },
+    "health-390.png": {
+      "bytes": 1602130,
+      "sha256": "5dd063ff8a09669ef49bce398297acc95fae610a440f96f662af8c6fdc3c4c00"
+    },
+    "settings-1440.png": {
+      "bytes": 662997,
+      "sha256": "4ef87e2addce5a5b6a2daabd4c58c0fed01441af7be016e268c573202872d1f3"
+    },
+    "today-1440.png": {
+      "bytes": 1099764,
+      "sha256": "5ba47aac8202a44d119aed7440eef43226fe35e8a4914008e9a569e00f5a8436"
+    },
+    "today-320.png": {
+      "bytes": 2544687,
+      "sha256": "342fe05453fc0d5ecf4f3e6aa184d8f9d1bc6537eb987a1355f3c4321889b819"
+    },
+    "today-390.png": {
+      "bytes": 2804755,
+      "sha256": "63110c34064e6b4938c5c6ea1aeed4a2fcd31458afc3d862fab38690225e8865"
+    }
+  }
+}

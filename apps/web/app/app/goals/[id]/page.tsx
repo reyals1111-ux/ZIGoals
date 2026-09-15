@@ -9,6 +9,9 @@ import { useGoals } from "../../../../components/goal-provider";
 import { GoalWizard } from "../../../../components/goal-wizard";
 import { displayAmount } from "../../../../components/goal-card";
 import { DemoPriceProvider } from "../../../../lib/valuation";
+import { visualTone } from "../../../../components/visual-tone";
+import { SceneArt } from "../../../../components/scene-art";
+import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
 import { CONTRACT_ADDRESS } from "../../../../lib/wallet";
 export default function GoalDetail({
   params,
@@ -29,7 +32,7 @@ export default function GoalDetail({
       <section className="empty-state">
         <h1>Goal unavailable.</h1>
         <p>Connect the wallet and network that own this goal, then refresh.</p>
-        <Link className="secondary" href="/app">
+        <Link className="secondary" href="/app/goals">
           Back to goals
         </Link>
       </section>
@@ -83,8 +86,8 @@ export default function GoalDetail({
     }
   }
   return (
-    <>
-      <Link href="/app" className="text-link">
+    <div className="goal-detail-page" data-tone={visualTone(id)}>
+      <Link href="/app/goals" className="text-link">
         ← All goals
       </Link>
       <div className="page-heading">
@@ -107,6 +110,7 @@ export default function GoalDetail({
       </div>
       <div className="detail-grid">
         <section className="panel progress-panel">
+          <div className="detail-destination-art"><SceneArt scene={plan?.category === "Travel" ? "mountains" : plan?.category === "First Home" ? "home" : "horizon"}/></div>
           <p className="eyebrow">Your progress</p>
           <p className="hero-amount">
             {displayAmount(current, plan?.currency ?? "ZIG")}
@@ -120,18 +124,15 @@ export default function GoalDetail({
           {result && plan && (
             <>
               <div
-                className="progress thick"
+                className="goal-progress-ring detail-orbit"
                 role="progressbar"
                 aria-label="Goal progress"
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={Math.min(100, Number(result.progressPct))}
               >
-                <span
-                  style={{
-                    width: `${Math.min(100, Number(result.progressPct))}%`,
-                  }}
-                />
+                <svg viewBox="0 0 200 200" aria-hidden="true"><circle className="detail-orbit-guide" cx="100" cy="100" r="96"/><circle className="ring-track" cx="100" cy="100" r="82"/><circle className="ring-value" cx="100" cy="100" r="82" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 100 100)"/></svg>
+                <strong aria-hidden="true">{new Decimal(result.progressPct).toFixed(1)}%<small>of your destination</small></strong>
               </div>
               <div className="card-row">
                 <strong>
@@ -272,6 +273,8 @@ export default function GoalDetail({
           )}
         </section>
       </div>
+      <div className="goal-daily-bridge"><div><p className="eyebrow">GOAL → PLAN → HABITS → PROGRESS</p><h2>Give your plan a daily rhythm.</h2><p>A contribution reminder. A spending review. Small intentions you choose, entirely private.</p></div><Link className="secondary" href="/app/habits">Add a supporting habit →</Link></div>
+      <HabitGoalLinks goalId={id} chainId={s.chain} owner={s.owner}/>
       {recover && !plan && <GoalWizard recoverId={id} />}{" "}
       {plan && (
         <section className="panel scenario-panel">
@@ -429,6 +432,6 @@ export default function GoalDetail({
           />
         )}
       </details>
-    </>
+    </div>
   );
 }

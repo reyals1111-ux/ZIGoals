@@ -1,0 +1,86 @@
+{
+  "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5",
+  "fixture": "apps/web/tests/fixtures/run7-demo.ts",
+  "capturedIn": "local production Next, PUBLIC_ALPHA_UNDEPLOYED",
+  "motion": "reduced",
+  "screenshots": [
+    {
+      "file": "before-v2.png",
+      "bytes": 1099764,
+      "sha256": "5ba47aac8202a44d119aed7440eef43226fe35e8a4914008e9a569e00f5a8436",
+      "source": "owner supplied"
+    },
+    {
+      "file": "goal-detail-1440.png",
+      "bytes": 880065,
+      "sha256": "acd7a02e3a86eba4536fa4afc0091efc364b5a3950ff9198b83d33366b4ba7a5",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "goals-1440.png",
+      "bytes": 887707,
+      "sha256": "58f26254e35c69c251c484df9af500cb189b99d031ded3c1d8cb5e6900fea4d6",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "habits-1440.png",
+      "bytes": 1291483,
+      "sha256": "2edcc5731195520010773d52822a1199ae811643eb2ef04885bbe44aa8ad7c3f",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "habits-390.png",
+      "bytes": 722232,
+      "sha256": "4cf844acabe78c34fd98703e2897a56c6ebf94c512dc04efdacdbeee57d87dcd",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "health-1440.png",
+      "bytes": 1168611,
+      "sha256": "d8d7063897396703c7151e21725c68d446967b7e78660e30eed4bf61f56c5c7a",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "health-390.png",
+      "bytes": 573074,
+      "sha256": "1f5ce5837a5be00b72cf88fc3b02f27d8ad60dddb24e53f9dcd2fc42710725fb",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "owner-reference.png",
+      "bytes": 2054760,
+      "sha256": "7491e7edb9951b40630d06feb481d3075d5fb15a6d90f898a03e4a964f7c7fed",
+      "source": "owner supplied"
+    },
+    {
+      "file": "today-1440-viewport.png",
+      "bytes": 1277829,
+      "sha256": "b94334e57828360462d1f3ceb80cdbf998d843c30d5ebd7ee9ca8d76e62b3662",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "today-1440.png",
+      "bytes": 2196882,
+      "sha256": "d0d49fe53c4dab9d4e78ba786e7404b1551fd18f35d7632f3529f344b667f14a",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "today-320-viewport.png",
+      "bytes": 236355,
+      "sha256": "76790d9ccdaf694192f3fd1a9aa11186f00652c4c32f93d699331cec51e2a8cb",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "today-390-viewport.png",
+      "bytes": 272188,
+      "sha256": "7dc4ad6e6e23790c727937580a3868b24a4a6b085b787100436665e615b727f7",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    },
+    {
+      "file": "today-390.png",
+      "bytes": 1127908,
+      "sha256": "4e8496fbfaf58d7cd1815cc684b58aec77b1827ff6dd924e69f4699e6d843124",
+      "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5"
+    }
+  ]
+}
