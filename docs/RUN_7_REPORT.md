@@ -8,10 +8,10 @@ Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. Branch: `feat/run7-visual-v2-h
 | 1 Brand/design foundation | COMPLETE | Orbit Weave chosen after three-mark visual comparison; single static SVG/BrandMark, shared scene artwork and V2 surfaces/motion. 40 targeted storage/date/static-safety tests and relevant lint passed. |
 | 2 Shell/navigation | COMPLETE | Sidebar + compact mobile navigation, dedicated Goals route and central BrandMark. Four shell/reconnect browser checks passed (desktop/mobile); widths 1440/1280/768/390/320 fit. Relevant lint passed. |
 | 3 Today | COMPLETE | Cinematic hero, destination cards, real Goal totals, actionable Habit/Health summaries and private activity rail. Full typecheck/relevant lint and two focused desktop/browser lifecycle checks passed; 1440/320 first-pass screenshots inspected. |
-| 4 Goals V2 | NOT STARTED | Index, wizard/detail presentation, scoped Habit links. |
+| 4 Goals V2 | COMPLETE | Active/All/Closed destinations, guided visual planning, large orbital detail and scoped supporting Habits. Goal Engine math unchanged. Eight focused Goal/recovery/dashboard browser checks and typecheck passed. |
 | 5 Habits | COMPLETE | Private CRUD, daily/weekday rule history, counts, streaks, heatmap, scoped Goal links. 13 domain tests and five desktop/mobile scenarios verified; 320px controls inspected. |
 | 6 Health | COMPLETE | Targets, foods, snapshot-safe recipes/diary, integer macros, weight/trends and manual activity. 22 domain tests and five desktop/mobile scenarios verified; 1440/320 screenshots inspected. |
-| 7 Activity/Ecosystem/Settings | NOT STARTED | Unified local history and module backups. |
+| 7 Activity/Ecosystem/Settings | IN PROGRESS | Unified activity, truthful integration map, grouped Settings and safe module-specific backup UI; aggregate import/privacy browser tests next. |
 | 8 Visual refinement | NOT STARTED | 1440/1280/768/390/320 screenshots, accessibility. |
 | 9 Validation/PR/CI | NOT STARTED | Full relevant web gate; no local Rust rebuild. |
 
@@ -30,3 +30,5 @@ Habits checkpoint: strict versioned local schema and historical schedule semanti
 Habits commit: `5b135f6`. Health schema, precision, snapshot semantics and limitations: `product/HEALTH_V1.md`. Both modules remain independent of wallet and Goal namespaces. Settings backup UI and aggregate privacy tests remain Phase 7/9 work.
 
 Health commit: `b929d02`. Today screenshot pass 1 is recorded under `/tmp/zigoals-run7-today-pass1`; final curated screenshots will be committed after Phase 8. Goal card artwork is presentation only; Goal Engine calls and values are unchanged.
+
+Today checkpoint: `2ddfed0`. Goals presentation preserves all existing prepare/withdraw/close guards and financial calculations. Ecosystem/Settings styles share the same V2 surface foundation; integration validation follows.
