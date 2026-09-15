@@ -9,7 +9,7 @@ Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIG
 
 The owner has deployed Visual Refresh v1 (merged PR #8) on the public web Alpha. M6 and PR #7 housekeeping remain completed historical work. Run #7 adds a unified Today / Goals / Habits / Health experience on a feature branch; production remains unchanged. The Apache-2.0 license is retained.
 
-Run #7 adds private Habit schedules/streaks, nutrition/recipes/weight tracking and one connected Today dashboard. The [V2 product specification](docs/product/VISUAL_V2.md) explains the routes, data model and visual system; the [Run #7 report](docs/RUN_7_REPORT.md) records review evidence. Health/Habit data stays in this browser and has separate versioned backups in Settings. No cloud sync or medical/AI backend is implied.
+The **[V2.1 visual review package](docs/verification/run7-v21/README.md)** contains final/before/mobile screenshots and all 17 owner corrections; this continues the same unmerged PR #9 without deployment. Run #7 adds private Habit schedules/streaks, nutrition/recipes/weight tracking and one connected Today dashboard. The [V2 product specification](docs/product/VISUAL_V2.md) explains the routes, data model and visual system; the [Run #7 report](docs/RUN_7_REPORT.md) records review evidence. Health/Habit data stays in this browser and has separate versioned backups in Settings. No cloud sync or medical/AI backend is implied.
 
 ## Run locally
 
