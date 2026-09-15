@@ -1,40 +1,59 @@
-# Astra Run 7 — resume and review record
+# Astra Run 7 — product expansion and Visual V2
 
-Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. Branch: `feat/run7-visual-v2-habits-health`. Objective: [integrated product/visual plan](RUN_7_PLAN.md).
+**[Visual review package](verification/run7/README.md)** · [Today desktop](verification/run7/today-1440.png) · [Today mobile](verification/run7/today-390.png) · [Goals](verification/run7/goals-1440.png) · [Habits](verification/run7/habits-1440.png) · [Health](verification/run7/health-1440.png) · [Logo concepts](brand/run7/concepts.png)
 
-| Phase | State | Evidence / next work |
+Base: `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`, verified clean main and fetched origin before branching. Branch: `feat/run7-visual-v2-habits-health`. Objective: one ZIGoals product connecting Today, Goals, Habits and Health while preserving every existing financial boundary and broader ZIGChain direction.
+
+| Phase | State | Delivered |
 |---|---|---|
-| 0 Audit/current truth | COMPLETE | Exact main and fetched origin verified clean; pinned versions verified; full owner brief/reference inspected; README/STATUS/V1 checkpoint reconciled. |
-| 1 Brand/design foundation | COMPLETE | Orbit Weave chosen after three-mark visual comparison; single static SVG/BrandMark, shared scene artwork and V2 surfaces/motion. 40 targeted storage/date/static-safety tests and relevant lint passed. |
-| 2 Shell/navigation | COMPLETE | Sidebar + compact mobile navigation, dedicated Goals route and central BrandMark. Four shell/reconnect browser checks passed (desktop/mobile); widths 1440/1280/768/390/320 fit. Relevant lint passed. |
-| 3 Today | COMPLETE | Cinematic hero, destination cards, real Goal totals, actionable Habit/Health summaries and private activity rail. Full typecheck/relevant lint and two focused desktop/browser lifecycle checks passed; 1440/320 first-pass screenshots inspected. |
-| 4 Goals V2 | COMPLETE | Active/All/Closed destinations, guided visual planning, large orbital detail and scoped supporting Habits. Goal Engine math unchanged. Eight focused Goal/recovery/dashboard browser checks and typecheck passed. |
-| 5 Habits | COMPLETE | Private CRUD, daily/weekday rule history, counts, streaks, heatmap, scoped Goal links. 13 domain tests and five desktop/mobile scenarios verified; 320px controls inspected. |
-| 6 Health | COMPLETE | Targets, foods, snapshot-safe recipes/diary, integer macros, weight/trends and manual activity. 22 domain tests and five desktop/mobile scenarios verified; 1440/320 screenshots inspected. |
-| 7 Activity/Ecosystem/Settings | COMPLETE | Unified local timeline plus preserved receipts, truthful network map, grouped Settings/secondary diagnostics, separate private exports and confirmed imports. Six desktop/mobile migration/restore/diagnostic checks and desktop sentinel test passed; full production rerun pending. |
-| 8 Visual refinement | IN PROGRESS | Refined horizon, destination art and compact populated cards. Repeatable fictional local fixtures exercise nine routes at five widths. Final screenshots next. |
-| 9 Validation/PR/CI | IN PROGRESS | Full lint, TypeScript and 610 JS tests passed. Config/credential checks passed. Production Next/Alpha builds, final browser/security checks and PR/CI next. |
+| 0 Audit/current truth | COMPLETE | Exact base/toolchain/reference verified; current README/STATUS/V1 truth reconciled; historical M4–M6 reports preserved. |
+| 1 Brand/design | COMPLETE | Three original ZG marks; replaceable Orbit Weave selected; semantic nebula palette, original SVG scenes and layered surfaces. |
+| 2 Shell/navigation | COMPLETE | Desktop sidebar and compact mobile navigation; Today, Goals, Habits, Health, Ecosystem, Activity and Settings; exact wallet authority retained. |
+| 3 Today | COMPLETE | Cinematic hero, destination cards/rings, truthful Goal totals, functional habit completion/streaks/links, Health macros/weight/steps, local activity and companion rail. |
+| 4 Goals V2 | COMPLETE | Dedicated filtered index, guided planning composition, orbital detail, original calculations and supporting Habits. Existing create/detail/recovery routes retained. |
+| 5 Habits | COMPLETE | CRUD through create/edit/reversible archive, daily/weekdays, pause/resume, counts, schedule history, current/best streaks, weekly consistency and calendar corrections. |
+| 6 Health | COMPLETE | Explicit targets, custom foods, snapshot-safe recipes/diary, integer nutrition, historical dates, weight/trends and manual activity. |
+| 7 Activity/Settings/Ecosystem | COMPLETE | Unified private history plus preserved Goal receipts; truthful integration map; separate backups/imports, grouped Settings and secondary diagnostics. |
+| 8 Visual refinement | COMPLETE | Three meaningful composition passes, final production screenshots; nine routes checked at 1440/1280/768/390/320×800, reduced motion and mobile controls. |
+| 9 Validation/PR/CI | IN PROGRESS | Local gates complete; final unmerged PR and PR-triggered CI inspection next. |
 
-Current production is owner-verified V1: `zigoals-alpha` / `af45987b-f792-4755-a9e6-f58bb49f0cfe`, source equal to the base above. Rollback `00799604-7999-4ef4-b75f-268d8a459f6f`. Goal Manager/Code ID **NOT DEPLOYED**. Simulation + wallet connection only; financial signing/broadcast disabled. Production mutations in Run #7: **NONE**.
+## Production and contract truth
 
-Contract candidate remains owner-reported **REPRODUCIBLE / NOT_APPROVED**, run `34893952997`, source `4dd859db5ea1f20fe14cc8c3c3a70b728b55fbcb`, 255532 bytes, SHA256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. It predates V1 and is not a Run #7 candidate. No release candidate generated or approved here.
+**Production mutations: NONE. No merge, deployment, financial signature, broadcast, chain upload, instantiate, faucet request or outreach.** M6 remains completed historical infrastructure/performance work; housekeeping PR #7 and Visual Refresh v1 PR #8 were merged. Owner-verified live Alpha remains `zigoals-alpha`, Worker `af45987b-f792-4755-a9e6-f58bb49f0cfe`, source equal to the approved base. Rollback remains `00799604-7999-4ef4-b75f-268d8a459f6f`. Goal Manager and Code ID remain **NOT DEPLOYED**. Public Alpha remains simulation + explicit wallet connection only.
 
-Nova Health source located read-only in the documented Hermes dashboard workspace; personal data is not inspected. No documented ZIGoals-specific second-brain recording workflow found in this repository; no external path invented.
+The existing owner-reported contract candidate is **REPRODUCIBLE / NOT_APPROVED**, run `34893952997`, source `4dd859db5ea1f20fe14cc8c3c3a70b728b55fbcb`, 255532 bytes, SHA256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. It predates V1 and is not an exact Run 7 candidate. No new candidate was generated or approved. External testnet funding/upload permission and canonical adapter interfaces remain blocked/pending exactly as supplied by the owner.
 
-Phase 0 commit: `edb31d6`. Shell checkpoint: `42e2e7b`. Today integration and Goals V2 are next; independent module implementations are complete and being checkpointed. Generic storage (16 tests) preserves all existing Goal namespaces, serializes changes with Web Locks, quarantines prior bytes before explicit import and refuses future-version downgrade. New schemas have a 2 MB limit. Preserve historical M4/M5/M6 reports; retain duplicate dynamic HSTS/X-Robots-Tag as a documented minor issue unless responsible code needs changing. No external testnet action or live check is needed for this product run.
+Contract, Goal Engine, chain configuration, signer/transaction authority, GoalProvider, existing Goal storage/ledger, release pipeline, nonce/CSP architecture and Cloudflare configuration are unchanged. Protected-path diff evidence is in [validation.json](verification/run7/validation.json). AI never signs or controls funds; future mobile/passkey/fiat/AI/adapter/ecosystem roadmap remains intact.
 
-Foundation checkpoint: `b850355`. Shell full typecheck initially identified only in-progress Habit test fixture strictness; those were routed to the module track for correction. No wallet/provider/financial code changed.
+## Product, design and local data
 
-Habits checkpoint: strict versioned local schema and historical schedule semantics documented in `product/HABITS_V1.md`. Parent verification: 51 combined Habit/Health/storage/date tests passed. No existing Goal key or financial calculation changed.
+[Visual V2 specification](product/VISUAL_V2.md) records composition, route architecture, motion/accessibility and privacy. **Orbit Weave** is the temporary logo, selected against the supplied reference from three original candidates. One `BrandMark` consumes `public/icon.svg`; text wordmark and gradient tokens are separate. Alternatives remain documentation-only. All atmospheric art is maintainable CSS/SVG; no remote fonts, new runtime dependencies, raster backgrounds, WebGL or animation engine.
 
-Habits commit: `5b135f6`. Health schema, precision, snapshot semantics and limitations: `product/HEALTH_V1.md`. Both modules remain independent of wallet and Goal namespaces. Settings backup UI and aggregate privacy tests remain Phase 7/9 work.
+[Habits](product/HABITS_V1.md) use `zigoals:habits:v1`; [Health](product/HEALTH_V1.md) uses `zigoals:health:v1`. Both are strict private version 1 envelopes, independent of wallets and existing Goal keys, bounded to 2 MB and written atomically under Web Locks. Calendar keys use local dates. Health stores integer kcal, macro milligrams and body-weight grams; recipe/diary snapshots prevent later food edits from rewriting history. Goal links match chain + owner + Goal ID. Standalone Habits and unlinked Health records are valid.
 
-Health commit: `b929d02`. Today screenshot pass 1 is recorded under `/tmp/zigoals-run7-today-pass1`; final curated screenshots will be committed after Phase 8. Goal card artwork is presentation only; Goal Engine calls and values are unchanged.
+Settings exports modules independently to preserve existing Goal backup behavior. Validated imports require an explicit replacement choice, preserve exact previous bytes and refuse newer-version downgrades. Bad input keeps recoverable form drafts; unreadable storage blocks edits. Browser storage is not encryption or cloud sync. Private values never enter URLs, analytics, RPC/REST or chain messages. Egress checks capture requests, full headers, bodies, console output and wallet calls using fictional sentinels. Screenshots contain only test fixtures, never owner data.
 
-Today checkpoint: `2ddfed0`. Goals presentation preserves all existing prepare/withdraw/close guards and financial calculations. Ecosystem/Settings styles share the same V2 surface foundation; integration validation follows.
+Nova Health source was inspected read-only in the documented Hermes dashboard path; no personal database or Nova project was changed. No documented ZIGoals-specific Obsidian/n8n recording workflow was found in the workspace; no private vault path was invented. This report is the durable resume record.
 
-Goals checkpoint: `3b061c3`. Module backup downloads preserve original malformed bytes; validated imports explicitly replace only the selected module and quarantine the old record. Future schema downgrade is refused. Existing Goal metadata, funds and reconnect namespaces were verified unchanged. Browser privacy captures include request headers, URLs, bodies, console and wallet-call instrumentation; no sentinel or wallet call observed on the completed desktop pass.
+## Validation and bundle
 
-Integration checkpoint: `36ff8f1`. Independent read-only review found one minor rejected-Health-draft issue; corrected shared mutation error handling preserves drafts when the stored record still reads, while corrupted records stay blocked. Targeted desktop/mobile regression and aggregate sentinel checks: 4/4 passed. Full Goal-provider tests: 20/20 after replacing the decorative wallet arrow with an SVG (exact labels retained). No higher-severity finding.
+- Full web lint and TypeScript: **PASS**. Full JS suite: **610/610**, 32 files.
+- Production Next build: **PASS**, runtime source `6889ffe7510dda8d4f7394eb1a5016121bd804b3`.
+- Desktop/mobile production browser gate: **80 distinct cases verified**. Initial full run passed 78; the two Ecosystem cases used an old link label. Test-only selector correction `176f209` passed both targeted cases. All other assertions remained intact.
+- Clean Alpha OpenNext build and Wrangler dry run: **PASS**, exact source `176f209600b8c7ba7b2c1fcf746f105fe84a14ff`, **dirty:false**. This differs from the screenshot source only by that test selector.
+- Focused local workerd gate: **20/20** across CSP/nonce/static assets, diagnostics, public Alpha authority, wallet/reconnect, V1 upgrade, malformed/future recovery and Habit/Health private egress.
+- Deployment configuration, dependency audit and tracked credential-pattern checks: **PASS**. No local Rust rerun; contract files unchanged. CI may run repository contract checks independently.
+- Worker upload: **9029.61 KiB**, gzip **1687.49 KiB**. Compared with owner-supplied approximate V1 baselines (~8745/~1623 KiB), growth is ~3.3% raw / **~4.0% gzip**. Below the 10% investigation threshold. New local product modules explain the bounded increase; documentation screenshots are excluded from runtime assets.
+- One independent read-only review: no higher-severity finding. A P3 rejected Health draft issue was reproduced and fixed; desktop/mobile regression passed. The full suite also exposed a text-selector mismatch from a decorative wallet arrow; using SVG preserved the exact original label and all 20 Goal-provider tests passed.
 
-Visual pass 2: populated screenshots inspected for Today, Goals/detail/create, Habits and Health. Nine routes fit all five required widths; final refinements condense mobile check-ins, style filters, add real streak/linked-Goal and Health macro/weight/step summaries, and retain semantic controls. Local fictional fixtures are test-only. Production build and final screenshot gate are next.
+The final documentation/visual-package commit does not change the validated runtime source. CI status will be recorded after PR creation; no local result is being presented as hosted CI evidence.
+
+## Checkpoints
+
+`edb31d6` truth/plan → `b850355` foundation → `42e2e7b` shell → `5b135f6` Habits → `b929d02` Health → `2ddfed0` Today → `3b061c3` Goals → `36ff8f1` private integration → `6889ffe` refined/reviewed implementation → `176f209` Ecosystem test selector. Every checkpoint was pushed.
+
+## Limits and next owner actions
+
+Daily and selected weekdays are implemented; exotic recurrence is deferred. Archive is reversible; permanent Habit deletion is not part of v1. Photo recognition, wearables/Apple Health, remote food lookup, cloud sync and AI coaching remain future work with no fake live controls. Module exports are separate rather than a risky replacement for the existing Goal backup schema. Current-state Activity is not an immutable audit log. The pre-existing duplicate dynamic HSTS/X-Robots-Tag values remain documented and unchanged.
+
+Review the screenshots and three marks, then inspect the PR and optionally run the local Alpha preview in an isolated browser. Test one Goal, linked/standalone Habit and meal/weight flow; export a backup before clearing local data. Owner approval is still required for any later merge/deployment and first-contract release work. **Do not merge or deploy as part of this run.**
