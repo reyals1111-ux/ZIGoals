@@ -18,7 +18,7 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await page.screenshot({ path: info.outputPath(`dashboard-${viewport.width}.png`), fullPage: true });
     await page.getByRole("link", { name: "See how it works" }).click();
     await expect(page).toHaveURL(/#how-it-works$/);
-    await expect(page.getByRole("complementary", { name: "How it works" })).toBeInViewport();
+    await expect(page.getByRole("region", { name: "How it works" })).toBeInViewport();
     await page.getByRole("link", { name: "Plan my first goal" }).click();
     await expect(page).toHaveURL(/\/app\/goals\/new$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -5,15 +5,18 @@ import { evaluateGoal } from "@zigoals/goal-engine";
 import type { GoalMetadata } from "@zigoals/shared-types";
 import type { LocalGoal } from "../lib/local-ledger";
 import { DemoPriceProvider } from "../lib/valuation";
+import { SceneArt } from "./scene-art";
 export function displayAmount(value: string, currency: string) {
   return `${currency === "EUR" ? "€" : currency === "USD" ? "$" : ""}${new Decimal(value).toDecimalPlaces(currency === "ZIG" ? 6 : 2).toFixed()}${currency === "ZIG" ? " ZIG" : ""}`;
 }
 export function GoalCard({
   goal,
   plan,
+  compact = false,
 }: {
   goal: LocalGoal;
   plan?: GoalMetadata;
+  compact?: boolean;
 }) {
   const current = DemoPriceProvider.value(
     goal.position_units,
@@ -35,7 +38,8 @@ export function GoalCard({
     /* A stale or out-of-range plan must not block access to financial state. */
   }
   return (
-    <article className="goal-card">
+    <article className={`goal-card destination-card${compact ? " compact-goal" : ""}`}>
+      <div className="goal-card-art"><SceneArt scene={plan?.category === "Travel" ? "mountains" : plan?.category === "First Home" ? "home" : "garden"}/><span>{plan?.category ?? "Private goal"}</span></div>
       <div className="card-top">
         <span className="category-icon" aria-hidden="true">
           {plan?.category === "Travel"
