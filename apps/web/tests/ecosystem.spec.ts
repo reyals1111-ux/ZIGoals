@@ -4,7 +4,7 @@ test("ecosystem research is readable without connecting a wallet", async ({ page
   const errors: string[] = [];
   page.on("pageerror", error=>errors.push(error.message));
   await page.goto("/app");
-  await page.getByRole("link", { name: "Explore the ecosystem →" }).click();
+  await page.getByRole("link", { name: "Explore the ZIGChain ecosystem →" }).click();
   await expect(page.getByRole("heading", { name: "Built to work together." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Open Range testnet ↗" })).toHaveAttribute("href", "https://app.range.org/zigchain-testnet/general");
   await expect(page.getByRole("link", { name: "Open ZIGScan testnet ↗" })).toHaveAttribute("href", "https://testnet.zigscan.org/");
