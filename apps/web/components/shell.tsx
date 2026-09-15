@@ -6,9 +6,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
-import { BrandMark, Wordmark } from "./brand-mark";
+import { Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
-import { SceneArt } from "./scene-art";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const path = usePathname();
@@ -23,7 +22,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </a>
       <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
-          <BrandMark /><Wordmark />
+          <Wordmark />
         </Link>
         <p className="product-descriptor">Goals, Habits &amp; Health</p>
         <nav className="app-nav" aria-label="Main navigation">
@@ -39,13 +38,13 @@ export function Shell({ children }: { children: ReactNode }) {
             <Link key={href} href={href!}
               className={icon === "ecosystem" ? "nav-divider" : undefined}
               aria-current={(href === "/app" ? path === href : path === href || path.startsWith(`${href}/`)) ? "page" : undefined}>
-              <AppIcon name={icon!} /><span>{label}</span>
+              <AppIcon name={icon!} luminous={href === "/app" ? path === href : path === href || path.startsWith(`${href}/`)} /><span>{label}</span>
             </Link>
           ))}
         </nav>
         <div className="sidebar-destination">
           <p>Real goals.<br /><span className="nebula-text">A brighter tomorrow.</span></p>
-          <SceneArt />
+          <div className="sidebar-horizon" aria-hidden="true" />
           <small>THE GOAL LAYER FOR ZIGCHAIN</small>
         </div>
       </aside>
@@ -71,7 +70,8 @@ export function Shell({ children }: { children: ReactNode }) {
               s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
             }
           >
-            {s.walletState === "CONNECTING"
+            <AppIcon name="wallet" size={24} luminous />
+            <span className="wallet-identity">{s.walletState === "CONNECTING"
               ? "Connecting…"
               : s.walletState === "ADDING_TESTNET"
                 ? "Adding testnet…"
@@ -80,7 +80,8 @@ export function Shell({ children }: { children: ReactNode }) {
                   : s.walletReconnectHint
                     ? "Reconnect Keplr"
                     : "Connect Keplr"}
-            {s.walletState !== "CONNECTED" && <AppIcon name="arrow" size={14}/>}
+            {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG · Testnet</small>}</span>
+            <AppIcon name={s.walletState === "CONNECTED" ? "refresh" : "arrow"} size={14}/>
           </button>
         </div>
       </header>
@@ -167,6 +168,7 @@ export function Shell({ children }: { children: ReactNode }) {
         )}
         <main id="main">{children}</main>
         <footer>
+          <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
           <span>
             Independent project · Unaudited alpha · Idle strategy only

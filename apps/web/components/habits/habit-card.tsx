@@ -1,6 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { visualTone } from "../visual-tone";
 import { habitDay, habitStats, latestHabitRule, type Habit, type HabitGoalLink } from "../../lib/habits";
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import type { HabitsStore } from "./use-habits";
@@ -75,7 +76,7 @@ export function HabitCard({ habit, store, scope, goalName, onEdit }: { habit: Ha
   const [error, setError] = useState("");
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next); } catch { setError("The habit was not changed. Try again."); } finally { setBusy(false); } }
-  return <article className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title}>
+  return <article className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
     <div className="habit-card-heading"><div><p className="eyebrow">{habit.category}<span aria-hidden="true"> · </span>{rule.schedule.kind === "daily" ? "Every day" : rule.schedule.days.map((day) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day]).join(" · ")}</p><h2>{habit.title}</h2></div><button className="quiet" onClick={onEdit} aria-label={`Edit ${habit.title}`}>Edit</button></div>
     {habit.description && <p className="habit-description">{habit.description}</p>}
     <HabitCompletion habit={habit} store={store} />

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { visualTone } from "../visual-tone";
 import { goalLinkMatches, habitDay, habitStats } from "../../lib/habits";
 import { useGoals } from "../goal-provider";
 import { HabitCompletion } from "./habit-card";
@@ -15,7 +16,7 @@ export function HabitsToday() {
     {!store.loaded ? <p role="status">Loading habits…</p> : store.error ? <p role="alert">{store.error}</p> : due.length ? <><p className="fine">{complete} of {due.length} complete today</p><ul className="habit-today-list">{due.slice(0, 3).map((habit) => {
       const streak = habitStats(habit, store.today).currentStreak;
       const linked = habit.goalLink && goalLinkMatches(habit.goalLink, { chainId: goals.chain, owner: goals.owner, goalId: habit.goalLink.goalId }) ? goals.metadata?.goals[habit.goalLink.goalId]?.name : undefined;
-      return <li key={habit.id}><div><strong>{habit.title}</strong><small>{streak} day streak · {linked ?? habit.category}</small></div><HabitCompletion habit={habit} store={store} compact /></li>;
+      return <li key={habit.id} data-tone={visualTone(habit.id)}><div><strong>{habit.title}</strong><small>{streak} day streak · {linked ?? habit.category}</small></div><HabitCompletion habit={habit} store={store} compact /></li>;
     })}</ul></> : <p>A small daily action can support a bigger goal. Create your first habit, or make space for today.</p>}
     <Link className="text-link" href="/app/habits">{due.length ? "View all habits →" : "Build your rhythm →"}</Link>
   </section>;

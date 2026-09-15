@@ -16,7 +16,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   return <div className="unified-activity">
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
     {entries.length ? <ol>{entries.map(event => <li key={`${event.category}-${event.id}`}>
-      <span className={`timeline-icon timeline-${event.category.toLowerCase()}`}><AppIcon name={event.category === "GOAL" ? "goals" : event.category === "HABIT" ? "habits" : "health"}/></span>
+      <span className={`timeline-icon timeline-${event.category.toLowerCase()}`}><AppIcon name={event.category === "GOAL" ? "plus" : event.category === "HABIT" ? "habits" : "health"}/></span>
       <div><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{event.category === "GOAL" ? "Local simulation" : "Private · this browser"}</small></div>
       <time dateTime={event.at}>{new Date(event.at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time>
     </li>)}</ol> : <div className="timeline-empty"><AppIcon name="activity" size={28}/><p>Your next step belongs here.</p><small>Goal actions, habit check-ins and health logs will build your story.</small></div>}

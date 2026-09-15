@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useId } from "react";
+import { visualTone } from "./visual-tone";
 import Decimal from "decimal.js";
 import { evaluateGoal } from "@zigoals/goal-engine";
 import type { GoalMetadata } from "@zigoals/shared-types";
@@ -18,6 +20,7 @@ export function GoalCard({
   plan?: GoalMetadata;
   compact?: boolean;
 }) {
+  const ringId = useId();
   const current = DemoPriceProvider.value(
     goal.position_units,
     plan?.currency ?? "ZIG",
@@ -38,7 +41,7 @@ export function GoalCard({
     /* A stale or out-of-range plan must not block access to financial state. */
   }
   return (
-    <article className={`goal-card destination-card${compact ? " compact-goal" : ""}`}>
+    <article className={`goal-card destination-card${compact ? " compact-goal" : ""}`} data-tone={visualTone(goal.id)}>
       <div className="goal-card-art"><SceneArt scene={plan?.category === "Travel" ? "mountains" : plan?.category === "First Home" ? "home" : "garden"}/><span>{plan?.category ?? "Private goal"}</span></div>
       <div className="card-top">
         <span className="category-icon" aria-hidden="true">
@@ -84,8 +87,9 @@ export function GoalCard({
               aria-valuenow={Math.min(100, Number(result.progressPct))}
             >
               <svg viewBox="0 0 88 88" aria-hidden="true" focusable="false">
+                <defs><linearGradient id={ringId} x1="0" y1="0" x2="1" y2="1"><stop stopColor="var(--item-start)"/><stop offset="1" stopColor="var(--item-end)"/></linearGradient></defs>
                 <circle className="ring-track" cx="44" cy="44" r="38" />
-                <circle className="ring-value" cx="44" cy="44" r="38" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 44 44)" />
+                <circle style={{ stroke: `url(#${ringId})` }} className="ring-value" cx="44" cy="44" r="38" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 44 44)" />
               </svg>
               <strong aria-hidden="true">{new Decimal(result.progressPct).toFixed(1)}%</strong>
             </div>

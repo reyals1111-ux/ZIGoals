@@ -61,3 +61,14 @@ The final documentation/visual-package commits do not change the validated runti
 Daily and selected weekdays are implemented; exotic recurrence is deferred. Archive is reversible; permanent Habit deletion is not part of v1. Photo recognition, wearables/Apple Health, remote food lookup, cloud sync and AI coaching remain future work with no fake live controls. Module exports are separate rather than a risky replacement for the existing Goal backup schema. Current-state Activity is not an immutable audit log. The pre-existing duplicate dynamic HSTS/X-Robots-Tag values remain documented and unchanged.
 
 Review the screenshots and three marks, then inspect the PR and optionally run the local Alpha preview in an isolated browser. Test one Goal, linked/standalone Habit and meal/weight flow; export a backup before clearing local data. Owner approval is still required for any later merge/deployment and first-contract release work. **Do not merge or deploy as part of this run.**
+
+## V2.1 owner visual-fidelity polish
+
+Continuation starts at `85e2a56536d8078da5c7acbcf99c98c0b63fcac3` on the existing Run 7 branch and PR #9. No product architecture or domain logic expansion. Production mutations: **NONE**.
+
+- COMPLETE: inspect owner's final mockup, detailed crops and current V2 screenshot; prepare three text-free cinematic backgrounds plus a mobile hero derivative (247,490 bytes total WebP).
+- IN PROGRESS: all 17 owner corrections: selected navigation, stable varied rings, spectrum text, activity icons, cinematic wallet, hero controls/pillars, destination art, quote removal, page/sidebar/hero/footer continuity, compact account control, Habits/Health palette, dominant wordmark, replaceable existing mark, retained simplified Goal art.
+- NOT STARTED: screenshot refinement, final validation, PR update and CI verification.
+- Preserved: all Goal/financial calculations, wallet connect handlers, storage, Habits/Health models, privacy/egress boundaries, contract/release/Cloudflare architecture.
+- Assets and provenance: see `docs/design/V21_ARTWORK.md`. Actual supplied image set contains 18 images; references are matched by content where numbering diverges from the brief.
+- First V2.1 checkpoint: typecheck and changed-component lint passed; desktop visual/identity test passed (1/1), with Today/Habits/Health captures in `/tmp/zigoals-v21-pass1`. Pass 1 found a visible hero/background seam and a tight wallet crop; refine these before final captures. No change to connection handlers or domain functions.
