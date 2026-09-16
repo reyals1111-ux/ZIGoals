@@ -60,7 +60,7 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(h["content-security-policy"]!.split(";").find(s=>s.includes("script-src"))).not.toMatch(/unsafe-inline|unsafe-eval/);
   expect(h["x-frame-options"]).toBe("DENY"); expect(h["x-content-type-options"]).toBe("nosniff");
   expect(h["referrer-policy"]).toBe("no-referrer"); expect(h["cache-control"]).toContain("no-store");
-  expect(h["x-robots-tag"]).toContain("noindex");
+  expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
   const socialUrl = new URL("/social-card.png", response!.url());
   // NextURL intentionally normalizes loopback addresses to localhost.
   if (socialUrl.hostname === "127.0.0.1") socialUrl.hostname = "localhost";
@@ -145,7 +145,7 @@ test("public icon and robots bypass nonce work while lookalike HTML retains CSP"
     expect(h["x-frame-options"]).toBe("DENY");
     expect(h["x-content-type-options"]).toBe("nosniff");
     expect(h["referrer-policy"]).toBe("no-referrer");
-    expect(h["x-robots-tag"]).toContain("noindex");
+    expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
     expect(h["strict-transport-security"]).toBe("max-age=31536000");
     if (route === "/robots.txt") {
       expect(h["content-type"]).toContain("text/plain");
