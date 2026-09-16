@@ -13,7 +13,8 @@
       "https://docs.valdora.finance/smart-contracts",
       "https://docs.valdora.finance/liquid-staking/architecture",
       "https://docs.valdora.finance/liquid-staking/unstaking-and-redemption",
-      "https://docs.valdora.finance/vaults/introduction"
+      "https://docs.valdora.finance/vaults/introduction",
+      "https://docs.valdora.finance/vaults/core-income-vault"
     ],
     "networks": [
       {
@@ -133,14 +134,25 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-09-16",
     "risks": [
       "No public canonical message schema or deployed checksum-to-source mapping was found.",
       "Normal liquid-staking redemption is delayed and includes a later claim step.",
-      "Provider security claims were not backed by a public audit report tied to current deployments.",
+      "Public OAK Security CosmWasm audit reports exist for Valdora and the Valdora Vault Contract, but current deployed checksum-to-audited-source mapping remains unverified.",
       "Vault roles must not collapse curator, originator, custodian, servicer, and distributor responsibilities."
     ],
-    "audits": [],
+    "audits": [
+      {
+        "url": "https://github.com/oak-security/audit-reports/blob/main/Valdora/2025-09-28%20Audit%20Report%20-%20Valdora.pdf",
+        "title": "OAK Security Valdora CosmWasm Audit",
+        "supports": "Public OAK Security CosmWasm audit report for Valdora; current deployed checksum-to-audited-source mapping has not been established."
+      },
+      {
+        "url": "https://github.com/oak-security/audit-reports/blob/main/Valdora/2026-04-17%20Audit%20Report%20-%20Valdora%20Vault%20Contract.pdf",
+        "title": "OAK Security Valdora Vault Contract Audit",
+        "supports": "Public OAK Security CosmWasm audit report for the Valdora Vault Contract; current deployed vault checksum-to-audited-source mapping has not been established."
+      }
+    ],
     "eligibility": {
       "kyc": "UNKNOWN",
       "jurisdiction": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation.",
@@ -182,6 +194,16 @@
         "url": "https://testnet-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69",
         "title": "ZIGChain testnet contract record: Valdora staker",
         "supports": "Live contract record and code ID."
+      },
+      {
+        "url": "https://docs.valdora.finance/vaults/core-income-vault",
+        "title": "Valdora Core Income Vault",
+        "supports": "Published mainnet Core Income Vault address and product facts including ZIGChain deployment, USDC supply token, 0% performance fee and redemption up to 120 days."
+      },
+      {
+        "url": "https://github.com/oak-security/audit-reports/blob/main/_tech_stacks/cosmwasm.md",
+        "title": "OAK Security CosmWasm Audit Index",
+        "supports": "Public audit index listing Valdora and Valdora Vault Contract CosmWasm reports."
       }
     ],
     "phase": "FUTURE_GATED"
@@ -797,7 +819,7 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-09-16",
     "risks": [
       "Implementation documentation explicitly remains in preparation.",
       "No public authorization, custody, strategy-object, amount, lifecycle, or failure semantics were found.",
