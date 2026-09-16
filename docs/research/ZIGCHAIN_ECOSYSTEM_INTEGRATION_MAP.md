@@ -311,3 +311,15 @@ For transparency, product/vault, curator, originator, servicer and custodian are
 PermaPod incident/remediation provenance is unresolved: a non-primary alert was investigated but no primary postmortem or deployment-to-remediation mapping was found. This does not prove absence of an incident, that affected code remains deployed, or that remediation succeeded. A fresh current-contract security review is mandatory. Nawa certification remains attributed provider claims, with no independently established current ZIGChain certificate or deployment. Valdora’s already-sent schema request should not be duplicated. WME remains architecture only.
 
 These sources do not establish universal retail eligibility, guaranteed yield or a single RWA pipeline connecting all named firms. Unknown claims remain explicit, and no lifecycle/status can enable an investment integration.
+
+## ZIGChain EVM execution lane
+
+**Status:** `RESEARCH_ONLY / FUTURE_GATED / NOT_EXECUTION_READY`. **Last verified:** 2026-09-17.
+
+ZIGChain v5's 18-decimal `azig` design explicitly references Cosmos/EVM/IBC alignment, and the Token Wrapper already documents Ethereum/Axelar/native-ZIG funding semantics. However, no canonical public ZIGChain EVM JSON-RPC, EVM chain ID, wallet configuration, address mapping, gas model or public EVM testnet deployment flow was verified.
+
+Future ZIGoals design keeps one deterministic VM-agnostic Goal Engine with separate `CosmosExecutionAdapter`, `EvmExecutionAdapter` and `FundingRoute` boundaries. Potential ERC-20/EVM/cross-chain goal funding remains research only.
+
+Hard gates include official network/RPC/wallet identity, amount/decimal/gas rules, receipt/finality/error semantics, allowance/revocation behavior, bridge recovery, exact deployed contract provenance, security review, testnet availability and end-to-end receipts.
+
+No signing, approvals, routing, bridge, swap, custody or contract-deployment authority is granted. Idle remains the only executable strategy.
