@@ -28,8 +28,43 @@ test("HTTPS middleware overwrites attacker nonce/origin and sends non-cacheable 
   expect(response.headers.get("x-middleware-request-x-zigoals-origin")).toBe("https://zigoals-alpha.example.workers.dev");
   expect(response.headers.get("x-middleware-request-x-nonce")).not.toBe("attacker");
   expect(response.headers.get("Content-Security-Policy")).not.toContain("attacker");
-  expect(response.headers.get("Strict-Transport-Security")).toBe("max-age=31536000");
   expect(response.headers.get("Cache-Control")).toContain("no-store");
+});
+
+test("HSTS and crawler headers avoid middleware duplication while covering Next and static assets", () => {
+  const nextConfig = readFileSync(
+    new URL("../next.config.ts", import.meta.url),
+    "utf8",
+  );
+  const middlewareSource = readFileSync(
+    new URL("../middleware.ts", import.meta.url),
+    "utf8",
+  );
+  const staticHeaders = readFileSync(
+    new URL("../public/_headers", import.meta.url),
+    "utf8",
+  );
+
+  expect(nextConfig).toContain(
+    '{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }',
+  );
+  expect(nextConfig).toContain(
+    '{ key: "Strict-Transport-Security", value: "max-age=31536000" }',
+  );
+
+  expect(middlewareSource).not.toContain(
+    'response.headers.set("X-Robots-Tag"',
+  );
+  expect(middlewareSource).not.toContain(
+    'response.headers.set("Strict-Transport-Security"',
+  );
+
+  expect(staticHeaders).toContain(
+    "X-Robots-Tag: noindex, nofollow, noarchive",
+  );
+  expect(staticHeaders).toContain(
+    "Strict-Transport-Security: max-age=31536000",
+  );
 });
 
 
