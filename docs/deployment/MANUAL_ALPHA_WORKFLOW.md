@@ -70,3 +70,19 @@ pnpm --filter @zigoals/web check:alpha
 ```
 
 Use `actionlint .github/workflows/deploy-alpha.yml` to validate Actions syntax. The optional `node scripts/alpha-deploy.mjs smoke` performs only the public HTTP checks. It does not validate a new deployment's source unless called by the publication coordinator with the expected SHA. The coordinator's tests inject the external upload/read boundary; no test deploys, rolls back, contacts a wallet or changes Cloudflare.
+
+## First live manual-workflow evidence — 2026-09-16/17
+
+Three fresh dispatches were used; failed runs were never rerun.
+
+- `35147020654`: build/tests/dry-run passed, then Cloudflare deployment-read access returned 403. No upload occurred.
+- `35152427908`: after adding account-wide Individual Workers Metadata Read-Only, rollback capture succeeded, but Wrangler failed before publication at `assets-upload-session` with authentication error 10000.
+- `35153444566`: after adding account-wide Workers Scripts Read + Edit/Write, every gate passed and version `836e3ad7-af0a-46cd-8e32-e050d747e6f2` was verified live. Rollback `dd86bc45-0fcd-45e2-b8c4-5ec278d1cb80` was retained first.
+
+Current dedicated token policy:
+- Specified Worker `zigoals-alpha` → Individual Workers Editor
+- Entire Account → Individual Workers Metadata Read-Only
+- Entire Account → Workers Scripts Read + Edit/Write
+- no DNS, R2, D1, KV, Tail, email or unrelated provisioning permissions
+
+The legacy account-level Workers Scripts permission is currently required by Wrangler's static-assets upload API, so the workflow's fixed worker target, exact-main checks, owner environment approval and rollback capture remain important compensating controls.

@@ -33,3 +33,16 @@ Keplr chain suggestion/enable/getKey/getOfflineSignerAuto and keplr_keystorechan
 Gas price2500000000azig comes from current official deployment examples: https://docs.zigchain.com/builders/cosmwasm-module . Estimate actual gas per message and add30%; fee is integer base units, not a fixed token reserve. Recheck pricing with the network before deployment.
 
 Installed compatibility check: CosmJS0.38.1 defaults Bech32 decoding to Infinity, rejected by scure-base2.4.0. The app passes the standard finite90-character bound explicitly for both20-byte wallet and32-byte contract addresses; direct tests verify valid addresses and reject malformed prefix/checksum/length. Remaining upstream unbounded helpers are not used by the implemented flow.
+
+## 2026-09-17 EVM/support addendum
+
+**EVM execution status: RESEARCH_ONLY / FUTURE_GATED / NOT_EXECUTION_READY.**
+
+Primary-source facts:
+- ZIGChain v5 changes native ZIG to 18-decimal `azig`; the official rationale explicitly cites alignment across Cosmos, EVM and IBC ecosystems: https://docs.zigchain.com/about-zigchain/redenomination
+- Token Wrapper documentation describes ERC-20 ZIG moving from Ethereum through Axelar/IBC to native ZIG on ZIGChain and references failed EVM-origin recovery: https://docs.zigchain.com/builders/token-wrapper-module
+- Current official Chain Information publishes Tendermint RPC, REST/LCD and gRPC resources. No canonical ZIGChain EVM JSON-RPC, EVM chain ID, MetaMask configuration, Solidity deployment guide or public EVM testnet workflow was established in the reviewed official documentation: https://docs.zigchain.com/integration-guides/chain-information
+
+Owner-reported support communication says the broad EVM integration is under active implementation/testing and CosmWasm whitelisting is paused with no ETA. The separate testnet-funding request remains pending.
+
+Architecture consequence: keep the deterministic Goal Engine VM-independent. Future Cosmos/CosmWasm and EVM execution adapters must remain separate authority boundaries. No EVM execution may be enabled until official RPC/chain/wallet/address/gas/finality/receipt specifications, contract provenance and testnet receipts are verified.
