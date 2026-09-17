@@ -1,6 +1,6 @@
 import type { Platform } from './positions';
 import { describe, expect, it } from 'vitest';
-import { emptyPlatform, platformSchema, positionSchema, allocationBalance, allocate, closeGoal, goalProgress, stakingProjection, planScenario, saveManualPosition } from './positions';
+import { emptyPlatform, platformSchema, positionSchema, allocationBalance, allocate, closeGoal, goalProgress, stakingProjection, planScenario, saveManualPosition, scenarioHorizon, allocatedNativePrincipal } from './positions';
 const p = () => positionSchema.parse({ id: 'p', providerId: 'manual', sourceType: 'MANUAL', network: 'manual', account: 'local', asset: 'ZIG', denom: 'azig', quantity: '100', decimals: 0, verification: 'MANUAL', observedAt: '2026-09-17T00:00:00Z', liquidity: 'LIQUID', provenance: 'User entry' });
 const g = (id = '1') => ({ id, network:'zigchain-1' as const, name: 'Example', type: 'QUANTITY' as const, status: 'active' as const, asset: 'ZIG', denom: 'azig', decimals: 0, target: '100', notes: '', milestones: [], createdAt: '2026-09-17T00:00:00Z' });
 const state = (): Platform => ({ ...emptyPlatform(), positions: [p()], goals: [g(), g('2')] });
@@ -86,4 +86,31 @@ it('manual edits cannot reinterpret existing allocation or snapshot units',()=>{
  for(const change of [{asset:'BTC'},{denom:'other'},{decimals:18}])expect(()=>saveManualPosition(s,{...p(),...change})).toThrow(/identity/i);
  const next=saveManualPosition(s,{...p(),quantity:'90',observedAt:'2026-09-18T00:00:00Z'});
  expect(next.allocations).toEqual(s.allocations);expect(next.snapshots[0]).toEqual(s.snapshots[0]);expect(next.positions[0]?.decimals).toBe(0);
+});
+
+it('uses one calendar-year horizon with leap-day clamping and honors explicit deadlines',()=>{
+ expect(scenarioHorizon('2026-09-17')).toBe('2027-09-17');
+ expect(scenarioHorizon('2028-02-29')).toBe('2029-02-28');
+ expect(scenarioHorizon('2026-09-17','2030-01-31')).toBe('2030-01-31');
+});
+it('projects a complete thirty-year weekly plan instead of silently truncating it',()=>{
+ const plan={amount:'10',asset:'ZIG',decimals:0,cadence:'weekly' as const,nextDate:'2026-09-17',active:true};
+ const result=planScenario({...g(),target:'15000'},'0',plan,'2056-09-17','2026-09-17');
+ expect(result.dates).toHaveLength(1566);expect(result).toMatchObject({contributions:'15660',fundingHealth:'ON_TRACK'});
+ expect(()=>planScenario(g(),'0',plan,'9999-12-31','2026-09-17')).toThrow(/horizon/i);
+});
+it('staking scenarios exclude foreign-network and research-only evidence and preserve exact deficit shares',()=>{
+ const s=state();s.goals[0]={...g(),decimals:18,target:'100000000000000000000'};
+ s.positions[0]={...p(),network:'zigchain-1',sourceType:'NATIVE_STAKING',verification:'VERIFIED_READ_ONLY',denom:'uzig',decimals:6,quantity:'100000000'};
+ const allocated=allocate(s,'1','p','80000000');expect(allocatedNativePrincipal(allocated,'1')).toBe('80000000000000000000');
+ allocated.positions[0]!.network='zig-test-2';expect(allocatedNativePrincipal(allocated,'1')).toBe('0');
+ allocated.positions[0]!.network='zigchain-1';allocated.positions[0]!.verification='RESEARCH_ONLY';expect(allocatedNativePrincipal(allocated,'1')).toBe('0');
+ allocated.positions[0]!.verification='VERIFIED_READ_ONLY';allocated.positions[0]!.quantity='40000000';expect(allocatedNativePrincipal(allocated,'1')).toBe('40000000000000000000');
+});
+
+it('rejects validator commission above one without rounding decimal evidence',()=>{
+ const validator={address:'validator',name:'Example',status:'bonded',votingTokens:'100',commission:'1.5'};
+ expect(positionSchema.safeParse({...p(),validator}).success).toBe(false);
+ expect(positionSchema.safeParse({...p(),validator:{...validator,commission:'1.000000000000000000'}}).success).toBe(true);
+ expect(positionSchema.safeParse({...p(),validator:{...validator,commission:'0.999999999999999999'}}).success).toBe(true);
 });

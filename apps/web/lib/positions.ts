@@ -17,7 +17,7 @@ export const positionSchema = z.object({
  verification:z.enum(PROVIDER_STATES), sync:z.enum(['CURRENT','STALE','ERROR','MANUAL']).default('MANUAL'),
  observedAt:at, provenance:z.string().min(1).max(500), notes:z.string().max(2000).default(''),
  risk:z.string().max(500).default(''), executionAuthority:z.literal('NONE').default('NONE'),
- validator:z.object({address:id,name:z.string().max(200),status:z.string().max(100),commission:z.string().regex(/^(0|1)(\.\d{1,18})?$/),votingTokens:units}).strict().optional(),
+ validator:z.object({address:id,name:z.string().max(200),status:z.string().max(100),commission:z.string().regex(/^(0(\.\d{1,18})?|1(\.0{1,18})?)$/),votingTokens:units}).strict().optional(),
  exitDate:at.optional(), unbondingHeight:units.optional(),
 }).strict();
 export type Position = z.infer<typeof positionSchema>;
@@ -131,6 +131,28 @@ export function goalProgress(s:Platform,id:string,now=Date.now()){
  const pct=current*10000n/target;
  return {current:current.toString(),target:target.toString(),remaining:max(0n,target-current).toString(),manual:manual.toString(),verified:verified.toString(),intended:intended.toString(),progressPct:`${pct/100n}.${String(pct%100n).padStart(2,'0')}`,requiresReview,breakdown};
 }
+/** Only evidenced native stake in this Goal's network may fund its staking scenario. */
+export function allocatedNativePrincipal(s:Platform,goalId:string):string {
+ const goal=s.goals.find(g=>g.id===goalId);if(!goal||goal.status==='closed'||goal.type==='PROJECT')return '0';
+ let total=0n;
+ for(const a of s.allocations.filter(a=>a.goalId===goalId)){
+  const p=s.positions.find(p=>p.id===a.positionId);if(!p||p.sourceType!=='NATIVE_STAKING'||p.asset!=='ZIG'||p.network!==goal.network||!['VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification))continue;
+  if(!((p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6)||(p.network==='zig-test-2'&&p.denom==='azig'&&p.decimals===18)))continue;
+  if(goal.type!=='VALUE'&&!assetMatches(goal,p))continue;
+  const allocated=BigInt(allocationBalance(s,p.id).allocated),observed=BigInt(p.quantity),requested=BigInt(a.quantity);
+  const effective=allocated>observed?requested*observed/allocated:requested;
+  total+=BigInt(rescaleUnits(effective.toString(),p.decimals,18));
+ }
+ return total.toString();
+}
+/** Undated scenarios always use one calendar year, clamping February 29. */
+export function scenarioHorizon(asOf:string,targetDate?:string):string {
+ date.parse(asOf);if(targetDate)return date.parse(targetDate);
+ const anchor=new Date(`${asOf}T12:00:00Z`),year=anchor.getUTCFullYear()+1,month=anchor.getUTCMonth();
+ if(year>9999)throw Error('Choose an explicit supported scenario horizon.');
+ const lastDay=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+ return new Date(Date.UTC(year,month,Math.min(anchor.getUTCDate(),lastDay),12)).toISOString().slice(0,10);
+}
 export function stakingProjection(principal:string,aprPercent:string,days:number):string{
  units.parse(principal);if(!/^(0|[1-9]\d{0,2})(\.\d{1,6})?$/.test(aprPercent)||!Number.isInteger(days)||days<0||days>36500)throw Error('Invalid APR assumption or horizon.');
  const [whole,frac='']=aprPercent.split('.');const rate=BigInt(whole!)*1000000n+BigInt(frac.padEnd(6,'0'));
@@ -147,14 +169,16 @@ export function planScenario(goal:PrivateGoal,current:string,raw:ContributionPla
  const dates:string[]=[];let contributions=0n;let completionDate:string|null=BigInt(current)>=BigInt(goal.target)?asOf:null;
  if(plan.active){
  const amount=contributionUnits(goal,plan);const anchor=new Date(`${plan.nextDate}T12:00:00Z`);
- for(let n=0;n<1200;n++){
+ for(let n=0;n<=12000;n++){
   let d=new Date(anchor);
   if(plan.cadence==='weekly')d.setUTCDate(d.getUTCDate()+n*7);
   if(plan.cadence==='monthly'||plan.cadence==='yearly'){
    const months=n*(plan.cadence==='yearly'?12:1);d=new Date(Date.UTC(anchor.getUTCFullYear(),anchor.getUTCMonth()+months,1,12));
    d.setUTCDate(Math.min(anchor.getUTCDate(),new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate()));
   }
+  if(d.getUTCFullYear()>9999)break;
   const scheduled=d.toISOString().slice(0,10);if(scheduled>through||(plan.endDate&&scheduled>plan.endDate))break;
+  if(n===12000)throw Error('Scenario horizon exceeds 12,000 scheduled dates. Choose a shorter horizon.');
   if(scheduled>=asOf){dates.push(scheduled);contributions+=amount;if(completionDate===null&&BigInt(current)+contributions>=BigInt(goal.target))completionDate=scheduled;}
   if(plan.cadence==='irregular')break;
  }
