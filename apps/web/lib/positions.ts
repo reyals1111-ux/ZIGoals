@@ -1,0 +1,138 @@
+/** VM-independent private accounting. No wallet, signer, network or execution imports. */
+import { z } from 'zod';
+export const PLATFORM_KEY = 'zigoals:platform:v1';
+export const units = z.string().regex(/^(0|[1-9]\d*)$/).max(78);
+const id = z.string().min(1).max(250);
+const date = z.iso.date();
+const at = z.iso.datetime();
+const decimals = z.number().int().min(0).max(18);
+export const SOURCE_TYPES = ['WALLET_LIQUID','NATIVE_STAKING','NATIVE_UNBONDING','NATIVE_REWARDS','GOAL_MANAGER','MANUAL','LIQUID_STAKING','VAULT','EXTERNAL_ACCOUNT','IBC','EVM','RWA','OTHER_VERIFIED_PROVIDER'] as const;
+export const PROVIDER_STATES = ['VERIFIED_READ_ONLY','MANUAL','RESEARCH_ONLY','EXECUTION_READY','EXECUTABLE'] as const;
+export const positionSchema = z.object({
+ id, providerId:id, sourceType:z.enum(SOURCE_TYPES), network:id, account:id,
+ asset:z.string().min(1).max(30), denom:id, quantity:units, decimals,
+ valuation:z.object({value:units,currency:z.string().min(1).max(10),decimals,source:z.enum(['MANUAL','VERIFIED']),observedAt:at}).strict().optional(),
+ principal:units.optional(), unclaimedRewards:units.optional(),
+ liquidity:z.enum(['LIQUID','BONDED','UNBONDING','LOCKED','UNKNOWN']),
+ verification:z.enum(PROVIDER_STATES), sync:z.enum(['CURRENT','STALE','ERROR','MANUAL']).default('MANUAL'),
+ observedAt:at, provenance:z.string().min(1).max(500), notes:z.string().max(2000).default(''),
+ risk:z.string().max(500).default(''), executionAuthority:z.literal('NONE').default('NONE'),
+ validator:z.object({address:id,name:z.string().max(200),status:z.string().max(100),commission:z.string().regex(/^(0|1)(\.\d{1,18})?$/),votingTokens:units}).strict().optional(),
+ exitDate:at.optional(), unbondingHeight:units.optional(),
+}).strict();
+export type Position = z.infer<typeof positionSchema>;
+export const contributionSchema = z.object({
+ amount:units,asset:z.string().min(1).max(30),decimals,
+ cadence:z.enum(['weekly','monthly','yearly','irregular']),nextDate:date,endDate:date.optional(),active:z.boolean(),
+ habitId:z.string().max(100).optional(),
+ price:z.object({value:units.refine(v=>BigInt(v)>0n),decimals,currency:z.string().min(1).max(10)}).strict().optional(),
+}).strict().refine(p=>!p.endDate||p.endDate>=p.nextDate,'Plan ends before next contribution.');
+export type ContributionPlan = z.infer<typeof contributionSchema>;
+export const privateGoalSchema = z.object({
+ id:z.string().regex(/^\d+$/).max(80),name:z.string().trim().min(1).max(100),
+ type:z.enum(['QUANTITY','VALUE','REWARD','PROJECT']),status:z.enum(['active','completed','closed']),
+ asset:z.string().min(1).max(30),denom:id,decimals,target:units.refine(v=>BigInt(v)>0n),
+ notes:z.string().max(2000),createdAt:at,targetDate:date.optional(),plan:contributionSchema.optional(),
+ milestones:z.array(z.object({id,title:z.string().min(1).max(100),done:z.boolean(),target:units.optional()}).strict()).max(100),
+}).strict();
+export type PrivateGoal = z.infer<typeof privateGoalSchema>;
+const allocationSchema = z.object({goalId:id,positionId:id,quantity:units}).strict();
+const platformBase = z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-platform'),
+ positions:z.array(positionSchema).max(1000),goals:z.array(privateGoalSchema).max(200),allocations:z.array(allocationSchema).max(2000),
+ snapshots:z.array(z.object({positionId:id,quantity:units,observedAt:at}).strict()).max(2000),
+}).strict();
+export const platformSchema = platformBase.superRefine((s,c)=>{
+ const issue=(message:string)=>c.addIssue({code:'custom',message});
+ for(const list of [s.positions,s.goals]) if(new Set(list.map(i=>i.id)).size!==list.length) issue('Duplicate identifier.');
+ if(new Set(s.allocations.map(a=>`${a.goalId}:${a.positionId}`)).size!==s.allocations.length) issue('Duplicate allocation.');
+ for(const a of s.allocations) if(!s.positions.some(p=>p.id===a.positionId)||!s.goals.some(g=>g.id===a.goalId)) issue('Dangling allocation.');
+ for(const p of s.positions) {
+  if(p.sourceType==='MANUAL'&&p.verification!=='MANUAL') issue('Manual positions cannot be verified.');
+  if(p.principal && p.sourceType==='NATIVE_STAKING' && p.principal!==p.quantity) issue('Stake principal mismatch.');
+ }
+});
+export type Platform = z.infer<typeof platformSchema>;
+export function emptyPlatform(): Platform { return {schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]}; }
+/** Existing contract Goals, journal and simulations stay in their original scoped stores.
+ * Migration is additive: absence -> empty v1; malformed/newer content never resets. */
+export function migratePlatform(raw:unknown):Platform { return raw===null?emptyPlatform():platformSchema.parse(raw); }
+const max=(a:bigint,b:bigint)=>a>b?a:b;
+function activeAllocations(s:Platform,positionId:string){return s.allocations.filter(a=>a.positionId===positionId&&s.goals.some(g=>g.id===a.goalId&&g.status!=='closed'));}
+export function allocationBalance(s:Platform,positionId:string){
+ const p=s.positions.find(p=>p.id===positionId);if(!p)throw Error('Position unavailable.');
+ const observed=BigInt(p.quantity),allocated=activeAllocations(s,positionId).reduce((n,a)=>n+BigInt(a.quantity),0n);
+ return {observed:observed.toString(),allocated:allocated.toString(),unallocated:max(0n,observed-allocated).toString(),deficit:max(0n,allocated-observed).toString()};
+}
+export function allocate(raw:Platform,goalId:string,positionId:string,quantity:string):Platform {
+ const s=platformSchema.parse(raw);units.parse(quantity);
+ const goal=s.goals.find(g=>g.id===goalId),p=s.positions.find(p=>p.id===positionId);
+ if(!goal||goal.status==='closed'||!p)throw Error('Choose an open Goal and available Position.');
+ if(goal.type==='PROJECT')throw Error('Projects use milestones, not financial allocations.');
+ if(goal.type!=='VALUE'&&(goal.denom!==p.denom||goal.decimals!==p.decimals||goal.asset!==p.asset))throw Error('Goal and Position assets must match.');
+ if(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')throw Error('Reward Goals count observed rewards only.');
+ const others=activeAllocations(s,positionId).filter(a=>a.goalId!==goalId).reduce((n,a)=>n+BigInt(a.quantity),0n);
+ const previous=BigInt(s.allocations.find(a=>a.goalId===goalId&&a.positionId===positionId)?.quantity??'0');
+ // A deficit can be reduced incrementally; never increase an already invalid total.
+ if(others+BigInt(quantity)>BigInt(p.quantity)&&BigInt(quantity)>=previous)throw Error('Allocation exceeds observed units. Reduce allocations to resolve the deficit.');
+ return platformSchema.parse({...s,allocations:[...s.allocations.filter(a=>a.goalId!==goalId||a.positionId!==positionId),...(quantity==='0'?[]:[{goalId,positionId,quantity}])]});
+}
+export function closeGoal(s:Platform,id:string):Platform {return platformSchema.parse({...s,goals:s.goals.map(g=>g.id===id?{...g,status:'closed'}:g),allocations:s.allocations.filter(a=>a.goalId!==id)});}
+export function goalProgress(s:Platform,id:string){
+ const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');
+ let current=0n,manual=0n,verified=0n,intended=0n;let requiresReview=false;
+ const breakdown=[] as {positionId:string;quantity:string;counted:string;verification:string;deficit:boolean}[];
+ if(goal.type==='PROJECT')current=BigInt(goal.milestones.filter(m=>m.done).length);
+ else if(goal.status!=='closed')for(const a of s.allocations.filter(a=>a.goalId===id)){
+  const p=s.positions.find(p=>p.id===a.positionId)!;const b=allocationBalance(s,p.id);
+  const q=BigInt(a.quantity),total=BigInt(b.allocated),observed=BigInt(p.quantity);
+  const effective=total>observed?q*observed/total:q;
+  let value=effective;intended+=q;
+  const deficit=b.deficit!=='0';requiresReview ||= deficit || p.sync==='ERROR'||p.sync==='STALE';
+  if(!['MANUAL','VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification)){requiresReview=true;value=0n;}
+  if(goal.type==='VALUE'){
+   const v=p.valuation;
+   if(!v||v.currency!==goal.asset||v.decimals!==goal.decimals){requiresReview=true;value=0n;}
+   else value=observed?BigInt(v.value)*effective/observed:0n;
+  } else if(p.denom!==goal.denom||p.decimals!==goal.decimals||p.asset!==goal.asset||(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')){requiresReview=true;value=0n;}
+  current+=value;
+  if(p.verification==='MANUAL'||(goal.type==='VALUE'&&p.valuation?.source==='MANUAL'))manual+=value;else verified+=value;
+  breakdown.push({positionId:p.id,quantity:a.quantity,counted:value.toString(),verification:p.verification,deficit});
+ }
+ const target=goal.type==='PROJECT'?BigInt(goal.milestones.length||1):BigInt(goal.target);
+ const pct=current*10000n/target;
+ return {current:current.toString(),target:target.toString(),remaining:max(0n,target-current).toString(),manual:manual.toString(),verified:verified.toString(),intended:intended.toString(),progressPct:`${pct/100n}.${String(pct%100n).padStart(2,'0')}`,requiresReview,breakdown};
+}
+export function stakingProjection(principal:string,aprPercent:string,days:number):string{
+ units.parse(principal);if(!/^(0|[1-9]\d{0,2})(\.\d{1,6})?$/.test(aprPercent)||!Number.isInteger(days)||days<0||days>36500)throw Error('Invalid APR assumption or horizon.');
+ const [whole,frac='']=aprPercent.split('.');const rate=BigInt(whole!)*1000000n+BigInt(frac.padEnd(6,'0'));
+ if(rate>100000000n)throw Error('APR assumption exceeds 100%.');
+ return (BigInt(principal)*rate*BigInt(days)/(100000000n*365n)).toString();
+}
+function contributionUnits(goal:PrivateGoal,plan:ContributionPlan):bigint{
+ if(goal.asset===plan.asset)return BigInt(plan.amount)*10n**BigInt(goal.decimals)/10n**BigInt(plan.decimals);
+ if(!plan.price||plan.price.currency!==plan.asset)throw Error('An explicit price assumption is required for this contribution currency.');
+ return BigInt(plan.amount)*10n**BigInt(plan.price.decimals)*10n**BigInt(goal.decimals)/(BigInt(plan.price.value)*10n**BigInt(plan.decimals));
+}
+export function planScenario(goal:PrivateGoal,current:string,raw:ContributionPlan,through:string){
+ const plan=contributionSchema.parse(raw);date.parse(through);units.parse(current);
+ const dates:string[]=[];let contributions=0n;
+ if(plan.active){
+ const amount=contributionUnits(goal,plan);const anchor=new Date(`${plan.nextDate}T12:00:00Z`);
+ for(let n=0;n<1200;n++){
+  let d=new Date(anchor);
+  if(plan.cadence==='weekly')d.setUTCDate(d.getUTCDate()+n*7);
+  if(plan.cadence==='monthly'||plan.cadence==='yearly'){
+   const months=n*(plan.cadence==='yearly'?12:1);d=new Date(Date.UTC(anchor.getUTCFullYear(),anchor.getUTCMonth()+months,1,12));
+   d.setUTCDate(Math.min(anchor.getUTCDate(),new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate()));
+  }
+  const scheduled=d.toISOString().slice(0,10);if(scheduled>through||(plan.endDate&&scheduled>plan.endDate))break;
+  dates.push(scheduled);contributions+=amount;if(plan.cadence==='irregular')break;
+ }
+ }
+ const projected=BigInt(current)+contributions,target=BigInt(goal.target);
+ return {contributions:contributions.toString(),projected:projected.toString(),dates,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),fundingHealth:BigInt(current)>=target?'COMPLETED':projected>=target?'ON_TRACK':'BEHIND'};
+}
+export interface PositionProvider { readonly id:string; readonly state:typeof PROVIDER_STATES[number]; read(account:string):Promise<Position[]> }
+export interface CosmosExecutionAdapter { readonly vm:'COSMOS'; readonly authority:'SEPARATE_APPROVAL_REQUIRED' }
+export interface EvmExecutionAdapter { readonly vm:'EVM'; readonly authority:'FUTURE_GATED' }
+export const FUTURE_PROVIDERS=['Valdora stZIG','Valdora vaults','OroSwap LP','PermaPod','WME','Zignaly external account','Nawa','IBC','EVM','RWA'].map(name=>({name,state:'RESEARCH_ONLY' as const}));

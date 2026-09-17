@@ -2,7 +2,7 @@ import type { z } from "zod";
 import { withStorageLock } from "./storage";
 export const PRIVATE_MAX_BYTES = 2_000_000;
 function validateKey(key: string) {
-  if (key !== "zigoals:habits:v1" && key !== "zigoals:health:v1") throw Error("Unknown private data store.");
+  if (key !== "zigoals:habits:v1" && key !== "zigoals:health:v1" && key !== "zigoals:platform:v1") throw Error("Unknown private data store.");
 }
 export function parsePrivateData<T>(raw: string, schema: z.ZodType<T>): T {
   if (new TextEncoder().encode(raw).byteLength > PRIVATE_MAX_BYTES) throw Error("Private backup exceeds 2 MB.");

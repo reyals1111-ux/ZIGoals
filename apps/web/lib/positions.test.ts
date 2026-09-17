@@ -1,0 +1,53 @@
+import type { Platform } from './positions';
+import { describe, expect, it } from 'vitest';
+import { emptyPlatform, platformSchema, positionSchema, allocationBalance, allocate, closeGoal, goalProgress, stakingProjection, planScenario } from './positions';
+const p = () => positionSchema.parse({ id: 'p', providerId: 'manual', sourceType: 'MANUAL', network: 'manual', account: 'local', asset: 'ZIG', denom: 'azig', quantity: '100', decimals: 0, verification: 'MANUAL', observedAt: '2026-09-17T00:00:00Z', liquidity: 'LIQUID', provenance: 'User entry' });
+const g = (id = '1') => ({ id, name: 'Example', type: 'QUANTITY' as const, status: 'active' as const, asset: 'ZIG', denom: 'azig', decimals: 0, target: '100', notes: '', milestones: [], createdAt: '2026-09-17T00:00:00Z' });
+const state = (): Platform => ({ ...emptyPlatform(), positions: [p()], goals: [g(), g('2')] });
+describe('exact Position accounting', () => {
+ it('rejects fractional, negative, oversized and numeric chain quantities', () => { for (const quantity of ['1.2','-1','1e10',1,'1'.repeat(100)]) expect(positionSchema.safeParse({...p(),quantity}).success).toBe(false); });
+ it('fails closed on unknown versions, duplicate IDs and dangling allocations', () => {
+  expect(platformSchema.safeParse({...emptyPlatform(),schemaVersion:2}).success).toBe(false);
+  expect(platformSchema.safeParse({...state(),positions:[p(),p()]}).success).toBe(false);
+  expect(platformSchema.safeParse({...state(),allocations:[{goalId:'404',positionId:'p',quantity:'1'}]}).success).toBe(false);
+ });
+ it('conserves units across allocation edits and multiple Goals (generated cases)', () => {
+  for(let observed=1;observed<=100;observed++) for(let first=0;first<=observed;first+=7) {
+   let s=state(); s.positions[0]!.quantity=String(observed);
+   s=allocate(s,'1','p',String(first));s=allocate(s,'2','p',String(observed-first));
+   const b=allocationBalance(s,'p'); expect(BigInt(b.allocated)+BigInt(b.unallocated)).toBe(BigInt(observed));
+   expect(()=>allocate(s,'1','p',String(first+1))).toThrow();
+   s=allocate(s,'1','p','0');expect(allocationBalance(s,'p').unallocated).toBe(String(first));
+  }
+ });
+ it('releases closed Goal units and flags external deficits without rewriting intent', () => {
+  let s=allocate(state(),'1','p','90');s.positions[0]!.quantity='70';
+  expect(allocationBalance(s,'p')).toMatchObject({allocated:'90',unallocated:'0',deficit:'20'});
+  expect(goalProgress(s,'1')).toMatchObject({current:'70',intended:'90',requiresReview:true});
+  expect(allocationBalance(closeGoal(s,'1'),'p')).toMatchObject({allocated:'0',unallocated:'70'});
+ });
+ it('does not count the same observed units twice during deficits', () => {
+  let s=allocate(allocate(state(),'1','p','50'),'2','p','50');s.positions[0]!.quantity='61';
+  expect(BigInt(goalProgress(s,'1').current)+BigInt(goalProgress(s,'2').current)).toBeLessThanOrEqual(61n);
+ });
+ it('keeps manual and verified progress separate; ignores price for quantity Goals', () => {
+  const s=allocate(state(),'1','p','80');s.positions[0]!.valuation={value:'80000',currency:'USD',decimals:2,source:'MANUAL',observedAt:'2026-09-17T00:00:00Z'};
+  expect(goalProgress(s,'1')).toMatchObject({current:'80',manual:'80',verified:'0',progressPct:'80.00'});
+ });
+ it('calculates value pro rata and refuses missing currency valuations', () => {
+  const s=allocate(state(),'1','p','50');s.goals[0]={...g(),type:'VALUE',asset:'USD',denom:'USD',decimals:2,target:'10000'} as typeof s.goals[0];
+  expect(goalProgress(s,'1').requiresReview).toBe(true);
+  s.positions[0]!.valuation={value:'16000',currency:'USD',decimals:2,source:'MANUAL',observedAt:'2026-09-17T00:00:00Z'};
+  expect(goalProgress(s,'1').current).toBe('8000');
+ });
+ it('simple APR projects exact rewards and never changes principal', () => {
+  expect(stakingProjection('100000000000000000000','10',365)).toBe('10000000000000000000');
+  expect(stakingProjection('1000','10',7)).toBe('1');
+  expect(()=>stakingProjection('1000','-1',30)).toThrow();
+ });
+ it('requires a fiat price assumption and clamps monthly dates without drift', () => {
+  const plan={amount:'10000',asset:'USD',decimals:2,cadence:'monthly' as const,nextDate:'2026-01-31',active:true};
+  expect(()=>planScenario(g(), '0',plan,'2026-03-31')).toThrow();
+  expect(planScenario(g(),'0',{...plan,price:{value:'200',decimals:2,currency:'USD'}},'2026-03-31')).toMatchObject({contributions:'150',dates:['2026-01-31','2026-02-28','2026-03-31']});
+ });
+});
