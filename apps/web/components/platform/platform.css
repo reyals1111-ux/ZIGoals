@@ -1,0 +1,14 @@
+/* Functional additions inherit the frozen V2.1 tokens, panels and typography. */
+.platform-workspace { display:grid; gap:1.3rem; min-width:0; }
+.platform-workspace .panel { min-width:0; overflow-wrap:anywhere; }
+.platform-nav { display:flex; flex-wrap:wrap; gap:.6rem; }
+.platform-nav a { padding:.55rem .8rem; }
+.platform-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1rem; align-items:end; }
+.platform-form .field { min-width:0; }
+.platform-form input,.platform-form select,.platform-form textarea { width:100%; min-width:0; }
+.platform-form .fine { grid-column:1/-1; }
+.platform-workspace .summary-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:1rem; }
+.platform-workspace .summary-strip div { display:grid; min-width:0; overflow-wrap:anywhere; }
+.platform-workspace progress { width:100%; accent-color:var(--accent,#a78bfa); }
+.platform-position-row { padding:1rem 0; border-bottom:1px solid var(--border,rgba(255,255,255,.1)); }
+.platform-workspace .checkbox { display:flex; gap:.7rem; align-items:center; }
