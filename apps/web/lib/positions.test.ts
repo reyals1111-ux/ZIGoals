@@ -2,7 +2,7 @@ import type { Platform } from './positions';
 import { describe, expect, it } from 'vitest';
 import { emptyPlatform, platformSchema, positionSchema, allocationBalance, allocate, closeGoal, goalProgress, stakingProjection, planScenario } from './positions';
 const p = () => positionSchema.parse({ id: 'p', providerId: 'manual', sourceType: 'MANUAL', network: 'manual', account: 'local', asset: 'ZIG', denom: 'azig', quantity: '100', decimals: 0, verification: 'MANUAL', observedAt: '2026-09-17T00:00:00Z', liquidity: 'LIQUID', provenance: 'User entry' });
-const g = (id = '1') => ({ id, name: 'Example', type: 'QUANTITY' as const, status: 'active' as const, asset: 'ZIG', denom: 'azig', decimals: 0, target: '100', notes: '', milestones: [], createdAt: '2026-09-17T00:00:00Z' });
+const g = (id = '1') => ({ id, network:'zigchain-1' as const, name: 'Example', type: 'QUANTITY' as const, status: 'active' as const, asset: 'ZIG', denom: 'azig', decimals: 0, target: '100', notes: '', milestones: [], createdAt: '2026-09-17T00:00:00Z' });
 const state = (): Platform => ({ ...emptyPlatform(), positions: [p()], goals: [g(), g('2')] });
 describe('exact Position accounting', () => {
  it('rejects fractional, negative, oversized and numeric chain quantities', () => { for (const quantity of ['1.2','-1','1e10',1,'1'.repeat(100)]) expect(positionSchema.safeParse({...p(),quantity}).success).toBe(false); });
@@ -21,13 +21,13 @@ describe('exact Position accounting', () => {
   }
  });
  it('releases closed Goal units and flags external deficits without rewriting intent', () => {
-  let s=allocate(state(),'1','p','90');s.positions[0]!.quantity='70';
+  const s=allocate(state(),'1','p','90');s.positions[0]!.quantity='70';
   expect(allocationBalance(s,'p')).toMatchObject({allocated:'90',unallocated:'0',deficit:'20'});
   expect(goalProgress(s,'1')).toMatchObject({current:'70',intended:'90',requiresReview:true});
   expect(allocationBalance(closeGoal(s,'1'),'p')).toMatchObject({allocated:'0',unallocated:'70'});
  });
  it('does not count the same observed units twice during deficits', () => {
-  let s=allocate(allocate(state(),'1','p','50'),'2','p','50');s.positions[0]!.quantity='61';
+  const s=allocate(allocate(state(),'1','p','50'),'2','p','50');s.positions[0]!.quantity='61';
   expect(BigInt(goalProgress(s,'1').current)+BigInt(goalProgress(s,'2').current)).toBeLessThanOrEqual(61n);
  });
  it('keeps manual and verified progress separate; ignores price for quantity Goals', () => {
@@ -50,4 +50,13 @@ describe('exact Position accounting', () => {
   expect(()=>planScenario(g(), '0',plan,'2026-03-31')).toThrow();
   expect(planScenario(g(),'0',{...plan,price:{value:'200',decimals:2,currency:'USD'}},'2026-03-31')).toMatchObject({contributions:'150',dates:['2026-01-31','2026-02-28','2026-03-31']});
  });
+});
+it('normalizes verified native uzig into a ZIG Goal without rounding away units',()=>{
+ const s=state();s.positions[0]=positionSchema.parse({...p(),id:'mainnet',sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY',network:'zigchain-1',denom:'uzig',decimals:6,quantity:'1500000'});
+ s.goals[0]={...g(),decimals:18,target:'2000000000000000000'};
+ const next=allocate(s,'1','mainnet','1000000');expect(goalProgress(next,'1').current).toBe('1000000000000000000');
+});
+it('never mixes testnet observations into a mainnet Goal',()=>{
+ const s=state();s.positions[0]={...p(),network:'zig-test-2',sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY'};
+ expect(()=>allocate(s,'1','p','1')).toThrow(/network/i);
 });

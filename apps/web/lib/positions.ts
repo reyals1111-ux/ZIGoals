@@ -30,6 +30,7 @@ export const contributionSchema = z.object({
 export type ContributionPlan = z.infer<typeof contributionSchema>;
 export const privateGoalSchema = z.object({
  id:z.string().regex(/^\d+$/).max(80),name:z.string().trim().min(1).max(100),
+ network:z.enum(['zigchain-1','zig-test-2']).default('zigchain-1'),
  type:z.enum(['QUANTITY','VALUE','REWARD','PROJECT']),status:z.enum(['active','completed','closed']),
  asset:z.string().min(1).max(30),denom:id,decimals,target:units.refine(v=>BigInt(v)>0n),
  notes:z.string().max(2000),createdAt:at,targetDate:date.optional(),plan:contributionSchema.optional(),
@@ -63,12 +64,22 @@ export function allocationBalance(s:Platform,positionId:string){
  const observed=BigInt(p.quantity),allocated=activeAllocations(s,positionId).reduce((n,a)=>n+BigInt(a.quantity),0n);
  return {observed:observed.toString(),allocated:allocated.toString(),unallocated:max(0n,observed-allocated).toString(),deficit:max(0n,allocated-observed).toString()};
 }
+/** Only native ZIG's evidenced redenominations are interchangeable; unrelated assets are not. */
+export function assetMatches(goal:PrivateGoal,p:Position):boolean {
+ return goal.asset===p.asset && ((goal.denom===p.denom&&goal.decimals===p.decimals) ||
+ (goal.asset==='ZIG'&&((goal.denom==='azig'&&goal.decimals===18)||(goal.denom==='uzig'&&goal.decimals===6))&&((p.denom==='azig'&&p.decimals===18)||(p.denom==='uzig'&&p.decimals===6))));
+}
+export function rescaleUnits(quantity:string,from:number,to:number):string {
+ units.parse(quantity);decimals.parse(from);decimals.parse(to);
+ return (BigInt(quantity)*10n**BigInt(to)/10n**BigInt(from)).toString();
+}
 export function allocate(raw:Platform,goalId:string,positionId:string,quantity:string):Platform {
  const s=platformSchema.parse(raw);units.parse(quantity);
  const goal=s.goals.find(g=>g.id===goalId),p=s.positions.find(p=>p.id===positionId);
  if(!goal||goal.status==='closed'||!p)throw Error('Choose an open Goal and available Position.');
+ if(p.network!=='manual'&&p.network!==goal.network)throw Error('Position and Goal network must match.');
  if(goal.type==='PROJECT')throw Error('Projects use milestones, not financial allocations.');
- if(goal.type!=='VALUE'&&(goal.denom!==p.denom||goal.decimals!==p.decimals||goal.asset!==p.asset))throw Error('Goal and Position assets must match.');
+ if(goal.type!=='VALUE'&&!assetMatches(goal,p))throw Error('Goal and Position assets must match.');
  if(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')throw Error('Reward Goals count observed rewards only.');
  const others=activeAllocations(s,positionId).filter(a=>a.goalId!==goalId).reduce((n,a)=>n+BigInt(a.quantity),0n);
  const previous=BigInt(s.allocations.find(a=>a.goalId===goalId&&a.positionId===positionId)?.quantity??'0');
@@ -86,14 +97,16 @@ export function goalProgress(s:Platform,id:string){
   const p=s.positions.find(p=>p.id===a.positionId)!;const b=allocationBalance(s,p.id);
   const q=BigInt(a.quantity),total=BigInt(b.allocated),observed=BigInt(p.quantity);
   const effective=total>observed?q*observed/total:q;
-  let value=effective;intended+=q;
+  let value=BigInt(rescaleUnits(effective.toString(),p.decimals,goal.decimals));intended+=BigInt(rescaleUnits(q.toString(),p.decimals,goal.decimals));
   const deficit=b.deficit!=='0';requiresReview ||= deficit || p.sync==='ERROR'||p.sync==='STALE';
+  if(p.network!=='manual'&&p.network!==goal.network){requiresReview=true;value=0n;}
   if(!['MANUAL','VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification)){requiresReview=true;value=0n;}
   if(goal.type==='VALUE'){
    const v=p.valuation;
    if(!v||v.currency!==goal.asset||v.decimals!==goal.decimals){requiresReview=true;value=0n;}
    else value=observed?BigInt(v.value)*effective/observed:0n;
-  } else if(p.denom!==goal.denom||p.decimals!==goal.decimals||p.asset!==goal.asset||(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')){requiresReview=true;value=0n;}
+  } else if(!assetMatches(goal,p)||(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')){requiresReview=true;value=0n;}
+  if(p.network!=='manual'&&p.network!==goal.network)value=0n;
   current+=value;
   if(p.verification==='MANUAL'||(goal.type==='VALUE'&&p.valuation?.source==='MANUAL'))manual+=value;else verified+=value;
   breakdown.push({positionId:p.id,quantity:a.quantity,counted:value.toString(),verification:p.verification,deficit});
