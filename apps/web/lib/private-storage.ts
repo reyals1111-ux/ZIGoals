@@ -23,6 +23,13 @@ export async function updatePrivateStore<T>(storage: Storage, key: string, schem
     const next = update(readPrivateStore(storage, key, schema, createEmpty));
     const serialized = JSON.stringify(next);
     const validated = parsePrivateData(serialized, schema);
+    const previous = storage.getItem(key);
+    if (previous !== null) {
+      const oldVersion = (JSON.parse(previous) as {schemaVersion?: unknown}).schemaVersion;
+      const newVersion = (validated as {schemaVersion?: unknown}).schemaVersion;
+      if (typeof oldVersion === "number" && typeof newVersion === "number" && oldVersion < newVersion)
+        storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
+    }
     storage.setItem(key, serialized);
     return validated;
   });
@@ -35,7 +42,7 @@ export async function importPrivateStore<T>(storage: Storage, key: string, schem
     if (previous !== null) {
       let version: unknown;
       try { version = JSON.parse(previous)?.schemaVersion; } catch { /* preserve corrupt bytes below */ }
-      if (typeof version === "number" && version > 1) throw Error("A newer private data version cannot be replaced by this app.");
+      if (typeof version === "number" && version > ((incoming as {schemaVersion?: number}).schemaVersion ?? 1)) throw Error("A newer private data version cannot be replaced by this app.");
       // Explicit replacement retains the exact old record, including malformed bytes.
       storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
     }

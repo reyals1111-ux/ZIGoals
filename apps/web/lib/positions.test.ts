@@ -60,3 +60,7 @@ it('never mixes testnet observations into a mainnet Goal',()=>{
  const s=state();s.positions[0]={...p(),network:'zig-test-2',sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY'};
  expect(()=>allocate(s,'1','p','1')).toThrow(/network/i);
 });
+it('projections exclude missed planned dates and expose a completion date without altering facts',()=>{
+ const plan={amount:'20',asset:'ZIG',decimals:0,cadence:'monthly' as const,nextDate:'2026-01-31',active:true};
+ expect(planScenario(g(),'50',plan,'2026-05-31','2026-03-01')).toMatchObject({contributions:'60',dates:['2026-03-31','2026-04-30','2026-05-31'],completionDate:'2026-05-31'});
+});

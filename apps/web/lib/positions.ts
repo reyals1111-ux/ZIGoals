@@ -126,9 +126,9 @@ function contributionUnits(goal:PrivateGoal,plan:ContributionPlan):bigint{
  if(!plan.price||plan.price.currency!==plan.asset)throw Error('An explicit price assumption is required for this contribution currency.');
  return BigInt(plan.amount)*10n**BigInt(plan.price.decimals)*10n**BigInt(goal.decimals)/(BigInt(plan.price.value)*10n**BigInt(plan.decimals));
 }
-export function planScenario(goal:PrivateGoal,current:string,raw:ContributionPlan,through:string){
- const plan=contributionSchema.parse(raw);date.parse(through);units.parse(current);
- const dates:string[]=[];let contributions=0n;
+export function planScenario(goal:PrivateGoal,current:string,raw:ContributionPlan,through:string,asOf=raw.nextDate){
+ const plan=contributionSchema.parse(raw);date.parse(through);date.parse(asOf);units.parse(current);
+ const dates:string[]=[];let contributions=0n;let completionDate:string|null=BigInt(current)>=BigInt(goal.target)?asOf:null;
  if(plan.active){
  const amount=contributionUnits(goal,plan);const anchor=new Date(`${plan.nextDate}T12:00:00Z`);
  for(let n=0;n<1200;n++){
@@ -139,11 +139,12 @@ export function planScenario(goal:PrivateGoal,current:string,raw:ContributionPla
    d.setUTCDate(Math.min(anchor.getUTCDate(),new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate()));
   }
   const scheduled=d.toISOString().slice(0,10);if(scheduled>through||(plan.endDate&&scheduled>plan.endDate))break;
-  dates.push(scheduled);contributions+=amount;if(plan.cadence==='irregular')break;
+  if(scheduled>=asOf){dates.push(scheduled);contributions+=amount;if(completionDate===null&&BigInt(current)+contributions>=BigInt(goal.target))completionDate=scheduled;}
+  if(plan.cadence==='irregular')break;
  }
  }
  const projected=BigInt(current)+contributions,target=BigInt(goal.target);
- return {contributions:contributions.toString(),projected:projected.toString(),dates,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),fundingHealth:BigInt(current)>=target?'COMPLETED':projected>=target?'ON_TRACK':'BEHIND'};
+ return {completionDate,contributions:contributions.toString(),projected:projected.toString(),dates,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),fundingHealth:BigInt(current)>=target?'COMPLETED':projected>=target?'ON_TRACK':'BEHIND'};
 }
 export interface PositionProvider { readonly id:string; readonly state:typeof PROVIDER_STATES[number]; read(account:string):Promise<Position[]> }
 export interface CosmosExecutionAdapter { readonly vm:'COSMOS'; readonly authority:'SEPARATE_APPROVAL_REQUIRED' }

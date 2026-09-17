@@ -35,3 +35,10 @@ it('retains vanished Positions as zero and their allocations for deficit review'
  const s={...emptyPlatform(),positions:ps};const next=replaceObservation(s,'zigchain-1',account,[], '2026-09-18T00:00:00Z');
  expect(next.positions.every(p=>p.quantity==='0')).toBe(true);expect(next.snapshots).toHaveLength(4);
 });
+it('keeps testnet azig/18 separate from mainnet uzig/6',async()=>{
+ const ps=await readNativePositions('TESTNET_READ_ONLY',account,(async(url)=>{
+  const value=JSON.parse(JSON.stringify(endpoint(new URL(String(url)).pathname)).replaceAll('zigchain-1','zig-test-2').replaceAll('uzig','azig').replace('"exponent":6','"exponent":18'));
+  return Response.json(value);
+ }) as typeof fetch);
+ expect(ps.every(p=>p.network==='zig-test-2'&&p.denom==='azig'&&p.decimals===18)).toBe(true);
+});
