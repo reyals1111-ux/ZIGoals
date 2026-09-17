@@ -1,0 +1,60 @@
+[
+  {
+    "network": "MAINNET_READ_ONLY",
+    "observedAt": "2026-09-17T20:26:49.604Z",
+    "status": 200,
+    "cache": "private, no-store, max-age=0",
+    "body": {
+      "positions": [
+        {
+          "id": "zigchain-1:zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr:liquid",
+          "providerId": "native-zig",
+          "sourceType": "WALLET_LIQUID",
+          "network": "zigchain-1",
+          "account": "zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr",
+          "asset": "ZIG",
+          "denom": "uzig",
+          "quantity": "0",
+          "decimals": 6,
+          "liquidity": "LIQUID",
+          "verification": "VERIFIED_READ_ONLY",
+          "sync": "CURRENT",
+          "observedAt": "2026-09-17T20:26:44.440Z",
+          "provenance": "https://api.zigchain.com · block 12209698",
+          "notes": "",
+          "risk": "",
+          "executionAuthority": "NONE"
+        }
+      ]
+    }
+  },
+  {
+    "network": "TESTNET_READ_ONLY",
+    "observedAt": "2026-09-17T20:26:50.262Z",
+    "status": 200,
+    "cache": "private, no-store, max-age=0",
+    "body": {
+      "positions": [
+        {
+          "id": "zig-test-2:zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr:liquid",
+          "providerId": "native-zig",
+          "sourceType": "WALLET_LIQUID",
+          "network": "zig-test-2",
+          "account": "zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr",
+          "asset": "ZIG",
+          "denom": "azig",
+          "quantity": "0",
+          "decimals": 18,
+          "liquidity": "LIQUID",
+          "verification": "VERIFIED_READ_ONLY",
+          "sync": "CURRENT",
+          "observedAt": "2026-09-17T20:26:41.961Z",
+          "provenance": "https://testnet-api.zigchain.com · block 7814089",
+          "notes": "",
+          "risk": "",
+          "executionAuthority": "NONE"
+        }
+      ]
+    }
+  }
+]

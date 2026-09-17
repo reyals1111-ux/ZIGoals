@@ -1,5 +1,5 @@
 {
-  "status": "IN_PROGRESS",
+  "status": "LOCAL_PASS_HOSTED_CI_PENDING",
   "base": "94df488cd98d2a1cdc15bd11011521d24fc8066e",
   "branch": "codex/run8-goals-positions-habits",
   "checks": {
@@ -23,11 +23,262 @@
       "status": "PASS",
       "exitCode": 0,
       "log": "checks/deploy-config.txt"
+    },
+    "vitest": {
+      "command": [
+        "pnpm",
+        "test"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:23:30.549414+00:00",
+      "finishedAt": "2026-09-17T20:23:34.890052+00:00",
+      "log": "checks/vitest.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "next-build": {
+      "command": [
+        "pnpm",
+        "build"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:23:30.524264+00:00",
+      "finishedAt": "2026-09-17T20:23:35.866470+00:00",
+      "log": "checks/next-build.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "deployment-config": {
+      "command": [
+        "node",
+        "scripts/check-deployment-configs.mjs"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:16:08.575355+00:00",
+      "finishedAt": "2026-09-17T20:16:08.610569+00:00",
+      "log": "checks/deployment-config.txt",
+      "head": "d806ae010c03439f48730f5cea39f0efa133bdec"
+    },
+    "secret-scan": {
+      "command": [
+        "node",
+        "scripts/check-secrets.mjs"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:16:08.595778+00:00",
+      "finishedAt": "2026-09-17T20:16:09.127450+00:00",
+      "log": "checks/secret-scan.txt",
+      "head": "d806ae010c03439f48730f5cea39f0efa133bdec"
+    },
+    "lint": {
+      "command": [
+        "pnpm",
+        "lint"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:23:30.575758+00:00",
+      "finishedAt": "2026-09-17T20:23:36.285681+00:00",
+      "log": "checks/lint.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "typecheck": {
+      "command": [
+        "pnpm",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:25:30.002862+00:00",
+      "finishedAt": "2026-09-17T20:25:33.604545+00:00",
+      "log": "checks/typecheck.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "doctor": {
+      "command": [
+        "node",
+        "scripts/doctor.mjs"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:17:16.509413+00:00",
+      "finishedAt": "2026-09-17T20:17:17.895583+00:00",
+      "log": "checks/doctor.txt",
+      "head": "d806ae010c03439f48730f5cea39f0efa133bdec"
+    },
+    "playwright": {
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "exec",
+        "playwright",
+        "test",
+        "--workers=4",
+        "--reporter=line,json",
+        "--output=/tmp/run8-production-browser-results"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:16:52.390570+00:00",
+      "finishedAt": "2026-09-17T20:17:42.814476+00:00",
+      "log": "checks/playwright.txt",
+      "head": "d806ae010c03439f48730f5cea39f0efa133bdec"
+    },
+    "alpha-build": {
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "build:alpha"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:25:18.579024+00:00",
+      "finishedAt": "2026-09-17T20:25:27.874396+00:00",
+      "log": "checks/alpha-build.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "wrangler-dry-run": {
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "check:alpha"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:26:40.387812+00:00",
+      "finishedAt": "2026-09-17T20:26:41.861708+00:00",
+      "log": "checks/wrangler-dry-run.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "workers-security": {
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "exec",
+        "playwright",
+        "test",
+        "public-alpha.spec.ts",
+        "diagnostics.spec.ts",
+        "platform.spec.ts",
+        "platform-habits.spec.ts",
+        "--workers=4",
+        "--reporter=line,json",
+        "--output=/tmp/run8-workers-browser-results"
+      ],
+      "exitCode": 0,
+      "status": "PASS",
+      "startedAt": "2026-09-17T20:26:43.855694+00:00",
+      "finishedAt": "2026-09-17T20:26:57.973855+00:00",
+      "log": "checks/workers-security.txt",
+      "head": "ae973ee04ff0162fb9f25eb012dcb373fc622c16"
+    },
+    "dependencyAudit": {
+      "status": "PASS",
+      "exitCode": 0,
+      "result": "No known vulnerabilities found",
+      "log": "checks/dependency-audit.txt",
+      "scope": "Production dependencies; lockfile unchanged from base."
     }
   },
   "canonicalReproducibility": {
     "status": "NOT_REQUIRED",
     "reason": "No contract, generated contract interface, lockfile or protected contract build path changed."
   },
-  "remaining": "Full final JS/type/lint/Next/browser/OpenNext/dry-run/Workers gate/secret scan and hosted CI pending coherent source."
+  "recordedAt": "2026-09-17T20:29:01.859835+00:00",
+  "testedProductHead": "ae973ee04ff0162fb9f25eb012dcb373fc622c16",
+  "capturedUIHead": "d806ae010c03439f48730f5cea39f0efa133bdec",
+  "sourceEquivalence": "After the 104-test full production browser run, only server-side native fetch redirect mode, its unit regression and documentation changed. Final Workers security/integration and real upstream relay checks ran on the corrected head. Hosted CI will rerun the full suite.",
+  "masterBriefSHA256": "31cd60691fc40f90eb3427520fbf638588b328f23af07c7d5eca1e40b6584932",
+  "environment": {
+    "node": "24.19.0",
+    "pnpm": "11.19.0",
+    "rust": "1.85.1",
+    "next": "16.3.5",
+    "playwright": "1.63.0"
+  },
+  "alphaBuild": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "ae973ee04ff0162fb9f25eb012dcb373fc622c16",
+    "dirty": false
+  },
+  "unitTests": {
+    "files": 38,
+    "passed": 751,
+    "failed": 0,
+    "skipped": 0
+  },
+  "productionBrowser": {
+    "startTime": "2026-09-17T20:16:52.962Z",
+    "duration": 49834.411,
+    "expected": 104,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "workersBrowser": {
+    "startTime": "2026-09-17T20:26:44.401Z",
+    "duration": 13556.918,
+    "expected": 28,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "liveWorkersRelay": {
+    "status": "PASS",
+    "networks": [
+      "MAINNET_READ_ONLY",
+      "TESTNET_READ_ONLY"
+    ],
+    "account": "synthetic zero-balance public fixture",
+    "artifact": "workers-live-relay.json"
+  },
+  "independentReview": {
+    "status": "NO_UNRESOLVED_MATERIAL_FINDINGS_IN_REVIEWED_PATHS",
+    "artifact": "final-review.md"
+  },
+  "bundle": "bundle-comparison.json",
+  "screenshots": [
+    "screenshots/fictional-staking-1440.png",
+    "screenshots/fictional-staking-390-top.png",
+    "screenshots/fictional-staking-390-validator.png",
+    "screenshots/habits-desktop.png",
+    "screenshots/habits-mobile.png",
+    "screenshots/health-mobile.png",
+    "screenshots/positions-1440.png",
+    "screenshots/positions-320.png",
+    "screenshots/positions-390.png",
+    "screenshots/today-desktop.png",
+    "screenshots/tracked-detail-1440.png",
+    "screenshots/tracked-detail-320.png",
+    "screenshots/tracked-detail-390.png",
+    "screenshots/tracked-goals-1440.png",
+    "screenshots/tracked-goals-320.png",
+    "screenshots/tracked-goals-390.png",
+    "screenshots/tracked-goals-768.png"
+  ],
+  "productTrees": {
+    "apps/web": "85a673f124d5fe2ca6bde62e5057ebedcff49eb1",
+    "packages": "9de11d013a830a256a7f69b69550d4b8aac1c32d",
+    "contracts": "82d30af2afdaa206d975bba1f77c91f81ea79242",
+    "scripts": "45449ff64fb92db8377fa12aae3618dd292e5a59"
+  },
+  "initialFailures": [
+    "Targeted red/green regressions recorded in review reports.",
+    "Parallel browser artifact cleanup collision avoided with isolated output directories.",
+    "Reviewer Chrome SIGABRT occurred before execution; independent parent production run passed all104.",
+    "Real Workers relay initially failed due to unsupported redirect:error; manual mode rejects redirects, regression and real mainnet/testnet probes now pass."
+  ],
+  "mutations": {
+    "transactions": false,
+    "contractUpload": false,
+    "productionDeployment": false,
+    "merge": false
+  }
 }

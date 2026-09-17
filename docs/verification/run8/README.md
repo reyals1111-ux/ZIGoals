@@ -12,3 +12,5 @@
 - Bundle figures sum emitted JS/CSS across routes, independently gzipped. They are not initial page transfer, real-user performance or Cloudflare CPU. The base archive uses the identical dependency lockfile and Node/Next versions; its public build-identity fallback is Unknown/dirty because the archive has no Git metadata.
 
 Public reads require explicit action and send only a network selector plus public address to a fixed-endpoint relay. Private financial intentions, Habit/Health content, notes and backups stay browser-local. Contract, wallet authorization, financial execution, network routing and production boundaries remain guarded.
+
+Local result: **751 JS tests,25 Rust tests,104 production browser checks and28 Workers checks passed**. Alpha build `dirty:false`; real synthetic-account mainnet/testnet relays pass. See [final independent review](final-review.md), [Workers runtime correction](WORKERS_RUNTIME_FIX.md), [source manifest](source-manifest.json), [bundle comparison](bundle-comparison.json) and [screenshots](screenshots/). Hosted CI remains separately tracked.

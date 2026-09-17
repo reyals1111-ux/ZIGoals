@@ -1,0 +1,60 @@
+
+Running 28 tests using 4 workers
+
+(node:34570) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:34571) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:34572) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:34569) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/28] [desktop] › tests/platform.spec.ts:2:5 › private position allocation and plans survive reload without financial or Health side effects
+[2/28] [desktop] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves
+[3/28] [desktop] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence
+[4/28] [desktop] › tests/platform-habits.spec.ts:4:5 › a linked contribution Habit records behavior but never adds financial progress
+[5/28] [desktop] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[6/28] [desktop] › tests/platform-habits.spec.ts:30:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit
+(node:34622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[7/28] [mobile] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence
+[8/28] [desktop] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection
+[9/28] [desktop] › tests/platform-habits.spec.ts:42:5 › a failed second-store creation reserves one ID and retries without duplicate habits
+[10/28] [desktop] › tests/platform.spec.ts:27:5 › watch-only invalid input never calls a wallet or chain endpoint
+[11/28] [mobile] › tests/platform-habits.spec.ts:4:5 › a linked contribution Habit records behavior but never adds financial progress
+[12/28] [desktop] › tests/platform.spec.ts:36:5 › mainnet watch-only displays exact six-decimal observations without wallet authority
+[13/28] [desktop] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[14/28] [desktop] › tests/platform-habits.spec.ts:55:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress
+[15/28] [mobile] › tests/platform-habits.spec.ts:30:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit
+[16/28] [desktop] › tests/platform.spec.ts:57:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale
+[17/28] [mobile] › tests/platform-habits.spec.ts:42:5 › a failed second-store creation reserves one ID and retries without duplicate habits
+(node:34674) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[18/28] [mobile] › tests/platform.spec.ts:2:5 › private position allocation and plans survive reload without financial or Health side effects
+(node:34689) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[19/28] [mobile] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves
+[20/28] [mobile] › tests/platform-habits.spec.ts:55:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress
+[21/28] [desktop] › tests/public-alpha.spec.ts:138:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+[22/28] [mobile] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[23/28] [mobile] › tests/platform.spec.ts:27:5 › watch-only invalid input never calls a wallet or chain endpoint
+[24/28] [mobile] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection
+[25/28] [mobile] › tests/platform.spec.ts:36:5 › mainnet watch-only displays exact six-decimal observations without wallet authority
+[26/28] [mobile] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[27/28] [mobile] › tests/platform.spec.ts:57:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale
+[28/28] [mobile] › tests/public-alpha.spec.ts:138:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+  28 passed (13.6s)

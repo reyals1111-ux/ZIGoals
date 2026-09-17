@@ -1,0 +1,140 @@
+
+Running 104 tests using 4 workers
+
+(node:32274) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:32275) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:32273) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:32272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/104] [desktop] › tests/dashboard-visual.spec.ts:3:5 › dashboard destinations, safety and layout work at desktop and 320px
+[2/104] [desktop] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence
+[3/104] [desktop] › tests/ecosystem.spec.ts:3:5 › ecosystem research is readable without connecting a wallet
+[4/104] [desktop] › tests/goals.spec.ts:31:5 › corrupt metadata recovery preserves the original bytes and restores the plan
+[5/104] [desktop] › tests/habits.spec.ts:18:5 › habit counts, edit, pause, archive, notes and reload stay local and durable
+[6/104] [desktop] › tests/goals.spec.ts:73:5 › damaged local funds keep the shell usable and block simulation instead of resetting funds
+[7/104] [desktop] › tests/health.spec.ts:3:5 › rejected food validation keeps the draft and existing private records recoverable
+[8/104] [desktop] › tests/landing.spec.ts:38:5 › landing keeps its public contract visible without horizontal overflow
+[9/104] [desktop] › tests/landing.spec.ts:62:5 › landing declares a loadable local icon without requesting a missing favicon
+[10/104] [desktop] › tests/habits.spec.ts:63:5 › historical dates, missed days and scoped link retention remain correct
+[11/104] [desktop] › tests/health.spec.ts:36:5 › food diary create, correct, reload and remove keeps snapshot nutrition
+[12/104] [desktop] › tests/goals.spec.ts:125:5 › invalid custom scenario preserves baseline funding health and progress
+[13/104] [desktop] › tests/multitab.spec.ts:35:5 › two tabs cancel stale funds review and retain both sequential deposits
+[14/104] [desktop] › tests/habits.spec.ts:86:5 › corrupt Habit data is preserved and creation fails closed
+[15/104] [desktop] › tests/goals.spec.ts:160:5 › unsupported saved planning date reports a calculation error without crashing the goal
+[16/104] [desktop] › tests/habits.spec.ts:95:5 › private habit text never enters requests or overwrites existing Goal data
+[17/104] [desktop] › tests/goals.spec.ts:190:5 › near-limit Unicode plans export a valid importable backup
+[18/104] [desktop] › tests/multitab.spec.ts:61:5 › another tab's recovered plan closes the stale recovery form
+[19/104] [desktop] › tests/health.spec.ts:64:5 › recipe portions calculate from foods and preserve the logged result
+[20/104] [desktop] › tests/goals.spec.ts:215:5 › local goal lifecycle, metadata recovery, exports and mobile layout
+[21/104] [desktop] › tests/habits.spec.ts:111:5 › selected weekdays and keyboard completion expose only scheduled habits
+[22/104] [desktop] › tests/habits.spec.ts:135:5 › templates, distinct habit types, measurement and reflection controls work together
+[23/104] [desktop] › tests/multitab.spec.ts:83:5 › mode selection stays in its own tab while local reviews stay local
+[24/104] [desktop] › tests/health.spec.ts:88:5 › explicit targets, weight correction and manual activity persist without a wallet
+[25/104] [desktop] › tests/multitab.spec.ts:100:5 › two tabs share only the active wallet's journal notifications and retain future rows
+[26/104] [desktop] › tests/habits.spec.ts:165:5 › frequency templates display the period that actually governs completion
+[27/104] [desktop] › tests/health.spec.ts:120:5 › damaged private data fails closed with no seeded health data
+[28/104] [desktop] › tests/multitab.spec.ts:238:5 › simultaneous confirmations serialize and the losing tab must review again
+[29/104] [desktop] › tests/platform-habits.spec.ts:4:5 › a linked contribution Habit records behavior but never adds financial progress
+[30/104] [desktop] › tests/health.spec.ts:129:5 › historical diary dates and food edits remain usable at 320 pixels
+[31/104] [desktop] › tests/goals.spec.ts:308:5 › missing wallet is explicit and local mode remains available
+[32/104] [desktop] › tests/platform-habits.spec.ts:30:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit
+[33/104] [desktop] › tests/platform-visual.spec.ts:3:5 › Run 8 additions preserve responsive V2.1 layout and reduced motion
+[34/104] [desktop] › tests/platform.spec.ts:2:5 › private position allocation and plans survive reload without financial or Health side effects
+[35/104] [desktop] › tests/platform-habits.spec.ts:42:5 › a failed second-store creation reserves one ID and retries without duplicate habits
+[36/104] [desktop] › tests/product-data.spec.ts:27:5 › V1 upgrade, explicit module restore and linked Goal reload preserve all prior namespaces
+[37/104] [desktop] › tests/platform-habits.spec.ts:55:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress
+[38/104] [desktop] › tests/product-data.spec.ts:46:5 › damaged private exports retain exact bytes and explicit restore quarantines originals
+[39/104] [desktop] › tests/platform.spec.ts:27:5 › watch-only invalid input never calls a wallet or chain endpoint
+[40/104] [desktop] › tests/product-shell.spec.ts:2:5 › unified shell exposes all seven sections and preserves Alpha controls
+[41/104] [desktop] › tests/product-visual.spec.ts:4:5 › populated product fits every required viewport with reduced motion and scoped links
+[42/104] [desktop] › tests/platform.spec.ts:36:5 › mainnet watch-only displays exact six-decimal observations without wallet authority
+[43/104] [desktop] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves
+[44/104] [desktop] › tests/product-data.spec.ts:65:5 › private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls
+[45/104] [desktop] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[46/104] [desktop] › tests/platform.spec.ts:57:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale
+[47/104] [desktop] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection
+[48/104] [desktop] › tests/transactions.spec.ts:6:5 › restart preserves scoped journal and damaged rows without replay
+[49/104] [desktop] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[50/104] [desktop] › tests/visual-v21.spec.ts:5:5 › V2.1 artwork, wallet-first composition and stable decorative identities
+[51/104] [desktop] › tests/wallet-reload.spec.ts:8:5 › mock Keplr reconnect stays explicit and tab scoped across reload
+[52/104] [desktop] › tests/public-alpha.spec.ts:138:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+(node:32514) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[53/104] [mobile] › tests/dashboard-visual.spec.ts:3:5 › dashboard destinations, safety and layout work at desktop and 320px
+(node:32515) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[54/104] [mobile] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence
+(node:32523) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[55/104] [mobile] › tests/ecosystem.spec.ts:3:5 › ecosystem research is readable without connecting a wallet
+[56/104] [mobile] › tests/goals.spec.ts:31:5 › corrupt metadata recovery preserves the original bytes and restores the plan
+[57/104] [mobile] › tests/goals.spec.ts:73:5 › damaged local funds keep the shell usable and block simulation instead of resetting funds
+[58/104] [mobile] › tests/habits.spec.ts:18:5 › habit counts, edit, pause, archive, notes and reload stay local and durable
+[59/104] [mobile] › tests/goals.spec.ts:125:5 › invalid custom scenario preserves baseline funding health and progress
+[60/104] [mobile] › tests/goals.spec.ts:160:5 › unsupported saved planning date reports a calculation error without crashing the goal
+[61/104] [mobile] › tests/goals.spec.ts:190:5 › near-limit Unicode plans export a valid importable backup
+[62/104] [mobile] › tests/goals.spec.ts:215:5 › local goal lifecycle, metadata recovery, exports and mobile layout
+[63/104] [mobile] › tests/habits.spec.ts:63:5 › historical dates, missed days and scoped link retention remain correct
+[64/104] [mobile] › tests/habits.spec.ts:86:5 › corrupt Habit data is preserved and creation fails closed
+[65/104] [mobile] › tests/health.spec.ts:3:5 › rejected food validation keeps the draft and existing private records recoverable
+[66/104] [mobile] › tests/habits.spec.ts:95:5 › private habit text never enters requests or overwrites existing Goal data
+[67/104] [mobile] › tests/habits.spec.ts:111:5 › selected weekdays and keyboard completion expose only scheduled habits
+[68/104] [mobile] › tests/health.spec.ts:36:5 › food diary create, correct, reload and remove keeps snapshot nutrition
+[69/104] [mobile] › tests/habits.spec.ts:135:5 › templates, distinct habit types, measurement and reflection controls work together
+[70/104] [mobile] › tests/goals.spec.ts:308:5 › missing wallet is explicit and local mode remains available
+[71/104] [mobile] › tests/health.spec.ts:64:5 › recipe portions calculate from foods and preserve the logged result
+[72/104] [mobile] › tests/landing.spec.ts:38:5 › landing keeps its public contract visible without horizontal overflow
+[73/104] [mobile] › tests/landing.spec.ts:62:5 › landing declares a loadable local icon without requesting a missing favicon
+[74/104] [mobile] › tests/habits.spec.ts:165:5 › frequency templates display the period that actually governs completion
+(node:32669) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[75/104] [mobile] › tests/multitab.spec.ts:35:5 › two tabs cancel stale funds review and retain both sequential deposits
+[76/104] [mobile] › tests/platform-habits.spec.ts:4:5 › a linked contribution Habit records behavior but never adds financial progress
+[77/104] [mobile] › tests/platform-visual.spec.ts:3:5 › Run 8 additions preserve responsive V2.1 layout and reduced motion
+[78/104] [mobile] › tests/health.spec.ts:88:5 › explicit targets, weight correction and manual activity persist without a wallet
+[79/104] [mobile] › tests/platform-habits.spec.ts:30:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit
+[80/104] [mobile] › tests/multitab.spec.ts:61:5 › another tab's recovered plan closes the stale recovery form
+[81/104] [mobile] › tests/platform-habits.spec.ts:42:5 › a failed second-store creation reserves one ID and retries without duplicate habits
+[82/104] [mobile] › tests/platform.spec.ts:2:5 › private position allocation and plans survive reload without financial or Health side effects
+[83/104] [mobile] › tests/health.spec.ts:120:5 › damaged private data fails closed with no seeded health data
+[84/104] [mobile] › tests/platform-habits.spec.ts:55:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress
+[85/104] [mobile] › tests/health.spec.ts:129:5 › historical diary dates and food edits remain usable at 320 pixels
+[86/104] [mobile] › tests/multitab.spec.ts:83:5 › mode selection stays in its own tab while local reviews stay local
+[87/104] [mobile] › tests/product-data.spec.ts:27:5 › V1 upgrade, explicit module restore and linked Goal reload preserve all prior namespaces
+[88/104] [mobile] › tests/platform.spec.ts:27:5 › watch-only invalid input never calls a wallet or chain endpoint
+[89/104] [mobile] › tests/multitab.spec.ts:100:5 › two tabs share only the active wallet's journal notifications and retain future rows
+[90/104] [mobile] › tests/platform.spec.ts:36:5 › mainnet watch-only displays exact six-decimal observations without wallet authority
+[91/104] [mobile] › tests/product-data.spec.ts:46:5 › damaged private exports retain exact bytes and explicit restore quarantines originals
+[92/104] [mobile] › tests/multitab.spec.ts:238:5 › simultaneous confirmations serialize and the losing tab must review again
+[93/104] [mobile] › tests/product-shell.spec.ts:2:5 › unified shell exposes all seven sections and preserves Alpha controls
+[94/104] [mobile] › tests/platform.spec.ts:57:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale
+[95/104] [mobile] › tests/product-visual.spec.ts:4:5 › populated product fits every required viewport with reduced motion and scoped links
+[96/104] [mobile] › tests/product-data.spec.ts:65:5 › private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls
+[97/104] [mobile] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves
+[98/104] [mobile] › tests/transactions.spec.ts:6:5 › restart preserves scoped journal and damaged rows without replay
+[99/104] [mobile] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[100/104] [mobile] › tests/visual-v21.spec.ts:5:5 › V2.1 artwork, wallet-first composition and stable decorative identities
+[101/104] [mobile] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection
+[102/104] [mobile] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[103/104] [mobile] › tests/wallet-reload.spec.ts:8:5 › mock Keplr reconnect stays explicit and tab scoped across reload
+[104/104] [mobile] › tests/public-alpha.spec.ts:138:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+  104 passed (49.8s)
