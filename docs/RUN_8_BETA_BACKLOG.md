@@ -25,7 +25,7 @@ Complete scope and acceptance criteria remain in the [unaltered master prompt](R
 | G: Today | PARTIAL | Observed mainnet total, allocated intentions, primary tracked Goal, next contribution/milestone; existing Habit and Health Today preserved. Rich liquid/staked/reward/unallocated overview and integrated future-reward tile remain follow-up. |
 | G: private backup/import/export | COMPLETE | Goals/Positions/allocations/plans/snapshots plus Habits V2; Health V1 contract and filename preserved. Explicit restore confirmation, original recovery copies, newer-version refusal. |
 | H: chain/fee/security evidence | COMPLETE | Live denom verification, existing transfer fee reconciliation, gated EVM metadata, unchanged live Alpha smoke; no transaction submitted. |
-| H: full validation/review/CI | PARTIAL | All required local checks pass:751 JS,25 Rust,104 production browser,28 Workers checks; hosted CI pending. See validation.json for exact results, never infer a pass from this table. |
+| H: full validation/review/CI | COMPLETE | All required local checks pass: 751 JS, 25 Rust, 104 production browser, 28 Workers checks; all five hosted web/contract/reproducibility checks pass. See validation.json for exact results, never infer a pass from this table. |
 
 | Remaining scope | Status | Gate |
 |---|---|---|

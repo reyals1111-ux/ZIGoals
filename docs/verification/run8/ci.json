@@ -1,6 +1,695 @@
 {
-  "status": "PENDING",
+  "status": "PASS",
+  "recordedAt": "2026-09-17T20:38:57.901653+00:00",
   "repository": "reyals1111-ux/ZIGoals",
-  "branch": "codex/run8-goals-positions-habits",
-  "reason": "Final source review fixes and local checks still in progress; draft PR will trigger hosted CI."
+  "pullRequest": {
+    "baseRefOid": "94df488cd98d2a1cdc15bd11011521d24fc8066e",
+    "headRefOid": "61e6081e9c7490f4182c12d5537f111b5cf97c53",
+    "isDraft": true,
+    "number": 15,
+    "potentialMergeCommit": {
+      "oid": "a08f73507e26d72b3a6269d6b390d3d9d08c5e54"
+    },
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-17T20:33:11Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578/job/105370908755",
+        "name": "canonical-build-a",
+        "startedAt": "2026-09-17T20:30:44Z",
+        "status": "COMPLETED",
+        "workflowName": "Canonical reproducibility"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-17T20:35:55Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236524/job/105370909098",
+        "name": "web",
+        "startedAt": "2026-09-17T20:30:45Z",
+        "status": "COMPLETED",
+        "workflowName": "Milestone quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-17T20:33:13Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578/job/105370909076",
+        "name": "canonical-build-b",
+        "startedAt": "2026-09-17T20:30:45Z",
+        "status": "COMPLETED",
+        "workflowName": "Canonical reproducibility"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-17T20:35:16Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578/job/105371744495",
+        "name": "compare",
+        "startedAt": "2026-09-17T20:33:16Z",
+        "status": "COMPLETED",
+        "workflowName": "Canonical reproducibility"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-17T20:33:47Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236524/job/105370909300",
+        "name": "contract",
+        "startedAt": "2026-09-17T20:30:45Z",
+        "status": "COMPLETED",
+        "workflowName": "Milestone quality"
+      }
+    ],
+    "url": "https://github.com/reyals1111-ux/ZIGoals/pull/15"
+  },
+  "quality": {
+    "conclusion": "success",
+    "databaseId": 35271236524,
+    "headSha": "61e6081e9c7490f4182c12d5537f111b5cf97c53",
+    "jobs": [
+      {
+        "completedAt": "2026-09-17T20:35:55Z",
+        "conclusion": "success",
+        "databaseId": 105370909098,
+        "name": "web",
+        "startedAt": "2026-09-17T20:30:45Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-17T20:30:46Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-17T20:30:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:49Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "startedAt": "2026-09-17T20:30:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:54Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "startedAt": "2026-09-17T20:30:49Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:56Z",
+            "conclusion": "success",
+            "name": "Run npm install --global pnpm@11.19.0",
+            "number": 4,
+            "startedAt": "2026-09-17T20:30:54Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:06Z",
+            "conclusion": "success",
+            "name": "Run pnpm install --frozen-lockfile",
+            "number": 5,
+            "startedAt": "2026-09-17T20:30:56Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:07Z",
+            "conclusion": "success",
+            "name": "Run node scripts/doctor.mjs",
+            "number": 6,
+            "startedAt": "2026-09-17T20:31:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:10Z",
+            "conclusion": "success",
+            "name": "Run pnpm check:deploy-configs && pnpm check:landing",
+            "number": 7,
+            "startedAt": "2026-09-17T20:31:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:50Z",
+            "conclusion": "success",
+            "name": "Run pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+            "number": 8,
+            "startedAt": "2026-09-17T20:31:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:51Z",
+            "conclusion": "success",
+            "name": "Run pnpm audit --prod --audit-level high",
+            "number": 9,
+            "startedAt": "2026-09-17T20:31:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:32:19Z",
+            "conclusion": "success",
+            "name": "Run pnpm --filter @zigoals/web exec playwright install --with-deps chrome",
+            "number": 10,
+            "startedAt": "2026-09-17T20:31:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:32:19Z",
+            "conclusion": "success",
+            "name": "Run pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &",
+            "number": 11,
+            "startedAt": "2026-09-17T20:32:19Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:12Z",
+            "conclusion": "success",
+            "name": "Run for n in $(seq 1 30); do",
+            "number": 12,
+            "startedAt": "2026-09-17T20:32:19Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:28Z",
+            "conclusion": "success",
+            "name": "Run pnpm --filter @zigoals/web build:alpha",
+            "number": 13,
+            "startedAt": "2026-09-17T20:35:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:30Z",
+            "conclusion": "success",
+            "name": "Run pnpm --filter @zigoals/web check:alpha",
+            "number": 14,
+            "startedAt": "2026-09-17T20:35:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:30Z",
+            "conclusion": "success",
+            "name": "Run pnpm --filter @zigoals/web preview:alpha > /tmp/zigoals-alpha.log 2>&1 &",
+            "number": 15,
+            "startedAt": "2026-09-17T20:35:30Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:51Z",
+            "conclusion": "success",
+            "name": "Public Alpha Workers security gate",
+            "number": 16,
+            "startedAt": "2026-09-17T20:35:30Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:52Z",
+            "conclusion": "success",
+            "name": "Run node scripts/check-secrets.mjs",
+            "number": 17,
+            "startedAt": "2026-09-17T20:35:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 33,
+            "startedAt": "2026-09-17T20:35:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:53Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 34,
+            "startedAt": "2026-09-17T20:35:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:53Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 35,
+            "startedAt": "2026-09-17T20:35:53Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236524/job/105370909098"
+      },
+      {
+        "completedAt": "2026-09-17T20:33:47Z",
+        "conclusion": "success",
+        "databaseId": 105370909300,
+        "name": "contract",
+        "startedAt": "2026-09-17T20:30:45Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-17T20:30:48Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-17T20:30:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:51Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "startedAt": "2026-09-17T20:30:48Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:57Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "startedAt": "2026-09-17T20:30:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:06Z",
+            "conclusion": "success",
+            "name": "Run rustup toolchain install 1.85.1 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown",
+            "number": 4,
+            "startedAt": "2026-09-17T20:30:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:06Z",
+            "conclusion": "success",
+            "name": "Run cargo fmt --all -- --check",
+            "number": 5,
+            "startedAt": "2026-09-17T20:31:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:28Z",
+            "conclusion": "success",
+            "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+            "number": 6,
+            "startedAt": "2026-09-17T20:31:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:57Z",
+            "conclusion": "success",
+            "name": "Run cargo test --workspace --locked",
+            "number": 7,
+            "startedAt": "2026-09-17T20:31:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:07Z",
+            "conclusion": "success",
+            "name": "Run cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check",
+            "number": 8,
+            "startedAt": "2026-09-17T20:31:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:09Z",
+            "conclusion": "success",
+            "name": "Run npm install --prefix .toolchain/wasm-tools --ignore-scripts --no-audit --no-fund binaryen@123.0.0",
+            "number": 9,
+            "startedAt": "2026-09-17T20:33:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:32Z",
+            "conclusion": "success",
+            "name": "Run bash contracts/goal-manager/scripts/build-wasm.sh",
+            "number": 10,
+            "startedAt": "2026-09-17T20:33:09Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:43Z",
+            "conclusion": "success",
+            "name": "Run npm install --global pnpm@11.19.0",
+            "number": 11,
+            "startedAt": "2026-09-17T20:33:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:44Z",
+            "conclusion": "success",
+            "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+            "number": 12,
+            "startedAt": "2026-09-17T20:33:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:44Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 23,
+            "startedAt": "2026-09-17T20:33:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:44Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 24,
+            "startedAt": "2026-09-17T20:33:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:44Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 25,
+            "startedAt": "2026-09-17T20:33:44Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236524/job/105370909300"
+      }
+    ],
+    "name": "Milestone quality",
+    "status": "completed",
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236524"
+  },
+  "canonicalReproducibility": {
+    "conclusion": "success",
+    "databaseId": 35271236578,
+    "headSha": "61e6081e9c7490f4182c12d5537f111b5cf97c53",
+    "jobs": [
+      {
+        "completedAt": "2026-09-17T20:33:11Z",
+        "conclusion": "success",
+        "databaseId": 105370908755,
+        "name": "canonical-build-a",
+        "startedAt": "2026-09-17T20:30:44Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-17T20:30:46Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-17T20:30:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:50Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "startedAt": "2026-09-17T20:30:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:56Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "startedAt": "2026-09-17T20:30:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:06Z",
+            "conclusion": "success",
+            "name": "Run rustup toolchain install 1.85.1 --profile minimal --target wasm32-unknown-unknown",
+            "number": 4,
+            "startedAt": "2026-09-17T20:30:56Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:32:36Z",
+            "conclusion": "success",
+            "name": "Run cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check",
+            "number": 5,
+            "startedAt": "2026-09-17T20:31:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:32:37Z",
+            "conclusion": "success",
+            "name": "Run npm ci --prefix scripts/release/toolchain --ignore-scripts --no-audit --no-fund",
+            "number": 6,
+            "startedAt": "2026-09-17T20:32:36Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:08Z",
+            "conclusion": "success",
+            "name": "Build from clean source and target",
+            "number": 7,
+            "startedAt": "2026-09-17T20:32:37Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:09Z",
+            "conclusion": "success",
+            "name": "Retain diagnostic evidence, including on failure",
+            "number": 8,
+            "startedAt": "2026-09-17T20:33:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:09Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 15,
+            "startedAt": "2026-09-17T20:33:09Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:09Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 16,
+            "startedAt": "2026-09-17T20:33:09Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:09Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "startedAt": "2026-09-17T20:33:09Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578/job/105370908755"
+      },
+      {
+        "completedAt": "2026-09-17T20:33:13Z",
+        "conclusion": "success",
+        "databaseId": 105370909076,
+        "name": "canonical-build-b",
+        "startedAt": "2026-09-17T20:30:45Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-17T20:30:47Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-17T20:30:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:50Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "startedAt": "2026-09-17T20:30:47Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:30:56Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "startedAt": "2026-09-17T20:30:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:31:06Z",
+            "conclusion": "success",
+            "name": "Run rustup toolchain install 1.85.1 --profile minimal --target wasm32-unknown-unknown",
+            "number": 4,
+            "startedAt": "2026-09-17T20:30:56Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:32:38Z",
+            "conclusion": "success",
+            "name": "Run cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check",
+            "number": 5,
+            "startedAt": "2026-09-17T20:31:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:32:39Z",
+            "conclusion": "success",
+            "name": "Run npm ci --prefix scripts/release/toolchain --ignore-scripts --no-audit --no-fund",
+            "number": 6,
+            "startedAt": "2026-09-17T20:32:38Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:10Z",
+            "conclusion": "success",
+            "name": "Build from clean source and target",
+            "number": 7,
+            "startedAt": "2026-09-17T20:32:39Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:11Z",
+            "conclusion": "success",
+            "name": "Retain diagnostic evidence, including on failure",
+            "number": 8,
+            "startedAt": "2026-09-17T20:33:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:11Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 15,
+            "startedAt": "2026-09-17T20:33:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:11Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 16,
+            "startedAt": "2026-09-17T20:33:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:11Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "startedAt": "2026-09-17T20:33:11Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578/job/105370909076"
+      },
+      {
+        "completedAt": "2026-09-17T20:35:16Z",
+        "conclusion": "success",
+        "databaseId": 105371744495,
+        "name": "compare",
+        "startedAt": "2026-09-17T20:33:16Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-17T20:33:18Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-17T20:33:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:22Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "startedAt": "2026-09-17T20:33:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:28Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "startedAt": "2026-09-17T20:33:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:33:35Z",
+            "conclusion": "success",
+            "name": "Run rustup toolchain install 1.85.1 --profile minimal",
+            "number": 4,
+            "startedAt": "2026-09-17T20:33:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:09Z",
+            "conclusion": "success",
+            "name": "Run cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check",
+            "number": 5,
+            "startedAt": "2026-09-17T20:33:35Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:10Z",
+            "conclusion": "success",
+            "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+            "number": 6,
+            "startedAt": "2026-09-17T20:35:09Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:11Z",
+            "conclusion": "success",
+            "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+            "number": 7,
+            "startedAt": "2026-09-17T20:35:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:12Z",
+            "conclusion": "success",
+            "name": "Compare actual bytes, source, environment and rerun both validators",
+            "number": 8,
+            "startedAt": "2026-09-17T20:35:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:13Z",
+            "conclusion": "success",
+            "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+            "number": 9,
+            "startedAt": "2026-09-17T20:35:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:13Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 17,
+            "startedAt": "2026-09-17T20:35:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:14Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 18,
+            "startedAt": "2026-09-17T20:35:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-17T20:35:14Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "startedAt": "2026-09-17T20:35:14Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578/job/105371744495"
+      }
+    ],
+    "name": "Canonical reproducibility",
+    "status": "completed",
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578"
+  },
+  "scope": "Hosted PR checks at the recorded branch head and synthetic merge commit. The subsequent handoff commit changes evidence/documentation only; its live check status is visible on the same PR. No attested release issuance or upload authorization is implied."
 }

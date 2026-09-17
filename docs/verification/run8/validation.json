@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL_PASS_HOSTED_CI_PENDING",
+  "status": "PASS",
   "base": "94df488cd98d2a1cdc15bd11011521d24fc8066e",
   "branch": "codex/run8-goals-positions-habits",
   "checks": {
@@ -184,11 +184,21 @@
       "result": "No known vulnerabilities found",
       "log": "checks/dependency-audit.txt",
       "scope": "Production dependencies; lockfile unchanged from base."
+    },
+    "secretScanReviewPackage": {
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "All staged source/evidence/screenshots at61e6081 before commit",
+      "command": [
+        "node",
+        "scripts/check-secrets.mjs"
+      ]
     }
   },
   "canonicalReproducibility": {
-    "status": "NOT_REQUIRED",
-    "reason": "No contract, generated contract interface, lockfile or protected contract build path changed."
+    "status": "PASS_HOSTED",
+    "reason": "No protected contract/build path changed, so a local rerun was not required. The standard PR workflow nevertheless completed two clean hosted builds and byte/manifest comparison successfully. PR evidence is not release approval.",
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/35271236578"
   },
   "recordedAt": "2026-09-17T20:29:01.859835+00:00",
   "testedProductHead": "ae973ee04ff0162fb9f25eb012dcb373fc622c16",
@@ -280,5 +290,12 @@
     "contractUpload": false,
     "productionDeployment": false,
     "merge": false
+  },
+  "hostedCI": {
+    "status": "PASS",
+    "head": "61e6081e9c7490f4182c12d5537f111b5cf97c53",
+    "syntheticMerge": "a08f73507e26d72b3a6269d6b390d3d9d08c5e54",
+    "checks": 5,
+    "artifact": "ci.json"
   }
 }

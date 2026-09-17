@@ -37,6 +37,10 @@ EVM registry metadata now names chains 944/2061 but marks both incubating with n
 
 ## Verification and review
 
+**COMPLETE — validation and review package.** Local: 751 JavaScript tests, 25 Rust tests, 104 production desktop/mobile browser checks and 28 Workers checks pass, with no skipped or flaky browser tests. Lint, typecheck, Next/OpenNext builds, clean Alpha identity, Wrangler dry run, dependency audit, limited secret scan and config checks pass. Hosted web, contract, both canonical builds and byte comparison pass on draft PR #15. Exact CI head: `61e6081e9c7490f4182c12d5537f111b5cf97c53`; tested product head: `ae973ee04ff0162fb9f25eb012dcb373fc622c16`.
+
+Aggregate emitted JavaScript grew 37,524 gzip bytes (+5.454%); CSS grew 912 gzip bytes (+3.851%) against the same-lockfile base archive. These are all-route file sums, not initial-page transfer or production CPU. The local Worker dry-run bundle is about 1,937 KiB gzipped. Seventeen fictional-fixture screenshots cover tracked Goals/detail/Positions, staking, Today, Habits and unchanged Health.
+
 Final command outcomes, source identity, test totals, browser coverage, build sizes, screenshots and hosted CI are recorded in [the verification index](verification/run8/README.md). Initial review findings are retained with their fix evidence; no initial failed run is presented as a pass. Live provider evidence uses a synthetic public account with zero balance; nonzero multi-validator, reward and unbonding paths are fixture-tested. Limited secret pattern scanning is not a comprehensive secret audit. No post-deployment production CPU claim is possible because nothing was deployed.
 
 ## Owner actions
