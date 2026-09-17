@@ -8,6 +8,7 @@ import { AppIcon } from "../../components/app-icon";
 import { ActivityFeed } from "../../components/activity-feed";
 import { HabitsToday } from "../../components/habits/habits-today";
 import { HealthToday } from "../../components/health/health-today";
+import { PlatformToday } from "../../components/platform/platform-today";
 export default function Dashboard() {
   const s = useGoals();
   const active = s.goals.filter(goal => goal.status === "active");
@@ -39,6 +40,7 @@ export default function Dashboard() {
           <div className="section-heading"><div><h2>Your progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div>
           <div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatUnits(allocated, TESTNET.nativeAsset.decimals)} <span>ZIG</span></strong><small>{s.mode === "local" ? "Simulated allocation" : "Known goal allocation"}</small></div><div><AppIcon name="ecosystem"/><strong>0%</strong><small>Future return assumed</small></div></div>
         </section>
+        <PlatformToday/>
         <div className="today-daily"><HabitsToday/><HealthToday/></div>
         {active[0] && <div className="next-step"><span className="eyebrow">Your next goal action</span><Link href={`/app/goals/${active[0].id}`} className="text-link">Review {s.metadata?.goals[active[0].id]?.name ?? `Goal #${active[0].id}`} →</Link></div>}
       </div>
