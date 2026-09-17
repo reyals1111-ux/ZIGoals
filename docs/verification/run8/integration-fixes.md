@@ -1,0 +1,11 @@
+# Integration fixes
+- Resolved all four integration-review findings: shared one-year scenario horizon with leap-day clamp; explicit linked-habit drift/reconciliation; full 30-year weekly scenarios; eligible native-stake-only projection principal.
+- Plans beyond 12,000 schedule iterations fail explicitly instead of returning truncated totals. Thirty-year weekly fixture returns all 1,566 occurrences / 15,660 units.
+- “Apply plan to contribution habit” is an explicit, single Habits-store update using historical rule APIs. It preserves notes, time-of-day, stacking and entries; updates title/cadence/active state/end condition from today; financial state is never modified by behavior reconciliation.
+- Irregular plan drift is visible and directs the user to review the existing habit in Habits. Paused/ended plans generate paused contribution habits.
+- Goal detail now passes sync status into Freshness; Today labels past contribution dates overdue; validator commission now rejects exact decimal values greater than one.
+- Before final historical-fixture extension: targeted ESLint and typecheck passed, 20 Position tests passed, and Goal–Habit browser flow passed 2/2 desktop/mobile (create, complete without financial gain, change monthly10 to weekly20, explicit reconcile).
+- Final focused finance/native/relay run passed 35 tests and targeted ESLint passed. Final historical-fixture browser rerun hit concurrent Habits-module errors before reaching reconciliation, failing 2/2 on rendering the newly created Habit.
+- Final typecheck was likewise blocked by concurrent habits.ts changes: missing segmentBounds at264 and missing AggregateOutcome.bounds at270. Parent requested commit with this exact transient state, and will rerun after Habits agent finishes.
+- Final browser test now additionally asserts prior-day monthly rule and its entry survive reconciliation, alongside today's weekly rule. That added assertion remains unverified until shared Habits code stabilizes.
+- No Habits-owned source edited; no full suite, push or deployment. Backup: /tmp/run8-integration-backup-1789675306619553000. Browser outputs: /tmp/run8-integration-red-browser and /tmp/run8-integration-green-browser.

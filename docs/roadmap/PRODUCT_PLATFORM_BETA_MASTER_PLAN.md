@@ -13,3 +13,7 @@ Preserve every Goal, metadata record, local simulation, transaction journal, Hab
 P2: Valdora, Zignaly, WME, EVM, IBC, RWA and other providers remain gated by verified interfaces, provenance and applicable permissions. No exchange trading keys. Staking/mainnet execution and mobile-native reminders are not authorized.
 
 Health Beta is deferred in full to [potential Run #10](HEALTH_BETA_FUTURE_RUN.md). No preparatory Health schema changes.
+
+## Run #8 delivery status
+
+COMPLETE: Position/accounting core, strict migrations, coherent read-only native snapshots, Quantity/Value/Project Goals, allocations, explicit contribution scenarios, Positions view, private backup and core Goal–Habit integration. PARTIAL: broader Reward/Income Goals, full Funding Health V2, rich Goal Detail/history, advanced Habit lifecycle automation and Today’s complete financial summary. Exact implemented and deferred slices are listed in the [Beta backlog](../RUN_8_BETA_BACKLOG.md); no requirement in the full brief is deleted. Final validation/CI remains pending until recorded in the review package.

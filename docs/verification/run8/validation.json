@@ -1,0 +1,33 @@
+{
+  "status": "IN_PROGRESS",
+  "base": "94df488cd98d2a1cdc15bd11011521d24fc8066e",
+  "branch": "codex/run8-goals-positions-habits",
+  "checks": {
+    "rustFmt": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "checks/rust-fmt.txt"
+    },
+    "rustClippy": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "checks/rust-clippy.txt"
+    },
+    "rustTests": {
+      "status": "PASS",
+      "exitCode": 0,
+      "passed": 25,
+      "log": "checks/rust-tests.txt"
+    },
+    "deploymentConfig": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "checks/deploy-config.txt"
+    }
+  },
+  "canonicalReproducibility": {
+    "status": "NOT_REQUIRED",
+    "reason": "No contract, generated contract interface, lockfile or protected contract build path changed."
+  },
+  "remaining": "Full final JS/type/lint/Next/browser/OpenNext/dry-run/Workers gate/secret scan and hosted CI pending coherent source."
+}

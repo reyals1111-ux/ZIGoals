@@ -54,3 +54,7 @@ Primary-source facts:
 Owner-reported support communication says the broad EVM integration is under active implementation/testing and CosmWasm whitelisting is paused with no ETA. The separate testnet-funding request remains pending.
 
 Architecture consequence: keep the deterministic Goal Engine VM-independent. Future Cosmos/CosmWasm and EVM execution adapters must remain separate authority boundaries. No EVM execution may be enabled until official RPC/chain/wallet/address/gas/finality/receipt specifications, contract provenance and testnet receipts are verified.
+
+## Run #8 live refresh
+
+See [bounded chain/fee findings](../verification/run8/CHAIN_FEE_FINDINGS.md). Mainnet live metadata is **uzig/6**, despite v5 docs describing azig. Testnet is **azig/18**. Official EVM registry now publishes 944/2061 as incubating, with empty RPCs. The successful owner-approved send and its 25000000000 azig/gas price are independently verified. No fee-policy or execution changes were made.
