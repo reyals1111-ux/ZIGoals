@@ -136,6 +136,29 @@ describe("recurrence, status and end semantics", () => {
     expect(counted.habits[0]!.rules.at(-1)!.state).toBe("active");
   });
 
+  it("allows post-end edits and state history to round-trip", () => {
+    let data = make({ endCondition: { kind: "date", date: "2026-09-03" } });
+    data = setHabitState(data, id, "paused", at("2026-09-04"));
+    data = setHabitState(data, id, "archived", at("2026-09-05"));
+    data = editHabit(data, id, { ...base, title: "Read again", endCondition: { kind: "date", date: "2026-09-03" } }, at("2026-09-06"));
+
+    expect(data.habits[0]!.rules.map((rule) => [rule.from, rule.state])).toEqual([
+      ["2026-09-01", "active"], ["2026-09-04", "paused"], ["2026-09-05", "archived"], ["2026-09-06", "archived"],
+    ]);
+    expect(habitDataSchema.parse(JSON.parse(JSON.stringify(data)))).toEqual(data);
+  });
+
+  it("anchors a newly selected interval today and preserves an existing interval anchor", () => {
+    let changed = make({}, "2026-09-01");
+    changed = editHabit(changed, id, { ...base, schedule: { kind: "interval", every: 3, anchor: "2026-09-01" } }, at("2026-09-02"));
+    expect(changed.habits[0]!.rules.at(-1)!.schedule).toEqual({ kind: "interval", every: 3, anchor: "2026-09-02" });
+    expect(habitDay(changed.habits[0]!, "2026-09-02", "2026-09-02")).toMatchObject({ status: "due", scheduled: true });
+
+    let interval = make({ schedule: { kind: "interval", every: 3, anchor: "2026-09-01" } }, "2026-09-01");
+    interval = editHabit(interval, id, { ...base, schedule: { kind: "interval", every: 4, anchor: "2026-09-02" } }, at("2026-09-02"));
+    expect(interval.habits[0]!.rules.at(-1)!.schedule).toEqual({ kind: "interval", every: 4, anchor: "2026-09-01" });
+  });
+
   it("counts completed target periods for completion endings", () => {
     let frequency = make({ schedule: { kind: "frequency", times: 3, period: "week" }, endCondition: { kind: "completions", count: 1 } }, "2026-09-07");
     frequency = logHabitValue(frequency, id, "2026-09-07", 1, {}, at("2026-09-07"));
@@ -173,6 +196,8 @@ describe("recurrence, status and end semantics", () => {
 
   it("rejects an end date before the rule begins", () => {
     expect(() => make({ endCondition: { kind: "date", date: "2026-08-31" } }, "2026-09-01")).toThrow();
+    const data = make({}, "2026-09-01");
+    expect(() => editHabit(data, id, { ...base, endCondition: { kind: "date", date: "2026-09-03" } }, at("2026-09-04"))).toThrow();
   });
 });
 

@@ -61,7 +61,7 @@ export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?
   function scheduleValue(): HabitRule["schedule"] {
     if (scheduleKind === "daily") return { kind: "daily" };
     if (scheduleKind === "weekdays") return { kind: "weekdays", days: [...days].sort() };
-    if (scheduleKind === "interval") return { kind: "interval", every: interval, anchor: habit?.startDate ?? new Date().toLocaleDateString("en-CA") };
+    if (scheduleKind === "interval") return { kind: "interval", every: interval, anchor: rule?.schedule.kind === "interval" ? rule.schedule.anchor : new Date().toLocaleDateString("en-CA") };
     if (scheduleKind === "frequency") return { kind: "frequency", times: frequency, period: frequencyPeriod };
     return { kind: "month-dates", days: [...new Set(monthDates.split(",").map(Number).filter((day) => Number.isInteger(day) && day >= 1 && day <= 31))].sort((a, b) => a - b) };
   }

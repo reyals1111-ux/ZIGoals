@@ -53,9 +53,7 @@ export const habitInputSchema = inputShape.superRefine(addSemanticIssues);
 const ruleSchema = z.object({
   from: dateSchema, schedule: habitScheduleSchema, type: z.enum(["build", "quit", "limit"]), measurement: habitMeasurementSchema, target: valueSchema,
   targetPeriod: z.enum(["day", "week", "month", "year"]), endCondition: endConditionSchema, state: z.enum(["active", "paused", "archived"]),
-}).strict().superRefine(addSemanticIssues).superRefine((rule, context) => {
-  if (rule.endCondition.kind === "date" && rule.endCondition.date < rule.from) context.addIssue({ code: "custom", path: ["endCondition"], message: "An end date cannot be before this rule begins." });
-});
+}).strict().superRefine(addSemanticIssues);
 const entrySchema = z.object({
   date: dateSchema, count: valueSchema, disposition: z.enum(["logged", "skipped", "failed"]), note: z.string().max(2000),
   mood: z.enum(["energized", "good", "neutral", "difficult", "calm"]).optional(), updatedAt: timestampSchema,
@@ -125,11 +123,18 @@ function changeRule(habit: Habit, patch: Partial<HabitRule>, now: Date): Habit {
 }
 export function createHabit(data: HabitData, raw: HabitInput, now = new Date(), id: string = crypto.randomUUID()): HabitData {
   const parsed = habitInputSchema.parse(raw); const { schedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const startDate = dateSchema.parse(localDate(now));
+  if (endCondition.kind === "date" && endCondition.date < startDate) throw new Error("An end date cannot be before this habit begins.");
   return habitDataSchema.parse({ ...data, habits: [...data.habits, { ...details, id, startDate, endCondition, createdAt: now.toISOString(), updatedAt: now.toISOString(), entries: [], rules: [{ from: startDate, schedule, target, type, measurement, targetPeriod, endCondition, state: "active" }] }] });
 }
 export function editHabit(data: HabitData, id: string, raw: HabitInput, now = new Date()): HabitData {
-  const parsed = habitInputSchema.parse(raw); const { schedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed;
-  return replaceHabit(data, id, (habit) => ({ ...changeRule(habit, { schedule, target, type, measurement, targetPeriod, endCondition }, now), ...details, endCondition, goalLink: details.goalLink }));
+  const parsed = habitInputSchema.parse(raw); const { schedule: rawSchedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const from = dateSchema.parse(localDate(now));
+  return replaceHabit(data, id, (habit) => {
+    const current = latestHabitRule(habit); let schedule = rawSchedule;
+    if (schedule.kind === "interval") schedule = { ...schedule, anchor: current.schedule.kind === "interval" ? current.schedule.anchor : from };
+    const endChanged = JSON.stringify(endCondition) !== JSON.stringify(habit.endCondition);
+    if (endChanged && endCondition.kind === "date" && endCondition.date < from) throw new Error("An end date cannot be before this habit change.");
+    return { ...changeRule(habit, { schedule, target, type, measurement, targetPeriod, endCondition }, now), ...details, endCondition, goalLink: details.goalLink };
+  });
 }
 export function setHabitState(data: HabitData, id: string, state: HabitState, now = new Date()): HabitData { return replaceHabit(data, id, (habit) => changeRule(habit, { state }, now)); }
 
