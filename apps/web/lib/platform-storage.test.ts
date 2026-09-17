@@ -1,7 +1,8 @@
-import { it, expect } from 'vitest';
+import { it, expect, vi } from 'vitest';
 import { migratePlatform, platformSchema, PLATFORM_KEY, emptyPlatform } from './positions';
 import { readPrivateStore, updatePrivateStore } from './private-storage';
 it('additive migration preserves all legacy stores and rejects future platform state',async()=>{
+ vi.stubGlobal('navigator',{locks:{request:async(_key:string,action:()=>unknown)=>action()}});
  const bytes=new Map<string,string>([['zigoals:health:v1','unchanged'],['zigoals:habits:v1','unchanged'],['legacy-goals','unchanged']]);
  const storage={getItem:(key:string)=>bytes.get(key)??null,setItem:(key:string,value:string)=>bytes.set(key,value)} as Storage;
  expect(migratePlatform(null)).toEqual(emptyPlatform());
