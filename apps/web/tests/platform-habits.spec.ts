@@ -51,3 +51,16 @@ test('a failed second-store creation reserves one ID and retries without duplica
  const result=await page.evaluate(()=>({habits:JSON.parse(localStorage.getItem('zigoals:habits:v1')!),platform:JSON.parse(localStorage.getItem('zigoals:platform:v1')!)}));
  expect(result.habits.habits).toHaveLength(1);expect(result.habits.habits[0].id).toBe(reserved);expect(result.platform.goals[0].plan.habitId).toBe(reserved);
 });
+
+test('a fractional-cent ZIG price assumption saves exactly without changing observed progress',async({page})=>{
+ await page.goto('/app/goals/tracked');await page.evaluate(goal=>localStorage.setItem('zigoals:platform:v1',JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[goal],allocations:[],snapshots:[]})),simpleGoal());
+ await page.goto('/app/goals/tracked/88');
+ await page.getByLabel('Planned amount',{exact:true}).fill('100');await page.getByLabel('Contribution asset',{exact:true}).fill('USD');
+ await page.getByLabel('Price per Goal unit in contribution currency (if different)',{exact:true}).fill('0.012345');
+ await page.getByRole('button',{name:'Save contribution plan',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Private Goal saved'})).toBeVisible();
+ const plan=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).goals[0].plan);
+ expect(plan).toMatchObject({amount:'10000',asset:'USD',decimals:2,price:{value:'12345000000000000',decimals:18,currency:'USD'}});
+ await expect(page.getByTestId('tracked-progress')).toContainText('0.00%');
+ await page.reload();await expect(page.getByLabel('Price per Goal unit in contribution currency (if different)',{exact:true})).toHaveValue('0.012345');
+});

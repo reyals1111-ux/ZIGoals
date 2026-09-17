@@ -35,7 +35,7 @@ export function TrackedDetail({id}:{id:string}){
  async function saveAllocation(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);const position=eligible.find(p=>p.id===f.get('position'));if(!position)return;await run(()=>store.update(s=>allocate(s,id,position.id,parseUnits(String(f.get('quantity')),position.decimals).toString())));}
  async function savePlan(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);await run(()=>{
   const asset=String(f.get('asset')).toUpperCase();const decimals=asset==='USD'||asset==='EUR'?2:18;
-  const plan=contributionSchema.parse({amount:parseUnits(String(f.get('amount')),decimals).toString(),asset,decimals,cadence:f.get('cadence'),nextDate:f.get('next'),habitId:goal!.plan?.habitId,endDate:f.get('end')||undefined,active:f.get('active')==='on',price:f.get('price')?{value:parseUnits(String(f.get('price')),2).toString(),decimals:2,currency:asset}:undefined});
+  const plan=contributionSchema.parse({amount:parseUnits(String(f.get('amount')),decimals).toString(),asset,decimals,cadence:f.get('cadence'),nextDate:f.get('next'),habitId:goal!.plan?.habitId,endDate:f.get('end')||undefined,active:f.get('active')==='on',price:f.get('price')?{value:parseUnits(String(f.get('price')),18).toString(),decimals:18,currency:asset}:undefined});
   if(goal!.asset!==asset&&!plan.price)throw Error('Enter a price assumption to project this contribution currency into the Goal asset.');
   return store.update(s=>({...s,goals:s.goals.map(g=>g.id===id?{...g,plan}:g)}));
  });}

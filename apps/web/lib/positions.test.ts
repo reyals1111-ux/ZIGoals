@@ -121,3 +121,8 @@ it('a reward Goal cannot project principal from a staking allocation rejected by
  s.allocations=[{goalId:'1',positionId:'p',quantity:'1000000'}];
  expect(goalProgress(s,'1').current).toBe('0');expect(allocatedNativePrincipal(s,'1')).toBe('0');
 });
+
+it('a fractional-cent fiat assumption converts to exact Goal units without rounding the price',()=>{
+ const result=planScenario({...g(),decimals:18,target:'10000000000000000000000'},'0',{amount:'10000',asset:'USD',decimals:2,cadence:'irregular',nextDate:'2026-09-17',active:true,price:{value:'12345000000000000',decimals:18,currency:'USD'}},'2026-09-17','2026-09-17');
+ expect(result.contributions).toBe('8100445524503847711624');
+});
