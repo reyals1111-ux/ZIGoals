@@ -1,39 +1,21 @@
-# Astra Run #8 — working plan
+# Astra Run #8 Implementation Plan
 
-**Prepared:** 2026-09-17
-**Baseline:** owner-verified live Alpha source `69aa0260eaa6bde3294ba7a778086839246c030a`.
+**Goal:** connect existing wealth and supporting Habits to private Goals without requiring custody.
+**Architecture:** pure VM-independent exact-integer Position/allocation/Goal engine; GET-only public staking provider; versioned browser-local state; additive V2.1 components. Preserve existing execution guards and all Health V1 code/data.
+**Spec:** [complete authorized master prompt](RUN_8_ASTRA_MASTER_PROMPT.md).
+**Base:** fresh origin/main 94df488cd98d2a1cdc15bd11011521d24fc8066e.
 
-## Product thesis
+Execute inline in checkpoint order; tests precede financial/domain behavior.
 
-**ZIGoals — Goals, Habits & Health = Wealth.**
+- [x] A: persist full master brief, roadmap, backlog, Health future scope and corrected current state; commit before product implementation.
+- [ ] B: packages/goal-engine/src platform model and allocation primitives; apps/web/lib versioned persistence; exact units, malformed/newer migration tests.
+- [ ] C: apps/web/lib GET-only native staking client with fixed network endpoints, pagination, validation and provenance; watch-only UI with no wallet signer path; provider/projection/safety tests.
+- [ ] D: pure Quantity/Value/Reward/Project progress, allocations, contribution scenarios and Funding Health; conservation/property tests, balance reductions and closed-goal release.
+- [ ] E: additive Goals subview and detail components using existing panel/button/field styles; Positions and manual input; browser integration checks.
+- [ ] F: evolve habits.ts and Habit components through deterministic V1 migration, prospective rules, period-aware metrics, controls, templates and insights; targeted tests.
+- [ ] G: Today, Goal-linked behavior and private backups; preserve existing Health V1 and transaction journal; regression/privacy tests.
+- [ ] H: run required full validation once coherent, record individual failures/limitations, exact commits/head, screenshots and hosted CI; push review branch and stop before merge/deploy.
 
-Goals remain the organizing layer; Habits and Health support real-world progress without turning ZIGoals into a generic tracker or medical app.
+Each phase: write behavior tests, observe failure, implement, run targeted tests/typecheck, inspect full diff, commit/push coherent checkpoint. Retain incomplete scope explicitly in backlog and exact resume state.
 
-## Work packages
-
-1. **Fresh truth snapshot** — exact main/live Alpha/CI/testnet wallet/whitelist/support/EVM docs.
-2. **Habits Beta** — stronger creation, recurrence, history, consistency and Goal linkage while preserving private local data.
-3. **Health Beta** — refine diary, foods/recipes, targets, trends, weight/activity and privacy boundaries.
-4. **UI V3** — evolve the product coherently from the frozen V2.1 baseline and strengthen the Goals/Habits/Health relationship.
-5. **EVM-aware architecture** — refresh official EVM evidence; keep Goal Engine VM-agnostic; define separate Cosmos and EVM adapter boundaries without speculative execution.
-6. **Ecosystem readiness refresh** — only evidence-backed changes; Idle remains the only executable strategy unless a separate integration passes every provenance/schema/security/testnet gate.
-7. **Validation/review package** — lint, typecheck, unit/browser suites, production/Alpha builds, privacy/egress, mobile/visual review and hosted CI.
-
-## Conditional Goal Manager tail
-
-Only consider testnet upload/instantiate if all are true:
-
-- CosmWasm whitelist reopened and wallet independently verified;
-- sufficient testnet ZIG exists;
-- a fresh exact-current-main canonical Wasm candidate is reproduced and attested;
-- exact checksum/config is presented;
-- owner explicitly approves that exact action.
-
-If authorized, first proof remains minimal Idle-only create/deposit/withdraw/close on testnet with verified receipts.
-
-## Current blockers
-
-- CosmWasm whitelist: paused during ZIGChain EVM integration; no ETA.
-- Testnet funding: requested again; reply pending.
-- Goal Manager: NOT DEPLOYED.
-- No mainnet or external-strategy execution authorized.
+Funding is solved (owner evidence); whitelist remains blocked. No unnecessary transfers or deploy candidate builds. No production deployment.
