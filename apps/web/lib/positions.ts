@@ -133,7 +133,7 @@ export function goalProgress(s:Platform,id:string,now=Date.now()){
 }
 /** Only evidenced native stake in this Goal's network may fund its staking scenario. */
 export function allocatedNativePrincipal(s:Platform,goalId:string):string {
- const goal=s.goals.find(g=>g.id===goalId);if(!goal||goal.status==='closed'||goal.type==='PROJECT')return '0';
+ const goal=s.goals.find(g=>g.id===goalId);if(!goal||goal.status==='closed'||goal.type==='PROJECT'||goal.type==='REWARD')return '0';
  let total=0n;
  for(const a of s.allocations.filter(a=>a.goalId===goalId)){
   const p=s.positions.find(p=>p.id===a.positionId);if(!p||p.sourceType!=='NATIVE_STAKING'||p.asset!=='ZIG'||p.network!==goal.network||!['VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification))continue;

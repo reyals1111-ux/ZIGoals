@@ -114,3 +114,10 @@ it('rejects validator commission above one without rounding decimal evidence',()
  expect(positionSchema.safeParse({...p(),validator:{...validator,commission:'1.000000000000000000'}}).success).toBe(true);
  expect(positionSchema.safeParse({...p(),validator:{...validator,commission:'0.999999999999999999'}}).success).toBe(true);
 });
+
+it('a reward Goal cannot project principal from a staking allocation rejected by observed progress',()=>{
+ const s=state();s.goals[0]={...g(),type:'REWARD',decimals:18,target:'100000000000000000000'};
+ s.positions[0]={...p(),network:'zigchain-1',sourceType:'NATIVE_STAKING',verification:'VERIFIED_READ_ONLY',denom:'uzig',decimals:6,quantity:'1000000'};
+ s.allocations=[{goalId:'1',positionId:'p',quantity:'1000000'}];
+ expect(goalProgress(s,'1').current).toBe('0');expect(allocatedNativePrincipal(s,'1')).toBe('0');
+});
