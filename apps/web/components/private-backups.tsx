@@ -22,7 +22,7 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
     try {
       const url = URL.createObjectURL(new Blob([store.exportData()], { type: "application/json" }));
       const anchor = document.createElement("a");
-      anchor.href = url; anchor.download = `zigoals-${name.toLowerCase()}-backup.json`;
+      anchor.href = url; anchor.download = name === "Health" ? "zigoals-health-v1.json" : `zigoals-${name.toLowerCase()}-backup.json`;
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage("Backup download started. Keep this file private."); setError("");
     } catch { setError("The original data could not be read. Check browser storage access."); }

@@ -18,7 +18,7 @@ async function restore(page: Page, name: "Habits" | "Health", raw: string) {
   const panel = page.getByRole("region", { name: `${name} backup`, exact: true });
   await panel.getByText(`Restore ${name} from a file`, { exact: true }).click();
   await panel.getByLabel(`Choose ${name} backup`).setInputFiles({ name: "private.json", mimeType: "application/json", buffer: Buffer.from(raw) });
-  await expect(panel.getByText(/Valid version 1 backup/)).toBeVisible();
+  await expect(panel.getByText(/Valid supported backup/)).toBeVisible();
   await expect(panel.getByRole("button", { name: `Restore ${name}`, exact: true })).toBeDisabled();
   await panel.getByLabel(`Replace my ${name.toLowerCase()} with this backup.`).check();
   await panel.getByRole("button", { name: `Restore ${name}`, exact: true }).click();

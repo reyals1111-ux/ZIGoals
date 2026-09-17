@@ -135,6 +135,9 @@ test("selected weekdays and keyboard completion expose only scheduled habits", a
 test("templates, distinct habit types, measurement and reflection controls work together", async ({ page }) => {
   await page.goto("/app/habits");
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();
+  const goalEnd = page.getByLabel("End condition").locator('option[value="goal"]');
+  await expect(goalEnd).toHaveAttribute("disabled", "");
+  await expect(goalEnd).toHaveText(/metadata only/i);
   await page.getByLabel("Start from template").selectOption("walk");
   await expect(page.getByLabel("Habit title", { exact: true })).toHaveValue("Walk");
   await expect(page.getByLabel("Measurement")).toHaveValue("quantity");
@@ -157,4 +160,14 @@ test("templates, distinct habit types, measurement and reflection controls work 
   await page.getByRole("article", { name: "No impulse buys", exact: true }).getByText("History & reflection", { exact: true }).click();
   await expect(page.getByLabel("Mood (optional)")).toHaveValue("calm");
   await expect(page.getByLabel("Day reflection (optional)")).toHaveValue("Noticed the trigger.");
+});
+
+test("frequency templates display the period that actually governs completion", async ({ page }) => {
+  await page.goto("/app/habits");
+  await page.getByRole("button", { name: "+ New habit", exact: true }).click();
+  await page.getByLabel("Start from template").selectOption("buyzig");
+  await page.getByRole("button", { name: "Create habit", exact: true }).click();
+  const card = page.getByRole("article", { name: "Buy ZIG", exact: true });
+  await expect(card.getByText("1× per month · 500 USD per month", { exact: true })).toBeVisible();
+  await expect(card.getByText(/500 USD per day/)).toHaveCount(0);
 });

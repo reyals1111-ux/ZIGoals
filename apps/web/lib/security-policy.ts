@@ -7,7 +7,7 @@ export function securityPolicy(development: boolean, https: boolean) {
     // React progress bars use style attributes. This exception never authorizes scripts.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:", "font-src 'self'",
-    `connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com https://api.zigchain.com${development ? " ws://127.0.0.1:3100" : ""}`,
+    `connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com${development ? " ws://127.0.0.1:3100" : ""}`,
     "object-src 'none'", "frame-src 'none'", "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
     ...(https ? ["upgrade-insecure-requests"] : []),
   ].join("; ");

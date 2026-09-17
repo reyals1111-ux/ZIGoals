@@ -8,6 +8,7 @@ import {
   habitStats,
   logHabitValue,
   setHabitEntryStatus,
+  setHabitState,
   type HabitInput,
 } from "./habits";
 
@@ -135,12 +136,59 @@ describe("recurrence, status and end semantics", () => {
     expect(counted.habits[0]!.rules.at(-1)!.state).toBe("active");
   });
 
+  it("counts completed target periods for completion endings", () => {
+    let frequency = make({ schedule: { kind: "frequency", times: 3, period: "week" }, endCondition: { kind: "completions", count: 1 } }, "2026-09-07");
+    frequency = logHabitValue(frequency, id, "2026-09-07", 1, {}, at("2026-09-07"));
+    expect(habitDay(frequency.habits[0]!, "2026-09-08", "2026-09-08")).toMatchObject({ status: "partial", scheduled: true });
+    frequency = logHabitValue(frequency, id, "2026-09-09", 1, {}, at("2026-09-09"));
+    frequency = logHabitValue(frequency, id, "2026-09-11", 1, {}, at("2026-09-11"));
+    expect(habitDay(frequency.habits[0]!, "2026-09-12", "2026-09-12").status).toBe("not-scheduled");
+
+    let duration = make({ measurement: { kind: "duration", unit: "minutes" }, target: 60, targetPeriod: "week", endCondition: { kind: "completions", count: 1 } }, "2026-09-07");
+    duration = logHabitValue(duration, id, "2026-09-07", 20, {}, at("2026-09-07"));
+    duration = logHabitValue(duration, id, "2026-09-09", 40, {}, at("2026-09-09"));
+    expect(habitDay(duration.habits[0]!, "2026-09-10", "2026-09-10").status).toBe("not-scheduled");
+  });
+
+  it("keeps a paused and resumed natural period neutral and singular", () => {
+    let data = make({ schedule: { kind: "frequency", times: 3, period: "week" } }, "2026-09-07");
+    data = logHabitValue(data, id, "2026-09-07", 1, {}, at("2026-09-07"));
+    data = setHabitState(data, id, "paused", at("2026-09-08"));
+    data = setHabitState(data, id, "active", at("2026-09-09"));
+    data = logHabitValue(data, id, "2026-09-09", 1, {}, at("2026-09-09"));
+    data = logHabitValue(data, id, "2026-09-11", 1, {}, at("2026-09-11"));
+
+    expect(habitStats(data.habits[0]!, "2026-09-13")).toMatchObject({ successCount: 1, failCount: 0, currentStreak: 1, weeklyScheduled: 1, weeklyCompleted: 1 });
+  });
+
+  it("keeps an edited natural period neutral instead of failing either rule segment", () => {
+    let data = make({ schedule: { kind: "frequency", times: 3, period: "week" } }, "2026-09-07");
+    data = logHabitValue(data, id, "2026-09-07", 1, {}, at("2026-09-07"));
+    data = editHabit(data, id, { ...base, schedule: { kind: "frequency", times: 2, period: "week" } }, at("2026-09-09"));
+    data = logHabitValue(data, id, "2026-09-09", 1, {}, at("2026-09-09"));
+    data = logHabitValue(data, id, "2026-09-11", 1, {}, at("2026-09-11"));
+
+    expect(habitStats(data.habits[0]!, "2026-09-13")).toMatchObject({ successCount: 0, failCount: 0, weeklyScheduled: 1, weeklyCompleted: 0 });
+  });
+
   it("rejects an end date before the rule begins", () => {
     expect(() => make({ endCondition: { kind: "date", date: "2026-08-31" } }, "2026-09-01")).toThrow();
   });
 });
 
 describe("period targets and meaningful statistics", () => {
+  it("rejects frequency targets that cannot fit their calendar period", () => {
+    for (const schedule of [
+      { kind: "frequency", times: 8, period: "week" },
+      { kind: "frequency", times: 29, period: "month" },
+      { kind: "frequency", times: 366, period: "year" },
+    ] as const) expect(() => make({ schedule })).toThrow();
+    for (const schedule of [
+      { kind: "frequency", times: 7, period: "week" },
+      { kind: "frequency", times: 28, period: "month" },
+      { kind: "frequency", times: 365, period: "year" },
+    ] as const) expect(() => make({ schedule })).not.toThrow();
+  });
   it("treats a three-times-weekly recurrence as one target period", () => {
     let data = make({ schedule: { kind: "frequency", times: 3, period: "week" } }, "2026-09-07");
     for (const date of ["2026-09-07", "2026-09-09", "2026-09-11"]) {
@@ -159,13 +207,22 @@ describe("period targets and meaningful statistics", () => {
     expect(habitStats(data.habits[0]!, "2026-09-13")).toMatchObject({ successCount: 1, failCount: 0, skipCount: 1, completionPercentage: 100, streakUnit: "weeks" });
   });
 
-  it("combines historical period outcomes with later daily rules", () => {
+  it("starts a new streak when the cadence unit changes", () => {
     let data = make({ schedule: { kind: "frequency", times: 2, period: "week" } }, "2026-09-07");
     data = logHabitValue(data, id, "2026-09-07", 1, {}, at("2026-09-07"));
     data = logHabitValue(data, id, "2026-09-09", 1, {}, at("2026-09-09"));
     data = editHabit(data, id, base, at("2026-09-14"));
     data = logHabitValue(data, id, "2026-09-14", 1, {}, at("2026-09-14"));
 
-    expect(habitStats(data.habits[0]!, "2026-09-15")).toMatchObject({ successCount: 2, failCount: 0, currentStreak: 2, bestStreak: 2, weeklyCompleted: 1, weeklyScheduled: 2, streakUnit: "days" });
+    expect(habitStats(data.habits[0]!, "2026-09-15")).toMatchObject({
+      successCount: 2,
+      failCount: 0,
+      currentStreak: 1,
+      bestStreak: 1,
+      weeklyCompleted: 1,
+      weeklyScheduled: 2,
+      streakUnit: "days",
+      streakBoard: { days: { current: 1, best: 1 }, weeks: { current: 1, best: 1 } },
+    });
   });
 });

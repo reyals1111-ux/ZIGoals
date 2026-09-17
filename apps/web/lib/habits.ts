@@ -14,9 +14,13 @@ export const habitScheduleSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("daily") }).strict(),
   z.object({ kind: z.literal("weekdays"), days: z.array(z.number().int().min(0).max(6)).min(1).max(7).refine((days) => new Set(days).size === days.length) }).strict(),
   z.object({ kind: z.literal("interval"), every: z.number().int().min(2).max(365), anchor: dateSchema }).strict(),
-  z.object({ kind: z.literal("frequency"), times: z.number().int().min(1).max(366), period: z.enum(["week", "month", "year"]) }).strict(),
+  z.object({ kind: z.literal("frequency"), times: z.number().int().min(1).max(365), period: z.enum(["week", "month", "year"]) }).strict(),
   z.object({ kind: z.literal("month-dates"), days: z.array(z.number().int().min(1).max(31)).min(1).max(31).refine((days) => new Set(days).size === days.length) }).strict(),
-]);
+]).superRefine((schedule, context) => {
+  if (schedule.kind !== "frequency") return;
+  const maximum = { week: 7, month: 28, year: 365 }[schedule.period];
+  if (schedule.times > maximum) context.addIssue({ code: "custom", path: ["times"], message: `Frequency cannot exceed ${maximum} times per ${schedule.period}.` });
+});
 export const habitMeasurementSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("boolean") }).strict(),
   z.object({ kind: z.literal("count"), unit: z.string().trim().min(1).max(24).default("times") }).strict(),
@@ -138,16 +142,7 @@ function recurrenceMatches(rule: HabitRule, date: string): boolean {
   return schedule.days.includes(Number(date.slice(-2)));
 }
 function individualSuccess(rule: HabitRule, count: number): boolean { return rule.type === "build" ? count >= rule.target : count <= rule.target; }
-function successfulEntriesBefore(habit: Habit, date: string): number {
-  return habit.entries.filter((entry) => { if (entry.date >= date || entry.disposition !== "logged") return false; const rule = habitRuleOn(habit, entry.date); return !!rule && individualSuccess(rule, entry.count); }).length;
-}
-function endAllows(habit: Habit, rule: HabitRule, date: string): boolean {
-  const end = rule.endCondition;
-  if (end.kind === "none" || end.kind === "goal") return true;
-  if (end.kind === "date") return date <= end.date;
-  return successfulEntriesBefore(habit, date) < end.count;
-}
-function scheduledOn(habit: Habit, rule: HabitRule | undefined, date: string): boolean { return !!rule && rule.state === "active" && endAllows(habit, rule, date) && recurrenceMatches(rule, date); }
+function baseEndAllows(rule: HabitRule, date: string): boolean { return rule.endCondition.kind !== "date" || date <= rule.endCondition.date; }
 function periodBounds(date: string, period: "day" | "week" | "month" | "year") {
   if (period === "day") return { start: date, end: date };
   if (period === "week") { const start = addLocalDays(date, -((localWeekday(date) + 6) % 7)); return { start, end: addLocalDays(start, 6) }; }
@@ -155,19 +150,67 @@ function periodBounds(date: string, period: "day" | "week" | "month" | "year") {
   return { start: `${date.slice(0, 4)}-01-01`, end: `${date.slice(0, 4)}-12-31` };
 }
 function aggregatePeriod(rule: HabitRule): "week" | "month" | "year" | undefined { return rule.schedule.kind === "frequency" ? rule.schedule.period : rule.targetPeriod === "day" ? undefined : rule.targetPeriod; }
-function segmentBounds(habit: Habit, rule: HabitRule, date: string, period: "week" | "month" | "year") {
-  const natural = periodBounds(date, period); const index = habit.rules.indexOf(rule); const next = habit.rules[index + 1]?.from;
-  return { start: natural.start < rule.from ? rule.from : natural.start, end: next && addLocalDays(next, -1) < natural.end ? addLocalDays(next, -1) : natural.end };
+export function habitTargetPeriod(rule: HabitRule): "day" | "week" | "month" | "year" { return rule.schedule.kind === "frequency" ? rule.schedule.period : rule.targetPeriod; }
+function ruleOutcomeKey(rule: HabitRule): string {
+  return JSON.stringify({ schedule: rule.schedule, type: rule.type, measurement: rule.measurement, target: rule.target, targetPeriod: rule.targetPeriod, endCondition: rule.endCondition });
 }
+type AggregateOutcome = {
+  start: string; end: string; period: "week" | "month" | "year"; unit: "weeks" | "months" | "years";
+  status: "complete" | "failed" | "open"; complete: boolean; failed: boolean; partial: boolean; scheduledDates: string[];
+};
+function rawAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] {
+  type Group = { start: string; end: string; period: "week" | "month" | "year"; latestRule: HabitRule; signatures: Set<string>; scheduledDates: string[] };
+  const groups = new Map<string, Group>();
+  for (let date = habit.startDate; date <= today; date = addLocalDays(date, 1)) {
+    const rule = habitRuleOn(habit, date); const period = rule ? aggregatePeriod(rule) : undefined;
+    if (!rule || !period || rule.state !== "active" || !baseEndAllows(rule, date) || !recurrenceMatches(rule, date)) continue;
+    const bounds = periodBounds(date, period); const key = `${period}:${bounds.start}`; const existing = groups.get(key);
+    if (existing) { existing.latestRule = rule; existing.signatures.add(ruleOutcomeKey(rule)); existing.scheduledDates.push(date); }
+    else groups.set(key, { ...bounds, period, latestRule: rule, signatures: new Set([ruleOutcomeKey(rule)]), scheduledDates: [date] });
+  }
+  return [...groups.values()].map((group) => {
+    const entries = habit.entries.filter((entry) => {
+      if (entry.date < group.start || entry.date > group.end || entry.date > today) return false;
+      const rule = habitRuleOn(habit, entry.date);
+      return !!rule && rule.state === "active" && baseEndAllows(rule, entry.date) && recurrenceMatches(rule, entry.date) && aggregatePeriod(rule) === group.period;
+    });
+    const logged = entries.filter((entry) => entry.disposition === "logged");
+    const explicitFailure = entries.some((entry) => entry.disposition === "failed");
+    const mixedRules = group.signatures.size > 1; const rule = group.latestRule;
+    const amount = logged.reduce((sum, entry) => sum + entry.count, 0);
+    const complete = !mixedRules && (rule.schedule.kind === "frequency"
+      ? logged.filter((entry) => individualSuccess(rule, entry.count)).length >= rule.schedule.times
+      : rule.type === "build" ? amount >= rule.target : logged.length > 0 && amount <= rule.target);
+    let fullCoverage = group.start >= habit.startDate;
+    for (let date = group.start; fullCoverage && date <= group.end; date = addLocalDays(date, 1)) {
+      const historical = habitRuleOn(habit, date);
+      fullCoverage = !!historical && historical.state === "active" && baseEndAllows(historical, date) && aggregatePeriod(historical) === group.period && ruleOutcomeKey(historical) === ruleOutcomeKey(rule);
+    }
+    const failed = explicitFailure || (group.end < today && fullCoverage && !complete);
+    const partial = !complete && !failed && entries.some((entry) => entry.disposition === "logged" || entry.disposition === "skipped");
+    return { start: group.start, end: group.end, period: group.period, unit: `${group.period}s` as AggregateOutcome["unit"], status: complete ? "complete" as const : failed ? "failed" as const : "open" as const, complete, failed, partial, scheduledDates: group.scheduledDates };
+  }).sort((a, b) => a.start.localeCompare(b.start));
+}
+function completedOutcomesBefore(habit: Habit, date: string): number {
+  const cutoff = addLocalDays(date, -1); if (cutoff < habit.startDate) return 0;
+  const dayCompletions = habit.entries.filter((entry) => {
+    if (entry.date > cutoff || entry.disposition !== "logged") return false;
+    const rule = habitRuleOn(habit, entry.date);
+    return !!rule && !aggregatePeriod(rule) && rule.state === "active" && baseEndAllows(rule, entry.date) && recurrenceMatches(rule, entry.date) && individualSuccess(rule, entry.count);
+  }).length;
+  return dayCompletions + rawAggregateOutcomes(habit, cutoff).filter((outcome) => outcome.complete).length;
+}
+function endAllows(habit: Habit, rule: HabitRule, date: string): boolean {
+  const end = rule.endCondition;
+  if (end.kind === "date") return date <= end.date;
+  if (end.kind === "completions") return completedOutcomesBefore(habit, date) < end.count;
+  return true;
+}
+function scheduledOn(habit: Habit, rule: HabitRule | undefined, date: string): boolean { return !!rule && rule.state === "active" && endAllows(habit, rule, date) && recurrenceMatches(rule, date); }
 function periodResult(habit: Habit, rule: HabitRule, date: string, today: string) {
-  const period = aggregatePeriod(rule)!; const bounds = segmentBounds(habit, rule, date, period);
-  const entries = habit.entries.filter((entry) => entry.date >= bounds.start && entry.date <= bounds.end && entry.date <= today && entry.disposition === "logged");
-  const skips = habit.entries.filter((entry) => entry.date >= bounds.start && entry.date <= bounds.end && entry.date <= today && entry.disposition === "skipped").length;
-  const explicitFailures = habit.entries.some((entry) => entry.date >= bounds.start && entry.date <= bounds.end && entry.date <= today && entry.disposition === "failed");
-  const amount = entries.reduce((sum, entry) => sum + entry.count, 0);
-  const complete = rule.schedule.kind === "frequency" ? entries.filter((entry) => individualSuccess(rule, entry.count)).length >= rule.schedule.times : rule.type === "build" ? amount >= rule.target : entries.length > 0 && amount <= rule.target;
-  const partial = !complete && !explicitFailures && (entries.length > 0 || skips > 0); const closed = bounds.end < today;
-  return { complete, partial, failed: explicitFailures || (closed && !complete), bounds, skips };
+  const period = aggregatePeriod(rule)!; const bounds = periodBounds(date, period);
+  return rawAggregateOutcomes(habit, today).find((outcome) => outcome.period === period && outcome.start === bounds.start)
+    ?? { complete: false, partial: false, failed: false, status: "open" as const, start: bounds.start, end: bounds.end, period, unit: `${period}s` as const, scheduledDates: [] };
 }
 export function habitDay(habit: Habit, date: string, today = localDate()) {
   const rule = habitRuleOn(habit, date); const entry = habit.entries.find((item) => item.date === date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
@@ -212,31 +255,34 @@ export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string
 }
 
 export function habitStats(habit: Habit, today = localDate()) {
-  type Outcome = { start: string; end: string; status: "complete" | "failed" | "skipped" | "open" };
+  type StreakUnit = "days" | "weeks" | "months" | "years";
+  type Outcome = { start: string; end: string; unit: StreakUnit; status: "complete" | "failed" | "skipped" | "open" };
   const weekStart = addLocalDays(today, -((localWeekday(today) + 6) % 7)); const weekEnd = addLocalDays(weekStart, 6);
-  const periods = new Map<string, { rule: HabitRule; date: string }>(); const outcomes: Outcome[] = [];
+  const outcomes: Outcome[] = [];
   for (let date = habit.startDate; date <= today; date = addLocalDays(date, 1)) {
     const rule = habitRuleOn(habit, date); if (!rule || rule.state !== "active" || !endAllows(habit, rule, date)) continue;
-    const period = aggregatePeriod(rule);
-    if (period) { const bounds = segmentBounds(habit, rule, date, period); periods.set(`${rule.from}:${period}:${bounds.start}`, { rule, date }); continue; }
+    if (aggregatePeriod(rule)) continue;
     const day = habitDay(habit, date, today); if (!day.scheduled) continue;
-    outcomes.push({ start: date, end: date, status: day.status === "complete" ? "complete" : day.status === "failed" ? "failed" : day.status === "skipped" ? "skipped" : "open" });
+    outcomes.push({ start: date, end: date, unit: "days", status: day.status === "complete" ? "complete" : day.status === "failed" ? "failed" : day.status === "skipped" ? "skipped" : "open" });
   }
-  for (const { rule, date } of periods.values()) {
-    const result = periodResult(habit, rule, date, today);
-    outcomes.push({ start: result.bounds.start, end: result.bounds.end, status: result.complete ? "complete" : result.failed ? "failed" : "open" });
+  for (const result of rawAggregateOutcomes(habit, today)) {
+    if (!result.scheduledDates.some((date) => { const rule = habitRuleOn(habit, date); return !!rule && endAllows(habit, rule, date); })) continue;
+    outcomes.push({ start: result.start, end: result.end, unit: result.unit, status: result.status });
   }
   outcomes.sort((a, b) => a.start.localeCompare(b.start));
-  let currentStreak = 0, bestStreak = 0, successCount = 0, failCount = 0, skipDecisions = 0, weeklyCompleted = 0, weeklyScheduled = 0;
+  const streakBoard: Record<StreakUnit, { current: number; best: number }> = { days: { current: 0, best: 0 }, weeks: { current: 0, best: 0 }, months: { current: 0, best: 0 }, years: { current: 0, best: 0 } };
+  let previousUnit: StreakUnit | undefined; let successCount = 0, failCount = 0, skipDecisions = 0, weeklyCompleted = 0, weeklyScheduled = 0;
   for (const outcome of outcomes) {
     if (outcome.start <= weekEnd && outcome.end >= weekStart) { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
-    if (outcome.status === "complete") { successCount++; currentStreak++; bestStreak = Math.max(bestStreak, currentStreak); }
-    else if (outcome.status === "failed" || outcome.status === "skipped") { if (outcome.status === "failed") failCount++; else skipDecisions++; currentStreak = 0; }
+    const streak = streakBoard[outcome.unit]; if (previousUnit !== outcome.unit) streak.current = 0;
+    if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); }
+    else if (outcome.status === "failed" || outcome.status === "skipped") { if (outcome.status === "failed") failCount++; else skipDecisions++; streak.current = 0; }
+    previousUnit = outcome.unit;
   }
   const skipCount = habit.entries.filter((entry) => entry.disposition === "skipped" && entry.date <= today).length;
   const decided = successCount + failCount + skipDecisions; const completionPercentage = decided ? Math.round(successCount / decided * 100) : 0;
-  const currentPeriod = aggregatePeriod(latestHabitRule(habit));
-  return { currentStreak, bestStreak, streakUnit: currentPeriod ? `${currentPeriod}s` : "days", weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
+  const currentPeriod = aggregatePeriod(latestHabitRule(habit)); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
+  return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
 export function habitTrends(habit: Habit, today = localDate()) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;

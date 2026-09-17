@@ -2,7 +2,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { visualTone } from "../visual-tone";
-import { habitDay, habitRuleOn, habitStats, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
+import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import type { HabitsStore } from "./use-habits";
 
@@ -10,10 +10,10 @@ const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skip
 function formatDate(date: string) { return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }); }
 function moveMonth(month: string, amount: number) { const date = new Date(`${month}-01T12:00:00`); date.setMonth(date.getMonth() + amount); return localDate(date).slice(0, 7); }
 function targetCopy(habit: Habit) {
-  const rule = latestHabitRule(habit); const unit = measurementUnit(rule);
+  const rule = latestHabitRule(habit); const unit = measurementUnit(rule); const period = habitTargetPeriod(rule);
   if (rule.type === "quit") return `Avoid ${unit || "the behavior"}`;
-  if (rule.type === "limit") return `Limit ${rule.target}${unit ? ` ${unit}` : ""} per ${rule.targetPeriod}`;
-  return `${rule.target}${unit ? ` ${unit}` : ""} per ${rule.targetPeriod}`;
+  if (rule.type === "limit") return `Limit ${rule.target}${unit ? ` ${unit}` : ""} per ${period}`;
+  return `${rule.target}${unit ? ` ${unit}` : ""} per ${period}`;
 }
 
 export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitsStore; compact?: boolean }) {
@@ -30,7 +30,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   if (!day.scheduled) return <span className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]}</span>;
   const smartLabel = rule.type === "quit" ? `Stayed on track for ${habit.title}` : rule.type === "limit" ? `Stayed within limit for ${habit.title}` : `${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`;
   return <div className={`habit-completion ${compact ? "habit-completion-compact" : ""}`}>
-    <div><div className="habit-count"><strong>{day.count}</strong><span> / {day.target}{unit ? ` ${unit}` : ""}{compact ? "" : ` per ${rule.targetPeriod}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
+    <div><div className="habit-count"><strong>{day.count}</strong><span> / {day.target}{unit ? ` ${unit}` : ""}{compact ? "" : ` per ${habitTargetPeriod(rule)}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
     <div className="habit-check-actions">
       {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={busy || day.count === 0} onClick={() => void run(() => store.adjustCount(habit.id, store.today, -1))}>−</button>}
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={busy} onClick={() => void run(() => store.addValue(habit.id, store.today, 1))}>+</button>}
@@ -69,7 +69,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitsStore }) {
         <div className="habit-history-actions"><button className="secondary" type="submit">{busy ? "Saving…" : "Save day"}</button><button className="quiet" type="button" onClick={() => void mark("skipped")}>Skip day</button><button className="quiet" type="button" onClick={() => void mark("failed")}>Mark failed</button></div>
       </fieldset>{message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     </form>
-    <details className="habit-rule-history"><summary>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time>{item.from}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {item.target} {measurementUnit(item)} per {item.targetPeriod}</li>)}</ul></details>
+    <details className="habit-rule-history"><summary>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time>{item.from}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {item.target} {measurementUnit(item)} per {habitTargetPeriod(item)}</li>)}</ul></details>
   </div>;
 }
 
