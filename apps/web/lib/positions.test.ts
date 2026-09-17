@@ -1,6 +1,6 @@
 import type { Platform } from './positions';
 import { describe, expect, it } from 'vitest';
-import { emptyPlatform, platformSchema, positionSchema, allocationBalance, allocate, closeGoal, goalProgress, stakingProjection, planScenario } from './positions';
+import { emptyPlatform, platformSchema, positionSchema, allocationBalance, allocate, closeGoal, goalProgress, stakingProjection, planScenario, saveManualPosition } from './positions';
 const p = () => positionSchema.parse({ id: 'p', providerId: 'manual', sourceType: 'MANUAL', network: 'manual', account: 'local', asset: 'ZIG', denom: 'azig', quantity: '100', decimals: 0, verification: 'MANUAL', observedAt: '2026-09-17T00:00:00Z', liquidity: 'LIQUID', provenance: 'User entry' });
 const g = (id = '1') => ({ id, network:'zigchain-1' as const, name: 'Example', type: 'QUANTITY' as const, status: 'active' as const, asset: 'ZIG', denom: 'azig', decimals: 0, target: '100', notes: '', milestones: [], createdAt: '2026-09-17T00:00:00Z' });
 const state = (): Platform => ({ ...emptyPlatform(), positions: [p()], goals: [g(), g('2')] });
@@ -63,4 +63,27 @@ it('never mixes testnet observations into a mainnet Goal',()=>{
 it('projections exclude missed planned dates and expose a completion date without altering facts',()=>{
  const plan={amount:'20',asset:'ZIG',decimals:0,cadence:'monthly' as const,nextDate:'2026-01-31',active:true};
  expect(planScenario(g(),'50',plan,'2026-05-31','2026-03-01')).toMatchObject({contributions:'60',dates:['2026-03-31','2026-04-30','2026-05-31'],completionDate:'2026-05-31'});
+});
+
+it('excludes research-only valuations from all observed and verified progress',()=>{
+ const s=state();s.positions[0]={...p(),sourceType:'VAULT',verification:'RESEARCH_ONLY',valuation:{value:'10000',currency:'USD',decimals:2,source:'VERIFIED',observedAt:'2026-09-17T00:00:00Z'}};
+ s.goals[0]={...g(),type:'VALUE',asset:'USD',denom:'USD',decimals:2};
+ expect(goalProgress(allocate(s,'1','p','100'),'1')).toMatchObject({current:'0',verified:'0',requiresReview:true});
+});
+it('ages verified snapshots without changing historical quantities or allocation intent',()=>{
+ const s=allocate(state(),'1','p','80');s.positions[0]={...p(),sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY',sync:'CURRENT'};
+ expect(goalProgress(s,'1',Date.parse('2026-09-17T00:10:00Z'))).toMatchObject({current:'80',requiresReview:false});
+ expect(goalProgress(s,'1',Date.parse('2026-09-17T00:16:00Z'))).toMatchObject({current:'80',requiresReview:true});
+ expect(s.positions[0].quantity).toBe('100');expect(s.allocations[0]?.quantity).toBe('80');
+});
+it('ages verified valuations independently of the position observation',()=>{
+ const s=allocate(state(),'1','p','100');s.goals[0]={...g(),type:'VALUE',asset:'USD',denom:'USD',decimals:2};
+ s.positions[0]!.valuation={value:'10000',currency:'USD',decimals:2,source:'VERIFIED',observedAt:'2020-01-01T00:00:00Z'};
+ expect(goalProgress(s,'1',Date.parse('2026-09-17T00:01:00Z'))).toMatchObject({current:'10000',requiresReview:true});
+});
+it('manual edits cannot reinterpret existing allocation or snapshot units',()=>{
+ const s=allocate(state(),'1','p','80');s.snapshots=[{positionId:'p',quantity:'100',observedAt:p().observedAt}];
+ for(const change of [{asset:'BTC'},{denom:'other'},{decimals:18}])expect(()=>saveManualPosition(s,{...p(),...change})).toThrow(/identity/i);
+ const next=saveManualPosition(s,{...p(),quantity:'90',observedAt:'2026-09-18T00:00:00Z'});
+ expect(next.allocations).toEqual(s.allocations);expect(next.snapshots[0]).toEqual(s.snapshots[0]);expect(next.positions[0]?.decimals).toBe(0);
 });

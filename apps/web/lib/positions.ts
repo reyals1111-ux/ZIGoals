@@ -88,7 +88,22 @@ export function allocate(raw:Platform,goalId:string,positionId:string,quantity:s
  return platformSchema.parse({...s,allocations:[...s.allocations.filter(a=>a.goalId!==goalId||a.positionId!==positionId),...(quantity==='0'?[]:[{goalId,positionId,quantity}])]});
 }
 export function closeGoal(s:Platform,id:string):Platform {return platformSchema.parse({...s,goals:s.goals.map(g=>g.id===id?{...g,status:'closed'}:g),allocations:s.allocations.filter(a=>a.goalId!==id)});}
-export function goalProgress(s:Platform,id:string){
+/** Verified observations expire after 15 minutes; old evidence remains historical, never erased. */
+export const SNAPSHOT_FRESH_MS=15*60*1000;
+export function snapshotIsStale(observedAt:string,now=Date.now()):boolean {
+ const observed=Date.parse(observedAt);return !Number.isFinite(observed)||!Number.isFinite(now)||observed>now+60000||now-observed>SNAPSHOT_FRESH_MS;
+}
+export function positionSync(p:Position,now=Date.now()):Position['sync'] {
+ if(p.sync==='ERROR'||p.sync==='STALE')return p.sync;
+ if(p.verification==='MANUAL')return 'MANUAL';
+ return snapshotIsStale(p.observedAt,now)?'STALE':p.sync;
+}
+export function saveManualPosition(raw:Platform,incoming:Position):Platform {
+ const s=platformSchema.parse(raw),p=positionSchema.parse(incoming);const old=s.positions.find(existing=>existing.id===p.id);
+ if(p.sourceType!=='MANUAL'||p.verification!=='MANUAL'||(old&&(old.sourceType!=='MANUAL'||old.asset!==p.asset||old.denom!==p.denom||old.decimals!==p.decimals||old.network!==p.network||old.account!==p.account)))throw Error('Position asset identity cannot change. Add a new Position instead.');
+ return platformSchema.parse({...s,positions:[...s.positions.filter(existing=>existing.id!==p.id),p],snapshots:[...s.snapshots,{positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}].slice(-2000)});
+}
+export function goalProgress(s:Platform,id:string,now=Date.now()){
  const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');
  let current=0n,manual=0n,verified=0n,intended=0n;let requiresReview=false;
  const breakdown=[] as {positionId:string;quantity:string;counted:string;verification:string;deficit:boolean}[];
@@ -98,15 +113,16 @@ export function goalProgress(s:Platform,id:string){
   const q=BigInt(a.quantity),total=BigInt(b.allocated),observed=BigInt(p.quantity);
   const effective=total>observed?q*observed/total:q;
   let value=BigInt(rescaleUnits(effective.toString(),p.decimals,goal.decimals));intended+=BigInt(rescaleUnits(q.toString(),p.decimals,goal.decimals));
-  const deficit=b.deficit!=='0';requiresReview ||= deficit || p.sync==='ERROR'||p.sync==='STALE';
+  const deficit=b.deficit!=='0';requiresReview ||= deficit || ['ERROR','STALE'].includes(positionSync(p,now));
   if(p.network!=='manual'&&p.network!==goal.network){requiresReview=true;value=0n;}
   if(!['MANUAL','VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification)){requiresReview=true;value=0n;}
   if(goal.type==='VALUE'){
    const v=p.valuation;
+   if(v?.source==='VERIFIED'&&snapshotIsStale(v.observedAt,now))requiresReview=true;
    if(!v||v.currency!==goal.asset||v.decimals!==goal.decimals){requiresReview=true;value=0n;}
    else value=observed?BigInt(v.value)*effective/observed:0n;
   } else if(!assetMatches(goal,p)||(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')){requiresReview=true;value=0n;}
-  if(p.network!=='manual'&&p.network!==goal.network)value=0n;
+  if((p.network!=='manual'&&p.network!==goal.network)||p.verification==='RESEARCH_ONLY')value=0n;
   current+=value;
   if(p.verification==='MANUAL'||(goal.type==='VALUE'&&p.valuation?.source==='MANUAL'))manual+=value;else verified+=value;
   breakdown.push({positionId:p.id,quantity:a.quantity,counted:value.toString(),verification:p.verification,deficit});
@@ -150,3 +166,18 @@ export interface PositionProvider { readonly id:string; readonly state:typeof PR
 export interface CosmosExecutionAdapter { readonly vm:'COSMOS'; readonly authority:'SEPARATE_APPROVAL_REQUIRED' }
 export interface EvmExecutionAdapter { readonly vm:'EVM'; readonly authority:'FUTURE_GATED' }
 export const FUTURE_PROVIDERS=['Valdora stZIG','Valdora vaults','OroSwap LP','PermaPod','WME','Zignaly external account','Nawa','IBC','EVM','RWA'].map(name=>({name,state:'RESEARCH_ONLY' as const}));
+
+export function replaceObservation(s:Platform,network:string,account:string,incoming:Position[],observedAt=new Date().toISOString()):Platform{
+ if(incoming.some(p=>p.network!==network||p.account!==account||p.providerId!=='native-zig'))throw Error('Observation scope mismatch.');
+ observedAt=incoming[0]?.observedAt??observedAt;
+ const previous=s.positions.filter(p=>p.network===network&&p.account===account&&p.providerId==='native-zig');
+ const retained=s.positions.filter(p=>!previous.includes(p));
+ const missing=previous.filter(p=>!incoming.some(n=>n.id===p.id)).map(p=>({...p,quantity:'0',principal:p.principal===undefined?undefined:'0',unclaimedRewards:p.unclaimedRewards===undefined?undefined:'0',observedAt,sync:'CURRENT' as const}));
+ const positions=[...retained,...incoming,...missing];
+ return platformSchema.parse({...s,positions,snapshots:[...s.snapshots,...[...incoming,...missing].map(p=>({positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}))].slice(-2000)});
+}
+
+/** A failed refresh changes status only; it cannot manufacture new observation facts. */
+export function markObservationError(s:Platform,network:string,account:string):Platform {
+ return platformSchema.parse({...s,positions:s.positions.map(p=>p.network===network&&p.account===account&&p.providerId==='native-zig'?{...p,sync:'ERROR'}:p)});
+}
