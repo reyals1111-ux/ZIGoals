@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePrivateStore } from "../use-private-store";
-import { createHabit, editHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, logHabitCount, setHabitState, type HabitInput, type HabitState } from "../../lib/habits";
+import { createHabit, editHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, setHabitState, smartDoneValue, type HabitInput, type HabitState } from "../../lib/habits";
 import { localDate } from "../../lib/local-date";
 
 export function useHabits() {
@@ -18,18 +18,28 @@ export function useHabits() {
     create: (input: HabitInput) => store.update((data) => createHabit(data, input)),
     edit: (id: string, input: HabitInput) => store.update((data) => editHabit(data, id, input)),
     setState: (id: string, state: HabitState) => store.update((data) => setHabitState(data, id, state)),
-    setCount: (id: string, date: string, count: number, note: string) => store.update((data) => logHabitCount(data, id, date, count, note)),
+    setCount: (id: string, date: string, count: number, note: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => store.update((data) => logHabitValue(data, id, date, count, { note, mood })),
+    setValue: (id: string, date: string, value: number, note?: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => store.update((data) => logHabitValue(data, id, date, value, { note, mood })),
+    addValue: (id: string, date: string, value: number) => store.update((data) => logHabitValue(data, id, date, value, { mode: "add" })),
+    markDay: (id: string, date: string, status: "skipped" | "failed", note = "") => store.update((data) => setHabitEntryStatus(data, id, date, status, note)),
     adjustCount: (id: string, date: string, delta: number) => store.update((data) => {
       const habit = data.habits.find((item) => item.id === id);
       if (!habit) throw new Error("Habit unavailable.");
       const day = habitDay(habit, date);
-      return logHabitCount(data, id, date, Math.min(10000, Math.max(0, day.count + delta)), day.note);
+      return logHabitValue(data, id, date, Math.min(1_000_000_000, Math.max(0, day.count + delta)), { note: day.note });
+    }),
+    smartDone: (id: string, date: string) => store.update((data) => {
+      const habit = data.habits.find((item) => item.id === id);
+      if (!habit) throw new Error("Habit unavailable.");
+      const rule = habitRuleOn(habit, date);
+      if (!rule) throw new Error("Habit is not active on this date.");
+      return logHabitValue(data, id, date, smartDoneValue(rule));
     }),
     toggle: (id: string, date: string) => store.update((data) => {
       const habit = data.habits.find((item) => item.id === id);
       if (!habit) throw new Error("Habit unavailable.");
       const day = habitDay(habit, date);
-      return logHabitCount(data, id, date, day.count >= day.target ? 0 : day.target, day.note);
+      return logHabitValue(data, id, date, day.status === "complete" ? 0 : smartDoneValue(habitRuleOn(habit, date)!), { note: day.note });
     }),
   };
 }
