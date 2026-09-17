@@ -64,3 +64,18 @@ it('failed observation retains exact quantities, dates, allocations and history 
  expect(next.positions.every(p=>p.sync==='ERROR')).toBe(true);expect(next.positions.map(p=>[p.quantity,p.observedAt])).toEqual(ps.map(p=>[p.quantity,p.observedAt]));expect(next.snapshots).toEqual(s.snapshots);
  expect(markObservationError(s,'zig-test-2',account)).toEqual(s);
 });
+
+it('uses an edge-compatible redirect mode and refuses redirects without following them',async()=>{
+ const calls:string[]=[];
+ const edgeFetch=(async(url,init)=>{
+  if(init?.redirect==='error')throw new TypeError('Workers does not implement redirect:error');
+  expect(init?.redirect).toBe('manual');calls.push(String(url));
+  return Response.json(endpoint(new URL(String(url)).pathname),{headers:{'x-cosmos-block-height':'100'}});
+ }) as typeof fetch;
+ await expect(readNativePositions('MAINNET_READ_ONLY',account,edgeFetch)).resolves.toHaveLength(4);
+ expect(calls.length).toBeGreaterThan(1);
+ let redirectCalls=0;
+ const redirectFetch=(async(_url,init)=>{expect(init?.redirect).toBe('manual');redirectCalls++;return new Response(null,{status:302,headers:{Location:'https://untrusted.invalid/collect'}});}) as typeof fetch;
+ await expect(readNativePositions('MAINNET_READ_ONLY',account,redirectFetch)).rejects.toThrow(/unavailable/);
+ expect(redirectCalls).toBe(1);
+});

@@ -14,7 +14,8 @@ export async function readNativePositions(mode:ReadMode,account:string,fetcher:t
  publicZigAddress.parse(account);const network=READ_NETWORKS[mode];if(!network)throw Error('Unsupported read-only network.');
  const deadline=AbortSignal.timeout(45000);
  async function readAt(path:string,height?:string):Promise<unknown>{
-  const response=await fetcher(network.rest+path,{method:'GET',headers:height?{'x-cosmos-block-height':height}:undefined,credentials:'omit',referrerPolicy:'no-referrer',redirect:'error',signal:AbortSignal.any([deadline,AbortSignal.timeout(12000)]),cache:'no-store'});
+  // Workers supports manual redirects; the non-2xx check below refuses every redirect without following it.
+  const response=await fetcher(network.rest+path,{method:'GET',headers:height?{'x-cosmos-block-height':height}:undefined,credentials:'omit',referrerPolicy:'no-referrer',redirect:'manual',signal:AbortSignal.any([deadline,AbortSignal.timeout(12000)]),cache:'no-store'});
   if(!response.ok)throw Error('Public chain data is unavailable. Previous observations were preserved.');
   if(height&&response.headers.get('x-cosmos-block-height')!==height)throw Error('Public response block height is missing or inconsistent. Previous observations were preserved.');
   const text=await response.text();if(text.length>2000000)throw Error('Public response exceeds safety limit.');return JSON.parse(text);
