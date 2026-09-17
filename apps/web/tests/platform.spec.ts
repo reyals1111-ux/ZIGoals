@@ -10,7 +10,7 @@ test('private position allocation and plans survive reload without financial or 
  await page.getByLabel('Goal name',{exact:true}).fill('Example destination');
  await page.getByLabel('Target amount',{exact:true}).fill('200');
  await page.getByRole('button',{name:'Create tracked goal',exact:true}).click();
- await page.getByRole('link',{name:'Example destination',exact:true}).click();
+ await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
  await page.getByLabel('Allocation quantity').fill('80');
  await page.getByRole('button',{name:'Save allocation',exact:true}).click();
  await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');

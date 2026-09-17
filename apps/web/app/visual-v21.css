@@ -215,3 +215,6 @@ body { background: var(--cosmic-dark); }
 }
 @media (max-width: 359px) { .today-hero h1 { font-size: 27px; }.today-hero .hero-actions { gap: 7px; }.today-hero .hero-actions a { padding-inline: 9px; font-size: 10px; }.hero-pillars { gap: 6px; }.hero-pillars strong { font-size: 8px; }.icon-medallion { width: 24px; height: 24px; }.icon-medallion svg { width: 18px; }.progress-stats strong { font-size: 18px; }.account-panel .account-value { max-width: 90%; } }
 @media (prefers-reduced-motion: reduce) { .primary, .secondary, .app-nav a { transition: none; }.primary:hover, .today-hero .secondary:hover, .account-action:hover { transform: none; }.cosmic-glow { animation: none; } }
+/* Eight main destinations, including the Positions shortcut. */
+@media (min-width:541px) and (max-width:900px) { .app-nav { grid-template-columns:repeat(8,minmax(0,1fr)); } }
+@media (max-width:540px) { .app-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }.app-nav a,.app-nav a:nth-child(n+5) { grid-column:auto; flex-direction:column; min-height:48px; }.app-nav a span { text-align:center; } }

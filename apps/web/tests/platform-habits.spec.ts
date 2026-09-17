@@ -6,7 +6,7 @@ test('a linked contribution Habit records behavior but never adds financial prog
  const goal=privateGoalSchema.parse({id:'77',name:'Example linked Goal',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'200000000000000000000',notes:'',createdAt:'2026-09-17T00:00:00Z',milestones:[],plan:{amount:'10000000000000000000',asset:'ZIG',decimals:18,cadence:'monthly',nextDate:'2026-09-17',active:true}});
  await page.addInitScript(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),{...emptyPlatform(),positions:[position],goals:[goal],allocations:[{goalId:'77',positionId:'example',quantity:position.quantity}]});
  await page.goto('/app/goals/tracked/77');await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
- await page.getByRole('button',{name:'Create linked contribution habit',exact:true}).click();
+ await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Contribute 10 ZIG monthly',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Complete Contribute 10 ZIG monthly',exact:true}).click();
  await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
@@ -34,7 +34,7 @@ test('a stale cross-store reference never offers reconciliation or mutates an un
  await page.goto('/app/goals/tracked/88');
  await expect(page.getByText('Saved contribution habit belongs to another Goal.',{exact:false})).toBeVisible();
  await expect(page.getByRole('button',{name:'Apply plan to contribution habit',exact:true})).not.toBeVisible();
- await page.getByRole('button',{name:'Create linked contribution habit',exact:true}).click();
+ await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Contribute 10 ZIG monthly',exact:true})).toBeVisible();
  const result=await page.evaluate(()=>({habits:JSON.parse(localStorage.getItem('zigoals:habits:v1')!),platform:JSON.parse(localStorage.getItem('zigoals:platform:v1')!)}));
  expect(result.habits.habits.find((h:{id:string})=>h.id===otherId)).toEqual(habits.habits[0]);expect(result.platform.goals[0].plan.habitId).not.toBe(otherId);expect(result.habits.habits).toHaveLength(2);
@@ -43,10 +43,10 @@ test('a failed second-store creation reserves one ID and retries without duplica
  await page.goto('/app/goals/tracked');await page.evaluate(goal=>localStorage.setItem('zigoals:platform:v1',JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[goal],allocations:[],snapshots:[]})),simpleGoal());
  await page.goto('/app/goals/tracked/88');
  await page.evaluate(()=>{const write=Storage.prototype.setItem;let fail=true;Storage.prototype.setItem=function(key,value){if(key==='zigoals:habits:v1'&&fail){fail=false;throw new DOMException('Test quota failure','QuotaExceededError');}return write.call(this,key,value);};});
- await page.getByRole('button',{name:'Create linked contribution habit',exact:true}).click();
+ await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'Could not save private data'})).toBeVisible();
  const reserved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).goals[0].plan.habitId);expect(reserved).toBeTruthy();
- await page.getByRole('button',{name:'Create linked contribution habit',exact:true}).click();
+ await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Contribute 10 ZIG monthly',exact:true})).toBeVisible();
  const result=await page.evaluate(()=>({habits:JSON.parse(localStorage.getItem('zigoals:habits:v1')!),platform:JSON.parse(localStorage.getItem('zigoals:platform:v1')!)}));
  expect(result.habits.habits).toHaveLength(1);expect(result.habits.habits[0].id).toBe(reserved);expect(result.platform.goals[0].plan.habitId).toBe(reserved);

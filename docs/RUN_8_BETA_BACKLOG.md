@@ -22,7 +22,7 @@ Complete scope and acceptance criteria remain in the [unaltered master prompt](R
 | F: end conditions | PARTIAL | Date and completed-period limits; linked-Goal condition is architecture-only and must be visibly unavailable, never presented as automatic. Historical rule editing UI deferred. |
 | F: stacking/reminders | PARTIAL | Descriptive stack data and UI; no automation. Page-open timer only. Reliable browser-closed/native/location reminders are absent and never promised. |
 | G: Goal ↔ Position ↔ Habit | COMPLETE | Several Habits/Positions per Goal, linked contribution/review Habits, behavior consistency alongside financial state; completion never increases wealth. |
-| G: Today | PARTIAL | Observed mainnet total, allocated intentions, primary tracked Goal, next contribution/milestone; existing Habit and Health Today preserved. Rich liquid/staked/reward/unallocated overview and integrated future-reward tile remain follow-up. |
+| G: Today | PARTIAL | Primary tracked Goal, next contribution/milestone and compact read-only staked ZIG / optional net APR card (Run #8.1); existing Habit and Health Today preserved. Richer financial overview remains follow-up. |
 | G: private backup/import/export | COMPLETE | Goals/Positions/allocations/plans/snapshots plus Habits V2; Health V1 contract and filename preserved. Explicit restore confirmation, original recovery copies, newer-version refusal. |
 | H: chain/fee/security evidence | COMPLETE | Live denom verification, existing transfer fee reconciliation, gated EVM metadata, unchanged live Alpha smoke; no transaction submitted. |
 | H: full validation/review/CI | COMPLETE | All required local checks pass: 751 JS, 25 Rust, 104 production browser, 28 Workers checks; all five hosted web/contract/reproducibility checks pass. See validation.json for exact results, never infer a pass from this table. |
@@ -38,3 +38,7 @@ Complete scope and acceptance criteria remain in the [unaltered master prompt](R
 | Staking transactions, mainnet execution, native/location reminders | NOT AUTHORIZED | Separate future scope/approval. |
 | Goal Manager upload/instantiate | BLOCKED | Funding solved; upload whitelist and fresh exact-artifact approval still required. |
 | Merge, production deployment, DNS/email changes | NOT AUTHORIZED | Owner review and separate explicit authorization. |
+
+## Run #8.1 — owner preview follow-up
+
+Delivered: direct Goal setup, exact quick multi-validator allocation, clear plan/Habit actions, premium tracked Goal cards, Stake / Positions sidebar shortcut, hierarchical Position metrics, Today staking card and account/network-scoped APR persistence. Existing manual controls and Habit history remain intact. Validated with 43 targeted unit tests and 28 production browser checks at 1440/768/390/320, lint/typecheck/build and diff checks; [evidence](verification/run8-1/README.md). No additional roadmap scope, Health changes, merge or deployment.

@@ -46,3 +46,14 @@ Final command outcomes, source identity, test totals, browser coverage, build si
 ## Owner actions
 
 Review the draft PR, visual evidence, tests and explicitly partial backlog. Merge/deployment requires separate authorization. A future deployment should use the existing owner-controlled workflow with exact source and rollback verification, then owner acceptance of real browser persistence/watch-only reads. Future contract work still requires whitelisting, a fresh canonical exact-current-main artifact and explicit artifact/fee approval; successful funding and a simple send do not satisfy those gates.
+
+## Run #8.1 — owner preview follow-up
+
+- Goal creation opens setup directly; a four-step strip exposes allocation → plan → supporting Habit → progress. Explicit quick stake allocation conserves units across validators and caps at the exact remaining target, including mixed precision. Stale stake requires refresh; manual controls remain available.
+- Tracked Goal cards reuse SceneArt/destination styling, nebula progress and a clear management CTA. Positions gives staked principal a white-to-nebula hero metric; the sidebar adds Stake / Positions.
+- Today places a compact snapshot staking card between Wallet and Destination; the main tracked Goal section focuses on progress, next contribution and milestone.
+- Optional net APR assumptions persist privately per observed account/network. Missing assumptions remain Not set; no rate is invented. Positions supports explicit snapshot-account selection.
+- Recurring USD/EUR purchase plans can create Buy ZIG with amount/unit/frequency; safe explicit reconciliation preserves prior dated Habit history. Completion never changes financial progress.
+- Validation: 43 targeted unit tests, 28 production desktop/mobile browser checks; lint, typecheck, production build and diff whitespace check pass. Widths 1440/768/390/320; shared Health navigation checked, Health code unchanged. No server changes; no extra local Workers run. Focused review caught and fixed a mixed-precision target cap defect.
+- Evidence and eight requested preview images: [Run #8.1 captures](verification/run8-1/README.md). Images use fictional fixture data, never the owner's private state.
+- Same Run #8 branch/draft PR #15; no merge, deployment or blockchain action.

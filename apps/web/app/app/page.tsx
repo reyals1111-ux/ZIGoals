@@ -8,6 +8,7 @@ import { AppIcon } from "../../components/app-icon";
 import { ActivityFeed } from "../../components/activity-feed";
 import { HabitsToday } from "../../components/habits/habits-today";
 import { HealthToday } from "../../components/health/health-today";
+import { StakingCard } from "../../components/platform/staking-card";
 import { PlatformToday } from "../../components/platform/platform-today";
 export default function Dashboard() {
   const s = useGoals();
@@ -46,6 +47,7 @@ export default function Dashboard() {
       </div>
       <aside className="today-rail" aria-label="Your next chapter">
         <section className="account-panel"><div><h2>Your wallet <span className="pill">{s.mode === "local" ? "Local demo" : "Testnet"}</span></h2><strong className="account-value">{formatUnits(s.balance, TESTNET.nativeAsset.decimals)} <span>ZIG</span></strong><p>{s.mode === "local" ? "Simulated balance · this browser" : `${s.owner.slice(0,10)}…${s.owner.slice(-5)}`}</p><Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>
+        <StakingCard/>
         <section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">Start with what matters</p><h2 id="destination-title">A destination for your <span className="nebula-text">next chapter.</span></h2><p>A home. A safety net. A trip you’ve been waiting for. Give your ZIG a purpose.</p><Link href="/app/goals/new" className="primary">{s.goals.length ? "Plan my next goal →" : "Plan my first goal →"}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>
         <section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={4}/></section>
       </aside>

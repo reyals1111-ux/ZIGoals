@@ -40,6 +40,8 @@ export type PrivateGoal = z.infer<typeof privateGoalSchema>;
 const allocationSchema = z.object({goalId:id,positionId:id,quantity:units}).strict();
 const platformBase = z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-platform'),
  positions:z.array(positionSchema).max(1000),goals:z.array(privateGoalSchema).max(200),allocations:z.array(allocationSchema).max(2000),
+ watchScope:z.object({network:id,account:id}).strict().optional(),
+ aprAssumptions:z.array(z.object({network:id,account:id,percent:z.string().regex(/^(0|[1-9]\d{0,2})(\.\d{1,6})?$/).refine(v=>Number(v)<=100)}).strict()).max(1000).optional(),
  snapshots:z.array(z.object({positionId:id,quantity:units,observedAt:at}).strict()).max(2000),
 }).strict();
 export const platformSchema = platformBase.superRefine((s,c)=>{

@@ -11,6 +11,7 @@ import { AppIcon } from "./app-icon";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const path = usePathname();
+  const isActive = (href: string) => href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -29,6 +30,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {[
             ["/app", "Today", "today"],
             ["/app/goals", "Goals", "goals"],
+            ["/app/goals/positions", "Stake / Positions", "future"],
             ["/app/habits", "Habits", "habits"],
             ["/app/health", "Health", "health"],
             ["/app/ecosystem", "Ecosystem", "ecosystem"],
@@ -37,8 +39,8 @@ export function Shell({ children }: { children: ReactNode }) {
           ].map(([href, label, icon]) => (
             <Link key={href} href={href!}
               className={icon === "ecosystem" ? "nav-divider" : undefined}
-              aria-current={(href === "/app" ? path === href : path === href || path.startsWith(`${href}/`)) ? "page" : undefined}>
-              <AppIcon name={icon!} luminous={href === "/app" ? path === href : path === href || path.startsWith(`${href}/`)} /><span>{label}</span>
+              aria-current={isActive(href!) ? "page" : undefined}>
+              <AppIcon name={icon!} luminous={isActive(href!)} /><span>{label}</span>
             </Link>
           ))}
         </nav>
