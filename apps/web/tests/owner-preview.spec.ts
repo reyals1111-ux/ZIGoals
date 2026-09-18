@@ -46,7 +46,7 @@ test('responsive owner preview captures',async({page},info)=>{
    await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();await expect(page.getByRole('link',{name:'Stake / Positions',exact:true})).toBeVisible();
    await page.locator('.platform-workspace,.staking-card').first().waitFor();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name} ${width}`).toBe(true);
-   if(name==='goal-detail')expect(await page.locator('.goal-setup').evaluate(el=>el.getBoundingClientRect().top<document.querySelector('#tracked-progress')!.getBoundingClientRect().top)).toBe(true);
+   if(name==='goal-detail'){expect(await page.locator('.goal-detail-overview').evaluate(el=>el.getBoundingClientRect().top<document.querySelector('.goal-management-grid')!.getBoundingClientRect().top)).toBe(true);await expect(page.locator('.goal-management-module[open]')).toHaveCount(0);}
    if(name==='tracked-goals')expect(await page.getByRole('navigation',{name:'Goal views'}).evaluate(el=>el.getBoundingClientRect().top<document.querySelector('.goal-grid')!.getBoundingClientRect().top)).toBe(true);
    if(process.env.RUN81_CAPTURE==='1'){await page.screenshot({path:info.outputPath(`${name}-${width}.png`),fullPage:true,animations:'disabled',scale:'css'});if(name==='today')await page.locator('.staking-card').screenshot({path:info.outputPath(`staking-card-${width}.png`),animations:'disabled',scale:'css'});}
   }

@@ -13,7 +13,7 @@ async function seed(page:Page){
 }
 async function shot(page:Page,name:string){if(process.env.OWNER_CAPTURE==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`../../docs/verification/run8-1-owner/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}}
 test('one circular family and all four active Goals on Today share exact USD valuation',async({page})=>{
- await seed(page);await expect(page.locator('.unified-goal-card')).toHaveCount(4);await expect(page.locator('.unified-goal-card .goal-progress-ring')).toHaveCount(4);await expect(page.locator('.unified-goal-card progress')).toHaveCount(0);
+ await page.setViewportSize({width:1440,height:1000});await seed(page);await expect(page.locator('.unified-goal-card')).toHaveCount(4);await expect(page.locator('.unified-goal-card .goal-progress-ring')).toHaveCount(4);await expect(page.locator('.unified-goal-card progress')).toHaveCount(0);
  const value=page.locator('[data-goal-key="private:82"]');await expect(value).toContainText('$11309');await expect(value).toContainText('$500000');await expect(value).toContainText('2.26%');await shot(page,'01-unified-goals');
  if(process.env.OWNER_CAPTURE==='1')for(const [key,name] of [['legacy:1','02-legacy-card'],['private:81','03-quantity-card'],['private:82','04-value-card']])await page.locator(`[data-goal-key="${key}"]`).screenshot({path:`../../docs/verification/run8-1-owner/screenshots/${name}.png`});
  const before=await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'));
@@ -39,4 +39,13 @@ test('Today reports private-store recovery errors while preserving legacy destin
  await expect(page.getByRole('alert').filter({hasText:'Private data could not be read'})).toBeVisible();
  await expect(page.locator('[data-goal-key="legacy:1"]')).toBeVisible();
  expect(await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'))).toBe('broken');
+});
+
+
+test('Positions utilities expose wallet reader and APR calculator below wealth',async({page})=>{
+ await page.setViewportSize({width:1440,height:1000});await seed(page);await page.goto('/app/goals/positions');
+ await expect(page.locator('.position-metrics')).toContainText('526000');
+ await shot(page,'09-wealth-first');await shot(page,'10-positions-right-rail');
+ await page.locator('.positions-wallet > summary').click();await expect(page.getByLabel('Public ZIG address')).toBeVisible();await shot(page,'11-track-wallet-open');
+ await page.locator('.positions-wallet > summary').click();await page.locator('.positions-scenario > summary').click();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('6');await shot(page,'12-apr-open');
 });

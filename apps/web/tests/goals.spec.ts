@@ -152,7 +152,7 @@ test("invalid custom scenario preserves baseline funding health and progress", a
   ).toBeVisible();
   await expect(health).toBeVisible();
   await expect(
-    page.getByRole("progressbar", { name: "Goal progress" }),
+    page.getByRole("progressbar", { name: "Recovered trip progress" }),
   ).toBeVisible();
   await expect(
     page.getByText("Required monthly at 0%", { exact: true }),

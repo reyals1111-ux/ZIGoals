@@ -1,0 +1,12 @@
+$ vitest run
+
+ RUN  v5.0.0 /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8
+
+
+ Test Files  44 passed (44)
+      Tests  783 passed (783)
+   Start at  22:34:22
+   Duration  7.04s (tests 49%, import 20%, environment 17%, transform 13%, worker 1%)
+
+    Isolate  44 workers spawned · ~271ms startup each (spawn + environment, per file)
+             at least ~1.05s faster with isolate: false — reuses workers across files instead of one per file

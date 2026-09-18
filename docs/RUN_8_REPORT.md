@@ -66,3 +66,7 @@ Review the draft PR, visual evidence, tests and explicitly partial backlog. Merg
 - Position cards list every allocation owner and link directly to management. Allocation forms show available/elsewhere quantities and explain rejection beside the form; conservation still rechecks under the storage lock.
 - The creator confirms observed versus planned values before saving. Habit completion never changes financial progress. A failed Habit write can retry without duplicating the Goal or allocation; damaged private Position storage does not block independent Local simulation.
 - Verification and requested fictional-fixture screenshots: [unified Goals evidence](verification/run8-1-unified/README.md). No merge, deployment, wallet authority, blockchain action, staking-reader change or Health change.
+
+## Run #8.1 — final owner-acceptance Goals UX and Value Goal polish
+
+Shared circular Goal cards and canonical summaries now unify Goals, Today and detail. Native ZIG/USD allocated wealth uses verified fixed-decimal market quotes with shared caching, stale continuity and no private payload. Existing Goal management is collapsed; Positions lead with wealth and compact wallet/APR utilities. [Implementation, validation, all 17 fictional screenshots and preview restart](verification/run8-1-owner/README.md). Health and Habit history preserved; PR #15 remains Draft, with no merge or deployment.
