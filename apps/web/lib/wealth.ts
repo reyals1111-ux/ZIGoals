@@ -1,5 +1,5 @@
 /** Read-only projections of existing Positions and canonical Goal accounting. */
-import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
+import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
 import {marketQuoteSchema,quoteIsStale,quoteValue,sameAsset,type MarketQuote} from './market-quotes';
 export const ASSET_COLORS:Record<AssetClass,string>={Crypto:'#38d9f5',Stablecoins:'#70e1c3',Stocks:'#8c9cff','Precious Metals':'#ecc779',Property:'#ce92ff',Cash:'#80baff',Custom:'#ee8fce'};
 export function assetClassOf(p:Position):AssetClass{
@@ -35,7 +35,7 @@ export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQ
   const currency=p.valuation?.currency??(matching?'USD':undefined);
   const value=p.valuation?BigInt(p.valuation.value)*100n/10n**BigInt(p.valuation.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
-  return {position:p,assetClass:assetClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,stale:!!matching&&!p.valuation&&quoteIsStale(matching,now)};
+  return {position:p,assetClass:assetClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,stale:['STALE','ERROR'].includes(positionSync(p,now))||(p.valuation?.source==='VERIFIED'&&snapshotIsStale(p.valuation.observedAt,now))||(!!matching&&!p.valuation&&quoteIsStale(matching,now))};
  });
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency?[r.currency]:[]))];

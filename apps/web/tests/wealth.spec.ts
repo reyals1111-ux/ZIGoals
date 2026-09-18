@@ -3,7 +3,13 @@ import {seed} from './coherence-fixture';
 import {manualSourcePosition} from '../lib/manual-source';
 import {emptyPlatform,privateGoalSchema} from '../lib/positions';
 import {createAllocatedGoal} from '../lib/wealth';
-async function shot(page:Page,name:string){if(process.env.WEALTH_CAPTURE==='1')await page.screenshot({path:`../../docs/verification/run8-1-wealth/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}
+async function shot(page:Page,name:string){
+ if(process.env.WEALTH_CAPTURE!=='1')return;
+ const path=`../../docs/verification/run8-1-wealth/screenshots/${name}.png`;
+ if(name.startsWith('05')||name.startsWith('06'))await page.locator('.manual-source-selector').screenshot({path,animations:'disabled'});
+ else if(name.startsWith('02'))await page.locator('.setup-next').screenshot({path,animations:'disabled'});
+ else await page.screenshot({path,fullPage:!['03','07','08'].some(prefix=>name.startsWith(prefix)),animations:'disabled'});
+}
 async function mixed(page:Page){await seed(page);const positions=[
  manualSourcePosition({category:'Crypto',name:'Example crypto',symbol:'BTC',quantity:'0.25',currency:'USD',value:'25000'},'crypto'),
  manualSourcePosition({category:'Stablecoins',name:'Example stablecoin',symbol:'USDC',quantity:'40000',currency:'USD',value:'40000'},'stable'),
@@ -26,5 +32,5 @@ test('Wealth shows every category, preserves allocations and fits all viewports'
  await mixed(page);await page.setViewportSize({width:1440,height:1100});await page.goto('/app/goals/tracked/91');await shot(page,'01-segmented-value-goal');await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow','80');await page.goto('/app/wealth');await expect(page.locator('.wealth-category')).toHaveCount(7);await expect(page.locator('.wealth-overview')).toContainText('$433500');await expect(page.locator('.wealth-overview')).toContainText('$80000');await shot(page,'03-wealth-desktop');await shot(page,'04-all-seven-categories');
  const health=await page.evaluate(()=>Object.entries(localStorage).filter(([k])=>k.includes('health')));
  for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});for(const route of ['/app/wealth','/app/goals/tracked/91','/app/goals/new']){await page.goto(route);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${route} at ${width}`).toBe(true);if(width===390&&route==='/app/wealth')await shot(page,'07-wealth-mobile');}}
- expect(await page.evaluate(()=>Object.entries(localStorage).filter(([k])=>k.includes('health')))).toEqual(health);await page.setViewportSize({width:1440,height:1100});await page.goto('/app/goals/positions');await shot(page,'08-readable-positions');expect(await page.locator('.fine').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13);
+ expect(await page.evaluate(()=>Object.entries(localStorage).filter(([k])=>k.includes('health')))).toEqual(health);await page.setViewportSize({width:1440,height:1100});await page.goto('/app/goals/positions');await page.locator('#manual-positions-title').scrollIntoViewIfNeeded();await shot(page,'08-readable-positions');expect(await page.locator('.fine').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13);
 });

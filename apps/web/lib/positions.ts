@@ -120,7 +120,7 @@ export function positionSync(p:Position,now=Date.now()):Position['sync'] {
 export function saveManualPosition(raw:Platform,incoming:Position):Platform {
  const s=platformSchema.parse(raw),p=positionSchema.parse(incoming);const old=s.positions.find(existing=>existing.id===p.id);
  if(p.sourceType!=='MANUAL'||p.verification!=='MANUAL'||(old&&(old.sourceType!=='MANUAL'||old.asset!==p.asset||old.denom!==p.denom||old.decimals!==p.decimals||old.network!==p.network||old.account!==p.account)))throw Error('Position asset identity cannot change. Add a new Position instead.');
- return platformSchema.parse({...s,positions:[...s.positions.filter(existing=>existing.id!==p.id),p],snapshots:[...s.snapshots,{positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}].slice(-2000)});
+ return platformSchema.parse({...s,positions:[...s.positions.filter(existing=>existing.id!==p.id),{...p,assetClass:p.assetClass??old?.assetClass}],snapshots:[...s.snapshots,{positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}].slice(-2000)});
 }
 export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly MarketQuote[]=[]){
  const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');
