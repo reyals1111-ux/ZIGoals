@@ -42,3 +42,9 @@ Complete scope and acceptance criteria remain in the [unaltered master prompt](R
 ## Run #8.1 — owner preview follow-up
 
 Delivered: direct Goal setup, exact quick multi-validator allocation, clear plan/Habit actions, premium tracked Goal cards, Stake / Positions sidebar shortcut, hierarchical Position metrics, Today staking card and account/network-scoped APR persistence. Existing manual controls and Habit history remain intact. Validated with 43 targeted unit tests and 28 production browser checks at 1440/768/390/320, lint/typecheck/build and diff checks; [evidence](verification/run8-1/README.md). No additional roadmap scope, Health changes, merge or deployment.
+
+## Run #8.1 — unified Goals polish
+
+- COMPLETE: one Goals collection and creator over intentionally separate legacy/private stores, backwards-compatible detail links, explicit Position allocation and contribution/Habit setup.
+- COMPLETE: counted-progress completion reconciliation, allocation ownership rows and inline available-unit/error feedback; original histories retained.
+- Validation: [production checks and screenshots](verification/run8-1-unified/README.md). Existing deferred contract/provider/Health scope remains unchanged.

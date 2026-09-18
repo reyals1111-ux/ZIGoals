@@ -1,0 +1,8 @@
+
+ RUN  v5.0.0 /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8
+
+
+ Test Files  6 passed (6)
+      Tests  67 passed (67)
+   Start at  09:01:38
+   Duration  2.44s (tests 58%, environment 19%, import 13%, transform 10%, worker 1%)
