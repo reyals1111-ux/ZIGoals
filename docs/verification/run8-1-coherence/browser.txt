@@ -1,0 +1,230 @@
+
+Running 70 tests using 3 workers
+
+(node:83518) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83519) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop] › tests/goals.spec.ts:31:5 › corrupt metadata recovery preserves the original bytes and restores the plan (1.4s)
+  ✘   2 [desktop] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history (1.3s)
+(node:83559) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 [desktop] › tests/owner-polish.spec.ts:15:5 › one circular family and all four active Goals on Today share exact USD valuation (1.9s)
+  ✓   4 [desktop] › tests/goals.spec.ts:73:5 › damaged local funds keep the shell usable and block simulation instead of resetting funds (1.3s)
+  ✓   7 [desktop] › tests/goals.spec.ts:126:5 › invalid custom scenario preserves baseline funding health and progress (842ms)
+  ✓   5 [desktop] › tests/coherence.spec.ts:17:5 › legacy overview keeps optional simulation recoverable and archives safely (1.7s)
+  ✓   9 [desktop] › tests/coherence.spec.ts:20:5 › manual selector creates a cash Position and allocates its value on Goal creation (1.4s)
+  ✓   6 [desktop] › tests/owner-polish.spec.ts:27:5 › responsive collection, detail and Positions retain access without document overflow (3.8s)
+  ✓  11 [desktop] › tests/owner-polish.spec.ts:31:5 › missing price is explicit and stale quote survives failed refresh and reload (1.0s)
+  ✓  12 [desktop] › tests/owner-polish.spec.ts:37:5 › Today reports private-store recovery errors while preserving legacy destinations (766ms)
+  ✓  13 [desktop] › tests/owner-polish.spec.ts:45:5 › Positions utilities expose wallet reader and APR calculator below wealth (948ms)
+  ✘   8 [desktop] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal (5.6s)
+(node:83628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  14 [desktop] › tests/owner-preview.spec.ts:4:5 › owner setup: stake allocation, contribution plan and supporting Habit stay private (1.5s)
+  ✓  10 [desktop] › tests/coherence.spec.ts:23:5 › deterministic ring palettes and responsive top-right wealth dashboard (5.6s)
+  ✓  15 [desktop] › tests/goals.spec.ts:192:5 › near-limit Unicode plans export a valid importable backup (956ms)
+  ✓  16 [desktop] › tests/owner-preview.spec.ts:28:5 › APR persistence, account isolation, rail order and navigation (2.1s)
+  ✓  17 [desktop] › tests/positions-layout.spec.ts:4:5 › wealth leads collapsed read-only utilities and APR stays account-scoped (1.5s)
+  ✓  20 [desktop] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves (489ms)
+  ✓  21 [desktop] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie (921ms)
+  ✓  19 [desktop] › tests/owner-preview.spec.ts:40:5 › responsive owner preview captures (1.9s)
+  ✓  22 [desktop] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection (879ms)
+  ✓  23 [desktop] › tests/owner-preview.spec.ts:55:5 › shared navigation keeps Health accessible without writing its store (649ms)
+  ✓  18 [desktop] › tests/goals.spec.ts:217:5 › local goal lifecycle, metadata recovery, exports and mobile layout (4.0s)
+  ✓  26 [desktop] › tests/goals.spec.ts:314:5 › missing wallet is explicit and local mode remains available (515ms)
+(node:83685) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  25 [desktop] › tests/unified-goals.spec.ts:7:5 › one collection reconciles incomplete flags, preserves deep links and shows ownership inline (1.4s)
+  ✓  24 [desktop] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP (2.4s)
+  ✓  29 [desktop] › tests/public-alpha.spec.ts:140:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP (42ms)
+  ✘  27 [mobile] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history (730ms)
+(node:83707) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83708) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  28 [desktop] › tests/unified-goals.spec.ts:21:5 › unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority (1.3s)
+  ✓  31 [desktop] › tests/unified-goals.spec.ts:34:5 › creation without allocation confirmation saves an empty Goal (1.1s)
+  ✓  30 [mobile] › tests/goals.spec.ts:31:5 › corrupt metadata recovery preserves the original bytes and restores the plan (1.3s)
+  ✓  32 [mobile] › tests/coherence.spec.ts:17:5 › legacy overview keeps optional simulation recoverable and archives safely (1.6s)
+  ✓  33 [desktop] › tests/unified-goals.spec.ts:37:5 › unified creator preserves Local Demo and legacy detail (1.0s)
+  ✓  34 [mobile] › tests/goals.spec.ts:73:5 › damaged local funds keep the shell usable and block simulation instead of resetting funds (1.4s)
+  ✓  35 [mobile] › tests/coherence.spec.ts:20:5 › manual selector creates a cash Position and allocates its value on Goal creation (1.3s)
+  ✓  37 [mobile] › tests/goals.spec.ts:126:5 › invalid custom scenario preserves baseline funding health and progress (719ms)
+  ✓  36 [desktop] › tests/unified-goals.spec.ts:40:5 › unified responsive Goals and creator keep navigation and Health intact (1.8s)
+  ✓  40 [desktop] › tests/unified-goals.spec.ts:48:5 › Project completion follows milestones and Value/Reward Goals keep their own source semantics (2.3s)
+  ✓  41 [desktop] › tests/unified-goals.spec.ts:52:5 › Local simulation remains creatable when independent Position storage is malformed (811ms)
+  ✓  42 [desktop] › tests/unified-goals.spec.ts:55:5 › failed Habit write retries without duplicating Goal or re-allocating reserved units (1.1s)
+  ✓  38 [mobile] › tests/coherence.spec.ts:23:5 › deterministic ring palettes and responsive top-right wealth dashboard (5.5s)
+  ✓  43 [desktop] › tests/unified-goals.spec.ts:61:6 › Goal management stays collapsed, supports keyboard and hash links, and skips unneeded market requests (784ms)
+(node:83782) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  39 [mobile] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal (5.6s)
+(node:83792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  44 [mobile] › tests/owner-polish.spec.ts:15:5 › one circular family and all four active Goals on Today share exact USD valuation (1.3s)
+  ✓  46 [mobile] › tests/goals.spec.ts:192:5 › near-limit Unicode plans export a valid importable backup (849ms)
+  ✓  45 [mobile] › tests/owner-preview.spec.ts:4:5 › owner setup: stake allocation, contribution plan and supporting Habit stay private (1.7s)
+  ✓  49 [mobile] › tests/owner-preview.spec.ts:28:5 › APR persistence, account isolation, rail order and navigation (2.1s)
+  ✓  47 [mobile] › tests/owner-polish.spec.ts:27:5 › responsive collection, detail and Positions retain access without document overflow (3.4s)
+  ✓  51 [mobile] › tests/owner-polish.spec.ts:31:5 › missing price is explicit and stale quote survives failed refresh and reload (1.1s)
+  ✓  50 [mobile] › tests/owner-preview.spec.ts:40:5 › responsive owner preview captures (1.9s)
+  ✓  52 [mobile] › tests/owner-polish.spec.ts:37:5 › Today reports private-store recovery errors while preserving legacy destinations (735ms)
+  ✓  48 [mobile] › tests/goals.spec.ts:217:5 › local goal lifecycle, metadata recovery, exports and mobile layout (4.7s)
+  ✓  53 [mobile] › tests/owner-preview.spec.ts:55:5 › shared navigation keeps Health accessible without writing its store (678ms)
+  ✓  54 [mobile] › tests/owner-polish.spec.ts:45:5 › Positions utilities expose wallet reader and APR calculator below wealth (1.0s)
+  ✓  55 [mobile] › tests/goals.spec.ts:314:5 › missing wallet is explicit and local mode remains available (578ms)
+  ✓  57 [mobile] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves (479ms)
+  ✓  56 [mobile] › tests/positions-layout.spec.ts:4:5 › wealth leads collapsed read-only utilities and APR stays account-scoped (1.7s)
+  ✓  59 [mobile] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie (953ms)
+  ✓  58 [mobile] › tests/unified-goals.spec.ts:7:5 › one collection reconciles incomplete flags, preserves deep links and shows ownership inline (1.5s)
+  ✓  60 [mobile] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection (838ms)
+  ✓  61 [mobile] › tests/unified-goals.spec.ts:21:5 › unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority (1.2s)
+  ✓  63 [mobile] › tests/unified-goals.spec.ts:34:5 › creation without allocation confirmation saves an empty Goal (805ms)
+  ✓  64 [mobile] › tests/unified-goals.spec.ts:37:5 › unified creator preserves Local Demo and legacy detail (1.0s)
+  ✓  62 [mobile] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP (2.5s)
+  ✓  66 [mobile] › tests/public-alpha.spec.ts:140:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP (38ms)
+  ✓  65 [mobile] › tests/unified-goals.spec.ts:40:5 › unified responsive Goals and creator keep navigation and Health intact (1.4s)
+  ✓  67 [mobile] › tests/unified-goals.spec.ts:48:5 › Project completion follows milestones and Value/Reward Goals keep their own source semantics (2.6s)
+  ✓  68 [mobile] › tests/unified-goals.spec.ts:52:5 › Local simulation remains creatable when independent Position storage is malformed (900ms)
+  ✓  69 [mobile] › tests/unified-goals.spec.ts:55:5 › failed Habit write retries without duplicating Goal or re-allocating reserved units (925ms)
+  ✓  70 [mobile] › tests/unified-goals.spec.ts:61:6 › Goal management stays collapsed, supports keyboard and hash links, and skips unneeded market requests (632ms)
+
+
+  1) [desktop] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history
+
+    Error: Choose a scheduled, active day up to today.
+
+       at ../lib/habits.ts:245
+
+      243 |   const date = dateSchema.parse(rawDate); const value = valueSchema.parse(rawValue); const today = localDate(now);
+      244 |   return replaceHabit(data, id, (habit) => {
+    > 245 |     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
+          |                                                                                                       ^
+      246 |     if (rule!.measurement.kind === "count" && !Number.isInteger(value)) throw new Error("Count values must be whole numbers.");
+      247 |     const previous = habit.entries.find((item) => item.date === date); const count = valueSchema.parse(options.mode === "add" ? (previous?.count ?? 0) + value : value);
+      248 |     const entry = entrySchema.parse({ date, count, disposition: "logged", note: options.note ?? previous?.note ?? "", mood: options.mood ?? previous?.mood, updatedAt: now.toISOString() });
+        at transform (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:245:103)
+        at map (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:115:96)
+        at replaceHabit (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:115:63)
+        at logHabitValue (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:244:10)
+        at logHabitCount (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:252:138)
+        at /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/tests/coherence.spec.ts:7:22
+
+    Error Context: test-results/coherence-release-realloca-e7d9a-ve-wealth-and-Habit-history-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/coherence-release-realloca-e7d9a-ve-wealth-and-Habit-history-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/coherence-release-realloca-e7d9a-ve-wealth-and-Habit-history-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal
+
+    Error: expect(locator).toBeEnabled() failed
+
+    Locator: getByRole('button', { name: 'Add funds', exact: true })
+    Expected: enabled
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeEnabled" getByRole('button', { name: 'Add funds', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Add funds', exact: true })
+
+
+      188 |   await expect(
+      189 |     page.getByRole("button", { name: "Add funds", exact: true }),
+    > 190 |   ).toBeEnabled();
+          |     ^
+      191 | });
+      192 | test("near-limit Unicode plans export a valid importable backup", async ({
+      193 |   page,
+        at /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/tests/goals.spec.ts:190:5
+
+    Error Context: test-results/goals-unsupported-saved-pl-df7af-r-without-crashing-the-goal-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/goals-unsupported-saved-pl-df7af-r-without-crashing-the-goal-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/goals-unsupported-saved-pl-df7af-r-without-crashing-the-goal-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history
+
+    Error: Choose a scheduled, active day up to today.
+
+       at ../lib/habits.ts:245
+
+      243 |   const date = dateSchema.parse(rawDate); const value = valueSchema.parse(rawValue); const today = localDate(now);
+      244 |   return replaceHabit(data, id, (habit) => {
+    > 245 |     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
+          |                                                                                                       ^
+      246 |     if (rule!.measurement.kind === "count" && !Number.isInteger(value)) throw new Error("Count values must be whole numbers.");
+      247 |     const previous = habit.entries.find((item) => item.date === date); const count = valueSchema.parse(options.mode === "add" ? (previous?.count ?? 0) + value : value);
+      248 |     const entry = entrySchema.parse({ date, count, disposition: "logged", note: options.note ?? previous?.note ?? "", mood: options.mood ?? previous?.mood, updatedAt: now.toISOString() });
+        at transform (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:245:103)
+        at map (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:115:96)
+        at replaceHabit (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:115:63)
+        at logHabitValue (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:244:10)
+        at logHabitCount (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/lib/habits.ts:252:138)
+        at /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/tests/coherence.spec.ts:7:22
+
+    Error Context: test-results/coherence-release-realloca-e7d9a-ve-wealth-and-Habit-history-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/coherence-release-realloca-e7d9a-ve-wealth-and-Habit-history-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/coherence-release-realloca-e7d9a-ve-wealth-and-Habit-history-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [mobile] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal
+
+    Error: expect(locator).toBeEnabled() failed
+
+    Locator: getByRole('button', { name: 'Add funds', exact: true })
+    Expected: enabled
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeEnabled" getByRole('button', { name: 'Add funds', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Add funds', exact: true })
+
+
+      188 |   await expect(
+      189 |     page.getByRole("button", { name: "Add funds", exact: true }),
+    > 190 |   ).toBeEnabled();
+          |     ^
+      191 | });
+      192 | test("near-limit Unicode plans export a valid importable backup", async ({
+      193 |   page,
+        at /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web/tests/goals.spec.ts:190:5
+
+    Error Context: test-results/goals-unsupported-saved-pl-df7af-r-without-crashing-the-goal-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/goals-unsupported-saved-pl-df7af-r-without-crashing-the-goal-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/goals-unsupported-saved-pl-df7af-r-without-crashing-the-goal-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [desktop] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history
+    [desktop] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal
+    [mobile] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history
+    [mobile] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal
+  66 passed (46.3s)
+undefined
+/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/apps/web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test coherence.spec.ts owner-polish.spec.ts owner-preview.spec.ts positions-layout.spec.ts unified-goals.spec.ts goals.spec.ts public-alpha.spec.ts '--workers=3'

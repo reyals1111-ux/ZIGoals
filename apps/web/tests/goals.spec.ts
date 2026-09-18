@@ -139,6 +139,7 @@ test("invalid custom scenario preserves baseline funding health and progress", a
     },
   );
   await page.goto("/app/goals/1");
+  await page.locator("#contribution-plan > summary").click();
   const health = page.getByRole("heading", {
     name: "Funding health · 0% future return",
   });
@@ -184,6 +185,7 @@ test("unsupported saved planning date reports a calculation error without crashi
   await expect(
     page.getByRole("alert").filter({ hasText: "supported planning limits" }),
   ).toBeVisible();
+  await page.locator("#local-simulation > summary").click();
   await expect(
     page.getByRole("button", { name: "Add funds", exact: true }),
   ).toBeEnabled();
@@ -242,9 +244,11 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Kyoto in spring" }),
   ).toBeVisible();
+  await page.locator("#local-simulation > summary").click();
   await expect(
     page.getByText("No starting funds have been deposited.", { exact: false }),
   ).toBeVisible();
+  if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByLabel("Amount in ZIG").fill("100");
   await page.getByRole("button", { name: "Add funds", exact: true }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).click();
@@ -283,6 +287,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Goal #1", exact: true }),
   ).toBeVisible();
+  if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByLabel("Amount in ZIG").fill("100");
   await page.getByRole("button", { name: "Withdraw", exact: true }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).click();
@@ -299,6 +304,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Kyoto in spring" }),
   ).toBeVisible();
+  if(!await page.getByRole("button", { name: "Close empty goal" }).isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByRole("button", { name: "Close empty goal" }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).click();
   await expect(

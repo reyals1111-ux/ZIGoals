@@ -1,9 +1,10 @@
 import {test,expect,type Page} from '@playwright/test';
 import {seed} from './coherence-fixture';
-import {createHabit,emptyHabitData} from '../lib/habits';
+import {createHabit,emptyHabitData,logHabitCount} from '../lib/habits';
 async function shot(page:Page,name:string){if(process.env.COHERENCE_CAPTURE==='1')await page.screenshot({path:`../../docs/verification/run8-1-coherence/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}
 test('release, reallocate, pin, lock and delete preserve wealth and Habit history',async({page})=>{
- await seed(page);const habits=createHabit(emptyHabitData(),{title:'Keep my history',category:'Goals',description:'',notes:'',goalLink:{chainId:'private',owner:'local',goalId:'81'},schedule:{kind:'weekdays',days:[1]},target:1});
+ await seed(page);let habits=createHabit(emptyHabitData(),{title:'Keep my history',category:'Goals',description:'',notes:'',goalLink:{chainId:'private',owner:'local',goalId:'81'},schedule:{kind:'weekdays',days:[0,1,2,3,4,5,6]},target:1});
+ habits=logHabitCount(habits,habits.habits[0]!.id,new Date().toLocaleDateString('en-CA'),1);
  await page.evaluate(h=>localStorage.setItem('zigoals:habits:v1',JSON.stringify(h)),habits);
  await page.goto('/app/goals/tracked/81');await page.locator('#allocate > summary').click();await shot(page,'04-edit-release');
  await page.getByRole('button',{name:'Release allocation',exact:true}).click();await page.getByRole('button',{name:'Confirm release'}).click();await expect(page.locator('#allocate')).toContainText('No allocation yet');
@@ -18,4 +19,11 @@ test('legacy overview keeps optional simulation recoverable and archives safely'
 });
 test('manual selector creates a cash Position and allocates its value on Goal creation',async({page})=>{
  await seed(page);await page.goto('/app/goals/new');await page.getByLabel('Goal name',{exact:true}).fill('Manual wealth destination');await page.getByRole('combobox',{name:'Goal type',exact:true}).selectOption('VALUE');await page.getByLabel('Target amount',{exact:true}).fill('1000');await page.getByRole('button',{name:'Continue'}).click();await shot(page,'08-manual-selector');await page.getByRole('button',{name:'Cash',exact:true}).click();await page.getByLabel('Asset name',{exact:true}).fill('Fictional cash');await page.getByLabel('Cash amount',{exact:true}).fill('500');await shot(page,'09-cash-expanded');await page.getByRole('button',{name:'Save manual source',exact:true}).click();await expect(page.getByLabel('Units to allocate')).toHaveValue('500');await page.getByRole('button',{name:'Precious metals',exact:true}).click();await shot(page,'10-metal-expanded');await page.getByRole('button',{name:'Precious metals',exact:true}).click();await page.getByRole('button',{name:'Continue'}).click();await page.getByRole('button',{name:'Continue'}).click();await expect(page.locator('.wizard')).toContainText('500 USD');await page.getByRole('button',{name:'Create goal',exact:true}).click();await expect(page.getByTestId('tracked-progress')).toContainText('$500');
+});
+test('deterministic ring palettes and responsive top-right wealth dashboard',async({page})=>{
+ await seed(page);await page.setViewportSize({width:1440,height:1100});
+ const palettes=()=>page.locator('.goal-progress-ring linearGradient').evaluateAll(nodes=>nodes.map(n=>Array.from(n.children).map(s=>s.getAttribute('stop-color')).join(':')));
+ const first=await palettes();expect(new Set(first).size).toBe(4);await page.reload();expect(await palettes()).toEqual(first);await shot(page,'01-nebula-goals');
+ await page.goto('/app/goals/positions');await expect(page.locator('.wallet-totals')).toContainText('526000');const metric=await page.locator('.position-metrics').boundingBox(),rail=await page.locator('.positions-rail').boundingBox();expect(Math.abs(metric!.y-rail!.y)).toBeLessThan(5);expect(rail!.x).toBeGreaterThan(metric!.x);await shot(page,'06-positions-top');await page.locator('#observed-positions-title').scrollIntoViewIfNeeded();await shot(page,'07-position-cards');
+ for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});for(const route of ['/app/goals','/app/goals/positions','/app/goals/new','/app/goals/1','/app/goals/tracked/82']){await page.goto(route);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${route} at ${width}`).toBe(true);if(width===390&&route==='/app/goals')await shot(page,'11-goals-390');if(width===390&&route==='/app/goals/positions')await shot(page,'12-positions-390');if(width===390&&route==='/app/goals/new')await shot(page,'13-create-390');}}
 });

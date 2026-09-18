@@ -29,7 +29,7 @@ function defaults(): GoalMetadata {
 export function GoalWizard({ recoverId }: { recoverId?: string }) {
   const s = useGoals();
   const [step, setStep] = useState(0);
-  const [plan, setPlan] = useState<GoalMetadata>(defaults);
+  const [plan, setPlan] = useState<GoalMetadata>(()=>recoverId&&s.metadata?.goals[recoverId]?s.metadata.goals[recoverId]!:defaults());
   const [error, setError] = useState("");
   const steps = ["Purpose", "Target", "Plan", "Preferences", "Review"];
   const set = <K extends keyof GoalMetadata>(key: K, value: GoalMetadata[K]) =>

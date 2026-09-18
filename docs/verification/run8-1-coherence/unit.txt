@@ -1,0 +1,9 @@
+$ vitest run apps/web/lib/coherence.test.ts apps/web/lib/goal-palette.test.ts apps/web/lib/positions.test.ts apps/web/lib/goal-summary.test.ts apps/web/lib/goal-status.test.ts apps/web/lib/market-quotes.test.ts apps/web/lib/market-quotes-hook.test.ts apps/web/lib/market-quotes-route.test.ts apps/web/lib/platform-storage.test.ts apps/web/lib/habits.test.ts apps/web/lib/habits-beta.test.ts apps/web/lib/health.test.ts apps/web/lib/owner-preview.test.ts apps/web/lib/local-ledger.test.ts
+
+ RUN  v5.0.0 /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8
+
+
+ Test Files  14 passed (14)
+      Tests  181 passed (181)
+   Start at  00:00:19
+   Duration  635ms (import 30%, transform 28%, tests 22%, environment 20%, worker 2%)
