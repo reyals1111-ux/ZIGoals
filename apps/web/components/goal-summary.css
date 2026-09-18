@@ -1,0 +1,25 @@
+/* Shared card contract across both private stores and Today. */
+.unified-goal-card { min-width:0; display:flex; flex-direction:column; }
+.unified-goal-card h2,.unified-goal-card .goal-value,.unified-goal-card .card-bottom strong { overflow-wrap:anywhere; }
+.unified-goal-card .card-top { flex-wrap:wrap; min-height:30px; }
+.unified-goal-card .goal-value { min-height:56px; }
+.unified-goal-card .card-footer { margin-top:auto; gap:12px; padding-top:20px; }
+.unified-goal-card .goal-progress-ring { flex-shrink:0; }
+.unified-goal-card .goal-progress-ring strong { font-size:15px; }
+.unified-goal-card .card-bottom { margin-bottom:20px; }
+.today-goals-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); }
+.today-goals-grid .unified-goal-card:nth-child(3) { grid-column:auto; }
+.goal-card.unified-goal-card.compact-goal { display:flex; padding:0 14px 15px; }
+.unified-goal-card.compact-goal .goal-card-art { margin:0 -14px 12px; }
+.unified-goal-card.compact-goal .card-top { order:0; margin:0 0 8px; justify-content:space-between; }
+.unified-goal-card.compact-goal h2 { margin:0 0 10px; }
+.unified-goal-card.compact-goal .goal-value { min-height:48px; margin-bottom:12px; }
+.unified-goal-card.compact-goal .goal-progress { margin:0 0 12px; }
+.unified-goal-card.compact-goal .goal-progress-caption { display:block; }
+.unified-goal-card.compact-goal .goal-progress-ring strong { font-size:12px; }
+.unified-goal-card.compact-goal .card-footer small { display:block; font-size:10px; }
+.unified-goal-card.compact-goal .card-footer { margin-top:auto; }
+.unified-goal-card .valuation-state { font-size:12px; color:var(--muted); }
+@media(max-width:540px){.today-goals-grid { display:flex; }.today-goals-grid .unified-goal-card { flex:0 0 86%; }}
+
+.legacy-shared-orbit { display:flex; justify-content:center; margin:24px 0; }.legacy-shared-orbit .goal-progress-ring { width:164px; height:164px; }.legacy-shared-orbit .goal-progress-ring strong { font-size:24px; }

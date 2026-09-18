@@ -1,5 +1,6 @@
 /** VM-independent private accounting. No wallet, signer, network or execution imports. */
 import { z } from 'zod';
+import {marketQuoteSchema,quoteIsStale,quoteValue,sameAsset,type MarketQuote,type ValuationEvidence} from './market-quotes';
 export const PLATFORM_KEY = 'zigoals:platform:v1';
 export const units = z.string().regex(/^(0|[1-9]\d*)$/).max(78);
 const id = z.string().min(1).max(250);
@@ -116,33 +117,48 @@ export function saveManualPosition(raw:Platform,incoming:Position):Platform {
  if(p.sourceType!=='MANUAL'||p.verification!=='MANUAL'||(old&&(old.sourceType!=='MANUAL'||old.asset!==p.asset||old.denom!==p.denom||old.decimals!==p.decimals||old.network!==p.network||old.account!==p.account)))throw Error('Position asset identity cannot change. Add a new Position instead.');
  return platformSchema.parse({...s,positions:[...s.positions.filter(existing=>existing.id!==p.id),p],snapshots:[...s.snapshots,{positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}].slice(-2000)});
 }
-export function goalProgress(s:Platform,id:string,now=Date.now()){
+export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly MarketQuote[]=[]){
  const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');
- let current=0n,manual=0n,verified=0n,intended=0n;let requiresReview=false;
- const breakdown=[] as {positionId:string;quantity:string;counted:string;verification:string;deficit:boolean}[];
+ let current=0n,manual=0n,verified=0n,intended=0n;let requiresReview=false,missingValuation=false,staleValuation=false;
+ const breakdown=[] as {positionId:string;quantity:string;counted:string;verification:string;deficit:boolean;valuation?:ValuationEvidence}[];
  if(goal.type==='PROJECT')current=BigInt(goal.milestones.filter(m=>m.done).length);
  else if(goal.status!=='closed')for(const a of s.allocations.filter(a=>a.goalId===id)){
   const p=s.positions.find(p=>p.id===a.positionId)!;const b=allocationBalance(s,p.id);
   const q=BigInt(a.quantity),total=BigInt(b.allocated),observed=BigInt(p.quantity);
   const effective=total>observed?q*observed/total:q;
-  let value=BigInt(rescaleUnits(effective.toString(),p.decimals,goal.decimals));intended+=BigInt(rescaleUnits(q.toString(),p.decimals,goal.decimals));
+  let value=BigInt(rescaleUnits(effective.toString(),p.decimals,goal.decimals));if(goal.type!=='VALUE')intended+=BigInt(rescaleUnits(q.toString(),p.decimals,goal.decimals));
   const deficit=b.deficit!=='0';requiresReview ||= deficit || ['ERROR','STALE'].includes(positionSync(p,now));
   if(p.network!=='manual'&&p.network!==goal.network){requiresReview=true;value=0n;}
   if(!['MANUAL','VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification)){requiresReview=true;value=0n;}
+  let valuation:ValuationEvidence|undefined;
   if(goal.type==='VALUE'){
    const v=p.valuation;
-   if(v?.source==='VERIFIED'&&snapshotIsStale(v.observedAt,now))requiresReview=true;
-   if(!v||v.currency!==goal.asset||v.decimals!==goal.decimals){requiresReview=true;value=0n;}
-   else value=observed?BigInt(v.value)*effective/observed:0n;
+   const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&sameAsset(p,q.base)&&q.currency===goal.asset&&Date.parse(q.observedAt)<=now+60000).sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt))[0];
+   if(v&&v.currency===goal.asset&&v.decimals===goal.decimals){
+    value=observed?BigInt(v.value)*effective/observed:0n;
+    intended+=observed?BigInt(v.value)*q/observed:0n;
+    valuation={state:v.source==='MANUAL'?'manual':snapshotIsStale(v.observedAt,now)?'stale':'fresh',source:v.source==='MANUAL'?'Manual valuation':'Position valuation',observedAt:v.observedAt};
+   }else if(matching){
+    value=BigInt(quoteValue(effective.toString(),p.decimals,matching,goal.decimals));
+    intended+=BigInt(quoteValue(q.toString(),p.decimals,matching,goal.decimals));
+    valuation={state:quoteIsStale(matching,now)?'stale':'fresh',quote:matching,source:matching.source,observedAt:matching.observedAt};
+   }else{value=0n;valuation={state:'missing'};}
+   if(valuation.state==='missing'){missingValuation=true;requiresReview=true;}
+   if(valuation.state==='stale'){staleValuation=true;requiresReview=true;}
   } else if(!assetMatches(goal,p)||(goal.type==='REWARD'&&p.sourceType!=='NATIVE_REWARDS')){requiresReview=true;value=0n;}
   if((p.network!=='manual'&&p.network!==goal.network)||p.verification==='RESEARCH_ONLY')value=0n;
   current+=value;
-  if(p.verification==='MANUAL'||(goal.type==='VALUE'&&p.valuation?.source==='MANUAL'))manual+=value;else verified+=value;
-  breakdown.push({positionId:p.id,quantity:a.quantity,counted:value.toString(),verification:p.verification,deficit});
+  if(p.verification==='MANUAL'||valuation?.state==='manual')manual+=value;else verified+=value;
+  breakdown.push({positionId:p.id,quantity:a.quantity,counted:value.toString(),verification:p.verification,deficit,valuation});
  }
  const target=goal.type==='PROJECT'?BigInt(goal.milestones.length||1):BigInt(goal.target);
  const pct=current*10000n/target;
- return {current:current.toString(),target:target.toString(),remaining:max(0n,target-current).toString(),manual:manual.toString(),verified:verified.toString(),intended:intended.toString(),progressPct:`${pct/100n}.${String(pct%100n).padStart(2,'0')}`,requiresReview,breakdown};
+ return {current:current.toString(),target:target.toString(),remaining:max(0n,target-current).toString(),manual:manual.toString(),verified:verified.toString(),intended:intended.toString(),progressPct:`${pct/100n}.${String(pct%100n).padStart(2,'0')}`,requiresReview,missingValuation,staleValuation,breakdown};
+}
+/** Public quotes derive presentation status; private storage never persists market evidence. */
+export function derivedGoalStatus(s:Platform,id:string,now=Date.now(),quotes:readonly MarketQuote[]=[]):PrivateGoal['status'] {
+ const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');if(goal.status==='closed')return 'closed';
+ const progress=goalProgress(s,id,now,quotes);return BigInt(progress.current)>=BigInt(progress.target)?'completed':'active';
 }
 /** Only evidenced native stake in this Goal's network may fund its staking scenario. */
 export function allocatedNativePrincipal(s:Platform,goalId:string):string {
@@ -217,4 +233,9 @@ export function replaceObservation(s:Platform,network:string,account:string,inco
 /** A failed refresh changes status only; it cannot manufacture new observation facts. */
 export function markObservationError(s:Platform,network:string,account:string):Platform {
  return platformSchema.parse({...s,positions:s.positions.map(p=>p.network===network&&p.account===account&&p.providerId==='native-zig'?{...p,sync:'ERROR'}:p)});
+}
+
+/** Fetch only when an allocated, open USD Value Goal can consume the supported public pair. */
+export function needsMarketQuotes(s:Platform):boolean {
+ return s.goals.some(g=>g.type==='VALUE'&&g.status!=='closed'&&g.asset==='USD'&&s.allocations.some(a=>a.goalId===g.id&&BigInt(a.quantity)>0n&&s.positions.some(p=>p.id===a.positionId&&p.network===g.network&&p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6)));
 }

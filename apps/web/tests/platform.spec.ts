@@ -12,11 +12,13 @@ test('private position allocation and plans survive reload without financial or 
  for(let step=0;step<3;step++)await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByRole('button',{name:'Create goal',exact:true}).click();
  await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
+ await page.locator('#allocate > summary').click();
  await page.getByLabel('Allocation quantity').fill('80');
  await page.getByRole('button',{name:'Save allocation',exact:true}).click();
  await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
  await page.reload();
  await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
+ await page.locator('#contribution-plan > summary').click();
  await page.getByLabel('Planned amount').fill('10');
  await page.getByRole('button',{name:'Save contribution plan',exact:true}).click();
  await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
@@ -29,6 +31,7 @@ test('watch-only invalid input never calls a wallet or chain endpoint',async({pa
  await page.addInitScript(()=>{Object.defineProperty(window,'keplr',{get(){throw Error('Signer boundary touched');}});});
  const external:string[]=[];page.on('request',r=>{if(new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
  await page.goto('/app/goals/positions');
+ await page.locator('.positions-wallet > summary').click();
  await expect(page.getByText('Mainnet Read-Only / Watch-Only',{exact:true}).first()).toBeVisible();
  await page.getByLabel('Public ZIG address').fill('invalid');
  await page.getByRole('button',{name:'Read public positions',exact:true}).click();
@@ -44,12 +47,12 @@ test('mainnet watch-only displays exact six-decimal observations without wallet 
   if(fail){await route.fulfill({status:502,json:{error:'Public evidence unavailable'}});return;}
   await route.fulfill({json:{positions:[{id:`zigchain-1:${account}:liquid`,providerId:'native-zig',sourceType:'WALLET_LIQUID',network:'zigchain-1',account,asset:'ZIG',denom:'uzig',decimals:6,quantity:'123456789',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'LIQUID',provenance:'https://api.zigchain.com · block 123',executionAuthority:'NONE',notes:'',risk:''}]}});
  });
- await page.goto('/app/goals/positions');await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
+ await page.goto('/app/goals/positions');await page.locator('.positions-wallet > summary').click();await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
  await expect(page.getByRole('status').filter({hasText:'Public snapshot saved'})).toBeVisible();
  await expect(page.getByRole('region',{name:'zigchain-1 observed totals'})).toContainText('123.456789 ZIG');
  expect(calls).toHaveLength(1);
  await page.reload();await expect(page.getByRole('region',{name:'zigchain-1 observed totals'})).toContainText('123.456789 ZIG');expect(calls).toHaveLength(1);
- fail=true;await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
+ fail=true;await page.locator('.positions-wallet > summary').click();await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'Could not verify public positions'})).toBeVisible();
  await expect(page.getByText('Refresh failed · previous snapshot',{exact:false})).toBeVisible();
  const cached=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(cached.positions[0]).toMatchObject({quantity:'123456789',sync:'ERROR'});

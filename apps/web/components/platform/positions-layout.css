@@ -1,0 +1,56 @@
+/* Scoped to Positions: shared wealth, Habit and Health surfaces stay unchanged. */
+.positions-workspace .positions-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 320px);
+  align-items: start;
+  gap: 24px;
+}
+.positions-workspace .positions-main,
+.positions-workspace .positions-rail {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.positions-workspace .positions-main > section,
+.positions-workspace .positions-main .panel,
+.positions-workspace .positions-main .goal-grid,
+.positions-workspace .positions-rail > * { min-width: 0; }
+.positions-workspace .positions-main .goal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.positions-workspace .positions-section-heading { margin-bottom: 16px; }
+.positions-workspace .positions-section-heading h2 { margin: 6px 0 8px; }
+.positions-workspace .positions-main .panel { overflow-wrap: anywhere; }
+.positions-workspace .positions-main section > .panel { margin-top: 20px; }
+.positions-workspace .positions-utility { padding: 0; overflow: hidden; }
+.positions-workspace .positions-utility > summary { display: block; list-style: none; cursor: pointer; }
+.positions-workspace .positions-utility > summary::-webkit-details-marker { display: none; }
+.positions-workspace .positions-utility > summary:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: -4px; border-radius: inherit; }
+.positions-workspace .positions-utility-art { display: block; height: 112px; overflow: hidden; }
+.positions-workspace .positions-utility-art .scene-art { display: block; width: 100%; height: 100%; }
+.positions-workspace .positions-utility-copy { display: grid; gap: 10px; padding: 20px; overflow-wrap: anywhere; }
+.positions-workspace .positions-utility-title { font-size: 1.2rem; font-weight: 650; line-height: 1.3; }
+.positions-workspace .positions-utility-copy .eyebrow { margin: 0; }
+.positions-workspace .positions-utility-action { margin-top: 6px; }
+.positions-workspace .positions-apr-value { font-size: 2.2rem; line-height: 1.15; }
+.positions-workspace .positions-utility-body { padding: 0 20px 20px; overflow-wrap: anywhere; }
+.positions-workspace .positions-utility-body h2 { font-size: 1.1rem; }
+.positions-workspace .positions-utility-body .platform-form,
+.positions-workspace .positions-utility-body .summary-strip { display: grid; grid-template-columns: minmax(0, 1fr); }
+.positions-workspace .positions-utility-body .platform-form > * { min-width: 0; grid-column: auto; }
+.positions-workspace .positions-utility-body .summary-strip strong { overflow-wrap: anywhere; }
+.positions-workspace .positions-utility[open] .positions-utility-action { color: var(--muted); }
+.positions-workspace .field,
+.positions-workspace input,
+.positions-workspace select,
+.positions-workspace textarea { min-width: 0; max-width: 100%; }
+.positions-workspace .position-metrics > div { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .positions-workspace .positions-main .goal-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .positions-workspace .positions-layout { grid-template-columns: minmax(0, 1fr); }
+  .positions-workspace .positions-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-row: 1; }
+}
+@media (max-width: 580px) {
+  .positions-workspace .positions-rail { grid-template-columns: minmax(0, 1fr); }
+  .positions-workspace .positions-utility-art { height: 92px; }
+}

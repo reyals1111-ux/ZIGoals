@@ -1,12 +1,6 @@
-"use client";
-import Link from 'next/link';
-import { SceneArt } from '../scene-art';
-import { visualTone } from '../visual-tone';
-import { localDate } from '../../lib/local-date';
-import { useHabits } from '../habits/use-habits';
-import { goalLinkMatches } from '../../lib/habits';
-import { amount } from './common';
-import { scenarioHorizon, planScenario, goalProgress, type PrivateGoal, type Platform } from '../../lib/positions';
-export function PrivateGoalCard({g,data}:{g:PrivateGoal;data:Platform}){
- const habits=useHabits();const p=goalProgress(data,g.id);let funding='No plan';try{if(g.plan)funding=planScenario(g,p.current,g.plan,scenarioHorizon(localDate(),g.targetDate),localDate()).fundingHealth.replaceAll('_',' ');}catch{funding='Review assumptions';}const source=g.type==='PROJECT'?'Project':p.breakdown.length?'Existing wealth':g.plan?'Future contributions':'Private allocation';const linked=habits.data.habits.filter(h=>goalLinkMatches(h.goalLink,{chainId:'private',owner:'local',goalId:g.id})).length;return <article className="goal-card destination-card tracked-goal-card" data-tone={visualTone(g.id)} key={g.id}><div className="goal-card-art"><SceneArt scene={g.category==='Travel'?'mountains':g.category==='First Home'?'home':g.type==='PROJECT'?'mountains':g.type==='VALUE'?'home':g.type==='REWARD'?'aurora':'horizon'}/><span>{g.type} Goal</span></div><p className="eyebrow">{g.type} · {g.status} · {source}</p><h2><Link href={`/app/goals/tracked/${g.id}`}>{g.name}</Link></h2><p className="goal-value nebula-number">{amount(p.current,g.decimals)} <span>/ {amount(p.target,g.decimals)} {g.type==='PROJECT'?'milestones':g.asset}</span></p><div className="tracked-progress-caption"><strong className="nebula-text">{p.progressPct}%</strong><span>{amount(p.remaining,g.decimals)} remaining</span></div><progress max={100} value={Math.min(100,Number(p.progressPct))} aria-label={`${g.name} progress`}/><p>{linked} linked Habits · Funding Health: {funding}</p><p>{p.breakdown.length} Position sources{g.plan?` · ${g.plan.cadence} plan`:''}</p>{p.requiresReview&&<p className="notice">Allocation or valuation needs review.</p>}<p className="fine">Manual {amount(p.manual,g.decimals)} · Verified snapshot {amount(p.verified,g.decimals)}</p><div className="card-footer"><small>{source} · {g.status}</small><Link className="text-link" href={`/app/goals/tracked/${g.id}`}>Open Goal →</Link></div></article>;
-}
+'use client';
+import {GoalSummaryCard} from '../goal-card';
+import {privateGoalSummary} from '../../lib/goal-summary';
+import {needsMarketQuotes,type PrivateGoal,type Platform} from '../../lib/positions';
+import {useMarketQuotes} from './use-market-quotes';
+export function PrivateGoalCard({g,data}:{g:PrivateGoal;data:Platform}){const market=useMarketQuotes(needsMarketQuotes(data));return <GoalSummaryCard summary={privateGoalSummary(data,g,market.quotes,market.now)}/>;}

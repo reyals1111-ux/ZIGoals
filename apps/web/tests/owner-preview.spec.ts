@@ -4,7 +4,8 @@ const fixture=()=>({...emptyPlatform(),positions:['a','b'].map((id,i)=>positionS
 test('owner setup: stake allocation, contribution plan and supporting Habit stay private',async({page},info)=>{
  await page.goto('/app/goals/tracked');await page.evaluate(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),fixture());await page.reload();
  await page.getByRole('link',{name:'Open Goal →'}).click();
- await expect(page.getByRole('navigation',{name:'Goal setup'})).toBeVisible();
+ await expect(page.getByTestId('tracked-progress')).toBeVisible();
+ await page.locator('#allocate > summary').click();
  const financial:string[]=[];page.on('request',r=>{if(r.method()==='POST'||/rpc|api\/positions/.test(r.url()))financial.push(r.url());});
  await page.evaluate(()=>{Object.defineProperty(window,'keplr',{get(){throw Error('No wallet authority permitted');}});});
  await page.getByRole('button',{name:'Allocate available stake up to Goal target'}).click();
@@ -30,8 +31,8 @@ test('APR persistence, account isolation, rail order and navigation',async({page
  await card.getByRole('link',{name:'View stake / positions →'}).click();
  await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Stake / Positions',exact:true})).toHaveAttribute('aria-current','page');
  await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current');
- await page.getByLabel('Net APR assumption %',{exact:true}).fill('7.25');await page.getByRole('button',{name:'Save APR assumption'}).click();await expect(page.getByRole('status').filter({hasText:'Net APR assumption saved'})).toBeVisible();await page.reload();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('7.25');
- await page.getByLabel('Read-only network').selectOption('TESTNET_READ_ONLY');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('');
+ await page.locator('.positions-scenario > summary').click();await page.getByLabel('Net APR assumption %',{exact:true}).fill('7.25');await page.getByRole('button',{name:'Save APR assumption'}).click();await expect(page.getByRole('status').filter({hasText:'Net APR assumption saved'})).toBeVisible();await page.reload();await page.locator('.positions-scenario > summary').click();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('7.25');
+ await page.locator('.positions-wallet > summary').click();await page.getByLabel('Read-only network').selectOption('TESTNET_READ_ONLY');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('');
  await page.goto('/app');await expect(card).toContainText('7.25%');await expect(card).toContainText('263559.957014');
  expect(await page.locator('.today-rail > section').evaluateAll(nodes=>nodes.slice(0,3).map(n=>n.className))).toEqual(['account-panel','staking-card','destination-panel']);
  await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('zigoals:platform:v1')!);s.positions=s.positions.map((p:object)=>({...p,account:'other-account'}));localStorage.setItem('zigoals:platform:v1',JSON.stringify(s));});await page.reload();await expect(card).toContainText('Not set');

@@ -1,140 +1,28 @@
-"use client";
-import Link from "next/link";
-import { useId } from "react";
-import { visualTone } from "./visual-tone";
-import Decimal from "decimal.js";
-import { evaluateGoal } from "@zigoals/goal-engine";
-import type { GoalMetadata } from "@zigoals/shared-types";
-import type { LocalGoal } from "../lib/local-ledger";
-import { DemoPriceProvider } from "../lib/valuation";
-import { SceneArt } from "./scene-art";
-export function displayAmount(value: string, currency: string) {
-  return `${currency === "EUR" ? "€" : currency === "USD" ? "$" : ""}${new Decimal(value).toDecimalPlaces(currency === "ZIG" ? 6 : 2).toFixed()}${currency === "ZIG" ? " ZIG" : ""}`;
+'use client';
+import './goal-summary.css';
+import Link from 'next/link';
+import {useId} from 'react';
+import Decimal from 'decimal.js';
+import type {GoalMetadata} from '@zigoals/shared-types';
+import type {LocalGoal} from '../lib/local-ledger';
+import {formatGoalAmount,legacyGoalSummary,type GoalSummary} from '../lib/goal-summary';
+import {visualTone} from './visual-tone';
+import {SceneArt} from './scene-art';
+export const displayAmount= formatGoalAmount;
+export function GoalProgressRing({name,progressPct}:{name:string;progressPct:string}){
+ const ringId=useId();const pct=Math.max(0,Math.min(100,Number(progressPct)));
+ return <div className="goal-progress-ring" role="progressbar" aria-label={`${name} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}><svg viewBox="0 0 88 88" aria-hidden="true" focusable="false"><defs><linearGradient id={ringId} x1="0" y1="0" x2="1" y2="1"><stop stopColor="var(--item-start)"/><stop offset="1" stopColor="var(--item-end)"/></linearGradient></defs><circle className="ring-track" cx="44" cy="44" r="38"/><circle style={{stroke:`url(#${ringId})`}} className="ring-value" cx="44" cy="44" r="38" pathLength="100" strokeDasharray={`${pct} 100`} transform="rotate(-90 44 44)"/></svg><strong aria-hidden="true">{new Decimal(progressPct).toFixed(2,Decimal.ROUND_DOWN)}%</strong></div>;
 }
-export function GoalCard({
-  goal,
-  plan,
-  compact = false,
-  source = "Local simulation",
-}: {
-  goal: LocalGoal;
-  plan?: GoalMetadata;
-  compact?: boolean;
-  source?: string;
-}) {
-  const ringId = useId();
-  const current = DemoPriceProvider.value(
-    goal.position_units,
-    plan?.currency ?? "ZIG",
-  );
-  let result;
-  try {
-    result = plan
-      ? evaluateGoal({
-          targetValue: plan.targetValue,
-          currentValue: current,
-          currentDate: new Date().toISOString().slice(0, 10),
-          targetDate: plan.targetDate,
-          plannedMonthlyContribution: plan.monthlyContribution,
-          annualReturnAssumption: "0",
-        })
-      : undefined;
-  } catch {
-    /* A stale or out-of-range plan must not block access to financial state. */
-  }
-  return (
-    <article className={`goal-card destination-card${compact ? " compact-goal" : ""}`} data-tone={visualTone(goal.id)}>
-      <div className="goal-card-art"><SceneArt scene={plan?.category === "Travel" ? "mountains" : plan?.category === "First Home" ? "home" : "garden"}/><span>{plan?.category ?? "Private goal"}</span></div>
-      <div className="card-top">
-        <span className="category-icon" aria-hidden="true">
-          {plan?.category === "Travel"
-            ? "↗"
-            : plan?.category === "First Home"
-              ? "⌂"
-              : plan?.category === "Education"
-                ? "✧"
-                : "◎"}
-        </span>
-        <span className="eyebrow">{plan?.category ?? "Plan unavailable"}</span>
-        <span className="badge" data-health={goal.status === "closed" ? "CLOSED" : result?.fundingHealth}>
-          {goal.status === "closed"
-            ? "Closed"
-            : (result?.fundingHealth.replaceAll("_", " ") ?? "Recover plan")}
-        </span>
-      </div>
-      <h2>
-        <Link href={`/app/goals/${goal.id}`}>
-          {plan?.name ?? `Goal #${goal.id}`}
-        </Link>
-      </h2>
-      <p className="goal-value">
-        {displayAmount(current, plan?.currency ?? "ZIG")}
-        <span>
-          {" "}
-          /{" "}
-          {plan
-            ? displayAmount(plan.targetValue, plan.currency)
-            : "No target saved"}
-        </span>
-      </p>
-      {result && (
-        <>
-          <div className="goal-progress">
-            <div
-              className="goal-progress-ring"
-              role="progressbar"
-              aria-label={`${plan?.name} progress`}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.min(100, Number(result.progressPct))}
-            >
-              <svg viewBox="0 0 88 88" aria-hidden="true" focusable="false">
-                <defs><linearGradient id={ringId} x1="0" y1="0" x2="1" y2="1"><stop stopColor="var(--item-start)"/><stop offset="1" stopColor="var(--item-end)"/></linearGradient></defs>
-                <circle className="ring-track" cx="44" cy="44" r="38" />
-                <circle style={{ stroke: `url(#${ringId})` }} className="ring-value" cx="44" cy="44" r="38" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 44 44)" />
-              </svg>
-              <strong aria-hidden="true">{new Decimal(result.progressPct).toFixed(1)}%</strong>
-            </div>
-            <div className="goal-progress-caption">
-              <strong>Of your goal funded</strong>
-              <span>Target {plan?.targetDate}</span>
-            </div>
-          </div>
-          <div className="card-bottom">
-            <div>
-              <small>Monthly plan</small>
-              <strong>
-                {displayAmount(plan!.monthlyContribution, plan!.currency)}
-              </strong>
-            </div>
-            <div>
-              <small>
-                Required{" "}
-                {result.requiredContributionTiming === "immediate"
-                  ? "now"
-                  : "monthly"}
-              </small>
-              <strong>
-                {displayAmount(
-                  result.fundingRequiredContribution,
-                  plan!.currency,
-                )}
-              </strong>
-            </div>
-          </div>
-        </>
-      )}
-      <div className="card-footer">
-        <small>
-          {source} · {plan && plan.currency !== "ZIG" ? "Demo valuation · " : ""}Idle ·{" "}
-          {goal.status === "active"
-            ? "Available to withdraw"
-            : "History preserved"}
-        </small>
-        <Link href={`/app/goals/${goal.id}`} className="text-link">
-          Open Goal →
-        </Link>
-      </div>
-    </article>
-  );
+export function GoalSummaryCard({summary:g,compact=false}:{summary:GoalSummary;compact?:boolean}){
+ return <article className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
+  <div className="goal-card-art"><SceneArt scene={g.scene}/><span>{g.type}</span></div>
+  <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span></div>
+  <h2><Link href={g.href}>{g.name}</Link></h2>
+  <p className="goal-value">{formatGoalAmount(g.current,g.currency)}<span> / {g.target?formatGoalAmount(g.target,g.currency):'No target saved'}</span></p>
+  <div className="goal-progress"><GoalProgressRing name={g.name} progressPct={g.progressPct}/><div className="goal-progress-caption"><strong>{g.currency==='milestones'?'Of your journey complete':'Of your goal funded'}</strong><span>{g.targetDate?`Target ${g.targetDate}`:g.remaining?`${formatGoalAmount(g.remaining,g.currency)} remaining`:'Recover your plan'}</span></div></div>
+  {g.valuationLabel&&<p className="fine valuation-state">{g.valuationLabel}</p>}
+  <div className="card-bottom">{g.metadata.map(m=><div key={m.label}><small>{m.label}</small><strong>{m.value}</strong></div>)}</div>
+  <div className="card-footer"><small>{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</small><Link href={g.href} className="text-link">Open Goal →</Link></div>
+ </article>;
 }
+export function GoalCard({goal,plan,compact=false,source='Local simulation'}:{goal:LocalGoal;plan?:GoalMetadata;compact?:boolean;source?:string}){return <GoalSummaryCard summary={legacyGoalSummary(goal,plan,source)} compact={compact}/>;}

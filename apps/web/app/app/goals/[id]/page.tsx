@@ -7,8 +7,9 @@ import { evaluateGoal } from "@zigoals/goal-engine";
 import { formatUnits, parseUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "../../../../components/goal-provider";
 import { GoalWizard } from "../../../../components/goal-wizard";
-import { displayAmount } from "../../../../components/goal-card";
-import { DemoPriceProvider } from "../../../../lib/valuation";
+import { displayAmount, GoalProgressRing } from "../../../../components/goal-card";
+import { legacyGoalSummary } from "../../../../lib/goal-summary";
+import { localDate } from "../../../../lib/local-date";
 import { visualTone } from "../../../../components/visual-tone";
 import { SceneArt } from "../../../../components/scene-art";
 import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
@@ -37,15 +38,13 @@ export default function GoalDetail({
         </Link>
       </section>
     );
-  const current = DemoPriceProvider.value(
-    goal.position_units,
-    plan?.currency ?? "ZIG",
-  );
+  const summary=legacyGoalSummary(goal,plan,s.mode==='local'?'Local simulation':'Future Goal Manager');
+  const current = summary.current;
   const evaluation = plan
     ? {
         targetValue: plan.targetValue,
         currentValue: current,
-        currentDate: new Date().toISOString().slice(0, 10),
+        currentDate: localDate(),
         targetDate: plan.targetDate,
         plannedMonthlyContribution: plan.monthlyContribution,
       }
@@ -93,7 +92,7 @@ export default function GoalDetail({
       <div className="page-heading">
         <div>
           <p className="eyebrow">
-            {plan?.category ?? "Private plan missing"} · {goal.status}
+            {summary.type} · {summary.status} · {summary.source}
           </p>
           <h1>{plan?.name ?? `Goal #${id}`}</h1>
           <p>
@@ -110,7 +109,7 @@ export default function GoalDetail({
       </div>
       <div className="detail-grid">
         <section className="panel progress-panel">
-          <div className="detail-destination-art"><SceneArt scene={plan?.category === "Travel" ? "mountains" : plan?.category === "First Home" ? "home" : "horizon"}/></div>
+          <div className="detail-destination-art"><SceneArt scene={summary.scene}/></div>
           <p className="eyebrow">Your progress</p>
           <p className="hero-amount">
             {displayAmount(current, plan?.currency ?? "ZIG")}
@@ -123,20 +122,10 @@ export default function GoalDetail({
           {baselineError && <p role="alert">{baselineError}</p>}
           {result && plan && (
             <>
-              <div
-                className="goal-progress-ring detail-orbit"
-                role="progressbar"
-                aria-label="Goal progress"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.min(100, Number(result.progressPct))}
-              >
-                <svg viewBox="0 0 200 200" aria-hidden="true"><circle className="detail-orbit-guide" cx="100" cy="100" r="96"/><circle className="ring-track" cx="100" cy="100" r="82"/><circle className="ring-value" cx="100" cy="100" r="82" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 100 100)"/></svg>
-                <strong aria-hidden="true">{new Decimal(result.progressPct).toFixed(1)}%<small>of your destination</small></strong>
-              </div>
+              <div className="legacy-shared-orbit"><GoalProgressRing name={summary.name} progressPct={summary.progressPct}/></div>
               <div className="card-row">
                 <strong>
-                  {new Decimal(result.progressPct).toFixed(1)}% complete
+                  {new Decimal(summary.progressPct).toFixed(2,Decimal.ROUND_DOWN)}% complete
                 </strong>
                 <span>
                   {displayAmount(result.amountRemaining, plan.currency)} to go
