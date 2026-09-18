@@ -55,3 +55,12 @@
 @media(forced-colors:active) { .nebula-number { background:none; -webkit-text-fill-color:CanvasText; }.platform-workspace progress { appearance:auto; } }
 /* The legacy mobile header orders generic nav last; workspace steps stay in reading order. */
 .platform-workspace > nav { order:0; }
+/* Unified orchestration uses the original creator and card tokens. */
+.unified-wizard { min-width:0; }
+.unified-wizard .wizard-content,.unified-wizard .form-grid > * { min-width:0; }
+.unified-wizard input,.unified-wizard select,.unified-wizard textarea { max-width:100%; }
+.unified-wizard .funding-choices { border:1px solid var(--cosmic-edge); border-radius:13px; padding:1rem; margin:1rem 0; }
+.unified-wizard .checkbox { display:flex; align-items:center; gap:.7rem; padding:.5rem 0; }
+.unified-wizard .checkbox input { width:auto; flex-shrink:0; }
+.unified-wizard .setup-next,.unified-wizard dd { overflow-wrap:anywhere; }
+.allocation-owners .platform-position-row { display:grid; gap:.4rem; }

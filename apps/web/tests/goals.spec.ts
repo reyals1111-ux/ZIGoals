@@ -107,11 +107,12 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await page.getByRole("button", { name: "Export Goal Data" }).click();
   expect((await download).suggestedFilename()).toContain("local-simulation");
   await page.goto("/app/goals/new");
-  await page.getByRole("button", { name: "Travel", exact: true }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Private goal name").fill("Blocked demo creation");
+  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByLabel("Goal name", {exact:true}).fill("Blocked demo creation");
   await page.getByLabel("Target amount").fill("1200");
-  for (let step = 0; step < 3; step++)
+  await page.getByRole("button", {name:"Continue"}).click();
+  await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
+  for (let step = 0; step < 2; step++)
     await page.getByRole("button", { name: "Continue" }).click();
   await expect(
     page.getByRole("button", { name: "Create goal", exact: true }),
@@ -223,11 +224,11 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   ).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.getByRole("link", { name: "Plan my first goal" }).click();
-  await page.getByRole("button", { name: "Travel", exact: true }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Private goal name").fill("Kyoto in spring");
+  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByLabel("Goal name", {exact:true}).fill("Kyoto in spring");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
   await page.getByLabel("Planned starting amount").fill("100");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();

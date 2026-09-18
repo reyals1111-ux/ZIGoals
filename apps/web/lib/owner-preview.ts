@@ -3,7 +3,7 @@ import {allocate,allocationBalance,assetMatches,platformSchema,positionSync,resc
 export function availableNativeStake(s:Platform,g:PrivateGoal){
  return s.positions.filter(p=>g.type==='QUANTITY'&&g.asset==='ZIG'&&p.network===g.network&&p.providerId==='native-zig'&&p.sourceType==='NATIVE_STAKING'&&p.verification==='VERIFIED_READ_ONLY'&&positionSync(p)==='CURRENT'&&assetMatches(g,p)&&BigInt(allocationBalance(s,p.id).unallocated)>0n).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
 }
-export function quickAllocateStake(raw:Platform,goalId:string):Platform{
+export function quickAllocateStake(raw:Platform,goalId:string,positionIds?:readonly string[]):Platform{
  let s=platformSchema.parse(raw);const g=s.goals.find(g=>g.id===goalId);
  if(!g||g.status==='closed'||g.type!=='QUANTITY'||g.asset!=='ZIG')throw Error('Choose an open ZIG quantity Goal.');
  // A deficit must be resolved before adding new intentions to this Goal.
@@ -15,7 +15,7 @@ export function quickAllocateStake(raw:Platform,goalId:string):Platform{
  },0n);
  let remainingExact=BigInt(rescaleUnits(g.target,g.decimals,18))-reserved;
  if(remainingExact<=0n)return s;
- for(const p of availableNativeStake(s,g)){
+ for(const p of availableNativeStake(s,g).filter(p=>!positionIds||positionIds.includes(p.id))){
   const remaining=BigInt(rescaleUnits(remainingExact.toString(),18,p.decimals));
   const available=BigInt(allocationBalance(s,p.id).unallocated),add=remaining<available?remaining:available;
   if(add===0n)continue;

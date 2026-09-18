@@ -15,10 +15,12 @@ export function GoalCard({
   goal,
   plan,
   compact = false,
+  source = "Local simulation",
 }: {
   goal: LocalGoal;
   plan?: GoalMetadata;
   compact?: boolean;
+  source?: string;
 }) {
   const ringId = useId();
   const current = DemoPriceProvider.value(
@@ -124,13 +126,13 @@ export function GoalCard({
       )}
       <div className="card-footer">
         <small>
-          {plan && plan.currency !== "ZIG" ? "Demo valuation · " : ""}Idle ·{" "}
+          {source} · {plan && plan.currency !== "ZIG" ? "Demo valuation · " : ""}Idle ·{" "}
           {goal.status === "active"
             ? "Available to withdraw"
             : "History preserved"}
         </small>
         <Link href={`/app/goals/${goal.id}`} className="text-link">
-          View goal →
+          Open Goal →
         </Link>
       </div>
     </article>

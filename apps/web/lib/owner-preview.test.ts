@@ -42,3 +42,8 @@ it('subtracts existing higher-precision allocations before rounding remaining so
  s.allocations=[{goalId:'1',positionId:'a',quantity:'500000000000'}];
  const next=quickAllocateStake(s,'1');expect(next.allocations).toEqual([{goalId:'1',positionId:'a',quantity:'1000000000000'}]);
 });
+it('restricts an explicitly scoped quick allocation to the selected account Positions',()=>{
+ const s=fixture();s.positions[0]!.account='other-account';
+ const next=quickAllocateStake(s,'1',['a']);
+ expect(next.allocations).toEqual([{goalId:'1',positionId:'a',quantity:'200000000000'}]);
+});

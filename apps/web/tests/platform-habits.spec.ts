@@ -1,9 +1,10 @@
 import {test,expect} from '@playwright/test';
+import {localDate} from '../lib/local-date';
 import {createHabit,emptyHabitData} from '../lib/habits';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
 test('a linked contribution Habit records behavior but never adds financial progress',async({page})=>{
  const position=positionSchema.parse({id:'example',providerId:'Example manual reserve',sourceType:'MANUAL',network:'manual',account:'local',asset:'ZIG',denom:'azig',decimals:18,quantity:'80000000000000000000',verification:'MANUAL',liquidity:'LIQUID',observedAt:'2026-09-17T00:00:00Z',provenance:'Fictional fixture'});
- const goal=privateGoalSchema.parse({id:'77',name:'Example linked Goal',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'200000000000000000000',notes:'',createdAt:'2026-09-17T00:00:00Z',milestones:[],plan:{amount:'10000000000000000000',asset:'ZIG',decimals:18,cadence:'monthly',nextDate:'2026-09-17',active:true}});
+ const goal=privateGoalSchema.parse({id:'77',name:'Example linked Goal',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'200000000000000000000',notes:'',createdAt:'2026-09-17T00:00:00Z',milestones:[],plan:{amount:'10000000000000000000',asset:'ZIG',decimals:18,cadence:'monthly',nextDate:localDate(),active:true}});
  await page.addInitScript(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),{...emptyPlatform(),positions:[position],goals:[goal],allocations:[{goalId:'77',positionId:'example',quantity:position.quantity}]});
  await page.goto('/app/goals/tracked/77');await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
  await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
@@ -26,7 +27,7 @@ test('a linked contribution Habit records behavior but never adds financial prog
  const s=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(s.positions[0].quantity).toBe(position.quantity);expect(s.allocations[0].quantity).toBe(position.quantity);expect(s.goals[0].plan.habitId).toBeTruthy();
 });
 
-function simpleGoal(habitId?:string){return privateGoalSchema.parse({id:'88',name:'Recovery Goal',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'100000000000000000000',notes:'',createdAt:'2026-09-17T00:00:00Z',milestones:[],plan:{amount:'10000000000000000000',asset:'ZIG',decimals:18,cadence:'monthly',nextDate:'2026-09-17',active:true,habitId}});}
+function simpleGoal(habitId?:string){return privateGoalSchema.parse({id:'88',name:'Recovery Goal',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'100000000000000000000',notes:'',createdAt:'2026-09-17T00:00:00Z',milestones:[],plan:{amount:'10000000000000000000',asset:'ZIG',decimals:18,cadence:'monthly',nextDate:localDate(),active:true,habitId}});}
 test('a stale cross-store reference never offers reconciliation or mutates an unrelated Habit',async({page})=>{
  const otherId='11111111-1111-4111-8111-111111111111';
  const habits=createHabit(emptyHabitData(),{title:'Independent habit',category:'Personal',description:'Keep me',notes:'Historical context',schedule:{kind:'daily'},target:1,goalLink:{chainId:'private',owner:'local',goalId:'999'}},new Date('2026-09-16T12:00:00Z'),otherId);

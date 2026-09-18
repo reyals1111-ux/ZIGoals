@@ -64,7 +64,7 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
 export function PrivateBackups() {
   const habits = useHabits(), health = useHealth(), platform = usePlatform();
   return <div className="private-backup-grid">
-    <ModuleBackup name="Positions and Goals" schema={platformSchema} store={platform} describe={data => `${data.goals.length} tracked goals · ${data.positions.length} positions · ${data.allocations.length} allocations · plans and snapshots included`}/>
+    <ModuleBackup name="Positions and Goals" schema={platformSchema} store={platform} describe={data => `${data.goals.length} goals · ${data.positions.length} positions · ${data.allocations.length} allocations · plans and snapshots included`}/>
     <ModuleBackup name="Habits" schema={habitDataSchema} store={habits} describe={data => `${data.habits.length} habits · ${data.habits.reduce((sum, habit) => sum + habit.entries.length, 0)} check-ins`}/>
     <ModuleBackup name="Health" schema={healthSchema} store={health} describe={data => `${data.foods.length} foods · ${data.recipes.length} recipes · ${data.diary.length} meals · ${data.weights.length} weights · ${data.activity.length} activities`}/>
   </div>;

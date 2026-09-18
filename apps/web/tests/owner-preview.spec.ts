@@ -3,7 +3,7 @@ import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
 const fixture=()=>({...emptyPlatform(),positions:['a','b'].map((id,i)=>positionSchema.parse({id,providerId:'native-zig',sourceType:'NATIVE_STAKING',network:'zigchain-1',account:'fictional-preview-account',asset:'ZIG',denom:'uzig',decimals:6,quantity:i?'63559957014':'200000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'BONDED',provenance:'Fictional owner-preview fixture; no live chain data',validator:{address:`fictional-validator-${id}`,name:`Example validator ${id.toUpperCase()}`,status:'BONDED',commission:'0.05',votingTokens:'1000000000000'}})),goals:[privateGoalSchema.parse({id:'81',name:'300K GOAL',network:'zigchain-1',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'300000000000000000000000',notes:'Fictional preview data',createdAt:new Date().toISOString(),milestones:[]})]});
 test('owner setup: stake allocation, contribution plan and supporting Habit stay private',async({page},info)=>{
  await page.goto('/app/goals/tracked');await page.evaluate(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),fixture());await page.reload();
- await page.getByRole('link',{name:'Manage & allocate →'}).click();
+ await page.getByRole('link',{name:'Open Goal →'}).click();
  await expect(page.getByRole('navigation',{name:'Goal setup'})).toBeVisible();
  const financial:string[]=[];page.on('request',r=>{if(r.method()==='POST'||/rpc|api\/positions/.test(r.url()))financial.push(r.url());});
  await page.evaluate(()=>{Object.defineProperty(window,'keplr',{get(){throw Error('No wallet authority permitted');}});});
@@ -46,7 +46,7 @@ test('responsive owner preview captures',async({page},info)=>{
    await page.locator('.platform-workspace,.staking-card').first().waitFor();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name} ${width}`).toBe(true);
    if(name==='goal-detail')expect(await page.locator('.goal-setup').evaluate(el=>el.getBoundingClientRect().top<document.querySelector('#tracked-progress')!.getBoundingClientRect().top)).toBe(true);
-   if(name==='tracked-goals')expect(await page.getByRole('navigation',{name:'Tracked Goal filters'}).evaluate(el=>el.getBoundingClientRect().top<document.querySelector('.goal-grid')!.getBoundingClientRect().top)).toBe(true);
+   if(name==='tracked-goals')expect(await page.getByRole('navigation',{name:'Goal views'}).evaluate(el=>el.getBoundingClientRect().top<document.querySelector('.goal-grid')!.getBoundingClientRect().top)).toBe(true);
    if(process.env.RUN81_CAPTURE==='1'){await page.screenshot({path:info.outputPath(`${name}-${width}.png`),fullPage:true,animations:'disabled',scale:'css'});if(name==='today')await page.locator('.staking-card').screenshot({path:info.outputPath(`staking-card-${width}.png`),animations:'disabled',scale:'css'});}
   }
  }

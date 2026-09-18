@@ -31,6 +31,7 @@ export type ContributionPlan = z.infer<typeof contributionSchema>;
 export const privateGoalSchema = z.object({
  id:z.string().regex(/^\d+$/).max(80),name:z.string().trim().min(1).max(100),
  network:z.enum(['zigchain-1','zig-test-2']).default('zigchain-1'),
+ category:z.enum(['Emergency Fund','First Home','Financial Freedom','Travel','Education','Custom']).optional(),
  type:z.enum(['QUANTITY','VALUE','REWARD','PROJECT']),status:z.enum(['active','completed','closed']),
  asset:z.string().min(1).max(30),denom:id,decimals,target:units.refine(v=>BigInt(v)>0n),
  notes:z.string().max(2000),createdAt:at,targetDate:date.optional(),plan:contributionSchema.optional(),
@@ -53,8 +54,18 @@ export const platformSchema = platformBase.superRefine((s,c)=>{
   if(p.sourceType==='MANUAL'&&p.verification!=='MANUAL') issue('Manual positions cannot be verified.');
   if(p.principal && p.sourceType==='NATIVE_STAKING' && p.principal!==p.quantity) issue('Stake principal mismatch.');
  }
-});
-export type Platform = z.infer<typeof platformSchema>;
+}).transform(reconcileGoalStatuses);
+export type Platform = z.infer<typeof platformBase>;
+/** Derived on every read/import; next explicit edit persists the correction.
+ * Closed state and every observation/allocation remain intact. */
+export function reconcileGoalStatuses(s:Platform):Platform {
+ return {...s,goals:s.goals.map(g=>{
+  if(g.status==='closed')return g;
+  const p=goalProgress(s,g.id);
+  const status:PrivateGoal['status']=BigInt(p.current)>=BigInt(p.target)?'completed':'active';
+  return g.status===status?g:{...g,status};
+ })};
+}
 export function emptyPlatform(): Platform { return {schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]}; }
 /** Existing contract Goals, journal and simulations stay in their original scoped stores.
  * Migration is additive: absence -> empty v1; malformed/newer content never resets. */

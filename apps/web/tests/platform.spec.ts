@@ -6,10 +6,11 @@ test('private position allocation and plans survive reload without financial or 
  await page.getByLabel('Position quantity').fill('100');
  await page.getByRole('button',{name:'Save manual position',exact:true}).click();
  await expect(page.getByText('Example reserve',{exact:true})).toBeVisible();
- await page.goto('/app/goals/tracked');
+ await page.goto('/app/goals/new');
  await page.getByLabel('Goal name',{exact:true}).fill('Example destination');
  await page.getByLabel('Target amount',{exact:true}).fill('200');
- await page.getByRole('button',{name:'Create tracked goal',exact:true}).click();
+ for(let step=0;step<3;step++)await page.getByRole('button',{name:'Continue →'}).click();
+ await page.getByRole('button',{name:'Create goal',exact:true}).click();
  await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
  await page.getByLabel('Allocation quantity').fill('80');
  await page.getByRole('button',{name:'Save allocation',exact:true}).click();
