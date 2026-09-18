@@ -33,6 +33,7 @@ export const privateGoalSchema = z.object({
  id:z.string().regex(/^\d+$/).max(80),name:z.string().trim().min(1).max(100),
  network:z.enum(['zigchain-1','zig-test-2']).default('zigchain-1'),
  category:z.enum(['Emergency Fund','First Home','Financial Freedom','Travel','Education','Custom']).optional(),
+ pinned:z.boolean().optional(),locked:z.boolean().optional(),
  type:z.enum(['QUANTITY','VALUE','REWARD','PROJECT']),status:z.enum(['active','completed','closed']),
  asset:z.string().min(1).max(30),denom:id,decimals,target:units.refine(v=>BigInt(v)>0n),
  notes:z.string().max(2000),createdAt:at,targetDate:date.optional(),plan:contributionSchema.optional(),
@@ -40,7 +41,7 @@ export const privateGoalSchema = z.object({
 }).strict();
 export type PrivateGoal = z.infer<typeof privateGoalSchema>;
 const allocationSchema = z.object({goalId:id,positionId:id,quantity:units}).strict();
-const platformBase = z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-platform'),
+const platformBase = z.object({legacyGoalUi:z.record(z.string(),z.object({pinned:z.boolean().optional(),locked:z.boolean().optional(),archived:z.boolean().optional()}).strict()).optional(),schemaVersion:z.literal(1),kind:z.literal('zigoals-platform'),
  positions:z.array(positionSchema).max(1000),goals:z.array(privateGoalSchema).max(200),allocations:z.array(allocationSchema).max(2000),
  watchScope:z.object({network:id,account:id}).strict().optional(),
  aprAssumptions:z.array(z.object({network:id,account:id,percent:z.string().regex(/^(0|[1-9]\d{0,2})(\.\d{1,6})?$/).refine(v=>Number(v)<=100)}).strict()).max(1000).optional(),
@@ -90,6 +91,7 @@ export function rescaleUnits(quantity:string,from:number,to:number):string {
 export function allocate(raw:Platform,goalId:string,positionId:string,quantity:string):Platform {
  const s=platformSchema.parse(raw);units.parse(quantity);
  const goal=s.goals.find(g=>g.id===goalId),p=s.positions.find(p=>p.id===positionId);
+ if(goal?.locked)throw Error('Unlock this Goal before editing.');
  if(!goal||goal.status==='closed'||!p)throw Error('Choose an open Goal and available Position.');
  if(p.network!=='manual'&&p.network!==goal.network)throw Error('Position and Goal network must match.');
  if(goal.type==='PROJECT')throw Error('Projects use milestones, not financial allocations.');
@@ -101,7 +103,7 @@ export function allocate(raw:Platform,goalId:string,positionId:string,quantity:s
  if(others+BigInt(quantity)>BigInt(p.quantity)&&BigInt(quantity)>=previous)throw Error('Allocation exceeds observed units. Reduce allocations to resolve the deficit.');
  return platformSchema.parse({...s,allocations:[...s.allocations.filter(a=>a.goalId!==goalId||a.positionId!==positionId),...(quantity==='0'?[]:[{goalId,positionId,quantity}])]});
 }
-export function closeGoal(s:Platform,id:string):Platform {return platformSchema.parse({...s,goals:s.goals.map(g=>g.id===id?{...g,status:'closed'}:g),allocations:s.allocations.filter(a=>a.goalId!==id)});}
+export function closeGoal(s:Platform,id:string):Platform {if(s.goals.find(g=>g.id===id)?.locked)throw Error('Unlock this Goal before editing.');return platformSchema.parse({...s,goals:s.goals.map(g=>g.id===id?{...g,status:'closed'}:g),allocations:s.allocations.filter(a=>a.goalId!==id)});}
 /** Verified observations expire after 15 minutes; old evidence remains historical, never erased. */
 export const SNAPSHOT_FRESH_MS=15*60*1000;
 export function snapshotIsStale(observedAt:string,now=Date.now()):boolean {
@@ -238,4 +240,19 @@ export function markObservationError(s:Platform,network:string,account:string):P
 /** Fetch only when an allocated, open USD Value Goal can consume the supported public pair. */
 export function needsMarketQuotes(s:Platform):boolean {
  return s.goals.some(g=>g.type==='VALUE'&&g.status!=='closed'&&g.asset==='USD'&&s.allocations.some(a=>a.goalId===g.id&&BigInt(a.quantity)>0n&&s.positions.some(p=>p.id===a.positionId&&p.network===g.network&&p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6)));
+}
+
+/** UI locks guard every private-store mutation, including stale forms in other tabs. */
+export function assertGoalEditsUnlocked(before:Platform,after:Platform):void {
+ for(const goal of before.goals.filter(g=>g.locked)){
+  const next=after.goals.find(g=>g.id===goal.id);
+  const content=(g:PrivateGoal)=>{const {locked,pinned,status,...rest}=g;void locked;void pinned;void status;return rest;};
+  if(!next||JSON.stringify(content(goal))!==JSON.stringify(content(next))||
+    (next.status==='closed'&&goal.status!=='closed')||
+    JSON.stringify(before.allocations.filter(a=>a.goalId===goal.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===goal.id)))throw Error('Unlock this Goal before editing.');
+ }
+}
+export function deletePrivateGoal(s:Platform,id:string):Platform {
+ if(s.goals.find(g=>g.id===id)?.locked)throw Error('Unlock this Goal before deleting.');
+ return platformSchema.parse({...s,goals:s.goals.filter(g=>g.id!==id),allocations:s.allocations.filter(a=>a.goalId!==id)});
 }
