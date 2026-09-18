@@ -9,9 +9,12 @@ const at = z.iso.datetime();
 const decimals = z.number().int().min(0).max(18);
 export const SOURCE_TYPES = ['WALLET_LIQUID','NATIVE_STAKING','NATIVE_UNBONDING','NATIVE_REWARDS','GOAL_MANAGER','MANUAL','LIQUID_STAKING','VAULT','EXTERNAL_ACCOUNT','IBC','EVM','RWA','OTHER_VERIFIED_PROVIDER'] as const;
 export const PROVIDER_STATES = ['VERIFIED_READ_ONLY','MANUAL','RESEARCH_ONLY','EXECUTION_READY','EXECUTABLE'] as const;
+export const ASSET_CLASSES=['Crypto','Stablecoins','Stocks','Precious Metals','Property','Cash','Custom'] as const;
+export type AssetClass=typeof ASSET_CLASSES[number];
 export const positionSchema = z.object({
  id, providerId:id, sourceType:z.enum(SOURCE_TYPES), network:id, account:id,
  asset:z.string().min(1).max(30), denom:id, quantity:units, decimals,
+ assetClass:z.enum(ASSET_CLASSES).optional(),
  valuation:z.object({value:units,currency:z.string().min(1).max(10),decimals,source:z.enum(['MANUAL','VERIFIED']),observedAt:at}).strict().optional(),
  principal:units.optional(), unclaimedRewards:units.optional(),
  liquidity:z.enum(['LIQUID','BONDED','UNBONDING','LOCKED','UNKNOWN']),

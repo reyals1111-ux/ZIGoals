@@ -33,6 +33,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ["/app/goals/positions", "Stake / Positions", "future"],
             ["/app/habits", "Habits", "habits"],
             ["/app/health", "Health", "health"],
+            ["/app/wealth", "Wealth", "wallet"],
             ["/app/ecosystem", "Ecosystem", "ecosystem"],
             ["/app/activity", "Activity", "activity"],
             ["/app/settings", "Settings", "settings"],
