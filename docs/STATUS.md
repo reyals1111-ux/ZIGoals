@@ -1,3 +1,18 @@
+# Run #8 / #8.1 release closure — 2026-09-19
+
+**CURRENT PUBLIC ALPHA — RUN #8/#8.1 MERGED + DEPLOYED + OWNER-VERIFIED LIVE.**
+PR #15 merged to exact `main` source `c3997841c7b07b6adcc430616c86e4e4728d3222`. Post-merge Milestone quality passed. The owner-approved Alpha rollout published Worker version `30468b51-fb8d-4f9e-bd6c-b36d4a9f89e5` with rollback `836e3ad7-af0a-46cd-8e32-e050d747e6f2` preserved before upload.
+
+Both official Alpha origins subsequently served the exact merged SHA and `PUBLIC_ALPHA_UNDEPLOYED`; the repository's complete nine-request production smoke passed, followed by owner browser acceptance of Wealth, Value Goal multi-asset progress, Today, Goals, Habits, Health, reload/reconnect and mobile behavior.
+
+Manual deployment run `35444908631` uploaded successfully but its immediate exact-source hostname check raced propagation and recorded `NEEDS_OWNER_REVIEW`. The later exact-source/full-smoke evidence proved the intended version live. GitHub Alpha deployment `6541222439` was therefore subsequently marked `success`. The original red Actions attempt is retained as historical evidence and was not rerun.
+
+Goal Manager / Code ID remain **NOT DEPLOYED**. Public Alpha remains simulation, private local data, watch-only/public reads and explicit wallet connection only. No contract upload/instantiation, staking transaction, financial signing or broadcast occurred.
+
+See [Run #8/#8.1 release closure](verification/run8-1-release/README.md).
+
+---
+
 # Run #8 superseding direction — 2026-09-17
 
 Run #8 is implemented on [draft PR #15](https://github.com/reyals1111-ux/ZIGoals/pull/15) with required local checks and all five hosted quality/reproducibility checks passing; owner review remains pending. See [delivery report](RUN_8_REPORT.md), [explicit partial/deferred scope](RUN_8_BETA_BACKLOG.md), and [verification](verification/run8/README.md). No merge or deployment occurred. Complete implementation scope is [the complete master brief](RUN_8_ASTRA_MASTER_PROMPT.md). V2.1 visuals and Health V1 are frozen. Goals, Positions, native staking read-only, allocations, projections, Habits Beta and Today are the active milestone. Prior references to Run #8 Health Beta/UI V3 are superseded.

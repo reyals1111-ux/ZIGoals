@@ -110,22 +110,37 @@ test.each(["", "Current Version ID: " + newVersion, output() + "\n" + output(), 
   "rejects missing, duplicate or wrong-target Wrangler output %#", value => expect(() => deployedVersion(value)).toThrow(),
 );
 
-function runtime({ fail, stateChange = false, cliCode = 0, wrangler = output() } = {}) {
-  const calls = []; const reports = []; let liveReads = 0;
-  return {
-    calls, reports,
-    io: {
-      checkSource: async () => { calls.push("source"); if (fail === "source") throw Error("main moved"); },
-      current: async () => {
-        calls.push("current"); liveReads++;
-        const changed = (stateChange && liveReads === 1) || liveReads > 1;
-        return { deploymentId: changed ? newDeployment : oldDeployment, versionId: changed ? newVersion : oldVersion };
-      },
-      publish: async () => { calls.push("publish"); return { code: cliCode, output: wrangler }; },
-      smoke: async () => { calls.push("smoke"); if (fail === "smoke") throw Error("bad CSP"); return [{ status: 200 }]; },
-      save: report => { reports.push(structuredClone(report)); },
+function runtime({
+  fail,
+  stateChange = false,
+  cliCode = 0,
+  wrangler = output(),
+  smokeFailures = 0,
+  smokeAttempts,
+} = {}) {
+  const calls = []; const reports = []; let liveReads = 0; let smokeReads = 0;
+  const io = {
+    checkSource: async () => { calls.push("source"); if (fail === "source") throw Error("main moved"); },
+    current: async () => {
+      calls.push("current"); liveReads++;
+      const changed = (stateChange && liveReads === 1) || liveReads > 1;
+      return { deploymentId: changed ? newDeployment : oldDeployment, versionId: changed ? newVersion : oldVersion };
     },
+    publish: async () => { calls.push("publish"); return { code: cliCode, output: wrangler }; },
+    smoke: async () => {
+      calls.push("smoke");
+      smokeReads++;
+      if (fail === "smoke") throw Error("bad CSP");
+      if (smokeReads <= smokeFailures)
+        throw Error("Hosted build commit differs from reviewed source");
+      return [{ status: 200 }];
+    },
+    sleep: async () => { calls.push("sleep"); },
+    smokeDelayMs: 0,
+    save: report => { reports.push(structuredClone(report)); },
   };
+  if (smokeAttempts !== undefined) io.smokeAttempts = smokeAttempts;
+  return { calls, reports, io };
 }
 const rollback = () => ({ deploymentId: oldDeployment, versionId: oldVersion });
 test("deploys once, verifies emitted version at 100%, smokes, then checks live state again", async () => {
@@ -134,6 +149,50 @@ test("deploys once, verifies emitted version at 100%, smokes, then checks live s
   expect(r.calls).toEqual(["source", "current", "source", "publish", "current", "smoke", "current"]);
   expect(report).toMatchObject({ status: "VERIFIED", rollbackVersionId: oldVersion, newVersionId: newVersion });
 });
+test("retries only the hosted exact-source propagation mismatch", async () => {
+  const r = runtime({ smokeFailures: 2 });
+  const report = await performDeployment(rollback(), r.io);
+
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(3);
+  expect(r.calls.filter(call => call === "sleep")).toHaveLength(2);
+  expect(report).toMatchObject({
+    status: "VERIFIED",
+    rollbackVersionId: oldVersion,
+    newVersionId: newVersion,
+  });
+});
+
+test("hosted exact-source propagation retry is bounded", async () => {
+  const r = runtime({ smokeFailures: 99, smokeAttempts: 3 });
+
+  await expect(performDeployment(rollback(), r.io))
+    .rejects.toThrow(/Hosted build commit differs from reviewed source/);
+
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(3);
+  expect(r.calls.filter(call => call === "sleep")).toHaveLength(2);
+  expect(r.reports.at(-1)).toMatchObject({
+    status: "NEEDS_OWNER_REVIEW",
+    rollbackVersionId: oldVersion,
+    newVersionId: newVersion,
+  });
+});
+
+test("real smoke/security failures are never retried", async () => {
+  const r = runtime({ fail: "smoke" });
+
+  await expect(performDeployment(rollback(), r.io))
+    .rejects.toThrow(/bad CSP/);
+
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(1);
+  expect(r.calls.filter(call => call === "sleep")).toHaveLength(0);
+  expect(r.reports.at(-1)).toMatchObject({
+    status: "NEEDS_OWNER_REVIEW",
+    rollbackVersionId: oldVersion,
+  });
+});
+
 test.each([{ fail: "source" }, { stateChange: true }])("does not publish after source or rollback drift %#", async options => {
   const r = runtime(options);
   await expect(performDeployment(rollback(), r.io)).rejects.toThrow();
