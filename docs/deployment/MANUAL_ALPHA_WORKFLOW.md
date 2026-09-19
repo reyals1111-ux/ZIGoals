@@ -32,7 +32,7 @@ GitHub documents [environment reviewer/branch protection](https://docs.github.co
 5. The build identity must contain the exact reviewed SHA, current app version, `dirty:false` and `PUBLIC_ALPHA_UNDEPLOYED`. The source tree must be clean, including untracked files. The strict manual configuration envelope rejects all unexpected fields, including routes, environments, extra bindings, build hooks, telemetry or CPU/asset drift.
 6. The workflow captures the current deployment/version through the [Cloudflare deployment API](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/deployments/methods/list/), confirms the version exists, and checks live Alpha health. Missing state, split traffic, unexpected responses or an unhealthy baseline stop publication. It logs the rollback ID and uploads the rollback evidence **before any upload**.
 7. After that artifact succeeds, publication rechecks the owner/environment protections, source/build identity, current remote main and unchanged rollback deployment. It executes exactly one fixed command: `pnpm --filter @zigoals/web exec opennextjs-cloudflare deploy --config wrangler.alpha.jsonc --name zigoals-alpha`.
-8. The workflow reads the new version from pinned Wrangler's structured output and checks that Cloudflare serves that exact version at 100%. It checks official Alpha routes, HTTP 200 without redirects, HTML security headers, per-response script nonces, V2.1 Today/Local Demo content, and the expected full build SHA plus public safety mode on Settings. It then confirms the deployment did not change during smoke checks.
+8. The workflow reads the new version from pinned Wrangler's structured output and checks that Cloudflare serves that exact version at 100%. It checks official Alpha routes, HTTP 200 without redirects, HTML security headers, per-response script nonces, V2.1 Today/Local Demo content, and the expected full build SHA plus public safety mode on Settings. Because the custom hostname can briefly lag the Cloudflare deployment API, only the exact `Hosted build commit differs from reviewed source` condition is retried for a bounded propagation window. Every retry rechecks that the same new Worker version is still live. All other HTTP/security/CSP/nonce failures remain immediate failures. Publication itself is never retried. It then confirms the deployment did not change during smoke checks.
 9. Read the Actions summary and download **alpha-deployment-RUN_ID-ATTEMPT**. It records `newVersionId`, `rollbackVersionId`, exact source, deployment IDs, smoke result and status. The earlier **alpha-rollback-RUN_ID-ATTEMPT** artifact survives even if publication is interrupted. Both retain evidence for 90 days; save it outside Actions for longer retention.
 10. Complete the short owner browser check: appearance, real Keplr, reload to Local Demo, explicit reconnect, Habit/Health persistence and mobile. Automated HTTP checks do not verify extension interaction or browser storage. Record owner acceptance separately.
 
@@ -43,7 +43,7 @@ The checked routes are `/app`, `/app/habits`, `/app/health`, `/app/goals`, `/app
 - **Before publication:** a failure blocks upload. Correct the setup or source, then use a new manual dispatch with the reviewed current main SHA. A changed main never silently substitutes newer source.
 - **After an upload is attempted:** a nonzero CLI exit, timeout, missing structured output, different live version or failed smoke leaves **NEEDS_OWNER_REVIEW**. A forcibly interrupted runner may leave **DEPLOYMENT_ATTEMPTED**. Either can mean the upload is already live. Do not blindly rerun; inspect Cloudflare deployment history and both evidence artifacts first.
 - **New version NOT_CONFIRMED:** the CLI did not provide a trustworthy new ID. `observedLiveVersionId` is only an observation and is never attributed to this run as a successful deployment. Rollback evidence remains the previously captured version.
-- **No automatic rollback or retry:** the owner decides recovery after inspecting the live state. Rerunning an old Actions run is rejected; use a fresh dispatch after resolving the cause.
+- **No automatic publication retry or rollback:** the owner decides recovery after inspecting the live state. The only automatic retry is the bounded, read-only post-publication exact-source propagation check described above; it never re-uploads. Rerunning an old Actions run is rejected; use a fresh dispatch after resolving the cause.
 - **Concurrency:** the whole workflow uses a fixed `zigoals-alpha-deployment` group with cancellation disabled. GitHub may replace a pending run when a newer dispatch arrives. This does not lock a human's local Wrangler command or another external integration. Avoid concurrent manual deployments. Main and Cloudflare checks are fresh reads, not an atomic cross-service transaction; an external change in the final request window remains possible and post-deploy verification detects discrepancies it observes.
 
 For owner-approved rollback, set `ROLLBACK_VERSION_ID` to the actual ID saved by this run, inspect that version, then run these commands from a clean local checkout with the pinned toolchain and owner credentials:
@@ -86,3 +86,18 @@ Current dedicated token policy:
 - no DNS, R2, D1, KV, Tail, email or unrelated provisioning permissions
 
 The legacy account-level Workers Scripts permission is currently required by Wrangler's static-assets upload API, so the workflow's fixed worker target, exact-main checks, owner environment approval and rollback capture remain important compensating controls.
+
+
+## Run #8/#8.1 live deployment evidence — 2026-09-19
+
+PR #15 merged to exact source `c3997841c7b07b6adcc430616c86e4e4728d3222` and post-merge Milestone quality passed.
+
+Manual Alpha run `35444908631` captured rollback `836e3ad7-af0a-46cd-8e32-e050d747e6f2`, then successfully uploaded Worker version `30468b51-fb8d-4f9e-bd6c-b36d4a9f89e5` and observed it live. Its immediate custom-hostname source smoke failed because the old hosted build was still briefly visible even though Cloudflare already reported the new Worker version.
+
+Both public Alpha origins subsequently served exact source `c3997841c7b07b6adcc430616c86e4e4728d3222` with `PUBLIC_ALPHA_UNDEPLOYED`. The complete repository production smoke then passed and the owner completed browser acceptance. No rerun or rollback occurred.
+
+GitHub deployment `6541222439` was subsequently marked `success` to record the verified live outcome while retaining the original failed Actions run as audit history.
+
+This incident motivated the bounded exact-source propagation retry described above. It does not weaken security validation or add any second publication attempt.
+
+See [release closure](../verification/run8-1-release/README.md).

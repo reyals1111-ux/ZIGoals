@@ -70,3 +70,16 @@ Review the draft PR, visual evidence, tests and explicitly partial backlog. Merg
 ## Run #8.1 — final owner-acceptance Goals UX and Value Goal polish
 
 Shared circular Goal cards and canonical summaries now unify Goals, Today and detail. Native ZIG/USD allocated wealth uses verified fixed-decimal market quotes with shared caching, stale continuity and no private payload. Existing Goal management is collapsed; Positions lead with wealth and compact wallet/APR utilities. [Implementation, validation, all 17 fictional screenshots and preview restart](verification/run8-1-owner/README.md). Health and Habit history preserved; PR #15 remains Draft, with no merge or deployment.
+
+
+## Post-report release closure — 2026-09-19
+
+The report above records Run #8 at review time. The later owner-approved release is now complete.
+
+PR #15 merged at `c3997841c7b07b6adcc430616c86e4e4728d3222`. Post-merge Milestone quality passed. Manual Alpha publication produced Worker version `30468b51-fb8d-4f9e-bd6c-b36d4a9f89e5` while retaining `836e3ad7-af0a-46cd-8e32-e050d747e6f2` as rollback.
+
+The deployment workflow's immediate hosted source check encountered a short propagation race after the new Worker version was already live. Both Alpha origins later returned the exact merged SHA, the repository's complete production smoke passed, and the owner completed browser acceptance. GitHub Alpha deployment `6541222439` is recorded as `success`; the original workflow run `35444908631` remains red as historical evidence of the transient post-publication verification mismatch.
+
+Full release evidence: [Run #8/#8.1 release closure](verification/run8-1-release/README.md).
+
+Goal Manager / Code ID remain not deployed and no financial signing, contract upload, instantiation or mainnet execution occurred.

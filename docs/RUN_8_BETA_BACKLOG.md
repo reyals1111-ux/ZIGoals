@@ -37,7 +37,8 @@ Complete scope and acceptance criteria remain in the [unaltered master prompt](R
 | Health Beta, all items in HEALTH_BETA_FUTURE_RUN.md | DEFERRED — BETA FOLLOW-UP | Potential Run #10; Health V1 remains frozen. |
 | Staking transactions, mainnet execution, native/location reminders | NOT AUTHORIZED | Separate future scope/approval. |
 | Goal Manager upload/instantiate | BLOCKED | Funding solved; upload whitelist and fresh exact-artifact approval still required. |
-| Merge, production deployment, DNS/email changes | NOT AUTHORIZED | Owner review and separate explicit authorization. |
+| Run #8/#8.1 merge and existing Alpha Worker deployment | COMPLETE — OWNER VERIFIED | PR #15 merged and exact-source Alpha release completed; see `verification/run8-1-release/README.md`. |
+| DNS/email changes | NOT AUTHORIZED | Separate explicit authorization remains required. |
 
 ## Run #8.1 — owner preview follow-up
 

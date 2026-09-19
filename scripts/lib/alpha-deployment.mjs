@@ -5,6 +5,10 @@ export const OWNER = "reyals1111-ux";
 export const WORKER = "zigoals-alpha";
 const SHA = /^[a-f0-9]{40}$/;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+const HOSTED_SOURCE_MISMATCH = "Hosted build commit differs from reviewed source";
+const DEFAULT_PROPAGATION_ATTEMPTS = 12;
+const DEFAULT_PROPAGATION_DELAY_MS = 5_000;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export function assertDispatch(env) {
   assert.equal(env.GITHUB_EVENT_NAME, "workflow_dispatch", "Manual dispatch required");
@@ -84,6 +88,37 @@ export function deployedVersion(jsonl) {
   return entry.version_id;
 }
 
+async function smokeAfterPropagation(live, io) {
+  const attempts = io.smokeAttempts ?? DEFAULT_PROPAGATION_ATTEMPTS;
+  const delayMs = io.smokeDelayMs ?? DEFAULT_PROPAGATION_DELAY_MS;
+  assert(Number.isInteger(attempts) && attempts >= 1, "Smoke attempts must be a positive integer");
+  assert(Number.isInteger(delayMs) && delayMs >= 0, "Smoke delay must be a non-negative integer");
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await io.smoke();
+    } catch (error) {
+      const retryable =
+        error instanceof Error &&
+        error.message === HOSTED_SOURCE_MISMATCH;
+
+      if (!retryable || attempt === attempts) throw error;
+
+      // Cloudflare can report the new Worker version before the custom hostname
+      // serves that exact build. Wait briefly, but never retry through a Worker
+      // version change or any other smoke/security failure.
+      await (io.sleep ?? wait)(delayMs);
+      assert.deepEqual(
+        await io.current(),
+        live,
+        "Alpha changed while waiting for hosted build propagation",
+      );
+    }
+  }
+
+  throw Error("Unreachable smoke retry state");
+}
+
 export async function performDeployment(rollback, io) {
   const report = {
     status: "NOT_DEPLOYED", worker: WORKER, rollbackVersionId: rollback.versionId,
@@ -109,7 +144,7 @@ export async function performDeployment(rollback, io) {
     report.newDeploymentId = live.deploymentId;
     io.save(report);
     assert.equal(live.versionId, report.newVersionId, "Live version differs from this run's deployed version");
-    report.smoke = await io.smoke();
+    report.smoke = await smokeAfterPropagation(live, io);
     assert.deepEqual(await io.current(), live, "Alpha changed during smoke checks");
     report.status = "VERIFIED";
     io.save(report);
