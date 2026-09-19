@@ -14,6 +14,11 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: at });
   await page.route("**/*", route => new URL(route.request().url()).hostname === "127.0.0.1" ? route.continue() : route.abort());
 });
+async function openGoalModule(page: Page, id: string) {
+  await page.locator(`#${id}`).evaluate((element) => {
+    (element as HTMLDetailsElement).open = true;
+  });
+}
 async function restore(page: Page, name: "Habits" | "Health", raw: string) {
   const panel = page.getByRole("region", { name: `${name} backup`, exact: true });
   await panel.getByText(`Restore ${name} from a file`, { exact: true }).click();
@@ -37,8 +42,10 @@ test("V1 upgrade, explicit module restore and linked Goal reload preserve all pr
   await expect(panel.getByRole("status")).toContainText("Habits restored");
   await page.goto("/app/goals/1");
   await expect(page.getByRole("heading", { name: "My existing V1 plan", exact: true })).toBeVisible();
+  await openGoalModule(page, "supporting-habits");
   await expect(page.getByRole("region", { name: "Habits supporting this Goal" })).toContainText("Weekly plan review");
   await page.reload();
+  await openGoalModule(page, "supporting-habits");
   await expect(page.getByRole("region", { name: "Habits supporting this Goal" })).toContainText("Weekly plan review");
   expect(await page.evaluate(keys => keys.map(key => localStorage.getItem(key)), [metadataKey, ledgerKey])).toEqual([JSON.stringify(goalPlan), JSON.stringify(ledger)]);
   expect(await page.evaluate(() => sessionStorage.getItem("zigoals:wallet-reconnect-hint:v1"))).toBe("owner-fixture-hint");

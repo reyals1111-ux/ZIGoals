@@ -29,6 +29,7 @@ function defaults(): GoalMetadata {
 export function GoalWizard({ recoverId }: { recoverId?: string }) {
   const s = useGoals();
   const [step, setStep] = useState(0);
+  const [openedMetadataRevision] = useState(() => s.metadataRevision);
   const [plan, setPlan] = useState<GoalMetadata>(()=>recoverId&&s.metadata?.goals[recoverId]?s.metadata.goals[recoverId]!:defaults());
   const [error, setError] = useState("");
   const steps = ["Purpose", "Target", "Plan", "Preferences", "Review"];
@@ -315,7 +316,8 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
                     plannedMonthlyContribution: valid.monthlyContribution,
                     annualReturnAssumption: "0",
                   });
-                  if (recoverId) s.recover(recoverId, valid);
+                  if (recoverId)
+                    void s.recover(recoverId, valid, openedMetadataRevision);
                   else void s.prepare({ kind: "create" }, valid);
                 } catch (e) {
                   setError(String(e));

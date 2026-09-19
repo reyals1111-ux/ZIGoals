@@ -13,7 +13,13 @@ async function seed(page: Page) {
   });
   await page.goto("/app/goals/1");
 }
+async function openGoalModule(page: Page, id: string) {
+  await page.locator(`#${id}`).evaluate((element) => {
+    (element as HTMLDetailsElement).open = true;
+  });
+}
 async function prepareFunds(page: Page, amount: string) {
+  await openGoalModule(page, "local-simulation");
   await page.getByLabel("Amount in ZIG").fill(amount);
   await page.getByRole("button", { name: "Add funds", exact: true }).click();
   await expect(
@@ -21,7 +27,8 @@ async function prepareFunds(page: Page, amount: string) {
   ).toBeVisible();
 }
 async function recovery(page: Page, name: string) {
-  await page.getByRole("button", { name: "Recreate private plan" }).click();
+  await openGoalModule(page, "edit-goal");
+  await page.getByRole("button", { name: "Edit private plan" }).click();
   await page.getByRole("button", { name: "Travel", exact: true }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Private goal name").fill(name);
@@ -45,10 +52,10 @@ test("two tabs cancel stale funds review and retain both sequential deposits", a
   await expect(
     other.getByRole("button", { name: "Confirm simulation" }),
   ).toHaveCount(0);
-  await expect(other.locator(".funding-panel > strong")).toHaveText("100 ZIG");
+  await expect(other.locator("#local-simulation .goal-module-body > strong")).toHaveText("100 ZIG");
   await prepareFunds(other, "50");
   await other.getByRole("button", { name: "Confirm simulation" }).click();
-  await expect(page.locator(".funding-panel > strong")).toHaveText("150 ZIG");
+  await expect(page.locator("#local-simulation .goal-module-body > strong")).toHaveText("150 ZIG");
   const saved = await page.evaluate(
     (key) => JSON.parse(localStorage.getItem(key)!),
     ledgerKey,
@@ -58,7 +65,7 @@ test("two tabs cancel stale funds review and retain both sequential deposits", a
     saved.activity.map((event: { action: string }) => event.action),
   ).toEqual(["Added funds", "Added funds", "Goal created"]);
 });
-test("another tab's recovered plan closes the stale recovery form", async ({
+test("another tab's recovered plan rejects a stale recovery save", async ({
   page,
   context,
 }) => {
@@ -71,9 +78,21 @@ test("another tab's recovered plan closes the stale recovery form", async ({
   await expect(
     other.getByRole("heading", { name: "Tab A plan", exact: true }),
   ).toBeVisible();
-  await expect(
-    other.getByRole("button", { name: "Save private plan" }),
-  ).toHaveCount(0);
+
+  // Tab B was opened against older metadata.
+  // It may remain visible, but its stale write must be rejected.
+  await other.getByRole("button", { name: "Save private plan" }).click();
+
+  // Safety invariant: the stale tab must never overwrite Tab A's newer plan.
+  await expect
+    .poll(async () =>
+      other.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key)!).goals["1"].name,
+        metadataKey,
+      ),
+    )
+    .toBe("Tab A plan");
+
   const saved = await other.evaluate(
     (key) => JSON.parse(localStorage.getItem(key)!),
     metadataKey,
@@ -276,5 +295,5 @@ test("simultaneous confirmations serialize and the losing tab must review again"
   ).toHaveCount(0);
   await prepareFunds(other, amount === "100000000000000000000" ? "50" : "100");
   await other.getByRole("button", { name: "Confirm simulation" }).click();
-  await expect(page.locator(".funding-panel > strong")).toHaveText("150 ZIG");
+  await expect(page.locator("#local-simulation .goal-module-body > strong")).toHaveText("150 ZIG");
 });

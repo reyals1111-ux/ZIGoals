@@ -36,6 +36,7 @@ export default function GoalDetail({
   const [scenario, setScenario] = useState("0");
   const [custom, setCustom] = useState("3");
   const [recover, setRecover] = useState(false);
+
   if (!s.loaded) return <p role="status">Loading goal…</p>;
   if (!goal)
     return (
