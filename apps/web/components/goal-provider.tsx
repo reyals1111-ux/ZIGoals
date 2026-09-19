@@ -710,8 +710,11 @@ function useGoalState() {
       setBusy(false);
     }
   }
-  async function recover(id: string, plan: GoalMetadata) {
-    const expectedRaw = metadataRaw.current;
+  async function recover(
+    id: string,
+    plan: GoalMetadata,
+    expectedRaw: string | null = metadataRaw.current,
+  ) {
     const current = revision.current;
     try {
       const saved = await withStorageLock(metadataKey(chain, owner), () => {
@@ -801,6 +804,7 @@ function useGoalState() {
         ? ("LOCAL_SIMULATION" as const)
         : ("TESTNET_CHAIN" as const),
     metadata,
+    metadataRevision: metadataRaw.current,
     error,
     message,
     status,

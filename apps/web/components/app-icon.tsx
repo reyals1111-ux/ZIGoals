@@ -1,5 +1,7 @@
 import { useId } from "react";
 const paths: Record<string, string> = {
+  home: "M3 11 12 3l9 8M5 10v11h14V10M9 21v-8h6v8",
+  star: "m12 3 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z",
   today: "M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
   goals: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0M12 10v4m-2-2h4",
   habits: "M6 4v4m0 4v8M12 4v9m0 4v3M18 4v2m0 4v10M4 8h4m2 5h4m2-7h4",

@@ -1246,3 +1246,13 @@ textarea { max-width: 100%; width: 100%; box-sizing: border-box; }
 /* Unbroken private goal names must not expand a mobile layout viewport. */
 h1, h2, h3 { overflow-wrap: anywhere; }
 .page-heading > div { min-width: 0; }
+
+/* Shared explanatory type; intentional eyebrows and badges retain their scale. */
+:root { --explanatory-size: 14px; --explanatory-leading: 1.5; }
+body .app-content .fine, body .goal-progress-caption span, body .goal-progress-caption strong,
+body .goal-card.unified-goal-card .card-footer small, body .card-bottom small,
+body .goal-management-module>summary small, body .goal-detail-facts dt,
+body .field, body .field>span, body .metadata, body .help-text,
+body .metric-note, body .wallet-subtitle {
+ font-size:var(--explanatory-size);line-height:var(--explanatory-leading);
+}

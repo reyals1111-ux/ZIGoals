@@ -1,3 +1,11 @@
+# Run #8 superseding direction — 2026-09-17
+
+Current implementation scope is [the complete master brief](../RUN_8_ASTRA_MASTER_PROMPT.md). V2.1 visuals and Health V1 are frozen. Goals, Positions, native staking read-only, allocations, projections, Habits Beta and Today are the active milestone. Prior references to Run #8 Health Beta/UI V3 are superseded.
+
+Owner-supplied new evidence: funding SOLVED (5,000 test ZIG); self-transfer 0.01 ZIG succeeded, hash 53216EEFF500DDD5D5A69B6EABF2E844ADC3988BE8D61CA277C1A979BCE5EA4C, height 7812205, sequence now 1. Post-transaction balance 4999997258125000000000 azig. Fee 2741875000000000 azig / 109675 gas wanted = 25000000000 azig/gas, versus configured 2500000000. No fee-policy change authorized without further evidence. Upload whitelist AnyOfAddresses excludes dedicated wallet; instantiate default Everybody does not authorize upload. Goal Manager/Code ID NOT DEPLOYED. No live financial execution, mainnet signing, upload or production deployment. Historical text below is dated evidence, not current funding status.
+
+---
+
 # Current ZIGChain evidence
 
 Retrieved 2026-09-13 UTC. Live JSON snapshots in this directory record retrieval time; node-info/staking/bank/status were read from official endpoints. Confidence refers to the cited observation, not future stability.
@@ -46,3 +54,7 @@ Primary-source facts:
 Owner-reported support communication says the broad EVM integration is under active implementation/testing and CosmWasm whitelisting is paused with no ETA. The separate testnet-funding request remains pending.
 
 Architecture consequence: keep the deterministic Goal Engine VM-independent. Future Cosmos/CosmWasm and EVM execution adapters must remain separate authority boundaries. No EVM execution may be enabled until official RPC/chain/wallet/address/gas/finality/receipt specifications, contract provenance and testnet receipts are verified.
+
+## Run #8 live refresh
+
+See [bounded chain/fee findings](../verification/run8/CHAIN_FEE_FINDINGS.md). Mainnet live metadata is **uzig/6**, despite v5 docs describing azig. Testnet is **azig/18**. Official EVM registry now publishes 944/2061 as incubating, with empty RPCs. The successful owner-approved send and its 25000000000 azig/gas price are independently verified. No fee-policy or execution changes were made.

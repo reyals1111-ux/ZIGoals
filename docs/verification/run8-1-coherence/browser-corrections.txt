@@ -1,0 +1,17 @@
+
+Running 4 tests using 2 workers
+
+(node:83931) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal (818ms)
+(node:83958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [desktop] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history (2.4s)
+(node:83972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 [mobile] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history (2.3s)
+  ✓  4 [mobile] › tests/goals.spec.ts:162:5 › unsupported saved planning date reports a calculation error without crashing the goal (779ms)
+
+  4 passed (4.8s)

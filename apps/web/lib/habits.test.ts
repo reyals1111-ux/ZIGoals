@@ -23,7 +23,7 @@ describe("habit lifecycle and private schema", () => {
   });
   it("rejects malformed, future-version, unknown-field, duplicate and invalid-date imports", () => {
     const data = make();
-    for (const raw of [null, { ...data, schemaVersion: 2 }, { ...data, kind: "zigoals-health" }, { ...data, secret: "unexpected" }, { ...data, habits: [...data.habits, ...data.habits] }, { ...data, habits: [{ ...data.habits[0]!, startDate: "2026-02-30" }] }]) {
+    for (const raw of [null, { ...data, schemaVersion: 3 }, { ...data, kind: "zigoals-health" }, { ...data, secret: "unexpected" }, { ...data, habits: [...data.habits, ...data.habits] }, { ...data, habits: [{ ...data.habits[0]!, startDate: "2026-02-30" }] }]) {
       expect(habitDataSchema.safeParse(raw).success).toBe(false);
     }
   });
@@ -41,9 +41,9 @@ describe("habit lifecycle and private schema", () => {
     data = setHabitState(data, id, "paused", at("2026-09-08"));
     data = setHabitState(data, id, "active", at("2026-09-10"));
     data = setHabitState(data, id, "archived", at("2026-09-11"));
-    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-12").status).toBe("missed");
+    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-12").status).toBe("failed");
     expect(habitDay(data.habits[0]!, "2026-09-09", "2026-09-12").status).toBe("paused");
-    expect(habitDay(data.habits[0]!, "2026-09-10", "2026-09-12").status).toBe("missed");
+    expect(habitDay(data.habits[0]!, "2026-09-10", "2026-09-12").status).toBe("failed");
     expect(habitDay(data.habits[0]!, "2026-09-12", "2026-09-12").status).toBe("archived");
     data = setHabitState(data, id, "active", at("2026-09-13"));
     expect(habitDay(data.habits[0]!, "2026-09-12", "2026-09-13").status).toBe("archived");
@@ -53,7 +53,7 @@ describe("habit lifecycle and private schema", () => {
     let data = logHabitCount(make(), id, "2026-09-07", 1, "", at("2026-09-07"));
     data = editHabit(data, id, { ...input, schedule: { kind: "weekdays", days: [2, 4] }, target: 3 }, at("2026-09-08"));
     expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-10")).toMatchObject({ status: "complete", target: 1 });
-    expect(habitDay(data.habits[0]!, "2026-09-08", "2026-09-10")).toMatchObject({ status: "missed", target: 3 });
+    expect(habitDay(data.habits[0]!, "2026-09-08", "2026-09-10")).toMatchObject({ status: "failed", target: 3 });
     expect(habitDay(data.habits[0]!, "2026-09-09", "2026-09-10").status).toBe("not-scheduled");
   });
 });
@@ -61,13 +61,13 @@ describe("habit lifecycle and private schema", () => {
 describe("calendar completion and cadence", () => {
   it("counts completion at target, supports undo, and retains an optional day note", () => {
     let data = logHabitCount(make({ target: 3 }), id, "2026-09-07", 2, "Two loops", at("2026-09-07"));
-    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-07")).toMatchObject({ count: 2, target: 3, status: "due" });
+    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-07")).toMatchObject({ count: 2, target: 3, status: "partial" });
     data = logHabitCount(data, id, "2026-09-07", 3, "Three loops", at("2026-09-07"));
     expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-07").status).toBe("complete");
     data = logHabitCount(data, id, "2026-09-07", 0, "Try again", at("2026-09-07"));
     expect(data.habits[0]!.entries).toHaveLength(1);
     expect(data.habits[0]!.entries[0]).toMatchObject({ count: 0, note: "Try again" });
-    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-08").status).toBe("missed");
+    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-08").status).toBe("failed");
   });
   it("rejects future, pre-start, off-schedule and paused completions", () => {
     const data = setHabitState(make({ schedule: { kind: "weekdays", days: [1, 2] } }), id, "paused", at("2026-09-14"));

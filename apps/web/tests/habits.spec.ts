@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 async function addHabit(page: Page, title: string, target = "1") {
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();
   await page.getByLabel("Habit title", { exact: true }).fill(title);
-  await page.getByLabel("Daily count target").fill(target);
+  await page.getByLabel("Target value").fill(target);
   await page.getByRole("button", { name: "Create habit", exact: true }).click();
   await expect(page.getByRole("article", { name: title, exact: true })).toBeVisible();
 }
@@ -22,30 +22,30 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await addHabit(page, "Read a few pages", "3");
   let card = page.getByRole("article", { name: "Read a few pages", exact: true });
   await card.getByRole("button", { name: "Add one to Read a few pages" }).click();
-  await expect(card.locator(".habit-count")).toHaveText("1 / 3 today");
+  await expect(card.locator(".habit-count")).toHaveText("1 / 3 times per day");
   await card.getByRole("button", { name: "Complete Read a few pages", exact: true }).click();
   await expect(card.getByRole("button", { name: "Undo completion for Read a few pages" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Completed", exact: true }).click();
   await expect(card).toBeVisible();
-  await card.getByText("History & day notes", { exact: true }).click();
-  await card.getByLabel("Day note (optional)").fill("A calm chapter before bed.");
+  await card.getByText("History & reflection", { exact: true }).click();
+  await card.getByLabel("Day reflection (optional)").fill("A calm chapter before bed.");
   await card.getByRole("button", { name: "Save day", exact: true }).click();
   await expect(card.getByRole("status")).toHaveText("Day saved.");
   await page.reload();
   card = page.getByRole("article", { name: "Read a few pages", exact: true });
-  await expect(card.locator(".habit-count")).toHaveText("3 / 3 today");
-  await card.getByText("History & day notes", { exact: true }).click();
-  await expect(card.getByLabel("Day note (optional)")).toHaveValue("A calm chapter before bed.");
+  await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
+  await card.getByText("History & reflection", { exact: true }).click();
+  await expect(card.getByLabel("Day reflection (optional)")).toHaveValue("A calm chapter before bed.");
   await card.getByRole("button", { name: "Edit Read a few pages" }).click();
   await page.getByLabel("Habit title", { exact: true }).fill("Read a chapter");
   await page.getByRole("button", { name: "Save habit", exact: true }).click();
   card = page.getByRole("article", { name: "Read a chapter", exact: true });
-  await expect(card.locator(".habit-count")).toHaveText("3 / 3 today");
+  await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
   await card.getByRole("button", { name: "Pause habit" }).click();
   await expect(card.getByText("Paused", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Resume habit" }).click();
   await card.getByRole("button", { name: "Undo completion for Read a chapter" }).click();
-  await expect(card.locator(".habit-count")).toHaveText("0 / 3 today");
+  await expect(card.locator(".habit-count")).toHaveText("0 / 3 times per day");
   await card.getByRole("button", { name: "Archive habit" }).click();
   await expect(card).toHaveCount(0);
   await page.getByRole("button", { name: "Archived", exact: true }).click();
@@ -69,10 +69,10 @@ test("historical dates, missed days and scoped link retention remain correct", a
   const card = page.getByRole("article", { name: "A little daylight", exact: true });
   await expect(card.getByText("Goal link retained · another scope or unavailable Goal")).toBeVisible();
   await expect(card.locator(".habit-goal-link a")).toHaveCount(0);
-  await card.getByText("History & day notes", { exact: true }).click();
+  await card.getByText("History & reflection", { exact: true }).click();
   await expect(card.getByRole("button", { name: "September 12, 2026: Not scheduled, 0 of 1" })).toBeVisible();
-  await expect(card.getByRole("button", { name: "September 14, 2026: Missed, 0 of 1" })).toBeVisible();
-  await card.getByRole("button", { name: "September 14, 2026: Missed, 0 of 1" }).click();
+  await expect(card.getByRole("button", { name: "September 14, 2026: Failed, 0 of 1" })).toBeVisible();
+  await card.getByRole("button", { name: "September 14, 2026: Failed, 0 of 1" }).click();
   await card.getByLabel("Count for this day").fill("1");
   await card.getByRole("button", { name: "Save day", exact: true }).click();
   await expect(card.getByRole("button", { name: "September 14, 2026: Complete, 1 of 1" })).toBeVisible();
@@ -130,4 +130,44 @@ test("selected weekdays and keyboard completion expose only scheduled habits", a
   await page.getByRole("button", { name: "Today", exact: true }).click();
   await expect(card).toHaveCount(0);
   await expect(page.getByText("Nothing is scheduled today.", { exact: false })).toBeVisible();
+});
+
+test("templates, distinct habit types, measurement and reflection controls work together", async ({ page }) => {
+  await page.goto("/app/habits");
+  await page.getByRole("button", { name: "+ New habit", exact: true }).click();
+  const goalEnd = page.getByLabel("End condition").locator('option[value="goal"]');
+  await expect(goalEnd).toHaveAttribute("disabled", "");
+  await expect(goalEnd).toHaveText(/metadata only/i);
+  await page.getByLabel("Start from template").selectOption("walk");
+  await expect(page.getByLabel("Habit title", { exact: true })).toHaveValue("Walk");
+  await expect(page.getByLabel("Measurement")).toHaveValue("quantity");
+  await page.getByLabel("Habit type").selectOption("quit");
+  await page.getByLabel("Habit title", { exact: true }).fill("No impulse buys");
+  await page.getByRole("button", { name: "Create habit", exact: true }).click();
+
+  const card = page.getByRole("article", { name: "No impulse buys", exact: true });
+  await expect(card.getByText("QUIT", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Stayed on track for No impulse buys" }).click();
+  await expect(card.getByText("Complete", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Record one event for No impulse buys" }).click();
+  await expect(card.getByText("Failed", { exact: true })).toBeVisible();
+
+  await card.getByText("History & reflection", { exact: true }).click();
+  await card.getByLabel("Mood (optional)").selectOption("calm");
+  await card.getByLabel("Day reflection (optional)").fill("Noticed the trigger.");
+  await card.getByRole("button", { name: "Save day", exact: true }).click();
+  await page.reload();
+  await page.getByRole("article", { name: "No impulse buys", exact: true }).getByText("History & reflection", { exact: true }).click();
+  await expect(page.getByLabel("Mood (optional)")).toHaveValue("calm");
+  await expect(page.getByLabel("Day reflection (optional)")).toHaveValue("Noticed the trigger.");
+});
+
+test("frequency templates display the period that actually governs completion", async ({ page }) => {
+  await page.goto("/app/habits");
+  await page.getByRole("button", { name: "+ New habit", exact: true }).click();
+  await page.getByLabel("Start from template").selectOption("buyzig");
+  await page.getByRole("button", { name: "Create habit", exact: true }).click();
+  const card = page.getByRole("article", { name: "Buy ZIG", exact: true });
+  await expect(card.getByText("1× per month · 500 USD per month", { exact: true })).toBeVisible();
+  await expect(card.getByText(/500 USD per day/)).toHaveCount(0);
 });

@@ -1,0 +1,148 @@
+   Compiling cfg-if v1.0.4
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling const-oid v0.9.6
+   Compiling libc v0.2.189
+   Compiling either v1.18.0
+   Compiling zerocopy v0.8.57
+   Compiling zeroize v1.9.0
+   Compiling crossbeam-utils v0.8.23
+   Compiling num-traits v0.2.19
+   Compiling once_cell v1.21.4
+   Compiling num-integer v0.1.47
+   Compiling der v0.7.10
+   Compiling base16ct v0.2.0
+   Compiling serde_core v1.0.229
+   Compiling itertools v0.10.5
+   Compiling zmij v1.0.23
+   Compiling crossbeam-epoch v0.9.21
+   Compiling num-bigint v0.4.8
+   Compiling generic-array v0.14.7
+   Compiling getrandom v0.2.17
+   Compiling crossbeam-deque v0.8.8
+   Compiling rand_core v0.6.4
+   Compiling cpufeatures v0.2.17
+   Compiling rayon-core v1.13.0
+   Compiling ff v0.13.1
+   Compiling group v0.13.0
+   Compiling allocator-api2 v0.2.21
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling rayon v1.12.0
+   Compiling crypto-bigint v0.5.5
+   Compiling digest v0.10.7
+   Compiling sec1 v0.7.3
+   Compiling signature v2.2.0
+   Compiling hmac v0.12.1
+   Compiling sha2 v0.10.9
+   Compiling rfc6979 v0.4.0
+   Compiling ed25519 v2.2.3
+   Compiling curve25519-dalek v4.1.3
+   Compiling thiserror v1.0.69
+   Compiling hex v0.4.3
+   Compiling dyn-clone v1.0.20
+   Compiling rmp v0.8.15
+   Compiling cosmwasm-core v2.2.2
+   Compiling derive_more v1.0.0
+   Compiling static_assertions v1.1.0
+   Compiling bech32 v0.11.1
+   Compiling bnum v0.11.0
+   Compiling base64 v0.22.1
+   Compiling ark-ff-macros v0.4.2
+   Compiling anyhow v1.0.104
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling itertools v0.14.0
+   Compiling elliptic-curve v0.13.8
+   Compiling thiserror v2.0.20
+   Compiling bytes v1.12.1
+   Compiling semver v1.0.28
+   Compiling ecdsa v0.16.9
+   Compiling primeorder v0.13.6
+   Compiling serde-json-wasm v1.0.1
+   Compiling rmp-serde v1.3.1
+   Compiling k256 v0.13.4
+   Compiling p256 v0.13.2
+   Compiling itertools v0.13.0
+   Compiling schemars v0.8.22
+   Compiling prost-derive v0.13.5
+   Compiling ppv-lite86 v0.2.21
+   Compiling ahash v0.8.12
+   Compiling cosmwasm-schema v2.2.2
+   Compiling hashbrown v0.13.2
+   Compiling hashbrown v0.14.5
+   Compiling rand_chacha v0.3.1
+   Compiling rand v0.8.8
+   Compiling ed25519-zebra v4.0.3
+   Compiling ark-std v0.4.0
+   Compiling ark-serialize v0.4.2
+   Compiling prost v0.13.5
+   Compiling ark-ff v0.4.2
+   Compiling ark-poly v0.4.2
+   Compiling ark-ec v0.4.2
+   Compiling ark-bls12-381 v0.4.0
+   Compiling cosmwasm-crypto v2.2.2
+   Compiling cosmwasm-std v2.2.2
+   Compiling cw-storage-plus v2.0.0
+   Compiling cw-utils v2.0.0
+   Compiling cw2 v2.0.0
+   Compiling cw-multi-test v2.2.0
+   Compiling zigoals-goal-manager v0.1.0 (/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run8/contracts/goal-manager)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.70s
+     Running unittests src/lib.rs (target/debug/deps/zigoals_goal_manager-c4e77d0fa82dbd4b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/boundaries.rs (target/debug/deps/boundaries-2f4ef960257019ac)
+
+running 6 tests
+test id_exhaustion_fails_without_overwrite_or_owner_index_write ... ok
+test no_arbitrary_call_sweep_owner_transfer_or_migration_execute_message_exists ... ok
+test rejects_zero_coin_attachments_even_on_nonpayable_messages ... ok
+test zero_and_duplicate_coin_entries_are_rejected_at_contract_boundary ... ok
+test overflowing_withdrawn_or_underflowing_liabilities_never_partially_write ... ok
+test overflowing_deposit_counters_or_liabilities_never_wrap_or_partially_write ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration.rs (target/debug/deps/integration-c0831dc5e6708a80)
+
+running 18 tests
+test ids_and_money_are_strings_at_json_boundary ... ok
+test creates_monotonic_goals_and_indexes_only_their_owners ... ok
+test failed_downstream_bank_send_rolls_back_goal_and_liabilities ... ok
+test instantiate_sets_injected_denom_optional_pause_admin_and_cw2_version ... ok
+test all_mutations_emit_public_action_and_goal_identifiers_without_private_commitment ... ok
+test commitments_accept_only_fixed_hex_and_mutation_requires_owner ... ok
+test optional_admin_absence_permanently_disables_pause_control ... ok
+test nonexistent_goal_mutations_and_queries_fail_without_taking_money ... ok
+test close_requires_owner_and_empty_balance_preserving_history_and_blocking_reuse ... ok
+test every_non_deposit_message_rejects_attached_funds_without_state_change ... ok
+test deposits_and_withdrawals_move_bank_funds_and_preserve_lifetime_accounting ... ok
+test instantiate_rejects_invalid_denom_admin_and_funds ... ok
+test pause_is_admin_only_and_never_prevents_exit_then_resume_restores_deposit ... ok
+test rejects_invalid_deposits_atomically_and_only_owner_can_fund_goal ... ok
+test zero_and_overdraw_and_unauthorized_withdrawals_do_not_change_balances ... ok
+test unsolicited_bank_funds_are_surplus_and_never_credit_a_goal ... ok
+test pagination_is_exclusive_owner_scoped_default_30_and_capped_100 ... ok
+test many_interleaved_goal_operations_preserve_owner_balances_and_global_liabilities ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/invariants.rs (target/debug/deps/invariants-f76e850bbb5fefb1)
+
+running 1 test
+test seeded_sequences_catch_lost_funds_cross_goal_credits_and_nonatomic_rejections ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.02s
+
+   Doc-tests zigoals_goal_manager
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

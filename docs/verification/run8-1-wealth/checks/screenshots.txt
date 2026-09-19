@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:89296) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › tests/wealth.spec.ts:22:5 › manual sources stay selected and all allocations are created (1.9s)
+  ✓  2 [desktop] › tests/wealth.spec.ts:31:5 › Wealth shows every category, preserves allocations and fits all viewports (4.5s)
+
+  2 passed (7.2s)

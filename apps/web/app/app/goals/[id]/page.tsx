@@ -1,4 +1,8 @@
 "use client";
+import {GoalModule} from "../../../../components/platform/tracked-detail";
+import {usePlatform} from "../../../../components/platform/use-platform";
+import {useRouter} from "next/navigation";
+import "../../../../components/platform/goal-detail.css";
 import { ExplorerLinks } from "../../../../components/explorer-links";
 import { use, useState } from "react";
 import Link from "next/link";
@@ -7,8 +11,9 @@ import { evaluateGoal } from "@zigoals/goal-engine";
 import { formatUnits, parseUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "../../../../components/goal-provider";
 import { GoalWizard } from "../../../../components/goal-wizard";
-import { displayAmount } from "../../../../components/goal-card";
-import { DemoPriceProvider } from "../../../../lib/valuation";
+import { displayAmount, GoalProgressRing } from "../../../../components/goal-card";
+import { legacyGoalSummary } from "../../../../lib/goal-summary";
+import { localDate } from "../../../../lib/local-date";
 import { visualTone } from "../../../../components/visual-tone";
 import { SceneArt } from "../../../../components/scene-art";
 import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
@@ -20,12 +25,18 @@ export default function GoalDetail({
 }) {
   const { id } = use(params);
   const s = useGoals();
+  const platform=usePlatform(),router=useRouter();
+  const uiKey=`${s.chain}:${s.owner}:${id}`;
+  const ui=platform.data.legacyGoalUi?.[uiKey]??{};
+  const [remove,setRemove]=useState(false);
+  async function preference(patch:typeof ui){try{await platform.update(data=>({...data,legacyGoalUi:{...data.legacyGoalUi,[uiKey]:{...data.legacyGoalUi?.[uiKey],...patch}}}));}catch(e){s.setError(String(e));}}
   const goal = s.goals.find((g) => g.id === id);
   const plan = s.metadata?.goals[id];
   const [funds, setFunds] = useState("10");
   const [scenario, setScenario] = useState("0");
   const [custom, setCustom] = useState("3");
   const [recover, setRecover] = useState(false);
+
   if (!s.loaded) return <p role="status">Loading goal…</p>;
   if (!goal)
     return (
@@ -37,15 +48,13 @@ export default function GoalDetail({
         </Link>
       </section>
     );
-  const current = DemoPriceProvider.value(
-    goal.position_units,
-    plan?.currency ?? "ZIG",
-  );
+  const summary=legacyGoalSummary(goal,plan,s.mode==='local'?'Local simulation':'Future Goal Manager');
+  const current = summary.current;
   const evaluation = plan
     ? {
         targetValue: plan.targetValue,
         currentValue: current,
-        currentDate: new Date().toISOString().slice(0, 10),
+        currentDate: localDate(),
         targetDate: plan.targetDate,
         plannedMonthlyContribution: plan.monthlyContribution,
       }
@@ -76,6 +85,7 @@ export default function GoalDetail({
       "Choose a valid illustrative annual return from −100% to 1,000%.";
   }
   function fund(kind: "deposit" | "withdraw") {
+    if(ui.locked)return;
     try {
       const amount = parseUnits(funds, TESTNET.nativeAsset.decimals).toString();
       if (BigInt(amount) === 0n)
@@ -85,199 +95,23 @@ export default function GoalDetail({
       s.setError(e instanceof Error ? e.message : String(e));
     }
   }
-  return (
-    <div className="goal-detail-page" data-tone={visualTone(id)}>
-      <Link href="/app/goals" className="text-link">
-        ← All goals
-      </Link>
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">
-            {plan?.category ?? "Private plan missing"} · {goal.status}
-          </p>
-          <h1>{plan?.name ?? `Goal #${id}`}</h1>
-          <p>
-            {plan?.currency !== "ZIG" && plan ? "Demo valuation. " : ""}Testnet
-            assets have no monetary value.
-          </p>
-        </div>
-        <button
-          className="secondary"
-          onClick={() => void s.refresh().catch((e) => s.setError(String(e)))}
-        >
-          Refresh
-        </button>
-      </div>
-      <div className="detail-grid">
-        <section className="panel progress-panel">
-          <div className="detail-destination-art"><SceneArt scene={plan?.category === "Travel" ? "mountains" : plan?.category === "First Home" ? "home" : "horizon"}/></div>
-          <p className="eyebrow">Your progress</p>
-          <p className="hero-amount">
-            {displayAmount(current, plan?.currency ?? "ZIG")}
-          </p>
-          <p>
-            {plan
-              ? `of ${displayAmount(plan.targetValue, plan.currency)}`
-              : "No target is saved on this device."}
-          </p>
-          {baselineError && <p role="alert">{baselineError}</p>}
-          {result && plan && (
-            <>
-              <div
-                className="goal-progress-ring detail-orbit"
-                role="progressbar"
-                aria-label="Goal progress"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.min(100, Number(result.progressPct))}
-              >
-                <svg viewBox="0 0 200 200" aria-hidden="true"><circle className="detail-orbit-guide" cx="100" cy="100" r="96"/><circle className="ring-track" cx="100" cy="100" r="82"/><circle className="ring-value" cx="100" cy="100" r="82" pathLength="100" strokeDasharray={`${Math.min(100, Number(result.progressPct))} 100`} transform="rotate(-90 100 100)"/></svg>
-                <strong aria-hidden="true">{new Decimal(result.progressPct).toFixed(1)}%<small>of your destination</small></strong>
-              </div>
-              <div className="card-row">
-                <strong>
-                  {new Decimal(result.progressPct).toFixed(1)}% complete
-                </strong>
-                <span>
-                  {displayAmount(result.amountRemaining, plan.currency)} to go
-                </span>
-              </div>
-              <div className="health">
-                <span className="badge">
-                  {result.fundingHealth.replaceAll("_", " ")}
-                </span>
-                <h3>Funding health · 0% future return</h3>
-                <p>{result.fundingHealthExplanation}</p>
-              </div>
-              <dl className="metrics">
-                <div>
-                  <dt>Target date</dt>
-                  <dd>{plan.targetDate}</dd>
-                </div>
-                <div>
-                  <dt>Contributions remaining</dt>
-                  <dd>{result.contributionPeriodsRemaining}</dd>
-                </div>
-                <div>
-                  <dt>Your monthly plan</dt>
-                  <dd>
-                    {displayAmount(plan.monthlyContribution, plan.currency)}
-                  </dd>
-                </div>
-                <div>
-                  <dt>
-                    Required{" "}
-                    {result.requiredContributionTiming === "immediate"
-                      ? "now"
-                      : "monthly"}{" "}
-                    at 0%
-                  </dt>
-                  <dd>
-                    {displayAmount(
-                      result.fundingRequiredContribution,
-                      plan.currency,
-                    )}
-                  </dd>
-                </div>
-              </dl>
-            </>
-          )}
-          {!plan && (
-            <div className="notice">
-              <p>
-                Your onchain goal is still yours. Import a backup or recreate
-                the private plan. You can withdraw without it.
-              </p>
-              <Link href="/app/settings" className="text-link">
-                Import backup →
-              </Link>
-              <button
-                className="secondary"
-                onClick={() => setRecover((v) => !v)}
-              >
-                Recreate private plan
-              </button>
-            </div>
-          )}
-        </section>
-        <section className="panel funding-panel">
-          <p className="eyebrow">Move at your own pace</p>
-          <h2>Add or withdraw funds.</h2>
-          <p>Available in this goal</p>
-          <strong>
-            {formatUnits(goal.position_units, TESTNET.nativeAsset.decimals)} ZIG
-          </strong>
-          <label>
-            Amount in ZIG
-            <input
-              inputMode="decimal"
-              value={funds}
-              onChange={(e) => setFunds(e.target.value)}
-              aria-describedby="funds-note"
-            />
-          </label>
-          <p className="fine" id="funds-note">
-            {s.mode === "local"
-              ? "Local simulation · No fee or wallet signature."
-              : "Network fees are estimated before you approve. Keep ZIG in your wallet for withdrawal fees."}
-          </p>
-          <div className="actions">
-            <button
-              className="primary"
-              disabled={s.busy || !s.canTransact || goal.status === "closed"}
-              onClick={() => fund("deposit")}
-            >
-              Add funds
-            </button>
-            <button
-              className="secondary"
-              disabled={
-                s.busy ||
-                !s.canTransact ||
-                goal.position_units === "0" ||
-                goal.status === "closed"
-              }
-              onClick={() => fund("withdraw")}
-            >
-              Withdraw
-            </button>
-          </div>
-          <button
-            className="quiet"
-            disabled={
-              s.busy ||
-              !s.canTransact ||
-              goal.position_units !== "0" ||
-              goal.status === "closed"
-            }
-            onClick={() => void s.prepare({ kind: "close", id })}
-          >
-            Close empty goal
-          </button>
-          <div className="idle-note">
-            <strong>Idle</strong>
-            <p>
-              No external investment strategy is active.{" "}
-              {s.mode === "local"
-                ? "The local ledger simulates assets held in the Goal contract."
-                : "Your assets remain inside the ZIGoals Goal contract."}
-            </p>
-            <small>Unaudited alpha. Smart contract risk remains.</small>
-          </div>
-          {plan && BigInt(goal.total_deposited) === 0n && (
-            <p className="fine">
-              Planned starting amount:{" "}
-              {displayAmount(plan.startingAmount, plan.currency)}. No starting
-              funds have been deposited.
-            </p>
-          )}
-        </section>
-      </div>
-      <div className="goal-daily-bridge"><div><p className="eyebrow">GOAL → PLAN → HABITS → PROGRESS</p><h2>Give your plan a daily rhythm.</h2><p>A contribution reminder. A spending review. Small intentions you choose, entirely private.</p></div><Link className="secondary" href="/app/habits">Add a supporting habit →</Link></div>
-      <HabitGoalLinks goalId={id} chainId={s.chain} owner={s.owner}/>
-      {recover && !plan && <GoalWizard recoverId={id} />}{" "}
-      {plan && (
-        <section className="panel scenario-panel">
+  return <div className="dashboard platform-workspace goal-detail-workspace" data-tone={visualTone(id)}>
+ <Link href="/app/goals" className="text-link">← All goals</Link>
+ <section className="panel goal-detail-overview" aria-label="Goal overview">
+ <div className="goal-detail-art"><SceneArt scene={summary.scene}/></div>
+ <details className="goal-actions"><summary aria-label="Goal actions">…</summary><div className="panel"><button className="quiet" onClick={()=>void preference({pinned:!ui.pinned})}>{ui.pinned?'Unpin Goal':'Pin Goal'}</button><button className="quiet" onClick={()=>void preference({locked:!ui.locked})}>{ui.locked?'Unlock editing':'Lock editing'}</button><button className="quiet" disabled={!!ui.locked} onClick={()=>setRemove(true)}>Remove Goal from ZIGoals</button></div></details>
+ <div className="goal-detail-heading"><p className="eyebrow">{summary.type} · {summary.source}</p><h1>{summary.name}</h1><span className="badge">{summary.status}</span></div>
+ <div className="goal-detail-progress"><GoalProgressRing goalId={id} name={summary.name} progressPct={summary.progressPct}/><div><p className="eyebrow">Current progress</p><strong className="goal-detail-current">{displayAmount(current,summary.currency)}</strong><p>{summary.target?`of ${displayAmount(summary.target,summary.currency)}`:'Recover your private plan'}</p></div></div>
+ <dl className="goal-detail-facts"><div><dt>Remaining</dt><dd>{summary.remaining?displayAmount(summary.remaining,summary.currency):'Review plan'}</dd></div><div><dt>Funding Health</dt><dd>{summary.fundingHealth}</dd></div><div><dt>Target date</dt><dd>{summary.targetDate??'Your own pace'}</dd></div></dl>
+ <p className="fine">{s.mode==='local'?'Simulation only — no real funds.':'Legacy Goal Manager record.'} Your Goal organizes your plan. New Goals can use wealth where it already exists.</p>
+ </section>
+ {baselineError&&<p role="alert">{baselineError}</p>}
+ {ui.locked&&<p className="notice">Editing locked. Unlock from Goal actions to make changes.</p>}
+ {remove&&<section role="alertdialog" aria-label="Remove legacy Goal" className="panel"><h2>Remove Goal from ZIGoals?</h2><p>This archives its card. The ledger, private plan and Habit history remain recoverable at this Goal’s address.</p><button className="primary" disabled={!!ui.locked} onClick={()=>void preference({archived:true}).then(()=>router.push('/app/goals'))}>Confirm removal</button><button className="secondary" onClick={()=>setRemove(false)}>Cancel</button></section>}
+ {ui.archived&&<button className="secondary" onClick={()=>void preference({archived:false})}>Restore Goal to ZIGoals</button>}
+ <fieldset disabled={!!ui.locked} className="goal-edit-scope"><div className="goal-management-grid">
+ <GoalModule id="wealth" title="Wealth / sources" description="Legacy simulation · private planning"><p>This existing Goal uses a saved simulated balance. Keep it for reference, or create a non-custodial Goal to allocate wallet holdings, stake or manual wealth.</p><Link href="/app/goals/new" className="text-link">Create a Goal using existing wealth →</Link></GoalModule>
+ <GoalModule id="contribution-plan" title="Contribution plan" description={plan?`${displayAmount(plan.monthlyContribution,plan.currency)} monthly`:'Recover your plan'}>{result&&<><h2>Funding health · 0% future return</h2><p>{result.fundingHealthExplanation}</p><p>Contributions remaining: {result.contributionPeriodsRemaining}</p><p><span>Required {result.requiredContributionTiming==='immediate'?'now':'monthly'} at 0%</span>: {displayAmount(result.fundingRequiredContribution,summary.currency)}</p></>}{plan&&(        <div className="scenario-panel">
           <div>
             <p className="eyebrow">Explore the possibilities</p>
             <h2>Illustrative scenario.</h2>
@@ -349,9 +183,10 @@ export default function GoalDetail({
               </dl>
             )
           )}
-        </section>
-      )}
-      <section className="panel">
+        </div>
+)}</GoalModule>
+ <GoalModule id="supporting-habits" title="Supporting habits" description="Private behavior · history preserved"><HabitGoalLinks goalId={id} chainId={s.chain} owner={s.owner}/><Link href="/app/habits" className="text-link">Manage supporting habits →</Link></GoalModule>
+ <GoalModule id="history" title="Progress / history" description="Saved activity and observations">      <div>
         <h2>Activity</h2>
         <p className="fine">
           {s.mode === "local"
@@ -383,8 +218,80 @@ export default function GoalDetail({
               )}
             </div>
           ))}
-      </section>
-      <details className="panel verify">
+      </div>
+</GoalModule>
+ <GoalModule id="edit-goal" title="Edit Goal" description="Private name, target and contribution plan"><button className="secondary" onClick={()=>setRecover(!recover)}>{recover?'Cancel editing':'Edit private plan'}</button>{recover&&<GoalWizard recoverId={id}/>}</GoalModule>
+ <GoalModule id="local-simulation" title={s.mode==='local'?'Local simulation':'Legacy execution adapter'} description={s.mode==='local'?'Simulation only — no real funds.':'Optional legacy controls'}>          <p className="notice">Simulation only — no real funds.</p>
+          <p>Available in this goal</p>
+          <strong>
+            {formatUnits(goal.position_units, TESTNET.nativeAsset.decimals)} ZIG
+          </strong>
+          <label>
+            Amount in ZIG
+            <input
+              inputMode="decimal"
+              value={funds}
+              onChange={(e) => setFunds(e.target.value)}
+              aria-describedby="funds-note"
+            />
+          </label>
+          <p className="fine" id="funds-note">
+            {s.mode === "local"
+              ? "Local simulation · No fee or wallet signature."
+              : "Network fees are estimated before you approve. Keep ZIG in your wallet for withdrawal fees."}
+          </p>
+          <div className="actions">
+            <button
+              className="primary"
+              disabled={s.busy || !s.canTransact || goal.status === "closed"}
+              onClick={() => fund("deposit")}
+            >
+              Add funds
+            </button>
+            <button
+              className="secondary"
+              disabled={
+                s.busy ||
+                !s.canTransact ||
+                goal.position_units === "0" ||
+                goal.status === "closed"
+              }
+              onClick={() => fund("withdraw")}
+            >
+              Withdraw
+            </button>
+          </div>
+          <button
+            className="quiet"
+            disabled={
+              s.busy ||
+              !s.canTransact ||
+              goal.position_units !== "0" ||
+              goal.status === "closed"
+            }
+            onClick={() => void s.prepare({ kind: "close", id })}
+          >
+            Close empty goal
+          </button>
+          <div className="idle-note">
+            <strong>Idle</strong>
+            <p>
+              No external investment strategy is active.{" "}
+              {s.mode === "local"
+                ? "The local ledger simulates assets held in the Goal contract."
+                : "Your assets remain inside the ZIGoals Goal contract."}
+            </p>
+            <small>Unaudited alpha. Smart contract risk remains.</small>
+          </div>
+          {plan && BigInt(goal.total_deposited) === 0n && (
+            <p className="fine">
+              Planned starting amount:{" "}
+              {displayAmount(plan.startingAmount, plan.currency)}. No starting
+              funds have been deposited.
+            </p>
+          )}
+</GoalModule>
+ </div></fieldset>      <details className="panel verify">
         <summary>Verify onchain · advanced details</summary>
         <dl className="metrics">
           <div>
@@ -432,6 +339,5 @@ export default function GoalDetail({
           />
         )}
       </details>
-    </div>
-  );
+</div>;
 }

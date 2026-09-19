@@ -107,11 +107,12 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await page.getByRole("button", { name: "Export Goal Data" }).click();
   expect((await download).suggestedFilename()).toContain("local-simulation");
   await page.goto("/app/goals/new");
-  await page.getByRole("button", { name: "Travel", exact: true }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Private goal name").fill("Blocked demo creation");
+  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByLabel("Goal name", {exact:true}).fill("Blocked demo creation");
   await page.getByLabel("Target amount").fill("1200");
-  for (let step = 0; step < 3; step++)
+  await page.getByRole("button", {name:"Continue"}).click();
+  await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
+  for (let step = 0; step < 2; step++)
     await page.getByRole("button", { name: "Continue" }).click();
   await expect(
     page.getByRole("button", { name: "Create goal", exact: true }),
@@ -138,6 +139,7 @@ test("invalid custom scenario preserves baseline funding health and progress", a
     },
   );
   await page.goto("/app/goals/1");
+  await page.locator("#contribution-plan > summary").click();
   const health = page.getByRole("heading", {
     name: "Funding health · 0% future return",
   });
@@ -151,7 +153,7 @@ test("invalid custom scenario preserves baseline funding health and progress", a
   ).toBeVisible();
   await expect(health).toBeVisible();
   await expect(
-    page.getByRole("progressbar", { name: "Goal progress" }),
+    page.getByRole("progressbar", { name: "Recovered trip progress" }),
   ).toBeVisible();
   await expect(
     page.getByText("Required monthly at 0%", { exact: true }),
@@ -183,6 +185,7 @@ test("unsupported saved planning date reports a calculation error without crashi
   await expect(
     page.getByRole("alert").filter({ hasText: "supported planning limits" }),
   ).toBeVisible();
+  await page.locator("#local-simulation > summary").click();
   await expect(
     page.getByRole("button", { name: "Add funds", exact: true }),
   ).toBeEnabled();
@@ -223,11 +226,11 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   ).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.getByRole("link", { name: "Plan my first goal" }).click();
-  await page.getByRole("button", { name: "Travel", exact: true }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Private goal name").fill("Kyoto in spring");
+  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByLabel("Goal name", {exact:true}).fill("Kyoto in spring");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
   await page.getByLabel("Planned starting amount").fill("100");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -241,9 +244,11 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Kyoto in spring" }),
   ).toBeVisible();
+  await page.locator("#local-simulation > summary").click();
   await expect(
     page.getByText("No starting funds have been deposited.", { exact: false }),
   ).toBeVisible();
+  if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByLabel("Amount in ZIG").fill("100");
   await page.getByRole("button", { name: "Add funds", exact: true }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).click();
@@ -282,6 +287,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Goal #1", exact: true }),
   ).toBeVisible();
+  if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByLabel("Amount in ZIG").fill("100");
   await page.getByRole("button", { name: "Withdraw", exact: true }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).click();
@@ -298,6 +304,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Kyoto in spring" }),
   ).toBeVisible();
+  if(!await page.getByRole("button", { name: "Close empty goal" }).isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByRole("button", { name: "Close empty goal" }).click();
   await page.getByRole("button", { name: "Confirm simulation" }).click();
   await expect(
