@@ -57,3 +57,17 @@ test("cannot write without Web Locks or use a Goal namespace", async () => {
   expect(() => readPrivateStore(s, "zigoals:metadata:v1", schema, empty)).toThrow();
   expect(s.length).toBe(0);
 });
+
+test('platform v1 read/no-op preserves bytes; first explicit write keeps recovery; export/import accepts v2',async()=>{
+ const {platformSchema,emptyPlatform,PLATFORM_KEY}=await import('./positions');
+ const original=JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]},null,2);
+ const s=memory();s.setItem(PLATFORM_KEY,original);
+ expect(readPrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform).schemaVersion).toBe(2);
+ await updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>v);
+ expect(s.getItem(PLATFORM_KEY)).toBe(original);expect(s.length).toBe(1);
+ await updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>({...v,legacyGoalUi:{'1':{pinned:true}}}));
+ expect(s.getItem(s.key(1)!)).toBe(original);
+ expect(JSON.parse(s.getItem(PLATFORM_KEY)!).schemaVersion).toBe(2);
+ const imported=memory();await importPrivateStore(imported,PLATFORM_KEY,platformSchema,s.getItem(PLATFORM_KEY)!);
+ expect(readPrivateStore(imported,PLATFORM_KEY,platformSchema,emptyPlatform).legacyGoalUi?.['1']?.pinned).toBe(true);
+});

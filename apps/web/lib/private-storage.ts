@@ -20,7 +20,9 @@ export function readPrivateStore<T>(storage: Storage, key: string, schema: z.Zod
 export async function updatePrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): Promise<T> {
   validateKey(key);
   return withStorageLock(key, () => {
-    const next = update(readPrivateStore(storage, key, schema, createEmpty));
+    const latest = readPrivateStore(storage, key, schema, createEmpty);
+    const next = update(latest);
+    if (next === latest) return latest;
     const serialized = JSON.stringify(next);
     const validated = parsePrivateData(serialized, schema);
     const previous = storage.getItem(key);

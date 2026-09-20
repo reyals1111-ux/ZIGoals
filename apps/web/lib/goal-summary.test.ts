@@ -34,3 +34,11 @@ it('uses the same exact Value Goal summary regardless of its presentation destin
  expect(unifiedGoalSummaries([],{},data,[{...q,price:'2000'}],now)[0]!.status).toBe('completed');
  expect(data.goals[0]!.status).toBe('active');
 });
+
+it('never promotes stale valuation to completed in collection or Today',()=>{
+ const now=Date.parse('2026-09-20T12:00:00Z'),data=emptyPlatform();
+ data.positions.push({id:'p',providerId:'native-zig',sourceType:'WALLET_LIQUID',network:'zigchain-1',account:'fixture',asset:'ZIG',denom:'uzig',decimals:6,quantity:'1000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',liquidity:'LIQUID',observedAt:new Date(now).toISOString(),provenance:'fixture',notes:'',risk:'',executionAuthority:'NONE'});
+ data.goals.push(privateGoalSchema.parse({id:'1',name:'Target',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'10000',notes:'',createdAt:'2026-09-01T00:00:00Z',milestones:[]}));data.allocations.push({goalId:'1',positionId:'p',quantity:'1000000000'});
+ const quote={base:{network:'zigchain-1',denom:'uzig',decimals:6},currency:'USD',price:'1',priceDecimals:0,source:'CoinGecko',providerAssetId:'zignaly',observedAt:'2026-09-19T12:00:00Z',verification:'VERIFIED' as const};
+ expect(unifiedGoalSummaries([],{},data,[quote],now)[0]).toMatchObject({status:'active',requiresReview:true,current:'1000'});
+});

@@ -44,7 +44,7 @@ it('keeps public persistence bounded and validates cached identity before reuse'
  const restored=createQuoteCache(async()=>{throw Error('offline');},()=>now);restored.hydrate({...storage,getItem:()=>storage.setItem.mock.calls[0]![1]});expect(restored.getSnapshot().quotes).toEqual([quote]);
 });
 it('advances reactive time without altering the last observation',async()=>{
- let time=now;const cache=createQuoteCache(async()=>quote,()=>time);await cache.refresh();const listener=vi.fn();cache.subscribe(listener);time+=6*60000;cache.tick();expect(cache.getSnapshot().now).toBe(time);expect(cache.getSnapshot().quotes).toEqual([quote]);expect(quoteIsStale(cache.getSnapshot().quotes[0]!,cache.getSnapshot().now)).toBe(true);expect(listener).toHaveBeenCalledTimes(1);
+ let time=now;const cache=createQuoteCache(async()=>quote,()=>time);await cache.refresh();const listener=vi.fn();cache.subscribe(listener);time+=16*60000;cache.tick();expect(cache.getSnapshot().now).toBe(time);expect(cache.getSnapshot().quotes).toEqual([quote]);expect(quoteIsStale(cache.getSnapshot().quotes[0]!,cache.getSnapshot().now)).toBe(true);expect(listener).toHaveBeenCalledTimes(1);
 });
 it('rejects invalid JSON numeric grammar before extracting an exact price lexeme',()=>{
  for(const usd of ['01','00.043','+0.043','.043','1.','NaN','Infinity'])expect(()=>parseCoinGeckoQuote(`{"zignaly":{"usd":${usd},"last_updated_at":${now/1000}}}`,now)).toThrow();

@@ -1,0 +1,12 @@
+$ wrangler deploy --config wrangler.alpha.jsonc --dry-run
+
+ ⛅️ wrangler 4.131.1 (update available 4.135.0)
+───────────────────────────────────────────────
+✨ Read 65 files from the assets directory /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run9/apps/web/.open-next/assets
+Total Upload: 10605.92 KiB / gzip: 2000.46 KiB
+Your Worker has access to the following bindings:
+Binding                                        Resource
+env.WORKER_SELF_REFERENCE (zigoals-alpha)      Worker
+env.ASSETS                                     Assets
+
+--dry-run: exiting now.

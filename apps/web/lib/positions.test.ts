@@ -7,7 +7,7 @@ const state = (): Platform => ({ ...emptyPlatform(), positions: [p()], goals: [g
 describe('exact Position accounting', () => {
  it('rejects fractional, negative, oversized and numeric chain quantities', () => { for (const quantity of ['1.2','-1','1e10',1,'1'.repeat(100)]) expect(positionSchema.safeParse({...p(),quantity}).success).toBe(false); });
  it('fails closed on unknown versions, duplicate IDs and dangling allocations', () => {
-  expect(platformSchema.safeParse({...emptyPlatform(),schemaVersion:2}).success).toBe(false);
+  expect(platformSchema.safeParse({...emptyPlatform(),schemaVersion:3}).success).toBe(false);
   expect(platformSchema.safeParse({...state(),positions:[p(),p()]}).success).toBe(false);
   expect(platformSchema.safeParse({...state(),allocations:[{goalId:'404',positionId:'p',quantity:'1'}]}).success).toBe(false);
  });

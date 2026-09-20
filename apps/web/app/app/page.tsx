@@ -10,6 +10,7 @@ import { HabitsToday } from "../../components/habits/habits-today";
 import { HealthToday } from "../../components/health/health-today";
 import { StakingCard } from "../../components/platform/staking-card";
 import { useUnifiedGoals } from "../../components/use-unified-goals";
+import {TodayIntelligence} from "../../components/platform/today-intelligence";
 export default function Dashboard() {
   const s = useGoals();
   const collection=useUnifiedGoals();
@@ -33,6 +34,7 @@ export default function Dashboard() {
             <div><span className="icon-medallion"><AppIcon name="chain" size={30} luminous/></span><span><strong>Onchain</strong><small>ZIGChain vision · Alpha simulation.</small></span></div>
           </div>
         </section>
+        <TodayIntelligence/>
         <section className="today-goals surface-featured" aria-label="Your goals">
           <div className="section-heading"><div><h2>Your goals</h2><p>Small steps. A bigger future.</p></div><Link href="/app/goals" className="text-link">View all goals →</Link></div>
           {collection.error&&<p role="alert" className="notice">{collection.error}</p>}

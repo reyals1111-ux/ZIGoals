@@ -1,3 +1,11 @@
+# Run #9 — Goal Intelligence + Live Wealth (local owner review)
+
+Run #9 is implemented on `codex/run9-goal-intelligence-live-wealth`, starting from the owner’s prep commit `a6950f7f7cfeeef0c5be286179e5bc99235d9a66`. The public Alpha remains unchanged. Nothing was merged, pushed, deployed, signed or executed financially.
+
+The local upgrade adds server-only CoinGecko discovery/valuation, schema v2 migration, explicit contributions and reversals, current-plan pace, zero-return Funding Health, separate recorded income, bounded evidence history, and updated Wealth / Goal Detail / Today / Activity. Automatic and manual values remain distinct. Full verification and remaining Beta limits are recorded in [Run #9 report](RUN_9_REPORT.md), [market/accounting guide](RUN_9_MARKET_DATA.md), and [Beta backlog](RUN_9_BETA_BACKLOG.md).
+
+---
+
 # Run #8 / #8.1 release closure — 2026-09-19
 
 **CURRENT PUBLIC ALPHA — RUN #8/#8.1 MERGED + DEPLOYED + OWNER-VERIFIED LIVE.**

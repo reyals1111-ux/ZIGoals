@@ -1,6 +1,7 @@
 /** VM-independent private accounting. No wallet, signer, network or execution imports. */
 import { z } from 'zod';
-import {marketQuoteSchema,quoteIsStale,quoteValue,sameAsset,type MarketQuote,type ValuationEvidence} from './market-quotes';
+import {marketQuoteSchema,quoteIsStale,quoteValue,quoteMatchesPosition,type MarketQuote,type ValuationEvidence} from './market-quotes';
+import {marketAssetRefSchema} from './market-assets';
 export const PLATFORM_KEY = 'zigoals:platform:v1';
 export const units = z.string().regex(/^(0|[1-9]\d*)$/).max(78);
 const id = z.string().min(1).max(250);
@@ -15,6 +16,7 @@ export const positionSchema = z.object({
  id, providerId:id, sourceType:z.enum(SOURCE_TYPES), network:id, account:id,
  asset:z.string().min(1).max(30), denom:id, quantity:units, decimals,
  assetClass:z.enum(ASSET_CLASSES).optional(),
+ marketRef:marketAssetRefSchema.optional(),valuationMode:z.enum(['manual','automatic']).optional(),quoteCurrency:z.enum(['USD','EUR']).optional(),
  valuation:z.object({value:units,currency:z.string().min(1).max(10),decimals,source:z.enum(['MANUAL','VERIFIED']),observedAt:at}).strict().optional(),
  principal:units.optional(), unclaimedRewards:units.optional(),
  liquidity:z.enum(['LIQUID','BONDED','UNBONDING','LOCKED','UNKNOWN']),
@@ -44,17 +46,40 @@ export const privateGoalSchema = z.object({
 }).strict();
 export type PrivateGoal = z.infer<typeof privateGoalSchema>;
 const allocationSchema = z.object({goalId:id,positionId:id,quantity:units}).strict();
-const platformBase = z.object({legacyGoalUi:z.record(z.string(),z.object({pinned:z.boolean().optional(),locked:z.boolean().optional(),archived:z.boolean().optional()}).strict()).optional(),schemaVersion:z.literal(1),kind:z.literal('zigoals-platform'),
+export const contributionEventSchema=z.object({
+ id,goalId:id,goalScope:z.enum(['private','local']).default('private'),positionId:id.optional(),
+ direction:z.enum(['IN','OUT']),quantity:units.refine(v=>BigInt(v)>0n),asset:z.string().min(1).max(30),decimals,
+ valueAtEvent:z.object({value:units,decimals,currency:z.string().min(1).max(10),source:z.enum(['COINGECKO','MANUAL','CONFIRMED_TRANSACTION']),observedAt:at.optional()}).strict().optional(),
+ occurredAt:at,provenance:z.enum(['LOCAL_CONFIRMED','CHAIN_CONFIRMED','MANUAL_ATTRIBUTION','REWARD_INCOME']),
+ transactionRef:z.string().min(1).max(300).optional(),reversesId:id.optional(),note:z.string().max(1000).optional(),
+}).strict();
+export type ContributionEvent=z.infer<typeof contributionEventSchema>;
+export const valuationSnapshotSchema=z.object({id,positionId:id,quantity:units,quantityDecimals:decimals,value:units,decimals,currency:z.string().min(1).max(10),source:z.enum(['MANUAL','COINGECKO','VERIFIED']),marketRef:marketAssetRefSchema.optional(),price:units.optional(),priceDecimals:z.number().int().min(0).max(30).optional(),observedAt:at.optional(),fetchedAt:at.optional(),capturedAt:at}).strict();
+export type ValuationSnapshot=z.infer<typeof valuationSnapshotSchema>;
+const goalValuationSchema=z.object({id,goalId:id,kind:z.literal('valuation'),capturedAt:at,current:units,target:units,asset:z.string().min(1).max(30),decimals,actualContributed:z.string().regex(/^-?(0|[1-9]\d*)$/).max(80),rewardIncome:z.string().regex(/^-?(0|[1-9]\d*)$/).max(80),planned:units,requiresReview:z.boolean(),evidence:z.array(z.object({positionId:id,quantity:units,counted:units,valuationSnapshotId:id.optional(),valuation:valuationSnapshotSchema.optional()}).strict()).max(1000)}).strict();
+const goalChangeSchema=z.object({id,goalId:id,kind:z.enum(['allocation','plan','milestone','status']),capturedAt:at,label:z.string().min(1).max(300),provenance:z.literal('LOCAL_EDIT')}).strict();
+export const goalHistorySchema=z.discriminatedUnion('kind',[goalValuationSchema,goalChangeSchema]);
+export type GoalHistory=z.infer<typeof goalHistorySchema>;
+const platformV1 = z.object({legacyGoalUi:z.record(z.string(),z.object({pinned:z.boolean().optional(),locked:z.boolean().optional(),archived:z.boolean().optional()}).strict()).optional(),schemaVersion:z.literal(1),kind:z.literal('zigoals-platform'),
  positions:z.array(positionSchema).max(1000),goals:z.array(privateGoalSchema).max(200),allocations:z.array(allocationSchema).max(2000),
  watchScope:z.object({network:id,account:id}).strict().optional(),
  aprAssumptions:z.array(z.object({network:id,account:id,percent:z.string().regex(/^(0|[1-9]\d{0,2})(\.\d{1,6})?$/).refine(v=>Number(v)<=100)}).strict()).max(1000).optional(),
  snapshots:z.array(z.object({positionId:id,quantity:units,observedAt:at}).strict()).max(2000),
 }).strict();
-export const platformSchema = platformBase.superRefine((s,c)=>{
+const platformBase=platformV1.extend({schemaVersion:z.literal(2),contributions:z.array(contributionEventSchema).max(10000),valuationSnapshots:z.array(valuationSnapshotSchema).max(240),goalHistory:z.array(goalHistorySchema).max(240),historyCaptureDays:z.record(z.string().max(260),date).refine(v=>Object.keys(v).length<=1200).optional()});
+export const platformSchema = z.union([platformBase,platformV1.transform(s=>({...s,schemaVersion:2 as const,contributions:[],valuationSnapshots:[],goalHistory:[]}))]).superRefine((s,c)=>{
  const issue=(message:string)=>c.addIssue({code:'custom',message});
- for(const list of [s.positions,s.goals]) if(new Set(list.map(i=>i.id)).size!==list.length) issue('Duplicate identifier.');
+ for(const list of [s.positions,s.goals,s.contributions,s.valuationSnapshots,s.goalHistory]) if(new Set(list.map(i=>i.id)).size!==list.length) issue('Duplicate identifier.');
  if(new Set(s.allocations.map(a=>`${a.goalId}:${a.positionId}`)).size!==s.allocations.length) issue('Duplicate allocation.');
  for(const a of s.allocations) if(!s.positions.some(p=>p.id===a.positionId)||!s.goals.some(g=>g.id===a.goalId)) issue('Dangling allocation.');
+ const reversed=new Set<string>(),transactions=new Set<string>();
+ for(const e of s.contributions){
+  if(e.transactionRef&&!e.reversesId){const key=JSON.stringify([e.goalScope,e.goalId,e.transactionRef]);if(transactions.has(key))issue('Duplicate transaction contribution.');transactions.add(key);}
+  if(!e.reversesId)continue;
+  const original=s.contributions.find(x=>x.id===e.reversesId);
+  if(!original||original.reversesId||reversed.has(e.reversesId)||Date.parse(e.occurredAt)<Date.parse(original.occurredAt)||original.direction===e.direction||['goalId','goalScope','positionId','quantity','asset','decimals','provenance'].some(k=>e[k as keyof ContributionEvent]!==original[k as keyof ContributionEvent])||JSON.stringify(e.valueAtEvent)!==JSON.stringify(original.valueAtEvent))issue('Invalid contribution reversal.');
+  reversed.add(e.reversesId);
+ }
  for(const p of s.positions) {
   if(p.sourceType==='MANUAL'&&p.verification!=='MANUAL') issue('Manual positions cannot be verified.');
   if(p.principal && p.sourceType==='NATIVE_STAKING' && p.principal!==p.quantity) issue('Stake principal mismatch.');
@@ -67,13 +92,13 @@ export function reconcileGoalStatuses(s:Platform):Platform {
  return {...s,goals:s.goals.map(g=>{
   if(g.status==='closed')return g;
   const p=goalProgress(s,g.id);
-  const status:PrivateGoal['status']=BigInt(p.current)>=BigInt(p.target)?'completed':'active';
+  const status:PrivateGoal['status']=!p.requiresReview&&BigInt(p.current)>=BigInt(p.target)?'completed':'active';
   return g.status===status?g:{...g,status};
  })};
 }
-export function emptyPlatform(): Platform { return {schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]}; }
+export function emptyPlatform(): Platform { return {schemaVersion:2,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[],contributions:[],valuationSnapshots:[],goalHistory:[]}; }
 /** Existing contract Goals, journal and simulations stay in their original scoped stores.
- * Migration is additive: absence -> empty v1; malformed/newer content never resets. */
+ * Migration is additive: absence -> empty v2; malformed/newer content never resets. */
 export function migratePlatform(raw:unknown):Platform { return raw===null?emptyPlatform():platformSchema.parse(raw); }
 const max=(a:bigint,b:bigint)=>a>b?a:b;
 function activeAllocations(s:Platform,positionId:string){return s.allocations.filter(a=>a.positionId===positionId&&s.goals.some(g=>g.id===a.goalId&&g.status!=='closed'));}
@@ -138,10 +163,10 @@ export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly
   let valuation:ValuationEvidence|undefined;
   if(goal.type==='VALUE'){
    const v=p.valuation;
-   const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&sameAsset(p,q.base)&&q.currency===goal.asset&&Date.parse(q.observedAt)<=now+60000).sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt))[0];
-   if(v&&v.currency===goal.asset&&v.decimals===goal.decimals){
-    value=observed?BigInt(v.value)*effective/observed:0n;
-    intended+=observed?BigInt(v.value)*q/observed:0n;
+   const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&quoteMatchesPosition(p,q)&&p.valuationMode!=='manual'&&q.currency===goal.asset&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
+   if(v&&v.currency===goal.asset){
+    value=observed?BigInt(v.value)*effective*10n**BigInt(goal.decimals)/(observed*10n**BigInt(v.decimals)):0n;
+    intended+=observed?BigInt(v.value)*q*10n**BigInt(goal.decimals)/(observed*10n**BigInt(v.decimals)):0n;
     valuation={state:v.source==='MANUAL'?'manual':snapshotIsStale(v.observedAt,now)?'stale':'fresh',source:v.source==='MANUAL'?'Manual valuation':'Position valuation',observedAt:v.observedAt};
    }else if(matching){
     value=BigInt(quoteValue(effective.toString(),p.decimals,matching,goal.decimals));
@@ -160,10 +185,10 @@ export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly
  const pct=current*10000n/target;
  return {current:current.toString(),target:target.toString(),remaining:max(0n,target-current).toString(),manual:manual.toString(),verified:verified.toString(),intended:intended.toString(),progressPct:`${pct/100n}.${String(pct%100n).padStart(2,'0')}`,requiresReview,missingValuation,staleValuation,breakdown};
 }
-/** Public quotes derive presentation status; private storage never persists market evidence. */
+/** Live quotes derive presentation status; separate private history retains captured evidence. */
 export function derivedGoalStatus(s:Platform,id:string,now=Date.now(),quotes:readonly MarketQuote[]=[]):PrivateGoal['status'] {
  const goal=s.goals.find(g=>g.id===id);if(!goal)throw Error('Goal unavailable.');if(goal.status==='closed')return 'closed';
- const progress=goalProgress(s,id,now,quotes);return BigInt(progress.current)>=BigInt(progress.target)?'completed':'active';
+ const progress=goalProgress(s,id,now,quotes);return !progress.requiresReview&&BigInt(progress.current)>=BigInt(progress.target)?'completed':'active';
 }
 /** Only evidenced native stake in this Goal's network may fund its staking scenario. */
 export function allocatedNativePrincipal(s:Platform,goalId:string):string {
@@ -245,17 +270,24 @@ export function needsMarketQuotes(s:Platform):boolean {
  return s.goals.some(g=>g.type==='VALUE'&&g.status!=='closed'&&g.asset==='USD'&&s.allocations.some(a=>a.goalId===g.id&&BigInt(a.quantity)>0n&&s.positions.some(p=>p.id===a.positionId&&p.network===g.network&&p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6)));
 }
 
+/** Confirmed Local Demo receipts are observations of facts already committed to the separate ledger. */
+export function confirmedLocalObservation(e:ContributionEvent):boolean{return e.goalScope==='local'&&e.provenance==='LOCAL_CONFIRMED'&&Boolean(e.transactionRef?.startsWith('local:'))&&!e.reversesId;}
+export function localGoalLocked(s:Platform,goalId:string):boolean{return Boolean(s.legacyGoalUi?.[`local-simulation:local-demo-user:${goalId}`]?.locked??s.legacyGoalUi?.[goalId]?.locked);}
 /** UI locks guard every private-store mutation, including stale forms in other tabs. */
 export function assertGoalEditsUnlocked(before:Platform,after:Platform):void {
+ for(const event of before.contributions)if(JSON.stringify(after.contributions.find(e=>e.id===event.id))!==JSON.stringify(event))throw Error('Contribution history is append-only. Record a reversal instead.');
+ for(const e of after.contributions)if(e.goalScope==='local'&&localGoalLocked(before,e.goalId)&&!confirmedLocalObservation(e)&&!before.contributions.some(old=>old.id===e.id))throw Error('Unlock this Goal before editing.');
  for(const goal of before.goals.filter(g=>g.locked)){
   const next=after.goals.find(g=>g.id===goal.id);
   const content=(g:PrivateGoal)=>{const {locked,pinned,status,...rest}=g;void locked;void pinned;void status;return rest;};
   if(!next||JSON.stringify(content(goal))!==JSON.stringify(content(next))||
     (next.status==='closed'&&goal.status!=='closed')||
-    JSON.stringify(before.allocations.filter(a=>a.goalId===goal.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===goal.id)))throw Error('Unlock this Goal before editing.');
+    JSON.stringify(before.allocations.filter(a=>a.goalId===goal.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===goal.id))||
+    JSON.stringify(before.contributions.filter(e=>e.goalScope==='private'&&e.goalId===goal.id))!==JSON.stringify(after.contributions.filter(e=>e.goalScope==='private'&&e.goalId===goal.id)))throw Error('Unlock this Goal before editing.');
  }
 }
 export function deletePrivateGoal(s:Platform,id:string):Platform {
+ if(s.contributions.some(e=>e.goalScope==='private'&&e.goalId===id))throw Error('This Goal has immutable financial history. Close it instead.');
  if(s.goals.find(g=>g.id===id)?.locked)throw Error('Unlock this Goal before deleting.');
  return platformSchema.parse({...s,goals:s.goals.filter(g=>g.id!==id),allocations:s.allocations.filter(a=>a.goalId!==id)});
 }
