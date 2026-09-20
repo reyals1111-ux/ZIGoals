@@ -12,10 +12,11 @@ it('makes automatic versus manual valuation explicit while preserving the manual
  const container=document.createElement('div');document.body.append(container);const root=createRoot(container);
  await act(async()=>{root.render(createElement(ManualSourceCards,{update:async()=>{},onSaved:()=>{}}));});
  const buttons=[...container.querySelectorAll('button')];
- expect(buttons.map(button=>button.textContent)).toEqual(expect.arrayContaining([expect.stringContaining('Automatic prices'),expect.stringContaining('Manual value'),expect.stringContaining('Cash')]));
- const automatic=buttons.find(button=>button.textContent?.includes('Automatic prices'))!;
- await act(async()=>{automatic.click();await Promise.resolve();});
- expect(container.textContent).toContain('Choose the exact asset');
- expect(container.textContent).toContain('Only the public identity and quote currency are requested');
+ expect(buttons.map(button=>button.textContent)).toEqual(expect.arrayContaining(['Crypto','Stablecoins','Stocks','ETFs','Precious metals','Cash']));
+ expect(container.textContent).toContain('Find your asset');
+ const cash=buttons.find(button=>button.textContent==='Cash')!;
+ await act(async()=>{cash.click();await Promise.resolve();});
+ expect(container.textContent).toContain('Cash amount');
+ expect(container.querySelector('input[name="quantity"]')).not.toBeNull();
  await act(async()=>root.unmount());
 });

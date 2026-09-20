@@ -62,14 +62,14 @@ const identityLabel=(asset:MarketCatalogAsset)=>asset.ref.kind==='rwa'
  ? `${typeLabel(asset)} · CoinGecko ID ${asset.ref.id}`
  : `${asset.ref.platform?`${asset.ref.platform} contract · `:'Coin · '}CoinGecko ID ${asset.ref.id}`;
 
-export function AssetSearch({selected,onSelect,onManual,disabled=false}:{selected?:MarketCatalogAsset;onSelect:(asset:MarketCatalogAsset)=>void;onManual:()=>void;disabled?:boolean}){
+export function AssetSearch({selected,onSelect,onManual,disabled=false,category}:{category?:string;selected?:MarketCatalogAsset;onSelect:(asset:MarketCatalogAsset)=>void;onManual:()=>void;disabled?:boolean}){
  const [query,setQuery]=useState(''),[catalog,setCatalog]=useState<MarketCatalogAsset[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
  useEffect(()=>{let active=true;setLoading(true);setError('');void loadCatalog().then(assets=>{if(active)setCatalog(assets);}).catch(()=>{if(active)setError('Automatic market catalog is unavailable right now.');}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[attempt]);
- const results=useMemo(()=>searchMarketAssets(query,catalog),[query,catalog]);
+ const results=useMemo(()=>searchMarketAssets(query,catalog.filter(a=>!category||(['Crypto','Stablecoins'].includes(category)?a.ref.kind==='coin':category==='Stocks'?a.ref.kind==='rwa'&&a.ref.assetType==='stock':category==='ETFs'?a.ref.kind==='rwa'&&a.ref.assetType==='etf':category==='Precious metals'?a.ref.kind==='rwa'&&a.ref.assetType==='commodity':true))),[query,catalog,category]);
  return <section className="asset-search" aria-labelledby="asset-search-title">
-  <div className="asset-search-heading"><div><p className="eyebrow">Public market catalog</p><h4 id="asset-search-title">Choose the exact asset</h4></div><span className="asset-search-provider">CoinGecko</span></div>
-  <p className="fine">Search happens in the cached catalog on this device. Only the public identity and quote currency are requested for pricing; your quantity stays private.</p>
-  <label className="field">Search by symbol, name, or CoinGecko ID<input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Try BTC, Apple, or gold" autoComplete="off" disabled={disabled||loading}/></label>
+  <div className="asset-search-heading"><div><p className="eyebrow">Public market catalog</p><h4 id="asset-search-title">Find your asset</h4></div><span className="asset-search-provider">CoinGecko</span></div>
+  <p className="fine">Explore crypto, stocks, ETFs and metals. Prices by CoinGecko. Your holdings stay private.</p>
+  <label className="field">Search assets<input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Try BTC, Apple, or gold" autoComplete="off" disabled={disabled||loading}/></label>
   {loading&&<div className="asset-search-state" role="status"><span className="asset-search-loader" aria-hidden="true"/>Loading the public market catalog…</div>}
   {!loading&&error&&<div className="asset-search-state asset-search-error" role="alert"><strong>Automatic prices are unavailable</strong><span>Your manual assets and values still work.</span><div><button type="button" className="secondary" onClick={()=>setAttempt(value=>value+1)}>Try catalog again</button><button type="button" className="text-link" onClick={onManual}>Use manual entry</button></div></div>}
   {!loading&&!error&&!catalog.length&&<div className="asset-search-state"><strong>No automatic assets are available.</strong><button type="button" className="secondary" onClick={onManual}>Use manual entry</button></div>}

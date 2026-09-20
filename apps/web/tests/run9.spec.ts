@@ -3,16 +3,16 @@ import {seed} from './coherence-fixture';
 
 test('actual contributions stay separate from observed wealth and reversals retain history',async({page})=>{
  await seed(page);await page.goto('/app/goals/tracked/82');
- await expect(page.getByRole('region',{name:'Funding Health V3'})).toBeVisible();
- await page.getByRole('button',{name:'Record contribution',exact:true}).click();
- await page.getByLabel('Actual amount',{exact:true}).fill('125');
- await page.getByRole('button',{name:'Save actual contribution',exact:true}).click();
- await expect(page.getByRole('region',{name:'Funding Health V3'})).toContainText('$125');
+ await expect(page.getByRole('region',{name:'Funding Wealth overview'})).toBeVisible();
+ await page.getByRole('button',{name:'Record contribution',exact:true}).click();await page.getByRole('button',{name:'Record history only',exact:true}).click();
+ await page.getByLabel('Actual amount in USD',{exact:true}).fill('125');
+ await page.getByRole('button',{name:'Save history only',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Funding Wealth overview'})).toContainText('$125');
  await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution recorded');
  let saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));
- expect(saved.schemaVersion).toBe(2);expect(saved.contributions.filter((e:{goalScope:string})=>e.goalScope==='private')).toHaveLength(1);
+ expect(saved.schemaVersion).toBe(3);expect(saved.contributions.filter((e:{goalScope:string})=>e.goalScope==='private')).toHaveLength(1);
  expect(saved.positions.find((p:{id:string})=>p.id==='b').quantity).toBe('263000000000');
- await page.getByRole('button',{name:'Reverse contribution',exact:true}).click();
+ await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();
  await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution reversed');
  saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(saved.contributions.filter((e:{goalScope:string})=>e.goalScope==='private')).toHaveLength(2);
  await page.reload();await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution reversed');
@@ -56,10 +56,10 @@ test('automatic selection preserves exact identity, quotes privately, and keeps 
  await page.route('**/api/market-assets',route=>{catalogCalls++;return route.fulfill({json:{assets:[{ref:{provider:'coingecko',kind:'coin',id:'bitcoin'},name:'Bitcoin',symbol:'btc'},{ref:{provider:'coingecko',kind:'coin',id:'bitcoin-collision'},name:'Different Bitcoin',symbol:'btc'},{ref:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'},name:'Gold',symbol:'GOLD'}],error:null}});});
  await page.route('**/api/market-quotes',route=>{const body=route.request().postDataJSON();calls.push(body);return route.fulfill({json:{quotes:body.requests.map((r:{marketRef:{id:string};currency:string})=>({base:{network:'coingecko',denom:r.marketRef.id,decimals:18},marketRef:r.marketRef,currency:r.currency,price:'65000',priceDecimals:0,source:'CoinGecko',providerAssetId:r.marketRef.id,observedAt:new Date().toISOString(),fetchedAt:new Date().toISOString(),verification:'VERIFIED'})),error:null}});});
  await page.goto('/app/goals/new');await page.getByLabel('Goal name',{exact:true}).fill('Automatic wealth');await page.getByRole('combobox',{name:'Goal type',exact:true}).selectOption('VALUE');await page.getByLabel('Target amount',{exact:true}).fill('100000');await page.getByRole('button',{name:'Continue →',exact:true}).click();
- await page.getByRole('button',{name:'Automatic prices',exact:false}).click();
+ await page.getByRole('button',{name:'Crypto',exact:true}).click();
  const search=page.getByRole('searchbox');await search.fill('BTC');await expect(page.getByRole('list',{name:'Market assets'}).getByRole('button')).toHaveCount(2);
  await page.getByRole('list',{name:'Market assets'}).getByRole('button').filter({hasText:'CoinGecko ID bitcoin'}).filter({hasNotText:'collision'}).click();
- await page.getByLabel('Wealth classification').selectOption('Crypto');await page.getByLabel('Asset quantity',{exact:true}).fill('0.25');await page.getByRole('button',{name:'Save automatic-price source',exact:true}).click();await expect(page.getByRole('button',{name:'Save automatic-price source',exact:true})).toHaveCount(0);
+ await page.getByLabel('Asset quantity',{exact:true}).fill('0.25');await page.getByRole('button',{name:'Save asset for this Goal',exact:true}).click();await expect(page.getByRole('button',{name:'Save asset for this Goal',exact:true})).toHaveCount(0);
  await page.goto('/app/wealth');await expect(page.locator('.wealth-hero')).toContainText('$16250');
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(saved.positions[0].marketRef.id).toBe('bitcoin');expect(saved.positions[0].quantity).toBe('250000000000000000');expect(saved.contributions).toHaveLength(0);
  expect(catalogCalls).toBe(1);expect(calls.length).toBeGreaterThan(0);for(const body of calls){expect(JSON.stringify(body)).not.toContain('250000');expect(JSON.stringify(body)).not.toContain('Automatic wealth');}
@@ -67,9 +67,9 @@ test('automatic selection preserves exact identity, quotes privately, and keeps 
 
 test('catalog failure leaves explicit manual valuation usable',async({page})=>{
  await page.route('**/api/market-assets',route=>route.fulfill({status:503,json:{error:'Market catalog unavailable.'}}));
- await page.goto('/app/goals/positions');await page.getByRole('button',{name:'Automatic prices',exact:false}).click();
+ await page.goto('/app/wealth');await page.getByRole('button',{name:'+ Add asset',exact:true}).first().click();await page.getByRole('dialog').getByRole('button',{name:'Stablecoins',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'Automatic prices are unavailable'})).toContainText('Automatic prices are unavailable');
- await page.getByRole('button',{name:'Use manual entry',exact:true}).click();await page.getByRole('button',{name:'Stablecoins',exact:true}).click();
- await page.getByLabel('Asset name',{exact:true}).fill('Manual reserve');await page.getByLabel('Symbol / ticker').fill('USDC');await page.getByLabel('Quantity',{exact:true}).fill('100');await page.getByLabel('Manual total value (optional)').fill('99.75');await page.getByRole('button',{name:'Save manual source',exact:true}).click();await expect(page.getByRole('button',{name:'Save manual source',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Use manual entry',exact:true}).click();
+ await page.getByLabel('Asset name',{exact:true}).fill('Manual reserve');await page.getByLabel('Symbol / ticker').fill('USDC');await page.getByLabel('Quantity',{exact:true}).fill('100');await page.getByLabel('Total holding value').fill('99.75');await page.getByRole('button',{name:'Save asset',exact:true}).click();await expect(page.getByRole('button',{name:'Save asset',exact:true})).toHaveCount(0);
  await page.goto('/app/wealth');await expect(page.locator('.wealth-hero')).toContainText('$99.75');
 });

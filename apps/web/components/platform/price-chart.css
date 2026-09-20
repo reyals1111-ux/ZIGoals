@@ -1,0 +1,45 @@
+.price-chart{margin:0;min-width:0;padding:clamp(1rem,2.5vw,1.7rem);border:1px solid #b4b9ed29;border-radius:24px;background:radial-gradient(ellipse at 80% 0%,#9256db14,transparent 62%),linear-gradient(155deg,#141c34d9,#0c1225e6);color:var(--text,#f0f5ff);overflow:hidden;}
+.price-chart-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.price-chart-eyebrow{display:block;color:#b5bbd6;font-size:.8rem;line-height:1.4;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem;}
+.price-chart h3{margin:0;font-size:1.25rem;line-height:1.4;font-weight:650;}
+.price-chart-refresh{appearance:none;border:1px solid #a5aacf3b;background:#ffffff06;color:#d4e3fd;font:inherit;font-size:.84rem;padding:.6rem .8rem;border-radius:11px;min-height:42px;cursor:pointer;}
+.price-chart-refresh:disabled{cursor:default;color:#aebbd2;opacity:.8;}
+.price-chart-source{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;color:#c2cde4;font-size:.86rem;line-height:1.5;}
+.price-chart-source>span:last-child:not(:first-child){margin-left:auto;color:#a7c6cf;font-size:.82rem;}
+.price-chart-dot{width:6px;height:6px;flex:none;border-radius:50%;background:#61d7d4;box-shadow:0 0 10px #45d8ef66;}
+.price-chart-dot.is-stale{background:#e4bf86;box-shadow:none;}
+.price-chart-source .price-chart-stale{color:#e4bf86;}
+.price-chart-quote{display:flex;align-items:flex-end;justify-content:space-between;gap:1.2rem;margin:1.6rem 0 1.1rem;flex-wrap:wrap;}
+.price-chart-quote>div{min-width:0;}
+.price-chart-quote>div>strong{display:block;overflow-wrap:anywhere;font-size:clamp(1.8rem,3.7vw,2.7rem);letter-spacing:-.055em;line-height:1.16;font-weight:600;font-variant-numeric:tabular-nums;}
+.price-chart-quote small{font-size:.9rem;letter-spacing:0;color:#b7c3dc;font-weight:500;white-space:nowrap;}
+.price-chart-quote span{display:block;font-size:.84rem;color:#b7c3dc;line-height:1.5;margin-top:.5rem;}
+.price-chart-quote .price-chart-change strong{font-size:1.12rem;letter-spacing:0;color:#8be2d1;}
+.price-chart-quote .price-chart-change.is-negative strong{color:#f0a6bc;}
+.price-chart-change span{max-width:170px;font-size:.8rem;}
+.price-chart-ranges{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;padding:4px;background:#060b1959;border:1px solid #b4b9ed17;border-radius:13px;width:fit-content;max-width:100%;margin-bottom:.8rem;}
+.price-chart-ranges button{appearance:none;background:transparent;border:1px solid transparent;border-radius:9px;min-height:40px;padding:.45rem .75rem;font:inherit;font-size:.84rem;font-weight:600;letter-spacing:.015em;color:#b9c6e0;cursor:pointer;}
+.price-chart-ranges button[aria-pressed=true]{color:#f8f5ff;background:linear-gradient(115deg,#238fac48,#7756ad54,#bb6b8742);border-color:#aeacf94d;box-shadow:0 1px 10px #17112580;}
+.price-chart-ranges button:hover{color:#fff;background-color:#a3b0e315;}
+.price-chart-plot{display:block;width:100%;height:auto;min-height:160px;color:#a6b3cf;overflow:visible;touch-action:pan-y;}
+.price-chart-axis{display:flex;justify-content:space-between;gap:1rem;font-size:.83rem;color:#b7c3dc;font-variant-numeric:tabular-nums;line-height:1.5;margin-top:.4rem;}
+.price-chart-plot:focus-visible,.price-chart button:focus-visible,.price-chart summary:focus-visible,.price-chart-table-wrap:focus-visible{outline:2px solid #6ee5ef;outline-offset:4px;}
+.price-chart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:245px;max-width:36rem;margin:auto;}
+.price-chart-empty>span{font-size:3.6rem;line-height:1.3;color:#b596f5;text-shadow:0 0 28px #ad89f988;}
+.price-chart-empty h4{font-size:1.1rem;margin:.5rem 0;line-height:1.5;}
+.price-chart-empty p,.price-chart-single p{font-size:.93rem;color:#b7c3dc;line-height:1.6;margin:0;}
+.price-chart-single{padding:.2rem 0 1rem;}
+.price-chart-single strong{font-size:1rem;line-height:1.6;}
+.price-chart figcaption{font-size:.84rem;line-height:1.6;color:#b7c3dc;padding-top:.8rem;}
+.price-chart figcaption>span{display:block;margin-top:.3rem;}
+.price-chart figcaption .price-chart-limitation{color:#e7c4a4;}
+.price-chart-details{margin-top:1rem;border-top:1px solid #9caed321;padding-top:1rem;}
+.price-chart-details summary{cursor:pointer;font-size:.91rem;color:#c9d5ee;line-height:1.65;}
+.price-chart-details summary>span{font-size:.83rem;color:#a6b3cf;margin-left:.6rem;white-space:nowrap;}
+.price-chart-table-wrap{width:100%;max-height:330px;overflow:auto;overscroll-behavior:contain;margin-top:.8rem;border-radius:10px;background:#00000016;}
+.price-chart table{border-collapse:collapse;min-width:100%;font-size:.88rem;text-align:left;line-height:1.6;font-variant-numeric:tabular-nums;}
+.price-chart caption{text-align:left;color:#a6b3cf;padding:.7rem .8rem;font-size:.83rem;}
+.price-chart th,.price-chart td{padding:.75rem .8rem;border-bottom:1px solid #a5b0d11a;white-space:nowrap;}
+.price-chart th{color:#cbd5eb;background:#151c33;font-weight:550;}
+.price-chart td:last-child{text-align:right;}
+@media(max-width:440px){.price-chart{border-radius:18px;}.price-chart-heading{gap:.75rem;}.price-chart-quote{margin:1.2rem 0 1rem;}.price-chart-source>span:last-child:not(:first-child){margin-left:0;width:100%;}.price-chart-quote>div>strong{font-size:1.85rem;}.price-chart-ranges{gap:.1rem;}.price-chart-ranges button{padding:.45rem .6rem;}.price-chart-details summary>span{display:block;margin-left:1rem;}.price-chart-empty{min-height:220px;}}

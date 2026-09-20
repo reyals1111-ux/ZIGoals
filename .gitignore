@@ -155,3 +155,6 @@ test-results/
 .open-next/
 .wrangler/
 .dev.vars*
+
+# Isolated browser verification outputs
+apps/web/test-results-*/

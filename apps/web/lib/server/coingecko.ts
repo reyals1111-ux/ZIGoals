@@ -1,5 +1,6 @@
 /** Server adapter. Only API route modules import this module; never import it from a client component. */
 import {CATALOG_FRESH_MS,MARKET_RETRY_MS,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
+import {HISTORY_DAYS,historyRequestSchema,parseCoinHistory,RWA_HISTORY_UNAVAILABLE,type MarketHistoryRequest} from '../market-history';
 import {boundedQuoteText,parseCoinQuotes,parseRwaQuotes,type MarketQuote} from '../market-quotes';
 export const PROVIDER_REQUESTS_PER_MINUTE=12;
 export const PROVIDER_MAX_IN_FLIGHT=2;
@@ -11,7 +12,7 @@ export function buildCoinGeckoRequests(raw:readonly MarketQuoteRequest[]):Provid
  return batches;
 }
 export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}:{key:()=>string|undefined;fetcher?:typeof fetch;clock?:()=>number}){
- // Admission is shared by catalogs and quote batches within this server process.
+ // Admission is shared by catalogs, quotes and history within this server process.
  const attempts:number[]=[];let inFlight=0;const waiting:Array<()=>void>=[];
  async function acquire(){if(inFlight<PROVIDER_MAX_IN_FLIGHT){inFlight++;return;}await new Promise<void>(resolve=>waiting.push(resolve));}
  function release(){const next=waiting.shift();if(next)next();else inFlight--;}
@@ -23,5 +24,8 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  async function quotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{const result:MarketQuote[]=[];for(const batch of buildCoinGeckoRequests(requests)){const text=await read(batch.url,1024*1024);result.push(...(batch.kind==='coin'?parseCoinQuotes(text,batch.requests,clock()):parseRwaQuotes(text,batch.requests,clock())));}return result;}
  let assets:MarketCatalogAsset[]=[],fetchedAt=0,nextAttempt=0,error:string|null=null,pending:Promise<void>|null=null;
  async function catalog(){const now=clock();if(!pending&&now>=nextAttempt&&(!assets.length||now-fetchedAt>=CATALOG_FRESH_MS)){nextAttempt=now+MARKET_RETRY_MS;pending=(async()=>{try{const [coins,rwas]=await Promise.all([read('https://api.coingecko.com/api/v3/coins/list?include_platform=true',12*1024*1024),read('https://api.coingecko.com/api/v3/rwas/list',2*1024*1024)]);assets=[...parseMarketCatalog(coins,'coin'),...parseMarketCatalog(rwas,'rwa')];fetchedAt=clock();error=null;}catch{error='Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.';}finally{pending=null;}})();}await pending;return {assets,error,fetchedAt:fetchedAt?new Date(fetchedAt).toISOString():null,stale:!fetchedAt||clock()-fetchedAt>=CATALOG_FRESH_MS};}
- return {quotes,catalog};
+ async function history(raw:MarketHistoryRequest){const request=historyRequestSchema.parse(raw);if(request.marketRef.kind!=='coin')throw Error(RWA_HISTORY_UNAVAILABLE);
+ const url=new URL(`https://api.coingecko.com/api/v3/coins/${encodeURIComponent(request.marketRef.id)}/market_chart`);url.searchParams.set('vs_currency',request.currency.toLowerCase());url.searchParams.set('days',String(HISTORY_DAYS[request.range]));url.searchParams.set('precision','full');
+ return parseCoinHistory(await read(url.toString(),1024*1024),request,clock());}
+ return {quotes,catalog,history};
 }

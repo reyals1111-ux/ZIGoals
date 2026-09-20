@@ -9,7 +9,7 @@ const event=(id='e')=>({id,goalId:'1',goalScope:'private' as const,direction:'IN
 describe('Run 9 accounting',()=>{
  it('migrates v1 deterministically, rejects missing v2 arrays and future versions',()=>{
   const old={schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]};
-  expect(platformSchema.parse(old)).toMatchObject({schemaVersion:2,contributions:[],valuationSnapshots:[],goalHistory:[]});
+  expect(platformSchema.parse(old)).toMatchObject({schemaVersion:3,contributions:[],valuationSnapshots:[],goalHistory:[]});
   expect(old.schemaVersion).toBe(1);
   expect(platformSchema.safeParse({...old,schemaVersion:2}).success).toBe(false);
   expect(platformSchema.safeParse({...old,schemaVersion:3}).success).toBe(false);

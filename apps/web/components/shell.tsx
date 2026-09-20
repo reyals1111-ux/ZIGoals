@@ -25,7 +25,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <Link href="/app" className="brand" aria-label="ZIGoals home">
           <Wordmark />
         </Link>
-        <p className="product-descriptor">Goals, Habits &amp; Health</p>
+        <p className="product-descriptor">Goals, Habits &amp; Health = Wealth</p>
         <nav className="app-nav" aria-label="Main navigation">
           {[
             ["/app", "Today", "today"],
@@ -57,7 +57,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
           <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
         </div>
-        <div className="wallet">
+        <details className="quick-add"><summary>+ Quick add</summary><nav aria-label="Quick add actions"><Link href="/app/goals/new">Goal</Link><Link href="/app/wealth">Asset</Link><Link href="/app/goals">Contribution</Link><Link href="/app/habits">Habit</Link><Link href="/app/health">Health entry</Link></nav></details><div className="wallet">
           <button
             className="quiet"
             onClick={s.useLocal}

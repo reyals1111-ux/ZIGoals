@@ -134,7 +134,7 @@ export default function Settings() {
           </div>
         </dl>
         <p>
-          Funding Health assumes 0% future investment return. Scenario
+          Funding Wealth assumes 0% future investment return. Scenario
           projections are illustrative. Testnet assets have no monetary value.
           This alpha is unaudited and does not support mainnet.
         </p>

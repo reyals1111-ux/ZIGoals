@@ -37,7 +37,7 @@ function deduplicatedRequests(requests:MarketQuoteRequest[]):MarketQuoteRequest[
 /** Build public quote requests without exposing Position IDs, quantities, Goals or allocations. */
 export function wealthMarketRequests(s:Platform):MarketQuoteRequest[]{
  const requests:MarketQuoteRequest[]=[];
- for(const p of s.positions){
+ for(const p of s.positions.filter(p=>!p.archivedAt)){
   const marketRef=automaticMarketRef(p);if(!marketRef)continue;
   const currencies=new Set<'USD'|'EUR'>([p.quoteCurrency??'USD']);
   for(const allocation of s.allocations.filter(a=>a.positionId===p.id)){
@@ -69,12 +69,13 @@ export function wealthHistory(s:Platform):WealthHistory[]{
  const currencies=[...new Set(s.positions.flatMap(p=>currencyOf(p)?[currencyOf(p)!]:[]))];
  return currencies.flatMap(currency=>{
   const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id);
-  const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&required.includes(v.positionId)).sort((a,b)=>a.capturedAt.localeCompare(b.capturedAt));
+  const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&required.includes(v.positionId)).sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt));
   const latest=new Map<string,bigint>(),points:{at:string;value:string}[]=[];
   for(let index=0;index<snapshots.length;){
    const at=snapshots[index]!.capturedAt;
-   while(index<snapshots.length&&snapshots[index]!.capturedAt===at){const snapshot=snapshots[index]!;const value=BigInt(snapshot.value)*(snapshot.decimals<=2?10n**BigInt(2-snapshot.decimals):1n)/(snapshot.decimals>2?10n**BigInt(snapshot.decimals-2):1n);latest.set(snapshot.positionId,value);index++;}
-   if(required.every(id=>latest.has(id)))points.push({at,value:required.reduce((total,id)=>total+latest.get(id)!,0n).toString()});
+   while(index<snapshots.length&&Date.parse(snapshots[index]!.capturedAt)===Date.parse(at)){const snapshot=snapshots[index]!;const value=BigInt(snapshot.value)*(snapshot.decimals<=2?10n**BigInt(2-snapshot.decimals):1n)/(snapshot.decimals>2?10n**BigInt(snapshot.decimals-2):1n);latest.set(snapshot.positionId,value);index++;}
+   const active=required.filter(id=>{const position=s.positions.find(p=>p.id===id)!;if(position.trackingStartedAt&&Date.parse(position.trackingStartedAt)>Date.parse(at))return false;if(position.archivePeriods)return !position.archivePeriods.some(period=>Date.parse(period.from)<=Date.parse(at)&&(!period.to||Date.parse(period.to)>Date.parse(at)));const events=s.assetEvents.filter(e=>e.positionId===id).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));const created=events.find(e=>e.kind==='added');if(created&&Date.parse(created.at)>Date.parse(at))return false;const lifecycle=events.filter(e=>Date.parse(e.at)<=Date.parse(at)&&['archived','restored'].includes(e.kind)).at(-1);return lifecycle?lifecycle.kind!=='archived':!position.archivedAt||Date.parse(position.archivedAt)>Date.parse(at);});
+   if(active.length&&active.every(id=>latest.has(id)))points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString()});
   }
   if(!points.length)return [];
   const first=BigInt(points[0]!.value),last=BigInt(points.at(-1)!.value),change=last-first;
@@ -84,7 +85,7 @@ export function wealthHistory(s:Platform):WealthHistory[]{
 }
 
 export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[]){
- const rows=s.positions.map(p=>{
+ const rows=s.positions.filter(p=>!p.archivedAt).map(p=>{
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
   const requestedCurrency=p.quoteCurrency??'USD';
   const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
