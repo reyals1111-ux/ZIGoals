@@ -28,7 +28,7 @@ it('requires a server key, suppresses provider details and never requests RWA hi
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).history({...request,marketRef:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'}})).rejects.toThrow(/local/i);expect(fetcher).not.toHaveBeenCalled();
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).history(request)).rejects.toThrow('CoinGecko market data unavailable.');
  const [url,init]=fetcher.mock.calls[0]! as unknown as [string,RequestInit];expect(url).toBe('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=90&precision=full');
- expect(init).toMatchObject({credentials:'omit',redirect:'error',referrerPolicy:'no-referrer',headers:{Accept:'application/json','x-cg-demo-api-key':'fixture-key'}});expect(init.body).toBeUndefined();
+ expect(init).toMatchObject({credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',headers:{Accept:'application/json','x-cg-demo-api-key':'fixture-key'}});expect(init.body).toBeUndefined();
 });
 it('shares quote and history admission instead of multiplying the provider quota',async()=>{
  let calls=0;const fetcher:typeof fetch=async()=>{calls++;return new Response(sample);};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});
@@ -51,4 +51,16 @@ it('sends only public identity, currency and range; never local evidence to app 
  const fetcher=vi.fn(async()=>Response.json({history:parseCoinHistory(sample,request,now),error:null,stale:false,nextAttemptAt:now+60000}));const result=await fetchPublicMarketHistory(request,false,fetcher,now);
  expect(result.history?.points).toHaveLength(2);const [url,init]=fetcher.mock.calls[0]! as unknown as [string,RequestInit];expect(url).toBe('/api/market-history');expect(JSON.parse(String(init.body))).toEqual({request,refresh:false});expect(init.credentials).toBe('omit');
  await expect(fetchPublicMarketHistory({...request,localPoints:[{at:'private'}]} as MarketHistoryRequest,false,fetcher,now)).rejects.toThrow();
+});
+
+it('uses Workers-compatible manual redirects and never follows a provider redirect with its key',async()=>{
+ const calls:string[]=[];const edgeFetch:typeof fetch=async(url,init)=>{
+  if(init?.redirect==='error')throw new TypeError('Workers does not implement redirect:error');
+  expect(init?.redirect).toBe('manual');calls.push(String(url));return new Response(sample);
+ };
+ await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher:edgeFetch,clock:()=>now}).history(request)).resolves.toMatchObject({source:'CoinGecko'});
+ expect(calls).toHaveLength(1);
+ let redirects=0;const redirectFetch:typeof fetch=async(_url,init)=>{expect(init?.redirect).toBe('manual');redirects++;return new Response(null,{status:302,headers:{Location:'https://untrusted.invalid/collect'}});};
+ await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher:redirectFetch,clock:()=>now}).history(request)).rejects.toThrow('CoinGecko market data unavailable.');
+ expect(redirects).toBe(1);
 });

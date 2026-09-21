@@ -1,7 +1,10 @@
 'use client';
-import {useEffect,useRef,type ReactNode,type CSSProperties} from 'react';
+import {useEffect,useRef,useState,type ReactNode,type CSSProperties} from 'react';
 import './financial-ui.css';
-export function AssetIcon({symbol,kind='Crypto'}:{symbol:string;kind?:string}){return <span className="asset-orb" data-kind={kind} aria-hidden="true">{symbol==='BTC'?'₿':symbol==='ETH'?'Ξ':symbol==='USD'?'$':symbol==='EUR'?'€':symbol.slice(0,3).toUpperCase()}</span>;}
+export function AssetIcon({symbol,kind='Crypto',logoUrl}:{symbol:string;kind?:string;logoUrl?:string|null}){const [failed,setFailed]=useState('');const logo=logoUrl?.startsWith('/api/market-logo?url=')&&failed!==logoUrl?logoUrl:null;const fallback=kind==='ETFs'?'▦':kind==='Stocks'?'▥':kind==='Stablecoins'?'◎':kind==='Precious Metals'||kind==='Precious metals'?'△':kind==='Property'?'⌂':kind==='Custom'?'✧':kind==='Cash'?symbol==='EUR'?'€':'$':symbol==='BTC'?'₿':symbol==='ETH'?'Ξ':symbol.slice(0,3).toUpperCase();return <span className="asset-orb" data-kind={kind} aria-hidden="true">{logo?
+ // The validated, same-origin raster proxy bounds bytes and host; no client provider credential.
+ // eslint-disable-next-line @next/next/no-img-element
+ <img src={logo} alt="" width={48} height={48} loading="lazy" onError={()=>setFailed(logo)}/>:fallback}</span>;}
 export function ProgressRing({percent,size=112,label='Goal progress'}:{percent:number;size?:number;label?:string}){const safe=Math.max(0,Math.min(100,Number.isFinite(percent)?percent:0));return <div className="flow-ring" role="img" aria-label={`${label}: ${safe.toFixed(2)}%`} style={{'--progress':`${safe}%`,'--ring-size':`${size}px`} as CSSProperties}><span>{safe.toFixed(2)}<small>%</small></span></div>;}
 export function FreshnessBadge({state}:{state:string}){return <span className="freshness-badge" data-state={state}>{state==='fresh'?'Current':state==='stale'?'Needs refresh':state==='manual'?'Manual value':'Needs value'}</span>;}
 export function MetricCard({label,value,detail}:{label:string;value:ReactNode;detail?:ReactNode}){return <div className="financial-metric"><span>{label}</span><strong>{value}</strong>{detail&&<small>{detail}</small>}</div>;}

@@ -111,13 +111,12 @@ export default function GoalDetail({
  {ui.archived&&<button className="secondary" onClick={()=>void preference({archived:false})}>Restore Goal to ZIGoals</button>}
  <fieldset disabled={!!ui.locked} className="goal-edit-scope"><div className="goal-management-grid">
  <GoalModule id="wealth" title="Wealth / sources" description="Legacy simulation · private planning"><p>This existing Goal uses a saved simulated balance. Keep it for reference, or create a non-custodial Goal to allocate wallet holdings, stake or manual wealth.</p><Link href="/app/goals/new" className="text-link">Create a Goal using existing wealth →</Link></GoalModule>
- <GoalModule id="contribution-plan" title="Contribution plan" description={plan?`${displayAmount(plan.monthlyContribution,plan.currency)} monthly`:'Recover your plan'}>{result&&<><h2>Funding health · 0% future return</h2><p>{result.fundingHealthExplanation}</p><p>Contributions remaining: {result.contributionPeriodsRemaining}</p><p><span>Required {result.requiredContributionTiming==='immediate'?'now':'monthly'} at 0%</span>: {displayAmount(result.fundingRequiredContribution,summary.currency)}</p></>}{plan&&(        <div className="scenario-panel">
+ <GoalModule id="contribution-plan" title="Contribution plan" description={plan?`${displayAmount(plan.monthlyContribution,plan.currency)} monthly`:'Recover your plan'}>{result&&<><h2>Funding Wealth · 0% future return</h2><p>{result.fundingHealthExplanation}</p><p>Contributions remaining: {result.contributionPeriodsRemaining}</p><p><span>Required {result.requiredContributionTiming==='immediate'?'now':'monthly'} at 0%</span>: {displayAmount(result.fundingRequiredContribution,summary.currency)}</p></>}{plan&&(        <div className="scenario-panel">
           <div>
             <p className="eyebrow">Explore the possibilities</p>
             <h2>Illustrative scenario.</h2>
             <p>
-              Assumptions are not predictions. They do not change Funding
-              Health.
+              Assumptions are not predictions. They do not change Funding Wealth.
             </p>
           </div>
           <label>

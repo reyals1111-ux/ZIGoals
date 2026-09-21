@@ -1,3 +1,4 @@
+import {beginPendingWork,ownPendingWork,waitForPendingWork,workIsPending,type PendingWork} from './pending-work';
 import {z} from 'zod';
 import {marketAssetRefSchema,marketRequestKey,MARKET_RETRY_MS} from './market-assets';
 import {boundedQuoteText,QUOTE_FRESH_MS} from './market-quotes';
@@ -64,37 +65,36 @@ export function availableHistoryRanges(points:readonly HistoryPoint[]):ChartHist
 }
 /** Small process/tab-local LRU, shared pending work and retry gating. No persistent or private storage. */
 export function createMarketHistoryCache(loader:(request:MarketHistoryRequest,refresh:boolean)=>Promise<MarketHistory|MarketHistoryResult>,clock=()=>Date.now()){
- type Entry={history:MarketHistory|null;error:string|null;nextAttemptAt:number;pending?:Promise<void>};
+ type Entry={history:MarketHistory|null;error:string|null;nextAttemptAt:number;pending?:PendingWork};
  const entries=new Map<string,Entry>();
  const bytes=()=>[...entries.values()].reduce((sum,e)=>sum+(e.history?JSON.stringify(e.history).length:0),0);
  function trim(keep:string){
-  while(entries.size>MAX_HISTORY_CACHE_ENTRIES||bytes()>MAX_HISTORY_CACHE_BYTES){const oldest=[...entries.keys()].find(key=>key!==keep&&!entries.get(key)?.pending);if(!oldest)break;entries.delete(oldest);}
+  while(entries.size>MAX_HISTORY_CACHE_ENTRIES||bytes()>MAX_HISTORY_CACHE_BYTES){const oldest=[...entries.keys()].find(key=>key!==keep&&!workIsPending(entries.get(key)?.pending));if(!oldest)break;entries.delete(oldest);}
  }
  async function load(raw:MarketHistoryRequest,refresh=false):Promise<MarketHistoryResult>{
-  const request=historyRequestSchema.parse(raw),now=clock(),key=historyRequestKey(request);
+  const request=historyRequestSchema.parse(raw),key=historyRequestKey(request);let now=clock();
   if(request.marketRef.kind==='rwa')return {history:null,error:RWA_HISTORY_UNAVAILABLE,stale:true,nextAttemptAt:now+MARKET_RETRY_MS};
   let entry=entries.get(key);
   if(!entry){
-   if(entries.size>=MAX_HISTORY_CACHE_ENTRIES){const oldest=[...entries.keys()].find(k=>!entries.get(k)?.pending);if(oldest)entries.delete(oldest);else return {history:null,error:HISTORY_UNAVAILABLE,stale:true,nextAttemptAt:now+MARKET_RETRY_MS};}
+   if(entries.size>=MAX_HISTORY_CACHE_ENTRIES){const oldest=[...entries.keys()].find(k=>!workIsPending(entries.get(k)?.pending));if(oldest)entries.delete(oldest);else return {history:null,error:HISTORY_UNAVAILABLE,stale:true,nextAttemptAt:now+MARKET_RETRY_MS};}
    entry={history:null,error:null,nextAttemptAt:0};entries.set(key,entry);
   }else{entries.delete(key);entries.set(key,entry);}
-  const target=entry;
+  const target=entry;if(target.pending){const waiting=target.pending;if(!await waitForPendingWork(waiting))return {history:target.history,error:HISTORY_UNAVAILABLE,stale:!target.history||historyIsStale(target.history,clock()),nextAttemptAt:target.nextAttemptAt};if(target.pending===waiting)target.pending=undefined;}now=clock();
   if(!target.pending&&now>=target.nextAttemptAt&&(refresh||!target.history||historyIsStale(target.history,now))){
    target.nextAttemptAt=now+MARKET_RETRY_MS;
-   target.pending=(async()=>{
+   const work=beginPendingWork();target.pending=work;await ownPendingWork(work,(async()=>{
     try{
      const loaded=await loader(request,refresh),result='history' in loaded?loaded:{history:loaded,error:null};
      if(!result.history)throw Error('Unavailable');
      const history=verifiedMarketHistory(result.history,request,clock());
      if(!history.points.length)throw Error('Unavailable');
      if(target.history&&Date.parse(history.fetchedAt)<Date.parse(target.history.fetchedAt))throw Error('Older history');
-     target.history=history;target.error=result.error?HISTORY_UNAVAILABLE:null;
-    }catch{target.error=target.history?'Market history refresh is unavailable. Last verified observations are retained.':HISTORY_UNAVAILABLE;}
-    finally{target.pending=undefined;trim(key);}
-   })();
+     if(target.pending!==work||!workIsPending(work))return;target.history=history;target.error=result.error?HISTORY_UNAVAILABLE:null;
+    }catch{if(target.pending===work)target.error=target.history?'Market history refresh is unavailable. Last verified observations are retained.':HISTORY_UNAVAILABLE;}
+    finally{work.done=true;if(target.pending===work)target.pending=undefined;trim(key);}
+   })());
   }
-  await target.pending;
-  return {history:target.history,error:target.error,stale:!target.history||historyIsStale(target.history,clock()),nextAttemptAt:target.nextAttemptAt};
+  return {history:target.history,error:target.error??(!target.history?HISTORY_UNAVAILABLE:null),stale:!target.history||historyIsStale(target.history,clock()),nextAttemptAt:target.nextAttemptAt};
  }
  return {load};
 }

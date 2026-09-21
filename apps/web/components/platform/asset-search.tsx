@@ -2,6 +2,10 @@
 import './asset-search.css';
 import {parseUnits} from '@zigoals/chain-config';
 import {useEffect,useMemo,useState} from 'react';
+import {useMarketInsights} from './use-market-insights';
+import {FEATURED_MARKETS,marketCategory} from '../../lib/product-insights';
+import {marketRequestKey} from '../../lib/market-assets';
+import {AssetIcon} from './financial-ui';
 import {CATALOG_FRESH_MS,marketAssetRefSchema,searchMarketAssets,type MarketCatalogAsset} from '../../lib/market-assets';
 import {ASSET_CLASSES,positionSchema,type AssetClass,type Position} from '../../lib/positions';
 
@@ -63,6 +67,8 @@ const identityLabel=(asset:MarketCatalogAsset)=>asset.ref.kind==='rwa'
  : `${asset.ref.platform?`${asset.ref.platform} contract · `:'Coin · '}CoinGecko ID ${asset.ref.id}`;
 
 export function AssetSearch({selected,onSelect,onManual,disabled=false,category}:{category?:string;selected?:MarketCatalogAsset;onSelect:(asset:MarketCatalogAsset)=>void;onManual:()=>void;disabled?:boolean}){
+ // Fixed featured identities plus an explicit selection; search keystrokes never acquire logos.
+ const insights=useMarketInsights([...FEATURED_MARKETS.map(a=>a.ref),...(selected?[selected.ref]:[])]);
  const [query,setQuery]=useState(''),[catalog,setCatalog]=useState<MarketCatalogAsset[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
  useEffect(()=>{let active=true;setLoading(true);setError('');void loadCatalog().then(assets=>{if(active)setCatalog(assets);}).catch(()=>{if(active)setError('Automatic market catalog is unavailable right now.');}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[attempt]);
  const results=useMemo(()=>searchMarketAssets(query,catalog.filter(a=>!category||(['Crypto','Stablecoins'].includes(category)?a.ref.kind==='coin':category==='Stocks'?a.ref.kind==='rwa'&&a.ref.assetType==='stock':category==='ETFs'?a.ref.kind==='rwa'&&a.ref.assetType==='etf':category==='Precious metals'?a.ref.kind==='rwa'&&a.ref.assetType==='commodity':true))),[query,catalog,category]);
@@ -78,7 +84,7 @@ export function AssetSearch({selected,onSelect,onManual,disabled=false,category}
   {!!results.length&&<ul className="asset-search-results" aria-label="Market assets">{results.map(asset=>{
    const key=`${asset.ref.provider}:${asset.ref.kind}:${asset.ref.id}:${asset.ref.kind==='coin'?asset.ref.platform??'base':asset.ref.assetType}`;
    const active=selected&&JSON.stringify(selected.ref)===JSON.stringify(asset.ref);
-   return <li key={key}><button type="button" aria-pressed={!!active} onClick={()=>onSelect(asset)} disabled={disabled}><span className="asset-result-symbol">{displaySymbol(asset)}</span><span className="asset-result-copy"><strong>{asset.name}</strong><small>{identityLabel(asset)}</small>{asset.ref.kind==='coin'&&asset.ref.contractAddress&&<small className="asset-result-contract">{asset.ref.contractAddress}</small>}</span><span className="asset-result-action">{active?'Selected':'Choose'}</span></button></li>;
+   return <li key={key}><button type="button" aria-pressed={!!active} onClick={()=>onSelect(asset)} disabled={disabled}><AssetIcon symbol={displaySymbol(asset)} kind={marketCategory(asset.ref,asset.symbol)} logoUrl={insights.results[marketRequestKey({marketRef:asset.ref,currency:'USD'})]?.insight?.logoUrl}/><span className="asset-result-copy"><strong>{asset.name}</strong><small>{identityLabel(asset)}</small>{asset.ref.kind==='coin'&&asset.ref.contractAddress&&<small className="asset-result-contract">{asset.ref.contractAddress}</small>}</span><span className="asset-result-action">{active?'Selected':'Choose'}</span></button></li>;
   })}</ul>}
  </section>;
 }

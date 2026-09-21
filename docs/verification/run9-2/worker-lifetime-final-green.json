@@ -1,0 +1,360 @@
+{
+  "provider": [
+    {
+      "status": 200,
+      "elapsed": 127,
+      "body": {
+        "kind": "provider",
+        "id": "coin-0",
+        "ok": true,
+        "elapsed": 123
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 128,
+      "body": {
+        "kind": "provider",
+        "id": "coin-1",
+        "ok": true,
+        "elapsed": 123
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 259,
+      "body": {
+        "kind": "provider",
+        "id": "coin-2",
+        "ok": true,
+        "elapsed": 253
+      }
+    }
+  ],
+  "history": [
+    {
+      "status": 200,
+      "elapsed": 127,
+      "body": {
+        "kind": "history",
+        "id": "same-history",
+        "ok": true,
+        "error": null,
+        "elapsed": 123
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 138,
+      "body": {
+        "kind": "history",
+        "id": "same-history",
+        "ok": true,
+        "error": null,
+        "elapsed": 134
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 138,
+      "body": {
+        "kind": "history",
+        "id": "same-history",
+        "ok": true,
+        "error": null,
+        "elapsed": 133
+      }
+    }
+  ],
+  "logo": [
+    {
+      "status": 200,
+      "elapsed": 126,
+      "body": {
+        "kind": "logo",
+        "id": "same-logo",
+        "ok": true,
+        "elapsed": 123
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 137,
+      "body": {
+        "kind": "logo",
+        "id": "same-logo",
+        "ok": true,
+        "elapsed": 132
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 137,
+      "body": {
+        "kind": "logo",
+        "id": "same-logo",
+        "ok": true,
+        "elapsed": 131
+      }
+    }
+  ],
+  "concurrentStats": {
+    "status": 200,
+    "elapsed": 4,
+    "body": {
+      "calls": 5,
+      "active": 0,
+      "peak": 2,
+      "completed": 5,
+      "events": [
+        "start:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/1/large/same-logo.png",
+        "end:/coins/images/1/large/same-logo.png"
+      ]
+    }
+  },
+  "providerOrphan": {
+    "status": 200,
+    "elapsed": 21,
+    "body": {
+      "orphaned": "provider",
+      "id": "slow-orphan-provider"
+    }
+  },
+  "providerSecondOrphan": {
+    "status": 200,
+    "elapsed": 20,
+    "body": {
+      "orphaned": "provider",
+      "id": "slow-orphan-provider-two"
+    }
+  },
+  "providerBeforeRetry": {
+    "status": 200,
+    "elapsed": 4,
+    "body": {
+      "calls": 7,
+      "active": 2,
+      "peak": 2,
+      "completed": 5,
+      "events": [
+        "start:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/1/large/same-logo.png",
+        "end:/coins/images/1/large/same-logo.png",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider-two&vs_currencies=usd&include_last_updated_at=true&precision=full"
+      ]
+    }
+  },
+  "providerRecovery": {
+    "status": 200,
+    "elapsed": 1114,
+    "body": {
+      "kind": "provider",
+      "id": "slow-orphan-provider",
+      "ok": true,
+      "elapsed": 62109
+    }
+  },
+  "historyOrphan": {
+    "status": 200,
+    "elapsed": 23,
+    "body": {
+      "orphaned": "history",
+      "id": "slow-orphan-history"
+    }
+  },
+  "historyBeforeRetry": {
+    "status": 200,
+    "elapsed": 4,
+    "body": {
+      "calls": 9,
+      "active": 3,
+      "peak": 3,
+      "completed": 6,
+      "events": [
+        "start:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/1/large/same-logo.png",
+        "end:/coins/images/1/large/same-logo.png",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider-two&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full"
+      ]
+    }
+  },
+  "historyRecovery": {
+    "status": 200,
+    "elapsed": 1116,
+    "body": {
+      "kind": "history",
+      "id": "slow-orphan-history",
+      "ok": true,
+      "error": null,
+      "elapsed": 62111
+    }
+  },
+  "logoOrphan": {
+    "status": 200,
+    "elapsed": 23,
+    "body": {
+      "orphaned": "logo",
+      "id": "slow-orphan-logo"
+    }
+  },
+  "logoBeforeRetry": {
+    "status": 200,
+    "elapsed": 3,
+    "body": {
+      "calls": 11,
+      "active": 4,
+      "peak": 4,
+      "completed": 7,
+      "events": [
+        "start:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/1/large/same-logo.png",
+        "end:/coins/images/1/large/same-logo.png",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider-two&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/99/large/slow-orphan-logo.png"
+      ]
+    }
+  },
+  "logoRecovery": {
+    "status": 200,
+    "elapsed": 1110,
+    "body": {
+      "kind": "logo",
+      "id": "slow-orphan-logo",
+      "ok": true,
+      "elapsed": 62106
+    }
+  },
+  "boundedFollowers": [
+    {
+      "status": 200,
+      "elapsed": 10007,
+      "body": {
+        "kind": "history",
+        "id": "slow-bounded-history",
+        "ok": false,
+        "error": "Market history is unavailable. Saved local observations remain available.",
+        "elapsed": 10002
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 10007,
+      "body": {
+        "kind": "logo",
+        "id": "slow-bounded-logo",
+        "ok": false,
+        "elapsed": 10002
+      }
+    }
+  ],
+  "boundedRecovery": [
+    {
+      "status": 200,
+      "elapsed": 1007,
+      "body": {
+        "kind": "history",
+        "id": "slow-bounded-history",
+        "ok": true,
+        "error": null,
+        "elapsed": 1003
+      }
+    },
+    {
+      "status": 200,
+      "elapsed": 1007,
+      "body": {
+        "kind": "logo",
+        "id": "slow-bounded-logo",
+        "ok": true,
+        "elapsed": 1003
+      }
+    }
+  ],
+  "stats": {
+    "status": 200,
+    "elapsed": 4,
+    "body": {
+      "calls": 16,
+      "active": 6,
+      "peak": 8,
+      "completed": 10,
+      "events": [
+        "start:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-0&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-1&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=coin-2&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/same-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/1/large/same-logo.png",
+        "end:/coins/images/1/large/same-logo.png",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider-two&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "end:/api/v3/simple/price?ids=slow-orphan-provider&vs_currencies=usd&include_last_updated_at=true&precision=full",
+        "start:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/api/v3/coins/slow-orphan-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/99/large/slow-orphan-logo.png",
+        "start:/coins/images/99/large/slow-orphan-logo.png",
+        "end:/coins/images/99/large/slow-orphan-logo.png",
+        "start:/api/v3/coins/slow-bounded-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/99/large/slow-bounded-logo.png",
+        "start:/api/v3/coins/slow-bounded-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "start:/coins/images/99/large/slow-bounded-logo.png",
+        "end:/api/v3/coins/slow-bounded-history/market_chart?vs_currency=usd&days=1&precision=full",
+        "end:/coins/images/99/large/slow-bounded-logo.png"
+      ]
+    }
+  },
+  "checks": {
+    "concurrent": true,
+    "deduplicated": true,
+    "ownerRecovery": true,
+    "boundedFollowers": true,
+    "historyUnavailable": true,
+    "boundedRecovery": true
+  },
+  "wallMs": 15077
+}

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import {OrbitSlogan} from "../../components/orbit-slogan";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "../../components/goal-provider";
 import { GoalSummaryCard } from "../../components/goal-card";
@@ -22,8 +23,8 @@ export default function Dashboard() {
         <section className="today-hero" aria-labelledby="dashboard-title">
           <div className="cosmic-glow ambient-light" aria-hidden="true"/>
           <div className="today-hero-copy">
-            <p className="eyebrow">Your financial orbit</p>
-            <h1 id="dashboard-title">Goals, Habits &amp; Health <span className="nebula-text">= Wealth</span></h1>
+            <p className="eyebrow financial-orbit">YOUR FINANCIAL ORBIT</p>
+            <h1 id="dashboard-title" className="orbit-slogan"><OrbitSlogan/></h1>
             <p>Set goals. Build habits. Protect your health.<br/>Make room for a brighter tomorrow.</p>
             <div className="hero-actions"><Link className="primary" href="/app/goals/new">+ Create a goal</Link><a href="#how-it-works" className="secondary"><span className="play-medallion"><AppIcon name="play" luminous/></span> See how it works</a></div>
             <p className="hero-truth">Testnet Alpha · simulated financial progress · private daily tracking</p>

@@ -1,16 +1,17 @@
 'use client';
+import {getAppStorage,isShowcase} from "../../lib/showcase-storage";
 import {useEffect,useRef} from 'react';
 import {captureValuations} from '../../lib/goal-intelligence';
 import {PLATFORM_KEY,type Platform} from '../../lib/positions';
 import type {MarketQuote} from '../../lib/market-quotes';
 /** A relevant surface captures a bounded daily fact. Cache ticks do not write history. */
-function persistedV2(){try{return JSON.parse(localStorage.getItem(PLATFORM_KEY)??'null')?.schemaVersion===3;}catch{return false;}}
+function persistedV2(){try{return JSON.parse(getAppStorage().getItem(PLATFORM_KEY)??'null')?.schemaVersion===3;}catch{return false;}}
 export function useValuationHistory(store:{data:Platform;loaded:boolean;error:string;update:(fn:(s:Platform)=>Platform)=>Promise<void>},market:{quotes:readonly MarketQuote[];now:number;loading:boolean}){
  const {data,loaded,error,update}=store;const {quotes,now,loading}=market;
  const day=now?new Date(now).toISOString().slice(0,10):'';
  const attempted=useRef('');
  useEffect(()=>{
-  if(!loaded||error||loading||!day)return;
+  if(isShowcase()||!loaded||error||loading||!day)return;
   // A read-only v1 migration must retain the original active bytes until an explicit edit.
   if(!persistedV2())return;
   const signature=JSON.stringify([day,data.positions,data.allocations,data.goals,quotes]);

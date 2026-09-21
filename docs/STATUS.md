@@ -1,3 +1,11 @@
+# Run #9.2 — local Showcase and productization
+
+An isolated Showcase now fills Goals, Wealth, Markets, Habits, Health and Activity with clearly fictional examples. Today connects funding pace, upcoming contributions, attention items and Life + Wealth. Markets adds canonical logos, actual public movement and seven-day sequences; portfolio composition and the Life dashboards add usable depth. The hero uses the owner’s exact capitalized two-line slogan.
+
+See [Run #9.2 report](RUN_9_2_REPORT.md), [complete deliverables](RUN_9_2_DELIVERABLES.md), [verification](verification/run9-2/README.md) and [remaining Beta backlog](RUN_9_1_BETA_BACKLOG.md). The implementation remains local on the required Run #9 branch. Public Alpha is unchanged; nothing is deployed, merged, pushed or submitted as a PR.
+
+---
+
 # Run #9.1 — local Beta productization
 
 Wealth is the canonical asset home, with shared asset selection/editing, eight favourites, CoinGecko history and atomic Fund Goal / explicit history-only modes. Funding Wealth, Today, Activity, Health groundwork and consumer branding are redesigned. Public Alpha is unchanged; no merge, push, deployment or financial execution occurred.

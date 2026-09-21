@@ -1,4 +1,5 @@
 "use client";
+import {getAppStorage,isShowcase,storageLockKey} from "../lib/showcase-storage";
 import { FINANCIAL_EXECUTION_ALLOWED, assertFinancialExecutionAllowed } from "../lib/app-environment";
 import {
   createContext,
@@ -133,10 +134,10 @@ function useGoalState() {
   activeScope.current = { mode, owner };
   const chain = mode === "local" ? LOCAL_CHAIN : TESTNET.chainId;
   function readPlans(planChain: string, planOwner: string) {
-    metadataRaw.current = localStorage.getItem(
+    metadataRaw.current = getAppStorage().getItem(
       metadataKey(planChain, planOwner),
     );
-    return loadMetadata(localStorage, planChain, planOwner);
+    return loadMetadata(getAppStorage(), planChain, planOwner);
   }
   function invalidateReview() {
     revision.current++;
@@ -148,7 +149,7 @@ function useGoalState() {
   }
   function localLoad() {
     try {
-      const raw = localStorage.getItem(LEDGER_KEY);
+      const raw = getAppStorage().getItem(LEDGER_KEY);
       const parsed = raw === null ? initialLedger() : parseLocalLedger(raw);
       ledger.current = parsed;
       setLocalLedgerHealthy(true);
@@ -167,7 +168,7 @@ function useGoalState() {
   useEffect(() => {
     try {
       setWalletReconnectHint(
-        sessionStorage.getItem(WALLET_RECONNECT_HINT_KEY) === "true",
+        !isShowcase() && sessionStorage.getItem(WALLET_RECONNECT_HINT_KEY) === "true",
       );
     } catch {
       setWalletReconnectHint(false);
@@ -202,7 +203,7 @@ function useGoalState() {
   }, []);
   useEffect(() => {
     const changed = (event: StorageEvent) => {
-      if (event.storageArea !== localStorage) return;
+      if (isShowcase() || event.storageArea !== getAppStorage()) return;
       const plansChanged =
         event.key === null || event.key === metadataKey(chain, owner);
       const ledgerChanged =
@@ -351,6 +352,7 @@ function useGoalState() {
     }
   }
   async function connect() {
+    if (isShowcase()) { setError("Exit Showcase before connecting a wallet."); return; }
     revision.current++;
     const current = revision.current;
     setMode("testnet");
@@ -422,7 +424,7 @@ function useGoalState() {
   function useLocal() {
     revision.current++;
     try {
-      sessionStorage.removeItem(WALLET_RECONNECT_HINT_KEY);
+      if (!isShowcase()) sessionStorage.removeItem(WALLET_RECONNECT_HINT_KEY);
     } catch {
       // Storage availability must not prevent returning to Local demo.
     }
@@ -468,7 +470,7 @@ function useGoalState() {
     try {
       if (mode === "local") {
         if (!ledger.current) throw Error(LOCAL_LEDGER_ERROR);
-        const storageRevision = localStorage.getItem(LEDGER_KEY);
+        const storageRevision = getAppStorage().getItem(LEDGER_KEY);
         const stored =
           storageRevision === null
             ? initialLedger()
@@ -550,21 +552,23 @@ function useGoalState() {
       if (current === revision.current) setStatus(state);
     };
     try {
+      // The submitting namespace must survive queued locks and the later plan save.
+      const storage = getAppStorage();
       if (scope.mode === "local") {
-        await withStorageLock(LEDGER_KEY, () => {
+        await withStorageLock(storageLockKey(storage, LEDGER_KEY), () => {
           if (
             current !== revision.current ||
-            localStorage.getItem(LEDGER_KEY) !== pending.storageRevision
+            storage.getItem(LEDGER_KEY) !== pending.storageRevision
           )
             throw Error(
               "Local data changed in another tab. Review again before confirming.",
             );
-          const raw = localStorage.getItem(LEDGER_KEY);
+          const raw = storage.getItem(LEDGER_KEY);
           const stored = raw === null ? initialLedger() : parseLocalLedger(raw);
           const next = applyLocal(stored, action, new Date().toISOString());
           // Validate timestamps and conservation before persisting any bytes.
           parseLocalLedger(JSON.stringify(next));
-          localStorage.setItem(LEDGER_KEY, JSON.stringify(next));
+          storage.setItem(LEDGER_KEY, JSON.stringify(next));
           ledger.current = next;
           setGoals(next.goals);
           setBalance(next.balance);
@@ -651,10 +655,10 @@ function useGoalState() {
         const goalId = createdId;
         try {
           const saved = await withStorageLock(
-            metadataKey(scope.chain, scope.owner),
+            storageLockKey(storage, metadataKey(scope.chain, scope.owner)),
             () =>
               saveMetadata(
-                localStorage,
+                storage,
                 scope.chain,
                 scope.owner,
                 goalId,
@@ -663,7 +667,7 @@ function useGoalState() {
               ),
           );
           if (current === revision.current)
-            metadataRaw.current = localStorage.getItem(
+            metadataRaw.current = storage.getItem(
               metadataKey(scope.chain, scope.owner),
             );
           if (current === revision.current) {
@@ -717,13 +721,14 @@ function useGoalState() {
   ) {
     const current = revision.current;
     try {
-      const saved = await withStorageLock(metadataKey(chain, owner), () => {
+      const storage = getAppStorage();
+      const saved = await withStorageLock(storageLockKey(storage, metadataKey(chain, owner)), () => {
         if (current !== revision.current)
           throw Error("Goal plans changed. Review again.");
-        return saveMetadata(localStorage, chain, owner, id, plan, expectedRaw);
+        return saveMetadata(storage, chain, owner, id, plan, expectedRaw);
       });
       if (current !== revision.current) return;
-      metadataRaw.current = localStorage.getItem(metadataKey(chain, owner));
+      metadataRaw.current = storage.getItem(metadataKey(chain, owner));
       setMetadata(saved.record);
       setMessage(
         saved.recovery
@@ -741,13 +746,14 @@ function useGoalState() {
     const expectedRaw = metadataRaw.current;
     const current = revision.current;
     try {
-      const imported = await withStorageLock(metadataKey(chain, owner), () => {
+      const storage = getAppStorage();
+      const imported = await withStorageLock(storageLockKey(storage, metadataKey(chain, owner)), () => {
         if (current !== revision.current)
           throw Error("Goal plans changed. Review again.");
-        return importMetadata(localStorage, raw, chain, owner, expectedRaw);
+        return importMetadata(storage, raw, chain, owner, expectedRaw);
       });
       if (current !== revision.current) return;
-      metadataRaw.current = localStorage.getItem(metadataKey(chain, owner));
+      metadataRaw.current = storage.getItem(metadataKey(chain, owner));
       setMetadata(imported.record);
       setMessage(
         imported.recovery

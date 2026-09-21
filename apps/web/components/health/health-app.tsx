@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useId, useEffect, type FormEvent, type ReactNode } from "react";
 import {
   HEALTH_MEALS, dailyHealthSummary, editDiaryEntry, formatHealthGrams, healthHistory,
   logHealthItem, newHealthId, parseHealthNumber, recipeNutrition, recipeServingGrams,
@@ -10,6 +11,7 @@ import {
 } from "../../lib/health";
 import { addLocalDays, localDate } from "../../lib/local-date";
 import { useHealth } from "./use-health";
+import { NutritionDashboard } from "./nutrition-dashboard";
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
@@ -46,6 +48,21 @@ export function HealthApp() {
 
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
+  const router = useRouter();
+  const addIntent = useSearchParams().get("add") === "entry";
+  const [handledIntent, setHandledIntent] = useState(false);
+  // A same-page Quick Add is a new intent, not a new Health store.
+  if (addIntent !== handledIntent) {
+    setHandledIntent(addIntent);
+    if (addIntent) setView("Diary");
+  }
+  useEffect(() => {
+    if (!addIntent) return;
+    const entry = document.getElementById("health-entry-action");
+    entry?.scrollIntoView({ block: "center", behavior: "instant" });
+    entry?.querySelector<HTMLElement>("select, input, button")?.focus({ preventScroll: true });
+    router.replace("/app/health", { scroll: false });
+  }, [addIntent, router]);
   const [date, setDate] = useState(localDate);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -65,6 +82,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => setDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") setDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => setDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => setDate(localDate())}>Today</button></div>
     </div>
     <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && <p className="health-error" role="alert">{error}</p>}
+    {view === "Diary" && <NutritionDashboard data={data} date={date} />}
     <fieldset className="health-content" disabled={busy}>
       {view === "Diary" && <DiaryView data={data} date={date} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
@@ -77,14 +95,15 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
 }
 
 function HealthSummary({ data, date, onTargets }: { data: HealthData; date: string; onTargets: () => void }) {
+  const gradientId = useId();
   const summary = dailyHealthSummary(data, date);
   const kcal = summary.nutrients.kcal;
   const target = data.targets.kcal;
   const progress = target ? Math.min(1, kcal / target) : 0;
   return <section className="panel health-summary" aria-label="Daily nutrition summary">
     <div className="health-aurora" aria-hidden="true"><i /><i /><i /></div>
-    <div className="health-gauge"><svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="68" className="health-gauge-track" /><circle cx="80" cy="80" r="68" pathLength="100" className="health-gauge-fill" strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 80 80)" /></svg><div><strong>{kcal.toLocaleString()}</strong><span>kcal logged</span></div></div>
-    <div className="health-summary-main"><p className="eyebrow">{date === localDate() ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? "Every entry adds perspective." : "Start with one small entry."}</h2><p>{target ? `${target.toLocaleString()} kcal target` : "No calorie target set"}</p>{target ? <p className="fine">{kcal <= target ? `${(target - kcal).toLocaleString()} kcal below your target` : `${(kcal - target).toLocaleString()} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}</div>
+    <div className="health-gauge"><svg viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#62deed"/><stop offset=".3" stopColor="#7298ff"/><stop offset=".6" stopColor="#b197ff"/><stop offset=".8" stopColor="#e894dd"/><stop offset="1" stopColor="#f7a4b2"/></linearGradient></defs><circle cx="80" cy="80" r="68" className="health-gauge-track" /><circle cx="80" cy="80" r="68" pathLength="100" className="health-gauge-fill" style={{ stroke: `url(#${gradientId})` }} strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 80 80)" /></svg><div><strong>{kcal.toLocaleString()}</strong><span>kcal logged</span></div></div>
+    <div className="health-summary-main"><p className="eyebrow">{date === localDate() ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? "Every entry adds perspective." : "Start with one small entry."}</h2><p>{target ? `${target.toLocaleString()} kcal target` : "No calorie target set"}</p>{target ? <p className="fine">{kcal <= target ? `${(target - kcal).toLocaleString()} kcal remaining to your target` : `${(kcal - target).toLocaleString()} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}<p className="health-daily-facts">{new Set(data.diary.filter(entry => entry.date === date).map(entry => entry.meal)).size} meal groups · {summary.entries} entries{summary.steps > 0 ? ` · ${summary.steps.toLocaleString()} steps logged` : ""}{summary.minutes > 0 ? ` · ${summary.minutes} min movement` : ""}</p><button className="quiet" onClick={onTargets}>Edit personal targets</button></div>
     <div className="health-macro-grid">{([ ["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"] ] as const).map(([label, key]) => {
       const personalTarget = data.targets[key];
       return <div className={`health-macro health-macro-${key}`} key={key}><span>{label}</span><strong>{formatHealthGrams(summary.nutrients[key])}<small> g</small></strong><div className="health-meter" aria-hidden="true"><i style={{ width: `${personalTarget ? Math.min(100, summary.nutrients[key] / personalTarget * 100) : 0}%` }} /></div><small>{personalTarget ? `${formatHealthGrams(personalTarget)} g target` : "Target not set"}</small></div>;
@@ -113,14 +132,14 @@ function DiaryView({ data, date, perform, invalid, onLibrary }: { data: HealthDa
   return <div className="health-diary-layout"><div className="health-meals">{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const total = entries.reduce((sum, e) => sum + scaleNutrition(e.snapshot.nutrients, e.quantityMilli).kcal, 0);
-    return <section className="panel health-meal" aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{total.toLocaleString()} kcal</span></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" key={entry.id}>
+    return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{total.toLocaleString()} kcal</span></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" key={entry.id}>
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)} servings · {Number((entry.snapshot.servingGrams * entry.quantityMilli / 1000).toFixed(3)).toLocaleString()} g</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions"><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
     </div>)}</section>;
-  })}</div><aside className="health-diary-side"><section className="panel"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
+  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
     <label className="field"><span>Food or recipe</span><select required value={source} onChange={e => setSource(e.target.value)}><option value="">Choose from your library</option>{sourceItems.map(s => <option value={s.id} key={s.id}>{s.name} · {s.kind}</option>)}</select></label>
     <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={servings} onChange={setServings} min={0.001} max={1000} step="0.001" /></div>{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {date}. Serving quantities support three decimal places.</p>
-  </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}</section><NutritionHistory data={data} date={date} /></aside></div>;
+  </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}</section></aside></div>;
 }
 
 function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEntry; perform: Perform; invalid: () => void; close: () => void }) {
@@ -130,13 +149,6 @@ function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEnt
   return <FormBox title="Edit diary entry" onSubmit={e => { e.preventDefault(); try { const quantityMilli = parseHealthNumber(quantity, 1000, 1, 1_000_000); void perform(latest => editDiaryEntry(latest, entry.id, { date, meal, quantityMilli }, new Date().toISOString()), "Diary entry updated.", close); } catch { invalid(); } }}>
     <div className="health-form-grid"><label className="field"><span>Entry date</span><input type="date" required min="1900-01-01" max="2199-12-31" value={date} onChange={e => setDate(e.target.value)} /></label><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={quantity} onChange={setQuantity} min={0.001} max={1000} step="0.001" /></div><p className="fine">Corrections use the nutrition originally saved with this entry.</p><div className="actions"><button className="primary" type="submit">Save entry</button><button className="quiet" type="button" onClick={close}>Cancel</button></div>
   </FormBox>;
-}
-
-function NutritionHistory({ data, date }: { data: HealthData; date: string }) {
-  const history = healthHistory(data, date, 7);
-  const max = Math.max(1, ...history.map(d => d.nutrients.kcal));
-  const logged = history.filter(d => d.entries > 0);
-  return <section className="panel health-history"><p className="eyebrow">LAST SEVEN DAYS</p><h2>Your rhythm.</h2>{logged.length ? <><div className="health-bars" role="img" aria-label={`Calories by day: ${history.map(d => `${d.date}: ${d.entries ? `${d.nutrients.kcal} kcal` : "no entries"}`).join("; ")}`}>{history.map(d => <div key={d.date}><div className="health-bar-track"><i style={{ height: `${d.entries ? Math.max(2, d.nutrients.kcal / max * 100) : 0}%` }} /></div><span>{Number(d.date.slice(-2))}</span></div>)}</div><p className="fine">{Math.round(logged.reduce((sum, d) => sum + d.nutrients.kcal, 0) / logged.length).toLocaleString()} kcal average across {logged.length} logged {logged.length === 1 ? "day" : "days"}. Blank days are excluded.</p></> : <p className="health-empty-inline">A week of entries will take shape here. No meals logged in this period.</p>}</section>;
 }
 
 function LibraryView({ data, perform, invalid }: { data: HealthData; perform: Perform; invalid: () => void }) {
@@ -206,7 +218,7 @@ function WeightChart({ data, date }: { data: HealthData; date: string }) {
   const max = Math.max(...readings.map(w => w.grams));
   const padding = Math.max(250, (max - min) * 0.15);
   const points = readings.map(w => ({ ...w, x: 32 + dates.indexOf(w.date) / 29 * 516, y: 154 - (w.grams - min + padding) / (max - min + padding * 2) * 120 }));
-  return <div className="health-weight-chart"><svg viewBox="0 0 580 190" role="img" aria-label={`Weight readings: ${readings.map(w => `${w.date}, ${formatHealthGrams(w.grams)} kilograms`).join("; ")}`}><path className="health-chart-grid" d="M32 34H548 M32 94H548 M32 154H548" />{points.length > 1 && <polyline className="health-chart-line" points={points.map(p => `${p.x},${p.y}`).join(" ")} />}{points.map(p => <circle className="health-chart-point" key={p.id} cx={p.x} cy={p.y} r="4" />)}<text x="32" y="181">{dates[0]}</text><text x="548" y="181" textAnchor="end">{date}</text></svg></div>;
+  return <div className="health-weight-chart"><svg viewBox="0 0 580 190" role="img" aria-label={`Weight readings: ${readings.map(w => `${w.date}, ${formatHealthGrams(w.grams)} kilograms`).join("; ")}`}><path className="health-chart-grid" d="M32 34H548 M32 94H548 M32 154H548" />{points.length > 1 && <polyline className="health-chart-line" points={points.map(p => `${p.x},${p.y}`).join(" ")} />}{points.map(p => <circle className="health-chart-point" key={p.id} cx={p.x} cy={p.y} r="4" />)}</svg><div className="health-weight-axis"><span>{dates[0]}</span><span>{date}</span></div></div>;
 }
 
 function ActivityView({ data, date, perform, invalid }: { data: HealthData; date: string; perform: Perform; invalid: () => void }) {

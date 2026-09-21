@@ -1,4 +1,5 @@
 'use client';
+import {getAppStorage} from "../../lib/showcase-storage";
 import {useEffect,useRef,useState} from 'react';
 import {useGoals} from '../goal-provider';
 import {usePlatform} from './use-platform';
@@ -14,8 +15,8 @@ export function LocalContributionSync(){
  useEffect(()=>{
   if(!legacy.loaded||legacy.mode!=='local'||!loaded||error||attempted.current===activityKey)return;
   const initial=!attempted.current;attempted.current=activityKey;
-  try{if(initial&&JSON.parse(localStorage.getItem(PLATFORM_KEY)??'null')?.schemaVersion===1)return;}catch{return;}
-  const raw=localStorage.getItem('zigoals:local-ledger:v1');if(!raw)return;
+  try{if(initial&&JSON.parse(getAppStorage().getItem(PLATFORM_KEY)??'null')?.schemaVersion===1)return;}catch{return;}
+  const raw=getAppStorage().getItem('zigoals:local-ledger:v1');if(!raw)return;
   void (async()=>{try{const ledger=parseLocalLedger(raw);await update(s=>syncConfirmedLocalContributions(s,ledger));setWarning('');}catch{setWarning('Confirmed simulation receipts are safe. Contribution history could not be synchronized; reload after checking private storage.');}})();
  },[legacy.loaded,legacy.mode,loaded,error,update,activityKey]);
  return warning?<p className="notice" role="status">{warning}</p>:null;

@@ -48,9 +48,16 @@ test("landing keeps its public contract visible without horizontal overflow", as
     "Public Alpha · Simulation + wallet connection only. Goal Manager is not deployed. No blockchain transaction will be sent.",
   );
 
-  for (const width of [320, 390, 768, 1280]) {
+  for (const width of [320, 390, 768, 1024, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await expect(page.getByRole("heading", { name: "ZIGoals", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth", exact: true })).toBeVisible();
+    const lines = await page.locator('.consumer-slogan .slogan-line').evaluateAll(items => items.map(line => ({ text: line.textContent?.trim(), top: line.getBoundingClientRect().top, parts: [...line.children].map(part => ({ top: part.getBoundingClientRect().top, right: part.getBoundingClientRect().right })) })));
+    expect(lines.map(line => line.text)).toEqual(["Today's Goals, Habits & Health", "= Tomorrow's Wealth"]);
+    expect(lines[1]!.top).toBeGreaterThan(lines[0]!.top);
+    for (const line of lines) {
+      expect(line.parts[0]!.top).toBeCloseTo(line.parts[1]!.top, 1);
+      expect(line.parts[1]!.right).toBeLessThanOrEqual(width);
+    }
     await expect(alpha).toBeVisible();
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),

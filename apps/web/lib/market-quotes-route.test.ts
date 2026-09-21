@@ -7,7 +7,7 @@ it('rejects arbitrary query inputs and never forwards cookies, auth or user data
  const {GET}=await import('../app/api/market-quotes/route');
  expect((await GET(new Request('https://local/api/market-quotes?url=https://evil'))).status).toBe(400);expect(fetcher).not.toHaveBeenCalled();
  const response=await GET(new Request('https://local/api/market-quotes',{headers:{Cookie:'private',Authorization:'private'}}));expect(response.status).toBe(200);expect((await response.json()).quote.price).toBe('43');
- expect(fetcher.mock.calls[0]).toEqual(['https://api.coingecko.com/api/v3/simple/price?ids=zignaly&vs_currencies=usd&include_last_updated_at=true&precision=full',expect.objectContaining({method:'GET',credentials:'omit',redirect:'error',headers:{Accept:'application/json','x-cg-demo-api-key':'fixture-key'}})]);
+ expect(fetcher.mock.calls[0]).toEqual(['https://api.coingecko.com/api/v3/simple/price?ids=zignaly&vs_currencies=usd&include_last_updated_at=true&precision=full',expect.objectContaining({method:'GET',credentials:'omit',redirect:'manual',headers:{Accept:'application/json','x-cg-demo-api-key':'fixture-key'}})]);
  await GET(new Request('https://local/api/market-quotes'));expect(fetcher).toHaveBeenCalledTimes(1);
 });
 it('fails closed on malformed public response and bounds streamed response size',async()=>{

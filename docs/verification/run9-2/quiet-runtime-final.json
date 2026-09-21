@@ -1,0 +1,49 @@
+{
+  "checks": [
+    {
+      "path": "/app",
+      "status": 200,
+      "bytes": 42773,
+      "elapsed_ms": 19
+    },
+    {
+      "path": "/app/wealth",
+      "status": 200,
+      "bytes": 28806,
+      "elapsed_ms": 5
+    },
+    {
+      "path": "/app/markets",
+      "status": 200,
+      "bytes": 38591,
+      "elapsed_ms": 6
+    },
+    {
+      "path": "/app/settings",
+      "status": 200,
+      "bytes": 35505,
+      "elapsed_ms": 5
+    },
+    {
+      "path": "/api/market-history",
+      "status": 200,
+      "bytes": 162465,
+      "elapsed_ms": 5
+    },
+    {
+      "path": "/api/market-insights",
+      "status": 200,
+      "bytes": 15426,
+      "elapsed_ms": 4
+    },
+    {
+      "path": "/api/market-logo",
+      "status": 200,
+      "bytes": 12242,
+      "elapsed_ms": 3
+    }
+  ],
+  "history_observations": 2161,
+  "diagnostic_errors_in_quiet_window": false,
+  "full_body_reads": true
+}

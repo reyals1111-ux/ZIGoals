@@ -1,4 +1,5 @@
 "use client";
+import "./platform/run92-product.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,8 +9,11 @@ import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
 import { Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
+import {ShowcaseBanner,useShowcase} from "./showcase-controls";
+import {QuickAdd} from "./quick-add";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
+  const showcase=useShowcase();
   const path = usePathname();
   const isActive = (href: string) => href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -25,7 +29,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <Link href="/app" className="brand" aria-label="ZIGoals home">
           <Wordmark />
         </Link>
-        <p className="product-descriptor">Goals, Habits &amp; Health = Wealth</p>
+        <p className="product-descriptor">Your Financial Orbit</p>
         <nav className="app-nav" aria-label="Main navigation">
           {[
             ["/app", "Today", "today"],
@@ -34,6 +38,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ["/app/habits", "Habits", "habits"],
             ["/app/health", "Health", "health"],
             ["/app/wealth", "Wealth", "wallet"],
+            ["/app/markets", "Markets", "activity"],
             ["/app/ecosystem", "Ecosystem", "ecosystem"],
             ["/app/activity", "Activity", "activity"],
             ["/app/settings", "Settings", "settings"],
@@ -57,7 +62,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
           <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
         </div>
-        <details className="quick-add"><summary>+ Quick add</summary><nav aria-label="Quick add actions"><Link href="/app/goals/new">Goal</Link><Link href="/app/wealth">Asset</Link><Link href="/app/goals">Contribution</Link><Link href="/app/habits">Habit</Link><Link href="/app/health">Health entry</Link></nav></details><div className="wallet">
+        <QuickAdd/><div className="wallet">
           <button
             className="quiet"
             onClick={s.useLocal}
@@ -71,7 +76,7 @@ export function Shell({ children }: { children: ReactNode }) {
             title={s.walletState === "CONNECTED" ? "Refresh your Keplr connection" : undefined}
             onClick={() => void s.connect()}
             disabled={
-              s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
+              showcase || s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
             }
           >
             <AppIcon name="wallet" size={24} luminous />
@@ -90,6 +95,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className="workspace">
+        <ShowcaseBanner/>
         <div className="mode-strip">
           <span className="mode-dot" />
           {s.mode === "local"

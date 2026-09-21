@@ -7,7 +7,7 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
   for (const viewport of [{ width: 1440, height: 1050 }, { width: 320, height: 800 }]) {
     await page.setViewportSize(viewport);
     await page.goto("/app");
-    await expect(page.getByRole("heading", { name: "Goals, Habits & Health = Wealth" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "A destination for your next chapter." })).toBeVisible();
     await expect(page.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
     await expect(page.locator(".network-banner")).toContainText("ZIGCHAIN TESTNET · PUBLIC ALPHA");
