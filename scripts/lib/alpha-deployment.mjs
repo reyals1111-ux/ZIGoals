@@ -10,6 +10,41 @@ const DEFAULT_PROPAGATION_ATTEMPTS = 12;
 const DEFAULT_PROPAGATION_DELAY_MS = 5_000;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+export function alphaRuntimeSecrets(coinGeckoKey) {
+  assert(
+    typeof coinGeckoKey === "string" && coinGeckoKey.length > 0,
+    "CoinGecko Alpha runtime secret missing",
+  );
+  return { COINGECKO_DEMO_API_KEY: coinGeckoKey };
+}
+
+export function alphaDeploymentEnvironment(source, outputPath) {
+  const result = {
+    ...source,
+    WRANGLER_OUTPUT_FILE_PATH: outputPath,
+    WRANGLER_SEND_METRICS: "false",
+    CI: "true",
+  };
+  delete result.GH_TOKEN;
+  delete result.COINGECKO_DEMO_API_KEY;
+  return result;
+}
+
+export function alphaDeployArgs(secretPath) {
+  assert(
+    typeof secretPath === "string" && secretPath.length > 0,
+    "Alpha runtime secrets file required",
+  );
+  return [
+    "--filter", "@zigoals/web",
+    "exec", "opennextjs-cloudflare", "deploy",
+    "--config", "wrangler.alpha.jsonc",
+    "--name", WORKER,
+    "--",
+    "--secrets-file", secretPath,
+  ];
+}
+
 export function assertDispatch(env) {
   assert.equal(env.GITHUB_EVENT_NAME, "workflow_dispatch", "Manual dispatch required");
   assert.equal(env.GITHUB_REPOSITORY, REPOSITORY, "Canonical repository required");

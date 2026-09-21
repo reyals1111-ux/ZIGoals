@@ -123,6 +123,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ALPHA_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_ALPHA_API_TOKEN }}
+          COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
         run: node scripts/alpha-deploy.mjs deploy
       - name: Report version IDs even after failure
         if: ${{ always() }}

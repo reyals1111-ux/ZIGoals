@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import {
+  alphaRuntimeSecrets, alphaDeploymentEnvironment, alphaDeployArgs,
   assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig,
   currentDeployment, deployedVersion, performDeployment,
 } from "./lib/alpha-deployment.mjs";
@@ -28,6 +29,45 @@ const policies = () => ({ total_count: 1, branch_policies: [{ name: "main", type
 const deployment = (id = oldDeployment, version = oldVersion) => ({ id, strategy: "percentage", versions: [{ version_id: version, percentage: 100 }] });
 const envelope = (entries = [deployment()]) => ({ success: true, result: { deployments: entries } });
 const output = (version = newVersion) => JSON.stringify({ type: "deploy", version: 1, worker_name: "zigoals-alpha", version_id: version });
+
+test("Alpha market credential is runtime-only and the deployment command stays fixed", () => {
+  const secret = "test-coingecko-key";
+  expect(alphaRuntimeSecrets(secret)).toEqual({ COINGECKO_DEMO_API_KEY: secret });
+  expect(() => alphaRuntimeSecrets("")).toThrow(/runtime secret missing/);
+  expect(() => alphaRuntimeSecrets(undefined)).toThrow(/runtime secret missing/);
+
+  const parent = {
+    GH_TOKEN: "github-token",
+    COINGECKO_DEMO_API_KEY: secret,
+    CLOUDFLARE_API_TOKEN: "cloudflare-token",
+  };
+  const child = alphaDeploymentEnvironment(parent, "/tmp/wrangler-output.jsonl");
+
+  expect(child.GH_TOKEN).toBeUndefined();
+  expect(child.COINGECKO_DEMO_API_KEY).toBeUndefined();
+  expect(child.CLOUDFLARE_API_TOKEN).toBe("cloudflare-token");
+  expect(parent.COINGECKO_DEMO_API_KEY).toBe(secret);
+
+  expect(alphaDeployArgs("/tmp/runtime-secrets.json")).toEqual([
+    "--filter", "@zigoals/web",
+    "exec", "opennextjs-cloudflare", "deploy",
+    "--config", "wrangler.alpha.jsonc",
+    "--name", "zigoals-alpha",
+    "--",
+    "--secrets-file", "/tmp/runtime-secrets.json",
+  ]);
+});
+
+test("manual Alpha workflow exposes CoinGecko only to the publication step", () => {
+  const workflow = readFileSync(
+    new URL("../.github/workflows/deploy-alpha.yml", import.meta.url),
+    "utf8",
+  );
+  expect(workflow.match(/COINGECKO_DEMO_API_KEY:/g)).toHaveLength(1);
+  expect(workflow).toContain(
+    "COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}",
+  );
+});
 
 test("only a fresh explicit owner dispatch of the full main SHA is authorized", () => {
   expect(() => assertDispatch(dispatch())).not.toThrow();
