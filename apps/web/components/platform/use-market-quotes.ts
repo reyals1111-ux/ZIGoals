@@ -1,21 +1,22 @@
 'use client';
 import {useEffect,useSyncExternalStore} from 'react';
-import {boundedQuoteText,verifiedNativeQuote} from '../../lib/market-quotes';
-import {createQuoteCache,type QuoteSnapshot} from '../../lib/market-quote-cache';
-const cache=createQuoteCache(async()=>{
- const response=await fetch('/api/market-quotes',{method:'GET',credentials:'omit',redirect:'error',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(10000)});
- if(!response.ok)throw Error('Verified quote unavailable.');const body=JSON.parse(await boundedQuoteText(response));return verifiedNativeQuote(body.quote);
-});
+import {getAppStorage} from '../../lib/showcase-storage';
+import {fetchPublicMarketQuotes} from '../../lib/market-quote-client';
+import {nativeZigRequest,uniqueMarketRequests,type MarketQuoteRequest} from '../../lib/market-assets';
+import {createMarketQuoteCache,type QuoteSnapshot} from '../../lib/market-quote-cache';
+const cache=createMarketQuoteCache(fetchPublicMarketQuotes);
 const serverSnapshot:QuoteSnapshot={quotes:[],now:0,loading:false,error:null};
-let users=0,enabledUsers=0,timer:ReturnType<typeof setInterval>|undefined,hydrated=false;
-/** One cache and aging timer across collection, Today and detail, independent of private stores. */
-export function useMarketQuotes(enabled=true){
+let users=0,timer:ReturnType<typeof setInterval>|undefined,hydrated=false;
+/** Aging is local only. Network requests happen on relevant mounts/identity changes or explicit refresh. */
+export function useMarketQuotes(input:boolean|readonly MarketQuoteRequest[]=true){
+ const requests=typeof input==='boolean'?(input?[nativeZigRequest]:[]):uniqueMarketRequests(input);const requestKey=JSON.stringify(requests);
  const snapshot=useSyncExternalStore(cache.subscribe,cache.getSnapshot,()=>serverSnapshot);
  useEffect(()=>{
-  if(!hydrated){hydrated=true;try{cache.hydrate(localStorage);}catch{/* Public cache is optional. */}}
-  users++;if(enabled)enabledUsers++;cache.tick();if(enabled)void cache.refresh();
-  if(!timer)timer=setInterval(()=>{cache.tick();if(enabledUsers>0)void cache.refresh();},30000);
-  return()=>{users--;if(enabled)enabledUsers--;if(!users&&timer){clearInterval(timer);timer=undefined;}};
- },[enabled]);
- return {...snapshot,refresh:cache.refresh};
+  // A mode change reloads the app; an in-flight response must not cross storage scopes.
+ if(!hydrated){hydrated=true;try{const storage=getAppStorage();cache.hydrate({getItem:key=>storage.getItem(key),setItem:(key,value)=>{if(getAppStorage()===storage)storage.setItem(key,value);}});}catch{/* Public cache optional. */}}
+  users++;cache.tick();void cache.refresh(JSON.parse(requestKey) as MarketQuoteRequest[]);
+  if(!timer)timer=setInterval(()=>cache.tick(),30000);
+  return()=>{users--;if(!users&&timer){clearInterval(timer);timer=undefined;}};
+ },[requestKey]);
+ return {...snapshot,refresh:()=>cache.refresh(requests,true)};
 }

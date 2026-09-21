@@ -156,6 +156,7 @@ test("templates, distinct habit types, measurement and reflection controls work 
   await card.getByLabel("Mood (optional)").selectOption("calm");
   await card.getByLabel("Day reflection (optional)").fill("Noticed the trigger.");
   await card.getByRole("button", { name: "Save day", exact: true }).click();
+  await expect(card.getByRole("status")).toHaveText("Day saved.");
   await page.reload();
   await page.getByRole("article", { name: "No impulse buys", exact: true }).getByText("History & reflection", { exact: true }).click();
   await expect(page.getByLabel("Mood (optional)")).toHaveValue("calm");

@@ -141,7 +141,7 @@ test("invalid custom scenario preserves baseline funding health and progress", a
   await page.goto("/app/goals/1");
   await page.locator("#contribution-plan > summary").click();
   const health = page.getByRole("heading", {
-    name: "Funding health · 0% future return",
+    name: "Funding Wealth · 0% future return",
   });
   await expect(health).toBeVisible();
   await page.getByRole("combobox").selectOption("custom");
@@ -222,7 +222,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/app");
   await expect(
-    page.getByRole("heading", { name: "Turn today’s ZIG into tomorrow’s you." }),
+    page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth" }),
   ).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.getByRole("link", { name: "Plan my first goal" }).click();

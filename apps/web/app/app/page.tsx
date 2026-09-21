@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import {OrbitSlogan} from "../../components/orbit-slogan";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "../../components/goal-provider";
 import { GoalSummaryCard } from "../../components/goal-card";
@@ -10,6 +11,7 @@ import { HabitsToday } from "../../components/habits/habits-today";
 import { HealthToday } from "../../components/health/health-today";
 import { StakingCard } from "../../components/platform/staking-card";
 import { useUnifiedGoals } from "../../components/use-unified-goals";
+import {TodayIntelligence} from "../../components/platform/today-intelligence";
 export default function Dashboard() {
   const s = useGoals();
   const collection=useUnifiedGoals();
@@ -21,8 +23,8 @@ export default function Dashboard() {
         <section className="today-hero" aria-labelledby="dashboard-title">
           <div className="cosmic-glow ambient-light" aria-hidden="true"/>
           <div className="today-hero-copy">
-            <p className="eyebrow">Your financial orbit</p>
-            <h1 id="dashboard-title">Turn today’s ZIG<br/>into <span className="nebula-text">tomorrow’s you.</span></h1>
+            <p className="eyebrow financial-orbit">YOUR FINANCIAL ORBIT</p>
+            <h1 id="dashboard-title" className="orbit-slogan"><OrbitSlogan/></h1>
             <p>Set goals. Build habits. Protect your health.<br/>Make room for a brighter tomorrow.</p>
             <div className="hero-actions"><Link className="primary" href="/app/goals/new">+ Create a goal</Link><a href="#how-it-works" className="secondary"><span className="play-medallion"><AppIcon name="play" luminous/></span> See how it works</a></div>
             <p className="hero-truth">Testnet Alpha · simulated financial progress · private daily tracking</p>
@@ -33,6 +35,7 @@ export default function Dashboard() {
             <div><span className="icon-medallion"><AppIcon name="chain" size={30} luminous/></span><span><strong>Onchain</strong><small>ZIGChain vision · Alpha simulation.</small></span></div>
           </div>
         </section>
+        <TodayIntelligence/>
         <section className="today-goals surface-featured" aria-label="Your goals">
           <div className="section-heading"><div><h2>Your goals</h2><p>Small steps. A bigger future.</p></div><Link href="/app/goals" className="text-link">View all goals →</Link></div>
           {collection.error&&<p role="alert" className="notice">{collection.error}</p>}

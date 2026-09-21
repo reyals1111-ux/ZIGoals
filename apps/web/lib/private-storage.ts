@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { withStorageLock } from "./storage";
+import {storageLockKey} from "./showcase-storage";
 export const PRIVATE_MAX_BYTES = 2_000_000;
 function validateKey(key: string) {
   if (key !== "zigoals:habits:v1" && key !== "zigoals:health:v1" && key !== "zigoals:platform:v1") throw Error("Unknown private data store.");
@@ -19,8 +20,10 @@ export function readPrivateStore<T>(storage: Storage, key: string, schema: z.Zod
 }
 export async function updatePrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): Promise<T> {
   validateKey(key);
-  return withStorageLock(key, () => {
-    const next = update(readPrivateStore(storage, key, schema, createEmpty));
+  return withStorageLock(storageLockKey(storage,key), () => {
+    const latest = readPrivateStore(storage, key, schema, createEmpty);
+    const next = update(latest);
+    if (next === latest) return latest;
     const serialized = JSON.stringify(next);
     const validated = parsePrivateData(serialized, schema);
     const previous = storage.getItem(key);
@@ -37,7 +40,7 @@ export async function updatePrivateStore<T>(storage: Storage, key: string, schem
 export async function importPrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, raw: string): Promise<T> {
   validateKey(key);
   const incoming = parsePrivateData(raw, schema);
-  return withStorageLock(key, () => {
+  return withStorageLock(storageLockKey(storage,key), () => {
     const previous = storage.getItem(key);
     if (previous !== null) {
       let version: unknown;

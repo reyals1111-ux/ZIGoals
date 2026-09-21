@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { usePlatform } from "../../../components/platform/use-platform";
+import { AppIcon } from "../../../components/app-icon";
 import { ActivityFeed } from "../../../components/activity-feed";
 import Link from "next/link";
 import { ExplorerLinks } from "../../../components/explorer-links";
@@ -11,6 +13,7 @@ import {
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 export default function ActivityPage() {
   const s = useGoals();
+  const platform = usePlatform();
   const [category, setCategory] = useState("ALL");
   const [limit, setLimit] = useState(30);
   return (
@@ -21,12 +24,14 @@ export default function ActivityPage() {
           <h1>Activity.</h1>
           <p>
             {s.mode === "local"
-              ? "A history of your local simulation. No onchain transactions."
+              ? "Your Goals, wealth, habits and health — a private history of the steps you take."
               : "Known transactions saved on this device for this wallet and chain. This is incomplete history; other wallets, devices, and applications are not indexed."}
           </p>
         </div>
       </div>
-      <section className="panel activity-timeline" aria-label="Unified private activity"><div className="activity-filter-row"><div><p className="eyebrow">YOUR PROGRESS, IN MOMENTS</p><h2>One journey. Every step.</h2></div><nav className="tab-row view-tabs" aria-label="Activity categories">{["ALL", "GOAL", "HABIT", "HEALTH"].map(value => <button key={value} aria-pressed={category === value} onClick={() => { setCategory(value); setLimit(30); }}>{value === "ALL" ? "All" : value[0] + value.slice(1).toLowerCase()}</button>)}</nav></div><ActivityFeed limit={limit} category={category} onMore={() => setLimit(value => value + 30)}/><p className="fine">Habit and Health entries reflect current saved logs. Corrections update this view; removing a log removes it here. This is private browser history, separate from testnet receipts.</p></section>
+      <section className="activity-context" aria-label="Your current activity sources"><div><AppIcon name="goals" size={26}/><strong>Goals & contributions</strong><span>Plans, funding and corrections</span></div><div><AppIcon name="wallet" size={26}/><strong>Every kind of wealth</strong><span>Crypto, stocks, metals and cash</span></div><div><AppIcon name="health" size={26}/><strong>Your everyday progress</strong><span>Habit check-ins and Health logs</span></div></section>
+      {platform.data.watchlist.length > 0 && <aside className="activity-favourites"><AppIcon name="star" size={25}/><div><strong>{platform.data.watchlist.length} markets in your favourites</strong><p>{platform.data.watchlist.map(item => item.name).join(" · ")}</p><small>Current saved favourites. Follow dates are not recorded.</small></div><Link className="text-link" href="/app/markets">Explore favourites →</Link></aside>}
+      <section className="panel activity-timeline" aria-label="Unified private activity"><div className="activity-filter-row"><div><p className="eyebrow">YOUR PROGRESS, IN MOMENTS</p><h2>One journey. Every step.</h2></div><nav className="tab-row view-tabs" aria-label="Activity categories">{["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH"].map(value => <button key={value} aria-pressed={category === value} onClick={() => { setCategory(value); setLimit(30); }}>{value === "ALL" ? "All" : value[0] + value.slice(1).toLowerCase()}</button>)}</nav></div><ActivityFeed limit={limit} category={category} onMore={() => setLimit(value => value + 30)}/><p className="fine">Habit and Health entries reflect current saved logs. Corrections update this view; removing a log removes it here. This is private browser history, separate from testnet receipts.</p></section>
       <p className="eyebrow">
         {s.historySource} ·{" "}
         {s.mode === "local"

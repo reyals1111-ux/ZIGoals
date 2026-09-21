@@ -1,0 +1,125 @@
+{
+  "catalog": {
+    "entries": 22152,
+    "coins": 21335,
+    "rwas": 817,
+    "error": null
+  },
+  "quotes": {
+    "pairs": [
+      {
+        "id": "zignaly",
+        "currency": "USD",
+        "price": "5139082040182975",
+        "priceDecimals": 17,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:33.302Z"
+      },
+      {
+        "id": "bitcoin",
+        "currency": "USD",
+        "price": "8042863787832925",
+        "priceDecimals": 11,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "bitcoin",
+        "currency": "EUR",
+        "price": "700658904595338",
+        "priceDecimals": 10,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "ethereum",
+        "currency": "USD",
+        "price": "25775787378306013",
+        "priceDecimals": 13,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "ethereum",
+        "currency": "EUR",
+        "price": "22454731829335556",
+        "priceDecimals": 13,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "tether",
+        "currency": "USD",
+        "price": "9996194547654416",
+        "priceDecimals": 16,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "tether",
+        "currency": "EUR",
+        "price": "8708244857356431",
+        "priceDecimals": 16,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "usd-coin",
+        "currency": "USD",
+        "price": "9997412744545833",
+        "priceDecimals": 16,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "usd-coin",
+        "currency": "EUR",
+        "price": "870930609688757",
+        "priceDecimals": 15,
+        "observedAt": "2026-09-20T13:35:20.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "zignaly",
+        "currency": "EUR",
+        "price": "4477038732512415",
+        "priceDecimals": 17,
+        "observedAt": "2026-09-20T13:35:30.000Z",
+        "fetchedAt": "2026-09-20T13:36:54.004Z"
+      },
+      {
+        "id": "apple",
+        "currency": "USD",
+        "price": "33406690949209735",
+        "priceDecimals": 14,
+        "observedAt": "2026-09-20T13:35:00Z",
+        "fetchedAt": "2026-09-20T13:36:54.227Z"
+      },
+      {
+        "id": "nvidia",
+        "currency": "USD",
+        "price": "22058188925210357",
+        "priceDecimals": 14,
+        "observedAt": "2026-09-20T13:35:00Z",
+        "fetchedAt": "2026-09-20T13:36:54.227Z"
+      },
+      {
+        "id": "gold",
+        "currency": "USD",
+        "price": "4364032361894616",
+        "priceDecimals": 12,
+        "observedAt": "2026-09-20T13:35:00Z",
+        "fetchedAt": "2026-09-20T13:36:54.227Z"
+      },
+      {
+        "id": "silver",
+        "currency": "USD",
+        "price": "665589926255979",
+        "priceDecimals": 13,
+        "observedAt": "2026-09-20T13:35:00Z",
+        "fetchedAt": "2026-09-20T13:36:54.227Z"
+      }
+    ],
+    "error": null
+  }
+}

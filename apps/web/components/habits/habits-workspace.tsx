@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "./use-habits";
+import { HabitConsistency } from "./habit-consistency";
 import { HabitCard } from "./habit-card";
 import { HabitEditor } from "./habit-editor";
 import { habitDay, latestHabitRule } from "../../lib/habits";
@@ -15,6 +17,17 @@ export function HabitsWorkspace() {
   const platform = usePlatform();
   const [filter, setFilter] = useState<Filter>("Today");
   const [editor, setEditor] = useState<string | null>(null);
+  const router = useRouter();
+  const addIntent = useSearchParams().get("add") === "habit";
+  const [handledIntent, setHandledIntent] = useState(false);
+  // Adjust local form state when the URL intent changes, before children render.
+  if (addIntent !== handledIntent) {
+    setHandledIntent(addIntent);
+    if (addIntent) setEditor("new");
+  }
+  useEffect(() => {
+    if (addIntent && store.loaded) router.replace("/app/habits", { scroll: false });
+  }, [addIntent, store.loaded, router]);
   const [message, setMessage] = useState("");
   const goalOptions = [
     ...platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ label: `${goal.name} · Private`, link: { chainId: "private", owner: "local", goalId: goal.id } })),
@@ -40,6 +53,7 @@ export function HabitsWorkspace() {
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><div className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)}><span style={{ width: `${due.length ? completed.length / due.length * 100 : 0}%` }} /></div><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>
+      {store.data.habits.length > 0 && <HabitConsistency habits={store.data.habits} today={store.today} />}
       {editor && <HabitEditor key={`${editor}-${goals.chain}-${goals.owner}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} onCancel={() => setEditor(null)} onSave={async (input) => { if (editingHabit) await store.edit(editingHabit.id, input); else await store.create(input); setMessage(editingHabit ? "Habit saved." : "Habit created."); setEditor(null); setFilter("All"); }} />}
       <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
       {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}>{visible.map((habit) => {

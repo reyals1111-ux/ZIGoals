@@ -1,4 +1,5 @@
 "use client";
+import {getAppStorage,isShowcase} from "../lib/showcase-storage";
 import { useCallback, useEffect, useState } from "react";
 import type { z } from "zod";
 import { importPrivateStore, readPrivateStore, updatePrivateStore } from "../lib/private-storage";
@@ -10,7 +11,7 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   const [error, setError] = useState("");
   const refresh = useCallback(() => {
     try {
-      setData(readPrivateStore(localStorage, key, schema, createEmpty));
+      setData(readPrivateStore(getAppStorage(), key, schema, createEmpty));
       setError("");
     } catch {
       setData(createEmpty());
@@ -21,7 +22,7 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   useEffect(() => {
     let active = true;
     queueMicrotask(() => { if (active) refresh(); });
-    const onStorage = (event: StorageEvent) => { if (!event.key || event.key === key) refresh(); };
+    const onStorage = (event: StorageEvent) => { if (!isShowcase() && (!event.key || event.key === key)) refresh(); };
     const onChange = (event: Event) => { if ((event as CustomEvent<string>).detail === key) refresh(); };
     window.addEventListener("storage", onStorage);
     window.addEventListener(EVENT, onChange);
@@ -33,7 +34,7 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   }, [key]);
   const update = useCallback(async (updater: (latest: T) => T) => {
     if (!loaded) throw Error("Private data is still loading.");
-    try { publish(await updatePrivateStore(localStorage, key, schema, createEmpty, updater)); }
+    try { publish(await updatePrivateStore(getAppStorage(), key, schema, createEmpty, updater)); }
     catch {
       // A rejected draft or full storage is not a corrupt store. Preserve forms
       // when the original record still reads; block only an actual read failure.
@@ -43,13 +44,13 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
     }
   }, [loaded, publish, key, schema, createEmpty, refresh]);
   const importData = useCallback(async (raw: string) => {
-    try { publish(await importPrivateStore(localStorage, key, schema, raw)); }
+    try { publish(await importPrivateStore(getAppStorage(), key, schema, raw)); }
     catch {
       refresh();
       const message = "Backup could not be imported. Check its module, version and size. Existing private data was preserved.";
       throw Error(message);
     }
   }, [key, schema, publish, refresh]);
-  const exportData = useCallback(() => localStorage.getItem(key) ?? JSON.stringify(createEmpty()), [key, createEmpty]);
+  const exportData = useCallback(() => getAppStorage().getItem(key) ?? JSON.stringify(createEmpty()), [key, createEmpty]);
   return { data, loaded, error, update, importData, exportData, refresh };
 }

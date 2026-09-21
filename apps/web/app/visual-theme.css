@@ -44,7 +44,7 @@ body {
   border-bottom: 1px solid #55cfed26;
   padding-block: 10px;
   color: #bacddd;
-  font-size: 12px;
+  font-size: 14px;
 }
 .network-banner strong::before {
   content: "";
@@ -117,9 +117,9 @@ nav a[aria-current="page"] {
   header { padding: 18px 20px 12px; gap: 16px; }
   .brand { font-size: 24px; }
   nav { gap: 6px; }
-  nav a { flex: 1; text-align: center; font-size: 13px; }
-  .wallet .quiet, .wallet .secondary { font-size: 12px; }
-  .mode-strip { font-size: 10px; letter-spacing: .025em; line-height: 1.6; }
+  nav a { flex: 1; text-align: center; font-size: 14px; }
+  .wallet .quiet, .wallet .secondary { font-size: 14px; }
+  .mode-strip { font-size: 14px; letter-spacing: .025em; line-height: 1.6; }
 }
 @media (max-width: 380px) {
   .wallet { width: 100%; justify-content: space-between; }
@@ -155,9 +155,9 @@ nav a[aria-current="page"] {
   border-radius: 16px;
   background: linear-gradient(130deg, #101b2e, var(--surface-1));
 }
-.stat-card small { color: var(--muted); font-size: 12px; }
+.stat-card small { color: var(--muted); font-size: 14px; }
 .stat-card strong { font-weight: 550; font-size: 17px; letter-spacing: -.3px; }
-.stat-card span { color: var(--muted); font-size: 11px; }
+.stat-card span { color: var(--muted); font-size: 14px; }
 .stat-featured { background: linear-gradient(130deg, #142d40, #101a2d); border-color: #65d8ef2b; box-shadow: var(--shadow-raised); }
 .stat-featured strong { font-size: 37px; font-weight: 600; line-height: 1.2; color: #d0f5fa; }
 .destination-state {
@@ -182,10 +182,10 @@ nav a[aria-current="page"] {
   opacity: .55;
 }
 .destination-state .orbital-art { width: min(100%, 420px); margin-block: 0 -8px; }
-.destination-state .eyebrow { color: #b1c3e2; letter-spacing: .2em; font-size: 10px; margin-bottom: 12px; }
+.destination-state .eyebrow { color: #b1c3e2; letter-spacing: .2em; font-size: 14px; margin-bottom: 12px; }
 .destination-state h2 { font-size: clamp(25px, 3vw, 34px); font-weight: 550; letter-spacing: -1px; margin-bottom: 15px; }
 .destination-state p { font-size: 14px; line-height: 1.8; }
-.destination-state .fine { margin: 17px 0 0; font-size: 11px; color: #9eacc7; }
+.destination-state .fine { margin: 17px 0 0; font-size: 14px; color: #9eacc7; }
 .mobile-break { display: none; }
 .dashboard .ecosystem-invitation { background: transparent; border-color: var(--edge-soft); box-shadow: none; margin-top: 24px; }
 .dashboard .principle { padding-block: 28px; }
@@ -201,8 +201,8 @@ nav a[aria-current="page"] {
 .ring-value { stroke: var(--cyan); }
 .goal-progress-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; font-variant-numeric: tabular-nums; }
 .goal-progress-caption { display: grid; gap: 5px; }
-.goal-progress-caption strong { font-size: 13px; font-weight: 500; }
-.goal-progress-caption span { font-size: 12px; color: var(--muted); }
+.goal-progress-caption strong { font-size: 14px; font-weight: 500; }
+.goal-progress-caption span { font-size: 14px; color: var(--muted); }
 .badge[data-health] { background: #a4b2cd08; border-color: currentColor; }
 .badge[data-health="AHEAD"] { color: var(--health-ahead); }
 .badge[data-health="ON_TRACK"] { color: var(--health-on-track); }
@@ -220,7 +220,7 @@ nav a[aria-current="page"] {
   .dashboard-hero { display: block; padding: 24px 0 32px; }
   .dashboard-hero h1 { font-size: clamp(29px, 6.5vw, 44px); letter-spacing: -1.3px; line-height: 1.18; }
   .dashboard-hero p:not(.eyebrow) { font-size: 14px; }
-  .dashboard-hero .eyebrow { font-size: 10px; }
+  .dashboard-hero .eyebrow { font-size: 14px; }
   .hero-orbit, .desktop-break { display: none; }
   .hero-actions { gap: 19px; margin-top: 22px; }
   .dashboard-stats { grid-template-columns: 1fr; gap: 12px; margin-bottom: 22px; }
@@ -231,7 +231,7 @@ nav a[aria-current="page"] {
   .destination-state { padding: 12px 20px 26px; }
   .destination-state .orbital-art { width: 100%; margin-bottom: 8px; }
   .destination-state h2 { font-size: 25px; }
-  .destination-state p { font-size: 13px; }
+  .destination-state p { font-size: 14px; }
   .destination-state p br { display: none; }
   .mobile-break { display: inline; }
   .dashboard .goal-card { padding: 22px; }

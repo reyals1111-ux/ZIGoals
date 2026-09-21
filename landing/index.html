@@ -213,7 +213,7 @@
 
       backdrop-filter: blur(12px);
 
-      font-size: 12px;
+      font-size: 14px;
       letter-spacing: .05em;
     }
 
@@ -246,7 +246,7 @@
     .eyebrow {
       color: #9db8e4;
 
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       letter-spacing: .21em;
 
@@ -269,6 +269,11 @@
       font-weight: 700;
     }
 
+    main>section:first-child{container-type:inline-size}
+    .consumer-slogan .slogan-line{display:block;white-space:nowrap}
+    .consumer-slogan {font-size:clamp(18px,7cqw,90px);line-height:1.15;letter-spacing:-.045em;}
+    .slogan-gradient {background:linear-gradient(100deg,#1cd9ee 0%,#459df7 23%,#936eff 48%,#e665e9 72%,#ffa59e 100%);background-clip:text;-webkit-background-clip:text;color:transparent;}
+    main>section>.eyebrow {font-size:16px;font-weight:800;background:linear-gradient(100deg,#f0f6ff 0%,#e4eefe 48%,#58d5ef 72%,#c28bf4 100%);background-clip:text;-webkit-background-clip:text;color:transparent;}
     h1 .zig {
       background:
         linear-gradient(
@@ -331,7 +336,7 @@
       margin: 14px 0 0;
       max-width: 620px;
       color: #8794b3;
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.55;
     }
 
@@ -402,7 +407,7 @@
     .feature {
       color: #c3cce4;
 
-      font-size: 12px;
+      font-size: 14px;
       letter-spacing: .08em;
 
       text-transform: uppercase;
@@ -554,7 +559,7 @@
         .22em;
 
       font-size:
-        10px;
+        14px;
     }
 
     footer {
@@ -571,7 +576,7 @@
         #697795;
 
       font-size:
-        11px;
+        14px;
 
       letter-spacing:
         .035em;
@@ -652,22 +657,14 @@
       <section>
 
         <div class="eyebrow">
-          The Goal Layer for ZIGChain
+          YOUR FINANCIAL ORBIT
         </div>
 
-        <h1>
-          <span class="zig">ZIG</span><span class="goals">oals</span>
-        </h1>
-
-        <h2>
-          Your goals. Onchain.
-        </h2>
+        <h1 class="consumer-slogan"><span class="slogan-line"><span>Today's Goals, </span><span class="slogan-gradient">Habits &amp; Health</span></span><span class="slogan-line"><span> = Tomorrow's </span><span class="slogan-gradient">Wealth</span></span></h1>
 
         <p class="description">
-          Turn onchain wealth into real-world goals.
-          Create a destination, fund it on ZIGChain,
-          track your progress and understand whether
-          you're staying on course.
+          Set goals. Build habits. Protect your health.
+          Make room for a brighter tomorrow.
         </p>
 
         <div class="actions">

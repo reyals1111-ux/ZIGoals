@@ -13,6 +13,7 @@ import {
   type TransactionUpdate,
 } from "./transaction";
 import { applyLocal, initialLedger, LOCAL_OWNER } from "./local-ledger";
+import { activateShowcase, exitShowcase, getAppStorage } from "./showcase-storage";
 
 vi.mock("./app-environment", () => ({ FINANCIAL_EXECUTION_ALLOWED: true, APP_ENVIRONMENT: "TESTNET_DEPLOYED", assertFinancialExecutionAllowed: () => {} }));
 
@@ -108,6 +109,16 @@ function Controls() {
       "button",
       { onClick: () => void s.prepare({ kind: "create" }, privatePlan) },
       "Prepare private goal",
+    ),
+    createElement(
+      "button",
+      { onClick: () => void s.recover("1", privatePlan) },
+      "Recover private goal",
+    ),
+    createElement(
+      "button",
+      { onClick: () => void s.importPlans(JSON.stringify({ schemaVersion: 1, chainId: "local-simulation", walletAddress: LOCAL_OWNER, goals: { "1": privatePlan } })) },
+      "Import private goals",
     ),
   );
 }
@@ -695,3 +706,76 @@ test("durable journal revisions stop signing even when the external event was mi
   expect(container.textContent).toMatch(/history changed.*review again/i);
   expect(api.execute).not.toHaveBeenCalled();
 });
+
+// Pause the actual Web Locks boundary, while keeping provider/storage writes real.
+function queueGoalLock(match: (key: string) => boolean) {
+  const keys: string[] = [];
+  const queued: Array<() => Promise<void>> = [];
+  Object.defineProperty(navigator, "locks", {
+    configurable: true,
+    value: {
+      request: (key: string, callback: () => unknown) => {
+        keys.push(key);
+        if (!match(key)) return Promise.resolve().then(callback);
+        return new Promise((resolve, reject) => {
+          queued.push(async () => {
+            try { resolve(await callback()); } catch (error) { reject(error); }
+          });
+        });
+      },
+    },
+  });
+  return { keys, queued };
+}
+function normalStorageBytes() {
+  return Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)!)
+    .sort().map(key => [key, localStorage.getItem(key)]);
+}
+
+test.each(["ledger", "metadata"] as const)(
+  "queued Showcase create retains its original storage through the %s lock and plan save",
+  async (queuedStage) => {
+    localStorage.setItem("owner-private-sentinel", "untouched");
+    activateShowcase(sessionStorage, "2026-09-20", {}, "goal-create-scope");
+    const submittedStorage = getAppStorage();
+    await remount();
+    await click("Prepare private goal");
+    const before = normalStorageBytes();
+    const locks = queueGoalLock(key => key.includes(queuedStage === "ledger" ? "local-ledger" : "metadata"));
+    await click("Confirm simulation");
+    expect(locks.queued).toHaveLength(1);
+    exitShowcase();
+    await act(async () => locks.queued.shift()!());
+    expect(normalStorageBytes()).toEqual(before);
+    expect(JSON.parse(submittedStorage.getItem("zigoals:local-ledger:v1")!).goals).toMatchObject([{ id: "1" }]);
+    expect(JSON.parse(submittedStorage.getItem("zigoals:metadata:v1:local-simulation:local-demo-user")!).goals["1"].name).toBe("Private trip");
+    expect(locks.keys).toEqual([
+      "zigoals:showcase:v1:goal-create-scope:zigoals:local-ledger:v1",
+      "zigoals:showcase:v1:goal-create-scope:zigoals:metadata:v1:local-simulation:local-demo-user",
+    ]);
+  },
+);
+
+test.each(["Recover private goal", "Import private goals"] as const)(
+  "queued Showcase %s preserves normal metadata even when its damaged bytes match",
+  async (action) => {
+    const key = "zigoals:metadata:v1:local-simulation:local-demo-user";
+    const damaged = "matching damaged metadata";
+    localStorage.setItem(key, damaged);
+    localStorage.setItem("owner-private-sentinel", "untouched");
+    activateShowcase(sessionStorage, "2026-09-20", { [key]: damaged }, "goal-plan-scope");
+    const submittedStorage = getAppStorage();
+    await remount();
+    const before = normalStorageBytes();
+    const locks = queueGoalLock(() => true);
+    await click(action);
+    expect(locks.queued).toHaveLength(1);
+    exitShowcase();
+    await act(async () => locks.queued.shift()!());
+    expect(normalStorageBytes()).toEqual(before);
+    expect(JSON.parse(submittedStorage.getItem(key)!).goals["1"].name).toBe("Private trip");
+    expect(submittedStorage.getItem(`${key}:quarantine:1`)).toBe(damaged);
+    expect(localStorage.getItem(`${key}:quarantine:1`)).toBeNull();
+    expect(locks.keys).toEqual(["zigoals:showcase:v1:goal-plan-scope:" + key]);
+  },
+);

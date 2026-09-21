@@ -1,6 +1,7 @@
 /** Read-only projections of existing Positions and canonical Goal accounting. */
 import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
-import {marketQuoteSchema,quoteIsStale,quoteValue,sameAsset,type MarketQuote} from './market-quotes';
+import {marketQuoteSchema,nativeZigIdentity,quoteIsStale,quoteMatchesPosition,quoteValue,sameAsset,type MarketQuote} from './market-quotes';
+import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 export const ASSET_COLORS:Record<AssetClass,string>={Crypto:'#38d9f5',Stablecoins:'#70e1c3',Stocks:'#8c9cff','Precious Metals':'#ecc779',Property:'#ce92ff',Cash:'#80baff',Custom:'#ee8fce'};
 export function assetClassOf(p:Position):AssetClass{
  if(p.sourceType!=='MANUAL'&&p.asset==='ZIG')return 'Crypto';
@@ -28,19 +29,76 @@ export function ringSegments(mix:readonly AssetMix[],progressPct:string){
  const total=mix.reduce((n,m)=>n+m.percent,0),filled=Math.max(0,Math.min(100,Number(progressPct)));let offset=0;
  return mix.filter(m=>m.percent>0).map(m=>{const size=total?m.percent/total*filled:0;const segment={...m,size,offset};offset+=size;return segment;});
 }
+function automaticMarketRef(p:Position):MarketAssetRef|undefined{
+ if(p.marketRef&&p.valuationMode==='automatic')return p.marketRef;
+ return !p.marketRef&&p.valuationMode!=='manual'&&sameAsset(p,nativeZigIdentity)&&p.providerId==='native-zig'?nativeZigRequest.marketRef:undefined;
+}
+function deduplicatedRequests(requests:MarketQuoteRequest[]):MarketQuoteRequest[]{return uniqueMarketRequests([...new Map(requests.map(request=>[marketRequestKey(request),request])).values()]);}
+/** Build public quote requests without exposing Position IDs, quantities, Goals or allocations. */
+export function wealthMarketRequests(s:Platform):MarketQuoteRequest[]{
+ const requests:MarketQuoteRequest[]=[];
+ for(const p of s.positions.filter(p=>!p.archivedAt)){
+  const marketRef=automaticMarketRef(p);if(!marketRef)continue;
+  const currencies=new Set<'USD'|'EUR'>([p.quoteCurrency??'USD']);
+  for(const allocation of s.allocations.filter(a=>a.positionId===p.id)){
+   const goal=s.goals.find(g=>g.id===allocation.goalId);
+   if(goal?.type==='VALUE'&&goal.status!=='closed'&&(goal.asset==='USD'||goal.asset==='EUR'))currencies.add(goal.asset);
+  }
+  for(const currency of currencies)if(marketRef.kind!=='rwa'||currency==='USD')requests.push({marketRef,currency});
+ }
+ return deduplicatedRequests(requests);
+}
+/** Quote only public pairs consumed by allocated, open Value Goals on this surface. */
+export function goalMarketRequests(s:Platform,goalId?:string):MarketQuoteRequest[]{
+ const requests:MarketQuoteRequest[]=[];
+ for(const goal of s.goals.filter(goal=>goal.type==='VALUE'&&goal.status!=='closed'&&(!goalId||goal.id===goalId)&&(goal.asset==='USD'||goal.asset==='EUR'))){
+  const currency:MarketQuoteRequest['currency']=goal.asset==='USD'?'USD':'EUR';
+  for(const allocation of s.allocations.filter(allocation=>allocation.goalId===goal.id)){
+   const position=s.positions.find(position=>position.id===allocation.positionId);if(!position||position.valuation?.currency===currency)continue;
+   const marketRef=automaticMarketRef(position);if(!marketRef||marketRef.kind==='rwa'&&currency!=='USD')continue;
+   requests.push({marketRef,currency});
+  }
+ }
+ return deduplicatedRequests(requests);
+}
+
+export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string}[];change:string;changePercent?:string};
+/** Reconstruct only complete currency totals from recorded local facts; never backfill a missing Position. */
+export function wealthHistory(s:Platform):WealthHistory[]{
+ const currencyOf=(p:Position)=>p.valuation?.currency??(p.valuationMode==='automatic'||p.marketRef||sameAsset(p,nativeZigIdentity)?p.quoteCurrency??'USD':undefined);
+ const currencies=[...new Set(s.positions.flatMap(p=>currencyOf(p)?[currencyOf(p)!]:[]))];
+ return currencies.flatMap(currency=>{
+  const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id);
+  const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&required.includes(v.positionId)).sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt));
+  const latest=new Map<string,bigint>(),points:{at:string;value:string}[]=[];
+  for(let index=0;index<snapshots.length;){
+   const at=snapshots[index]!.capturedAt;
+   while(index<snapshots.length&&Date.parse(snapshots[index]!.capturedAt)===Date.parse(at)){const snapshot=snapshots[index]!;const value=BigInt(snapshot.value)*(snapshot.decimals<=2?10n**BigInt(2-snapshot.decimals):1n)/(snapshot.decimals>2?10n**BigInt(snapshot.decimals-2):1n);latest.set(snapshot.positionId,value);index++;}
+   const active=required.filter(id=>{const position=s.positions.find(p=>p.id===id)!;if(position.trackingStartedAt&&Date.parse(position.trackingStartedAt)>Date.parse(at))return false;if(position.archivePeriods)return !position.archivePeriods.some(period=>Date.parse(period.from)<=Date.parse(at)&&(!period.to||Date.parse(period.to)>Date.parse(at)));const events=s.assetEvents.filter(e=>e.positionId===id).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));const created=events.find(e=>e.kind==='added');if(created&&Date.parse(created.at)>Date.parse(at))return false;const lifecycle=events.filter(e=>Date.parse(e.at)<=Date.parse(at)&&['archived','restored'].includes(e.kind)).at(-1);return lifecycle?lifecycle.kind!=='archived':!position.archivedAt||Date.parse(position.archivedAt)>Date.parse(at);});
+   if(active.length&&active.every(id=>latest.has(id)))points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString()});
+  }
+  if(!points.length)return [];
+  const first=BigInt(points[0]!.value),last=BigInt(points.at(-1)!.value),change=last-first;
+  const hundredths=first===0n?0n:change*10000n/first,absolute=hundredths<0n?-hundredths:hundredths;
+  return [{currency,decimals:2 as const,points,change:change.toString(),...(points.length>1&&first!==0n?{changePercent:`${hundredths<0n?'-':''}${absolute/100n}.${String(absolute%100n).padStart(2,'0')}`}:{})}];
+ });
+}
+
 export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[]){
- const rows=s.positions.map(p=>{
+ const rows=s.positions.filter(p=>!p.archivedAt).map(p=>{
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
-  const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&sameAsset(p,q.base)&&q.currency==='USD'&&Date.parse(q.observedAt)<=now+60000).sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt))[0];
-  const currency=p.valuation?.currency??(matching?'USD':undefined);
+  const requestedCurrency=p.quoteCurrency??'USD';
+  const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
+  const currency=p.valuation?.currency??matching?.currency??(p.valuationMode==='automatic'?requestedCurrency:undefined);
   const value=p.valuation?BigInt(p.valuation.value)*100n/10n**BigInt(p.valuation.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
-  return {position:p,assetClass:assetClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,stale:['STALE','ERROR'].includes(positionSync(p,now))||(p.valuation?.source==='VERIFIED'&&snapshotIsStale(p.valuation.observedAt,now))||(!!matching&&!p.valuation&&quoteIsStale(matching,now))};
+  const valuationState=p.valuation?.source==='MANUAL'?'manual':p.valuation?snapshotIsStale(p.valuation.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
+  return {position:p,assetClass:assetClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,source:p.valuation?.source==='MANUAL'?'Manual value':p.valuation?'Verified Position value':matching?.source,valuedAt:p.valuation?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
  });
  const summarize=(items:typeof rows)=>{
-  const currencies=[...new Set(items.flatMap(r=>r.currency?[r.currency]:[]))];
+  const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];
   const subtotals=currencies.map(currency=>{const members=items.filter(r=>r.currency===currency&&r.value!==undefined);return {currency,value:members.reduce((n,r)=>n+r.value!,0n),allocated:members.reduce((n,r)=>n+r.allocatedValue!,0n),unallocated:members.reduce((n,r)=>n+r.unallocatedValue!,0n)};});
   return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1};
  };
- return {rows,...summarize(rows),categories:ASSET_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.assetClass===assetClass);return {assetClass,items,...summarize(items)};})};
+ return {rows,...summarize(rows),history:wealthHistory(s),categories:ASSET_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.assetClass===assetClass);return {assetClass,items,...summarize(items)};})};
 }

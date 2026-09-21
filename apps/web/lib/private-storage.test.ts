@@ -57,3 +57,27 @@ test("cannot write without Web Locks or use a Goal namespace", async () => {
   expect(() => readPrivateStore(s, "zigoals:metadata:v1", schema, empty)).toThrow();
   expect(s.length).toBe(0);
 });
+
+test('platform v1 read/no-op preserves bytes; first explicit write keeps recovery; export/import accepts v3',async()=>{
+ const {platformSchema,emptyPlatform,PLATFORM_KEY}=await import('./positions');
+ const original=JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]},null,2);
+ const s=memory();s.setItem(PLATFORM_KEY,original);
+ expect(readPrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform).schemaVersion).toBe(3);
+ await updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>v);
+ expect(s.getItem(PLATFORM_KEY)).toBe(original);expect(s.length).toBe(1);
+ await updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>({...v,legacyGoalUi:{'1':{pinned:true}}}));
+ expect(s.getItem(s.key(1)!)).toBe(original);
+ expect(JSON.parse(s.getItem(PLATFORM_KEY)!).schemaVersion).toBe(3);
+ const imported=memory();await importPrivateStore(imported,PLATFORM_KEY,platformSchema,s.getItem(PLATFORM_KEY)!);
+ expect(readPrivateStore(imported,PLATFORM_KEY,platformSchema,emptyPlatform).legacyGoalUi?.['1']?.pinned).toBe(true);
+});
+test('v2 first explicit favourite write preserves recovery bytes and v3 backup round-trips',async()=>{
+ const {platformSchema,emptyPlatform,PLATFORM_KEY}=await import('./positions');const {addFavourite,saveAsset}=await import('./asset-management');const {manualSourcePosition}=await import('./manual-source');
+ const {watchlist,assetEvents,...old}=emptyPlatform();void watchlist;void assetEvents;const raw=JSON.stringify({...old,schemaVersion:2},null,2),s=memory();s.setItem(PLATFORM_KEY,raw);
+ await updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>v);expect(s.getItem(PLATFORM_KEY)).toBe(raw);
+ await updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>addFavourite(saveAsset(v,manualSourcePosition({category:'Cash',name:'Cash',quantity:'100',currency:'USD'})),{ref:{provider:'coingecko',kind:'coin',id:'bitcoin'},name:'Bitcoin',symbol:'BTC'}));
+ expect(s.getItem(s.key(1)!)).toBe(raw);const imported=memory();await importPrivateStore(imported,PLATFORM_KEY,platformSchema,s.getItem(PLATFORM_KEY)!);const parsed=readPrivateStore(imported,PLATFORM_KEY,platformSchema,emptyPlatform);expect(parsed.schemaVersion).toBe(3);expect(parsed.watchlist[0]!.ref.id).toBe('bitcoin');expect(parsed.assetEvents[0]!.kind).toBe('added');
+});
+test('atomic funding rolls back every financial field on storage failure',async()=>{
+ const {platformSchema,emptyPlatform,PLATFORM_KEY,privateGoalSchema}=await import('./positions');const {fundGoal}=await import('./contribution-funding');const {manualSourcePosition}=await import('./manual-source');const at=new Date().toISOString();const g=privateGoalSchema.parse({id:'91',name:'Phone',type:'VALUE',status:'active',notes:'',asset:'USD',denom:'USD',decimals:2,target:'200000',createdAt:at,milestones:[]});const cash=manualSourcePosition({category:'Cash',name:'Cash',quantity:'20000',currency:'USD'});const raw=JSON.stringify({...emptyPlatform(),goals:[g]}),s=memory();s.setItem(PLATFORM_KEY,raw);s.setItem=()=>{throw Error('quota');};await expect(updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>fundGoal(v,{id:'fund',goalId:g.id,newPosition:cash,quantity:cash.quantity,occurredAt:at}))).rejects.toThrow();expect(s.getItem(PLATFORM_KEY)).toBe(raw);
+});

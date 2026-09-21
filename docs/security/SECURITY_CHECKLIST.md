@@ -12,7 +12,7 @@ This records implementation and local evidence, not an independent security audi
 | Public/private data | Rust schema excludes names, targets, dates and notes; private metadata stored separately by wallet/network |
 | Metadata loss | Local browser flow withdraws after metadata removal; backup schema rejects malformed/version/network/owner mismatch |
 | Financial precision | BigInt/Decimal, configurable denomination exponent, no floating-point token balances |
-| Planning truthfulness | Funding Health uses zero return; projections/demo exchange rates explicitly illustrative |
+| Planning truthfulness | Funding Wealth uses zero return; projections/demo exchange rates explicitly illustrative |
 | Network identity | Hard testnet-only configuration, fresh REST identity/denom verification and RPC identity check |
 | Transaction freshness | Fee TTL, account/revision checks before signing and broadcast, one action at a time |
 | Ambiguous delivery | No automatic retry; post-broadcast uncertainty warns funds may have moved |

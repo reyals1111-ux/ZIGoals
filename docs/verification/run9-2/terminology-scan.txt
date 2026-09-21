@@ -1,0 +1,3 @@
+User-facing source scan: 70 files; 0 obsolete terminology matches.
+
+Internal fundingHealth identifiers and historical Run reports preserve the existing accounting model and dated record.

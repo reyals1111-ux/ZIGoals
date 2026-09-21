@@ -1,11 +1,16 @@
 import { test, expect } from '@playwright/test';
+test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
 test('private position allocation and plans survive reload without financial or Health side effects',async({page})=>{
  const external:string[]=[];page.on('request',r=>{if(new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
- await page.goto('/app/goals/positions');
- await page.getByLabel('Position name').fill('Example reserve');
- await page.getByLabel('Position quantity').fill('100');
- await page.getByRole('button',{name:'Save manual position',exact:true}).click();
- await expect(page.getByText('Example reserve',{exact:true})).toBeVisible();
+ await page.goto('/app/wealth');
+ await page.getByRole('button',{name:'+ Add asset',exact:true}).first().click();
+ const picker=page.getByRole('dialog',{name:'Add to your wealth'});
+ await picker.getByRole('button',{name:'Use manual entry',exact:true}).click();
+ await picker.getByLabel('Asset name',{exact:true}).fill('Example reserve');
+ await picker.getByLabel('Symbol / ticker',{exact:true}).fill('ZIG');
+ await picker.getByLabel('Quantity',{exact:true}).fill('100');
+ await picker.getByRole('button',{name:'Save asset',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Example reserve',exact:true})).toBeVisible();
  await page.goto('/app/goals/new');
  await page.getByLabel('Goal name',{exact:true}).fill('Example destination');
  await page.getByLabel('Target amount',{exact:true}).fill('200');
@@ -13,6 +18,7 @@ test('private position allocation and plans survive reload without financial or 
  await page.getByRole('button',{name:'Create goal',exact:true}).click();
  await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
  await page.locator('#allocate > summary').click();
+ await page.locator('#allocate .picker-existing').getByRole('button',{name:/Example reserve/}).click();
  await page.getByLabel('Allocation quantity').fill('80');
  await page.getByRole('button',{name:'Save allocation',exact:true}).click();
  await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
@@ -61,10 +67,13 @@ test('mainnet watch-only displays exact six-decimal observations without wallet 
 test('editing an imported manual Position preserves its asset identity, allocations and historical scale',async({page})=>{
  await page.goto('/app/goals/positions');
  await page.evaluate(()=>localStorage.setItem('zigoals:platform:v1',JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[{id:'manual-six',providerId:'Imported reserve',sourceType:'MANUAL',network:'manual',account:'local',asset:'ZIG',denom:'uzig',decimals:6,quantity:'1234567',verification:'MANUAL',sync:'MANUAL',liquidity:'UNKNOWN',observedAt:'2026-09-17T00:00:00Z',provenance:'Manual import',notes:'',risk:'',executionAuthority:'NONE'}],goals:[],allocations:[],snapshots:[{positionId:'manual-six',quantity:'1000000',observedAt:'2026-09-16T00:00:00Z'}]})));
- await page.reload();await page.getByRole('button',{name:'Edit Imported reserve'}).click();
- await expect(page.getByLabel('Position asset',{exact:true})).toHaveAttribute('readonly','');
- await page.getByLabel('Position quantity').fill('2.345678');await page.getByRole('button',{name:'Save manual position',exact:true}).click();
- await expect(page.getByRole('status').filter({hasText:'Manual position saved'})).toBeVisible();
+ await page.goto('/app/wealth/asset/manual-six');await page.getByRole('button',{name:'Edit asset',exact:true}).click();
+ const editor=page.getByRole('dialog',{name:'Edit Imported reserve'});
+ await expect(editor.locator('.picker-selected')).toContainText('ZIG');
+ await expect(editor.getByLabel('Position asset',{exact:true})).toHaveCount(0);
+ await editor.getByLabel('Asset quantity',{exact:true}).fill('2.345678');await editor.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(editor).not.toBeVisible();
+ await expect(page.getByRole('region',{name:'Your holding'})).toContainText('2.345678 ZIG');
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));
  expect(stored.positions[0]).toMatchObject({asset:'ZIG',denom:'uzig',decimals:6,quantity:'2345678'});expect(stored.snapshots[0].quantity).toBe('1000000');
 });

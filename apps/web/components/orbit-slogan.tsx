@@ -1,0 +1,1 @@
+export function OrbitSlogan(){return <><span className="slogan-line"><span>Today&apos;s Goals, </span><span className="slogan-gradient">Habits &amp; Health</span></span><span className="slogan-line"><span> = Tomorrow&apos;s </span><span className="slogan-gradient">Wealth</span></span></>;}

@@ -1,3 +1,4 @@
+import "../../../components/life-pages.css";
 import { AppIcon } from "../../../components/app-icon";
 import Link from "next/link";
 import { explorers, hubLinks } from "@zigoals/ecosystem-registry";
@@ -22,7 +23,8 @@ export default function EcosystemPage() {
         </Link>
       </div>
       <section className="ecosystem-map" aria-label="ZIGChain integration readiness"><div className="network-emblem" aria-hidden="true"><AppIcon name="ecosystem" size={74}/></div><div><p className="eyebrow">THE GOAL LAYER FOR ZIGCHAIN</p><h2>Connected by purpose.</h2><p>One Goal Manager architecture. A growing strategy ecosystem, connected only when its interfaces are verified.</p></div><ul><li><strong>ZIGChain Testnet</strong><span>VERIFIED NETWORK · WALLET CONNECTION</span></li><li><strong>Goal Manager</strong><span>NOT DEPLOYED</span></li><li><strong>Valdora</strong><span>PENDING CANONICAL INTERFACE</span></li><li><strong>WME</strong><span>FUTURE · UNVERIFIED</span></li></ul></section>
-      <section className="panel" aria-label="Onchain verification tools">
+      <section className="ecosystem-readiness" aria-label="What you can do today"><article><AppIcon name="goals" size={30}/><p className="eyebrow">READY IN YOUR BROWSER</p><h2>Plan your next chapter.</h2><p>Your private Goals, Habits, Health and Wealth work today. Build a plan without connecting a wallet.</p><Link className="text-link" href="/app">Open your Today →</Link></article><article><AppIcon name="chain" size={30}/><p className="eyebrow">PUBLIC, READ ONLY</p><h2>Explore with context.</h2><p>Open official network tools and inspect known testnet receipts. External funding integrations remain disabled.</p><a className="text-link" href="#network-tools">View network tools ↓</a></article></section>
+      <section className="panel" id="network-tools" aria-label="Onchain verification tools">
         <h2>Check the public record.</h2>
         <p>
           Use an explorer to inspect public activity. ZIGoals separately checks
