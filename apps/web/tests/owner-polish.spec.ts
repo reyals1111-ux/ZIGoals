@@ -29,9 +29,43 @@ test('responsive collection, detail and Positions retain access without document
  for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});for(const [route,name] of [['/app/goals','15-goals'],['/app/goals/tracked/82','16-detail'],['/app/goals/positions','17-positions']]){await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${route} at ${width}`).toBe(true);if(width===390)await shot(page,`${name}-390`);}}
 });
 test('missing price is explicit and stale quote survives failed refresh and reload',async({page})=>{
- await seed(page);await page.route('**/api/market-quotes*',route=>route.fulfill({status:502,json:{error:'Fixture failure'}}));
- await page.evaluate(()=>{const q=JSON.parse(localStorage.getItem('zigoals:public-market-quotes:v1')!);q.observedAt=new Date(Date.now()-3600000).toISOString();localStorage.setItem('zigoals:public-market-quotes:v1',JSON.stringify(q));});await page.reload();const card=page.locator('[data-goal-key="private:82"]');await expect(card).toContainText('$11309');await expect(card).toContainText('needs refresh');await page.reload();await expect(card).toContainText('$11309');
- await page.evaluate(()=>localStorage.removeItem('zigoals:public-market-quotes:v1'));await page.reload();await expect(card).toContainText('Valuation unavailable');await expect(card).toContainText('Needs review');
+ await seed(page);
+ const card=page.locator('[data-goal-key="private:82"]');
+
+ // Establish the seeded verified quote before changing routing/storage.
+ await expect(card).toContainText('$11309');
+
+ // Remove the seed route explicitly so the failure fixture cannot race it.
+ await page.unroute('**/api/market-quotes*');
+ await page.route('**/api/market-quotes*',route=>route.fulfill({
+  status:502,
+  json:{error:'Fixture failure'},
+ }));
+
+ // Persist the already verified quote as stale. Support both the historical
+ // single-quote cache shape and the current bounded quote-array shape.
+ await page.evaluate(()=>{
+  const key='zigoals:public-market-quotes:v1';
+  const text=localStorage.getItem(key);
+  if(!text)throw new Error('Seeded market quote missing');
+  const raw=JSON.parse(text);
+  const quote=Array.isArray(raw)?raw[0]:raw;
+  if(!quote||typeof quote!=='object')throw new Error('Seeded market quote invalid');
+  quote.observedAt=new Date(Date.now()-3600000).toISOString();
+  localStorage.setItem(key,JSON.stringify(raw));
+ });
+
+ await page.reload();
+ await expect(card).toContainText('$11309');
+ await expect(card).toContainText('needs refresh');
+
+ await page.reload();
+ await expect(card).toContainText('$11309');
+
+ await page.evaluate(()=>localStorage.removeItem('zigoals:public-market-quotes:v1'));
+ await page.reload();
+ await expect(card).toContainText('Valuation unavailable');
+ await expect(card).toContainText('Needs review');
 });
 
 test('Today reports private-store recovery errors while preserving legacy destinations',async({page})=>{
