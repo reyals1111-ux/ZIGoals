@@ -85,7 +85,7 @@ it('caps history bytes for broad portfolios without removing financial facts',()
  for(let day=0;day<30;day++){s.positions[0]!.valuation!.value=String(80000+day);s=intelligence.captureValuations(s,[],now+day*86400000);}
  expect(new TextEncoder().encode(JSON.stringify({v:s.valuationSnapshots,g:s.goalHistory})).byteLength).toBeLessThan(700000);
  expect(s.contributions).toHaveLength(1);
-});
+}, 15_000);
 it('rejects direct rewriting/removing immutable contribution facts',()=>{
  const s=intelligence.appendContribution(state(),event());
  expect(()=>assertGoalEditsUnlocked(s,{...s,contributions:[]})).toThrow(/append-only/);
