@@ -42,3 +42,8 @@ it('lease expiry can precede the work deadline and never permits late publicatio
  expect(publishWork(s,s.lease!,'late',10,10,true).reason).toBe('TIMEOUT');
  expect(acquireWork(s,'next',10,30,30)?.lease?.fence).toBe(2);
 });
+it.each([8,9])('publication at %s cannot erase an earlier follower deadline',publishedAt=>{
+ let s=acquireWork(emptyWorkState<string>(),'owner',0,20,20)!;
+ s=publishWork(s,s.lease!,'usable but late',publishedAt,publishedAt,true).state;
+ expect(followerResult(s,8,publishedAt)).toMatchObject({status:'TIMEOUT',degraded:true,evidence:{value:'usable but late'}});
+});

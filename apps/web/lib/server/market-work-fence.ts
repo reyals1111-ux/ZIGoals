@@ -23,6 +23,6 @@ export function publishWork<T>(s:WorkState<T>,owner:WorkLease,value:T,completedA
 }
 export function followerResult<T>(s:WorkState<T>,deadline:number,now:number):{status:'VERIFIED'|'WAITING'|'TIMEOUT';degraded:boolean;evidence?:PublishedEvidence<T>}{
  const valid=time(now)&&time(deadline)&&now>=s.lastTime;
- if(valid&&s.evidence?.complete&&s.evidence.generation===s.lease?.generation)return {status:'VERIFIED',degraded:false,evidence:s.evidence};
+ if(valid&&s.evidence?.complete&&s.evidence.publishedAt<deadline&&s.evidence.generation===s.lease?.generation)return {status:'VERIFIED',degraded:false,evidence:s.evidence};
  return {status:!valid||now>=deadline||!s.lease||now>=until(s.lease)?'TIMEOUT':'WAITING',degraded:true,evidence:s.evidence};
 }

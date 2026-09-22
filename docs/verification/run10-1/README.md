@@ -1,4 +1,11 @@
-# Run #10.1 foundation verification
+# PRE-RUN #10 foundation verification (historical record)
+
+This directory retains its historical name. All results below describe earlier foundation
+checkpoints, not the current hardening diff or actual Run #10. Current account facts, P2
+closures and verification are in [PRE-RUN #10 hardening](../../PRE_RUN_10_HARDENING.md).
+Earlier daily-budget assumptions and outstanding account questions below are superseded by
+that record and the canonical master plan. Actual Run #10 has not started.
+
 
 **THIS PR DOES NOT CLAIM TO RESOLVE THE ORIGINAL LIVE 503 INCIDENT.**
 
@@ -56,7 +63,7 @@ PRIVACY now distinguishes legacy wallet/network metadata, origin-wide tracked Go
 
 Owner decisions before production coordination: actual minute/day/month limits, billing/reset boundaries, other credential consumers, monitoring reserve, activation policy, cache backend, entitlement and approved smoke runner. See the [canonical master plan](../../RUN_10_BETA_RELIABILITY_MASTER_PLAN.md). Run #11 retains durable local history/recovery; Run #12 retains contribution revisions/funding corrections/financial history. Owner UI review remains separate. Goal Manager NOT DEPLOYED; signing/broadcast DISABLED; PUBLIC_ALPHA_UNDEPLOYED.
 
-## Run #10.3 — P1 request-scoped correction
+## Prior P1 request-scoped correction
 
 Starting PR #20 head: `d42334b9d68073c5aea76b3f6e1392914e40195e`, base unchanged. The route previously published a shared cache error that unrelated success could clear. During retry cooldown, a Bitcoin-only response to Bitcoin/ZIG then appeared non-degraded and the browser correctly rejected it as incomplete.
 
@@ -66,7 +73,7 @@ The permanent test uses the real provider/structured loader, server cache, POST 
 
 Pinned verification: Node `24.19.0`, pnpm `11.19.0`.
 
-| Check | Run #10.3 result |
+| Check | Prior P1 result |
 | --- | --- |
 | Focused route/foundation/pair/cache/media/pending-work checks | 6 files, 66 tests PASS |
 | Lint / typecheck | PASS |
