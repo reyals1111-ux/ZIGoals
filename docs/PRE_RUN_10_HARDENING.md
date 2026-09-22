@@ -82,3 +82,72 @@ Obtain an approved runner investigation/market acceptance for the still-unconfir
 incident, separately from security/deployment identity checks. Any merge/release/deployment
 needs explicit owner authorization. Run #9.2 baseline, rollback, undeployed Goal Manager/Code ID,
 disabled signing/broadcast and PUBLIC_ALPHA_UNDEPLOYED boundaries remain unchanged.
+
+## Final local verification
+
+Verified implementation/documentation head: `ce5f19a5a64316bc6ddcbe403705f6bccc5b639e`.
+The final verification-record commit changes documentation only; the build attests to that
+implementation head, not a deployment or a later commit identifier.
+
+| Check | Result |
+| --- | --- |
+| Focused market/provider/budget/fence/coordinator/acceptance/breaker/pending/media/server-boundary | 26 files / 200 tests PASS |
+| P1 provider → server cache → route → transport → browser cache | PASS in focused and full suites |
+| Full unit suite after review correction | 86 files / 1,120 tests PASS |
+| Lint / typecheck / diff whitespace | PASS |
+| Deployment configuration checks | PASS, isolated and internally consistent |
+| Alpha build | PASS, clean ce5f19a source, PUBLIC_ALPHA_UNDEPLOYED |
+| Wrangler dry-run | PASS; existing WORKER_SELF_REFERENCE and ASSETS only; no deployment |
+| Source/diff/deployable credential scans | PASS limited patterns; 962 source / 1,384 deployable files; zero findings |
+| Independent review | One follower-deadline P2 found and fixed; reviewer confirmed all 10 fencing tests PASS |
+
+The initial dry-run completed but could not write Wrangler's log outside the sandbox.
+It was repeated cleanly with WRANGLER_LOG_PATH pointing into /private/tmp. No config change.
+No named secret values were available locally for exact-value comparison (count zero).
+The scan therefore establishes pattern checks, not proof against a known production key;
+the existing Alpha build sanitizer also completed. No exhaustive security audit is claimed.
+No credentials, raw provider bodies or private user data were added to operational state.
+No product UI, contracts, financial execution, production bindings or deployment gate changed.
+No public Alpha market requests, merge, ready-for-review action, new PR or deployment occurred.
+
+## Durable checkpoints
+
+| Phase | Pushed commit |
+| --- | --- |
+| A — budget/fairness/queue | 1c32478e75c0d43bce8278b5ce3dc4177125e284 |
+| B — provider errors/cleanup | 0a88e6d313e3465770dd225693515cec9c3e21ec |
+| C — leases/fences/multi-key attempt | 1b57c5e2a1b6b2b90b3605d3019c88638f4b3887 |
+| D — acceptance/breaker semantics | 572c76be5257fd6f853bca430d73b4b1c7acbdc2 |
+| E — account facts/docs/review correction | ce5f19a5a64316bc6ddcbe403705f6bccc5b639e |
+
+Local HEAD, remote branch HEAD and clean worktree were checked after every pushed phase.
+Final hosted CI state is reported in the owner handoff after the final documentation push;
+no repeated CI polling is needed. PR #20 must remain OPEN / DRAFT.
+
+## Changed files
+
+- `apps/web/lib/exact-market-json.ts`
+- `apps/web/lib/market-acceptance.test.ts`
+- `apps/web/lib/market-acceptance.ts`
+- `apps/web/lib/market-assets.ts`
+- `apps/web/lib/market-history.ts`
+- `apps/web/lib/market-insights-cache.ts`
+- `apps/web/lib/market-insights.ts`
+- `apps/web/lib/market-quote-cache.ts`
+- `apps/web/lib/market-quotes.ts`
+- `apps/web/lib/pending-work.test.ts`
+- `apps/web/lib/provider-validation.ts`
+- `apps/web/lib/server/coingecko.ts`
+- `apps/web/lib/server/market-breaker.test.ts`
+- `apps/web/lib/server/market-breaker.ts`
+- `apps/web/lib/server/market-budget-policy.test.ts`
+- `apps/web/lib/server/market-budget-policy.ts`
+- `apps/web/lib/server/market-coordinator.test.ts`
+- `apps/web/lib/server/market-coordinator.ts`
+- `apps/web/lib/server/market-work-fence.test.ts`
+- `apps/web/lib/server/market-work-fence.ts`
+- `apps/web/lib/server/provider-boundary.test.ts`
+- `apps/web/lib/server/provider-failure.ts`
+- `docs/PRE_RUN_10_HARDENING.md`
+- `docs/RUN_10_BETA_RELIABILITY_MASTER_PLAN.md`
+- `docs/verification/run10-1/README.md`
