@@ -1,78 +1,77 @@
 import {expect,it} from 'vitest';
-import {emptyBudgetState,reserve,markDispatched,settle,cancelUndispatched,type BudgetPolicy,type BudgetPeriods} from './market-budget-policy';
-const policy:BudgetPolicy={rolling:{windowMs:100,allowance:10},concurrent:2,dailyAllowance:20,monthlyAllowance:30,monitoringReserve:{rolling:2,daily:3,monthly:4}};
-const periods:BudgetPeriods={day:{id:'d1',start:0,end:1000},month:{id:'m1',start:0,end:10000}};
-const request=(id:string,cost=1,priority:'interactive'|'optional'|'monitoring'='interactive')=>({id,cost,priority,kind:'request' as const});
-it('fails closed for missing/invalid policy without guessing account limits',()=>{
- expect(reserve(emptyBudgetState(),undefined,periods,request('a'),1).reason).toBe('POLICY_UNAVAILABLE');
- expect(reserve(emptyBudgetState(),{...policy,dailyAllowance:NaN},periods,request('a'),1).ok).toBe(false);
- expect(reserve(emptyBudgetState(),policy,periods,request('a',0),1).ok).toBe(false);
+import {emptyBudgetState,reserve,markDispatched,settle,cancelUndispatched,enqueue,ownDispatch,type BudgetPolicy,type BudgetPeriods,type BudgetState} from './market-budget-policy';
+const policy:BudgetPolicy={providerMinuteLimit:10,providerMonthlyLimit:100,operating:{minute:8,monthly:80},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:2,monthly:20},optionalCeiling:{minute:3,monthly:30},concurrent:1,queueLimit:2,reservationMs:100,ownershipMs:50};
+const periods:BudgetPeriods={month:{id:'2026-09',start:0,end:100000}};
+const req=(id:string,cost=10,priority:'interactive'|'monitoring'|'optional'='interactive')=>({id,cost,priority,kind:'request' as const});
+const dispatch=(s:BudgetState,id:string,t:number)=>markDispatched(ownDispatch(s,policy,periods,id,t).state,policy,periods,id,t);
+it('accepts real account shape without a daily allowance and rejects invalid configuration',()=>{
+ expect(reserve(emptyBudgetState(),policy,periods,req('a'),1).ok).toBe(true);
+ expect(reserve(emptyBudgetState(),undefined,periods,req('a'),1).reason).toBe('POLICY_UNAVAILABLE');
+ expect(reserve(emptyBudgetState(),{...policy,operating:{minute:11,monthly:80}},periods,req('a'),1).ok).toBe(false);
+ expect(reserve(emptyBudgetState(),{...policy,monitoringMaximum:{minute:8,monthly:80}},periods,req('a'),1).ok).toBe(false);
 });
-it('charges once, keeps failed dispatched attempts charged and forbids double settlement',()=>{
- const a=reserve(emptyBudgetState(),policy,periods,request('a',4),1);expect(a.ok).toBe(true);
- const b=markDispatched(a.state,policy,periods,'a',2);expect(b.ok).toBe(true);
- const c=settle(b.state,'a','failure',3);expect(c.ok).toBe(true);
- expect(settle(c.state,'a','success',4).ok).toBe(false);
- expect(reserve(c.state,policy,periods,request('a',4),5).ok).toBe(false);
- expect(reserve(c.state,policy,periods,request('b',5),5).reason).toBe('ROLLING_LIMIT');
+it.each([false,true])('keeps accepted interactive capacity stable, monitoring first=%s',first=>{
+ let s=emptyBudgetState();
+ for(const r of first?[req('m',20,'monitoring'),req('i',60)]:[req('i',60),req('m',20,'monitoring')]){const d=reserve(s,policy,periods,r,1);expect(d.ok).toBe(true);s=d.state;}
+ const m=dispatch(s,'m',2);expect(m.ok).toBe(true);s=settle(m.state,'m','success',3).state;
+ expect(dispatch(s,'i',4).ok).toBe(true);
+ expect(reserve(s,policy,periods,req('more',1,'monitoring'),4).reason).toBe('MONITORING_LIMIT');
 });
-it('cancels only undispatched reservations and charges uncertain dispatch conservatively',()=>{
- const a=reserve(emptyBudgetState(),policy,periods,request('a',8),1);
- const cancelled=cancelUndispatched(a.state,'a',2);expect(cancelled.ok).toBe(true);
- const b=reserve(cancelled.state,policy,periods,request('b',8),3);expect(b.ok).toBe(true);
- const sent=markDispatched(b.state,policy,periods,'b',4);
- expect(cancelUndispatched(sent.state,'b',5).ok).toBe(false);
- expect(reserve(sent.state,policy,periods,request('c'),6).ok).toBe(false);
+it('optional yields before interactive and monitoring reserve stays available',()=>{
+ let s=reserve(emptyBudgetState(),policy,periods,req('i',40),1).state;
+ expect(reserve(s,policy,periods,req('o',1,'optional'),2).reason).toBe('OPTIONAL_LIMIT');
+ const i=reserve(s,policy,periods,req('i2',20),2);expect(i.ok).toBe(true);s=i.state;
+ expect(reserve(s,policy,periods,req('i3',1),3).reason).toBe('MONTHLY_LIMIT');
+ expect(reserve(s,policy,periods,req('m',20,'monitoring'),3).ok).toBe(true);
 });
-it('requires independent charged reservations for retries and fallbacks',()=>{
- let state=emptyBudgetState();
- for(const [index,kind] of (['request','retry','fallback'] as const).entries()){
- const id=String(index);state=reserve(state,policy,periods,{...request(id,2),kind},index*3+1).state;
- state=markDispatched(state,policy,periods,id,index*3+2).state;state=settle(state,id,'failure',index*3+3).state;
+it('counts one attempt per minute independently of weighted credits and retains failed costs',()=>{
+ let s=emptyBudgetState();const p={...policy,providerMinuteLimit:3,operating:{minute:3,monthly:80},monitoringReserve:{minute:1,monthly:20},monitoringMaximum:{minute:1,monthly:20},optionalCeiling:{minute:1,monthly:30}};
+ for(let i=0;i<2;i++){s=reserve(s,p,periods,req('a'+i,1),i+1).state;s=ownDispatch(s,p,periods,'a'+i,i+1).state;s=markDispatched(s,p,periods,'a'+i,i+1).state;s=settle(s,'a'+i,'failure',i+1).state;}
+ expect(reserve(s,p,periods,req('b',1),3).reason).toBe('MINUTE_LIMIT');
+ expect(reserve(s,p,periods,req('c',1),60003).ok).toBe(true);
+ expect(settle(s,'a0','success',3).ok).toBe(false);
+ expect(reserve(s,p,periods,req('a0'),3).reason).toBe('DUPLICATE_OPERATION');
+});
+it('bounded queued items and reservations occupy no dispatch slot; no double dispatch',()=>{
+ let s=enqueue(emptyBudgetState(),policy,req('a'),1).state;s=enqueue(s,policy,req('b'),1).state;
+ expect(enqueue(s,policy,req('c'),1).reason).toBe('QUEUE_LIMIT');
+ expect(ownDispatch(s,policy,periods,'a',2).ok).toBe(false);
+ s=reserve(s,policy,periods,req('a'),2).state;s=reserve(s,policy,periods,req('b'),2).state;
+ expect(markDispatched(s,policy,periods,'a',3).ok).toBe(false);
+ s=ownDispatch(s,policy,periods,'a',3).state;
+ expect(ownDispatch(s,policy,periods,'b',3).reason).toBe('CONCURRENT_LIMIT');
+ s=markDispatched(s,policy,periods,'a',4).state;
+ expect(markDispatched(s,policy,periods,'a',4).ok).toBe(false);
+ s=settle(s,'a','success',5).state;expect(ownDispatch(s,policy,periods,'b',6).ok).toBe(true);
+});
+it('cancellation releases queued/reserved/owned cost, never dispatched cost',()=>{
+ for(const stage of ['queued','reserved','owned']){
+ let s=enqueue(emptyBudgetState(),policy,req('a',60),1).state;
+ if(stage!=='queued')s=reserve(s,policy,periods,req('a',60),2).state;
+ if(stage==='owned')s=ownDispatch(s,policy,periods,'a',3).state;
+ s=cancelUndispatched(s,'a',4).state;expect(reserve(s,policy,periods,req('b',60),5).ok).toBe(true);
  }
- expect(Object.values(state.reservations).reduce((sum,r)=>sum+r.cost,0)).toBe(6);
- expect(reserve(state,policy,periods,request('next',3),10).ok).toBe(false);
+ const s=dispatch(reserve(emptyBudgetState(),policy,periods,req('a'),1).state,'a',2).state;
+ expect(cancelUndispatched(s,'a',3).ok).toBe(false);
 });
-it('protects monitoring reserve within total allowance, including from optional work',()=>{
- const a=reserve(emptyBudgetState(),policy,periods,request('a',8,'optional'),1);
- expect(reserve(a.state,policy,periods,request('b',1,'optional'),2).reason).toBe('ROLLING_LIMIT');
- const m=reserve(a.state,policy,periods,request('m',2,'monitoring'),2);expect(m.ok).toBe(true);
- const done=settle(markDispatched(m.state,policy,periods,'m',3).state,'m','success',4);
- expect(reserve(done.state,policy,periods,request('m2',1,'monitoring'),5).reason).toBe('ROLLING_LIMIT');
+it('expires holds/ownership at the exact boundary and rejects changed policy/periods',()=>{
+ const s=reserve(emptyBudgetState(),policy,periods,req('a'),1).state;
+ expect(ownDispatch(s,policy,periods,'a',101).reason).toBe('RESERVATION_EXPIRED');
+ const owned=ownDispatch(s,policy,periods,'a',2).state;
+ expect(markDispatched(owned,policy,periods,'a',52).reason).toBe('OWNERSHIP_EXPIRED');
+ expect(ownDispatch(s,{...policy,concurrent:2},periods,'a',2).reason).toBe('POLICY_CHANGED');
+ expect(ownDispatch(s,policy,{month:{id:'2026-10',start:100000,end:200000}},'a',100001).ok).toBe(false);
+ expect(reserve(s,policy,{month:{id:'fake',start:2,end:100001}},req('b'),2).reason).toBe('CLOCK_OR_PERIOD');
 });
-it('enforces concurrent, daily and monthly injected allowances',()=>{
- let state=reserve(emptyBudgetState(),policy,periods,request('a'),1).state;state=reserve(state,policy,periods,request('b'),2).state;
- expect(reserve(state,policy,periods,request('c'),3).reason).toBe('CONCURRENT_LIMIT');
- const p={...policy,rolling:{windowMs:10,allowance:100},dailyAllowance:5,monthlyAllowance:6,monitoringReserve:{rolling:0,daily:0,monthly:0}};
- state=reserve(emptyBudgetState(),p,periods,request('x',5),1).state;state=markDispatched(state,p,periods,'x',2).state;state=settle(state,'x','success',3).state;
- expect(reserve(state,p,periods,request('y'),20).reason).toBe('DAILY_LIMIT');
- const next={...periods,day:{id:'d2',start:1000,end:2000}};
- expect(reserve(state,p,next,request('z',2),1001).reason).toBe('MONTHLY_LIMIT');
+it('new calendar period restores credits, while stale undispatched holds still reserve capacity',()=>{
+ let s=reserve(emptyBudgetState(),policy,periods,req('a',60),1).state;
+ expect(reserve(s,policy,periods,req('b'),1000).ok).toBe(false);
+ s=dispatch(s,'a',2).state;s=settle(s,'a','failure',3).state;
+ expect(reserve(s,policy,periods,req('b'),61000).reason).toBe('MONTHLY_LIMIT');
+ expect(reserve(s,policy,{month:{id:'2026-10',start:100000,end:200000}},req('b',60),100001).ok).toBe(true);
 });
-it('rolls periods forward without resurrecting old allowance or accepting changed/overlapping boundaries',()=>{
- let state=reserve(emptyBudgetState(),policy,periods,request('a',8),1).state;state=markDispatched(state,policy,periods,'a',2).state;state=settle(state,'a','success',3).state;
- expect(reserve(state,policy,{...periods,day:{id:'fake',start:3,end:1001}},request('b'),4).ok).toBe(false);
- const next={day:{id:'d2',start:1000,end:2000},month:periods.month};const rolled=reserve(state,policy,next,request('b',8),1001);expect(rolled.ok).toBe(true);
- expect(reserve(rolled.state,policy,periods,request('c'),5).reason).toBe('CLOCK_OR_PERIOD');
- expect(reserve(rolled.state,policy,next,request('a'),1002).ok).toBe(false);
-});
-it('rechecks expired holds at dispatch and never dispatches using a previous period reservation',()=>{
- const a=reserve(emptyBudgetState(),policy,periods,request('a',8),1);
- const next={day:{id:'d2',start:1000,end:2000},month:periods.month};
- expect(markDispatched(a.state,policy,next,'a',1001).reason).toBe('RESERVATION_EXPIRED');
- expect(cancelUndispatched(a.state,'a',1001).ok).toBe(true);
-});
-it('does not mutate input state and rejects repeated dispatch',()=>{
- const original=emptyBudgetState();const a=reserve(original,policy,periods,request('a'),1);expect(original.reservations).toEqual({});const b=markDispatched(a.state,policy,periods,'a',2);expect(a.state.reservations.a?.status).toBe('RESERVED');expect(markDispatched(b.state,policy,periods,'a',3).ok).toBe(false);
-});
-it('denies partial mandatory configuration and resets only a real new month',()=>{
- expect(reserve(emptyBudgetState(),{} as BudgetPolicy,periods,request('a'),1).reason).toBe('POLICY_UNAVAILABLE');
- const p={...policy,rolling:{windowMs:10,allowance:30},dailyAllowance:30,monthlyAllowance:5,monitoringReserve:{rolling:0,daily:0,monthly:0}};
- let state=reserve(emptyBudgetState(),p,periods,request('a',5),1).state;
- state=markDispatched(state,p,periods,'a',2).state;state=settle(state,'a','failure',3).state;
- expect(reserve(state,p,periods,request('b'),20).reason).toBe('MONTHLY_LIMIT');
- const next={day:{id:'d10',start:10000,end:11000},month:{id:'m2',start:10000,end:20000}};
- const fresh=reserve(state,p,next,request('b',5),10001);expect(fresh.ok).toBe(true);
- expect(reserve(fresh.state,p,next,request('c'),10002).reason).toBe('MONTHLY_LIMIT');
- expect(settle(fresh.state,'a','failure',10002).ok).toBe(false);
+it('requires independent retry/fallback attempts and never mutates inputs',()=>{
+ const original=emptyBudgetState();let s=original;
+ for(const [i,kind] of (['request','retry','fallback'] as const).entries())s=reserve(s,policy,periods,{...req('a'+i,20),kind},1).state;
+ expect(original.reservations).toEqual({});expect(reserve(s,policy,periods,req('extra',1),2).ok).toBe(false);
 });
