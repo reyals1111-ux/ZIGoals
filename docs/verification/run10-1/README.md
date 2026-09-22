@@ -55,3 +55,25 @@ Immediate ZIG/catalog/history 503 observations remain separate from Bitcoin 200 
 PRIVACY now distinguishes legacy wallet/network metadata, origin-wide tracked Goals/Positions/simulation, origin-wide Habits/Health, tab-scoped Showcase isolation and readable module backups. Wallet switching does not hide origin-wide data.
 
 Owner decisions before production coordination: actual minute/day/month limits, billing/reset boundaries, other credential consumers, monitoring reserve, activation policy, cache backend, entitlement and approved smoke runner. See the [canonical master plan](../../RUN_10_BETA_RELIABILITY_MASTER_PLAN.md). Run #11 retains durable local history/recovery; Run #12 retains contribution revisions/funding corrections/financial history. Owner UI review remains separate. Goal Manager NOT DEPLOYED; signing/broadcast DISABLED; PUBLIC_ALPHA_UNDEPLOYED.
+
+## Run #10.3 — P1 request-scoped correction
+
+Starting PR #20 head: `d42334b9d68073c5aea76b3f6e1392914e40195e`, base unchanged. The route previously published a shared cache error that unrelated success could clear. During retry cooldown, a Bitcoin-only response to Bitcoin/ZIG then appeared non-degraded and the browser correctly rejected it as incomplete.
+
+The route now normalizes requested pairs and derives coverage/freshness from validated matching cache evidence, including RWA type. Both POST and native-ZIG GET use this boundary. Missing/stale evidence produces a generic error; complete fresh requests do not inherit unrelated errors. No client/cache/parser check was weakened, timestamps are unchanged, and no new provider attempts, API version, coordinator state or financial behavior were added. A null legacy error is not proof of a successful refresh; associated per-pair attempt outcomes remain deferred.
+
+The permanent test uses the real provider/structured loader, server cache, POST route, public transport and browser cache, mocking only network responses/clock. Bitcoin recovery survives ZIG fallback failure; Ethereum success clears shared error; a second Bitcoin/ZIG request makes no further upstream call and preserves Bitcoin with degradation. Before the correction, the new regression and unrelated-error isolation test failed for their intended assertions (2 failed / 8 passed). After correction, all focused checks pass. Additional tests cover duplicates, stale timestamps, ambiguous partial client rejection and conflicting cached RWA types.
+
+Pinned verification: Node `24.19.0`, pnpm `11.19.0`.
+
+| Check | Run #10.3 result |
+| --- | --- |
+| Focused route/foundation/pair/cache/media/pending-work checks | 6 files, 66 tests PASS |
+| Lint / typecheck | PASS |
+| Full unit suite | 83 files, 1,069 tests PASS on rerun |
+| First full-suite attempt | 1 unrelated wallet test failed: missing “Approve in Keplr” button; fixed 20 ms test waits under concurrent build load suggest timing sensitivity. Unchanged file then passed alone (24 tests), and the full suite passed; no wallet changes. |
+| Deployment-config consistency / Alpha build / Wrangler dry-run | PASS; no deployment |
+| Tracked-source and deployable credential scans | PASS; limited patterns and available named-secret exact matching, not an exhaustive audit |
+| Diff whitespace / manual privacy and scope review | PASS |
+
+The master plan records all P2 activation gates and P3 interpretation notes. PRIVACY now discloses public asset identity/currency/history requests and interest linkability through selection combinations/timing, without claiming anonymity. Original live 503 incident remains UNCONFIRMED. No public market probes, merge, deployment or coordinator implementation occurred.

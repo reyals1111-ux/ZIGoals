@@ -126,3 +126,23 @@ Run #12 — Explainable Funding & Financial History: immutable plan revisions, r
 
 ## 33. Later / deferred tracks
 Provider #2, FX/metals, cloud sync, wearables and food capture remain unapproved. Owner UI review is separate: Landing, Today, Goals/create/detail, Funding Wealth, Wealth, Markets/detail, Stake/Positions, Habits, Health, Activity, Ecosystem, Settings, Showcase, 390px/320px and real Keplr connect/reload/reconnect. Goal Manager/Code ID NOT DEPLOYED; financial signing/broadcast DISABLED; environment PUBLIC_ALPHA_UNDEPLOYED.
+
+## Run #10.3 review dispositions and activation gates
+
+P1-01 correction: public quote responses derive coverage from the current deduplicated requested pairs and validated matching cached evidence, independently of the cache's last global refresh error. Missing or stale selected evidence produces a generic degradation error; unrelated failure does not contaminate fully covered fresh requests. Browser fail-closed completeness validation remains unchanged. No external API version or per-key persistence is introduced.
+
+`complete` means every deduplicated requested pair has evidence, not that every quote is fresh, the provider is healthy, or a refresh just succeeded. Internal `degraded` includes stale/missing evidence and associated failure. The legacy route exposes coverage/freshness degradation; it cannot attribute the cache's global refresh failure to an individual pair, and a null error is not a refresh-success or provider-health attestation. Per-pair attempt outcomes remain a future migration requirement.
+
+| Review item | Explicit disposition / activation gate |
+| --- | --- |
+| P2-01 — lease expiry / accumulated results | DEFER TO RUN #10 COORDINATOR/CACHE PHASE. Require deadline-aware stopping/publication and truthful timeout state while preserving fencing. Never remove fencing merely to retain late results. |
+| P2-02 — monitoring reserve/fairness | DEFER TO SCHEDULER/BUDGET ACTIVATION. Queue normally precedes dispatch-slot reservation. Define monitoring consumption caps and fairness in addition to protected reserve. |
+| P2-03 — body/parser misclassification | REQUIRED BEFORE BREAKER ACTIVATION. Introduce explicit validation-error conventions so programmer defects do not automatically become provider MALFORMED; body transport/network failures need a separate classification path. |
+| P2-04 — response-body cancellation | REQUIRED BEFORE HIGH-CONCURRENCY ACTIVATION. Explicitly own/cancel rejected non-OK, wrong-media and early-size-rejected bodies where runtime APIs allow. No speculative cancellation changes in the P1 correction. |
+| P2-05 — coordinator interface | REQUIRED BEFORE PRODUCTION COORDINATOR IMPLEMENTATION. Define fenced result publication and reservation/attempt association for multi-key provider batches. |
+| P2-06 — acceptance model | REQUIRED BEFORE MAKING MARKET ACCEPTANCE A DEPLOYMENT GATE. Preserve reachability/execution, security, deployment identity and per-probe market evidence separately; a summary outcome must not erase them. |
+| P2-07 — privacy disclosure | ADDRESSED IN RUN #10.3: PRIVACY describes public market requests and selection/timing linkability without claiming anonymity. |
+
+P3 documentation notes: duplicate failure categories currently use last-entry precedence, whose external semantics must be defined before pair-result publication. Results follow deduplicated request order; quote collection follows successful provider work and must not be assumed parallel. `isJsonMediaType()` checks media-type essence/compatibility, not full RFC Content-Type grammar. The custom server-boundary scanner is a regression supplement; Next's native server-only compiler boundary remains authoritative.
+
+These are explicit activation gates. No coordinator, breaker, high-concurrency admission, deployment gate, merge or deployment is authorized by this correction. The original live 503 incident remains UNCONFIRMED.
