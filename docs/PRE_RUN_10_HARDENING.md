@@ -8,7 +8,7 @@ base 95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90. Clean checkout and hosted checks 
 - [x] A: independent minute calls/month credits, operating ceilings, monitoring reserve/cap,
   optional cutoff; bounded queue, reservation, dispatch ownership, dispatch and settlement.
   Test budget policy with synthetic limits, both admission orders, cancellation and rollover.
-- [ ] B: typed expected validation failures; transport/programming separation; rejected-body
+- [x] B: typed expected validation failures; transport/programming separation; rejected-body
   cleanup. Test real synthetic streams and preserve the provider-to-browser P1 regression.
 - [ ] C: pure generation/fence/deadline publication and follower semantics; one provider
   attempt associated with many work keys, one charge/settlement and per-work publication.
@@ -29,3 +29,6 @@ Policy changes and expired holds require a fresh reservation; monitoring cannot 
 Calendar-month boundaries are explicit caller inputs; there is no provider daily limit.
 
 Checkpoint A: 12 focused budget/coordinator tests and typecheck passed.
+
+Checkpoint B: 158 focused market/provider tests and typecheck passed. Cleanup has a
+250ms best-effort grace; cancellation failure cannot mask the original sanitized failure.

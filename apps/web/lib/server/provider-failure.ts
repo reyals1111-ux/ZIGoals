@@ -1,3 +1,5 @@
+import {ZodError} from 'zod';
+import {ProviderValidationError} from '../provider-validation';
 /** Closed, sanitized vocabulary. Never retain a cause, URL, headers or response body. */
 export type ProviderFailureCategory = 'THROTTLED'|'UPSTREAM_5XX'|'TIMEOUT'|'NETWORK'|'AUTHENTICATION'|'ENTITLEMENT'|'MALFORMED'|'UNSUPPORTED'|'LOCAL_BUDGET'|'LOCAL_QUEUE'|'UNKNOWN';
 export class ProviderFailure extends Error {
@@ -11,5 +13,5 @@ export function sanitizeProviderFailure(error:unknown):ProviderFailure {
  return new ProviderFailure(error instanceof ProviderFailure?error.category:'UNKNOWN');
 }
 export function parseProviderEvidence<T>(parse:()=>T):T {
- try{return parse();}catch{throw new ProviderFailure('MALFORMED');}
+ try{return parse();}catch(error){throw new ProviderFailure(error instanceof ProviderValidationError||error instanceof ZodError?'MALFORMED':'UNKNOWN');}
 }
