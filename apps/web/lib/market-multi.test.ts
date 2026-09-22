@@ -1,7 +1,7 @@
 import {expect,it,vi} from 'vitest';
 import {parseCoinQuotes,parseRwaQuotes,quoteMatchesPosition,QUOTE_FRESH_MS} from './market-quotes';
 import {createMarketQuoteCache} from './market-quote-cache';
-import {buildCoinGeckoRequests,createCoinGeckoProvider} from './server/coingecko';
+import {buildCoinGeckoRequests,createCoinGeckoProvider,NATIVE_ZIG_ETHEREUM_CONTRACT} from './server/coingecko';
 import type {MarketQuoteRequest} from './market-assets';
 const now=Date.parse('2026-09-20T12:00:00Z');
 const coin=(id:string,currency:'USD'|'EUR'='USD'):MarketQuoteRequest=>({marketRef:{provider:'coingecko',kind:'coin',id},currency});
@@ -35,6 +35,21 @@ it('retains last-good per asset, gates manual retry and shares concurrent refres
  const cache=createMarketQuoteCache(load,()=>time);await Promise.all([cache.refresh([coin('bitcoin')]),cache.refresh([coin('bitcoin')])]);expect(load).toHaveBeenCalledTimes(1);await cache.refresh([coin('bitcoin')],true);expect(load).toHaveBeenCalledTimes(1);
  time+=61000;await cache.refresh([coin('bitcoin')],true);expect(load).toHaveBeenCalledTimes(2);time+=900000;fail=true;await cache.refresh([coin('bitcoin')]);expect(cache.getSnapshot().quotes).toHaveLength(1);expect(cache.getSnapshot().error).toContain('retained');
 });
+it('falls back to CoinGecko token-address pricing when native ZIG id pricing is unavailable',async()=>{
+ const calls:string[]=[];
+ const fetcher:typeof fetch=async input=>{
+  const url=String(input);calls.push(url);
+  if(url.includes('/simple/price'))return new Response('provider edge failure',{status:503});
+  if(url.includes('/simple/token_price/ethereum'))return new Response(`{"${NATIVE_ZIG_ETHEREUM_CONTRACT}":{"usd":0.05060601660182105,"last_updated_at":${now/1000}}}`);
+  return new Response('unexpected',{status:500});
+ };
+ const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});
+ const quote=(await provider.quotes([coin('zignaly')]))[0]!;
+ expect(quote).toMatchObject({providerAssetId:'zignaly',currency:'USD',price:'5060601660182105',priceDecimals:17,source:'CoinGecko'});
+ expect(calls.some(url=>url.includes('/simple/price'))).toBe(true);
+ expect(calls.some(url=>url.includes('/simple/token_price/ethereum'))).toBe(true);
+});
+
 it('requires a server key and never leaks it in query/body or provider errors',async()=>{
  const fetcher=vi.fn(async()=>new Response('quota private provider detail',{status:429}));
  await expect(createCoinGeckoProvider({key:()=>undefined,fetcher,clock:()=>now}).quotes([coin('bitcoin')])).rejects.toThrow(/unavailable/);expect(fetcher).not.toHaveBeenCalled();

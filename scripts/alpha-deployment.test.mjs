@@ -253,7 +253,7 @@ test("a different live version cannot be reported as this run's deployment", asy
 });
 
 function htmlResponse(nonce = "A".repeat(43) + "=") {
-  return new Response(`<html>Turn today Local Demo PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
+  return new Response(`<html>YOUR FINANCIAL ORBIT Local Demo PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
     "content-type": "text/html", "cache-control": "private, no-store, max-age=0",
     "content-security-policy": `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests`,
     "strict-transport-security": "max-age=31536000, max-age=31536000",
@@ -297,8 +297,8 @@ test("smoke visits only Alpha, checks all routes and fresh nonces, and never sen
   const checks = await smokeAlpha({ expectedCommit: sha, fetcher: async (url, options) => {
     calls.push({ url, options }); return htmlResponse((count++ === 0 ? "A" : "B").repeat(43) + "=");
   } });
-  expect(checks).toHaveLength(9);
-  expect(calls.map(c => new URL(c.url).pathname)).toEqual(["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/activity", "/app/ecosystem", "/app/settings", "/app"]);
+  expect(checks).toHaveLength(11);
+  expect(calls.map(c => new URL(c.url).pathname)).toEqual(["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings", "/app"]);
   for (const { url, options } of calls) {
     expect(new URL(url).origin).toBe("https://alpha.zigoals.app");
     expect(options.redirect).toBe("manual");
