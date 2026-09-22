@@ -18,7 +18,7 @@ export function createMarketInsightsCache(load:(requests:readonly MarketQuoteReq
  const work=beginPendingWork();pending=work;await ownPendingWork(work,(async()=>{try{
  const result=await load(needed,force);if(result.entries.length>needed.length)throw Error('Invalid insight count.');const keys=new Set<string>();const valid=result.entries.map(rawEntry=>{const key=marketRequestKey(rawEntry),request=needed.find(r=>marketRequestKey(r)===key);if(!request||keys.has(key))throw Error('Invalid insight identity.');keys.add(key);return verifiedMarketInsight(rawEntry,request,clock());});
  if(keys.size!==needed.length&&!result.error)throw Error('Incomplete insights.');
- if(pending!==work||!workIsPending(work))return;
+ if(pending!==work)return;if(!workIsPending(work))throw Error('Market work expired.');
  for(const request of needed)errors.set(marketRequestKey(request),INSIGHTS_UNAVAILABLE);
  for(const entry of valid){const key=marketRequestKey(entry),previous=rows.get(key);if(previous&&Date.parse(entry.observedAt??entry.fetchedAt)<Date.parse(previous.observedAt??previous.fetchedAt))continue;rows.delete(key);rows.set(key,{...entry,logoUrl:entry.logoUrl??previous?.logoUrl??null});errors.set(key,result.errors?.[key]?INSIGHTS_UNAVAILABLE:null);}
  state={...state,error:[...errors.values()].some(Boolean)?INSIGHTS_UNAVAILABLE:null};trim();try{storage?.setItem(PUBLIC_INSIGHTS_KEY,JSON.stringify([...rows.values()]));}catch{/* Persistence is optional. */}

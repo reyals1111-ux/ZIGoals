@@ -31,3 +31,30 @@ it('catalog waits for both request-owned legs to settle before returning a failu
  const provider=createCoinGeckoProvider({key:()=> 'fixture',fetcher:async url=>{if(String(url).includes('/coins/list'))throw Error('failed coin leg');await new Promise<void>(resolve=>{release=resolve;});return Response.json([]);}});
  const result=provider.catalog().then(value=>{finished=true;return value;});await new Promise(resolve=>setTimeout(resolve,0));expect(finished).toBe(false);release();expect((await result).error).toContain('retained');
 });
+it.each(['quotes','insights'])('late %s completion is degraded, never apparent success',async kind=>{
+ vi.useFakeTimers();vi.setSystemTime(new Date('2026-09-22T00:00:00Z'));
+ let finish:(value:never)=>void=()=>{};
+ const loader=()=>new Promise<never>(resolve=>{finish=resolve;});
+ const cache=kind==='quotes'?createMarketQuoteCache(loader):createMarketInsightsCache(loader);
+ const running=cache.refresh([request]);vi.setSystemTime(Date.now()+60000);
+ const at=new Date().toISOString();
+ const payload=kind==='quotes'?{quotes:[{...request,base:{network:'coingecko-coin',denom:'bitcoin',decimals:0},price:'100',priceDecimals:0,source:'CoinGecko',providerAssetId:'bitcoin',observedAt:at,fetchedAt:at,verification:'VERIFIED'}],error:null}:{entries:[{...request,source:'CoinGecko',marketBasis:'coin',logoUrl:null,change24h:null,observedAt:null,fetchedAt:at,sparkline:null}],error:null};
+ finish(payload as never);await running;expect(cache.getSnapshot().error).toBeTruthy();
+});
+it('late history refresh preserves earlier evidence but reports degradation',async()=>{
+ vi.useFakeTimers();vi.setSystemTime(new Date('2026-09-22T00:00:00Z'));
+ const chart={...request,range:'7d'} as const;let calls=0,finish:(h:MarketHistory)=>void=()=>{};
+ const good:MarketHistory={...chart,source:'CoinGecko',fetchedAt:new Date().toISOString(),points:[{at:new Date(Date.now()-1000).toISOString(),value:'2',decimals:0}]};
+ const cache=createMarketHistoryCache(async()=>++calls===1?good:await new Promise<MarketHistory>(resolve=>{finish=resolve;}));
+ await cache.load(chart);vi.setSystemTime(Date.now()+60000);const running=cache.load(chart,true);
+ vi.setSystemTime(Date.now()+60000);finish({...good,fetchedAt:new Date().toISOString()});
+ expect(await running).toMatchObject({history:good,error:expect.any(String)});
+});
+it('late catalog refresh retains prior catalog and reports degradation',async()=>{
+ vi.useFakeTimers();vi.setSystemTime(new Date('2026-09-22T00:00:00Z'));
+ const {createCoinGeckoProvider}=await import('./server/coingecko');let late=false;const releases:Array<()=>void>=[];
+ const p=createCoinGeckoProvider({key:()=> 'fixture',fetcher:async url=>{if(late)await new Promise<void>(resolve=>releases.push(resolve));return Response.json(String(url).includes('coins/list')?[{id:'bitcoin',name:'Bitcoin',symbol:'btc'}]:[]);}});
+ const first=await p.catalog();expect(first.error).toBeNull();late=true;vi.setSystemTime(Date.now()+86400000);
+ const running=p.catalog();await vi.advanceTimersByTimeAsync(0);vi.setSystemTime(Date.now()+60000);for(const release of releases)release();
+ expect(await running).toMatchObject({assets:first.assets,error:expect.any(String)});
+});

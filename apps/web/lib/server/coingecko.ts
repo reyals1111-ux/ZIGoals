@@ -85,7 +85,7 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  if(results[0].status!=='fulfilled'||results[1].status!=='fulfilled')throw Error('Unavailable');
  const coinText=results[0].value,rwaText=results[1].value;
  const verified=parseProviderEvidence(()=>[...parseMarketCatalog(coinText,'coin'),...parseMarketCatalog(rwaText,'rwa')]);
- if(pending===work&&workIsPending(work)){assets=verified;fetchedAt=clock();error=null;}
+ if(pending===work){if(!workIsPending(work))throw Error('Market work expired.');assets=verified;fetchedAt=clock();error=null;}
  }catch{if(pending===work)error='Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.';}
  finally{work.done=true;if(pending===work)pending=null;}})());}
  return {assets,error:error??(!assets.length?'Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.':null),fetchedAt:fetchedAt?new Date(fetchedAt).toISOString():null,stale:!fetchedAt||clock()-fetchedAt>=CATALOG_FRESH_MS};

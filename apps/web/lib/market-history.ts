@@ -90,7 +90,7 @@ export function createMarketHistoryCache(loader:(request:MarketHistoryRequest,re
      const history=verifiedMarketHistory(result.history,request,clock());
      if(!history.points.length)throw Error('Unavailable');
      if(target.history&&Date.parse(history.fetchedAt)<Date.parse(target.history.fetchedAt))throw Error('Older history');
-     if(target.pending!==work||!workIsPending(work))return;target.history=history;target.error=result.error?HISTORY_UNAVAILABLE:null;
+     if(target.pending!==work)return;if(!workIsPending(work))throw Error('Market work expired.');target.history=history;target.error=result.error?HISTORY_UNAVAILABLE:null;
     }catch{if(target.pending===work)target.error=target.history?'Market history refresh is unavailable. Last verified observations are retained.':HISTORY_UNAVAILABLE;}
     finally{work.done=true;if(target.pending===work)target.pending=undefined;trim(key);}
    })());

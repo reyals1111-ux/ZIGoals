@@ -10,7 +10,7 @@ base 95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90. Clean checkout and hosted checks 
   Test budget policy with synthetic limits, both admission orders, cancellation and rollover.
 - [x] B: typed expected validation failures; transport/programming separation; rejected-body
   cleanup. Test real synthetic streams and preserve the provider-to-browser P1 regression.
-- [ ] C: pure generation/fence/deadline publication and follower semantics; one provider
+- [x] C: pure generation/fence/deadline publication and follower semantics; one provider
   attempt associated with many work keys, one charge/settlement and per-work publication.
 - [ ] D: retain acceptance dimensions with derived summary; pure scoped breaker transitions.
 - [ ] E: account facts, semantic contracts, limitations, focused and complete verification.
@@ -32,3 +32,13 @@ Checkpoint A: 12 focused budget/coordinator tests and typecheck passed.
 
 Checkpoint B: 158 focused market/provider tests and typecheck passed. Cleanup has a
 250ms best-effort grace; cancellation failure cannot mask the original sanitized failure.
+
+Checkpoint C: 42 focused budget/fence/coordinator/pending/route tests passed; typecheck passed.
+Publication requires the current token, generation and fence, with now strictly before both
+work deadline and lease expiry. Earlier completion does not authorize a later commit.
+Previously committed complete evidence remains usable; partial evidence survives timeout
+with degradation. A successor fences out its predecessor. Dispatched uncertainty stays charged.
+One provider attempt contains multiple public work associations and one cost reservation;
+settlement occurs once independently of per-work canonical validation and fenced publication.
+No durable backend exists. The existing process-local caches now report late completion
+as degradation instead of silently returning apparent success; successor state is untouched.
