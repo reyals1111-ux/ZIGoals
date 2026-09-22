@@ -12,7 +12,7 @@ base 95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90. Clean checkout and hosted checks 
   cleanup. Test real synthetic streams and preserve the provider-to-browser P1 regression.
 - [x] C: pure generation/fence/deadline publication and follower semantics; one provider
   attempt associated with many work keys, one charge/settlement and per-work publication.
-- [ ] D: retain acceptance dimensions with derived summary; pure scoped breaker transitions.
+- [x] D: retain acceptance dimensions with derived summary; pure scoped breaker transitions.
 - [ ] E: account facts, semantic contracts, limitations, focused and complete verification.
 
 Each checkpoint runs focused tests, commits and pushes the existing draft branch, then
@@ -42,3 +42,12 @@ One provider attempt contains multiple public work associations and one cost res
 settlement occurs once independently of per-work canonical validation and fenced publication.
 No durable backend exists. The existing process-local caches now report late completion
 as degradation instead of silently returning apparent success; successor state is untouched.
+
+Checkpoint D: acceptance reports retain reachability, security, identity and all four probe
+values alongside a deterministic summary. Security/identity failure takes precedence once
+the application is reached; BLOCKED retains untested dimensions. Mixed failures remain visible.
+Breaker state is scoped to account authentication, proven account throttle, endpoint availability,
+endpoint integrity or a public pair. Local budget/queue, blocked and unknown outcomes do not
+increment provider failure counters, including half-open probes. Windows, thresholds, cooldown,
+maximum cooldown and probe counts are injected. Issued permits fence late/duplicate settlement.
+No breaker activation or deployment-gate integration. Focused tests and typecheck passed.
