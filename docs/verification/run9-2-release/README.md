@@ -6,7 +6,7 @@
 - Runtime-secret/deployment hardening: [PR #18](https://github.com/reyals1111-ux/ZIGoals/pull/18).
 - Published source before this closure: `702762d079be1f74536219c027c4d267bfd33fc0`.
 - Live Worker before this closure: `cca2b972-3b40-47a6-affe-1249fe260465`.
-- Preserved rollback: `30468b51-fb8d-4f9e-bd6c-b36d4a9f89e5`.
+- Historical pre-closure rollback: `30468b51-fb8d-4f9e-bd6c-b36d4a9f89e5`.
 - [Manual deployment run 35655131172](https://github.com/reyals1111-ux/ZIGoals/actions/runs/35655131172).
 
 The owner-provided handover records successful exact-source build, rollback capture before upload, asset and Worker upload, hidden CoinGecko runtime binding, and the new version becoming live. The workflow ended `NEEDS_OWNER_REVIEW` solely because post-deploy smoke still expected the V2.1 hero “Turn today”. Public Alpha served “YOUR FINANCIAL ORBIT”, “Today's Goals, Habits & Health = Tomorrow's Wealth”, and Settings exposed the exact source SHA above. Preserve the historical failed run; do not infer upload failure or roll back from that obsolete assertion.
@@ -25,7 +25,16 @@ Regression coverage includes failed ID-based native ZIG → token-address quote 
 
 The unchanged six-file patch arrived with owner-preserved passing evidence under Node `24.19.0` / pnpm `11.19.0`: targeted 111/111, full unit 76/76 files and 1009/1009 tests, lint, typecheck, OpenNext Alpha build, Wrangler Alpha dry-run, and direct native-ZIG token-address verification. Documentation-only closure work does not invalidate that matrix. Fresh closure verification passed 129/129 tests across `market-multi.test.ts`, `alpha-deployment.test.mjs` and `check-deployment-configs.test.ts` with the pinned toolchain; `git diff --check` passed. The tracked-file credential scan is required before commit; CI independently gates the reviewed PR and exact merged main.
 
-At this document's preparation, the closure PR, merge SHA, final deployment run and final Worker do not yet exist. The final owner report must record those exact values, the newly captured rollback, hosted SHA, native ZIG/BTC/catalog/history HTTP outcomes and smoke/security result after protected approval. Do not substitute the baseline values above or claim final rollout success early. Preserve final Actions artifacts and the NovaVault project checkpoint; a documentation-only change need not trigger another Alpha deployment.
+Final owner-provided release evidence supersedes the earlier pending-rollout state:
+
+- Closure [PR #19](https://github.com/reyals1111-ux/ZIGoals/pull/19); reviewed head `2a9deead68ddd187b13f0505319cf0962f97adff`.
+- Final deployed Run #9.2 main: `95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90`.
+- [Deployment 35702856008](https://github.com/reyals1111-ux/ZIGoals/actions/runs/35702856008): **SUCCESS / VERIFIED**.
+- Live Worker: `768673e8-9d39-4022-b1c0-fdd805fa2318`.
+- Preserved rollback: `cca2b972-3b40-47a6-affe-1249fe260465`.
+- Deployment/security/source smoke: **11 / 11 PASS**.
+
+Separate immediate market acceptance: native ZIG quote HTTP 503; Bitcoin quote HTTP 200 / VERIFIED; market catalog HTTP 503; Bitcoin history HTTP 503. Run #10.0's subsequent cloud-client investigation reached HTTP 403 / Cloudflare Error 1010 / access_denied before usable application market evidence. That runner was **BLOCKED**, not proof of CoinGecko failure. The original live 503 incident remains **UNCONFIRMED**. Successful deployment/security verification is distinct from market acceptance; neither this correction nor the Run #10.1 source fix claims a live market resolution or authorizes another deployment. Preserve the historical evidence above and final Actions artifacts.
 
 ## Product and chain boundary
 
