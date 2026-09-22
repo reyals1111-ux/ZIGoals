@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {marketAssetRefSchema,nativeZigMarketRef,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
+import {marketAssetRefSchema,marketRequestSchema,nativeZigMarketRef,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 import {exactMarketJson,decimalLexeme,JsonNumber} from './exact-market-json';
 /** Identity is chain/denom/precision, never a display ticker. Future providers add mappings here. */
 export const assetIdentitySchema=z.object({network:z.string().min(1).max(100),denom:z.string().min(1).max(250),decimals:z.number().int().min(0).max(18)}).strict();
@@ -62,6 +62,19 @@ export function verifiedMarketQuote(raw:unknown,now=Date.now()):MarketQuote{
 const object=(raw:unknown)=>{if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw instanceof JsonNumber)throw Error('Invalid quote object.');return raw as Record<string,unknown>;};
 function marketQuote(request:MarketQuoteRequest,rawPrice:unknown,now:number,observedAt?:string):MarketQuote{
  const ref=request.marketRef;return verifiedMarketQuote({base:ref.kind==='coin'&&ref.id===nativeZigMarketRef.id?nativeZigIdentity:{network:`coingecko-${ref.kind}`,denom:ref.id,decimals:0},marketRef:ref,currency:request.currency,...decimalLexeme(rawPrice),source:ref.kind==='coin'?'CoinGecko':'CoinGecko tokenized RWA reference',providerAssetId:ref.id,verification:'VERIFIED',fetchedAt:new Date(now).toISOString(),...(observedAt?{observedAt}:{})},now);
+}
+export function parseCoinTokenQuote(text:string,request:MarketQuoteRequest,contractAddress:string,now=Date.now()):MarketQuote{
+ const ref=marketRequestSchema.parse(request);
+ if(ref.marketRef.kind!=='coin')throw Error('Token-address fallback supports coins only.');
+ const data=object(exactMarketJson(text));
+ const matches=Object.entries(data).filter(([key])=>key.toLowerCase()===contractAddress.toLowerCase());
+ if(matches.length!==1||Object.keys(data).length!==1)throw Error('Unexpected token-price identity.');
+ const row=object(matches[0]![1]);
+ const stamp=row.last_updated_at;
+ if(!(stamp instanceof JsonNumber)||!/^[0-9]+$/.test(stamp.lexeme))throw Error('Missing provider observation time.');
+ const timestamp=Number(stamp.lexeme)*1000;
+ if(!Number.isSafeInteger(timestamp)||timestamp<=0||timestamp>now+60000)throw Error('Invalid quote timestamp.');
+ return marketQuote(ref,row[ref.currency.toLowerCase()],now,new Date(timestamp).toISOString());
 }
 export function parseCoinQuotes(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()):MarketQuote[]{
  const selected=uniqueMarketRequests(requests);if(selected.some(r=>r.marketRef.kind!=='coin'))throw Error('Wrong market kind.');const data=object(exactMarketJson(text));const ids=new Set(selected.map(r=>r.marketRef.id));if(Object.keys(data).some(id=>!ids.has(id)))throw Error('Unexpected market identity.');

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";
-export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/activity", "/app/ecosystem", "/app/settings"];
+export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings"];
 
 export function assertHtml(response, html) {
   assert.equal(response.status, 200, "Alpha route must return HTTP 200 without redirect");
@@ -64,7 +64,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch } = {}) {
     const nonce = assertHtml(response, html);
     if (checks.length === 0) {
       firstNonce = nonce;
-      assert.match(html, /Turn today/, "V2.1 Today content missing");
+      assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");
       assert.match(html, /Local [Dd]emo/, "Local Demo default missing");
     }
     if (route === "/app/settings") {

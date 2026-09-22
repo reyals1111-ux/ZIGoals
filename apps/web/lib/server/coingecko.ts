@@ -3,9 +3,10 @@ import {beginPendingWork,ownPendingWork,waitForPendingWork,workIsPending,createR
 import {CATALOG_FRESH_MS,MARKET_RETRY_MS,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
 import {HISTORY_DAYS,historyRequestSchema,parseCoinHistory,RWA_HISTORY_UNAVAILABLE,type MarketHistoryRequest} from '../market-history';
 import {parseMarketInsights,INSIGHTS_UNAVAILABLE,type MarketInsightsLoadResult} from '../market-insights';
-import {boundedQuoteText,parseCoinQuotes,parseRwaQuotes,type MarketQuote} from '../market-quotes';
+import {boundedQuoteText,parseCoinQuotes,parseCoinTokenQuote,parseRwaQuotes,type MarketQuote} from '../market-quotes';
 export const PROVIDER_REQUESTS_PER_MINUTE=12;
 export const PROVIDER_MAX_IN_FLIGHT=2;
+export const NATIVE_ZIG_ETHEREUM_CONTRACT='0xb2617246d0c6c0087f18703d576831899ca94f01';
 export type ProviderBatch={url:string;requests:MarketQuoteRequest[];kind:'coin'|'rwa'};
 export function buildCoinGeckoRequests(raw:readonly MarketQuoteRequest[]):ProviderBatch[]{
  const requests=uniqueMarketRequests(raw);if(requests.some(r=>r.marketRef.kind==='rwa'&&r.currency!=='USD'))throw Error('CoinGecko RWA references support USD only.');const batches:ProviderBatch[]=[];
@@ -22,7 +23,36 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  // Workers supports manual redirects; every redirect is rejected before reading its body.
  try{const response=await fetcher(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json','x-cg-demo-api-key':token},redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(10000)});if(!response.ok||response.redirected)throw Error('Unavailable');return await boundedQuoteText(response,limit);}catch{throw Error('CoinGecko market data unavailable.');}finally{admission.release(permit);}
  }
- async function quotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{const result:MarketQuote[]=[];for(const batch of buildCoinGeckoRequests(requests)){const text=await read(batch.url,1024*1024);result.push(...(batch.kind==='coin'?parseCoinQuotes(text,batch.requests,clock()):parseRwaQuotes(text,batch.requests,clock())));}return result;}
+ async function nativeZigTokenQuotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{
+ const selected=uniqueMarketRequests(requests).filter(request=>request.marketRef.kind==='coin'&&request.marketRef.id==='zignaly');
+ if(!selected.length)return [];
+ const url=new URL('https://api.coingecko.com/api/v3/simple/token_price/ethereum');
+ url.searchParams.set('contract_addresses',NATIVE_ZIG_ETHEREUM_CONTRACT);
+ url.searchParams.set('vs_currencies',[...new Set(selected.map(request=>request.currency.toLowerCase()))].join(','));
+ url.searchParams.set('include_last_updated_at','true');
+ url.searchParams.set('precision','full');
+ const text=await read(url.toString(),64*1024);
+ return selected.map(request=>parseCoinTokenQuote(text,request,NATIVE_ZIG_ETHEREUM_CONTRACT,clock()));
+ }
+ async function quotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{
+ const result:MarketQuote[]=[];
+ for(const batch of buildCoinGeckoRequests(requests)){
+  try{
+   const text=await read(batch.url,1024*1024);
+   result.push(...(batch.kind==='coin'?parseCoinQuotes(text,batch.requests,clock()):parseRwaQuotes(text,batch.requests,clock())));
+  }catch(error){
+   const zig=batch.kind==='coin'?batch.requests.filter(request=>request.marketRef.id==='zignaly'):[];
+   if(!zig.length)throw error;
+   const other=batch.requests.filter(request=>request.marketRef.id!=='zignaly');
+   for(const retry of buildCoinGeckoRequests(other)){
+    const text=await read(retry.url,1024*1024);
+    result.push(...parseCoinQuotes(text,retry.requests,clock()));
+   }
+   result.push(...await nativeZigTokenQuotes(zig));
+  }
+ }
+ return result;
+ }
  let assets:MarketCatalogAsset[]=[],fetchedAt=0,nextAttempt=0,error:string|null=null,pending:PendingWork|null=null;
  async function catalog(){
  if(pending){const waiting=pending;if(!await waitForPendingWork(waiting))return {assets,error:'Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.',fetchedAt:fetchedAt?new Date(fetchedAt).toISOString():null,stale:!fetchedAt||clock()-fetchedAt>=CATALOG_FRESH_MS};if(pending===waiting)pending=null;}

@@ -1,10 +1,20 @@
-# Run #9.2 — local Showcase and productization
+# Run #9.2 — MERGED + PUBLIC ALPHA LIVE
+
+Run #9.2 is merged and publicly hosted on the owner-controlled Alpha. PR #17 delivered Goal Intelligence, Live Wealth, Markets, Showcase, Funding Wealth, Today, Activity, Habits/Health productization and the final consumer visual system. PR #18 added the protected CoinGecko runtime-secret publication boundary. The release-closure source adds a native-ZIG CoinGecko token-address fallback and updates the deployment smoke from the obsolete V2.1 hero to the Run #9.2 surface.
+
+The Alpha remains `PUBLIC_ALPHA_UNDEPLOYED` with respect to Goal Manager: no Goal Manager/code ID is deployed and no financial signing/broadcast is enabled. Product UI deployment and contract deployment are separate states.
 
 An isolated Showcase now fills Goals, Wealth, Markets, Habits, Health and Activity with clearly fictional examples. Today connects funding pace, upcoming contributions, attention items and Life + Wealth. Markets adds canonical logos, actual public movement and seven-day sequences; portfolio composition and the Life dashboards add usable depth. The hero uses the owner’s exact capitalized two-line slogan.
 
-See [Run #9.2 report](RUN_9_2_REPORT.md), [complete deliverables](RUN_9_2_DELIVERABLES.md), [verification](verification/run9-2/README.md) and [remaining Beta backlog](RUN_9_1_BETA_BACKLOG.md). The implementation remains local on the required Run #9 branch. Public Alpha is unchanged; nothing is deployed, merged, pushed or submitted as a PR.
+See [Run #9.2 report](RUN_9_2_REPORT.md), [complete deliverables](RUN_9_2_DELIVERABLES.md), [verification](verification/run9-2/README.md) and [remaining Beta backlog](RUN_9_1_BETA_BACKLOG.md). The Run #9/#9.1/#9.2 product line is now merged into `main` and hosted on Public Alpha. Exact deployment source/version and rollback evidence are retained by the owner-approved Manual Alpha workflow.
+
+Current published source is `702762d079be1f74536219c027c4d267bfd33fc0`, Worker `cca2b972-3b40-47a6-affe-1249fe260465`; the narrow release-closure patch still awaits its own merge and owner-approved deployment. See [exact release evidence](verification/run9-2-release/README.md).
 
 ---
+
+## Historical snapshots — superseded by the Run #9.2 state above
+
+All sections below describe their original observation window. References to local-only work, current Alpha versions or pending funding are historical, not the current release state.
 
 # Run #9.1 — local Beta productization
 
@@ -24,7 +34,7 @@ The local upgrade adds server-only CoinGecko discovery/valuation, schema v2 migr
 
 # Run #8 / #8.1 release closure — 2026-09-19
 
-**CURRENT PUBLIC ALPHA — RUN #8/#8.1 MERGED + DEPLOYED + OWNER-VERIFIED LIVE.**
+**HISTORICAL PUBLIC ALPHA — RUN #8/#8.1 MERGED + DEPLOYED + OWNER-VERIFIED LIVE.**
 PR #15 merged to exact `main` source `c3997841c7b07b6adcc430616c86e4e4728d3222`. Post-merge Milestone quality passed. The owner-approved Alpha rollout published Worker version `30468b51-fb8d-4f9e-bd6c-b36d4a9f89e5` with rollback `836e3ad7-af0a-46cd-8e32-e050d747e6f2` preserved before upload.
 
 Both official Alpha origins subsequently served the exact merged SHA and `PUBLIC_ALPHA_UNDEPLOYED`; the repository's complete nine-request production smoke passed, followed by owner browser acceptance of Wealth, Value Goal multi-asset progress, Today, Goals, Habits, Health, reload/reconnect and mobile behavior.
@@ -45,9 +55,9 @@ Owner-supplied new evidence: funding SOLVED (5,000 test ZIG); self-transfer 0.01
 
 ---
 
-# Current project status
+# Historical project status — 2026-09-17
 
-**CURRENT PUBLIC ALPHA — OWNER-VERIFIED LIVE (2026-09-17).** Manual Alpha run `35153444566` deployed exact source `69aa0260eaa6bde3294ba7a778086839246c030a` to `zigoals-alpha` as Cloudflare version `836e3ad7-af0a-46cd-8e32-e050d747e6f2`. Rollback version `dd86bc45-0fcd-45e2-b8c4-5ec278d1cb80` was captured before upload. Automated deployment/security verification passed, followed by owner verification of build identity, real Keplr connect, reload to Local Demo, explicit reconnect, Habits persistence, Health persistence and mobile. Goal Manager and Code ID remain **NOT DEPLOYED**; no financial signing/broadcast is enabled.
+**HISTORICAL PUBLIC ALPHA — OWNER-VERIFIED LIVE (2026-09-17).** Manual Alpha run `35153444566` deployed exact source `69aa0260eaa6bde3294ba7a778086839246c030a` to `zigoals-alpha` as Cloudflare version `836e3ad7-af0a-46cd-8e32-e050d747e6f2`. Rollback version `dd86bc45-0fcd-45e2-b8c4-5ec278d1cb80` was captured before upload. Automated deployment/security verification passed, followed by owner verification of build identity, real Keplr connect, reload to Local Demo, explicit reconnect, Habits persistence, Health persistence and mobile. Goal Manager and Code ID remain **NOT DEPLOYED**; no financial signing/broadcast is enabled.
 
 **Run #7 / V2.1: MERGED + DEPLOYED + OWNER-VERIFIED LIVE.** Owner confirmation is recorded in the [manual Alpha runbook](deployment/MANUAL_ALPHA_WORKFLOW.md). Visual Refresh v1 remains historical: [PR #8](https://github.com/reyals1111-ux/ZIGoals/pull/8) merged at `b81262f1b9ae7e4a07efb9a6415e64d90fe120f9`. M6 and PR #7 housekeeping remain completed historical infrastructure work. [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6) merged at `0c953a00d9f3e615289ae286549c74298b95dbdc`. **PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE:** [official Alpha](https://alpha.zigoals.app/app), [fallback](https://zigoals-alpha.reyals1111.workers.dev/app), and [apex landing](https://zigoals.app) are live.
 
