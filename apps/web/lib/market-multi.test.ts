@@ -39,9 +39,9 @@ it('falls back to CoinGecko token-address pricing when native ZIG id pricing is 
  const calls:string[]=[];
  const fetcher:typeof fetch=async input=>{
   const url=String(input);calls.push(url);
-  if(url.includes('/simple/price'))return new Response('provider edge failure',{status:503});
-  if(url.includes('/simple/token_price/ethereum'))return new Response(`{"${NATIVE_ZIG_ETHEREUM_CONTRACT}":{"usd":0.05060601660182105,"last_updated_at":${now/1000}}}`);
-  return new Response('unexpected',{status:500});
+  if(url.includes('/simple/price'))return new Response('provider edge failure',{headers:{"Content-Type":"application/json"},status:503});
+  if(url.includes('/simple/token_price/ethereum'))return new Response(`{"${NATIVE_ZIG_ETHEREUM_CONTRACT}":{"usd":0.05060601660182105,"last_updated_at":${now/1000}}}`, {headers:{"Content-Type":"application/json"}});
+  return new Response('unexpected',{headers:{"Content-Type":"application/json"},status:500});
  };
  const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});
  const quote=(await provider.quotes([coin('zignaly')]))[0]!;
@@ -51,7 +51,7 @@ it('falls back to CoinGecko token-address pricing when native ZIG id pricing is 
 });
 
 it('requires a server key and never leaks it in query/body or provider errors',async()=>{
- const fetcher=vi.fn(async()=>new Response('quota private provider detail',{status:429}));
+ const fetcher=vi.fn(async()=>new Response('quota private provider detail',{headers:{"Content-Type":"application/json"},status:429}));
  await expect(createCoinGeckoProvider({key:()=>undefined,fetcher,clock:()=>now}).quotes([coin('bitcoin')])).rejects.toThrow(/unavailable/);expect(fetcher).not.toHaveBeenCalled();
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).quotes([coin('bitcoin')])).rejects.toThrow('CoinGecko market data unavailable.');
  const [url,init]=fetcher.mock.calls[0]! as unknown as [string,RequestInit];expect(url).not.toContain('fixture-key');expect(init.headers).toEqual({Accept:'application/json','x-cg-demo-api-key':'fixture-key'});expect(init.body).toBeUndefined();
@@ -61,7 +61,7 @@ it('chunks public IDs at provider limits rather than one request per position',(
 });
 it('caches catalogs for 24 hours, gates failed retries and retains the last good catalog',async()=>{
  let time=now,fail=false,calls=0;
- const fetcher:typeof fetch=async input=>{calls++;if(fail)throw Error('offline');return new Response(String(input).includes('/coins/list')?'[{"id":"bitcoin","name":"Bitcoin","symbol":"btc","platforms":{}}]':'[{"id":"gold","name":"Gold","symbol":"xau","asset_type":"commodity"}]');};
+ const fetcher:typeof fetch=async input=>{calls++;if(fail)throw Error('offline');return new Response(String(input).includes('/coins/list')?'[{"id":"bitcoin","name":"Bitcoin","symbol":"btc","platforms":{}}]':'[{"id":"gold","name":"Gold","symbol":"xau","asset_type":"commodity"}]', {headers:{"Content-Type":"application/json"}});};
  const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>time});const [a,b]=await Promise.all([provider.catalog(),provider.catalog()]);expect(a.assets).toHaveLength(2);expect(b.assets).toEqual(a.assets);expect(calls).toBe(2);time+=23*3600000;await provider.catalog();expect(calls).toBe(2);time+=3600001;fail=true;const stale=await provider.catalog();expect(stale.assets).toEqual(a.assets);expect(stale.stale).toBe(true);expect(stale.error).toContain('retained');await provider.catalog();expect(calls).toBe(4);time+=60001;await provider.catalog();expect(calls).toBe(6);
 });
 it('preserves valid public cache across malformed refreshes and refuses private cache fields',async()=>{
@@ -85,7 +85,7 @@ it('does not count inconsistent quote provenance even if an explicit provider re
  expect(quoteMatchesPosition(p,{...q,providerAssetId:'ethereum'})).toBe(false);expect(quoteMatchesPosition(p,{...q,source:'Untrusted'})).toBe(false);
 });
 it('globally bounds new-ID provider attempts during a minute without losing last-good cache data',async()=>{
- let calls=0,time=now;const fetcher:typeof fetch=async()=>{calls++;return new Response('{}');};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>time});
+ let calls=0,time=now;const fetcher:typeof fetch=async()=>{calls++;return new Response('{}', {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>time});
  for(let i=0;i<20;i++)await provider.quotes([coin(`absent-${i}`)]).catch(()=>undefined);expect(calls).toBe(12);time+=60001;await provider.quotes([coin('fresh-minute')]).catch(()=>undefined);expect(calls).toBe(13);
 });
 it('transports 1000 public assets as two bounded app requests and retains all verified quotes',async()=>{
@@ -94,5 +94,5 @@ it('transports 1000 public assets as two bounded app requests and retains all ve
  const cache=createMarketQuoteCache((r,force)=>fetchPublicMarketQuotes(r,force,fetcher));await cache.refresh(requests);expect(sizes).toEqual([500,500]);expect(cache.getSnapshot().quotes).toHaveLength(1000);await cache.refresh(requests);expect(sizes).toEqual([500,500]);
 });
 it('limits concurrent provider requests while allowing queued public identities',async()=>{
- let active=0,peak=0;const fetcher:typeof fetch=async()=>{active++;peak=Math.max(peak,active);await Promise.resolve();active--;return new Response('{}');};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});await Promise.all(Array.from({length:8},(_,i)=>provider.quotes([coin(`asset-${i}`)]).catch(()=>undefined)));expect(peak).toBe(2);
+ let active=0,peak=0;const fetcher:typeof fetch=async()=>{active++;peak=Math.max(peak,active);await Promise.resolve();active--;return new Response('{}', {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});await Promise.all(Array.from({length:8},(_,i)=>provider.quotes([coin(`asset-${i}`)]).catch(()=>undefined)));expect(peak).toBe(2);
 });

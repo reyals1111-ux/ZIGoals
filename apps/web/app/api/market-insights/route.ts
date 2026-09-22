@@ -1,3 +1,4 @@
+import {isJsonMediaType} from '../../../lib/json-media-type';
 import {z} from 'zod';
 import {marketRequestsSchema,marketRequestKey,uniqueMarketRequests} from '../../../lib/market-assets';
 import {verifiedMarketInsight,INSIGHTS_UNAVAILABLE} from '../../../lib/market-insights';
@@ -7,6 +8,7 @@ export const dynamic='force-dynamic';
 const headers={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff'};
 const bodySchema=z.object({requests:marketRequestsSchema,refresh:z.boolean().optional()}).strict();
 export async function POST(request:Request):Promise<Response>{
+ if(!isJsonMediaType(request.headers.get('content-type')))return Response.json({error:'Unsupported public market request media type.'},{status:415,headers});
  let body:z.infer<typeof bodySchema>;
  try{if(new URL(request.url).search)throw Error('Unsupported query');body=bodySchema.parse(JSON.parse(await boundedQuoteText(new Response(request.body),256*1024)));}catch{return Response.json({error:'Invalid public market insights request.'},{status:400,headers});}
  const requests=uniqueMarketRequests(body.requests);await serverMarketInsightsCache.refresh(requests,body.refresh);serverMarketInsightsCache.tick();const snapshot=serverMarketInsightsCache.getSnapshot();

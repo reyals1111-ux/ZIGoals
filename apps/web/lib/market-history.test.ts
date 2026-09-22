@@ -23,7 +23,7 @@ it('offers only ranges with two or more observed points and actual coverage',()=
  expect(()=>formatHistoryValue({at:points[0]!.at,value:'Infinity',decimals:0})).toThrow();
 });
 it('requires a server key, suppresses provider details and never requests RWA history',async()=>{
- const fetcher=vi.fn(async()=>new Response('SECRET_PROVIDER_DETAIL',{status:429}));
+ const fetcher=vi.fn(async()=>new Response('SECRET_PROVIDER_DETAIL',{headers:{"Content-Type":"application/json"},status:429}));
  await expect(createCoinGeckoProvider({key:()=>undefined,fetcher,clock:()=>now}).history(request)).rejects.toThrow(/unavailable/);expect(fetcher).not.toHaveBeenCalled();
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).history({...request,marketRef:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'}})).rejects.toThrow(/local/i);expect(fetcher).not.toHaveBeenCalled();
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).history(request)).rejects.toThrow('CoinGecko market data unavailable.');
@@ -31,7 +31,7 @@ it('requires a server key, suppresses provider details and never requests RWA hi
  expect(init).toMatchObject({credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',headers:{Accept:'application/json','x-cg-demo-api-key':'fixture-key'}});expect(init.body).toBeUndefined();
 });
 it('shares quote and history admission instead of multiplying the provider quota',async()=>{
- let calls=0;const fetcher:typeof fetch=async()=>{calls++;return new Response(sample);};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});
+ let calls=0;const fetcher:typeof fetch=async()=>{calls++;return new Response(sample, {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});
  for(let i=0;i<11;i++)await provider.quotes([{marketRef:{...request.marketRef,id:`asset-${i}`},currency:'USD'}]).catch(()=>undefined);
  await provider.history(request);await expect(provider.history({...request,currency:'EUR'})).rejects.toThrow(/unavailable/);expect(calls).toBe(12);
 });
@@ -56,7 +56,7 @@ it('sends only public identity, currency and range; never local evidence to app 
 it('uses Workers-compatible manual redirects and never follows a provider redirect with its key',async()=>{
  const calls:string[]=[];const edgeFetch:typeof fetch=async(url,init)=>{
   if(init?.redirect==='error')throw new TypeError('Workers does not implement redirect:error');
-  expect(init?.redirect).toBe('manual');calls.push(String(url));return new Response(sample);
+  expect(init?.redirect).toBe('manual');calls.push(String(url));return new Response(sample, {headers:{"Content-Type":"application/json"}});
  };
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher:edgeFetch,clock:()=>now}).history(request)).resolves.toMatchObject({source:'CoinGecko'});
  expect(calls).toHaveLength(1);

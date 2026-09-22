@@ -1,3 +1,7 @@
+import 'server-only';
+import {isJsonMediaType} from '../json-media-type';
+import {ProviderFailure,providerHttpFailure,sanitizeProviderFailure,parseProviderEvidence} from './provider-failure';
+import {marketPairEnvelope,type PairFailure} from './market-pair-result';
 import {beginPendingWork,ownPendingWork,waitForPendingWork,workIsPending,createRequestAdmission,type PendingWork} from '../pending-work';
 /** Server adapter. Only API route modules import this module; never import it from a client component. */
 import {CATALOG_FRESH_MS,MARKET_RETRY_MS,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
@@ -18,10 +22,10 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  // Admission is shared by catalogs, quotes, history and insights within this server process.
  const attempts:number[]=[];const admission=createRequestAdmission(PROVIDER_MAX_IN_FLIGHT,11000);
  async function read(url:string,limit:number):Promise<string>{
- if(typeof window!=='undefined')throw Error('CoinGecko is server-only.');const token=key();if(!token)throw Error('CoinGecko market data unavailable.');
- const now=clock();while(attempts.length&&attempts[0]!<=now-MARKET_RETRY_MS)attempts.shift();if(attempts.length>=PROVIDER_REQUESTS_PER_MINUTE)throw Error('CoinGecko market data unavailable.');attempts.push(now);const permit=await admission.acquire();
+ if(typeof window!=='undefined')throw Error('CoinGecko is server-only.');const token=key();if(!token)throw new ProviderFailure('AUTHENTICATION');
+ const now=clock();while(attempts.length&&attempts[0]!<=now-MARKET_RETRY_MS)attempts.shift();if(attempts.length>=PROVIDER_REQUESTS_PER_MINUTE)throw new ProviderFailure('LOCAL_BUDGET');attempts.push(now);let permit:symbol;try{permit=await admission.acquire();}catch{throw new ProviderFailure('LOCAL_QUEUE');}
  // Workers supports manual redirects; every redirect is rejected before reading its body.
- try{const response=await fetcher(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json','x-cg-demo-api-key':token},redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(10000)});if(!response.ok||response.redirected)throw Error('Unavailable');return await boundedQuoteText(response,limit);}catch{throw Error('CoinGecko market data unavailable.');}finally{admission.release(permit);}
+ try{const response=await fetcher(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json','x-cg-demo-api-key':token},redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(10000)});if(!response.ok||response.redirected)throw providerHttpFailure(response.status);if(!isJsonMediaType(response.headers.get('content-type')))throw new ProviderFailure('MALFORMED');try{return await boundedQuoteText(response,limit);}catch(error){if(error instanceof Error&&(error.name==='AbortError'||error.name==='TimeoutError'))throw error;throw new ProviderFailure('MALFORMED');}}catch(error){if(error instanceof ProviderFailure)throw error;throw new ProviderFailure(error instanceof Error&&(error.name==='TimeoutError'||error.name==='AbortError')?'TIMEOUT':'NETWORK');}finally{admission.release(permit);}
  }
  async function nativeZigTokenQuotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{
  const selected=uniqueMarketRequests(requests).filter(request=>request.marketRef.kind==='coin'&&request.marketRef.id==='zignaly');
@@ -32,26 +36,35 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  url.searchParams.set('include_last_updated_at','true');
  url.searchParams.set('precision','full');
  const text=await read(url.toString(),64*1024);
- return selected.map(request=>parseCoinTokenQuote(text,request,NATIVE_ZIG_ETHEREUM_CONTRACT,clock()));
+ return parseProviderEvidence(()=>selected.map(request=>parseCoinTokenQuote(text,request,NATIVE_ZIG_ETHEREUM_CONTRACT,clock())));
  }
- async function quotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{
- const result:MarketQuote[]=[];
- for(const batch of buildCoinGeckoRequests(requests)){
-  try{
-   const text=await read(batch.url,1024*1024);
-   result.push(...(batch.kind==='coin'?parseCoinQuotes(text,batch.requests,clock()):parseRwaQuotes(text,batch.requests,clock())));
-  }catch(error){
+ async function quoteResults(raw:readonly MarketQuoteRequest[]){
+ const requests=uniqueMarketRequests(raw),result:MarketQuote[]=[],failures:PairFailure[]=[];
+ const failed=(members:readonly MarketQuoteRequest[],error:unknown)=>{const {category}=sanitizeProviderFailure(error);failures.push(...members.map(request=>({request,category})));};
+ async function batchQuotes(batch:ProviderBatch){const text=await read(batch.url,1024*1024);return parseProviderEvidence(()=>batch.kind==='coin'?parseCoinQuotes(text,batch.requests,clock()):parseRwaQuotes(text,batch.requests,clock()));}
+ const supported=requests.filter(request=>{if(request.marketRef.kind==='rwa'&&request.currency!=='USD'){failed([request],new ProviderFailure('UNSUPPORTED'));return false;}return true;});
+ for(const batch of buildCoinGeckoRequests(supported)){
+  try{result.push(...await batchQuotes(batch));}
+  catch(error){
    const zig=batch.kind==='coin'?batch.requests.filter(request=>request.marketRef.id==='zignaly'):[];
-   if(!zig.length)throw error;
+   if(!zig.length){failed(batch.requests,error);continue;}
+   // Each independently validated response is an atomic boundary. Recovery never erases
+   // evidence from another boundary, and a failed boundary contributes no quotes.
    const other=batch.requests.filter(request=>request.marketRef.id!=='zignaly');
+   let recoveryFailed=false;
    for(const retry of buildCoinGeckoRequests(other)){
-    const text=await read(retry.url,1024*1024);
-    result.push(...parseCoinQuotes(text,retry.requests,clock()));
+    try{result.push(...await batchQuotes(retry));}catch(recoveryError){failed(retry.requests,recoveryError);failed(zig,error);recoveryFailed=true;}
    }
-   result.push(...await nativeZigTokenQuotes(zig));
+   // Preserve the existing short-circuit: failed recovery never adds a token attempt.
+   if(recoveryFailed)continue;
+   try{result.push(...await nativeZigTokenQuotes(zig));}catch(fallbackError){failed(zig,fallbackError);}
   }
  }
- return result;
+ return marketPairEnvelope(requests,result,failures,clock());
+ }
+ // Legacy all-or-nothing adapter retained for existing callers; cache uses quoteResults.
+ async function quotes(requests:readonly MarketQuoteRequest[]):Promise<MarketQuote[]>{
+ const result=await quoteResults(requests);if(!result.complete)throw new ProviderFailure(result.results.find(r=>!r.quote)?.failure??'UNKNOWN');return result.quotes;
  }
  let assets:MarketCatalogAsset[]=[],fetchedAt=0,nextAttempt=0,error:string|null=null,pending:PendingWork|null=null;
  async function catalog(){
@@ -78,5 +91,5 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  try{const entries=parseMarketInsights(await read(url.toString(),4*1024*1024),members,clock());result.entries.push(...entries);if(entries.length!==members.length)result.error=INSIGHTS_UNAVAILABLE;}catch{result.error=INSIGHTS_UNAVAILABLE;}
  }}return result;
  }
- return {quotes,catalog,history,insights};
+ return {quotes,quoteResults,catalog,history,insights};
 }
