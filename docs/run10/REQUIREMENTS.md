@@ -80,7 +80,7 @@ Status counts computed from JSON: BLOCKED_EXTERNAL=1, DEFERRED_BOUNDED=3, IMPLEM
 | AUTH-08 | Wallet connection is not proof of account ownership | IN_PROGRESS | Assess official compatible ADR-36 verification; retain email path and closed signing gates. |
 | AUTH-09 | Isolate authentication signatures from financial execution | IN_PROGRESS | Only after verified auth challenge adapter, add explicit no-transaction user action and fixtures. |
 | AUTH-10 | Handle account linking deliberately | IN_PROGRESS | Implement only explicit proof-of-control linking after supported wallet auth. |
-| AUTH-11 | Test new and existing local users separately | IN_PROGRESS | Add explicit first-attach preview using protected local snapshot and conflict checks. |
+| AUTH-11 | Test new and existing local users separately | IN_PROGRESS | Exercise remaining selected-domain and interruption combinations using existing copy flow. |
 | AUTH-12 | Keep actual verification levels explicit | IN_PROGRESS | Complete remaining local cases then actual inbox/phone acceptance with owner. |
 | ENC-01 | Write the threat model before cryptographic code | IN_PROGRESS | Audit every privacy/recovery claim against implemented behavior. |
 | ENC-02 | Use random keys and authenticated encryption | IN_PROGRESS | Implement epoch/rotation policy and adversarial key lifecycle cases. |
@@ -94,10 +94,10 @@ Status counts computed from JSON: BLOCKED_EXTERNAL=1, DEFERRED_BOUNDED=3, IMPLEM
 | ENC-10 | Verify plaintext does not escape | IN_PROGRESS | Finish final security evidence; no independent cryptographic audit claim. |
 | SYN-01 | Synchronize the useful private application, not just preferences | IN_PROGRESS | Add cross-domain financial/reference/restore acceptance. |
 | SYN-02 | Use stable IDs and an explicit protocol | IN_PROGRESS | Implement bounded entity/change cursors and versioned tombstone policy. |
-| SYN-03 | Make local persistence and the outbox atomic | IN_PROGRESS | Complete saved/pending/conflicted UX and restart/duplicate cases. |
+| SYN-03 | Make local persistence and the outbox atomic | IN_PROGRESS | Complete cross-stage restart/retry and saved/pending/conflicted UI. |
 | SYN-04 | Choose conflict semantics per data type | IN_PROGRESS | Add bounded two-version resolution and opposite-order multi-domain tests. |
 | SYN-05 | Financial operations require invariant-preserving concurrency | IN_PROGRESS | Exercise financial race and implement explicit conflict review before resubmission. |
-| SYN-06 | Preserve append-only evidence and corrections | IN_PROGRESS | Add repeated reversal race and old pending write compatibility tests. |
+| SYN-06 | Preserve append-only evidence and corrections | IN_PROGRESS | Add repeated financial reversal race and explicit older pending recovery workflow. |
 | SYN-07 | Prevent deletion resurrection | IN_PROGRESS | Implement deletion policy before accepting old-client reconnect after deletion. |
 | SYN-08 | Support offline use without pretending everything is synchronized | IN_PROGRESS | Finish bounded restart/backoff and multi-domain offline acceptance. |
 | SYN-09 | Fence account switching and late results | IN_PROGRESS | Execute combined adversarial identity changes against real backend. |

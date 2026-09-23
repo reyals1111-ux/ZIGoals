@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {decryptBackup} from '../../apps/web/lib/vault/backup.ts';
 import {privateAccountRequest} from '../../apps/web/lib/server/private-account.ts';
 const require=createRequire(new URL('../../apps/web/package.json',import.meta.url));
 const {chromium}=require('@playwright/test');
@@ -25,7 +26,21 @@ test.skipIf(process.env.RUN10_BROWSER!=='1')('two real browser profiles use encr
  async function synced(page){await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.textContent==='Sync now'&&!b.disabled),{},{timeout:10000});const panel=page.getByRole('region',{name:'Encrypted account sync',exact:true});try{await panel.getByText(/Account records synced and acknowledged/).waitFor({timeout:8000});}catch(e){console.log('Sync diagnostic',await panel.getByRole('status').allTextContents(),await panel.getByRole('alert').allTextContents());throw e;}}
  try{
   const a=await context(),b=await context(true),pa=await a.newPage(),pb=await b.newPage();
+  // Existing local records stay separate through sign-in and only copy after explicit protected review.
+  await pa.goto(origin+'/app/habits');await pa.getByRole('button',{name:'+ New habit',exact:true}).click();await pa.getByLabel('Start from template').selectOption('read');await pa.getByLabel('Habit title',{exact:true}).fill('Fictional local before sign-in');await pa.getByRole('button',{name:'Create habit',exact:true}).click();
+  await pa.getByRole('article',{name:'Fictional local before sign-in',exact:true}).waitFor();
   await login(pa);await pa.getByLabel('Sync my Health records with this account.',{exact:false}).check();await pa.getByRole('button',{name:'Create encrypted account vault',exact:true}).click();const recovery=await pa.getByLabel('New vault recovery secret',{exact:true}).inputValue();await pa.getByLabel('I saved this vault recovery secret separately.').check();await pa.getByRole('button',{name:'Confirm and create vault',exact:true}).click();await synced(pa);
+  const attach=pa.getByRole('region',{name:'Copy local records to account',exact:true});
+  await attach.getByRole('checkbox',{name:'Habits',exact:true}).check();await attach.getByRole('button',{name:'Review selected local records',exact:true}).click();await attach.getByText(/habits: 1/).waitFor();
+  expect(await attach.getByRole('button',{name:'Copy selected records and sync'}).isDisabled()).toBe(true);
+  const copySecret=await attach.getByLabel('Local copy backup secret',{exact:true}).inputValue();expect(copySecret.length).toBeGreaterThan(20);
+  await attach.getByLabel('I saved this local-copy backup secret separately.').check();
+  const downloadEvent=pa.waitForEvent('download');await attach.getByRole('button',{name:'Download protected local copy'}).click();const download=await downloadEvent;
+  const reader=await download.createReadStream();let protectedFile='';for await(const chunk of reader)protectedFile+=chunk.toString();expect(protectedFile).not.toContain('Fictional local before sign-in');expect(JSON.parse(protectedFile).format).toBe('zigoals-encrypted-backup');expect((await decryptBackup(protectedFile,copySecret)).habits).toContain('Fictional local before sign-in');
+  await attach.getByLabel('I saved the backup file and want these selected records copied into this account.').check();await attach.getByRole('button',{name:'Copy selected records and sync'}).click();await synced(pa);
+  // Originals remain a separate local source; populated account sections refuse a repeated import.
+  await attach.getByRole('button',{name:'Review selected local records',exact:true}).click();await pa.getByRole('region',{name:'Encrypted account sync',exact:true}).getByRole('alert').filter({hasText:'already contains'}).waitFor();
+  await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa);
   // Client navigation preserves the memory-only unlocked session.
   await pa.getByRole('link',{name:'Habits',exact:true}).first().click();await pa.getByRole('button',{name:'+ New habit',exact:true}).click();await pa.getByLabel('Start from template').selectOption('read');await pa.getByLabel('Habit title',{exact:true}).fill('Fictional synchronized reading');await pa.getByRole('button',{name:'Create habit',exact:true}).click();
   await pa.getByRole('link',{name:'Settings',exact:true}).first().click();await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa);
@@ -39,7 +54,7 @@ test.skipIf(process.env.RUN10_BROWSER!=='1')('two real browser profiles use encr
   await pb.getByRole('link',{name:'Today',exact:true}).first().click();await pb.getByRole('article',{name:'Fictional synced nutrition',exact:true}).waitFor();
   await pb.getByRole('link',{name:'Health',exact:true}).first().click();await pb.getByRole('region',{name:'Breakfast diary'}).getByText('Fictional encrypted oats',{exact:true}).waitFor();
   await pb.getByRole('link',{name:'Goals',exact:true}).first().click();await pb.getByRole('heading',{name:'Fictional encrypted project',exact:true}).waitFor();
-  await pb.getByRole('link',{name:'Habits',exact:true}).first().click();await pb.getByRole('article',{name:'Fictional synchronized reading',exact:true}).waitFor();
+  await pb.getByRole('link',{name:'Habits',exact:true}).first().click();await pb.getByRole('article',{name:'Fictional synchronized reading',exact:true}).waitFor();await pb.getByRole('article',{name:'Fictional local before sign-in',exact:true}).waitFor();
   await pb.getByRole('article',{name:'Fictional synchronized reading',exact:true}).getByRole('button',{name:'Complete Fictional synchronized reading',exact:true}).click();
   await pb.getByRole('link',{name:'Settings',exact:true}).first().click();await pb.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pb);
   await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa);await pa.getByRole('link',{name:'Habits',exact:true}).first().click();await pa.getByRole('article',{name:'Fictional synchronized reading',exact:true}).getByRole('button',{name:'Undo completion for Fictional synchronized reading',exact:true}).waitFor();
@@ -56,6 +71,7 @@ test.skipIf(process.env.RUN10_BROWSER!=='1')('two real browser profiles use encr
   await pa.getByRole('link',{name:'Settings',exact:true}).first().click();await pa.getByRole('button',{name:'Refresh sessions',exact:true}).click();await pa.getByRole('button',{name:'Revoke other sessions',exact:true}).click();await pa.getByRole('button',{name:'Confirm session revocation',exact:true}).click();await pa.getByRole('region',{name:'Account sessions',exact:true}).getByText('1 session(s) revoked.',{exact:false}).waitFor();
   await pb.bringToFront();await pb.evaluate(()=>window.dispatchEvent(new Event('focus')));await pb.getByRole('region',{name:'Encrypted account sync',exact:true}).getByText('Account access changed. Sign in and unlock again.',{exact:true}).waitFor();expect(await pb.getByRole('button',{name:'Sync now',exact:true}).count()).toBe(0);
   await pa.goto(origin+'/app/habits');expect(await pa.getByRole('article',{name:'Fictional synchronized reading',exact:true}).count()).toBe(0);
+  await pa.goto(origin+'/app/settings');await pa.getByRole('button',{name:'Sign out',exact:true}).click();await pa.getByRole('link',{name:'Habits',exact:true}).first().click();await pa.getByRole('article',{name:'Fictional local before sign-in',exact:true}).waitFor();expect(await pa.getByRole('article',{name:'Fictional synchronized reading',exact:true}).count()).toBe(0);
   await a.close();await b.close();
  }finally{await browser.close();await mf.dispose();}
 },90000);

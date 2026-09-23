@@ -18,21 +18,25 @@ function assertFinanceRetained(before:Platform,after:Platform){
 }
 export function validateData(data:PrivateData,prior?:PrivateData){for(const [domain,raw]of Object.entries(data)){const m=modules[domain as Domain];if(!m||typeof raw!=='string'||new TextEncoder().encode(raw).length>32_000_000)throw Error('Unsupported private data.');m.schema.parse(JSON.parse(raw));}if(prior?.finance!==undefined){if(data.finance===undefined)throw Error('Accepted financial evidence cannot be removed by sync.');assertFinanceRetained(platformSchema.parse(JSON.parse(prior.finance)),platformSchema.parse(JSON.parse(data.finance)));}}
 export async function captureData(storage:Storage,domains:readonly Domain[]){const result:PrivateData={};for(const d of domains){const {key,schema,empty}=modules[d];if(storage.getItem(key)===null)continue;await enableDurableStore(storage,key,schema,empty);result[d]=await exportDurableStore(storage,key);}validateData(result);return result;}
-/** Each domain commits atomically; finances are one aggregate. Refuse edits made since capture. */
+/** Apply every validated section and its outbox atomically, after checking all captured revisions. */
 export async function applyData(storage:Storage,before:PrivateData,after:PrivateData,fence:()=>void){
  validateData(after,before);
- for(const [domain,raw] of Object.entries(after)){
-  const {key,schema,empty}=modules[domain as Domain];fence();
-  if(before[domain as Domain]===undefined&&storage.getItem(key)!==null)throw Error('Local records changed during sync. Retry; no record was overwritten.');
-  if(storage.getItem(key)===null)await enableDurableStore(storage,key,schema,empty);
-  await withStorageLock(storageLockKey(storage,key),async()=>{
-   fence();if(!isDurableMarker(storage.getItem(key)))throw Error('Storage changed during sync.');
-   const space=durableSpace(storage,key),prior=await localDatabase.read(space,key);if(!prior)throw Error('Private records unavailable.');
+ const entries=Object.entries(after).sort(([a],[b])=>a.localeCompare(b));if(!entries.length)return;
+ // Pointer migration may initialize an empty section, but never publishes copied records.
+ for(const [domain]of entries){const {key,schema,empty}=modules[domain as Domain];fence();if(before[domain as Domain]===undefined&&storage.getItem(key)!==null)throw Error('Local records changed during sync. Retry; no record was overwritten.');if(storage.getItem(key)===null)await enableDurableStore(storage,key,schema,empty);}
+ async function locked(index:number):Promise<void>{
+  if(index<entries.length){const {key}=modules[entries[index]![0] as Domain];return withStorageLock(storageLockKey(storage,key),()=>locked(index+1));}
+  const batch:{domain:string;base:number;data:unknown}[]=[];let space:string|undefined;
+  for(const [domain,raw]of entries){
+   const {key,schema,empty}=modules[domain as Domain];fence();if(!isDurableMarker(storage.getItem(key)))throw Error('Storage changed during sync.');
+   const currentSpace=durableSpace(storage,key);if(space!==undefined&&currentSpace!==space)throw Error('Account selection changed.');space=currentSpace;
+   const prior=await localDatabase.read(space,key);if(!prior)throw Error('Private records unavailable.');
    const expected=before[domain as Domain]??JSON.stringify(schema.parse(empty()));
    if(JSON.stringify(prior.data)!==expected&&JSON.stringify(prior.data)!==raw)throw Error('Local records changed during sync. Retry; no record was overwritten.');
-   fence();if(JSON.stringify(prior.data)!==raw)await localDatabase.commit(space,key,prior.revision,schema.parse(JSON.parse(raw)));
-  });
-  window.dispatchEvent(new CustomEvent('zigoals:private-change',{detail:key}));
-  if(typeof BroadcastChannel!=='undefined'){const c=new BroadcastChannel('zigoals:private-updates:v1');c.postMessage(key);c.close();}
+   if(JSON.stringify(prior.data)!==raw)batch.push({domain:key,base:prior.revision,data:schema.parse(JSON.parse(raw))});
+  }
+  fence();if(batch.length)await localDatabase.commitBatch(space!,batch,fence);
  }
+ await locked(0);
+ for(const [domain]of entries){const {key}=modules[domain as Domain];window.dispatchEvent(new CustomEvent('zigoals:private-change',{detail:key}));if(typeof BroadcastChannel!=='undefined'){const c=new BroadcastChannel('zigoals:private-updates:v1');c.postMessage(key);c.close();}}
 }

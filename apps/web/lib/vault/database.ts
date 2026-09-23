@@ -48,26 +48,39 @@ export class VaultDatabase{
   const result=await Promise.all((h?.arrays[field]??[]).slice(offset,offset+limit).map(id=>request(tx.objectStore('records').get(key(space,domain,field,id)))));await finish;return result;
  }
  async commit(space:string,domain:string,base:number,data:unknown,operation=crypto.randomUUID(),original?:string):Promise<number>{
-  if(!space||!domain||!operation||!Number.isSafeInteger(base)||base<0)throw Error('Invalid private operation.');
-  const serialized=JSON.stringify(data),prepared=split(JSON.parse(serialized),base+1);
-  const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(serialized)))).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const db=await this.open(),tx=db.transaction(['headers','records','outbox','receipts','recovery'],'readwrite'),finish=done(tx);
+  return (await this.commitBatch(space,[{domain,base,data,operation,original}]))[0]!;
+ }
+ /** Related sections, recovery copies and their outboxes share one IndexedDB transaction. */
+ async commitBatch(space:string,inputs:readonly {domain:string;base:number;data:unknown;operation?:string;original?:string}[],fence:()=>void=()=>{}):Promise<number[]>{
+  if(!space||!inputs.length||inputs.length>4||new Set(inputs.map(v=>v.domain)).size!==inputs.length)throw Error('Invalid private batch.');
+  // Capture all caller values before the first await, then hash outside the transaction.
+  const captured=inputs.map(input=>{
+   const {domain,base,original}=input,operation=input.operation??crypto.randomUUID();
+   if(!domain||!operation||!Number.isSafeInteger(base)||base<0)throw Error('Invalid private operation.');
+   const serialized=JSON.stringify(input.data);return {domain,base,original,operation,serialized,prepared:split(JSON.parse(serialized),base+1)};
+  });
+  if(new Set(captured.map(v=>v.operation)).size!==captured.length)throw Error('Duplicate private operation.');
+  const entries=await Promise.all(captured.map(async input=>({...input,digest:Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input.serialized)))).map(b=>b.toString(16).padStart(2,'0')).join('')})));
+  fence();const db=await this.open(),tx=db.transaction(['headers','records','outbox','receipts','recovery'],'readwrite'),finish=done(tx),revisions:number[]=[];
   try{
-   const receiptKey=key(space,operation),receipt=await request(tx.objectStore('receipts').get(receiptKey)) as {domain:string;digest:string;revision:number}|undefined;
-   if(receipt){if(receipt.domain!==domain||receipt.digest!==digest)throw Error('Operation identity was reused for different data.');await finish;return receipt.revision;}
-   const headKey=key(space,domain),current=await request(tx.objectStore('headers').get(headKey)) as Header|undefined;
-   if((current?.revision??0)!==base)throw Error('Data changed on another tab or device. Reload and review before saving.');
-   const changes:Change[]=[];
-   for(const [field,ids] of Object.entries(current?.arrays??{}))for(const id of ids)if(!prepared.rows.has(key(field,id))){tx.objectStore('records').delete(key(space,domain,field,id));changes.push({field,id,value:null,deleted:true});}
-   for(const row of prepared.rows.values()){
-    const rowKey=key(space,domain,row.field,row.id),previous=await request(tx.objectStore('records').get(rowKey));
-    if(JSON.stringify(previous)!==JSON.stringify(row.value)){tx.objectStore('records').put(row.value,rowKey);changes.push({...row,deleted:false});}
+   for(const {domain,base,original,operation,prepared,digest}of entries){
+    fence();const receiptKey=key(space,operation),receipt=await request(tx.objectStore('receipts').get(receiptKey)) as {domain:string;digest:string;revision:number}|undefined;
+    if(receipt){if(receipt.domain!==domain||receipt.digest!==digest)throw Error('Operation identity was reused for different data.');revisions.push(receipt.revision);continue;}
+    const headKey=key(space,domain),current=await request(tx.objectStore('headers').get(headKey)) as Header|undefined;
+    if((current?.revision??0)!==base)throw Error('Data changed on another tab or device. Reload and review before saving.');
+    const changes:Change[]=[];
+    for(const [field,ids]of Object.entries(current?.arrays??{}))for(const id of ids)if(!prepared.rows.has(key(field,id))){tx.objectStore('records').delete(key(space,domain,field,id));changes.push({field,id,value:null,deleted:true});}
+    for(const row of prepared.rows.values()){
+     const rowKey=key(space,domain,row.field,row.id),previous=await request(tx.objectStore('records').get(rowKey));
+     if(JSON.stringify(previous)!==JSON.stringify(row.value)){tx.objectStore('records').put(row.value,rowKey);changes.push({...row,deleted:false});}
+    }
+    fence();tx.objectStore('headers').put(prepared.header,headKey);
+    tx.objectStore('outbox').put({space,domain,operation,base,revision:base+1,changes,header:prepared.header} satisfies PendingOperation,receiptKey);
+    tx.objectStore('receipts').put({domain,digest,revision:base+1},receiptKey);
+    if(original!==undefined)tx.objectStore('recovery').put({space,domain,raw:original},key(space,domain,operation));
+    revisions.push(base+1);
    }
-   tx.objectStore('headers').put(prepared.header,headKey);
-   tx.objectStore('outbox').put({space,domain,operation,base,revision:base+1,changes,header:prepared.header} satisfies PendingOperation,receiptKey);
-   tx.objectStore('receipts').put({domain,digest,revision:base+1},receiptKey);
-   if(original!==undefined)tx.objectStore('recovery').put({space,domain,raw:original},key(space,domain,operation));
-   await finish;return base+1;
+   fence();await finish;return revisions;
   }catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}
  }
  async pending(space:string):Promise<PendingOperation[]>{const db=await this.open(),tx=db.transaction('outbox','readonly'),finish=done(tx);const all=await request(tx.objectStore('outbox').getAll()) as PendingOperation[];await finish;return all.filter(x=>x.space===space);}

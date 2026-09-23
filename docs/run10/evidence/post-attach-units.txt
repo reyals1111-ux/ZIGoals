@@ -1,0 +1,60 @@
+$ vitest run
+
+ RUN  v5.0.0 /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation
+
+ ❯ scripts/run10/market-runtime.test.mjs (1 test | 1 failed) 94ms
+   × real Workers coordinator persists dispatch, public cache, fences and replay tombstones across restart 93ms
+ ❯ scripts/run10/sync-runtime.test.mjs (1 test | 1 failed) 33ms
+   × real Workers durable storage: two clients, auth denial, conflict, retry, deletion and restart 32ms
+ ❯ scripts/run10/food-runtime.test.mjs (1 test | 1 failed) 15ms
+   × shared food budget persists before outbound I/O, caches bounded public data and rejects arbitrary destinations 15ms
+ ❯ scripts/run10/market-dispatch.test.mjs (1 test | 1 failed) 30011ms
+   × real named Worker binding marks before fixture HTTP, coalesces, preserves partial results and survives restart 30010ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/run10/food-runtime.test.mjs > shared food budget persists before outbound I/O, caches bounded public data and rejects arbitrary destinations
+ FAIL  scripts/run10/market-runtime.test.mjs > real Workers coordinator persists dispatch, public cache, fences and replay tombstones across restart
+ FAIL  scripts/run10/sync-runtime.test.mjs > real Workers durable storage: two clients, auth denial, conflict, retry, deletion and restart
+Error: listen EPERM: operation not permitted 127.0.0.1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  scripts/run10/market-dispatch.test.mjs > real named Worker binding marks before fixture HTTP, coalesces, preserves partial results and survives restart
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ scripts/run10/market-dispatch.test.mjs:9:1
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: listen EPERM: operation not permitted 127.0.0.1
+ ❯ Server.setupListenHandle [as _listen2] node:net:2145:21
+ ❯ listenInCluster node:net:2224:12
+ ❯ node:net:2448:7
+ ❯ processTicksAndRejections node:internal/process/task_queues:90:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'EPERM', errno: -1, syscall: 'listen', address: '127.0.0.1' }
+This error originated in "scripts/run10/market-dispatch.test.mjs" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "real named Worker binding marks before fixture HTTP, coalesces, preserves partial results and survives restart". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  4 failed | 112 passed | 1 skipped (117)
+      Tests  4 failed | 1337 passed | 1 skipped (1342)
+     Errors  1 error
+   Start at  00:36:07
+   Duration  30.49s (tests 70%, import 12%, environment 10%, transform 7%, worker 1%)
+
+    Isolate  117 workers spawned · ~145ms startup each (spawn + environment, per file)
+             at least ~1.73s faster with isolate: false — reuses workers across files instead of one per file
+
+[ELIFECYCLE] Test failed. See above for more details.

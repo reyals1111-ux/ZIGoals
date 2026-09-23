@@ -4822,6 +4822,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/SESSION_EVIDENCE.md"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -4838,18 +4843,18 @@
         }
       ],
       "disposition": {
-        "reason": "First local import/attach counts/domain selection and recoverable pre-upload snapshot UI absent.",
-        "next_step": "Add explicit first-attach preview using protected local snapshot and conflict checks.",
+        "reason": "All-domain/large-history interruption and selected-reference combinations remain unverified; real hosted/physical acceptance pending.",
+        "next_step": "Exercise remaining selected-domain and interruption combinations using existing copy flow.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
-        "delivered_safe_subset": "Separate local/account/Showcase; empty second device safely pulls four domains.",
+        "delivered_safe_subset": "Explicit selected-domain counts, encrypted pre-copy download, source/account/cloud rechecks, atomic account copy, original Local preserved and actual two-profile Habit transfer.",
         "dependency_impact": "Required milestone remains incomplete.",
-        "evidence": "docs/run10/OPERATING_POLICY.md"
+        "evidence": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
       },
       "owner_accepted": false,
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "First local import/attach counts/domain selection and recoverable pre-upload snapshot UI absent.",
+      "remaining_limitation": "All-domain/large-history interruption and selected-reference combinations remain unverified; real hosted/physical acceptance pending.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -5939,6 +5944,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -5955,18 +5965,18 @@
         }
       ],
       "disposition": {
-        "reason": "Persisted conflict/draft states and full reopening/retry UI matrix incomplete.",
-        "next_step": "Complete saved/pending/conflicted UX and restart/duplicate cases.",
+        "reason": "Persisted conflict/draft UX and interruption between cloud publication, local apply and journal acknowledgment remain incomplete.",
+        "next_step": "Complete cross-stage restart/retry and saved/pending/conflicted UI.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
-        "delivered_safe_subset": "Atomic local records/outbox; durable ack before commit; lost response replay and account fences tested.",
+        "delivered_safe_subset": "Shared multi-domain local apply now commits changed records, headers, outboxes and receipts atomically; later conflict and staged-write account fence abort tests pass.",
         "dependency_impact": "Required milestone remains incomplete.",
-        "evidence": "docs/run10/OPERATING_POLICY.md"
+        "evidence": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
       },
       "owner_accepted": false,
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Persisted conflict/draft states and full reopening/retry UI matrix incomplete.",
+      "remaining_limitation": "Persisted conflict/draft UX and interruption between cloud publication, local apply and journal acknowledgment remain incomplete.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -6197,18 +6207,18 @@
         }
       ],
       "disposition": {
-        "reason": "Concurrent correction resolution and explicit recovery UI for refused older pending work remain incomplete.",
-        "next_step": "Add repeated reversal race and old pending write compatibility tests.",
+        "reason": "Concurrent financial correction resolution and explicit recovery UI for refused older pending work remain incomplete.",
+        "next_step": "Add repeated financial reversal race and explicit older pending recovery workflow.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
-        "delivered_safe_subset": "Original contributions/revisions/history/events retained and mutation rejected at sync/apply boundary. Older/future queued upload policies now stop before transmission and preserve pending journal;16focused tests pass.",
+        "delivered_safe_subset": "Immutable finance retention plus policy2 queued uploads; incompatible older/future pending operations stop before transport and are preserved.",
         "dependency_impact": "Required milestone remains incomplete.",
-        "evidence": "docs/run10/OPERATING_POLICY.md"
+        "evidence": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
       },
       "owner_accepted": false,
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Concurrent correction resolution and explicit recovery UI for refused older pending work remain incomplete.",
+      "remaining_limitation": "Concurrent financial correction resolution and explicit recovery UI for refused older pending work remain incomplete.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -7192,6 +7202,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -17515,6 +17530,11 @@
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
           "path": "docs/run10/STORAGE_SYNC_EVIDENCE.md"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -17577,6 +17597,11 @@
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
           "path": "docs/run10/evidence/multidomain-offline-sync.txt"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -17645,6 +17670,11 @@
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
           "path": "apps/web/lib/vault/crypto.test.ts"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -18168,6 +18198,11 @@
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
           "path": "apps/web/lib/vault/database.test.ts"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -18301,6 +18336,11 @@
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
           "path": "apps/web/lib/vault/backup.test.ts"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/LOCAL_ATTACH_EVIDENCE.md"
         }
       ],
       "verified_commit": null,

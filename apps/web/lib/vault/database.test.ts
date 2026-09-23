@@ -30,3 +30,15 @@ test('caller mutation during async hashing cannot change the committed operation
  const saving=db.commit('local','health',0,data,'stable');data.rows[0]!.value='mutated';await saving;
  expect((await db.read('local','health'))?.data).toEqual({rows:[{id:'a',value:'original'}]});db.close();
 });
+test('selected domain copies and outboxes commit together or all roll back on a later conflict',async()=>{
+ const db=new VaultDatabase(crypto.randomUUID());await db.commit('A','health',0,{rows:[]},'seed');await db.acknowledge('A','seed');
+ await expect(db.commitBatch('A',[{domain:'habits',base:0,data:{rows:[{id:'local-habit'}]},operation:'copy-habits'},{domain:'health',base:0,data:{rows:[{id:'local-water'}]},operation:'copy-health'}])).rejects.toThrow('changed');
+ expect(await db.read('A','habits')).toBeNull();expect((await db.read('A','health'))?.data).toEqual({rows:[]});expect(await db.pending('A')).toEqual([]);
+ await db.commitBatch('A',[{domain:'habits',base:0,data:{rows:[{id:'local-habit'}]},operation:'copy-habits'},{domain:'health',base:1,data:{rows:[{id:'local-water'}]},operation:'copy-health'}]);
+ expect((await db.read('A','habits'))?.data.rows).toEqual([{id:'local-habit'}]);expect((await db.read('A','health'))?.data.rows).toEqual([{id:'local-water'}]);expect(await db.pending('A')).toHaveLength(2);db.close();
+});
+test('account generation loss aborts an atomic domain copy before publication',async()=>{
+ const db=new VaultDatabase(crypto.randomUUID());let calls=0;
+ await expect(db.commitBatch('A',[{domain:'habits',base:0,data:{rows:[]}},{domain:'health',base:0,data:{rows:[]}}],()=>{if(++calls===4)throw Error('Account changed');})).rejects.toThrow('Account changed');
+ expect(await db.read('A','habits')).toBeNull();expect(await db.read('A','health')).toBeNull();expect(await db.pending('A')).toEqual([]);db.close();
+});
