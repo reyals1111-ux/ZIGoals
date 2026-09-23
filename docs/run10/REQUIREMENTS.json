@@ -17536,7 +17536,7 @@
         {
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
-          "path": "/private/tmp/run10-multidomain-offline-sync.log"
+          "path": "docs/run10/evidence/multidomain-offline-sync.txt"
         }
       ],
       "verified_commit": null,
@@ -17667,7 +17667,7 @@
         {
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
-          "path": "/private/tmp/run10-multidomain-offline-sync.log"
+          "path": "docs/run10/evidence/multidomain-offline-sync.txt"
         },
         {
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
@@ -18913,7 +18913,7 @@
         {
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
-          "path": "/private/tmp/run10-multidomain-offline-sync.log"
+          "path": "docs/run10/evidence/multidomain-offline-sync.txt"
         }
       ],
       "verified_commit": null,
