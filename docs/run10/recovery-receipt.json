@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-23T22:06:29.105112+00:00",
+  "kind": "SOURCE_ONLY_DISPOSABLE_RECOVERY_DRILL",
+  "archive_sha256": "d050834ce629fb8130412a4f9c3c10e69992943f2f17d0ef4e742457f7362a76",
+  "base": "845fd8a266887efe385ee4fba297bde5521aeb5e",
+  "restored_files": 66,
+  "source_and_next_actions_readable": true,
+  "requirements": 290,
+  "private_owner_data_covered": false,
+  "result": "PASS"
+}
