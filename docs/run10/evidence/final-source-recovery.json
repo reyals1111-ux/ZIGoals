@@ -1,0 +1,18 @@
+{
+  "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+  "archive": ".superpowers/run10/recovery/source-85cbb34.zip",
+  "sha256": "f135222ee2f5f9fdd018a836c7de45cb1f6800f995e6456e4ca44cd2471cd2f0",
+  "bytes": 308718559,
+  "source_only": true,
+  "created_utc": "2026-09-23T22:42:30.542025+00:00",
+  "restore_crc": "PASS",
+  "restored_files_verified_against_exact_commit": [
+    "docs/run10/MASTER_PROMPT.md",
+    "docs/run10/RESUME_STATE.md",
+    "docs/run10/REQUIREMENTS.json",
+    "apps/web/lib/vault/database.ts",
+    "apps/web/components/vault-sync-controls.tsx"
+  ],
+  "disposable_restore": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run10-final-source-restore-bsvc0gyf",
+  "owner_browser_data_included": false
+}

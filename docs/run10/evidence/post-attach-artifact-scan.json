@@ -1,0 +1,18 @@
+{
+  "build": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+    "dirty": false
+  },
+  "roots": [
+    "apps/web/.next/static",
+    "apps/web/.open-next"
+  ],
+  "files_scanned": 1476,
+  "fictional_private_markers": 5,
+  "known_configured_values_available": 0,
+  "hits": [],
+  "result": "PASS",
+  "limits": "Pattern scan is not exhaustive; no configured exact-secret values were available. No claim of exact-value coverage."
+}

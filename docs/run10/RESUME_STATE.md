@@ -1,32 +1,32 @@
-# Actual Run #10 — durable continuation state
+# Actual Run #10 — verified continuation checkpoint
 
-Updated UTC: 2026-09-23T22:25:54.320563+00:00
-Worktree: `/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation`
-Branch: `codex/run10-beta-reliability-foundation`; PR20 OPEN/DRAFT. Continue High/standard with all original scope and gates. No deployment, merge, paid service, live migration or financial signature authorized.
-Master preserved verbatim: SHA256 `1f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9`. All290 requirements,40journeys,10 ordered screenshots in REQUIREMENTS.json. Do not restart or reread the whole master.
-Latest verified local=remote=PR20 OPEN/DRAFT checkpoint: `8bde3329feeee1ddb7e1ffd600bbfc158bcaaadd`; app correction source `2bf6f9124852c2fe404ddd191e9e011e3e5054c4`; clean Alpha artifact source `17a3e9af420f90e022120d9dabd5642c6e7e23a1`. Check current Git status before proceeding; pending documentation/report/ledger reconciliation is preserved, not discarded.
+Updated UTC: 2026-09-23T22:45:13.554286+00:00
+Worktree: `/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation`.
+Branch `codex/run10-beta-reliability-foundation`; PR20 OPEN/DRAFT. User selects High/standard; all290 requirements,40journeys and10 ordered screenshots stay in scope. No merge/deployment/live migration/paid service/financial signature authorized.
+Verbatim master SHA256`1f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9`; verified against supplied original. Start709816a7; verifiedbase95ff4d3e. Do not restart or reread the entire master.
 
-## Implemented and evidenced
-Email OTP adapter, browser-only recovery keys, encrypted four-domain snapshot sync, real local Worker/SQLite persistence, atomic local outbox/migration, session revocation and immutable financial retention. Health/Habits/financial events and TWR/Today widgets/Goal creator/ecosystem/market coordination have substantial partial implementations. No claim all journeys are complete.
-1333unit passes/1explicit opt-in skip; lint/types/production and clean OpenNext build passed. First full browser219pass/77fail/16existing opt-in skips; corrections then154affected passes. Packaged security/diagnostics/Health-only14passes, including socket audit. See VERIFICATION.md for exact source and limits, not aggregate inflated counts.
-Four-domain two-profile fixture-email journey proves actual crypto/storage/backend transfer, cold unlock, offline250+500ml→750ml and other-session denial. It is not real email or physical phone–desktop sync. JRN01 Health-only first-use local desktop/mobile-emulation journey verified.
-Independent financial/account/final safety reviews complete; all helpers finished and frozen. Their partial/deferred items are reconciled by ID, not called complete merely because helpers ended.
-Canonical hosted35925474426 succeeded for synthetic merge ac201b86c4a4d7ba5eeb319246f590b6070a9e8e associated with8924625; artifactNOT_APPROVED. No new-head hosted CI result is inferred. See CI_EVIDENCE.md.
+## Exact implementation and verification
+Latest verified local=remote=PR20 source: `85cbb34016376f79204a138bd0f8cddd6c3d6b77`. Clean packaged artifact also85cbb34, PUBLIC_ALPHA_UNDEPLOYED, dirty:false. Later final-doc commits contain no application changes; their exact pushed identity is recorded in the final Git/PR receipt and response. Never relabel the old17a3 artifact as current.
+Fresh1341 distinct unit passes/1explicit opt-in skip: full invocation1337passed,4failed on sandbox loopback; only those4Worker tests rerun with permission, allpassed. Full TypeScript, affected lint, production build, OpenNext build and Alpha dry-run passed. Earlier full lint passed; no package/dependency changes since audit.
+Latest packaged28account/private-storage/Health/security/diagnostics checks passed23.9s. Includes durable cross-tab writes and actual >2MB Health backup/export. Earlier broad browser219pass/77fail/16existing opt-in skips; corrected154affected cases passed. Historical failures remain historical. See VERIFICATION.md and source-specific receipts.
+Actual independent-profile app/auth-adapter/WebCrypto/IndexedDB/SQLite Worker journey passed16.89s: existing Local Habit→selected protected copy→accountA→B; downloaded backup decrypted; populated destination refused; four-domain continuity; offline250+500ml→750ml; revocation; reloadlock; signout returns to untouched original Local source. Email upstream is a fixture, not real email/physicalphone proof.
+Current artifact1476files scanned:0hits for5fictional private markers/credential patterns. No configured exact-secret values available; no exact-value pass claimed. No owner private records read/exported/migrated.
+Canonical hosted35925474426 succeeded on exact syntheticmergeac201b86 associated with8924625; independently examined artifactNOT_APPROVED. Later8bde332 canonical35928516072 succeeded. Latest85cbb34 canonical35929563763/quality35929563728 in progress at single bounded snapshot; no inferred final-head green. Contract/policy inputs unchanged by later app work.
 
-## Required unfinished work
-PARTIAL — REQUIRED_GAPS_REMAIN. Account/domain deletion and stale-device tombstones; cryptographic rotation; explicit local attach/import; entity deltas/cleanup/indexed paging/capacity; conflict review; financial/all-domain sync/restore matrices; remaining visual/Health/Habit/user journeys. BLOCKERS.md and per-ID ledger retain reasons and next steps. Code gaps are distinct from owner setup.
-Mixed-build pending upload policy2 is corrected and verified. Explicit Local→account copy and atomic multi-domain local apply now implemented; two-profile real local backend16.89s browser passed with decryptable backup/original retention. Fresh full unit coverage1337passed plus4permission-blocked Worker tests subsequently passed;1opt-in skip. Types/affected lint/productionbuild passed. New source checkpoint and packaged rebuild next; do not confuse it with the older17a3 artifact.
+## Implemented state and required gaps
+Implemented subsets: email OTP adapter; encrypted account snapshot sync and separate recovery key; Health consent; session registry/revocation; durable migration/outbox; immutable financial evidence and bounded TWR; Health/Habits/Today widgets/Goal creator/ecosystem/public coordination. Local copies remain plaintext at rest; access revocation is not key rotation or erasure.
+Latest fixes: pending-policy2 blocks incompatible older/future queued operations before transmission without dropping them. Explicit Local→account preview/section choices/counts/encrypted pre-copy backup/source-account-cloud fences now integrated. All selected local account records and outboxes apply in one transaction; later-domain conflict/account-fence failure aborts the batch. Empty initialized pointers may survive; cloud publication/journal acknowledgment remain separate steps.
+PARTIAL — REQUIRED_GAPS_REMAIN. Account/domain deletion and stale-device tombstones; cryptographic rotation; entity deltas/cleanup/indexed readers/lifetime capacity; explicit conflict/older-queue recovery UI; full financial, local-copy selection/interruption and remaining integrated journeys. BLOCKERS.md/REQUIREMENTS.json keep exact reasons. Unattempted code gaps are not owner blockers or exhausted investigations.
+All helper slices and independent reviews finished; no active helper source work. Partial/deferred items reconciled by ID. LOCAL_ATTACH_REVIEW.md incorporates atomic-copy correction and stronger staged-write fence test. User's remaining allowance must preserve verification/correction/recovery effort; last observed account-wide meter85%used, not task-only.
 
-## Owner setup
-Owner confirms no existing auth/email/backend service. Recommended Supabase email OTP + Resend SMTP + isolated Cloudflare ciphertext Worker; exact concise checklist in OWNER_ACTIVATION.md. No hosted activation, email delivery, real phone/camera acceptance or owner-data migration performed.
+## Next three implementation actions
+1. Complete AUTH06/SYN07/SEC05 account/domain deletion, retained tombstone/offline no-resurrection behavior, then ENC07 transactional rotation. Keep all destructive hosted activation disabled until separately authorized.
+2. Complete indexed delta/paging/cleanup and explicit conflict/recovery UI, then remaining financial/capacity/all-domain/40journey acceptance. Reuse existing code and tests; no duplicate broad investigations.
+3. After new changes, run appropriate affected/full gates, independent review and recovery checkpoint; reconcile exact remaining IDs and update draft PR20. Real email/physical acceptance follows configured isolated infrastructure and satisfied code gates.
 
-## Next three actions
-1. Freeze/checkpoint current tested source and build/package affected security checks; review source-specific final evidence, preserving remaining effort for corrections.
-2. Reconcile each completed slice and evidence against the full ledger; retain independent review and final affected/full verification as changes justify.
-3. Refresh sanitized NovaVault mirror, preserve source-only recovery checkpoint, commit/push and verify local=remote=PR20 head and draft state. No claim the milestone is complete until its gates pass.
-
-## Recovery and runtime
-Source-only recovery ZIP pending-20260923T215558Z.zip under .superpowers/run10/recovery, SHA256 d050834ce629fb8130412a4f9c3c10e69992943f2f17d0ef4e742457f7362a76, base845fd8a. Disposable66file recovery drill passed; recovery-receipt.json. Fictional browser evidence ZIP SHA2567cbddaddcbd3d5b93b839713131b42554fed191a98b4c207628afb59de967960. These are not backups of owner browser records.
-Pinned PATH prefix /Users/AIUSER/.local/share/fnm/node-versions/v24.19.0/installation/bin (Node24.19.0/pnpm11.19.0). Alpha8788 and dev3110 stopped before the fresh production build. Stop preview before rebuilding shared artifacts. No helper source writes outstanding.
-NovaVault sanitized checkpoint exists at /Users/AIUSER/Documents/NovaVault/30-Projects/Personal AI Lab/ZIGoals/Release Evidence/Run 10 Actual Checkpoint.md; older mirror still needs refresh. Never claim a write before verifying it.
-Resume with git status --short, this file, targeted REQUIREMENTS.json IDs and their linked evidence. Preserve owner/preparatory changes.
+## Owner setup, recovery and continuation
+Owner says no existing service. Recommended Supabase email OTP + Resend SMTP + isolated Cloudflare ciphertext Worker. OWNER_ACTIVATION.md has one concise setup path. No service/DNS/deploy/email/physicalcamera acceptance performed; no secrets requested in chat.
+Full source-only archive `.superpowers/run10/recovery/source-85cbb34.zip`, SHA256`f135222ee2f5f9fdd018a836c7de45cb1f6800f995e6456e4ca44cd2471cd2f0`, CRC and five critical restored files match85cbb34. Earlier pending-delta and browser-fiction archives remain. These do not back up owner browser data. See evidence/final-source-recovery.json.
+NovaVault actual sanitized checkpoint and Project Map refreshed after backups; receipt/hash paths in evidence/novavault-receipt.json. No fake vault or private data store. This note may precede final report-only commit; final pushed equality is externally checked, never self-inferred.
+Pinned PATH prefix `/Users/AIUSER/.local/share/fnm/node-versions/v24.19.0/installation/bin` (Node24.19.0/pnpm11.19.0). Latest local Alpha8788 preview session12952 is to be stopped at handoff; dev3110 stopped. No runtime service configured in public Alpha.
+Resume: `git status --short`; read this file and targeted ledger/evidence. Preserve owner/preparatory changes. No old-writer rollback against newer private data; use protected backups and reviewed forward recovery.

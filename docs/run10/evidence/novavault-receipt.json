@@ -1,0 +1,16 @@
+{
+  "updated_utc": "20260923T224611Z",
+  "sanitized": true,
+  "files": [
+    {
+      "path": "/Users/AIUSER/Documents/NovaVault/30-Projects/Personal AI Lab/ZIGoals/Release Evidence/Run 10 Actual Checkpoint.md",
+      "sha256": "19c1c052678ad7286b19cd9930cddf193167c3c956e367a9539b4c8029e6bee1"
+    },
+    {
+      "path": "/Users/AIUSER/Documents/NovaVault/30-Projects/Personal AI Lab/ZIGoals/Project Map.md",
+      "sha256": "cc1be0ce826e012a154db648703290f4f34ce2741beae86019fbffdb0a890330"
+    }
+  ],
+  "latest_backup": "/Users/AIUSER/Documents/NovaVault/30-Projects/Personal AI Lab/ZIGoals/Release Evidence/Run 10 Actual Checkpoint.md.bak-20260923T224611Z",
+  "prior_receipt": "Earlier initial refresh backed up both checkpoint and Project Map."
+}
