@@ -1,3 +1,19 @@
+# Run #10 repository privacy addendum — not a hosted activation claim
+
+The existing deployed Alpha description below is historical. Draft PR20 now contains opt-in email accounts and encrypted sync, but no hosted auth/email/backend or physical-device rollout was performed in this run. Local-only operation and Showcase remain separate; signing in does not silently upload their records.
+
+Account selection is tab-local; the server derives tenant identity from verified authentication. The browser encrypts private domain snapshots before transmission using a random vault root and an independent recovery secret. The server receives ciphertext plus account, vault, record identifiers, sizes, timing and domain metadata; this is not metadata anonymity. Health upload/decryption requires a separate opt-in. Turning Health sync off does not delete prior encrypted copies.
+
+Unlocked keys remain in memory and clear on lock/sign-out/account change/reload. Local account records, sync bases, pending local operations and recovery copies remain **plaintext at rest** in this browser profile; app locking does not protect against extensions, same-origin compromise or profile access. Losing the separate recovery secret can make cloud records unrecoverable. Email access does not recover it.
+
+The isolated backend retains hashed-token session records and user-supplied device labels for access revocation; raw provider tokens remain in protected HttpOnly cookies and are forwarded only server-side. Revocation blocks future backend access, not data already downloaded or knowledge of the root secret. Cryptographic key rotation and account deletion remain incomplete. Session/operation retention currently fails closed at bounded capacity; no automatic deletion/compaction guarantee is made.
+
+Encrypted backup downloads are now available separately from legacy plaintext JSON exports, with explicit recovery-secret acknowledgement and optional Health inclusion. Private restore preserves prior local bytes. Food lookup sends only a confirmed barcode to the same-origin server/provider; scanner frames stay on device. Camera permission is self-only on the Health document, with explicit activation; microphone and location remain denied.
+
+See [account sync evidence](run10/ACCOUNT_SYNC_EVIDENCE.md), [owner setup](run10/OWNER_ACTIVATION.md) and the [security/recovery design](run10/SYNC_SECURITY_AND_RECOVERY.md) for unverified limits. Hosting infrastructure still observes ordinary connection metadata. No financial execution, wallet authentication signature, deployment or live data migration occurred.
+
+---
+
 # Alpha privacy notes
 
 This describes the public Alpha at https://alpha.zigoals.app/app and the current repository. See [STATUS.md](STATUS.md) for the current deployed-versus-repository state. ZIGoals has no app account, goal-sync server, advertising tracker or application telemetry. Hosting providers still operate infrastructure logs and aggregate analytics; this document does not promise a particular retention policy or anonymity from the host.

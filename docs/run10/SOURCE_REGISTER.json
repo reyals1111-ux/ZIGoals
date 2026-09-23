@@ -1,0 +1,93 @@
+{
+  "head_at_record": "8d998b00ff35db8469c1fc54654c54d316f0105c",
+  "sources": [
+    {
+      "path": "docs/STATUS.md",
+      "sha256": "0c409deb46a132583d81a3942878455e19af029818f7d749fc70943f2f9acf15",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/PRE_RUN_10_HARDENING.md",
+      "sha256": "fee4016dcaa851531309917ef851c9869ad29e32ef71e204bca6b4908db7b8fb",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_10_BETA_RELIABILITY_MASTER_PLAN.md",
+      "sha256": "37e1fa99261bdf56ce2c561fd055707ac8682ab6e0985317519e7c46c6d068af",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_9_MARKET_DATA.md",
+      "sha256": "fdfca7c76b1007fcf7e9bd2e309f0d5e9bfe1d85e53eb544511dffe5aa9a34ba",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_9_REPORT.md",
+      "sha256": "70c31974a2efa9a271292f92ebe45c30d9b71d5899005937f0d50e23e2d52019",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_9_1_REPORT.md",
+      "sha256": "8a61642cf18fbda268953b4a23f1d23c6bfa50d31bf259913cb4c7afc4a9b5c3",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_9_BETA_BACKLOG.md",
+      "sha256": "c944c073045af89e8be836335113e1f6677e2b2848a4ad01433811f3a619b72b",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_9_1_BETA_BACKLOG.md",
+      "sha256": "7f7da0af3fbd43d566cdc98ea5a9789d65449da8ef57fe72c873b3951373e16a",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_8_BETA_BACKLOG.md",
+      "sha256": "c86f3b513499cecdeba7ec0afd7305b204e17b43fa77751957967c793fec5c7c",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/PRIVACY.md",
+      "sha256": "2299e76c6fbdaa90896c5801a26184480e9bec5539acbfdfd1054af4fd4e3821",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/security/THREAT_MODEL.md",
+      "sha256": "85fdfea501ee0d35a643f6b8a141716907fbfbf1aa8563ad82108206123c0127",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/security/SECURITY_CHECKLIST.md",
+      "sha256": "1953f965d481e43f15bdca6b96949f9afb55ddd34d648613eebf3147ee59390c",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": ".github/workflows/deploy-alpha.yml",
+      "sha256": "65e1648937596af077f515d4d95859cf15ebc72026648142496eed0660484d33",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/architecture/ADR-005-canonical-release-build.md",
+      "sha256": "aeecf429e8f14ada5266d6b9d821aad48d03c86d16ee52e43aadb6078c418a7f",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/roadmap/HEALTH_BETA_FUTURE_RUN.md",
+      "sha256": "e796f975b07b09afe54fd1fe6e8d77a68ea5af381ad91ef4827790301e8d3152",
+      "read": "Read during preflight/implementation by root or assigned relevant helper; current file hash identifies version, not a claim that historical output is current."
+    },
+    {
+      "path": "docs/RUN_9_2_REPORT.md",
+      "read": "Narrative and final verification/recovery rows read; repeated full middle requirement table not reread in this continuation. Historical status is not current proof."
+    },
+    {
+      "path": "docs/RUN_9_2_DELIVERABLES.md",
+      "read": "Structure/source sections inspected; not claiming complete verbatim read of all117KB."
+    }
+  ],
+  "gaps": [
+    "Original .superpowers/run9-2/request.txt absent in verified actual and original worktrees; no literal prior request length comparison claimed.",
+    "Standalone Run11/12 root documents not located in initial real project search; expanded exact master remains authority."
+  ],
+  "vault": "Verified existing NovaVault project index read and sanitized checkpoint mirrored with prior index backup; no private owner records included."
+}

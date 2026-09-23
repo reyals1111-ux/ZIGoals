@@ -1,6 +1,7 @@
 'use client';
 import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
 import {z} from 'zod';
+import {AccountDevices} from './account-devices';
 import {AccountAccess} from './account-access';
 import {ACCOUNT_CHANGE,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,unlockAccount} from '../lib/account-session';
 import {getAppStorage,isShowcase} from '../lib/showcase-storage';
@@ -8,7 +9,8 @@ import {withStorageLock} from '../lib/storage';
 import {createVault,unlockVault,manifestSchema,type VaultManifest} from '../lib/vault/crypto';
 import {synchronize,SyncJournal,type Domain} from '../lib/vault/cloud-sync';
 import {accountTransport} from '../lib/vault/account-transport';
-import {captureData,applyData,validateData} from '../lib/vault/account-data';
+import {localDatabase} from '../lib/vault/local';
+import {captureData,applyData,validateData,modules} from '../lib/vault/account-data';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
 type Controls={authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:()=>Promise<void>;unlock:(secret:string)=>Promise<void>;sync:()=>Promise<void>;setHealth:(value:boolean)=>void;health:boolean;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string};
@@ -32,8 +34,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Vault locked. Sync result was not applied.');};
   await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{
    fence();setMessage('Syncing encrypted account records…');const storage=getAppStorage(),domains:Domain[]=['finance','habits','settings',...(selected.health?['health' as const]:[])];
+   const capturedPending=(await localDatabase.pending(`account:${selected.account}`)).filter(p=>domains.some(d=>modules[d].key===p.domain));
    const local=await captureData(storage,domains);fence();const result=await synchronize(accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,local,validateData,fence,domains);
-   fence();await applyData(storage,local,result.data,fence);await result.commit();fence();setLast(new Date().toLocaleTimeString());setMessage('Account records synced and acknowledged.');auto.current=true;
+   fence();await applyData(storage,local,result.data,fence);await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}setLast(new Date().toLocaleTimeString());setMessage('Account records synced and acknowledged.');auto.current=true;
   });
  });}
  function setHealth(value:boolean){setHealthState(value);if(session.current)session.current.health=value;}
@@ -41,11 +44,11 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  useEffect(()=>{
   let debounce:ReturnType<typeof setTimeout>|undefined;
   const change=()=>{if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError('');setLast('');setMessage('Account sync is locked.');}};
-  const schedule=()=>{if(running.current||!auto.current||!session.current)return;clearTimeout(debounce);debounce=setTimeout(()=>void syncRef.current(),1000);};
+  const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden)void syncRef.current();},1000);};
   const activity=()=>{idle.current=Date.now();};
   const interval=setInterval(()=>{if(session.current&&Date.now()-idle.current>15*60_000){lockAccount();return;}schedule();},30000);
-  window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',schedule);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
-  return()=>{session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',schedule);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);};
+  window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',schedule);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);document.addEventListener('visibilitychange',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
+  return()=>{session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',schedule);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);};
  },[]);
  return <Context.Provider value={{authenticated,forget,prepare,enroll,unlock,sync,setHealth,health,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last}}>{children}</Context.Provider>;
 }
@@ -57,5 +60,7 @@ export function VaultSyncControls(){
  {c.generated&&<div className="notice"><label>New vault recovery secret<input value={c.generated.recovery} readOnly autoComplete="off" spellCheck={false}/></label><p>Save this privately now. It is shown only while preparing this vault.</p><label className="checkbox"><input type="checkbox" checked={saved} onChange={e=>setSaved(e.target.checked)}/>I saved this vault recovery secret separately.</label><button className="primary" disabled={!saved||c.busy} onClick={()=>void c.enroll()}>Confirm and create vault</button><button className="secondary" disabled={c.busy} onClick={c.cancel}>Cancel</button></div>}
  {c.manifest&&!c.opened&&<form onSubmit={e=>{e.preventDefault();const value=secret;setSecret('');void c.unlock(value);}}><label>Vault recovery secret<input type="password" autoComplete="off" value={secret} onChange={e=>setSecret(e.target.value)}/></label><button className="primary" disabled={c.busy||!secret}>Unlock account vault</button></form>}
  {c.opened&&<div className="actions"><button className="primary" disabled={c.busy} onClick={()=>void c.sync()}>Sync now</button><button className="secondary" onClick={()=>{setSecret('');lockAccount();}}>Lock account vault</button></div>}
- <p role="status">{c.message}{c.last&&` Last acknowledgement: ${c.last}.`}</p>{c.error&&<p role="alert">{c.error}</p>}<p className="fine">Conflicting financial changes pause sync for review. Encrypted backups remain a separate recovery copy. Account deletion, device management and key rotation are not available in this preview.</p></section></div>;
+ <p role="status">{c.message}{c.last&&` Last acknowledgement: ${c.last}.`}</p>{c.error&&<p role="alert">{c.error}</p>}<p className="fine">Conflicting financial changes pause sync for review. Encrypted backups remain a separate recovery copy. Account deletion and key rotation are not available in this preview. Session access can be revoked below.</p></section>{c.account&&<AccountDevices account={c.account}/>}</div>;
 }
+/** Public status only; keys, recovery material and private records never leave the provider. */
+export function useVaultStatus(){const c=useContext(Context);return {opened:c?.opened??false,busy:c?.busy??false,message:c?.message??'',error:c?.error??'',last:c?.last??'',account:c?.account??null};}

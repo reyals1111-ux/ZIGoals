@@ -1,21 +1,26 @@
-# Actual Run #10 resume state
+# Actual Run #10 — integration checkpoint
 
-Authoritative source: MASTER_PROMPT.md (verbatim, SHA2561f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9). All290IDs,40journeys and10screenshots preserved.
+Updated UTC: 2026-09-23T21:29:27.581668+00:00
 Worktree: /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation
-Branch: codex/run10-beta-reliability-foundation; PR20 remains OPEN/DRAFT. Start709816a7e6d0779b45c48d729c69e0eabd671f0e; base95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90.
-Pushed checkpoints: d36d204bed91a44a8887a069d61b9da355511e58 (brief/CI/crypto/storage), cc99409983e87eb04f7c27d1faf904c5752d493f (visual/Health daily).
-Checkpoint02c5e180c4f3738c5579e637a07d6e37c6074d14 verified equal remote branch via git ls-remote. Includes Today/widgets/creator, financial revisions/lifecycle, storage/backup integration, encrypted coordinator+isolatedWorker, barcode+isolatedWorker and ecosystem. Pending localwork: boundedmarketadapter/catalogdedupe, Habit rules/timer, mandatory account/sync application integration. Preserve all; disjoint ownership active.
-Core sync is NOT complete. No hosted auth/backend/email configured; integrated local account-scoped encrypted app transport now exercised; no physical-device or hosted proof. Full acceptance cannot be marked complete.
-Verified local subsets: visual71units+9browser;Health42units+18browser;Today8units+24browser;storage migration/crypto/backup/coordinator+account focusedchecks and2Settingsbrowser;runtimeWorkers2fixturetests;food2browser+36Healthunits;ecosystem40units+4browser. Final integration pending.
-Next: finish financial/Habit and market slices; run fullunit/lint/typecheck/build/browser/security; reconcile290IDs and40journeys against actualevidence, independentreview then checkpoint+push.
-Node24.19.0 path /Users/AIUSER/.local/share/fnm/node-versions/v24.19.0/installation/bin ; pnpm11.19.0. Preview127.0.0.1:3110. Browser/runtime commands need loopback permission and distinct /private/tmp output dirs.
-Backups: .superpowers/run10/recovery and agent-evidence docs; code only, not ownerprivatebrowserdata. No ownerrecords were read/exported/migrated.
-NovaVault project path verified/read; no mirrorwrite yet. No merge/deploy/live migration/paidservice/financialsignature.
-Updated UTC: 2026-09-23T20:31:41.706982+00:00
+Branch: codex/run10-beta-reliability-foundation. PR #20 OPEN/DRAFT; no merge or activation authorized.
+Authoritative brief: MASTER_PROMPT.md, verbatim SHA256 1f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9. All 290 requirements, 40 journeys and 10 ordered screenshots remain in the ledger. User selects High/standard without scope reduction.
+Starting head: 709816a7e6d0779b45c48d729c69e0eabd671f0e. Verified base: 95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90.
+Last verified pushed head: 8d998b00ff35db8469c1fc54654c54d316f0105c (local, remote branch and PR head matched). Earlier checkpoints: d36d204, cc99409, 10d89d1, 02c5e18, 5fa0aac. Current source changes after that checkpoint are listed by git status; do not reset them.
 
-Ownerbudgetsteering: continueHigh/standard; avoidduplicateinvestigations/broadretests; prioritizeintegratedmandatoryjourneys. RecommendedSupabaseOTP+isolatedCloudflareWorker path; nofixtureauthasphonesync.
-Pendingcodebackup: /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation/.superpowers/run10/recovery/pending-20260923T204429Z.zip (source-only; SHA256receipt alongside).
-Nextthree: finishaccountnamespace/OTPUI + encryptedvaultapplicationloop; integrate activeHabit/markethelperoutputs withledger; finaltargetedthenfullverification/review/sourcecheckpoint.
+Implemented: screenshot/UI fixes, Today customization/Goal creation, Health diary/barcode, Habit effective-date rules/reviewed timers, immutable financial plan revisions/funding corrections, ecosystem directory, canonical CI environment policy, local IndexedDB migration/encrypted backup, email OTP adapter/account isolation and integrated encrypted app sync. Latest root slice adds durable named-session revocation, strict provider+registry validation, backup account-generation fences, acknowledgement of captured outbox operations only, and hidden-tab polling suspension. No claim that every requirement is verified.
+Current root verification: session adapter/runtime + real two-browser local backend journey 12/12 passed in 7.51s; focused root lint passed with no output. Log: /private/tmp/run10-session-final.log. Browser proof uses fixture email identity; actual WebCrypto/IndexedDB/Worker persistence and independent browser profiles. Not hosted or physical-phone proof. Prior full units had 1295 passed, one provider-harness failure subsequently corrected/passed, one opt-in browser skip; final integrated rerun remains due.
 
-Integration checkpoint UTC 2026-09-23T21:07:21.648818+00:00: all prior helpers frozen; their code preserved. New two-profile actual-app/real-local-Worker Habit sync passes5.50s with fixture OTP. Account/food/recovery10desktop browserchecks pass16.6s. Fullunits1295pass/1failed diagnostic provider harness/1explicit browseropt-in skipped; unchanged diagnostic assertions now1/1pass after actuallayout provider wrapper. Full finalrerun/build/review pending. Core lifecycle remains incomplete (deletion, keyepochs/device revocation, conflict UI, full offline/domain matrix).
-Next: verify/push this checkpoint, obtain per-ID helper reconciliation shards without code workstreams, finish mandatory missing behavior, full final verification/independent review/recovery evidence. Owner setup is one recommended path in OWNER_ACTIVATION.md.
+Active helpers (preserve their changes): health_daily owns financial-events/positions performance evidence UI + Goal/Habit copy fixes; shared_visuals owns selected staking/allocation widgets and global status; canonical_ci owns opt-in durable market route/Worker binding. All are finishing bounded slices, then frozen for integration/review. Per-ID reconciliation shards live in docs/run10/reconciliation; helper completion is not workstream acceptance.
+Core gaps remain: account deletion, key rotation, initial local attach/import, incremental lifetime sync/compaction, full offline/conflict resolution UI and multi-domain two-client matrix, unbounded durable financial history/paged app readers, remaining mandatory financial/Habit/Health/visual journeys. Hosted backend/email and physical-device checks require owner configuration; code gaps are not owner blockers. Preserve original scope and exact per-ID gaps.
+
+Next three actions:
+1. Finish/preserve active helper slices; independently review financial methodology and root auth/session/sync changes; correct findings.
+2. Freeze source and run pinned full lint/typecheck/unit/build, deployment config/landing/Alpha dry-run + packaged security browser checks, relevant contract/canonical gates, security/dependency scans; record exact-source results without repeating unaffected broad tests.
+3. Reconcile every requirement/journey/helper disposition, final 12-section report, update STATUS/NovaVault/recovery receipts; checkpoint/push and verify remote SHA/PR draft state.
+
+Runtime: prepend /Users/AIUSER/.local/share/fnm/node-versions/v24.19.0/installation/bin to PATH (Node24.19.0, pnpm11.19.0). Preview http://127.0.0.1:3110. Local browser/Miniflare tools require loopback permission. Stop dev before production/Alpha builds to avoid .next collisions.
+Resume: cd '/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation' then git status --short; read this file, REQUIREMENTS.json and latest evidence/review. Do not restart or re-read the entire brief.
+Pending-source backup: /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation/.superpowers/run10/recovery/pending-20260923T212927Z.zip
+SHA256: 8bbfb7abc35a9494b5cd1d45226500366b2d508277ba6e06cd9c75d6991e929b. Receipt alongside includes every archived file and base head. Source-only; no owner private data was exported or migrated.
+NovaVault sanitized mirror: /Users/AIUSER/Documents/NovaVault/30-Projects/Personal AI Lab/ZIGoals/Release Evidence/Run 10 Actual Checkpoint.md (8d checkpoint; refresh after final integration). Project Map links it; prior file backups retained.
+Owner path/checklist: OWNER_ACTIVATION.md (Supabase email OTP + verified SMTP + isolated Cloudflare ciphertext Worker). No real OTP delivery, hosted sync, physical-device acceptance, deployment, live migration, paid subscription or financial signature occurred.

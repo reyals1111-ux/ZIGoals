@@ -7,7 +7,7 @@ test('configuration and cross-origin fail closed before external calls',async()=
  expect((await privateAccountRequest(new Request('https://app.test/api/private-account'),null,fetcher)).status).toBe(503);
 });
 test('OTP adapter protects token in HttpOnly cookie and excludes credentials from public response',async()=>{
- const upstream=vi.fn(async()=>Response.json({access_token:'fixture-token',expires_in:3600,user:{id:crypto.randomUUID()}}));
+ const upstream=vi.fn(async(url)=>String(url).endsWith('/v1/sessions')?Response.json({registered:true,id:crypto.randomUUID()}):Response.json({access_token:'fixture-token',expires_in:3600,user:{id:crypto.randomUUID()}}));
  const req=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'a@example.com',code:'123456'})});
  const result=await privateAccountRequest(req,config,upstream);expect(result.status).toBe(200);expect(result.headers.get('set-cookie')).toContain('HttpOnly');expect(result.headers.get('set-cookie')).toContain('Secure');expect(await result.text()).not.toContain('fixture-token');
 });
@@ -32,11 +32,12 @@ test('signout clears the local session even when upstream revocation cannot be c
 test('verify returns only the validated provider account identity, never credentials',async()=>{
  const id='10000000-0000-4000-8000-000000000001';
  const request=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'fixture@example.com',code:'123456'})});
- const result=await privateAccountRequest(request(),config,async()=>Response.json({access_token:'fixture-token',expires_in:3600,user:{id,email:'fixture@example.com'}}));expect(await result.json()).toEqual({signedIn:true,accountId:id});
+ const result=await privateAccountRequest(request(),config,async url=>String(url).endsWith('/v1/sessions')?Response.json({registered:true,id:crypto.randomUUID()}):Response.json({access_token:'fixture-token',expires_in:3600,user:{id,email:'fixture@example.com'}}));expect(await result.json()).toEqual({signedIn:true,accountId:id});
  const invalid=await privateAccountRequest(request(),config,async()=>Response.json({access_token:'fixture-token',expires_in:3600,user:{id:'bad'}}));expect(invalid.status).toBe(400);expect(invalid.headers.get('set-cookie')).toBeNull();
 });
 test('identity status verifies the cookie at the auth provider and never reads the vault',async()=>{
  const result=await privateAccountRequest(new Request('https://app.test/api/private-account?action=status',{headers:{cookie:'zigoals_session=fixture-token'}}),config,async(input,init)=>{
+  if(String(input).endsWith('/v1/sessions'))return Response.json({sessions:[]});
   expect(input).toBe('https://test.supabase.co/auth/v1/user');expect(new Headers(init?.headers).get('authorization')).toBe('Bearer fixture-token');return Response.json({id:'10000000-0000-4000-8000-000000000001',email:'fixture@example.com'});
  });expect(await result.json()).toEqual({signedIn:true,accountId:'10000000-0000-4000-8000-000000000001'});
  const missing=await privateAccountRequest(new Request('https://app.test/api/private-account?action=status'),config,async()=>{throw Error('must not fetch');});expect(await missing.json()).toEqual({signedIn:false});
@@ -44,4 +45,13 @@ test('identity status verifies the cookie at the auth provider and never reads t
 test('signout clears cookies even after hosted configuration disappears',async()=>{
  const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'zigoals_session=fixture-token'},body:'{"action":"signout"}'});
  const result=await privateAccountRequest(request,null,async()=>{throw Error('must not fetch');});expect(result.status).toBe(200);expect(result.headers.get('set-cookie')).toContain('Max-Age=0');expect(await result.json()).toEqual({signedOut:true,remoteRevocationConfirmed:false});
+});
+
+test('provider verification cannot open an app session unless durable registration succeeds',async()=>{
+ const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'fixture@example.com',code:'123456'})});
+ const res=await privateAccountRequest(request,config,async url=>String(url).endsWith('/v1/sessions')?Response.json({error:'SESSION_REVOKED'},{status:401}):Response.json({access_token:'fixture-token',expires_in:3600,user:{id:crypto.randomUUID()}}));expect(res.status).toBe(400);expect(res.headers.has('set-cookie')).toBe(false);
+});
+test('a revoked durable session is locked even when provider token still validates',async()=>{
+ const req=new Request('https://app.test/api/private-account?action=status',{headers:{cookie:'zigoals_session=fixture-token'}});
+ const res=await privateAccountRequest(req,config,async url=>String(url).endsWith('/v1/sessions')?Response.json({error:'SESSION_REVOKED'},{status:401}):Response.json({id:crypto.randomUUID()}));expect(res.status).toBe(401);expect(res.headers.get('set-cookie')).toContain('Max-Age=0');
 });

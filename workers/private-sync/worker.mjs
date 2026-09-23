@@ -1,3 +1,4 @@
+import {sessionAllowed,sessionsRequest} from './sessions.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DOMAINS=new Set(['finance','health','habits','settings']);
@@ -10,8 +11,8 @@ async function boundedJSON(request,max=1_000_000){
  try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>max)throw Error('size');chunks.push(value);}}catch(error){await reader.cancel().catch(()=>{});throw error;}
  const data=new Uint8Array(size);let offset=0;for(const c of chunks){data.set(c,offset);offset+=c.length;}return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(data));
 }
-export default {async fetch(request,env){
- const url=new URL(request.url);if(url.pathname!=='/v1/vault'||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
+const privateSyncWorker={async fetch(request,env){
+ const url=new URL(request.url);if(!['/v1/vault','/v1/sessions'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(env.AUTH_ORIGIN??'')||!env.AUTH_PUBLIC_KEY||!env.APP_ORIGIN)return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
  if(request.headers.get('origin')!==env.APP_ORIGIN)return response({error:'ORIGIN_DENIED'},403);
  const token=request.headers.get('authorization');if(!token||!/^Bearer [A-Za-z0-9._-]{1,4096}$/.test(token))return response({error:'SIGN_IN_REQUIRED'},401);
@@ -20,11 +21,15 @@ export default {async fetch(request,env){
  if(!UUID.test(user?.id))return response({error:'SIGN_IN_REQUIRED'},401);
  if(request.headers.get('x-zigoals-account')?.toLowerCase()!==user.id.toLowerCase())return response({error:'ACCOUNT_CHANGED'},409);
  // Client-supplied account/vault identifiers never select another tenant's object.
- const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id));return stub.fetch(request);
+ const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id)),headers=new Headers(request.headers);headers.set('x-zigoals-token-hash',[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(v=>v.toString(16).padStart(2,'0')).join(''));return stub.fetch(new Request(request,{headers}));
 }};
+export default privateSyncWorker;
 export class PrivateVault{
  constructor(state){this.state=state;}
  async fetch(request){
+  if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON);
+  const sessionHash=request.headers.get('x-zigoals-token-hash');
+  if(!await sessionAllowed(this.state.storage,sessionHash))return response({error:'SESSION_REVOKED'},401);
   if(request.method==='GET'){
    const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'';
    if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return response({error:'INVALID_CURSOR'},400);
@@ -38,6 +43,7 @@ export class PrivateVault{
   const ids=new Set();for(const row of input.changes){if(!exact(row,['id','domain','revision','epoch','envelope','deleted'])||!UUID.test(row.id)||ids.has(row.id)||!DOMAINS.has(row.domain)||!Number.isSafeInteger(row.revision)||row.revision<1||row.epoch!==1||typeof row.deleted!=='boolean'||!envelope(row.envelope))return response({error:'INVALID_RECORD'},400);ids.add(row.id);}
   const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input))))].map(x=>x.toString(16).padStart(2,'0')).join('');
   return this.state.storage.transaction(async store=>{
+   if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
    const old=await store.get(`receipt:${input.operation}`);if(old)return old.digest===digest?response({revision:old.revision,replayed:true}):response({error:'OPERATION_REUSED'},409);
    const revision=await store.get('revision')??0;if(revision!==input.base)return response({error:'REVISION_CONFLICT',revision},409);
    const currentManifest=await store.get('manifest');if(input.manifest&&currentManifest)return response({error:'VAULT_ALREADY_EXISTS'},409);

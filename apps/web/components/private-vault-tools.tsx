@@ -1,6 +1,7 @@
 'use client';
 import {StorageHealth} from './storage-health';
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
+import {ACCOUNT_CHANGE,getAccountGeneration} from '../lib/account-session';
 import {usePlatform} from './platform/use-platform';
 import {useHabits} from './habits/use-habits';
 import {useHealth} from './health/use-health';
@@ -18,6 +19,7 @@ export function PrivateVaultTools(){
  const stores={finance,habits,health,settings};const [domain,setDomain]=useState<Domain>('health'),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
  const [generated,setGenerated]=useState<{file:string;recovery:string}|null>(null),[saved,setSaved]=useState(false),[file,setFile]=useState(''),[secret,setSecret]=useState(''),[preview,setPreview]=useState<Partial<Record<Domain,string>>|null>(null),[confirm,setConfirm]=useState(false);
  const [healthConsent,setHealthConsent]=useState(false);
+ useEffect(()=>{const clear=()=>{setGenerated(null);setSaved(false);setPreview(null);setFile('');setSecret('');setConfirm(false);setHealthConsent(false);setMessage('');setError('');};window.addEventListener(ACCOUNT_CHANGE,clear);return()=>window.removeEventListener(ACCOUNT_CHANGE,clear);},[]);
  async function run(work:()=>Promise<void>){if(busy)return;setBusy(true);setError('');setMessage('');try{await work();}catch(e){setError(e instanceof Error?e.message:'Operation failed. Existing records were preserved.');}finally{setBusy(false);}}
  async function upgrade(){
   if(isShowcase())throw Error('Return to your data before changing private storage.');const storage=getAppStorage();
@@ -31,11 +33,12 @@ export function PrivateVaultTools(){
  async function makeBackup(){
   if(isShowcase())throw Error('Return to your own data before backing up.');
   if(Object.values(stores).some(s=>!s.loaded||s.error))throw Error('Resolve unreadable data before creating a backup.');
-  const data:Partial<Record<Domain,string>>={};for(const key of ['finance','habits','settings',...(healthConsent?['health']:[])] as Domain[])data[key]=await stores[key].exportData();
-  setGenerated(await encryptBackup(data));setSaved(false);
+  const selected=getAppStorage(),generation=getAccountGeneration();const fence=()=>{if(generation!==getAccountGeneration()||selected!==getAppStorage())throw Error('Account changed. Backup preparation was cancelled.');};
+  const data:Partial<Record<Domain,string>>={};for(const key of ['finance','habits','settings',...(healthConsent?['health']:[])] as Domain[]){fence();data[key]=await stores[key].exportData();fence();}
+  const encrypted=await encryptBackup(data);fence();setGenerated(encrypted);setSaved(false);
  }
  function download(){if(!generated||!saved)return;const url=URL.createObjectURL(new Blob([generated.file],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='zigoals-encrypted-backup-v1.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setGenerated(null);setSaved(false);setMessage('Encrypted backup downloaded. Keep its recovery secret separately.');}
- async function review(){const parsed=await decryptBackup(file,secret);for(const [key,value] of Object.entries(parsed)){const schema={finance:platformSchema,habits:habitDataSchema,health:healthSchema,settings:dashboardSettingsSchema}[key as Domain];schema.parse(JSON.parse(value));}setPreview(parsed);setDomain(Object.keys(parsed)[0] as Domain);setSecret('');setConfirm(false);}
+ async function review(){const generation=getAccountGeneration();const parsed=await decryptBackup(file,secret);if(generation!==getAccountGeneration())throw Error('Account changed. Backup preview was cancelled.');for(const [key,value] of Object.entries(parsed)){const schema={finance:platformSchema,habits:habitDataSchema,health:healthSchema,settings:dashboardSettingsSchema}[key as Domain];schema.parse(JSON.parse(value));}setPreview(parsed);setDomain(Object.keys(parsed)[0] as Domain);setSecret('');setConfirm(false);}
  const key={finance:PLATFORM_KEY,habits:HABITS_KEY,health:HEALTH_STORAGE_KEY,settings:DASHBOARD_SETTINGS_KEY}[domain];
  let durable=false;try{durable=isDurableMarker(getAppStorage().getItem(key));}catch{}
  return <section className="panel" id="private-vault"><p className="eyebrow">PRIVATE RECOVERY</p><h2>Keep a protected copy.</h2>
