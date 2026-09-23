@@ -1,0 +1,584 @@
+{
+  "reviewedAt": "2026-09-23",
+  "sourceSet": [
+    "Existing packages/ecosystem-registry/src/providers.json at baseline709816a",
+    "https://zigchain.com/ (Explore Our Ecosystem plus named product and builder resources)",
+    "https://docs.zigchain.com/users/tools/block-explorers (mainnet/testnet explorer lists)",
+    "https://docs.zigchain.com/wealth-management-engine/",
+    "Individual provider destinations listed below"
+  ],
+  "method": "Official primary pages opened read-only through web research; content retrieval or dynamic shell is not a transaction, audit, uptime guarantee or integration test. No secondary project directories expanded scope. Duplicate mainnet/testnet explorer names are retained as one candidate with distinct network links.",
+  "candidateCount": 22,
+  "searchableProviderCount": 18,
+  "entries": [
+    {
+      "id": "valdora",
+      "name": "Valdora",
+      "category": "Staking & vaults",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://valdora.finance/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://valdora.finance/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://valdora.finance/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-16",
+      "description": "Vault infrastructure and liquid staking with stZIG, according to Valdora.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://valdora.finance/",
+          "review": "Primary page content reviewed"
+        },
+        {
+          "kind": "App",
+          "url": "https://valdora.finance/vaults",
+          "evidence": "https://valdora.finance/",
+          "review": "Official destination linked and opened; dynamic pages were not functionally tested"
+        },
+        {
+          "kind": "Docs",
+          "url": "https://docs.valdora.finance/",
+          "evidence": "https://valdora.finance/",
+          "review": "Official destination linked and opened; dynamic pages were not functionally tested"
+        }
+      ]
+    },
+    {
+      "id": "oroswap",
+      "name": "OroSwap",
+      "category": "Trading",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://www.oroswap.org/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://www.oroswap.org/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://www.oroswap.org/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "A decentralized exchange on ZIGChain with swap and liquidity tools, according to OroSwap.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://www.oroswap.org/",
+          "review": "Primary page content reviewed"
+        },
+        {
+          "kind": "App",
+          "url": "https://app.oroswap.org/",
+          "evidence": "https://www.oroswap.org/",
+          "review": "Official destination linked and opened; dynamic pages were not functionally tested"
+        },
+        {
+          "kind": "Docs",
+          "url": "https://docs.oroswap.org/",
+          "evidence": "https://docs.oroswap.org/",
+          "review": "Official destination linked and opened; dynamic pages were not functionally tested"
+        }
+      ]
+    },
+    {
+      "id": "permapod",
+      "name": "PermaPod",
+      "category": "Lending & real assets",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://github.com/permapod-zigchain",
+      "inclusionBasis": "Existing repository research record; not inferred as current homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://github.com/permapod-zigchain/permapod-skills",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://permapod.xyz/",
+      "linkReview": "Unavailable in web review; action omitted",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://github.com/permapod-zigchain/permapod-skills",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Existing research describes lending infrastructure on ZIGChain. The project website could not be retrieved in this review.",
+      "actions": []
+    },
+    {
+      "id": "nawa",
+      "name": "Nawa",
+      "category": "Staking & vaults",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://zigchain.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://www.nawa.finance/",
+      "linkReview": "Official destination returned dynamic shell; functional behavior not tested",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://zigchain.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "ZIGChain lists Nawa as a DeFi project focused on ethical and Shariah-aligned finance. Certification claims remain separately unverified.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://www.nawa.finance/",
+          "review": "Official destination returned dynamic shell; functional behavior not tested"
+        }
+      ]
+    },
+    {
+      "id": "zig-markets",
+      "name": "ZIG Markets",
+      "category": "Lending & real assets",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://zigmarkets.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://zigmarkets.com/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://zigmarkets.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Investment product curation and distribution, according to ZIG Markets. Product access and eligibility vary.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://zigmarkets.com/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "zignaly",
+      "name": "Zignaly",
+      "category": "Trading",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://zignaly.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://zignaly.com/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://zignaly.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Rules-based crypto investment portfolios, according to Zignaly. ZIGoals does not manage or connect exchange accounts.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://zignaly.com/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "wme",
+      "name": "ZIGChain Wealth Management Engine (WME)",
+      "category": "Institutional infrastructure",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://docs.zigchain.com/wealth-management-engine/",
+      "inclusionBasis": "Existing repository research record; not inferred as current homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://docs.zigchain.com/wealth-management-engine/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://docs.zigchain.com/wealth-management-engine/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://docs.zigchain.com/wealth-management-engine/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-16",
+      "description": "ZIGChain’s planned wealth-management architecture. Current documentation does not provide a usable ZIGoals execution interface.",
+      "actions": [
+        {
+          "kind": "Docs",
+          "url": "https://docs.zigchain.com/wealth-management-engine/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "zamanat",
+      "name": "Zamanat",
+      "category": "Lending & real assets",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://www.zamanathq.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://www.zamanathq.com/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://www.zamanathq.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "An orchestrator for tokenized investment products with a Shariah-aligned focus, according to Zamanat.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://www.zamanathq.com/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "defa-invoicemate",
+      "name": "DeFa / InvoiceMate",
+      "category": "Lending & real assets",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://imdefa.com/",
+      "inclusionBasis": "Existing repository research record; not inferred as current homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://imdefa.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://imdefa.com/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://imdefa.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Receivables and payment-settlement liquidity infrastructure, according to DeFa. Terms and access require separate review.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://imdefa.com/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "beehive",
+      "name": "Beehive",
+      "category": "Lending & real assets",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://www.beehive.ae/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://www.beehive.ae/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://www.beehive.ae/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "A business-financing marketplace connecting SMEs and investors, according to Beehive.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://www.beehive.ae/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "ondo",
+      "name": "Ondo Finance",
+      "category": "Lending & real assets",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://ondo.finance/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://ondo.finance/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://ondo.finance/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Tokenized financial products, including treasury and equity exposure, according to Ondo. Product eligibility remains separate.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://ondo.finance/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "taurus",
+      "name": "Taurus",
+      "category": "Institutional infrastructure",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://www.taurushq.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://www.taurushq.com/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://www.taurushq.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Digital asset custody and tokenization infrastructure for institutions, according to Taurus.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://www.taurushq.com/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "apex-group",
+      "name": "Apex Group",
+      "category": "Institutional infrastructure",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://www.apexgroup.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://www.apexgroup.com/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://www.apexgroup.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Fund administration and related financial services, according to Apex Group. A service relationship does not establish a ZIGoals adapter.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://www.apexgroup.com/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "noble",
+      "name": "Noble",
+      "category": "Funding rails",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://help.circle.com/support/en/a-closer-look-at-usdc-on-noble-and-the-ibc-protocol?id=kb_article_view&sysparm_article=KB0010582",
+      "inclusionBasis": "Existing repository research record; not inferred as current homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://noble.xyz/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://noble.xyz/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://noble.xyz/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Stablecoin infrastructure, according to Noble. Historical USDC routes retain the existing issuer-sunset restriction.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://noble.xyz/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "axelar",
+      "name": "Axelar",
+      "category": "Funding rails",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://docs.axelar.dev/resources/static-configs/static-configs/",
+      "inclusionBasis": "Existing repository research record; not inferred as current homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://axelar.network/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://axelar.network/",
+      "linkReview": "Primary page content reviewed",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://axelar.network/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "Cross-chain connectivity infrastructure, according to Axelar. Individual asset routes require separate validation.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://axelar.network/",
+          "review": "Primary page content reviewed"
+        }
+      ]
+    },
+    {
+      "id": "range",
+      "name": "Range",
+      "category": "Network tools",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://docs.zigchain.com/users/tools/block-explorers",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://app.range.org/zigchain-testnet/general",
+      "linkReview": "Official destination returned dynamic shell; functional behavior not tested",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://docs.zigchain.com/users/tools/block-explorers",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "A blockchain explorer and intelligence destination linked by ZIGChain. ZIGoals supports informational navigation only.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://app.range.org/zigchain-testnet/general",
+          "review": "Official destination returned dynamic shell; functional behavior not tested"
+        }
+      ]
+    },
+    {
+      "id": "zigscan",
+      "name": "ZIGScan",
+      "category": "Network tools",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://docs.zigchain.com/users/tools/block-explorers",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://testnet.zigscan.org/",
+      "linkReview": "Official destination returned dynamic shell; functional behavior not tested",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://docs.zigchain.com/users/tools/block-explorers",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "A ZIGChain block explorer linked by the official network documentation. Existing known-record links remain separate from receipt verification.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://testnet.zigscan.org/",
+          "review": "Official destination returned dynamic shell; functional behavior not tested"
+        }
+      ]
+    },
+    {
+      "id": "zigchain-hub",
+      "name": "ZIGChain Hub",
+      "category": "Network tools",
+      "disposition": "Included in searchable directory; existing capability gates retained",
+      "inclusionSource": "https://zigchain.com/",
+      "inclusionBasis": "Official network homepage listing",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://zigchain.com/",
+      "descriptionKind": "Short attributed paraphrase; prior research explicitly labeled when current site inaccessible",
+      "website": "https://hub.zigchain.com/",
+      "linkReview": "Official destination returned dynamic shell; functional behavior not tested",
+      "logo": {
+        "status": "Initials fallback",
+        "source": "https://zigchain.com/",
+        "reason": "No locally validated official brand asset or usage permission recorded; no logo downloaded or hotlinked"
+      },
+      "capabilityEvidenceDate": "2026-09-13",
+      "description": "ZIGChain’s own network, validator and governance interface. Check the network selected by the external app.",
+      "actions": [
+        {
+          "kind": "Website",
+          "url": "https://hub.zigchain.com/",
+          "review": "Official destination returned dynamic shell; functional behavior not tested"
+        }
+      ]
+    },
+    {
+      "id": "ziglabs",
+      "name": "ZIGLabs",
+      "category": "Builder resources",
+      "disposition": "Included in additional resource links; not a financial-provider record",
+      "inclusionSource": "https://zigchain.com/",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://zigchain.com/",
+      "website": "https://ziglabs.vc/",
+      "linkReview": "Primary search result returned official content; initial direct fetch failed",
+      "logo": {
+        "status": "No logo displayed",
+        "source": "https://zigchain.com/",
+        "reason": "No safe local official asset reviewed"
+      }
+    },
+    {
+      "id": "nodestake",
+      "name": "NodeStake",
+      "category": "Network tools",
+      "disposition": "Included in additional resource links; no detail route integration",
+      "inclusionSource": "https://docs.zigchain.com/users/tools/block-explorers",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://docs.zigchain.com/users/tools/block-explorers",
+      "website": "https://explorer.nodestake.org/zigchain",
+      "linkReview": "Mainnet page content reviewed; testnet destination returned shell",
+      "logo": {
+        "status": "No logo displayed",
+        "source": "https://docs.zigchain.com/users/tools/block-explorers",
+        "reason": "No safe local official asset reviewed"
+      }
+    },
+    {
+      "id": "stake-and-relax",
+      "name": "Stake & Relax",
+      "category": "Network tools",
+      "disposition": "Included in additional resource links; no detail route integration",
+      "inclusionSource": "https://docs.zigchain.com/users/tools/block-explorers",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://docs.zigchain.com/users/tools/block-explorers",
+      "website": "https://explorer.stakeandrelax.net/zigchain",
+      "linkReview": "Official destination returned dynamic shell",
+      "logo": {
+        "status": "No logo displayed",
+        "source": "https://docs.zigchain.com/users/tools/block-explorers",
+        "reason": "No safe local official asset reviewed"
+      }
+    },
+    {
+      "id": "unnamed-rwa-social",
+      "name": "Unnamed RWA lending social listing",
+      "category": "Lending & real assets",
+      "disposition": "Deferred: destination could not be retrieved; identity not assumed to be PermaPod",
+      "inclusionSource": "https://zigchain.com/",
+      "reviewedAt": "2026-09-23",
+      "descriptionSource": "https://zigchain.com/",
+      "website": null,
+      "linkReview": "Official homepage link labeled The only RWA lending protocol; web retrieval failed",
+      "logo": {
+        "status": "No logo displayed",
+        "source": "https://zigchain.com/",
+        "reason": "No safe local official asset reviewed"
+      }
+    }
+  ],
+  "nonCandidateResources": "Homepage community/social invite, generic Builders application, whitepapers and documentation links are network resources rather than distinct projects; not inflated into provider cards. No source claims perpetual exhaustiveness."
+}

@@ -11,6 +11,7 @@ import {
 } from "../../lib/health";
 import { addLocalDays } from "../../lib/local-date";
 import { useHealth } from "./use-health";
+import { BarcodeFoodLookup } from "./barcode-food-lookup";
 import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
 import { bodyWeightGrams, dailyData, healthDay, servingsFromGrams } from "../../lib/health-daily";
@@ -89,7 +90,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && <p className="health-error" role="alert">{error}</p>}
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <DiaryView data={data} date={date} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} />}
+      {view === "Diary" && <><DiaryView data={data} date={date} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={date} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
@@ -98,7 +99,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Targets" && <TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} />}
     </fieldset>
     {view === "Diary" && <details className="health-patterns"><summary>Explore nutrition patterns and exact history</summary><NutritionDashboard data={data} date={date} /></details>}
-    <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Coming soon · Not available yet</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section><p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
+    <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section><p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
   </div>;
 }
 

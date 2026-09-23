@@ -1,294 +1,294 @@
-# Actual Run #10 requirements
-
-Full authoritative wording and individual acceptance criteria are retained in REQUIREMENTS.json and MASTER_PROMPT.md. High overrides the setting only.
-
-- GOV-01 — Define the outcome through real use: NOT_STARTED
-- GOV-02 — Treat the expanded scope as authoritative: NOT_STARTED
-- GOV-03 — Implement, verify, then report: NOT_STARTED
-- GOV-04 — No authority to transact financially: NOT_STARTED
-- GOV-05 — Preserve owner-controlled release: NOT_STARTED
-- GOV-06 — Use existing resources without surprise costs: NOT_STARTED
-- GOV-07 — Separate consumer infrastructure from the personal lab: NOT_STARTED
-- GOV-08 — Make scope ambitious but measurable: NOT_STARTED
-- GOV-09 — Continue independent work, not unsafe dependencies: NOT_STARTED
-- GOV-10 — Keep the product recognizably ZIGoals: NOT_STARTED
-- SRC-01 — Verify source before editing: NOT_STARTED
-- SRC-02 — Preserve the preparatory implementation: NOT_STARTED
-- SRC-03 — Preserve distinct release identities: NOT_STARTED
-- SRC-04 — Carry forward the known CI issue accurately: NOT_STARTED
-- SRC-05 — Read required repository records in full where available: NOT_STARTED
-- SRC-06 — Locate original roadmap and owner material without invention: NOT_STARTED
-- SRC-07 — Reconcile the ten screenshots explicitly: NOT_STARTED
-- SRC-08 — Discover and update the real NovaVault location safely: NOT_STARTED
-- SRC-09 — Resolve evidence precedence: NOT_STARTED
-- SRC-10 — Preserve the full brief and a source register: NOT_STARTED
-- TRC-01 — Create a machine-checkable requirements ledger: NOT_STARTED
-- TRC-02 — Use truthful status vocabulary: NOT_STARTED
-- TRC-03 — Reconcile original scope, not only your summary: NOT_STARTED
-- TRC-04 — Verify dependency stages before building on them: NOT_STARTED
-- TRC-05 — Separate product completion from test count: NOT_STARTED
-- TRC-06 — Add an automated reconciliation check: NOT_STARTED
-- TRC-07 — Require independent final review against this original file: NOT_STARTED
-- TRC-08 — Preserve evidence after late fixes: NOT_STARTED
-- RUN-01 — Plan an extended run, not a small first checkpoint: NOT_STARTED
-- RUN-02 — Protect finishing capacity: NOT_STARTED
-- RUN-03 — Apply a bounded blocker policy: NOT_STARTED
-- RUN-04 — Do not confuse productive test iteration with a retry loop: NOT_STARTED
-- RUN-05 — Park safely and continue independently: NOT_STARTED
-- RUN-06 — Checkpoint throughout, not only near exhaustion: NOT_STARTED
-- RUN-07 — Keep interruption state continuously current: NOT_STARTED
-- RUN-08 — Distinguish code backups from private-data backups: NOT_STARTED
-- RUN-09 — Respect worktree and branch ownership: NOT_STARTED
-- RUN-10 — Use parallelism only where it reduces risk: NOT_STARTED
-- RUN-11 — Bound external traffic: NOT_STARTED
-- RUN-12 — Handle owner setup early without blocking the entire run: NOT_STARTED
-- UX-01 — Inspect the real application before redesigning: NOT_STARTED
-- UX-02 — Brainstorm once, then choose a coherent direction: NOT_STARTED
-- UX-03 — Exercise human journeys, not just individual pages: NOT_STARTED
-- UX-04 — Reduce jargon without weakening meaning: NOT_STARTED
-- UX-05 — Make empty and partial states attractive: NOT_STARTED
-- UX-06 — Preserve branding exactly where requested: NOT_STARTED
-- UX-07 — Use one shared component system: NOT_STARTED
-- UX-08 — Prioritize daily usefulness and clarity: NOT_STARTED
-- SS-01 — Whole percentage labels and clockwise entrance: NOT_STARTED
-- SS-02 — Semantically correct nebula chart colors: NOT_STARTED
-- SS-03 — Relocate Quick Add into deliberate navigation: NOT_STARTED
-- SS-04 — Premium Goal creation and reusable forms: NOT_STARTED
-- SS-05 — Draw meaningful charts instead of dot-only plots: NOT_STARTED
-- SS-06 — Major sourced ecosystem and contextual-navigation upgrade: NOT_STARTED
-- SS-07 — Remove the washed-out italic sidebar motto: NOT_STARTED
-- SS-08 — Summary-first personalized Today widgets: NOT_STARTED
-- SS-09 — Graceful slogan/orbit entrance without perpetual motion: NOT_STARTED
-- SS-10 — Repair mobile overlap everywhere: NOT_STARTED
-- VIS-01 — Consistent numeric presentation without arithmetic drift: NOT_STARTED
-- VIS-02 — Shared motion policy: NOT_STARTED
-- VIS-03 — Standard charts with evidence-aware semantics: NOT_STARTED
-- VIS-04 — Forms and feedback that work across devices: NOT_STARTED
-- VIS-05 — Accessibility and readability are functional requirements: NOT_STARTED
-- VIS-06 — Preserve shared isolation during visual work: NOT_STARTED
-- AUTH-01 — Deliver a working sign-in path, not an account mockup: NOT_STARTED
-- AUTH-02 — Choose the implementation with a short evidence-based decision: NOT_STARTED
-- AUTH-03 — Identify delivery/setup dependencies immediately: NOT_STARTED
-- AUTH-04 — Treat login and decryption as separate capabilities: NOT_STARTED
-- AUTH-05 — Never use a server-visible login password as a secret encryption root: NOT_STARTED
-- AUTH-06 — Implement the full account lifecycle: NOT_STARTED
-- AUTH-07 — Keep auth sessions and routes safe: NOT_STARTED
-- AUTH-08 — Wallet connection is not proof of account ownership: NOT_STARTED
-- AUTH-09 — Isolate authentication signatures from financial execution: NOT_STARTED
-- AUTH-10 — Handle account linking deliberately: NOT_STARTED
-- AUTH-11 — Test new and existing local users separately: NOT_STARTED
-- AUTH-12 — Keep actual verification levels explicit: NOT_STARTED
-- ENC-01 — Write the threat model before cryptographic code: NOT_STARTED
-- ENC-02 — Use random keys and authenticated encryption: NOT_STARTED
-- ENC-03 — Separate Health and other private domains: NOT_STARTED
-- ENC-04 — Provide a real key-wrapping and recovery mechanism: NOT_STARTED
-- ENC-05 — Preserve keys safely across device sessions: NOT_STARTED
-- ENC-06 — New-device onboarding must preserve the existing vault: NOT_STARTED
-- ENC-07 — Support revocation and key epochs honestly: NOT_STARTED
-- ENC-08 — Keep account recovery distinct from data recovery: NOT_STARTED
-- ENC-09 — Bound encrypted exports and imports: NOT_STARTED
-- ENC-10 — Verify plaintext does not escape: NOT_STARTED
-- SYN-01 — Synchronize the useful private application, not just preferences: NOT_STARTED
-- SYN-02 — Use stable IDs and an explicit protocol: NOT_STARTED
-- SYN-03 — Make local persistence and the outbox atomic: NOT_STARTED
-- SYN-04 — Choose conflict semantics per data type: NOT_STARTED
-- SYN-05 — Financial operations require invariant-preserving concurrency: NOT_STARTED
-- SYN-06 — Preserve append-only evidence and corrections: NOT_STARTED
-- SYN-07 — Prevent deletion resurrection: NOT_STARTED
-- SYN-08 — Support offline use without pretending everything is synchronized: NOT_STARTED
-- SYN-09 — Fence account switching and late results: NOT_STARTED
-- SYN-10 — Implement server-side authorization on every path: NOT_STARTED
-- SYN-11 — Use a backend suited to transactional requirements: NOT_STARTED
-- SYN-12 — Keep sync efficient and bounded: NOT_STARTED
-- SYN-13 — Handle schema and protocol upgrades: NOT_STARTED
-- SYN-14 — Keep sync observability private: NOT_STARTED
-- SYN-15 — Prove the sync loop end to end: NOT_STARTED
-- SYN-16 — Report core sync failure prominently: NOT_STARTED
-- DAT-01 — Design one coordinated storage evolution: NOT_STARTED
-- DAT-02 — Use transactional storage for growing records: NOT_STARTED
-- DAT-03 — Preserve original bytes before switching: NOT_STARTED
-- DAT-04 — Handle other tabs and versions: NOT_STARTED
-- DAT-05 — Replace inadequate global history caps deliberately: NOT_STARTED
-- DAT-06 — Preserve lifecycle membership: NOT_STARTED
-- DAT-07 — Add backup/restore preview and safe choices: NOT_STARTED
-- DAT-08 — Make storage health visible: NOT_STARTED
-- DAT-09 — Separate data rollback from code rollback: NOT_STARTED
-- DAT-10 — Verify long-lived use: NOT_STARTED
-- DAT-11 — Prove the old capacity limitation is actually removed: NOT_STARTED
-- MKT-01 — Investigate the actual 503 path with controlled evidence: NOT_STARTED
-- MKT-02 — Preserve the partial-evidence trust boundary: NOT_STARTED
-- MKT-03 — Keep failures accurately classified: NOT_STARTED
-- MKT-04 — Preserve real account facts as dated evidence: NOT_STARTED
-- MKT-05 — Make operating policy concrete without activating guesses: NOT_STARTED
-- MKT-06 — Implement the durable serialized budget authority: NOT_STARTED
-- MKT-07 — Preserve lifecycle separation: NOT_STARTED
-- MKT-08 — Protect monitoring and interactive fairness: NOT_STARTED
-- MKT-09 — Choose a real shared-cache topology: NOT_STARTED
-- MKT-10 — Implement coalescing and fenced publication: NOT_STARTED
-- MKT-11 — Batch attempts without double charging: NOT_STARTED
-- MKT-12 — Implement scoped circuit breakers: NOT_STARTED
-- MKT-13 — Complete the public per-pair schema migration: NOT_STARTED
-- MKT-14 — Plan crash recovery, tombstones and period transitions: NOT_STARTED
-- MKT-15 — Add bounded privacy-safe observability: NOT_STARTED
-- MKT-16 — Keep acceptance multidimensional: NOT_STARTED
-- MKT-17 — Measure capacity synthetically: NOT_STARTED
-- MKT-18 — Keep activation separate and fail safely: NOT_STARTED
-- CI-01 — Diagnose before changing policy: NOT_STARTED
-- CI-02 — Resolve reproducibility deliberately: NOT_STARTED
-- CI-03 — Add positive and negative regression tests: NOT_STARTED
-- CI-04 — Preserve release trust boundaries: NOT_STARTED
-- FIN-01 — Preserve exact accounting as the foundation: NOT_STARTED
-- FIN-02 — Implement immutable plan revisions: NOT_STARTED
-- FIN-03 — Make installments revision-specific: NOT_STARTED
-- FIN-04 — Improve correction/reversal UX without silent balance edits: NOT_STARTED
-- FIN-05 — Keep Fund Goal atomic and surplus available: NOT_STARTED
-- FIN-06 — Explain wealth changes by known evidence: NOT_STARTED
-- FIN-07 — Add a transaction/performance evidence model: NOT_STARTED
-- FIN-08 — Implement performance metrics only with eligibility checks: NOT_STARTED
-- FIN-09 — Preserve currency boundaries and explicit FX evidence: NOT_STARTED
-- FIN-10 — Keep physical metals and tokenized references distinct: NOT_STARTED
-- FIN-11 — Define completion and reopening deliberately: NOT_STARTED
-- FIN-12 — Preserve income/reward distinctions: NOT_STARTED
-- FIN-13 — Make financial history useful in the interface: NOT_STARTED
-- FIN-14 — Test mixed lifecycle and sync scenarios: NOT_STARTED
-- FIN-15 — Reconcile optional projection/compounding scope: NOT_STARTED
-- WID-01 — Put a useful summary before the task list: NOT_STARTED
-- WID-02 — Deliver a genuine widget catalog: NOT_STARTED
-- WID-03 — Make configuration understandable: NOT_STARTED
-- WID-04 — Provide purposeful presets: NOT_STARTED
-- WID-05 — Preserve one source of truth: NOT_STARTED
-- WID-06 — Persist and sync layouts safely: NOT_STARTED
-- WID-07 — Support accessible reordering and narrow layouts: NOT_STARTED
-- WID-08 — Handle unavailable entities and integrity states: NOT_STARTED
-- WID-09 — Make quick actions consistent: NOT_STARTED
-- WID-10 — Verify the actual personalized experience: NOT_STARTED
-- GOAL-01 — Improve the full Goal lifecycle: NOT_STARTED
-- GOAL-02 — Make types asset-agnostic and understandable: NOT_STARTED
-- GOAL-03 — Integrate plans, installments and linked Habits: NOT_STARTED
-- GOAL-04 — Improve allocation workflows: NOT_STARTED
-- GOAL-05 — Make history and explanation first-class: NOT_STARTED
-- GOAL-06 — Verify meaningful journeys across modules: NOT_STARTED
-- AST-01 — Keep Wealth the canonical asset home: NOT_STARTED
-- AST-02 — Support the broad audience without fake coverage: NOT_STARTED
-- AST-03 — Make stablecoin tracking and Goals practical: NOT_STARTED
-- AST-04 — Improve market navigation with bounded requests: NOT_STARTED
-- AST-05 — Assess one additional read-only chain, not an unbounded multichain build: NOT_STARTED
-- AST-06 — Separate public-address reads from market requests: NOT_STARTED
-- AST-07 — Preserve portfolio and chart integrity: NOT_STARTED
-- AST-08 — Measure large-collection behavior: NOT_STARTED
-- HLT-01 — Build around a fast diary, not a decorative overview: NOT_STARTED
-- HLT-02 — Add Recent, Frequent and Favorites: NOT_STARTED
-- HLT-03 — Implement saved meals and meal copying: NOT_STARTED
-- HLT-04 — Improve custom foods and recipe calculations: NOT_STARTED
-- HLT-05 — Expand nutrient presentation without overclaiming: NOT_STARTED
-- HLT-06 — Add practical water logging: NOT_STARTED
-- HLT-07 — Improve weight and body-measurement history: NOT_STARTED
-- HLT-08 — Implement useful manual activity logging: NOT_STARTED
-- HLT-09 — Add a modest opt-in fasting log: NOT_STARTED
-- HLT-10 — Add practical meal planning and grocery-list basics: NOT_STARTED
-- HLT-11 — Make Health exports and corrections trustworthy: NOT_STARTED
-- HLT-12 — Integrate Health with Today and account privacy: NOT_STARTED
-- HLT-13 — Preserve Health timezone and unit correctness: NOT_STARTED
-- HLT-14 — Verify Health with real workflows and fictional test records: NOT_STARTED
-- FOOD-01 — Implement a free-capability path where verified: NOT_STARTED
-- FOOD-02 — Keep the scanner on-device: NOT_STARTED
-- FOOD-03 — Make manual barcode entry equally functional: NOT_STARTED
-- FOOD-04 — Require confirmation before nutrition logging: NOT_STARTED
-- FOOD-05 — Respect capacity and privacy: NOT_STARTED
-- FOOD-06 — Preserve licensing and attribution: NOT_STARTED
-- FOOD-07 — Test graceful failure and device reality: NOT_STARTED
-- EXT-01 — Wearables remain later by default: NOT_STARTED
-- EXT-02 — A safe manual import can be a useful bounded slice: NOT_STARTED
-- EXT-03 — Build a useful normalized observation seam: NOT_STARTED
-- EXT-04 — Photo and voice remain permission/cost-gated: NOT_STARTED
-- EXT-05 — Assess optional USDA and extra providers once: NOT_STARTED
-- EXT-06 — Keep external financial execution gates intact: NOT_STARTED
-- HAB-01 — Repair the shared mobile Habit component first: NOT_STARTED
-- HAB-02 — Preserve recurrence and progress semantics: NOT_STARTED
-- HAB-03 — Implement effective-dated rule editing: NOT_STARTED
-- HAB-04 — Improve links, stacks and end conditions: NOT_STARTED
-- HAB-05 — Make timers and reminders honest: NOT_STARTED
-- HAB-06 — Improve history, insight and quick logging: NOT_STARTED
-- HAB-07 — Test cross-device dates and lifecycle: NOT_STARTED
-- ECO-01 — Produce a dated coverage inventory: NOT_STARTED
-- ECO-02 — Use accurate relationship and capability labels: NOT_STARTED
-- ECO-03 — Obtain safe official assets: NOT_STARTED
-- ECO-04 — Use short attributed descriptions: NOT_STARTED
-- ECO-05 — Make the page navigable and useful: NOT_STARTED
-- ECO-06 — Add contextual external discovery without clutter: NOT_STARTED
-- MOB-01 — Build mobile as a primary experience: NOT_STARTED
-- MOB-02 — Test real text and extremes: NOT_STARTED
-- MOB-03 — Make dialogs, pickers and editors accessible: NOT_STARTED
-- MOB-04 — Implement first-run onboarding and settings: NOT_STARTED
-- MOB-05 — Keep mode and account state visible: NOT_STARTED
-- MOB-06 — Use automation plus real inspection: NOT_STARTED
-- PERF-01 — Measure a baseline and final result: NOT_STARTED
-- PERF-02 — Keep the dashboard economical: NOT_STARTED
-- PERF-03 — Assess a polished home-screen/PWA experience: NOT_STARTED
-- PERF-04 — Make updates and caches schema-safe: NOT_STARTED
-- PERF-05 — Bound operational load and cost: NOT_STARTED
-- PERF-06 — Provide privacy-safe support diagnostics: NOT_STARTED
-- SEC-01 — Preserve and extend server-only boundaries: NOT_STARTED
-- SEC-02 — Validate all external boundaries: NOT_STARTED
-- SEC-03 — Keep privacy boundaries explicit in documentation and UI: NOT_STARTED
-- SEC-04 — Test tenant/session separation aggressively: NOT_STARTED
-- SEC-05 — Keep cleanup and deletion truthful: NOT_STARTED
-- SEC-06 — Scan and review before publication: NOT_STARTED
-- JRN-01 — New Health-only user: NOT_STARTED
-- JRN-02 — First email account and encrypted vault: NOT_STARTED
-- JRN-03 — Independent phone/desktop-equivalent clients: NOT_STARTED
-- JRN-04 — Empty second device cannot erase data: NOT_STARTED
-- JRN-05 — Offline merge across domains: NOT_STARTED
-- JRN-06 — Concurrent financial aggregate: NOT_STARTED
-- JRN-07 — Account switching and late response: NOT_STARTED
-- JRN-08 — Cross-tenant access denial: NOT_STARTED
-- JRN-09 — Recovery without destructive reset: NOT_STARTED
-- JRN-10 — Device revocation and deletion: NOT_STARTED
-- JRN-11 — Wallet auth when supported: NOT_STARTED
-- JRN-12 — Legacy migration interruption: NOT_STARTED
-- JRN-13 — Storage pressure and long history: NOT_STARTED
-- JRN-14 — Code/protocol version mismatch: NOT_STARTED
-- JRN-15 — Premium Goal creator types: NOT_STARTED
-- JRN-16 — Known funding-surplus regression: NOT_STARTED
-- JRN-17 — History-only correction: NOT_STARTED
-- JRN-18 — Plan revision and installments: NOT_STARTED
-- JRN-19 — Performance eligibility and FX: NOT_STARTED
-- JRN-20 — Completion and lifecycle: NOT_STARTED
-- JRN-21 — Personalized Today presets and widgets: NOT_STARTED
-- JRN-22 — All ten owner screenshots: NOT_STARTED
-- JRN-23 — Food diary efficiency: NOT_STARTED
-- JRN-24 — Water, measurements and activity: NOT_STARTED
-- JRN-25 — Meal planning and optional fasting: NOT_STARTED
-- JRN-26 — Free barcode happy path: NOT_STARTED
-- JRN-27 — Barcode failure path: NOT_STARTED
-- JRN-28 — Habit rule and timer history: NOT_STARTED
-- JRN-29 — Market partial-evidence regression: NOT_STARTED
-- JRN-30 — Durable provider fault matrix: NOT_STARTED
-- JRN-31 — Runtime incident and market acceptance: NOT_STARTED
-- JRN-32 — Ecosystem coverage and navigation: NOT_STARTED
-- JRN-33 — Large collections and accessible charts: NOT_STARTED
-- JRN-34 — Mobile, motion and keyboard: NOT_STARTED
-- JRN-35 — PWA/offline/update when included: NOT_STARTED
-- JRN-36 — Showcase isolation end to end: NOT_STARTED
-- JRN-37 — Credential and plaintext boundary checks: NOT_STARTED
-- JRN-38 — Canonical CI policy regression: NOT_STARTED
-- JRN-39 — Graceful partial failure: NOT_STARTED
-- JRN-40 — Interruption and resume drill: NOT_STARTED
-- QA-01 — Establish the actual supported toolchain: NOT_STARTED
-- QA-02 — Run focused checks per slice and full integration at meaningful stages: NOT_STARTED
-- QA-03 — Test real adapters, not only pure contracts: NOT_STARTED
-- QA-04 — Require security and data-integrity gates: NOT_STARTED
-- QA-05 — Record actual visual evidence: NOT_STARTED
-- QA-06 — Finish with a full reconciliation pass: NOT_STARTED
-- QA-07 — Do not spend the remaining allowance polling CI: NOT_STARTED
-- QA-08 — Prepare a usable owner activation package: NOT_STARTED
-- QA-09 — Keep financial release boundaries unchanged: NOT_STARTED
-- QA-10 — Keep the deployment model honest: NOT_STARTED
-- DOC-01 — Maintain a small useful document set: NOT_STARTED
-- DOC-02 — Reconcile the durable roadmap: NOT_STARTED
-- DOC-03 — Mirror sanitized knowledge into NovaVault: NOT_STARTED
-- DOC-04 — Produce a precise blocker report: NOT_STARTED
-- DOC-05 — Give source and backup receipts: NOT_STARTED
-- DOC-06 — Use an honest final outcome label: NOT_STARTED
-- DOC-07 — Show the product leap with evidence: NOT_STARTED
-- DOC-08 — End with a single exact continuation path: NOT_STARTED
+# Run10 requirements — checkpoint, not completion
+All290originalIDs remain in scope. Full original acceptance is preserved in REQUIREMENTS.json and MASTER_PROMPT.md.
+| ID | Requested delivery | Status | Remaining limitation |
+|---|---|---|---|
+| GOV-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-09 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| GOV-10 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-09 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SRC-10 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| TRC-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-09 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-10 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-11 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| RUN-12 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| UX-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SS-01 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-02 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-03 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-04 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-05 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-06 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-07 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-08 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-09 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| SS-10 | REQUIRED | IN_PROGRESS | Screenshot implementation evidence exists for shared components; every supplied screenshot remains in scope and full page/device acceptance is not yet reconciled. |
+| VIS-01 | REQUIRED | IN_PROGRESS | Shared visual tests and selectedwidths pass; whole-app accessibility/extremes/physical-device acceptance not yet complete. |
+| VIS-02 | REQUIRED | IN_PROGRESS | Shared visual tests and selectedwidths pass; whole-app accessibility/extremes/physical-device acceptance not yet complete. |
+| VIS-03 | REQUIRED | IN_PROGRESS | Shared visual tests and selectedwidths pass; whole-app accessibility/extremes/physical-device acceptance not yet complete. |
+| VIS-04 | REQUIRED | IN_PROGRESS | Shared visual tests and selectedwidths pass; whole-app accessibility/extremes/physical-device acceptance not yet complete. |
+| VIS-05 | REQUIRED | IN_PROGRESS | Shared visual tests and selectedwidths pass; whole-app accessibility/extremes/physical-device acceptance not yet complete. |
+| VIS-06 | REQUIRED | IN_PROGRESS | Shared visual tests and selectedwidths pass; whole-app accessibility/extremes/physical-device acceptance not yet complete. |
+| AUTH-01 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-02 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-03 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-04 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-05 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-06 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-07 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-08 | CONDITIONAL | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-09 | CONDITIONAL | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-10 | CONDITIONAL | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-11 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| AUTH-12 | REQUIRED | IN_PROGRESS | OTP server adapter only; no working account UI/lifecycle or external email proof. Owner provider/sender setup and implementation work remain. |
+| ENC-01 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-02 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-03 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-04 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-05 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-06 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-07 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-08 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-09 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| ENC-10 | REQUIRED | IN_PROGRESS | Local crypto/backup subset tested; integrated vault unlock, device persistence/revocation and key epochs remain incomplete. |
+| SYN-01 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-02 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-03 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-04 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-05 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-06 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-07 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-08 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-09 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-10 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-11 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-12 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-13 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-14 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-15 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| SYN-16 | REQUIRED | IN_PROGRESS | No integrated account-scoped application transport/outbox loop or two-independent-browser sync. Local encrypted transport/coordinator tests do not satisfy end-to-end acceptance. |
+| DAT-01 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-02 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-03 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-04 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-05 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-06 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-07 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-08 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-09 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-10 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| DAT-11 | REQUIRED | IN_PROGRESS | Explicit migration/backup paths tested, including6000Healthentries >2MB; platform240/600KB history limits, nested row limits, paged application readers and full fault matrix remain incomplete. |
+| MKT-01 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-02 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-03 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-04 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-05 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-06 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-07 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-08 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-09 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-10 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-11 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-12 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-13 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-14 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-15 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-16 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-17 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| MKT-18 | REQUIRED | IN_PROGRESS | Pure baseline retained; actual local durable adapter in progress. Runtime503root cause, public route migration and hosted budget activation not established. |
+| CI-01 | REQUIRED | IN_PROGRESS | Policy patch verified locally; final new hosted run/source acceptance pending. Historical failed run remains failed. |
+| CI-02 | REQUIRED | IN_PROGRESS | Policy patch verified locally; final new hosted run/source acceptance pending. Historical failed run remains failed. |
+| CI-03 | REQUIRED | IN_PROGRESS | Policy patch verified locally; final new hosted run/source acceptance pending. Historical failed run remains failed. |
+| CI-04 | REQUIRED | IN_PROGRESS | Policy patch verified locally; final new hosted run/source acceptance pending. Historical failed run remains failed. |
+| FIN-01 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-02 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-03 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-04 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-05 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-06 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-07 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-08 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-09 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-10 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-11 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-12 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-13 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-14 | REQUIRED | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| FIN-15 | CONDITIONAL | IN_PROGRESS | Plan revisions/lifecycle implementation in progress. Full performance/FX/attribution/historycapacity/sync acceptance incomplete. |
+| WID-01 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-02 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-03 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-04 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-05 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-06 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-07 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-08 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-09 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| WID-10 | REQUIRED | IN_PROGRESS | Local Today/creator workflows tested; authenticated cross-device layout/backup and broader integrated acceptance remain incomplete. |
+| GOAL-01 | REQUIRED | IN_PROGRESS | Creator and local financial workflows improved; full lifecycle/sync/accessibility scope is not yet reconciled. |
+| GOAL-02 | REQUIRED | IN_PROGRESS | Creator and local financial workflows improved; full lifecycle/sync/accessibility scope is not yet reconciled. |
+| GOAL-03 | REQUIRED | IN_PROGRESS | Creator and local financial workflows improved; full lifecycle/sync/accessibility scope is not yet reconciled. |
+| GOAL-04 | REQUIRED | IN_PROGRESS | Creator and local financial workflows improved; full lifecycle/sync/accessibility scope is not yet reconciled. |
+| GOAL-05 | REQUIRED | IN_PROGRESS | Creator and local financial workflows improved; full lifecycle/sync/accessibility scope is not yet reconciled. |
+| GOAL-06 | REQUIRED | IN_PROGRESS | Creator and local financial workflows improved; full lifecycle/sync/accessibility scope is not yet reconciled. |
+| AST-01 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-02 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-03 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-04 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-05 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-06 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-07 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| AST-08 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| HLT-01 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-02 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-03 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-04 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-05 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-06 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-07 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-08 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-09 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-10 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-11 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-12 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-13 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| HLT-14 | REQUIRED | IN_PROGRESS | Daily subsets tested. Richer/unknown nutrients, body measurements, fasting, import dedupe and Health sync remain incomplete. |
+| FOOD-01 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| FOOD-02 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| FOOD-03 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| FOOD-04 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| FOOD-05 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| FOOD-06 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| FOOD-07 | REQUIRED | IN_PROGRESS | Local adapter/camera fixtures and confirmation work; owner provider identity/binding, real provider and physical-phone camera acceptance are not done. |
+| EXT-01 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| EXT-02 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| EXT-03 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| EXT-04 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| EXT-05 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| EXT-06 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| HAB-01 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| HAB-02 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| HAB-03 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| HAB-04 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| HAB-05 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| HAB-06 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| HAB-07 | REQUIRED | IN_PROGRESS | Mobile layout verified. Rule editing/timer/lifecycle integration and cross-device verification still in progress. |
+| ECO-01 | REQUIRED | IN_PROGRESS | Directory tested; safe official logos, unresolvedsocialcandidate, contextual placement and complete source refresh remain unfinished. |
+| ECO-02 | REQUIRED | IN_PROGRESS | Directory tested; safe official logos, unresolvedsocialcandidate, contextual placement and complete source refresh remain unfinished. |
+| ECO-03 | REQUIRED | IN_PROGRESS | Directory tested; safe official logos, unresolvedsocialcandidate, contextual placement and complete source refresh remain unfinished. |
+| ECO-04 | REQUIRED | IN_PROGRESS | Directory tested; safe official logos, unresolvedsocialcandidate, contextual placement and complete source refresh remain unfinished. |
+| ECO-05 | REQUIRED | IN_PROGRESS | Directory tested; safe official logos, unresolvedsocialcandidate, contextual placement and complete source refresh remain unfinished. |
+| ECO-06 | REQUIRED | IN_PROGRESS | Directory tested; safe official logos, unresolvedsocialcandidate, contextual placement and complete source refresh remain unfinished. |
+| MOB-01 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| MOB-02 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| MOB-03 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| MOB-04 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| MOB-05 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| MOB-06 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| PERF-01 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| PERF-02 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| PERF-03 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| PERF-04 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| PERF-05 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| PERF-06 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SEC-01 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SEC-02 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SEC-03 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SEC-04 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SEC-05 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| SEC-06 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-01 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-02 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-03 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-04 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-05 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-06 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-07 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-08 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-09 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-10 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-11 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-12 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-13 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-14 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-15 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-16 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-17 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-18 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-19 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-20 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-21 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-22 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-23 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-24 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-25 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-26 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-27 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-28 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-29 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-30 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-31 | REQUIRED | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-32 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-33 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-34 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-35 | CONDITIONAL | NOT_STARTED | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-36 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-37 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-38 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-39 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| JRN-40 | REQUIRED | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-09 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| QA-10 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-01 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-02 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-03 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-04 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-05 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-06 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-07 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |
+| DOC-08 | PROCESS | IN_PROGRESS | Full requested acceptance has not been independently reconciled in this checkpoint; no completion or activation claim. |

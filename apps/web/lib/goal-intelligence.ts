@@ -2,6 +2,7 @@
 import {contributionEventSchema,platformSchema,localGoalLocked,confirmedLocalObservation,goalProgress,planScenario,rescaleUnits,scenarioHorizon,type ContributionEvent,type Platform,type PrivateGoal,type GoalHistory,type ValuationSnapshot} from './positions';
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
+import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan} from './plan-revisions';
 export const MAX_VALUATION_SNAPSHOTS=240;
 export const MAX_GOAL_HISTORY=240;
 const max=(a:bigint,b:bigint)=>a>b?a:b;
@@ -57,7 +58,15 @@ export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:rea
  const today=timestamp(now).slice(0,10),tomorrow=timestamp(now+86400000).slice(0,10),horizon=scenarioHorizon(today,g.targetDate);
  const progress=goalProgress(s,goalId,now,quotes),totals=contributionTotals(s,goalId,now);
  let plannedThroughToday='0',plannedFuture='0',dates:string[]=[],nextDate:string|null=null,completionDate:string|null=BigInt(progress.current)>=BigInt(progress.target)&&!progress.requiresReview?today:null,planWarning=false;
- if(g.plan&&g.type!=='PROJECT')try {
+ if(g.planRevisions?.length&&g.type!=='PROJECT')try {
+  const installments=revisionInstallments(g,g.planRevisions[0]!.effectiveFrom,horizon,s.contributions,now);
+  plannedThroughToday=installments.filter(x=>x.date<=today).reduce((n,x)=>n+BigInt(x.amount),0n).toString();
+  const future=installments.filter(x=>x.date>today&&BigInt(x.remaining)>0n);
+  plannedFuture=future.reduce((n,x)=>n+BigInt(x.remaining),0n).toString();dates=future.map(x=>x.date);
+  nextDate=installments.find(x=>x.date>=today&&BigInt(x.remaining)>0n)?.date??null;
+  let projected=BigInt(progress.current);for(const x of future){projected+=BigInt(x.remaining);if(completionDate===null&&!progress.requiresReview&&projected>=BigInt(progress.target))completionDate=x.date;}
+ }catch{planWarning=true;}
+ else if(g.plan&&g.type!=='PROJECT')try {
   const credits=scheduledFundingCredits(s,g,now);
   nextDate=planScenario(g,progress.current,g.plan,horizon,today,credits).dates[0]??null;
   plannedThroughToday=planScenario(g,'0',g.plan,today,g.createdAt.slice(0,10)).contributions;
@@ -65,13 +74,16 @@ export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:rea
  }catch{planWarning=true;}
  const variance=BigInt(totals.net)-BigInt(plannedThroughToday),projected=BigInt(progress.current)+BigInt(plannedFuture),target=BigInt(progress.target);
  const liquidityWarning=s.allocations.some(a=>a.goalId===goalId&&BigInt(a.quantity)>0n&&s.positions.some(p=>p.id===a.positionId&&p.liquidity!=='LIQUID'));
- const warnings=[...(liquidityWarning?['Some allocated wealth is not liquid.']:[]),...(progress.requiresReview?['Stale, missing or incomplete valuation/quantity evidence needs review.']:[]),...(planWarning?['Plan requires a compatible price assumption.']:[]),...(totals.unvaluedCount?['Some recorded events have no value in this Goal’s unit.']:[])];
- return {current:progress.current,target:progress.target,remaining:progress.remaining,actual:totals.net,rewardIncome:totals.rewardIncome,plannedThroughToday,variance:variance.toString(),plannedFuture,requiredRecurring:dates.length?((BigInt(progress.remaining)+BigInt(dates.length)-1n)/BigInt(dates.length)).toString():null,completionDate,nextDate,overdue:variance<0n,latest:totals.latest,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),warnings,status:progress.requiresReview||planWarning?'REVIEW':BigInt(progress.current)>=target?'COMPLETED':!g.plan?.active?'NO_PLAN':variance<0n?'BEHIND':variance>0n?'AHEAD':projected>=target?'ON_TRACK':'BEHIND',horizon};
+ const warnings=[...(g.planRevisions?.[0]?.priorHistory==='unknown'?['Earlier plan terms are unknown; planned totals start at the first recorded revision. Lifetime actual contributions and this partial plan history cannot establish complete historical pace.']:[]),...(g.planRevisions?.length&&s.contributions.some(e=>e.goalId===g.id&&e.goalScope==='private'&&e.scheduledDate&&!e.installmentId)?['Older date-only funding links are retained as unmatched history; no revision match is assumed.']:[]),...(liquidityWarning?['Some allocated wealth is not liquid.']:[]),...(progress.requiresReview?['Stale, missing or incomplete valuation/quantity evidence needs review.']:[]),...(planWarning?['Plan requires a compatible price assumption.']:[]),...(totals.unvaluedCount?['Some recorded events have no value in this Goal’s unit.']:[])];
+ return {current:progress.current,target:progress.target,remaining:progress.remaining,actual:totals.net,rewardIncome:totals.rewardIncome,plannedThroughToday,variance:variance.toString(),plannedFuture,requiredRecurring:dates.length?((BigInt(progress.remaining)+BigInt(dates.length)-1n)/BigInt(dates.length)).toString():null,completionDate,nextDate,overdue:variance<0n,latest:totals.latest,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),warnings,status:progress.requiresReview||planWarning||g.planRevisions?.[0]?.priorHistory==='unknown'?'REVIEW':BigInt(progress.current)>=target?'COMPLETED':!effectiveContributionPlan(g,today)?.active&&plannedFuture==='0'?'NO_PLAN':variance<0n?'BEHIND':variance>0n?'AHEAD':projected>=target?'ON_TRACK':'BEHIND',horizon};
 }
 export type GoalTimelineEvent={id:string;goalId:string;at:string;kind:string;label:string;provenance:string;quantity?:string;asset?:string;decimals?:number};
 export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='private'):GoalTimelineEvent[] {
  const result:GoalTimelineEvent[]=s.contributions.filter(e=>e.goalId===goalId&&e.goalScope===scope).map(e=>({id:`contribution:${e.id}`,goalId,at:e.occurredAt,kind:e.reversesId?'reversal':e.provenance==='REWARD_INCOME'?'income':e.direction==='IN'?'contribution':'withdrawal',label:e.reversesId?'Contribution correction':e.provenance==='REWARD_INCOME'?'Recorded reward / income':e.direction==='IN'?'Contribution':'Withdrawal',provenance:e.provenance,quantity:e.quantity,asset:e.asset,decimals:e.decimals}));
  if(scope==='private'){
+  const goal=s.goals.find(g=>g.id===goalId);
+  for(const r of goal?.planRevisions??[])result.push({id:r.id,goalId,at:r.recordedAt,kind:'plan_revision',label:`Plan terms effective ${r.effectiveFrom}${r.priorHistory==='unknown'?' · earlier terms unknown':''}`,provenance:'RETAINED_PLAN_REVISION'});
+  for(const e of goal?.lifecycle??[])result.push({id:e.id,goalId,at:e.at,kind:'lifecycle',label:e.kind==='completed'?'Target reached · retained milestone':e.kind==='closed'?'Goal closed':e.kind==='reopened'?'Goal reopened · new cycle':'Target revised · new cycle',provenance:'RETAINED_MILESTONE',quantity:e.current,asset:e.asset,decimals:e.decimals});
   for(const h of s.goalHistory.filter(h=>h.goalId===goalId))result.push(h.kind==='valuation'?{id:h.id,goalId,at:h.capturedAt,kind:'valuation',label:'Counted Goal value snapshot',provenance:h.requiresReview?'INCOMPLETE_EVIDENCE':'PRIVATE_SNAPSHOT',quantity:h.current,asset:h.asset,decimals:h.decimals}:{id:h.id,goalId,at:h.capturedAt,kind:h.kind,label:h.label,provenance:h.provenance});
   const positions=new Set(s.allocations.filter(a=>a.goalId===goalId).map(a=>a.positionId));
   for(const [i,o] of s.snapshots.entries())if(positions.has(o.positionId)){const p=s.positions.find(p=>p.id===o.positionId);if(p)result.push({id:`observation:${o.positionId}:${o.observedAt}:${i}`,goalId,at:o.observedAt,kind:'observation',label:'Position quantity observed',provenance:p.provenance,quantity:o.quantity,asset:p.asset,decimals:p.decimals});}
@@ -80,6 +92,7 @@ export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='p
 }
 /** Record changed facts once at the private store mutation boundary, not on render. */
 export function recordGoalChanges(before:Platform,after:Platform,now=Date.now()):Platform {
+ after=captureGoalLifecycle(before,capturePlanChanges(before,after,now),now);
  const capturedAt=timestamp(now),added:GoalHistory[]=[];
  for(const g of after.goals){const old=before.goals.find(x=>x.id===g.id);
   const add=(kind:'allocation'|'plan'|'milestone'|'status',label:string)=>added.push({id:`change:${g.id}:${kind}:${capturedAt}:${before.goalHistory.length+added.length}`,goalId:g.id,kind,capturedAt,label,provenance:'LOCAL_EDIT'});
@@ -105,6 +118,7 @@ function compactHistory(s:Platform):Platform {
 }
 /** 240 + 240 caps keep normal history comfortably below 2 MB. Financial facts are never compacted. */
 export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=Date.now()):Platform {
+ s=captureGoalLifecycle(s,s,now,quotes);
  const capturedAt=timestamp(now),day=capturedAt.slice(0,10),valuations:ValuationSnapshot[]=[],goals:GoalHistory[]=[];
  const captureDays={...s.historyCaptureDays};
  for(const p of s.positions.filter(p=>!p.archivedAt)){

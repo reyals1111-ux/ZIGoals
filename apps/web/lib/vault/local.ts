@@ -46,3 +46,9 @@ export async function restoreDurableStore<T>(storage:Storage,key:string,schema:z
   await db.commit('local',key,previous.revision,data,crypto.randomUUID(),JSON.stringify(previous.data));return data;
  });
 }
+
+/** Export stored durable values without schema coercion, including unsupported/corrupt application schemas. */
+export async function exportDurableStore(storage:Storage,key:string,db=localDatabase):Promise<string>{
+ if(storageLockKey(storage,key)!==key||!isDurableMarker(storage.getItem(key)))throw Error('Storage selection changed.');
+ const value=await db.read('local',key);if(!value)throw Error('Private database unavailable. Original migration copies may require recovery assistance.');return JSON.stringify(value.data);
+}

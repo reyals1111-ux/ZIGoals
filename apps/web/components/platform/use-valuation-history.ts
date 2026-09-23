@@ -1,11 +1,12 @@
 'use client';
+import {isDurableMarker} from '../../lib/vault/local';
 import {getAppStorage,isShowcase} from "../../lib/showcase-storage";
 import {useEffect,useRef} from 'react';
 import {captureValuations} from '../../lib/goal-intelligence';
 import {PLATFORM_KEY,type Platform} from '../../lib/positions';
 import type {MarketQuote} from '../../lib/market-quotes';
 /** A relevant surface captures a bounded daily fact. Cache ticks do not write history. */
-function persistedV2(){try{return JSON.parse(getAppStorage().getItem(PLATFORM_KEY)??'null')?.schemaVersion===3;}catch{return false;}}
+function persistedV2(){try{const raw=getAppStorage().getItem(PLATFORM_KEY);return isDurableMarker(raw)||JSON.parse(raw??'null')?.schemaVersion===3;}catch{return false;}}
 export function useValuationHistory(store:{data:Platform;loaded:boolean;error:string;update:(fn:(s:Platform)=>Platform)=>Promise<void>},market:{quotes:readonly MarketQuote[];now:number;loading:boolean}){
  const {data,loaded,error,update}=store;const {quotes,now,loading}=market;
  const day=now?new Date(now).toISOString().slice(0,10):'';

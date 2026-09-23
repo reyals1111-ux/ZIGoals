@@ -1,29 +1,15 @@
 import "../../../components/life-pages.css";
-import { AppIcon } from "../../../components/app-icon";
-import Link from "next/link";
 import { explorers, hubLinks } from "@zigoals/ecosystem-registry";
-import { ecosystemProviders } from "@zigoals/ecosystem-registry/providers";
+import { EcosystemDirectory } from "../../../components/ecosystem-directory";
 import { idleStrategy } from "@zigoals/strategy-types";
 import { StrategyTransparency } from "../../../components/strategy-transparency";
 
 export default function EcosystemPage() {
   return (
     <div className="ecosystem-page">
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">An open ecosystem</p>
-          <h1>Built to work together.</h1>
-          <p>
-            Verify onchain activity and explore the people and protocols around
-            ZIGChain.
-          </p>
-        </div>
-        <Link href="/app/goals" className="text-link">
-          Back to goals →
-        </Link>
-      </div>
-      <section className="ecosystem-map" aria-label="ZIGChain integration readiness"><div className="network-emblem" aria-hidden="true"><AppIcon name="ecosystem" size={74}/></div><div><p className="eyebrow">THE GOAL LAYER FOR ZIGCHAIN</p><h2>Connected by purpose.</h2><p>One Goal Manager architecture. A growing strategy ecosystem, connected only when its interfaces are verified.</p></div><ul><li><strong>ZIGChain Testnet</strong><span>VERIFIED NETWORK · WALLET CONNECTION</span></li><li><strong>Goal Manager</strong><span>NOT DEPLOYED</span></li><li><strong>Valdora</strong><span>PENDING CANONICAL INTERFACE</span></li><li><strong>WME</strong><span>FUTURE · UNVERIFIED</span></li></ul></section>
-      <section className="ecosystem-readiness" aria-label="What you can do today"><article><AppIcon name="goals" size={30}/><p className="eyebrow">READY IN YOUR BROWSER</p><h2>Plan your next chapter.</h2><p>Your private Goals, Habits, Health and Wealth work today. Build a plan without connecting a wallet.</p><Link className="text-link" href="/app">Open your Today →</Link></article><article><AppIcon name="chain" size={30}/><p className="eyebrow">PUBLIC, READ ONLY</p><h2>Explore with context.</h2><p>Open official network tools and inspect known testnet receipts. External funding integrations remain disabled.</p><a className="text-link" href="#network-tools">View network tools ↓</a></article></section>
+      <EcosystemDirectory />
+      <p className="fine">External investment and funding integrations are disabled.</p>
+      <details className="ecosystem-tools"><summary>Network tools &amp; integration readiness</summary>
       <section className="panel" id="network-tools" aria-label="Onchain verification tools">
         <h2>Check the public record.</h2>
         <p>
@@ -77,71 +63,7 @@ export default function EcosystemPage() {
         </p>
       </section>
       <StrategyTransparency strategy={idleStrategy("azig")} />
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">Research, with sources</p>
-          <h2>The wider ecosystem.</h2>
-          <p>
-            External investment and funding integrations are disabled. Provider
-            research is not an audit, endorsement or eligibility approval.
-          </p>
-        </div>
-      </div>
-      <div className="ecosystem-list">
-        {ecosystemProviders
-          .filter((p) => p.phase !== "READ_ONLY")
-          .map((p) => (
-            <details className="panel provider-record" key={p.id}>
-              <summary>
-                <span>
-                  <strong>{p.name}</strong>
-                  <small>
-                    {p.roles
-                      .map((role) => role.toLowerCase().replaceAll("_", " "))
-                      .join(" · ")}
-                  </small>
-                </span>
-                <span className="badge">Research only</span>
-              </summary>
-              <p>{p.notes}</p>
-              <dl>
-                {p.networks.map((n, i) => (
-                  <div key={`${n.chainId}-${i}`}>
-                    <dt>
-                      {n.chainId} ·{" "}
-                      {n.status.toLowerCase().replaceAll("_", " ")}
-                    </dt>
-                    <dd>{n.note}</dd>
-                  </div>
-                ))}
-              </dl>
-              <h3>Eligibility and access</h3>
-              <p>{p.eligibility.note}</p>
-              <h3>Unresolved risks and gates</h3>
-              <ul>
-                {p.risks.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-              <p className="fine">
-                Evidence reviewed {p.lastVerified}. Historical audit references
-                do not establish the safety of current deployed code.
-              </p>
-              <div className="source-links">
-                {p.sources.map((s, i) => (
-                  <a
-                    href={s.url}
-                    key={`${s.url}-${i}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {s.title} ↗
-                  </a>
-                ))}
-              </div>
-            </details>
-          ))}
-      </div>
+      </details>
     </div>
   );
 }

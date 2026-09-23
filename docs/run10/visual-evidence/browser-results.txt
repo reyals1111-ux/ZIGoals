@@ -1,0 +1,20 @@
+
+Running 13 tests using 1 worker
+
+(node:30555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop] › tests/run10-ecosystem.spec.ts:2:5 › ecosystem filters, clears, opens useful details and keeps external links private (1.2s)
+  ✓   2 [desktop] › tests/run10-ecosystem.spec.ts:9:39 › ecosystem directory reflows at 320px (898ms)
+  ✓   3 [desktop] › tests/run10-ecosystem.spec.ts:9:39 › ecosystem directory reflows at 390px (876ms)
+  ✓   4 [desktop] › tests/run10-ecosystem.spec.ts:9:39 › ecosystem directory reflows at 1440px (942ms)
+  ✓   5 [desktop] › tests/run10-shared-visuals.spec.ts:7:5 › Quick add belongs to navigation and Escape returns focus (1.4s)
+  ✓   6 [desktop] › tests/run10-shared-visuals.spec.ts:11:51 › Habit labels and controls have distinct space at 320px (1.5s)
+  ✓   7 [desktop] › tests/run10-shared-visuals.spec.ts:11:51 › Habit labels and controls have distinct space at 360px (1.4s)
+  ✓   8 [desktop] › tests/run10-shared-visuals.spec.ts:11:51 › Habit labels and controls have distinct space at 390px (1.5s)
+  ✓   9 [desktop] › tests/run10-shared-visuals.spec.ts:11:51 › Habit labels and controls have distinct space at 430px (1.5s)
+  ✓  10 [desktop] › tests/run10-shared-visuals.spec.ts:11:51 › Habit labels and controls have distinct space at 768px (1.6s)
+  ✓  11 [desktop] › tests/run10-shared-visuals.spec.ts:11:51 › Habit labels and controls have distinct space at 1440px (1.6s)
+  ✓  12 [desktop] › tests/run10-shared-visuals.spec.ts:23:5 › long build, quit, limit and duration Habit cards reflow with enlarged text and save actions (1.2s)
+  ✓  13 [desktop] › tests/run10-shared-visuals.spec.ts:37:5 › category rings, exact history and finite route entrance have visible evidence (4.2s)
+
+  13 passed (20.7s)

@@ -45,6 +45,7 @@ def inspect_ledger(
     *,
     require_completion: bool = False,
     evidence_root: Path | None = None,
+    final_report: str | None = None,
 ) -> tuple[list[str], dict[str, Any]]:
     errors: list[str] = []
     if not isinstance(data, dict):
@@ -77,6 +78,20 @@ def inspect_ledger(
             errors.append(f"{rid}: invalid status.")
             continue
         counts[status] += 1
+        if status != "VERIFIED":
+            disposition = row.get("disposition")
+            if not isinstance(disposition, dict) or not disposition.get("reason") or not disposition.get("next_step") or not disposition.get("cause_category"):
+                errors.append(f"{rid}: incomplete item needs reason, cause_category and exact next_step.")
+            if row.get("final_report_section") != "9. Skipped/blocked items":
+                errors.append(f"{rid}: incomplete item needs final-report inclusion mapping.")
+            if final_report is not None and not re.search(r"(?<![A-Z0-9-])" + re.escape(rid) + r"(?![A-Z0-9-])", final_report):
+                errors.append(f"{rid}: incomplete item absent from final report.")
+        if root is not None:
+            for ev in row.get("evidence", []) if isinstance(row.get("evidence"), list) else []:
+                if isinstance(ev, dict) and isinstance(ev.get("path"), str):
+                    candidate = (root / ev["path"]).resolve()
+                    if not candidate.is_relative_to(root) or not candidate.exists():
+                        errors.append(f"{rid}: nonexistent or out-of-scope evidence path.")
         dependencies = row.get("dependencies")
         if not isinstance(dependencies, list) or not all(isinstance(d, str) for d in dependencies):
             errors.append(f"{rid}: dependencies must be a list of IDs.")
@@ -180,6 +195,8 @@ def inspect_ledger(
         "original_prompt_ids": len(expected) if prompt_text is not None else None,
         "additional_ids": sorted(set(seen) - expected) if prompt_text is not None else [],
         "status_counts": dict(sorted(counts.items())),
+        "workstream_counts": dict(sorted(Counter(r.get("workstream", "UNCLASSIFIED") for r in rows if isinstance(r, dict)).items())),
+        "delivery_class_counts": dict(sorted(Counter(r.get("delivery_class", "UNCLASSIFIED") for r in rows if isinstance(r, dict)).items())),
         "strict_completion_requested": require_completion,
         "note": "Structural/coverage validity is not proof of implementation, testing, release or safety.",
     }
@@ -192,11 +209,12 @@ def main() -> int:
     parser.add_argument("--prompt", type=Path)
     parser.add_argument("--require-completion", action="store_true")
     parser.add_argument("--evidence-root", type=Path)
+    parser.add_argument("--final-report", type=Path)
     args = parser.parse_args()
     try:
         data = json.loads(read_bounded(args.ledger))
         prompt_text = read_bounded(args.prompt) if args.prompt else None
-        errors, summary = inspect_ledger(data, prompt_text, require_completion=args.require_completion, evidence_root=args.evidence_root)
+        errors, summary = inspect_ledger(data, prompt_text, require_completion=args.require_completion, evidence_root=args.evidence_root, final_report=read_bounded(args.final_report) if args.final_report else None)
     except (OSError, UnicodeError, ValueError, RecursionError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

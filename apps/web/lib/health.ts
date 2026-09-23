@@ -19,9 +19,10 @@ export const targetsSchema = z.strictObject({
   weightGrams: bodyGrams.nullable(), steps: integer(1_000_000, 1).nullable(),
 });
 export type HealthTargets = z.infer<typeof targetsSchema>;
-export const foodSchema = z.strictObject({ id: localId, name, brand: z.string().trim().max(80), servingGrams: grams, nutrients: nutritionSchema, createdAt: stamp, updatedAt: stamp });
+const provenanceSchema=z.strictObject({provider:z.literal("Open Food Facts"),barcode:z.string().regex(/^\d{8,14}$/),apiVersion:z.literal("3.4"),observedAt:stamp,license:z.literal("ODbL-1.0 / DbCL-1.0")});
+export const foodSchema = z.strictObject({ id: localId, name, brand: z.string().trim().max(80), servingGrams: grams, nutrients: nutritionSchema, provenance:provenanceSchema.optional(), createdAt: stamp, updatedAt: stamp });
 export type HealthFood = z.infer<typeof foodSchema>;
-const snapshotSchema = z.strictObject({ name, servingGrams: grams, nutrients: nutritionSchema });
+const snapshotSchema = z.strictObject({ name, servingGrams: grams, nutrients: nutritionSchema, provenance:provenanceSchema.optional() });
 const ingredientSchema = z.strictObject({ foodId: localId, snapshot: snapshotSchema, quantityMilli: quantity });
 export const recipeSchema = z.strictObject({ id: localId, name, portionsMilli: quantity, ingredients: z.array(ingredientSchema).min(1).max(100), createdAt: stamp, updatedAt: stamp });
 export type HealthRecipe = z.infer<typeof recipeSchema>;
@@ -140,7 +141,7 @@ export function saveRecipe(data: HealthData, draft: RecipeDraft, at: string): He
   const recipe: HealthRecipe = { id: parsed.id, name: parsed.name, portionsMilli: parsed.portionsMilli, ingredients: parsed.items.map(item => {
     const food = data.foods.find(f => f.id === item.foodId);
     if (!food) throw new Error("A recipe ingredient is no longer in your food library. Choose it again.");
-    return { foodId: food.id, quantityMilli: item.quantityMilli, snapshot: { name: food.name, servingGrams: food.servingGrams, nutrients: { ...food.nutrients } } };
+    return { foodId: food.id, quantityMilli: item.quantityMilli, snapshot: { name: food.name, servingGrams: food.servingGrams, nutrients: { ...food.nutrients }, ...(food.provenance?{provenance:food.provenance}:{}) } };
   }), createdAt: old?.createdAt ?? at, updatedAt: at };
   return healthSchema.parse({ ...data, recipes: upsert(data.recipes, recipe) });
 }
@@ -151,7 +152,7 @@ export function logHealthItem(data: HealthData, draft: HealthLogDraft, at: strin
   const parsed = logDraftSchema.parse(draft);
   const source = parsed.sourceKind === "food" ? data.foods.find(f => f.id === parsed.sourceId) : data.recipes.find(r => r.id === parsed.sourceId);
   if (!source) throw new Error("This food or recipe is no longer available. Choose it again.");
-  const snapshot = "ingredients" in source ? { name: source.name, servingGrams: recipeServingGrams(source), nutrients: recipeNutrition(source) } : { name: source.name, servingGrams: source.servingGrams, nutrients: { ...source.nutrients } };
+  const snapshot = "ingredients" in source ? { name: source.name, servingGrams: recipeServingGrams(source), nutrients: recipeNutrition(source) } : { name: source.name, servingGrams: source.servingGrams, nutrients: { ...source.nutrients }, ...(source.provenance?{provenance:source.provenance}:{}) };
   return healthSchema.parse({ ...data, diary: [...data.diary, { ...parsed, snapshot, createdAt: at, updatedAt: at }] });
 }
 const diaryEditSchema = diarySchema.pick({ date: true, meal: true, quantityMilli: true });

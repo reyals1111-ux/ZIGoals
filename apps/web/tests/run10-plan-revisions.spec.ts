@@ -1,0 +1,34 @@
+import {test,expect} from '@playwright/test';
+import {emptyPlatform,privateGoalSchema,positionSchema} from '../lib/positions';
+import {recordGoalChanges} from '../lib/goal-intelligence';
+test('plan edits retain earlier terms, show explicit installments and survive reload',async({page},info)=>{
+ const now=Date.now(),today=new Date(now).toISOString().slice(0,10),tomorrow=new Date(now+86400000).toISOString().slice(0,10);
+ const g=privateGoalSchema.parse({id:'81',name:'Fictional reserve',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'100000',notes:'Browser fixture',createdAt:new Date(now).toISOString(),milestones:[],plan:{amount:'10000',asset:'USD',decimals:2,cadence:'weekly',nextDate:today,active:true}});
+ const s=recordGoalChanges(emptyPlatform(),{...emptyPlatform(),goals:[g]},now);
+ await page.addInitScript(data=>{if(!sessionStorage.getItem('plan-fixture')){localStorage.setItem('zigoals:platform:v1',JSON.stringify(data));sessionStorage.setItem('plan-fixture','1');}},s);
+ await page.goto('/app/goals/tracked/81#contribution-plan');
+ const planModule=page.locator('#contribution-plan');
+ await expect(planModule.getByLabel('New terms effective from')).toHaveValue(tomorrow);
+ await planModule.getByLabel('Planned amount',{exact:true}).fill('200');
+ await planModule.getByRole('button',{name:'Save contribution plan',exact:true}).click();
+ const history=page.getByRole('region',{name:'Retained plan terms'});
+ await expect(history).toContainText('100 USD');await expect(history).toContainText('200 USD');
+ await expect(page.getByRole('region',{name:'Plan installments'})).toContainText('100 USD');
+ await page.reload();await expect(history).toContainText('200 USD');
+ await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();
+ const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Cash amount',{exact:true}).fill('40');await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();
+ await dialog.getByLabel('Match a retained installment (optional)').selectOption({label:`${today} · 100 USD remaining`});
+ await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await expect(dialog).toHaveCount(0);
+ await expect(page.getByRole('region',{name:'Plan installments'})).toContainText('60 USD remaining');
+ await page.setViewportSize({width:320,height:900});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await planModule.screenshot({path:`../../docs/run10/evidence/financial-plan-320-${info.project.name}.png`});
+});
+test('completion milestone remains visible after closing and reopening without restoring allocations',async({page})=>{
+ const at=new Date().toISOString(),g=privateGoalSchema.parse({id:'82',name:'Fictional completed reserve',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'100000',notes:'Browser fixture',createdAt:at,milestones:[]});
+ const p=positionSchema.parse({id:'cash',providerId:'Cash',sourceType:'MANUAL',network:'manual',account:'local',asset:'USD',denom:'USD',quantity:'100000',decimals:2,verification:'MANUAL',liquidity:'LIQUID',observedAt:at,provenance:'User entry',valuation:{value:'100000',currency:'USD',decimals:2,source:'MANUAL',observedAt:at}});
+ const s=recordGoalChanges(emptyPlatform(),{...emptyPlatform(),goals:[g],positions:[p],allocations:[{goalId:'82',positionId:'cash',quantity:'100000'}]});
+ await page.addInitScript(data=>{if(!sessionStorage.getItem('lifecycle-fixture')){localStorage.setItem('zigoals:platform:v1',JSON.stringify(data));sessionStorage.setItem('lifecycle-fixture','1');}},s);
+ await page.goto('/app/goals/tracked/82#goal-status');await expect(page.getByRole('region',{name:'Retained Goal milestones'})).toContainText('Target reached');
+ await page.getByRole('button',{name:'Close Goal and release allocations',exact:true}).click();await page.getByRole('button',{name:'Confirm close',exact:true}).click();await page.getByRole('button',{name:'Reopen Goal',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Retained Goal milestones'})).toContainText('Reopened');await expect(page.getByTestId('tracked-progress')).toContainText('$0');await page.reload();await expect(page.getByRole('region',{name:'Retained Goal milestones'})).toContainText('Target reached');
+});

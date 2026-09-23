@@ -1,16 +1,14 @@
 # Actual Run #10 resume state
 
+Authoritative source: MASTER_PROMPT.md (verbatim, SHA2561f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9). All290IDs,40journeys and10screenshots preserved.
 Worktree: /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation
-Branch: codex/run10-beta-reliability-foundation
-Start/local/remote: 709816a7e6d0779b45c48d729c69e0eabd671f0e
-Main remote: 95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90
-PR #20 OPEN/DRAFT verified by gh. Starting worktree clean.
-Full brief read through end marker. SHA256: 1f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9
-All ten screenshots preserved and inspected.
-No product implementation yet. Required repository source reads in progress.
-Next: finish source audit; establish domain/storage/auth design and setup list; implement tested vertical slices.
-Backup coverage: supplied specification and screenshots only; no private browser data backup.
-No deployment, merge, live migration, paid service or financial execution authorized.
-
-Checkpoint in progress: original290IDs/40journeys/10images preserved. Canonical v2 host-only provenance fix78tests. Crypto3, database4 (mutation regression), migration3 local tests. Worker actual runtime persistence/tenant/conflict/replay test passes with fixture upstream auth; no hosted email or physical device proof. Shared visual and Health and widget agents active with disjoint ownership. UI storage integration is unfinished; do not claim full sync.
-Next three: finish Settings storage/account/recovery integration; integrate domain transfer and browser tests; reconcile safety gaps, complete financial/reliability/Ecosystem slices.
+Branch: codex/run10-beta-reliability-foundation; PR20 remains OPEN/DRAFT. Start709816a7e6d0779b45c48d729c69e0eabd671f0e; base95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90.
+Pushed checkpoints: d36d204bed91a44a8887a069d61b9da355511e58 (brief/CI/crypto/storage), cc99409983e87eb04f7c27d1faf904c5752d493f (visual/Health daily).
+Uncommitted: Today/widgets/creator, financial revisions/lifecycle, account/storage/backup integration, encrypted coordinator+isolatedWorker, barcode+isolatedWorker, ecosystem. Preserve all; agents actively own disjoint files.
+Core sync is NOT complete. No hosted auth/backend/email configured; no integrated account-scoped app transport or physical-device proof. Full acceptance cannot be marked complete.
+Verified local subsets: visual71units+9browser;Health42units+18browser;Today8units+24browser;storage migration/crypto/backup/coordinator+account focusedchecks and2Settingsbrowser;runtimeWorkers2fixturetests;food2browser+36Healthunits;ecosystem40units+4browser. Final integration pending.
+Next: finish financial/Habit and market slices; run fullunit/lint/typecheck/build/browser/security; reconcile290IDs and40journeys against actualevidence, independentreview then checkpoint+push.
+Node24.19.0 path /Users/AIUSER/.local/share/fnm/node-versions/v24.19.0/installation/bin ; pnpm11.19.0. Preview127.0.0.1:3110. Browser/runtime commands need loopback permission and distinct /private/tmp output dirs.
+Backups: .superpowers/run10/recovery and agent-evidence docs; code only, not ownerprivatebrowserdata. No ownerrecords were read/exported/migrated.
+NovaVault project path verified/read; no mirrorwrite yet. No merge/deploy/live migration/paidservice/financialsignature.
+Updated UTC: 2026-09-23T20:31:41.706982+00:00

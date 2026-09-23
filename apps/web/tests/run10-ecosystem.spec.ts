@@ -1,0 +1,13 @@
+import {test,expect} from '@playwright/test';
+test('ecosystem filters, clears, opens useful details and keeps external links private',async({page})=>{
+ await page.goto('/app/ecosystem');await expect(page.getByRole('heading',{name:'Explore the ZIGChain ecosystem.'})).toBeVisible();
+ const search=page.getByRole('searchbox',{name:'Search projects'});await search.fill('oro');await expect(page.locator('.ecosystem-project')).toHaveCount(1);const card=page.locator('.ecosystem-project');await expect(card.getByRole('heading',{name:'OroSwap'})).toBeVisible();
+ await card.getByText('Evidence & access',{exact:true}).click();await expect(card.getByText('ZIGoals capability',{exact:true})).toBeVisible();await expect(card.getByRole('link',{name:'Open app ↗'})).toHaveAttribute('href','https://app.oroswap.org/');
+ await page.context().route('https://app.oroswap.org/**',route=>route.fulfill({contentType:'text/html',body:'<h1>External destination fixture</h1>'}));const opened=page.waitForEvent('popup');await card.getByRole('link',{name:'Open app ↗'}).click();const popup=await opened;await expect(popup).toHaveURL('https://app.oroswap.org/');await popup.close();
+ await page.getByRole('combobox',{name:'Category',exact:true}).selectOption('Network tools');await expect(page.getByText('No projects match these filters.')).toBeVisible();await page.getByRole('button',{name:'Clear filters'}).click();await expect(page.locator('.ecosystem-project')).toHaveCount(18);
+ const links=await page.locator('.ecosystem-directory a[target=_blank]').evaluateAll(els=>els.map(el=>({href:(el as HTMLAnchorElement).href,rel:el.getAttribute('rel')})));expect(links.length).toBeGreaterThan(18);for(const a of links){expect(a.href).toMatch(/^https:\/\//);expect(a.rel).toContain('noreferrer');expect(a.href).not.toMatch(/wallet=|email=|goal=|quantity=/);}
+});
+for(const width of [320,390,1440])test(`ecosystem directory reflows at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:1000});await page.goto('/app/ecosystem');await expect(page.locator('.ecosystem-project')).toHaveCount(18);await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.getByRole('searchbox',{name:'Search projects'}).fill('valdora');await page.getByText('Evidence & access',{exact:true}).press('Enter');await expect(page.getByText('ZIGoals capability',{exact:true})).toBeVisible();await page.getByText('Evidence & access',{exact:true}).press('Enter');await page.locator('.ecosystem-intro').scrollIntoViewIfNeeded();await page.locator('.ecosystem-directory').screenshot({animations:'disabled',path:`/private/tmp/run10-visual-evidence/run10-ecosystem-${width}.png`});
+});
