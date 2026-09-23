@@ -18,7 +18,7 @@ export async function enableDurableStore<T>(storage:Storage,key:string,schema:z.
  const space=durableSpace(storage,key);
  await withStorageLock(storageLockKey(storage,key),async()=>{
   const raw=storage.getItem(key);if(isDurableMarker(raw)){await readDurableStore(storage,key,schema,db);return;}
-  const data=raw===null?empty():parsePrivateData(raw,schema),existing=await db.read(space,key);
+  const data=raw===null?schema.parse(empty()):parsePrivateData(raw,schema),existing=await db.read(space,key);
   if(existing){
    // A pointer write can fail after IndexedDB commits. Resume only if the old source
    // still matches the staged data; never overwrite changes made by an older tab.

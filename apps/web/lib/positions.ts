@@ -1,5 +1,6 @@
 /** VM-independent private accounting. No wallet, signer, network or execution imports. */
 import { z } from 'zod';
+import {financialEvidenceFields,financialEvidenceIssues,assertFinancialEvidenceAppendOnly} from './financial-events';
 import {marketQuoteSchema,quoteIsStale,quoteValue,quoteMatchesPosition,type MarketQuote,type ValuationEvidence} from './market-quotes';
 import {marketAssetRefSchema} from './market-assets';
 export const PLATFORM_KEY = 'zigoals:platform:v1';
@@ -75,11 +76,13 @@ const platformV1 = z.object({legacyGoalUi:z.record(z.string(),z.object({pinned:z
  aprAssumptions:z.array(z.object({network:id,account:id,percent:z.string().regex(/^(0|[1-9]\d{0,2})(\.\d{1,6})?$/).refine(v=>Number(v)<=100)}).strict()).max(1000).optional(),
  snapshots:z.array(z.object({positionId:id,quantity:units,observedAt:at}).strict()).max(2000),
 }).strict();
-const platformV2=platformV1.extend({schemaVersion:z.literal(2),contributions:z.array(contributionEventSchema).max(10000),valuationSnapshots:z.array(valuationSnapshotSchema).max(240),goalHistory:z.array(goalHistorySchema).max(240),historyCaptureDays:z.record(z.string().max(260),date).refine(v=>Object.keys(v).length<=1200).optional()});
+const platformV2=platformV1.extend({schemaVersion:z.literal(2),contributions:z.array(contributionEventSchema).max(10000),valuationSnapshots:z.array(valuationSnapshotSchema).max(50000),goalHistory:z.array(goalHistorySchema).max(50000),historyCaptureDays:z.record(z.string().max(260),date).refine(v=>Object.keys(v).length<=1200).optional()});
 export const favouriteSchema=z.object({ref:marketAssetRefSchema,name:z.string().min(1).max(300),symbol:z.string().max(100)}).strict();
-const platformBase=platformV2.extend({schemaVersion:z.literal(3),watchlist:z.array(favouriteSchema).max(8),assetEvents:z.array(z.object({id,positionId:id,name:z.string().max(250),assetClass:z.enum(ASSET_CLASSES),kind:z.enum(['added','edited','archived','restored']),at,provenance:z.literal('PRIVATE_EDIT')}).strict()).max(240)});
+const platformBase=platformV2.extend({...financialEvidenceFields,schemaVersion:z.literal(3),watchlist:z.array(favouriteSchema).max(8),assetEvents:z.array(z.object({id,positionId:id,name:z.string().max(250),assetClass:z.enum(ASSET_CLASSES),kind:z.enum(['added','edited','archived','restored']),at,provenance:z.literal('PRIVATE_EDIT')}).strict()).max(50000)});
 export const platformSchema = z.union([platformBase,platformV2.transform(s=>({...s,schemaVersion:3 as const,watchlist:[],assetEvents:[]})),platformV1.transform(s=>({...s,schemaVersion:3 as const,contributions:[],valuationSnapshots:[],goalHistory:[],watchlist:[],assetEvents:[]}))]).superRefine((s,c)=>{
  const issue=(message:string)=>c.addIssue({code:'custom',message});
+ for(const message of financialEvidenceIssues(s as Platform))issue(message);
+ for(const event of (s as Platform).financialEvents??[]){if(event.relatedContributionId&&!s.contributions.some(e=>e.id===event.relatedContributionId))issue('Unknown related contribution.');if(event.relatedPlanRevisionId&&!s.goals.some(g=>g.planRevisions?.some(r=>r.id===event.relatedPlanRevisionId)))issue('Unknown related plan revision.');}
  for(const list of [s.positions,s.goals,s.contributions,s.valuationSnapshots,s.goalHistory]) if(new Set(list.map(i=>i.id)).size!==list.length) issue('Duplicate identifier.');
  for(const g of s.goals){
   for(const list of [g.planRevisions??[],g.lifecycle??[]])if(new Set(list.map(e=>e.id)).size!==list.length)issue('Duplicate Goal history identifier.');
@@ -298,6 +301,7 @@ export function confirmedLocalObservation(e:ContributionEvent):boolean{return e.
 export function localGoalLocked(s:Platform,goalId:string):boolean{return Boolean(s.legacyGoalUi?.[`local-simulation:local-demo-user:${goalId}`]?.locked??s.legacyGoalUi?.[goalId]?.locked);}
 /** UI locks guard every private-store mutation, including stale forms in other tabs. */
 export function assertGoalEditsUnlocked(before:Platform,after:Platform):void {
+ assertFinancialEvidenceAppendOnly(before,after);
  for(const g of before.goals){const next=after.goals.find(x=>x.id===g.id);for(const key of ['planRevisions','lifecycle'] as const)if((g[key]?.length??0)>0&&JSON.stringify(next?.[key]?.slice(0,g[key]!.length))!==JSON.stringify(g[key]))throw Error('Goal plan and milestone history is append-only.');}
  for(const event of before.contributions)if(JSON.stringify(after.contributions.find(e=>e.id===event.id))!==JSON.stringify(event))throw Error('Contribution history is append-only. Record a reversal instead.');
  for(const e of after.contributions)if(e.goalScope==='local'&&localGoalLocked(before,e.goalId)&&!confirmedLocalObservation(e)&&!before.contributions.some(old=>old.id===e.id))throw Error('Unlock this Goal before editing.');

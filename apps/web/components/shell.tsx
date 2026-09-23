@@ -11,10 +11,16 @@ import { ExplorerLinks } from "./explorer-links";
 import { Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
 import {ShowcaseBanner,useShowcase} from "./showcase-controls";
+import {WorkspaceStatus,useWorkspaceSelection} from './workspace-status';
+import {usePrivateStore} from './use-private-store';
+import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
 import {QuickAdd} from "./quick-add";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const showcase=useShowcase();
+  const selection=useWorkspaceSelection();
+  const preferences=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
+  const financial=preferences.loaded&&!preferences.error&&visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
   const path = usePathname();
   const isActive = (href: string) => href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -58,7 +64,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <div className="app-content">
-      <header className="app-topbar">
+      {financial&&!selection.selected&&<header className="app-topbar">
         <div className="network-banner">
           <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
           <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
@@ -94,10 +100,11 @@ export function Shell({ children }: { children: ReactNode }) {
             <AppIcon name={s.walletState === "CONNECTED" ? "chevron" : "arrow"} size={14}/>
           </button>
         </div>
-      </header>
+      </header>}
       <div className="workspace">
         <ShowcaseBanner/>
-        <div className="mode-strip">
+        <WorkspaceStatus/>
+        {financial&&!selection.selected&&<div className="mode-strip">
           <span className="mode-dot" />
           {s.mode === "local"
             ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
@@ -106,7 +113,7 @@ export function Shell({ children }: { children: ReactNode }) {
             {formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG{" "}
             {s.mode === "local" ? "demo balance" : "wallet balance"}
           </span>
-        </div>
+        </div>}
         {s.error && (
           <div role="alert" className="alert">
             {s.error}

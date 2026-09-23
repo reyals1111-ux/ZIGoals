@@ -1,6 +1,6 @@
 /** Presentation only: every value resolves from the domain's canonical selector. */
 import {formatUnits} from '@zigoals/chain-config';
-import {allocationBalance,type Platform} from './positions';
+import {allocationBalance,positionSync,type Position,type Platform} from './positions';
 import {wealthOverview} from './wealth';
 import {formatGoalAmount,type GoalSummary} from './goal-summary';
 import {habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
@@ -10,9 +10,10 @@ import type {MarketQuote} from './market-quotes';
 import {formatExactNumber} from './visual-format';
 import {WIDGET_CATALOG,type DashboardWidget} from './dashboard-settings';
 export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string};
-export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean};
-const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity'};
+export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean;facts?:{label:string;value:string}[]};
+const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary'};
 export const widgetMetricLabel=(metric:string)=>labels[metric]??metric;
+export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
  const defaults={title:widget.title||WIDGET_CATALOG[widget.kind].label,value:'Unavailable',detail:'',href:'/app/settings'};
  const unavailable=(href:string,detail:string)=>({...defaults,value:'Record unavailable',detail,href,missing:true});
@@ -41,6 +42,18 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  if(widget.kind==='wealth'){
   const wealth=wealthOverview(s.platform,s.now,s.quotes),subtotal=wealth.subtotals.find(t=>t.currency===widget.metric),missing=wealth.rows.some(r=>r.value===undefined),stale=wealth.rows.some(r=>r.currency===widget.metric&&r.stale);
   return {...defaults,title:widget.title||`Tracked Wealth · ${widget.metric}`,value:subtotal?formatGoalAmount(formatUnits(subtotal.value.toString(),2),widget.metric):'No recorded value',detail:'Known values only · currencies stay separate',href:'/app/wealth',warning:missing?'Valuation coverage is incomplete. Some assets have no value.':stale?'Includes stale evidence. Refresh or review values.':undefined};
+ }
+ if(widget.kind==='staking'||widget.kind==='allocation'){
+  const position=s.platform.positions.find(p=>p.id===widget.entity),href=widget.kind==='staking'?'/app/goals/positions':'/app/wealth';
+  if(!position||widget.kind==='staking'&&!stakingWidgetSource(position))return unavailable(href,'The selected Position is unavailable or no longer matches this widget. Choose another record.');
+  if(position.archivedAt)return {...unavailable(href,'This Position is archived. Restore it or choose another record.'),title:widget.title||position.providerId};
+  const balance=allocationBalance(s.platform,position.id),amount=(raw:string)=>`${formatExactNumber(formatUnits(raw,position.decimals))} ${position.asset}`,sync=positionSync(position,s.now);
+  const source=position.sourceType==='NATIVE_STAKING'?'Staked principal':position.sourceType==='NATIVE_REWARDS'?'Unclaimed rewards':position.sourceType==='NATIVE_UNBONDING'?'Unbonding':'Recorded balance';
+  const warnings=[balance.deficit!=='0'?'Allocation exceeds this source balance. Review the deficit.':'',sync==='ERROR'?'Last refresh failed. Showing the saved observation.':sync==='STALE'?'Saved observation is stale. Refresh in Positions.':''];
+  return {...defaults,title:widget.title||`${widget.kind==='staking'?source:'Allocations'} · ${position.validator?.name??position.providerId}`,value:amount(position.quantity),href:`/app/wealth/asset/${encodeURIComponent(position.id)}`,
+   detail:`Selected Position only · ${source} · ${position.network} · ${position.verification==='MANUAL'?'manual record':'read-only observation'} · ${position.observedAt}${widget.kind==='staking'?` · ${position.liquidity.toLowerCase()} · recorded rewards are not future yield`:'. Unallocated is an accounting amount, not a guarantee of spendable funds.'}`,
+   warning:warnings.filter(Boolean).join(' ')||undefined,
+   ...(widget.kind==='allocation'?{facts:[{label:'Allocated to Goals',value:amount(balance.allocated)},{label:'Unallocated',value:amount(balance.unallocated)},{label:'Allocation deficit',value:amount(balance.deficit)}]}:{})};
  }
  if(widget.kind==='asset'){
   const position=s.platform.positions.find(p=>p.id===widget.entity);if(!position)return unavailable('/app/wealth','This asset or Position is unavailable. Choose another or remove this widget.');

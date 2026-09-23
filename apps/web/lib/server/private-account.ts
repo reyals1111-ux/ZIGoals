@@ -44,9 +44,9 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    if(new URL(request.url).searchParams.get('action')==='status'){
     if(!token)return reply({signedIn:false});
     const remote=await upstream(`${cfg.authOrigin}/auth/v1/user`,{headers:{apikey:cfg.publicKey,authorization:`Bearer ${token}`}});
-    if(!remote.ok){await remote.body?.cancel().catch(()=>{});return reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,{'Set-Cookie':cookie('',0)});}
+    if(!remote.ok){await remote.body?.cancel().catch(()=>{});return remote.status===401||remote.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);}
     const user=z.object({id:z.uuid()}).parse(await readBounded(remote,32768));
-    const allowed=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':user.id}});await allowed.body?.cancel().catch(()=>{});if(!allowed.ok)return reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,{'Set-Cookie':cookie('',0)});
+    const allowed=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':user.id}});await allowed.body?.cancel().catch(()=>{});if(!allowed.ok)return allowed.status===401||allowed.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);
     return reply({signedIn:true,accountId:user.id.toLowerCase()});
    }
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);

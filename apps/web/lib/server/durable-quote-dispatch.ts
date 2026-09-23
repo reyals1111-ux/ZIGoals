@@ -1,0 +1,55 @@
+import {uniqueMarketRequests,type MarketQuoteRequest} from '../market-assets';
+import {boundedQuoteText,cleanupMarketBody,parseCoinQuotes,type MarketQuote} from '../market-quotes';
+import {isJsonMediaType} from '../json-media-type';
+import {ProviderTransportError,ProviderValidationError} from '../provider-validation';
+import {marketPairEnvelope,type PairFailure} from './market-pair-result';
+import {ProviderFailure,providerHttpFailure,parseProviderEvidence,type ProviderFailureCategory} from './provider-failure';
+type Command=(command:unknown)=>Promise<Record<string,unknown>>;
+const denied=(reason:unknown):ProviderFailureCategory=>['CONCURRENT_LIMIT','QUEUE_LIMIT','FENCED','RESERVATION_EXPIRED','OWNERSHIP_EXPIRED'].includes(String(reason))?'LOCAL_QUEUE':['POLICY_UNAVAILABLE','POLICY_CHANGED','CLOCK_OR_PERIOD','MINUTE_LIMIT','MONTHLY_LIMIT','MONITORING_LIMIT','OPTIONAL_LIMIT','RETENTION_CAPACITY','CACHE_CAPACITY'].includes(String(reason))?'LOCAL_BUDGET':'UNKNOWN';
+/** Only canonical coin simple-price work is supported here. No native-token fallback,
+ * RWA, catalog, history or insights I/O can bypass this dispatch path. */
+export async function dispatchDurableQuotes(raw:readonly MarketQuoteRequest[],{command,key,fetcher=fetch,clock=()=>Date.now()}:{command:Command;key?:string;fetcher?:typeof fetch;clock?:()=>number}){
+ const requests=uniqueMarketRequests(raw),quotes=new Map<string,MarketQuote>(),failures:PairFailure[]=[];
+ const keyOf=(r:MarketQuoteRequest)=>JSON.stringify([r.marketRef.id,r.currency]);
+ const fail=(members:readonly MarketQuoteRequest[],category:ProviderFailureCategory)=>failures.push(...members.map(request=>({request,category})));
+ if(requests.length>64){fail(requests,'LOCAL_QUEUE');return marketPairEnvelope(requests,[],failures,clock());}
+ if(!key){fail(requests,'AUTHENTICATION');return marketPairEnvelope(requests,[],failures,clock());}
+ const owners:{request:MarketQuoteRequest;work:{operation:'quote';pair:MarketQuoteRequest};lease:unknown}[]=[];
+ for(const request of requests){
+  if(request.marketRef.kind!=='coin'){fail([request],'UNSUPPORTED');continue;}
+  const work={operation:'quote' as const,pair:request};
+  try{const acquired=await command({action:'acquire',work});
+   if(acquired.quote){const evidence=marketPairEnvelope([request],[acquired.quote as MarketQuote],[],clock());quotes.set(keyOf(request),evidence.quotes[0]!);}
+   if(acquired.ok!==true){fail([request],denied(acquired.reason));continue;}
+   if(acquired.status==='CACHE_HIT')continue;
+   if(acquired.status==='OWNER'){owners.push({request,work,lease:acquired.lease});continue;}
+   fail([request],'LOCAL_QUEUE'); // Another durable owner exists; this caller does not dispatch.
+  }catch{fail([request],'UNKNOWN');}
+ }
+ // ZIG has its own atomic response boundary, so its unavailable simple-price result
+ // cannot erase independently verified non-ZIG evidence. Each group is charged once.
+ for(const group of [owners.filter(o=>o.request.marketRef.id!=='zignaly'),owners.filter(o=>o.request.marketRef.id==='zignaly')]){
+  if(!group.length)continue;const members=group.map(o=>o.request);let operation:string|undefined,marked=false;
+  try{
+   const queued=await command({action:'enqueue',priority:'interactive',kind:'request',associations:group.map(({work,lease})=>({work,lease}))});
+   if(queued.ok!==true||typeof queued.id!=='string')throw new ProviderFailure(denied(queued.reason));operation=queued.id;
+   for(const action of ['reserve','own','dispatch']){const result=await command({action,id:operation});if(result.ok!==true)throw new ProviderFailure(denied(result.reason));if(action==='dispatch')marked=true;}
+   const url=new URL('https://api.coingecko.com/api/v3/simple/price');url.searchParams.set('ids',[...new Set(members.map(r=>r.marketRef.id))].join(','));url.searchParams.set('vs_currencies',[...new Set(members.map(r=>r.currency.toLowerCase()))].join(','));url.searchParams.set('include_last_updated_at','true');url.searchParams.set('precision','full');
+   let result:MarketQuote[];
+   try{
+    const response=await fetcher(url.href,{method:'GET',headers:{Accept:'application/json','x-cg-demo-api-key':key},credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(8000)});
+    const rejection=response.redirected?new ProviderFailure('UNKNOWN'):!response.ok?providerHttpFailure(response.status):!isJsonMediaType(response.headers.get('content-type'))?new ProviderFailure('MALFORMED'):null;
+    if(rejection){await cleanupMarketBody(()=>response.body?.cancel()??Promise.resolve());throw rejection;}
+    const text=await boundedQuoteText(response,1024*1024);result=parseProviderEvidence(()=>parseCoinQuotes(text,members,clock()));
+   }catch(error){
+    // A failed/ambiguous send remains charged. If settlement itself is unconfirmed,
+    // keep the durable DISPATCHED state; there is no cancellation or refund.
+    await command({action:'settle',id:operation,outcome:'failure'}).catch(()=>{});
+    throw error instanceof ProviderFailure?error:new ProviderFailure(error instanceof ProviderValidationError?'MALFORMED':error instanceof ProviderTransportError?error.category:error instanceof Error&&['TimeoutError','AbortError'].includes(error.name)?'TIMEOUT':error instanceof TypeError?'NETWORK':'UNKNOWN');
+   }
+   const settled=await command({action:'settle',id:operation,outcome:'success'});if(settled.ok!==true)throw new ProviderFailure('UNKNOWN');
+   for(const quote of result){const member=group.find(o=>o.request.marketRef.id===quote.providerAssetId&&o.request.currency===quote.currency)!;const publication=await command({action:'publish',id:operation,work:member.work,quote});if(publication.ok===true)quotes.set(keyOf(member.request),quote);else fail([member.request],publication.reason==='MALFORMED'?'MALFORMED':'LOCAL_QUEUE');}
+  }catch(error){if(operation&&!marked)await command({action:'cancel',id:operation}).catch(()=>{});fail(members,error instanceof ProviderFailure?error.category:'UNKNOWN');}
+ }
+ return marketPairEnvelope(requests,[...quotes.values()],failures,clock());
+}

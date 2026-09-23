@@ -59,11 +59,11 @@ describe('Run 9 accounting',()=>{
   expect(next.contributions).toEqual([]);
   expect(intelligence.goalTimeline(next,'1').filter(e=>e.kind==='valuation')).toHaveLength(1);
  });
- it('bounds histories while preserving all financial events',()=>{
+ it('retains more than the old 240 observations and all financial events',()=>{
   let s=intelligence.appendContribution(state(),event());
   for(let day=0;day<400;day++) {s.positions[0]!.valuation!.value=String(80000+day);s=intelligence.captureValuations(s,[],now+day*86400000);}
-  expect(s.valuationSnapshots.length).toBeLessThanOrEqual(intelligence.MAX_VALUATION_SNAPSHOTS);
-  expect(s.goalHistory.length).toBeLessThanOrEqual(intelligence.MAX_GOAL_HISTORY);
+  expect(s.valuationSnapshots).toHaveLength(400);
+  expect(s.goalHistory).toHaveLength(400);
   expect(s.contributions).toHaveLength(1);
   expect(new TextEncoder().encode(JSON.stringify(s)).byteLength).toBeLessThan(1000000);
  });
@@ -77,13 +77,14 @@ it('retains embedded quote/value evidence when standalone snapshots compact away
  const h=s.goalHistory.find(h=>h.kind==='valuation');
  expect(h?.kind==='valuation'&&h.evidence[0]?.valuation).toMatchObject({value:'80000',currency:'USD',source:'MANUAL'});
 });
-it('caps history bytes for broad portfolios without removing financial facts',()=>{
+it('retains broad portfolio history above the old pruning budget',()=>{
  let s=intelligence.appendContribution(state(),event());
  s.positions=Array.from({length:100},(_,i)=>({...s.positions[0]!,id:`p${i}`}));
  s.goals=Array.from({length:20},(_,i)=>({...s.goals[0]!,id:String(i+1)}));
  s.allocations=s.goals.flatMap(g=>s.positions.map(p=>({goalId:g.id,positionId:p.id,quantity:'1'})));
- for(let day=0;day<30;day++){s.positions[0]!.valuation!.value=String(80000+day);s=intelligence.captureValuations(s,[],now+day*86400000);}
- expect(new TextEncoder().encode(JSON.stringify({v:s.valuationSnapshots,g:s.goalHistory})).byteLength).toBeLessThan(700000);
+ for(let day=0;day<3;day++){s.positions[0]!.valuation!.value=String(80000+day);s=intelligence.captureValuations(s,[],now+day*86400000);}
+ expect(new TextEncoder().encode(JSON.stringify({v:s.valuationSnapshots,g:s.goalHistory})).byteLength).toBeGreaterThan(700000);
+ expect(s.valuationSnapshots).toHaveLength(300);expect(s.goalHistory).toHaveLength(60);
  expect(s.contributions).toHaveLength(1);
 }, 15_000);
 it('rejects direct rewriting/removing immutable contribution facts',()=>{
@@ -159,4 +160,10 @@ it('honors the actual scoped Local Demo lock key while admitting already-confirm
 it('does not move already-completed Goal projection to tomorrow',()=>{
  const s=state();s.positions[0]!.valuation!.value='100000';
  expect(intelligence.fundingHealth(s,'1',now)).toMatchObject({status:'COMPLETED',completionDate:'2026-09-20'});
+});
+
+it('refuses a full history append without deleting any accepted observation',()=>{
+ const source=state();source.goalHistory=Array.from({length:50000},(_,i)=>({id:`retained-${i}`,goalId:'1',kind:'plan' as const,capturedAt:at,label:'Retained',provenance:'LOCAL_EDIT' as const}));
+ const changed={...source,goals:source.goals.map(g=>({...g,plan:{...g.plan!,amount:'20000'}}))};
+ expect(()=>intelligence.recordGoalChanges(source,changed,now+1000)).toThrow(/capacity|export/i);expect(source.goalHistory).toHaveLength(50000);expect(source.goalHistory[0]!.id).toBe('retained-0');
 });

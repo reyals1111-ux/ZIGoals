@@ -1,5 +1,6 @@
 import type {z} from 'zod';
-import {PLATFORM_KEY,platformSchema,emptyPlatform} from '../positions';
+import {PLATFORM_KEY,platformSchema,emptyPlatform,type Platform} from '../positions';
+import {assertFinancialEvidenceAppendOnly} from '../financial-events';
 import {HABITS_KEY,habitDataSchema,emptyHabitData} from '../habits';
 import {HEALTH_STORAGE_KEY,healthSchema,createEmptyHealth} from '../health';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings} from '../dashboard-settings';
@@ -8,11 +9,18 @@ import {storageLockKey} from '../showcase-storage';
 import {isDurableMarker,enableDurableStore,exportDurableStore,localDatabase,durableSpace} from './local';
 import type {Domain,PrivateData} from './cloud-sync';
 export const modules:Record<Domain,{key:string;schema:z.ZodType;empty:()=>unknown}>={finance:{key:PLATFORM_KEY,schema:platformSchema,empty:emptyPlatform},habits:{key:HABITS_KEY,schema:habitDataSchema,empty:emptyHabitData},health:{key:HEALTH_STORAGE_KEY,schema:healthSchema,empty:createEmptyHealth},settings:{key:DASHBOARD_SETTINGS_KEY,schema:dashboardSettingsSchema,empty:emptyDashboardSettings}};
-export function validateData(data:PrivateData){for(const [domain,raw]of Object.entries(data)){const m=modules[domain as Domain];if(!m||typeof raw!=='string'||new TextEncoder().encode(raw).length>32_000_000)throw Error('Unsupported private data.');m.schema.parse(JSON.parse(raw));}}
+/** Sync cannot rewrite accepted immutable evidence. Explicit backup replacement is separate. */
+function assertFinanceRetained(before:Platform,after:Platform){
+ assertFinancialEvidenceAppendOnly(before,after);
+ const retained=(prior:readonly {id:string}[],next:readonly {id:string}[])=>{const rows=new Map(next.map(e=>[e.id,e]));for(const event of prior)if(JSON.stringify(rows.get(event.id))!==JSON.stringify(event))throw Error('Accepted financial evidence is append-only. Both copies were preserved for review.');};
+ for(const name of ['contributions','valuationSnapshots','goalHistory','assetEvents'] as const)retained(before[name],after[name]);
+ const goals=new Map(after.goals.map(g=>[g.id,g]));for(const goal of before.goals)for(const name of ['planRevisions','lifecycle'] as const)retained(goal[name]??[],goals.get(goal.id)?.[name]??[]);
+}
+export function validateData(data:PrivateData,prior?:PrivateData){for(const [domain,raw]of Object.entries(data)){const m=modules[domain as Domain];if(!m||typeof raw!=='string'||new TextEncoder().encode(raw).length>32_000_000)throw Error('Unsupported private data.');m.schema.parse(JSON.parse(raw));}if(prior?.finance!==undefined){if(data.finance===undefined)throw Error('Accepted financial evidence cannot be removed by sync.');assertFinanceRetained(platformSchema.parse(JSON.parse(prior.finance)),platformSchema.parse(JSON.parse(data.finance)));}}
 export async function captureData(storage:Storage,domains:readonly Domain[]){const result:PrivateData={};for(const d of domains){const {key,schema,empty}=modules[d];if(storage.getItem(key)===null)continue;await enableDurableStore(storage,key,schema,empty);result[d]=await exportDurableStore(storage,key);}validateData(result);return result;}
 /** Each domain commits atomically; finances are one aggregate. Refuse edits made since capture. */
 export async function applyData(storage:Storage,before:PrivateData,after:PrivateData,fence:()=>void){
- validateData(after);
+ validateData(after,before);
  for(const [domain,raw] of Object.entries(after)){
   const {key,schema,empty}=modules[domain as Domain];fence();
   if(before[domain as Domain]===undefined&&storage.getItem(key)!==null)throw Error('Local records changed during sync. Retry; no record was overwritten.');

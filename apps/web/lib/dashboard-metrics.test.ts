@@ -30,3 +30,21 @@ test('allocation deficits remain discoverable regardless of the chosen layout',a
  const {dashboardIntegrityWarning}=await import('./dashboard-metrics');const s=source();s.platform.positions=[manualSourcePosition({category:'Cash',name:'Dollar',quantity:'1',currency:'USD'},'cash')];s.platform.goals=[privateGoalSchema.parse({id:'42',name:'Goal',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'200',notes:'',createdAt:'2026-09-23T12:00:00Z',milestones:[]})];s.platform.allocations=[{goalId:'42',positionId:'cash',quantity:(BigInt(s.platform.positions[0]!.quantity)*2n).toString()}];
  expect(dashboardIntegrityWarning(s.platform)).toContain('allocation');s.platform.allocations=[];expect(dashboardIntegrityWarning(s.platform)).toBeUndefined();
 });
+
+test('staking widgets resolve only the selected observed source and preserve freshness',()=>{
+ const s=source();const base=manualSourcePosition({category:'Crypto',name:'Fixture validator',symbol:'ZIG',quantity:'9007199254740993.000001',currency:'USD'},'stake');
+ s.platform.positions=[{...base,sourceType:'NATIVE_STAKING',verification:'VERIFIED_READ_ONLY',network:'zigchain-1',sync:'CURRENT',observedAt:'2026-09-23T11:59:59Z'}];
+ const value=widgetMetric(widget('staking','quantity','stake'),s);
+ expect(value.value).toBe('9,007,199,254,740,993.000001 ZIG');expect(value.href).toBe('/app/wealth/asset/stake');expect(value.detail).toContain('Staked principal');expect(value.detail).toContain('zigchain-1');expect(value.detail).toContain('2026-09-23T11:59:59Z');
+ expect(widgetMetric(widget('staking','quantity','absent'),s).missing).toBe(true);
+ s.platform.positions[0]!.sync='ERROR';expect(widgetMetric(widget('staking','quantity','stake'),s).warning).toContain('refresh failed');
+ s.platform.positions[0]!.sourceType='MANUAL';expect(widgetMetric(widget('staking','quantity','stake'),s).missing).toBe(true);
+});
+test('allocation widget reports canonical exact allocated, available and deficit for one source',()=>{
+ const s=source();s.platform.positions=[{...manualSourcePosition({category:'Cash',name:'Cash',quantity:'100.01',currency:'USD'},'cash'),quantity:'10001',decimals:2}];
+ s.platform.goals=[privateGoalSchema.parse({id:'42',name:'Goal',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'20000',notes:'',createdAt:'2026-09-23T12:00:00Z',milestones:[]})];s.platform.allocations=[{goalId:'42',positionId:'cash',quantity:'11002'}];
+ const value=widgetMetric(widget('allocation','allocation','cash'),s);
+ expect(value.facts).toEqual([{label:'Allocated to Goals',value:'110.02 USD'},{label:'Unallocated',value:'0 USD'},{label:'Allocation deficit',value:'10.01 USD'}]);expect(value.warning).toContain('exceeds');
+ s.platform.goals[0]!.status='closed';expect(widgetMetric(widget('allocation','allocation','cash'),s).facts?.[1]?.value).toBe('100.01 USD');
+ s.platform.positions[0]!.archivedAt='2026-09-23T12:00:00Z';expect(widgetMetric(widget('allocation','allocation','cash'),s).missing).toBe(true);
+});

@@ -36,7 +36,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    fence();setMessage('Syncing encrypted account records…');const storage=getAppStorage(),domains:Domain[]=['finance','habits','settings',...(selected.health?['health' as const]:[])];
    const capturedPending=(await localDatabase.pending(`account:${selected.account}`)).filter(p=>domains.some(d=>modules[d].key===p.domain));
    const local=await captureData(storage,domains);fence();const result=await synchronize(accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,local,validateData,fence,domains);
-   fence();await applyData(storage,local,result.data,fence);await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}setLast(new Date().toLocaleTimeString());setMessage('Account records synced and acknowledged.');auto.current=true;
+   fence();await applyData(storage,local,result.data,fence);await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(new Date().toLocaleTimeString());setMessage('Account records synced and acknowledged.');auto.current=true;
   });
  });}
  function setHealth(value:boolean){setHealthState(value);if(session.current)session.current.health=value;}

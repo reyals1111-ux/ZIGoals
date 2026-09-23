@@ -27,3 +27,8 @@ test('Showcase pointer spoof cannot access the real durable store',async()=>{
  vi.stubGlobal('window',{sessionStorage:session,localStorage:real});activateShowcase(session,'2026-09-23',{},'test');
  const scoped=getAppStorage();await expect(enableDurableStore(scoped,'zigoals:health:v1',schema,()=>({schemaVersion:1 as const,rows:[]}))).rejects.toThrow('Showcase');vi.unstubAllGlobals();
 });
+
+test('an empty new device can initialize every real domain using canonical schema serialization',async()=>{
+ const {modules}=await import('./account-data');vi.stubGlobal('navigator',{locks:{request:async(_k:string,f:()=>unknown)=>f()}});
+ const db=new VaultDatabase(crypto.randomUUID()),s=storage();try{for(const {key,schema,empty}of Object.values(modules)){await enableDurableStore(s,key,schema,empty,db);expect(await readDurableStore(s,key,schema,db)).toEqual(schema.parse(empty()));}}finally{db.close();vi.unstubAllGlobals();}
+});

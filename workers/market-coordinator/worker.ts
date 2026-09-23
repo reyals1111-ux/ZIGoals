@@ -1,4 +1,8 @@
 import {DurableMarketAccount,type AtomicMarketStorage} from '../../apps/web/lib/server/durable-market-account';
+import {WorkerEntrypoint} from 'cloudflare:workers';
+import {marketRequestsSchema} from '../../apps/web/lib/market-assets';
+import {boundedQuoteText} from '../../apps/web/lib/market-quotes';
+import {dispatchDurableQuotes} from '../../apps/web/lib/server/durable-quote-dispatch';
 /** Internal-only prototype. No public RPC, credentials, provider I/O or production binding. */
 export class MarketAccount {
  private account:DurableMarketAccount;
@@ -14,5 +18,20 @@ export class MarketAccount {
  }
 }
 const worker={fetch(){return new Response('Not found',{status:404,headers:{'cache-control':'no-store'}});}};
+
+type QuoteEnv={MARKET_QUOTE_DISPATCH?:string;MARKET_ACCOUNT_ID?:string;COINGECKO_DEMO_API_KEY?:string;MARKETS:{idFromName:(name:string)=>unknown;get:(id:unknown)=>{fetch:(request:Request)=>Promise<Response>}}};
+/** Available only through an explicitly configured named service binding. The default
+ * public endpoint above cannot reach provider dispatch or coordinator commands. */
+export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
+ async fetch(request:Request){
+  const headers={'cache-control':'no-store','content-type':'application/json'};
+  if(this.env.MARKET_QUOTE_DISPATCH!=='durable-v1'||!this.env.MARKET_ACCOUNT_ID||!/^[a-zA-Z0-9_-]{1,80}$/.test(this.env.MARKET_ACCOUNT_ID))return Response.json({error:'MARKET_SETUP_REQUIRED'},{status:503,headers});
+  if(request.method!=='POST'||new URL(request.url).pathname!=='/quotes'||new URL(request.url).search)return new Response(null,{status:404,headers});
+  let requests;try{const body=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));if(!body||body.version!==1||Object.keys(body).sort().join(',')!=='requests,version')throw Error('Version or fields');requests=marketRequestsSchema.parse(body.requests);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+  const stub=this.env.MARKETS.get(this.env.MARKETS.idFromName(this.env.MARKET_ACCOUNT_ID));
+  const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,1024*1024)) as Record<string,unknown>;};
+  return Response.json(await dispatchDurableQuotes(requests,{command,key:this.env.COINGECKO_DEMO_API_KEY}),{headers});
+ }
+}
 
 export default worker;

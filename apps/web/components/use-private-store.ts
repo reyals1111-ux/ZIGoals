@@ -50,11 +50,13 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   }, [key]);
   const update = useCallback(async (updater: (latest: T) => T) => {
     if (!loaded) throw Error("Private data is still loading.");
-    try { const storage=getAppStorage(); const next=await (isDurableMarker(storage.getItem(key)) ? updateDurableStore(storage,key,schema,updater) : updatePrivateStore(storage,key,schema,createEmpty,updater)); if(storage===getAppStorage())publish(next); }
+    let draftError:unknown;const apply=(latest:T)=>{try{return updater(latest);}catch(error){draftError=error;throw error;}};
+    try { const storage=getAppStorage(); const next=await (isDurableMarker(storage.getItem(key)) ? updateDurableStore(storage,key,schema,apply) : updatePrivateStore(storage,key,schema,createEmpty,apply)); if(storage===getAppStorage())publish(next); }
     catch {
       // A rejected draft or full storage is not a corrupt store. Preserve forms
       // when the original record still reads; block only an actual read failure.
       refresh();
+      if(draftError instanceof Error)throw draftError;
       const message = "Could not save private data. Nothing was applied. Check storage access or restore a valid backup in Settings.";
       throw Error(message);
     }
@@ -67,6 +69,6 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
       throw Error(message);
     }
   }, [key, schema, publish, refresh]);
-  const exportData = useCallback(async () => { const storage=getAppStorage();return isDurableMarker(storage.getItem(key))?await exportDurableStore(storage,key):storage.getItem(key)??JSON.stringify(createEmpty()); }, [key, schema, createEmpty]);
+  const exportData = useCallback(async () => { const storage=getAppStorage();return isDurableMarker(storage.getItem(key))?await exportDurableStore(storage,key):storage.getItem(key)??JSON.stringify(createEmpty()); }, [key, createEmpty]);
   return { data, loaded, error, importLimit, update, importData, exportData, refresh };
 }

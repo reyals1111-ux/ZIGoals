@@ -30,26 +30,46 @@ const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
 function identity(value:unknown):string|null{if(!value||typeof value!=='object')return null;const r=value as Record<string,unknown>;return typeof r.id==='string'?r.id:typeof r.sourceId==='string'&&typeof r.sourceKind==='string'?JSON.stringify([r.sourceKind,r.sourceId]):null;}
 function mergeValue(base:unknown,local:unknown,remote:unknown,path:string):unknown{
  if(same(local,remote))return local;if(same(local,base))return remote;if(same(remote,base))return local;
+ // Two clients may independently initialize a formerly absent optional group.
+ // Only identity arrays/objects can merge; divergent scalar values still conflict.
+ if(base===undefined&&Array.isArray(local)&&Array.isArray(remote))base=[];
+ if(base===undefined&&[local,remote].every(v=>v!==null&&typeof v==='object'&&!Array.isArray(v)))base={};
  if([base,local,remote].every(v=>Array.isArray(v))){
   const lists=[base,local,remote] as unknown[][];if(lists.every(a=>a.every(v=>identity(v)!==null))){const maps=lists.map(a=>new Map(a.map(v=>[identity(v)!,v])));if(maps.some((m,i)=>m.size!==lists[i]!.length))throw Error('Duplicate sync identity.');const orders=maps.map(m=>[...m.keys()]),common=orders[0]!.filter(id=>maps[1]!.has(id)&&maps[2]!.has(id));const localOrder=orders[1]!.filter(id=>common.includes(id)),remoteOrder=orders[2]!.filter(id=>common.includes(id));if(!same(localOrder,common)&&!same(remoteOrder,common)&&!same(localOrder,remoteOrder))throw Error('Conflicting record order. Both versions were preserved.');const ordered=!same(localOrder,common)?orders[1]!:!same(remoteOrder,common)?orders[2]!:orders[0]!;const all=new Set([...ordered,...orders[1]!,...orders[2]!]);return [...all].flatMap(id=>{const [b,l,r]=maps.map(m=>m.get(id));const result=mergeValue(b,l,r,path+' record');return result===undefined?[]:[result];});}
  }
  if([base,local,remote].every(v=>v!==null&&typeof v==='object'&&!Array.isArray(v))){const all=new Set([base,local,remote].flatMap(v=>Object.keys(v as object)));const result:Record<string,unknown>={};for(const name of all){const value=mergeValue((base as Record<string,unknown>)[name],(local as Record<string,unknown>)[name],(remote as Record<string,unknown>)[name],path+' field');if(value!==undefined)result[name]=value;}return result;}
  throw Error(`Conflicting ${path}. Both local and cloud versions were preserved; review before syncing.`);
 }
+// These two receipt sets are append-only idempotency records, not editable lists.
+// Inspect them before generic equality shortcuts so identical removals cannot pass.
+function reconcileHealthReceipts(base:unknown,local:unknown,remote:unknown){
+ const daily=(v:unknown):Record<string,unknown>|undefined=>v&&typeof v==='object'&&'daily' in v&&v.daily&&typeof v.daily==='object'?v.daily as Record<string,unknown>:undefined;
+ const groups=[base,local,remote].map(daily);
+ for(const field of ['waterOperations','copyOperations']){
+  const lists=groups.map(g=>g?.[field]??[]);
+  if(!lists.every(v=>Array.isArray(v)&&v.every(id=>typeof id==='string')&&new Set(v).size===v.length))throw Error('Invalid Health operation receipt set.');
+  const [prior,left,right]=lists as string[][];
+  if(prior!.some(id=>!left!.includes(id)||!right!.includes(id)))throw Error('Health operation receipt removal refused.');
+  if(groups[1]&&groups[2]){
+   const merged=[...prior!,...[...new Set([...left!,...right!])].filter(id=>!prior!.includes(id)).sort()];
+   groups[1][field]=merged;groups[2][field]=merged;
+  }
+ }
+}
 export function mergePrivateData(base:PrivateData,local:PrivateData,remote:PrivateData):PrivateData{
  const result:PrivateData={};for(const domain of DOMAINS){if(local[domain]===undefined){if(remote[domain]!==undefined)result[domain]=remote[domain];continue;}
   const b=base[domain],l=local[domain],r=remote[domain];if(r===undefined){result[domain]=l;continue;}if(b===undefined){if(l!==r)throw Error('Unlinked local and cloud records differ. Export both before choosing what to keep.');result[domain]=r;continue;}
   if(domain==='finance'){if(l!==b&&r!==b&&l!==r)throw Error('Conflicting financial changes. Local and cloud evidence remain separate; export both before reconciling.');result[domain]=l===b?r:l;}
-  else result[domain]=JSON.stringify(mergeValue(JSON.parse(b),JSON.parse(l),JSON.parse(r),domain));
+  else {const parsed=[b,l,r].map(v=>JSON.parse(v));if(domain==='health')reconcileHealthReceipts(parsed[0],parsed[1],parsed[2]);result[domain]=JSON.stringify(mergeValue(parsed[0],parsed[1],parsed[2],domain));}
  }return result;
 }
 export class RevisionConflict extends Error{constructor(){super('Cloud changed. Local records were preserved. Retry to reconcile.');}}
 /** Immutable encrypted chunks stage first; one CAS-protected catalog publishes the complete snapshot. */
-export async function synchronize(transport:CloudTransport,journal:Journal,key:CryptoKey,manifest:VaultManifest,local:PrivateData,validate:(data:PrivateData)=>void,fence:()=>void,allowed:readonly Domain[]=DOMAINS){
+export async function synchronize(transport:CloudTransport,journal:Journal,key:CryptoKey,manifest:VaultManifest,local:PrivateData,validate:(data:PrivateData,prior?:PrivateData)=>void,fence:()=>void,allowed:readonly Domain[]=DOMAINS){
  let state=await journal.read(),requiresHealth=false;
  async function send(operation:CloudOperation){fence();await journal.write({...state,pending:operation,pendingHealth:requiresHealth});fence();let answer:{revision:number};try{answer=await transport.write(operation);}catch(error){if(error instanceof RevisionConflict){state={...state,pending:null};await journal.write(state);}throw error;}if(answer.revision!==operation.base+1)throw Error('Unexpected cloud acknowledgement.');state={...state,revision:answer.revision,pending:null};await journal.write(state);return answer.revision;}
  if(state.pending){requiresHealth=!!state.pendingHealth||state.pending.changes.some(row=>row.domain==='health');if(requiresHealth&&!allowed.includes('health'))throw Error('Pending Health transfer requires your Health sync permission. It was not sent.');if(state.pending.vault!==manifest.vault)throw Error('Pending work belongs to another vault.');await send(state.pending);}
- fence();const remote=await cloudSnapshot(transport,key,manifest,state.revision,allowed,state.headRevision,state.headDigest);fence();const next=mergePrivateData(Object.fromEntries(allowed.map(d=>[d,state.base[d]])),Object.fromEntries(allowed.map(d=>[d,local[d]])),remote.data);validate(next);requiresHealth=next.health!==undefined&&next.health!==remote.data.health;
+ fence();const remote=await cloudSnapshot(transport,key,manifest,state.revision,allowed,state.headRevision,state.headDigest);fence();const next=mergePrivateData(Object.fromEntries(allowed.map(d=>[d,state.base[d]])),Object.fromEntries(allowed.map(d=>[d,local[d]])),remote.data);validate(next,state.base);validate(next,remote.data);validate(next,local);requiresHealth=next.health!==undefined&&next.health!==remote.data.health;
  const catalog:Catalog=structuredClone(remote.catalog),chunks:Row[]=[];let revision=remote.revision,headRevision=remote.head?.revision??0,headDigest=remote.headDigest;
  for(const domain of allowed){const raw=next[domain];if(raw===undefined||raw===remote.data[domain])continue;if(bytes(raw)>32_000_000)throw Error('Domain exceeds supported sync capacity.');const parts:string[]=[];
   for(let offset=0;offset<raw.length;offset+=48000){const row={id:crypto.randomUUID(),domain,revision:1,epoch:1 as const,deleted:false};parts.push(row.id);chunks.push({...row,envelope:await sealRecord(key,context(manifest,row),raw.slice(offset,offset+48000))});}

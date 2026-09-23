@@ -37,13 +37,13 @@ test("a previous account's pending diagnostics cannot update the new account pan
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
-  await act(async () => root!.render(createElement(VaultSyncProvider,{children:createElement(Settings)})));
+  await act(async () => root!.render(createElement(VaultSyncProvider,null,createElement(Settings))));
   const button = [...container.querySelectorAll("button")].find(
     (b) => b.textContent === "Check connection",
   )!;
   await act(async () => button.click());
   api.state.owner = "zig1bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-  await act(async () => root!.render(createElement(VaultSyncProvider,{children:createElement(Settings)})));
+  await act(async () => root!.render(createElement(VaultSyncProvider,null,createElement(Settings))));
   await act(async () =>
     resolve({
       checkedAt: "OLD ACCOUNT RESULT",

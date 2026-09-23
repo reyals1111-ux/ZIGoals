@@ -1,3 +1,5 @@
+import {createEmptyHealth,healthSchema} from '../health';
+import {addWater} from '../health-daily';
 import {test,expect} from 'vitest';
 import {createVault,sealRecord,type VaultManifest} from './crypto';
 import {cloudSnapshot,mergePrivateData,synchronize,RevisionConflict,type CloudOperation,type CloudTransport,type Journal,type PrivateData,type SyncState} from './cloud-sync';
@@ -54,3 +56,23 @@ test('distinct edits retain original order, a sole reorder survives, differing r
  expect(JSON.parse(mergePrivateData(base,local,remote).settings!).widgets).toEqual([{id:'z',title:'Local Z'},{id:'a',title:'Remote A'},{id:'b',title:'B'}]);const reordered=wrap([values[2]!,values[0]!,values[1]!]);expect(JSON.parse(mergePrivateData(base,reordered,remote).settings!).widgets.map((w:{id:string})=>w.id)).toEqual(['b','z','a']);expect(()=>mergePrivateData(base,reordered,wrap([values[1]!,values[2]!,values[0]!]))).toThrow('order');
 });
 test('financial divergence and edit/delete conflicts stop without mutating inputs',()=>{const base={finance:'{"amount":"1"}'},local={finance:'{"amount":"2"}'},remote={finance:'{"amount":"3"}'};expect(()=>mergePrivateData(base,local,remote)).toThrow('financial');expect(base.finance).toBe('{"amount":"1"}');const rows=(items:unknown[])=>({habits:JSON.stringify({items})});expect(()=>mergePrivateData(rows([{id:'1',title:'A'}]),rows([]),rows([{id:'1',title:'Edited'}]))).toThrow('Conflicting');});
+
+test('independent additions to a previously absent optional domain group merge without guessing conflicting values',()=>{
+ const wrap=(daily?:unknown)=>({health:JSON.stringify({schemaVersion:1,...(daily?{daily}:{})})});const base=wrap(),a=wrap({water:[{id:'a',amount:250}],preferences:{unit:'ml'}}),b=wrap({water:[{id:'b',amount:500}],preferences:{unit:'ml'}});
+ expect(JSON.parse(mergePrivateData(base,a,b).health!).daily.water).toEqual([{id:'a',amount:250},{id:'b',amount:500}]);
+ expect(()=>mergePrivateData(base,a,wrap({water:[{id:'a',amount:999}],preferences:{unit:'ml'}}))).toThrow('Conflicting');
+ expect(()=>mergePrivateData(base,a,wrap({water:[{id:'b',amount:500}],preferences:{unit:'oz'}}))).toThrow('Conflicting');
+});
+
+test('real offline Health additions merge receipts and refuse receipt removal even on equal or unchanged branches',()=>{
+ const empty=createEmptyHealth(),at='2026-09-23T12:00:00.000Z',date='2026-09-23',aId=`health_${crypto.randomUUID()}`,bId=`health_${crypto.randomUUID()}`;
+ const a=addWater(empty,{id:aId,date,amountMilli:250000,unit:'ml'},at),b=addWater(empty,{id:bId,date,amountMilli:500000,unit:'ml'},at),wrap=(v:unknown)=>({health:JSON.stringify(v)});
+ const merged=healthSchema.parse(JSON.parse(mergePrivateData(wrap(empty),wrap(a),wrap(b)).health!));
+ expect(merged.daily!.water.reduce((n,w)=>n+w.amountMilli,0)).toBe(750000);expect(new Set(merged.daily!.waterOperations)).toEqual(new Set([aId,bId]));
+ expect(addWater(merged,{id:aId,date,amountMilli:250000,unit:'ml'},at)).toEqual(merged);
+ for(const field of ['waterOperations','copyOperations'] as const){
+  const base={...merged,daily:{...merged.daily!,[field]:[aId]}},removed={...base,daily:{...base.daily,[field]:[]}};
+  expect(()=>mergePrivateData(wrap(base),wrap(removed),wrap(base))).toThrow('receipt');
+  expect(()=>mergePrivateData(wrap(base),wrap(removed),wrap(removed))).toThrow('receipt');
+ }
+});

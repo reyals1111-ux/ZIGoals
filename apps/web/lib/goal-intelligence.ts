@@ -3,8 +3,8 @@ import {contributionEventSchema,platformSchema,localGoalLocked,confirmedLocalObs
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
 import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan} from './plan-revisions';
-export const MAX_VALUATION_SNAPSHOTS=240;
-export const MAX_GOAL_HISTORY=240;
+export const MAX_VALUATION_SNAPSHOTS=50000;
+export const MAX_GOAL_HISTORY=50000;
 const max=(a:bigint,b:bigint)=>a>b?a:b;
 function timestamp(now:number){if(!Number.isFinite(now))throw Error('Invalid capture time.');return new Date(now).toISOString();}
 /** Monetary equivalence only uses the event's contemporaneous evidence, never today's price. */
@@ -101,22 +101,16 @@ export function recordGoalChanges(before:Platform,after:Platform,now=Date.now())
   if(old&&old.status!==g.status)add('status',g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
   if(JSON.stringify(before.allocations.filter(a=>a.goalId===g.id))!==JSON.stringify(after.allocations.filter(a=>a.goalId===g.id)))add('allocation','Goal allocation changed');
  }
- return added.length?compactHistory({...after,goalHistory:[...after.goalHistory,...added].slice(-MAX_GOAL_HISTORY)}):after;
+ return added.length?compactHistory({...after,goalHistory:[...after.goalHistory,...added]}):after;
 }
 function sameSnapshotEvidence(a:ValuationSnapshot,b:ValuationSnapshot){const evidence=(s:ValuationSnapshot)=>{const {id,capturedAt,...rest}=s;void id;void capturedAt;return rest;};return JSON.stringify(evidence(a))===JSON.stringify(evidence(b));}
-/** Cap actual serialized history, including inline evidence for broad portfolios. */
-export const MAX_HISTORY_BYTES=600000;
+/** Refuse additional history at capacity; never prune accepted financial evidence. */
+export const MAX_HISTORY_BYTES=16_000_000;
 function compactHistory(s:Platform):Platform {
- const encoder=new TextEncoder();
- const v=s.valuationSnapshots.slice(-MAX_VALUATION_SNAPSHOTS),g=s.goalHistory.slice(-MAX_GOAL_HISTORY);
- const sizes=(items:unknown[])=>items.map(x=>encoder.encode(JSON.stringify(x)).byteLength+1);
- const vs=sizes(v),gs=sizes(g);let bytes=vs.reduce((a,b)=>a+b,0)+gs.reduce((a,b)=>a+b,0)+100;
- while(bytes>MAX_HISTORY_BYTES&&(v.length||g.length)){
-  if(!g.length||(v.length&&v[0]!.capturedAt<=g[0]!.capturedAt)){v.shift();bytes-=vs.shift()!;}else{g.shift();bytes-=gs.shift()!;}
- }
- return {...s,valuationSnapshots:v,goalHistory:g};
+ if(s.valuationSnapshots.length>MAX_VALUATION_SNAPSHOTS||s.goalHistory.length>MAX_GOAL_HISTORY||new TextEncoder().encode(JSON.stringify({valuationSnapshots:s.valuationSnapshots,goalHistory:s.goalHistory})).byteLength>MAX_HISTORY_BYTES)throw Error('Financial history capacity reached. Export your records before continuing; no older history was removed.');
+ return s;
 }
-/** 240 + 240 caps keep normal history comfortably below 2 MB. Financial facts are never compacted. */
+/** Collection and byte ceilings reject new captures instead of deleting earlier evidence. */
 export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=Date.now()):Platform {
  s=captureGoalLifecycle(s,s,now,quotes);
  const capturedAt=timestamp(now),day=capturedAt.slice(0,10),valuations:ValuationSnapshot[]=[],goals:GoalHistory[]=[];
@@ -147,5 +141,5 @@ export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=D
  }
  if(!valuations.length&&!goals.length)return s;
  const activeKeys=new Set([...s.positions.map(p=>`position:${p.id}`),...s.goals.map(g=>`goal:${g.id}`)]);
- return compactHistory({...s,historyCaptureDays:Object.fromEntries(Object.entries(captureDays).filter(([key])=>activeKeys.has(key))),valuationSnapshots:[...s.valuationSnapshots,...valuations].slice(-MAX_VALUATION_SNAPSHOTS),goalHistory:[...s.goalHistory,...goals].slice(-MAX_GOAL_HISTORY)});
+ return compactHistory({...s,historyCaptureDays:Object.fromEntries(Object.entries(captureDays).filter(([key])=>activeKeys.has(key))),valuationSnapshots:[...s.valuationSnapshots,...valuations],goalHistory:[...s.goalHistory,...goals]});
 }

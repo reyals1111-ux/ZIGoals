@@ -5,3 +5,5 @@
 @media(max-width:430px){.personalized-today .dashboard-widget,.personalized-today .dashboard-summary,.personalized-today .dashboard-welcome{padding:1rem}.dashboard-widget .habits-today.panel{padding:0}.dashboard-widget .habit-card{padding:.85rem}}
 
 .personalized-today{grid-template-columns:minmax(0,1fr)}.personalized-today>*{grid-column:1/-1;grid-row:auto;min-width:0}.personalized-today .today-pulse-stack header{padding:0;border:0;min-width:0}.personalized-today .today-pulse-stack header>div{min-width:0}.personalized-today .today-pulse-stack{overflow-wrap:anywhere}
+
+.dashboard-metric-facts{display:grid;gap:.65rem;margin:1rem 0}.dashboard-metric-facts>div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.4rem 1rem}.dashboard-metric-facts dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.dashboard-widget-preview{overflow-wrap:anywhere}

@@ -31,3 +31,13 @@ test('future versions, unknown fields, unsupported metrics and missing reference
  for(const value of [{...s,schemaVersion:2},{...s,privateValue:'leak'},{...s,widgets:[{...goal,entity:''}]},{...s,widgets:[{...goal,metric:'calories'}]},{...s,widgets:[{...goal,balance:'42'}]}])expect(dashboardSettingsSchema.safeParse(value).success).toBe(false);
  expect(dashboardSettingsSchema.safeParse({...s,widgets:[goal,goal]}).success).toBe(false);
 });
+
+test('staking and allocation widgets persist stable source references without metric snapshots',()=>{
+ let settings=presetSettings('health');
+ for(const [kind,metric] of [['staking','quantity'],['allocation','allocation']] as const){
+  settings=saveWidget(settings,{id:kind,kind,metric,entity:'position-42',title:'',size:'compact',hidden:false,revision:1});
+ }
+ expect(dashboardSettingsSchema.parse(JSON.parse(JSON.stringify(settings))).widgets.slice(-2).map(w=>w.entity)).toEqual(['position-42','position-42']);
+ expect(dashboardSettingsSchema.safeParse({...settings,widgets:[{...settings.widgets.at(-1),entity:undefined}]}).success).toBe(false);
+ expect(visibleDomains(presetSettings('health'))).toEqual(['health']);
+});

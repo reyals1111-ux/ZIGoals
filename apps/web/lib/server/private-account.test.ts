@@ -55,3 +55,11 @@ test('a revoked durable session is locked even when provider token still validat
  const req=new Request('https://app.test/api/private-account?action=status',{headers:{cookie:'zigoals_session=fixture-token'}});
  const res=await privateAccountRequest(req,config,async url=>String(url).endsWith('/v1/sessions')?Response.json({error:'SESSION_REVOKED'},{status:401}):Response.json({id:crypto.randomUUID()}));expect(res.status).toBe(401);expect(res.headers.get('set-cookie')).toContain('Max-Age=0');
 });
+
+test('temporary identity or session-registry outage preserves the session cookie without claiming signed out',async()=>{
+ for(const unavailable of ['identity','registry'])for(const status of [429,500,503,507]){
+  const req=new Request('https://app.test/api/private-account?action=status',{headers:{cookie:'zigoals_session=fixture-token'}});
+  const res=await privateAccountRequest(req,config,async url=>unavailable==='identity'||String(url).endsWith('/v1/sessions')?Response.json({error:'TEMPORARY_UNAVAILABLE'},{status}):Response.json({id:crypto.randomUUID()}));
+  expect(res.status).toBe(503);expect(res.headers.has('set-cookie')).toBe(false);expect(await res.json()).not.toHaveProperty('signedIn',false);
+ }
+});

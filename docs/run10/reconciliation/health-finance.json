@@ -1,0 +1,1305 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-09-23T21:16:04.442146+00:00",
+  "reviewed_head": "8d998b00ff35db8469c1fc54654c54d316f0105c",
+  "requirements_source": "docs/run10/REQUIREMENTS.json",
+  "requirements_source_sha256": "8db930dacaa4ae53d17c658b5a9ed136588b84e82bedf93894078515181cfc90",
+  "scope": [
+    "FIN-01",
+    "FIN-02",
+    "FIN-03",
+    "FIN-04",
+    "FIN-05",
+    "FIN-06",
+    "FIN-07",
+    "FIN-08",
+    "FIN-09",
+    "FIN-10",
+    "FIN-11",
+    "FIN-12",
+    "FIN-13",
+    "FIN-14",
+    "FIN-15",
+    "GOAL-01",
+    "GOAL-02",
+    "GOAL-03",
+    "GOAL-04",
+    "GOAL-05",
+    "GOAL-06",
+    "HLT-01",
+    "HLT-02",
+    "HLT-03",
+    "HLT-04",
+    "HLT-05",
+    "HLT-06",
+    "HLT-07",
+    "HLT-08",
+    "HLT-09",
+    "HLT-10",
+    "HLT-11",
+    "HLT-12",
+    "HLT-13",
+    "HLT-14",
+    "HAB-01",
+    "HAB-02",
+    "HAB-03",
+    "HAB-04",
+    "HAB-05",
+    "HAB-06",
+    "HAB-07"
+  ],
+  "review_method": "Read every exact specification, relevant implementation and existing recorded evidence. Read-only reconciliation; no tests rerun, no code changes, no main-ledger update. Code and test presence are not treated as successful execution evidence; prior evidence documents supply bounded run claims.",
+  "status_policy": "Suggestions use existing ledger statuses. IN_PROGRESS includes locally implemented but not fully accepted requirements. NOT_STARTED marks the explicitly parked fasting product. No requirement is marked VERIFIED by this shard.",
+  "evidence_caveat": "Earlier slice documents may predate account integration. ACCOUNT_SYNC_EVIDENCE is the newer local transport proof and proves a Habit smoke journey, not hosted email, physical devices or the full Health/financial matrix. Snapshot/export completeness does not include previously compacted observations.",
+  "requirements": [
+    {
+      "id": "FIN-01",
+      "title": "Preserve exact accounting as the foundation",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 356
+      },
+      "implemented_subset": [
+        "Exact integer quantities, decimal quote conversion, canonical asset/network matching, separately scoped currencies and allocation conservation remain authoritative. Quantity, Value and Reward counting stay distinct; observed holdings reject manual Fund Goal mutations."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Existing accounting suites cover these invariants; the full mixed financial/account/offline acceptance matrix is not established by local helper completion."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/positions.ts",
+        "apps/web/lib/contribution-funding.ts",
+        "apps/web/lib/positions.test.ts",
+        "apps/web/lib/run9-1.test.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Link the final integrated accounting regression result and exercise unchanged invariants through a synchronized financial mutation before full acceptance."
+    },
+    {
+      "id": "FIN-02",
+      "title": "Implement immutable plan revisions",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 358
+      },
+      "implemented_subset": [
+        "Optional append-only plan revisions retain stable IDs, UTC effective dates, recorded timestamps, original terms/target/deadline and explicit unknown legacy boundary. Current selectors use applicable revisions; stale editor fingerprints reject overwrite."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Same-record financial divergence fails closed, but there is no complete user-facing conflict resolution/export workflow for competing revisions."
+        ],
+        "local_integration_or_review_evidence": [
+          "Local revision/pause/month-end/target/legacy cases and revise-reload browser journey passed; independent-client concurrent revision resolution remains unproved."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/plan-revisions.ts",
+        "apps/web/lib/plan-revisions.test.ts",
+        "apps/web/components/platform/plan-history.tsx",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "apps/web/lib/vault/cloud-sync.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Provide an explicit financial conflict review preserving both proposed revisions, then demonstrate concurrent edits in two unlocked local clients."
+    },
+    {
+      "id": "FIN-03",
+      "title": "Make installments revision-specific",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 360
+      },
+      "implemented_subset": [
+        "Revision/date installment identities, explicit funding selection and compatible event-time evidence govern credits. Partial funding, overpayment remainder, reversals, unmatched legacy links and canceled future intentions retain original facts; monthly/yearly anchors clamp month ends."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Independent-client retry/conflict and UTC-boundary UI scenarios remain outside the evidenced local installment journey; irregular, missed and canceled behavior needs a consolidated acceptance trace."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/plan-revisions.ts",
+        "apps/web/lib/contribution-funding.ts",
+        "apps/web/components/platform/contribution-flow.tsx",
+        "apps/web/lib/plan-revisions.test.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Run one retained-installment journey across revision, missed date, explicit partial payment, reversal and retry on the second client; compare immutable IDs."
+    },
+    {
+      "id": "FIN-04",
+      "title": "Improve correction/reversal UX without silent balance edits",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 362
+      },
+      "implemented_subset": [
+        "Equal/opposite append-only reversals retain originals, reject double/nested/forged reversal and leave positions/allocations unchanged. UI labels history-only correction and exposes original/reversal events."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Reversal is a direct timeline action without a dedicated preview/confirmation. Manual balance edits are separate but do not form a complete correction workflow with explicitly linked adjustment evidence. Conflict resolution UI is incomplete."
+        ],
+        "local_integration_or_review_evidence": [
+          "Cross-device duplicate reversal and stale correction-preview behavior have not been demonstrated as a complete UI journey."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/goal-intelligence.ts",
+        "apps/web/lib/goal-intelligence.test.ts",
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "apps/web/components/platform/positions-view.tsx",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add a correction review that distinguishes history reversal from optional linked local balance adjustment, then verify concurrent duplicate application fails safely."
+    },
+    {
+      "id": "FIN-05",
+      "title": "Keep Fund Goal atomic and surplus available",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 364
+      },
+      "implemented_subset": [
+        "Fund Goal previews and atomically saves tracked quantity, valuation, capped allocation and contribution evidence with immutable request identity. The exact 20,000 USD / 2,000 target / 18,000 available regression and duplicate retry pass. Latest state is revalidated under the storage update boundary."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Divergent financial device edits currently stop at conflict rather than a complete owner resolution flow."
+        ],
+        "local_integration_or_review_evidence": [
+          "Local funding and failed-input tests exist; concurrent same-position operations, stale target/price/availability previews and reconnect/lost-ack need the integrated financial acceptance journey."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/contribution-funding.ts",
+        "apps/web/components/platform/contribution-flow.tsx",
+        "apps/web/lib/run9-1.test.ts",
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Exercise the funding regression with a competing client mutation and a lost acknowledgement; prove one accepted contribution and preserved surplus."
+    },
+    {
+      "id": "FIN-06",
+      "title": "Explain wealth changes by known evidence",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 366
+      },
+      "implemented_subset": [
+        "Dated wealth observations, explicit contribution/withdrawal/income records and manual/observed provenance are separate; allocations do not change owned wealth. Missing valuation is disclosed.",
+        "New manual statement event ledger records dated flows, income, fees and unresolved differences; exact eligible return and recorded value change are distinct. This ledger is explicitly separate from live owned Wealth."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "No comprehensive wealth-change reconciliation ledger decomposes additions/removals, quantity corrections, represented transfers, price changes, income, fees and unclassified gaps. Observation timelines cannot explain every change."
+        ],
+        "local_integration_or_review_evidence": [
+          "No end-to-end reconciliation fixture covering all categories and incomplete evidence is recorded."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/wealth.ts",
+        "apps/web/lib/goal-intelligence.ts",
+        "apps/web/components/platform/wealth-view.tsx",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Define stable wealth-change facts and a per-currency reconciliation selector that leaves unexplained differences explicit, then build the explanation interface."
+    },
+    {
+      "id": "FIN-07",
+      "title": "Add a transaction/performance evidence model",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 368
+      },
+      "implemented_subset": [
+        "ContributionEvent stores stable IDs, dated direction/quantity, asset/decimals, provenance, event-time valuation and correction/plan links; financial events are separate from UI activity and chart samples. Plan/lifecycle ledgers survive display-history compaction.",
+        "New append-only statement portfolio/event/FX/review arrays retain manual provenance, exact units, original dates, related contribution/plan references and void corrections; useful Wealth entry/detail/paging UI is integrated."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Verified chain receipt validation and automatic transaction ingestion are absent; manual statement events are not an automatically reconciled owned-wealth ledger. Transfers, quantity corrections and unclassified changes deliberately block the supported return until resolved."
+        ],
+        "local_integration_or_review_evidence": [
+          "Focused unit/browser and independent formula/integrity review passed. Full synchronized new-ledger conflict/restore/capacity workflows remain unproved."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/positions.ts",
+        "apps/web/lib/goal-intelligence.ts",
+        "apps/web/lib/plan-revisions.ts",
+        "apps/web/lib/local-contributions.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Exercise the retained new evidence and correction ledger through two-profile conflict/backup/restore; add chain receipt validation only with actual transaction provenance."
+    },
+    {
+      "id": "FIN-08",
+      "title": "Implement performance metrics only with eligibility checks",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 370
+      },
+      "implemented_subset": [
+        "A documented cumulative TWR computes exact rational geometric links only for user-reviewed complete same-portfolio valuations at every external-flow boundary. It refuses missing/ambiguous/zero-capital/unclassified/stale-review/oversized periods with specific reasons; does not annualize.",
+        "Manual evidence, exact subperiod table and full-content review are integrated into Wealth. Known deposit/withdrawal/loss and published GIPS linking fixtures pass; independent review verified content invalidation and bounded arithmetic fixes."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "MWR/XIRR remains explicitly unavailable. Input completeness is manual user attestation, not independently verified holdings/receipt completeness. Supported periods have 200-flow, 8,000 normalized-valuation-digit and 64KB review-basis bounds."
+        ],
+        "local_integration_or_review_evidence": [
+          "Complete new-ledger account sync/restore and broad supported-bound performance acceptance remain pending; no full performance-stream acceptance is implied by the reviewed bounded method."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/wealth.ts",
+        "apps/web/components/platform/wealth-view.tsx",
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Verify the reviewed evidence basis survives encrypted transfer/restore and invalidates on conflicting imported contents; keep unsupported methods unavailable."
+    },
+    {
+      "id": "FIN-09",
+      "title": "Preserve currency boundaries and explicit FX evidence",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 372
+      },
+      "implemented_subset": [
+        "Currencies reconcile separately and eventValueForGoal only uses matching original asset or compatible recorded event-time value. Current prices are not used to value past contributions.",
+        "Dated manual FX preview and event selection retain exact original amount/currency, rate precision, source, converted value and timestamp; changed original FX contents invalidate performance review even when converted totals match."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Automatic FX service and whole-current-portfolio conversion remain absent; the supported manual UI is USD/EUR event-time evidence only and does not mix current Wealth currencies."
+        ],
+        "local_integration_or_review_evidence": [
+          "FX algebra, mismatch rejection and local preview/apply/reload passed; synced correction/import/restore with retained originals still needs integrated proof."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/goal-intelligence.ts",
+        "apps/web/lib/positions.ts",
+        "apps/web/lib/wealth.ts",
+        "apps/web/lib/goal-intelligence.test.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Verify dated manual FX and its original amounts across two-client encrypted restore/correction; keep automatic FX conditional."
+    },
+    {
+      "id": "FIN-10",
+      "title": "Keep physical metals and tokenized references distinct",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 374
+      },
+      "implemented_subset": [
+        "Physical metal entry uses explicit grams/kilograms/troy ounces and manual valuation. Tokenized RWA picker/detail disclosures identify reference units and disavow physical spot/execution equivalence. Unsupported currencies remain unavailable."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "No physical-versus-tokenized end-to-end regression evidence beyond existing identity/unit tests and source disclosure was added in this reconciliation; any future unit/provider adapter needs explicit verified relation."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/asset-picker.tsx",
+        "apps/web/components/platform/asset-detail.tsx",
+        "apps/web/components/platform/asset-search.tsx",
+        "apps/web/lib/asset-search.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Attach a focused UI trace comparing manual physical weight with tokenized reference units; keep unsupported conversion unavailable."
+    },
+    {
+      "id": "FIN-11",
+      "title": "Define completion and reopening deliberately",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 376
+      },
+      "implemented_subset": [
+        "Exact attainment is separate from pace and append-only completion/closure/reopen/target-revision cycles. Completion captures original evidence once per cycle; value decline retains the milestone; reopening does not restore released allocations. Rounded 99.6% and unrelated watchlist edits cannot create completion."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Local lifecycle and close/reopen browser journeys pass; competing clients recording the same completion/revision remain part of unresolved financial conflict acceptance."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/plan-revisions.ts",
+        "apps/web/lib/plan-revisions.test.ts",
+        "apps/web/lib/watchlist-persistence.test.ts",
+        "apps/web/components/platform/plan-history.tsx",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Verify one milestone per cycle when two clients observe target attainment, retaining historical evidence after value decline and explicit reopening."
+    },
+    {
+      "id": "FIN-12",
+      "title": "Preserve income/reward distinctions",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 378
+      },
+      "implemented_subset": [
+        "Current unclaimed rewards and dated claimed/distributed income are separate UI measures. Manual income remains history-only; compatible equal/opposite reversals reduce income without altering principal. APR assumptions are separate scenarios and no annualized run-rate is asserted."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Verified claimed onchain-income receipt integration is absent; only manual records and existing observed rewards are supported. Any annualized run-rate remains unimplemented pending a minimum-history/eligibility policy."
+        ],
+        "local_integration_or_review_evidence": [
+          "Income/principal/transfer classification and reversal need a complete product journey and independent evidence review; current algebra tests alone do not establish transaction provenance."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/contribution-flow.tsx",
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "apps/web/lib/goal-intelligence.ts",
+        "apps/web/lib/goal-intelligence.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Demonstrate manual income and reversal without principal double count; keep chain-verified wording unavailable until actual receipts are validated."
+    },
+    {
+      "id": "FIN-13",
+      "title": "Make financial history useful in the interface",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 380
+      },
+      "implemented_subset": [
+        "Goal timelines, retained revisions, installment remainders, lifecycle milestones, provenance/freshness and sparse exact-value chart tables are present; contextual public prices remain separate.",
+        "New statement ledger pages ten events and exposes exact evidence details. Misleading complete-backup copy was replaced with retained-record/previous-compaction disclosure. Root now rejects capacity instead of pruning valuation/Goal history at 50,000 records / 16MB."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Legacy Goal timeline still renders only latest 12 events without full-history pagination/filter/detail navigation. Previously discarded observations cannot be recovered by the new retention policy. Large-history paging/performance across all financial sources remains incomplete."
+        ],
+        "local_integration_or_review_evidence": [
+          "Large-history/date-order/timezone performance acceptance is unproved."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "apps/web/components/platform/plan-history.tsx",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/goal-intelligence.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add paged/filterable access to all retained legacy Goal events and verify cross-source date ordering at supported capacity."
+    },
+    {
+      "id": "FIN-14",
+      "title": "Test mixed lifecycle and sync scenarios",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 382
+      },
+      "implemented_subset": [
+        "Existing suites cover archived assets, released closed-Goal allocations, deficits, currency separation, stale/missing valuations, manual overrides, schema migration, backup round trips and local revision conflicts. Shared selectors preserve review states."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Complete owner-facing financial conflict resolution and observation-history capacity remain missing."
+        ],
+        "local_integration_or_review_evidence": [
+          "The mixed lifecycle/import/export/offline/two-device matrix is incomplete. Local account integration currently proves a Habit journey, not the requested financial matrix."
+        ],
+        "hosted_or_physical_evidence": [
+          "Hosted authenticated independent-device acceptance has not been demonstrated."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/lib/positions.test.ts",
+        "apps/web/lib/run9-1.test.ts",
+        "apps/web/lib/goal-intelligence.test.ts",
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Execute a retained financial fixture across two local authenticated profiles through deficit, stale quote, revision conflict and restore, then separately validate hosted devices."
+    },
+    {
+      "id": "FIN-15",
+      "title": "Reconcile optional projection/compounding scope",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 384
+      },
+      "implemented_subset": [
+        "Zero-return contribution forecast remains intact. User-entered simple net APR scenarios show 7/30/365-day estimates, no automatic compounding, no current-progress effect and liquidity caveats."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Bounded scenario comparison with explicit compounding frequency and modeled liquidity assumptions is not implemented. This requested optional expansion remains named conditional scope; no provider APR or reinvestment is inferred."
+        ],
+        "local_integration_or_review_evidence": [
+          "Only existing simple APR/zero-return fixtures support the current calculators; a compounding comparison would need independent math fixtures."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/positions.ts",
+        "apps/web/lib/positions.test.ts",
+        "apps/web/components/platform/tracked-detail.tsx",
+        "apps/web/components/platform/positions-view.tsx",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Record the compounding/liquidity comparison as explicitly conditional in the ledger, or implement a separately reviewed user-assumption calculator without changing current wealth."
+    },
+    {
+      "id": "GOAL-01",
+      "title": "Improve the full Goal lifecycle",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 414
+      },
+      "implemented_subset": [
+        "Unified private/legacy list has Active/Completed/Closed/All filters and empty states; creator provides review, detail provides edit/plan pause/close/reopen and milestone history. Goals with retained financial facts cannot be deleted; closed records stay accessible."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Unsaved form navigation protection is not implemented across creator/detail. General archive is represented by closure/history rather than a separate archived Goal state; product meaning should remain explicit."
+        ],
+        "local_integration_or_review_evidence": [
+          "Full route/action/cancel/failure matrix across private and legacy flows remains broader than creator and close/reopen evidence."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/app/app/goals/page.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/tracked-detail.tsx",
+        "apps/web/lib/positions.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add and verify unsaved-change handling on Goal creation/edit navigation, then complete lifecycle route/cancel/failure journeys."
+    },
+    {
+      "id": "GOAL-02",
+      "title": "Make types asset-agnostic and understandable",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 416
+      },
+      "implemented_subset": [
+        "Choice cards explain Quantity/Value/Reward/Project; saved asset/network identities or explicit manual symbols are supported. Value currency and review coverage are explicit; Reward means currently unclaimed; Project retains milestones. Type changes confirm incompatible-field clearing while preserving descriptive fields."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Local creator tests cover approved type changes and save/retry; broader mixed assets/networks and Reward selection should be included in final acceptance, without implying a generic verified income tracker."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/tests/run10-goal-creator.spec.ts",
+        "apps/web/tests/unified-goals.spec.ts",
+        "apps/web/lib/goal-summary.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Attach a four-type creation trace with non-ZIG asset identity, Value coverage, Reward meaning and Project milestones verified from saved records."
+    },
+    {
+      "id": "GOAL-03",
+      "title": "Integrate plans, installments and linked Habits",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 418
+      },
+      "implemented_subset": [
+        "Creator/detail can attach plans and supporting Habits; canonical summaries show next contribution date and pace separately from target progress. Revisions/installments/contributions are visible, and Habit completion cannot fund a Goal."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Linked-Goal end automation remains disabled/metadata only. Legacy contribution-Habit reconciliation uses its current-day helper rather than future effective editing and can conflict with an already pending rule."
+        ],
+        "local_integration_or_review_evidence": [
+          "One uninterrupted plan-to-Habit-to-Today-to-contribution-to-revision journey across clients is not evidenced."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/tracked-detail.tsx",
+        "apps/web/lib/contribution-habit.ts",
+        "apps/web/lib/goal-summary.ts",
+        "apps/web/components/habits/habit-editor.tsx",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/HABIT_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Align contribution-Habit reconciliation with retained future rules, then verify the linked journey; keep Goal-end automation explicitly disabled unless implemented and tested."
+    },
+    {
+      "id": "GOAL-04",
+      "title": "Improve allocation workflows",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 420
+      },
+      "implemented_subset": [
+        "Owned/allocated/available/counting breakdowns, deficit warnings, canonical conservation and scope checks exist. Goal creation and Fund Goal review allocations, retain surplus and label private accounting versus transfers. Observed balances remain read-only."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Ordinary AllocationForm saves after quantity entry without a separate valuation-aware review/confirmation; stale valuation needs clearer pre-confirmation treatment for that path."
+        ],
+        "local_integration_or_review_evidence": [
+          "Two-client competing allocation preview/confirmation needs an integrated conflict/revalidation journey."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/allocation-form.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/contribution-flow.tsx",
+        "apps/web/lib/positions.test.ts",
+        "apps/web/lib/run9-1.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add a concise allocation review that shows current evidence/deficit and revalidate under save; test a competing client reducing availability."
+    },
+    {
+      "id": "GOAL-05",
+      "title": "Make history and explanation first-class",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 422
+      },
+      "implemented_subset": [
+        "Goal detail separates wealth/contribution evidence, revision boundaries, installments, milestones and scenarios. Closed records remain reviewable and included in domain backup. Shared charts expose sparse states and exact tables without fabricated earlier data."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Full legacy Goal timeline pagination/filter/record navigation is absent; only latest 12 events are rendered. Backup wording now correctly refers to retained records; root removed current automatic observation pruning, but earlier discarded observations are not restored."
+        ],
+        "local_integration_or_review_evidence": [
+          "Closed-Goal export/restore plus retained milestones and sparse history needs an integrated acceptance trace."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "apps/web/components/platform/plan-history.tsx",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/components/private-vault-tools.tsx",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Expose all retained Goal records through paging, then verify closed-Goal backup/restore without backfill."
+    },
+    {
+      "id": "GOAL-06",
+      "title": "Verify meaningful journeys across modules",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 424
+      },
+      "implemented_subset": [
+        "Separate local suites cover creator types, linked Habit semantics, funding, correction helpers, Today bindings and close/reopen. Local independent account profiles prove encrypted Habit transport. Legacy simulation remains separate and contract execution unavailable."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Conflict review and several linked-workflow details remain incomplete as noted in GOAL-03/04/05."
+        ],
+        "local_integration_or_review_evidence": [
+          "The exact requested Value + Quantity + Project journeys including second-client sync, history correction, failed writes, canceled actions and legacy wallet lifecycle have not been evidenced end to end."
+        ],
+        "hosted_or_physical_evidence": [
+          "No real hosted email or physical-device proof; no real financial transaction is authorized or required."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/tests/unified-goals.spec.ts",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/tests/goals.spec.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Build the specified fictional multi-module Value journey against local authenticated sync, repeat Quantity/Project, and keep hosted verification a separate gate."
+    },
+    {
+      "id": "HLT-01",
+      "title": "Build around a fast diary, not a decorative overview",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 450
+      },
+      "implemented_subset": [
+        "Diary-first entry and quick navigation preserve food/recipe/diary/target/weight/activity records; totals derive from saved entries with empty states. Logging uses private local state and is independent of market availability."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Local fictional entry/correction/reload/mobile workflows passed; final integrated failures/locked-account states need inclusion in whole Health acceptance."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/lib/health.ts",
+        "apps/web/tests/health.spec.ts",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Link the final integrated Health workflow evidence including a failed save and account lock, without requiring market data."
+    },
+    {
+      "id": "HLT-02",
+      "title": "Add Recent, Frequent and Favorites",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 452
+      },
+      "implemented_subset": [
+        "Recent/Frequent/Favorites/search use actual private catalog and diary records with deterministic ordering, serving information and adjustable amounts. Barcode catalog review is separate and never receives personal usage history."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Health consent-aware favorites/catalog synchronization and exclusion/account-switch UI are not demonstrated by the local quick-pick tests or Habit account journey."
+        ],
+        "hosted_or_physical_evidence": [
+          "Hosted Health opt-in synchronization remains unverified."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/lib/health-daily.ts",
+        "apps/web/components/health/daily-tools.tsx",
+        "apps/web/lib/health-daily.test.ts",
+        "apps/web/lib/vault/cloud-sync.ts",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Opt in fictional Health on two local profiles, change a favorite/catalog entry, and verify ordering/identity plus no transfer after opt-out."
+    },
+    {
+      "id": "HLT-03",
+      "title": "Implement saved meals and meal copying",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 454
+      },
+      "implemented_subset": [
+        "Reusable immutable meal snapshots and previewed copy of selected meal/day/saved meal to 1–7 dates preserve quantities/source evidence. Stable operation receipts prevent duplicate application and resurrection after entry removal; ordinary diary management reverses copied entries."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Local duplicate/copy/reload tests pass; simultaneous offline copies and sync retries need domain-level two-client evidence."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health-daily.ts",
+        "apps/web/components/health/daily-tools.tsx",
+        "apps/web/lib/health-daily.test.ts",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Verify one previewed multi-date copy survives offline retry and second-client pull without duplicate or restored deleted entries."
+    },
+    {
+      "id": "HLT-04",
+      "title": "Improve custom foods and recipe calculations",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 456
+      },
+      "implemented_subset": [
+        "Per-serving/per-100g entry, gram/serving conversion, fractional recipe ingredients and serving-count calculation retain immutable diary/ingredient snapshots through edits. No mL-to-gram assumption is made. Provider preview preserves missing values until explicit correction."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Core Nutrition still requires all four nutrients; partially known nutrient records cannot be saved as unknown. Recipe yield-weight entry and broader per-100-unit/density-supported forms are absent. Requiring correction before logging is not full unknown-nutrient support."
+        ],
+        "local_integration_or_review_evidence": [
+          "Missing-nutrient arithmetic/display/recipe propagation cannot be accepted until the model supports it."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health.ts",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/components/health/barcode-food-lookup.tsx",
+        "apps/web/lib/health.test.ts",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/FOOD_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add backward-compatible nullable nutrient evidence and partial-total semantics, then yield-weight controls and recipe-edit precision fixtures without rewriting diary snapshots."
+    },
+    {
+      "id": "HLT-05",
+      "title": "Expand nutrient presentation without overclaiming",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 458
+      },
+      "implemented_subset": [
+        "Calories/macros and user-chosen targets remain readable with actual daily totals; no medical or allergy claims are introduced."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Supported additional nutrients, incomplete-data totals and expanded consistent per-meal totals are missing; core nutrients are required rather than nullable."
+        ],
+        "local_integration_or_review_evidence": [
+          "Additional/unknown nutrient presentation has no implementation evidence."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health.ts",
+        "apps/web/components/health/nutrition-dashboard.tsx",
+        "apps/web/components/health/health-app.tsx",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Extend nutrient evidence and per-meal/day aggregation together, visibly marking partial data and preserving user-controlled targets."
+    },
+    {
+      "id": "HLT-06",
+      "title": "Add practical water logging",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 460
+      },
+      "implemented_subset": [
+        "mL/US-fl-oz preference, quick/custom entry, edit/remove, original units, optional user target and Health-timezone day boundaries exist. Today resolves canonical water metrics and unknown consumption distinctly. Receipts reject duplicate/reused identities locally."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Actual water edit/remove across two opted-in clients, repeated offline taps and midnight transfer remain outside recorded local browser proof."
+        ],
+        "hosted_or_physical_evidence": [
+          "Hosted accepted-water synchronization and physical-phone use are unverified."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/lib/health-daily.ts",
+        "apps/web/components/health/daily-tools.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/lib/health-daily.test.ts",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Verify a water entry/correction/removal and Today widget across two local Health-consented clients through retry and midnight."
+    },
+    {
+      "id": "HLT-07",
+      "title": "Improve weight and body-measurement history",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 462
+      },
+      "implemented_subset": [
+        "Manual date-only weight supports kg/lb input, corrections preserving identity, actual sparse observations, exact accessible chart table and range CSV with grams/source/date."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Body-measurement types, actual measurement-time entry and persisted original weight unit/value are absent; weight currently permits one reading per date. No invented interpolation is performed."
+        ],
+        "local_integration_or_review_evidence": [
+          "Cross-client record chronology and correction are not evidenced for weight; the complete measurement journey cannot pass without added types/time fields."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health.ts",
+        "apps/web/lib/health-daily.ts",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add explicit measurement kind, actual timestamp/source and original units through an additive schema, retaining legacy date-only records as date-only."
+    },
+    {
+      "id": "HLT-08",
+      "title": "Implement useful manual activity logging",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 464
+      },
+      "implemented_subset": [
+        "Manual activity name, steps and minutes can be added/corrected/removed; totals do not change food nutrition or estimate burned calories. UI/export label manual evidence."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "No device/import activity path, overlap detection or explicit deduplication resolution exists. Existing compatible steps/minutes model is bounded; richer strength/workout structure is not implemented."
+        ],
+        "local_integration_or_review_evidence": [
+          "Imported/manual overlap acceptance is unavailable until supported import is defined."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health.ts",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/lib/health.test.ts",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Keep manual activity claims accurate; when adding a supported import, introduce original source IDs and previewed overlap resolution before merging."
+    },
+    {
+      "id": "HLT-09",
+      "title": "Add a modest opt-in fasting log",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 466
+      },
+      "implemented_subset": [
+        "No nonfunctional fasting control is presented."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Opt-in fasting start/end/history, timestamp duration, corrections and active-interval conflict policy are not implemented. The brief permits parking this slice explicitly; it is parked, not delivered."
+        ],
+        "local_integration_or_review_evidence": [
+          "No fasting reload, timezone or duplicate-device acceptance exists."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/lib/health.ts",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "NOT_STARTED",
+      "next_concrete_step": "Keep the requirement explicitly parked/owner-visible, or implement a neutral timestamp-based opt-in log with single-active-interval conflict handling."
+    },
+    {
+      "id": "HLT-10",
+      "title": "Add practical meal planning and grocery-list basics",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 468
+      },
+      "implemented_subset": [
+        "Saved-meal/recipe snapshots can be planned for dates without logging consumption; explicit consume action is idempotent. Grocery rows combine only compatible ingredient identities/units, retain unresolved recipe evidence and permit manual notes without rewriting source facts."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Manual list editing is currently notes, not direct grocery-row quantity/checkoff editing; whether notes meet the requested basic manual edits remains a bounded product gap to resolve."
+        ],
+        "local_integration_or_review_evidence": [
+          "Local planner/grocery tests pass; sync conflicts between plan edit and consume need Health integration proof."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health-daily.ts",
+        "apps/web/components/health/daily-tools.tsx",
+        "apps/web/lib/health-daily.test.ts",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Provide explicit list-only quantity/checkoff edits if required for the basic grocery workflow, then verify plan-versus-consumption identity across sync."
+    },
+    {
+      "id": "HLT-11",
+      "title": "Make Health exports and corrections trustworthy",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 470
+      },
+      "implemented_subset": [
+        "Range CSV exports diary/weight/activity/water with units, original dates, source, serving weights and formula escaping after private-file confirmation. JSON round trips preserve snapshots; Settings supports authenticated encrypted backup preview and one-domain replacement with prior bytes retained."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Incomplete nutrient fields are not yet representable in core Health; supported import is schema/encrypted backup only, not arbitrary CSV. Cross-client correction conflict review remains incomplete."
+        ],
+        "local_integration_or_review_evidence": [
+          "Health-specific full export/decrypt/preview/restore after second-client correction remains unproved; generic backup tests are not that workflow."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health-daily.ts",
+        "apps/web/lib/health-daily.test.ts",
+        "apps/web/components/private-vault-tools.tsx",
+        "apps/web/lib/vault/backup.test.ts",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Run the fictional corrected Health range export and encrypted module restore; verify identities, original dates, formula escaping and unchanged other domains."
+    },
+    {
+      "id": "HLT-12",
+      "title": "Integrate Health with Today and account privacy",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 472
+      },
+      "implemented_subset": [
+        "Today supports selectable Health metrics, water and Health-only layout. Account-scoped storage/lock generation fences hide domain records; Health sync defaults excluded and opt-in gates upload/decryption. Opt-out copy states prior cloud copies remain."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "No local/cloud retention or deletion choice accompanies Health consent revocation. Consent is tab-local and is not a complete account-wide retention policy."
+        ],
+        "local_integration_or_review_evidence": [
+          "Whole Health quick-pick/summary disappearance on switch/lock and malicious/error leakage need domain-specific UI evidence, beyond generic isolation and Habit sync tests."
+        ],
+        "hosted_or_physical_evidence": [
+          "Hosted consent/retention and physical-device acceptance remain unverified."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/lib/account-isolation.test.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add explicit keep-local/retain-cloud/delete-request semantics for opt-out, then verify Health-only widgets and private titles disappear on account switch/lock."
+    },
+    {
+      "id": "HLT-13",
+      "title": "Preserve Health timezone and unit correctness",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 474
+      },
+      "implemented_subset": [
+        "Explicit IANA Health timezone determines Today; historical date-only keys never shift. Helpers test midnight, DST, leap day and kg/lb, US-fl-oz/mL, grams/servings conversions with bounded precision."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Weight/activity remain date-only and cannot record actual observation times; core partially known nutrition is not supported."
+        ],
+        "local_integration_or_review_evidence": [
+          "A real two-client timezone-change/travel UI workflow retaining dates and units is not evidenced."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/health-daily.ts",
+        "apps/web/lib/health-daily.test.ts",
+        "apps/web/lib/health.test.ts",
+        "apps/web/components/health/daily-tools.tsx",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Document date-only versus timestamp policy in entry UI and test two chosen zones across midnight; extend unknown-nutrition/actual-time models separately."
+    },
+    {
+      "id": "HLT-14",
+      "title": "Verify Health with real workflows and fictional test records",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 476
+      },
+      "implemented_subset": [
+        "Fictional browser fixtures exercise custom food, favorite, meal save, preview copy, planned consumption, water, quantity/unit corrections, reload and CSV; unit fixtures preserve recipe snapshots and backup receipts. No owner Health data is used."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Conflict-resolution and measurement/nutrient gaps above prevent claiming full Health acceptance."
+        ],
+        "local_integration_or_review_evidence": [
+          "The exact chained sync-to-B/export/restore journey and concurrent offline Health edits remain unproved. Barcode local fixtures are separate FOOD evidence; physical camera/real provider calls were not made."
+        ],
+        "hosted_or_physical_evidence": [
+          "Hosted Health synchronization and physical-device/camera checks remain unverified."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/tests/health-daily.spec.ts",
+        "apps/web/tests/health.spec.ts",
+        "apps/web/lib/health-daily.test.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "docs/run10/FOOD_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Extend the real local account fixture to the complete fictional Health journey and conflict case, keeping provider/camera and hosted gates separate."
+    },
+    {
+      "id": "HAB-01",
+      "title": "Repair the shared mobile Habit component first",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 516
+      },
+      "implemented_subset": [
+        "Shared mobile card separates title/status/value/actions in wrapping stacked layout and moves insights into disclosure. Viewports 320/360/390/430/768/1440 plus long names/units, build/quit/limit/duration and enlarged-root-font fixture were captured and checked."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "No full browser zoom/virtual-keyboard journey or formal accessibility certification is claimed; quantity/long-unit behavior has synthetic coverage rather than every possible record."
+        ],
+        "hosted_or_physical_evidence": [
+          "Physical-phone touch/keyboard screenshots remain absent."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/components/habits/habit-card.tsx",
+        "apps/web/components/habits/habits.css",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/visual-evidence/run10-long-habit-320.png",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Attach final resized-card evidence and perform the remaining real-phone keyboard/zoom check without treating emulation as hardware proof."
+    },
+    {
+      "id": "HAB-02",
+      "title": "Preserve recurrence and progress semantics",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 518
+      },
+      "implemented_subset": [
+        "Daily/weekday/frequency/interval/month-date rules, natural target periods, neutral pauses, quit/limit explicit success and intentional skip/correction preserve record-based outcomes. Shared completion logic prevents adding beyond accepted completed target through smart completion."
+      ],
+      "precise_remaining": {
+        "product_behavior": [],
+        "local_integration_or_review_evidence": [
+          "Mixed recurrence/period lifecycle matrix is not completely demonstrated in browser; local semantic tests cover representative cases. Cross-device offline duplicate completion requires integrated proof."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/habits.ts",
+        "apps/web/lib/habits-beta.test.ts",
+        "apps/web/components/habits/habit-card.tsx",
+        "apps/web/tests/habits.spec.ts",
+        "docs/run10/HABIT_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Complete a representative mixed cadence/quit/limit two-client journey using saved entries and current effective rules, including duplicate taps and neutral pause."
+    },
+    {
+      "id": "HAB-03",
+      "title": "Implement effective-dated rule editing",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 520
+      },
+      "implemented_subset": [
+        "Normal editor/state actions schedule explicit future rules, retaining original and superseded revisions. Today/cards/streak units use applicable rules; stale editor fingerprints reject overwrite. Legacy missing earlier same-day revisions are disclosed; end conditions and incompatible units are bounded by future dates.",
+        "Legacy HabitGoalLinks now uses today’s applicable rule so a pending pause/archive is not shown early."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Contribution-Habit reconciliation retains the older current-day edit path. User-facing resolution of conflicting same-Habit revisions remains incomplete."
+        ],
+        "local_integration_or_review_evidence": [
+          "Independent-client conflicting rule edit resolution, all mid-period/end-date combinations and history retention after conflict are unproved."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/lib/habit-actions.ts",
+        "apps/web/lib/habit-actions.test.ts",
+        "apps/web/components/habits/habit-editor.tsx",
+        "apps/web/components/habits/habit-goal-links.tsx",
+        "apps/web/components/platform/tracked-detail.tsx",
+        "docs/run10/HABIT_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Align contribution-Habit reconciliation with the scheduled-edit boundary, then add explicit conflict review preserving both original revisions."
+    },
+    {
+      "id": "HAB-04",
+      "title": "Improve links, stacks and end conditions",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 522
+      },
+      "implemented_subset": [
+        "Goal links navigate contextually, supporting-Habit creation is available, stacks display descriptive ordering, and completion never funds a Goal or completes another Habit. Date/completion-count endings work; linked-Goal target ending is disabled and labeled metadata only."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Automatic linked-Goal end behavior is unimplemented. Stacks remain descriptive rather than a suggested-next-action workflow. Contribution-Habit reconciliation still needs alignment with future rules; linked visibility now uses applicable-day rules."
+        ],
+        "local_integration_or_review_evidence": [
+          "Completion/reopen/target-revision linked-end automation has no test because it is not enabled."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/habits/habit-editor.tsx",
+        "apps/web/components/habits/habit-card.tsx",
+        "apps/web/components/habits/habit-goal-links.tsx",
+        "apps/web/components/platform/tracked-detail.tsx",
+        "apps/web/lib/habits-beta.test.ts",
+        "docs/run10/HABIT_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Improve stack next-action navigation; leave Goal-end automation explicitly disabled unless an opt-in lifecycle policy and override path are implemented and tested."
+    },
+    {
+      "id": "HAB-05",
+      "title": "Make timers and reminders honest",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 524
+      },
+      "implemented_subset": [
+        "Saved duration timer records stable ID/start/segments/pause, original date/IANA zone/unit/rule and receipts. Timestamp elapsed time survives reload; pause/resume/review logs once. Stale reviews, reused IDs, clock reversal, rule mismatch and cross-midnight spans fail safely with retained evidence."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "No automated reminders are implemented. Cross-midnight allocation is explicit manual correction plus discard, with no automatic splitting. Complete device conflict review is absent."
+        ],
+        "local_integration_or_review_evidence": [
+          "Account switch/lock during active timer, second-device resume/commit races, long suspension and encrypted timer replay remain unverified."
+        ],
+        "hosted_or_physical_evidence": [
+          "No native/background/push or physical-device timer reliability claim is supported."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/lib/habit-actions.ts",
+        "apps/web/components/habits/habit-timer.tsx",
+        "apps/web/lib/habit-actions.test.ts",
+        "apps/web/tests/run10-habit-actions.spec.ts",
+        "docs/run10/HABIT_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Verify timer lock/reload and competing-client pause/commit through actual account transport; add only explicitly scoped foreground reminders if pursued."
+    },
+    {
+      "id": "HAB-06",
+      "title": "Improve history, insight and quick logging",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 526
+      },
+      "implemented_subset": [
+        "Calendar/history, filter controls, notes/mood, record-derived trends, intentional corrections and accessible date/value labels exist. Today uses the shared completion/rule selectors. New rule and timer receipts expose retained evidence; save errors are visible."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "Conflict status currently stops work without a complete per-Habit resolution review; very large retained histories have no pagination redesign."
+        ],
+        "local_integration_or_review_evidence": [
+          "The integrated Today-to-detail correction-to-second-client flow and semantic history after conflict remain unproved; existing local quick-log/calendar tests pass."
+        ],
+        "hosted_or_physical_evidence": []
+      },
+      "evidence_paths": [
+        "apps/web/components/habits/habit-card.tsx",
+        "apps/web/components/habits/habits-workspace.tsx",
+        "apps/web/components/habits/habits-today.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/tests/habits.spec.ts",
+        "docs/run10/HABIT_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Demonstrate Today logging and detail correction on a synchronized Habit, including explicit conflict/save status and accessible historical values."
+    },
+    {
+      "id": "HAB-07",
+      "title": "Test cross-device dates and lifecycle",
+      "specification_source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 528
+      },
+      "implemented_subset": [
+        "Unit fixtures cover migration, retained effective rules, natural periods, DST/midnight/clock reversal, timer replay and JSON round trips; local browser journeys cover future edits, reload/timer review and cross-midnight review. Actual local independent profiles have synchronized a Habit completion through encrypted transport."
+      ],
+      "precise_remaining": {
+        "product_behavior": [
+          "No explicit domain-wide Habit travel/timezone policy UI beyond timer-start IANA zone; general logs still classify by device local day. Full conflict-resolution UX remains missing."
+        ],
+        "local_integration_or_review_evidence": [
+          "Concurrent offline completion, rule edits and timer commits, timezone moves, active timer account switching, restore and mixed cadence must be exercised together; one Habit sync smoke test is insufficient."
+        ],
+        "hosted_or_physical_evidence": [
+          "Hosted independent physical-device date/lifecycle acceptance remains unverified."
+        ]
+      },
+      "evidence_paths": [
+        "apps/web/lib/habit-actions.test.ts",
+        "apps/web/lib/habits-beta.test.ts",
+        "apps/web/tests/run10-habit-actions.spec.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run10/HABIT_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Define general Habit timezone semantics and execute the mixed-date/rule/timer/restore matrix in two local profiles before hosted-device acceptance."
+    }
+  ],
+  "subsequent_implementation_note": "FIN-07/08/09 bounded manual evidence/TWR/FX slice and Goal/Habit copy/rule fixes implemented and independently reviewed after the original reconciliation. See FINANCIAL_EVENTS_EVIDENCE.md; suggestions remain IN_PROGRESS. Root history retention change is recorded separately from this agent’s implementation.",
+  "updated_at": "2026-09-23T23:41:24.407007+02:00"
+}

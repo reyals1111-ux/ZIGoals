@@ -3,6 +3,7 @@ import {z} from 'zod';
 import {boundedQuoteText,verifiedMarketQuote,quoteIsStale,type MarketQuote} from '../../../lib/market-quotes';
 import {marketRequestsSchema,nativeZigRequest,marketRequestKey,uniqueMarketRequests,type MarketQuoteRequest} from '../../../lib/market-assets';
 import {serverMarketCache} from '../../../lib/server/market-service';
+import {configuredDurableQuotes} from '../../../lib/server/durable-quote-route';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff'};
 const bodySchema=z.object({requests:marketRequestsSchema,refresh:z.boolean().optional()}).strict();
@@ -24,11 +25,12 @@ function requestedEvidence(requests:readonly MarketQuoteRequest[]){
 }
 export async function GET(request:Request):Promise<Response>{
  if(new URL(request.url).search)return Response.json({error:'Unsupported public market query.'},{status:400,headers});
+ const durable=await configuredDurableQuotes([nativeZigRequest]);if(durable)return Response.json(durable,{status:durable.quotes.length?200:503,headers});
  await serverMarketCache.refresh([nativeZigRequest]);const {quotes,error}=requestedEvidence([nativeZigRequest]);const quote=quotes[0];
  return quote?Response.json({quote,error},{headers}):Response.json({error:'Verified market valuation unavailable. Previous local evidence is unchanged.'},{status:502,headers});
 }
 export async function POST(request:Request):Promise<Response>{
  if(!isJsonMediaType(request.headers.get('content-type')))return Response.json({error:'Unsupported public market request media type.'},{status:415,headers});
- try{if(new URL(request.url).search)throw Error('Query');const body=bodySchema.parse(JSON.parse(await boundedQuoteText(new Response(request.body),128*1024)));const requests=uniqueMarketRequests(body.requests);await serverMarketCache.refresh(requests,body.refresh);const result=requestedEvidence(requests);return Response.json(result,{status:result.quotes.length||!requests.length?200:503,headers});
+ try{if(new URL(request.url).search)throw Error('Query');const body=bodySchema.parse(JSON.parse(await boundedQuoteText(new Response(request.body),128*1024)));const requests=uniqueMarketRequests(body.requests);const durable=await configuredDurableQuotes(requests);if(durable)return Response.json(durable,{status:durable.quotes.length||!requests.length?200:503,headers});await serverMarketCache.refresh(requests,body.refresh);const result=requestedEvidence(requests);return Response.json(result,{status:result.quotes.length||!requests.length?200:503,headers});
  }catch{return Response.json({error:'Invalid public market request.'},{status:400,headers});}
 }
