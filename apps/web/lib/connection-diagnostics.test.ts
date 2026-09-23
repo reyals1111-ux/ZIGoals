@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import {VaultSyncProvider} from "../components/vault-sync-controls";
 import Settings from "../app/app/settings/page";
 const api = vi.hoisted(() => ({
   read: vi.fn(),
@@ -22,9 +23,10 @@ let container: HTMLDivElement | undefined;
 afterEach(async () => {
   if (root) await act(async () => root!.unmount());
   container?.remove();
-  vi.clearAllMocks();
+  vi.clearAllMocks();vi.unstubAllGlobals();
 });
 test("a previous account's pending diagnostics cannot update the new account panel", async () => {
+  vi.stubGlobal('fetch',vi.fn(async()=>Response.json({error:'HOSTED_CONFIGURATION_REQUIRED'},{status:503})));
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
   let resolve!: (value: unknown) => void;
   api.read.mockReturnValue(
@@ -35,13 +37,13 @@ test("a previous account's pending diagnostics cannot update the new account pan
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
-  await act(async () => root!.render(createElement(Settings)));
+  await act(async () => root!.render(createElement(VaultSyncProvider,{children:createElement(Settings)})));
   const button = [...container.querySelectorAll("button")].find(
     (b) => b.textContent === "Check connection",
   )!;
   await act(async () => button.click());
   api.state.owner = "zig1bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-  await act(async () => root!.render(createElement(Settings)));
+  await act(async () => root!.render(createElement(VaultSyncProvider,{children:createElement(Settings)})));
   await act(async () =>
     resolve({
       checkedAt: "OLD ACCOUNT RESULT",

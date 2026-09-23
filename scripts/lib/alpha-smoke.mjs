@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";
 export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings"];
 
-export function assertHtml(response, html) {
+export function assertHtml(response, html, route="/app") {
   assert.equal(response.status, 200, "Alpha route must return HTTP 200 without redirect");
   const h = response.headers;
   assert.match(h.get("content-type") ?? "", /^text\/html\b/i, "Expected HTML");
@@ -20,9 +20,10 @@ export function assertHtml(response, html) {
   for (const token of ["noindex", "nofollow", "noarchive"]) {
     assert((h.get("x-robots-tag") ?? "").split(/\s*,\s*/).includes(token), `Robots ${token} missing`);
   }
-  for (const feature of ["camera", "microphone", "geolocation"]) {
-    assert((h.get("permissions-policy") ?? "").split(/\s*,\s*/).includes(`${feature}=()`), `${feature} permissions changed`);
-  }
+  const permissions=(h.get("permissions-policy")??"").split(/\s*,\s*/);
+  const camera=route==='/app/health'&&permissions.includes('camera=(self)')?'camera=(self)':'camera=()';
+  const expected=[camera,'microphone=()','geolocation=()'];
+  assert.deepEqual(permissions,expected,'Camera permission must be self-only on Health and denied everywhere else; other permissions remain denied');
   const directives = new Map();
   for (const directive of (h.get("content-security-policy") ?? "").split(";").filter(s => s.trim())) {
     const [rawKey, ...values] = directive.trim().split(/\s+/);
@@ -61,7 +62,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch } = {}) {
       headers: { "Cache-Control": "no-cache", "User-Agent": "ZIGoals-Alpha-Smoke" },
     });
     const html = await response.text();
-    const nonce = assertHtml(response, html);
+    const nonce = assertHtml(response, html,route);
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");

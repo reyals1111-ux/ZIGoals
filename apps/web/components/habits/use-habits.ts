@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePrivateStore } from "../use-private-store";
-import { createHabit, editHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, setHabitState, smartDoneValue, type HabitInput, type HabitState } from "../../lib/habits";
+import { createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, type HabitInput, type HabitState } from "../../lib/habits";
+import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
 import { localDate } from "../../lib/local-date";
 
 export function useHabits() {
@@ -16,8 +17,8 @@ export function useHabits() {
   return {
     ...store, today,
     create: (input: HabitInput) => store.update((data) => createHabit(data, input)),
-    edit: (id: string, input: HabitInput) => store.update((data) => editHabit(data, id, input)),
-    setState: (id: string, state: HabitState) => store.update((data) => setHabitState(data, id, state)),
+    edit: (id: string, input: HabitInput, from?:string, expected?:string) => store.update((data) => scheduleHabitEdit(data, id, input, from??earliestHabitChange(data.habits.find(h=>h.id===id)!),new Date(),expected)),
+    setState: (id: string, state: HabitState,from?:string,expected?:string) => store.update((data) => scheduleHabitState(data, id, state,from??earliestHabitChange(data.habits.find(h=>h.id===id)!),new Date(),expected)),
     setCount: (id: string, date: string, count: number, note: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => store.update((data) => logHabitValue(data, id, date, count, { note, mood })),
     setValue: (id: string, date: string, value: number, note?: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => store.update((data) => logHabitValue(data, id, date, value, { note, mood })),
     addValue: (id: string, date: string, value: number) => store.update((data) => logHabitValue(data, id, date, value, { mode: "add" })),

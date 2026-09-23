@@ -1,5 +1,6 @@
 "use client";
-import {getAppStorage,isShowcase} from "../lib/showcase-storage";
+import {getAppStorage,isShowcase,storageLockKey} from "../lib/showcase-storage";
+import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from "../lib/account-session";
 import { useCallback, useEffect, useState, useRef } from "react";
 import type { z } from "zod";
 import { importPrivateStore, readPrivateStore, updatePrivateStore } from "../lib/private-storage";
@@ -24,21 +25,24 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
     } catch {
       if(current!==generation.current)return;
       setData(createEmpty());
-      setError("Private data could not be read. It has not been changed. Export the original from Settings before restoring a backup.");
+      let locked=false;try{locked=!!getAccountScope()&&isAccountLocked();}catch{}
+      setError(locked?"Account records are locked. Verify your account and unlock the vault in Settings.":"Private data could not be read. It has not been changed. Export the original from Settings before restoring a backup.");
     }
     setLoaded(true);
   }, [key, schema, createEmpty]);
   useEffect(() => {
     let active = true;
     queueMicrotask(() => { if (active) refresh(); });
-    const onStorage = (event: StorageEvent) => { if (!isShowcase() && (!event.key || event.key === key)) refresh(); };
+    const onStorage = (event: StorageEvent) => { try{if (!isShowcase() && (!event.key || event.key === storageLockKey(getAppStorage(),key))) refresh();}catch{void refresh();} };
+    const onAccount=()=>{generation.current++;setData(createEmpty());setLoaded(false);void refresh();};
+    window.addEventListener(ACCOUNT_CHANGE,onAccount);
     const onChange = (event: Event) => { if ((event as CustomEvent<string>).detail === key) refresh(); };
     const channel=typeof BroadcastChannel!=="undefined"?new BroadcastChannel("zigoals:private-updates:v1"):null;
     if(channel)channel.onmessage=(event:MessageEvent)=>{if(!isShowcase()&&event.data===key)refresh();};
     window.addEventListener("storage", onStorage);
     window.addEventListener(EVENT, onChange);
-    return () => { active = false; generation.current++; channel?.close(); window.removeEventListener("storage", onStorage); window.removeEventListener(EVENT, onChange); };
-  }, [key, refresh]);
+    return () => { active = false; generation.current++; window.removeEventListener(ACCOUNT_CHANGE,onAccount); channel?.close(); window.removeEventListener("storage", onStorage); window.removeEventListener(EVENT, onChange); };
+  }, [key, refresh, createEmpty]);
   const publish = useCallback((next: T) => {
     setData(next); setError(""); setLoaded(true);
     window.dispatchEvent(new CustomEvent(EVENT, { detail: key }));

@@ -18,6 +18,7 @@ export default {async fetch(request,env){
  let user;
  try{const auth=await fetch(`${env.AUTH_ORIGIN}/auth/v1/user`,{headers:{authorization:token,apikey:env.AUTH_PUBLIC_KEY},redirect:'manual',signal:AbortSignal.timeout(8000)});if(!auth.ok)return response({error:'SIGN_IN_REQUIRED'},401);user=await boundedJSON(auth,32768);}catch{return response({error:'SIGN_IN_REQUIRED'},401);}
  if(!UUID.test(user?.id))return response({error:'SIGN_IN_REQUIRED'},401);
+ if(request.headers.get('x-zigoals-account')?.toLowerCase()!==user.id.toLowerCase())return response({error:'ACCOUNT_CHANGED'},409);
  // Client-supplied account/vault identifiers never select another tenant's object.
  const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id));return stub.fetch(request);
 }};
@@ -32,8 +33,8 @@ export class PrivateVault{
   }
   if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')return response({error:'JSON_REQUIRED'},415);
   let input;try{input=await boundedJSON(request);}catch{return response({error:'INVALID_OR_OVERSIZED_REQUEST'},400);}
-  const allowed=['protocol','operation','base','changes',...(Object.hasOwn(input??{},'manifest')?['manifest']:[])];
-  if(!exact(input,allowed)||input.protocol!==1||!UUID.test(input.operation)||!Number.isSafeInteger(input.base)||input.base<0||!Array.isArray(input.changes)||input.changes.length>100||(input.manifest&&!manifest(input.manifest)))return response({error:'INVALID_PROTOCOL'},400);
+  const allowed=['protocol','vault','operation','base','changes',...(Object.hasOwn(input??{},'manifest')?['manifest']:[])];
+  if(!exact(input,allowed)||input.protocol!==1||!UUID.test(input.vault)||!UUID.test(input.operation)||!Number.isSafeInteger(input.base)||input.base<0||!Array.isArray(input.changes)||input.changes.length>100||(input.manifest&&!manifest(input.manifest)))return response({error:'INVALID_PROTOCOL'},400);
   const ids=new Set();for(const row of input.changes){if(!exact(row,['id','domain','revision','epoch','envelope','deleted'])||!UUID.test(row.id)||ids.has(row.id)||!DOMAINS.has(row.domain)||!Number.isSafeInteger(row.revision)||row.revision<1||row.epoch!==1||typeof row.deleted!=='boolean'||!envelope(row.envelope))return response({error:'INVALID_RECORD'},400);ids.add(row.id);}
   const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input))))].map(x=>x.toString(16).padStart(2,'0')).join('');
   return this.state.storage.transaction(async store=>{
@@ -41,6 +42,7 @@ export class PrivateVault{
    const revision=await store.get('revision')??0;if(revision!==input.base)return response({error:'REVISION_CONFLICT',revision},409);
    const currentManifest=await store.get('manifest');if(input.manifest&&currentManifest)return response({error:'VAULT_ALREADY_EXISTS'},409);
    if(!currentManifest&&!input.manifest)return response({error:'ENROLL_FIRST'},409);
+   if(input.vault!==(currentManifest??input.manifest).vault)return response({error:'VAULT_CHANGED'},409);
    let used=await store.get('bytes')??0,operations=await store.get('operations')??0;
    if(operations>=50000)return response({error:'OPERATION_CAPACITY_EXPORT_REQUIRED'},507);
    for(const row of input.changes){const previous=await store.get(`record:${row.id}`);if((previous?.revision??0)+1!==row.revision||previous&&previous.domain!==row.domain)return response({error:'RECORD_CONFLICT'},409);used+=JSON.stringify(row).length-(previous?JSON.stringify(previous).length:0);}

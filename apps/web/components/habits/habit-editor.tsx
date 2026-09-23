@@ -1,5 +1,6 @@
 "use client";
 import { useId, useState, type FormEvent } from "react";
+import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type HabitInput, type HabitRule } from "../../lib/habits";
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };
@@ -18,8 +19,10 @@ const templates = {
   nospend: { title: "No-spend day", category: "Finance", type: "quit", measurement: "count", unit: "purchases", target: 0, targetPeriod: "day", schedule: "daily" },
 } as const;
 
-export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[]; onSave: (input: HabitInput) => Promise<void>; onCancel: () => void }) {
+export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[]; onSave: (input: HabitInput,from?:string,expected?:string) => Promise<void>; onCancel: () => void }) {
   const formId = useId();
+  const [effectiveFrom,setEffectiveFrom]=useState(()=>habit?earliestHabitChange(habit):"");
+  const [expected]=useState(()=>habit?habitEditFingerprint(habit):undefined);
   const rule = habit ? latestHabitRule(habit) : undefined;
   const [title, setTitle] = useState(habit?.title ?? "");
   const [category, setCategory] = useState(habit?.category ?? "Personal");
@@ -72,11 +75,12 @@ export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?
     const endCondition = endKind === "date" ? { kind: "date" as const, date: endDate } : endKind === "completions" ? { kind: "completions" as const, count: endCount } : endKind === "goal" && goalLink ? { kind: "goal" as const, goal: goalLink } : { kind: "none" as const };
     const parsed = habitInputSchema.safeParse({ title, category, description, notes, goalLink, type, measurement: measurementValue(), target: type === "quit" ? 0 : target, targetPeriod: scheduleKind === "frequency" ? "day" : targetPeriod, schedule: scheduleValue(), timeOfDay, endCondition, stackAfterId: stackAfterId || undefined });
     if (!parsed.success) { setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
-    setBusy(true); setError(""); try { await onSave(parsed.data); } catch { setError("Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
+    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
   }
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
     <div className="habit-section-heading"><div><p className="eyebrow">Set your cadence</p><h2 id={`${formId}-heading`}>{habit ? "Edit habit" : "Create a habit"}</h2></div><span aria-hidden="true" className="habit-spark">✦</span></div>
     <form onSubmit={submit}><fieldset disabled={busy} className="habit-form-fields">
+      {habit&&<label className="field">Changes effective from<input type="date" required min={earliestHabitChange(habit)} value={effectiveFrom} onChange={event=>setEffectiveFrom(event.target.value)}/><small>Rule changes begin on this future day. Today and earlier dates keep their existing units and targets. Names and notes update now.</small></label>}
       {!habit && <label className="field">Start from template<select defaultValue="" onChange={(event) => applyTemplate(event.target.value)}><option value="">Blank habit</option>{Object.entries(templates).map(([key, template]) => <option key={key} value={key}>{template.title}</option>)}</select></label>}
       <label className="field">Habit title<input autoFocus required maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What would you like to make time for?" /></label>
       <div className="habit-form-grid">
@@ -99,7 +103,7 @@ export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?
       <label className="field">Stack after (optional)<select value={stackAfterId} onChange={(event) => setStackAfterId(event.target.value)}><option value="">No habit stack</option>{habits.filter((item) => item.id !== habit?.id).map((item) => <option value={item.id} key={item.id}>After {item.title}</option>)}</select></label>
       <div className="habit-form-grid"><label className="field">End condition<select value={endKind} onChange={(event) => setEndKind(event.target.value as typeof endKind)}><option value="none">No end date</option><option value="date">End date</option><option value="completions">Number of completions</option><option value="goal" disabled>Linked Goal target · metadata only</option></select></label>{endKind === "date" && <label className="field">End date<input type="date" required value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>}{endKind === "completions" && <label className="field">Completion count<input type="number" min={1} max={100000} step={1} value={endCount} onChange={(event) => setEndCount(Number(event.target.value))} /></label>}</div>
       <label className="field">Private notes (optional)<textarea maxLength={2000} rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
-      <p className="fine">{habit ? "Type, measurement, recurrence, target, end, pause and archive changes apply today onward. Earlier dates keep their rules." : "Your first scheduled period starts today."} Goal links, Goal target endings, and stacking are organizational metadata only; no funds move and no automation is implied.</p>
+      <p className="fine">{habit ? "Type, measurement, recurrence, target and end changes use your chosen future day. Earlier rules remain retained." : "Your first scheduled period starts today."} Goal links, Goal target endings, and stacking are organizational metadata only; no funds move and no automation is implied.</p>
       {error && <p role="alert">{error}</p>}<div className="actions"><button className="primary" type="submit">{busy ? "Saving…" : habit ? "Save habit" : "Create habit"}</button><button type="button" className="secondary" onClick={onCancel}>Cancel</button></div>
     </fieldset></form>
   </section>;
