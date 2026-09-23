@@ -1,0 +1,9 @@
+{
+ "$schema":"../../apps/web/node_modules/wrangler/config-schema.json",
+ "name":"zigoals-market-coordinator-local",
+ "main":"worker.ts",
+ "compatibility_date":"2026-09-13",
+ "durable_objects":{"bindings":[{"name":"MARKETS","class_name":"MarketAccount"}]},
+ "migrations":[{"tag":"v1","new_sqlite_classes":["MarketAccount"]}],
+ "observability":{"enabled":false}
+}
