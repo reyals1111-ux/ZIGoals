@@ -45,7 +45,7 @@ test("corrupt metadata recovery preserves the original bytes and restores the pl
   await expect(
     page.getByRole("heading", { name: "Goal #1", exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Settings", exact: true }).click();
   await page
     .getByLabel("Or paste backup JSON")
     .fill(JSON.stringify(recoveryPlan));
@@ -99,7 +99,7 @@ test("damaged local funds keep the shell usable and block simulation instead of 
     page.getByRole("button", { name: "Connect Keplr" }),
   ).toBeEnabled();
   await expect(page.locator(".wallet-balance")).toContainText("0 ZIG");
-  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Settings", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Your data. Your control." }),
   ).toBeVisible();
@@ -269,7 +269,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Settings", exact: true }).click();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export Goal Data" }).click();
   expect((await download).suggestedFilename()).toContain("local-simulation");
@@ -294,7 +294,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("button", { name: "Close empty goal" }),
   ).toBeEnabled();
-  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Settings", exact: true }).click();
   await page.getByLabel("Or paste backup JSON").fill(backup);
   await page.getByRole("button", { name: "Import backup" }).click();
   await expect(

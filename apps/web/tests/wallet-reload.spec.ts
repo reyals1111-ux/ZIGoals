@@ -89,7 +89,7 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
   await expect(
     page.getByRole("button", { name: "Reconnect Keplr", exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.getByRole("status").filter({hasText:"Reloads intentionally start in Local demo"})).toContainText(
     "Reloads intentionally start in Local demo",
   );
   expect(mockCalls).toEqual(["suggest", "enable", "getKey"]);

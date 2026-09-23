@@ -21,13 +21,13 @@ test('private position allocation and plans survive reload without financial or 
  await page.locator('#allocate .picker-existing').getByRole('button',{name:/Example reserve/}).click();
  await page.getByLabel('Allocation quantity').fill('80');
  await page.getByRole('button',{name:'Save allocation',exact:true}).click();
- await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
+ await expect(page.getByTestId('tracked-progress')).toContainText('40%');
  await page.reload();
- await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
+ await expect(page.getByTestId('tracked-progress')).toContainText('40%');
  await page.locator('#contribution-plan > summary').click();
  await page.getByLabel('Planned amount').fill('10');
  await page.getByRole('button',{name:'Save contribution plan',exact:true}).click();
- await expect(page.getByTestId('tracked-progress')).toContainText('40.00%');
+ await expect(page.getByTestId('tracked-progress')).toContainText('40%');
  expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
  expect(external).toEqual([]);
  await page.setViewportSize({width:320,height:760});

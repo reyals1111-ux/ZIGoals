@@ -16,4 +16,4 @@
  .quick-add-dialog .section-heading>div { min-width:0; }
 }
 
-.workspace-status{display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:space-between;align-items:center;padding:.75rem 0;color:var(--muted);font-size:.85rem;overflow-wrap:anywhere}.workspace-status a{min-height:44px;display:inline-flex;align-items:center}.workspace-status>span{min-width:0}
+.workspace-status{display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:space-between;align-items:center;padding:.75rem 0;color:var(--muted);font-size:.875rem;overflow-wrap:anywhere}.workspace-status a{min-height:44px;display:inline-flex;align-items:center}.workspace-status>span{min-width:0}

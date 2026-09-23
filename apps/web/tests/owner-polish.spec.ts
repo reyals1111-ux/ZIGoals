@@ -12,14 +12,17 @@ async function seed(page:Page){
  await page.reload();await page.emulateMedia({reducedMotion:'reduce'});
 }
 async function shot(page:Page,name:string){if(process.env.OWNER_CAPTURE==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`../../docs/verification/run8-1-owner/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}}
-test('one circular family and all four active Goals on Today share exact USD valuation',async({page})=>{
+test('one circular family, Today active count and a chosen Goal share exact USD valuation',async({page})=>{
  await page.setViewportSize({width:1440,height:1000});await seed(page);await expect(page.locator('.unified-goal-card')).toHaveCount(4);await expect(page.locator('.unified-goal-card .goal-progress-ring')).toHaveCount(4);await expect(page.locator('.unified-goal-card progress')).toHaveCount(0);
- const value=page.locator('[data-goal-key="private:82"]');await expect(value).toContainText('$11309');await expect(value).toContainText('$500000');await expect(value).toContainText('2.26%');await shot(page,'01-unified-goals');
+ const value=page.locator('[data-goal-key="private:82"]');await expect(value).toContainText('$11,309');await expect(value).toContainText('$500,000');await expect(value.getByRole('progressbar',{name:'Financial Freedom progress'})).toHaveAttribute('aria-valuenow','2.26');await shot(page,'01-unified-goals');
  if(process.env.OWNER_CAPTURE==='1')for(const [key,name] of [['legacy:1','02-legacy-card'],['private:81','03-quantity-card'],['private:82','04-value-card']])await page.locator(`[data-goal-key="${key}"]`).screenshot({path:`../../docs/verification/run8-1-owner/screenshots/${name}.png`});
  const before=await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'));
- await page.goto('/app');await expect(page.locator('.today-goals .unified-goal-card')).toHaveCount(4);await expect(page.locator('[data-goal-key="private:82"]')).toContainText('$11309');await shot(page,'13-today-all-goals');await shot(page,'14-today-value');
+ await page.goto('/app');await expect(page.getByRole('article',{name:'Your destinations',exact:true})).toContainText('4 active Goals');
+ await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.getByRole('button',{name:'Add widget',exact:true}).click();
+ const editor=page.getByRole('dialog',{name:'Add a widget'});await editor.getByRole('combobox',{name:'Widget type',exact:true}).selectOption('goal');await editor.getByRole('combobox',{name:'Choose a goal',exact:true}).selectOption('private:82');await editor.getByRole('button',{name:'Save widget',exact:true}).click();await page.getByRole('button',{name:'Finish customizing',exact:true}).click();
+ const todayValue=page.getByRole('article',{name:'Financial Freedom',exact:true});await expect(todayValue).toContainText('$11,309');await expect(todayValue).toContainText('$500,000');await expect(todayValue.getByRole('progressbar')).toHaveAttribute('aria-valuenow','2.26');await shot(page,'13-today-all-goals');await shot(page,'14-today-value');
  expect(await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'))).toBe(before);
- await page.goto('/app/goals/tracked/82');await expect(page.getByTestId('tracked-progress')).toContainText('11309');await expect(page.getByTestId('tracked-progress')).toContainText('2.26%');await expect(page.locator('#allocate')).not.toHaveAttribute('open','');await shot(page,'05-goal-overview');
+ await page.goto('/app/goals/tracked/82');await expect(page.getByTestId('tracked-progress')).toContainText('11,309');await expect(page.getByTestId('tracked-progress').getByRole('progressbar')).toHaveAttribute('aria-valuenow','2.26');await expect(page.locator('#allocate')).not.toHaveAttribute('open','');await shot(page,'05-goal-overview');
  await page.locator('#allocate > summary').click();await expect(page.getByLabel('Allocation quantity')).toBeVisible();await shot(page,'06-wealth-expanded');await page.locator('#allocate > summary').click();
  await page.locator('#contribution-plan > summary').click();await expect(page.getByLabel('Planned amount',{exact:true})).toBeVisible();await shot(page,'07-contribution-expanded');await page.locator('#contribution-plan > summary').click();
  await page.locator('#valuation > summary').click();await expect(page.locator('#valuation')).toContainText('CoinGecko');await expect(page.locator('#valuation')).toContainText('0.043');await shot(page,'08-valuation-expanded');
@@ -33,7 +36,7 @@ test('missing price is explicit and stale quote survives failed refresh and relo
  const card=page.locator('[data-goal-key="private:82"]');
 
  // Establish the seeded verified quote before changing routing/storage.
- await expect(card).toContainText('$11309');
+ await expect(card).toContainText('$11,309');
 
  // Remove the seed route explicitly so the failure fixture cannot race it.
  await page.unroute('**/api/market-quotes*');
@@ -56,11 +59,11 @@ test('missing price is explicit and stale quote survives failed refresh and relo
  });
 
  await page.reload();
- await expect(card).toContainText('$11309');
+ await expect(card).toContainText('$11,309');
  await expect(card).toContainText('needs refresh');
 
  await page.reload();
- await expect(card).toContainText('$11309');
+ await expect(card).toContainText('$11,309');
 
  await page.evaluate(()=>localStorage.removeItem('zigoals:public-market-quotes:v1'));
  await page.reload();

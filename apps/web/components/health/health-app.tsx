@@ -64,7 +64,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     if (!addIntent) return;
     const entry = document.getElementById("health-entry-action");
     entry?.scrollIntoView({ block: "center", behavior: "instant" });
-    entry?.querySelector<HTMLElement>("select, input, button")?.focus({ preventScroll: true });
+    const entryControl = entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"] select')
+      ?? entry?.querySelector<HTMLElement>("select, input, button");
+    entryControl?.focus({ preventScroll: true });
     router.replace("/app/health", { scroll: false });
   }, [addIntent, router]);
   const [date, setDate] = useState(() => healthDay(dailyData(data).preferences.timezone));

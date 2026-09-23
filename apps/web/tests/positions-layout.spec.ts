@@ -10,7 +10,7 @@ test('wealth leads collapsed read-only utilities and APR stays account-scoped',a
  await expect(page.getByLabel('Public ZIG address')).toBeHidden();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toBeHidden();
  expect(await page.locator('.position-metrics').evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('.positions-wallet')!)&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
  await wallet.locator('summary').click();await expect(page.getByLabel('Public ZIG address')).toBeVisible();await expect(wallet).toContainText('no signer');
- await scenario.locator('summary').click();await page.getByLabel('Net APR assumption %',{exact:true}).fill('6');await page.getByRole('button',{name:'Save APR assumption'}).click();await expect(page.getByRole('status')).toContainText('Net APR assumption saved');
+ await scenario.locator('summary').click();await page.getByLabel('Net APR assumption %',{exact:true}).fill('6');await page.getByRole('button',{name:'Save APR assumption'}).click();await expect(page.getByRole('status').filter({hasText:'Net APR assumption saved'})).toContainText('Net APR assumption saved');
  await page.reload();await expect(scenario.locator('summary')).toContainText('6%');
  await scenario.locator('summary').click();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('6');
  await wallet.locator('summary').click();await page.getByLabel('Read-only network').selectOption('TESTNET_READ_ONLY');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('');
