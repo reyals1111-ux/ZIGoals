@@ -17,11 +17,11 @@ const source = {
   sourceDateEpoch: Number(git(["show", "-s", "--format=%ct", "HEAD"])),
 };
 const candidate = () => ({
-  schemaVersion: 1, status: "REPRODUCIBLE", approval: "NOT_APPROVED", source,
-  environment: { ...Object.fromEntries(Object.entries(schema.properties.environment.properties).filter(([, rule]) => "const" in rule).map(([key, rule]) => [key, rule.const])), osRelease: "fixture-kernel", imageVersion: "fixture-image" },
+  schemaVersion: 2, status: "REPRODUCIBLE", approval: "NOT_APPROVED", source,
+  environment: { ...Object.fromEntries(Object.entries(schema.properties.environment.properties).filter(([, rule]) => "const" in rule).map(([key, rule]) => [key, rule.const])), osRelease: "fixture-kernel" },
   artifact: { name: "zigoals_goal_manager.wasm", sha256: hash(bytes), sizeBytes: bytes.length },
   independentBuildCount: 2,
-  builds: ["a", "b"].map(job => ({ repository: "owner/repo", runId: "123", runAttempt: "1", job, builtAt: "2026-09-13T00:00:00.000Z", validation: { tool: "cosmwasm-check", version: "2.2.2", passed: true } })),
+  builds: ["a", "b"].map(job => ({ repository: "owner/repo", runId: "123", runAttempt: "1", job, runner: { imageVersion: job === "a" ? "20260920.314.1" : "20260907.300.1" }, builtAt: "2026-09-13T00:00:00.000Z", validation: { tool: "cosmwasm-check", version: "2.2.2", passed: true } })),
 });
 test("canonical preparation retains actual artifact identity and leaves every live field null", () => {
   const m = buildPreparedManifest({ bytes, candidate: candidate(), expectedCommit });

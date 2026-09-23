@@ -37,15 +37,17 @@ if (process.env.CARGO_NET_OFFLINE === 'true') env.CARGO_NET_OFFLINE = 'true';
 const run = (command, args) => execFileSync(command, args, { cwd: root, env, encoding: 'utf8', timeout: 1200000, maxBuffer: 10_000_000 }).trim();
 const binaryen = join(root, 'scripts/release/toolchain/node_modules/binaryen/bin/wasm-opt');
 const validator = join(root, '.toolchain/check/bin/cosmwasm-check');
+// The moving host-image inventory is provenance for each builder, not a shared input.
+const runner = { imageVersion: process.env.ImageVersion ?? 'not-github-hosted' };
 const environment = {
-  policy: 'canonical-linux-v1', platform: platform(), arch: arch(), osRelease: release(),
-  imageOS: process.env.ImageOS ?? 'not-github-hosted', imageVersion: process.env.ImageVersion ?? 'not-github-hosted',
+  policy: 'canonical-linux-v2', platform: platform(), arch: arch(), osRelease: release(),
+  imageOS: process.env.ImageOS ?? 'not-github-hosted',
   rust: run('rustc', ['-vV']), cargo: run('cargo', ['--version']), node: process.versions.node,
   binaryen: run(process.execPath, [binaryen, '--version']), validator: run(validator, ['--version']),
   target: 'wasm32-unknown-unknown', flags: schema.properties.environment.properties.flags.const, locale: 'C', timezone: 'UTC',
 };
 if (environment.binaryen !== 'wasm-opt version 123 (version_123)' || environment.validator !== 'Contract checking 2.2.2' || environment.cargo !== 'cargo 1.85.1 (d73d2caf9 2024-12-31)' || !environment.rust.includes('\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\n')) throw new Error('Toolchain pin mismatch');
-if (!compatibility && (process.env.GITHUB_ACTIONS !== 'true' || environment.platform !== 'linux' || environment.arch !== 'x64' || environment.imageOS !== 'ubuntu24' || environment.imageVersion === 'not-github-hosted')) throw new Error('Canonical authority requires the GitHub Ubuntu 24.04 x64 workflow; local diagnostics require --compatibility');
+if (!compatibility && (process.env.GITHUB_ACTIONS !== 'true' || environment.platform !== 'linux' || environment.arch !== 'x64' || environment.imageOS !== 'ubuntu24' || runner.imageVersion === 'not-github-hosted')) throw new Error('Canonical authority requires the GitHub Ubuntu 24.04 x64 workflow; local diagnostics require --compatibility');
 console.log(`Clean build target: ${target}`);
 console.log(run('cargo', ['wasm', '--locked']));
 mkdirSync(resolve(destination));
@@ -54,9 +56,9 @@ console.log(run(process.execPath, [binaryen, join(target, 'wasm32-unknown-unknow
 runValidator(validator, wasmPath);
 const wasm = readFileSync(wasmPath);
 const manifest = {
-  schemaVersion: 1, status: 'BUILD_VERIFIED', approval: 'NOT_APPROVED', source, environment,
+  schemaVersion: 2, status: 'BUILD_VERIFIED', approval: 'NOT_APPROVED', source, environment,
   artifact: { name: 'zigoals_goal_manager.wasm', sha256: sha256(wasm), sizeBytes: wasm.length }, independentBuildCount: 1,
-  builds: [{ repository: process.env.GITHUB_REPOSITORY, runId: process.env.GITHUB_RUN_ID, runAttempt: process.env.GITHUB_RUN_ATTEMPT, job: process.env.RELEASE_BUILD_JOB, builtAt: new Date().toISOString(), validation: { tool: 'cosmwasm-check', version: '2.2.2', passed: true } }],
+  builds: [{ repository: process.env.GITHUB_REPOSITORY, runId: process.env.GITHUB_RUN_ID, runAttempt: process.env.GITHUB_RUN_ATTEMPT, job: process.env.RELEASE_BUILD_JOB, runner, builtAt: new Date().toISOString(), validation: { tool: 'cosmwasm-check', version: '2.2.2', passed: true } }],
 };
 if (git(['status', '--porcelain', '--untracked-files=normal']) || git(['rev-parse', 'HEAD']) !== expectedCommit || sha256(readFileSync(join(root, 'Cargo.lock'))) !== source.cargoLockSha256) throw new Error('Source changed during build');
 if (compatibility) {

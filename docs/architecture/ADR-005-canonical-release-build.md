@@ -1,6 +1,6 @@
 # ADR-005 — Canonical Linux contract release builds
 
-Status: accepted for M4 implementation. Hosted results are recorded separately; this decision is not a successful build or an upload approval.
+Status: accepted for M4 implementation; Run #10 schema v2 policy amendment below. Hosted results are recorded separately; this decision is not a successful build or an upload approval.
 
 ## Decision
 
@@ -8,7 +8,7 @@ The canonical artifact comes from two separate fresh GitHub-hosted `ubuntu-24.04
 
 The wrapper remaps the absolute checkout, Cargo and Rustup prefixes to `/src`, `/cargo`, `/rustup`, plus relative contract paths. It preserves `-C target-feature=-reference-types,-multivalue` and Binaryen `-Oz --signext-lowering`. Rust documents that remapping is textual, last-match wins and external/linker paths can remain; it is a best-effort normalization, not a hermetic-build guarantee. We use flags supported by the pinned compiler, without newer scope options. [Official rustc guidance](https://doc.rust-lang.org/rustc/remap-source-paths.html).
 
-The recorded kernel, ImageOS and ImageVersion are actual environment observations. The runner label is moving, not a digest-pinned image. Matching outputs establish repeated independent Linux-job reproducibility for that source and recorded environment; they do not establish independent infrastructure trust, immutable infrastructure, a professional security audit, or Mac/Linux equality. M3's differing Mac and Linux hashes remain valid historical evidence. A digest-pinned container is a future environmental-hardening option, with a separate maintenance/distribution cost.
+The recorded kernel, ImageOS and ImageVersion are actual environment observations. Under schema v2, only ImageVersion is per-builder metadata; kernel and ImageOS remain part of the exact shared environment comparison. The runner label is moving, not a digest-pinned image. Matching outputs establish repeated independent Linux-job reproducibility for that source and recorded environment; they do not establish independent infrastructure trust, immutable infrastructure, a professional security audit, or Mac/Linux equality. M3's differing Mac and Linux hashes remain valid historical evidence. A digest-pinned container is a future environmental-hardening option, with a separate maintenance/distribution cost.
 
 ## Fail-closed evidence
 
@@ -39,3 +39,15 @@ Resolved directly through the official repositories' commit API on 2026-09-13. U
 Sources: the corresponding `https://api.github.com/repos/actions/<name>/commits/<tag>` API responses; action documentation lives in each [official actions repository](https://github.com/actions).
 
 The first hosted M4 runs annotated inherited Node20 actions being forced to Node24. The current pins above declare Node24 themselves. Setup-node automatic package-manager caching is explicitly disabled; archive/extraction and same-run artifact name behavior remain unchanged. Checkout never enables unsafe privileged PR checkout, and all quality/canonical checkouts disable persisted credentials. No build flags or contract bytes were changed for this maintenance update.
+
+## Run #10: versioned host-image provenance policy
+
+The downloaded evidence from failed canonical run `35778740375` confirms that the two jobs compiled synthetic PR merge `f5bf8017250d3463f26c4160984d68975e7975db` into identical 255,532-byte Wasm (SHA-256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`). The only environment difference was GitHub ImageVersion: `20260920.314.1` versus `20260907.300.1`. Kernel, ImageOS, full compiler identity, tools, flags and source metadata matched. This is a diagnosis of that run, not a reason to ignore future differences or relabel it successful.
+
+Choose a narrow separation over introducing an unreviewed container distribution: schema 2 / `canonical-linux-v2` records the actual ImageVersion under each required `builds[].runner.imageVersion`. Both records survive comparison unchanged. The shared `environment` retains exact equality for policy, platform, architecture, kernel release, ImageOS, full Rust identity, Cargo, Node, Binaryen, validator, target, compiler/optimizer/remapping flags, locale and timezone. Unknown or missing fields fail closed. A moving image inventory number is not an immutable executable input identity; identical output still must be proven on both jobs. This policy does not establish hermetic builds or guarantee that every unrecorded host component is identical.
+
+The comparator and downloaded-candidate verifier retain their existing strict source/tree/lock/epoch comparison, actual byte/hash/size checks, same-run distinct-job rules, trusted Git source verification and mandatory validator reruns. No workflow action, toolchain pin, permission, release approval or attestation boundary changes. The downstream preparation consumer uses the same verifier before any network request; its resulting deployment schema remains unchanged.
+
+This is an explicit format boundary: current scripts accept only v2. They reject v1, future versions, mixed versions and v2 manifests retaining the old top-level image field. Do not modify historical manifests or signed bundles to pass v2. Historical v1 candidate verification must use a separately reviewed historical v1 verifier/schema (for example source `709816a7e6d0779b45c48d729c69e0eabd671f0e`) with the independently approved original artifact source and unchanged attestation constraints. New issuance requires fresh v2 evidence at the exact reviewed source. Existing v1 attestations retain only their original claim; no migration or automatic reissuance is performed.
+
+Focused regression and hosted-state evidence: [Run #10 CI evidence](../run10/CI_EVIDENCE.md).

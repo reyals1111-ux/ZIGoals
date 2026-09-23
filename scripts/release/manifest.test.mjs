@@ -5,12 +5,12 @@ const wasm = Buffer.from('test Wasm fixture');
 const hash = b => createHash('sha256').update(b).digest('hex');
 const commit = 'a'.repeat(40);
 const build = job => ({
-  schemaVersion: 1, status: 'BUILD_VERIFIED', approval: 'NOT_APPROVED',
+  schemaVersion: 2, status: 'BUILD_VERIFIED', approval: 'NOT_APPROVED',
   source: { commit, tree: 'b'.repeat(40), cargoLockSha256: 'c'.repeat(64), sourceDateEpoch: 1700000000 },
-  environment: { policy: 'canonical-linux-v1', platform: 'linux', arch: 'x64', osRelease: '6.1', imageOS: 'ubuntu24', imageVersion: '20260913.1', rust: 'rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7', cargo: 'cargo 1.85.1 (d73d2caf9 2024-12-31)', node: '24.19.0', binaryen: 'wasm-opt version 123 (version_123)', validator: 'Contract checking 2.2.2', target: 'wasm32-unknown-unknown', flags: '-C target-feature=-reference-types,-multivalue; remap source=/src cargo=/cargo rustup=/rustup; optimizer=-Oz --signext-lowering', locale: 'C', timezone: 'UTC' },
+  environment: { policy: 'canonical-linux-v2', platform: 'linux', arch: 'x64', osRelease: '6.1', imageOS: 'ubuntu24', rust: 'rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7', cargo: 'cargo 1.85.1 (d73d2caf9 2024-12-31)', node: '24.19.0', binaryen: 'wasm-opt version 123 (version_123)', validator: 'Contract checking 2.2.2', target: 'wasm32-unknown-unknown', flags: '-C target-feature=-reference-types,-multivalue; remap source=/src cargo=/cargo rustup=/rustup; optimizer=-Oz --signext-lowering', locale: 'C', timezone: 'UTC' },
   artifact: { name: 'zigoals_goal_manager.wasm', sha256: hash(wasm), sizeBytes: wasm.length },
   independentBuildCount: 1,
-  builds: [{ repository: 'owner/repo', runId: '123', runAttempt: '1', job, builtAt: '2026-09-13T00:00:00.000Z', validation: { tool: 'cosmwasm-check', version: '2.2.2', passed: true } }],
+  builds: [{ repository: 'owner/repo', runId: '123', runAttempt: '1', job, runner: { imageVersion: '20260920.314.1' }, builtAt: '2026-09-13T00:00:00.000Z', validation: { tool: 'cosmwasm-check', version: '2.2.2', passed: true } }],
 });
 const candidate = () => compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: build('build-b'), wasm } });
 describe('strict canonical release evidence', () => {
@@ -42,7 +42,7 @@ describe('strict canonical release evidence', () => {
     if (kind === 'size') other.artifact.sizeBytes++;
     if (kind === 'lock') other.source.cargoLockSha256 = 'd'.repeat(64);
     if (kind === 'tree') other.source.tree = 'd'.repeat(40);
-    if (kind === 'environment') other.environment.imageVersion = '20260914.1';
+    if (kind === 'environment') other.environment.osRelease = 'changed-kernel';
     if (kind === 'validator') other.builds[0].validation.version = '2.2.1';
     if (kind === 'count') other.independentBuildCount = 2;
     if (kind === 'identity') other.builds[0].job = 'build-a';
@@ -53,3 +53,42 @@ describe('strict canonical release evidence', () => {
 });
 
 it('rejects a modified compiler identity even with matching release fields', () => { const m = candidate(); m.environment.rust = m.environment.rust.replace('rustc 1.85.1', 'untrusted compiler'); expect(() => verifyCandidate({ expectedCommit: commit, manifest: m, wasm })).toThrow(); });
+
+// The only permitted disagreement is the separately retained runner image version.
+it('retains both image versions without mutating either build or weakening environment comparison', () => {
+  const left = build('build-a'); const right = build('build-b');
+  right.builds[0].runner.imageVersion = '20260907.300.1';
+  const originals = structuredClone([left, right]);
+  const result = compareBuilds({ expectedCommit: commit, left: { manifest: left, wasm }, right: { manifest: right, wasm } });
+  expect(result.builds.map(b => b.runner.imageVersion)).toEqual(['20260920.314.1', '20260907.300.1']);
+  expect([left, right]).toEqual(originals);
+  expect(verifyCandidate({ expectedCommit: commit, manifest: result, wasm })).toBe(true);
+});
+it.each(['policy', 'platform', 'arch', 'imageOS', 'rust', 'cargo', 'node', 'binaryen', 'validator', 'target', 'flags', 'locale', 'timezone', 'osRelease'])('rejects critical environment disagreement: %s even with permitted image drift', field => {
+  const other = build('build-b'); other.builds[0].runner.imageVersion = '20260907.300.1';
+  other.environment[field] = 'different';
+  expect(() => compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: other, wasm } })).toThrow();
+});
+it.each(['missing-runner', 'missing-image', 'empty-image', 'oversized-image', 'unknown-runner-field', 'top-level-image', 'old-version', 'future-version', 'source-epoch', 'source-commit', 'hash', 'run', 'attempt', 'repository'])('rejects invalid evidence: %s', kind => {
+  const other = build('build-b');
+  if (kind === 'missing-runner') delete other.builds[0].runner;
+  if (kind === 'missing-image') delete other.builds[0].runner.imageVersion;
+  if (kind === 'empty-image') other.builds[0].runner.imageVersion = '';
+  if (kind === 'oversized-image') other.builds[0].runner.imageVersion = 'x'.repeat(257);
+  if (kind === 'unknown-runner-field') other.builds[0].runner.flags = 'unchecked';
+  if (kind === 'top-level-image') other.environment.imageVersion = '20260920.314.1';
+  if (kind === 'old-version') other.schemaVersion = 1;
+  if (kind === 'future-version') other.schemaVersion = 3;
+  if (kind === 'source-epoch') other.source.sourceDateEpoch++;
+  if (kind === 'source-commit') other.source.commit = 'e'.repeat(40);
+  if (kind === 'hash') other.artifact.sha256 = 'e'.repeat(64);
+  if (kind === 'run') other.builds[0].runId = '124';
+  if (kind === 'attempt') other.builds[0].runAttempt = '2';
+  if (kind === 'repository') other.builds[0].repository = 'other/repo';
+  expect(() => compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: other, wasm } })).toThrow();
+});
+it('rejects independently self-consistent but different artifact bytes', () => {
+  const other = build('build-b'); const altered = Buffer.from(wasm); altered[0] ^= 1;
+  other.artifact.sha256 = hash(altered);
+  expect(() => compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: other, wasm: altered } })).toThrow('Independent Wasm bytes differ');
+});
