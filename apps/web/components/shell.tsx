@@ -1,5 +1,6 @@
 "use client";
 import "./platform/run92-product.css";
+import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,6 +31,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <Wordmark />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
+        <div className="sidebar-actions"><QuickAdd/></div>
         <nav className="app-nav" aria-label="Main navigation">
           {[
             ["/app", "Today", "today"],
@@ -51,7 +53,6 @@ export function Shell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="sidebar-destination">
-          <p>Real goals.<br /><span className="nebula-text">A brighter tomorrow.</span></p>
           <div className="sidebar-horizon" aria-hidden="true" />
           <small>THE GOAL LAYER FOR ZIGCHAIN</small>
         </div>
@@ -62,7 +63,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
           <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
         </div>
-        <QuickAdd/><div className="wallet">
+        <div className="wallet">
           <button
             className="quiet"
             onClick={s.useLocal}

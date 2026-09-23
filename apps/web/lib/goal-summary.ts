@@ -1,6 +1,7 @@
 /** One presentation contract; private and legacy financial records remain separate. */
 import {goalAssetMix,type AssetMix} from './wealth';
 import Decimal from 'decimal.js';
+import {formatExactNumber} from './visual-format';
 import {formatUnits} from '@zigoals/chain-config';
 import {evaluateGoal} from '@zigoals/goal-engine';
 import type {GoalMetadata} from '@zigoals/shared-types';
@@ -11,9 +12,11 @@ import type {MarketQuote} from './market-quotes';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 export type GoalSummary={assetMix?:AssetMix[];key:string;id:string;href:string;name:string;type:string;source:string;status:'active'|'completed'|'closed';scene:'horizon'|'mountains'|'home'|'garden'|'aurora';current:string;target?:string;currency:string;progressPct:string;remaining?:string;targetDate?:string;nextContributionDate?:string|null;fundingHealth:string;requiresReview:boolean;valuationLabel?:string;metadata:{label:string;value:string}[]};
-export function formatGoalAmount(value:string,currency:string){
- const n=new Decimal(value).toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
- return `${currency==='USD'?'$':currency==='EUR'?'€':''}${n}${currency==='USD'||currency==='EUR'?'':` ${currency}`}`;
+export function formatGoalAmount(value:string,currency:string,locale='en-US'){
+ if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))return 'Unavailable';
+ const decimal=new Decimal(value);if(!decimal.isFinite())return 'Unavailable';
+ const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
+ return currency==='USD'||currency==='EUR'?formatExactNumber(n,locale,currency):`${formatExactNumber(n,locale)} ${currency}`;
 }
 const sceneFor=(category?:string):GoalSummary['scene']=>category==='Travel'?'mountains':category==='First Home'?'home':'garden';
 export function legacyGoalSummary(goal:LocalGoal,plan?:GoalMetadata,source='Local simulation',now=Date.now()):GoalSummary{

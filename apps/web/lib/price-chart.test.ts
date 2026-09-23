@@ -15,7 +15,7 @@ it('shows single RWA observation with exact value, explicit provenance and no se
 it('falls back to saved local prices after failure without inventing a line, earlier price or performance',async()=>{
  vi.stubGlobal('fetch',vi.fn(async()=>Response.json({error:'unavailable'},{status:503})));const element=document.createElement('div'),root=createRoot(element);
  await act(async()=>root.render(createElement(PriceChart,{marketRef:{...coin,id:'unavailable-coin'},currency:'EUR',localPoints:[{at:'2026-09-19T12:00:00Z',value:'25',decimals:2}]})));
- expect(element.textContent).toContain('Saved local price observations');expect(element.textContent).toContain('Earlier performance is not assumed');expect(element.querySelectorAll('circle[data-observation]')).toHaveLength(1);expect(element.querySelector('polyline')).toBeNull();expect(element.querySelector('tbody')?.textContent).toContain('0.25');expect(element.textContent).not.toContain('%');await act(async()=>root.unmount());
+ expect(element.textContent).toContain('Saved local price observations');expect(element.textContent).toContain('Earlier performance is not assumed');expect(element.querySelectorAll('circle[data-observation]')).toHaveLength(0);expect(element.querySelector('polyline')).toBeNull();expect(element.querySelector('tbody')?.textContent).toContain('0.25');expect(element.textContent).not.toContain('%');await act(async()=>root.unmount());
 });
 it('ranges only use supported returned points; aging and range changes never poll; exact table changes with the range',async()=>{
  vi.useFakeTimers();vi.setSystemTime(new Date('2026-09-20T12:00:00Z'));
@@ -51,4 +51,9 @@ it('keeps the new asset visible after a late refresh and allows refreshing the o
  await act(async()=>refreshButton.click());expect(refreshButton.disabled).toBe(true);expect(refreshButton.textContent).toBe('Loading…');
  await act(async()=>finishRefresh(response(firstRef,'175')));expect(element.querySelector('tbody')?.textContent).toContain('1.75');expect(refreshButton.textContent).not.toBe('Loading…');
  await act(async()=>root.unmount());
+});
+it('draws only real local endpoints with an illustrative line and leaves long gaps open',async()=>{
+ const localPoints=[{at:'2026-09-01T12:00:00Z',value:'12500',decimals:2},{at:'2026-09-02T12:00:00Z',value:'12600',decimals:2},{at:'2026-09-20T12:00:00Z',value:'12000',decimals:2}];
+ const element=document.createElement('div'),root=createRoot(element);await act(async()=>root.render(createElement(PriceChart,{marketRef:rwa,currency:'USD',localPoints})));
+ expect(element.querySelectorAll('polyline')).toHaveLength(1);expect(element.querySelectorAll('circle[data-observation]')).toHaveLength(3);expect(element.textContent).toContain('illustrative');expect(element.querySelectorAll('tbody tr')).toHaveLength(3);await act(async()=>root.unmount());
 });

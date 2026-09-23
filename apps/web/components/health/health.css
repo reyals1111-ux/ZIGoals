@@ -219,3 +219,26 @@
 
 .health-weight-axis { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; color:#b5c9df; font-size:14px; padding:6px 0; }
 .health-page .health-roadmap b { font-size:14px; }
+
+/* Run 10 daily journal: clear action groups that stack instead of squeezing. */
+.health-quick-picks { border-bottom: 1px solid #a6c1fa24; padding-bottom: 18px; margin: 20px 0; }
+.health-quick-picks h3 { font-size: 1rem; }
+.health-quick-picks ul,.health-simple-list { list-style: none; padding: 0; margin: 16px 0; }
+.health-quick-picks li,.health-simple-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #a6c1fa20; padding: 12px 0; min-width: 0; }
+.health-quick-picks .health-pick { flex: 1 1 150px; min-width: 0; text-align: left; }
+.health-pick strong,.health-simple-list strong { overflow-wrap: anywhere; }
+.health-pick small,.health-simple-list small { display: block; color: #b5c6db; line-height: 1.6; font-size: .875rem; }
+.health-simple-list li>span { flex: 1 1 150px; min-width: 0; overflow-wrap: anywhere; }
+.health-water-total { font-size: 1.4rem !important; color: #b3e9ef; }
+.health-planning-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; align-items: start; }
+.health-copy-date { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.health-copy-date>.field { flex: 1 1 160px; }
+.health-planning-grid .health-row-actions { flex-wrap: wrap; }
+.health-planning-grid textarea { max-width: 100%; min-width: 0; width: 100%; font: inherit; }
+.health-export-consent { display: flex; align-items: start; gap: 12px; line-height: 1.7; }
+.health-export-consent input { flex: 0 0 22px; margin-top: 5px; }
+.health-patterns { border: 1px solid #a6c1fa24; border-radius: 14px; padding: 18px; margin-top: 24px; }
+.health-patterns>summary { cursor: pointer; min-height: 44px; align-content: center; color: #cbdeec; }
+.health-preview li { margin-bottom: 9px; overflow-wrap: anywhere; }
+@media(max-width:840px) { .health-planning-grid { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:480px) { .health-planning-grid .panel,.health-water { padding: 20px 16px; } .health-simple-list .health-row-actions { width:100%; } }

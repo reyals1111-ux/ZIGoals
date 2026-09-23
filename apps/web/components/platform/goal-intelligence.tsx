@@ -23,10 +23,10 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
  const points=data.goalHistory.filter(h=>h.goalId===goal.id&&h.kind==='valuation');
  const series:EvidenceSeries[]=[
   {label:'Counted wealth',color:'#6bded5',points:points.flatMap(p=>p.kind==='valuation'&&p.asset===goal.asset&&p.decimals===goal.decimals?[{at:p.capturedAt,value:p.current}]:[])},
-  {label:'Actual contributions',color:'#8da7ff',points:[...new Set(records.filter(e=>e.provenance!=='REWARD_INCOME'&&Date.parse(e.occurredAt)<=now).map(e=>e.occurredAt))].sort().map(at=>({at,value:contributionTotals(data,goal.id,Date.parse(at)).net}))},
+  {label:'Actual contributions',kind:'cumulative',color:'#8da7ff',points:[...new Set(records.filter(e=>e.provenance!=='REWARD_INCOME'&&Date.parse(e.occurredAt)<=now).map(e=>e.occurredAt))].sort().map(at=>({at,value:contributionTotals(data,goal.id,Date.parse(at)).net}))},
   {label:'Plan at observation',color:'#e1b97a',points:points.flatMap(p=>p.kind==='valuation'&&p.asset===goal.asset&&p.decimals===goal.decimals?[{at:p.capturedAt,value:p.planned}]:[])},
  ];
- const incomeSeries:EvidenceSeries[]=[{label:'Recorded income',color:'#bca1f8',points:[...new Set(records.filter(e=>e.provenance==='REWARD_INCOME'&&Date.parse(e.occurredAt)<=now).map(e=>e.occurredAt))].sort().map(at=>({at,value:contributionTotals(data,goal.id,Date.parse(at)).rewardIncome}))}];
+ const incomeSeries:EvidenceSeries[]=[{label:'Recorded income',kind:'cumulative',color:'#bca1f8',points:[...new Set(records.filter(e=>e.provenance==='REWARD_INCOME'&&Date.parse(e.occurredAt)<=now).map(e=>e.occurredAt))].sort().map(at=>({at,value:contributionTotals(data,goal.id,Date.parse(at)).rewardIncome}))}];
  const canEdit=!disabled&&!goal.locked&&goal.status!=='closed'&&!busy;
  async function reverse(id:string){setBusy(true);setError('');try{await update(s=>reverseContribution(s,id,crypto.randomUUID(),new Date().toISOString(),'Explicit user reversal'));setMessage('History reversal recorded. The original entry is retained; asset balances and allocations are unchanged.');}catch(e){setError(e instanceof Error?e.message:'Could not reverse contribution.');}finally{setBusy(false);}}
  const max=health?[BigInt(health.actual),BigInt(health.plannedThroughToday),1n].reduce((a,b)=>a>b?a:b):1n;
