@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "project": "Personal AI Lab / ZIGoals",
-  "milestone": "Actual Run #10 — combined implementation brief",
+  "milestone": "Actual Run #10 \u2014 combined implementation brief",
   "created_at": "2026-09-23",
-  "record_type": "ACTIVE IMPLEMENTATION CHECKPOINT — individual final acceptance remains pending",
+  "record_type": "ACTIVE IMPLEMENTATION CHECKPOINT \u2014 individual final acceptance remains pending",
   "source_prompt": "docs/run10/MASTER_PROMPT.md",
   "source_prompt_sha256": "1f03c2b351c0ad63206627483c6ed8c03e116c3c6fff43edb00f41151afe9dc9",
   "authority_note": "The complete master prompt governs. Scope hints are not authority to downgrade a mandatory feature. Classify dependencies and actual delivery from the full specification before implementation.",
@@ -203,12 +203,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 27
       },
-      "specification": "Implementation, local builds, local/emulated backend migrations, nonproduction tests, scoped draft-branch commits and pushes are authorized when this brief is launched in the owner's execution environment. This brief does not authorize merge, auto-merge, release publication, production deployment, live database migration, new production bindings, DNS/email-domain changes, new public tunnels, billing changes or automatic rollback. Prepare exact commands and required configuration; keep activation awaiting separate owner approval. Do not mistake working local integration tests for an already deployed phone–desktop service.",
+      "specification": "Implementation, local builds, local/emulated backend migrations, nonproduction tests, scoped draft-branch commits and pushes are authorized when this brief is launched in the owner's execution environment. This brief does not authorize merge, auto-merge, release publication, production deployment, live database migration, new production bindings, DNS/email-domain changes, new public tunnels, billing changes or automatic rollback. Prepare exact commands and required configuration; keep activation awaiting separate owner approval. Do not mistake working local integration tests for an already deployed phone\u2013desktop service.",
       "status": "VERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Implementation, local builds, local/emulated backend migrations, nonproduction tests, scoped draft-branch commits and pushes are authorized when this brief is launched in the owner's execution environment. This brief does not authorize merge, auto-merge, release publication, production deployment, live database migration, new production bindings, DNS/email-domain changes, new public tunnels, billing changes or automatic rollback. Prepare exact commands and required configuration; keep activation awaiting separate owner approval. Do not mistake working local integration tests for an already deployed phone–desktop service."
+        "Implementation, local builds, local/emulated backend migrations, nonproduction tests, scoped draft-branch commits and pushes are authorized when this brief is launched in the owner's execution environment. This brief does not authorize merge, auto-merge, release publication, production deployment, live database migration, new production bindings, DNS/email-domain changes, new public tunnels, billing changes or automatic rollback. Prepare exact commands and required configuration; keep activation awaiting separate owner approval. Do not mistake working local integration tests for an already deployed phone\u2013desktop service."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -595,12 +595,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 47
       },
-      "specification": "Run #9.2 documented deployment `35702856008` passed deployment/security checks. Its recorded Worker is `768673e8-9d39-4022-b1c0-fdd805fa2318`, with rollback `cca2b972-3b40-47a6-affe-1249fe260465`. These are recorded historical release facts, not a fresh runtime observation. `PUBLIC_ALPHA_UNDEPLOYED` means the financial Goal Manager contract is absent, not that the website is absent. Do not restore obsolete “awaiting initial test funds” claims: funding was historically solved, while current balance/upload authorization remain separate facts.",
+      "specification": "Run #9.2 documented deployment `35702856008` passed deployment/security checks. Its recorded Worker is `768673e8-9d39-4022-b1c0-fdd805fa2318`, with rollback `cca2b972-3b40-47a6-affe-1249fe260465`. These are recorded historical release facts, not a fresh runtime observation. `PUBLIC_ALPHA_UNDEPLOYED` means the financial Goal Manager contract is absent, not that the website is absent. Do not restore obsolete \u201cawaiting initial test funds\u201d claims: funding was historically solved, while current balance/upload authorization remain separate facts.",
       "status": "VERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Run #9.2 documented deployment `35702856008` passed deployment/security checks. Its recorded Worker is `768673e8-9d39-4022-b1c0-fdd805fa2318`, with rollback `cca2b972-3b40-47a6-affe-1249fe260465`. These are recorded historical release facts, not a fresh runtime observation. `PUBLIC_ALPHA_UNDEPLOYED` means the financial Goal Manager contract is absent, not that the website is absent. Do not restore obsolete “awaiting initial test funds” claims: funding was historically solved, while current balance/upload authorization remain separate facts."
+        "Run #9.2 documented deployment `35702856008` passed deployment/security checks. Its recorded Worker is `768673e8-9d39-4022-b1c0-fdd805fa2318`, with rollback `cca2b972-3b40-47a6-affe-1249fe260465`. These are recorded historical release facts, not a fresh runtime observation. `PUBLIC_ALPHA_UNDEPLOYED` means the financial Goal Manager contract is absent, not that the website is absent. Do not restore obsolete \u201cawaiting initial test funds\u201d claims: funding was historically solved, while current balance/upload authorization remain separate facts."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -926,12 +926,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 61
       },
-      "specification": "Save this master prompt before substantive edits, with its content hash and screenshot index. The workshop and continuation documents are useful historical context; their former “sync decision open” and “Runs 11/12 separate” language is superseded here. Create a record of documents actually read, versions/commits and unresolved source gaps. Do not use missing past transcripts as an excuse to stop work described fully in this brief.",
+      "specification": "Save this master prompt before substantive edits, with its content hash and screenshot index. The workshop and continuation documents are useful historical context; their former \u201csync decision open\u201d and \u201cRuns 11/12 separate\u201d language is superseded here. Create a record of documents actually read, versions/commits and unresolved source gaps. Do not use missing past transcripts as an excuse to stop work described fully in this brief.",
       "status": "VERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Save this master prompt before substantive edits, with its content hash and screenshot index. The workshop and continuation documents are useful historical context; their former “sync decision open” and “Runs 11/12 separate” language is superseded here. Create a record of documents actually read, versions/commits and unresolved source gaps. Do not use missing past transcripts as an excuse to stop work described fully in this brief."
+        "Save this master prompt before substantive edits, with its content hash and screenshot index. The workshop and continuation documents are useful historical context; their former \u201csync decision open\u201d and \u201cRuns 11/12 separate\u201d language is superseded here. Create a record of documents actually read, versions/commits and unresolved source gaps. Do not use missing past transcripts as an excuse to stop work described fully in this brief."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -1110,12 +1110,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 73
       },
-      "specification": "Follow a dependency graph rather than an arbitrary paragraph sequence. For example, shared domain IDs and migration contracts precede synced widgets; safe transaction semantics precede financial-history merge. A dependency that is implemented but unsafe cannot support a “verified” descendant. Independent work can continue when a different branch of the graph is blocked. Keep the manifest current after each coherent slice, not merely at the end.",
+      "specification": "Follow a dependency graph rather than an arbitrary paragraph sequence. For example, shared domain IDs and migration contracts precede synced widgets; safe transaction semantics precede financial-history merge. A dependency that is implemented but unsafe cannot support a \u201cverified\u201d descendant. Independent work can continue when a different branch of the graph is blocked. Keep the manifest current after each coherent slice, not merely at the end.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Follow a dependency graph rather than an arbitrary paragraph sequence. For example, shared domain IDs and migration contracts precede synced widgets; safe transaction semantics precede financial-history merge. A dependency that is implemented but unsafe cannot support a “verified” descendant. Independent work can continue when a different branch of the graph is blocked. Keep the manifest current after each coherent slice, not merely at the end."
+        "Follow a dependency graph rather than an arbitrary paragraph sequence. For example, shared domain IDs and migration contracts precede synced widgets; safe transaction semantics precede financial-history merge. A dependency that is implemented but unsafe cannot support a \u201cverified\u201d descendant. Independent work can continue when a different branch of the graph is blocked. Keep the manifest current after each coherent slice, not merely at the end."
       ],
       "implementation_paths": [],
       "evidence": [],
@@ -1202,12 +1202,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 77
       },
-      "specification": "Implement a lightweight validator that reads the ledger, rejects missing/duplicate IDs, unknown statuses, unresolved dependencies for verified items and missing evidence references. For every required item not verified, require a blocker/defer record and final-report inclusion. Validate counts by workstream and delivery class. It must not fake semantic verification, but it should prevent accidental omission, nonexistent evidence paths and misleading aggregate “all done” statements.",
+      "specification": "Implement a lightweight validator that reads the ledger, rejects missing/duplicate IDs, unknown statuses, unresolved dependencies for verified items and missing evidence references. For every required item not verified, require a blocker/defer record and final-report inclusion. Validate counts by workstream and delivery class. It must not fake semantic verification, but it should prevent accidental omission, nonexistent evidence paths and misleading aggregate \u201call done\u201d statements.",
       "status": "VERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Implement a lightweight validator that reads the ledger, rejects missing/duplicate IDs, unknown statuses, unresolved dependencies for verified items and missing evidence references. For every required item not verified, require a blocker/defer record and final-report inclusion. Validate counts by workstream and delivery class. It must not fake semantic verification, but it should prevent accidental omission, nonexistent evidence paths and misleading aggregate “all done” statements."
+        "Implement a lightweight validator that reads the ledger, rejects missing/duplicate IDs, unknown statuses, unresolved dependencies for verified items and missing evidence references. For every required item not verified, require a blocker/defer record and final-report inclusion. Validate counts by workstream and delivery class. It must not fake semantic verification, but it should prevent accidental omission, nonexistent evidence paths and misleading aggregate \u201call done\u201d statements."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -1570,12 +1570,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 97
       },
-      "specification": "After each coherent tested slice, and before risky migrations or broad refactors, create a durable source checkpoint. A practical target is a meaningful checkpoint every 20–30 minutes of active changes, without making empty commits to satisfy a clock. Scan staged content for secrets and sensitive user data before committing/pushing. Push to the existing draft branch when authorized and available; confirm remote SHA. Do not wait for every workflow to finish before preserving the next independent slice.",
+      "specification": "After each coherent tested slice, and before risky migrations or broad refactors, create a durable source checkpoint. A practical target is a meaningful checkpoint every 20\u201330 minutes of active changes, without making empty commits to satisfy a clock. Scan staged content for secrets and sensitive user data before committing/pushing. Push to the existing draft branch when authorized and available; confirm remote SHA. Do not wait for every workflow to finish before preserving the next independent slice.",
       "status": "VERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "After each coherent tested slice, and before risky migrations or broad refactors, create a durable source checkpoint. A practical target is a meaningful checkpoint every 20–30 minutes of active changes, without making empty commits to satisfy a clock. Scan staged content for secrets and sensitive user data before committing/pushing. Push to the existing draft branch when authorized and available; confirm remote SHA. Do not wait for every workflow to finish before preserving the next independent slice."
+        "After each coherent tested slice, and before risky migrations or broad refactors, create a durable source checkpoint. A practical target is a meaningful checkpoint every 20\u201330 minutes of active changes, without making empty commits to satisfy a clock. Scan staged content for secrets and sensitive user data before committing/pushing. Push to the existing draft branch when authorized and available; confirm remote SHA. Do not wait for every workflow to finish before preserving the next independent slice."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -2061,12 +2061,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 119
       },
-      "specification": "Follow a first-time user from onboarding through first Goal/Habit/Health entry, dashboard customization, editing/correction, reload, phone–desktop sync and recovery. Follow a returning user through today's tasks, stale prices, unavailable network, an unfinished form and a second account. Test cancellation, double-clicks, back/forward navigation, keyboard entry and unsuccessful saves. Action outcomes must be understandable without technical project knowledge.",
+      "specification": "Follow a first-time user from onboarding through first Goal/Habit/Health entry, dashboard customization, editing/correction, reload, phone\u2013desktop sync and recovery. Follow a returning user through today's tasks, stale prices, unavailable network, an unfinished form and a second account. Test cancellation, double-clicks, back/forward navigation, keyboard entry and unsuccessful saves. Action outcomes must be understandable without technical project knowledge.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Follow a first-time user from onboarding through first Goal/Habit/Health entry, dashboard customization, editing/correction, reload, phone–desktop sync and recovery. Follow a returning user through today's tasks, stale prices, unavailable network, an unfinished form and a second account. Test cancellation, double-clicks, back/forward navigation, keyboard entry and unsuccessful saves. Action outcomes must be understandable without technical project knowledge."
+        "Follow a first-time user from onboarding through first Goal/Habit/Health entry, dashboard customization, editing/correction, reload, phone\u2013desktop sync and recovery. Follow a returning user through today's tasks, stale prices, unavailable network, an unfinished form and a second account. Test cancellation, double-clicks, back/forward navigation, keyboard entry and unsuccessful saves. Action outcomes must be understandable without technical project knowledge."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -2571,12 +2571,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 152
       },
-      "specification": "The reference ring shows `65.00%`; render `65%`, and render `45.00%` as `45%`. Use nearest-whole, half-up presentation for nonnegative progress: 0.49→0, 0.50→1, 0.51→1. Preserve exact stored values and calculations; do not round financial rates, quantities or prices by this rule. For a completion-style Goal below its real target, avoid a false completed-looking 100%: cap its whole-number label at 99 until actual completion, with exact detail available. A value that genuinely rounds to 0 can still have a small meaningful arc; missing data is an unavailable state, not zero. Fill clockwise from the top once on route entrance, with final accessible value immediately available and reduced-motion support. Test boundary, missing, negative where invalid, zero, complete and over-target cases.",
+      "specification": "The reference ring shows `65.00%`; render `65%`, and render `45.00%` as `45%`. Use nearest-whole, half-up presentation for nonnegative progress: 0.49\u21920, 0.50\u21921, 0.51\u21921. Preserve exact stored values and calculations; do not round financial rates, quantities or prices by this rule. For a completion-style Goal below its real target, avoid a false completed-looking 100%: cap its whole-number label at 99 until actual completion, with exact detail available. A value that genuinely rounds to 0 can still have a small meaningful arc; missing data is an unavailable state, not zero. Fill clockwise from the top once on route entrance, with final accessible value immediately available and reduced-motion support. Test boundary, missing, negative where invalid, zero, complete and over-target cases.",
       "status": "VERIFIED",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "The reference ring shows `65.00%`; render `65%`, and render `45.00%` as `45%`. Use nearest-whole, half-up presentation for nonnegative progress: 0.49→0, 0.50→1, 0.51→1. Preserve exact stored values and calculations; do not round financial rates, quantities or prices by this rule. For a completion-style Goal below its real target, avoid a false completed-looking 100%: cap its whole-number label at 99 until actual completion, with exact detail available. A value that genuinely rounds to 0 can still have a small meaningful arc; missing data is an unavailable state, not zero. Fill clockwise from the top once on route entrance, with final accessible value immediately available and reduced-motion support. Test boundary, missing, negative where invalid, zero, complete and over-target cases."
+        "The reference ring shows `65.00%`; render `65%`, and render `45.00%` as `45%`. Use nearest-whole, half-up presentation for nonnegative progress: 0.49\u21920, 0.50\u21921, 0.51\u21921. Preserve exact stored values and calculations; do not round financial rates, quantities or prices by this rule. For a completion-style Goal below its real target, avoid a false completed-looking 100%: cap its whole-number label at 99 until actual completion, with exact detail available. A value that genuinely rounds to 0 can still have a small meaningful arc; missing data is an unavailable state, not zero. Fill clockwise from the top once on route entrance, with final accessible value immediately available and reduced-motion support. Test boundary, missing, negative where invalid, zero, complete and over-target cases."
       ],
       "implementation_paths": [
         "apps/web/lib/visual-format.ts",
@@ -3000,12 +3000,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 162
       },
-      "specification": "Reconcile the existing registry with current official ZIGChain ecosystem and individual official project sources. Build a dated coverage manifest, official logo/source records, concise attributed self-descriptions or sourced paraphrases, useful categories, filter/search, verified external website/app/docs links and informative detail cards. “ZIGChain ecosystem project” is not “ZIGoals partner”; “Research only” is not “integrated” or “audited.” Make external destinations usable while keeping execution disabled. Add appropriate contextual links such as Open OroSwap on financial surfaces and staking-provider discovery on Stake/Positions, with optional Today widgets rather than financial links imposed on Health-only users. Do not invent logos, affiliations, APYs or live capability claims. Unavailable assets get honest fallbacks.",
+      "specification": "Reconcile the existing registry with current official ZIGChain ecosystem and individual official project sources. Build a dated coverage manifest, official logo/source records, concise attributed self-descriptions or sourced paraphrases, useful categories, filter/search, verified external website/app/docs links and informative detail cards. \u201cZIGChain ecosystem project\u201d is not \u201cZIGoals partner\u201d; \u201cResearch only\u201d is not \u201cintegrated\u201d or \u201caudited.\u201d Make external destinations usable while keeping execution disabled. Add appropriate contextual links such as Open OroSwap on financial surfaces and staking-provider discovery on Stake/Positions, with optional Today widgets rather than financial links imposed on Health-only users. Do not invent logos, affiliations, APYs or live capability claims. Unavailable assets get honest fallbacks.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Reconcile the existing registry with current official ZIGChain ecosystem and individual official project sources. Build a dated coverage manifest, official logo/source records, concise attributed self-descriptions or sourced paraphrases, useful categories, filter/search, verified external website/app/docs links and informative detail cards. “ZIGChain ecosystem project” is not “ZIGoals partner”; “Research only” is not “integrated” or “audited.” Make external destinations usable while keeping execution disabled. Add appropriate contextual links such as Open OroSwap on financial surfaces and staking-provider discovery on Stake/Positions, with optional Today widgets rather than financial links imposed on Health-only users. Do not invent logos, affiliations, APYs or live capability claims. Unavailable assets get honest fallbacks."
+        "Reconcile the existing registry with current official ZIGChain ecosystem and individual official project sources. Build a dated coverage manifest, official logo/source records, concise attributed self-descriptions or sourced paraphrases, useful categories, filter/search, verified external website/app/docs links and informative detail cards. \u201cZIGChain ecosystem project\u201d is not \u201cZIGoals partner\u201d; \u201cResearch only\u201d is not \u201cintegrated\u201d or \u201caudited.\u201d Make external destinations usable while keeping execution disabled. Add appropriate contextual links such as Open OroSwap on financial surfaces and staking-provider discovery on Stake/Positions, with optional Today widgets rather than financial links imposed on Health-only users. Do not invent logos, affiliations, APYs or live capability claims. Unavailable assets get honest fallbacks."
       ],
       "implementation_paths": [
         "apps/web/components/ecosystem-directory.tsx",
@@ -3160,12 +3160,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 166
       },
-      "specification": "Move the whole-life summary above the “What matters today”/attention block as the first functional dashboard section. Improve its hierarchy, number formatting, icons and useful coverage of Goals, Habits, Health, Wealth and optional Stake/Positions. Deliver real user-configurable widgets, not hardcoded cards disguised as customization: catalog, chosen entity/metric, suitable size, order, hide/show, reset and useful presets. A user can build Health-only, Habits+Health, Wealth-only or balanced dashboards and pin particular Goals, Habits, assets or Positions. Persist and sync layout/preferences, preserve local-only mode, support non-drag reordering, isolate Showcase, and handle archived/missing entities. Reference canonical records rather than copying balances. Fix the apparently empty Health icon slot and ungrouped large currency figures. Keep essential integrity warnings attached to affected values.",
+      "specification": "Move the whole-life summary above the \u201cWhat matters today\u201d/attention block as the first functional dashboard section. Improve its hierarchy, number formatting, icons and useful coverage of Goals, Habits, Health, Wealth and optional Stake/Positions. Deliver real user-configurable widgets, not hardcoded cards disguised as customization: catalog, chosen entity/metric, suitable size, order, hide/show, reset and useful presets. A user can build Health-only, Habits+Health, Wealth-only or balanced dashboards and pin particular Goals, Habits, assets or Positions. Persist and sync layout/preferences, preserve local-only mode, support non-drag reordering, isolate Showcase, and handle archived/missing entities. Reference canonical records rather than copying balances. Fix the apparently empty Health icon slot and ungrouped large currency figures. Keep essential integrity warnings attached to affected values.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Move the whole-life summary above the “What matters today”/attention block as the first functional dashboard section. Improve its hierarchy, number formatting, icons and useful coverage of Goals, Habits, Health, Wealth and optional Stake/Positions. Deliver real user-configurable widgets, not hardcoded cards disguised as customization: catalog, chosen entity/metric, suitable size, order, hide/show, reset and useful presets. A user can build Health-only, Habits+Health, Wealth-only or balanced dashboards and pin particular Goals, Habits, assets or Positions. Persist and sync layout/preferences, preserve local-only mode, support non-drag reordering, isolate Showcase, and handle archived/missing entities. Reference canonical records rather than copying balances. Fix the apparently empty Health icon slot and ungrouped large currency figures. Keep essential integrity warnings attached to affected values."
+        "Move the whole-life summary above the \u201cWhat matters today\u201d/attention block as the first functional dashboard section. Improve its hierarchy, number formatting, icons and useful coverage of Goals, Habits, Health, Wealth and optional Stake/Positions. Deliver real user-configurable widgets, not hardcoded cards disguised as customization: catalog, chosen entity/metric, suitable size, order, hide/show, reset and useful presets. A user can build Health-only, Habits+Health, Wealth-only or balanced dashboards and pin particular Goals, Habits, assets or Positions. Persist and sync layout/preferences, preserve local-only mode, support non-drag reordering, isolate Showcase, and handle archived/missing entities. Reference canonical records rather than copying balances. Fix the apparently empty Health icon slot and ungrouped large currency figures. Keep essential integrity warnings attached to affected values."
       ],
       "implementation_paths": [
         "apps/web/components/dashboard/today-dashboard.tsx",
@@ -4611,12 +4611,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 206
       },
-      "specification": "The application may offer an explicit “Sign in with wallet — no transaction” action after explaining the challenge. It must never request a signature on page load, ordinary watch-only connection, reload, Showcase activation or market browsing. The agent must not approve a real wallet prompt on behalf of the owner. Tests use controlled fixtures; real acceptance is an owner action. Existing transaction preparation/signing/broadcast gates remain closed, and tests must prove an auth signature cannot invoke those paths. No blind arbitrary-message payloads or raw-signature key derivation.",
+      "specification": "The application may offer an explicit \u201cSign in with wallet \u2014 no transaction\u201d action after explaining the challenge. It must never request a signature on page load, ordinary watch-only connection, reload, Showcase activation or market browsing. The agent must not approve a real wallet prompt on behalf of the owner. Tests use controlled fixtures; real acceptance is an owner action. Existing transaction preparation/signing/broadcast gates remain closed, and tests must prove an auth signature cannot invoke those paths. No blind arbitrary-message payloads or raw-signature key derivation.",
       "status": "IN_PROGRESS",
       "delivery_class": "CONDITIONAL",
       "dependencies": [],
       "acceptance_criteria": [
-        "The application may offer an explicit “Sign in with wallet — no transaction” action after explaining the challenge. It must never request a signature on page load, ordinary watch-only connection, reload, Showcase activation or market browsing. The agent must not approve a real wallet prompt on behalf of the owner. Tests use controlled fixtures; real acceptance is an owner action. Existing transaction preparation/signing/broadcast gates remain closed, and tests must prove an auth signature cannot invoke those paths. No blind arbitrary-message payloads or raw-signature key derivation."
+        "The application may offer an explicit \u201cSign in with wallet \u2014 no transaction\u201d action after explaining the challenge. It must never request a signature on page load, ordinary watch-only connection, reload, Showcase activation or market browsing. The agent must not approve a real wallet prompt on behalf of the owner. Tests use controlled fixtures; real acceptance is an owner action. Existing transaction preparation/signing/broadcast gates remain closed, and tests must prove an auth signature cannot invoke those paths. No blind arbitrary-message payloads or raw-signature key derivation."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -4863,12 +4863,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 212
       },
-      "specification": "Required evidence includes isolated two-client authentication/sync tests against the implemented backend, cross-tenant denial tests, session expiration and recovery. Add real external email and physical phone/desktop acceptance when the owner has provided a configured environment and can complete user gestures. If those are unavailable, distinguish `LOCAL_INTEGRATION_VERIFIED`, `HOSTED_CONFIGURATION_REQUIRED`, and `REAL_DEVICE_NOT_RUN`. Never say “phone–desktop sync is live” solely because two tabs share localStorage or a mock login returned success.",
+      "specification": "Required evidence includes isolated two-client authentication/sync tests against the implemented backend, cross-tenant denial tests, session expiration and recovery. Add real external email and physical phone/desktop acceptance when the owner has provided a configured environment and can complete user gestures. If those are unavailable, distinguish `LOCAL_INTEGRATION_VERIFIED`, `HOSTED_CONFIGURATION_REQUIRED`, and `REAL_DEVICE_NOT_RUN`. Never say \u201cphone\u2013desktop sync is live\u201d solely because two tabs share localStorage or a mock login returned success.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Required evidence includes isolated two-client authentication/sync tests against the implemented backend, cross-tenant denial tests, session expiration and recovery. Add real external email and physical phone/desktop acceptance when the owner has provided a configured environment and can complete user gestures. If those are unavailable, distinguish `LOCAL_INTEGRATION_VERIFIED`, `HOSTED_CONFIGURATION_REQUIRED`, and `REAL_DEVICE_NOT_RUN`. Never say “phone–desktop sync is live” solely because two tabs share localStorage or a mock login returned success."
+        "Required evidence includes isolated two-client authentication/sync tests against the implemented backend, cross-tenant denial tests, session expiration and recovery. Add real external email and physical phone/desktop acceptance when the owner has provided a configured environment and can complete user gestures. If those are unavailable, distinguish `LOCAL_INTEGRATION_VERIFIED`, `HOSTED_CONFIGURATION_REQUIRED`, and `REAL_DEVICE_NOT_RUN`. Never say \u201cphone\u2013desktop sync is live\u201d solely because two tabs share localStorage or a mock login returned success."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -4947,12 +4947,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 218
       },
-      "specification": "Define what server operators, auth providers, storage providers, other users, lost devices, malicious extensions and compromised client code can observe or do. Client encryption should keep private payloads out of the sync storage/backend plaintext path, but it does not defeat malicious JavaScript served to an unlocked browser or all traffic-analysis metadata. Describe metadata visibility honestly. Use standard browser cryptography and well-reviewed libraries, not homegrown ciphers, hidden obfuscation or a blanket “zero knowledge” marketing claim.",
+      "specification": "Define what server operators, auth providers, storage providers, other users, lost devices, malicious extensions and compromised client code can observe or do. Client encryption should keep private payloads out of the sync storage/backend plaintext path, but it does not defeat malicious JavaScript served to an unlocked browser or all traffic-analysis metadata. Describe metadata visibility honestly. Use standard browser cryptography and well-reviewed libraries, not homegrown ciphers, hidden obfuscation or a blanket \u201czero knowledge\u201d marketing claim.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Define what server operators, auth providers, storage providers, other users, lost devices, malicious extensions and compromised client code can observe or do. Client encryption should keep private payloads out of the sync storage/backend plaintext path, but it does not defeat malicious JavaScript served to an unlocked browser or all traffic-analysis metadata. Describe metadata visibility honestly. Use standard browser cryptography and well-reviewed libraries, not homegrown ciphers, hidden obfuscation or a blanket “zero knowledge” marketing claim."
+        "Define what server operators, auth providers, storage providers, other users, lost devices, malicious extensions and compromised client code can observe or do. Client encryption should keep private payloads out of the sync storage/backend plaintext path, but it does not defeat malicious JavaScript served to an unlocked browser or all traffic-analysis metadata. Describe metadata visibility honestly. Use standard browser cryptography and well-reviewed libraries, not homegrown ciphers, hidden obfuscation or a blanket \u201czero knowledge\u201d marketing claim."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -5263,12 +5263,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 226
       },
-      "specification": "Decide whether a trusted device persists wrapped key material or a platform-supported nonextractable key; document the exact browser behavior and its limits. Do not store an unwrapped vault secret casually in localStorage or a service worker cache. Keep unlocked material scoped to the active account/session, clear it on lock/sign-out as appropriate and fence in-flight operations. “Remember this device” is an explicit user choice with a clear local-security implication, not an assertion of hardware protection the browser does not provide.",
+      "specification": "Decide whether a trusted device persists wrapped key material or a platform-supported nonextractable key; document the exact browser behavior and its limits. Do not store an unwrapped vault secret casually in localStorage or a service worker cache. Keep unlocked material scoped to the active account/session, clear it on lock/sign-out as appropriate and fence in-flight operations. \u201cRemember this device\u201d is an explicit user choice with a clear local-security implication, not an assertion of hardware protection the browser does not provide.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Decide whether a trusted device persists wrapped key material or a platform-supported nonextractable key; document the exact browser behavior and its limits. Do not store an unwrapped vault secret casually in localStorage or a service worker cache. Keep unlocked material scoped to the active account/session, clear it on lock/sign-out as appropriate and fence in-flight operations. “Remember this device” is an explicit user choice with a clear local-security implication, not an assertion of hardware protection the browser does not provide."
+        "Decide whether a trusted device persists wrapped key material or a platform-supported nonextractable key; document the exact browser behavior and its limits. Do not store an unwrapped vault secret casually in localStorage or a service worker cache. Keep unlocked material scoped to the active account/session, clear it on lock/sign-out as appropriate and fence in-flight operations. \u201cRemember this device\u201d is an explicit user choice with a clear local-security implication, not an assertion of hardware protection the browser does not provide."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -5421,12 +5421,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 230
       },
-      "specification": "Device/session revocation must immediately prevent future authorized server access and reject outstanding stale-session writes. Explain that already downloaded/decrypted data cannot be remotely erased or “unlearned.” A meaningful future-data revocation policy may require domain-key rotation and rewrapping for remaining authorized devices; implement the selected policy transactionally and test interruption. Do not claim full cryptographic revocation if only an access token was deleted. Keep the implementation scope and remaining rotation limitations explicit.",
+      "specification": "Device/session revocation must immediately prevent future authorized server access and reject outstanding stale-session writes. Explain that already downloaded/decrypted data cannot be remotely erased or \u201cunlearned.\u201d A meaningful future-data revocation policy may require domain-key rotation and rewrapping for remaining authorized devices; implement the selected policy transactionally and test interruption. Do not claim full cryptographic revocation if only an access token was deleted. Keep the implementation scope and remaining rotation limitations explicit.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Device/session revocation must immediately prevent future authorized server access and reject outstanding stale-session writes. Explain that already downloaded/decrypted data cannot be remotely erased or “unlearned.” A meaningful future-data revocation policy may require domain-key rotation and rewrapping for remaining authorized devices; implement the selected policy transactionally and test interruption. Do not claim full cryptographic revocation if only an access token was deleted. Keep the implementation scope and remaining rotation limitations explicit."
+        "Device/session revocation must immediately prevent future authorized server access and reject outstanding stale-session writes. Explain that already downloaded/decrypted data cannot be remotely erased or \u201cunlearned.\u201d A meaningful future-data revocation policy may require domain-key rotation and rewrapping for remaining authorized devices; implement the selected policy transactionally and test interruption. Do not claim full cryptographic revocation if only an access token was deleted. Keep the implementation scope and remaining rotation limitations explicit."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -6176,6 +6176,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/PENDING_POLICY_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -6192,10 +6197,10 @@
         }
       ],
       "disposition": {
-        "reason": "Concurrent correction resolution and mixed-build pending-operation policy incomplete.",
+        "reason": "Concurrent correction resolution and explicit recovery UI for refused older pending work remain incomplete.",
         "next_step": "Add repeated reversal race and old pending write compatibility tests.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
-        "delivered_safe_subset": "Original contributions/revisions/history/events retained and mutation rejected at sync/apply boundary.",
+        "delivered_safe_subset": "Original contributions/revisions/history/events retained and mutation rejected at sync/apply boundary. Older/future queued upload policies now stop before transmission and preserve pending journal;16focused tests pass.",
         "dependency_impact": "Required milestone remains incomplete.",
         "evidence": "docs/run10/OPERATING_POLICY.md"
       },
@@ -6203,7 +6208,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Concurrent correction resolution and mixed-build pending-operation policy incomplete.",
+      "remaining_limitation": "Concurrent correction resolution and explicit recovery UI for refused older pending work remain incomplete.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -6933,12 +6938,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 272
       },
-      "specification": "Working encrypted phone–desktop continuity is a required feature, not an optional backlog item. Bounded skip permission allows preserving progress on other work if it is blocked; it does not allow describing the overall consumer milestone as fully complete when core sync is missing. State whether the blocker is implementation, unsafe semantics, hosting credentials, email delivery, owner approval or real-device verification. Provide the smallest precise remaining action, not a vague “sync planned.”",
+      "specification": "Working encrypted phone\u2013desktop continuity is a required feature, not an optional backlog item. Bounded skip permission allows preserving progress on other work if it is blocked; it does not allow describing the overall consumer milestone as fully complete when core sync is missing. State whether the blocker is implementation, unsafe semantics, hosting credentials, email delivery, owner approval or real-device verification. Provide the smallest precise remaining action, not a vague \u201csync planned.\u201d",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Working encrypted phone–desktop continuity is a required feature, not an optional backlog item. Bounded skip permission allows preserving progress on other work if it is blocked; it does not allow describing the overall consumer milestone as fully complete when core sync is missing. State whether the blocker is implementation, unsafe semantics, hosting credentials, email delivery, owner approval or real-device verification. Provide the smallest precise remaining action, not a vague “sync planned.”"
+        "Working encrypted phone\u2013desktop continuity is a required feature, not an optional backlog item. Bounded skip permission allows preserving progress on other work if it is blocked; it does not allow describing the overall consumer milestone as fully complete when core sync is missing. State whether the blocker is implementation, unsafe semantics, hosting credentials, email delivery, owner approval or real-device verification. Provide the smallest precise remaining action, not a vague \u201csync planned.\u201d"
       ],
       "implementation_paths": [
         "apps/web/lib/vault/sync.ts",
@@ -7070,12 +7075,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 280
       },
-      "specification": "Move suitable growing private records and sync outbox/history into a well-supported IndexedDB abstraction or another justified local backend. Use indexed bounded queries rather than serializing the entire vault into one localStorage item per edit. Keep small bootstrap preferences where appropriate. Transactions must encompass related local records and outbox entries. Document supported browsers and failure modes; lack of storage access must show an actionable error rather than silently fall back to volatile memory while saying “saved.”",
+      "specification": "Move suitable growing private records and sync outbox/history into a well-supported IndexedDB abstraction or another justified local backend. Use indexed bounded queries rather than serializing the entire vault into one localStorage item per edit. Keep small bootstrap preferences where appropriate. Transactions must encompass related local records and outbox entries. Document supported browsers and failure modes; lack of storage access must show an actionable error rather than silently fall back to volatile memory while saying \u201csaved.\u201d",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Move suitable growing private records and sync outbox/history into a well-supported IndexedDB abstraction or another justified local backend. Use indexed bounded queries rather than serializing the entire vault into one localStorage item per edit. Keep small bootstrap preferences where appropriate. Transactions must encompass related local records and outbox entries. Document supported browsers and failure modes; lack of storage access must show an actionable error rather than silently fall back to volatile memory while saying “saved.”"
+        "Move suitable growing private records and sync outbox/history into a well-supported IndexedDB abstraction or another justified local backend. Use indexed bounded queries rather than serializing the entire vault into one localStorage item per edit. Keep small bootstrap preferences where appropriate. Transactions must encompass related local records and outbox entries. Document supported browsers and failure modes; lack of storage access must show an actionable error rather than silently fall back to volatile memory while saying \u201csaved.\u201d"
       ],
       "implementation_paths": [],
       "evidence": [
@@ -7661,6 +7666,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+        },
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/PENDING_POLICY_EVIDENCE.md"
         }
       ],
       "verified_commit": null,
@@ -7702,12 +7712,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 296
       },
-      "specification": "Test multiple months/years of synthetic dated records, many assets/Goals, large Habit histories, diary entries, schema upgrades and repeated backup/restore. Measure relevant query/write behavior and UI responsiveness. Pagination and aggregation need exact count/reference tests, not only a fast first screen. Preserve import/export precision and event IDs through a round trip. Record actual tested sizes and resource limits, not an unmeasured “unlimited history” claim.",
+      "specification": "Test multiple months/years of synthetic dated records, many assets/Goals, large Habit histories, diary entries, schema upgrades and repeated backup/restore. Measure relevant query/write behavior and UI responsiveness. Pagination and aggregation need exact count/reference tests, not only a fast first screen. Preserve import/export precision and event IDs through a round trip. Record actual tested sizes and resource limits, not an unmeasured \u201cunlimited history\u201d claim.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Test multiple months/years of synthetic dated records, many assets/Goals, large Habit histories, diary entries, schema upgrades and repeated backup/restore. Measure relevant query/write behavior and UI responsiveness. Pagination and aggregation need exact count/reference tests, not only a fast first screen. Preserve import/export precision and event IDs through a round trip. Record actual tested sizes and resource limits, not an unmeasured “unlimited history” claim."
+        "Test multiple months/years of synthetic dated records, many assets/Goals, large Habit histories, diary entries, schema upgrades and repeated backup/restore. Measure relevant query/write behavior and UI responsiveness. Pagination and aggregation need exact count/reference tests, not only a fast first screen. Preserve import/export precision and event IDs through a round trip. Record actual tested sizes and resource limits, not an unmeasured \u201cunlimited history\u201d claim."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -8458,12 +8468,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 316
       },
-      "specification": "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue → reserve → own dispatch → durable dispatch mark → network I/O → settle → fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request.",
+      "specification": "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue \u2192 reserve \u2192 own dispatch \u2192 durable dispatch mark \u2192 network I/O \u2192 settle \u2192 fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue → reserve → own dispatch → durable dispatch mark → network I/O → settle → fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request."
+        "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue \u2192 reserve \u2192 own dispatch \u2192 durable dispatch mark \u2192 network I/O \u2192 settle \u2192 fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request."
       ],
       "implementation_paths": [
         "apps/web/lib/server/market-budget-policy.ts",
@@ -9040,12 +9050,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 328
       },
-      "specification": "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider→server cache→route→transport→browser regression for Bitcoin surviving failed ZIG work.",
+      "specification": "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider\u2192server cache\u2192route\u2192transport\u2192browser regression for Bitcoin surviving failed ZIG work.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider→server cache→route→transport→browser regression for Bitcoin surviving failed ZIG work."
+        "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider\u2192server cache\u2192route\u2192transport\u2192browser regression for Bitcoin surviving failed ZIG work."
       ],
       "implementation_paths": [
         "apps/web/lib/server/market-pair-result.ts",
@@ -9647,6 +9657,11 @@
           "phase": "Final integration reconciliation",
           "result": "IMPLEMENTED_UNVERIFIED",
           "evidence": "docs/run10/CI_EVIDENCE.md"
+        },
+        {
+          "phase": "Bounded hosted artifact inspection",
+          "result": "VERIFIED",
+          "evidence": "docs/run10/CI_EVIDENCE.md"
         }
       ],
       "disposition": {
@@ -9705,6 +9720,11 @@
         {
           "phase": "Final integration reconciliation",
           "result": "IMPLEMENTED_UNVERIFIED",
+          "evidence": "docs/run10/CI_EVIDENCE.md"
+        },
+        {
+          "phase": "Bounded hosted artifact inspection",
+          "result": "VERIFIED",
           "evidence": "docs/run10/CI_EVIDENCE.md"
         }
       ],
@@ -9766,6 +9786,11 @@
         {
           "phase": "Final integration reconciliation",
           "result": "IMPLEMENTED_UNVERIFIED",
+          "evidence": "docs/run10/CI_EVIDENCE.md"
+        },
+        {
+          "phase": "Bounded hosted artifact inspection",
+          "result": "VERIFIED",
           "evidence": "docs/run10/CI_EVIDENCE.md"
         }
       ],
@@ -9829,6 +9854,11 @@
         {
           "phase": "Final integration reconciliation",
           "result": "IN_PROGRESS",
+          "evidence": "docs/run10/CI_EVIDENCE.md"
+        },
+        {
+          "phase": "Bounded hosted artifact inspection",
+          "result": "VERIFIED",
           "evidence": "docs/run10/CI_EVIDENCE.md"
         }
       ],
@@ -10875,12 +10905,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 380
       },
-      "specification": "Provide readable timelines, revision boundaries, installment status, contribution/correction details, source/freshness indicators, filters and exact-value tables. Users should be able to understand “why did this number change?” and navigate to the relevant record. Separate contextual public market history from their private performance. Large histories must page efficiently without dropping the immutable facts or confusing category/date order after timezone conversion.",
+      "specification": "Provide readable timelines, revision boundaries, installment status, contribution/correction details, source/freshness indicators, filters and exact-value tables. Users should be able to understand \u201cwhy did this number change?\u201d and navigate to the relevant record. Separate contextual public market history from their private performance. Large histories must page efficiently without dropping the immutable facts or confusing category/date order after timezone conversion.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Provide readable timelines, revision boundaries, installment status, contribution/correction details, source/freshness indicators, filters and exact-value tables. Users should be able to understand “why did this number change?” and navigate to the relevant record. Separate contextual public market history from their private performance. Large histories must page efficiently without dropping the immutable facts or confusing category/date order after timezone conversion."
+        "Provide readable timelines, revision boundaries, installment status, contribution/correction details, source/freshness indicators, filters and exact-value tables. Users should be able to understand \u201cwhy did this number change?\u201d and navigate to the relevant record. Separate contextual public market history from their private performance. Large histories must page efficiently without dropping the immutable facts or confusing category/date order after timezone conversion."
       ],
       "implementation_paths": [
         "apps/web/components/platform/goal-intelligence.tsx",
@@ -12060,12 +12090,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 416
       },
-      "specification": "Quantity Goals should name the actual chosen asset and network, not always “accumulate ZIG.” Value Goals have an explicit valuation currency and evidence coverage. Reward/Income Goals state whether they track current unclaimed rewards or recorded income. Project Goals retain milestones rather than pretending financial quantity applies. Explain differences during selection and ensure switching type in an unfinished form clears only incompatible fields after a sensible warning.",
+      "specification": "Quantity Goals should name the actual chosen asset and network, not always \u201caccumulate ZIG.\u201d Value Goals have an explicit valuation currency and evidence coverage. Reward/Income Goals state whether they track current unclaimed rewards or recorded income. Project Goals retain milestones rather than pretending financial quantity applies. Explain differences during selection and ensure switching type in an unfinished form clears only incompatible fields after a sensible warning.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Quantity Goals should name the actual chosen asset and network, not always “accumulate ZIG.” Value Goals have an explicit valuation currency and evidence coverage. Reward/Income Goals state whether they track current unclaimed rewards or recorded income. Project Goals retain milestones rather than pretending financial quantity applies. Explain differences during selection and ensure switching type in an unfinished form clears only incompatible fields after a sensible warning."
+        "Quantity Goals should name the actual chosen asset and network, not always \u201caccumulate ZIG.\u201d Value Goals have an explicit valuation currency and evidence coverage. Reward/Income Goals state whether they track current unclaimed rewards or recorded income. Project Goals retain milestones rather than pretending financial quantity applies. Explain differences during selection and ensure switching type in an unfinished form clears only incompatible fields after a sensible warning."
       ],
       "implementation_paths": [
         "apps/web/components/unified-goal-wizard.tsx",
@@ -12326,12 +12356,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 422
       },
-      "specification": "Add a usable progress timeline, plan revision boundaries, contribution/correction events and milestone details. Current value, funding progress and optional scenarios are separate views. A missing history interval is not backfilled from today’s portfolio. Preserve exact detail and source links where safe. Closed Goals remain reviewable and exportable. Sparse histories should use the shared intentional chart states, not a giant empty dotted graph.",
+      "specification": "Add a usable progress timeline, plan revision boundaries, contribution/correction events and milestone details. Current value, funding progress and optional scenarios are separate views. A missing history interval is not backfilled from today\u2019s portfolio. Preserve exact detail and source links where safe. Closed Goals remain reviewable and exportable. Sparse histories should use the shared intentional chart states, not a giant empty dotted graph.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Add a usable progress timeline, plan revision boundaries, contribution/correction events and milestone details. Current value, funding progress and optional scenarios are separate views. A missing history interval is not backfilled from today’s portfolio. Preserve exact detail and source links where safe. Closed Goals remain reviewable and exportable. Sparse histories should use the shared intentional chart states, not a giant empty dotted graph."
+        "Add a usable progress timeline, plan revision boundaries, contribution/correction events and milestone details. Current value, funding progress and optional scenarios are separate views. A missing history interval is not backfilled from today\u2019s portfolio. Preserve exact detail and source links where safe. Closed Goals remain reviewable and exportable. Sparse histories should use the shared intentional chart states, not a giant empty dotted graph."
       ],
       "implementation_paths": [
         "apps/web/components/platform/goal-intelligence.tsx",
@@ -12861,12 +12891,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 444
       },
-      "specification": "Test sorting/filtering/pagination with a defined larger synthetic asset set and long histories, keeping request budgets and UI responsiveness visible. Avoid mounting a provider request or heavyweight chart for every offscreen item. Record practical tested capacities and constraints, including local catalog/search limits, rather than introducing arbitrary “unlimited” marketing language. Preserve the existing strict cache validation and fail-closed currency/identity behavior.",
+      "specification": "Test sorting/filtering/pagination with a defined larger synthetic asset set and long histories, keeping request budgets and UI responsiveness visible. Avoid mounting a provider request or heavyweight chart for every offscreen item. Record practical tested capacities and constraints, including local catalog/search limits, rather than introducing arbitrary \u201cunlimited\u201d marketing language. Preserve the existing strict cache validation and fail-closed currency/identity behavior.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Test sorting/filtering/pagination with a defined larger synthetic asset set and long histories, keeping request budgets and UI responsiveness visible. Avoid mounting a provider request or heavyweight chart for every offscreen item. Record practical tested capacities and constraints, including local catalog/search limits, rather than introducing arbitrary “unlimited” marketing language. Preserve the existing strict cache validation and fail-closed currency/identity behavior."
+        "Test sorting/filtering/pagination with a defined larger synthetic asset set and long histories, keeping request budgets and UI responsiveness visible. Avoid mounting a provider request or heavyweight chart for every offscreen item. Record practical tested capacities and constraints, including local catalog/search limits, rather than introducing arbitrary \u201cunlimited\u201d marketing language. Preserve the existing strict cache validation and fail-closed currency/identity behavior."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -13139,7 +13169,7 @@
         "next_step": "Verify one previewed multi-date copy survives offline retry and second-client pull without duplicate or restored deleted entries.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
         "delivered_safe_subset": [
-          "Reusable immutable meal snapshots and previewed copy of selected meal/day/saved meal to 1–7 dates preserve quantities/source evidence. Stable operation receipts prevent duplicate application and resurrection after entry removal; ordinary diary management reverses copied entries."
+          "Reusable immutable meal snapshots and previewed copy of selected meal/day/saved meal to 1\u20137 dates preserve quantities/source evidence. Stable operation receipts prevent duplicate application and resurrection after entry removal; ordinary diary management reverses copied entries."
         ],
         "dependency_impact": "Required milestone remains incomplete.",
         "evidence": "apps/web/lib/health-daily.ts"
@@ -13659,12 +13689,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 468
       },
-      "specification": "Reuse saved meals/recipes to place planned meals on selected dates; distinguish plans from consumed diary records. Logging a planned meal requires an explicit action. Derive a grocery list only from compatible ingredient identities/units and actual selected plans; preserve unresolved unit conversions instead of guessing. Allow manual list edits without changing recipe/history facts. A tested basic planning/list slice is preferable to a large empty “AI meal planner.”",
+      "specification": "Reuse saved meals/recipes to place planned meals on selected dates; distinguish plans from consumed diary records. Logging a planned meal requires an explicit action. Derive a grocery list only from compatible ingredient identities/units and actual selected plans; preserve unresolved unit conversions instead of guessing. Allow manual list edits without changing recipe/history facts. A tested basic planning/list slice is preferable to a large empty \u201cAI meal planner.\u201d",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Reuse saved meals/recipes to place planned meals on selected dates; distinguish plans from consumed diary records. Logging a planned meal requires an explicit action. Derive a grocery list only from compatible ingredient identities/units and actual selected plans; preserve unresolved unit conversions instead of guessing. Allow manual list edits without changing recipe/history facts. A tested basic planning/list slice is preferable to a large empty “AI meal planner.”"
+        "Reuse saved meals/recipes to place planned meals on selected dates; distinguish plans from consumed diary records. Logging a planned meal requires an explicit action. Derive a grocery list only from compatible ingredient identities/units and actual selected plans; preserve unresolved unit conversions instead of guessing. Allow manual list edits without changing recipe/history facts. A tested basic planning/list slice is preferable to a large empty \u201cAI meal planner.\u201d"
       ],
       "implementation_paths": [
         "apps/web/lib/health-daily.ts",
@@ -14003,12 +14033,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 476
       },
-      "specification": "Test custom food → saved meal → copy to another date → log actual consumption → edit quantity → sync to B → export → restore, plus recipe-version preservation and concurrent offline edits. Add camera/barcode tests only through the separate conditional slice. Never use the owner's genuine Health data as a fixture or publish it in screenshots. A populated nutrition dashboard is not sufficient if entry, correction or persistence fails.",
+      "specification": "Test custom food \u2192 saved meal \u2192 copy to another date \u2192 log actual consumption \u2192 edit quantity \u2192 sync to B \u2192 export \u2192 restore, plus recipe-version preservation and concurrent offline edits. Add camera/barcode tests only through the separate conditional slice. Never use the owner's genuine Health data as a fixture or publish it in screenshots. A populated nutrition dashboard is not sufficient if entry, correction or persistence fails.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Test custom food → saved meal → copy to another date → log actual consumption → edit quantity → sync to B → export → restore, plus recipe-version preservation and concurrent offline edits. Add camera/barcode tests only through the separate conditional slice. Never use the owner's genuine Health data as a fixture or publish it in screenshots. A populated nutrition dashboard is not sufficient if entry, correction or persistence fails."
+        "Test custom food \u2192 saved meal \u2192 copy to another date \u2192 log actual consumption \u2192 edit quantity \u2192 sync to B \u2192 export \u2192 restore, plus recipe-version preservation and concurrent offline edits. Add camera/barcode tests only through the separate conditional slice. Never use the owner's genuine Health data as a fixture or publish it in screenshots. A populated nutrition dashboard is not sufficient if entry, correction or persistence fails."
       ],
       "implementation_paths": [
         "apps/web/tests/health-daily.spec.ts",
@@ -14200,12 +14230,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 486
       },
-      "specification": "Provide typed/pasted barcode lookup when the camera is absent, denied or unsupported. Preserve barcode strings and leading zeros, normalize only according to documented supported formats, validate size/content and do not treat decoded QR URLs as commands or destinations to open. Distinguish invalid, not found, provider unavailable and incomplete product data. A manual lookup fallback is useful, but it must not be labeled “camera scanning verified” when the camera path remains blocked.",
+      "specification": "Provide typed/pasted barcode lookup when the camera is absent, denied or unsupported. Preserve barcode strings and leading zeros, normalize only according to documented supported formats, validate size/content and do not treat decoded QR URLs as commands or destinations to open. Distinguish invalid, not found, provider unavailable and incomplete product data. A manual lookup fallback is useful, but it must not be labeled \u201ccamera scanning verified\u201d when the camera path remains blocked.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Provide typed/pasted barcode lookup when the camera is absent, denied or unsupported. Preserve barcode strings and leading zeros, normalize only according to documented supported formats, validate size/content and do not treat decoded QR URLs as commands or destinations to open. Distinguish invalid, not found, provider unavailable and incomplete product data. A manual lookup fallback is useful, but it must not be labeled “camera scanning verified” when the camera path remains blocked."
+        "Provide typed/pasted barcode lookup when the camera is absent, denied or unsupported. Preserve barcode strings and leading zeros, normalize only according to documented supported formats, validate size/content and do not treat decoded QR URLs as commands or destinations to open. Distinguish invalid, not found, provider unavailable and incomplete product data. A manual lookup fallback is useful, but it must not be labeled \u201ccamera scanning verified\u201d when the camera path remains blocked."
       ],
       "implementation_paths": [
         "apps/web/components/health/barcode-food-lookup.tsx",
@@ -14983,12 +15013,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 518
       },
-      "specification": "Verify daily/weekly/irregular or currently supported cadence, active days, natural-period completion, pause behavior and streak definitions. Completing an already completed period should not add another accepted event. A quit/limit Habit must not use a misleading “more is better” ring. Neutral pause days and unavailable history need appropriate presentation. Avoid inventing automatic progress from time passing or from a linked Goal's price change.",
+      "specification": "Verify daily/weekly/irregular or currently supported cadence, active days, natural-period completion, pause behavior and streak definitions. Completing an already completed period should not add another accepted event. A quit/limit Habit must not use a misleading \u201cmore is better\u201d ring. Neutral pause days and unavailable history need appropriate presentation. Avoid inventing automatic progress from time passing or from a linked Goal's price change.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Verify daily/weekly/irregular or currently supported cadence, active days, natural-period completion, pause behavior and streak definitions. Completing an already completed period should not add another accepted event. A quit/limit Habit must not use a misleading “more is better” ring. Neutral pause days and unavailable history need appropriate presentation. Avoid inventing automatic progress from time passing or from a linked Goal's price change."
+        "Verify daily/weekly/irregular or currently supported cadence, active days, natural-period completion, pause behavior and streak definitions. Completing an already completed period should not add another accepted event. A quit/limit Habit must not use a misleading \u201cmore is better\u201d ring. Neutral pause days and unavailable history need appropriate presentation. Avoid inventing automatic progress from time passing or from a linked Goal's price change."
       ],
       "implementation_paths": [
         "apps/web/lib/habits.ts",
@@ -15136,7 +15166,7 @@
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
         "delivered_safe_subset": [
           "Normal editor/state actions schedule explicit future rules, retaining original and superseded revisions. Today/cards/streak units use applicable rules; stale editor fingerprints reject overwrite. Legacy missing earlier same-day revisions are disclosed; end conditions and incompatible units are bounded by future dates.",
-          "Legacy HabitGoalLinks now uses today’s applicable rule so a pending pause/archive is not shown early."
+          "Legacy HabitGoalLinks now uses today\u2019s applicable rule so a pending pause/archive is not shown early."
         ],
         "dependency_impact": "Required milestone remains incomplete.",
         "evidence": "apps/web/lib/habit-actions.ts"
@@ -15520,12 +15550,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 534
       },
-      "specification": "Start with the actual repository registry and current official ZIGChain ecosystem sources, then verify individual project destinations. List every discovered candidate, category, inclusion source/date, link status, description/logo evidence and disposition. “All ecosystem projects” means all entries in the documented reviewed source set at that time, not an eternal exhaustive claim. Preserve names/duplicates carefully and do not expand to unrelated projects merely to make the page look full.",
+      "specification": "Start with the actual repository registry and current official ZIGChain ecosystem sources, then verify individual project destinations. List every discovered candidate, category, inclusion source/date, link status, description/logo evidence and disposition. \u201cAll ecosystem projects\u201d means all entries in the documented reviewed source set at that time, not an eternal exhaustive claim. Preserve names/duplicates carefully and do not expand to unrelated projects merely to make the page look full.",
       "status": "VERIFIED",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Start with the actual repository registry and current official ZIGChain ecosystem sources, then verify individual project destinations. List every discovered candidate, category, inclusion source/date, link status, description/logo evidence and disposition. “All ecosystem projects” means all entries in the documented reviewed source set at that time, not an eternal exhaustive claim. Preserve names/duplicates carefully and do not expand to unrelated projects merely to make the page look full."
+        "Start with the actual repository registry and current official ZIGChain ecosystem sources, then verify individual project destinations. List every discovered candidate, category, inclusion source/date, link status, description/logo evidence and disposition. \u201cAll ecosystem projects\u201d means all entries in the documented reviewed source set at that time, not an eternal exhaustive claim. Preserve names/duplicates carefully and do not expand to unrelated projects merely to make the page look full."
       ],
       "implementation_paths": [
         "packages/ecosystem-registry/src/directory.test.ts"
@@ -16651,12 +16681,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 570
       },
-      "specification": "Implement installability/offline-shell support where compatible with the existing app and useful for the owner’s phone. Keep the correct name/icons/theme and an honest install help experience. Do not claim native HealthKit/background behavior from PWA installation. Avoid adding a service worker purely for marketing if its update/cache strategy is unsafe. If existing PWA infrastructure is present, improve it rather than creating competing registrations.",
+      "specification": "Implement installability/offline-shell support where compatible with the existing app and useful for the owner\u2019s phone. Keep the correct name/icons/theme and an honest install help experience. Do not claim native HealthKit/background behavior from PWA installation. Avoid adding a service worker purely for marketing if its update/cache strategy is unsafe. If existing PWA infrastructure is present, improve it rather than creating competing registrations.",
       "status": "NOT_STARTED",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Implement installability/offline-shell support where compatible with the existing app and useful for the owner’s phone. Keep the correct name/icons/theme and an honest install help experience. Do not claim native HealthKit/background behavior from PWA installation. Avoid adding a service worker purely for marketing if its update/cache strategy is unsafe. If existing PWA infrastructure is present, improve it rather than creating competing registrations."
+        "Implement installability/offline-shell support where compatible with the existing app and useful for the owner\u2019s phone. Keep the correct name/icons/theme and an honest install help experience. Do not claim native HealthKit/background behavior from PWA installation. Avoid adding a service worker purely for marketing if its update/cache strategy is unsafe. If existing PWA infrastructure is present, improve it rather than creating competing registrations."
       ],
       "implementation_paths": [
         "apps/web/app/layout.tsx",
@@ -16981,7 +17011,7 @@
         "line": 582
       },
       "specification": "Auth administration, signing verification secrets, email credentials, CoinGecko keys and backend service credentials remain server-only. Inspect actual compiled client/deployable bundles, not merely source imports. Preserve native Next server-only poisoning and meaningful negative import tests. Public configuration and identifiers are explicitly allowlisted; no broad environment export. Local `.env` files must not become embedded in downloadable client assets or shared diagnostics.",
-      "status": "IN_PROGRESS",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
@@ -17008,6 +17038,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/OWNER_ACTIVATION.md"
+        },
+        {
+          "kind": "BUILT_ARTIFACT_SCAN",
+          "result": "PASS",
+          "path": "docs/run10/evidence/artifact-scan.json"
         }
       ],
       "verified_commit": null,
@@ -17024,7 +17059,7 @@
         }
       ],
       "disposition": {
-        "reason": "Final compiled client/deployable exact-value scan pending; configured values unavailable.",
+        "reason": "Final source/client/deployable pattern and fictional-marker scan passed; exact-value credential scan unavailable because no configured values/files were available. This is not an exhaustive security audit.",
         "next_step": "Scan built artifacts and available authorized secret inputs without printing values.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
         "delivered_safe_subset": "Server-only imports, narrow environment sanitization, credential-pattern scan; no configured secrets found in worktree.",
@@ -17035,7 +17070,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Final compiled client/deployable exact-value scan pending; configured values unavailable.",
+      "remaining_limitation": "Final source/client/deployable pattern and fictional-marker scan passed; exact-value credential scan unavailable because no configured values/files were available. This is not an exhaustive security audit.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -17326,7 +17361,7 @@
         "line": 592
       },
       "specification": "Run relevant dependency checks, credential-pattern scans and exact-value scans only for known configured secret values that are actually available, without printing them. Inspect staged diff and safe evidence for private records. Record scan scope/limitations; passing scans is not an exhaustive audit. Do not resolve a scanner finding by excluding the affected path without understanding it. No secrets or genuine sensitive user fixtures in Git, NovaVault or the final package.",
-      "status": "IN_PROGRESS",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
@@ -17353,6 +17388,11 @@
           "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
           "result": "PARTIAL",
           "path": "docs/run10/OWNER_ACTIVATION.md"
+        },
+        {
+          "kind": "BUILT_ARTIFACT_SCAN",
+          "result": "PASS",
+          "path": "docs/run10/evidence/artifact-scan.json"
         }
       ],
       "verified_commit": null,
@@ -17369,7 +17409,7 @@
         }
       ],
       "disposition": {
-        "reason": "Final staged/artifact scan not yet reconciled; exact configured-secret values not available.",
+        "reason": "Final source/client/deployable pattern and fictional-marker scan passed; exact-value credential scan unavailable because no configured values/files were available. This is not an exhaustive security audit.",
         "next_step": "Finish final scans and state exact limitations.",
         "cause_category": "IMPLEMENTATION_OR_VERIFICATION_INCOMPLETE",
         "delivered_safe_subset": "Production dependency audit and changed-source credential-pattern scan passed.",
@@ -17380,7 +17420,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Final staged/artifact scan not yet reconciled; exact configured-secret values not available.",
+      "remaining_limitation": "Final source/client/deployable pattern and fictional-marker scan passed; exact-value credential scan unavailable because no configured values/files were available. This is not an exhaustive security audit.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -17409,7 +17449,7 @@
           "path": "docs/run10/HEALTH_ONLY_JOURNEY_EVIDENCE.md"
         }
       ],
-      "verified_commit": "2bf6f9124852c2fe404ddd191e9e011e3e5054c4",
+      "verified_commit": "17a3e9af420f90e022120d9dabd5642c6e7e23a1",
       "attempts": [
         {
           "phase": "Actual Run10 checkpoint",
@@ -17823,7 +17863,7 @@
         }
       ],
       "disposition": {
-        "reason": "Revocation is not an A→B identity-switch delayed-response journey across names, balances, Health and widgets. Full queued-request/outbox/delayed-apply matrix and visible quarantine handling remain unverified.",
+        "reason": "Revocation is not an A\u2192B identity-switch delayed-response journey across names, balances, Health and widgets. Full queued-request/outbox/delayed-apply matrix and visible quarantine handling remain unverified.",
         "next_step": "Hold A private responses, switch to distinct B account, release each response and assert B views/storage/outbox contain no A markers.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
         "delivered_safe_subset": "Account namespaces, captured generation fences, cold-lock, late-result rejection and Showcase separation have focused source/unit/browser evidence. Latest actual two-profile fixture revokes B and observes denial/lock on focus.",
@@ -17834,7 +17874,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Revocation is not an A→B identity-switch delayed-response journey across names, balances, Health and widgets. Full queued-request/outbox/delayed-apply matrix and visible quarantine handling remain unverified.",
+      "remaining_limitation": "Revocation is not an A\u2192B identity-switch delayed-response journey across names, balances, Health and widgets. Full queued-request/outbox/delayed-apply matrix and visible quarantine handling remain unverified.",
       "final_report_section": "9. Skipped/blocked items",
       "helper_reconciliation": "docs/run10/reconciliation/journeys.json"
     },
@@ -18400,7 +18440,7 @@
         "reason": "Current final-source combined Today/Wealth/Goal/history, one completion event and lost-response replay are not independently reconciled. Existing browser source alone is not a fresh passing run.",
         "next_step": "Execute the exact amount case at final source with all views, completion ledger and retry/reload identity assertions.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
-        "delivered_safe_subset": "Known20,000USD contribution→2,000 allocation→18,000 surplus exact regression exists in unit/browser source; prior scoped integration results retained one contribution on reload. Completion lifecycle now captures one observed event per cycle.",
+        "delivered_safe_subset": "Known20,000USD contribution\u21922,000 allocation\u219218,000 surplus exact regression exists in unit/browser source; prior scoped integration results retained one contribution on reload. Completion lifecycle now captures one observed event per cycle.",
         "dependency_impact": "Original combined journey remains incomplete.",
         "evidence": "docs/run10/reconciliation/journeys.json"
       },
@@ -18533,7 +18573,7 @@
         "reason": "Cross-device revision conflict/resolution, complete pause/resume chronology and full timezone/end-month integrated journey remain incomplete. Older contribution-Habit reconciliation has a separate future-rule gap.",
         "next_step": "Combine partial funding, future pause/resume/revision and unmatched contributions in a dated end-month fixture, then verify both client conflict behavior.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
-        "delivered_safe_subset": "Revision-specific installments, future-effective terms, retained superseded intentions, partial funding/reversal, explicit matching and anchored month-end/leap schedules have focused tests; local revise→reload→partial fund browser journey passed.",
+        "delivered_safe_subset": "Revision-specific installments, future-effective terms, retained superseded intentions, partial funding/reversal, explicit matching and anchored month-end/leap schedules have focused tests; local revise\u2192reload\u2192partial fund browser journey passed.",
         "dependency_impact": "Original combined journey remains incomplete.",
         "evidence": "docs/run10/reconciliation/journeys.json"
       },
@@ -18663,7 +18703,7 @@
         "reason": "No single final journey joins subsequent Value decline, target revision, archive/restore and ownership/allocation/history membership across views/devices.",
         "next_step": "Combine exact threshold, decline and lifecycle transitions with asset archive/restore; assert milestone retention and no recreated allocations.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
-        "delivered_safe_subset": "Exact99.6% incomplete display, true completion, retained milestones, closure/reopen and no automatic allocation restoration have revision/status tests; completion→close→reopen→reload local browser case passed. Asset archive semantics have existing fixtures.",
+        "delivered_safe_subset": "Exact99.6% incomplete display, true completion, retained milestones, closure/reopen and no automatic allocation restoration have revision/status tests; completion\u2192close\u2192reopen\u2192reload local browser case passed. Asset archive semantics have existing fixtures.",
         "dependency_impact": "Original combined journey remains incomplete.",
         "evidence": "docs/run10/reconciliation/journeys.json"
       },
@@ -18756,12 +18796,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 661
       },
-      "specification": "Produce a dedicated S01–S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap.",
+      "specification": "Produce a dedicated S01\u2013S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap.",
       "status": "IN_PROGRESS",
       "delivery_class": "REQUIRED",
       "dependencies": [],
       "acceptance_criteria": [
-        "Produce a dedicated S01–S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap."
+        "Produce a dedicated S01\u2013S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -18795,7 +18835,7 @@
         }
       ],
       "disposition": {
-        "reason": "No single final-state S01–S10 acceptance record reconciles all exact route/viewport/fixture/source refs after integration. Physical keyboard/zoom/motion recording and final cross-feature overlap remain incomplete.",
+        "reason": "No single final-state S01\u2013S10 acceptance record reconciles all exact route/viewport/fixture/source refs after integration. Physical keyboard/zoom/motion recording and final cross-feature overlap remain incomplete.",
         "next_step": "Assemble final ten-item before/after matrix from exact captured states, refresh changed views and record each requested visual check explicitly.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
         "delivered_safe_subset": "All ten supplied originals are preserved with hashes. Dedicated shared-visual evidence covers SS01/02/03/05/07/09/10; creator/Today and ecosystem records cover SS04/08/06 in separate slices with local screenshots.",
@@ -18806,7 +18846,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "No single final-state S01–S10 acceptance record reconciles all exact route/viewport/fixture/source refs after integration. Physical keyboard/zoom/motion recording and final cross-feature overlap remain incomplete.",
+      "remaining_limitation": "No single final-state S01\u2013S10 acceptance record reconciles all exact route/viewport/fixture/source refs after integration. Physical keyboard/zoom/motion recording and final cross-feature overlap remain incomplete.",
       "final_report_section": "9. Skipped/blocked items",
       "helper_reconciliation": "docs/run10/reconciliation/journeys.json"
     },
@@ -18981,7 +19021,7 @@
       ],
       "disposition": {
         "reason": "Optional fasting is explicitly deferred with no live control. Full conflict-aware planner sync/restore journey remains unverified; deferred fasting is not an enabled feature.",
-        "next_step": "Exercise plan→consume→grocery→reload/sync with mixed units and duplicate action; retain explicit bounded fasting deferral unless separately implemented.",
+        "next_step": "Exercise plan\u2192consume\u2192grocery\u2192reload/sync with mixed units and duplicate action; retain explicit bounded fasting deferral unless separately implemented.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
         "delivered_safe_subset": "Saved-meal planning remains planned until explicit consumption; snapshot-compatible grocery aggregation and unresolved ingredient/manual-note behavior have local Health tests/browser evidence. No guessed mL-to-g conversion.",
         "dependency_impact": "Original combined journey remains incomplete.",
@@ -19231,7 +19271,7 @@
       ],
       "disposition": {
         "reason": "Persisted browser cache/consumer per-pair attempt history remains incomplete; fresh coverage cannot prove refresh success. Legacy-default route and other endpoints remain outside durable protection; no final whole-chain consumer journey or hosted acceptance.",
-        "next_step": "Persist/consume pair attempt states then execute provider→durable cache→route→transport→browser cache partial-failure journey with unrelated activity and malformed batch.",
+        "next_step": "Persist/consume pair attempt states then execute provider\u2192durable cache\u2192route\u2192transport\u2192browser cache partial-failure journey with unrelated activity and malformed batch.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
         "delivered_safe_subset": "Opt-in durable-v1 quote route, named Worker and strict versioned browser transport preserve Bitcoin through failed ZIG; actual runtime asserts partial outcomes and shared cache reuse. Atomic parser boundaries, deterministic failure precedence and stale aging have focused regressions.",
         "dependency_impact": "Original combined journey remains incomplete.",
@@ -19942,6 +19982,11 @@
           "kind": "INTEGRATED_JOURNEY_RECONCILIATION",
           "result": "PARTIAL",
           "path": "docs/run10/recovery-receipt.json"
+        },
+        {
+          "kind": "SOURCE_ONLY_RESTORE_DRILL",
+          "result": "PASS",
+          "path": "docs/run10/recovery-receipt.json"
         }
       ],
       "verified_commit": null,
@@ -19953,7 +19998,7 @@
         }
       ],
       "disposition": {
-        "reason": "Source-only recovery is demonstrated for the recorded base, not a complete private-data recovery drill or proof every latest source delta is pushed. Protected owner-private-data recovery coverage and final current-source/push reconciliation remain separate required checks.",
+        "reason": "Source-only disposable ZIP recovery succeeded with66 restored files and readable resume/290-ID ledger. No actual owner private-data backup was made; full interrupted private-data recovery drill remains incomplete.",
         "next_step": "Preserve the successful source receipt; reconcile final pushed ref and outstanding IDs, then verify protected private-data recovery coverage separately without claiming the source ZIP contains owner records.",
         "cause_category": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
         "delivered_safe_subset": "A recorded source-only disposable recovery drill restored66files, verified archive SHA256d050834ce629fb8130412a4f9c3c10e69992943f2f17d0ef4e742457f7362a76, and read source/next actions from saved brief/ledger/resume. Receipt resultPASS at2026-09-23T22:06:29.105112+00:00; base845fd8a266887efe385ee4fba297bde5521aeb5e. Receipt explicitly excludes owner-private data.",
@@ -19964,7 +20009,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Source-only recovery is demonstrated for the recorded base, not a complete private-data recovery drill or proof every latest source delta is pushed. Protected owner-private-data recovery coverage and final current-source/push reconciliation remain separate required checks.",
+      "remaining_limitation": "Source-only disposable ZIP recovery succeeded with66 restored files and readable resume/290-ID ledger. No actual owner private-data backup was made; full interrupted private-data recovery drill remains incomplete.",
       "final_report_section": "9. Skipped/blocked items",
       "helper_reconciliation": "docs/run10/reconciliation/journeys.json"
     },
@@ -20029,14 +20074,20 @@
         "line": 705
       },
       "specification": "Use the repository's actual lint, typecheck, unit, deployment-config and landing checks, appropriate browser suite, Alpha/OpenNext build, Wrangler dry-run and relevant contract/schema/canonical tests. Read scripts before invoking guessed names. Add targeted tests for new storage/auth/sync/financial/UI code and preserve all baseline tests unless an owner-requested behavior legitimately changes the assertion. A changed assertion needs a documented reason, not removal of a failing safeguard.",
-      "status": "IN_PROGRESS",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
         "Use the repository's actual lint, typecheck, unit, deployment-config and landing checks, appropriate browser suite, Alpha/OpenNext build, Wrangler dry-run and relevant contract/schema/canonical tests. Read scripts before invoking guessed names. Add targeted tests for new storage/auth/sync/financial/UI code and preserve all baseline tests unless an owner-requested behavior legitimately changes the assertion. A changed assertion needs a documented reason, not removal of a failing safeguard."
       ],
       "implementation_paths": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "INTEGRATION_GATE_RESULTS",
+          "result": "PASS",
+          "path": "docs/run10/VERIFICATION.md"
+        }
+      ],
       "verified_commit": null,
       "attempts": [
         {
@@ -20046,7 +20097,7 @@
         }
       ],
       "disposition": {
-        "reason": "Final source-bound browser/build/artifact or owner activation gate remains incomplete; no release approval.",
+        "reason": "Implemented source passes recorded local gates after affected corrections; remaining requested product journeys are incomplete, so counts do not certify the full scope.",
         "next_step": "QA-02: finish the original recorded acceptance using the final source and evidence, without narrowing scope.",
         "cause_category": "FINAL_INTEGRATION_OR_RECORD_INCOMPLETE",
         "delivered_safe_subset": "Implementation, reviews and checkpoints recorded; see RESUME_STATE and domain evidence.",
@@ -20057,7 +20108,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Final source-bound browser/build/artifact or owner activation gate remains incomplete; no release approval.",
+      "remaining_limitation": "Implemented source passes recorded local gates after affected corrections; remaining requested product journeys are incomplete, so counts do not certify the full scope.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -20072,14 +20123,20 @@
         "line": 707
       },
       "specification": "Pure algorithms already existed for much of the reliability foundation; this run must prove concrete durable/runtime integration. Similarly, test actual local backend persistence, encrypted requests, authentication boundary, outbox and independent clients rather than stubbing all of them in one UI test. Mock external providers for deterministic failures/load, but preserve an honest distinction between mocked upstream data and actual application transport/storage code.",
-      "status": "IN_PROGRESS",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
         "Pure algorithms already existed for much of the reliability foundation; this run must prove concrete durable/runtime integration. Similarly, test actual local backend persistence, encrypted requests, authentication boundary, outbox and independent clients rather than stubbing all of them in one UI test. Mock external providers for deterministic failures/load, but preserve an honest distinction between mocked upstream data and actual application transport/storage code."
       ],
       "implementation_paths": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "INTEGRATION_GATE_RESULTS",
+          "result": "PASS",
+          "path": "docs/run10/VERIFICATION.md"
+        }
+      ],
       "verified_commit": null,
       "attempts": [
         {
@@ -20089,7 +20146,7 @@
         }
       ],
       "disposition": {
-        "reason": "Final source-bound browser/build/artifact or owner activation gate remains incomplete; no release approval.",
+        "reason": "Implemented source passes recorded local gates after affected corrections; remaining requested product journeys are incomplete, so counts do not certify the full scope.",
         "next_step": "QA-03: finish the original recorded acceptance using the final source and evidence, without narrowing scope.",
         "cause_category": "FINAL_INTEGRATION_OR_RECORD_INCOMPLETE",
         "delivered_safe_subset": "Implementation, reviews and checkpoints recorded; see RESUME_STATE and domain evidence.",
@@ -20100,7 +20157,7 @@
       "released": false,
       "browser_evidence": [],
       "hosted_activation": "NOT_ACTIVATED",
-      "remaining_limitation": "Final source-bound browser/build/artifact or owner activation gate remains incomplete; no release approval.",
+      "remaining_limitation": "Implemented source passes recorded local gates after affected corrections; remaining requested product journeys are incomplete, so counts do not certify the full scope.",
       "final_report_section": "9. Skipped/blocked items"
     },
     {
@@ -20163,12 +20220,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 711
       },
-      "specification": "Capture representative desktop/tablet/mobile screenshots with route, dimensions, data state, source identity and before/after mapping for SS-01–SS-10. Include empty and error states, not only Showcase. Inspect images with available visual tools; file creation alone is not inspection. Where a brief clip helps show finite entrance motion, record it without private data. Never publish the owner's Health, email codes, vault recovery secrets or genuine wallet account details in evidence.",
+      "specification": "Capture representative desktop/tablet/mobile screenshots with route, dimensions, data state, source identity and before/after mapping for SS-01\u2013SS-10. Include empty and error states, not only Showcase. Inspect images with available visual tools; file creation alone is not inspection. Where a brief clip helps show finite entrance motion, record it without private data. Never publish the owner's Health, email codes, vault recovery secrets or genuine wallet account details in evidence.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Capture representative desktop/tablet/mobile screenshots with route, dimensions, data state, source identity and before/after mapping for SS-01–SS-10. Include empty and error states, not only Showcase. Inspect images with available visual tools; file creation alone is not inspection. Where a brief clip helps show finite entrance motion, record it without private data. Never publish the owner's Health, email codes, vault recovery secrets or genuine wallet account details in evidence."
+        "Capture representative desktop/tablet/mobile screenshots with route, dimensions, data state, source identity and before/after mapping for SS-01\u2013SS-10. Include empty and error states, not only Showcase. Inspect images with available visual tools; file creation alone is not inspection. Where a brief clip helps show finite entrance motion, record it without private data. Never publish the owner's Health, email codes, vault recovery secrets or genuine wallet account details in evidence."
       ],
       "implementation_paths": [],
       "evidence": [],
@@ -20214,7 +20271,13 @@
         "Validate the ledger, check every acceptance journey/disposition, inspect the final diff and run the integrated suite against the final implementation source. Complete independent review and bounded corrections where possible. Make every unresolved requirement visible in the final report, grouped by mandatory versus conditional/preparation scope. A large test count or long session cannot substitute for missing acceptance. Late changes require affected checks to run again."
       ],
       "implementation_paths": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "SOURCE_AND_EXECUTABLE_EVIDENCE",
+          "result": "PARTIAL",
+          "path": "docs/run10/PENDING_POLICY_EVIDENCE.md"
+        }
+      ],
       "verified_commit": null,
       "attempts": [
         {
@@ -20298,12 +20361,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 717
       },
-      "specification": "Give exact configuration names, chosen services, free/paid constraints, sender/domain prerequisites, schema/binding migration commands, environment separation, minimum client version, backup/rollback/forward-fix policy and smoke commands. Identify the smallest ordered owner actions needed for hosted email/sync and real phone–desktop acceptance. Do not include secret values or execute live changes. Explicitly state that a backend configuration file or local server is not a deployed service for friends.",
+      "specification": "Give exact configuration names, chosen services, free/paid constraints, sender/domain prerequisites, schema/binding migration commands, environment separation, minimum client version, backup/rollback/forward-fix policy and smoke commands. Identify the smallest ordered owner actions needed for hosted email/sync and real phone\u2013desktop acceptance. Do not include secret values or execute live changes. Explicitly state that a backend configuration file or local server is not a deployed service for friends.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Give exact configuration names, chosen services, free/paid constraints, sender/domain prerequisites, schema/binding migration commands, environment separation, minimum client version, backup/rollback/forward-fix policy and smoke commands. Identify the smallest ordered owner actions needed for hosted email/sync and real phone–desktop acceptance. Do not include secret values or execute live changes. Explicitly state that a backend configuration file or local server is not a deployed service for friends."
+        "Give exact configuration names, chosen services, free/paid constraints, sender/domain prerequisites, schema/binding migration commands, environment separation, minimum client version, backup/rollback/forward-fix policy and smoke commands. Identify the smallest ordered owner actions needed for hosted email/sync and real phone\u2013desktop acceptance. Do not include secret values or execute live changes. Explicitly state that a backend configuration file or local server is not a deployed service for friends."
       ],
       "implementation_paths": [],
       "evidence": [],
@@ -20390,12 +20453,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 721
       },
-      "specification": "A successful implementation may be ready for owner review while production remains unchanged. A fully configured, owner-approved future rollout still needs exact-source deployment/security and market/sync acceptance with rollback/data compatibility. Do not auto-deploy merely to make “works on phone” true. If the owner separately authorizes an isolated test environment during execution, record exact scope, source, services and cleanup; that does not grant production or financial authority.",
+      "specification": "A successful implementation may be ready for owner review while production remains unchanged. A fully configured, owner-approved future rollout still needs exact-source deployment/security and market/sync acceptance with rollback/data compatibility. Do not auto-deploy merely to make \u201cworks on phone\u201d true. If the owner separately authorizes an isolated test environment during execution, record exact scope, source, services and cleanup; that does not grant production or financial authority.",
       "status": "VERIFIED",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "A successful implementation may be ready for owner review while production remains unchanged. A fully configured, owner-approved future rollout still needs exact-source deployment/security and market/sync acceptance with rollback/data compatibility. Do not auto-deploy merely to make “works on phone” true. If the owner separately authorizes an isolated test environment during execution, record exact scope, source, services and cleanup; that does not grant production or financial authority."
+        "A successful implementation may be ready for owner review while production remains unchanged. A fully configured, owner-approved future rollout still needs exact-source deployment/security and market/sync acceptance with rollback/data compatibility. Do not auto-deploy merely to make \u201cworks on phone\u201d true. If the owner separately authorizes an isolated test environment during execution, record exact scope, source, services and cleanup; that does not grant production or financial authority."
       ],
       "implementation_paths": [],
       "evidence": [
@@ -20482,12 +20545,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 729
       },
-      "specification": "Mark old delivered items as such, preserve former Run #11/#12 requirements inside the Run #10 record, and retain all unimplemented conditional items with explicit reason, tested foundation and next gate where applicable. Wearables remain a later track unless the bounded slice truly worked. No stale “sync is architecture only” description when working sync was implemented, and no “sync delivered” claim when only foundations exist. Update current status without rewriting the meaning of historical reports.",
+      "specification": "Mark old delivered items as such, preserve former Run #11/#12 requirements inside the Run #10 record, and retain all unimplemented conditional items with explicit reason, tested foundation and next gate where applicable. Wearables remain a later track unless the bounded slice truly worked. No stale \u201csync is architecture only\u201d description when working sync was implemented, and no \u201csync delivered\u201d claim when only foundations exist. Update current status without rewriting the meaning of historical reports.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Mark old delivered items as such, preserve former Run #11/#12 requirements inside the Run #10 record, and retain all unimplemented conditional items with explicit reason, tested foundation and next gate where applicable. Wearables remain a later track unless the bounded slice truly worked. No stale “sync is architecture only” description when working sync was implemented, and no “sync delivered” claim when only foundations exist. Update current status without rewriting the meaning of historical reports."
+        "Mark old delivered items as such, preserve former Run #11/#12 requirements inside the Run #10 record, and retain all unimplemented conditional items with explicit reason, tested foundation and next gate where applicable. Wearables remain a later track unless the bounded slice truly worked. No stale \u201csync is architecture only\u201d description when working sync was implemented, and no \u201csync delivered\u201d claim when only foundations exist. Update current status without rewriting the meaning of historical reports."
       ],
       "implementation_paths": [],
       "evidence": [],
@@ -20654,12 +20717,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 737
       },
-      "specification": "Use one of: `IMPLEMENTATION_VERIFIED — OWNER_ACTIVATION_PENDING`; `PARTIAL — REQUIRED_GAPS_REMAIN`; or `BLOCKED — SAFETY_OR_ENVIRONMENT`, with a precise explanation. Conditional features may be deferred while core implementation passes; missing required working sync or unresolved data-integrity issues cannot be hidden under a complete label. “Friends-ready live” is allowed only after separately authorized actual deployment and relevant real acceptance, not as a synonym for passing local tests.",
+      "specification": "Use one of: `IMPLEMENTATION_VERIFIED \u2014 OWNER_ACTIVATION_PENDING`; `PARTIAL \u2014 REQUIRED_GAPS_REMAIN`; or `BLOCKED \u2014 SAFETY_OR_ENVIRONMENT`, with a precise explanation. Conditional features may be deferred while core implementation passes; missing required working sync or unresolved data-integrity issues cannot be hidden under a complete label. \u201cFriends-ready live\u201d is allowed only after separately authorized actual deployment and relevant real acceptance, not as a synonym for passing local tests.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Use one of: `IMPLEMENTATION_VERIFIED — OWNER_ACTIVATION_PENDING`; `PARTIAL — REQUIRED_GAPS_REMAIN`; or `BLOCKED — SAFETY_OR_ENVIRONMENT`, with a precise explanation. Conditional features may be deferred while core implementation passes; missing required working sync or unresolved data-integrity issues cannot be hidden under a complete label. “Friends-ready live” is allowed only after separately authorized actual deployment and relevant real acceptance, not as a synonym for passing local tests."
+        "Use one of: `IMPLEMENTATION_VERIFIED \u2014 OWNER_ACTIVATION_PENDING`; `PARTIAL \u2014 REQUIRED_GAPS_REMAIN`; or `BLOCKED \u2014 SAFETY_OR_ENVIRONMENT`, with a precise explanation. Conditional features may be deferred while core implementation passes; missing required working sync or unresolved data-integrity issues cannot be hidden under a complete label. \u201cFriends-ready live\u201d is allowed only after separately authorized actual deployment and relevant real acceptance, not as a synonym for passing local tests."
       ],
       "implementation_paths": [],
       "evidence": [],
@@ -20697,12 +20760,12 @@
         "file": "docs/run10/MASTER_PROMPT.md",
         "line": 739
       },
-      "specification": "Summarize meaningful new working journeys, not just lines of code, number of files, time spent or credits used. Include a concise feature/status matrix, SS-01–SS-10 results, sync/auth verification level, financial/storage migrations, Health/Habits improvements, ecosystem coverage and performance changes. Link representative before/after screenshots. Do not inflate progress with placeholders, repeated test counts, unmeasured scaling claims or obsolete already-delivered work.",
+      "specification": "Summarize meaningful new working journeys, not just lines of code, number of files, time spent or credits used. Include a concise feature/status matrix, SS-01\u2013SS-10 results, sync/auth verification level, financial/storage migrations, Health/Habits improvements, ecosystem coverage and performance changes. Link representative before/after screenshots. Do not inflate progress with placeholders, repeated test counts, unmeasured scaling claims or obsolete already-delivered work.",
       "status": "IN_PROGRESS",
       "delivery_class": "PROCESS",
       "dependencies": [],
       "acceptance_criteria": [
-        "Summarize meaningful new working journeys, not just lines of code, number of files, time spent or credits used. Include a concise feature/status matrix, SS-01–SS-10 results, sync/auth verification level, financial/storage migrations, Health/Habits improvements, ecosystem coverage and performance changes. Link representative before/after screenshots. Do not inflate progress with placeholders, repeated test counts, unmeasured scaling claims or obsolete already-delivered work."
+        "Summarize meaningful new working journeys, not just lines of code, number of files, time spent or credits used. Include a concise feature/status matrix, SS-01\u2013SS-10 results, sync/auth verification level, financial/storage migrations, Health/Habits improvements, ecosystem coverage and performance changes. Link representative before/after screenshots. Do not inflate progress with placeholders, repeated test counts, unmeasured scaling claims or obsolete already-delivered work."
       ],
       "implementation_paths": [],
       "evidence": [],
@@ -20774,5 +20837,5 @@
     }
   ],
   "owner_override": "Astra High, standard speed; scope unchanged.",
-  "updated_at": "2026-09-23T22:13:53.218379+00:00"
+  "updated_at": "2026-09-23T22:20:58.829381+00:00"
 }

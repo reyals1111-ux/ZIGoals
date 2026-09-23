@@ -1,3 +1,5 @@
+> Current Run10 reconciliation: the expanded authoritative scope supersedes former scheduling exclusions. See [the full requirements ledger](../run10/REQUIREMENTS.json) and current evidence. The dated list below is preserved as historical scope, not a claim that newly implemented or remaining items are unchanged.
+
 # Health Beta — potential Astra Run #10
 
 DEFERRED — BETA FOLLOW-UP. Run #8 preserves Health V1 exactly: no schema, storage-key, diary or visual changes. Future planning is not implementation authorization. Original ZIGoals UX must remain private by default.

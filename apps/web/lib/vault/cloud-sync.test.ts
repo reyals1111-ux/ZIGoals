@@ -76,3 +76,23 @@ test('real offline Health additions merge receipts and refuse receipt removal ev
   expect(()=>mergePrivateData(wrap(base),wrap(removed),wrap(removed))).toThrow('receipt');
  }
 });
+
+
+test('a queued operation from before retention policy enforcement is preserved and never transmitted',async()=>{
+ const s=await setup();s.cloud.before=async()=>{throw Error('Disconnected');};
+ await expect(sync(s,{finance:'{"accepted":"original"}'})).rejects.toThrow('Disconnected');
+ // Simulate the exact older persisted shape, including a possibly unsafe encrypted catalog.
+ delete (s.journal.state as SyncState & {pendingPolicy?:number}).pendingPolicy;
+ const original=structuredClone(s.journal.state);s.cloud.calls=[];s.cloud.before=null;
+ await expect(sync(s,{finance:'{"accepted":"original"}'})).rejects.toThrow('older sync policy');
+ expect(s.cloud.calls).toEqual([]);expect(s.journal.state).toEqual(original);
+});
+
+test('a future queued policy cannot be replayed by an older reader',async()=>{
+ const s=await setup();s.cloud.before=async()=>{throw Error('Disconnected');};
+ await expect(sync(s,{settings:'{"value":1}'})).rejects.toThrow('Disconnected');
+ (s.journal.state as SyncState & {pendingPolicy?:number}).pendingPolicy=999;
+ const original=structuredClone(s.journal.state);s.cloud.calls=[];s.cloud.before=null;
+ await expect(sync(s,{settings:'{"value":1}'})).rejects.toThrow('newer sync policy');
+ expect(s.cloud.calls).toEqual([]);expect(s.journal.state).toEqual(original);
+});
