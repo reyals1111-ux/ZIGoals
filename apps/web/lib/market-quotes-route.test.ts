@@ -24,7 +24,9 @@ it('strictly rejects private position payloads before any provider call',async()
  for(const body of [{requests:[{marketRef:{provider:'coingecko',kind:'coin',id:'bitcoin'},currency:'USD',quantity:'secret'}]},{requests:[{marketRef:{provider:'coingecko',kind:'coin',id:'bitcoin',wallet:'secret'},currency:'USD'}]},{requests:[],goalName:'private'}]){expect((await POST(new Request('https://local/api/market-quotes',{headers:{"Content-Type":"application/json"},method:'POST',body:JSON.stringify(body)}))).status).toBe(400);}expect(fetcher).not.toHaveBeenCalled();
 });
 it('returns unavailable with no key, without trying anonymous provider traffic',async()=>{
- vi.stubEnv('COINGECKO_DEMO_API_KEY','');const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const {GET}=await import('../app/api/market-quotes/route');expect((await GET(new Request('https://local/api/market-quotes'))).status).toBe(502);expect(fetcher).not.toHaveBeenCalled();
+ vi.stubEnv('COINGECKO_DEMO_API_KEY','');const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const {GET,POST}=await import('../app/api/market-quotes/route');
+ const get=await GET(new Request('https://local/api/market-quotes'));expect(get.status).toBe(503);expect((await get.json()).error).toContain('not configured');
+ const post=await POST(new Request('https://local/api/market-quotes',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({requests:[{marketRef:{provider:'coingecko',kind:'coin',id:'bitcoin'},currency:'USD'}]})}));expect(post.status).toBe(503);expect((await post.json()).error).toContain('not configured');expect(fetcher).not.toHaveBeenCalled();
 });
 it('batches selected coin identities and currencies without forwarding request credentials',async()=>{
  const fetcher=vi.fn(async()=>new Response(`{"bitcoin":{"usd":123.123456789123456789,"eur":100,"last_updated_at":${Math.floor(Date.now()/1000)}},"ethereum":{"usd":20,"eur":18,"last_updated_at":${Math.floor(Date.now()/1000)}}}`, {headers:{"Content-Type":"application/json"}}));vi.stubGlobal('fetch',fetcher);const {POST}=await import('../app/api/market-quotes/route');
