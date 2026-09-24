@@ -10,7 +10,7 @@ const EMPTY_POINTS:HistoryPoint[]=[];
 export type PriceChartProps={marketRef:MarketAssetRef;currency:'USD'|'EUR';localPoints?:HistoryPoint[];title?:string};
 /** localPoints are dated unit prices in currency, never holding totals. They remain in this component only. */
 export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='Price history'}:PriceChartProps){
- const id=useId(),entrance=useEntrance<HTMLElement>(`price:${JSON.stringify(marketRef)}:${currency}`);
+ const id=useId();
  // One historical window per opened asset. Range controls filter real observations locally.
  const requestText=JSON.stringify({marketRef,currency,range:'90d'});
  const request=useMemo(()=>historyRequestSchema.parse(JSON.parse(requestText)),[requestText]);
@@ -34,6 +34,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
  const observed=history?.points.length?history.points:local;
  const ranges=availableHistoryRanges(observed),selectedRange=ranges.includes(range)?range:'all';
  const points=historyPointsForRange(observed,selectedRange);
+ const entrance=useEntrance<HTMLElement>(`price:${JSON.stringify(marketRef)}:${currency}`,points.length>1);
  const current=points.find(p=>p.at===inspectedAt)??points[points.length-1];
  const source=history?'CoinGecko':marketRef.kind==='rwa'?'CoinGecko tokenized RWA reference':'Saved local price observations';
  const isStale=Boolean(history&&historyIsStale(history,now));

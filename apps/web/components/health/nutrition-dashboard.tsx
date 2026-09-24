@@ -3,11 +3,13 @@ import { nutritionDashboard } from "../../lib/life-intelligence";
 import { formatHealthGrams, type HealthData } from "../../lib/health";
 import { useShowcase } from "../showcase-controls";
 import {PinToToday} from "../pin-to-today";
+import {useEntrance} from '../use-entrance';
 
 export function NutritionDashboard({ data, date }: { data: HealthData; date: string }) {
   const result = nutritionDashboard(data, date);
   const showcase = useShowcase();
   const max = Math.max(1, ...result.history.map(day => day.nutrients.kcal));
+  const entrance=useEntrance<HTMLElement>('nutrition-rhythm',result.loggedDays>0);
   return <section className="nutrition-dashboard" aria-label="Nutrition patterns">
     <article className="panel nutrition-distribution">
       <header><p className="eyebrow">YOUR DAY, MEAL BY MEAL</p><h2>Where your energy comes from.</h2><p>{result.mealCount} meal {result.mealCount === 1 ? "group" : "groups"} · {result.entries} diary {result.entries === 1 ? "entry" : "entries"} on {date}</p></header>
@@ -19,7 +21,7 @@ export function NutritionDashboard({ data, date }: { data: HealthData; date: str
       </li>)}</ol>
       <p className="fine">Meal groups follow your diary labels. They do not imply a recorded meal time.</p>
     </article>
-    <article className="panel nutrition-trend" id="nutrition-history"><PinToToday label="Nutrition history" choices={[{kind:'health',metric:'history',label:'30-day nutrition rhythm'}]}/>
+    <article ref={entrance} className="panel nutrition-trend" id="nutrition-history"><PinToToday label="Nutrition history" choices={[{kind:'health',metric:'history',label:'30-day nutrition rhythm'}]}/>
       <header><p className="eyebrow">30 DAYS OF PERSPECTIVE</p><h2>Your nutrition rhythm.</h2><p>{showcase ? "Showcase example history · fictional diary entries" : "Saved diary history · this browser"}</p></header>
       <div className="nutrition-trend-stats"><div><strong>{result.averageKcal?.toLocaleString() ?? "—"}</strong><span>kcal per logged day</span></div><div><strong>{result.loggedDays}<small> / 30</small></strong><span>days with entries</span></div></div>
       <div className="nutrition-month-bars" role="img" aria-label={`30-day calorie history ending ${date}. ${result.loggedDays} logged days. Exact values in the nutrition history table below.`}>{result.history.map(day => <div key={day.date} title={`${day.date}: ${day.entries ? `${day.nutrients.kcal} kcal` : "No entries"}`}><i style={{ height: `${day.entries ? Math.max(2, day.nutrients.kcal / max * 100) : 0}%` }} /></div>)}</div>

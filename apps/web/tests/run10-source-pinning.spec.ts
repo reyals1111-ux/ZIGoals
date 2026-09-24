@@ -7,6 +7,7 @@ test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route
 test('visual library hides ineligible staking and card menu returns focus on Escape',async({page},info)=>{
  await page.setViewportSize({width:320,height:800});
  await page.goto('/app');
+ await page.locator('.dashboard-widget').first().screenshot({path:info.outputPath('today-widget-normal-320.png'),animations:'disabled'});
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  const card=page.getByRole('article',{name:'Your destinations',exact:true});
  const trigger=card.getByRole('button',{name:'Options for Your destinations'});
@@ -85,4 +86,30 @@ test('a bound Habit updates its Today summary and card after the source changes'
  await page.reload();
  await expect(item).toContainText('1 pages');
  await expect(card).toContainText('1 pages');
+ await card.getByRole('button',{name:'Options for Reading today'}).click();
+ await card.getByRole('button',{name:'Remove widget'}).click();
+ await expect(card).toHaveCount(0);
+ await page.goto('/app/habits');
+ await expect(page.locator('.habit-card').filter({hasText:'Fictional daily reading'}).locator('.habit-count strong')).toHaveText('1');
+});
+
+test('a missing Habit binding stays visible and can be rebound to a saved source',async({page})=>{
+ const savedId='79fcb477-6192-48f4-ae42-3373a413534f',missingId='440cc0f0-23f5-4d7b-b1b8-693b7c2c7596';
+ const habits=createHabit(emptyHabitData(),{title:'Fictional replacement Habit',category:'Learning',description:'Local test record',notes:'',type:'build',measurement:{kind:'count',unit:'pages'},schedule:{kind:'daily'},target:4},new Date('2026-09-24T10:00:00Z'),savedId);
+ const settings=saveWidget(presetSettings('balanced'),{id:'missing-reading',kind:'habit',metric:'today',entity:missingId,title:'Saved reading card',size:'compact',hidden:false,revision:1});
+ await page.clock.install({time:new Date('2026-09-24T12:00:00Z')});
+ await page.addInitScript(({habitsKey,habitsValue,settingsKey,settingsValue})=>{if(!sessionStorage.getItem('fixture-missing-habit-seeded')){localStorage.setItem(habitsKey,habitsValue);localStorage.setItem(settingsKey,settingsValue);sessionStorage.setItem('fixture-missing-habit-seeded','true');}},{habitsKey:HABITS_KEY,habitsValue:JSON.stringify(habits),settingsKey:DASHBOARD_SETTINGS_KEY,settingsValue:JSON.stringify(settings)});
+ await page.goto('/app');
+ const card=page.getByRole('article',{name:'Saved reading card',exact:true});
+ await expect(card).toContainText('Record unavailable');
+ await expect(card).toContainText('Choose another or remove this widget');
+ await card.getByRole('button',{name:'Options for Saved reading card'}).click();
+ await card.getByRole('button',{name:'Edit widget'}).click();
+ const editor=page.getByRole('dialog',{name:'Edit widget'});
+ await expect(editor.getByText('Previously selected record unavailable.')).toBeVisible();
+ await editor.getByRole('group',{name:'Choose a saved record'}).getByRole('button',{name:/Fictional replacement Habit/}).click();
+ await editor.getByRole('button',{name:'Save widget'}).click();
+ await expect(card).toContainText('0 pages');
+ await page.reload();
+ await expect(card).toContainText('0 pages');
 });

@@ -56,7 +56,7 @@ export default function Settings() {
       <section className="privacy-intro" id="privacy"><p className="eyebrow">DATA & PRIVACY</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
       <VaultSyncControls/>
       <PrivateVaultTools/>
-      <MotionPreference/>
+      <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Motion</h2><MotionPreference/></section>
       <PrivateBackups/>
       <div className="detail-grid">
         <section className="panel">

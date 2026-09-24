@@ -5,5 +5,9 @@
 .motion-preference { display:grid;gap:10px;max-width:560px; }
 .motion-preference select { min-height:44px;font-size:16px; }
 .motion-preference p { color:#b7cbe2;margin:0; }
-:root[data-app-motion=off] :is(.slogan-entrance,.flow-ring-fill,.evidence-line,.price-chart-line) { animation:none!important;transition:none!important; }
-@media(prefers-reduced-motion:reduce) { .slogan-entrance[data-entrance=once] { animation:none; } }
+.motion-preview{display:flex;align-items:center;gap:1rem;min-height:60px;padding:1rem;border:1px solid #6286a9;border-radius:14px;background:#102139}
+.motion-preview-sample{display:inline-block;width:30px;height:30px;flex:none;border-radius:50%;background:linear-gradient(120deg,#33dbed,#8b88fa,#e778d0);box-shadow:0 0 20px #7b9be777;animation:motion-sample-arrive 650ms ease-out both}
+@keyframes motion-sample-arrive{from{opacity:.3;transform:translateX(-25px) scale(.8)}to{opacity:1;transform:translateX(0) scale(1)}}
+:root[data-app-motion=off] .motion-preview-sample{animation:none}
+:root[data-app-motion=off] :is(.slogan-entrance,.flow-ring-fill,.evidence-line,.price-chart-line,.nutrition-month-bars i,.composition-allocation-bar>span,.top-holding-bar>span) { animation:none!important;transition:none!important; }
+@media(prefers-reduced-motion:reduce) { .slogan-entrance[data-entrance=once],.motion-preview-sample { animation:none; } }

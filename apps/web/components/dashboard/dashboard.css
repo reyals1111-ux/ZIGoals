@@ -39,6 +39,15 @@
 .dashboard-summary-item[data-domain=health]{background:linear-gradient(130deg,#0c3242,#182943)}
 .dashboard-summary-item[data-domain=wealth]{background:linear-gradient(130deg,#102c3d,#252045)}
 .dashboard-summary-item:hover{border-color:#83dcef;box-shadow:0 0 18px #3baee629}
+.dashboard-widget{isolation:isolate;overflow:hidden;background:radial-gradient(circle at 92% 6%,#355b874d,transparent 43%),linear-gradient(145deg,#152940,#131b31);border-color:#486883}
+.dashboard-widget[data-domain=goals]{background:radial-gradient(circle at 93% 5%,#9a69ef4c,transparent 44%),linear-gradient(145deg,#182e48,#211d37)}
+.dashboard-widget[data-domain=habits]{background:radial-gradient(circle at 93% 5%,#d66be24a,transparent 44%),linear-gradient(145deg,#152c44,#241b39)}
+.dashboard-widget[data-domain=health]{background:radial-gradient(circle at 93% 5%,#43d5d34a,transparent 44%),linear-gradient(145deg,#113240,#18243c)}
+.dashboard-widget[data-domain=wealth]{background:radial-gradient(circle at 93% 5%,#65a8fa4a,transparent 44%),linear-gradient(145deg,#132c40,#211f3b)}
+.dashboard-widget[data-domain=ecosystem]{background:radial-gradient(circle at 93% 5%,#8d9af44a,transparent 44%),linear-gradient(145deg,#142943,#241e3d)}
+.dashboard-widget-art{position:absolute;right:1rem;top:4.2rem;opacity:.1;pointer-events:none;z-index:0;transform:rotate(-12deg)}
+.dashboard-widget>.card-options{z-index:5}
+.dashboard-widget .dashboard-metric-value>strong{font-size:clamp(1.6rem,3vw,2.3rem)}
 .dashboard-summary-glyph{display:grid!important;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#11405c,#292250);border:1px solid #77c8e855;box-shadow:inset 0 1px 5px #75dbff33}
 .dashboard-summary-copy{display:grid;gap:.25rem;min-width:0}
 .dashboard-summary-copy>small{font-size:.9rem;color:#c5d8ed}

@@ -9,7 +9,7 @@ export type EvidenceSeries={label:string;color:string;points:EvidencePoint[];kin
 const DEFAULT_GAP=7*86400000;
 /** Values and times remain real observations. Lines are visual guides, never added data. */
 export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceSeries[];decimals:number;currency:string;label:string}){
- const id=useId(),ref=useEntrance<HTMLElement>(`history:${label}`);
+ const id=useId(),ref=useEntrance<HTMLElement>(`history:${label}`,series.some(s=>s.points.length>1));
  const signed=(value:string)=>`${value.startsWith('-')?'-':''}${amount(value.replace(/^-/,''),decimals)}`;
  const exact=(value:string)=>signed(value),display=(value:string)=>formatExactNumber(exact(value));
  const valid=(p:EvidencePoint)=>Number.isFinite(Date.parse(p.at))&&/^-?\d+$/.test(p.value);

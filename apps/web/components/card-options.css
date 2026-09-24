@@ -1,5 +1,5 @@
 .card-options{position:relative;display:inline-flex;z-index:4}
-.card-options-trigger{display:inline-grid;place-items:center;width:42px;height:42px;min-height:42px;padding:0;border-radius:12px;font-size:1.45rem;line-height:1}
+.card-options-trigger{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;border-radius:12px;font-size:1.45rem;line-height:1}
 .card-options-panel{position:absolute;right:0;top:calc(100% + .35rem);z-index:30;min-width:min(240px,calc(100vw - 2rem));max-width:min(320px,calc(100vw - 2rem));display:grid;gap:.25rem;padding:.4rem;background:#14233a;border:1px solid #7091b0;border-radius:14px;box-shadow:0 15px 45px #0009}
 .card-options-panel button,.card-options-panel a{display:block;width:100%;min-height:42px;padding:.6rem .8rem;border:0;border-radius:9px;color:#eaf5ff;background:transparent;text-align:left;text-decoration:none;font:inherit;cursor:pointer}
 .card-options-panel button:hover,.card-options-panel a:hover,.card-options-panel button:focus-visible,.card-options-panel a:focus-visible{background:#274c69;outline:2px solid #75e2ef;outline-offset:0}

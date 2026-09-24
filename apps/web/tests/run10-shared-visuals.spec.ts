@@ -44,5 +44,5 @@ test('category rings, exact history and finite route entrance have visible evide
  const colors=await card.evaluate(el=>({composition:getComputedStyle(el.querySelector('.flow-ring-fill')!).backgroundImage,legend:[...el.querySelectorAll('.goal-mix-legend i')].map(i=>getComputedStyle(i).backgroundColor)}));for(const color of colors.legend)expect(colors.composition).toContain(color);
  await card.screenshot({animations:'disabled',path:testInfo.outputPath('run10-goal-ring-1440.png')});await page.locator('.app-sidebar').screenshot({animations:'disabled',path:testInfo.outputPath('run10-sidebar-1440.png')});
  await page.goto('/app/wealth');await expect(page.locator('.wealth-history .evidence-line').first()).toBeVisible();await expect.poll(()=>page.locator('.wealth-history .evidence-line').first().evaluate(el=>getComputedStyle(el).strokeDasharray)).toBe('none');await page.locator('.wealth-history').screenshot({animations:'disabled',path:testInfo.outputPath('run10-history-1440.png')});
- await page.goto('/app');await expect(page.locator('.slogan-entrance')).not.toHaveAttribute('data-entrance','once');
+ await page.goto('/app');await page.locator('.slogan-entrance').scrollIntoViewIfNeeded();await expect(page.locator('.slogan-entrance')).toHaveAttribute('data-entrance','once');
 });
