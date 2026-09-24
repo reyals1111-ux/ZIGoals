@@ -29,3 +29,29 @@ test('camera is explicit and stops all tracks on cancel and navigation',async({p
  await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();await page.getByRole('button',{name:'Weight',exact:true}).click();
  expect(await page.evaluate(()=>(window as unknown as {barcodeTestState:{stops:number}}).barcodeTestState.stops)).toBe(2);
 });
+test('closing the barcode panel stops its camera track',async({page})=>{
+ await page.addInitScript(()=>{
+  const state={stops:0};Object.defineProperty(window,'barcodeTestState',{value:state});
+  class Detector{static async getSupportedFormats(){return ['ean_13'];}async detect(){return [];}}
+  Object.defineProperty(window,'BarcodeDetector',{value:Detector,configurable:true});
+  Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{const stream=new MediaStream();Object.defineProperty(stream,'getTracks',{value:()=>[{stop:()=>{state.stops++;}}]});return stream;}});
+  HTMLMediaElement.prototype.play=async()=>{};
+ });
+ await page.goto('/app/health');const toggle=page.getByText('Scan or look up a food barcode',{exact:true});await toggle.click();const area=page.getByRole('region',{name:'Barcode food lookup'});
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();
+ await toggle.click();await expect.poll(()=>page.evaluate(()=>(window as unknown as {barcodeTestState:{stops:number}}).barcodeTestState.stops)).toBe(1);
+});
+test('one unconfirmed camera reading does not fill the barcode',async({page})=>{
+ await page.addInitScript(()=>{
+  const state={calls:0,repeat:false};Object.defineProperty(window,'barcodeTestState',{value:state});
+  class Detector{static async getSupportedFormats(){return ['ean_13'];}async detect(){state.calls++;return state.calls===1||state.repeat?[{rawValue:'0034000470693'}]:[];}}
+  Object.defineProperty(window,'BarcodeDetector',{value:Detector,configurable:true});
+  Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{const stream=new MediaStream();Object.defineProperty(stream,'getTracks',{value:()=>[{stop:()=>{}}]});return stream;}});
+  HTMLMediaElement.prototype.play=async()=>{};
+ });
+ await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect.poll(()=>page.evaluate(()=>(window as unknown as {barcodeTestState:{calls:number}}).barcodeTestState.calls)).toBeGreaterThanOrEqual(2);
+ await expect(area.getByLabel('Product barcode',{exact:true})).toHaveValue('');
+ await page.evaluate(()=>(window as unknown as {barcodeTestState:{repeat:boolean}}).barcodeTestState.repeat=true);
+ await expect(area.getByLabel('Product barcode',{exact:true})).toHaveValue('0034000470693');
+});
