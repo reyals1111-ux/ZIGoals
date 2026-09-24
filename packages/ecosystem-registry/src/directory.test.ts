@@ -14,8 +14,11 @@ it('searches names, category and descriptions together with a category filter',(
  expect(filterDirectory(directoryEntries,'zzzz-no-such-provider','All')).toEqual([]);
  expect(directoryCategories).toContain('Network tools');
 });
-it('retains dated attribution, logo fallback and verified-only actions without private parameters',()=>{
- for(const p of directoryEntries){expect(p.reviewedAt).toBe('2026-09-23');expect(p.description.length).toBeLessThan(260);expect(isSafeReferenceUrl(p.descriptionSource)).toBe(true);expect(p.logo.kind).toBe('initials');expect(p.logo.reason.length).toBeGreaterThan(10);
+it('retains dated attribution, bounded local icon metadata and verified-only actions without private parameters',()=>{
+ expect(directoryEntries.filter(p=>p.logo.kind==='raster')).toHaveLength(16);
+ expect(directoryEntries.filter(p=>p.logo.kind==='initials').map(p=>p.id).sort()).toEqual(['wme','zigchain-hub']);
+ for(const p of directoryEntries){expect(p.reviewedAt).toBe('2026-09-23');expect(p.description.length).toBeLessThan(260);expect(isSafeReferenceUrl(p.descriptionSource)).toBe(true);expect(p.logo.reason.length).toBeGreaterThan(10);expect(isSafeReferenceUrl(p.logo.source)).toBe(true);
+ if(p.logo.kind==='raster')expect(p.logo.path).toBe(`/ecosystem-logos/${p.id}.png`);else expect(p.logo.path).toBeUndefined();
  for(const a of p.actions){expect(isSafeReferenceUrl(a.url)).toBe(true);expect(new URL(a.url).search).toBe('');expect(a.evidence).toMatch(/^https:/);}}
  expect(directoryEntries.find(p=>p.id==='permapod')?.linkStatus).toBe('Unavailable in review');
  expect(directoryEntries.find(p=>p.id==='permapod')?.actions).toEqual([]);

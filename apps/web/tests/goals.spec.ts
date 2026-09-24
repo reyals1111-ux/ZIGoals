@@ -107,7 +107,8 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await page.getByRole("button", { name: "Export Goal Data" }).click();
   expect((await download).suggestedFilename()).toContain("local-simulation");
   await page.goto("/app/goals/new");
-  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByText("Personalize artwork and notes (optional)").click();
+  await page.getByRole("radio", {name:"Travel",exact:true}).check();
   await page.getByLabel("Goal name", {exact:true}).fill("Blocked demo creation");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", {name:"Continue"}).click();
@@ -226,7 +227,8 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   ).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.getByRole("link", { name: "Plan my first goal" }).click();
-  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByText("Personalize artwork and notes (optional)").click();
+  await page.getByRole("radio", {name:"Travel",exact:true}).check();
   await page.getByLabel("Goal name", {exact:true}).fill("Kyoto in spring");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", { name: "Continue" }).click();

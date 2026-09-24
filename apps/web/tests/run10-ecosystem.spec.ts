@@ -9,5 +9,9 @@ test('ecosystem filters, clears, opens useful details and keeps external links p
 });
 for(const width of [320,390,1440])test(`ecosystem directory reflows at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await page.goto('/app/ecosystem');await expect(page.locator('.ecosystem-project')).toHaveCount(18);await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ const cards=page.locator('.ecosystem-project');const first=await cards.nth(0).boundingBox(),second=await cards.nth(1).boundingBox();expect(first).not.toBeNull();expect(second).not.toBeNull();expect(Math.abs(first!.x-second!.x)).toBeLessThan(2);expect(second!.y).toBeGreaterThan(first!.y+first!.height-2);
+ await expect(page.locator('.ecosystem-logo img')).toHaveCount(16);await expect(page.locator('.ecosystem-initials')).toHaveCount(2);
+ for(const image of await page.locator('.ecosystem-logo img').all()){await image.scrollIntoViewIfNeeded();await expect.poll(()=>image.evaluate(img=>(img as HTMLImageElement).complete&&(img as HTMLImageElement).naturalWidth>0)).toBe(true);}
+ const iconSources=await page.locator('.ecosystem-logo img').evaluateAll(images=>images.map(img=>(img as HTMLImageElement).src));expect(iconSources.every(src=>src.startsWith(new URL(page.url()).origin+'/ecosystem-logos/'))).toBe(true);
  await page.getByRole('searchbox',{name:'Search projects'}).fill('valdora');await page.getByText('Evidence & access',{exact:true}).press('Enter');await expect(page.getByText('ZIGoals capability',{exact:true})).toBeVisible();await page.getByText('Evidence & access',{exact:true}).press('Enter');await page.locator('.ecosystem-intro').scrollIntoViewIfNeeded();await page.locator('.ecosystem-directory').screenshot({animations:'disabled',path:testInfo.outputPath(`run10-ecosystem-${width}.png`)});
 });
