@@ -136,3 +136,19 @@ test('a stale camera failure cannot stop a newer scan',async({page})=>{
  await page.evaluate(()=>(window as unknown as {barcodeTestState:{rejectFirst:()=>void}}).barcodeTestState.rejectFirst());
  await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();expect(await page.evaluate(()=>(window as unknown as {barcodeTestState:{stops:number}}).barcodeTestState.stops)).toBe(0);
 });
+test('an older scan cannot attach its stopped stream after a newer scan starts',async({page})=>{
+ await page.addInitScript(()=>{
+  const state:{requests:number;hold:boolean;release?:()=>void;current?:MediaStream}={requests:0,hold:false};Object.defineProperty(window,'barcodeTestState',{value:state});
+  const frame=window.requestAnimationFrame.bind(window);window.requestAnimationFrame=callback=>{if(state.hold){state.hold=false;state.release=()=>callback(performance.now());return 1;}return frame(callback);};
+  class Detector{static async getSupportedFormats(){return ['ean_13','ean_8','upc_a'];}async detect(){return [];}}
+  Object.defineProperty(window,'BarcodeDetector',{value:Detector,configurable:true});
+  Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{state.requests++;const stream=new MediaStream();Object.defineProperty(stream,'getTracks',{value:()=>[{stop:()=>{}}]});if(state.requests===1)state.hold=true;else state.current=stream;return stream;}});
+  HTMLMediaElement.prototype.play=async()=>{};
+ });
+ await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect.poll(()=>page.evaluate(()=>(window as unknown as {barcodeTestState:{release?:()=>void}}).barcodeTestState.release!==undefined)).toBe(true);
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area.getByRole('button',{name:'Stop camera'})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>{const state=(window as unknown as {barcodeTestState:{current:MediaStream}}).barcodeTestState;return document.querySelector<HTMLVideoElement>('video[aria-label="Barcode camera preview"]')?.srcObject===state.current;})).toBe(true);
+ await page.evaluate(()=>(window as unknown as {barcodeTestState:{release:()=>void}}).barcodeTestState.release());
+ await expect.poll(()=>page.evaluate(()=>{const state=(window as unknown as {barcodeTestState:{current:MediaStream}}).barcodeTestState;return document.querySelector<HTMLVideoElement>('video[aria-label="Barcode camera preview"]')?.srcObject===state.current;})).toBe(true);
+});
