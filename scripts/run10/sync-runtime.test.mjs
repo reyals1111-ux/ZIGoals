@@ -36,5 +36,16 @@ test('real Workers durable storage: two clients, auth denial, conflict, retry, d
   expect((await call('account-a-second')).status).toBe(401);expect((await call('account-a-second',{...edit,base:3,operation:crypto.randomUUID()})).status).toBe(401);
   expect((await call('account-a-second',{action:'register',label:'Cannot resurrect token'},'/v1/sessions')).status).toBe(401);
   await mf.dispose();mf=await runtime();expect((await call('account-a-second')).status).toBe(401);expect((await call('account-a')).status).toBe(200);
+  // Exercise more than one storage deletion batch; ciphertext stays opaque to the Worker.
+  let base=3;for(const count of [100,30]){const changes=Array.from({length:count},()=>({...record,id:crypto.randomUUID(),revision:1,deleted:false}));expect((await call('account-a',{protocol:1,vault:vault.manifest.vault,operation:crypto.randomUUID(),base,changes})).status).toBe(200);base++;}
+  expect((await call('account-a',{action:'delete-cloud-data',confirm:'wrong phrase'},'/v1/account')).status).toBe(400);
+  expect((await call('account-a-second',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'},'/v1/account')).status).toBe(401);
+  expect((await call('account-a')).status).toBe(200);
+  const deleted=await call('account-a',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'},'/v1/account');expect(deleted.status).toBe(200);expect(await deleted.json()).toEqual({deleted:true});
+  expect((await call('account-a')).status).toBe(410);
+  expect((await call('account-a',{...edit,base:3,operation:crypto.randomUUID()})).status).toBe(410);
+  expect((await call('account-a',{action:'register',label:'Stale offline client'},'/v1/sessions')).status).toBe(410);
+  expect((await call('account-b')).status).toBe(200);
+  await mf.dispose();mf=await runtime();expect((await call('account-a',{action:'register',label:'After restart'},'/v1/sessions')).status).toBe(410);
  }finally{await mf.dispose();}
 },30000);

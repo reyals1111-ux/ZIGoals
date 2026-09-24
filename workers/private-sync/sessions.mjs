@@ -6,6 +6,7 @@ export async function sessionsRequest(request,state,boundedJSON){
  const hash=request.headers.get('x-zigoals-token-hash');if(!HASH.test(hash??''))return reply({error:'SIGN_IN_REQUIRED'},401);
  let action;if(request.method==='POST'){try{action=await boundedJSON(request,2048);}catch{return reply({error:'INVALID_SESSION_REQUEST'},400);}}
  return state.storage.transaction(async store=>{
+  if(await store.get('account-deleted'))return reply({error:'ACCOUNT_DELETED'},410);
   const current=await store.get(`session:${hash}`);
   if(action?.action==='register'){
    if(Object.keys(action).some(k=>!['action','label'].includes(k))||typeof action.label!=='string'||!action.label.trim()||action.label.length>80)return reply({error:'INVALID_SESSION_REQUEST'},400);
