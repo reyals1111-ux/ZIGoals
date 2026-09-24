@@ -51,7 +51,7 @@ Approved default hero slogan was already present. Supporting two-line copy, `+ C
 | E03 | Email account integration and physical sync proof | Incomplete: fixture auth does not count; owner has no service; isolated setup path in `OWNER_ACTIVATION.md` |
 | E04 | Deletion, no-resurrection, key rotation | Incomplete code; cannot be relabeled owner setup |
 | E05 | Conflict and pending-queue recovery | Incomplete: incompatible queued operations now have an explicit separate encrypted export with a new recovery secret; the exact validated journal, including older policy metadata, is preserved without sending/clearing it. Focused crypto/sync/backup 17/17 and fixture account UI 6/6 pass. Conflict review, validated forward replay, lost-ack/reverse-order integrated acceptance and financial conservation UI remain missing. |
-| E06 | Durable storage delta/paging/capacity | Incomplete code/performance proof |
+| E06 | Durable storage delta/paging/capacity | Incomplete: pending/recovery IndexedDB reads now use exact account/domain key ranges and page reads may reject a stale expected revision. Database unit 7/7, TypeScript and scoped lint pass. Incremental cloud cursors/deltas, catalog publication, retention/cleanup and actual large-data sync/restore remain missing. |
 | E07 | Financial and Goal-history acceptance | Incomplete integration proof |
 | E08 | Practical camera/barcode path | Incomplete physical/device proof and remaining code |
 | E09 | Daily-use gaps | Incomplete reconciliation |

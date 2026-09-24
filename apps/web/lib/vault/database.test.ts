@@ -16,7 +16,8 @@ test('replay is idempotent, reused operation is rejected, changed record delta i
  await db.commit('A','health',1,next,'second');await db.commit('A','health',1,next,'second');
  const pending=await db.pending('A');expect(pending).toHaveLength(1);expect(JSON.stringify(pending).length).toBeLessThan(30_000);
  await expect(db.commit('A','health',1,{rows:[]},'second')).rejects.toThrow('reused');
- expect((await db.read('B','health'))).toBeNull();expect((await db.page('A','health','rows',290,20))).toHaveLength(10);db.close();
+ expect((await db.read('B','health'))).toBeNull();expect((await db.page('A','health','rows',290,20,2))).toHaveLength(10);
+ await expect(db.page('A','health','rows',290,20,1)).rejects.toThrow('changed between pages');db.close();
 });
 test('migration preserves exact original bytes and invalid large record never partially commits',async()=>{
  const db=new VaultDatabase(crypto.randomUUID()),raw=' {"schemaVersion":1,"rows":[]} ';
@@ -41,4 +42,15 @@ test('account generation loss aborts an atomic domain copy before publication',a
  const db=new VaultDatabase(crypto.randomUUID());let calls=0;
  await expect(db.commitBatch('A',[{domain:'habits',base:0,data:{rows:[]}},{domain:'health',base:0,data:{rows:[]}}],()=>{if(++calls===4)throw Error('Account changed');})).rejects.toThrow('Account changed');
  expect(await db.read('A','habits')).toBeNull();expect(await db.read('A','health')).toBeNull();expect(await db.pending('A')).toEqual([]);db.close();
+});
+test('indexed pending and recovery reads stay within exact account and domain prefixes',async()=>{
+ const db=new VaultDatabase(crypto.randomUUID());
+ await db.commit('A','health',0,{rows:[{id:'one'}]},'a-health','old A Health bytes');
+ await db.commit('A','health-other',0,{rows:[{id:'two'}]},'a-other','old A other bytes');
+ await db.commit('A-other','health',0,{rows:[{id:'three'}]},'other-health','old other Health bytes');
+ expect((await db.pending('A')).map(p=>p.operation)).toEqual(['a-health','a-other']);
+ expect((await db.pending('A-other')).map(p=>p.operation)).toEqual(['other-health']);
+ expect(await db.recovery('A','health')).toEqual(['old A Health bytes']);
+ expect(await db.recovery('A','health-other')).toEqual(['old A other bytes']);
+ expect(await db.recovery('A-other','health')).toEqual(['old other Health bytes']);db.close();
 });

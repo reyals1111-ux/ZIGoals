@@ -5,6 +5,7 @@ export type PendingOperation={space:string;domain:string;operation:string;base:n
 const request=<T>(r:IDBRequest<T>)=>new Promise<T>((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(Error('Private storage request failed. No success was recorded.'));});
 const done=(t:IDBTransaction)=>new Promise<void>((resolve,reject)=>{t.oncomplete=()=>resolve();t.onabort=()=>reject(Error('Private storage transaction failed. Previous data was preserved.'));t.onerror=()=>{};});
 const key=(...parts:string[])=>JSON.stringify(parts);
+const prefixRange=(...parts:string[])=>{const prefix=JSON.stringify(parts).slice(0,-1)+',';return IDBKeyRange.bound(prefix,prefix+'\uffff');};
 const byteLength=(v:unknown)=>new TextEncoder().encode(JSON.stringify(v)).length;
 function split(data:unknown,revision:number):{header:Header;rows:Map<string,{field:string;id:string;value:unknown}>}{
  if(!data||typeof data!=='object'||Array.isArray(data)||byteLength(data)>32_000_000)throw Error('Private data exceeds the supported 32 MB domain capacity. Export before continuing.');
@@ -42,9 +43,10 @@ export class VaultDatabase{
   await Promise.all(Object.entries(header.arrays).map(async([field,ids])=>{data[field]=await Promise.all(ids.map(id=>request(tx.objectStore('records').get(key(space,domain,field,id)))));}));
   await finish;return {revision:header.revision,data};
  }
- async page(space:string,domain:string,field:string,offset=0,limit=100):Promise<unknown[]>{
-  if(!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>500)throw Error('Invalid page.');
+ async page(space:string,domain:string,field:string,offset=0,limit=100,expectedRevision?:number):Promise<unknown[]>{
+  if(!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>500||expectedRevision!==undefined&&(!Number.isSafeInteger(expectedRevision)||expectedRevision<0))throw Error('Invalid page.');
   const db=await this.open(),tx=db.transaction(['headers','records'],'readonly'),finish=done(tx),h=await request(tx.objectStore('headers').get(key(space,domain))) as Header|undefined;
+  if(expectedRevision!==undefined&&(h?.revision??0)!==expectedRevision){await finish;throw Error('Collection changed between pages. Restart from the first page.');}
   const result=await Promise.all((h?.arrays[field]??[]).slice(offset,offset+limit).map(id=>request(tx.objectStore('records').get(key(space,domain,field,id)))));await finish;return result;
  }
  async commit(space:string,domain:string,base:number,data:unknown,operation=crypto.randomUUID(),original?:string):Promise<number>{
@@ -83,7 +85,7 @@ export class VaultDatabase{
    fence();await finish;return revisions;
   }catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}
  }
- async pending(space:string):Promise<PendingOperation[]>{const db=await this.open(),tx=db.transaction('outbox','readonly'),finish=done(tx);const all=await request(tx.objectStore('outbox').getAll()) as PendingOperation[];await finish;return all.filter(x=>x.space===space);}
+ async pending(space:string):Promise<PendingOperation[]>{const db=await this.open(),tx=db.transaction('outbox','readonly'),finish=done(tx);const selected=await request(tx.objectStore('outbox').getAll(prefixRange(space))) as PendingOperation[];await finish;return selected;}
  async acknowledge(space:string,operation:string){const db=await this.open(),tx=db.transaction('outbox','readwrite'),finish=done(tx);tx.objectStore('outbox').delete(key(space,operation));await finish;}
- async recovery(space:string,domain:string):Promise<string[]>{const db=await this.open(),tx=db.transaction('recovery','readonly'),finish=done(tx);const all=await request(tx.objectStore('recovery').getAll()) as {space:string;domain:string;raw:string}[];await finish;return all.filter(x=>x.space===space&&x.domain===domain).map(x=>x.raw);}
+ async recovery(space:string,domain:string):Promise<string[]>{const db=await this.open(),tx=db.transaction('recovery','readonly'),finish=done(tx);const selected=await request(tx.objectStore('recovery').getAll(prefixRange(space,domain))) as {space:string;domain:string;raw:string}[];await finish;return selected.map(x=>x.raw);}
 }
