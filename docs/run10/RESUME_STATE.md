@@ -1,5 +1,9 @@
 # Actual Run #10 — current restoration/readiness checkpoint
 
+## Exact E06 partial checkpoint — 2026-09-24T21:55:29Z
+
+Source `2091eaa2807b82293c48d7c638c049fa3d23011b` is pushed and independently matched local HEAD, remote branch and PR #20 `headRefOid` (OPEN/DRAFT). IndexedDB pending and recovery reads now use exact account/domain key ranges; paged collection reads can reject a stale expected revision. Database unit 7/7, TypeScript, scoped lint and diff check passed. E06 remains incomplete: incremental cloud cursors/deltas, immutable catalog publication, retention/cleanup and actual large-data sync/restore are missing. E02–E05 and E07–E11 retain their documented gaps; no fixture auth is counted as phone–desktop sync. The owner-generated `apps/web/next-env.d.ts` is the sole unstaged change and the existing preview was not restarted or rebuilt. Source-only recovery archive `.superpowers/run10/recovery/source-2091eaa.zip` passed CRC, SHA256 `eb9b0620403a8095679ef2422c3936635f53b79dd84240123a96fbd80ff45da3`; it contains no owner data. No new NovaVault receipt verified. Next: continue mandatory account/sync and storage code with bounded changes, then financial/camera/daily gates and full integrated/security review. No merge, hosted deployment, live migration, DNS, service purchase, financial action or subscription change authorized.
+
 Updated UTC: 2026-09-24T21:48:59Z. Worktree `/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation`, branch `codex/run10-beta-reliability-foundation`. This continues the original preserved 290-row/40-journey master and the owner’s 12 ordered restoration screenshots; see `POLISH_REVIEW.md`. Do not reread/regenerate the master ledger. Owner chose GPT-6 Sol High/standard and reported ~13% included allowance with 222 backup credits. No purchase/reload/subscription change authorized.
 
 ## Exact E05 partial checkpoint and live state
