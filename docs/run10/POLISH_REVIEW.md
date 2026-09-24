@@ -10,7 +10,7 @@ Authority: owner brief `ZIGoals_RUN10_Restoration_Polish_and_Readiness (1).md` s
 | POLISH-02 | 21_36_37 | Approved whole-life card above financial attention | Implemented in `today-intelligence.tsx`; isolated Showcase desktop/mobile order tests passed |
 | POLISH-03 | 21_36_49 | Wallet artwork and Staked ZIG rail | Restored in `today-dashboard.tsx`; isolated Showcase desktop/mobile tests passed |
 | POLISH-04 | 21_36_55 | Recent activity rail | Restored; desktop/mobile presence passed; deep data-scope acceptance pending |
-| POLISH-05 | 21_37_02 | Working widgets/Habits to preserve; improve art and controls | Mechanics preserved; P05 pending |
+| POLISH-05 | 21_37_02 | Working widgets/Habits to preserve; improve art and controls | Mechanics preserved; P02/P03 focused checks pass; P05 visual/control work pending |
 | POLISH-06 | 21_37_08 | Visual widget library instead of native select wall | P04 pending |
 | POLISH-07 | 21_37_13 | Correct ring data; smooth boundaries and motion | P07/P08 pending |
 | POLISH-08 | 21_37_19 | Preserve four Goal types; finish creator fields/pickers | P09 pending |
@@ -34,8 +34,8 @@ Approved default hero slogan was already present. Supporting two-line copy, `+ C
 | ID | Required result | Current state / next evidence |
 |---|---|---|
 | P01 | Original Today hierarchy, account-safe rail and mobile | Partial: source restored; isolated Showcase desktop/mobile hierarchy and 320px checks passed; owner visual comparison and deeper scopes remain |
-| P02 | Versioned built-in/widget placement and recovery | Incomplete: current widget-only layout cannot insert among built-ins or in rail |
-| P03 | True selected-widget summary, all chosen instances | Incomplete: current summary still maps four domains |
+| P02 | Versioned built-in/widget placement and recovery | Partial: optional versioned placement, stable built-ins, protected modules, insertion and main/rail moves implemented. Legacy layouts parse and reconcile; actual fictional encrypted settings backup restore, no-duplicate, reload and hide/show pass desktop/mobile. Full integrated/owner acceptance pending. |
+| P03 | True selected-widget summary, all chosen instances | Partial: separate illustrated summary uses all visible selected instances and canonical metrics; six-widget hide/remove/reload passes desktop/mobile. Bound-record live-update, locked/no-data and final visual acceptance remain to verify. |
 | P04 | Visual widget library and source-card pinning | Incomplete: native selectors and no general source-card Add to Today |
 | P05 | Illustrated cards and quiet accessible settings menus | Incomplete: current widget controls remain a button row in customize mode |
 | P06 | Approved copy/button treatment | Partial: source restored and focused browser check passed; owner visual verdict pending |
@@ -58,6 +58,8 @@ Approved default hero slogan was already present. Supporting two-line copy, `+ C
 | E10 | Cross-cutting security/migration/performance gates | Incomplete final gate |
 | E11 | Isolated activation request and friends-ready gate | Pending all prerequisite code gates; no deployment authorized |
 
-The next source checkpoint must update each row with exact test artifacts and remaining reasons. Draft PR #20 remains open. Preserve `apps/web/next-env.d.ts` as an unstaged owner-generated preview change.
+Draft PR #20 remains open. Preserve `apps/web/next-env.d.ts` as an unstaged owner-generated preview change.
 
 Checkpoint A focused evidence: `run10-restored-today.spec.ts` 2/2 desktop/mobile; `run10-shared-visuals.spec.ts` plus `run10-ecosystem.spec.ts` 26/26 both projects; affected desktop dashboard/widgets/life suite 20/21 initially, then the sole assertion corrected and passed separately; Health-only request journey 2/2 after excluding only the preview's own `/_next/hmr` socket; Health overview helper 4/4; scoped ESLint and TypeScript passed. These are local preview checks, not hosted or physical-device acceptance. Test screenshots and traces remain in ignored `apps/web/test-results/`.
+
+Checkpoint B focused evidence (2026-09-24): placement model 14/14 unit cases; `run10-dashboard-placement.spec.ts` 2/2 desktop/mobile including real encrypted fictional settings backup and restore; `run10-widget-overview.spec.ts` 2/2; restored Today/summary combined 4/4; shared visuals and existing widget/preset journeys 20/22 on first run, with the two stale fixed-index assertions corrected and the widget/preset journey rerun 4/4; Health-only request journey rerun 2/2. TypeScript, scoped ESLint and diff checks pass. The first placement browser attempt also exposed a test-only missing customization toggle after reload and a broad label selector; both were corrected before the passing rerun. No deployed, real-email or owner-device pass is inferred.

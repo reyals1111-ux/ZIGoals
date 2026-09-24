@@ -2,7 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
- await expect(page.locator('.today-daily .habits-today')).toBeVisible();
+ await expect(page.locator('.placed-module[data-module="habits"] .habits-today')).toBeVisible();
 }
 test('Quick add belongs to navigation and Escape returns focus',async({page})=>{
  await showcase(page);expect(await page.locator('.app-topbar .quick-add-trigger').count()).toBe(0);
@@ -10,7 +10,7 @@ test('Quick add belongs to navigation and Escape returns focus',async({page})=>{
 });
 for(const width of [320,360,390,430,768,1440])test(`Habit labels and controls have distinct space at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await showcase(page);
- const habits=page.locator('.today-daily .habits-today');
+ const habits=page.locator('.placed-module[data-module="habits"] .habits-today');
  const rows=habits.locator('.habit-today-list li');await expect(rows).toHaveCount(3);
  const overlaps=await rows.evaluateAll(items=>items.flatMap(row=>{
   const title=row.firstElementChild!.getBoundingClientRect(),completion=row.querySelector('.habit-completion')!.getBoundingClientRect();
