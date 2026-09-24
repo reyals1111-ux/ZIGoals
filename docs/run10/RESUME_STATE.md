@@ -1,4 +1,28 @@
-# Actual Run #10 — verified continuation checkpoint
+# Actual Run #10 — current restoration/readiness checkpoint
+
+Updated UTC: 2026-09-24T19:58:03Z. Worktree `/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation`, branch `codex/run10-beta-reliability-foundation`. This continues the original preserved 290-row/40-journey master and the owner’s 12 ordered restoration screenshots; see `POLISH_REVIEW.md`. Do not reread/regenerate the master ledger. Owner chose GPT-6 Sol High/standard and reported ~13% included allowance with 222 backup credits. No purchase/reload/subscription change authorized.
+
+## Exact checkpoint A
+
+Application/test/source commit `3451d0a2a4a109b98152185fb88ec48c05e16fda` was pushed and independently matched with `git ls-remote` and PR #20 `headRefOid`; PR remains OPEN/DRAFT. No merge, hosted deployment, live migration, DNS change, service purchase or financial transaction. Existing local preview `http://127.0.0.1:3111/app` remains running and was not restarted. Owner review data was not loaded/exported/changed. Only isolated Playwright contexts with fictional Showcase/empty profiles were used. `apps/web/next-env.d.ts` is an unstaged owner-generated preview modification; do not stage, overwrite or discard it.
+
+Checkpoint A restored the original Today hero copy, luminous play medallion, pillars, whole-life card before financial attention, original main/rail desktop layout, Goal/progress/Habit/Health modules, wallet/staking/destination/recent activity rail and How it works. Current Run10 widgets/presets, Quick Add, accepted Habits and safety mechanisms remain. Financial attention reuses the dashboard market snapshot; Health-only remains free of financial requests. Health nutrition overview is visible below its top cards; exact history stays collapsible. Hardcoded screenshot output directories were replaced with runner-owned `testInfo.outputPath`.
+
+Evidence: `run10-restored-today.spec.ts` 2/2 desktop/mobile; affected shared visuals and ecosystem 26/26 desktop/mobile; affected dashboard/widgets/life desktop 20/21 then the sole stale test assertion corrected and passed separately; Health-only JRN-01 2/2 desktop/mobile with no forbidden financial/external request (local Next dev HMR socket explicitly exempt); Health overview helper 4/4; scoped ESLint and TypeScript pass. Screenshot evidence is in ignored `apps/web/test-results/`; this is local preview evidence, not Alpha deployment, physical Safari/phone or the final integrated gate. Owner visual verdict after restoration remains pending. Run the final complete gates after implementation, not merely these slices.
+
+Source-only recovery archive `.superpowers/run10/recovery/source-3451d0a.zip`, SHA256 `18f99647885b9d801b7579246ba3d7bd65220182f3ad141d7a53e0bfeebdef89`, passed ZIP CRC. It contains tracked source only; it does not contain or back up owner browser data. Earlier source/fixture archives and prior receipts below remain intact. No new NovaVault receipt for this checkpoint has yet been verified; do not claim one.
+
+## Next dependency order and explicit gaps
+
+Checkpoint A source is done with stated local evidence. P01/P06/P11/P13 still require final integration and owner visual/device review where applicable. B next: P02 versioned built-in/widget placement with migration/recovery, P03 true widget-driven summary, P04 safe visual catalog and source-card pinning, P05 accessible card menus; then P07/P08/P09/P10/P12 visual corrections. Do not let optional design work displace mandatory journeys. See `POLISH_REVIEW.md` for all P01–P13, E01–E11 and POLISH-01–12 statuses. Every incomplete item stays incomplete.
+
+E01 local portability is passed but hosted quality rerun is pending. E02 real pricing/market coordination, E03 real email integration/phone–desktop sync, E04 deletion/no-resurrection/rotation, E05 conflict/queue recovery, E06 storage scaling, E07 financial gates, E08 practical camera path, E09 daily gaps, E10 cross-cutting gates and E11 isolated owner activation are not complete. Fixture authentication is not phone–desktop sync. Owner reports no existing email service. Recommended setup remains Supabase email OTP + Resend SMTP + isolated Cloudflare ciphertext Worker; `OWNER_ACTIVATION.md` is the concise checklist. Prepare one exact activation request only after relevant code gates pass; no live service activation is authorized now.
+
+Before next edit: check `git status --short` and current PR/source identity, retain the unstaged `next-env.d.ts`, read only targeted ledger/evidence/source. Do not run production build in the owner’s live `.next` preview directory or restart that preview. Keep PR #20 draft. Reserve effort for integration, corrections, full verification, independent safety review and recovery. No helper being finished changes a workstream’s incomplete status.
+
+---
+
+# Prior Run #10 checkpoint — historical record superseded by the 2026-09-24 continuation
 
 Updated UTC: 2026-09-23T22:45:13.554286+00:00
 Worktree: `/Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/run10-beta-reliability-foundation`.
