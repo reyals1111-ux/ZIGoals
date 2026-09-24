@@ -7,8 +7,8 @@ export const WIDGET_CATALOG={
  goal:{label:'A chosen Goal',domain:'goals',metrics:['progress','next-contribution']},
  habits:{label:'Daily Habits',domain:'habits',metrics:['overview']},
  habit:{label:'A chosen Habit',domain:'habits',metrics:['today','streak']},
- health:{label:'Health metric',domain:'health',metrics:['kcal','macros','water','weight','steps','activity']},
- wealth:{label:'Wealth by currency',domain:'wealth',metrics:['USD','EUR']},
+ health:{label:'Health metric',domain:'health',metrics:['kcal','macros','water','weight','steps','activity','history']},
+ wealth:{label:'Wealth by currency',domain:'wealth',metrics:['USD','EUR','history-USD','history-EUR']},
  asset:{label:'An asset or Position',domain:'wealth',metrics:['quantity','value','available']},
  staking:{label:'Staking and rewards',domain:'wealth',metrics:['quantity']},
  allocation:{label:'Allocation and availability',domain:'wealth',metrics:['allocation']},
@@ -17,7 +17,7 @@ export const WIDGET_CATALOG={
 export type WidgetKind=keyof typeof WIDGET_CATALOG;
 const widgetSchema=z.object({id:z.string().min(1).max(100),kind:z.enum(['goals','goal','habits','habit','health','wealth','asset','staking','allocation','ecosystem']),entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)}).strict().superRefine((w,ctx)=>{
  if(!(WIDGET_CATALOG[w.kind].metrics as readonly string[]).includes(w.metric))ctx.addIssue({code:'custom',message:'This metric is not supported by this widget.'});
- if(['goal','habit','asset','staking','allocation'].includes(w.kind)!==!!w.entity)ctx.addIssue({code:'custom',message:'Choose a record only for an entity widget.'});
+ if(w.kind!=='ecosystem'&&['goal','habit','asset','staking','allocation'].includes(w.kind)!==!!w.entity)ctx.addIssue({code:'custom',message:'Choose a record only for an entity widget.'});
 });
 export type DashboardWidget=z.infer<typeof widgetSchema>;
 export const DASHBOARD_BUILTINS=[

@@ -5,6 +5,7 @@ import {emptyHabitData} from './habits';
 import {createEmptyHealth} from './health';
 import {manualSourcePosition} from './manual-source';
 import type {DashboardWidget} from './dashboard-settings';
+import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 const source=():DashboardSources=>({platform:emptyPlatform(),habits:emptyHabitData(),health:createEmptyHealth(),goals:[],quotes:[],now:Date.parse('2026-09-23T12:00:00Z'),today:'2026-09-23',healthDate:'2026-09-23'});
 const widget=(kind:DashboardWidget['kind'],metric:string,entity?:string):DashboardWidget=>({id:'test',kind,metric,entity,title:'',size:'compact',hidden:false,revision:1});
 test('missing entities stay missing, even when other records have a similar name',()=>{
@@ -47,4 +48,12 @@ test('allocation widget reports canonical exact allocated, available and deficit
  expect(value.facts).toEqual([{label:'Allocated to Goals',value:'110.02 USD'},{label:'Unallocated',value:'0 USD'},{label:'Allocation deficit',value:'10.01 USD'}]);expect(value.warning).toContain('exceeds');
  s.platform.goals[0]!.status='closed';expect(widgetMetric(widget('allocation','allocation','cash'),s).facts?.[1]?.value).toBe('100.01 USD');
  s.platform.positions[0]!.archivedAt='2026-09-23T12:00:00Z';expect(widgetMetric(widget('allocation','allocation','cash'),s).missing).toBe(true);
+});
+test('history and official research shortcuts never invent missing values',()=>{
+ const s=source();
+ expect(widgetMetric(widget('health','history'),s)).toMatchObject({value:'No logged days',detail:expect.stringContaining('0 of 30')});
+ expect(widgetMetric(widget('wealth','history-USD'),s)).toMatchObject({value:'No complete history',detail:expect.stringContaining('not inferred')});
+ const entry=directoryEntries[0]!;
+ expect(widgetMetric(widget('ecosystem','directory',entry.id),s)).toMatchObject({title:entry.name,href:`/app/ecosystem#project-${encodeURIComponent(entry.id)}`});
+ expect(widgetMetric(widget('ecosystem','directory','unavailable'),s).missing).toBe(true);
 });

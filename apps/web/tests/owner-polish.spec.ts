@@ -19,7 +19,7 @@ test('one circular family, Today active count and a chosen Goal share exact USD 
  const before=await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'));
  await page.goto('/app');await expect(page.getByRole('article',{name:'Your destinations',exact:true})).toContainText('4 active Goals');
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.getByRole('button',{name:'Add widget',exact:true}).click();
- const editor=page.getByRole('dialog',{name:'Add a widget'});await editor.getByRole('combobox',{name:'Widget type',exact:true}).selectOption('goal');await editor.getByRole('combobox',{name:'Choose a goal',exact:true}).selectOption('private:82');await editor.getByRole('button',{name:'Save widget',exact:true}).click();await page.getByRole('button',{name:'Finish customizing',exact:true}).click();
+ const editor=page.getByRole('dialog',{name:'Add a widget'});await editor.getByRole('group',{name:'Widget categories'}).getByRole('button',{name:'Goals'}).click();await editor.locator('.widget-library-tile').filter({hasText:'A chosen Goal'}).click();await editor.getByRole('group',{name:'Choose a saved record'}).getByRole('button',{name:/Financial Freedom/}).click();await editor.getByRole('button',{name:'Save widget',exact:true}).click();await page.getByRole('button',{name:'Finish customizing',exact:true}).click();
  const todayValue=page.getByRole('article',{name:'Financial Freedom',exact:true});await expect(todayValue).toContainText('$11,309');await expect(todayValue).toContainText('$500,000');await expect(todayValue.getByRole('progressbar')).toHaveAttribute('aria-valuenow','2.26');await shot(page,'13-today-all-goals');await shot(page,'14-today-value');
  expect(await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'))).toBe(before);
  await page.goto('/app/goals/tracked/82');await expect(page.getByTestId('tracked-progress')).toContainText('11,309');await expect(page.getByTestId('tracked-progress').getByRole('progressbar')).toHaveAttribute('aria-valuenow','2.26');await expect(page.locator('#allocate')).not.toHaveAttribute('open','');await shot(page,'05-goal-overview');
@@ -74,7 +74,7 @@ test('missing price is explicit and stale quote survives failed refresh and relo
 test('Today reports private-store recovery errors while preserving legacy destinations',async({page})=>{
  await seed(page);await page.evaluate(()=>localStorage.setItem('zigoals:platform:v1','broken'));await page.goto('/app');
  await expect(page.getByRole('alert').filter({hasText:'Private data could not be read'})).toBeVisible();
- await expect(page.locator('[data-goal-key="legacy:1"]')).toBeVisible();
+ await expect(page.locator('section[aria-label="Available local simulation Goals"] [data-goal-key="legacy:1"]')).toBeVisible();
  expect(await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'))).toBe('broken');
 });
 

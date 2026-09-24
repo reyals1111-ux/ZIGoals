@@ -44,13 +44,15 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(add).toBeFocused();
   // The Health preset already pins water; remove its configuration before choosing our own.
-  await activate(page.getByRole('article', { name: 'Water today', exact: true }).getByRole('button', { name: 'Remove', exact: true }));
+  await activate(page.getByRole('article', { name: 'Water today', exact: true }).getByRole('button', { name: 'Options for Water today' }));
+  await activate(page.getByRole('article', { name: 'Water today', exact: true }).getByRole('button', { name: 'Remove widget' }));
   await expect(page.getByRole('article', { name: 'Water today', exact: true })).toHaveCount(0);
   await add.focus();
   await page.keyboard.press('Enter');
   const editor = page.getByRole('dialog', { name: 'Add a widget' });
-  await editor.getByRole('combobox', { name: 'Metric', exact: true }).selectOption('water');
-  await editor.getByLabel('Title (optional)').fill('My saved water');
+  await editor.getByRole('group', { name: 'Choose a metric' }).getByRole('button', { name: 'Water today' }).click();
+  await editor.getByText('Title and display size').click();
+  await editor.getByLabel('Card title (optional)').fill('My saved water');
   await expect(editor.getByRole('region', { name: 'Widget preview' })).toContainText('250 mL');
   await activate(editor.getByRole('button', { name: 'Save widget', exact: true }));
   const widget = page.getByRole('article', { name: 'My saved water', exact: true });

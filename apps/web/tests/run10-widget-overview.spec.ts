@@ -12,9 +12,11 @@ test('six selected widgets remain individually reachable and update when hidden 
  await expect(summary.getByRole('link',{name:/My water/})).toHaveAttribute('href','/app/health');
  await expect(summary.getByRole('link',{name:/Explore safely/})).toHaveAttribute('href','/app/ecosystem');
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
- await page.getByRole('article',{name:'My water'}).getByRole('button',{name:'Hide',exact:true}).click();
+ await page.getByRole('article',{name:'My water'}).getByRole('button',{name:'Options for My water'}).click();
+ await page.getByRole('article',{name:'My water'}).getByRole('button',{name:'Hide widget'}).click();
  await expect(summary.locator('.dashboard-summary-item')).toHaveCount(5);
- await page.getByRole('article',{name:'Explore safely'}).getByRole('button',{name:'Remove',exact:true}).click();
+ await page.getByRole('article',{name:'Explore safely'}).getByRole('button',{name:'Options for Explore safely'}).click();
+ await page.getByRole('article',{name:'Explore safely'}).getByRole('button',{name:'Remove widget'}).click();
  await expect(summary.locator('.dashboard-summary-item')).toHaveCount(4);
  await page.reload();
  await expect(summary.locator('.dashboard-summary-item')).toHaveCount(4);

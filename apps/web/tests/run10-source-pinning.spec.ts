@@ -1,0 +1,88 @@
+import {expect,test} from '@playwright/test';
+import {createHabit,emptyHabitData,HABITS_KEY} from '../lib/habits';
+import {DASHBOARD_SETTINGS_KEY,presetSettings,saveWidget} from '../lib/dashboard-settings';
+
+test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route.fulfill({status:503,json:{error:'Fictional offline fixture'}}));});
+
+test('visual library hides ineligible staking and card menu returns focus on Escape',async({page},info)=>{
+ await page.setViewportSize({width:320,height:800});
+ await page.goto('/app');
+ await page.getByRole('button',{name:'Customize Today',exact:true}).click();
+ const card=page.getByRole('article',{name:'Your destinations',exact:true});
+ const trigger=card.getByRole('button',{name:'Options for Your destinations'});
+ await trigger.click();
+ await expect(card.getByRole('group',{name:'Your destinations options'})).toBeVisible();
+ await card.screenshot({path:info.outputPath('today-card-options-320.png'),animations:'disabled'});
+ await page.keyboard.press('Escape');
+ await expect(card.getByRole('group',{name:'Your destinations options'})).toHaveCount(0);
+ await expect(trigger).toBeFocused();
+ await page.getByRole('button',{name:'Add widget',exact:true}).click();
+ const editor=page.getByRole('dialog',{name:'Add a widget'});
+ await editor.getByRole('group',{name:'Widget categories'}).getByRole('button',{name:'Wealth & Positions'}).click();
+ await expect(editor.locator('.widget-library-tile').filter({hasText:'Staking and rewards'})).toHaveCount(0);
+ await expect(editor.locator('.widget-library-tile').filter({hasText:'Wealth by currency'})).toBeVisible();
+ await editor.screenshot({path:info.outputPath('visual-widget-library-320.png'),animations:'disabled'});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
+test('source-card pinning keeps Goal, Habit, asset and research bindings distinct',async({page})=>{
+ await page.goto('/app/settings');
+ await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();
+ await page.waitForURL('**/app');
+ await page.goto('/app/goals');
+ const goal=page.locator('.unified-goal-card').first();
+ await goal.getByRole('button',{name:/Options for/}).click();
+ await goal.getByRole('button',{name:/Add .* progress to Today/}).click();
+ await expect(goal.getByRole('status')).toContainText('added to Today');
+ await page.goto('/app/habits');
+ const habit=page.locator('.habit-card').first();
+ await habit.getByRole('button',{name:/Options for/}).click();
+ await habit.getByRole('button',{name:/Add .* today to Today/}).click();
+ await expect(habit.getByRole('status')).toContainText('added to Today');
+ await page.goto('/app/wealth');
+ const asset=page.locator('.owned-asset-card').first();
+ await asset.getByRole('button',{name:/Options for/}).click();
+ await asset.getByRole('button',{name:/Add .* quantity to Today/}).click();
+ await expect(asset.getByRole('status')).toContainText('added to Today');
+ await page.goto('/app/ecosystem');
+ const project=page.locator('.ecosystem-project').first();
+ await project.getByRole('button',{name:/Options for/}).click();
+ await project.getByRole('button',{name:/research shortcut to Today/}).click();
+ await expect(project.getByRole('status')).toContainText('added to Today');
+ await page.goto('/app');
+ const summary=page.getByRole('region',{name:'Your selected widgets'});
+ await expect(summary.locator('.dashboard-summary-item')).toHaveCount(8);
+ await expect(summary.locator('a.dashboard-summary-item[href^="/app/ecosystem#project-"]')).toHaveCount(1);
+ await page.reload();
+ await expect(summary.locator('.dashboard-summary-item')).toHaveCount(8);
+ await page.goto('/app/goals');
+ await goal.getByRole('button',{name:/Options for/}).click();
+ await goal.getByRole('button',{name:/Add .* progress to Today/}).click();
+ await expect(goal.getByRole('status')).toContainText('already on Today');
+ await page.goto('/app');
+ await expect(summary.locator('.dashboard-summary-item')).toHaveCount(8);
+});
+
+test('a bound Habit updates its Today summary and card after the source changes',async({page})=>{
+ const id='d5f294bd-e35e-41c0-a9a9-802a613f9130';
+ const habit=createHabit(emptyHabitData(),{title:'Fictional daily reading',category:'Learning',description:'Local test record',notes:'',type:'build',measurement:{kind:'count',unit:'pages'},schedule:{kind:'daily'},target:4},new Date('2026-09-24T10:00:00Z'),id);
+ const settings=saveWidget(presetSettings('balanced'),{id:'bound-reading',kind:'habit',metric:'today',entity:id,title:'Reading today',size:'compact',hidden:false,revision:1});
+ await page.clock.install({time:new Date('2026-09-24T12:00:00Z')});
+ await page.addInitScript(({habitsKey,habitsValue,settingsKey,settingsValue})=>{if(!sessionStorage.getItem('fixture-bound-habit-seeded')){localStorage.setItem(habitsKey,habitsValue);localStorage.setItem(settingsKey,settingsValue);sessionStorage.setItem('fixture-bound-habit-seeded','true');}},{habitsKey:HABITS_KEY,habitsValue:JSON.stringify(habit),settingsKey:DASHBOARD_SETTINGS_KEY,settingsValue:JSON.stringify(settings)});
+ await page.goto('/app');
+ const summary=page.getByRole('region',{name:'Your selected widgets'});
+ const item=summary.locator('.dashboard-summary-item').filter({hasText:'Reading today'});
+ const card=page.getByRole('article',{name:'Reading today',exact:true});
+ await expect(item).toContainText('0 pages');
+ await expect(card).toContainText('0 pages');
+ await page.goto('/app/habits');
+ const source=page.locator('.habit-card').filter({hasText:'Fictional daily reading'});
+ await source.getByRole('button',{name:/^Add one to/}).click();
+ await expect(source.locator('.habit-count strong')).toHaveText('1');
+ await page.goto('/app');
+ await expect(item).toContainText('1 pages');
+ await expect(card).toContainText('1 pages');
+ await page.reload();
+ await expect(item).toContainText('1 pages');
+ await expect(card).toContainText('1 pages');
+});

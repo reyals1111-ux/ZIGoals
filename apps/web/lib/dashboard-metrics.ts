@@ -9,9 +9,11 @@ import {dailyData,waterSummary} from './health-daily';
 import type {MarketQuote} from './market-quotes';
 import {formatExactNumber} from './visual-format';
 import {WIDGET_CATALOG,type DashboardWidget} from './dashboard-settings';
+import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
+import {nutritionDashboard} from './life-intelligence';
 export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string};
 export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean;facts?:{label:string;value:string}[]};
-const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary'};
+const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',history:'30-day nutrition rhythm','history-USD':'Recorded USD wealth','history-EUR':'Recorded EUR wealth',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary'};
 export const widgetMetricLabel=(metric:string)=>labels[metric]??metric;
 export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
@@ -37,10 +39,12 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   if(widget.metric==='macros')return {...common,value:summary.entries?`${(summary.nutrients.proteinMg/1000).toLocaleString()} g protein`:'No meals recorded',detail:summary.entries?`${(summary.nutrients.carbsMg/1000).toLocaleString()} g carbs · ${(summary.nutrients.fatMg/1000).toLocaleString()} g fat`:'Log a meal to start your day.'};
   if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate);return {...common,value:water.entries?`${water.millilitres.toLocaleString()} mL`:'No water recorded',detail:water.targetMl?`Personal target ${water.targetMl.toLocaleString()} mL · ${s.healthDate}`:`${s.healthDate} · no target set`};}
   if(widget.metric==='weight'){const latest=s.health.weights.filter(w=>w.date<=s.healthDate).sort((a,b)=>b.date.localeCompare(a.date))[0],unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${(latest.grams/(unit==='lb'?453.59237:1000)).toLocaleString(undefined,{maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?`${latest.date} · manual measurement`:'Record a measurement when you choose.'};}
+  if(widget.metric==='history'){const rhythm=nutritionDashboard(s.health,s.healthDate);return {...common,title:widget.title||'Your nutrition rhythm',value:rhythm.averageKcal===null?'No logged days':`${rhythm.averageKcal.toLocaleString()} kcal`,detail:`${rhythm.loggedDays} of 30 days with entries · average per logged day`,href:'/app/health#nutrition-history'};}
   const recorded=s.health.activity.some(a=>a.date===s.healthDate);return {...common,value:recorded?widget.metric==='steps'?`${summary.steps.toLocaleString()} steps`:`${summary.minutes.toLocaleString()} minutes`:'No activity recorded'};
  }
  if(widget.kind==='wealth'){
   const wealth=wealthOverview(s.platform,s.now,s.quotes),subtotal=wealth.subtotals.find(t=>t.currency===widget.metric),missing=wealth.rows.some(r=>r.value===undefined),stale=wealth.rows.some(r=>r.currency===widget.metric&&r.stale);
+  if(widget.metric.startsWith('history-')){const currency=widget.metric.slice('history-'.length),history=wealth.history.find(h=>h.currency===currency),latest=history?.points.at(-1);return {...defaults,title:widget.title||`Recorded ${currency} wealth`,value:latest?formatGoalAmount(formatUnits(latest.value,2),currency):'No complete history',detail:latest?`${history!.points.length} complete dated observations · latest ${latest.at.slice(0,10)}`:'Earlier values are not inferred from current holdings.',href:'/app/wealth#wealth-history'};}
   return {...defaults,title:widget.title||`Tracked Wealth · ${widget.metric}`,value:subtotal?formatGoalAmount(formatUnits(subtotal.value.toString(),2),widget.metric):'No recorded value',detail:'Known values only · currencies stay separate',href:'/app/wealth',warning:missing?'Valuation coverage is incomplete. Some assets have no value.':stale?'Includes stale evidence. Refresh or review values.':undefined};
  }
  if(widget.kind==='staking'||widget.kind==='allocation'){
@@ -62,6 +66,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const value=widget.metric==='value'?row.value===undefined?'Value unavailable':formatGoalAmount(formatUnits(row.value.toString(),2),row.currency!):`${formatExactNumber(formatUnits(widget.metric==='available'?row.balance.unallocated:position.quantity,position.decimals))} ${position.asset}`;
   return {...defaults,title:widget.title||position.providerId,value,detail:`${widgetMetricLabel(widget.metric)} · ${position.verification==='MANUAL'?'manual':'read-only observation'} · ${position.asset}`,href:`/app/wealth/asset/${encodeURIComponent(position.id)}`,warning:row.balance.deficit!=='0'?'Allocation exceeds the current balance. Review before allocating.':row.stale?'Saved observation needs refresh':widget.metric==='value'&&row.value===undefined?'A price or manual valuation is required.':undefined};
  }
+ if(widget.entity){const entry=directoryEntries.find(item=>item.id===widget.entity);if(!entry)return unavailable('/app/ecosystem','This ecosystem research record is unavailable. Choose another official directory entry.');return {...defaults,title:widget.title||entry.name,value:entry.category,detail:'Dated source research · no financial execution',href:`/app/ecosystem#project-${encodeURIComponent(entry.id)}`};}
  return {...defaults,title:widget.title||'Explore the ecosystem',value:'Discover projects',detail:'Research and official links · no financial execution',href:'/app/ecosystem'};
 }
 
