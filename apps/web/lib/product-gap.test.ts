@@ -35,7 +35,8 @@ it('never presents an entire manual holding valuation as an unavailable unit ref
 });
 it('Today preserves negative net funding and the true Reward Goal type',()=>{
  const goal=env.data.goals.find(g=>g.id==='9206')!;env.data.goals=env.data.goals.map(g=>({...g,pinned:g.id===goal.id}));env.data.contributions=[{id:'withdrawal-fixture',goalId:goal.id,goalScope:'private',quantity:'100000000',asset:'ZIG',decimals:6,direction:'OUT',occurredAt:'2026-09-21T10:00:00Z',provenance:'MANUAL_ATTRIBUTION',fundingMode:'HISTORY_ONLY'}];
- const element=html(createElement(TodayIntelligence));const panel=element.querySelector('[aria-label="Today financial intelligence"]')!;expect(panel.textContent).toContain('-100 ZIG net contributed');expect(panel.textContent).toContain('Reward Goal');expect(panel.textContent).not.toContain('Quantity Goal');
+ const sources={platform:env.data,goals:[],habits:emptyHabitData(),health:createEmptyHealth(),quotes:env.quotes,now:env.now,today:'2026-09-21',healthDate:'2026-09-21'};
+ const element=html(createElement(TodayIntelligence,{sources,habitsReady:true,healthReady:true,module:'attention'}));const panel=element.querySelector('[aria-label="Today financial intelligence"]')!;expect(panel.textContent).toContain('-100 ZIG net contributed');expect(panel.textContent).toContain('Reward Goal');expect(panel.textContent).not.toContain('Quantity Goal');
 });
 it('Showcase reward crypto has a distinct fictional row and never contaminates observed network totals',()=>{
  env.showcase=true;const element=html(createElement(PositionsView));const examples=element.querySelector('[aria-label="Showcase crypto reward examples"]');expect(examples?.textContent).toContain('ZIG reward reserve');expect(examples?.textContent).toContain('SHOWCASE DATA');expect(examples?.textContent).toContain('300000 ZIG');expect(element.querySelector('[aria-label="zigchain-1 observed totals"]')?.textContent).not.toContain('300000');

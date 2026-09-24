@@ -9,11 +9,11 @@ import {MOTION_PREFERENCE_KEY} from '../components/use-entrance';
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 beforeEach(()=>{localStorage.clear();sessionStorage.clear();vi.stubGlobal('matchMedia',vi.fn(()=>({matches:false})));});
 afterEach(()=>vi.unstubAllGlobals());
-it('reveals once per tab route, retains final semantic value and does not replay on refresh',async()=>{
+it('reveals once per mount, retains the final semantic value and replays on a new mount',async()=>{
  const element=document.createElement('div');let root=createRoot(element);await act(async()=>root.render(createElement(ProgressRing,{percent:45.2,identity:'goal-1'})));
  expect(element.firstElementChild?.getAttribute('data-entrance')).toBe('once');expect(element.firstElementChild?.getAttribute('aria-valuetext')).toContain('45.2%');
  await act(async()=>root.render(createElement(ProgressRing,{percent:65,identity:'goal-1'})));expect(element.textContent).toBe('65%');
- await act(async()=>root.unmount());root=createRoot(element);await act(async()=>root.render(createElement(ProgressRing,{percent:65,identity:'goal-1'})));expect(element.firstElementChild?.hasAttribute('data-entrance')).toBe(false);await act(async()=>root.unmount());
+ await act(async()=>root.unmount());root=createRoot(element);await act(async()=>root.render(createElement(ProgressRing,{percent:65,identity:'goal-1'})));expect(element.firstElementChild?.getAttribute('data-entrance')).toBe('once');await act(async()=>root.unmount());
 });
 it('keeps the exact slogan and suppresses motion for device preference',async()=>{
  vi.stubGlobal('matchMedia',vi.fn(()=>({matches:true})));const element=document.createElement('div'),root=createRoot(element);await act(async()=>root.render(createElement(OrbitSlogan)));
