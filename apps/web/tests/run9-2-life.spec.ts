@@ -12,7 +12,9 @@ test('Life dashboards use Showcase records and expose exact history and working 
   await page.goto('/app/health');
   await expect(page.getByRole('region', { name: 'Daily nutrition summary' })).toContainText('1,970');
   await expect(page.getByRole('region', { name: 'Daily nutrition summary' })).toContainText('230 kcal remaining');
-  await page.getByText('Explore nutrition patterns and exact history', { exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Nutrition patterns' })).toBeVisible();
+  await expect(page.locator('.health-summary + .nutrition-dashboard')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Nutrition history table', exact: true })).not.toBeVisible();
   await expect(page.getByRole('region', { name: 'Nutrition patterns' })).toContainText('Showcase example history');
   await page.getByText('View nutrition history table', { exact: true }).click();
   await expect(page.getByRole('table')).toContainText('1,970 kcal');
@@ -53,7 +55,6 @@ for (const width of [1440, 1024, 390, 320]) test(`Life pages recompose at ${widt
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (route === 'health') {
-      await page.getByText('Explore nutrition patterns and exact history', { exact: true }).click();
       await expect(page.locator('.nutrition-dashboard')).toBeVisible();
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.locator('.nutrition-dashboard').screenshot({ path: `/tmp/zigoals-run92-nutrition-module-${width}.png` });

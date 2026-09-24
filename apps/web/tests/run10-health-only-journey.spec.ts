@@ -81,8 +81,9 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   const origin = new URL(page.url()).origin;
   const forbidden = requests.filter(request => {
     const url = new URL(request.url);
+    const localDevHmr = request.type === 'websocket' && url.host === new URL(origin).host && url.pathname === '/_next/hmr';
     return /\/api\/(?:market|wallet|finance|price|staking|transaction|rpc|chain)/i.test(url.pathname)
-      || (url.origin !== origin && ['fetch', 'xhr', 'websocket'].includes(request.type));
+      || (!localDevHmr && url.origin !== origin && ['fetch', 'xhr', 'websocket'].includes(request.type));
   });
   await info.attach('journey-request-audit', { body: JSON.stringify({ requests, forbidden }, null, 2), contentType: 'application/json' });
   expect(forbidden, 'Health-only must not request market, wallet, financial or external data').toEqual([]);
