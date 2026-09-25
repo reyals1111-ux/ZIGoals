@@ -14,6 +14,21 @@
     {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 30, "project": "desktop", "title": "Quick Add keyboard, repeatable asset intent, Goal chooser and history-only contribution", "assertion": "shared loadShowcase expected text 5 active Goals", "cause_group": "accepted snapshot copy and count presentation changed"},
     {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 36, "project": "desktop", "title": "Market search and favourites keep ownership independent, and blocked images retain identities", "assertion": "shared loadShowcase expected text 5 active Goals", "cause_group": "accepted snapshot copy and count presentation changed"}
   ],
-  "after": null,
-  "remaining": "Diagnostic stopped after five failures; other planned tests, including mobile, were not evaluated."
+  "after": {
+    "focused_source": "3fc43b98d372c6f9831be2f2db60d52f02f1897a",
+    "focused_counts": {"planned": 34, "passed": 30, "failed": 4, "skipped": 0, "not_run": 0, "interrupted": 0},
+    "focused_result": "Original Goal lifecycle and three Showcase failures passed on desktop and mobile. Two Noble checks needed correction to retain the informational website link. Two 320px text-size checks exposed a distinct remaining group.",
+    "full_source": "2c720bc3f75f3436ae4a7fb79c5a936ebddecf2f",
+    "full_run_directory": ".superpowers/pre11b-browser/2026-09-25T20-44-37-870Z-52495",
+    "full_counts": {"planned": 358, "passed": 338, "failed": 4, "skipped": 16, "not_run": 0, "interrupted": 0},
+    "full_result": "Original five failures did not recur; Noble passed. Two additional visual-v21 tests failed on old Today placement/copy and two 320px text-size checks failed.",
+    "visual_fix_source": "1edb0373a14a31ccd533e803c75ab6b86d5117ab",
+    "visual_fix_run_directory": ".superpowers/pre11b-browser/2026-09-25T20-50-40-410Z-54019",
+    "visual_fix_counts": {"planned": 2, "passed": 2, "failed": 0, "skipped": 0, "not_run": 0, "interrupted": 0}
+  },
+  "remaining": [
+    {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 40, "project": "desktop", "title": "Product composition and exact two-line slogan at 320px", "assertion": "At /app, four captions measure 13.44px against a 14px functional-text floor: completed progress, natural schedule, meals/date and known values.", "status": "unrepaired fourth cause group; accepted UI requires separate design review"},
+    {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 40, "project": "mobile", "title": "Product composition and exact two-line slogan at 320px", "assertion": "Same four 13.44px captions at /app.", "status": "unrepaired fourth cause group; accepted UI requires separate design review"}
+  ],
+  "limits": "The last complete run was at 2c720bc; visual-v21 was fixed and rerun on both projects at 1edb037. A complete run at the latter source and hosted Linux CI remain open."
 }
