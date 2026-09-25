@@ -1,0 +1,19 @@
+{
+  "status": "diagnostic_partial",
+  "source": "4df2a9c927e93770ad62dd96d47b26ab9a3dfb43",
+  "runtime": "Node 24.19.0; pnpm 11.19.0; Playwright 1.58.2",
+  "host": "Darwin 25.6.0 arm64; Google Chrome 153.0.8010.53",
+  "environment": "PUBLIC_ALPHA_UNDEPLOYED, production build, owned localhost server, desktop and mobile projects planned, two workers, zero retries, five-failure diagnostic cap",
+  "run_directory": ".superpowers/pre11b-browser/2026-09-25T20-35-32-554Z-50960",
+  "counts": {"planned": 358, "passed": 142, "failed": 5, "skipped": 8, "not_run": 202, "interrupted": 1},
+  "server_errors": 0,
+  "failures": [
+    {"file": "apps/web/tests/ecosystem.spec.ts", "line": 3, "project": "desktop", "title": "ecosystem research is readable without connecting a wallet", "assertion": "Noble card expected zero buttons; actual one", "cause_group": "card options button now exists outside the external action area"},
+    {"file": "apps/web/tests/public-alpha.spec.ts", "line": 89, "project": "desktop", "title": "private lifecycle, backup, diagnostics and connection remain bounded under production CSP", "assertion": "selectOption(Category / artwork) timed out on current radio tiles", "cause_group": "goal category control changed from select to optional radio tiles"},
+    {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 10, "project": "desktop", "title": "Showcase journey: populated product, explicit history, reset and byte-exact return to normal data", "assertion": "expected text 5 active Goals; current snapshot renders separate count 5 and Destinations in motion", "cause_group": "accepted snapshot copy and count presentation changed"},
+    {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 30, "project": "desktop", "title": "Quick Add keyboard, repeatable asset intent, Goal chooser and history-only contribution", "assertion": "shared loadShowcase expected text 5 active Goals", "cause_group": "accepted snapshot copy and count presentation changed"},
+    {"file": "apps/web/tests/run9-2-product.spec.ts", "line": 36, "project": "desktop", "title": "Market search and favourites keep ownership independent, and blocked images retain identities", "assertion": "shared loadShowcase expected text 5 active Goals", "cause_group": "accepted snapshot copy and count presentation changed"}
+  ],
+  "after": null,
+  "remaining": "Diagnostic stopped after five failures; other planned tests, including mobile, were not evaluated."
+}

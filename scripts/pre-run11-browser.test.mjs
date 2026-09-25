@@ -13,13 +13,17 @@ test('counts planned, passed, failed, skipped, not-run and interrupted separatel
  const actual=doc([
   spec('passed','desktop','expected',[{status:'passed'}]),
   spec('failed','desktop','unexpected',[{status:'failed',error:{message:'Expected visible',stack:'at example.spec.ts:4'}}]),
-  spec('explicit skip','mobile','skipped',[],'skipped'),spec('not run','mobile','skipped'),
+  spec('explicit skip','mobile','skipped',[{status:'skipped'}],'skipped'),spec('not run','mobile','skipped'),
   spec('interrupted','desktop','unexpected',[{status:'interrupted'}]),
  ]);
  const r=summarizePlaywright(planned,actual,{exitCode:1});
  assert.deepEqual(r.counts,{planned:5,passed:1,failed:1,skipped:1,not_run:1,interrupted:1});
  assert.deepEqual(r.failures.map(x=>[x.file,x.title,x.project,x.message]),[['example.spec.ts','failed','desktop','Expected visible']]);
  assert.equal(r.complete,false);
+});
+test('a planned skip never reached after max failures counts as not-run',()=>{
+ const r=summarizePlaywright(doc([spec('later opt-in','mobile','skipped',[],'skipped')]),doc([spec('later opt-in','mobile','skipped',[],'skipped')]),{exitCode:1});
+ assert.deepEqual(r.counts,{planned:1,passed:0,failed:0,skipped:0,not_run:1,interrupted:0});
 });
 test('missing final JSON is an interrupted run, not a pass',()=>{
  const r=summarizePlaywright(doc([spec('one','desktop','skipped')]),null,{exitCode:143});

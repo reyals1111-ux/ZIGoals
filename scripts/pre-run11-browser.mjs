@@ -18,7 +18,7 @@ export function summarizePlaywright(plan,actual,{exitCode}){
  if(!actual){counts.interrupted=expected.length;return {counts,failures,complete:false,exitCode};}
  const found=new Map(allTests(actual).map(t=>[t.id,t]));
  for(const item of expected){const test=found.get(item.id);
-  if(!test||test.results.length===0){if(item.expectedStatus==='skipped'||test?.expectedStatus==='skipped')counts.skipped++;else counts.not_run++;continue;}
+  if(!test||test.results.length===0){counts.not_run++;continue;}
   const last=test.results.at(-1),state=last?.status;
   if(state==='interrupted'){counts.interrupted++;continue;}
   if(test.status==='expected'&&state==='passed'){counts.passed++;continue;}
