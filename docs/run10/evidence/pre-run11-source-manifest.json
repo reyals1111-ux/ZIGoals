@@ -1,0 +1,15 @@
+{
+  "source_commit": "901e2a6600fb8292b7956717d45341f050fd377c",
+  "archive": ".superpowers/pre-run11-recovery/source-901e2a6.tar.gz",
+  "archive_sha256": "641102eeeba4b19b7f011b3188d8e285bc3d285bd39c08949068b4f903913391",
+  "source_only": true,
+  "tracked_tar_entries": 1346,
+  "archive_listing": "PASS",
+  "extracted_source_comparison": "PASS",
+  "compared_paths": [
+    "docs/run10/OWNER_ACTIVATION.md",
+    "docs/run10/REQUIREMENTS.json",
+    "apps/web/lib/vault/database.ts"
+  ],
+  "owner_private_data_included": false
+}
