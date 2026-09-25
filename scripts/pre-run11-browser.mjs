@@ -50,7 +50,7 @@ async function main(){
  const dir=resolve(root,'.superpowers/pre11b-browser',runId);mkdirSync(dir,{recursive:true});
  const port=await freePort(),env=ownEnv({PLAYWRIGHT_BASE_URL:`http://127.0.0.1:${port}`,PLAYWRIGHT_JSON_OUTPUT_FILE:resolve(dir,'result.json')});
  const baseArgs=[runner,'test',...filters,'--workers=2','--retries=0'];
- const plan=await run(process.execPath,[...baseArgs,'--list','--reporter=json'],{env,log:resolve(dir,'plan.json'),timeoutMs:60000});
+ const plan=await run(process.execPath,[...baseArgs,'--list','--reporter=json'],{env:{...env,PLAYWRIGHT_JSON_OUTPUT_FILE:resolve(dir,'plan.json')},log:resolve(dir,'plan.log'),timeoutMs:60000});
  if(plan.exitCode!==0){console.error('PLAN_FAILED '+dir);process.exitCode=plan.exitCode;return;}
  const planned=JSON.parse(readFileSync(resolve(dir,'plan.json'),'utf8'));allTests(planned);
  console.log(`BROWSER_RUN ${mode} source=${sha} os=${process.platform}/${process.arch} port=${port} dir=${dir}`);
