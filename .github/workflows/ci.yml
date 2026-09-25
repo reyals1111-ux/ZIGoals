@@ -33,12 +33,24 @@ jobs:
       - run: pnpm audit --prod --audit-level high
       - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
-      - run: |
+      - env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: /tmp/zigoals-web-results.json
+        run: |
           for n in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --reporter=line,json --output=/tmp/zigoals-web-results
+      - name: Retain fixture-only browser failures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web-browser-${{ github.sha }}
+          path: |
+            /tmp/zigoals-web-results.json
+            /tmp/zigoals-web-results/
+          if-no-files-found: warn
+          retention-days: 7
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
       - run: pnpm --filter @zigoals/web preview:alpha > /tmp/zigoals-alpha.log 2>&1 &
