@@ -19,13 +19,14 @@ export const targetsSchema = z.strictObject({
   weightGrams: bodyGrams.nullable(), steps: integer(1_000_000, 1).nullable(),
 });
 export type HealthTargets = z.infer<typeof targetsSchema>;
-export const foodSchema = z.strictObject({ id: localId, name, brand: z.string().trim().max(80), servingGrams: grams, nutrients: nutritionSchema, createdAt: stamp, updatedAt: stamp });
+const provenanceSchema=z.strictObject({provider:z.literal("Open Food Facts"),barcode:z.string().regex(/^\d{8,14}$/),apiVersion:z.literal("3.4"),observedAt:stamp,license:z.literal("ODbL-1.0 / DbCL-1.0")});
+export const foodSchema = z.strictObject({ id: localId, name, brand: z.string().trim().max(80), servingGrams: grams, nutrients: nutritionSchema, provenance:provenanceSchema.optional(), createdAt: stamp, updatedAt: stamp });
 export type HealthFood = z.infer<typeof foodSchema>;
-const snapshotSchema = z.strictObject({ name, servingGrams: grams, nutrients: nutritionSchema });
+const snapshotSchema = z.strictObject({ name, servingGrams: grams, nutrients: nutritionSchema, provenance:provenanceSchema.optional() });
 const ingredientSchema = z.strictObject({ foodId: localId, snapshot: snapshotSchema, quantityMilli: quantity });
 export const recipeSchema = z.strictObject({ id: localId, name, portionsMilli: quantity, ingredients: z.array(ingredientSchema).min(1).max(100), createdAt: stamp, updatedAt: stamp });
 export type HealthRecipe = z.infer<typeof recipeSchema>;
-const diarySchema = z.strictObject({ id: localId, sourceId: localId, sourceKind: z.enum(["food", "recipe"]), snapshot: snapshotSchema, date: healthDateSchema, meal: z.enum(HEALTH_MEALS), quantityMilli: quantity, createdAt: stamp, updatedAt: stamp });
+export const diarySchema = z.strictObject({ id: localId, sourceId: localId, sourceKind: z.enum(["food", "recipe"]), snapshot: snapshotSchema, date: healthDateSchema, meal: z.enum(HEALTH_MEALS), quantityMilli: quantity, createdAt: stamp, updatedAt: stamp });
 export type HealthDiaryEntry = z.infer<typeof diarySchema>;
 const weightSchema = z.strictObject({ id: localId, date: healthDateSchema, grams: bodyGrams, createdAt: stamp, updatedAt: stamp });
 export type HealthWeight = z.infer<typeof weightSchema>;
@@ -54,13 +55,36 @@ export function recipeServingGrams(recipe: HealthRecipe): number {
   return grams.parse(roundedRatio(recipe.ingredients.reduce((total, item) => total + BigInt(item.snapshot.servingGrams) * BigInt(item.quantityMilli), 0n), BigInt(recipe.portionsMilli)));
 }
 
+export const healthTimezoneSchema = z.string().min(1).max(100).refine(value => {
+  try { new Intl.DateTimeFormat("en", { timeZone: value }).format(); return true; } catch { return false; }
+}, "Choose a valid IANA timezone, for example Europe/Brussels.");
+export const mealItemSchema = diarySchema.pick({ sourceId: true, sourceKind: true, snapshot: true, quantityMilli: true }).extend({
+  // Ingredient evidence is captured only when known, never reconstructed from an edited recipe.
+  groceries: z.array(z.strictObject({ foodId: localId, name, grams: z.number().finite().positive().max(100_000_000), basis: z.string().max(2000) })).max(100).optional(),
+});
+export const savedMealSchema = z.strictObject({ id: localId, name, items: z.array(mealItemSchema).min(1).max(100), createdAt: stamp });
+export const mealPlanSchema = z.strictObject({ id: localId, savedMealId: localId, name, date: healthDateSchema, meal: z.enum(HEALTH_MEALS), items: z.array(mealItemSchema).min(1).max(100), createdAt: stamp, loggedAt: stamp.optional() });
+export const waterSchema = z.strictObject({ id: localId, date: healthDateSchema, amountMilli: integer(10_000_000, 1), unit: z.enum(["ml", "fl-oz-us"]), createdAt: stamp, updatedAt: stamp });
+export const healthDailySchema = z.strictObject({
+  version: z.literal(1),
+  favorites: z.array(z.strictObject({ sourceId: localId, sourceKind: z.enum(["food", "recipe"]) })).max(1500),
+  savedMeals: z.array(savedMealSchema).max(500), plans: z.array(mealPlanSchema).max(5000),
+  water: z.array(waterSchema).max(20_000), waterOperations: z.array(localId).max(30_000), copyOperations: z.array(localId).max(20_000),
+  preferences: z.strictObject({ timezone: healthTimezoneSchema.nullable(), waterUnit: z.enum(["ml", "fl-oz-us"]), waterTargetMl: integer(100_000, 1).nullable(), weightUnit: z.enum(["kg", "lb"]) }),
+  groceryNotes: z.string().max(10_000),
+});
+export type HealthDaily = z.infer<typeof healthDailySchema>;
+export type SavedMeal = z.infer<typeof savedMealSchema>;
+export type MealItem = z.infer<typeof mealItemSchema>;
+export type WaterEntry = z.infer<typeof waterSchema>;
+
 export const healthSchema = z.strictObject({
-  schemaVersion: z.literal(1), kind: z.literal("zigoals-health"), targets: targetsSchema,
+  schemaVersion: z.literal(1), kind: z.literal("zigoals-health"), targets: targetsSchema, daily: healthDailySchema.optional(),
   foods: z.array(foodSchema).max(1000), recipes: z.array(recipeSchema).max(500),
   diary: z.array(diarySchema).max(10_000), weights: z.array(weightSchema).max(5000), activity: z.array(activitySchema).max(10_000),
 }).superRefine((data, ctx) => {
   const ids = new Set<string>();
-  for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity]) {
+  for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity, data.daily?.water ?? [], data.daily?.savedMeals ?? [], data.daily?.plans ?? []]) {
     for (const item of list) {
       if (ids.has(item.id)) ctx.addIssue({ code: "custom", message: "Duplicate health record ID." });
       ids.add(item.id);
@@ -74,6 +98,12 @@ export const healthSchema = z.strictObject({
   try {
     for (const recipe of data.recipes) { recipeNutrition(recipe); recipeServingGrams(recipe); }
     for (const entry of data.diary) scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli);
+    for (const meal of [...(data.daily?.savedMeals ?? []), ...(data.daily?.plans ?? [])]) {
+      for (const entry of meal.items) scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli);
+    }
+    for (const list of [data.daily?.waterOperations ?? [], data.daily?.copyOperations ?? []]) {
+      if (new Set(list).size !== list.length) throw Error("Duplicate operation.");
+    }
   } catch { ctx.addIssue({ code: "custom", message: "Nutrition or serving totals exceed the supported range." }); }
 });
 export type HealthData = z.infer<typeof healthSchema>;
@@ -111,7 +141,7 @@ export function saveRecipe(data: HealthData, draft: RecipeDraft, at: string): He
   const recipe: HealthRecipe = { id: parsed.id, name: parsed.name, portionsMilli: parsed.portionsMilli, ingredients: parsed.items.map(item => {
     const food = data.foods.find(f => f.id === item.foodId);
     if (!food) throw new Error("A recipe ingredient is no longer in your food library. Choose it again.");
-    return { foodId: food.id, quantityMilli: item.quantityMilli, snapshot: { name: food.name, servingGrams: food.servingGrams, nutrients: { ...food.nutrients } } };
+    return { foodId: food.id, quantityMilli: item.quantityMilli, snapshot: { name: food.name, servingGrams: food.servingGrams, nutrients: { ...food.nutrients }, ...(food.provenance?{provenance:food.provenance}:{}) } };
   }), createdAt: old?.createdAt ?? at, updatedAt: at };
   return healthSchema.parse({ ...data, recipes: upsert(data.recipes, recipe) });
 }
@@ -122,7 +152,7 @@ export function logHealthItem(data: HealthData, draft: HealthLogDraft, at: strin
   const parsed = logDraftSchema.parse(draft);
   const source = parsed.sourceKind === "food" ? data.foods.find(f => f.id === parsed.sourceId) : data.recipes.find(r => r.id === parsed.sourceId);
   if (!source) throw new Error("This food or recipe is no longer available. Choose it again.");
-  const snapshot = "ingredients" in source ? { name: source.name, servingGrams: recipeServingGrams(source), nutrients: recipeNutrition(source) } : { name: source.name, servingGrams: source.servingGrams, nutrients: { ...source.nutrients } };
+  const snapshot = "ingredients" in source ? { name: source.name, servingGrams: recipeServingGrams(source), nutrients: recipeNutrition(source) } : { name: source.name, servingGrams: source.servingGrams, nutrients: { ...source.nutrients }, ...(source.provenance?{provenance:source.provenance}:{}) };
   return healthSchema.parse({ ...data, diary: [...data.diary, { ...parsed, snapshot, createdAt: at, updatedAt: at }] });
 }
 const diaryEditSchema = diarySchema.pick({ date: true, meal: true, quantityMilli: true });

@@ -1,3 +1,11 @@
+# Actual Run #10 — PARTIAL, DRAFT PR #20
+
+The authoritative expanded Run10 is implemented in part on `codex/run10-beta-reliability-foundation`; it is not merged or deployed. Local four-domain encrypted continuity, Health/Habit/financial/UI work and canonical CI improvements have concrete evidence. Account/domain deletion, key rotation, incremental sync/conflict UI, larger-history and several integrated journeys remain incomplete. Hosted email/backend and physical acceptance are separately unconfigured.
+
+See [current report](run10/FINAL_REPORT.md), [full ledger](run10/REQUIREMENTS.json), [verification](run10/VERIFICATION.md), [blockers](run10/BLOCKERS.md) and [exact resume](run10/RESUME_STATE.md). Earlier Run11/12 scheduling exclusions and open sync decisions are superseded by [the preserved authoritative brief](run10/MASTER_PROMPT.md); required gaps remain inside Run10. The deployed Alpha and financial-execution gates are unchanged.
+
+---
+
 # Run #9.2 — MERGED + PUBLIC ALPHA LIVE
 
 Run #9.2 is merged and publicly hosted on the owner-controlled Alpha. PR #17 delivered Goal Intelligence, Live Wealth, Markets, Showcase, Funding Wealth, Today, Activity, Habits/Health productization and the final consumer visual system. PR #18 added the protected CoinGecko runtime-secret publication boundary. The release-closure source adds a native-ZIG CoinGecko token-address fallback and updates the deployment smoke from the obsolete V2.1 hero to the Run #9.2 surface.
@@ -8,7 +16,9 @@ An isolated Showcase now fills Goals, Wealth, Markets, Habits, Health and Activi
 
 See [Run #9.2 report](RUN_9_2_REPORT.md), [complete deliverables](RUN_9_2_DELIVERABLES.md), [verification](verification/run9-2/README.md) and [remaining Beta backlog](RUN_9_1_BETA_BACKLOG.md). The Run #9/#9.1/#9.2 product line is now merged into `main` and hosted on Public Alpha. Exact deployment source/version and rollback evidence are retained by the owner-approved Manual Alpha workflow.
 
-Current published source is `702762d079be1f74536219c027c4d267bfd33fc0`, Worker `cca2b972-3b40-47a6-affe-1249fe260465`; the narrow release-closure patch still awaits its own merge and owner-approved deployment. See [exact release evidence](verification/run9-2-release/README.md).
+Final Run #9.2 closure PR #19 is merged and deployed. Reviewed closure head: `2a9deead68ddd187b13f0505319cf0962f97adff`; deployed main: `95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90`. Deployment [35702856008](https://github.com/reyals1111-ux/ZIGoals/actions/runs/35702856008): **SUCCESS / VERIFIED**, deployment/security smoke **11 / 11 PASS**. Live Worker: `768673e8-9d39-4022-b1c0-fdd805fa2318`; preserved rollback: `cca2b972-3b40-47a6-affe-1249fe260465`. See [exact release evidence](verification/run9-2-release/README.md).
+
+Separate immediate market acceptance recorded native ZIG quote 503, Bitcoin quote 200 / VERIFIED, catalog 503 and Bitcoin history 503. Subsequent Run #10.0 cloud testing was BLOCKED by HTTP 403 / Cloudflare Error 1010 / access_denied. The original live market incident remains **UNCONFIRMED**; runner access denial is not provider-failure evidence and does not undo successful deployment/security verification. [Run #10 master plan](RUN_10_BETA_RELIABILITY_MASTER_PLAN.md) defines the reliability foundation and remaining owner decisions; documentation correction does not require a deployment.
 
 ---
 

@@ -1,0 +1,6 @@
+{
+ "name":"zigoals-food-lookup-local","main":"worker.mjs","compatibility_date":"2026-09-13","workers_dev":false,
+ "durable_objects":{"bindings":[{"name":"FOOD_BUDGET","class_name":"FoodBudget"}]},
+ "migrations":[{"tag":"v1","new_sqlite_classes":["FoodBudget"]}],
+ "observability":{"enabled":false}
+}

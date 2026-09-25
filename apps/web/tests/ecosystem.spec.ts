@@ -4,11 +4,12 @@ test("ecosystem research is readable without connecting a wallet", async ({ page
   const errors: string[] = [];
   page.on("pageerror", error=>errors.push(error.message));
   await page.goto("/app");
-  await page.getByRole("link", { name: "Explore the ZIGChain ecosystem →" }).click();
-  await expect(page.getByRole("heading", { name: "Built to work together." })).toBeVisible();
+  await page.getByRole("navigation", {name:"Main navigation"}).getByRole("link", { name: "Ecosystem", exact:true }).click();
+  await expect(page.getByRole("heading", { name: "Explore the ZIGChain ecosystem." })).toBeVisible();
+  await page.locator(".ecosystem-tools > summary").click();
   await expect(page.getByRole("link", { name: "Open Range testnet ↗" })).toHaveAttribute("href", "https://app.range.org/zigchain-testnet/general");
   await expect(page.getByRole("link", { name: "Open ZIGScan testnet ↗" })).toHaveAttribute("href", "https://testnet.zigscan.org/");
-  const noble = page.locator("details").filter({has:page.locator("summary", {hasText:"Noble"})});
+  const noble = page.locator(".ecosystem-project").filter({has:page.getByRole("heading",{name:"Noble",exact:true})});
   await noble.locator("summary").click();
   await expect(noble).toContainText("sunset");
   await expect(noble.getByRole("button")).toHaveCount(0);

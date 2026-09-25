@@ -5,11 +5,11 @@ import { habitDataSchema } from "../lib/habits";
 import { usePlatform } from "./platform/use-platform";
 import { platformSchema } from "../lib/positions";
 import { healthSchema } from "../lib/health";
-import { parsePrivateData, PRIVATE_MAX_BYTES } from "../lib/private-storage";
+
 import { useHabits } from "./habits/use-habits";
 import { useHealth } from "./health/use-health";
 
-type BackupStore = { loaded: boolean; error: string; exportData: () => string; importData: (raw: string) => Promise<void>; refresh: () => void };
+type BackupStore = { importLimit:number; loaded: boolean; error: string; exportData: () => Promise<string>; importData: (raw: string) => Promise<void>; refresh: () => void };
 function ModuleBackup<T>({ name, schema, store, describe }: { name: string; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string }) {
   const [raw, setRaw] = useState("");
   const [summary, setSummary] = useState("");
@@ -18,9 +18,9 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const selection = useRef(0);
-  function download() {
+  async function download() {
     try {
-      const url = URL.createObjectURL(new Blob([store.exportData()], { type: "application/json" }));
+      const url = URL.createObjectURL(new Blob([await store.exportData()], { type: "application/json" }));
       const anchor = document.createElement("a");
       anchor.href = url; anchor.download = name === "Health" ? "zigoals-health-v1.json" : `zigoals-${name.toLowerCase()}-backup.json`;
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -32,12 +32,13 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
     setRaw(""); setSummary(""); setConfirmed(false); setError(""); setMessage("");
     if (!file) return;
     try {
-      if (file.size > PRIVATE_MAX_BYTES) throw Error();
+      if (file.size > store.importLimit) throw Error();
       const text = await file.text();
-      const data = parsePrivateData(text, schema);
+      if(new TextEncoder().encode(text).length>store.importLimit)throw Error();
+      const data = schema.parse(JSON.parse(text));
       if (current !== selection.current) return;
       setRaw(text); setSummary(describe(data));
-    } catch { if (current === selection.current) setError("Choose a valid supported backup for this module, under 2 MB. Existing data was not changed."); }
+    } catch { if (current === selection.current) setError(`Choose a valid supported backup for this module, under ${store.importLimit/1_000_000} MB. Existing data was not changed.`); }
   }
   async function restore() {
     if (!confirmed || !raw || busy) return;
@@ -52,7 +53,7 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
   return <section className="panel module-backup" aria-label={`${name} backup`}>
     <p className="eyebrow">{name.toUpperCase()} · PRIVATE BROWSER DATA</p><h3>{name} backup</h3>
     <p>Export all {name.toLowerCase()} records, including history. These files contain personal information and no wallet credentials.</p>
-    {store.error && <p className="notice">Stored data needs attention. Export its original bytes before restoring. <button className="text-link" onClick={store.refresh}>Retry reading</button></p>}
+    {store.error && <p className="notice">Stored data needs attention. Export its available stored data before restoring. If the database cannot be read, keep it intact and use a separate protected backup. <button className="text-link" onClick={store.refresh}>Retry reading</button></p>}
     <button className="secondary" disabled={!store.loaded || busy} onClick={download}>Export {name}</button>
     <details className="backup-restore"><summary>Restore {name} from a file</summary><p className="fine">This replaces this module only. Export a separate copy first. Other modules are kept.</p>
       <label>Choose {name} backup<input type="file" accept="application/json,.json" disabled={busy} onChange={event => void selectFile(event.target.files?.[0])}/></label>

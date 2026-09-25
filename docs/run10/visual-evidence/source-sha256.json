@@ -1,0 +1,21 @@
+{
+  "apps/web/lib/visual-format.ts": "439d0882afb9326495219c7b5b6cf4e63321f9bdf68ead9240602dca14086914",
+  "apps/web/lib/goal-summary.ts": "18f3f3c823093cc57c4677a076218fd851fa8e00b4c13413488f7937c746db9f",
+  "apps/web/components/goal-card.tsx": "4e240a1654eda47e345a3fa162d756cbda80476c3e0c432604674266d712de5b",
+  "apps/web/components/platform/financial-ui.tsx": "43151d79041176c75fea4d23a43f58376fba41efd1e1d36f0e0c0f1be560498f",
+  "apps/web/components/platform/financial-ui.css": "87eabb3a89aba7bfa2e50cd81010c154a415644a84b4db0321fae22cedc1c9c2",
+  "apps/web/components/platform/evidence-chart.tsx": "3f0dc5469408fad72eb300c021fb851c761d88c011d0c21a578679c2c19f8213",
+  "apps/web/components/platform/evidence-chart.css": "e37efdd554ddefd314b05fa9d2dfddbfdc929ec35c7f2692148186ca273dfcd1",
+  "apps/web/components/platform/price-chart.tsx": "95dc7e9d375a483d55c1f8be35a5cb5537bdff0688e2348360bf76ac625d95af",
+  "apps/web/components/platform/price-chart.css": "3f69759ee053fa8a5633dd2d8263c7f4f83957be2935cd1ba291082f7a43b002",
+  "apps/web/components/platform/goal-intelligence.tsx": "7783a365c46a040834fbb86e6da5b373337873f6411609dc3df2dfa4845727df",
+  "apps/web/components/use-entrance.ts": "10a50c23fbf3649c045f036ea4322b79c51ffc8c04919305415602966e053aef",
+  "apps/web/components/motion.css": "f7910da556812c6c5b2e42476d5cd5efdaea691967d44cdbb4a0f586ba7c941d",
+  "apps/web/components/motion-preference.tsx": "7850768823d190ec9b247ddef09f4068aee78e0290351a208797f3ffb3e11761",
+  "apps/web/components/orbit-slogan.tsx": "b9ef454271365a2334c954094e48b4aa9f82a0b41a42b82202ca027de05b94ee",
+  "apps/web/components/shell.tsx": "939b3b931a0ee3b5ec3a6f39044f0484dc4b8ef3c199e12bce41fc1eba120bf2",
+  "apps/web/components/navigation.css": "055f8699c013024b0d165c123a4ec5b39091798e147db0f0ec63dea3fb4012b5",
+  "apps/web/components/habits/habits.css": "6ca1e193cdefca8492dc6cb734b84ae043f321bf3df5d84e555d4a018bc5005b",
+  "apps/web/components/habits/habit-card.tsx": "f6a01a3480415edddf4fb175dbb0f0b70d3a5e5e5b46ed9a108d6ba978c397fa",
+  "apps/web/app/product-v2.css": "7d615e103109d4f8f7d5e31bc09f40525d60a4c0dc1937ab6ed5efc6e1d9b024"
+}

@@ -1,0 +1,1045 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-23T21:13:35.127055+00:00",
+  "scope": "VIS/UX/WID/ECO/MOB/SS requirements only; read-only reconciliation, no tests rerun and no main ledger or code edited.",
+  "source_requirements": "docs/run10/REQUIREMENTS.json",
+  "source_requirements_sha256": "8db930dacaa4ae53d17c658b5a9ed136588b84e82bedf93894078515181cfc90",
+  "status_note": "Suggestions for the integration owner, not owner acceptance, hosted activation or release. Recorded tests are evidence from the linked slice reports; newly integrated code is not promoted solely because a helper test exists.",
+  "requirements": [
+    {
+      "id": "UX-01",
+      "specification": "Run the current app in an isolated profile and inspect every route, main dialog and major interactive surface: landing, Today, Goals list/create/detail, Funding Wealth, Wealth, asset add/edit/detail, Markets/detail/favorites, Stake/Positions, Habits/history/editing, Health/diary/recipes/trends, Activity, Ecosystem, Settings, Showcase, wallet diagnostics and all new auth/sync/recovery screens. Build a route/control inventory recording purpose, visible state, expected action and present friction. Do not infer usability from component names alone.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 115
+      },
+      "implemented_subset": "Isolated local browser inspection and route-specific screenshots cover Today, Goals, shared charts/navigation, Health, Habits, ecosystem and account access; a page/API existence inventory is recorded.",
+      "precise_remaining": {
+        "mandatory_implementation": "A complete route/control inventory with purpose, visible state, expected action and friction does not exist; existence inventory is not the requested interaction audit.",
+        "verification_or_acceptance": "Landing, every asset/market editor, wallet diagnostics and the final auth/sync/recovery surfaces have not all been reconciled against a single inspection matrix."
+      },
+      "evidence_paths": [
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.md",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/INDEPENDENT_REVIEW.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Create the route/control inventory and inspect each unrecorded dialog and failure state in an isolated profile; attach concrete findings per control."
+    },
+    {
+      "id": "UX-02",
+      "specification": "Spend a bounded initial design pass comparing two or three credible directions using the established ZIGoals theme and owner screenshots. Select one with rationale, layout hierarchy, shared primitives and end-to-end journeys. Add up to several high-value improvements discovered by the audit, each with its own ID and acceptance. Do not endlessly generate alternatives, replace mandatory requirements with personal taste, or spend the run producing mockups instead of functioning UI.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 117
+      },
+      "implemented_subset": "DECISIONS records three directions and selection of a summary-first modular orbital workspace; implementation uses that hierarchy and the existing visual language.",
+      "precise_remaining": {
+        "mandatory_implementation": "No additional mandatory design feature identified; the plan remains a high-level workstream list rather than a complete recorded journey design.",
+        "verification_or_acceptance": "The bounded design pass and actual layout are recorded, but a full rationale tying each end-to-end journey to the direction is not evidenced."
+      },
+      "evidence_paths": [
+        "docs/run10/DECISIONS.md",
+        "docs/run10/IMPLEMENTATION_PLAN.md",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Finish the existing design record with hierarchy, shared primitive ownership and the already-selected journeys; do not restart visual exploration."
+    },
+    {
+      "id": "UX-03",
+      "specification": "Follow a first-time user from onboarding through first Goal/Habit/Health entry, dashboard customization, editing/correction, reload, phone–desktop sync and recovery. Follow a returning user through today's tasks, stale prices, unavailable network, an unfinished form and a second account. Test cancellation, double-clicks, back/forward navigation, keyboard entry and unsuccessful saves. Action outcomes must be understandable without technical project knowledge.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 119
+      },
+      "implemented_subset": "Recorded local journeys include widget editing/reload, all Goal types, Health logging/correction/backup, Habit rule/timer flows, account isolation and a fixture-auth two-profile Habit sync.",
+      "precise_remaining": {
+        "mandatory_implementation": "Unsaved-form preservation through navigation and a complete returning-user recovery path are not implemented consistently across the component-local forms.",
+        "verification_or_acceptance": "No single first-use through recovery journey covers all domains, failed writes, double-clicks, back/forward, second-account state, real email and physical phone/desktop."
+      },
+      "evidence_paths": [
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/HABIT_EVIDENCE.md",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Execute a combined fictional first-use/returning-user matrix after form-state handling; record hosted email and physical-device checks separately."
+    },
+    {
+      "id": "UX-04",
+      "specification": "Keep Funding Wealth as the current consumer term. Explain tracked/manual, watch-only, current value, contribution, recorded income, estimated scenario and unavailable evidence in context. Do not present APR as guaranteed return or a funding contribution. Put secondary explanation in accessible details rather than stacking every qualifier inside a tiny mobile row. Essential limitations remain adjacent to the metric they qualify, not hidden in a generic disclaimer.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 121
+      },
+      "implemented_subset": "Funding Wealth, manual/read-only provenance, illustrative staking APR, private-plan limitations and secondary Habit/ecosystem disclosures are present.",
+      "precise_remaining": {
+        "mandatory_implementation": "Consumer copy remains inconsistent: account and backup Settings still expose implementation terms and older local-demo wording; a uniform in-context vocabulary pass is incomplete.",
+        "verification_or_acceptance": "No complete route-by-route language audit is recorded."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/positions-view.tsx",
+        "apps/web/app/app/settings/page.tsx",
+        "apps/web/components/habits/habit-card.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Audit visible labels alongside their actual values/actions and replace misleading or unexplained technical wording without removing limitations."
+    },
+    {
+      "id": "UX-05",
+      "specification": "A new account, Health-only preset, single history observation, no wallet, unavailable logo, paused Habit and missing quote should all look intentional. Give each state an appropriate next action without manufacturing data. Showcase stays an optional, visibly fictional exploration mode. Never auto-populate a real account with demo balances, nutrition history or simulated investment returns to make the app appear complete.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 123
+      },
+      "implemented_subset": "Intentional first-observation, unknown quote, missing widget entity, paused Habit, Health-only and initials-logo states exist; Showcase and account namespaces remain separate and are not auto-populated.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed missing behavior in the inspected state implementations; remaining global coverage is not established.",
+        "verification_or_acceptance": "All requested empty/partial states have not been visually exercised together outside Showcase on each relevant route."
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/ecosystem-directory.tsx",
+        "apps/web/lib/account-isolation.test.ts",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Capture a new empty account, paused Habit, missing quote/logo and single observation in the same route/state checklist."
+    },
+    {
+      "id": "UX-06",
+      "specification": "The primary slogan remains two lines: `Today's Goals, Habits & Health` and `= Tomorrow's Wealth`. Keep `Today's Goals,` and `= Tomorrow's` bright/light; use the same continuous preferred nebula spectrum for `Habits & Health` and `Wealth`. Retain `Your Financial Orbit` as supporting identity and `The Goal Layer for ZIGChain` in appropriate ecosystem context. Do not reintroduce competing prominent slogans or the washed-out italic sidebar treatment.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 125
+      },
+      "implemented_subset": "Exact two-line slogan and light text portions remain; both emphasized portions use the same nebula spectrum. Supporting identity and ecosystem descriptor are retained; italic sidebar block removed.",
+      "precise_remaining": {
+        "mandatory_implementation": "None identified for this branding requirement.",
+        "verification_or_acceptance": "No unperformed functional acceptance identified; owner aesthetic acceptance remains separate from verification."
+      },
+      "evidence_paths": [
+        "apps/web/components/orbit-slogan.tsx",
+        "apps/web/components/platform/run92-product.css",
+        "apps/web/components/shell.tsx",
+        "apps/web/lib/run10-motion.test.ts",
+        "docs/run10/visual-evidence/run10-hero-1440.png"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Preserve the exact copy and palette during subsequent integration; obtain owner visual acceptance separately."
+    },
+    {
+      "id": "UX-07",
+      "specification": "Consolidate controls, form labels, validation, dialogs/drawers, tabs, state badges, numeric formatting, progress, chart legends, save/sync states and action spacing. Fix root layout problems rather than adding per-page absolute offsets. Reuse existing accessible primitives where possible; justify every new dependency against functionality, maintenance, license and bundle cost. Do not add a second full design library for one dropdown.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 127
+      },
+      "implemented_subset": "Shared exact-number formatting, progress, evidence charts, existing icons and scoped navigation/Habit layout fixes are reused; no second design library was added.",
+      "precise_remaining": {
+        "mandatory_implementation": "Forms and dialogs still use several independent implementations; local-save/sync status and validation placement are not a consolidated shared contract. The default ambient animation escapes the shared motion policy.",
+        "verification_or_acceptance": "Empty/error/large-data coverage does not span every shared control and route."
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/visual-format.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/motion.css"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Consolidate the remaining form/status/dialog contracts and include the hero background in the shared finite motion policy."
+    },
+    {
+      "id": "UX-08",
+      "specification": "Customization should reduce work, not create another complex editor users must learn. Default presets must be useful immediately, with progressive disclosure for advanced configuration. Critical data-integrity and sync failures cannot be hidden by a widget preference. Keep prominent actions few and contextual. Navigation should work for different interests without assuming a Health user needs staking or a wealth tracker wants nutrition prominently displayed.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 129
+      },
+      "implemented_subset": "Four useful presets and progressive widget customization exist; allocation integrity warnings render outside removable widgets; Health-only suppresses financial dashboard blocks and quote requests. Nonfinancial layouts now hide wallet/demo chrome; a non-removable shared shell status exposes account locking and sync attention without private detail.",
+      "precise_remaining": {
+        "mandatory_implementation": "Per-widget domain-specific consent/pending/conflict qualification remains incomplete; navigation itself remains the full shared route set.",
+        "verification_or_acceptance": "Daily-use acceptance across mixed interests, stale sync and missing constituents remains incomplete."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/shell.tsx",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Complete domain-specific widget qualification and daily-use acceptance across mixed interests."
+    },
+    {
+      "id": "SS-01",
+      "specification": "The reference ring shows `65.00%`; render `65%`, and render `45.00%` as `45%`. Use nearest-whole, half-up presentation for nonnegative progress: 0.49→0, 0.50→1, 0.51→1. Preserve exact stored values and calculations; do not round financial rates, quantities or prices by this rule. For a completion-style Goal below its real target, avoid a false completed-looking 100%: cap its whole-number label at 99 until actual completion, with exact detail available. A value that genuinely rounds to 0 can still have a small meaningful arc; missing data is an unavailable state, not zero. Fill clockwise from the top once on route entrance, with final accessible value immediately available and reduced-motion support. Test boundary, missing, negative where invalid, zero, complete and over-target cases.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 152
+      },
+      "implemented_subset": "Decimal half-up whole labels, below-target cap 99, exact accessible value, invalid/unavailable states and a finite clockwise-from-top ring are implemented.",
+      "precise_remaining": {
+        "mandatory_implementation": "None identified in the progress presentation contract.",
+        "verification_or_acceptance": "Boundary tests cover 0.49/0.50/0.51, invalid/missing/negative, zero, exact below-target, complete and over-target; recorded browser evidence covers the ring and settled state."
+      },
+      "evidence_paths": [
+        "apps/web/lib/visual-format.ts",
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/components/platform/financial-ui.css",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/lib/run10-motion.test.ts",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Retain exact semantic progress and the boundary regressions in integration."
+    },
+    {
+      "id": "SS-02",
+      "specification": "Fix mismatches between colored legend dots and the chart segments/bars they describe. Introduce a stable category/series style map shared by chart, legend, tooltip and accessible data table. Asset-category colors stay stable under sorting, filtering, reload and theme layout changes. Single-series progress can use the full nebula gradient; multi-category composition needs distinguishable corresponding colors/segments rather than every category sharing an indistinguishable rainbow. Preserve the owner-preferred Habits palette and readable labels. Display rounding may cause category labels not to total exactly 100; do not mutate the underlying proportions to hide this. Add cross-component tests and before/after screenshots.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 154
+      },
+      "implemented_subset": "Canonical ASSET_COLORS drives composition segments and Goal legends; single-series progress retains the nebula gradient; proportions come from canonical values.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed color-map defect in inspected components; full tooltip/table/category style propagation is not established across every consumer.",
+        "verification_or_acceptance": "Recorded tests compare ring/legend colors and numeric proportions, but not the entire sort/filter/reload/theme-change matrix requested."
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/components/goal-card.tsx",
+        "apps/web/lib/wealth.ts",
+        "apps/web/lib/wealth.test.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Add cross-component color stability cases under sort/filter/reload and inspect category labels in accessible detail."
+    },
+    {
+      "id": "SS-03",
+      "specification": "Remove Quick Add from the top wallet/connect bar so it no longer stretches that strip. Integrate it into a designed desktop sidebar/navigation action and a purposeful mobile action/navigation area, not a button pasted onto the dashboard background or covering content. Reuse working add flows and offer contextual choices where useful. Preserve keyboard shortcuts where present, focus return, Escape/cancel, accessible names, dialog scrolling, consumed URL intents and repeated same-page invocation. Ensure it never opens a financial signing action or modifies records merely by opening the chooser. Test with wallet disconnected/connected and on very narrow screens.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 156
+      },
+      "implemented_subset": "Quick Add is in sidebar/navigation, removed from wallet strip; mobile placement, safe chooser links, Contribution chooser, native dialog Escape/focus return and reopening are present.",
+      "precise_remaining": {
+        "mandatory_implementation": "No missing chooser behavior established in this review.",
+        "verification_or_acceptance": "Connected-wallet execution prohibition, every consumed URL intent and repeated same-page destination invocation are not all exercised by the shared visual suite."
+      },
+      "evidence_paths": [
+        "apps/web/components/shell.tsx",
+        "apps/web/components/navigation.css",
+        "apps/web/components/quick-add.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Run the chooser intent matrix in disconnected and connection-only wallet states at narrow width; verify opening alone creates no record or signing request."
+    },
+    {
+      "id": "SS-04",
+      "specification": "Replace the visually disconnected Goal-type native dropdown/plain-blanks experience with theme-consistent selection cards and progressive setup. Include meaningful type descriptions, category/artwork choices, a canonical asset/currency picker, understandable target/date/plan inputs, optional Habit links and a live summary/review. Show only relevant fields for Quantity, Value, Reward/Income and Project Goals. Native controls may remain where they provide better device accessibility, but must be coherently styled; custom pickers must work with keyboard, touch and assistive technology. Preserve exact units, validation, data schemas and local/watch-only distinctions. Creating a Goal never transfers funds. Test all types outside Showcase, not only a rendered example.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 158
+      },
+      "implemented_subset": "Goal type cards, progressive steps, category artwork, canonical saved asset selection plus source AssetPicker, currency, optional supporting Habit and live/review summaries are implemented.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed missing primary flow in the inspected wizard; broader canonical-picker polish remains noted in its slice evidence.",
+        "verification_or_acceptance": "Recorded tests cover real local creation types and validation, but complete keyboard/touch/assistive-technology review of picker, cancel and type-change paths is not established."
+      },
+      "evidence_paths": [
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/asset-picker.tsx",
+        "apps/web/tests/run10-goal-creator.spec.ts",
+        "apps/web/tests/unified-goals.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Finish keyboard and mobile picker review with all four Goal types and preserve source units/validation."
+    },
+    {
+      "id": "SS-05",
+      "specification": "Audit every page using the sparse large-dot history treatment and replace it with an appropriate line/area/step chart in the preferred nebula palette. Use actual observation times, provenance, gaps and units. Do not fabricate points, resample missing personal history into invented values, make every line smoothly rise, or imply a portfolio return from a market chart. Zero points gets an empty state; one point gets an attractive first-observation summary; two points show only the true endpoints and an explicitly illustrative connecting segment when suitable. Use point markers mainly for selection/hover if helpful. Keep exact-value accessible tables, suitable scales, readable date/value axes, currency separation and one-time draw-in motion.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 160
+      },
+      "implemented_subset": "Wealth/Goal/weight evidence charts and public price charts use real time coordinates, honest single/empty states, gaps, exact tables, small markers and cumulative steps where selected.",
+      "precise_remaining": {
+        "mandatory_implementation": "PriceChart explains fitted scale but has no numeric vertical-axis bounds/ticks; a complete audit of every sparse-chart caller is not recorded. EvidenceChart caller-specific stale/coverage semantics remain limited.",
+        "verification_or_acceptance": "No full per-page zero/one/two/sparse/stale series and currency/scale visual matrix; large-history performance is unverified."
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/components/platform/price-chart.tsx",
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/lib/run10-visuals.test.ts",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add readable price-axis bounds and inventory all chart callers with explicit provenance/stale/coverage states; inspect the sparse-state matrix."
+    },
+    {
+      "id": "SS-06",
+      "specification": "Reconcile the existing registry with current official ZIGChain ecosystem and individual official project sources. Build a dated coverage manifest, official logo/source records, concise attributed self-descriptions or sourced paraphrases, useful categories, filter/search, verified external website/app/docs links and informative detail cards. “ZIGChain ecosystem project” is not “ZIGoals partner”; “Research only” is not “integrated” or “audited.” Make external destinations usable while keeping execution disabled. Add appropriate contextual links such as Open OroSwap on financial surfaces and staking-provider discovery on Stake/Positions, with optional Today widgets rather than financial links imposed on Health-only users. Do not invent logos, affiliations, APYs or live capability claims. Unavailable assets get honest fallbacks.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 162
+      },
+      "implemented_subset": "Dated source manifest, attributed directory, filters, safe official actions, detailed capability/eligibility disclosures and execution-disabled labels are implemented.",
+      "precise_remaining": {
+        "mandatory_implementation": "Official logos are not acquired/sanitized; financial Open OroSwap and Stake/Positions provider discovery are absent. Today offers only the optional generic directory shortcut.",
+        "verification_or_acceptance": "One unnamed social candidate remains unresolved; dynamic external destinations were source-linked/opened but not functionally certified."
+      },
+      "evidence_paths": [
+        "docs/run10/ECOSYSTEM_COVERAGE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.json",
+        "apps/web/components/ecosystem-directory.tsx",
+        "packages/ecosystem-registry/src/directory.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Acquire allowed official assets and add contextual static discovery links, then reconcile the unresolved source candidate without guessing identity."
+    },
+    {
+      "id": "SS-07",
+      "specification": "Remove the mismatched cursive/italic block shown in the reference, or replace it with a compact, coherent treatment using the established font and stronger palette only if that improves the composition. Prefer less competing copy. Preserve useful orbital artwork, sidebar navigation clarity, selected-state visibility and spacing across desktop/mobile. Do not add another large marketing slogan that competes with the exact primary hero.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 164
+      },
+      "implemented_subset": "The italic sidebar paragraph is removed; compact established-font identity, selected navigation and orbital artwork remain.",
+      "precise_remaining": {
+        "mandatory_implementation": "None identified.",
+        "verification_or_acceptance": "Recorded desktop and narrow-layout evidence covers the replacement; no additional requirement-specific gap identified."
+      },
+      "evidence_paths": [
+        "apps/web/components/shell.tsx",
+        "apps/web/components/navigation.css",
+        "docs/run10/screenshots/SS-07.png",
+        "docs/run10/visual-evidence/run10-sidebar-1440.png",
+        "apps/web/tests/run10-shared-visuals.spec.ts"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Keep the sidebar free of a competing large slogan during later changes."
+    },
+    {
+      "id": "SS-08",
+      "specification": "Move the whole-life summary above the “What matters today”/attention block as the first functional dashboard section. Improve its hierarchy, number formatting, icons and useful coverage of Goals, Habits, Health, Wealth and optional Stake/Positions. Deliver real user-configurable widgets, not hardcoded cards disguised as customization: catalog, chosen entity/metric, suitable size, order, hide/show, reset and useful presets. A user can build Health-only, Habits+Health, Wealth-only or balanced dashboards and pin particular Goals, Habits, assets or Positions. Persist and sync layout/preferences, preserve local-only mode, support non-drag reordering, isolate Showcase, and handle archived/missing entities. Reference canonical records rather than copying balances. Fix the apparently empty Health icon slot and ungrouped large currency figures. Keep essential integrity warnings attached to affected values.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 166
+      },
+      "implemented_subset": "Summary precedes attention; canonical configured widgets have entity/metric/title/size/order/hide/remove/presets, Health icons, grouped money, Showcase isolation and local persistence. Settings are now included in encrypted account-data plumbing. Native staking/reward/unbonding and per-Position allocation widgets now use canonical records with tested narrow-width editor/reload paths.",
+      "precise_remaining": {
+        "mandatory_implementation": "Per-widget unsynced/conflict/Health-consent state remains incomplete; global account/sync status is now shared in the shell.",
+        "verification_or_acceptance": "No four-layout independent-client sync and backup/restore acceptance; narrow screenshots and local persistence do not establish that journey."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/lib/dashboard-settings.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "apps/web/lib/vault/account-data.ts",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Qualify domain-level widget sync/consent state and exercise four personalized layouts through backup and independent-client synchronization."
+    },
+    {
+      "id": "SS-09",
+      "specification": "Introduce the beautiful slogan/orbit with a brief, lightweight reveal that feels like it comes into view. Preserve the exact copy, composition and existing brand. No forced splash screen, long intro gate, looping orbit, continuous spinning, autoplay video/audio or heavy WebGL background by default. Content and buttons must be available immediately. Animate once on a documented route/session entrance, not each rerender, quote refresh, widget edit or tab return. Respect reduced motion and an app preference. Coordinate hero, chart and progress entrances so the dashboard feels alive briefly, then rests. Do not represent decorative animation as actual network progress.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 168
+      },
+      "implemented_subset": "Slogan, ring and chart entrances are finite 650ms route/session animations; exact branding and immediate semantic values are retained, with device and app preferences for those components. Root subsequently removed the ambient-light infinite animation; source rechecked in this integration slice.",
+      "precise_remaining": {
+        "mandatory_implementation": "The previously identified ambient loop is removed. No additional mandatory implementation defect established by this bounded source recheck.",
+        "verification_or_acceptance": "The recorded finite-motion test checks slogan/lines only; no whole-hero animation inventory or short motion recording."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/app/product-v2.css",
+        "apps/web/app/visual-v21.css",
+        "apps/web/components/motion.css",
+        "apps/web/components/use-entrance.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Verify every hero descendant settles under normal, app-off and device-reduced motion; capture the required short whole-page motion evidence."
+    },
+    {
+      "id": "SS-10",
+      "specification": "Treat the overlapping Habit text/control example as a shared-layout defect and a mobile release blocker, not a request to shorten just the sample names. Replace desktop row assumptions with deliberate mobile label/metric/action grouping. Let containers grow; remove conflicting fixed heights, absolute positions and cramped columns where responsible. Move redundant secondary detail behind accessible expansion while retaining important status, units and warnings. Do not hide overflow, clip values or shrink functional text until screenshots pass. Test 320/360/390/430 CSS px, tablet and desktop, long titles, large exact values, enlarged text, browser zoom/reflow, virtual keyboards, dialogs, landscape and safe areas. Verify real actions and visible controls, not only bounding boxes of outer cards.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 170
+      },
+      "implemented_subset": "Shared Habit card rows now stack title/metric/actions, wrap controls and disclose secondary insights; Today implicit-grid defect fixed; long/custom-unit real logging tested with enlarged text.",
+      "precise_remaining": {
+        "mandatory_implementation": "No complete application-wide mobile repair sign-off exists; fixes are scoped to inspected surfaces.",
+        "verification_or_acceptance": "320/360/390/430/768/1440 and 125% root-font Habit evidence exist; full browser zoom, virtual keyboards, landscape/safe areas and every dialog/control remain unverified."
+      },
+      "evidence_paths": [
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/components/habits/habits.css",
+        "apps/web/components/dashboard/dashboard.css",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Complete route-wide text/control intersection checks, then physical keyboard, landscape and safe-area checks; record defects instead of hiding overflow."
+    },
+    {
+      "id": "VIS-01",
+      "specification": "Add locale-aware display grouping for large money values and useful compact variants, while preserving exact decimal strings/integer-unit math and explicit currency. Do not silently convert USD/EUR or parse localized display text back into arithmetic. Choose defensible precision by metric: whole progress labels, suitable currency display, token quantity precision and exact-value detail. Test decimal commas, narrow layouts, very small prices, negative corrections, zero, unknown values and copy/export precision.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 176
+      },
+      "implemented_subset": "Exact BigInt/Decimal-backed display grouping, explicit currency, decimal-comma locale support, signed corrections and token precision are tested; progress display rounding is separate from arithmetic.",
+      "precise_remaining": {
+        "mandatory_implementation": "Useful compact numeric variants are not implemented consistently; many remaining Habit/Health/legacy figures use individual formatting rather than a metric-wide precision policy.",
+        "verification_or_acceptance": "Copy/export precision and very small price/extreme locale behavior are not proven across every user-facing metric."
+      },
+      "evidence_paths": [
+        "apps/web/lib/visual-format.ts",
+        "apps/web/lib/goal-summary.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/lib/dashboard-metrics.ts",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Define metric display precision and compact/exact disclosure together, apply to remaining call sites, and verify locale plus export/copy cases."
+    },
+    {
+      "id": "VIS-02",
+      "specification": "Centralize motion duration/easing/reduced-motion behavior. Use short entrance transitions, primarily opacity/transforms or bounded SVG drawing, and finite progress animation. Preserve final semantic values during animation and avoid announcing every intermediate number to screen readers. No perpetual shimmer after data is available, no animation-induced layout shift and no accessibility failure when animation is disabled. Keep controls usable during transitions and avoid replay caused by ordinary React rerenders.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 178
+      },
+      "implemented_subset": "Shared duration/easing, route/session entrance identity, final semantic values and reduced-motion/app-off behavior exist for slogan, rings and history lines. Root subsequently removed the ambient-light infinite animation; source rechecked in this integration slice.",
+      "precise_remaining": {
+        "mandatory_implementation": "The previously identified ambient loop is removed. No additional mandatory implementation defect established by this bounded source recheck.",
+        "verification_or_acceptance": "No whole-page settled animation/layout-shift audit; current motion evidence is component-specific."
+      },
+      "evidence_paths": [
+        "apps/web/components/motion.css",
+        "apps/web/components/use-entrance.ts",
+        "apps/web/components/motion-preference.tsx",
+        "apps/web/app/product-v2.css",
+        "apps/web/lib/run10-motion.test.ts",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Verify every hero descendant settles under normal, app-off and device-reduced motion; capture the required short whole-page motion evidence."
+    },
+    {
+      "id": "VIS-03",
+      "specification": "Create reusable chart adapters for observations, discrete events, category composition and progress. Data semantics determine the chart, not a desire for a smoother shape. Distinguish missing, stale, partial and complete series; gaps and single observations are first-class cases. Accessible labels/table data must match the graph exactly. Avoid zero-baseline assumptions that conceal meaningful variation or truncated axes that exaggerate change; choose and explain scales appropriate to the metric.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 180
+      },
+      "implemented_subset": "Observation, cumulative step and event adapters, composition colors and progress are reusable; gaps/invalid points, fitted scale disclosure and exact tables are implemented.",
+      "precise_remaining": {
+        "mandatory_implementation": "EvidenceSeries lacks a uniform explicit stale/partial/complete provenance contract; PriceChart numeric vertical scale labels are absent.",
+        "verification_or_acceptance": "All adapter types and states have not been audited with a common graph-versus-table accessibility matrix."
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/components/platform/price-chart.tsx",
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/lib/run10-visuals.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add source coverage/state metadata and numeric price-axis limits; compare plotted endpoints with exact tables for each adapter."
+    },
+    {
+      "id": "VIS-04",
+      "specification": "Consolidate field labels, descriptions, error placement, required/optional states, input modes, dates, submit/loading states and cancel behavior. Make errors actionable without clearing valid input. Prevent duplicate submission with idempotency rather than only disabling a button. Successful writes show truthful saved/sync-pending feedback; a toast cannot imply server persistence when only a local draft exists. Validate dynamically revealed fields and preserve input through recoverable navigation/network failures.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 182
+      },
+      "implemented_subset": "Most edited forms have labels, local validation, busy states and preserved inputs on ordinary save failure; selected financial/Health operations use stable identities and receipts.",
+      "precise_remaining": {
+        "mandatory_implementation": "No shared form-feedback contract across all editors; component-local drafts are lost on navigation. Idempotency is not a universal write contract, and save/sync-pending feedback is not attached consistently to forms.",
+        "verification_or_acceptance": "Duplicate submits, recoverable navigation and account switches during every pending form write remain unverified."
+      },
+      "evidence_paths": [
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/components/account-access.tsx",
+        "apps/web/components/use-private-store.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Inventory write forms and add stable operation/draft handling and truthful local-versus-remote feedback, then exercise duplicate and interrupted saves."
+    },
+    {
+      "id": "VIS-05",
+      "specification": "Maintain strong contrast, visible focus, semantic headings, descriptive labels, keyboard operation, sensible reading order, touch targets and reduced-motion behavior. Do not rely on color alone, hover-only information or drag-only controls. Keep functional text at the established readable scale; do not solve density by making essential text tiny. Use automated checks plus manual keyboard/zoom inspection, and do not claim formal accessibility certification from those tests.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 184
+      },
+      "implemented_subset": "Semantic labels/headings, native dialogs, explicit reorder controls, focus return, touch targets and reduced-motion paths exist in the edited surfaces.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed additional contrast or semantic defect established by this bounded read; complete application accessibility coverage remains unfinished.",
+        "verification_or_acceptance": "No app-wide automated accessibility result, manual keyboard traversal, screen-reader pass and browser-zoom/reflow evidence; tests are not certification."
+      },
+      "evidence_paths": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/tests/run10-ecosystem.spec.ts",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Run the complete keyboard/reflow and automated accessibility matrix, fix concrete findings, and keep physical/SR outcomes separate."
+    },
+    {
+      "id": "VIS-06",
+      "specification": "Styling changes must not change wallet connection semantics, private-store ownership, financial arithmetic or sync behavior. Shared components need empty/error/large-data tests. Logos/icons should be safe local assets or tightly validated sources with fallbacks; do not loosen CSP broadly to load arbitrary third-party assets. Keep custom chart SVGs and imported brand assets free of active scripts and external references that bypass asset validation.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 186
+      },
+      "implemented_subset": "Display-only arithmetic changes preserve exact selectors; safe local/static icons and the existing bounded raster proxy remain; no arbitrary logo hotlinks or CSP expansion. Showcase/account isolation tests exist.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed new isolation defect from the inspected visual changes; broad isolation acceptance is not established by one component test suite.",
+        "verification_or_acceptance": "Full post-integration empty/error/large-data and ownership/financial regression evidence must be attached to the final code revision."
+      },
+      "evidence_paths": [
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/lib/visual-format.ts",
+        "apps/web/lib/account-isolation.test.ts",
+        "apps/web/lib/goal-provider.test.ts",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Attach final revision-specific shared-component and privacy/financial regression evidence after integration."
+    },
+    {
+      "id": "WID-01",
+      "specification": "The improved whole-life summary is the first functional Today block, above What Matters Today/attention items. Present the selected domains and key metrics with coherent hierarchy, readable grouped numbers and meaningful icons. The brand hero may remain above it where appropriate but must not force returning mobile users through an oversized repeated introduction. Do not replace the summary with an unrelated marketing section. Preserve access to urgent data/sync errors without letting every minor warning dominate the dashboard.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 390
+      },
+      "implemented_subset": "Life snapshot is the first functional Today section before widgets/attention, with selected-domain icons, grouped values and direct links; allocation warnings stay outside optional widgets.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed summary-order implementation gap.",
+        "verification_or_acceptance": "Recorded widget browser check asserts DOM order and narrow layouts; owner preference for hero height remains a separate visual acceptance."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Retain summary-first ordering and non-removable integrity warnings."
+    },
+    {
+      "id": "WID-02",
+      "specification": "Provide selectable widgets for a chosen Goal's progress/next contribution, a chosen Habit's completion/streak, Health calories/macros/water/weight/activity, wealth totals by currency, a chosen asset/Position, allocation/availability, read-only staking/rewards and optional ecosystem shortcuts. Reuse canonical selectors and data sources. Only offer metrics that are actually implemented and meaningful for the selected entity. A user-created widget is a configured supported widget, not arbitrary executable code, HTML or an unreviewed formula engine.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 392
+      },
+      "implemented_subset": "Catalog includes Goal overview/chosen progress or next date, Habit overview/today/streak, Health metrics, Wealth currency totals, asset quantity/value/available and ecosystem directory. Now includes eligible observed native staking/reward/unbonding Positions and per-Position exact allocation/availability/deficit summary. Stable selection, preview, save/reload, stale/error, archived/missing states and selected detail links are covered.",
+      "precise_remaining": {
+        "mandatory_implementation": "No missing catalog category remains established by this slice. Scope is an explicitly selected Position, not an unsafe combined-asset aggregate.",
+        "verification_or_acceptance": "Full catalog keyboard/assistive and cross-account acceptance remains broader than the new two widget paths."
+      },
+      "evidence_paths": [
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Complete full catalog keyboard/assistive and account-transition acceptance without expanding financial execution."
+    },
+    {
+      "id": "WID-03",
+      "specification": "Let users select the widget type, entity, supported metric/range, title override where safe and suitable size/density. Show a small real-data preview and explain unavailable data. Offer add/edit/remove, hide/show, reorder and reset-to-preset actions. Removing a widget removes only its configuration, never the underlying Goal/Habit/Health record or asset. Handle cancel, invalid choices, duplicate widgets and empty catalogs gracefully. Do not overwhelm the first-use flow with every possible setting.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 394
+      },
+      "implemented_subset": "Type/entity/metric/title/compact-or-wide size, real-data preview, add/edit/hide/remove/reorder/preset reset and duplicate binding rejection are implemented.",
+      "precise_remaining": {
+        "mandatory_implementation": "Widget metric ranges are not configurable; current Health daily/latest metrics have fixed temporal selection.",
+        "verification_or_acceptance": "Cancel/invalid/duplicate cases have scoped evidence, but all catalog/entity combinations and absent catalogs are not fully exercised."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/lib/dashboard-settings.test.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Implement ranges only for supported metrics and explain them in preview; exercise each catalog branch including unavailable entities."
+    },
+    {
+      "id": "WID-04",
+      "specification": "Include Balanced, Wealth, Habits + Health and Health-only starting layouts, using actual available user records or intentional empty states. A preset should not manufacture records or reset the user's data. Applying a preset needs a preview/confirmation that it changes layout preferences only. Health-only layouts can suppress financial widgets and unnecessary wallet chrome while keeping navigation available. Support a modest personal configuration that remains attractive on both phone and desktop.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 396
+      },
+      "implemented_subset": "Balanced, Wealth, Habits + Health and Health-only presets preview before application and change only configuration; Health-only suppresses financial dashboard blocks/requests. Shell now suppresses wallet/demo/network chrome when configured visible domains are nonfinancial; navigation and mandatory allocation integrity warnings stay available.",
+      "precise_remaining": {
+        "mandatory_implementation": "No missing preset behavior established in the inspected scope.",
+        "verification_or_acceptance": "Physical mobile acceptance remains part of the broader MOB requirement, not established by desktop Chromium emulation."
+      },
+      "evidence_paths": [
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/shell.tsx",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Retain preset and narrow-width regression coverage; complete physical acceptance under MOB."
+    },
+    {
+      "id": "WID-05",
+      "specification": "Widget configuration references stable domain/entity IDs and selector parameters, not copied quantities, balances, dietary totals or a second progress formula. An edit from a detail page updates the corresponding widget consistently, and vice versa where a quick action is supported. Do not trigger independent provider requests per widget when the same public data is already cached/coalesced. Group necessary requests without leaking the user's private arrangement to the market provider.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 398
+      },
+      "implemented_subset": "Stable entity IDs and canonical Goal/Habit/Health/Wealth selectors drive metrics; financial quote requests use the existing shared coalesced cache and contain public references only.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed duplicate numeric source in the inspected widgets.",
+        "verification_or_acceptance": "A detail edit reflected in an already-open widget and reverse quick-action update are not comprehensively demonstrated for every supported domain."
+      },
+      "evidence_paths": [
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.test.ts",
+        "apps/web/components/platform/use-market-quotes.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Record canonical source propagation after edits and quick actions for each widget family, including shared provider request counts."
+    },
+    {
+      "id": "WID-06",
+      "specification": "Include layouts/settings in the private storage migration, encrypted sync and backup/export with a versioned schema. Keep Showcase separate. Test layout changes made on both devices, offline reordering, deleted/archived entities and stale configuration versions. Define a deterministic preference-conflict policy that does not drop unrelated widgets or reorder everything unpredictably. Responsive presentation may differ per viewport while preserving a coherent user-selected order and configuration.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 400
+      },
+      "implemented_subset": "Versioned settings use private storage; encrypted backup and account-data module include settings. Current merge code preserves independent record edits/order and refuses conflicting reorders; Showcase stays separate.",
+      "precise_remaining": {
+        "mandatory_implementation": "No additional implementation gap established for the settings transport contract; user-facing preference-conflict review remains minimal and must not imply automatic resolution.",
+        "verification_or_acceptance": "Recorded two-profile sync proves a Habit journey, not actual widget reorders/layout restores. Full schema settings, offline reorder, archived entities, future version and opposite-order reconnect remain unverified."
+      },
+      "evidence_paths": [
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/components/private-vault-tools.tsx",
+        "apps/web/lib/vault/account-data.ts",
+        "apps/web/lib/vault/cloud-sync.ts",
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Run actual dashboard settings through encrypted backup restore and independent clients with separate edits and conflicting reorders."
+    },
+    {
+      "id": "WID-07",
+      "specification": "Dragging may be an enhancement, but every reorder must also work through keyboard and explicit Move up/down or equivalent controls. Keep focus on the moved widget and announce meaningful changes without excessive narration. Avoid accidental drag during page scroll. On mobile, stack controls and avoid resize handles that require precise pointer movement. Provide minimum sizes and chart alternatives so users cannot configure an unreadable card.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 402
+      },
+      "implemented_subset": "Explicit Move up/down buttons, boundary disabling, reordered-card focus and status text are implemented; mobile controls stack and sizes have fixed supported choices.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed missing reorder implementation; drag is optional and not supplied.",
+        "verification_or_acceptance": "Recorded tests click reorder and check focus, but no complete keyboard-only reorder sequence or assistive announcement review."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/dashboard/dashboard.css",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Exercise keyboard-only move/edit/remove sequences and review announcements at 320px and zoom."
+    },
+    {
+      "id": "WID-08",
+      "specification": "If a pinned Goal is closed, an asset is archived, a Habit ends or Health sync is disabled, preserve the preference with a clear state and appropriate replace/remove action. Do not silently pin a different entity with the same name. Missing, stale, unsynced and conflicted metrics remain visibly qualified. Essential data-integrity warnings cannot be hidden by removing the attention widget. Never show a confident financial total when a selected constituent is missing.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 404
+      },
+      "implemented_subset": "Missing IDs remain unavailable, closed Goals/paused Habits/archived assets are explicit, missing/stale valuations are qualified, and allocation deficits cannot be hidden with widget settings.",
+      "precise_remaining": {
+        "mandatory_implementation": "Widgets do not consume Health sync consent or per-domain pending/conflict state; disabled Health sync and unsynchronized metrics can lack the required qualification.",
+        "verification_or_acceptance": "Need real closed/archived/ended/consent-disabled/conflicted widget scenarios across account transitions."
+      },
+      "evidence_paths": [
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.test.ts",
+        "apps/web/components/vault-sync-controls.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Expose domain sync/consent state to metric presentation and test each retained unavailable preference without rebinding by name."
+    },
+    {
+      "id": "WID-09",
+      "specification": "Widgets may offer supported actions such as log water, mark a Habit, add a meal, review a Goal or record a contribution through the canonical action flow. Preserve confirmation and idempotency for financial effects. A quick action should report local save versus synchronization truthfully and allow recovery from a failed save. Repeated taps, optimistic UI rollback and switching account while an action is pending must be tested.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 406
+      },
+      "implemented_subset": "Today Habit widgets call the canonical HabitCompletion flow; other widgets link to canonical details rather than directly signing or moving funds.",
+      "precise_remaining": {
+        "mandatory_implementation": "Quick-action feedback is local/busy/error only; it does not distinguish pending synchronization and acknowledged sync beside the action.",
+        "verification_or_acceptance": "Repeated taps, failed-save rollback and account switches during the actual widget action need dedicated integration evidence."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/habits/habit-card.tsx",
+        "apps/web/components/habits/use-habits.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add truthful quick-action save/sync status and verify repeated/failed/pending actions without duplicating a completion."
+    },
+    {
+      "id": "WID-10",
+      "specification": "Demonstrate four distinct useful layouts outside Showcase, edit them, reload, restore a backup and synchronize to an independent second client. Capture desktop/mobile before/after evidence. Test large values, long names, absent data and reduced motion. The acceptance is not met by a static catalog modal with configuration that does not influence the real Today view.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 408
+      },
+      "implemented_subset": "Four local layouts affect the real Today UI; edits/reload and mobile/desktop screenshots are recorded outside Showcase.",
+      "precise_remaining": {
+        "mandatory_implementation": "Underlying catalog/status gaps remain in WID-02/08/09.",
+        "verification_or_acceptance": "The four layouts have not completed backup restore and independent-second-client sync with large/long/missing data and reduced motion; generic settings merge or Habit sync is not this acceptance."
+      },
+      "evidence_paths": [
+        "apps/web/tests/run10-widgets.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Exercise four real personalized dashboards through edit, reload, encrypted restore and independent-client sync; capture final desktop/mobile evidence."
+    },
+    {
+      "id": "ECO-01",
+      "specification": "Start with the actual repository registry and current official ZIGChain ecosystem sources, then verify individual project destinations. List every discovered candidate, category, inclusion source/date, link status, description/logo evidence and disposition. “All ecosystem projects” means all entries in the documented reviewed source set at that time, not an eternal exhaustive claim. Preserve names/duplicates carefully and do not expand to unrelated projects merely to make the page look full.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 534
+      },
+      "implemented_subset": "Dated manifest reconciles all existing 18 providers plus three official resources and one unresolved social candidate, with source/date/category/link/description/logo disposition.",
+      "precise_remaining": {
+        "mandatory_implementation": "None for the bounded documented coverage inventory; the unresolved candidate has an explicit disposition rather than an invented identity.",
+        "verification_or_acceptance": "Recorded primary-source review and manifest reconciliation tests support this dated snapshot, not continuous completeness."
+      },
+      "evidence_paths": [
+        "docs/run10/ECOSYSTEM_COVERAGE.json",
+        "docs/run10/ECOSYSTEM_COVERAGE.md",
+        "packages/ecosystem-registry/src/directory.test.ts"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Preserve dated coverage and refresh it when new official evidence resolves the unnamed candidate."
+    },
+    {
+      "id": "ECO-02",
+      "specification": "Separate ecosystem inclusion, formal announced partnership, research-only status, supported read-only integration and any future execution readiness. Do not label every listed project a ZIGoals partner or imply endorsement. Preserve specific Valdora/WME/Zignaly and other provider gates; a polished card cannot turn architecture-only work into a live connection. Use dates/source links so users can distinguish a project's own claim from verified application capability.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 536
+      },
+      "implemented_subset": "Cards distinguish official ecosystem inclusion, research/read-only links and actual ZIGoals capability; provider gates and old evidence dates remain visible; execution remains disabled.",
+      "precise_remaining": {
+        "mandatory_implementation": "None identified for the inspected relationship/capability labeling.",
+        "verification_or_acceptance": "Source claims are not security certification or live provider functionality."
+      },
+      "evidence_paths": [
+        "apps/web/components/ecosystem-directory.tsx",
+        "packages/ecosystem-registry/src/directory.ts",
+        "packages/ecosystem-registry/src/directory.test.ts",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Keep capability gates separate from source recency during future provider updates."
+    },
+    {
+      "id": "ECO-03",
+      "specification": "Prefer official brand kits/site assets with recorded source and applicable usage notes. Store optimized safe local representations where permitted; sanitize SVGs or use safe raster alternatives and validate formats/sizes. Do not hotlink arbitrary tracking endpoints, loosen CSP broadly, or generate a fake partner logo. Missing/ambiguous assets get a well-designed initial/icon fallback. Ensure white/dark logos remain legible on the nebula background and use correct accessible names.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 538
+      },
+      "implemented_subset": "Every card uses accessible initials with an explicit unavailable-logo reason/source; no arbitrary image endpoints, generated brand marks or CSP changes.",
+      "precise_remaining": {
+        "mandatory_implementation": "Official assets have not been obtained, usage-reviewed, optimized or sanitized. Fallback implementation does not complete the required official-asset work.",
+        "verification_or_acceptance": "Dark/light logo legibility and file format/size validation cannot be verified until assets exist."
+      },
+      "evidence_paths": [
+        "docs/run10/ECOSYSTEM_COVERAGE.json",
+        "apps/web/components/ecosystem-directory.tsx",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Acquire permitted official brand assets, record usage/source evidence, sanitize/validate and inspect dark-background legibility; retain fallbacks where ambiguous."
+    },
+    {
+      "id": "ECO-04",
+      "specification": "Give each project concise useful information, ideally a short attributed self-description or an accurate sourced paraphrase. Do not copy entire marketing pages or reproduce long copyrighted passages; keep direct excerpts brief and attributed. Strip unsafe markup. Do not present self-reported audit/security/yield claims as ZIGoals verification. Keep external source links available without crowding the primary card.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 540
+      },
+      "implemented_subset": "Concise attributed paraphrases and description sources appear on every included card; old inaccessible-site research is labeled; text rendering strips active markup by construction.",
+      "precise_remaining": {
+        "mandatory_implementation": "None identified for the reviewed description set.",
+        "verification_or_acceptance": "Descriptions remain dated self/source claims rather than application verification."
+      },
+      "evidence_paths": [
+        "apps/web/components/ecosystem-directory.tsx",
+        "packages/ecosystem-registry/src/directory.ts",
+        "packages/ecosystem-registry/src/directory.test.ts",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Keep descriptions short and attributed when refreshing individual source records."
+    },
+    {
+      "id": "ECO-05",
+      "specification": "Add categories, search/filtering, clear card hierarchy, readable descriptions, source/capability indicators and distinct website/app/docs actions where verified. Ensure controls do something, external links are safe and unavailable links are labeled rather than silently broken. Keyboard navigation and mobile card layouts must work. Do not add fake connect/swap/stake buttons whose only implementation is a disabled handler.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 542
+      },
+      "implemented_subset": "Working combined search/categories, clear/no-results, informative disclosures, distinct source-backed Website/App/Docs actions and safe new-tab links are tested at 320/390/1440.",
+      "precise_remaining": {
+        "mandatory_implementation": "None identified in the scoped directory navigation contract; missing links are explicitly unavailable.",
+        "verification_or_acceptance": "Mocked external popup verifies navigation target, not the external service financial workflow, which this requirement does not authorize."
+      },
+      "evidence_paths": [
+        "apps/web/components/ecosystem-directory.tsx",
+        "apps/web/tests/run10-ecosystem.spec.ts",
+        "packages/ecosystem-registry/src/directory.test.ts",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "VERIFIED",
+      "next_concrete_step": "Preserve source provenance and unavailable labels as external destinations change."
+    },
+    {
+      "id": "ECO-06",
+      "specification": "Offer relevant financial ecosystem links on Today only when selected/contextually appropriate, and staking-related discovery on Stake/Positions. External navigation should say Open/Visit with clear external-site treatment, never Execute/Deposit inside ZIGoals unless a separately authorized real adapter exists. Do not pass account email, Goal names, quantities, private query parameters or wallet identifiers to external links. Preserve Health-only and other personalized layouts.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 544
+      },
+      "implemented_subset": "Today has an optional ecosystem-directory widget and the directory contains safe OroSwap/Valdora links with no private query parameters.",
+      "precise_remaining": {
+        "mandatory_implementation": "Stake/Positions discovery and contextually placed direct financial ecosystem links are absent; the generic directory shortcut is not full contextual discovery.",
+        "verification_or_acceptance": "Need Health-only exclusion, selected financial context and privacy-safe external navigation tests for the new placements."
+      },
+      "evidence_paths": [
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/platform/positions-view.tsx",
+        "apps/web/components/ecosystem-directory.tsx",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Add appropriate Open/Visit links on financial and staking surfaces, retain selection-based Today behavior, and assert no private values in URLs."
+    },
+    {
+      "id": "MOB-01",
+      "specification": "Check the complete app at 320, 360, 390 and 430 CSS-pixel widths and at representative tablet/desktop widths including 768, 1024 and 1440. Use responsive structure, not screenshot-specific offsets. Mobile navigation/actions, keyboard-open states, safe areas and dialog scrolling must work. Keep the excellent desktop functionality while simplifying mobile hierarchy. No essential action may disappear behind a fixed footer or on-screen keyboard.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 550
+      },
+      "implemented_subset": "Responsive grids replace the observed Today/Habit overlap; Health tests cover 320/360/390/430/768/1024/1440 and other slices cover representative narrow/desktop widths.",
+      "precise_remaining": {
+        "mandatory_implementation": "No complete app-wide mobile control audit/sign-off; route-specific responsive work cannot establish every essential action remains reachable.",
+        "verification_or_acceptance": "Virtual keyboards, safe areas, landscape and all dialogs/pickers at every required width remain incomplete; physical devices not run."
+      },
+      "evidence_paths": [
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Complete the route/control viewport matrix, then check keyboard-open and landscape/safe-area flows on real devices separately."
+    },
+    {
+      "id": "MOB-02",
+      "specification": "Use long Goal/Habit/asset names, large grouped numbers, very small prices, custom units, multi-line errors, translations/locale variation where supported, and enlarged text. Detect actual text/control overlap and clipping in addition to document-level overflow. Do not turn every label into an ellipsis with inaccessible full meaning. Accessible details can hold secondary material, but principal values, action names, units and warnings remain readable.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 552
+      },
+      "implemented_subset": "Long Habit names/custom units/large targets with 125% root font are tested; exact large monetary grouping and decimal-comma cases have units; widget titles wrap.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed additional layout defect in the inspected extremes, but tests do not cover every Goal/asset/error surface.",
+        "verification_or_acceptance": "All-route long names, very small prices, multiline errors, supported locale variants and browser zoom/reflow lack complete evidence."
+      },
+      "evidence_paths": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/components/dashboard/dashboard.css",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Add real-content extremes to remaining route/editor fixtures and inspect text/control intersections rather than only document overflow."
+    },
+    {
+      "id": "MOB-03",
+      "specification": "Preserve initial focus, focus trap where appropriate, Escape/cancel, return focus, labels, keyboard selection and screen-reader structure. Searchable asset/food pickers need predictable typing/navigation and no accidental submit. Mobile drawers need clear close/back and scroll behavior. Native date/numeric controls may be retained where they are the safest device experience, styled coherently instead of replaced for appearance alone.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 554
+      },
+      "implemented_subset": "Native dialogs and controls provide basic focus/keyboard behavior; Quick Add and customization Escape/focus return are tested; picker forms have labels and explicit close controls.",
+      "precise_remaining": {
+        "mandatory_implementation": "No confirmed missing behavior across inspected dialogs; app-wide picker/editor coverage is incomplete.",
+        "verification_or_acceptance": "Initial focus, trap, return focus, keyboard search/selection, no accidental submit, mobile scroll and assistive structure have not all been exercised for every dialog."
+      },
+      "evidence_paths": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/components/quick-add.tsx",
+        "apps/web/components/platform/asset-picker.tsx",
+        "apps/web/components/unified-goal-wizard.tsx"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "next_concrete_step": "Run a named-dialog keyboard/scroll matrix including food/asset pickers and account recovery, recording focus before/open/close."
+    },
+    {
+      "id": "MOB-04",
+      "specification": "Offer interest selection, a useful dashboard preset, a first useful action, local-only versus encrypted-sync choice and clear data-location/recovery explanation. Do not force a wallet or health disclosure. Existing users keep their data and can skip onboarding. Settings should make account, sync, devices, backup/recovery, units/timezone, motion, visual privacy and Showcase controls understandable without exposing internal development terminology.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 556
+      },
+      "implemented_subset": "Interest/preset onboarding is skippable and wallet-free; Settings includes local backups, account/vault choice, recovery, Health units/timezone, motion and Showcase.",
+      "precise_remaining": {
+        "mandatory_implementation": "Device management and visual privacy controls are absent; initial onboarding only links to account/sync settings rather than a coherent data-location/recovery choice flow.",
+        "verification_or_acceptance": "A complete first-use path from interests to first action and later account recovery, with existing-data preservation, remains unverified."
+      },
+      "evidence_paths": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/app/app/settings/page.tsx",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/components/motion-preference.tsx",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Complete missing settings controls and explicit local-versus-account onboarding, then exercise skip/existing-user and first-use recovery paths."
+    },
+    {
+      "id": "MOB-05",
+      "specification": "Distinguish signed-out local-only, authenticated locked vault, syncing, offline pending, Showcase and watch-only wallet/network states. A user must not confuse fictional Showcase values with their synced account or a wallet connection with sign-in. Account switching should not leave the previous person's summary visible. Wallet reload/reconnect behavior remains deliberate, and login must not silently invoke a financial signer.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 558
+      },
+      "implemented_subset": "Showcase banner, wallet/network labels, account locked/unlocked controls and Settings sync status exist; generation fences clear prior account views and block stale writes. Shared shell status now follows account selection, locking, sync progress, last acknowledgement, local changes, offline, attention and Showcase. Account selection hides financial-demo mode banners; malformed selectors fail closed.",
+      "precise_remaining": {
+        "mandatory_implementation": "Global status uses provider acknowledgement and local-change events; it does not yet present domain-specific durable pending counts or Health consent state.",
+        "verification_or_acceptance": "Focused unit status transitions and cold-account320px browser proof passed. Complete cross-route offline/reconnect, second-account, Showcase and physical/hosted acceptance remain unverified."
+      },
+      "evidence_paths": [
+        "apps/web/components/shell.tsx",
+        "apps/web/components/goal-provider.tsx",
+        "apps/web/components/account-access.tsx",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/tests/run10-account-access.spec.ts",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Exercise cross-route account/offline/Showcase states and add domain-specific pending/consent qualification without exposing private records."
+    },
+    {
+      "id": "MOB-06",
+      "specification": "Capture and inspect representative mobile/desktop screenshots and short motion evidence for the relevant requirements. Run keyboard and reflow checks with content at useful zoom/text sizes. Browser emulation does not prove physical Safari/Chrome camera, passkey, wallet or storage behavior; record actual device checks separately. If a real device is unavailable, provide the exact remaining checklist without saying it passed.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 560
+      },
+      "implemented_subset": "Representative screenshots were captured and inspected for shared visuals, Today/Goal creation, Health, Habits and ecosystem; automation includes focus and enlarged-text geometry.",
+      "precise_remaining": {
+        "mandatory_implementation": "Short whole-page motion evidence and a consolidated exact remaining real-device checklist are not recorded.",
+        "verification_or_acceptance": "Physical Safari/Chrome camera, wallet, storage, keyboard and browser zoom checks are not performed; no passkey claim. Emulation remains explicitly labeled."
+      },
+      "evidence_paths": [
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.md",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/HABIT_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "next_concrete_step": "Capture finite whole-page motion and complete keyboard/zoom checks; publish a per-device checklist with NOT_RUN entries until actual user gestures are verified."
+    }
+  ],
+  "updated_at": "2026-09-23T21:28:21.399371+00:00"
+}

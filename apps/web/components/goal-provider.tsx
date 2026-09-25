@@ -1,5 +1,6 @@
 "use client";
 import {getAppStorage,isShowcase,storageLockKey} from "../lib/showcase-storage";
+import {ACCOUNT_CHANGE,getAccountGeneration} from '../lib/account-session';
 import { FINANCIAL_EXECUTION_ALLOWED, assertFinancialExecutionAllowed } from "../lib/app-environment";
 import {
   createContext,
@@ -199,15 +200,27 @@ function useGoalState() {
       }
     };
     window.addEventListener("keplr_keystorechange", changed);
-    return () => window.removeEventListener("keplr_keystorechange", changed);
+    const accountChanged=()=>{
+      revision.current++;
+      ledger.current=null;metadataRaw.current=null;
+      setPending(undefined);setStatus('IDLE');setMode('local');setOwner(LOCAL_OWNER);
+      setWalletState('DISCONNECTED');setWalletReconnectHint(false);
+      setGoals([]);setBalance('0');setActivity([]);setMetadata(undefined);
+      setTransactionOutcomes([]);setJournalRecords([]);setJournalWarnings([]);
+      setLocalLedgerHealthy(false);setError('');setMessage('Account selection changed. Review this account before continuing.');
+      try{localLoad();setMetadata(readPlans(LOCAL_CHAIN,LOCAL_OWNER));}catch(error){setError(String(error));}
+    };
+    window.addEventListener(ACCOUNT_CHANGE,accountChanged);
+    return () => {window.removeEventListener("keplr_keystorechange", changed);window.removeEventListener(ACCOUNT_CHANGE,accountChanged);};
   }, []);
   useEffect(() => {
     const changed = (event: StorageEvent) => {
-      if (isShowcase() || event.storageArea !== getAppStorage()) return;
+      if (isShowcase() || event.storageArea !== window.localStorage) return;
+      let storage:Storage;try{storage=getAppStorage();}catch{return;}
       const plansChanged =
-        event.key === null || event.key === metadataKey(chain, owner);
+        event.key === null || event.key === storageLockKey(storage,metadataKey(chain, owner));
       const ledgerChanged =
-        mode === "local" && (event.key === null || event.key === LEDGER_KEY);
+        mode === "local" && (event.key === null || event.key === storageLockKey(storage,LEDGER_KEY));
       if (!plansChanged && !ledgerChanged) return;
       invalidateReview();
       try {
@@ -522,6 +535,7 @@ function useGoalState() {
     const plan = pending.metadata;
     const scope = { mode, owner, chain };
     const current = revision.current;
+    const accountGeneration=getAccountGeneration();
     setBusy(true);
     setError("");
     let createdId: string | undefined;
@@ -539,6 +553,7 @@ function useGoalState() {
       state: TransactionState,
       details?: TransactionDetails & { note?: string },
     ) => {
+      if(accountGeneration!==getAccountGeneration())return;
       if (outcome) {
         outcome = { ...outcome, state, ...details };
         const next = outcome;
@@ -656,15 +671,17 @@ function useGoalState() {
         try {
           const saved = await withStorageLock(
             storageLockKey(storage, metadataKey(scope.chain, scope.owner)),
-            () =>
-              saveMetadata(
+            () => {
+              if(accountGeneration!==getAccountGeneration())throw Error('Account selection changed. Private plan save was cancelled.');
+              return saveMetadata(
                 storage,
                 scope.chain,
                 scope.owner,
                 goalId,
                 plan,
                 pending.metadataRevision,
-              ),
+              );
+            },
           );
           if (current === revision.current)
             metadataRaw.current = storage.getItem(

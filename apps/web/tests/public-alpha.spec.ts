@@ -76,7 +76,7 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   });
   await page.goto("/app?injection-probe=1");
   expect(await page.evaluate(()=>Reflect.get(window,"__untrustedScript"))).toBeUndefined();
-  await page.getByRole("link",{name:"Settings",exact:true}).click();
+  await page.getByRole("navigation",{name:"Main navigation"}).getByRole("link",{name:"Settings",exact:true}).click();
   await expect(page.getByRole("heading",{name:"Your data. Your control."})).toBeVisible();
   await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures");
   expect(await page.locator('a[target="_blank"]').evaluateAll(nodes=>nodes.every(n=>n.getAttribute("rel")?.includes("noopener")&&n.getAttribute("rel")?.includes("noreferrer")))).toBe(true);
@@ -116,7 +116,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
-  await page.getByRole("link",{name:"Settings",exact:true}).click();
+  await page.getByRole("navigation",{name:"Main navigation"}).getByRole("link",{name:"Settings",exact:true}).click();
   const downloaded=page.waitForEvent("download"); await page.getByRole("button",{name:"Export Goal Data"}).click(); await downloaded;
   const backup=await page.evaluate(()=>localStorage.getItem("zigoals:metadata:v1:local-simulation:local-demo-user")!);
   const edited=JSON.parse(backup); edited.goals["1"].name=sentinel+"_EDIT"; edited.goals["1"].notes=sentinel+"_NOTE";

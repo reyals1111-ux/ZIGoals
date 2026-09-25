@@ -1,3 +1,5 @@
+> Current Run10 reconciliation: the expanded authoritative scope supersedes former scheduling exclusions. See [the full requirements ledger](run10/REQUIREMENTS.json) and current evidence. The dated list below is preserved as historical scope, not a claim that newly implemented or remaining items are unchanged.
+
 # Beta backlog after Run #9.2
 
 Delivered behavior and verification are in [Run #9.2 report](RUN_9_2_REPORT.md), building on [Run #9.1](RUN_9_1_REPORT.md). These items are deliberately distinct from working features.

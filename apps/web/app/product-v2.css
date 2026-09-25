@@ -302,9 +302,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
 .progress-gauge { transform: rotate(-90deg); }
 .progress-gauge .gauge-track { stroke: var(--line); }
 .progress-gauge .gauge-value { stroke: var(--cyan); transition: stroke-dashoffset 650ms ease; }
-.ambient-light { transform-origin: center; animation: ambient-drift 22s ease-in-out infinite alternate; }
+.ambient-light { transform-origin: center; }
 .workspace main > div { animation: content-enter 230ms ease-out; }
-@keyframes ambient-drift { to { transform: translate(16px, -8px); opacity: .75; } }
 @keyframes content-enter { from { opacity: .6; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 @media (max-width: 768px) {
   .module-grid { grid-template-columns: 1fr; }
@@ -430,8 +429,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
 }
 .wizard-v2 .wizard-content { padding: 28px; }
 .today-page .habit-today-list { margin: 10px 0 16px; }
-.today-page .habit-today-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 12px 0; align-items: center; }
-.today-page .habit-completion-compact { width: auto; flex-wrap: nowrap; gap: 7px; }
+.today-page .habit-today-list li { padding: 12px 0; }
+
 .today-page .habit-completion-compact .habit-count strong { font-size: 14px; }
 .today-page .habit-completion-compact .primary, .today-page .habit-completion-compact .secondary { padding-inline: 10px; font-size: 14px; }
 .today-page .habit-today-list strong { font-size: 14px; }.today-page .habit-today-list small { font-size: 14px; line-height: 1.4; }

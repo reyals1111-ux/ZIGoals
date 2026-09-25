@@ -14,6 +14,7 @@ import {
 } from "./transaction";
 import { applyLocal, initialLedger, LOCAL_OWNER } from "./local-ledger";
 import { activateShowcase, exitShowcase, getAppStorage } from "./showcase-storage";
+import {activateAccount,unlockAccount} from './account-session';
 
 vi.mock("./app-environment", () => ({ FINANCIAL_EXECUTION_ALLOWED: true, APP_ENVIRONMENT: "TESTNET_DEPLOYED", assertFinancialExecutionAllowed: () => {} }));
 
@@ -779,3 +780,15 @@ test.each(["Recover private goal", "Import private goals"] as const)(
     expect(locks.keys).toEqual(["zigoals:showcase:v1:goal-plan-scope:" + key]);
   },
 );
+test('email account transitions clear visible local goals and cancel queued simulation writes',async()=>{
+ const key='zigoals:local-ledger:v1',alice='10000000-0000-4000-8000-000000000001',bob='20000000-0000-4000-8000-000000000002';
+ localStorage.setItem(key,JSON.stringify(applyLocal(initialLedger(),{kind:'create'},'2026-09-23T12:00:00.000Z')));await remount();expect(scope().goals).toEqual(['1']);
+ await act(async()=>activateAccount(alice));expect(scope().goals).toEqual([]);expect(scope().balance).toBe('0');await act(async()=>unlockAccount());await click('Prepare private goal');const locks=queueGoalLock(()=>true);await click('Confirm simulation');expect(locks.queued).toHaveLength(1);
+ await act(async()=>{activateAccount(bob);unlockAccount();});await act(async()=>locks.queued.shift()!());expect(scope().goals).toEqual([]);expect(localStorage.getItem(`zigoals:account:v1:${alice}:${key}`)).toBeNull();expect(localStorage.getItem(`zigoals:account:v1:${bob}:${key}`)).toBeNull();expect(JSON.parse(localStorage.getItem(key)!).goals).toHaveLength(1);
+});
+test('late wallet reads cannot repopulate goals after an email-account switch',async()=>{
+ await click('Connect Keplr');const later=deferred<Goal[]>();api.readGoals.mockReturnValueOnce(later.promise);await click('Refresh journal');await act(async()=>activateAccount('10000000-0000-4000-8000-000000000001'));await act(async()=>later.resolve([goal(ownerA,'99')]));expect(scope()).toMatchObject({mode:'local',goals:[],balance:'0'});
+});
+test('queued local plan save is cancelled when an email account becomes active',async()=>{
+ await click('Prepare private goal');const locks=queueGoalLock(key=>key.includes('metadata'));await click('Confirm simulation');expect(locks.queued).toHaveLength(1);await act(async()=>activateAccount('10000000-0000-4000-8000-000000000001'));await act(async()=>locks.queued.shift()!());expect(localStorage.getItem('zigoals:metadata:v1:local-simulation:local-demo-user')).toBeNull();expect(scope().goals).toEqual([]);
+});

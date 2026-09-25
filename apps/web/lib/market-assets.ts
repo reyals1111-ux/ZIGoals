@@ -1,3 +1,4 @@
+import {ProviderValidationError} from './provider-validation';
 import {z} from 'zod';
 import {exactMarketJson} from './exact-market-json';
 const providerId=z.string().min(1).max(150).regex(/^[a-zA-Z0-9._-]+$/);
@@ -17,13 +18,13 @@ export function marketRefKey(ref:MarketAssetRef){return `${ref.provider}:${ref.k
 export function marketRequestKey(request:MarketQuoteRequest){return `${marketRefKey(request.marketRef)}:${request.currency}`;}
 export const MAX_UNIQUE_MARKET_REQUESTS=2000;
 export function uniqueMarketRequests(raw:readonly MarketQuoteRequest[]):MarketQuoteRequest[]{
- const parsed=z.array(marketRequestSchema).max(4000).parse(raw);const unique=[...new Map(parsed.map(r=>[marketRequestKey(r),r])).values()];if(unique.length>MAX_UNIQUE_MARKET_REQUESTS)throw Error('Too many distinct market pairs.');return unique;
+ const parsed=z.array(marketRequestSchema).max(4000).parse(raw);const unique=[...new Map(parsed.map(r=>[marketRequestKey(r),r])).values()];if(unique.length>MAX_UNIQUE_MARKET_REQUESTS)throw new ProviderValidationError('Too many distinct market pairs.');return unique;
 }
 export function parseMarketCatalog(text:string,kind:'coin'|'rwa'):MarketCatalogAsset[]{
- if(text.length>12*1024*1024)throw Error('Catalog response too large.');
+ if(text.length>12*1024*1024)throw new ProviderValidationError('Catalog response too large.');
  const item=z.object({id:providerId,name:z.string().min(1).max(300),symbol:z.string().max(100),platforms:z.record(z.string().max(150),z.string().max(250)).optional(),asset_type:z.enum(['stock','etf','commodity']).optional()});
  const rows=z.array(item).max(50000).parse(exactMarketJson(text,12*1024*1024,1000000));const seen=new Set<string>();
- return rows.map(row=>{if(seen.has(row.id))throw Error('Duplicate market identity.');seen.add(row.id);const ref=marketAssetRefSchema.parse(kind==='coin'?{provider:'coingecko',kind,id:row.id}:{provider:'coingecko',kind,id:row.id,assetType:row.asset_type});return {ref,name:row.name,symbol:row.symbol,...(kind==='coin'?{platforms:row.platforms??{}}:{})};});
+ return rows.map(row=>{if(seen.has(row.id))throw new ProviderValidationError('Duplicate market identity.');seen.add(row.id);const ref=marketAssetRefSchema.parse(kind==='coin'?{provider:'coingecko',kind,id:row.id}:{provider:'coingecko',kind,id:row.id,assetType:row.asset_type});return {ref,name:row.name,symbol:row.symbol,...(kind==='coin'?{platforms:row.platforms??{}}:{})};});
 }
 export function searchMarketAssets(query:string,catalog:readonly MarketCatalogAsset[],limit=20):MarketCatalogAsset[]{
  const term=query.trim().toLocaleLowerCase();if(!term)return [];

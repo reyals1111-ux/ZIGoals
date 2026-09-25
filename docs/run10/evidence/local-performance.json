@@ -1,0 +1,100 @@
+{
+  "metric": "request_wall_time_not_cloudflare_cpu",
+  "target": "http://127.0.0.1:8788",
+  "recordedAt": "2026-09-23T22:15:59.966Z",
+  "countPerRoute": 3,
+  "intervalMs": 200,
+  "timeoutMs": 10000,
+  "maxResponseBytes": 2097152,
+  "concurrency": 1,
+  "percentileMethod": "nearest_rank",
+  "warmupRequests": 0,
+  "ok": true,
+  "routes": [
+    {
+      "route": "/app",
+      "samples": [
+        {
+          "status": 200,
+          "wallMs": 54.312,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 14.109,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 10.751,
+          "error": null
+        }
+      ],
+      "successfulRequests": 3,
+      "wall": {
+        "count": 3,
+        "totalMs": 79.172,
+        "medianMs": 14.109,
+        "p90Ms": 54.312,
+        "p95Ms": 54.312
+      }
+    },
+    {
+      "route": "/app/settings",
+      "samples": [
+        {
+          "status": 200,
+          "wallMs": 66.607,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 11.551,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 12.603,
+          "error": null
+        }
+      ],
+      "successfulRequests": 3,
+      "wall": {
+        "count": 3,
+        "totalMs": 90.761,
+        "medianMs": 12.603,
+        "p90Ms": 66.607,
+        "p95Ms": 66.607
+      }
+    },
+    {
+      "route": "/icon.svg",
+      "samples": [
+        {
+          "status": 200,
+          "wallMs": 4.082,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 4.414,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 4.284,
+          "error": null
+        }
+      ],
+      "successfulRequests": 3,
+      "wall": {
+        "count": 3,
+        "totalMs": 12.78,
+        "medianMs": 4.284,
+        "p90Ms": 4.414,
+        "p95Ms": 4.414
+      }
+    }
+  ],
+  "totalBatchWallMs": 1791.372
+}

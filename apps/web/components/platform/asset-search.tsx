@@ -1,12 +1,13 @@
 'use client';
 import './asset-search.css';
+import {createCatalogLoader} from '../../lib/market-catalog-client';
 import {parseUnits} from '@zigoals/chain-config';
 import {useEffect,useMemo,useState} from 'react';
 import {useMarketInsights} from './use-market-insights';
 import {FEATURED_MARKETS,marketCategory} from '../../lib/product-insights';
 import {marketRequestKey} from '../../lib/market-assets';
 import {AssetIcon} from './financial-ui';
-import {CATALOG_FRESH_MS,marketAssetRefSchema,searchMarketAssets,type MarketCatalogAsset} from '../../lib/market-assets';
+import {marketAssetRefSchema,searchMarketAssets,type MarketCatalogAsset} from '../../lib/market-assets';
 import {ASSET_CLASSES,positionSchema,type AssetClass,type Position} from '../../lib/positions';
 
 export type AutomaticSourceInput={
@@ -40,25 +41,7 @@ export function automaticUnitLabel(asset:MarketCatalogAsset):string{
  return asset.ref.kind==='rwa'?'CoinGecko tokenized RWA reference units':'Asset quantity';
 }
 
-function validCatalogAsset(value:unknown):value is MarketCatalogAsset{
- if(!value||typeof value!=='object')return false;
- const row=value as Record<string,unknown>;
- return marketAssetRefSchema.safeParse(row.ref).success&&typeof row.name==='string'&&row.name.length>0&&row.name.length<=300&&typeof row.symbol==='string'&&row.symbol.length<=100;
-}
-
-let catalogPromise:Promise<MarketCatalogAsset[]>|undefined,catalogAt=0;
-async function loadCatalog():Promise<MarketCatalogAsset[]>{
- if(catalogPromise&&Date.now()-catalogAt>=CATALOG_FRESH_MS)catalogPromise=undefined;
- catalogPromise??=fetch('/api/market-assets',{method:'GET',credentials:'omit',redirect:'error',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(15000)}).then(async response=>{
-  const raw=await response.json() as unknown;
-  if(!response.ok||!raw||typeof raw!=='object')throw Error('Market catalog unavailable.');
-  const body=raw as {assets?:unknown;error?:unknown};
-  if(!Array.isArray(body.assets)||body.assets.length>50000||!body.assets.every(validCatalogAsset))throw Error('Market catalog unavailable.');
-  if(!body.assets.length&&typeof body.error==='string'&&body.error)throw Error(body.error);
-  catalogAt=Date.now();return body.assets;
- }).catch(error=>{catalogPromise=undefined;throw error;});
- return catalogPromise;
-}
+const loadCatalog=createCatalogLoader();
 
 const typeLabel=(asset:MarketCatalogAsset)=>asset.ref.kind==='rwa'?asset.ref.assetType==='etf'?'ETF':asset.ref.assetType[0]!.toUpperCase()+asset.ref.assetType.slice(1):'Crypto';
 const displaySymbol=(asset:MarketCatalogAsset)=>(asset.symbol.trim()||asset.name.trim()||asset.ref.id).slice(0,12).toUpperCase();

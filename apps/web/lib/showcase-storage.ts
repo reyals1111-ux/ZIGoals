@@ -1,4 +1,5 @@
 /** Showcase data lives only in a tab's sessionStorage. Never proxy or mutate localStorage. */
+import {getAccountScope,getAccountGeneration,isAccountLocked} from './account-session';
 export const SHOWCASE_MARKER='zigoals:showcase:active:v1';
 const PREFIX='zigoals:showcase:v1:';
 type Selector={version:1;generation:string;day:string};
@@ -19,16 +20,24 @@ function selector(storage:Storage):Selector|null{
  if(value.version!==1||!/^[-a-zA-Z0-9]{1,80}$/.test(value.generation)||!/^\d{4}-\d{2}-\d{2}$/.test(value.day))throw Error('Showcase session is damaged. Exit Showcase to return to your data.');
  return value;
 }
-function namespace(storage:Storage,prefix:string):Storage{
- let cached=scoped.get(storage);if(!cached){cached=new Map();scoped.set(storage,cached);}const previous=cached.get(prefix);if(previous)return previous;
- const keys=()=>Array.from({length:storage.length},(_,i)=>storage.key(i)!).filter(k=>k.startsWith(prefix));
- const view:Storage={get length(){return keys().length;},key:i=>keys()[i]?.slice(prefix.length)??null,getItem:k=>storage.getItem(prefix+k),setItem:(k,v)=>storage.setItem(prefix+k,v),removeItem:k=>storage.removeItem(prefix+k),clear:()=>keys().forEach(k=>storage.removeItem(k))};
- cached.set(prefix,view);scopes.set(view,prefix);return view;
+function namespace(storage:Storage,prefix:string,guard:()=>void=()=>{},generation=''):Storage{
+ const identity=prefix+generation;
+ let cached=scoped.get(storage);if(!cached){cached=new Map();scoped.set(storage,cached);}const previous=cached.get(identity);if(previous)return previous;
+ const keys=()=>{guard();return Array.from({length:storage.length},(_,i)=>storage.key(i)!).filter(k=>k.startsWith(prefix));};
+ const view:Storage={get length(){return keys().length;},key:i=>keys()[i]?.slice(prefix.length)??null,getItem:k=>{guard();return storage.getItem(prefix+k);},setItem:(k,v)=>{guard();storage.setItem(prefix+k,v);},removeItem:k=>{guard();storage.removeItem(prefix+k);},clear:()=>keys().forEach(k=>storage.removeItem(k))};
+ cached.set(identity,view);scopes.set(view,prefix);return view;
 }
 export function isShowcase():boolean{if(typeof window==='undefined')return false;try{return browserMarker()!==null;}catch{return selectedWindows.get(window)??false;}}
 export function showcaseDay():string|null{try{return typeof window==='undefined'?null:selector(window.sessionStorage)?.day??null;}catch{return null;}}
 export function getAppStorage():Storage{
- const raw=browserMarker();if(raw===null)return window.localStorage;
+ const raw=browserMarker();if(raw===null){
+  const account=getAccountScope();if(!account)return window.localStorage;
+  if(isAccountLocked())throw Error('Account records are locked. Verify your session and unlock the vault in Settings.');
+  const generation=getAccountGeneration();
+  return namespace(window.localStorage,`zigoals:account:v1:${account}:`,()=>{
+   if(isShowcase()||getAccountScope()!==account||isAccountLocked()||getAccountGeneration()!==generation)throw Error('Account selection changed. This storage view is no longer available.');
+  },String(generation));
+ }
  const selected=selector(window.sessionStorage);if(!selected)throw Error('Showcase selection changed. Reload to continue.');return namespace(window.sessionStorage,`${PREFIX}${selected.generation}:`);
 }
 export function storageLockKey(storage:Storage,key:string):string{return `${scopes.get(storage)??''}${key}`;}

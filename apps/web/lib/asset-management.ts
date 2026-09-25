@@ -17,7 +17,7 @@ export function saveAsset(s:Platform,p:Position):Platform {
  if(old?.archivedAt)throw Error('Restore this asset before editing.');
  if(old&&JSON.stringify(old.marketRef)!==JSON.stringify(p.marketRef))throw Error('Create a replacement asset for a different market identity.');
  const next=saveManualPosition(s,{...p,...(old?membership(s,old):{trackingStartedAt:p.trackingStartedAt??p.observedAt,archivePeriods:[]})});
- return platformSchema.parse({...next,assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:p.id,name:p.providerId,assetClass:assetClassOf(p),kind:old?'edited':'added',at:p.observedAt,provenance:'PRIVATE_EDIT'}].slice(-240)});
+ return platformSchema.parse({...next,assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:p.id,name:p.providerId,assetClass:assetClassOf(p),kind:old?'edited':'added',at:p.observedAt,provenance:'PRIVATE_EDIT'}]});
 }
 export function archiveAsset(s:Platform,id:string,release=false,now=Date.now()):Platform {
  const p=s.positions.find(x=>x.id===id);if(!p||p.sourceType!=='MANUAL')throw Error('Only manually tracked assets can be archived here.');
@@ -26,12 +26,12 @@ export function archiveAsset(s:Platform,id:string,release=false,now=Date.now()):
  if(owners.length&&!release)throw Error('Release Goal allocations before archiving.');
  if(owners.some(a=>s.goals.find(g=>g.id===a.goalId)?.locked))throw Error('Unlock linked Goals before releasing allocations.');
  const at=new Date(now).toISOString(),retained=membership(s,p);
- return platformSchema.parse({...s,positions:s.positions.map(x=>x.id===id?{...x,...retained,archivePeriods:[...retained.archivePeriods??[],{from:at}],archivedAt:at}:x),allocations:s.allocations.filter(a=>a.positionId!==id),assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:id,name:p.providerId,assetClass:assetClassOf(p),kind:'archived',at,provenance:'PRIVATE_EDIT'}].slice(-240)});
+ return platformSchema.parse({...s,positions:s.positions.map(x=>x.id===id?{...x,...retained,archivePeriods:[...retained.archivePeriods??[],{from:at}],archivedAt:at}:x),allocations:s.allocations.filter(a=>a.positionId!==id),assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:id,name:p.providerId,assetClass:assetClassOf(p),kind:'archived',at,provenance:'PRIVATE_EDIT'}]});
 }
 export function restoreAsset(s:Platform,id:string,now=Date.now()):Platform {
  const p=s.positions.find(p=>p.id===id);if(!p?.archivedAt)return s;
  const {archivedAt,...rest}=p,at=new Date(now).toISOString(),retained=membership(s,p);
- return platformSchema.parse({...s,positions:s.positions.map(p=>p.id===id?{...rest,...retained,archivePeriods:retained.archivePeriods!.map(period=>Date.parse(period.from)===Date.parse(archivedAt)&&!period.to?{...period,to:at}:period)}:p),assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:id,name:p.providerId,assetClass:assetClassOf(p),kind:'restored',at,provenance:'PRIVATE_EDIT'}].slice(-240)});
+ return platformSchema.parse({...s,positions:s.positions.map(p=>p.id===id?{...rest,...retained,archivePeriods:retained.archivePeriods!.map(period=>Date.parse(period.from)===Date.parse(archivedAt)&&!period.to?{...period,to:at}:period)}:p),assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:id,name:p.providerId,assetClass:assetClassOf(p),kind:'restored',at,provenance:'PRIVATE_EDIT'}]});
 }
 export function addFavourite(s:Platform,asset:MarketCatalogAsset):Platform {
  if(s.watchlist.some(a=>marketRefKey(a.ref)===marketRefKey(asset.ref)))return s;

@@ -1,3 +1,5 @@
+> Current Run10 reconciliation: the expanded authoritative scope supersedes former scheduling exclusions. See [the full requirements ledger](run10/REQUIREMENTS.json) and current evidence. The dated list below is preserved as historical scope, not a claim that newly implemented or remaining items are unchanged.
+
 # Run #9 Beta follow-up
 
 - RWA quotes are USD-only; EUR remains manual until supported evidence exists. No second provider added.

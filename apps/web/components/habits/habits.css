@@ -51,3 +51,26 @@
 @media(max-width:1100px) { .habit-consistency { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:600px) { .habit-consistency article { padding:22px 18px; }.habit-month-grid { grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }.habit-week-bars { gap:8px; }.habit-week-bars span { font-size:14px; }.habits-workspace .habit-trends>div { grid-template-columns:minmax(0,1fr) minmax(45px,1fr) 45px; }.habits-workspace .habit-trends>div>span { flex-wrap:wrap; }.habits-workspace .habit-calendar { gap:3px; }.habits-workspace .habit-calendar-day { min-height:28px; }.habits-workspace .habit-calendar-check { top:-5px; right:-2px; }.habits-workspace .habit-hero h1 { font-size:clamp(2.1rem,10vw,2.55rem); } }
 .habit-consistency header { display:block; padding:0; gap:0; border:0; min-height:0; background:none; }
+/* A compact Habit groups identity, metric and controls by available card width. */
+.habits-today { container-type:inline-size; }
+.habits-today .habit-today-list li { display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start; }
+.habits-today .habit-today-list li>div:first-child { width:100%;min-width:0; }
+.habit-completion,.habit-completion>div,.habit-card-heading>div { min-width:0;max-width:100%; }
+.habits-today .habit-completion-compact { display:grid;grid-template-columns:minmax(0,1fr);width:100%;gap:12px; }
+.habits-today .habit-completion-compact .habit-check-actions { flex-wrap:wrap;justify-content:flex-start; }
+.habit-count,.habit-card-heading small,.habit-metrics strong,.habit-metrics small { overflow-wrap:anywhere; }
+.habit-check-actions button { max-width:100%;white-space:normal;overflow-wrap:anywhere; }
+.habit-completion .habit-count strong { font-variant-numeric:tabular-nums; }
+.habit-quick-log form,.habit-day-editor { min-width:0; }
+.habit-quick-log .actions { flex-wrap:wrap; }
+.habit-card .habit-metrics { grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr)); }
+@container(min-width:620px) {
+ .habits-today .habit-today-list li { grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); }
+ .habits-today .habit-completion-compact { grid-template-columns:minmax(0,1fr) auto; }
+}
+@media(max-width:380px) {
+ .habit-card-heading { flex-wrap:wrap; }
+ .habit-card-heading>div { flex-basis:100%; }
+ .habit-card-heading>.quiet { margin-left:auto; }
+ .habit-overview { grid-template-columns:minmax(0,1fr); }
+}

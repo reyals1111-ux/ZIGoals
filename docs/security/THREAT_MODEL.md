@@ -75,3 +75,18 @@ These are the publication controls and remaining trust assumptions. Actual execu
 | Unsafe release or rollback | Reproducible is never upload-approved. Contract upload, real signing and testnet deployment require a later explicit owner decision. Web rollback touches only the isolated Alpha Worker/domain; preserve apex/email and browser data. Future deployed-contract frontends need separate compatibility and exit review. |
 
 Fresh contract/frontend engineering reviews are independent of implementation but are not professional audits. External strategies, mainnet and real funds remain outside this Alpha. Report suspected compromise to **hello@zigoals.app** and stop using the affected build; do not repeatedly retry financial actions to investigate.
+
+## Run #10 draft account/sync boundaries
+
+| Threat | Control and remaining exposure |
+|---|---|
+| Cross-account late results | Captured account-generation Storage handles, key cleanup, lock-only cross-tab invalidation and authenticated account-header matching; current server tenant never derives from client-selected vault/account. |
+| Ciphertext tampering/replay | AES-GCM domain/object/revision/epoch AAD, random nonces, encrypted inventory and monotonic authenticated catalog watermark; first-device trust still requires the correct independent recovery secret. |
+| Lost acknowledgement/concurrent edits | Persisted exact operation IDs before send, durable receipts/CAS, immutable staged chunks and atomic catalog publication; financial divergence pauses, not last-write-wins. Local domain commits are individually atomic. |
+| Revoked bearer token | Durable per-tenant token-hash registry checked again within write transaction; revoked token cannot register itself again. Retained tombstones survive restart. Key rotation and erasure of downloaded data are not implemented. |
+| Browser-profile or allowed-JS compromise | Local records/journal remain plaintext; memory-only key/app lock is not hardware security. CSP/escaping and scoped APIs reduce attack surface but cannot defeat same-origin bundle compromise. |
+| Health permission withdrawn | Client skips Health decrypt/apply/upload and blocks pending Health replay; existing encrypted copies are retained, not falsely described as deleted. |
+| Camera/external food data | Only Health document permits self camera, explicit click and track cleanup; manual fallback, no image upload, bounded public-barcode request, unknown nutrients and per100g/100ml confirmation. |
+| Hosted setup/release confusion | Local Miniflare/Chrome fixtures are identified as such. No real email or phone proof, live migration or production activation. Separate release/financial gates unchanged. |
+
+Primary session-expiry behavior: https://supabase.com/docs/guides/auth/signout . This draft engineering model is not a professional audit or full account-lifecycle certification.

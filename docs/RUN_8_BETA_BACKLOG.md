@@ -1,3 +1,5 @@
+> Current Run10 reconciliation: the expanded authoritative scope supersedes former scheduling exclusions. See [the full requirements ledger](run10/REQUIREMENTS.json) and current evidence. The dated list below is preserved as historical scope, not a claim that newly implemented or remaining items are unchanged.
+
 # Run #8 Beta backlog
 
 Complete scope and acceptance criteria remain in the [unaltered master prompt](RUN_8_ASTRA_MASTER_PROMPT.md). This status table records delivered behavior and remaining work; tests do not make partial product scope complete.

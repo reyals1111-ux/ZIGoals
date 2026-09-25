@@ -1,0 +1,62 @@
+{
+  "recorded_at": "2026-09-23T22:17:26.500479+00:00",
+  "runs": [
+    {
+      "kind": "frozen-unit",
+      "source": "89246251cfba1407a1badb3fcd060804ebd234f1",
+      "result": "1333 passed;1 explicit opt-in browser skip",
+      "local_log": "/private/tmp/run10-final-unit-frozen.log",
+      "sha256": "9d5453f022baf21b47faae2599a06102481c6069bd2b1628a7c08e1be2c711ce"
+    },
+    {
+      "kind": "first-full-browser",
+      "source": "89246251cfba1407a1badb3fcd060804ebd234f1",
+      "result": "219 passed;77 failed;16 prior opt-in captures skipped",
+      "local_log": "/private/tmp/run10-final-playwright.log",
+      "sha256": "403977add2c9c6cd673876448090a08133137654d17e9d7ffdb64e18b798e62a"
+    },
+    {
+      "kind": "corrected-browser",
+      "source": "2bf6f9124852c2fe404ddd191e9e011e3e5054c4",
+      "result": "154 passed in2.5min;all failed-file families rerun",
+      "local_log": "/private/tmp/run10-corrected-browser.log",
+      "sha256": "7655a3aa50b3378ba12ef226e111260550d4df89e822d0c567b600962e804cbd"
+    },
+    {
+      "kind": "alpha-package-browser",
+      "source": "17a3e9af420f90e022120d9dabd5642c6e7e23a1",
+      "result": "14 passed11.9s",
+      "local_log": "/private/tmp/run10-packaged-browser.log",
+      "sha256": "c3d136e63c3d09a3d1c649c9951f85c5b27319ac81e3350ee873fdcdf39cb96e"
+    },
+    {
+      "kind": "alpha-build",
+      "source": "17a3e9af420f90e022120d9dabd5642c6e7e23a1",
+      "result": "PASS clean source;PUBLIC_ALPHA_UNDEPLOYED",
+      "local_log": "/private/tmp/run10-alpha-build.log",
+      "sha256": "ef316becfdab7fa57d8328e4fc46fb5e49304a8b98ee711761d4ad1f8f47c810"
+    },
+    {
+      "kind": "alpha-dryrun",
+      "source": "17a3e9af420f90e022120d9dabd5642c6e7e23a1",
+      "result": "PASS12192.92KiB/gzip2329.08KiB",
+      "local_log": "/private/tmp/run10-alpha-dryrun.log",
+      "sha256": "1b859eb50ced4e6bc6d1e3cee06d1e3d8f36ca69ed28d8d76c5227127b21cf6a"
+    },
+    {
+      "kind": "lint",
+      "source": "2bf6f9124852c2fe404ddd191e9e011e3e5054c4",
+      "result": "PASS",
+      "local_log": "/private/tmp/run10-corrected-lint.log",
+      "sha256": "35bc406614aec71000a72504930e728dc29f1b5ca10ba29dbd35e102952f54f8"
+    },
+    {
+      "kind": "typecheck",
+      "source": "2bf6f9124852c2fe404ddd191e9e011e3e5054c4",
+      "result": "PASS",
+      "local_log": "/private/tmp/run10-corrected-typecheck.log",
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+    }
+  ],
+  "limits": "Local evidence; first red run retained. Counts overlap and must not be added. Hosted/physical levels remain separate."
+}

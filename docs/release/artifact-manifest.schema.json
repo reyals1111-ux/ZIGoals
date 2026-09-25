@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://zigoals.app/schemas/release-artifact-v1.json",
+  "$id": "https://zigoals.app/schemas/release-artifact-v2.json",
   "title": "Unapproved canonical build evidence",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 1
+      "const": 2
     },
     "status": {
       "enum": [
@@ -71,7 +71,6 @@
         "arch",
         "osRelease",
         "imageOS",
-        "imageVersion",
         "rust",
         "cargo",
         "node",
@@ -84,7 +83,7 @@
       ],
       "properties": {
         "policy": {
-          "const": "canonical-linux-v1"
+          "const": "canonical-linux-v2"
         },
         "platform": {
           "const": "linux"
@@ -99,11 +98,6 @@
         },
         "imageOS": {
           "const": "ubuntu24"
-        },
-        "imageVersion": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
         },
         "rust": {
           "const": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.1\nLLVM version: 19.1.7"
@@ -178,7 +172,8 @@
           "runAttempt",
           "job",
           "builtAt",
-          "validation"
+          "validation",
+          "runner"
         ],
         "properties": {
           "repository": {
@@ -228,6 +223,20 @@
               },
               "passed": {
                 "const": true
+              }
+            }
+          },
+          "runner": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "imageVersion"
+            ],
+            "properties": {
+              "imageVersion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
               }
             }
           }

@@ -43,3 +43,6 @@
 .price-chart th{color:#cbd5eb;background:#151c33;font-weight:550;}
 .price-chart td:last-child{text-align:right;}
 @media(max-width:440px){.price-chart{border-radius:18px;}.price-chart-heading{gap:.75rem;}.price-chart-quote{margin:1.2rem 0 1rem;}.price-chart-source>span:last-child:not(:first-child){margin-left:0;width:100%;}.price-chart-quote>div>strong{font-size:1.85rem;}.price-chart-ranges{gap:.1rem;}.price-chart-ranges button{padding:.45rem .6rem;}.price-chart-details summary>span{display:block;margin-left:1rem;}.price-chart-empty{min-height:220px;}}
+.price-chart[data-entrance=once] .price-chart-line { animation:price-observation-draw var(--entrance-duration,650ms) var(--entrance-easing,cubic-bezier(.2,.7,.3,1)) both; }
+@keyframes price-observation-draw { from { stroke-dasharray:1;stroke-dashoffset:1; } 99% { stroke-dasharray:1; } to { stroke-dasharray:none;stroke-dashoffset:0; } }
+@media(prefers-reduced-motion:reduce) { .price-chart[data-entrance=once] .price-chart-line { animation:none; } }

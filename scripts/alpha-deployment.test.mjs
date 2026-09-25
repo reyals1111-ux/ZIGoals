@@ -252,13 +252,13 @@ test("a different live version cannot be reported as this run's deployment", asy
   await expect(performDeployment(rollback(), r.io)).rejects.toThrow(/version/);
 });
 
-function htmlResponse(nonce = "A".repeat(43) + "=") {
+function htmlResponse(nonce = "A".repeat(43) + "=",path="/app") {
   return new Response(`<html>YOUR FINANCIAL ORBIT Local Demo PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
     "content-type": "text/html", "cache-control": "private, no-store, max-age=0",
     "content-security-policy": `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests`,
     "strict-transport-security": "max-age=31536000, max-age=31536000",
     "x-frame-options": "DENY", "x-content-type-options": "nosniff", "x-robots-tag": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
-    "referrer-policy": "no-referrer", "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "referrer-policy": "no-referrer", "permissions-policy": `${path==='/app/health'?'camera=(self)':'camera=()'}, microphone=(), geolocation=()`,
   } });
 }
 test("smoke accepts strong nonce security and existing duplicate HSTS/robots values", async () => {
@@ -269,7 +269,7 @@ test.each([
   ["content-security-policy", "default-src 'self'; script-src 'self' 'unsafe-inline'", /CSP/],
   ["cache-control", "public, max-age=3600", /private/], ["x-frame-options", "SAMEORIGIN", /Frame denial/],
   ["x-content-type-options", "", /nosniff/], ["strict-transport-security", "max-age=0", /HSTS/],
-  ["x-robots-tag", "index", /Robots/], ["referrer-policy", "origin", /Referrer/], ["permissions-policy", "", /permissions/],
+  ["x-robots-tag", "index", /Robots/], ["referrer-policy", "origin", /Referrer/], ["permissions-policy", "", /permission/i],
 ])("smoke rejects weakened %s", async (key, value, error) => {
   const response = htmlResponse(); response.headers.set(key, value);
   const html = await response.text();
@@ -295,7 +295,7 @@ test("smoke rejects nonce mismatch and redirects", async () => {
 test("smoke visits only Alpha, checks all routes and fresh nonces, and never sends credentials", async () => {
   const calls = []; let count = 0;
   const checks = await smokeAlpha({ expectedCommit: sha, fetcher: async (url, options) => {
-    calls.push({ url, options }); return htmlResponse((count++ === 0 ? "A" : "B").repeat(43) + "=");
+    calls.push({ url, options }); return htmlResponse((count++ === 0 ? "A" : "B").repeat(43) + "=",new URL(url).pathname);
   } });
   expect(checks).toHaveLength(11);
   expect(calls.map(c => new URL(c.url).pathname)).toEqual(["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings", "/app"]);
@@ -306,6 +306,12 @@ test("smoke visits only Alpha, checks all routes and fresh nonces, and never sen
   }
 });
 test("smoke rejects stale deployed source and reused response nonces", async () => {
-  await expect(smokeAlpha({ expectedCommit: "b".repeat(40), fetcher: async () => htmlResponse() })).rejects.toThrow();
-  await expect(smokeAlpha({ expectedCommit: sha, fetcher: async () => htmlResponse() })).rejects.toThrow(/nonce/);
+  await expect(smokeAlpha({ expectedCommit: "b".repeat(40), fetcher: async url => htmlResponse(undefined,new URL(url).pathname) })).rejects.toThrow();
+  await expect(smokeAlpha({ expectedCommit: sha, fetcher: async url => htmlResponse(undefined,new URL(url).pathname) })).rejects.toThrow(/nonce/);
+});
+
+test('camera permission is confined to the Health document',async()=>{
+ const response=htmlResponse();response.headers.set('permissions-policy','camera=(self), microphone=(), geolocation=()');const html=await response.text();
+ expect(()=>assertHtml(response,html,'/app/health')).not.toThrow();expect(()=>assertHtml(response,html,'/app')).toThrow(/permission/);
+ response.headers.set('permissions-policy','camera=*, microphone=(), geolocation=()');expect(()=>assertHtml(response,html,'/app/health')).toThrow(/permission/);
 });

@@ -1,0 +1,19 @@
+{
+  "build": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "17a3e9af420f90e022120d9dabd5642c6e7e23a1",
+    "dirty": false
+  },
+  "roots": [
+    "apps/web/.next/static",
+    "apps/web/.open-next"
+  ],
+  "files_scanned": 1474,
+  "fictional_private_markers": 4,
+  "known_configured_values_available": 0,
+  "configured_file_values_available": 0,
+  "hits": [],
+  "result": "PASS",
+  "limits": "No configured secret files found in actual/original ZIGoals worktree; exact-value scan unavailable when count0. Patterns are not exhaustive. Source tests may contain fictional markers; client/deployable artifacts must not."
+}

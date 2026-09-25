@@ -50,7 +50,7 @@ function addSemanticIssues(value: { type: "build" | "quit" | "limit"; measuremen
   if (value.schedule.kind === "frequency" && value.targetPeriod !== "day") context.addIssue({ code: "custom", path: ["targetPeriod"], message: "Frequency recurrence already defines its target period." });
 }
 export const habitInputSchema = inputShape.superRefine(addSemanticIssues);
-const ruleSchema = z.object({
+export const ruleSchema = z.object({
   from: dateSchema, schedule: habitScheduleSchema, type: z.enum(["build", "quit", "limit"]), measurement: habitMeasurementSchema, target: valueSchema,
   targetPeriod: z.enum(["day", "week", "month", "year"]), endCondition: endConditionSchema, state: z.enum(["active", "paused", "archived"]),
 }).strict().superRefine(addSemanticIssues);
@@ -58,11 +58,19 @@ const entrySchema = z.object({
   date: dateSchema, count: valueSchema, disposition: z.enum(["logged", "skipped", "failed"]), note: z.string().max(2000),
   mood: z.enum(["energized", "good", "neutral", "difficult", "calm"]).optional(), updatedAt: timestampSchema,
 }).strict();
+const timezoneSchema=z.string().min(1).max(100).refine(value=>{try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true;}catch{return false;}});
+const timerSchema=z.object({id:z.uuid(),startedAt:timestampSchema,date:dateSchema,timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),state:z.enum(['running','paused']),segmentStartedAt:timestampSchema,pausedAt:timestampSchema.optional(),elapsedMs:z.number().int().min(0).max(604800000)}).strict().refine(t=>Date.parse(t.segmentStartedAt)>=Date.parse(t.startedAt)&&(t.state==='paused'?!!t.pausedAt&&Date.parse(t.pausedAt)>=Date.parse(t.segmentStartedAt):!t.pausedAt),'Invalid saved timer timestamps or state.');
+const timerReceiptSchema=z.object({id:z.uuid(),date:dateSchema,startedAt:timestampSchema,endedAt:timestampSchema,elapsedMs:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),value:valueSchema,status:z.enum(['logged','discarded']),recordedAt:timestampSchema}).strict();
 const habitSchema = z.object({
   id: z.uuid(), title: z.string().trim().min(1).max(100), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
   timeOfDay: z.enum(["anytime", "morning", "afternoon", "evening"]), endCondition: endConditionSchema, stackAfterId: z.uuid().optional(), startDate: dateSchema,
+  ruleRevisions:z.array(z.object({id:z.string().max(250),recordedAt:timestampSchema,source:z.enum(['retained','scheduled']),rule:ruleSchema}).strict()).max(4000).optional(),
+  timer:timerSchema.optional(),timerReceipts:z.array(timerReceiptSchema).max(10000).optional(),
   createdAt: timestampSchema, updatedAt: timestampSchema, rules: z.array(ruleSchema).min(1).max(2000), entries: z.array(entrySchema).max(20000),
 }).strict().superRefine((habit, context) => {
+  if(habit.ruleRevisions&&new Set(habit.ruleRevisions.map(r=>r.id)).size!==habit.ruleRevisions.length)context.addIssue({code:'custom',message:'Duplicate rule revision.'});
+  if(habit.timerReceipts&&new Set(habit.timerReceipts.map(r=>r.id)).size!==habit.timerReceipts.length)context.addIssue({code:'custom',message:'Duplicate timer receipt.'});
+  if(habit.timer&&habit.timerReceipts?.some(r=>r.id===habit.timer!.id))context.addIssue({code:'custom',message:'Timer identity has already been used.'});
   if (habit.rules[0]!.from !== habit.startDate || habit.rules.some((rule, index) => index > 0 && rule.from <= habit.rules[index - 1]!.from)) context.addIssue({ code: "custom", message: "Habit rules must begin at its start date and be in date order." });
   if (new Set(habit.entries.map((entry) => entry.date)).size !== habit.entries.length || habit.entries.some((entry) => entry.date < habit.startDate)) context.addIssue({ code: "custom", message: "Habit entries must have unique dates on or after its start." });
   if (habit.updatedAt < habit.createdAt) context.addIssue({ code: "custom", message: "Invalid habit timestamps." });
@@ -286,7 +294,7 @@ export function habitStats(habit: Habit, today = localDate()) {
   }
   const skipCount = habit.entries.filter((entry) => entry.disposition === "skipped" && entry.date <= today).length;
   const decided = successCount + failCount + skipDecisions; const completionPercentage = decided ? Math.round(successCount / decided * 100) : 0;
-  const currentPeriod = aggregatePeriod(latestHabitRule(habit)); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
+  const currentPeriod = aggregatePeriod(habitRuleOn(habit,today)??habit.rules[0]!); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
   return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
 export function habitTrends(habit: Habit, today = localDate()) {
