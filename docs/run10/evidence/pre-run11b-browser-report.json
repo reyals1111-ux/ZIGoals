@@ -1,7 +1,7 @@
 {
   "status": "diagnostic_partial",
   "source": "4df2a9c927e93770ad62dd96d47b26ab9a3dfb43",
-  "runtime": "Node 24.19.0; pnpm 11.19.0; Playwright 1.58.2",
+  "runtime": "Node 24.19.0; pnpm 11.19.0; Playwright 1.63.0",
   "host": "Darwin 25.6.0 arm64; Google Chrome 153.0.8010.53",
   "environment": "PUBLIC_ALPHA_UNDEPLOYED, production build, owned localhost server, desktop and mobile projects planned, two workers, zero retries, five-failure diagnostic cap",
   "run_directory": ".superpowers/pre11b-browser/2026-09-25T20-35-32-554Z-50960",
