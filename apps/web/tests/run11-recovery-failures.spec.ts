@@ -1,6 +1,7 @@
 import {test,expect,type Page} from '@playwright/test';
 import {encryptBackup} from '../lib/vault/backup';
 import {createEmptyHealth} from '../lib/health';
+import {emptyDashboardSettings} from '../lib/dashboard-settings';
 import {emptyPlatform,privateGoalSchema} from '../lib/positions';
 async function bytes(page:Page){return page.evaluate(async()=>{
  const local=Object.fromEntries(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]));
@@ -35,4 +36,12 @@ for(const durable of [false,true])test(`failed ${durable?'transactional':'legacy
  await page.reload();await expect(page.getByRole('article',{name:'Independent local logging works',exact:true})).toBeVisible();await page.goto('/app/health');await expect(page.getByRole('region',{name:'Water journal'})).toContainText('250 mL recorded');await page.getByRole('button',{name:'Add 250 mL',exact:true}).click();await expect(page.getByRole('region',{name:'Water journal'})).toContainText('500 mL recorded');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!))).toEqual(finance);
  await page.goto('/app/goals/tracked/811');const timeline=page.getByRole('region',{name:'Goal timeline',exact:true});await timeline.getByLabel('Event type',{exact:true}).selectOption('contribution');await expect(timeline.getByRole('status')).toHaveText('Page 1 of 3 · 35 retained events');
+});
+
+test('protected restore preview shows authenticated version, modules, exact counts and stored date range before confirmation',async({page})=>{
+ const hydrationErrors:string[]=[];page.on('console',message=>{if(message.type()==='error'&&/hydration|hydrated/i.test(message.text()))hydrationErrors.push(message.text());});
+ await page.route('**/api/**',r=>r.fulfill({status:503,json:{error:'Offline fictional fixture'}}));await page.goto('/app/health');await page.getByRole('button',{name:'Add 250 mL',exact:true}).click();await expect(page.getByRole('region',{name:'Water journal'})).toContainText('250 mL recorded');await upgrade(page);const before=await bytes(page);
+ const incoming={...createEmptyHealth(),weights:[{id:'health_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',date:'2024-01-02',grams:70000,createdAt:'2024-01-02T12:00:00Z',updatedAt:'2026-09-23T12:00:00Z'}]},backup=await encryptBackup({health:JSON.stringify(incoming),settings:JSON.stringify(emptyDashboardSettings())}),panel=page.locator('#private-vault');
+ await panel.getByText('Restore an encrypted backup',{exact:true}).click();await panel.getByLabel('Encrypted backup file',{exact:true}).setInputFiles({name:'fictional-inventory.json',mimeType:'application/json',buffer:Buffer.from(backup.file)});await panel.getByLabel('Backup recovery secret',{exact:true}).fill(backup.recovery);await panel.getByRole('button',{name:'Unlock and preview',exact:true}).click();const inventory=panel.getByLabel('Protected backup inventory',{exact:true});await expect(inventory).toContainText('Encrypted backup · Format version 1 · Authenticated and validated.');await expect(inventory).toContainText('Health · data version 1');await expect(inventory).toContainText('Weight records: 1');await expect(inventory).toContainText('Stored date range: 2024-01-02 to 2026-09-23.');await expect(inventory).toContainText('Today preferences');await expect(inventory).toContainText('No dated records.');await expect(panel.getByRole('button',{name:'Restore selected module',exact:true})).toBeDisabled();expect(await bytes(page)).toEqual(before);
+ await panel.getByRole('button',{name:'Cancel',exact:true}).click();await expect(inventory).toHaveCount(0);expect(await bytes(page)).toEqual(before);await page.reload();await expect(panel.getByText('Using transactional local storage.',{exact:true})).toHaveCount(1);expect(hydrationErrors).toEqual([]);await page.goto('/app/health');await expect(page.getByRole('region',{name:'Water journal'})).toContainText('250 mL recorded');
 });
