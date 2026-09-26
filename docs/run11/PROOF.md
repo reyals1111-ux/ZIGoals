@@ -1,3 +1,7 @@
+# Current Run11 acceptance
+
+The authoritative final source-bound results are [EVIDENCE.md](EVIDENCE.md). The following entries are historical execution checkpoints; their pending language does not supersede the final receipts.
+
 # Run11 source-bound evidence
 
 Starting source `3ca2f42303724ef1317aded6982c9fdd6fd8775d`. Baseline focused browser: 14 planned, 12 pass, 2 fail (the 13.44px captions); `.superpowers/pre11b-browser/2026-09-26T18-19-47-681Z-88110/summary.json`. Caption-only application delta later committed as `5d2143a`: 16/16 desktop/mobile product+visual cases passed, no skip, `.superpowers/pre11b-browser/2026-09-26T18-21-04-623Z-88405/summary.json`. Build recorded preparation HEAD with the explicitly identified uncommitted caption delta; do not treat this as a final clean-source Run11 run.

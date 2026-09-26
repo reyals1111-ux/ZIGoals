@@ -1,3 +1,7 @@
+# Current continuation: Actual Run11
+
+This Run10 record is retained historically. Current exact state and acceptance are in [Run11 STATE](../run11/STATE.md), [314-entry closure](../run11/CLOSURE.json) and [evidence](../run11/EVIDENCE.md). PR20 is merged; PR21 is the isolated completion review. Former Run11/12 required work is retained in the supplied scope; conditional and owner activities remain explicit.
+
 # Actual Run #10 — current restoration/readiness checkpoint
 
 ## Exact E04 backend slice checkpoint — 2026-09-24T22:42:57Z

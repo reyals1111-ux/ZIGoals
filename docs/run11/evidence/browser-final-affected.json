@@ -1,0 +1,794 @@
+{
+  "source": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "inputSha256": "5186f1b95a11526692f48157fca6886aadaa91883ea49daba5d3abb61357df67",
+  "stats": {
+    "startTime": "2026-09-26T22:54:36.519Z",
+    "duration": 34516.013,
+    "expected": 60,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "read-only diagnostics keep deployment disabled and display separate public endpoint evidence",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1378,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "support preview is explicit and copying sends only the reviewed safe snapshot",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1138,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "read-only diagnostics keep deployment disabled and display separate public endpoint evidence",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 946,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "support preview is explicit and copying sends only the reviewed safe snapshot",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 760,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "corrupt metadata recovery preserves the original bytes and restores the plan",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2417,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "damaged local funds keep the shell usable and block simulation instead of resetting funds",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1632,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "invalid custom scenario preserves baseline funding health and progress",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 938,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "unsupported saved planning date reports a calculation error without crashing the goal",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 781,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "near-limit Unicode plans export a valid importable backup",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 611,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "local goal lifecycle, metadata recovery, exports and mobile layout",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4542,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "missing wallet is explicit and local mode remains available",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 634,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "corrupt metadata recovery preserves the original bytes and restores the plan",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 950,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "damaged local funds keep the shell usable and block simulation instead of resetting funds",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1413,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "invalid custom scenario preserves baseline funding health and progress",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 869,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "unsupported saved planning date reports a calculation error without crashing the goal",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 906,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "near-limit Unicode plans export a valid importable backup",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 559,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "local goal lifecycle, metadata recovery, exports and mobile layout",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4542,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "missing wallet is explicit and local mode remains available",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 797,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "positions-layout.spec.ts",
+      "title": "wealth leads collapsed read-only utilities and APR stays account-scoped",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3048,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "positions-layout.spec.ts",
+      "title": "wealth leads collapsed read-only utilities and APR stays account-scoped",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1967,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "Goal type cards keep shared details and confirm incompatible fields before clearing them",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1691,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "short Goal flow creates all four types with an honest live preview",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2296,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "Goal type cards keep shared details and confirm incompatible fields before clearing them",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1650,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "short Goal flow creates all four types with an honest live preview",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1858,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "Goal draft navigation and reload require an explicit discard, while cancel retains input",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1563,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "saved Goal detail edits retain input on canceled navigation and discard only the selected form",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1369,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "Goal draft navigation and reload require an explicit discard, while cancel retains input",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1923,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "saved Goal detail edits retain input on canceled navigation and discard only the selected form",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1405,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-history.spec.ts",
+      "title": "all retained Goal events are reachable, filterable and readable at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1491,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-history.spec.ts",
+      "title": "all retained Goal events are reachable, filterable and readable at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1571,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-options-pointer.spec.ts",
+      "title": "adjacent Goal option panels remain inside their cards and accept ordinary pointer pinning",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2354,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-options-pointer.spec.ts",
+      "title": "adjacent Goal option panels remain inside their cards and accept ordinary pointer pinning",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1627,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-large-goal-collection.spec.ts",
+      "title": "larger Goal collections preserve pinned order and offer bounded search, sorting and pages",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1451,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-large-goal-collection.spec.ts",
+      "title": "larger Goal collections preserve pinned order and offer bounded search, sorting and pages",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1799,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected backup wrong secret, damaged ciphertext and future domain schema each fail without changing the existing profile",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2489,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed legacy append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3579,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed transactional append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4026,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected restore preview shows authenticated version, modules, exact counts and stored date range before confirmation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1911,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected backup wrong secret, damaged ciphertext and future domain schema each fail without changing the existing profile",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2251,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed legacy append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3007,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed transactional append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3525,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected restore preview shows authenticated version, modules, exact counts and stored date range before confirmation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1548,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "one collection reconciles incomplete flags, preserves deep links and shows ownership inline",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2122,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1667,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "creation without allocation confirmation saves an empty Goal",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1257,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator preserves Local Demo and legacy detail",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1266,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified responsive Goals and creator keep navigation and Health intact",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2574,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Project completion follows milestones and Value/Reward Goals keep their own source semantics",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2529,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Local simulation remains creatable when independent Position storage is malformed",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1318,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "failed Habit write retries without duplicating Goal or re-allocating reserved units",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1774,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Goal management stays collapsed, supports keyboard and hash links, and skips unneeded market requests",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1237,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "one collection reconciles incomplete flags, preserves deep links and shows ownership inline",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1630,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1302,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "creation without allocation confirmation saves an empty Goal",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 833,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator preserves Local Demo and legacy detail",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1064,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified responsive Goals and creator keep navigation and Health intact",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1701,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Project completion follows milestones and Value/Reward Goals keep their own source semantics",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2779,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Local simulation remains creatable when independent Position storage is malformed",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 950,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "failed Habit write retries without duplicating Goal or re-allocating reserved units",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 999,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Goal management stays collapsed, supports keyboard and hash links, and skips unneeded market requests",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 746,
+          "retry": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,250 @@
+{
+  "records": [
+    {
+      "file": "run11-goal-ring-1440.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "48de4246db841f8eb00187afa47cfd5f3cb6afd70ec317fcac2c1b9d51c9da0b",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-shared-visuals-categ-7b531-rance-have-visible-evidence-desktop/run10-goal-ring-1440.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/goals",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-01",
+        "SS-02"
+      ],
+      "imagePixels": {
+        "width": 376,
+        "height": 754
+      }
+    },
+    {
+      "file": "run11-sidebar-1440.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "3bc2725ee9c044e8905f40f29f3f3e15be9509b522935861b7ec141660248517",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-shared-visuals-categ-7b531-rance-have-visible-evidence-desktop/run10-sidebar-1440.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/goals",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-03",
+        "SS-07"
+      ],
+      "imagePixels": {
+        "width": 216,
+        "height": 1000
+      }
+    },
+    {
+      "file": "goal-type-cards-320.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "3f842e518cc200553dba53b375200742edaab15b5cf09333afdf7cc2f55bfb2f",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-goal-creator-Goal-ty-f683a-fields-before-clearing-them-desktop/goal-type-cards-320.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/goals/new",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-04"
+      ],
+      "imagePixels": {
+        "width": 320,
+        "height": 3378
+      }
+    },
+    {
+      "file": "run11-history-1440.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "6c8d9b739fb3ac490f44fd76ab7d76c157c177595a9058439c35bbc6100a919e",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-shared-visuals-categ-7b531-rance-have-visible-evidence-desktop/run10-history-1440.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/wealth",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-05"
+      ],
+      "imagePixels": {
+        "width": 1172,
+        "height": 1436
+      }
+    },
+    {
+      "file": "run11-ecosystem-320.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "4182d269e61380169b41520df1841f1d48b673886c3a38221771298d0c56693f",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-ecosystem-ecosystem-directory-reflows-at-320px-desktop/run10-ecosystem-320.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/ecosystem",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-06"
+      ],
+      "imagePixels": {
+        "width": 288,
+        "height": 1749
+      }
+    },
+    {
+      "file": "run11-hero-1440.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "6283d5d83444d92db081e972022f0831fd006093bd56b16ee75b2c5e83c40e5c",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-shared-visuals-categ-7b531-rance-have-visible-evidence-desktop/run10-hero-1440.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-09"
+      ],
+      "imagePixels": {
+        "width": 824,
+        "height": 482
+      }
+    },
+    {
+      "file": "run11-habits-320.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "56ecd6846af6b0876149664afc60a244ff6de90ad637ecf6f2f8ffdcbd6ae7ec",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-shared-visuals-Habit-57e4f-ave-distinct-space-at-320px-desktop/run10-habits-320.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/habits",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-10"
+      ],
+      "imagePixels": {
+        "width": 288,
+        "height": 830
+      }
+    },
+    {
+      "file": "selected-widget-summary.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "eecbe7e58e155ddb8a233055713c455f56a98045bb9d3898a497bce0f556c1a1",
+      "origin": "/tmp/zigoals-run11-accept-browser/run10-restored-today-appro-dbd54--coexist-with-saved-widgets-desktop/selected-widget-summary.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-08"
+      ],
+      "imagePixels": {
+        "width": 824,
+        "height": 490
+      }
+    },
+    {
+      "file": "landscape-food-844.png",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "7e5f2354fa4e5a86a228500ea7d1ef293783af087908a156f62c7b231c1f45d8",
+      "origin": "/tmp/zigoals-run11-accept-browser/run11-route-mobile-accepta-6295b-ns-draft-and-reachable-save-desktop/landscape-food-844.png",
+      "inspection": "Viewed by root; fictional-data evidence, no physical-device claim.",
+      "route": "/app/health",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "MOB-06"
+      ],
+      "imagePixels": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "file": "motion-desktop.webm",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "926fd12c41b73fdefbcf3d7fcc71ba02301d33322e2bb4474d222e755f02ce71",
+      "origin": "/tmp/zigoals-run11-accept-browser/run11-motion-recording-rec-a83f2--and-preserve-exact-history-desktop/video.webm",
+      "inspection": "Recorded by run11-motion-recording.spec.ts; assertions cover start/mid/end computed frames, settle, no dialogue replay, reduced motion, exact history.",
+      "route": "/app",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-09",
+        "JRN-22"
+      ]
+    },
+    {
+      "file": "motion-mobile.webm",
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "sha256": "de9591c4ff01d66a4909545ec84e2a9624e3c2fd1a31ef57a0e8f4e3f5997182",
+      "origin": "/tmp/zigoals-run11-accept-browser/run11-motion-recording-rec-a83f2--and-preserve-exact-history-mobile/video.webm",
+      "inspection": "Recorded by run11-motion-recording.spec.ts; assertions cover start/mid/end computed frames, settle, no dialogue replay, reduced motion, exact history.",
+      "route": "/app",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fixture": "Fictional isolated Showcase or seeded local test records",
+      "criteria": [
+        "SS-09",
+        "JRN-22"
+      ]
+    },
+    {
+      "file": "life-summary-1440.png",
+      "source": "ec3ac7a5c07df7d37adb2ba300c47dbaeb575266",
+      "sha256": "0b9ae8cee5acd6525531a1d69ae91e8509a148e3345b88cb3f464ea02825db1a",
+      "route": "/app",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "fixture": "Fictional Showcase",
+      "criteria": [
+        "SS-08"
+      ],
+      "inspection": "Viewed after computed flow-ring reveal reached100%; once-per-mount entrance preserved."
+    },
+    {
+      "file": "life-summary-390.png",
+      "source": "ec3ac7a5c07df7d37adb2ba300c47dbaeb575266",
+      "sha256": "19ccbafc0ad89cd9e8f1e3f62c92f55149515ce30795029322ad9d0a557586a5",
+      "route": "/app",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fixture": "Fictional Showcase",
+      "criteria": [
+        "SS-08"
+      ],
+      "inspection": "Viewed after computed flow-ring reveal reached100%; once-per-mount entrance preserved."
+    }
+  ]
+}
