@@ -1,5 +1,5 @@
 import {createEmptyHealth,healthSchema} from '../health';
-import {addWater} from '../health-daily';
+import {addWater,dailyData,saveHealthPreferences} from '../health-daily';
 import {test,expect} from 'vitest';
 import {createVault,sealRecord,type VaultManifest} from './crypto';
 import {cloudSnapshot,mergePrivateData,synchronize,RevisionConflict,type CloudOperation,type CloudTransport,type Journal,type PrivateData,type SyncState} from './cloud-sync';
@@ -100,4 +100,11 @@ test('a future queued policy cannot be replayed by an older reader',async()=>{
 test('tampered row epoch metadata cannot borrow the manifest epoch for decryption',async()=>{
  const s=await setup();await sync(s,{settings:'{"fixture":"epoch"}'});const page=s.cloud.page();page.records[0]!.epoch=2;
  await expect(cloudSnapshot({...s.cloud,read:async()=>page,write:op=>s.cloud.write(op)},s.vault.key,s.vault.manifest)).rejects.toThrow('epoch mismatch');
+});
+
+test('first offline Health preferences merge separate changes against canonical defaults',()=>{
+ const empty=createEmptyHealth(),defaults=dailyData(empty).preferences,wrap=(v:unknown)=>({health:JSON.stringify(v)});
+ const a=saveHealthPreferences(empty,{...defaults,timezone:'UTC',weightUnit:'lb'}),b=saveHealthPreferences(empty,{...defaults,timezone:'UTC',waterTargetMl:2500});
+ for(const [left,right]of [[a,b],[b,a]])expect(JSON.parse(mergePrivateData(wrap(empty),wrap(left),wrap(right)).health!).daily.preferences).toEqual({...defaults,timezone:'UTC',weightUnit:'lb',waterTargetMl:2500});
+ expect(()=>mergePrivateData(wrap(empty),wrap(a),wrap(saveHealthPreferences(empty,{...defaults,timezone:'Europe/Brussels'})))).toThrow('Conflicting');
 });

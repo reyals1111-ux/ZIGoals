@@ -1,3 +1,5 @@
+import {healthSchema} from '../health';
+import {dailyData} from '../health-daily';
 import {z} from 'zod';
 import {manifestSchema,envelopeSchema,epochSchema,sealRecord,openRecord,type VaultManifest} from './crypto';
 export const DOMAINS=['finance','habits','health','settings'] as const;
@@ -57,6 +59,11 @@ function mergeValue(base:unknown,local:unknown,remote:unknown,path:string):unkno
 // Inspect them before generic equality shortcuts so identical removals cannot pass.
 function reconcileHealthReceipts(base:unknown,local:unknown,remote:unknown){
  const daily=(v:unknown):Record<string,unknown>|undefined=>v&&typeof v==='object'&&'daily' in v&&v.daily&&typeof v.daily==='object'?v.daily as Record<string,unknown>:undefined;
+ // Legacy Health omitted the daily group; its canonical defaults are real
+ // baseline preferences, not independent edits made by each new device.
+ if(base&&typeof base==='object'&&!daily(base)&&daily(local)&&daily(remote)){
+  const parsed=healthSchema.safeParse(base);if(parsed.success)(base as Record<string,unknown>).daily=dailyData(parsed.data);
+ }
  const groups=[base,local,remote].map(daily);
  for(const field of ['waterOperations','copyOperations']){
   const lists=groups.map(g=>g?.[field]??[]);
