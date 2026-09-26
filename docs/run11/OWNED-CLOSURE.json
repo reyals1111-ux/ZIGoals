@@ -7,7 +7,7 @@
   "review": {
     "finding": "Stale reviewed cloud deletion could erase newly published records absent from protected backup. Reproduced and fixed by75c360d; durable intent fences mutations and real DO alarm completes interrupted deletion.",
     "proof": "3 regression tests passed60.99s;57 focused financial/retention/lifecycle tests passed1.69s;tsc/scopedlint/diffcheck passed.",
-    "limits": "No further actionable defect reproduced in bounded financial/crypto/immutable-retention review. Not external cryptographic or hosted recovery certification. Incomparable authority-snapshot hypothesis withdrawn: single lifecycle authority snapshots are serial monotonic."
+    "limits": "Earlier bounded financial/lifecycle review was not exhaustive. Later observation duplication and stale post-await account state effects were reproduced/fixed in7d47539/a45b742; exact cases and limits are in JOURNEY_REVIEW. No external cryptographic certification."
   },
   "fanout_evidence": {
     "version": 1,
@@ -180,7 +180,7 @@
     {
       "id": "MKT-07",
       "title": "Preserve lifecycle separation",
-      "criterion": "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue → reserve → own dispatch → durable dispatch mark → network I/O → settle → fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request.",
+      "criterion": "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue \u2192 reserve \u2192 own dispatch \u2192 durable dispatch mark \u2192 network I/O \u2192 settle \u2192 fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request.",
       "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
@@ -320,7 +320,7 @@
     {
       "id": "MKT-13",
       "title": "Complete the public per-pair schema migration",
-      "criterion": "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider→server cache→route→transport→browser regression for Bitcoin surviving failed ZIG work.",
+      "criterion": "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider\u2192server cache\u2192route\u2192transport\u2192browser regression for Bitcoin surviving failed ZIG work.",
       "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
@@ -424,24 +424,27 @@
       "implementation": "partial",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "dfa8c1b21da6c812332cef5da7dbf85fd9843a4a",
-      "summary": "Actual four app Workers share62 owner pairs,48 follower pairs and240 warm pair results across controlled slow stream, paid ZIG fallback, malformed RWA, outage and truncated JSON; exactly6physical requests and25synthetic credits. Deterministic16-reservation pressure covers both admission orders, overflow, bounded aging and two owned slots.",
+      "source": "4c446ee",
+      "summary": "Actual four app Workers share62 owner pairs,48 follower pairs and240 warm pair results across controlled slow stream, paid ZIG fallback, malformed RWA, outage and truncated JSON; exactly6physical requests and25synthetic credits. Deterministic16-reservation pressure covers both admission orders, overflow, bounded aging and two owned slots. Test-only fixed logical clock isolates strict capacity assertions from host CPU contention; wall-clock latency reported is harness evidence, not production deadline capacity certification.",
       "paths": [
         "apps/web/lib/server/durable-market-account.ts",
         "workers/market-coordinator/worker.ts",
         "scripts/run11/market-fanout.test.mjs",
         "scripts/run11/market-crash-matrix.test.mjs",
         "scripts/run11/market-load-matrix.test.mjs",
-        "apps/web/lib/server/durable-market-account.test.ts"
+        "apps/web/lib/server/durable-market-account.test.ts",
+        "scripts/run11/market-follower-deadline.test.mjs"
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
         "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
-        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders.",
+        "4c446ee:56tests/4files pass12.01s. Reproduced1.3s hold causing three bounded followers LOCAL_QUEUE, while owner preserves valid pairs. Capacity matrix now explicitly fixes logical Worker clock; separate real-clock regression proves1s follower expiry, owner completion and subsequent fresh cache/no resend."
       ],
       "gaps": [
         "Node harness RSS delta is measured, not Worker isolate peak memory. Larger population/load and hosted isolate memory certification are not proven.",
-        "A synchronously errored Node stream did not reliably model a socket error through Miniflare; fixture explicitly tests truncated JSON. Separate reader timeout/TypeError tests remain authoritative for that boundary."
+        "A synchronously errored Node stream did not reliably model a socket error through Miniflare; fixture explicitly tests truncated JSON. Separate reader timeout/TypeError tests remain authoritative for that boundary.",
+        "Actual real-time mixed-load capacity under hosted CPU contention is not certified; fixed-clock matrix and wall-clock deadline probe are separate evidence."
       ]
     },
     {
@@ -623,10 +626,10 @@
       "title": "Improve weight and body-measurement history",
       "criterion": "Provide explicit manual measurement entry, unit conversion, date/time and source, edit/correction handling and meaningful trend views based on actual observations. Do not manufacture measurements between dates or present a single observation as a trend. Keep measurement types and privacy settings clear. Add accessible tables, sparse-state design and safe CSV/export with accurate units; local data and synced data should show the same record identity and chronology.",
       "implementation": "implemented",
-      "local_proof": "partial",
+      "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Timestamped manual body measurements, retained corrections, units, sparse trends, table and CSV; reviewed imported source receipts.",
+      "source": "7d47539",
+      "summary": "Timestamped manual body measurements, retained corrections, units, sparse trends, table and CSV; reviewed imported source receipts. Independently imported identical observation receipts retain all originals but count once; differing values require explicit atomic review/correction across retained copies. Conflicting source fingerprints stay visible/excluded and require corrected source ID.",
       "paths": [
         "apps/web/lib/health.ts",
         "apps/web/lib/health-daily.ts",
@@ -635,15 +638,19 @@
         "apps/web/lib/body-measurements.ts",
         "apps/web/components/health/body-measurements.tsx",
         "apps/web/lib/body-measurements.test.ts",
-        "apps/web/tests/run11-measurements.spec.ts"
+        "apps/web/tests/run11-measurements.spec.ts",
+        "apps/web/tests/run11-observation-groups.spec.ts",
+        "scripts/run11/observation-conflict.test.mjs"
       ],
       "evidence": [
         "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass",
         "Parent-reported source-bound account browser receipts in docs/run11/PROOF.md; final source/package account rerun remains parent-owned",
-        "Retained older browser proof is documented in docs/run10/HEALTH_EVIDENCE.md; old nutrient/yield gaps there are superseded by d517eb3/84aa43f."
+        "Retained older browser proof is documented in docs/run10/HEALTH_EVIDENCE.md; old nutrient/yield gaps there are superseded by d517eb3/84aa43f.",
+        "7d47539:28tests/5files pass806ms including actual encrypted two-client import merge in both orders and correction resync.4actual desktop/mobile import/group/review/reload/CSV cases pass4.7s; tsc/lint passed.",
+        "e41159a:6actual browser backup/quota failure cases pass14.7s; exact stored data unchanged; independent Habit logging works while Health append fails."
       ],
       "gaps": [
-        "Parent browser/account/import proof applies; final exact-source combined journey rerun still pending."
+        "Actual wearable capture is not included. Combined final generated-artifact journey acceptance remains root-owned; cited local fixture/source tests are bounded."
       ]
     },
     {
@@ -651,10 +658,10 @@
       "title": "Implement useful manual activity logging",
       "criterion": "Support bounded practical records for steps, cardio, strength/workout sessions or the existing compatible activity types. Clearly distinguish manual entries from imported/device data. Avoid double-counting when a later import overlaps a manual log; preserve provenance and give an explicit resolution. Do not estimate calorie expenditure or infer workout facts without a documented optional model/source, and do not present manual steps as Apple Watch-synced observations.",
       "implementation": "implemented",
-      "local_proof": "partial",
+      "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Manual steps/cardio/workout records and reviewed normalized file import preserve provenance and deduplicate explicit overlaps.",
+      "source": "7d47539",
+      "summary": "Manual steps/cardio/workout records and reviewed normalized file import preserve provenance and deduplicate explicit overlaps. Independently imported identical observation receipts retain all originals but count once; differing values require explicit atomic review/correction across retained copies. Conflicting source fingerprints stay visible/excluded and require corrected source ID.",
       "paths": [
         "apps/web/lib/health.ts",
         "apps/web/lib/health-daily.ts",
@@ -662,15 +669,20 @@
         "apps/web/components/health/daily-tools.tsx",
         "apps/web/lib/observation-import.ts",
         "apps/web/lib/observation-import.test.ts",
-        "apps/web/components/health/body-measurements.tsx"
+        "apps/web/components/health/body-measurements.tsx",
+        "apps/web/lib/body-measurements.ts",
+        "apps/web/tests/run11-observation-groups.spec.ts",
+        "scripts/run11/observation-conflict.test.mjs"
       ],
       "evidence": [
         "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass",
         "Parent-reported source-bound account browser receipts in docs/run11/PROOF.md; final source/package account rerun remains parent-owned",
-        "Retained older browser proof is documented in docs/run10/HEALTH_EVIDENCE.md; old nutrient/yield gaps there are superseded by d517eb3/84aa43f."
+        "Retained older browser proof is documented in docs/run10/HEALTH_EVIDENCE.md; old nutrient/yield gaps there are superseded by d517eb3/84aa43f.",
+        "7d47539:28tests/5files pass806ms including actual encrypted two-client import merge in both orders and correction resync.4actual desktop/mobile import/group/review/reload/CSV cases pass4.7s; tsc/lint passed.",
+        "e41159a:6actual browser backup/quota failure cases pass14.7s; exact stored data unchanged; independent Habit logging works while Health append fails."
       ],
       "gaps": [
-        "No wearable/device integration or inferred expenditure; parent final browser/account proof pending."
+        "Actual wearable capture is not included. Combined final generated-artifact journey acceptance remains root-owned; cited local fixture/source tests are bounded."
       ]
     },
     {
@@ -700,7 +712,7 @@
     {
       "id": "HLT-10",
       "title": "Add practical meal planning and grocery-list basics",
-      "criterion": "Reuse saved meals/recipes to place planned meals on selected dates; distinguish plans from consumed diary records. Logging a planned meal requires an explicit action. Derive a grocery list only from compatible ingredient identities/units and actual selected plans; preserve unresolved unit conversions instead of guessing. Allow manual list edits without changing recipe/history facts. A tested basic planning/list slice is preferable to a large empty “AI meal planner.”",
+      "criterion": "Reuse saved meals/recipes to place planned meals on selected dates; distinguish plans from consumed diary records. Logging a planned meal requires an explicit action. Derive a grocery list only from compatible ingredient identities/units and actual selected plans; preserve unresolved unit conversions instead of guessing. Allow manual list edits without changing recipe/history facts. A tested basic planning/list slice is preferable to a large empty \u201cAI meal planner.\u201d",
       "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
@@ -808,7 +820,7 @@
     {
       "id": "HLT-14",
       "title": "Verify Health with real workflows and fictional test records",
-      "criterion": "Test custom food → saved meal → copy to another date → log actual consumption → edit quantity → sync to B → export → restore, plus recipe-version preservation and concurrent offline edits. Add camera/barcode tests only through the separate conditional slice. Never use the owner's genuine Health data as a fixture or publish it in screenshots. A populated nutrition dashboard is not sufficient if entry, correction or persistence fails.",
+      "criterion": "Test custom food \u2192 saved meal \u2192 copy to another date \u2192 log actual consumption \u2192 edit quantity \u2192 sync to B \u2192 export \u2192 restore, plus recipe-version preservation and concurrent offline edits. Add camera/barcode tests only through the separate conditional slice. Never use the owner's genuine Health data as a fixture or publish it in screenshots. A populated nutrition dashboard is not sufficient if entry, correction or persistence fails.",
       "implementation": "partial",
       "local_proof": "partial",
       "external_proof": "pending_owner_activation_or_physical_device",
@@ -830,7 +842,7 @@
         "Retained older browser proof is documented in docs/run10/HEALTH_EVIDENCE.md; old nutrient/yield gaps there are superseded by d517eb3/84aa43f."
       ],
       "gaps": [
-        "Not one current-source end-to-end recipe→saved meal→copy→quantity edit→B sync→export→restore journey with all concurrent cases. Parent wider final run remains required."
+        "Not one current-source end-to-end recipe\u2192saved meal\u2192copy\u2192quantity edit\u2192B sync\u2192export\u2192restore journey with all concurrent cases. Parent wider final run remains required."
       ]
     },
     {
@@ -885,7 +897,7 @@
     {
       "id": "FOOD-03",
       "title": "Make manual barcode entry equally functional",
-      "criterion": "Provide typed/pasted barcode lookup when the camera is absent, denied or unsupported. Preserve barcode strings and leading zeros, normalize only according to documented supported formats, validate size/content and do not treat decoded QR URLs as commands or destinations to open. Distinguish invalid, not found, provider unavailable and incomplete product data. A manual lookup fallback is useful, but it must not be labeled “camera scanning verified” when the camera path remains blocked.",
+      "criterion": "Provide typed/pasted barcode lookup when the camera is absent, denied or unsupported. Preserve barcode strings and leading zeros, normalize only according to documented supported formats, validate size/content and do not treat decoded QR URLs as commands or destinations to open. Distinguish invalid, not found, provider unavailable and incomplete product data. A manual lookup fallback is useful, but it must not be labeled \u201ccamera scanning verified\u201d when the camera path remains blocked.",
       "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
@@ -1035,7 +1047,7 @@
     {
       "id": "HAB-02",
       "title": "Preserve recurrence and progress semantics",
-      "criterion": "Verify daily/weekly/irregular or currently supported cadence, active days, natural-period completion, pause behavior and streak definitions. Completing an already completed period should not add another accepted event. A quit/limit Habit must not use a misleading “more is better” ring. Neutral pause days and unavailable history need appropriate presentation. Avoid inventing automatic progress from time passing or from a linked Goal's price change.",
+      "criterion": "Verify daily/weekly/irregular or currently supported cadence, active days, natural-period completion, pause behavior and streak definitions. Completing an already completed period should not add another accepted event. A quit/limit Habit must not use a misleading \u201cmore is better\u201d ring. Neutral pause days and unavailable history need appropriate presentation. Avoid inventing automatic progress from time passing or from a linked Goal's price change.",
       "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
@@ -1199,7 +1211,8 @@
         "apps/web/tests/run11-food-unknown.spec.ts"
       ],
       "evidence": [
-        "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass"
+        "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass",
+        "Root reports generated860a full app+services three-profile consumer journey1passed27.45s, including recipe/saved meal/copy/planned consumption/correction/encrypted export/third-profile restore. Helper did not independently rerun this packaged journey; root final receipts authoritative."
       ],
       "gaps": []
     },
@@ -1208,22 +1221,27 @@
       "title": "Water, measurements and activity",
       "criterion": "Log/edit/delete water, weight/body measurement and manual activity entries with supported units; pin them on Today and synchronize. Test midnight/DST and repeated taps. Distinguish manual versus imported provenance and prevent a later import from silently double-counting the same observations.",
       "implementation": "partial",
-      "local_proof": "partial",
+      "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Water/activity/measurement corrections and unit/time policies, Today integration and reviewed observation imports tested in separate suites.",
+      "source": "7d47539",
+      "summary": "Water/activity/measurement corrections and unit/time policies, Today integration and reviewed observation imports tested in separate suites. Independently imported identical observation receipts retain all originals but count once; differing values require explicit atomic review/correction across retained copies. Conflicting source fingerprints stay visible/excluded and require corrected source ID.",
       "paths": [
         "apps/web/tests/health-daily.spec.ts",
         "apps/web/tests/run11-measurements.spec.ts",
         "apps/web/lib/observation-import.test.ts",
-        "scripts/run10/account-browser.test.mjs"
+        "scripts/run10/account-browser.test.mjs",
+        "apps/web/lib/body-measurements.ts",
+        "apps/web/tests/run11-observation-groups.spec.ts",
+        "scripts/run11/observation-conflict.test.mjs"
       ],
       "evidence": [
         "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass",
-        "Parent-reported source-bound account browser receipts in docs/run11/PROOF.md; final source/package account rerun remains parent-owned"
+        "Parent-reported source-bound account browser receipts in docs/run11/PROOF.md; final source/package account rerun remains parent-owned",
+        "7d47539:28tests/5files pass806ms including actual encrypted two-client import merge in both orders and correction resync.4actual desktop/mobile import/group/review/reload/CSV cases pass4.7s; tsc/lint passed.",
+        "e41159a:6actual browser backup/quota failure cases pass14.7s; exact stored data unchanged; independent Habit logging works while Health append fails."
       ],
       "gaps": [
-        "Final combined current-source synced pin/correction/import journey remains parent-owned."
+        "Actual wearable capture is not included. Combined final generated-artifact journey acceptance remains root-owned; cited local fixture/source tests are bounded."
       ]
     },
     {
@@ -1240,7 +1258,8 @@
         "apps/web/lib/health-grocery-edits.test.ts"
       ],
       "evidence": [
-        "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass"
+        "84aa43f: 62 units / 8 files passed; 6 desktop/mobile volume/unknown-nutrient/grocery journeys passed in 7.9s; current-source Health units included in 128-test focused pass",
+        "Root reports generated860a full app+services three-profile consumer journey1passed27.45s, including recipe/saved meal/copy/planned consumption/correction/encrypted export/third-profile restore. Helper did not independently rerun this packaged journey; root final receipts authoritative."
       ],
       "gaps": [
         "Optional fasting remains parked with no enabled control."
@@ -1415,7 +1434,7 @@
     }
   },
   "mixed_load_evidence_path": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-market-matrix-CdzTq9/evidence.json",
-  "latest_owned_checkpoint": "d98b46761c808addeadea15cf438f2c37d0241fa",
+  "latest_owned_checkpoint": "a45b742",
   "transaction_fault_evidence": {
     "version": 1,
     "recordedAt": "2026-09-26T21:27:58.466Z",
@@ -1592,5 +1611,15 @@
       "durationSeconds": 12.71
     },
     "scope": "Actual local workerd/SQLite, production dispatcher with deterministic test clock, synthetic provider. Fault controls exist only in the test entrypoint; no production source change."
+  },
+  "supplemental_review_source": "860a8edeec5a2cab61712b4336187d4dbac578b7",
+  "supplemental_local_receipts": {
+    "source": "860a8edeec5a2cab61712b4336187d4dbac578b7",
+    "observation_fix": "7d47539",
+    "market_clock_and_deadline": "4c446ee",
+    "enrollment_isolation": "377a352:2Worker tests728ms",
+    "backup_storage_failure": "e41159a:6browser cases14.7s",
+    "account_await_fences": "a45b742:20focused tests843ms",
+    "limits": "No hosted activation, real provider traffic, physical capture, hosted kill/memory certification or blanket final acceptance. See JOURNEY_REVIEW for source-specific rows."
   }
 }
