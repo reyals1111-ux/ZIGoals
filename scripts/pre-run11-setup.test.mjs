@@ -61,7 +61,8 @@ function cliFixture(text,{mode=0o600,ignored=true,symlink=false,authOnly=false}=
   if(symlink){const external=join(tmpdir(),`pre11b-external-${process.pid}.jsonc`);writeFileSync(external,text);chmodSync(external,0o600);symlinkSync(external,file);}else{writeFileSync(file,text);chmodSync(file,mode);}
   const env={...process.env,...good,ZIGOALS_OWNER_WORKER_CONFIG:authOnly?'not-there':file,ZIGOALS_ALLOWED_AUTH_ORIGIN:good.ZIGOALS_AUTH_ORIGIN,ZIGOALS_TEST_RECIPIENTS:'owner@controlled.invalid'};
   delete env.AUTH_ORIGIN;delete env.APP_ORIGIN;
-  const result=spawnSync('fnm',['exec','--using','24.19.0','node',join(dir,'scripts/pre-run11-setup.mjs'),...(authOnly?['--auth-only']:[])],{cwd:dir,env,encoding:'utf8',timeout:5000});
+  const result=spawnSync(process.execPath,[join(dir,'scripts/pre-run11-setup.mjs'),...(authOnly?['--auth-only']:[])],{cwd:dir,env,encoding:'utf8',timeout:5000});
+  if(result.error)throw result.error;
   return {output:result.stdout+result.stderr,code:result.status};
  }finally{rmSync(dir,{recursive:true,force:true});if(symlink)rmSync(join(tmpdir(),`pre11b-external-${process.pid}.jsonc`),{force:true});}
 }
