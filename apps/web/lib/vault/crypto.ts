@@ -6,16 +6,19 @@ export const epochSchema=z.number().int().positive().max(Number.MAX_SAFE_INTEGER
 export const recordContextSchema=z.object({vault:uuid,domain:z.enum(['finance','habits','health','settings']),object:uuid,revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:epochSchema}).strict();
 export type RecordContext=z.infer<typeof recordContextSchema>;
 const base64=z.string().regex(/^[A-Za-z0-9_-]+$/);
-export const envelopeSchema=z.object({version:z.literal(1),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
+const legacyEnvelopeSchema=z.object({version:z.literal(1),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
+// A canonical 32-byte public HKDF salt; unused base64 bits must be zero.
+const recordEnvelopeSchema=z.object({version:z.literal(2),salt:z.string().regex(/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
+export const envelopeSchema=z.discriminatedUnion('version',[legacyEnvelopeSchema,recordEnvelopeSchema]);
 export type EncryptedEnvelope=z.infer<typeof envelopeSchema>;
-export const manifestSchema=z.object({version:z.literal(1),vault:uuid,epoch:epochSchema,wrapped:envelopeSchema}).strict();
+export const manifestSchema=z.object({version:z.literal(1),vault:uuid,epoch:epochSchema,wrapped:legacyEnvelopeSchema}).strict();
 export type VaultManifest=z.infer<typeof manifestSchema>;
 function encode(bytes:Uint8Array):string{let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function decode(s:string):Uint8Array<ArrayBuffer>{if(!/^[A-Za-z0-9_-]+$/.test(s)||s.length>350_000)throw Error('Invalid encrypted data.');const b=atob(s.replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));}
 const bytes=(s:string)=>new TextEncoder().encode(s);
 async function rootKey(raw:Uint8Array<ArrayBuffer>){return crypto.subtle.importKey('raw',raw,'HKDF',false,['deriveKey']);}
 async function domainKey(root:CryptoKey,vault:string,domain:string,epoch:number){return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:bytes(vault),info:bytes(`zigoals:vault:v1:${domain}:epoch${epoch}`)},root,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
-async function encrypt(key:CryptoKey,plaintext:Uint8Array<ArrayBuffer>,aad:string):Promise<EncryptedEnvelope>{
+async function encrypt(key:CryptoKey,plaintext:Uint8Array<ArrayBuffer>,aad:string):Promise<z.infer<typeof legacyEnvelopeSchema>>{
  if(plaintext.byteLength>MAX_BYTES)throw Error('Encrypted record exceeds 256 KiB. Split the record before saving.');
  const nonce=crypto.getRandomValues(new Uint8Array(12));
  const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:bytes(aad),tagLength:128},key,plaintext);
@@ -36,11 +39,20 @@ export async function unlockVault(input:unknown,recovery:string):Promise<CryptoK
  const manifest=manifestSchema.parse(input);const raw=await decrypt(await wrappingKey(recovery),manifest.wrapped,`zigoals:root:v1:${manifest.vault}:epoch${manifest.epoch}`);
  try{if(raw.length!==32)throw Error('Invalid vault key.');return await rootKey(raw);}finally{raw.fill(0);}
 }
-function contextText(input:RecordContext){const c=recordContextSchema.parse(input);return JSON.stringify(['zigoals-record',1,c.vault,c.domain,c.object,c.revision,c.epoch]);}
+function contextText(input:RecordContext,version:1|2){const c=recordContextSchema.parse(input);return JSON.stringify(['zigoals-record',version,c.vault,c.domain,c.object,c.revision,c.epoch]);}
+// Each seal derives one nonextractable AES key, encrypts once, then drops it.
+// Salt + the full authenticated context separate concurrent devices and retries.
+async function recordKey(root:CryptoKey,salt:Uint8Array<ArrayBuffer>,aad:string){
+ return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt,info:bytes(aad)},root,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
 export async function sealRecord(key:CryptoKey,context:RecordContext,value:unknown):Promise<EncryptedEnvelope>{
- const aad=contextText(context);return encrypt(await domainKey(key,context.vault,context.domain,context.epoch),bytes(JSON.stringify(value)),aad);
+ const aad=contextText(context,2),salt=crypto.getRandomValues(new Uint8Array(32));
+ const encrypted=await encrypt(await recordKey(key,salt,aad),bytes(JSON.stringify(value)),aad);
+ return {version:2,salt:encode(salt),nonce:encrypted.nonce,ciphertext:encrypted.ciphertext};
 }
 export async function openRecord(key:CryptoKey,context:RecordContext,envelope:unknown):Promise<unknown>{
- const aad=contextText(context),raw=await decrypt(await domainKey(key,context.vault,context.domain,context.epoch),envelope,aad);
+ const e=envelopeSchema.parse(envelope),aad=contextText(context,e.version);
+ const derived=e.version===1?await domainKey(key,context.vault,context.domain,context.epoch):await recordKey(key,decode(e.salt),aad);
+ const raw=await decrypt(derived,e,aad);
  try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));}catch{throw Error('Decrypted record is not supported JSON. Data was preserved.');}
 }

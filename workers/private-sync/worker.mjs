@@ -5,8 +5,8 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const DOMAINS=new Set(['finance','health','habits','settings']);
 const response=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 function exact(value,keys){return value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(k=>keys.includes(k))&&keys.every(k=>Object.hasOwn(value,k));}
-function envelope(v){return exact(v,['version','nonce','ciphertext'])&&v.version===1&&/^[\w-]{16}$/.test(v.nonce)&&typeof v.ciphertext==='string'&&v.ciphertext.length>=22&&v.ciphertext.length<=350000&&/^[\w-]+$/.test(v.ciphertext);}
-function manifest(v){return exact(v,['version','vault','epoch','wrapped'])&&v.version===1&&UUID.test(v.vault)&&Number.isSafeInteger(v.epoch)&&v.epoch>0&&envelope(v.wrapped);}
+function envelope(v){const shape=v?.version===1?exact(v,['version','nonce','ciphertext']):v?.version===2&&exact(v,['version','salt','nonce','ciphertext'])&&typeof v.salt==='string'&&/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(v.salt);return shape&&typeof v.nonce==='string'&&/^[\w-]{16}$/.test(v.nonce)&&typeof v.ciphertext==='string'&&v.ciphertext.length>=22&&v.ciphertext.length<=350000&&/^[\w-]+$/.test(v.ciphertext);}
+function manifest(v){return exact(v,['version','vault','epoch','wrapped'])&&v.version===1&&UUID.test(v.vault)&&Number.isSafeInteger(v.epoch)&&v.epoch>0&&v.wrapped?.version===1&&envelope(v.wrapped);}
 async function boundedJSON(request,max=1_000_000){
  const reader=request.body?.getReader();if(!reader)throw Error('body');const chunks=[];let size=0;
  try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>max)throw Error('size');chunks.push(value);}}catch(error){await reader.cancel().catch(()=>{});throw error;}
