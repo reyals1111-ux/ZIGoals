@@ -1,5 +1,11 @@
 # Run11 current recovery state
 
+- Implementation checkpoint `210899e03432975ec6d9020795f0e851676f88e6` adds complete Value, Quantity and Project source journeys and fixes an adjacent-card menu pointer obstruction. Desktop/mobile regression: 2 passes; all-type source journey: 1 pass. Owned preview stopped. Generated package with two-profile sync is the next required gate.
+- Previous clean ec3 build: 1,585 unit passes / 5 opt-in skips and 22 affected browser passes. Full d2 production run: 420 passes / 8 opt-in skips, zero failures or flakes; account/market 4 passes and Alpha security 14 passes.
+- Hosted d2 web failure was an unawaited test readiness condition; ec3 contains a deferred-quote reproduction and 28 passing receipt tests. Contract and canonical checks passed at d2. Final source push and hosted checks remain pending.
+- One earlier packaged Breakfast assertion failure remains unexplained; three later isolated passes retained all assertions and added a saved-source precondition. Preserve that limitation in final evidence.
+- Final closure reconciliation, recovery archive, NovaVault record and remote review receipts remain pending. No merge, deployment, live/provider or billing actions.
+
 - Branch `codex/run11-completion`; draft review https://github.com/reyals1111-ux/ZIGoals/pull/21; preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d` is retained. No merge/deployment/live/provider/billing action.
 - Implementation review closed stale-account effects, revoked-session feedback, immutable observation duplicate groups, blocked IndexedDB upgrade retry, backup inventory and preview-before-copy diagnostics. Envelopev2 derives a fresh key per encrypted record; legacyv1 remains readable. See KEY_USAGE.md for upgrade boundaries.
 - Source checkpoints: crypto16426ca; diagnostics661efc2; database/backupc95bd87; integrated four-preset/route acceptance03146ed. Final source-version preview correction follows. Final implementation HEAD must be resolved from Git after all commits.

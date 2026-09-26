@@ -1878,14 +1878,18 @@
     },
     {
       "id": "GOAL-06",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "integrated_variant_acceptance_in_progress",
+      "local_proof": "source_controls_and_pointer_regression_pass_packaged_sync_pending",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "210899e03432975ec6d9020795f0e851676f88e6",
+      "evidence": [
+        "scripts/run11/packaged-runtime.test.mjs",
+        "docs/run11/STATE.md"
+      ],
+      "delta": "Value, Quantity and Project controls pass in the source preview. Adjacent-card options alignment fixed with desktop/mobile normal-pointer regression. Full rebuilt package and second-profile acceptance remain pending.",
       "owner": "implementation",
-      "dependencies": []
+      "dependencies": [],
+      "status": "IN_PROGRESS"
     },
     {
       "id": "AST-01",
