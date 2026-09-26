@@ -133,24 +133,27 @@
       "id": "MKT-05",
       "title": "Make operating policy concrete without activating guesses",
       "criterion": "Implement strict versioned configuration for minute attempts, monthly credit costs/periods, operating ceilings, concurrency, queue limits, monitoring reserve/cap, optional cutoff, breaker settings, cache retention and idempotency horizon. Produce a conservative proposed activation profile and reasoning based on measured workload and documented account facts. Mark unresolved reset timezone, current usage seed and endpoint credit weights as activation prerequisites. Missing/invalid mandatory policy fails closed for upstream dispatch. Nonproduction fixtures are clearly synthetic, not hidden production defaults.",
-      "implementation": "partial",
+      "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Strict durable policy covers budget/cost/window/concurrency/queue/followers/retention/breakers and fails closed.",
+      "source": "dfa8c1b21da6c812332cef5da7dbf85fd9843a4a",
+      "summary": "Strict fail-closed policy plus concrete unactivated conservative proposal; owner limits, costs, period and safe current usage remain explicit prerequisites.",
       "paths": [
         "apps/web/lib/server/durable-market-account.ts",
         "workers/market-coordinator/worker.ts",
         "apps/web/lib/server/market-budget-policy.ts",
         "apps/web/lib/server/market-budget-policy.test.ts",
-        "docs/run11/ACTIVATION.md"
+        "docs/run11/ACTIVATION.md",
+        "docs/run11/MARKET_PROPOSED_PROFILE.json",
+        "apps/web/lib/server/market-proposed-profile.test.ts"
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests"
+        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
       ],
       "gaps": [
-        "A complete conservative proposed activation JSON profile tied to measured broader workload is not supplied; owner-specific reset/seed/weights unresolved."
+        "The proposal is not an activation config: owner current limits, usage/remaining allowance, period/reset, every endpoint cost and hosted acceptance remain unresolved. Never reset existing spend or use fixture costs."
       ]
     },
     {
@@ -213,10 +216,11 @@
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests"
+        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
       ],
       "gaps": [
-        "Broad workload starvation/latency benchmark beyond the bounded fixture remains open under MKT-17."
+        "Local matrix and bounded queue-pressure coverage expanded; Worker isolate peak memory and hosted workload sizing remain MKT-17 limitations."
       ]
     },
     {
@@ -284,10 +288,11 @@
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests"
+        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
       ],
       "gaps": [
-        "Large-pair benchmark beyond functional bounds remains MKT-17."
+        "Local matrix and bounded queue-pressure coverage expanded; Worker isolate peak memory and hosted workload sizing remain MKT-17 limitations."
       ]
     },
     {
@@ -363,22 +368,27 @@
       "id": "MKT-15",
       "title": "Add bounded privacy-safe observability",
       "criterion": "Record sanitized aggregate outcome, work class, cache hits/misses, admission reason, reserved/dispatched units, wait/duration buckets and build identity with explicit retention/access rules. No raw URLs/headers/bodies, credentials, private user IDs, portfolio combinations correlated to identity, quantities, goals or Health. A bounded optional owner diagnostic can show budget/cache health without exposing secrets. Existing observability remains off unless separately activated under an approved environment policy.",
-      "implementation": "partial",
-      "local_proof": "partial",
+      "implementation": "implemented",
+      "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Private internal inspect reports bounded aggregate queue/follower/attempt/credit state; external observability stays off.",
+      "source": "dfa8c1b21da6c812332cef5da7dbf85fd9843a4a",
+      "summary": "Opt-in strict build-bound hourly aggregates cover cache, work class, sanitized admission/outcome, priority, reserve/dispatch units, wait/duration with bounded fixed labels and no private identities.",
       "paths": [
         "apps/web/lib/server/durable-market-account.ts",
         "workers/market-coordinator/worker.ts",
-        "workers/market-coordinator/wrangler.local.jsonc"
+        "workers/market-coordinator/wrangler.local.jsonc",
+        "apps/web/lib/server/market-telemetry.ts",
+        "apps/web/lib/server/market-telemetry.test.ts",
+        "scripts/run11/market-load-matrix.test.mjs",
+        "workers/market-coordinator/README.md"
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests"
+        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
       ],
       "gaps": [
-        "Full sanitized outcome/cache-hit/admission/wait-duration buckets with build identity and explicit access/retention policy are not implemented."
+        "No external observability activated. One current-build aggregate, at most168 hourly buckets; expired buckets removed/excluded on access, not guaranteed physical deletion during idle storage. Privileged internal DO access only; no browser diagnostic endpoint."
       ]
     },
     {
@@ -411,20 +421,24 @@
       "implementation": "partial",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Bounded synthetic fanout measures cold/warm/restart with 8 clients x 2 pairs x 3 waves; one physical provider request and 3 synthetic credits.",
+      "source": "dfa8c1b21da6c812332cef5da7dbf85fd9843a4a",
+      "summary": "Actual four app Workers share62 owner pairs,48 follower pairs and240 warm pair results across controlled slow stream, paid ZIG fallback, malformed RWA, outage and truncated JSON; exactly6physical requests and25synthetic credits. Deterministic16-reservation pressure covers both admission orders, overflow, bounded aging and two owned slots.",
       "paths": [
         "apps/web/lib/server/durable-market-account.ts",
         "workers/market-coordinator/worker.ts",
         "scripts/run11/market-fanout.test.mjs",
-        "scripts/run11/market-crash-matrix.test.mjs"
+        "scripts/run11/market-crash-matrix.test.mjs",
+        "scripts/run11/market-load-matrix.test.mjs",
+        "apps/web/lib/server/durable-market-account.test.ts"
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests"
+        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
       ],
       "gaps": [
-        "No full latency/memory matrix combining many pairs, mixed fallback, outage, slow body, queue saturation and multiple app instances; modest fixture is not capacity certification."
+        "Node harness RSS delta is measured, not Worker isolate peak memory. Larger population/load and hosted isolate memory certification are not proven.",
+        "A synchronously errored Node stream did not reliably model a socket error through Miniflare; fixture explicitly tests truncated JSON. Separate reader timeout/TypeError tests remain authoritative for that boundary."
       ]
     },
     {
@@ -986,7 +1000,7 @@
         "Prior synthetic browser fixtures retained in apps/web/tests/run10-barcode.spec.ts; physical camera evidence is separate."
       ],
       "gaps": [
-        "No physical phone test; no persistent browser-offline barcode cache after reload; final current-source complete camera fixture rerun parent-owned."
+        "Physical phone/camera acceptance remains owner participation; current-source complete camera fixture rerun is parent-owned. Persistent browser cache across reload is not explicitly required by the criterion and is not claimed. Offline manual fallback and available cache reuse need explicit browser proof."
       ]
     },
     {
@@ -1268,7 +1282,7 @@
         "Prior synthetic fixture receipts in docs/run10/FOOD_EVIDENCE.md; final full camera suite rerun remains pending"
       ],
       "gaps": [
-        "Physical device camera, persistent offline cache after reload, final exact-source all-failure-path rerun remain unclosed."
+        "Physical phone/camera acceptance remains owner participation; current-source complete camera fixture rerun is parent-owned. Persistent browser cache across reload is not explicitly required by the criterion and is not claimed. Offline manual fallback and available cache reuse need explicit browser proof."
       ]
     },
     {
@@ -1328,7 +1342,8 @@
         "apps/web/lib/server/durable-market-account.test.ts"
       ],
       "evidence": [
-        "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units"
+        "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
       ],
       "gaps": [
         "Instruction-boundary process kills during in-flight settlement/publication and larger combined fault load not yet demonstrated; transition-boundary restarts are explicit scope."
@@ -1338,10 +1353,61 @@
   "counts": {
     "rows": 54,
     "implementation": {
-      "implemented": 41,
+      "implemented": 43,
       "implemented_with_parked_conditional_slice": 1,
       "parked": 1,
-      "partial": 11
+      "partial": 9
     }
-  }
+  },
+  "mixed_load_evidence": {
+    "version": 1,
+    "source": "actual local workerd with four app callers and one durable account; synthetic provider only",
+    "workerBundleSha256": "317f751783b79659f6f67823499f81ac58b3ce9f444dbc49fbf22f37c430da8e",
+    "instances": 4,
+    "ownerPairs": 62,
+    "followerPairs": 48,
+    "warmPairs": 240,
+    "providerCalls": 6,
+    "chargedCredits": 25,
+    "peakDispatch": 1,
+    "peakFollowers": 48,
+    "latency": {
+      "samples": 10,
+      "p50Ms": 132.904625,
+      "p95Ms": 603.637792
+    },
+    "nodeHarnessRssDeltaBytes": 63324160,
+    "memoryLimit": "RSS is Node harness/process evidence, not Worker isolate peak memory; storage/follower bounds asserted separately",
+    "metrics": {
+      "enabled": true,
+      "version": 1,
+      "build": "317f751783b79659f6f67823499f81ac58b3ce9f444dbc49fbf22f37c430da8e",
+      "buckets": [
+        {
+          "hour": 497349,
+          "counts": {
+            "work.quote": 352,
+            "cache.miss": 64,
+            "reserve.attempts": 6,
+            "reserve.credits": 25,
+            "dispatch.attempts": 6,
+            "dispatch.credits": 25,
+            "dispatch.quote": 5,
+            "priority.interactive": 6,
+            "wait.0-99ms": 6,
+            "cache.coalesced": 48,
+            "outcome.VERIFIED": 2,
+            "duration.100-999ms": 1,
+            "outcome.UPSTREAM_5XX": 2,
+            "duration.0-99ms": 5,
+            "dispatch.token": 1,
+            "outcome.MALFORMED": 2,
+            "cache.hit": 240
+          }
+        }
+      ]
+    }
+  },
+  "mixed_load_evidence_path": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-market-matrix-CdzTq9/evidence.json",
+  "latest_owned_checkpoint": "dfa8c1b21da6c812332cef5da7dbf85fd9843a4a"
 }
