@@ -100,3 +100,17 @@ test('real named service queues independent endpoint work without holding provid
   expect(await(await stub.fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json()).toMatchObject({attempts:2,dispatched:0,chargedCredits:7});
  }finally{release();await mf.dispose();}
 },30000);
+
+test('distinct endpoint throttle evidence opens a persisted account gate and recovery uses real budget',async()=>{
+ const code=await bundles(),now=Date.now(),persist=await mkdtemp(join(tmpdir(),'run11-market-throttle-'));let mf,calls=0;
+ const config={policy,month:{id:'throttle-fixture',start:now-1000,end:now+300000},quoteCost:3,operationCosts:{history:4,catalog:2},leaseMs:1000,maxAttempts:128,maxWorks:64,breaker:{threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1},accountThrottle:{distinctEndpoints:2,windowMs:1000}};
+ const runtime=clock=>new Miniflare({...convertV4MiniflareOptions({workers:[{name:'app',modules:true,script:'export default {fetch(request,env){return env.MARKET_QUOTES.fetch(request)}}',compatibilityDate:'2026-09-13',serviceBindings:{MARKET_QUOTES:{name:'market',entrypoint:'QuoteService'}}},{name:'market',modules:true,script:code.market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'throttle-fixture',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config),COINGECKO_DEMO_API_KEY:'fixture-key',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(clock)},outboundService:async request=>{calls++;if(calls<=2)return new Response('',{status:429});const id=new URL(request.url).searchParams.get('ids');return Response.json({[id]:{usd:2,last_updated_at:Math.floor(now/1000)}});}}]}),resourcePersistencePath:persist});
+ const call=async(path,body)=>(await mf.dispatchFetch('https://app/'+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({version:1,...body})})).json();
+ try{
+  mf=runtime(now);expect((await call('quotes',{requests:[pair('bitcoin')]})).results[0].failure).toBe('THROTTLED');expect(calls).toBe(1);
+  expect((await call('history',{request:{...pair('bitcoin'),range:'1d'}})).history).toBeNull();expect(calls).toBe(2);
+  await mf.dispose();mf=runtime(now+500);expect((await call('catalog',{})).assets).toEqual([]);expect(calls).toBe(2);
+  await mf.dispose();mf=runtime(now+2000);expect((await call('quotes',{requests:[pair('ethereum')]})).results[0].status).toBe('VERIFIED_FRESH');expect(calls).toBe(3);
+  const ns=await mf.getDurableObjectNamespace('MARKETS','market');expect(await(await ns.get(ns.idFromName('throttle-fixture')).fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json()).toMatchObject({chargedCredits:10,dispatched:0});
+ }finally{await mf?.dispose();}
+},30000);

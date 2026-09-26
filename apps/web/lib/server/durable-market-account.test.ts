@@ -152,3 +152,22 @@ test('cancellation releases only its lease, replays idempotently and cannot rele
  const next=await account.apply({action:'acquire',work:work('bitcoin')});expect(next.status).toBe('OWNER');expect(next.lease).not.toEqual(first.associations[0]!.lease);
  expect(await account.apply({action:'cancel',id:first.id})).toMatchObject({ok:true,replay:true});expect(await account.apply({action:'acquire',work:work('bitcoin')})).toMatchObject({status:'WAITING'});
 });
+
+test('one throttled endpoint cannot open the account scope; configured independent endpoint evidence persists across restart',async()=>{
+ const settings={operationCosts:{history:2,catalog:2},breaker:{threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1},accountThrottle:{distinctEndpoints:2,windowMs:1000},leaseMs:10000};
+ const {account,storage,advance}=setup(settings);
+ const send=async(a:DurableMarketAccount,operation:string)=>{const row=await a.apply({action:'enqueue-read',operation});for(const action of ['reserve','own','dispatch']){const decision=await a.apply({action,id:row.id});if(decision.ok!==true)return {...decision,id:row.id};}return row;};
+ const history=await send(account,'history');expect(history.ok).toBe(true);await account.apply({action:'settle',id:history.id,outcome:'failure',category:'THROTTLED'});
+ const catalog=await send(account,'catalog');expect(catalog.ok).toBe(true);await account.apply({action:'settle',id:catalog.id,outcome:'failure',category:'THROTTLED'});
+ const restarted=new DurableMarketAccount(storage,()=>100,JSON.stringify({...config,...settings,operationCosts:{...settings.operationCosts,token:2}}));
+ expect(await send(restarted,'token')).toMatchObject({ok:false,reason:'BREAKER_OPEN'});expect(await restarted.apply({action:'inspect'})).toMatchObject({chargedCredits:4});
+ advance(2100);const recovery=await send(account,'history');expect(recovery.ok).toBe(true);await account.apply({action:'settle',id:recovery.id,outcome:'success'});expect(await account.apply({action:'inspect'})).toMatchObject({chargedCredits:6});
+});
+
+test('throttle correlation rejects one-endpoint promotion policy and excludes expired observations',async()=>{
+ const settings={operationCosts:{history:2,catalog:2,token:2},breaker:{threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1},accountThrottle:{distinctEndpoints:2,windowMs:1000}};
+ expect(await setup({...settings,accountThrottle:{distinctEndpoints:1,windowMs:1000}}).account.apply({action:'inspect'})).toMatchObject({reason:'POLICY_UNAVAILABLE'});
+ const {account,advance}=setup(settings);
+ for(const [operation,time] of [['history',100],['catalog',1200],['token',1200]] as const){advance(time);const row=await account.apply({action:'enqueue-read',operation});for(const action of ['reserve','own','dispatch'])expect(await account.apply({action,id:row.id})).toMatchObject({ok:true});await account.apply({action:'settle',id:row.id,outcome:operation==='token'?'success':'failure',...(operation!=='token'?{category:'THROTTLED'}:{})});}
+ expect(await account.apply({action:'inspect'})).toMatchObject({chargedCredits:6});
+});
