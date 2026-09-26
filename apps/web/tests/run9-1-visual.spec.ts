@@ -10,7 +10,7 @@ import {createHabit,emptyHabitData,logHabitCount,HABITS_KEY} from '../lib/habits
 import {createEmptyHealth,saveFood,logHealthItem,HEALTH_STORAGE_KEY} from '../lib/health';
 import {localDate} from '../lib/local-date';
 test.skip(process.env.RUN91_CAPTURE!=='1','Opt-in visual evidence, isolated fixtures');
-for(const width of [1440,1024,390,320])test(`visual product audit ${width}`,async({page})=>{
+for(const width of [1440,1024,390,320])test(`visual product audit ${width}`,async({page},info)=>{
  test.setTimeout(120000);await page.setViewportSize({width,height:1000});
  const now=Date.now(),at=new Date(now).toISOString(),today=localDate();
  const btc=automaticSourcePosition({asset:catalog[0]!,assetClass:'Crypto',quantity:'0.32',currency:'USD'},'bitcoin'),eth=automaticSourcePosition({asset:catalog[1]!,assetClass:'Crypto',quantity:'2.4',currency:'USD'},'ethereum'),gold=automaticSourcePosition({asset:catalog[3]!,assetClass:'Precious Metals',quantity:'1.2',currency:'USD'},'gold'),stock=automaticSourcePosition({asset:catalog[2]!,assetClass:'Stocks',quantity:'12',currency:'USD'},'nvidia'),cash=manualSourcePosition({category:'Cash',name:'Rainy day reserve',quantity:'6400',currency:'USD'},'cash');
@@ -23,7 +23,7 @@ for(const width of [1440,1024,390,320])test(`visual product audit ${width}`,asyn
  let habits=emptyHabitData();for(const title of ['Read a few pages','Move for 30 minutes','Save for my next chapter']){habits=createHabit(habits,{title,category:'Personal',description:'',notes:'',schedule:{kind:'daily'},target:1});}habits=logHabitCount(habits,habits.habits[0]!.id,today,1);
  let health=createEmptyHealth();health={...health,targets:{kcal:2200,proteinMg:120000,carbsMg:250000,fatMg:70000,weightGrams:null,steps:8000}};health=saveFood(health,{id:'health_breakfast01',name:'Oats, berries & yogurt',brand:'',servingGrams:350,nutrients:{kcal:480,proteinMg:26000,carbsMg:61000,fatMg:12000},createdAt:at,updatedAt:at});health=logHealthItem(health,{id:'health_diarybreakfast',sourceId:'health_breakfast01',sourceKind:'food',date:today,meal:'Breakfast',quantityMilli:1000},at);
  await page.evaluate(({habits,health,hkey,healthKey})=>{localStorage.setItem(hkey,JSON.stringify(habits));localStorage.setItem(healthKey,JSON.stringify(health));},{habits,health,hkey:HABITS_KEY,healthKey:HEALTH_STORAGE_KEY});
- const folder='../../docs/verification/run9-1';
+ const folder=info.outputPath('screens');
  for(const [name,route,selector] of [['today','/app',''],['landing','/app','.today-hero'],['wealth','/app/wealth',''],['asset-detail','/app/wealth/asset/bitcoin',''],['goal-detail','/app/goals/tracked/92',''],['funding-wealth','/app/goals/tracked/92','[aria-label="Funding Wealth overview"]'],['activity','/app/activity',''],['health','/app/health',''],['goals','/app/goals',''],['positions','/app/goals/positions','']]){
   await page.goto(route!);await expect(page.locator('main h1').first()).toBeVisible();if(name==='asset-detail')await expect(page.locator('.price-chart [data-observation]')).toHaveCount(31);await page.evaluate(()=>document.fonts.ready);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name}: ${width}`).toBe(true);
   if(name==='today'){const box=await page.locator('.today-goal-pulse>.flow-ring').boundingBox();expect(box).not.toBeNull();expect(Math.abs(box!.width-box!.height)).toBeLessThan(2);}

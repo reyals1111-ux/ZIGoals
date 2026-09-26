@@ -21,7 +21,7 @@ test('plan edits retain earlier terms, show explicit installments and survive re
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await expect(dialog).toHaveCount(0);
  await expect(page.getByRole('region',{name:'Plan installments'})).toContainText('60 USD remaining');
  await page.setViewportSize({width:320,height:900});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await planModule.screenshot({path:`../../docs/run10/evidence/financial-plan-320-${info.project.name}.png`});
+ await planModule.screenshot({path:info.outputPath(`financial-plan-320-${info.project.name}.png`)});
 });
 test('completion milestone remains visible after closing and reopening without restoring allocations',async({page})=>{
  const at=new Date().toISOString(),g=privateGoalSchema.parse({id:'82',name:'Fictional completed reserve',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'100000',notes:'Browser fixture',createdAt:at,milestones:[]});

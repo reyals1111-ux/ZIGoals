@@ -100,10 +100,10 @@ test("Health daily panels reflow at phone tablet and desktop widths", async ({ p
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const controls = await page.locator('.health-content button:visible, .health-content input:visible').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height, right: r.right, left: r.left }; }));
     expect(controls.every(r => r.width >= 30 && r.height >= 36 && r.left >= 0 && r.right <= width)).toBe(true);
-    if ([320, 390, 1440].includes(width)) await page.screenshot({ path: `../../docs/run10/evidence/health-diary-${width}-${testInfo.project.name}.png`, fullPage: true });
+    if ([320, 390, 1440].includes(width)) await page.screenshot({ path: testInfo.outputPath(`health-diary-${width}-${testInfo.project.name}.png`), fullPage: true });
   }
   await page.getByRole("button", { name: "Meals & planning", exact: true }).click();
   await page.setViewportSize({ width: 320, height: 1000 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: `../../docs/run10/evidence/health-planning-320-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath(`health-planning-320-${testInfo.project.name}.png`), fullPage: true });
 });
