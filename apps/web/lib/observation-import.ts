@@ -9,7 +9,7 @@ export function importObservations(data:HealthData,input:unknown,recordedAt:stri
  for(const observation of file.observations){
   const {sourceId,...fields}=observation,value=measurementValueSchema.parse({...fields,observedAt:new Date(fields.observedAt).toISOString()}),canonical=canonicalMeasurement(value.quantityMilli,value.unit),fingerprint=JSON.stringify(value),receipt={provider:file.provider,sourceId,fingerprint};
   const seen=rows.flatMap(row=>(row.observationSources??[]).filter(r=>r.provider===file.provider&&r.sourceId===sourceId).map(r=>({row,receipt:r})));
-  if(seen.length){if(seen.length!==1||seen[0]!.receipt.fingerprint!==fingerprint)throw Error('A source observation ID has conflicting content. Preserve the file and review the source; no readings were imported.');duplicates++;continue;}
+  if(seen.length){if(seen.some(v=>v.receipt.fingerprint!==fingerprint))throw Error('A source observation ID has conflicting content. Preserve the file and review the source; no readings were imported.');duplicates++;continue;}
   const overlap=rows.filter(row=>[row,...row.corrections].some(v=>v.kind===value.kind&&v.canonical===canonical&&Date.parse(v.observedAt)===Date.parse(value.observedAt)));
   if(overlap.length>1)throw Error('Several retained readings match this observation. Resolve the ambiguous source before importing; no readings were changed.');
   if(overlap.length){const prior=overlap[0]!;rows[rows.indexOf(prior)]=bodyMeasurementSchema.parse({...prior,observationSources:[...prior.observationSources??[],receipt]});linked++;}
