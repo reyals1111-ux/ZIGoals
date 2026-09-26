@@ -1,3 +1,4 @@
+import {marketTelemetryPolicy,readMarketTelemetry,recordMarketTelemetry} from './market-telemetry';
 import {liveFollowers,followerCommand} from './market-followers';
 import {pairBlocked} from './market-pair-breaker';
 import {z} from 'zod';
@@ -13,7 +14,7 @@ const uint=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),positive=
 const capacity=z.object({minute:uint,monthly:uint}).strict();
 const category=z.enum(['THROTTLED','UPSTREAM_5XX','TIMEOUT','NETWORK','AUTHENTICATION','ENTITLEMENT','MALFORMED','UNSUPPORTED','LOCAL_BUDGET','LOCAL_QUEUE','UNKNOWN']);
 const chargedOperation=z.enum(['catalog','history','insights','token','rwa']);
-const configSchema=z.object({policy:z.object({providerMinuteLimit:positive,providerMonthlyLimit:positive,operating:capacity,monitoringReserve:capacity,monitoringMaximum:capacity,optionalCeiling:capacity,concurrent:positive,queueLimit:positive,reservationMs:positive,ownershipMs:positive}).strict(),month:z.object({id:z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),start:uint,end:uint}).strict().optional(),calendar:z.object({timeZone:z.literal('UTC'),confirmed:z.literal(true)}).strict().optional(),operationCosts:z.partialRecord(chargedOperation,positive).optional(),quoteCost:positive,leaseMs:positive.max(60000),maxAttempts:positive.max(128),maxWorks:positive.max(64),maxCacheBytes:positive.max(32*1024*1024).optional(),retryRetentionMs:positive.min(60000).max(86400000).optional(),accountThrottle:z.object({distinctEndpoints:positive.min(2).max(8),windowMs:positive.max(60000)}).strict().optional(),breaker:z.object({threshold:positive.max(100),windowMs:positive.max(3600000),cooldownMs:positive,maxCooldownMs:positive,halfOpenProbes:positive.max(8)}).strict().refine(p=>p.maxCooldownMs>=p.cooldownMs).optional()}).strict().refine(c=>Boolean(c.month)!==Boolean(c.calendar),'Exactly one confirmed accounting period source is required.').refine(c=>!c.accountThrottle||!!c.breaker,'Throttle correlation requires a breaker policy.');
+const configSchema=z.object({telemetry:marketTelemetryPolicy.optional(),policy:z.object({providerMinuteLimit:positive,providerMonthlyLimit:positive,operating:capacity,monitoringReserve:capacity,monitoringMaximum:capacity,optionalCeiling:capacity,concurrent:positive,queueLimit:positive,reservationMs:positive,ownershipMs:positive}).strict(),month:z.object({id:z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),start:uint,end:uint}).strict().optional(),calendar:z.object({timeZone:z.literal('UTC'),confirmed:z.literal(true)}).strict().optional(),operationCosts:z.partialRecord(chargedOperation,positive).optional(),quoteCost:positive,leaseMs:positive.max(60000),maxAttempts:positive.max(128),maxWorks:positive.max(64),maxCacheBytes:positive.max(32*1024*1024).optional(),retryRetentionMs:positive.min(60000).max(86400000).optional(),accountThrottle:z.object({distinctEndpoints:positive.min(2).max(8),windowMs:positive.max(60000)}).strict().optional(),breaker:z.object({threshold:positive.max(100),windowMs:positive.max(3600000),cooldownMs:positive,maxCooldownMs:positive,halfOpenProbes:positive.max(8)}).strict().refine(p=>p.maxCooldownMs>=p.cooldownMs).optional()}).strict().refine(c=>Boolean(c.month)!==Boolean(c.calendar),'Exactly one confirmed accounting period source is required.').refine(c=>!c.accountThrottle||!!c.breaker,'Throttle correlation requires a breaker policy.');
 const work=publicMarketWorkSchema;
 const lease=z.object({token:z.string().min(1).max(100),generation:positive,fence:positive,acquiredAt:uint,deadline:uint,expiresAt:uint}).strict();
 const id=z.string().uuid();
@@ -29,6 +30,7 @@ const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('publish'),id,work,quote:z.unknown()}).strict(),
  z.object({action:z.literal('publish-data'),id,work,value:z.unknown()}).strict(),
  z.object({action:z.literal('inspect')}).strict(),
+ z.object({action:z.literal('inspect-metrics')}).strict(),
 ]);
 export interface AtomicMarketStorage {get<T>(key:string):Promise<T|undefined>;put(key:string,value:unknown):Promise<void>;delete(key:string):Promise<unknown>;transaction<T>(fn:(transaction:AtomicMarketStorage)=>Promise<T>):Promise<T>}
 /** Account authority shared by quote publication and all supported endpoint reads. Each
@@ -48,6 +50,9 @@ export class DurableMarketAccount {
    const date=new Date(now),month=config.month??{id:date.toISOString().slice(0,7),start:Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1),end:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1)};
    if(!validTime(original,{month},now))return {ok:false,reason:'CLOCK_OR_PERIOD'};
    const budget=await maintainMarketAccount(tx,original,month,now,config.leaseMs,config.policy.reservationMs,config.retryRetentionMs??3600000,config.breaker);
+   if(command.action==='inspect-metrics')return readMarketTelemetry(tx,config.telemetry,now);
+   if(!config.telemetry)await tx.delete('telemetry');
+   const execute=async():Promise<Record<string,unknown>>=>{
    const followers=await liveFollowers(tx,now);
    if(command.action==='follow'||command.action==='poll'||command.action==='forget'||command.action==='cancel-followers')return followerCommand(tx,command,now);
    const periods={month},index=await tx.get<string[]>('work-index')??[];
@@ -117,6 +122,11 @@ export class DurableMarketAccount {
     if(command.action==='cancel')await releaseCancelledWork(tx,attempt,now);
     if(command.action==='settle'||command.action==='cancel')await settleMarketBreakers(tx,config.breaker,attempt.breakers,command.action==='settle'?(command.outcome==='success'?'VERIFIED':command.category??'UNKNOWN'):'UNKNOWN',now,{endpoint:attempt.endpoint,accountThrottle:config.accountThrottle,pairFailures:command.action==='settle'?command.pairFailures:undefined});
     if(command.action==='settle'||command.action==='cancel')await tx.put(`attempt:${command.id}`,{...attempt,finishedAt:now,...(command.action==='settle'?{outcome:command.outcome,pairFailures:(command.pairFailures??[]).map(publicMarketWorkKey).sort()}:{cancelled:true})});}return {ok:result.ok,...(result.reason?{reason:result.reason}:{})};
+   };
+   const result=await execute();
+   if(config.telemetry){const attempt='id' in command?await tx.get<RetainedAttempt>(`attempt:${command.id}`):undefined,row='id' in command?budget.reservations[command.id]:undefined;
+    await recordMarketTelemetry(tx,config.telemetry,{action:command.action,workClass:'work' in command?command.work.operation:attempt?.endpoint?.split(':')[0],priority:attempt?.reservation.priority,status:typeof result.status==='string'?result.status:undefined,reason:typeof result.reason==='string'?result.reason:undefined,ok:result.ok===true,replay:result.replay===true,cost:attempt?.reservation.cost,outcome:'outcome' in command?command.outcome:undefined,category:'category' in command?command.category:undefined,waitMs:attempt?.createdAt===undefined?undefined:now-attempt.createdAt,durationMs:row?.dispatchedAt===undefined?undefined:now-row.dispatchedAt},now);
+   }return result;
   });}catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}
  }
 }
