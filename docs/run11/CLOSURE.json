@@ -1565,13 +1565,16 @@
     },
     {
       "id": "FIN-04",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
-      "owner": "implementation",
+      "implementation": "implementation_complete",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
+      "evidence": [
+        "apps/web/tests/run11-financial-previews.spec.ts",
+        "apps/web/tests/run9.spec.ts"
+      ],
+      "delta": "Allocation and equal/opposite history correction previews now confirm before writes; availability rechecked.",
+      "owner": "integration",
       "dependencies": []
     },
     {
@@ -1587,13 +1590,16 @@
     },
     {
       "id": "FIN-06",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
-      "owner": "implementation",
+      "implementation": "implementation_complete",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
+      "evidence": [
+        "apps/web/lib/wealth-changes.test.ts",
+        "apps/web/tests/run11-wealth-changes.spec.ts"
+      ],
+      "delta": "Whole-owned wealth bridge shows linked flows/corrections/transfers/income/fees/provider price movement and explicit gaps; ambiguous simultaneous snapshots stay unresolved.",
+      "owner": "integration",
       "dependencies": []
     },
     {
@@ -1664,15 +1670,16 @@
     },
     {
       "id": "FIN-13",
-      "implementation": "needs_change",
-      "local_proof": "pass",
-      "external_proof": "not_required",
-      "source": "16a3cc1",
+      "implementation": "implementation_complete",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
       "evidence": [
-        "apps/web/tests/run11-goal-history.spec.ts"
+        "apps/web/components/platform/goal-timeline.tsx",
+        "apps/web/components/platform/financial-evidence.tsx"
       ],
-      "delta": "Full Goal history reachable by page/filter/details; remaining whole-wealth explanation and mixed financial sync acceptance required.",
-      "owner": "implementation",
+      "delta": "Retained history pages and exact source links; deep links select the source page.",
+      "owner": "integration",
       "dependencies": []
     },
     {
@@ -1809,13 +1816,15 @@
     },
     {
       "id": "GOAL-01",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
-      "owner": "implementation",
+      "implementation": "implementation_complete",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
+      "evidence": [
+        "apps/web/tests/run11-goal-draft.spec.ts"
+      ],
+      "delta": "Existing short creator retained; dirty draft/detail/plan guards confirm navigation and cancel/reset individual forms.",
+      "owner": "integration",
       "dependencies": []
     },
     {
@@ -1842,13 +1851,15 @@
     },
     {
       "id": "GOAL-04",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
-      "owner": "implementation",
+      "implementation": "implementation_complete",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
+      "evidence": [
+        "apps/web/tests/run11-financial-previews.spec.ts"
+      ],
+      "delta": "Allocation preview+explicit confirmation preserves aggregate until commit.",
+      "owner": "integration",
       "dependencies": []
     },
     {
@@ -2034,27 +2045,29 @@
     },
     {
       "id": "HLT-07",
-      "implementation": "needs_change",
-      "local_proof": "pass",
-      "external_proof": "not_required",
-      "source": "16a3cc1",
+      "implementation": "implementation_complete",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
       "evidence": [
-        "apps/web/tests/run11-measurements.spec.ts",
-        "scripts/run10/account-browser.test.mjs"
+        "apps/web/lib/observation-import.test.ts",
+        "apps/web/tests/run11-observation-import.spec.ts"
       ],
-      "delta": "Timed weight/body measurements, original units, corrections, table/trend/CSV implemented and two-client correction reviewed. Normalized import consumer/dedup still to audit.",
-      "owner": "implementation",
+      "delta": "Timed original-unit manual measurements and reviewed normalized file consumer with stable source receipt dedup and correction preservation.",
+      "owner": "integration",
       "dependencies": []
     },
     {
       "id": "HLT-08",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
-      "owner": "implementation",
+      "implementation": "partial",
+      "local_proof": "focused_pass_final_source_pending",
+      "external_proof": "not_claimed",
+      "source": "84aa43fa14b4635998d367f5bd10392f85c4128a + root checkpoint delta",
+      "evidence": [
+        "apps/web/lib/observation-import.test.ts"
+      ],
+      "delta": "Normalized file consumer is implemented and tested; broader overlapping device imports remain explicitly deferred with physical wearables.",
+      "owner": "integration",
       "dependencies": []
     },
     {

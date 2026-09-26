@@ -4,7 +4,7 @@ export function saveMeasurement(data:HealthData,draft:MeasurementDraft,recordedA
  const {id,...values}=draft,v=measurementValueSchema.parse(values);
  const canonical=canonicalMeasurement(v.quantityMilli,v.unit);
  const prior=data.measurements?.find(r=>r.id===id),corrections=prior?[...prior.corrections,measurementValueSchema.safeExtend({canonical:bodyMeasurementSchema.shape.canonical,recordedAt:bodyMeasurementSchema.shape.recordedAt}).parse({kind:prior.kind,quantityMilli:prior.quantityMilli,unit:prior.unit,observedAt:prior.observedAt,timezone:prior.timezone,sourceLabel:prior.sourceLabel,canonical:prior.canonical,recordedAt:prior.recordedAt})]:[];
- const next=bodyMeasurementSchema.parse({...v,id,observedAt:new Date(v.observedAt).toISOString(),canonical,source:'MANUAL',createdAt:prior?.createdAt??recordedAt,recordedAt,corrections});
+ const next=bodyMeasurementSchema.parse({...v,id,observedAt:new Date(v.observedAt).toISOString(),canonical,source:prior?.source??'MANUAL',observationSources:prior?.observationSources,createdAt:prior?.createdAt??recordedAt,recordedAt,corrections});
  return healthSchema.parse({...data,measurements:[...(data.measurements??[]).filter(r=>r.id!==id),next]});
 }
 export function measurementHistory(data:HealthData,kind:BodyMeasurement['kind']){

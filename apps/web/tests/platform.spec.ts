@@ -20,7 +20,7 @@ test('private position allocation and plans survive reload without financial or 
  await page.locator('#allocate > summary').click();
  await page.locator('#allocate .picker-existing').getByRole('button',{name:/Example reserve/}).click();
  await page.getByLabel('Allocation quantity').fill('80');
- await page.getByRole('button',{name:'Save allocation',exact:true}).click();
+ await page.getByRole('button',{name:'Save allocation',exact:true}).click();await page.getByRole('button',{name:'Confirm allocation',exact:true}).click();
  await expect(page.getByTestId('tracked-progress')).toContainText('40%');
  await page.reload();
  await expect(page.getByTestId('tracked-progress')).toContainText('40%');

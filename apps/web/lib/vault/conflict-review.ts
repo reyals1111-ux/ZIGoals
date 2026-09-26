@@ -16,9 +16,10 @@ export function resolveConflicts(base:PrivateData,local:PrivateData,cloud:Privat
   if(same(l,r))return l;if(same(l,b))return r;if(same(r,b))return l;
   if(path.length===3&&path[0]==='health'&&path[1]==='measurements'&&object(l)&&object(r)&&Array.isArray(l.corrections)&&Array.isArray(r.corrections)){
    const chosen=select(b,l,r,path) as Record<string,unknown>,other=chosen===l?r:l;
-   const snapshot=(v:Record<string,unknown>)=>Object.fromEntries(Object.entries(v).filter(([k])=>!['id','createdAt','source','corrections'].includes(k)));
+   const snapshot=(v:Record<string,unknown>)=>Object.fromEntries(Object.entries(v).filter(([k])=>!['id','createdAt','source','corrections','observationSources'].includes(k)));
    const history=[...(object(b)&&Array.isArray(b.corrections)?b.corrections:[]),...l.corrections,...r.corrections,snapshot(other)];
-   return {...chosen,corrections:[...new Map(history.map(v=>[JSON.stringify(v),v])).values()]};
+   const sources=[...(Array.isArray(l.observationSources)?l.observationSources:[]),...(Array.isArray(r.observationSources)?r.observationSources:[])];
+   return {...chosen,...(sources.length?{observationSources:[...new Map(sources.map(v=>[JSON.stringify(v),v])).values()]}:{}),corrections:[...new Map(history.map(v=>[JSON.stringify(v),v])).values()]};
   }
   if(b===undefined&&object(l)&&object(r))b={};if(b===undefined&&Array.isArray(l)&&Array.isArray(r))b=[];
   if(object(b)&&object(l)&&object(r)){const result:Record<string,unknown>={};for(const k of new Set([...Object.keys(b),...Object.keys(l),...Object.keys(r)])){const value=choose(b[k],l[k],r[k],[...path,k]);if(value!==undefined)result[k]=value;}return result;}

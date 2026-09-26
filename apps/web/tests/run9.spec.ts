@@ -13,6 +13,9 @@ test('actual contributions stay separate from observed wealth and reversals reta
  expect(saved.schemaVersion).toBe(3);expect(saved.contributions.filter((e:{goalScope:string})=>e.goalScope==='private')).toHaveLength(1);
  expect(saved.positions.find((p:{id:string})=>p.id==='b').quantity).toBe('263000000000');
  await page.getByRole('button',{name:'Reverse history entry',exact:true}).click();
+ await expect(page.getByRole('dialog',{name:'Review history correction'})).toContainText('original remains');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).contributions.filter((e:{goalScope:string})=>e.goalScope==='private').length)).toBe(1);
+ await page.getByRole('button',{name:'Confirm history reversal',exact:true}).click();
  await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution reversed');
  saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(saved.contributions.filter((e:{goalScope:string})=>e.goalScope==='private')).toHaveLength(2);
  await page.reload();await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution reversed');

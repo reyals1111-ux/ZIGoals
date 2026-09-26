@@ -96,7 +96,7 @@ export function recordGoalChanges(before:Platform,after:Platform,now=Date.now())
  after=captureGoalLifecycle(before,capturePlanChanges(before,after,now),now);
  const capturedAt=timestamp(now),added:GoalHistory[]=[];
  for(const g of after.goals){const old=before.goals.find(x=>x.id===g.id);
-  const add=(kind:'allocation'|'plan'|'milestone'|'status',label:string)=>added.push({id:`change:${g.id}:${kind}:${capturedAt}:${before.goalHistory.length+added.length}`,goalId:g.id,kind,capturedAt,label,provenance:'LOCAL_EDIT'});
+  const add=(kind:'allocation'|'plan'|'milestone'|'status',label:string)=>added.push({id:`change:${g.id}:${kind}:${crypto.randomUUID()}`,goalId:g.id,kind,capturedAt,label,provenance:'LOCAL_EDIT'});
   if(JSON.stringify(old?.plan)!==JSON.stringify(g.plan))add('plan',!old?.plan?'Contribution plan created':g.plan?.active===false?'Contribution plan paused':'Contribution plan changed');
   if(old&&JSON.stringify(old.milestones)!==JSON.stringify(g.milestones))add('milestone','Goal milestones changed');
   if(old&&old.status!==g.status)add('status',g.status==='completed'?'Goal completed':g.status==='closed'?'Goal closed':'Goal reactivated');
@@ -121,7 +121,7 @@ export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=D
   if(previous?.capturedAt.slice(0,10)===day||captureDays[`position:${p.id}`]===day)continue;
   const v=p.valuation;
   const q=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&quoteMatchesPosition(p,q)&&q.currency===(p.quoteCurrency??'USD')&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>(b.observedAt??b.fetchedAt??'').localeCompare(a.observedAt??a.fetchedAt??''))[0];
-  const base={id:`valuation:${p.id}:${day}`,positionId:p.id,quantity:p.quantity,quantityDecimals:p.decimals,capturedAt};
+  const base={id:`valuation:${p.id}:${crypto.randomUUID()}`,positionId:p.id,quantity:p.quantity,quantityDecimals:p.decimals,capturedAt};
   const next:ValuationSnapshot|undefined=v?{...base,value:v.value,decimals:v.decimals,currency:v.currency,source:v.source,observedAt:v.observedAt}:q&&p.valuationMode!=='manual'?{...base,value:quoteValue(p.quantity,p.decimals,q,8),decimals:8,currency:q.currency,source:'COINGECKO',marketRef:q.marketRef??{provider:'coingecko',kind:'coin',id:q.providerAssetId},price:q.price,priceDecimals:q.priceDecimals,observedAt:q.observedAt,fetchedAt:q.fetchedAt}:undefined;
   if(next&&(!previous||!sameSnapshotEvidence(previous,next))){valuations.push(next);captureDays[`position:${p.id}`]=day;}
  }
@@ -130,10 +130,10 @@ export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=D
   if(previous?.capturedAt.slice(0,10)===day||captureDays[`goal:${g.id}`]===day)continue;
   const p=goalProgress(s,g.id,now,quotes);if(p.missingValuation)continue;
   const health=fundingHealth(s,g.id,now,quotes);
-  const next:GoalHistory={id:`goal-value:${g.id}:${day}`,goalId:g.id,kind:'valuation',capturedAt,current:p.current,target:p.target,asset:g.asset,decimals:g.decimals,actualContributed:health.actual,rewardIncome:health.rewardIncome,planned:health.plannedThroughToday,requiresReview:p.requiresReview,evidence:p.breakdown.map(b=>{
+  const next:GoalHistory={id:`goal-value:${g.id}:${crypto.randomUUID()}`,goalId:g.id,kind:'valuation',capturedAt,current:p.current,target:p.target,asset:g.asset,decimals:g.decimals,actualContributed:health.actual,rewardIncome:health.rewardIncome,planned:health.plannedThroughToday,requiresReview:p.requiresReview,evidence:p.breakdown.map(b=>{
    const position=s.positions.find(p=>p.id===b.positionId)!;
    const q=b.valuation?.quote,v=position.valuation;
-   const base={id:`goal-evidence:${g.id}:${position.id}:${day}`,positionId:position.id,quantity:position.quantity,quantityDecimals:position.decimals,capturedAt};
+   const base={id:`goal-evidence:${g.id}:${position.id}:${crypto.randomUUID()}`,positionId:position.id,quantity:position.quantity,quantityDecimals:position.decimals,capturedAt};
    const valuation:ValuationSnapshot|undefined=q?{...base,value:quoteValue(position.quantity,position.decimals,q,g.decimals),decimals:g.decimals,currency:q.currency,source:'COINGECKO',marketRef:q.marketRef??{provider:'coingecko',kind:'coin',id:q.providerAssetId},price:q.price,priceDecimals:q.priceDecimals,observedAt:q.observedAt,fetchedAt:q.fetchedAt}:v&&v.currency===g.asset?{...base,value:v.value,decimals:v.decimals,currency:v.currency,source:v.source,observedAt:v.observedAt}:undefined;
    return {positionId:b.positionId,quantity:b.quantity,counted:b.counted,valuation};
   })};

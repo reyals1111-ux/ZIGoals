@@ -1,4 +1,5 @@
 'use client';
+import {useUnsavedChanges} from './use-unsaved-changes';
 import {createAllocatedGoal} from '../lib/wealth';
 import {AssetPicker} from './platform/asset-picker';
 import {saveAsset} from '../lib/asset-management';
@@ -37,6 +38,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  function changeType(next:PrivateGoal['type']){setType(next);setGoalAssetPosition('');setPendingType(null);setTarget('');setAsset('');setAllocation('none');setIncluded({});setQuantity('');setSelected('');setWithPlan(false);setPlanAmount('');setPrice('');setWithHabit(false);setMilestones('');setFunding(next==='PROJECT'?'project':'wealth');setError('');}
  function requestType(next:PrivateGoal['type']){if(next===type){setPendingType(null);return;}if(target||milestones||withPlan||Object.keys(included).length||allocation!=='none')setPendingType(next);else changeType(next);}
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);const [savedId,setSavedId]=useState('');const habitId=useRef('');
+ const releaseDraft=useUnsavedChanges(!savedId&&!!(name||target||notes||date||milestones||assetInput||withPlan||planAmount||Object.keys(included).length||type!=='QUANTITY'||category!=='Emergency Fund'));
  const asset=assetInput||(type==='VALUE'?'USD':source?.asset??'ZIG');
  const network=(networkInput||(source?.network==='zig-test-2'?'zig-test-2':'zigchain-1')) as PrivateGoal['network'];
  const market=useMarketQuotes(type==='VALUE'&&funding==='wealth'?wealthMarketRequests(store.data):false);
@@ -93,7 +95,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
   if(withHabit&&template){habitId.current ||= crypto.randomUUID();goal={...goal,plan:{...goal.plan!,habitId:habitId.current}};}
   await store.update(data=>data.goals.some(g=>g.id===id)?data:preparePrivate(data,goal));setSavedId(id);committedId=id;
   if(withHabit&&template)await habits.update(data=>data.habits.some(h=>h.id===habitId.current)?data:createHabit(data,template,new Date(),habitId.current));
-  router.push(`/app/goals/tracked/${id}`);
+  releaseDraft();router.push(`/app/goals/tracked/${id}`);
  }catch(e){setError(`${e instanceof Error?e.message:'Could not save.'}${committedId?' Your Goal is saved; retry to finish the supporting Habit.':''}`);}finally{setBusy(false);}}
  let review:ReturnType<typeof goalProgress>|undefined,reviewGoal:PrivateGoal|undefined,reviewError='';
  if(step===3&&!isLocal)try{reviewGoal=savedId?store.data.goals.find(g=>g.id===savedId):draft();if(reviewGoal)review=goalProgress(savedId?store.data:preparePrivate(store.data,reviewGoal),reviewGoal.id,market.now,market.quotes);}catch(e){reviewError=e instanceof Error?e.message:'Review allocations.';}
