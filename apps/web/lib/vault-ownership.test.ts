@@ -37,3 +37,14 @@ test('A domain journal acknowledgement after B consent cannot alter B Health per
 test('A accepted domain restore released after B unlock cannot enable B Health permission',async()=>{
  await open(A);await act(async()=>h.domain.prepare('restore','health'));const restore=deferred<void>(),entered=deferred<void>();h.restore.mockImplementationOnce(()=>{entered.resolve();return restore.promise;});let pending:Promise<void>;await act(async()=>{pending=h.domain.confirm();await entered.promise;});await open(B);const consent=element.querySelector<HTMLInputElement>('input[type=checkbox]')!;expect(consent.checked).toBe(false);await act(async()=>restore.resolve());await pending!;expect(consent.checked).toBe(false);expect(isAccountLocked()).toBe(false);
 });
+
+test('current-account revoked access locks the provider and keeps the explicit sign-in recovery reason',async()=>{
+ await open(A);const {accountTransport}=await vi.importActual<typeof import('./vault/account-transport')>('./vault/account-transport');vi.stubGlobal('fetch',async()=>Response.json({error:'SESSION_REVOKED'},{status:401}));
+ await act(async()=>{await expect(accountTransport(A,()=>{if(getAccountScope()!==A)throw Error('Account changed');}).read(null)).rejects.toThrow('Account access changed. Sign in and unlock again.');});
+ expect(isAccountLocked()).toBe(true);expect(element.querySelector('[role=alert]')?.textContent).toBe('Account access changed. Sign in and unlock again.');
+ await open(B);expect(element.querySelector('[role=alert]')).toBeNull();expect(isAccountLocked()).toBe(false);
+});
+test('late A revoked response after B unlock cannot lock B or publish an A access error',async()=>{
+ await open(A);const {accountTransport}=await vi.importActual<typeof import('./vault/account-transport')>('./vault/account-transport'),reply=deferred<Response>();vi.stubGlobal('fetch',()=>reply.promise);const pending=accountTransport(A,()=>{if(getAccountScope()!==A)throw Error('Account changed');}).read(null);const rejected=expect(pending).rejects.toThrow('Account changed');
+ await open(B);await act(async()=>reply.resolve(Response.json({error:'SESSION_REVOKED'},{status:401})));await rejected;expect(isAccountLocked()).toBe(false);expect(element.querySelector('[role=alert]')).toBeNull();
+});

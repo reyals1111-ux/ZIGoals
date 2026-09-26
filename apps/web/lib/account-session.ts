@@ -1,6 +1,8 @@
 /** A tab-local selector is not authentication. Only a verified server identity may activate it. */
 export const ACCOUNT_SELECTOR='zigoals:account:selector:v1';
 export const ACCOUNT_CHANGE='zigoals:account-change';
+export type AccountLockReason='access-changed';
+export type AccountLockDetail={reason:AccountLockReason;account:string|null;generation:number};
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 type Session={raw:string|null;scope:string|null;locked:boolean;generation:number};
 const sessions=new WeakMap<object,Session>();
@@ -27,7 +29,7 @@ function session():Session{
  }
  return current;
 }
-function announce(){window.dispatchEvent(new Event(ACCOUNT_CHANGE));}
+function announce(detail?:AccountLockDetail){window.dispatchEvent(detail?new CustomEvent(ACCOUNT_CHANGE,{detail}):new Event(ACCOUNT_CHANGE));}
 export function getAccountScope():string|null{return session().scope;}
 export function getAccountGeneration():number{return session().generation;}
 export function isAccountLocked():boolean{return session().locked;}
@@ -37,7 +39,7 @@ export function activateAccount(id:string):void{
  window.sessionStorage.setItem(ACCOUNT_SELECTOR,raw);
  sessions.set(window,{raw,scope:id.toLowerCase(),locked:true,generation:(prior?.generation??0)+1});announce();lockOtherTabs();
 }
-export function lockAccount():void{const current=session();current.locked=true;current.generation++;announce();}
+export function lockAccount(reason?:AccountLockReason):void{const current=session();current.locked=true;current.generation++;announce(reason?{reason,account:current.scope,generation:current.generation}:undefined);}
 /** Call only after server identity matches selection and the account vault key is unlocked. */
 export function unlockAccount():void{const current=session();if(!current.scope)throw Error('Select a verified account before unlocking.');current.locked=false;current.generation++;announce();}
 export function clearAccountSession():void{

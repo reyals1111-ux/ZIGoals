@@ -17,7 +17,7 @@ import {encryptBackup} from '../lib/vault/backup';
 import {encryptPendingRecovery} from '../lib/vault/pending-recovery';
 import {AccountDevices} from './account-devices';
 import {AccountAccess} from './account-access';
-import {ACCOUNT_CHANGE,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,unlockAccount} from '../lib/account-session';
+import {ACCOUNT_CHANGE,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,unlockAccount,type AccountLockDetail} from '../lib/account-session';
 import {getAppStorage,isShowcase} from '../lib/showcase-storage';
 import {withStorageLock} from '../lib/storage';
 import {createVault,unlockVault,manifestSchema,type VaultManifest} from '../lib/vault/crypto';
@@ -121,7 +121,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  useEffect(()=>{syncRef.current=sync;});
  useEffect(()=>{
   let debounce:ReturnType<typeof setTimeout>|undefined;
-  const change=()=>{if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){running.current=null;setBusy(false);session.current=null;auto.current=false;setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError('');setLast('');setMessage('Account sync is locked.');}};
+  const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){running.current=null;setBusy(false);session.current=null;auto.current=false;setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError(accessChanged?'Account access changed. Sign in and unlock again.':'');setLast('');setMessage('Account sync is locked.');}};
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden)void syncRef.current();},1000);};
   const activity=()=>{idle.current=Date.now();};
   const interval=setInterval(()=>{if(session.current&&Date.now()-idle.current>15*60_000){lockAccount();return;}schedule();},30000);
