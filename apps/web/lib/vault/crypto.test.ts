@@ -22,3 +22,15 @@ test('keys are nonextractable and bounded input rejects without replacement',asy
  await expect(sealRecord(a.key,context,{large:'a'.repeat(300_000)})).rejects.toThrow();
  await expect(unlockVault(a.manifest,'email@example.com')).rejects.toThrow();
 });
+test('new epochs authenticate wrapping, derivation and records while legacy epoch one still opens',async()=>{
+ const legacy=await createVault(context.vault),next=await createVault(context.vault,2);
+ expect(next.manifest.epoch).toBe(2);
+ const key=await unlockVault(next.manifest,next.recovery),ctx={...context,epoch:2};
+ const sealed=await sealRecord(key,ctx,{exact:'20000.000000000000000001'});
+ expect(await openRecord(key,ctx,sealed)).toEqual({exact:'20000.000000000000000001'});
+ await expect(openRecord(key,{...ctx,epoch:1},sealed)).rejects.toThrow();
+ await expect(unlockVault({...next.manifest,epoch:3},next.recovery)).rejects.toThrow();
+ await expect(openRecord(legacy.key,ctx,sealed)).rejects.toThrow();
+ expect(await unlockVault(legacy.manifest,legacy.recovery)).toBeDefined();
+ for(const epoch of [0,-1,1.5,Number.MAX_SAFE_INTEGER+1])await expect(createVault(context.vault,epoch)).rejects.toThrow();
+});

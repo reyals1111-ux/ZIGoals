@@ -763,14 +763,20 @@
     },
     {
       "id": "AUTH-06",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "owner_pending",
+      "source": "working-tree-after-f82027c",
+      "evidence": [
+        "scripts/run11/lifecycle-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Account deletion and rotation working locally; domain deletion/consent, administrative reconciliation, cleanup and final packaged acceptance remain",
       "owner": "implementation",
-      "dependencies": []
+      "dependencies": [
+        "domain lifecycle",
+        "packaged app"
+      ]
     },
     {
       "id": "AUTH-07",
@@ -906,14 +912,20 @@
     },
     {
       "id": "ENC-07",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
-      "owner": "implementation",
-      "dependencies": []
+      "implementation": "implemented",
+      "local_proof": "pass",
+      "external_proof": "owner_pending",
+      "source": "working-tree-after-f82027c",
+      "evidence": [
+        "scripts/run11/rotation-runtime.test.mjs",
+        "scripts/run11/session-refresh.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Source-bound full packaged/hosted gate remains; no remote erasure of downloaded plaintext claimed",
+      "owner": "integration",
+      "dependencies": [
+        "final exact-source gate"
+      ]
     },
     {
       "id": "ENC-08",
@@ -1016,14 +1028,20 @@
     },
     {
       "id": "SYN-07",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "owner_pending",
+      "source": "working-tree-after-f82027c",
+      "evidence": [
+        "scripts/run11/lifecycle-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Account deletion and rotation working locally; domain deletion/consent, administrative reconciliation, cleanup and final packaged acceptance remain",
       "owner": "implementation",
-      "dependencies": []
+      "dependencies": [
+        "domain lifecycle",
+        "packaged app"
+      ]
     },
     {
       "id": "SYN-08",
@@ -2534,14 +2552,20 @@
     },
     {
       "id": "SEC-05",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "owner_pending",
+      "source": "working-tree-after-f82027c",
+      "evidence": [
+        "scripts/run11/lifecycle-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Account deletion and rotation working locally; domain deletion/consent, administrative reconciliation, cleanup and final packaged acceptance remain",
       "owner": "implementation",
-      "dependencies": []
+      "dependencies": [
+        "domain lifecycle",
+        "packaged app"
+      ]
     },
     {
       "id": "SEC-06",
@@ -3326,12 +3350,14 @@
     },
     {
       "id": "P13",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "implementation": "retained",
+      "local_proof": "pass",
+      "external_proof": "not_required",
+      "source": "5d2143a",
+      "evidence": [
+        "PROOF.md"
+      ],
+      "delta": "Known caption corrected; final route-wide gate remains",
       "owner": "implementation",
       "dependencies": []
     },
@@ -3370,14 +3396,20 @@
     },
     {
       "id": "E04",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "owner_pending",
+      "source": "working-tree-after-f82027c",
+      "evidence": [
+        "scripts/run11/lifecycle-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Account deletion and rotation working locally; domain deletion/consent, administrative reconciliation, cleanup and final packaged acceptance remain",
       "owner": "implementation",
-      "dependencies": []
+      "dependencies": [
+        "domain lifecycle",
+        "packaged app"
+      ]
     },
     {
       "id": "E05",

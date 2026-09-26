@@ -4,6 +4,7 @@
  "main":"worker.mjs",
  "compatibility_date":"2026-09-13",
  "durable_objects":{"bindings":[{"name":"VAULTS","class_name":"PrivateVault"}]},
+ "services":[{"binding":"LIFECYCLE","service":"zigoals-lifecycle-local","entrypoint":"LifecycleService"}],
  "migrations":[{"tag":"v1","new_sqlite_classes":["PrivateVault"]}],
  "vars":{"AUTH_ORIGIN":"https://unconfigured.supabase.co","APP_ORIGIN":"http://127.0.0.1:3110"},
  "observability":{"enabled":false}
