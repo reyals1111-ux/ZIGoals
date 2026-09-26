@@ -12,6 +12,9 @@ import {
 import { addLocalDays } from "../../lib/local-date";
 import { useHealth } from "./use-health";
 import { BarcodeFoodLookup } from "./barcode-food-lookup";
+import {AdditionalNutrition} from "./additional-nutrition";
+import {additionalNutrients} from "../../lib/health";
+import {BodyMeasurements} from "./body-measurements";
 import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
 import { bodyWeightGrams, dailyData, healthDay, servingsFromGrams } from "../../lib/health-daily";
@@ -20,7 +23,7 @@ import {PinToToday} from "../pin-to-today";
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
-const views = ["Diary", "Foods & recipes", "Meals & planning", "Weight", "Activity", "Targets", "Journal settings"] as const;
+const views = ["Diary", "Foods & recipes", "Meals & planning", "Weight", "Measurements", "Activity", "Targets", "Journal settings"] as const;
 type View = typeof views[number];
 const foodFields = [
   ["kcal", "Calories (kcal)", 1, 1_000_000], ["proteinMg", "Protein (g)", 1000, 1_000_000_000],
@@ -98,6 +101,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Meals & planning" && <MealsAndPlanning key={date} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
+      {view === "Measurements" && <BodyMeasurements data={data} perform={perform}/>}
       {view === "Weight" && <WeightView data={data} date={date} perform={perform} invalid={invalid} onDate={setDate} />}
       {view === "Activity" && <ActivityView data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Targets" && <TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} />}
@@ -120,7 +124,7 @@ function HealthSummary({ data, date, onTargets }: { data: HealthData; date: stri
     <div className="health-macro-grid">{([ ["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"] ] as const).map(([label, key]) => {
       const personalTarget = data.targets[key];
       return <div className={`health-macro health-macro-${key}`} key={key}><span>{label}</span><strong>{formatHealthGrams(summary.nutrients[key])}<small> g</small></strong><div className="health-meter" aria-hidden="true"><i style={{ width: `${personalTarget ? Math.min(100, summary.nutrients[key] / personalTarget * 100) : 0}%` }} /></div><small>{personalTarget ? `${formatHealthGrams(personalTarget)} g target` : "Target not set"}</small></div>;
-    })}</div>
+    })}</div><AdditionalNutrition entries={data.diary.filter(e=>e.date===date)} label="Daily nutrient details"/>
   </section>;
 }
 
@@ -151,7 +155,7 @@ function DiaryView({ data, date, perform, invalid, onLibrary }: { data: HealthDa
     return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{total.toLocaleString()} kcal</span></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" key={entry.id}>
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)} servings · {Number((entry.snapshot.servingGrams * entry.quantityMilli / 1000).toFixed(3)).toLocaleString()} g</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions"><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
-    </div>)}</section>;
+    </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}</section>;
   })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); logOperation.current = null; }} />}{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
     <label className="field"><span>Food or recipe</span><select required value={source} onChange={e => setSource(e.target.value)}><option value="">Choose from your library</option>{sourceItems.map(s => <option value={s.id} key={s.id}>{s.name} · {s.kind}</option>)}</select></label>
     <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><label className="field"><span>Quantity unit</span><select aria-label="Quantity unit" value={entryUnit} onChange={e => { setEntryUnit(e.target.value); setServings(""); logOperation.current = null; }}><option value="servings">Servings</option><option value="grams">Grams</option></select></label><NumberField label={entryUnit === "grams" ? "Food weight (g)" : "Servings"} value={servings} onChange={v => { setServings(v); logOperation.current = null; }} min={0.001} max={entryUnit === "grams" ? 100000 : 1000} step="0.001" /></div>{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {date}. Gram entries use the saved serving weight, rounded to 0.001 serving; millilitres are not treated as grams.</p>
@@ -188,15 +192,17 @@ function FoodEditor({ food, perform, invalid, close }: { food: HealthFood | null
   const [brand, setBrand] = useState(food?.brand ?? "");
   const [basis, setBasis] = useState("serving");
   const [weight, setWeight] = useState(food ? String(food.servingGrams) : "");
-  const [values, setValues] = useState<Record<keyof Nutrition, string>>({ kcal: food ? String(food.nutrients.kcal) : "", proteinMg: food ? String(food.nutrients.proteinMg / 1000) : "", carbsMg: food ? String(food.nutrients.carbsMg / 1000) : "", fatMg: food ? String(food.nutrients.fatMg / 1000) : "" });
-  return <section className="panel health-editor"><h2>{food ? "Edit food" : "Add a food"}</h2><p>Choose the label basis and enter every known value. Enter 0 only when the label says zero. Foods with unknown nutrients are not supported yet.</p><FormBox title="Food details" onSubmit={e => { e.preventDefault(); try {
+  const [values, setValues] = useState<Record<typeof foodFields[number][0], string>>({ kcal: food ? String(food.nutrients.kcal) : "", proteinMg: food ? String(food.nutrients.proteinMg / 1000) : "", carbsMg: food ? String(food.nutrients.carbsMg / 1000) : "", fatMg: food ? String(food.nutrients.fatMg / 1000) : "" });
+  const [extras,setExtras]=useState<Record<string,string>>(Object.fromEntries(additionalNutrients.map(([key,,,scale])=>[key,food?.nutrients[key]===undefined?'':String(food.nutrients[key]!/scale)])));
+  return <section className="panel health-editor"><h2>{food ? "Edit food" : "Add a food"}</h2><p>Choose the label basis and enter every known value. Enter 0 only when the label says zero. Calories and macros are required. Leave additional nutrients blank when the label does not provide them; blank is not zero.</p><FormBox title="Food details" onSubmit={e => { e.preventDefault(); try {
     const at = new Date().toISOString();
     const labelNutrients = Object.fromEntries(foodFields.map(([key, , scale, max]) => [key, parseHealthNumber(values[key], scale, 0, max)])) as Nutrition;
+    for(const [key,,,scale]of additionalNutrients)if(extras[key]?.trim())labelNutrients[key]=parseHealthNumber(extras[key]!,scale,0,1_000_000_000);
     const servingGrams = parseHealthNumber(weight, 1, 1, 100_000);
     const nutrients = basis === "100g" ? scaleNutrition(labelNutrients, servingGrams * 10) : labelNutrients;
     const draft = { id: food?.id ?? newHealthId(), name, brand, servingGrams, nutrients, createdAt: food?.createdAt ?? at, updatedAt: at };
     void perform(latest => saveFood(latest, draft), "Food saved.", close);
-  } catch { invalid(); } }}><div className="health-form-grid"><label className="field"><span>Food name</span><input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label><label className="field"><span>Brand (optional)</span><input maxLength={80} value={brand} onChange={e => setBrand(e.target.value)} /></label><label className="field"><span>Nutrition label basis</span><select value={basis} onChange={e => setBasis(e.target.value)}><option value="serving">Per serving</option><option value="100g">Per 100 g</option></select></label><NumberField label="Serving weight (g)" value={weight} onChange={setWeight} min={1} max={100000} />{foodFields.map(([key, label, scale, max]) => <NumberField key={key} label={label} value={values[key]} onChange={value => setValues(old => ({ ...old, [key]: value }))} max={max / scale} step={scale === 1 ? "1" : "0.001"} />)}</div><div className="actions"><button className="primary" type="submit">Save food</button><button className="quiet" type="button" onClick={close}>Cancel</button></div></FormBox></section>;
+  } catch { invalid(); } }}><div className="health-form-grid"><label className="field"><span>Food name</span><input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label><label className="field"><span>Brand (optional)</span><input maxLength={80} value={brand} onChange={e => setBrand(e.target.value)} /></label><label className="field"><span>Nutrition label basis</span><select value={basis} onChange={e => setBasis(e.target.value)}><option value="serving">Per serving</option><option value="100g">Per 100 g</option></select></label><NumberField label="Serving weight (g)" value={weight} onChange={setWeight} min={1} max={100000} />{foodFields.map(([key, label, scale, max]) => <NumberField key={key} label={label} value={values[key]} onChange={value => setValues(old => ({ ...old, [key]: value }))} max={max / scale} step={scale === 1 ? "1" : "0.001"} />)}</div><details><summary>Additional label nutrients (optional)</summary><p>Enter only values supplied by the label.</p><div className="health-form-grid">{additionalNutrients.map(([key,label,unit,scale])=><NumberField key={key} label={`${label} (${unit})`} value={extras[key]??""} onChange={value=>setExtras(old=>({...old,[key]:value}))} required={false} min={0} max={1_000_000_000/scale} step={scale===1?"1":"0.001"}/>)}</div></details><div className="actions"><button className="primary" type="submit">Save food</button><button className="quiet" type="button" onClick={close}>Cancel</button></div></FormBox></section>;
 }
 
 function RecipeEditor({ recipe, data, perform, invalid, close }: { recipe: HealthRecipe | null; data: HealthData; perform: Perform; invalid: () => void; close: () => void }) {

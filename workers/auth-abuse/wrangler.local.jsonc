@@ -1,0 +1,6 @@
+{
+ "name":"zigoals-auth-abuse-local","main":"worker.mjs","compatibility_date":"2026-09-13","workers_dev":false,
+ "durable_objects":{"bindings":[{"name":"ADMISSION","class_name":"AdmissionAuthority"}]},
+ "migrations":[{"tag":"v1","new_sqlite_classes":["AdmissionAuthority"]}],
+ "observability":{"enabled":false}
+}

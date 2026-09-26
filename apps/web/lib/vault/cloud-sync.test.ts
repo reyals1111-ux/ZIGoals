@@ -96,3 +96,8 @@ test('a future queued policy cannot be replayed by an older reader',async()=>{
  await expect(sync(s,{settings:'{"value":1}'})).rejects.toThrow('newer sync policy');
  expect(s.cloud.calls).toEqual([]);expect(s.journal.state).toEqual(original);
 });
+
+test('tampered row epoch metadata cannot borrow the manifest epoch for decryption',async()=>{
+ const s=await setup();await sync(s,{settings:'{"fixture":"epoch"}'});const page=s.cloud.page();page.records[0]!.epoch=2;
+ await expect(cloudSnapshot({...s.cloud,read:async()=>page,write:op=>s.cloud.write(op)},s.vault.key,s.vault.manifest)).rejects.toThrow('epoch mismatch');
+});

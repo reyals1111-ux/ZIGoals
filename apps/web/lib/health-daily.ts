@@ -1,3 +1,4 @@
+import {additionalNutrients} from './health';
 import {
   healthSchema, healthDateSchema, healthTimezoneSchema, savedMealSchema, mealItemSchema,
   diarySchema, waterSchema, recipeNutrition, recipeServingGrams, parseHealthNumber,
@@ -166,5 +167,7 @@ export function exportHealthCsv(data: HealthData, from: string, to: string): str
   for (const w of data.weights.filter(inRange)) rows.push([w.id, w.date, "weight", "Body weight", "", w.grams, "g", "", "", "", "", "", "manual", w.createdAt, w.updatedAt]);
   for (const a of data.activity.filter(inRange)) for (const unit of ["steps", "minutes"] as const) rows.push([a.id, a.date, "activity", a.name, "", a[unit], unit, "", "", "", "", "", "manual", a.createdAt, a.updatedAt]);
   for (const w of dailyData(data).water.filter(inRange)) rows.push([w.id, w.date, "water", "Water", "", w.amountMilli / 1000, w.unit, "", "", "", "", "", "manual", w.createdAt, w.updatedAt]);
+  rows[0]!.push(...additionalNutrients.map(([key])=>key.replace(/Mg$/, "_mg_per_serving")));
+  const diaryById=new Map(data.diary.map(e=>[e.id,e]));for(const row of rows.slice(1)){const entry=row[2]==='diary'?diaryById.get(String(row[0])):undefined;row.push(...additionalNutrients.map(([key])=>entry?.snapshot.nutrients[key]??""));}
   return rows.map(row => row.map(csvCell).join(",")).join("\r\n");
 }

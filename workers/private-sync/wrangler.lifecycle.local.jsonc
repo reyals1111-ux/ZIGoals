@@ -1,0 +1,7 @@
+{
+ "name":"zigoals-lifecycle-local","main":"lifecycle.mjs","compatibility_date":"2026-09-13","workers_dev":false,
+ "durable_objects":{"bindings":[{"name":"LIFECYCLES","class_name":"LifecycleAuthority"}]},
+ "migrations":[{"tag":"v1","new_sqlite_classes":["LifecycleAuthority"]}],
+ "vars":{"RECOVERY_MODE":"reconcile"},
+ "observability":{"enabled":false}
+}

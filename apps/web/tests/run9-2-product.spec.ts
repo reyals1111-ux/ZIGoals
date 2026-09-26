@@ -3,7 +3,7 @@ import {emptyPlatform,type Platform} from '../lib/positions';
 import {emptyHabitData} from '../lib/habits';
 import {createEmptyHealth} from '../lib/health';
 
-export async function loadShowcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');await expect(page.getByRole('complementary',{name:'Showcase data'})).toBeVisible();await expect(page.getByRole('region',{name:'Life and Wealth snapshot'})).toContainText('5 active Goals');expect((await showcaseState(page)).positions).toHaveLength(13);}
+export async function loadShowcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');await expect(page.getByRole('complementary',{name:'Showcase data'})).toBeVisible();const snapshot=page.getByRole('region',{name:'Life and Wealth snapshot'});await expect(snapshot.getByRole('heading',{name:'Destinations in motion'})).toBeVisible();await expect(snapshot.locator('.life-goal-number')).toHaveText('5');expect((await showcaseState(page)).positions).toHaveLength(13);}
 export async function showcaseState(page:Page):Promise<Platform>{return page.evaluate(()=>{const marker=JSON.parse(sessionStorage.getItem('zigoals:showcase:active:v1')!);return JSON.parse(sessionStorage.getItem(`zigoals:showcase:v1:${marker.generation}:zigoals:platform:v1`)!);});}
 const normalBytes=(page:Page)=>page.evaluate(()=>Object.fromEntries(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)])));
 

@@ -52,4 +52,4 @@
 .dashboard-summary-copy{display:grid;gap:.25rem;min-width:0}
 .dashboard-summary-copy>small{font-size:.9rem;color:#c5d8ed}
 .dashboard-summary-copy>strong{font-size:clamp(1.15rem,1.6vw,1.45rem);line-height:1.2;font-variant-numeric:tabular-nums;color:#f6f8ff}
-.dashboard-summary-copy>span{font-size:.84rem;color:#b6cadf;line-height:1.4;overflow-wrap:anywhere}
+.dashboard-summary-copy>span{font-size:.875rem;color:#b6cadf;line-height:1.4;overflow-wrap:anywhere}

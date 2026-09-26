@@ -44,7 +44,8 @@ export function contributionTotals(s:Platform,goalId:string,now=Date.now(),scope
   if(e.provenance==='REWARD_INCOME')rewardIncome+=e.direction==='IN'?value:-value;
   else if(e.direction==='IN')contributed+=value;else withdrawn+=value;
  }
- const latest=events.filter(e=>!e.reversesId&&e.provenance!=='REWARD_INCOME'&&e.direction==='IN'&&!events.some(r=>r.reversesId===e.id)).sort((a,b)=>b.occurredAt.localeCompare(a.occurredAt)||b.id.localeCompare(a.id))[0];
+ const reversed=new Set(events.flatMap(e=>e.reversesId?[e.reversesId]:[]));
+ const latest=events.filter(e=>!e.reversesId&&e.provenance!=='REWARD_INCOME'&&e.direction==='IN'&&!reversed.has(e.id)).sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt)||b.id.localeCompare(a.id))[0];
  return {contributed:contributed.toString(),withdrawn:withdrawn.toString(),net:(contributed-withdrawn).toString(),rewardIncome:rewardIncome.toString(),latest,unvaluedCount};
 }
 /** Only explicit funding links consume scheduled installments; history and market changes do not. */
@@ -88,7 +89,7 @@ export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='p
   const positions=new Set(s.allocations.filter(a=>a.goalId===goalId).map(a=>a.positionId));
   for(const [i,o] of s.snapshots.entries())if(positions.has(o.positionId)){const p=s.positions.find(p=>p.id===o.positionId);if(p)result.push({id:`observation:${o.positionId}:${o.observedAt}:${i}`,goalId,at:o.observedAt,kind:'observation',label:'Position quantity observed',provenance:p.provenance,quantity:o.quantity,asset:p.asset,decimals:p.decimals});}
  }
- return result.sort((a,b)=>b.at.localeCompare(a.at)||a.id.localeCompare(b.id));
+ return result.sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
 }
 /** Record changed facts once at the private store mutation boundary, not on render. */
 export function recordGoalChanges(before:Platform,after:Platform,now=Date.now()):Platform {
@@ -142,4 +143,21 @@ export function captureValuations(s:Platform,quotes:readonly MarketQuote[],now=D
  if(!valuations.length&&!goals.length)return s;
  const activeKeys=new Set([...s.positions.map(p=>`position:${p.id}`),...s.goals.map(g=>`goal:${g.id}`)]);
  return compactHistory({...s,historyCaptureDays:Object.fromEntries(Object.entries(captureDays).filter(([key])=>activeKeys.has(key))),valuationSnapshots:[...s.valuationSnapshots,...valuations],goalHistory:[...s.goalHistory,...goals]});
+}
+
+/** All retained facts remain reachable; date filters use UTC, display may use local time. */
+export function pageGoalTimeline(events:readonly GoalTimelineEvent[],query:{page:number;kind?:string;from?:string;to?:string}){
+ const start=query.from?Date.parse(query.from+'T00:00:00Z'):-Infinity,end=query.to?Date.parse(query.to+'T23:59:59.999Z'):Infinity;
+ if(Number.isNaN(start)||Number.isNaN(end)||start>end)throw Error('Choose a valid UTC date range.');
+ const filtered=events.filter(e=>(!query.kind||e.kind===query.kind)&&Date.parse(e.at)>=start&&Date.parse(e.at)<=end).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||a.id.localeCompare(b.id));
+ const pages=Math.max(1,Math.ceil(filtered.length/12)),page=Math.max(0,Math.min(pages-1,Number.isSafeInteger(query.page)?query.page:0));
+ return {events:filtered.slice(page*12,page*12+12),page,pages,total:filtered.length};
+}
+/** One sorted pass, instead of recalculating all earlier totals for every plotted point. */
+export function contributionEvidenceSeries(data:Platform,goalId:string,now:number){
+ const goal=data.goals.find(g=>g.id===goalId),actual:{at:string;value:string}[]=[],income:{at:string;value:string}[]=[];if(!goal)return {actual,income};
+ const groups=new Map<number,{actual:bigint;income:bigint;hasActual:boolean;hasIncome:boolean}>();
+ for(const event of data.contributions){const at=Date.parse(event.occurredAt);if(event.goalId!==goalId||event.goalScope!=='private'||at>now)continue;const value=eventValueForGoal(event,goal);if(value===null)continue;const group=groups.get(at)??{actual:0n,income:0n,hasActual:false,hasIncome:false},signed=event.direction==='IN'?value:-value;if(event.provenance==='REWARD_INCOME'){group.income+=signed;group.hasIncome=true;}else{group.actual+=signed;group.hasActual=true;}groups.set(at,group);}
+ let total=0n,rewards=0n;for(const [time,group]of [...groups].sort(([a],[b])=>a-b)){total+=group.actual;rewards+=group.income;const at=new Date(time).toISOString();if(group.hasActual)actual.push({at,value:total.toString()});if(group.hasIncome)income.push({at,value:rewards.toString()});}
+ return {actual,income};
 }

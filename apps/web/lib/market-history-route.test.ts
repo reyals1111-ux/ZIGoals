@@ -1,3 +1,5 @@
+import {beforeEach as configureMarketDevelopment} from 'vitest';
+configureMarketDevelopment(()=>{vi.stubEnv('NODE_ENV','development');vi.stubEnv('ZIGOALS_MARKET_LOCAL_MODE','direct');});
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 const request={marketRef:{provider:'coingecko',kind:'coin',id:'bitcoin'},currency:'USD',range:'90d'};
 beforeEach(()=>vi.stubEnv('COINGECKO_DEMO_API_KEY','fixture-key'));

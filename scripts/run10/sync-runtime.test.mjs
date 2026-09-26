@@ -1,19 +1,16 @@
+import {createPrivateMiniflare,fixtureToken,fixtureAlias} from '../run11/private-runtime.mjs';
 import {test,expect} from 'vitest';
 import {createVault,unlockVault,sealRecord,openRecord} from '../../apps/web/lib/vault/crypto.ts';
-import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
-const {build}=require('esbuild');
-const {Miniflare,convertV4MiniflareOptions}=require('miniflare');
 test('real Workers durable storage: two clients, auth denial, conflict, retry, deletion and restart',async()=>{
  const persist=await mkdtemp(join(tmpdir(),'zigoals-run10-sync-'));
  async function runtime(){
-  const outboundService=async request=>{const token=request.headers.get('authorization');const id=['Bearer account-a','Bearer account-a-second'].includes(token)?'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa':token==='Bearer account-b'?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':null;return Response.json(id?{id}:{},{status:id?200:401});};
-  return new Miniflare({...convertV4MiniflareOptions({name:"private-sync-test",modules:true,script:(await build({entryPoints:[new URL('../../workers/private-sync/worker.mjs',import.meta.url).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022'})).outputFiles[0].text,compatibilityDate:'2026-09-13',durableObjects:{VAULTS:{className:'PrivateVault',useSQLite:true}},durableObjectsPersist:persist,bindings:{AUTH_ORIGIN:'https://test.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN:'https://app.test'},outboundService}),resourcePersistencePath:persist});
+  const outboundService=async request=>{const token='Bearer '+fixtureAlias(request);const id=['Bearer account-a','Bearer account-a-second'].includes(token)?'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa':token==='Bearer account-b'?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':null;return Response.json(id?{id}:{},{status:id?200:401});};
+  return createPrivateMiniflare({persist,outboundService,bindings:{AUTH_ORIGIN:'https://test.supabase.co'}});
  }
- let mf=await runtime();const call=(who,body,path='/v1/vault')=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{authorization:`Bearer ${who}`,origin:'https://app.test','content-type':'application/json','x-zigoals-account':who==='account-b'?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'},...(body?{body:JSON.stringify(body)}:{})});
+ let mf=await runtime();const call=(who,body,path='/v1/vault')=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{authorization:`Bearer ${fixtureToken(who,who==='account-b'?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')}`,origin:'https://app.test','content-type':'application/json','x-zigoals-account':who==='account-b'?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'},...(body?{body:JSON.stringify(body)}:{})});
  try{
   expect((await call('invalid')).status).toBe(401);
   for(const who of ['account-a','account-b'])expect((await call(who,{action:'register',label:'Fictional '+who},'/v1/sessions')).status).toBe(200);
