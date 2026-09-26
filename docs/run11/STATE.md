@@ -1,5 +1,20 @@
 # Run11 current recovery state
 
+- Branch `codex/run11-completion`; draft review https://github.com/reyals1111-ux/ZIGoals/pull/21; preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d` is retained. No merge/deployment/live/provider/billing action.
+- Implementation review closed stale-account effects, revoked-session feedback, immutable observation duplicate groups, blocked IndexedDB upgrade retry, backup inventory and preview-before-copy diagnostics. Envelopev2 derives a fresh key per encrypted record; legacyv1 remains readable. See KEY_USAGE.md for upgrade boundaries.
+- Source checkpoints: crypto16426ca; diagnostics661efc2; database/backupc95bd87; integrated four-preset/route acceptance03146ed. Final source-version preview correction follows. Final implementation HEAD must be resolved from Git after all commits.
+- At clean buildff3bc621b5c0a0e57ad1ba1b575e0df4fbb08c33:1572unit passes/5opt-in skips; both reconnect orders and stale-A→B/Showcase3passes60.89s. Generated ff3app with current localWorkers: fullthree-profile consumer/backup/four-edited-preset journey1pass28.85s. These precede final crypto/preview/diagnostics rebuild.
+- Latestdev evidence: observed route/control inventory and landscape/shortened viewport keyboard-save/reload4passes21.7s; database/migration/backup20browserpasses25.2s, then2inventory/hydrationpasses4.4s. Physical keyboard/realbrowserzoom/device/camera remain distinct owner acceptance.
+- Next: final clean implementation freeze; pinned build/dry6/fullunits/fullproductionbrowser/independentaccounts/package/Alpha security/performance;314criterion reconciliation, finalsource interrupted-install recovery, sanitized NovaVaultreadback, remote/CIreview verification.
+- Owned3112 and3113 previews stopped. Owner3111/unrelated3100 untouched. Pinned Node24.19.0/pnpm11.19.0. Do not start a development server while production acceptance uses the same.next directory.
+- Working closure expansion `/tmp/zigoals-run11-closure-working.json`; semantic supplements OWNED-CLOSURE.json,JOURNEY_REVIEW.json and in-progress `/tmp/zigoals-run11-*-audit.json`. Do not infer per-criterion success from suite totals.
+- Source recovery at2a120858a66f68f526627854b9c08ce161c7b71f actually resumed a SIGTERM-interrupted offline frozen install, verified1371trackedfiles,typecheck/3testfiles andrestoredHealth/Settings200. Newff3checkpoint `/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-run11-source-recovery-b4vHyN/checkpoint.json` is install-interrupted, not yet resumed. Finalimplementation archive still required.
+- Authoritative brief read once, SHA256 `cc43685a602695989cf1370f83fc4f8061c8ed705d34b7eb5538359cec1c3cde`;314IDs retained. Eight owner setup activities follow this run; no allowance cutoff. PR20 remains merged. Final receipt must separate implementation/build/docs/remote/CI/deployed sources.
+
+## Historical checkpoints (superseded where the current state above differs)
+
+### Earlier recovery state
+
 - Isolated worktree `run11-completion`, branch `codex/run11-completion`, draft review https://github.com/reyals1111-ux/ZIGoals/pull/21. Required preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d` remains an ancestor; PR20 stays merged.
 - Source checkpoints: `3eb5aa1` full packaged consumer recovery and portable setup CLI; `7d47539` immutable observation duplicate groups and explicit correction; `4c446ee` deterministic capacity fixture plus real follower-deadline test. Resolve exact latest source with Git.
 - Current root fix: obsolete account operations cannot own a new account's busy/error state. Actual browser delayed-A→B test preserves B, excludes A, and checks authenticated Showcase edit/reset/exit leaves both IndexedDB databases and localStorage unchanged, with no private Worker request. Passed1/1,10.62s on dev3113.
