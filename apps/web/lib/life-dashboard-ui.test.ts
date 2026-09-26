@@ -16,9 +16,9 @@ test('nutrition dashboard renders every meal and an exact accessible 30-day tabl
   expect(html).toContain('Dinner');
   expect(html).toContain('Snacks');
   expect(html).toContain('View nutrition history table');
-  expect(html).toContain('1970');
+  expect(html).toContain('1,970');
   expect(html.match(/scope="row"/g)).toHaveLength(30);
-  expect(html).toContain('Blank dates have no diary entries');
+  expect(html).toContain('Dates with no entries or incomplete calories are excluded from bars and the average.');
   expect(html).not.toMatch(/sync complete|wearable connected|recommended intake/i);
 });
 test('habit dashboard distinguishes recorded check-ins from target success and supplies exact dates', () => {
