@@ -1,0 +1,9 @@
+# Coordinated Run11 data evolution
+
+Owner: primary integration worker. Retain version-1 envelopes and epoch-1 derivation byte-for-byte; epochs become positive safe integers, bound into HKDF, wrapping AAD and record AAD. Rotation creates new random root/recovery secrets and re-encrypts retained ciphertext (not merely rewrap). Stage encrypted rows under a rotation ID and exact source revision; activation replaces manifest/records atomically. No old-epoch writes or split manifests. Failed staging keeps the active vault readable; explicit abort or the saved next recovery secret permits recovery. Never remove data based on a missing page.
+
+Lifecycle authority must be separate from recoverable vault bytes. Restores serve nothing until an operator supplies an independently retained authoritative lifecycle generation and reconciles; absence/mismatch fails closed. Deletion decisions precede physical removal. Provider identity removal is a separate idempotent stage; failure must not reopen vault access. Domain deletion updates catalog plus lifecycle fence; it must not erase unrelated local records.
+
+Cloud catalog remains the atomic multi-domain publication point. Incremental work must retain stable identities and bound pages by revision/epoch; no last-write-wins for money. Conflicts preserve both facts and require an explicit new validated resolution. Recovery preserves original journal bytes. Cleanup may remove only records outside accepted retry/offline/recovery horizons; stale clients resynchronize rather than replay removed receipts.
+
+Execution order: baseline caption regression → crypto/Worker rotation + app UI/fault test → lifecycle/delete/consent + app UI → shared two-client Goal/Habit/Health/settings test → indexed delta/conflict recovery → financial/Health/product gaps → packaged/full/independent review. Market helper has disjoint ownership. The closure map records proof only after the actual test runs.
