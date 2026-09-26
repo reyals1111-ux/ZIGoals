@@ -8,8 +8,11 @@ test('manual leading-zero lookup previews unknown values and logs only a confirm
  await expect(area.getByRole('button',{name:'Confirm and log food'})).toBeDisabled();await area.getByLabel('I checked the package:',{exact:false}).check();await area.getByLabel('Fat (g)',{exact:true}).fill('3');await area.getByLabel('Grams eaten').fill('50');await area.getByRole('button',{name:'Confirm and log food'}).click();await expect(area).toContainText('Added to your private diary');
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:health:v1')!));expect(stored.diary[0].snapshot.servingGrams).toBe(100);expect(stored.diary[0].quantityMilli).toBe(500);expect(stored.diary[0].snapshot.provenance.provider).toBe('Open Food Facts');expect(calls).toBe(1);
 });
-test('rear camera unavailable, not found and cooldown preserve manual workflows',async({page})=>{
- await page.addInitScript(()=>{Object.defineProperty(window,'BarcodeDetector',{value:undefined,configurable:true});});
+for(const cameraError of ['OverconstrainedError','NotFoundError'] as const)test(`${cameraError}: rear camera unavailable, not found and cooldown preserve manual workflows`,async({page})=>{
+ await page.addInitScript(cameraError=>{
+  Object.defineProperty(window,'BarcodeDetector',{value:undefined,configurable:true});
+  Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{throw new DOMException('Requested device not found',cameraError);}});
+ },cameraError);
  await page.route('**/api/food-lookup?*',route=>route.fulfill({status:404,json:{error:'NOT_FOUND'}}));await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
  await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area).toContainText('Rear camera unavailable');await area.getByLabel('Product barcode',{exact:true}).fill('00001234');await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('Product not found');
  await page.route('**/api/food-lookup?*',route=>route.fulfill({status:429,json:{error:'TRY_LATER'}}));await area.getByRole('button',{name:'Look up barcode',exact:true}).click();await expect(area).toContainText('cooling down');await expect(page.getByRole('button',{name:'Foods & recipes',exact:true})).toBeEnabled();
