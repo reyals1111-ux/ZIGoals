@@ -1007,12 +1007,16 @@
     },
     {
       "id": "SYN-04",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
-      "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "not_required",
+      "source": "16a3cc1",
+      "evidence": [
+        "apps/web/lib/vault/conflict-review.ts",
+        "scripts/run11/conflict-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Implemented explicit two-version conflict review, protected download, per-field decisions, stale-review fences and retained correction history. Broader financial competing-allocation browser matrix remains.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -1040,16 +1044,16 @@
     },
     {
       "id": "SYN-07",
-      "implementation": "partial",
-      "local_proof": "focused_pass",
+      "implementation": "needs_change",
+      "local_proof": "pass",
       "external_proof": "owner_pending",
-      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "source": "16a3cc1",
       "evidence": [
+        "scripts/run11/lifecycle-recovery.test.mjs",
         "scripts/run11/domain-deletion.test.mjs",
-        "apps/web/lib/vault/forward-recovery.test.ts",
-        "scripts/run10/account-browser.test.mjs"
+        "scripts/run11/incremental-sync.test.mjs"
       ],
-      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
+      "delta": "Lifecycle authority plus external-anchor reconciliation; generation-fenced domain deletion and receipt floor preserve old-client denial. Hosted recovery and checkpoint custody pending.",
       "owner": "implementation",
       "dependencies": [
         "domain lifecycle",
@@ -1660,14 +1664,14 @@
     },
     {
       "id": "FIN-13",
-      "implementation": "implemented_pending_full_acceptance",
-      "local_proof": "focused_pass",
-      "external_proof": "unassessed",
-      "source": "working product delta after d9d92f0",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "not_required",
+      "source": "16a3cc1",
       "evidence": [
         "apps/web/tests/run11-goal-history.spec.ts"
       ],
-      "delta": "Paged/filterable retained Goal timeline with exact record details and numeric instant ordering; chart totals now one sorted pass. Final full-source and complete cross-workstream reconciliation remains.",
+      "delta": "Full Goal history reachable by page/filter/details; remaining whole-wealth explanation and mixed financial sync acceptance required.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -1849,14 +1853,15 @@
     },
     {
       "id": "GOAL-05",
-      "implementation": "implemented_pending_full_acceptance",
-      "local_proof": "focused_pass",
-      "external_proof": "unassessed",
-      "source": "working product delta after d9d92f0",
+      "implementation": "implemented",
+      "local_proof": "pass",
+      "external_proof": "not_required",
+      "source": "16a3cc1",
       "evidence": [
+        "apps/web/components/platform/goal-timeline.tsx",
         "apps/web/tests/run11-goal-history.spec.ts"
       ],
-      "delta": "All retained Goal events reachable with date/type filters and exact details. Final full-source and complete cross-workstream reconciliation remains.",
+      "delta": "Retained Goal timeline pagination/filter/details complete; no reconstruction of historically pruned records.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2005,14 +2010,14 @@
     },
     {
       "id": "HLT-05",
-      "implementation": "implemented_pending_full_acceptance",
-      "local_proof": "focused_pass",
-      "external_proof": "unassessed",
-      "source": "working product delta after d9d92f0",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "not_required",
+      "source": "16a3cc1",
       "evidence": [
         "apps/web/tests/run11-nutrients.spec.ts"
       ],
-      "delta": "Optional supplied nutrients, unknown/zero distinction, partial per-meal/day totals, recipe incomplete evidence and CSV fields. Final full-source and complete cross-workstream reconciliation remains.",
+      "delta": "Optional nutrients and partial coverage implemented; CORE nullable nutrients and full serving conversion still required.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2029,14 +2034,15 @@
     },
     {
       "id": "HLT-07",
-      "implementation": "implemented_pending_full_acceptance",
-      "local_proof": "focused_pass",
-      "external_proof": "unassessed",
-      "source": "working product delta after d9d92f0",
+      "implementation": "needs_change",
+      "local_proof": "pass",
+      "external_proof": "not_required",
+      "source": "16a3cc1",
       "evidence": [
-        "apps/web/tests/run11-measurements.spec.ts"
+        "apps/web/tests/run11-measurements.spec.ts",
+        "scripts/run10/account-browser.test.mjs"
       ],
-      "delta": "Timestamped weight/body kinds, exact conversion with original units/source, retained corrections, paged table, chart and CSV; date-only legacy records unchanged. Final full-source and complete cross-workstream reconciliation remains.",
+      "delta": "Timed weight/body measurements, original units, corrections, table/trend/CSV implemented and two-client correction reviewed. Normalized import consumer/dedup still to audit.",
       "owner": "implementation",
       "dependencies": []
     },
