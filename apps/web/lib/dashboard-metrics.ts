@@ -4,7 +4,7 @@ import {formatUnits} from '@zigoals/chain-config';
 import {allocationBalance,positionSync,type Position,type Platform} from './positions';
 import {wealthOverview} from './wealth';
 import {formatGoalAmount,type GoalSummary} from './goal-summary';
-import {habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
+import {habitCalendarDay,habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
 import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dailyHealthSummary,type HealthData} from './health';
 import {dailyData,waterSummary} from './health-daily';
 import type {MarketQuote} from './market-quotes';
@@ -18,6 +18,7 @@ const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',wat
 export const widgetMetricLabel=(metric:string)=>labels[metric]??metric;
 export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
+ const habitToday=s.habits.timeZone?habitCalendarDay(s.habits,new Date(s.now)):s.today;
  const defaults={title:widget.title||WIDGET_CATALOG[widget.kind].label,value:'Unavailable',detail:'',href:'/app/settings'};
  const unavailable=(href:string,detail:string)=>({...defaults,value:'Record unavailable',detail,href,missing:true});
  if(widget.kind==='goals')return {...defaults,title:widget.title||'Your destinations',value:`${s.goals.filter(g=>g.status==='active').length} active Goals`,detail:`${s.goals.filter(g=>g.status==='completed').length} completed · recorded progress`,href:'/app/goals'};
@@ -26,12 +27,12 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   return {...defaults,title:widget.title||goal.name,value:widget.metric==='next-contribution'?goal.nextContributionDate??'Not scheduled':formatGoalAmount(goal.current,goal.currency),detail:widget.metric==='next-contribution'?goal.metadata.find(m=>m.label==='Contribution plan')?.value??'Open the Goal to set a plan.':`of ${goal.target?formatGoalAmount(goal.target,goal.currency):'no target'} · ${goal.source}`,href:goal.href,percent:widget.metric==='progress'&&!goal.requiresReview?goal.progressPct:undefined,complete:goal.status==='completed',warning:goal.status==='closed'?'Closed Goal · retained for your history':goal.requiresReview?goal.valuationLabel??'Progress needs review':undefined};
  }
  if(widget.kind==='habits'){
-  const due=s.habits.habits.filter(h=>habitDay(h,s.today,s.today).scheduled),complete=due.filter(h=>habitDay(h,s.today,s.today).status==='complete');
+  const due=s.habits.habits.filter(h=>habitDay(h,habitToday,habitToday).scheduled),complete=due.filter(h=>habitDay(h,habitToday,habitToday).status==='complete');
   return {...defaults,value:due.length?`${complete.length} of ${due.length} complete`:'No Habits due today',detail:'Your natural schedule and current rules',href:'/app/habits'};
  }
  if(widget.kind==='habit'){
   const habit=s.habits.habits.find(h=>h.id===widget.entity);if(!habit)return unavailable('/app/habits','This Habit is unavailable. Choose another or remove this widget.');
-  const day=habitDay(habit,s.today,s.today),rule=habitRuleOn(habit,s.today),stats=widget.metric==='streak'?habitStats(habit,s.today):undefined;
+  const day=habitDay(habit,habitToday,habitToday),rule=habitRuleOn(habit,habitToday),stats=widget.metric==='streak'?habitStats(habit,habitToday):undefined;
   return {...defaults,title:widget.title||habit.title,value:stats?`${stats.currentStreak} ${stats.streakUnit}`:`${day.count.toLocaleString()}${rule?` ${measurementUnit(rule)}`:''}`,detail:stats?'Current streak · natural periods':`${day.status.replaceAll('-',' ')} · target ${day.target.toLocaleString()}${rule?` ${measurementUnit(rule)}`:''}`,href:'/app/habits',warning:day.status==='archived'||day.status==='paused'?`Habit ${day.status}`:undefined};
  }
  if(widget.kind==='food-entry'||widget.kind==='meal'){

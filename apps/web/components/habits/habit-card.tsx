@@ -2,6 +2,9 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
+import {LinkedGoalReview} from './linked-goal-review';
+import {habitStackSuggestions} from '../../lib/habit-linked-policy';
+import type {PrivateGoal} from '../../lib/positions';
 import {HabitTimer} from "./habit-timer";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { visualTone } from "../visual-tone";
@@ -77,16 +80,18 @@ function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   </div>;
 }
 
-export function HabitCard({ habit, store, scope, goalName, goalHref, stackName, onEdit }: { habit: Habit; store: HabitsStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string; onEdit: () => void }) {
+export function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,onViewStack, onEdit }: { habit: Habit; store: HabitsStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;onViewStack?:(id:string)=>void; onEdit: () => void }) {
   const rule = habitRuleOn(habit,store.today)??habit.rules[0]!,planned=latestHabitRule(habit); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch { setError("The habit was not changed. Try again."); } finally { setBusy(false); } }
-  return <article className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
+  return <article id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
     <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={onEdit} aria-label={`Edit ${habit.title}`}>Edit</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {planned.target} {measurementUnit(planned)} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
     <HabitCompletion habit={habit} store={store} />
     <HabitTimer habit={habit} store={store}/>
+    {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
+    {onViewStack&&habitStackSuggestions(store.data,habit.id,store.today).map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
     <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} /></details>
     <div className="habit-cadence" role="img" aria-label={`Last 28 days of ${habit.title}. Open History to review each day.`}>{Array.from({ length: 28 }, (_, index) => { const date = addLocalDays(store.today, index - 27); const result = habitDay(habit, date, store.today); return <span key={date} className={`habit-dot habit-day-${result.status}`} title={`${date}: ${statusLabel[result.status]}`} />; })}</div>
     {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}

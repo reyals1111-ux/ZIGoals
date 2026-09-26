@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+test.beforeEach(async({page})=>{await page.route('**/api/**',r=>r.fulfill({status:503,json:{error:'Offline fixture'}}));});
 import {localDate} from '../lib/local-date';
 import {createHabit,emptyHabitData} from '../lib/habits';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
@@ -23,7 +24,7 @@ test('a linked contribution Habit records behavior but never adds financial prog
  const habitStore=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:habits:v1')!));
  expect(habitStore.habits[0].entries).toHaveLength(1);expect(habitStore.habits[0].entries[0].count).toBe(1);
  expect(habitStore.habits[0].rules).toHaveLength(2);expect(habitStore.habits[0].rules[0].schedule).toEqual({kind:'frequency',times:1,period:'month'});expect(habitStore.habits[0].entries[0].date).toBe(habitStore.habits[0].rules[0].from);
- expect(habitStore.habits[0].rules.at(-1).schedule).toEqual({kind:'frequency',times:1,period:'week'});
+ expect(habitStore.habits[0].rules.at(-1).schedule).toEqual({kind:'frequency',times:1,period:'week'});expect(habitStore.habits[0].rules.at(-1).from>localDate()).toBe(true);expect(habitStore.habits[0].ruleRevisions.some((r:{rule:{schedule:{period:string}}})=>r.rule.schedule.period==='month')).toBe(true);
  const s=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(s.positions[0].quantity).toBe(position.quantity);expect(s.allocations[0].quantity).toBe(position.quantity);expect(s.goals[0].plan.habitId).toBeTruthy();
 });
 

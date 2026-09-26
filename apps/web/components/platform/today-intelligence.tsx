@@ -9,19 +9,20 @@ import {amount} from './common';
 import {ProgressRing} from './financial-ui';
 import {FundingAgenda,NeedsAttention} from './product-modules';
 import {Watchlist} from './watchlist';
-import {habitDay} from '../../lib/habits';
+import {habitCalendarDay,habitDay} from '../../lib/habits';
 import {dailyHealthSummary} from '../../lib/health';
 import type {DashboardSources} from '../../lib/dashboard-metrics';
 import './intelligence.css';
 import './wealth-product.css';
 export function TodayIntelligence({sources,habitsReady,healthReady,module='all'}:{sources:DashboardSources;habitsReady:boolean;healthReady:boolean;module?:'all'|'life'|'attention'|'funding'|'needs-attention'|'watchlist'}){
- const {platform,quotes,now,today}=sources;
+ const {platform,quotes,now}=sources;
+ const today=sources.habits.timeZone?habitCalendarDay(sources.habits,new Date(now)):sources.today;
  const wealth=wealthOverview(platform,now,quotes);
  const goal=[...platform.goals].filter(g=>g.status!=='closed'&&g.type!=='PROJECT').sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||Number(a.status==='completed')-Number(b.status==='completed'))[0];
  const pulse=goal?fundingHealth(platform,goal.id,now,quotes):undefined,money=(n:string)=>goal?`${n.startsWith('-')?'-':''}${formatGoalAmount(amount(n.replace(/^-/,'')||'0',goal.decimals),goal.asset)}`:'';
  const due=habitsReady?sources.habits.habits.filter(h=>habitDay(h,today,today).scheduled):[];
  const done=due.filter(h=>habitDay(h,today,today).status==='complete').length;
- const nutrition=healthReady?dailyHealthSummary(sources.health,today):undefined;
+ const nutrition=healthReady?dailyHealthSummary(sources.health,sources.healthDate):undefined;
  const attention=wealth.rows.filter(r=>r.stale||r.value===undefined||r.balance.deficit!=='0').length;
 
  const status=pulse?.status==='NO_PLAN'?'No plan':pulse?.status==='REVIEW'?'Needs review':pulse?.status==='COMPLETED'?'Complete':pulse?.status.replaceAll('_',' ').toLowerCase();
