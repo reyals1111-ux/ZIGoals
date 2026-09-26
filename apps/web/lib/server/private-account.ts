@@ -19,7 +19,7 @@ async function readBounded(response:Request|Response,max:number){
  try{while(true){const part=await reader.read();if(part.done)break;total+=part.value.length;if(total>max)throw Error('Too large');chunks.push(part.value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
  const all=new Uint8Array(total);let offset=0;for(const c of chunks){all.set(c,offset);offset+=c.length;}return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(all));
 }
-export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch):Promise<Response>{
+export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify',email:string)=>Promise<Response>):Promise<Response>{
  const origin=new URL(request.url).origin;
  if(request.method!=='GET'&&(request.method!=='POST'||request.headers.get('origin')!==origin))return reply({error:'ORIGIN_DENIED'},403);
  const rawToken=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith('zigoals_session='))?.slice(16);
@@ -81,6 +81,7 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});
    return reply(await readBounded(remote,action.action==='rotation'?1_000_000:32768),remote.status);
   }
+  if(admit){const admission=await admit(action.action,action.email);await admission.body?.cancel().catch(()=>{});if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
   const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:true}:{email:action.email,token:action.code,type:'email'})});
   if(!remote.ok){await remote.body?.cancel().catch(()=>{});return reply({error:remote.status===429?'TRY_LATER':'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'},remote.status===429?429:400);}
   if(action.action==='send'){await remote.body?.cancel().catch(()=>{});return reply({message:'If this address can receive a code, check your inbox. Wait at least 60 seconds before requesting another.'});}
