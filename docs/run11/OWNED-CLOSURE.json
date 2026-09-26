@@ -345,23 +345,26 @@
       "id": "MKT-14",
       "title": "Plan crash recovery, tombstones and period transitions",
       "criterion": "Test restart before send, after durable dispatch mark, after provider response, during settlement and during publication. Define conservative handling of ambiguous network send and retain charge where dispatch cannot be disproven. Prevent replay after pruning through a documented idempotency horizon/epoch policy. Test calendar boundaries, time regression, lease expiry and concurrent rollovers. Do not reset counters from the local browser clock or infer CoinGecko reset timezone from the owner's Brussels timezone.",
-      "implementation": "partial",
+      "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Persisted restart matrix covers acquired/queued/reserved/owned/dispatched/settled/published and publication-ack loss; pruning and period/clock tests preserve charges.",
+      "source": "d98b46761c808addeadea15cf438f2c37d0241fa",
+      "summary": "Real local workerd SQLite interruption and acknowledgement-loss tests now cover reservation, ownership, durable dispatch charge, settlement budget/receipt and publication writes. Named-service dispatcher tests verify exact send counts and retained charges; existing restart, expiry/pruning, clock/month, follower and fairness tests remain complementary.",
       "paths": [
         "apps/web/lib/server/durable-market-account.ts",
         "workers/market-coordinator/worker.ts",
         "scripts/run11/market-crash-matrix.test.mjs",
-        "apps/web/lib/server/durable-market-account.test.ts"
+        "apps/web/lib/server/durable-market-account.test.ts",
+        "scripts/run11/market-fault-fixture.ts",
+        "scripts/run11/market-transaction-faults.test.mjs"
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests"
+        "Prior browser checkpoint 7280bc5/2b142b5: actual mixed-pair browser + strict abort/navigation followers; source paths retain tests",
+        "d98b467: 77 tests/7 files passed in12.71s, including20 injected transaction/acknowledgement cases; tsc, scoped ESLint and diffcheck passed. Fixture SHA256 f350cd21ac4126f865e695e16c5bc069bede62bb4508d47a5a1c8ddfebc5920e; receipt /var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-market-fault-summary-OxO9gU/evidence.json"
       ],
       "gaps": [
-        "No hosted process-kill experiment at every network-response/transaction instruction boundary; local matrix restarts between durable transitions."
+        "Hosted OS process-kill experiments and owner/provider activation remain unverified; local fault injection is explicit, executable and does not claim hosted termination behavior."
       ]
     },
     {
@@ -1331,32 +1334,35 @@
       "id": "JRN-30",
       "title": "Durable provider fault matrix",
       "criterion": "Crash before/after dispatch mark, during settlement and around publication; test duplicate settle, expired lease/follower, successor fencing, monitoring-first/interactive-first ordering and a multi-key single-charge batch. Verify rolling/month boundaries and no free refund of uncertain dispatched work. Use deterministic synthetic traffic, not live load.",
-      "implementation": "partial",
+      "implementation": "implemented",
       "local_proof": "passed_in_scope",
       "external_proof": "pending_owner_activation_or_physical_device",
-      "source": "e67ecd2fa778b96c3716491b24402b1036d8a523",
-      "summary": "Persistent local restart matrix, separate phase transitions, batch charge, follower expiry and bounded fairness tested.",
+      "source": "d98b46761c808addeadea15cf438f2c37d0241fa",
+      "summary": "Real local workerd SQLite interruption and acknowledgement-loss tests now cover reservation, ownership, durable dispatch charge, settlement budget/receipt and publication writes. Named-service dispatcher tests verify exact send counts and retained charges; existing restart, expiry/pruning, clock/month, follower and fairness tests remain complementary.",
       "paths": [
         "scripts/run11/market-crash-matrix.test.mjs",
         "scripts/run11/market-fanout.test.mjs",
-        "apps/web/lib/server/durable-market-account.test.ts"
+        "apps/web/lib/server/durable-market-account.test.ts",
+        "scripts/run11/market-fault-fixture.ts",
+        "scripts/run11/market-transaction-faults.test.mjs"
       ],
       "evidence": [
         "current-source-focused: 19 files / 128 tests passed in 9.43s; market/food local Workers + Health units",
-        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders."
+        "dfa8c1b:92 focused tests/11 files passed7.98s; tsc, scoped ESLint and diffcheck passed. Actual local four-Worker load matrix and deterministic sixteen-reservation pressure in both admission orders.",
+        "d98b467: 77 tests/7 files passed in12.71s, including20 injected transaction/acknowledgement cases; tsc, scoped ESLint and diffcheck passed. Fixture SHA256 f350cd21ac4126f865e695e16c5bc069bede62bb4508d47a5a1c8ddfebc5920e; receipt /var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-market-fault-summary-OxO9gU/evidence.json"
       ],
       "gaps": [
-        "Instruction-boundary process kills during in-flight settlement/publication and larger combined fault load not yet demonstrated; transition-boundary restarts are explicit scope."
+        "Hosted OS process-kill experiments and owner/provider activation remain unverified; local fault injection is explicit, executable and does not claim hosted termination behavior."
       ]
     }
   ],
   "counts": {
     "rows": 54,
     "implementation": {
-      "implemented": 43,
+      "implemented": 45,
       "implemented_with_parked_conditional_slice": 1,
       "parked": 1,
-      "partial": 9
+      "partial": 7
     }
   },
   "mixed_load_evidence": {
@@ -1409,5 +1415,182 @@
     }
   },
   "mixed_load_evidence_path": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-market-matrix-CdzTq9/evidence.json",
-  "latest_owned_checkpoint": "dfa8c1b21da6c812332cef5da7dbf85fd9843a4a"
+  "latest_owned_checkpoint": "d98b46761c808addeadea15cf438f2c37d0241fa",
+  "transaction_fault_evidence": {
+    "version": 1,
+    "recordedAt": "2026-09-26T21:27:58.466Z",
+    "fixtureBundleSha256": "f350cd21ac4126f865e695e16c5bc069bede62bb4508d47a5a1c8ddfebc5920e",
+    "expectedCases": 20,
+    "completedCases": 20,
+    "receipts": [
+      {
+        "action": "reserve",
+        "target": "budget",
+        "point": "after-write",
+        "chargedCredits": 0,
+        "providerCalls": 0,
+        "rollback": true
+      },
+      {
+        "action": "reserve",
+        "target": "budget",
+        "point": "after-commit",
+        "chargedCredits": 0,
+        "providerCalls": 0,
+        "rollback": false
+      },
+      {
+        "action": "own",
+        "target": "budget",
+        "point": "after-write",
+        "chargedCredits": 0,
+        "providerCalls": 0,
+        "rollback": true
+      },
+      {
+        "action": "own",
+        "target": "budget",
+        "point": "after-commit",
+        "chargedCredits": 0,
+        "providerCalls": 0,
+        "rollback": false
+      },
+      {
+        "action": "dispatch",
+        "target": "budget",
+        "point": "after-write",
+        "chargedCredits": 0,
+        "providerCalls": 0,
+        "rollback": true
+      },
+      {
+        "action": "dispatch",
+        "target": "budget",
+        "point": "after-commit",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": false
+      },
+      {
+        "action": "settle",
+        "target": "budget",
+        "point": "after-write",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": true
+      },
+      {
+        "action": "settle",
+        "target": "budget",
+        "point": "after-commit",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": false
+      },
+      {
+        "action": "settle",
+        "target": "receipt",
+        "point": "after-write",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": true
+      },
+      {
+        "action": "settle",
+        "target": "receipt",
+        "point": "after-commit",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": false
+      },
+      {
+        "action": "publish",
+        "target": "work",
+        "point": "after-write",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": true
+      },
+      {
+        "action": "publish",
+        "target": "work",
+        "point": "after-commit",
+        "chargedCredits": 3,
+        "providerCalls": 0,
+        "rollback": false
+      },
+      {
+        "action": "reserve",
+        "point": "after-write",
+        "providerCalls": 0,
+        "chargedCredits": 0,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "reserve",
+        "point": "after-commit",
+        "providerCalls": 0,
+        "chargedCredits": 0,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "dispatch",
+        "point": "after-write",
+        "providerCalls": 0,
+        "chargedCredits": 0,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "dispatch",
+        "point": "after-commit",
+        "providerCalls": 0,
+        "chargedCredits": 3,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "settle",
+        "point": "after-write",
+        "providerCalls": 1,
+        "chargedCredits": 3,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "settle",
+        "point": "after-commit",
+        "providerCalls": 1,
+        "chargedCredits": 3,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "publish",
+        "point": "after-write",
+        "providerCalls": 1,
+        "chargedCredits": 3,
+        "published": false,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      },
+      {
+        "action": "publish",
+        "point": "after-commit",
+        "providerCalls": 1,
+        "chargedCredits": 3,
+        "published": true,
+        "transport": "real named Worker service binding, production dispatcher and actual durable transactions"
+      }
+    ],
+    "path": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-market-fault-summary-OxO9gU/evidence.json",
+    "source": "d98b46761c808addeadea15cf438f2c37d0241fa",
+    "test_result": {
+      "files": 7,
+      "passed": 77,
+      "durationSeconds": 12.71
+    },
+    "scope": "Actual local workerd/SQLite, production dispatcher with deterministic test clock, synthetic provider. Fault controls exist only in the test entrypoint; no production source change."
+  }
 }
