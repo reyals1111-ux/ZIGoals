@@ -23,7 +23,7 @@ const privateSyncWorker={async fetch(request,env){
  let family;try{const claims=JSON.parse(atob(token.slice(7).split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));if(claims.sub!==user.id||!UUID.test(claims.session_id??''))throw Error();family=claims.session_id;}catch{return response({error:'VERIFIED_SESSION_REQUIRED'},401);}
  if(request.headers.get('x-zigoals-account')?.toLowerCase()!==user.id.toLowerCase())return response({error:'ACCOUNT_CHANGED'},409);
  // Client-supplied account/vault identifiers never select another tenant's object.
- const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id)),headers=new Headers(request.headers);headers.delete('x-lifecycle-delete-authorized');headers.delete('x-domain-generations');headers.set('x-zigoals-session-family',family);headers.set('x-zigoals-token-hash',[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(v=>v.toString(16).padStart(2,'0')).join(''));
+ const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id)),headers=new Headers(request.headers);headers.delete('x-lifecycle-delete-authorized');headers.delete('x-domain-generations');headers.set('x-verified-account',user.id);headers.set('x-zigoals-session-family',family);headers.set('x-zigoals-token-hash',[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(v=>v.toString(16).padStart(2,'0')).join(''));
  if(!env.LIFECYCLE)return response({error:'LIFECYCLE_CONFIGURATION_REQUIRED'},503);
  const lifecycleCall=async body=>{const result=await env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:body?'POST':'GET',headers:{'x-verified-account':user.id,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));if(!result.ok)return {error:result};return {value:await boundedJSON(result,4096)};};
  let lifecycle=await lifecycleCall();if(lifecycle.error)return lifecycle.error;
@@ -45,22 +45,48 @@ const privateSyncWorker={async fetch(request,env){
  if(url.pathname==='/v1/domain'){
   if(request.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   let body;try{body=await boundedJSON(request,512);}catch{return response({error:'INVALID_DOMAIN_REQUEST'},400);}
-  if(!exact(body,['action','domain','confirm','operation'])||body.action!=='delete-domain'||!DOMAINS.has(body.domain)||body.confirm!=='DELETE CLOUD '+body.domain.toUpperCase()||!UUID.test(body.operation))return response({error:'INVALID_DOMAIN_REQUEST'},400);
-  const allowed=await stub.fetch(new Request('https://vault.internal/v1/sessions',{headers}));if(!allowed.ok)return allowed;await allowed.body?.cancel();
-  lifecycle=await lifecycleCall({action:'delete-domain',domain:body.domain,operation:body.operation,generation:lifecycle.value.domainGenerations?.[body.domain]??0});if(lifecycle.error)return lifecycle.error;
+  if(!exact(body,['action','domain','confirm','operation','revision','generation'])||body.action!=='delete-domain'||!DOMAINS.has(body.domain)||body.confirm!=='DELETE CLOUD '+body.domain.toUpperCase()||!UUID.test(body.operation)||!Number.isSafeInteger(body.revision)||body.revision<0||!Number.isSafeInteger(body.generation)||body.generation<0)return response({error:'INVALID_DOMAIN_REQUEST'},400);
   headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
-  return stub.fetch(new Request('https://vault.internal/v1/domain',{method:'GET',headers}));
+  return stub.fetch(new Request('https://vault.internal/v1/domain',{method:'POST',headers,body:JSON.stringify(body)}));
  }
  headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
  return stub.fetch(new Request(request,{headers}));
 }};
 export default privateSyncWorker;
 export class PrivateVault{
- constructor(state){this.state=state;}
+ constructor(state,env){this.state=state;this.env=env;}
+ async alarm(){await this.finishDomainDeletion();}
+ /** A durable intent fences writes before the independent deletion decision. Alarms replay it after response loss. */
+ async finishDomainDeletion(){
+  const intent=await this.state.storage.get('domain-delete-intent');if(!intent)return response({error:'NO_DOMAIN_INTENT'},409);
+  await this.state.storage.setAlarm(Date.now()+60000);
+  let decision;try{const result=await this.env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:'POST',headers:{'x-verified-account':intent.account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:intent.domain,operation:intent.operation,generation:intent.generation})}));if(!result.ok){if([400,409,410,507].includes(result.status)){await this.state.storage.transaction(async store=>{if((await store.get('domain-delete-intent'))?.operation===intent.operation){await store.delete('domain-delete-intent');await store.deleteAlarm();}});return response({error:result.status===507?'LIFECYCLE_CAPACITY':'DOMAIN_REVIEW_CHANGED'},result.status===507?507:409);}return response({error:'DOMAIN_DELETION_PENDING'},503);}decision=await boundedJSON(result,4096);}catch{return response({error:'DOMAIN_DELETION_PENDING'},503);}
+  return this.state.storage.transaction(async store=>{
+   const current=await store.get('domain-delete-intent');if(!current||current.operation!==intent.operation)return response({error:'DOMAIN_DELETION_CHANGED'},409);
+   if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
+   const applied=await store.get('domain-generations')??{},next={...applied};for(const [domain,generation]of Object.entries(decision.domainGenerations??{}))next[domain]=Math.max(next[domain]??0,generation);
+   if((next[intent.domain]??0)<=intent.generation)return response({error:'DOMAIN_DELETION_PENDING'},503);
+   let bytes=await store.get('bytes')??0,cursor;for(;;){const rows=await store.list({prefix:'record:',startAfter:cursor,limit:128});if(!rows.size)break;cursor=[...rows.keys()].at(-1);for(const [id,row]of rows)if((next[row.domain]??0)>(applied[row.domain]??0)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
+   for(;;){const rows=await store.list({prefix:'rotation-row:',limit:128});if(!rows.size)break;await store.delete([...rows.keys()]);}
+   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});await store.delete(['domain-delete-intent','rotation']);await store.deleteAlarm();return response({deleted:true,domainGenerations:next});
+  });
+ }
+ async prepareDomainDeletion(request,sessionHash){
+  let input;try{input=await boundedJSON(request,512);}catch{return response({error:'INVALID_DOMAIN_REQUEST'},400);}
+  const prepared=await this.state.storage.transaction(async store=>{
+   if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   const intent={account:request.headers.get('x-verified-account'),domain:input.domain,operation:input.operation,revision:input.revision,generation:input.generation};
+   const receipt=await store.get('domain-delete-receipt:'+input.operation);if(receipt)return JSON.stringify(receipt)===JSON.stringify(intent)?response({deleted:true}):response({error:'OPERATION_REUSED'},409);
+   const pending=await store.get('domain-delete-intent');if(pending)return JSON.stringify(pending)===JSON.stringify(intent)?null:response({error:'DOMAIN_DELETION_PENDING'},409);
+   if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
+   if((await store.get('revision')??0)!==input.revision||((await store.get('domain-generations')??{})[input.domain]??0)!==input.generation)return response({error:'DOMAIN_REVIEW_CHANGED'},409);
+   await store.put('domain-delete-intent',intent);await store.setAlarm(Date.now()+60000);return null;
+  });return prepared??this.finishDomainDeletion();
+ }
  async fetch(request){
   const path=new URL(request.url).pathname,sessionHash=request.headers.get('x-zigoals-token-hash');
   const authoritative=JSON.parse(request.headers.get('x-domain-generations')??'{}');
-  if(path!=='/v1/sessions'&&Object.keys(authoritative).length){
+  if(path!=='/v1/sessions'&&Object.keys(authoritative).length&&!await this.state.storage.get('domain-delete-intent')){
    const reconciled=await this.state.storage.transaction(async store=>{
     if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
     const applied=await store.get('domain-generations')??{};
@@ -72,7 +98,8 @@ export class PrivateVault{
     await store.put({'domain-generations':authoritative,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1});return null;
    });if(reconciled)return reconciled;
   }
-  if(path==='/v1/domain')return response({deleted:true,domainGenerations:authoritative});
+  if(path==='/v1/domain')return this.prepareDomainDeletion(request,sessionHash);
+  if(!['/v1/sessions','/v1/account'].includes(path)&&await this.state.storage.get('domain-delete-intent'))return response({error:'DOMAIN_DELETION_PENDING'},503);
   if(path==='/v1/rotation')return rotationRequest(request,this.state,boundedJSON,manifest,envelope);
   if(path==='/v1/account'){
    if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')return response({error:'JSON_REQUIRED'},415);
@@ -111,6 +138,7 @@ export class PrivateVault{
   return this.state.storage.transaction(async store=>{
    if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
    if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   if(await store.get('domain-delete-intent'))return response({error:'DOMAIN_DELETION_PENDING'},409);
    if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
    const activeManifest=await store.get('manifest');if(activeManifest&&input.changes.some(row=>row.epoch!==activeManifest.epoch))return response({error:'EPOCH_RETIRED'},409);
    const domainGenerations=await store.get('domain-generations')??{};if([...DOMAINS].some(d=>(domainGenerations[d]??0)!==(input.domainGenerations?.[d]??0)))return response({error:'DOMAIN_GENERATION_CHANGED'},409);
@@ -136,6 +164,7 @@ export class PrivateVault{
   const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input))))].map(v=>v.toString(16).padStart(2,'0')).join('');
   return this.state.storage.transaction(async store=>{
    if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   if(await store.get('domain-delete-intent'))return response({error:'DOMAIN_DELETION_PENDING'},409);
    if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
    const manifest=await store.get('manifest'),generations=await store.get('domain-generations')??{};if(manifest?.vault!==input.vault||manifest.epoch!==input.epoch||[...DOMAINS].some(d=>(generations[d]??0)!==(input.domainGenerations[d]??0)))return response({error:'LIFECYCLE_CHANGED'},409);
    const receipt=await store.get('receipt:'+input.operation);if(receipt)return receipt.digest===digest?response({revision:receipt.revision,replayed:true}):response({error:'OPERATION_REUSED'},409);

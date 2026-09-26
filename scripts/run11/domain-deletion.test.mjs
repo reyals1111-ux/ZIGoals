@@ -12,7 +12,7 @@ test('selected cloud deletion persists across restart, fences old writes, and pr
   const data={health:'{"fixture":"private meal"}',habits:'{"fixture":"daily walk"}'};
   const synced=await synchronize(transport,journal,vault.key,vault.manifest,data,()=>{},()=>{});await synced.commit();
   const before=await transport.read(),op=crypto.randomUUID();
-  const deletion={action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:op};
+  const deletion={action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:op,revision:before.revision,generation:0};
   expect((await r.call('/v1/domain',deletion)).status).toBe(200);
   expect((await r.call('/v1/domain',deletion)).status).toBe(200);
   const page=await transport.read();expect(page.domainGenerations).toEqual({health:1});expect(page.records.some(row=>row.domain==='health')).toBe(false);
@@ -36,7 +36,7 @@ test('an explicit backed-up restore creates a new section generation without rep
   const transport={read:async()=>(await r.call('/v1/vault')).json(),write:async op=>{const res=await r.call('/v1/vault',op);expect(res.status).toBe(200);return res.json();}};
   let state={version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null};const journal={read:async()=>structuredClone(state),write:async value=>{state=structuredClone(value);}},local={health:'{"meal":"fictional"}'};
   await (await synchronize(transport,journal,vault.key,vault.manifest,local,()=>{},()=>{})).commit();
-  await r.call('/v1/domain',{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID()});
+  await r.call('/v1/domain',{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:state.revision,generation:0});
   const review=await prepareDomainReview('restore','health',local,transport,journal,vault.key,vault.manifest,()=>{});
   const archive=await decryptBackup(review.file,review.recovery);expect(JSON.parse(archive.settings)).toMatchObject({local,cloud:{}});
   await acceptDomainRestore(review,local,transport,journal,vault.key,vault.manifest,()=>{});

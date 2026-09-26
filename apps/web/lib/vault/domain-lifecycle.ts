@@ -22,8 +22,8 @@ export async function acceptDomainRestore(review:DomainReview,local:PrivateData,
 }
 export async function deleteCloudDomain(account:string,review:DomainReview,fence:()=>void){
  if(review.kind!=='delete')throw Error('Prepare a deletion review first.');fence();
- const result=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json','x-zigoals-account':account},cache:'no-store',signal:AbortSignal.timeout(20000),body:JSON.stringify({action:'domain',operation:{action:'delete-domain',domain:review.domain,confirm:'DELETE CLOUD '+review.domain.toUpperCase(),operation:review.operation}})});fence();
- if(!result.ok)throw Error('Cloud section deletion was not confirmed. Keep your recovery copy and retry.');
+ const result=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json','x-zigoals-account':account},cache:'no-store',signal:AbortSignal.timeout(20000),body:JSON.stringify({action:'domain',operation:{action:'delete-domain',domain:review.domain,confirm:'DELETE CLOUD '+review.domain.toUpperCase(),operation:review.operation,revision:review.revision,generation:review.generation}})});fence();
+ if(!result.ok)throw Error(result.status===409?'Cloud records changed after review. Keep your recovery copy and prepare a new deletion review.':'Cloud section deletion was not confirmed. Keep your recovery copy; an accepted deletion may still finish safely. Retry to check its acknowledgement.');
  const raw=await result.text();if(raw.length>4096)throw Error('Deletion acknowledgement exceeds capacity.');
  z.object({deleted:z.literal(true)}).parse(JSON.parse(raw));
 }

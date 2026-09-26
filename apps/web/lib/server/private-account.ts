@@ -8,7 +8,7 @@ const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('signout')}).strict(),
  z.object({action:z.literal('refresh')}).strict(),
  z.object({action:z.literal('sync'),operation:z.unknown()}).strict(),
- z.object({action:z.literal('domain'),operation:z.object({action:z.literal('delete-domain'),domain:z.enum(['finance','health','habits','settings']),confirm:z.string().max(32),operation:z.uuid()}).strict()}).strict(),
+ z.object({action:z.literal('domain'),operation:z.object({action:z.literal('delete-domain'),domain:z.enum(['finance','health','habits','settings']),confirm:z.string().max(32),operation:z.uuid(),revision:z.number().int().nonnegative(),generation:z.number().int().nonnegative()}).strict()}).strict(),
  z.object({action:z.literal('rotation'),operation:z.unknown()}).strict(),
  z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()])}).strict(),
  z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()])}).strict(),

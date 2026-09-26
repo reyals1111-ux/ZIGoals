@@ -7,6 +7,7 @@ export async function rotationRequest(request,state,readJSON,validManifest,valid
  let input;if(request.method==='POST'){try{input=await readJSON(request);}catch{return reply({error:'INVALID_ROTATION'},400);}}
  const hash=request.headers.get('x-zigoals-token-hash');
  return state.storage.transaction(async store=>{
+  if(await store.get('domain-delete-intent'))return reply({error:'DOMAIN_DELETION_PENDING'},409);
   if(await store.get('account-deleted'))return reply({error:'ACCOUNT_DELETED'},410);
   if(!await sessionAllowed(store,hash))return reply({error:'SESSION_REVOKED'},401);
   const current=await store.get('manifest'),revision=await store.get('revision')??0,rotation=await store.get('rotation');
