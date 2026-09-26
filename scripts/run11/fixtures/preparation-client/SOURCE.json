@@ -1,0 +1,15 @@
+{
+  "source": "3ca2f42303724ef1317aded6982c9fdd6fd8775d",
+  "scope": "Historical private storage and Habit client; exact unmodified tracked bytes. Dependencies resolve from pinned pnpm lockfile. Used only in isolated compatibility acceptance.",
+  "files": {
+    "apps/web/lib/vault/local.ts": "f7d3f8dc6f5d6ddfb1113c8339dc76b843010dcd5d05bb6c5b31560109bbfc9f",
+    "apps/web/lib/vault/database.ts": "af43810707f65c49e0f2dba16f92d34039e4f921b3f69d97b2df2bbfc84ca9a8",
+    "apps/web/lib/private-storage.ts": "2264697df9a569ef7759f71d426d39bfcdbfe63acc8783d236fd166c62acae66",
+    "apps/web/lib/showcase-storage.ts": "06b8f39b444f0e6c6b06b7587a1722cf74149822bedf6a170aafe86e29d9198c",
+    "apps/web/lib/account-session.ts": "2f0d45bd902e4dabfb48e4a0e8303a53840c5aef47edfea5b849418261747275",
+    "apps/web/lib/storage.ts": "81f8a6fa8f0a1199e9b08c9732798774da6a5cf94fdeda871b662b0151880555",
+    "apps/web/lib/habits.ts": "88fa1a22b1081c9af0de70ecd44c839386fa49cdf7ecaf90b532f28c62dd1d24",
+    "apps/web/lib/local-date.ts": "fccc0492fe18bd4d86d208cc1b7ff72de7f1fdef9dd9dd2186cde71fafa20f67",
+    "packages/shared-types/src/index.ts": "31bb1cc2b0ab717e67dd7a9622dc4d077032257b1aacf8f0d4700b521a00fbb6"
+  }
+}

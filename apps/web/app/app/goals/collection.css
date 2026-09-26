@@ -1,0 +1,5 @@
+.goal-collection-controls { display:flex; flex-wrap:wrap; align-items:end; gap:16px; margin:20px 0; }
+.goal-collection-controls label { flex:1 1 200px; min-width:0; }
+.goal-collection-controls :is(input,select) { width:100%; min-width:0; }
+.goal-collection-pages { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.goal-collection-pages [role=status] { font-size:14px; }
