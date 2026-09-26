@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {admitMarketBreakers,settleMarketBreakers} from './market-breaker-storage';
 import {maintainMarketAccount,rememberAttempt,type RetainedAttempt} from './market-retention';
 import {publicMarketWorkSchema,publicMarketWorkKey,createProviderAttempt,publishAttemptWork,type ProviderAttempt} from './market-coordinator';
-import {emptyBudgetState,enqueue,reserve,ownDispatch,markDispatched,settle,cancelUndispatched,type BudgetState} from './market-budget-policy';
+import {emptyBudgetState,validTime,enqueue,reserve,ownDispatch,markDispatched,settle,cancelUndispatched,type BudgetState} from './market-budget-policy';
 import {acquireWork,emptyWorkState,type WorkState} from './market-work-fence';
 import type {MarketQuote} from '../market-quotes';
 import {validateWorkEvidence,workEvidenceStale,workEvidenceTime} from './market-evidence';
@@ -41,6 +41,7 @@ export class DurableMarketAccount {
    if(!Number.isSafeInteger(now)||now<Math.max(original.lastTime,lastTime))return {ok:false,reason:'CLOCK_OR_PERIOD'};
    await tx.put('last-time',now);
    const date=new Date(now),month=config.month??{id:date.toISOString().slice(0,7),start:Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1),end:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1)};
+   if(!validTime(original,{month},now))return {ok:false,reason:'CLOCK_OR_PERIOD'};
    const budget=await maintainMarketAccount(tx,original,month,now,config.leaseMs,config.policy.reservationMs,config.retryRetentionMs??3600000,config.breaker);
    const periods={month},index=await tx.get<string[]>('work-index')??[];
    if(command.action==='inspect'){const rows=Object.values(budget.reservations);return {ok:true,attempts:rows.length,archivedAttempts:budget.archived?.attempts??0,workKeys:index.length,queued:rows.filter(r=>r.status==='QUEUED').length,dispatched:rows.filter(r=>r.status==='DISPATCHED').length,currentPeriodCredits:Object.values(budget.archived?.credits??{}).reduce((sum,n)=>sum+n,0)+rows.filter(r=>(r.status==='DISPATCHED'||r.status==='SETTLED')&&r.periods?.month.id===month.id).reduce((sum,r)=>sum+r.cost,0),chargedCredits:(budget.archived?.lifetimeCredits??0)+rows.filter(r=>r.status==='DISPATCHED'||r.status==='SETTLED').reduce((sum,r)=>sum+r.cost,0)};}

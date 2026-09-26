@@ -115,3 +115,9 @@ test('evicted work-slot reuse cannot authorize a former UUID lease even when num
  advance(1101);expect(await account.apply({action:'acquire',work:work('ethereum')})).toMatchObject({status:'OWNER'});advance(2102);const successor=await account.apply({action:'acquire',work:work('bitcoin')});expect(successor).toMatchObject({status:'OWNER'});expect(successor.lease).not.toEqual(first.associations[0]?.lease);
  expect(await account.apply({action:'publish',id:first.id,work:work('bitcoin'),quote})).toMatchObject({ok:false,reason:'FENCED'});
 });
+
+test('invalid period configuration cannot discard compacted credits before rejecting admission',async()=>{
+ const {account,storage,advance}=setup({operationCosts:{history:2},month:{id:'current',start:0,end:10000000}});const a=await account.apply({action:'enqueue-read',operation:'history'});for(const action of ['reserve','own','dispatch'])await account.apply({action,id:a.id});await account.apply({action:'settle',id:a.id,outcome:'success'});advance(60200);await account.apply({action:'inspect'});
+ const invalid=new DurableMarketAccount(storage,()=>60200,JSON.stringify({...config,operationCosts:{history:2},month:{id:'changed-with-overlap',start:0,end:10000000}}));expect(await invalid.apply({action:'inspect'})).toMatchObject({ok:false,reason:'CLOCK_OR_PERIOD'});
+ expect(await account.apply({action:'inspect'})).toMatchObject({currentPeriodCredits:2,chargedCredits:2});
+});

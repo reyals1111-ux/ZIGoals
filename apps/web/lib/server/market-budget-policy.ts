@@ -25,7 +25,7 @@ function validPolicy(p:BudgetPolicy|undefined):p is BudgetPolicy {
 }
 const policyKey=(p:BudgetPolicy)=>JSON.stringify([p.providerMinuteLimit,p.providerMonthlyLimit,p.operating.minute,p.operating.monthly,p.monitoringReserve.minute,p.monitoringReserve.monthly,p.monitoringMaximum.minute,p.monitoringMaximum.monthly,p.optionalCeiling.minute,p.optionalCeiling.monthly,p.concurrent,p.queueLimit,p.reservationMs,p.ownershipMs]);
 const validClock=(s:BudgetState,now:number)=>integer(now)&&now>=s.lastTime;
-function validTime(s:BudgetState,periods:BudgetPeriods,now:number){
+export function validTime(s:BudgetState,periods:BudgetPeriods,now:number){
  if(!validClock(s,now))return false;
  const next=periods?.month,previous=s.periods?.month;
  if(!next||!/^[A-Za-z0-9_-]{1,80}$/.test(next.id)||!integer(next.start)||!integer(next.end)||next.start>now||next.end<=now)return false;
