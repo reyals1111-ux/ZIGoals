@@ -19,6 +19,7 @@ import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
 import { bodyWeightGrams, dailyData, healthDay, servingsFromGrams } from "../../lib/health-daily";
 import { EvidenceChart } from "../platform/evidence-chart";
+import {healthDateSchema} from "../../lib/health";
 import {PinToToday} from "../pin-to-today";
 
 type Update = ReturnType<typeof useHealth>["update"];
@@ -57,7 +58,8 @@ export function HealthApp() {
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
   const router = useRouter();
-  const addIntent = useSearchParams().get("add") === "entry";
+  const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
+  const addIntent = searchParams.get("add") === "entry";
   const [handledIntent, setHandledIntent] = useState(false);
   // A same-page Quick Add is a new intent, not a new Health store.
   if (addIntent !== handledIntent) {
@@ -73,7 +75,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     entryControl?.focus({ preventScroll: true });
     router.replace("/app/health", { scroll: false });
   }, [addIntent, router]);
-  const [date, setDate] = useState(() => healthDay(dailyData(data).preferences.timezone));
+  const [date, setDate] = useState(() => pinnedDate.success?pinnedDate.data:healthDay(dailyData(data).preferences.timezone));
   const saving = useRef(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -152,8 +154,8 @@ function DiaryView({ data, date, perform, invalid, onLibrary }: { data: HealthDa
   return <div className="health-diary-layout"><div className="health-meals">{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const total = entries.reduce((sum, e) => sum + scaleNutrition(e.snapshot.nutrients, e.quantityMilli).kcal, 0);
-    return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{total.toLocaleString()} kcal</span></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" key={entry.id}>
-      <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)} servings · {Number((entry.snapshot.servingGrams * entry.quantityMilli / 1000).toFixed(3)).toLocaleString()} g</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions"><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button></div>
+    return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{total.toLocaleString()} kcal</span><PinToToday label={`${mealName} today`} choices={[{kind:'meal',entity:mealName,metric:'kcal',label:`${mealName} today calories`},{kind:'meal',entity:mealName,metric:'macros',label:`${mealName} today macros`}]}/></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" id={`entry-${entry.id}`} key={entry.id}>
+      <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)} servings · {Number((entry.snapshot.servingGrams * entry.quantityMilli / 1000).toFixed(3)).toLocaleString()} g</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
     </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}</section>;
   })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); logOperation.current = null; }} />}{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>

@@ -5,7 +5,7 @@ import {allocationBalance,positionSync,type Position,type Platform} from './posi
 import {wealthOverview} from './wealth';
 import {formatGoalAmount,type GoalSummary} from './goal-summary';
 import {habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
-import {dailyHealthSummary,type HealthData} from './health';
+import {HEALTH_MEALS,scaleNutrition,dailyHealthSummary,type HealthData} from './health';
 import {dailyData,waterSummary} from './health-daily';
 import type {MarketQuote} from './market-quotes';
 import {formatExactNumber} from './visual-format';
@@ -33,6 +33,16 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const habit=s.habits.habits.find(h=>h.id===widget.entity);if(!habit)return unavailable('/app/habits','This Habit is unavailable. Choose another or remove this widget.');
   const day=habitDay(habit,s.today,s.today),rule=habitRuleOn(habit,s.today),stats=widget.metric==='streak'?habitStats(habit,s.today):undefined;
   return {...defaults,title:widget.title||habit.title,value:stats?`${stats.currentStreak} ${stats.streakUnit}`:`${day.count.toLocaleString()}${rule?` ${measurementUnit(rule)}`:''}`,detail:stats?'Current streak · natural periods':`${day.status.replaceAll('-',' ')} · target ${day.target.toLocaleString()}${rule?` ${measurementUnit(rule)}`:''}`,href:'/app/habits',warning:day.status==='archived'||day.status==='paused'?`Habit ${day.status}`:undefined};
+ }
+ if(widget.kind==='food-entry'||widget.kind==='meal'){
+  const entry=widget.kind==='food-entry'?s.health.diary.find(row=>row.id===widget.entity):undefined;
+  if(widget.kind==='food-entry'&&!entry)return unavailable('/app/health','This diary entry was removed or is unavailable for this account. Choose another entry or remove this widget.');
+  if(widget.kind==='meal'&&!(HEALTH_MEALS as readonly string[]).includes(widget.entity??''))return unavailable('/app/health','Choose a supported meal.');
+  const meal=entry?.meal??widget.entity!,date=entry?.date??s.healthDate;
+  const summary=dailyHealthSummary({...s.health,diary:s.health.diary.filter(row=>row.meal===meal)},date),nutrients=entry?scaleNutrition(entry.snapshot.nutrients,entry.quantityMilli):summary.nutrients,count=entry?1:summary.entries;
+  return {...defaults,title:widget.title||(entry?entry.snapshot.name:`${meal} today`),value:count?widget.metric==='macros'?`${(nutrients.proteinMg/1000).toLocaleString()} g protein`:`${nutrients.kcal.toLocaleString()} kcal`:'No meals recorded',
+   detail:`${date} · ${meal} · ${entry?`${entry.quantityMilli/1000} servings · saved diary entry`:`${count} entries · current Health day`}${count&&widget.metric==='macros'?` · ${(nutrients.carbsMg/1000).toLocaleString()} g carbs · ${(nutrients.fatMg/1000).toLocaleString()} g fat`:''}`,
+   href:`/app/health?date=${date}#${entry?`entry-${entry.id}`:`diary-${meal.toLowerCase()}`}`};
  }
  if(widget.kind==='health'){
   const summary=dailyHealthSummary(s.health,s.healthDate),common={...defaults,title:widget.title||widgetMetricLabel(widget.metric),detail:`${s.healthDate} · manually logged`,href:'/app/health'};
