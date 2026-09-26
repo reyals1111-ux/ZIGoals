@@ -90,17 +90,19 @@ export class PrivateVault{
   if(await this.state.storage.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
   if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON);
   if(request.method==='GET'){
-   const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'';
+   const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'',ids=url.searchParams.has('ids')?url.searchParams.get('ids').split(','):null;
    if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return response({error:'INVALID_CURSOR'},400);
+   if(ids&&(cursor||ids.length>100||!ids.length||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))))return response({error:'INVALID_RECORD_SELECTION'},400);
    return this.state.storage.transaction(async store=>{
     if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
     if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
-    const rows=await store.list({prefix:'record:',startAfter:cursor||undefined,limit:101}),entries=[...rows.entries()],page=entries.slice(0,100);
-    return response({protocol:1,revision:await store.get('revision')??0,manifest:await store.get('manifest')??null,records:page.map(([,v])=>v),domainGenerations:await store.get('domain-generations')??{},cursor:entries.length>100?page.at(-1)[0]:null});
+    const rows=ids?await store.get(ids.map(id=>'record:'+id)):await store.list({prefix:'record:',startAfter:cursor||undefined,limit:101}),entries=[...rows.entries()],page=entries.slice(0,100);
+    return response({protocol:1,revision:await store.get('revision')??0,manifest:await store.get('manifest')??null,records:page.map(([,v])=>v),domainGenerations:await store.get('domain-generations')??{},storedBytes:await store.get('bytes')??0,cursor:entries.length>100?page.at(-1)[0]:null});
    });
   }
   if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')return response({error:'JSON_REQUIRED'},415);
   let input;try{input=await boundedJSON(request);}catch{return response({error:'INVALID_OR_OVERSIZED_REQUEST'},400);}
+  if(input?.action==='compact')return this.compact(input,sessionHash);
   const allowed=['protocol','vault','operation','base','changes',...(Object.hasOwn(input??{},'manifest')?['manifest']:[]),...(Object.hasOwn(input??{},'domainGenerations')?['domainGenerations']:[])];
   if(!exact(input,allowed)||input.protocol!==1||!UUID.test(input.vault)||!UUID.test(input.operation)||!Number.isSafeInteger(input.base)||input.base<0||!Array.isArray(input.changes)||input.changes.length>100||(input.manifest&&!manifest(input.manifest)))return response({error:'INVALID_PROTOCOL'},400);
   if(input.domainGenerations&&(!input.domainGenerations||typeof input.domainGenerations!=='object'||Array.isArray(input.domainGenerations)||Object.entries(input.domainGenerations).some(([d,g])=>!DOMAINS.has(d)||!Number.isSafeInteger(g)||g<0)))return response({error:'INVALID_DOMAIN_GENERATIONS'},400);
@@ -113,6 +115,7 @@ export class PrivateVault{
    const activeManifest=await store.get('manifest');if(activeManifest&&input.changes.some(row=>row.epoch!==activeManifest.epoch))return response({error:'EPOCH_RETIRED'},409);
    const domainGenerations=await store.get('domain-generations')??{};if([...DOMAINS].some(d=>(domainGenerations[d]??0)!==(input.domainGenerations?.[d]??0)))return response({error:'DOMAIN_GENERATION_CHANGED'},409);
    const old=await store.get(`receipt:${input.operation}`);if(old)return old.digest===digest?response({revision:old.revision,replayed:true}):response({error:'OPERATION_REUSED'},409);
+   if(input.base<(await store.get('receipt-floor')??0))return response({error:'REPLAY_HORIZON_REQUIRES_RECOVERY'},409);
    const revision=await store.get('revision')??0;if(revision!==input.base)return response({error:'REVISION_CONFLICT',revision},409);
    const currentManifest=await store.get('manifest');if(input.manifest&&currentManifest)return response({error:'VAULT_ALREADY_EXISTS'},409);
    if(!currentManifest&&!input.manifest)return response({error:'ENROLL_FIRST'},409);
@@ -125,6 +128,25 @@ export class PrivateVault{
    const writes={revision:revision+1,bytes:used,operations:operations+1,[`receipt:${input.operation}`]:{digest,revision:revision+1}};
    if(input.manifest)writes.manifest=input.manifest;for(const row of input.changes)writes[`record:${row.id}`]=row;
    await store.put(writes);return response({revision:revision+1});
+  });
+ }
+ async compact(input,sessionHash){
+  const HEAD='00000000-0000-4000-8000-000000000001';
+  if(!exact(input,['protocol','action','vault','operation','base','epoch','headDigest','retain','domainGenerations'])||input.protocol!==1||!UUID.test(input.vault)||!UUID.test(input.operation)||!Number.isSafeInteger(input.base)||input.base<0||!Number.isSafeInteger(input.epoch)||input.epoch<1||!/^[a-f0-9]{64}$/.test(input.headDigest)||!Array.isArray(input.retain)||input.retain.length>2801||!input.retain.includes(HEAD)||new Set(input.retain).size!==input.retain.length||input.retain.some(id=>!UUID.test(id))||!input.domainGenerations||typeof input.domainGenerations!=='object'||Array.isArray(input.domainGenerations)||Object.entries(input.domainGenerations).some(([d,g])=>!DOMAINS.has(d)||!Number.isSafeInteger(g)||g<0))return response({error:'INVALID_COMPACTION'},400);
+  const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input))))].map(v=>v.toString(16).padStart(2,'0')).join('');
+  return this.state.storage.transaction(async store=>{
+   if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
+   const manifest=await store.get('manifest'),generations=await store.get('domain-generations')??{};if(manifest?.vault!==input.vault||manifest.epoch!==input.epoch||[...DOMAINS].some(d=>(generations[d]??0)!==(input.domainGenerations[d]??0)))return response({error:'LIFECYCLE_CHANGED'},409);
+   const receipt=await store.get('receipt:'+input.operation);if(receipt)return receipt.digest===digest?response({revision:receipt.revision,replayed:true}):response({error:'OPERATION_REUSED'},409);
+   const revision=await store.get('revision')??0;if(revision!==input.base)return response({error:'REVISION_CONFLICT',revision},409);
+   const head=await store.get('record:'+HEAD),actual=head?[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(head.envelope))))].map(v=>v.toString(16).padStart(2,'0')).join(''):null;if(actual!==input.headDigest)return response({error:'CATALOG_CHANGED'},409);
+   const retain=new Set(input.retain.map(id=>'record:'+id));if((await store.get([...retain])).size!==retain.size)return response({error:'RETAINED_RECORD_MISSING'},409);
+   let used=0,cursor;for(;;){const page=await store.list({prefix:'record:',startAfter:cursor,limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [key,row]of page){if(retain.has(key))used+=JSON.stringify(row).length;else await store.delete(key);}}
+   // Keep 2,000 revisions of request receipts. Requests older than this durable
+   // floor require protected forward recovery. Lifecycle tombstones never prune.
+   const floor=Math.max(await store.get('receipt-floor')??0,revision+1-2000);let count=0;cursor=undefined;for(;;){const page=await store.list({prefix:'receipt:',startAfter:cursor,limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [key,r]of page){if(r.revision<floor)await store.delete(key);else count++;}}
+   await store.put({revision:revision+1,bytes:used,operations:count+1,'receipt-floor':floor,['receipt:'+input.operation]:{digest,revision:revision+1}});return response({revision:revision+1});
   });
  }
 }

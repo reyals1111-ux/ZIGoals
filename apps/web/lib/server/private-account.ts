@@ -60,8 +60,8 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
    if(new URL(request.url).searchParams.get('action')==='rotation'){const remote=await upstream(`${cfg.syncOrigin}/v1/rotation`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return reply(await readBounded(remote,32768),remote.status);}
    if(new URL(request.url).searchParams.get('action')==='sessions'){const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return reply(await readBounded(remote,1_000_000),remote.status);}
-   const cursor=new URL(request.url).searchParams.get('cursor');if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return reply({error:'INVALID_CURSOR'},400);
-   const remote=await upstream(`${cfg.syncOrigin}/v1/vault${cursor?'?cursor='+encodeURIComponent(cursor):''}`,{headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence}});
+   const query=new URL(request.url).searchParams,cursor=query.get('cursor'),ids=query.has('ids')?query.get('ids')!.split(','):null;if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return reply({error:'INVALID_CURSOR'},400);if(ids&&(cursor||ids.length>100||!ids.length||new Set(ids).size!==ids.length||ids.some(id=>!z.uuid().safeParse(id).success)))return reply({error:'INVALID_RECORD_SELECTION'},400);
+   const remote=await upstream(`${cfg.syncOrigin}/v1/vault${ids?'?ids='+encodeURIComponent(ids.join(',')):cursor?'?cursor='+encodeURIComponent(cursor):''}`,{headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence}});
    return reply(await readBounded(remote,36_000_000),remote.status);
   }
   if(!action)throw Error('Missing account action.');
