@@ -1,0 +1,828 @@
+{
+  "schema": 1,
+  "reviewed_at": "2026-09-26T21:51:17.520782+00:00",
+  "head": "c15a9ba264c126aa191690fa9d70dd08b82c141e",
+  "scope": "JRN01-22 and JRN31-40 only; exact criteria from SCOPE_MAP, no master reread. Source/assertion review, not a blanket execution receipt.",
+  "policy": "assertions_present means exact assertions were inspected, not every journey rerun at this head. Root final acceptance and active fixes are explicitly separate. Local gaps are proof gaps unless identified as reproduced defects.",
+  "findings": [
+    {
+      "id": "OBSERVATION-DUPLICATION",
+      "severity": "P1",
+      "reproduced": "Independent identical provider/sourceId imports merged into2 accepted rows and poisoned exact replay.",
+      "resolution": "7d47539 retains all originals, groups identical receipts into one visible reading, explicitly reviews divergent values atomically, excludes conflicting source fingerprints pending new source ID.",
+      "evidence": "28tests/5files pass806ms; real encrypted two-client/both-order fixtures;4actual desktop/mobile browser cases pass4.7s;tsc/lint pass."
+    },
+    {
+      "id": "MARKET-CI-DEADLINE",
+      "severity": "test-fixture",
+      "reproduced": "Controlled1.3s provider hold yielded3responses complete=false/degraded=true/quotes0/LOCAL_QUEUE; production follower bound is1s.",
+      "resolution": "4c446ee separates fixed-logical-clock strict capacity matrix from actual wall-clock expiry Worker regression; production timeout unchanged.",
+      "evidence": "56tests/4files pass12.01s, lint/diffcheck pass."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "JRN-01",
+      "title": "New Health-only user",
+      "criterion": "Start with empty isolated storage, choose Health-only interests/preset, create a custom food and log a meal/water entry, pin chosen metrics and reload. The experience is coherent without a wallet, fake wealth, forced crypto actions or Showcase data. Enter and leave settings/dialogs with touch/keyboard and preserve saved records.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/tests/run10-health-only-journey.spec.ts"
+      ],
+      "assertions_reviewed": "Asserts Health-only interest, custom food225kcal, water250mL, chosen widget, Escape/focus return, reload and exact saved records; request audit forbids financial/wallet/external fetches.",
+      "implementation_paths": [
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/lib/dashboard-settings.ts"
+      ],
+      "proof_boundary": "Actual touch/keyboard browser assertions; final source rerun owned by root.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-02",
+      "title": "First email account and encrypted vault",
+      "criterion": "Use the implemented auth path, complete email verification/code in the available actual test level, set up independent vault unlock/recovery, explicitly consent to sync and upload fictional private records. Inspect backend storage and transport for ciphertext and minimal metadata. Do not label local mail capture as external email delivery.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/packaged-runtime.test.mjs",
+        "apps/web/lib/vault/crypto.test.ts"
+      ],
+      "assertions_reviewed": "OTP verification creates HttpOnly session, independent vault recovery acknowledgement and explicit Health consent; raw Worker records and encrypted downloads exclude fictional markers; wrong key/context/tamper reject.",
+      "implementation_paths": [
+        "apps/web/lib/server/private-account.ts",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/lib/vault/crypto.ts",
+        "workers/private-sync/worker.mjs"
+      ],
+      "proof_boundary": "Real implemented handler/Worker and generated package paths, controlled identity provider responses.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "External email delivery and approved hosted auth activation are not proven by local OTP fixtures."
+      ]
+    },
+    {
+      "id": "JRN-03",
+      "title": "Independent phone/desktop-equivalent clients",
+      "criterion": "Use separate profiles/storage with one real implemented backend. A creates a Goal/Habit/Health record and widget; B authenticates/unlocks and receives them; B edits and A sees the accepted change. Reload both. Physical phone/desktop acceptance is recorded separately when available; two tabs sharing a store cannot satisfy the independent-client test.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/packaged-runtime.test.mjs",
+        "scripts/run11/packaged-consumer-journey.mjs"
+      ],
+      "assertions_reviewed": "Independent browser contexts receive Goal/Habit/Health/widget; B corrects measurement80\u219279 and A reads retained history. Packaged consumer adds corrected meal/widget and third-profile restore.",
+      "implementation_paths": [
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/lib/vault/cloud-sync.ts"
+      ],
+      "proof_boundary": "Independent browser storage, actual local encrypted Worker; root reported packaged consumer pass at3eb5aa1 (14s).",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "Physical phone/desktop acceptance remains separate."
+      ]
+    },
+    {
+      "id": "JRN-04",
+      "title": "Empty second device cannot erase data",
+      "criterion": "Populate A, then start B empty and begin enrollment twice with an interruption. B must attach to the existing vault without publishing an empty replacement, duplicating records or generating an incompatible key epoch. Wrong unlock input preserves both server ciphertext and A's working data.",
+      "assessment": "local_acceptance_gap",
+      "tests": [
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "scripts/run10/sync-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "assertions_reviewed": "Empty client pulls existing vault; unrelated local initial attach conflicts; repeated accepted write is idempotent; wrong recovery rejects without replacing manifest.",
+      "implementation_paths": [
+        "apps/web/components/vault-sync-controls.tsx",
+        "workers/private-sync/worker.mjs"
+      ],
+      "proof_boundary": "Unit/runtime guards exist, but exact interrupted second-device enrollment sequence was not found at initial audit.",
+      "mandatory_local_gaps": [
+        "Add interrupted/repeated second-client enrollment against populated vault and compare ciphertext/epoch/record identities before and after. Helper assigned this next."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-05",
+      "title": "Offline merge across domains",
+      "criterion": "Disconnect both clients, add independent Health/Habit records, change separate preferences and reconnect in opposite orders. Accepted independent events survive with stable identities and no duplication. Conflicting edits to the same record are preserved/resolved under the documented policy, with visible status rather than silent loss.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/conflict-runtime.test.mjs",
+        "scripts/run11/observation-conflict.test.mjs"
+      ],
+      "assertions_reviewed": "Both a-first/b-first reconnect orders retain water750mL, two independent Habits, lb preference and2500mL target; explicit protected77/78cm conflict keeps both prior readings. Observation import copies now count once and retain all originals through encrypted resync.",
+      "implementation_paths": [
+        "apps/web/lib/vault/cloud-sync.ts",
+        "apps/web/lib/vault/conflict-review.ts",
+        "apps/web/lib/body-measurements.ts"
+      ],
+      "proof_boundary": "Actual encrypted two-profile browser plus separate Worker import/correction fixtures. Observation defect reproduced and fixed by7d47539.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-06",
+      "title": "Concurrent financial aggregate",
+      "criterion": "Two clients attempt funding/allocation changes against the same base revision. Demonstrate atomic conflict detection/revalidation so neither partial writes nor over-allocation occur. Repeating the same accepted request after losing its response cannot duplicate contribution or surplus effects. Pending/provisional versus committed state is visible.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/run11/conflict-runtime.test.mjs",
+        "apps/web/lib/vault/database.test.ts",
+        "apps/web/lib/private-storage.test.ts",
+        "apps/web/tests/run11-financial-previews.spec.ts"
+      ],
+      "assertions_reviewed": "Concurrent deposits retain both IDs, total2050000minor units, Goal allocation200000, surplus1850000; replay input returns same aggregate; stale base and storage failure cannot partially commit; preview cancel leaves saved aggregate unchanged.",
+      "implementation_paths": [
+        "apps/web/lib/contribution-funding.ts",
+        "apps/web/lib/vault/conflict-review.ts",
+        "apps/web/lib/vault/database.ts"
+      ],
+      "proof_boundary": "Actual encrypted aggregate conflict and transaction tests; browser checks provisional review before commit.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-07",
+      "title": "Account switching and late response",
+      "criterion": "Sign in as A, start private requests, sign out/switch to B, then release A's delayed responses. B must not display A's names, balances, diary or widgets. A's pending work is retained/fenced under the correct identity or explicitly quarantined, not sent to B's vault.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/account-isolation.test.ts",
+        "apps/web/lib/account-access.test.ts",
+        "apps/web/lib/goal-provider.test.ts",
+        "scripts/run11/account-switch-browser.test.mjs"
+      ],
+      "assertions_reviewed": "Root browser holds an A read, signs out, enrolls B, saves B marker, releases A, and asserts B survives/A absent after sync and signout.",
+      "implementation_paths": [
+        "apps/web/lib/account-session.ts",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/lib/vault/account-transport.ts"
+      ],
+      "proof_boundary": "Root reports 1/1 actual browser pass 10.62s; reviewed exact assertions after initial defect fix.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-08",
+      "title": "Cross-tenant access denial",
+      "criterion": "Try to read/list/write/delete A's vault/blob/export with B's session, altered client IDs and batch/pagination paths. Access must be denied without leaking meaningful record metadata. Test every direct storage/signed-link path as applicable, not only the main UI route.",
+      "assessment": "local_acceptance_gap",
+      "tests": [
+        "scripts/run10/sync-runtime.test.mjs",
+        "apps/web/lib/server/private-account.test.ts",
+        "scripts/run11/incremental-sync.test.mjs"
+      ],
+      "assertions_reviewed": "Invalid auth401, B sees revision0 rather than A records; captured account mismatch forwarded to authority and rejects; revision-consistent pagination/bounded IDs covered separately.",
+      "implementation_paths": [
+        "workers/private-sync/worker.mjs",
+        "apps/web/lib/server/private-account.ts"
+      ],
+      "proof_boundary": "Verified identity selects the Durable Object; no public signed-download/object-store path is implemented. Initial audit lacked a complete hostile path matrix.",
+      "mandatory_local_gaps": [
+        "Exercise B token with A account fence/IDs across read, selective batch, pagination, write and delete; helper assigned next."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-09",
+      "title": "Recovery without destructive reset",
+      "criterion": "Export an encrypted backup/recovery mechanism using fictional keys, clear a disposable test profile, restore/unlock and verify record counts, operation IDs, layout and history. Wrong passphrase, corrupted ciphertext and future schema each produce a safe distinct failure, leaving existing data unchanged. Account password reset alone cannot falsely claim vault recovery.",
+      "assessment": "partial_local_acceptance",
+      "tests": [
+        "apps/web/lib/vault/backup.test.ts",
+        "apps/web/lib/vault/crypto.test.ts",
+        "scripts/run11/packaged-consumer-journey.mjs"
+      ],
+      "assertions_reviewed": "2.1MB+ chunked backup round-trips exact strings, missing chunks fail, wrong secret/tamper/future envelope reject; packaged third profile restores four-domain Goal/Habit/meal/widget state and reloads.",
+      "implementation_paths": [
+        "apps/web/lib/vault/backup.ts",
+        "apps/web/components/private-backups.tsx"
+      ],
+      "proof_boundary": "No destructive reset is used; crypto failure is fail-closed. Full browser wrong-secret/corrupt/future-schema messages and unchanged preexisting profile are not all asserted together.",
+      "mandatory_local_gaps": [
+        "Add UI failure-message/nonmutation matrix for wrong secret, corrupted backup and future backup schema if claiming the complete JRN09 interaction, beyond existing function rejection tests."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-10",
+      "title": "Device revocation and deletion",
+      "criterion": "Revoke one device/session, test delayed writes and reconnect, then exercise selected-domain/cloud/account deletion under the implemented policy. Explain already-downloaded data limits. Reconnecting an old/offline client after deletion must not silently recreate deleted server state.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/session-refresh.test.mjs",
+        "scripts/run11/domain-deletion.test.mjs",
+        "scripts/run11/domain-review-race.test.mjs",
+        "scripts/run11/lifecycle-recovery.test.mjs"
+      ],
+      "assertions_reviewed": "Revoked family stays revoked after refresh/restart; selected-domain generation fences old writes; review revision mismatch denies newly changed vault deletion; durable alarm completes interrupted deletion; restored pre-delete stores deny old enrollment after external reconciliation.",
+      "implementation_paths": [
+        "workers/private-sync/sessions.mjs",
+        "workers/private-sync/worker.mjs",
+        "workers/private-sync/lifecycle.mjs",
+        "apps/web/lib/vault/domain-lifecycle.ts"
+      ],
+      "proof_boundary": "Actual local durable storage and browser protected deletion/restore. Already-downloaded exports remain outside server erasure.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "Hosted provider identity deletion and PITR activation require owner infrastructure; local fixture results are not that proof."
+      ]
+    },
+    {
+      "id": "JRN-11",
+      "title": "Wallet auth when supported",
+      "criterion": "Test purpose-bound challenge creation, signature validation, nonce replay, expiration, wrong origin/account and rejected user action. Confirm ordinary watch-only connection/reload never prompts an auth signature. Financial signing/broadcast remains blocked. Real Keplr acceptance requires the owner's explicit gesture and is not inferred from mocks.",
+      "assessment": "conditional_not_included",
+      "tests": [
+        "apps/web/lib/goal-provider.test.ts",
+        "apps/web/tests/wallet-reload.spec.ts",
+        "apps/web/tests/transactions.spec.ts"
+      ],
+      "assertions_reviewed": "Ordinary wallet reload/watch-only connection and execution guards remain tested; no authentication signer/challenge flow is advertised.",
+      "implementation_paths": [
+        "apps/web/components/goal-provider.tsx"
+      ],
+      "proof_boundary": "Email is the implemented authentication path.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "Wallet authentication is not included; signature challenge matrix is conditional. Real Keplr gesture is owner-controlled."
+      ]
+    },
+    {
+      "id": "JRN-12",
+      "title": "Legacy migration interruption",
+      "criterion": "Load representative valid old platform/Habits/Health fixtures, interrupt migration at several boundaries, reopen with another tab and recover. Preserve original bytes, reference integrity and outbox consistency. Invalid/future data must not silently reset; original user-visible records remain recoverable.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/platform-storage.test.ts",
+        "apps/web/lib/vault/local.test.ts",
+        "apps/web/lib/vault/database.test.ts",
+        "apps/web/tests/run10-private-vault.spec.ts",
+        "apps/web/tests/run11-migration-recovery.spec.ts"
+      ],
+      "assertions_reviewed": "Schema1 finance/Habits/Health fixtures interrupt precommit and pointer publication; already-open second tab retries; exact original bytes retained, exactly1 revision/outbox/receipt, both tabs identical after reload.",
+      "implementation_paths": [
+        "apps/web/lib/vault/local.ts",
+        "apps/web/lib/vault/database.ts",
+        "apps/web/lib/private-storage.ts"
+      ],
+      "proof_boundary": "Root reports12 desktop/mobile passes15.9s; reviewed actual injected boundaries and assertions.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-13",
+      "title": "Storage pressure and long history",
+      "criterion": "Use defined larger synthetic histories and trigger quota/storage failures. Verify meaningful warnings, paged queries, backup/export and no silent financial-history deletion. Appending a record that cannot persist must not show success. Document actual tested sizes and timings.",
+      "assessment": "partial_local_acceptance",
+      "tests": [
+        "apps/web/tests/run10-private-vault.spec.ts",
+        "apps/web/lib/vault/database.test.ts",
+        "apps/web/lib/private-storage.test.ts",
+        "apps/web/lib/goal-intelligence.test.ts",
+        "apps/web/tests/run11-goal-history.spec.ts"
+      ],
+      "assertions_reviewed": "Browser imports/exports6000 meals above2MB; database300rows\u00d78000chars keeps changed delta under30000bytes and returns exact last10rows; quota failure preserves stored aggregate; history cap rejects append rather than dropping facts;35Goal events paginate3pages and filter to2.",
+      "implementation_paths": [
+        "apps/web/lib/vault/database.ts",
+        "apps/web/lib/private-storage.ts",
+        "apps/web/lib/goal-intelligence.ts"
+      ],
+      "proof_boundary": "Sizes are explicit, but a current-source browser quota/save-error/no-success-toast assertion and size-specific timings are not in these tests.",
+      "mandatory_local_gaps": [
+        "Record browser quota rejection with unchanged financial history and no success UI; preserve actual timing for defined larger histories."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-14",
+      "title": "Code/protocol version mismatch",
+      "criterion": "Simulate an old app shell/client after the new schema/protocol is active. It must not down-convert/delete new data. Preserve unsynced work and offer an upgrade/compatibility path. Demonstrate the chosen rollback or forward-recovery plan without mutating production.",
+      "assessment": "partial_local_acceptance",
+      "tests": [
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "apps/web/lib/vault/pending-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "assertions_reviewed": "Old/future pending policies are never transmitted; authenticated older/forked heads reject; forward recovery downloads original journal, archives it atomically and does not replay obsolete operation; future data remains unchanged.",
+      "implementation_paths": [
+        "apps/web/lib/vault/forward-recovery.ts",
+        "apps/web/lib/vault/cloud-sync.ts",
+        "apps/web/lib/private-storage.ts"
+      ],
+      "proof_boundary": "Real browser forward-recovery of older-policy journal plus schema/marker old-reader rejection. A running historical compiled app shell is not replayed.",
+      "mandatory_local_gaps": [
+        "If claiming old-shell acceptance, execute a bounded historical-reader harness against new state; current tests simulate old protocol/state and parser rejection rather than loading an old app bundle."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-15",
+      "title": "Premium Goal creator types",
+      "criterion": "Create valid Quantity, Value, Reward/Income and Project Goals with the correct conditional inputs and summary. Exercise cancel, validation errors, type changes, long names, mobile keyboard and keyboard selection. No funds move; type labels use the chosen asset/currency rather than hardcoded ZIG assumptions.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/tests/run10-goal-creator.spec.ts",
+        "apps/web/tests/run11-goal-draft.spec.ts"
+      ],
+      "assertions_reviewed": "All four types create with BTC/EUR/ZIG/project-specific previews; type change cancel preserves target, confirmation clears only incompatible values; unsaved navigation/reload requires discard;320px form no overflow.",
+      "implementation_paths": [
+        "apps/web/components/unified-goal-wizard.tsx"
+      ],
+      "proof_boundary": "Actual browser conditional forms and draft tests; full virtual keyboard/physical-device validation remains separate.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "Physical mobile keyboard acceptance not inferred from viewport emulation."
+      ]
+    },
+    {
+      "id": "JRN-16",
+      "title": "Known funding-surplus regression",
+      "criterion": "Execute the fictional 20,000 USD contribution into a 2,000 USD Goal under the supported local tracking flow. Verify one accepted contribution, 2,000 allocation, 18,000 available surplus, one completion event and consistent Today/Wealth/Goal history. Replay/reload must not duplicate effects.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/run9-1.test.ts",
+        "scripts/run11/conflict-runtime.test.mjs",
+        "scripts/run11/packaged-consumer-journey.mjs"
+      ],
+      "assertions_reviewed": "20,000USD funding previews18,000surplus and displays2,000Goal; exact aggregate cap and idempotent replay in runtime/unit tests; packaged Wealth and restored third profile show18,000 available.",
+      "implementation_paths": [
+        "apps/web/lib/contribution-funding.ts",
+        "apps/web/lib/goal-intelligence.ts"
+      ],
+      "proof_boundary": "Packaged combined journey newly passed per root3eb5aa1; final build rerun must bind current source.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-17",
+      "title": "History-only correction",
+      "criterion": "Record a contribution history entry, reverse/correct it under the documented semantics and inspect all views. The original remains, applicable history totals change, and actual/observed balances are not secretly changed. A second full reversal or a concurrent conflicting correction must be prevented or explicitly resolved.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/goal-intelligence.test.ts",
+        "apps/web/lib/financial-events.test.ts",
+        "apps/web/tests/run9.spec.ts",
+        "apps/web/tests/run9-2-product.spec.ts"
+      ],
+      "assertions_reviewed": "History-only append leaves positions/allocations unchanged; reverse retains original, exact totals change, duplicate/nested/forged reversal rejects; timeline reversal survives reload; immutable financial sync validation refuses historical rewrites.",
+      "implementation_paths": [
+        "apps/web/lib/goal-intelligence.ts",
+        "apps/web/lib/vault/account-data.ts"
+      ],
+      "proof_boundary": "Unit guards plus actual history UI; concurrent correction is handled by explicit aggregate conflict review.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-18",
+      "title": "Plan revision and installments",
+      "criterion": "Create a plan, partially fund an installment, revise future terms, pause/resume and inspect old/new obligations. Historic revision-specific status remains correct; unmatched contributions stay unmatched rather than being guessed into a schedule. Test end-of-month and timezone boundaries with known expected results.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/plan-revisions.test.ts",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "scripts/run11/packaged-consumer-journey.mjs"
+      ],
+      "assertions_reviewed": "Partial4000 payment leaves6000 installment, reversal restores10000; unmatched IDs reject; immutable future revisions retain earlier terms; Jan31\u2192Feb29\u2192Mar31 anchor, pause/resume and canceled IDs asserted; browser reload retains revisions.",
+      "implementation_paths": [
+        "apps/web/lib/plan-revisions.ts",
+        "apps/web/lib/contribution-funding.ts"
+      ],
+      "proof_boundary": "Explicit UTC/date boundary fixtures; no automatic funding or guessed matching.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-19",
+      "title": "Performance eligibility and FX",
+      "criterion": "Test complete synthetic cash-flow/valuation fixtures against the documented method and incomplete cases that must remain unavailable. Verify USD/EUR separation, dated manual FX evidence where supported, missing constituents and tokenized-metal unit distinctions. No invented historical rates or false annualized first-day performance.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/financial-events.test.ts",
+        "apps/web/lib/wealth.test.ts",
+        "apps/web/lib/coherence.test.ts",
+        "apps/web/tests/run10-financial-evidence.spec.ts"
+      ],
+      "assertions_reviewed": "Complete flow-boundary TWR yields21%; missing/mismatched boundaries, zero capital, ambiguous flows and incomplete review are unavailable; dated explicit FX112345/1e5 converts100EUR to112.35USD; USD/EUR totals separate, missing prices undefined and metal units exact.",
+      "implementation_paths": [
+        "apps/web/lib/financial-events.ts",
+        "apps/web/lib/wealth.ts"
+      ],
+      "proof_boundary": "Deterministic financial method fixtures, no invented historic rates or annualization claim.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-20",
+      "title": "Completion and lifecycle",
+      "criterion": "Test a Goal at 99.6%, true completion, subsequent Value decline, explicit reopen/target revision and closure. Display rounding does not create financial completion. Archive/restore an asset and inspect ownership/allocation/history membership without erased facts or auto-restored allocations.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/lib/plan-revisions.test.ts",
+        "apps/web/lib/run9-1.test.ts",
+        "apps/web/lib/goal-status.test.ts",
+        "apps/web/tests/run10-plan-revisions.spec.ts"
+      ],
+      "assertions_reviewed": "99.6% does not create completion; exact target records one evidence-backed milestone; decline returns active while retaining milestone; explicit close/reopen retains history without restoring allocations; archive/restore preserves ownership.",
+      "implementation_paths": [
+        "apps/web/lib/plan-revisions.ts",
+        "apps/web/lib/positions.ts",
+        "apps/web/lib/goal-intelligence.ts"
+      ],
+      "proof_boundary": "Financial lifecycle tested independently of rounded presentation.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-21",
+      "title": "Personalized Today presets and widgets",
+      "criterion": "Build Balanced, Wealth, Habits+Health and Health-only layouts. Add/edit/remove/reorder a chosen Goal/Habit/asset/Health widget, use non-drag controls, reload, sync and restore a backup. The summary is above attention tasks; missing/archived entities produce correct states rather than replacement by similarly named records.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/tests/run10-dashboard-placement.spec.ts",
+        "apps/web/lib/dashboard-settings.test.ts",
+        "apps/web/lib/dashboard-metrics.test.ts",
+        "scripts/run11/packaged-consumer-journey.mjs"
+      ],
+      "assertions_reviewed": "Preset layouts, chosen entity bindings, non-drag moves and widget edits persist; archived/missing entity states cannot bind similarly named records; summary precedes attention; selected widget travels through sync and third-profile backup restore.",
+      "implementation_paths": [
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx"
+      ],
+      "proof_boundary": "Unit/browser composition proof plus newly packaged selected-widget round-trip; exhaustive every-widget cross-product is not claimed.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-22",
+      "title": "All ten owner screenshots",
+      "criterion": "Produce a dedicated S01\u2013S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap.",
+      "assessment": "root_acceptance_in_progress",
+      "tests": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run11-layout-stability.spec.ts"
+      ],
+      "assertions_reviewed": "Actual legend colors match rendered ring, Quick Add sits in navigation with focus return, finite motion settles, six widths test Habit collision/touch sizes and long labels125%; initial workspace layout regression added.",
+      "implementation_paths": [
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "docs/run10/VISUAL_EVIDENCE.md"
+      ],
+      "proof_boundary": "Historical S01\u2013S10 before/after index contains explicit stale gaps; root is producing current source screenshot reconciliation.",
+      "mandatory_local_gaps": [
+        "Complete root current-source S01\u2013S10 route/viewport/fixture/image mapping and inspection; do not promote historical index wholesale."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-31",
+      "title": "Runtime incident and market acceptance",
+      "criterion": "Run only authorized bounded diagnostics and preserve reachability/security/source/individual market probes. Distinguish BLOCKED runner from provider/application failure. State whether a root cause was reproduced and whether a local fix was verified; do not claim the live Alpha fixed before owner-approved deployment/acceptance.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/run11/market-load-matrix.test.mjs",
+        "scripts/run11/market-follower-deadline.test.mjs",
+        "scripts/run11/packaged-runtime.test.mjs"
+      ],
+      "assertions_reviewed": "Local named services fail closed without configuration; strict valid-pair preservation and exact charges. Hosted matrix failure reproduced as1s follower expiry with LOCAL_QUEUE, fixed test timing separately from production deadline behavior.",
+      "implementation_paths": [
+        "workers/market-coordinator/worker.ts",
+        "workers/market-coordinator/README.md"
+      ],
+      "proof_boundary": "4c446ee local56-test pass; hosted web status was failure atfdc9065 and must not be relabeled.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "No live Alpha fix/deployment claim; final hosted run/ref and owner provider acceptance remain separate."
+      ]
+    },
+    {
+      "id": "JRN-32",
+      "title": "Ecosystem coverage and navigation",
+      "criterion": "Reconcile the dated source set, inspect representative official logos/descriptions and verify safe website/app/docs destinations. Confirm relationship labels do not imply ZIGoals partnerships or execution. Test search/filter/mobile cards and optional contextual links, including a Health-only Today layout without unwanted financial promotions.",
+      "assessment": "assertions_present",
+      "tests": [
+        "packages/ecosystem-registry/src/directory.test.ts",
+        "apps/web/tests/run10-ecosystem.spec.ts",
+        "apps/web/tests/run10-health-only-journey.spec.ts"
+      ],
+      "assertions_reviewed": "Coverage manifest accounts for every card/candidate;18cards searchable/filterable; official app link opened under fixture, HTTPS/noreferrer/no private query params asserted;16local logos decode and2initials remain explicit; Health-only request audit forbids finance calls.",
+      "implementation_paths": [
+        "packages/ecosystem-registry/src/directory.ts",
+        "docs/run10/ECOSYSTEM_COVERAGE.json",
+        "apps/web/components/ecosystem-directory.tsx"
+      ],
+      "proof_boundary": "Dated registry and controlled navigation, not fresh exhaustive external ecosystem/partnership validation.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "External destination or organization status may change after the dated source set."
+      ]
+    },
+    {
+      "id": "JRN-33",
+      "title": "Large collections and accessible charts",
+      "criterion": "Use a larger synthetic asset/Goal/history set, sort/filter/page, follow a favorite and inspect composed totals in compatible currencies. Verify zero/one/two/many observation chart states, exact tables, stable colors and long labels. No excessive provider fan-out, fabricated points or horizontal overflow.",
+      "assessment": "partial_local_acceptance",
+      "tests": [
+        "apps/web/lib/markets-bounds.test.ts",
+        "apps/web/lib/price-chart.test.ts",
+        "apps/web/tests/run11-goal-history.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts"
+      ],
+      "assertions_reviewed": "1000asset fixture renders24/page, local search adds no requests, explicit refresh fetches only visible identities; favorite ownership distinct; chart empty/single/two endpoints/gaps/range exact tables;35Goal events remain reachable and320px fits.",
+      "implementation_paths": [
+        "apps/web/components/platform/markets-view.tsx",
+        "apps/web/components/platform/price-chart.tsx",
+        "apps/web/components/platform/evidence-chart.tsx"
+      ],
+      "proof_boundary": "Large asset and history tests are explicit. Large Goal collection sort/filter/page combination is not asserted in the inspected suites.",
+      "mandatory_local_gaps": [
+        "Verify a larger Goal collection through collection sort/filter/page UI if claiming the full asset/Goal/history journey."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-34",
+      "title": "Mobile, motion and keyboard",
+      "criterion": "Exercise key routes/dialogs at the required widths with enlarged text/zoom and keyboard navigation; inspect actual text collision and touch access. Test motion reduced/off, entrance replay suppression and immediate content availability. Intro animation cannot block a sign-in, input, save or urgent error.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-health-only-journey.spec.ts",
+        "apps/web/tests/run11-layout-stability.spec.ts"
+      ],
+      "assertions_reviewed": "320/360/390/430/768/1440 checks actual overlap and44px targets;125% long-Habit text; Escape restores focus; reduced/off motion preserves final visible values; route/session entrance settles and does not replay.",
+      "implementation_paths": [
+        "apps/web/components/use-entrance.ts",
+        "apps/web/components/shell.tsx"
+      ],
+      "proof_boundary": "Real Chromium mobile/desktop emulation and selected expanded-text routes; exhaustive dialog/textzoom/virtual-keyboard sweep remains bounded.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "Physical mobile/keyboard acceptance remains unverified; emulator viewport is not a physical device."
+      ]
+    },
+    {
+      "id": "JRN-35",
+      "title": "PWA/offline/update when included",
+      "criterion": "Install or exercise the supported home-screen path, start offline with cached shell/private local state, make a supported pending edit, reconnect and update app version. Confirm no shared private-response cache and no destructive activation over an outbox. Label unsupported native/background capabilities honestly.",
+      "assessment": "conditional_not_included",
+      "tests": [
+        "scripts/run10/account-browser.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts"
+      ],
+      "assertions_reviewed": "Already-open local routes accept offline pending edits and reconnect without private shared caching; old queues remain preserved.",
+      "implementation_paths": [
+        "docs/run11/CLOSURE.json"
+      ],
+      "proof_boundary": "Installable offline-start shell/service worker is explicitly not included.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "PWA installation, offline startup and service-worker update are conditional, not implemented promises."
+      ]
+    },
+    {
+      "id": "JRN-36",
+      "title": "Showcase isolation end to end",
+      "criterion": "Load/edit/reset/exit Showcase while normal local and authenticated records exist. Verify normal records, outbox, keys, wallet scope and layouts are unchanged, and late Showcase operations cannot enter the real vault. Public market data remains distinguishable from fictional historical holdings and Health records.",
+      "assessment": "assertions_present",
+      "tests": [
+        "apps/web/tests/run9-2-product.spec.ts",
+        "apps/web/lib/showcase.test.ts",
+        "apps/web/lib/account-isolation.test.ts",
+        "apps/web/lib/vault/local.test.ts",
+        "scripts/run11/account-switch-browser.test.mjs"
+      ],
+      "assertions_reviewed": "Authenticated B localStorage and all private-vault/account-sync IndexedDB stores/keys/values are identical after Showcase edit/reset/exit; zero Worker requests while Showcase; correct B unlock/marker and A absent.",
+      "implementation_paths": [
+        "apps/web/lib/showcase-storage.ts",
+        "apps/web/lib/account-session.ts"
+      ],
+      "proof_boundary": "Root reports1/1 actual browser pass10.62s; shares JRN07 fixture, not a second independent run.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-37",
+      "title": "Credential and plaintext boundary checks",
+      "criterion": "With fictional sensitive markers and actual available secret scan inputs handled privately, inspect source/build/client/runtime/sync/storage/log boundaries. Test hostile imports, oversized requests, unsafe assets, forbidden media and direct object access. Record scan scope and unsupported checks instead of claiming an exhaustive audit.",
+      "assessment": "root_final_gate_pending",
+      "tests": [
+        "apps/web/lib/vault/crypto.test.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "apps/web/tests/run9-2-security.spec.ts",
+        "apps/web/lib/private-storage.test.ts",
+        "scripts/run11/activation-check.test.mjs"
+      ],
+      "assertions_reviewed": "Fictional markers absent from encrypted records/export; nonextractable keys; hostile/oversized/future imports unchanged; arbitrary image destinations/private payload fields reject; activation topology rejects credentials/public/admin bindings.",
+      "implementation_paths": [
+        "apps/web/lib/vault/crypto.ts",
+        "apps/web/lib/server/private-account.ts",
+        "scripts/run11/activation-check.mjs"
+      ],
+      "proof_boundary": "Bounded source/test boundary review; final source/build/client/runtime/log scan receipts are root-owned and cannot be inferred from unit counts.",
+      "mandatory_local_gaps": [
+        "Attach root exact final scan inputs/scope/results, excluding genuine secret values from artifacts."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-38",
+      "title": "Canonical CI policy regression",
+      "criterion": "Test the chosen allowed host-metadata difference, then intentionally different critical inputs/bytes and invalid manifests. Downstream validators/source verification must still run and reject invalid evidence. Record actual hosted workflow result/ref without converting a pending/red result into a pass.",
+      "assessment": "assertions_present",
+      "tests": [
+        "scripts/release/manifest.test.mjs",
+        "scripts/release/verify.test.mjs",
+        "scripts/prepare-deployment.test.mjs"
+      ],
+      "assertions_reviewed": "Only runner image versions may differ and both retained; critical environment/source/lock/epoch/bytes/invalid manifests reject; CLI reruns both validators and downloaded artifact validation, rejects failed source or either validator before output publication.",
+      "implementation_paths": [
+        "scripts/release/manifest.mjs",
+        "scripts/release/verify.mjs",
+        "docs/release/artifact-manifest.schema.json"
+      ],
+      "proof_boundary": "Historical hosted success is documented inRun10; root reports canonical-build-a/b, compare and contracts passed atfdc9065, while web failed. Distinguish jobs and refs.",
+      "mandatory_local_gaps": [],
+      "external_or_conditional": [
+        "Final current-ref hosted job result remains root-owned; prior hosted success does not approve deployment."
+      ]
+    },
+    {
+      "id": "JRN-39",
+      "title": "Graceful partial failure",
+      "criterion": "Remove a provider credential, expire auth, deny camera permission and make a local save fail in separate tests. Health/Habit local logging and available manual tracking remain usable where independent; missing sync/provider capability is clear. No endless spinners, silent resets, invented zeroes or falsely successful toasts.",
+      "assessment": "partial_local_acceptance",
+      "tests": [
+        "apps/web/tests/run9.spec.ts",
+        "apps/web/tests/run10-barcode.spec.ts",
+        "apps/web/lib/account-access.test.ts",
+        "apps/web/lib/private-storage.test.ts",
+        "scripts/run11/packaged-runtime.test.mjs"
+      ],
+      "assertions_reviewed": "Missing provider config yields503 without outbound fallback; catalog failure leaves manual valuation usable; denied/absent camera retains manual input; expired/revoked auth locks account; quota failure preserves durable data.",
+      "implementation_paths": [
+        "apps/web/components/health/barcode-food-lookup.tsx",
+        "apps/web/components/platform/use-platform.ts",
+        "apps/web/components/vault-sync-controls.tsx"
+      ],
+      "proof_boundary": "Independent bounded failure tests exist; current browser local-save-failure/no-success-toast plus local Health/Habit usability not all combined.",
+      "mandatory_local_gaps": [
+        "Add actual UI local quota/save rejection assertion (shared withJRN13) and confirm independent local path still works."
+      ],
+      "external_or_conditional": []
+    },
+    {
+      "id": "JRN-40",
+      "title": "Interruption and resume drill",
+      "criterion": "Stop a disposable in-progress implementation/test scenario at a checkpoint, then use only the saved brief, ledger and resume file to identify exact source, outstanding IDs and next actions. Verify pushed source and protected private-data recovery coverage separately. Do not claim uninterrupted completion as the only recovery strategy.",
+      "assessment": "root_final_gate_pending",
+      "tests": [
+        "scripts/run11/closure-check.test.mjs",
+        "scripts/run11/lifecycle-recovery.test.mjs"
+      ],
+      "assertions_reviewed": "Ledger validator rejects missing/duplicate IDs and unsupported VERIFIED claims; admin recovery replays external checkpoint with serving disabled. These are prerequisites, not a completed task interruption/resume drill.",
+      "implementation_paths": [
+        "docs/run11/STATE.md",
+        "docs/run11/PROOF.md",
+        "docs/run11/CLOSURE.json"
+      ],
+      "proof_boundary": "Root explicitly owns pending source archive/extraction/resume and private recovery readback.",
+      "mandatory_local_gaps": [
+        "Perform the disposable checkpoint/resume drill using only saved brief/ledger/resume, then separately verify pushed source and private-data recovery coverage."
+      ],
+      "external_or_conditional": []
+    }
+  ],
+  "file_sha256": {
+    "apps/web/components/dashboard/today-dashboard.tsx": "3f722826fde9e384b74c6be4ff4ec802016fa5a207c0bc7966999d7943a5803f",
+    "apps/web/components/ecosystem-directory.tsx": "ddad576714440d3ac466189b4a52222e5009647e5f526f3c515b4ad0ffba593a",
+    "apps/web/components/goal-provider.tsx": "3befe06d7a03821405085fa89c11c783348f3c123225f7686cfad1674fe873cf",
+    "apps/web/components/health/barcode-food-lookup.tsx": "6bc24435c2a381993b73d500287673b392f17fa054a77ef1bdee89234f64da4b",
+    "apps/web/components/health/health-app.tsx": "6ffe254d486045075ae66e074690466215c7a4632d40e5d594d0715bdcd5244d",
+    "apps/web/components/platform/evidence-chart.tsx": "13f6877ba7b227eb7631b4820327d3112dcbc156431f596c13aedb59f7c7a8e3",
+    "apps/web/components/platform/markets-view.tsx": "775997b1dde86f26f64651e5ef1aff457df6259f7b8d50862219f17abd112005",
+    "apps/web/components/platform/price-chart.tsx": "ec6d4790407b374507311525df46e4ef0938986f99eb769132e96643e4dff87c",
+    "apps/web/components/platform/use-platform.ts": "f3e8d11b4455f5b3a576bbc72a1c54c74ac44139f932c23eeba5618d1f906de6",
+    "apps/web/components/private-backups.tsx": "19578544931c0f54e66adcfb609229747b443531bb2844bb62e718f06cfc469c",
+    "apps/web/components/shell.tsx": "1c42d33cbd044e8370317ecb4e993e0132fe2833160af8d658b615dc73ca960b",
+    "apps/web/components/unified-goal-wizard.tsx": "a12740d79caec7c0d8cda18585820ea2a8ffe95fa6693c025492e408d81266fa",
+    "apps/web/components/use-entrance.ts": "01f6e4f6852fc6a16752fdf03c668731727b5ed77df9fc77260e88b76b18c3bd",
+    "apps/web/components/vault-sync-controls.tsx": "143317f134f804d9f14630557747be000b117bc60ce061f5683c18231fd5507c",
+    "apps/web/lib/account-access.test.ts": "fe0094c30f508df737f70d88f3044d20bf972f358d7b7b76dfd1580c7ea60477",
+    "apps/web/lib/account-isolation.test.ts": "a429054e7e2af3bb12d2e09a3f7239136c3a61875470419dc55fa5b79e9398c4",
+    "apps/web/lib/account-session.ts": "2f0d45bd902e4dabfb48e4a0e8303a53840c5aef47edfea5b849418261747275",
+    "apps/web/lib/body-measurements.ts": "787f8b31f72f8363619c18154bacbaf4cb73767e0851339e538722e8ef2590ed",
+    "apps/web/lib/coherence.test.ts": "3c24f95a74dda5bde73d6114cabe568b1fceb8f57e2e55daea81ecf7bd2951d2",
+    "apps/web/lib/contribution-funding.ts": "1ae213c3fac000af713cd925ce79aa7c22469baa0c8446d398e9cebce4af5895",
+    "apps/web/lib/dashboard-metrics.test.ts": "4943e98c29b9336e746b33c3ed0cd48d7ecd5cdf4d5d08821fbc7018168218b0",
+    "apps/web/lib/dashboard-settings.test.ts": "b52e6174d2263ee8715c7b4a65c98fc5d68d3b500a93dd9d046d597dd087d208",
+    "apps/web/lib/dashboard-settings.ts": "880526873faa74cd56865f004989e3d79ee16c0281e39a4bd3ee1941a305b0e3",
+    "apps/web/lib/financial-events.test.ts": "a6be84ea60ea4675d3f9769bf431bafd1353112b71f50ef56309ebb3658c8d66",
+    "apps/web/lib/financial-events.ts": "3a05d4a2e5845f554715cc4711818df7f35b4eafc4f02da60f674407f563027f",
+    "apps/web/lib/goal-intelligence.test.ts": "5111210c2a572181d4b1bbe02b4c2c64cc774facdd0ba382fd5b060904c1389f",
+    "apps/web/lib/goal-intelligence.ts": "e1e0ca637d4b28d79145604c6c4e1b1360e5e8aeb03048bdc3013a5f5d78230b",
+    "apps/web/lib/goal-provider.test.ts": "0555a2d49089dba04b2a6d307d8fd86fe2fb892b0a74a31f444b4b4a0a35ce07",
+    "apps/web/lib/goal-status.test.ts": "37df5b4975fca941a2afe1f5818c2ac69a43b186edf66cd78af0a0b5bfc3cae1",
+    "apps/web/lib/markets-bounds.test.ts": "80ac5e156385ee4b6f75eec831b0b216931bf1da36c22f83d432fa4fe4ecc07a",
+    "apps/web/lib/plan-revisions.test.ts": "5d20b892d4c8c427b8e35fe5be17c5a0e08db991a87ceff358b132e5409baef4",
+    "apps/web/lib/plan-revisions.ts": "43234e6f55f8b44797bf34374b9fab734203196f7a1956a529a56afaabd33e1d",
+    "apps/web/lib/platform-storage.test.ts": "963df39b0f426987df3903ecb3ce90bfc7fcd11407d18230eb66e78f665c3bc8",
+    "apps/web/lib/positions.ts": "27e0c787108a16a25c1dec61e470bd87dceb84e272c1e6a87abac9fb1556deec",
+    "apps/web/lib/price-chart.test.ts": "9099621eae090de1f92b46e9cbf2bb0fc64a64a3a68489d9428bf9964133b03c",
+    "apps/web/lib/private-storage.test.ts": "118673af5bdabb6a4880234c5976c45ee8eb12aa098ae7b98fdca5155a47935c",
+    "apps/web/lib/private-storage.ts": "2264697df9a569ef7759f71d426d39bfcdbfe63acc8783d236fd166c62acae66",
+    "apps/web/lib/run9-1.test.ts": "2bd4aab9783f64ff240c268da66d6ec6a2e23831633db2bd5ad09e8e6a7e7f50",
+    "apps/web/lib/server/private-account.test.ts": "52bb4ebcff43d13edc567c5858f5449aacbc99032ac3035c01b20a5cb2f94686",
+    "apps/web/lib/server/private-account.ts": "6ce11e518fc615d33f1ec2a03dedeeb1f22c144e668484aaa9fd54911b9f6eca",
+    "apps/web/lib/showcase-storage.ts": "06b8f39b444f0e6c6b06b7587a1722cf74149822bedf6a170aafe86e29d9198c",
+    "apps/web/lib/showcase.test.ts": "bdb0c71dd6b33aed61e1422cb2220071671ecf966e76be889f82aac1b8361e39",
+    "apps/web/lib/vault/account-data.ts": "9c0432d43ec0369cf29ccac47843dbd1d113d8b7d0c14b746793b963a035347d",
+    "apps/web/lib/vault/account-transport.ts": "7a5a5c100bb4531878dd08babde8c9217a1bb12f4d8d135d10cf3d6dbbd83a0f",
+    "apps/web/lib/vault/backup.test.ts": "2b210ec99ca89ef2f0734941b4a3ad07d53cefed1721a4becd3c7e92a8933bcf",
+    "apps/web/lib/vault/backup.ts": "926cc69fa6a808ad9a019113caee2309f07910e29fec41fa750492aa875f1725",
+    "apps/web/lib/vault/cloud-sync.test.ts": "c7b27a17be350ac3f69d1099f6e111be668526afbdfcaed5586b2ab58930b92b",
+    "apps/web/lib/vault/cloud-sync.ts": "240d9632ef2b26e75b15767ba296cc64fbd0763a133307c5b63a2e4de1eeb358",
+    "apps/web/lib/vault/conflict-review.ts": "8a8a54b6b84d42608b66fe27cf3cdffbe4ceb929dc16d300bbc851c571518129",
+    "apps/web/lib/vault/crypto.test.ts": "b357d7ecbb3b3a2424983b794818609fe7ce1fcc442b33562a5534ab7c311723",
+    "apps/web/lib/vault/crypto.ts": "cb8842219531fcac808079394a4791dd5e82963cc5f983a7909d4aee56d8eb63",
+    "apps/web/lib/vault/database.test.ts": "b516c76d84481a75ce7c1f3a90a75755eac6b72461a2ada561ecf8a655f730a3",
+    "apps/web/lib/vault/database.ts": "af43810707f65c49e0f2dba16f92d34039e4f921b3f69d97b2df2bbfc84ca9a8",
+    "apps/web/lib/vault/domain-lifecycle.ts": "f3e61d4aa1cd3cd7da8b99dd696ca56c4cdc929d8db2001c8206991cac47344d",
+    "apps/web/lib/vault/forward-recovery.test.ts": "329f7c4221320cd2d16d6cec2c4537a0a78ad124e198062ded38dda142d50d37",
+    "apps/web/lib/vault/forward-recovery.ts": "c01036e0502c9ae14075a05ff2db4f485c09e46999098f50757db8c7d636a1a5",
+    "apps/web/lib/vault/local.test.ts": "a3b76b836be3ef4d3c5e054e1bae1592fbb072aba8c53d3ba0343c8794b5c728",
+    "apps/web/lib/vault/local.ts": "f7d3f8dc6f5d6ddfb1113c8339dc76b843010dcd5d05bb6c5b31560109bbfc9f",
+    "apps/web/lib/vault/pending-recovery.test.ts": "de699712fdc0baa02e61f43555056a1e37b7d3c7f27f38121b043f8b259e7b59",
+    "apps/web/lib/wealth.test.ts": "af0a88251cfe53c987094bd30f3c852f081b6c6daa02c016fc633a681119d122",
+    "apps/web/lib/wealth.ts": "fc58e16ceff19c77c9af1c4b7d66c25960439c2783ddcdac7a047167d58a137d",
+    "apps/web/tests/run10-barcode.spec.ts": "06c34afe886fa6dc0e9526aba54e1b6ae5631a666903a51b83c0eea08e2621d7",
+    "apps/web/tests/run10-dashboard-placement.spec.ts": "a532601a89c71169aa60e3a52ef98fb63af368f720559528a5ab19aefde6ca10",
+    "apps/web/tests/run10-ecosystem.spec.ts": "9c56cd1e9f77a7a25f4efa496174a8594111e9678b7f878f50e7bb0a05d9c0fd",
+    "apps/web/tests/run10-financial-evidence.spec.ts": "b4f727a1e291bb5873d41916f528138903292ef9afd496adf8c695429f742e80",
+    "apps/web/tests/run10-goal-creator.spec.ts": "e1f035811946c2417f064c0f2bf33f8e9406997b296962d44f0bdea4affcbe6e",
+    "apps/web/tests/run10-health-only-journey.spec.ts": "7fc78a32c14c9961a707d7a1b7c61169ad55e007a28cc2c6e744ee9e9c58299b",
+    "apps/web/tests/run10-motion.spec.ts": "4835562473b4e15c32058f0a72c203d54e6b3529332933ee72d5653d402a97a2",
+    "apps/web/tests/run10-plan-revisions.spec.ts": "f4fb857612d75272a14d92dc54da6f1a33b7a0d3e434824081e956f0116f79a5",
+    "apps/web/tests/run10-private-vault.spec.ts": "7301244c55f6bdd56a3220109a968b4a5a028d6810be4f830bf7a8683c989d33",
+    "apps/web/tests/run10-shared-visuals.spec.ts": "4894010f67e180f4ce015526d3a4a580b23639c9808b80c6f3e25a258d2f310e",
+    "apps/web/tests/run10-widgets.spec.ts": "ddb3813c5df8d600eea031a9fc0e29aaf0d35593cb4066b109b75d0fdf17bdfa",
+    "apps/web/tests/run11-financial-previews.spec.ts": "5167a77f39bd3a28e9804004cdb37eb0f4f58b4a01e6e894dd3b69f9886bbed6",
+    "apps/web/tests/run11-goal-draft.spec.ts": "c0ff4a6b550fe5122c4f3d0a86d755aff2ddfd09fa3a8a039f27efa5926acafc",
+    "apps/web/tests/run11-goal-history.spec.ts": "80b1a53c0be23e818be3ca0530109019354704d1ee4b3e4494537dab13c9bae3",
+    "apps/web/tests/run11-layout-stability.spec.ts": "a28105975392d939c3f126f59e2ae847c30cf3ff7486da25f041d27f86206df6",
+    "apps/web/tests/run11-migration-recovery.spec.ts": "cae5d203ba1b6db831a11c10f8febb032bc7e827d7fa359cb4a3cab24f16bb9a",
+    "apps/web/tests/run9-2-product.spec.ts": "293a1289484f982b80008631f2296b6d4d192349a352fcb4ee0e591b3911e1c7",
+    "apps/web/tests/run9-2-security.spec.ts": "2d3163f2e16d9848539919ace6bc5e8da1bc121ed9a4cae960de04634c1cbcf0",
+    "apps/web/tests/run9.spec.ts": "91220272ea242379c0fe4b6d92fe12dac3e803aebad295c9c7adee2ace96a127",
+    "apps/web/tests/transactions.spec.ts": "89933ea423b14e28c367d416c455360aa843d4432ca2b5122780fb2fc642f73b",
+    "apps/web/tests/wallet-reload.spec.ts": "85a7cab0e72e110a35ffe69c7399a037067292db50c5344f98ec48fd25a3750a",
+    "docs/release/artifact-manifest.schema.json": "bceb445e6bfa77712a3bb6a15e6a8a790e7b5dd820881c40f9abccfc92472d77",
+    "docs/run10/ECOSYSTEM_COVERAGE.json": "c4eeb1477a04dc05e89e60668cd641bd8544255279ad0e49fb9c44a11ac16765",
+    "docs/run10/SCREENSHOT_INDEX.md": "e9a67ec54eb86f8ee9b340c216e32d74a100b99e0c3b344eeb82324962816b1f",
+    "docs/run10/VISUAL_EVIDENCE.md": "85f3949203814081577f37a69ff2335a8457f60860ded25a75309d3b8ccaf2ed",
+    "docs/run11/CLOSURE.json": "9d9e00ae4316d1b57a9cf8ba5c248ae45227d44675610554f9ebe382e13a4b55",
+    "docs/run11/PROOF.md": "c4a8c8ea3d847c047417af74f173d682e0701ae7f53d5a16d311aa20973a18dd",
+    "docs/run11/STATE.md": "1e6194500b4bb822d7ddc46b9ed450f678bb97bfc825cfbf0e6a8faaf53aad8e",
+    "packages/ecosystem-registry/src/directory.test.ts": "01fa3ff4e5d32b97cdbd652e734e8f997805fcd93beb0d3d24e2cf7c000cee22",
+    "packages/ecosystem-registry/src/directory.ts": "06a962dd1b9eb9cadb668db3890b6716b490eb5a0dd399a26fa5ff1c98ccd8ae",
+    "scripts/prepare-deployment.test.mjs": "e7e7de68e60dfa6fde700058e2d518ac9e4ac35f3f90f9655a0f760340a31788",
+    "scripts/release/manifest.mjs": "0df2312b3a9df7b73c8a43b8ec29f57bb8127559873f8f016e1839b917fc2f70",
+    "scripts/release/manifest.test.mjs": "7fa8c223d1db48110b1b4fd80145c787a22da71586676b9182609d74312bbfeb",
+    "scripts/release/verify.mjs": "20671ebd6f92053a9577ad9ce286cf4d0ada46045d2de8494adb0c9ff3333e74",
+    "scripts/release/verify.test.mjs": "ffd58cffd506a03cf891b6c05da7c3b3f01e284a7d4ea58a51e3eebc5aafe9c2",
+    "scripts/run10/account-browser.test.mjs": "1e417eccbe83e0da390d1edeb9d3e2fb76aaf9940487fd46b4c2b78d93b5b09d",
+    "scripts/run10/sync-runtime.test.mjs": "42a7b96230826455e5bc4cf506db89d4e4f3f16bdee61c9683948e2516c663b0",
+    "scripts/run11/account-switch-browser.test.mjs": "f9e7f0bda49c35e0f986cdcc5083af5b8f73bc02bb50f2761b24a16a940d22ee",
+    "scripts/run11/activation-check.mjs": "36c5089a89b76dc963e0555a726c3b7bfe40ae0fe7b147bd55c0e86a05ebbc42",
+    "scripts/run11/activation-check.test.mjs": "c3f247e2835366c99ad947c72387d96334cc233d20116568a23876ba4c5e2357",
+    "scripts/run11/closure-check.test.mjs": "b959dbd64b36aefc9340c2779880e4c446c380968063421c8edfdb85b71570e0",
+    "scripts/run11/conflict-runtime.test.mjs": "c73d234a526b5d732eb29a0018bae5d3c096d4902d6adcd5a9ec037b3abfab1a",
+    "scripts/run11/domain-deletion.test.mjs": "fb65dbe7ff8fc218b4fd6fa33870039d2f83f724ab8b4723227906d2dc539e52",
+    "scripts/run11/domain-review-race.test.mjs": "52a732066b251893cb976cc07ab742fabce53e5421368635265c4e70cb86f2aa",
+    "scripts/run11/incremental-sync.test.mjs": "bc7b1e3ffe83b4dce0c6b345e77c43c8cec0c71864f25f755dbf57471dfba09e",
+    "scripts/run11/lifecycle-recovery.test.mjs": "230ef9e03ffdf67bc0cc18d8f096e6edd32ef627f6ae79e6cc7ba5d956119a08",
+    "scripts/run11/market-follower-deadline.test.mjs": "fa759c0a78102e49085c21f9c9df148f9a34c680f6ad4f833ad7c2802b04d5bd",
+    "scripts/run11/market-load-matrix.test.mjs": "60820182742b1cc6df79957c15daa7c2bc8978a7ac01966648ec9d38709ef01b",
+    "scripts/run11/observation-conflict.test.mjs": "06825b16b180175715817dd9b7aa6401cc89c87c9dd5f61585ece0f7afb6a8f0",
+    "scripts/run11/packaged-consumer-journey.mjs": "41ee9d65e607f8197bb18a4f0e824559b25b0d736c2cdb7453cd2e4e7a965cef",
+    "scripts/run11/packaged-runtime.test.mjs": "f297da4934fe87d4dd814fddff7ce7e61e0c478607ede8593b618fbcefa6459f",
+    "scripts/run11/session-refresh.test.mjs": "958ed8272e49f6766f43ba5f6b2c447b5ee1eb0f1e7a6a93f1114be3a45c10b8",
+    "workers/market-coordinator/README.md": "9d0f418db9d2ce283d5c18f67972c751c3596ef894c9c10694e5a2b161c49fbf",
+    "workers/market-coordinator/worker.ts": "1e7046fb1fc8f41a1e3d2f6e148aedf5e98931cb4e84e05a5340491f029002fb",
+    "workers/private-sync/lifecycle.mjs": "563c285f8bff681fb69a3ac9a849ce1a1f79f70029a373d680a985faad864f1f",
+    "workers/private-sync/sessions.mjs": "80932bc12fbe80e7f821e34f8a709d7edc0a600366b857c11e7dc4dc2bd58de0",
+    "workers/private-sync/worker.mjs": "ebef7fc4e32439511982156fc02f39639bf554cfb38cc08d9cc5f47460a70904"
+  },
+  "review_limits": [
+    "No external/live provider calls, owner accounts, email delivery, physical device interaction, signing, deployment or exhaustive security certification.",
+    "Root account-switch/migration/Showcase/package/recovery work continues concurrently; this review preserves initial identified boundaries until exact new assertions are read."
+  ]
+}
