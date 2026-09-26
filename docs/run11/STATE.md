@@ -12,6 +12,10 @@
 - Latest logs: `/tmp/zigoals-run11-account-switch-showcase.log`, `/tmp/zigoals-run11-migration-browser.log`, `/tmp/zigoals-run11-package-complete-journey.log`, `/tmp/zigoals-run11-{contract-tests,contract-clippy,contract-schema,audit}.log`. Earlier source-bound evidence remains in PROOF.md and historical state below. Final receipts must distinguish source versions.
 - Authoritative brief read once; SHA256 `cc43685a602695989cf1370f83fc4f8061c8ed705d34b7eb5538359cec1c3cde`. Scope314IDs. No merge/deploy/live migration/deletion/DNS/real email/provider-account/financial/billing action. Eight owner setup activities remain after code acceptance; real inbox/hosted/physical-device proof stays separate. No allowance cutoff.
 
+- Integration checkpoint2026-09-27: clean application build860a8edeec5a2cab61712b4336187d4dbac578b7; fullunits1570pass/5opt-in skips; package3profiles/allservices1pass27.45s;420productionbrowser cases nearing completion. Market/account-switch2pass, both reconnect orders failed only exactrevocationfeedback because own lockevent invalidated guardedcatch; fixed1d46d6a with22focusedtests, oldassertionsretained. Rebuild/retest affected source before completion.
+- Source-only archive2a120858a66f68f526627854b9c08ce161c7b71f verified1371files, SHA2566bc888fb47f6857a83ed468863f2a85a605a97a34ac2a290a2aac73e7405e4eb; actualinstallSIGTERM then offlinefrozenresume, typecheck/crypto/local/historicalclient tests and restoredHealth/SettingsHTTP200 passed. Receipt `/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-run11-source-recovery-ihLlmo/checkpoint.json`. This archive excludes later1d46d6a; finalsource archive remains required.
+- Verified remote2a120858a66f68f526627854b9c08ce161c7b71f. Helperdocs39a872d; scoped stale-operation effects fixa45b742 and revocationfeedbackfix1d46d6a. No liveoperation. Owned production3112 session70719, Alpha8788 session99794; only stop these when rebuilding. Dev3113 stopped; owner3111/unrelated3100 untouched.
+
 ## Historical checkpoints
 
 
