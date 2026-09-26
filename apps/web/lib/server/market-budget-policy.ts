@@ -9,7 +9,7 @@ export type BudgetPeriod={id:string;start:number;end:number};
 export type BudgetPeriods={month:BudgetPeriod};
 export type ReservationRequest={id:string;cost:number;kind:'request'|'retry'|'fallback';priority:MarketPriority};
 export type Reservation=ReservationRequest & {status:'QUEUED'|'RESERVED'|'OWNED'|'DISPATCHED'|'SETTLED'|'CANCELLED';reservedAt:number;dispatchedAt?:number;ownershipUntil?:number;periods?:BudgetPeriods;policyKey?:string;outcome?:'success'|'failure'};
-export type BudgetState={lastTime:number;periods?:BudgetPeriods;reservations:Readonly<Record<string,Reservation>>};
+export type BudgetState={lastTime:number;periods?:BudgetPeriods;archived?:{month:string;credits:Record<MarketPriority,number>;attempts:number;lifetimeCredits?:number};reservations:Readonly<Record<string,Reservation>>};
 export type BudgetReason='POLICY_UNAVAILABLE'|'POLICY_CHANGED'|'INVALID_REQUEST'|'CLOCK_OR_PERIOD'|'DUPLICATE_OPERATION'|'INVALID_TRANSITION'|'RESERVATION_EXPIRED'|'OWNERSHIP_EXPIRED'|'MINUTE_LIMIT'|'CONCURRENT_LIMIT'|'MONTHLY_LIMIT'|'MONITORING_LIMIT'|'OPTIONAL_LIMIT'|'QUEUE_LIMIT';
 export type BudgetDecision={ok:true;state:BudgetState;reason?:never}|{ok:false;state:BudgetState;reason:BudgetReason};
 export const emptyBudgetState=():BudgetState=>({lastTime:0,reservations:{}});
@@ -33,19 +33,19 @@ function validTime(s:BudgetState,periods:BudgetPeriods,now:number){
 }
 const validRequest=(r:ReservationRequest)=>/^[A-Za-z0-9_-]{1,100}$/.test(r.id)&&integer(r.cost)&&r.cost>0&&['request','retry','fallback'].includes(r.kind)&&['interactive','refresh','optional','monitoring'].includes(r.priority);
 function put(s:BudgetState,row:Reservation,now:number,periods=s.periods):BudgetDecision {
- return {ok:true,state:{lastTime:now,periods:periods?{month:{...periods.month}}:undefined,reservations:{...s.reservations,[row.id]:row}}};
+ return {ok:true,state:{...s,lastTime:now,periods:periods?{month:{...periods.month}}:undefined,reservations:{...s.reservations,[row.id]:row}}};
 }
 function admit(s:BudgetState,p:BudgetPolicy,periods:BudgetPeriods,r:ReservationRequest,now:number):BudgetReason|undefined {
  const charged=Object.values(s.reservations).filter(r=>!['QUEUED','CANCELLED'].includes(r.status));
  for(const k of ['minute','monthly'] as const){
  const rows=charged.filter(r=>r.status==='RESERVED'||r.status==='OWNED'||(k==='minute'?r.dispatchedAt!>now-60000:r.periods?.month.id===periods.month.id));
  const cost=(row:ReservationRequest)=>k==='minute'?1:row.cost;
- const sum=(rows:Reservation[])=>rows.reduce((n,row)=>n+cost(row),0);
+ const sum=(rows:Reservation[],priorities:MarketPriority[]=['interactive','refresh','optional','monitoring'])=>rows.reduce((n,row)=>n+cost(row),0)+(k==='monthly'&&s.archived?.month===periods.month.id?priorities.reduce((n,priority)=>n+s.archived!.credits[priority],0):0);
  const n=cost(r),limit=k==='minute'?'MINUTE_LIMIT':'MONTHLY_LIMIT';
  if(r.priority==='monitoring'){
- if(sum(rows.filter(row=>row.priority==='monitoring'))+n>p.monitoringMaximum[k])return 'MONITORING_LIMIT';
+ if(sum(rows.filter(row=>row.priority==='monitoring'),['monitoring'])+n>p.monitoringMaximum[k])return 'MONITORING_LIMIT';
  }else{
- if(sum(rows.filter(row=>row.priority!=='monitoring'))+n>p.operating[k]-p.monitoringReserve[k])return limit;
+ if(sum(rows.filter(row=>row.priority!=='monitoring'),['interactive','refresh','optional'])+n>p.operating[k]-p.monitoringReserve[k])return limit;
  if((r.priority==='optional'||r.priority==='refresh')&&sum(rows)+n>p.optionalCeiling[k])return 'OPTIONAL_LIMIT';
  }
  if(sum(rows)+n>p.operating[k])return limit;

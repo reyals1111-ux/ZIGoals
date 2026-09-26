@@ -11,7 +11,7 @@ export async function configuredDurableCatalog(){
  const runtime=await marketRuntime();if(runtime.mode==='development')return null;
  const unavailable={assets:[],error:'Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.',fetchedAt:null,stale:true};
  if(runtime.mode!=='durable')return unavailable;
- try{const response=await runtime.binding.fetch(new Request('https://market.internal/catalog',{method:'POST',headers:{'content-type':'application/json'},body:'{"version":1}'}));if(!response.ok)return unavailable;return catalogSchema.parse(JSON.parse(await boundedQuoteText(response,16*1024*1024)));}catch{return unavailable;}
+ try{const response=await runtime.binding.fetch(new Request('https://market.internal/catalog',{method:'POST',headers:{'content-type':'application/json'},body:'{"version":1}'}));if(!response.ok)return unavailable;return catalogSchema.parse(JSON.parse(await boundedQuoteText(response,32*1024*1024)));}catch{return unavailable;}
 }
 export async function configuredDurableHistory(request:MarketHistoryRequest){
  const runtime=await marketRuntime();if(runtime.mode==='development')return null;

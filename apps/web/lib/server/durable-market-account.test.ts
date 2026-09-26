@@ -4,6 +4,7 @@ import {DurableMarketAccount,type AtomicMarketStorage} from './durable-market-ac
 class Storage implements AtomicMarketStorage{
  rows=new Map<string,unknown>();fail=false;private gate=Promise.resolve();
  async get<T>(key:string){return structuredClone(this.rows.get(key)) as T|undefined;}async put(key:string,value:unknown){if(this.fail)throw Error('injected storage failure');this.rows.set(key,structuredClone(value));}
+ async delete(key:string){this.rows.delete(key);}
  async transaction<T>(fn:(tx:AtomicMarketStorage)=>Promise<T>):Promise<T>{let release!:()=>void;const previous=this.gate;this.gate=new Promise(r=>{release=r;});await previous;const tx=new Storage();tx.rows=structuredClone(this.rows);tx.fail=this.fail;try{const result=await fn(tx);this.rows=tx.rows;return result;}finally{release();}}
 }
 const policy={providerMinuteLimit:10,providerMonthlyLimit:100,operating:{minute:8,monthly:80},monitoringReserve:{minute:1,monthly:10},monitoringMaximum:{minute:1,monthly:10},optionalCeiling:{minute:5,monthly:50},concurrent:1,queueLimit:4,reservationMs:10000,ownershipMs:2000};
@@ -58,4 +59,59 @@ test('ZIG token fallback and RWA quote own distinct charged attempts and publish
  const first=await dispatchDurableQuotes(requests,{command:body=>account.apply(body),key:'fixture',clock:()=>1000,fetcher});
  expect(first.complete).toBe(true);expect(first.quotes.map(q=>q.price)).toEqual(['2','3']);expect(seen).toEqual(['/api/v3/simple/price','/api/v3/simple/token_price/ethereum','/api/v3/rwas/markets']);expect(await account.apply({action:'inspect'})).toMatchObject({attempts:3,chargedCredits:16});
  const second=await dispatchDurableQuotes(requests,{command:body=>account.apply(body),key:'fixture',clock:()=>1000,fetcher});expect(second.quotes).toEqual(first.quotes);expect(seen).toHaveLength(3);
+});
+
+test('nonquote evidence is durably fenced, coalesced and retained at its original freshness',async()=>{
+ const {account,advance}=setup({operationCosts:{history:4},month:{id:'long',start:0,end:10000000}});
+ const work={operation:'history',pair:{marketRef:{provider:'coingecko',kind:'coin',id:'bitcoin'},currency:'USD'},range:'1d'};
+ const owner=await account.apply({action:'acquire',work});expect(owner.status).toBe('OWNER');expect(await account.apply({action:'acquire',work})).toMatchObject({status:'WAITING'});
+ const attempt=await account.apply({action:'enqueue-read',operation:'history',associations:[{work,lease:owner.lease}]});expect(attempt.ok).toBe(true);
+ for(const action of ['reserve','own','dispatch'])expect(await account.apply({action,id:attempt.id})).toMatchObject({ok:true});
+ const value={...work.pair,range:'1d',source:'CoinGecko',fetchedAt:new Date(100).toISOString(),points:[]};
+ expect(await account.apply({action:'publish-data',id:attempt.id,work,value})).toMatchObject({ok:true});
+ expect(await account.apply({action:'acquire',work})).toMatchObject({status:'CACHE_HIT',value});
+ advance(900101);const successor=await account.apply({action:'acquire',work});expect(successor).toMatchObject({status:'OWNER',value,degraded:true});
+ expect(await account.apply({action:'publish-data',id:attempt.id,work,value})).toMatchObject({ok:false,reason:'FENCED'});
+});
+
+test('history followers do not dispatch, stale evidence survives failure, and LRU reuse fences old publications',async()=>{
+ const {durableHistory}=await import('./market-durable-data');const {account,advance}=setup({operationCosts:{history:4},maxWorks:1,month:{id:'long',start:0,end:10000000}});
+ const request={marketRef:{provider:'coingecko' as const,kind:'coin' as const,id:'bitcoin'},currency:'USD' as const,range:'1d' as const};let now=100,calls=0,release!:()=>void,sent!:()=>void;
+ const started=new Promise<void>(r=>{sent=r;}),held=new Promise<void>(r=>{release=r;});let failed=false;
+ const context={command:(c:unknown)=>account.apply(c),key:'fixture',clock:()=>now,fetcher:async()=>{calls++;sent();await held;return failed?new Response('',{status:503}):Response.json({prices:[[50,2],[100,3]]});}};
+ const owner=durableHistory(request,context);await started;const follower=await durableHistory(request,context);expect(follower.history).toBeNull();expect(calls).toBe(1);release();const first=await owner;expect(first.history?.fetchedAt).toBe(new Date(100).toISOString());
+ now=900101;advance(now);failed=true;const stale=await durableHistory(request,context);expect(stale.history).toEqual(first.history);expect(stale.stale).toBe(true);expect(stale.error).toBeTruthy();expect(calls).toBe(2);
+ now+=1001;advance(now);const other={operation:'history',pair:{...request,marketRef:{...request.marketRef,id:'ethereum'},range:undefined},range:'1d'};delete (other.pair as {range?:unknown}).range;
+ expect(await account.apply({action:'acquire',work:other})).toMatchObject({status:'OWNER'});expect(await account.apply({action:'inspect'})).toMatchObject({workKeys:1});
+});
+
+test('terminal compaction preserves monthly credits and retry receipts; pruning never recreates authority',async()=>{
+ const tiny={...policy,providerMonthlyLimit:10,operating:{minute:8,monthly:4},monitoringReserve:{minute:1,monthly:1},monitoringMaximum:{minute:1,monthly:1},optionalCeiling:{minute:5,monthly:3}};
+ const {account,advance}=setup({policy:tiny,operationCosts:{history:2},maxAttempts:1,retryRetentionMs:60000,month:{id:'long',start:0,end:10000000}});
+ const a=await account.apply({action:'enqueue-read',operation:'history'});for(const action of ['reserve','own','dispatch'])expect(await account.apply({action,id:a.id})).toMatchObject({ok:true});await account.apply({action:'settle',id:a.id,outcome:'success'});
+ advance(60200);expect(await account.apply({action:'inspect'})).toMatchObject({attempts:0,archivedAttempts:1,chargedCredits:2});expect(await account.apply({action:'settle',id:a.id,outcome:'success'})).toMatchObject({ok:true,replay:true});
+ const b=await account.apply({action:'enqueue-read',operation:'history'});expect(await account.apply({action:'reserve',id:b.id})).toMatchObject({ok:false,reason:'MONTHLY_LIMIT'});
+ advance(120101);expect(await account.apply({action:'settle',id:a.id,outcome:'success'})).toMatchObject({ok:false,reason:'INVALID_TRANSITION'});expect(await account.apply({action:'inspect'})).toMatchObject({chargedCredits:2});
+});
+test('crashed dispatched work releases concurrency only after its hard horizon while remaining charged',async()=>{
+ const {account,advance}=setup({operationCosts:{history:2}});const a=await account.apply({action:'enqueue-read',operation:'history'});for(const action of ['reserve','own','dispatch'])await account.apply({action,id:a.id});advance(10100);
+ expect(await account.apply({action:'inspect'})).toMatchObject({dispatched:0,chargedCredits:2});expect(await account.apply({action:'settle',id:a.id,outcome:'success'})).toMatchObject({ok:false});expect(await account.apply({action:'settle',id:a.id,outcome:'failure'})).toMatchObject({ok:true,replay:true});
+});
+test('persisted account-authentication breaker blocks other endpoints; one budgeted recovery probe survives restart',async()=>{
+ const breaker={threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1};
+ const {account,storage,advance}=setup({operationCosts:{history:2,insights:3},breaker});
+ async function prepared(operation:string){const a=await account.apply({action:'enqueue-read',operation});for(const action of ['reserve','own'])expect(await account.apply({action,id:a.id})).toMatchObject({ok:true});return a;}
+ const first=await prepared('history');expect(await account.apply({action:'dispatch',id:first.id})).toMatchObject({ok:true});await account.apply({action:'settle',id:first.id,outcome:'failure',category:'AUTHENTICATION'});
+ const next=await prepared('insights');expect(await account.apply({action:'dispatch',id:next.id})).toMatchObject({ok:false,reason:'BREAKER_OPEN'});await account.apply({action:'cancel',id:next.id});expect(await account.apply({action:'inspect'})).toMatchObject({chargedCredits:2});
+ advance(2100);const restarted=new DurableMarketAccount(storage,()=>2100,JSON.stringify({...config,operationCosts:{history:2,insights:3},breaker}));
+ const recovery=await restarted.apply({action:'enqueue-read',operation:'insights'});for(const action of ['reserve','own','dispatch'])expect(await restarted.apply({action,id:recovery.id})).toMatchObject({ok:true});await restarted.apply({action:'settle',id:recovery.id,outcome:'success'});
+ expect(await restarted.apply({action:'inspect'})).toMatchObject({chargedCredits:5});
+});
+
+test('evicted work-slot reuse cannot authorize a former UUID lease even when numeric generation restarts',async()=>{
+ const {account,advance}=setup({maxWorks:1});const first=await attempt(account);for(const action of ['reserve','own','dispatch'])await account.apply({action,id:first.id});
+ const quote={base:{network:'coingecko-coin',denom:'bitcoin',decimals:0},marketRef:work('bitcoin').pair.marketRef,currency:'USD',price:'123',priceDecimals:2,source:'CoinGecko',providerAssetId:'bitcoin',verification:'VERIFIED',fetchedAt:new Date(100).toISOString()};
+ expect(await account.apply({action:'publish',id:first.id,work:work('bitcoin'),quote})).toMatchObject({ok:true});expect(await account.apply({action:'publish',id:first.id,work:work('bitcoin'),quote})).toMatchObject({ok:true,replay:true});await account.apply({action:'settle',id:first.id,outcome:'success'});
+ advance(1101);expect(await account.apply({action:'acquire',work:work('ethereum')})).toMatchObject({status:'OWNER'});advance(2102);const successor=await account.apply({action:'acquire',work:work('bitcoin')});expect(successor).toMatchObject({status:'OWNER'});expect(successor.lease).not.toEqual(first.associations[0]?.lease);
+ expect(await account.apply({action:'publish',id:first.id,work:work('bitcoin'),quote})).toMatchObject({ok:false,reason:'FENCED'});
 });

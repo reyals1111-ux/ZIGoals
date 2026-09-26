@@ -26,7 +26,7 @@ test('installed OpenNext production runtime → real routes → named service �
   if(request.headers.get('x-cg-demo-api-key')!=='fixture-key')return new Response('private-auth-detail',{status:401});
   if(url.pathname.endsWith('/simple/price')){const id=url.searchParams.get('ids');return id==='bitcoin'?Response.json({bitcoin:{usd:2,last_updated_at:Math.floor(now/1000)}}):new Response('private-failure',{status:503});}
   if(url.pathname.endsWith('/simple/token_price/ethereum'))return new Response('private-fallback-failure',{status:503});
-  if(url.pathname.endsWith('/coins/list'))return Response.json([{id:'bitcoin',name:'Bitcoin',symbol:'btc',platforms:{}}]);
+  if(url.pathname.endsWith('/coins/list'))return Response.json(Array.from({length:8000},(_,i)=>({id:'coin-'+i,name:'Synthetic catalog asset '+i,symbol:'c'+i,platforms:{ethereum:'0x'+'1'.repeat(40)}})));
   if(url.pathname.endsWith('/rwas/list'))return Response.json([{id:'gold',name:'Gold',symbol:'gold',asset_type:'commodity'}]);
   if(url.pathname.endsWith('/market_chart'))return Response.json({prices:[[now-1000,2],[now,3]]});
   if(url.pathname.endsWith('/coins/markets'))return Response.json([{id:'bitcoin',last_updated:new Date(now).toISOString(),price_change_percentage_24h:2}]);
@@ -35,12 +35,12 @@ test('installed OpenNext production runtime → real routes → named service �
  const call=async(path,body)=>{const response=await mf.dispatchFetch('https://app/api/market-'+path,{method:body?'POST':'GET',headers:{'content-type':'application/json',cookie:'private',authorization:'private'},...(body?{body:JSON.stringify(body)}:{})});return {status:response.status,body:await response.json()};};
  mf=await runtime();try{
   const result=await call('quotes',{requests:[pair('bitcoin'),pair('zignaly')]});expect(result.status).toBe(200);expect(result.body.results.map(r=>r.failure)).toEqual([null,'UPSTREAM_5XX']);expect(result.body.quotes[0].price).toBe('2');
-  const catalog=await call('assets');expect(catalog.status).toBe(200);expect(catalog.body.assets).toHaveLength(2);
+  const catalog=await call('assets');expect(catalog.status).toBe(200);expect(catalog.body.assets).toHaveLength(8001);
   expect((await call('history',{request:{...pair('bitcoin'),range:'1d'}})).status).toBe(200);
   expect((await call('insights',{requests:[pair('bitcoin')]})).status).toBe(200);
   expect(calls).toHaveLength(7);expect(await inspect()).toMatchObject({chargedCredits:25,dispatched:0});
   expect(JSON.stringify(result.body)).not.toContain('private');
-  await mf.dispose();mf=await runtime();expect((await call('quotes',{requests:[pair('bitcoin')]})).status).toBe(200);expect(calls).toHaveLength(7);
+  await mf.dispose();mf=await runtime();expect((await call('quotes',{requests:[pair('bitcoin')]})).status).toBe(200);expect((await call('assets')).body).toEqual(catalog.body);expect((await call('history',{request:{...pair('bitcoin'),range:'1d'}})).status).toBe(200);expect((await call('insights',{requests:[pair('bitcoin')]})).status).toBe(200);expect(calls).toHaveLength(7);
   await mf.dispose();mf=await runtime('');expect((await call('quotes',{requests:[pair('ethereum')]})).status).toBe(503);expect(calls).toHaveLength(7);
   await mf.dispose();mf=await runtime('wrong');const wrong=await call('quotes',{requests:[pair('ethereum')]});expect(wrong.body.results[0].failure).toBe('AUTHENTICATION');expect(calls).toHaveLength(8);
   await mf.dispose();mf=await runtime('fixture-key',false);expect((await call('quotes',{requests:[pair('bitcoin')]})).status).toBe(503);expect(calls).toHaveLength(8);
@@ -68,4 +68,17 @@ test('named service bounds malformed, throttled, timed-out and interrupted provi
   expect(results[5]).toBe('TIMEOUT');expect(calls).toBe(6);
   const ns=await mf.getDurableObjectNamespace('MARKETS','market');const state=await (await ns.get(ns.idFromName('fixture-account')).fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json();expect(state).toMatchObject({chargedCredits:18,dispatched:0});
  }finally{await mf.dispose();}
+},30000);
+
+test('real account breaker survives restart, blocks cross-endpoint sends and charges its recovery probe',async()=>{
+ const code=await bundles(),now=Date.now(),persist=await mkdtemp(join(tmpdir(),'run11-market-breaker-'));let mf,calls=0;
+ const config={policy,month:{id:'fixture-month',start:now-1000,end:now+300000},quoteCost:3,operationCosts:{history:4},leaseMs:1000,maxAttempts:128,maxWorks:64,breaker:{threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1}};
+ const runtime=clock=>new Miniflare({...convertV4MiniflareOptions({workers:[{name:'app',modules:true,script:'export default {fetch(request,env){return env.MARKET_QUOTES.fetch(request)}}',compatibilityDate:'2026-09-13',serviceBindings:{MARKET_QUOTES:{name:'market',entrypoint:'QuoteService'}}},{name:'market',modules:true,script:code.market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'fixture-account',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config),COINGECKO_DEMO_API_KEY:'fixture-key',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(clock)},outboundService:async request=>{calls++;if(calls===1)return new Response('',{status:401});const id=new URL(request.url).searchParams.get('ids');return Response.json({[id]:{usd:2,last_updated_at:Math.floor(now/1000)}});}}]}),resourcePersistencePath:persist});
+ const call=async(path,body)=>(await mf.dispatchFetch('https://app/'+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({version:1,...body})})).json();
+ try{
+  mf=runtime(now);expect((await call('quotes',{requests:[pair('auth-failed')]})).results[0].failure).toBe('AUTHENTICATION');
+  expect((await call('history',{request:{...pair('bitcoin'),range:'1d'}})).history).toBeNull();expect(calls).toBe(1);
+  await mf.dispose();mf=runtime(now+2000);expect((await call('quotes',{requests:[pair('bitcoin')]})).results[0].status).toBe('VERIFIED_FRESH');expect(calls).toBe(2);
+  const ns=await mf.getDurableObjectNamespace('MARKETS','market');const state=await(await ns.get(ns.idFromName('fixture-account')).fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json();expect(state).toMatchObject({chargedCredits:6,dispatched:0});
+ }finally{await mf?.dispose();}
 },30000);
