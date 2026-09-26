@@ -12,7 +12,7 @@ concurrency:
 jobs:
   web:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -29,9 +29,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/doctor.mjs
       - run: pnpm check:deploy-configs && pnpm check:landing
+      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
       - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
       - run: pnpm audit --prod --audit-level high
-      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: /tmp/zigoals-web-results.json
@@ -51,8 +51,18 @@ jobs:
             /tmp/zigoals-web-results/
           if-no-files-found: warn
           retention-days: 7
+      - name: Independent browser account and market integration
+        env:
+          RUN10_BROWSER: "1"
+          RUN11_MARKET_BROWSER: "1"
+          RUN11_REVIEW_ORIGIN: http://127.0.0.1:3100
+        run: pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/market-browser.test.mjs --reporter=verbose
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
+      - name: Full generated Run11 package and local service topology
+        run: |
+          node scripts/run11/activation-check.mjs --source "$GITHUB_SHA" --dry-run
+          RUN11_PACKAGED=1 RUN11_PACKAGE_BUNDLE=/tmp/zigoals-run11-dry-app/worker.js pnpm exec vitest run scripts/run11/packaged-runtime.test.mjs --reporter=verbose
       - run: pnpm --filter @zigoals/web preview:alpha > /tmp/zigoals-alpha.log 2>&1 &
       - name: Public Alpha Workers security gate
         env:

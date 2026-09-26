@@ -1,4 +1,5 @@
 import {test,expect} from 'vitest';
+import {createServer} from 'node:http';
 import {createRequire} from 'node:module';
 import {mkdtemp,readFile,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -10,6 +11,7 @@ import {createVault} from '../../apps/web/lib/vault/crypto';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{build}=require('esbuild');
 const {unstable_getMiniflareWorkerOptions}=require('wrangler');
+const webRequire=createRequire(new URL('../../apps/web/package.json',import.meta.url)),{chromium}=webRequire('@playwright/test');
 const root=new URL('../../',import.meta.url).pathname;
 const pair=id=>({marketRef:{provider:'coingecko',kind:'coin',id},currency:'USD'});
 // Requires a generated OpenNext build and Wrangler dry-run bundle. This test never
@@ -20,13 +22,13 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
  const bundle=async path=>(await build({entryPoints:[resolve(root,path)],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;
  const codes=await Promise.all(['workers/private-sync/worker.mjs','workers/private-sync/lifecycle.mjs','workers/market-coordinator/worker.ts','workers/food-lookup/worker.mjs','workers/auth-abuse/worker.mjs'].map(bundle));
  const policy={providerMinuteLimit:100,providerMonthlyLimit:1000,operating:{minute:90,monthly:900},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:3,monthly:30},optionalCeiling:{minute:80,monthly:800},concurrent:2,queueLimit:16,reservationMs:20000,ownershipMs:10000};
- const origin='https://app.test',token=fixtureToken('packaged'),cfg={policy,month:{id:'fixture',start:now-1000,end:now+3600000},quoteCost:3,operationCosts:{catalog:2,history:4,insights:5},leaseMs:20000,maxAttempts:128,maxWorks:64};
+ let origin,browser;const server=createServer(async(req,res)=>{try{const chunks=[];for await(const chunk of req)chunks.push(chunk);const body=Buffer.concat(chunks);const response=await mf.dispatchFetch(origin+req.url,{method:req.method,headers:{...req.headers,'cf-connecting-ip':'192.0.2.1'},...(body.length?{body}:{})});res.statusCode=response.status;for(const [name,value]of response.headers)if(!['set-cookie','content-length','transfer-encoding'].includes(name))res.setHeader(name,value);const cookies=response.headers.getSetCookie();if(cookies.length)res.setHeader('set-cookie',cookies);res.end(Buffer.from(await response.arrayBuffer()));}catch{res.writeHead(502);res.end('Local package fixture failed');}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin='http://127.0.0.1:'+server.address().port;const cfg={policy,month:{id:'fixture',start:now-1000,end:now+3600000},quoteCost:3,operationCosts:{catalog:2,history:4,insights:5},leaseMs:20000,maxAttempts:128,maxWorks:64};
  const upstream=async request=>{
   const url=new URL(request.url);calls.push(url.pathname);
   if(url.origin==='https://fixture.supabase.co'){
    if(url.pathname==='/auth/v1/user')return Response.json({id:ACCOUNT});
    if(url.pathname==='/auth/v1/otp')return Response.json({});
-   if(url.pathname==='/auth/v1/verify')return Response.json({access_token:token,refresh_token:'fixture-refresh',expires_in:3600,user:{id:ACCOUNT}});
+   if(url.pathname==='/auth/v1/verify'){const body=await request.json();return Response.json({access_token:fixtureToken('packaged-'+body.email),refresh_token:'fixture-refresh',expires_in:3600,user:{id:ACCOUNT}});}
    if(url.pathname==='/auth/v1/logout')return Response.json({});
   }
   if(url.origin==='https://api.coingecko.com'){
@@ -52,12 +54,12 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
    {name:'zigoals-auth-abuse-local',modules:true,script:codes[4],compatibilityDate:'2026-09-13',durableObjects:{ADMISSION:{className:'AdmissionAuthority',useSQLite:true}},bindings:{AUTH_ADMISSION_KEY:'fixture-secret-00000000000000000000'},outboundService:upstream},
   ]}),resourcePersistencePath:persist});
  }
- let cookie='';const call=(path,body,headers={})=>mf.dispatchFetch(origin+path,{method:body?'POST':'GET',headers:{origin,host:'app.test','cf-connecting-ip':'192.0.2.1','content-type':'application/json',cookie,'x-zigoals-account':ACCOUNT,...headers},...(body?{body:JSON.stringify(body)}:{})});
+ let cookie='';const call=(path,body,headers={})=>mf.dispatchFetch(origin+path,{method:body?'POST':'GET',headers:{origin,'cf-connecting-ip':'192.0.2.1','content-type':'application/json',cookie,'x-zigoals-account':ACCOUNT,...headers},...(body?{body:JSON.stringify(body)}:{})});
  try{
   mf=await runtime();const page=await call('/app/settings');expect(page.status).toBe(200);const html=await page.text();expect(html).toContain('Settings');const asset=html.match(/src="([^\"]+\.js[^\"]*)"/);expect(asset).not.toBeNull();expect((await call(asset[1].replaceAll('&amp;','&'))).status).toBe(200);
   expect((await call('/api/private-account',{action:'send',email:'fictional@example.invalid'},{origin:'https://attacker.invalid','x-zigoals-origin':'https://attacker.invalid'})).status).toBe(403);
   const sent=await call('/api/private-account',{action:'send',email:'fictional@example.invalid'});expect({status:sent.status,body:await sent.json()}).toMatchObject({status:200});
-  const login=await call('/api/private-account',{action:'verify',email:'fictional@example.invalid',code:'123456'});expect(login.status).toBe(200);cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');expect(cookie).toContain('zigoals_session=');
+  const loginResponse=await call('/api/private-account',{action:'verify',email:'fictional@example.invalid',code:'123456'});expect(loginResponse.status).toBe(200);cookie=loginResponse.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');expect(cookie).toContain('zigoals_session=');
   const vault=await createVault();const operation={protocol:1,vault:vault.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:vault.manifest};
   expect((await call('/api/private-account',{action:'sync',operation})).status).toBe(200);expect(await(await call('/api/private-account')).json()).toMatchObject({manifest:vault.manifest,revision:1});
   const quote=await call('/api/market-quotes',{requests:[pair('bitcoin'),pair('zignaly')]});expect(quote.status).toBe(200);expect((await quote.json()).quotes[0].price).toBe('2');
@@ -65,7 +67,14 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
   expect(await(await call('/api/food-lookup?code=12345678')).json()).toMatchObject({name:'Fixture oats',source:'Open Food Facts'});
   const publicCalls=calls.filter(p=>!p.startsWith('/auth/')).length;
   await mf.dispose();mf=await runtime();expect(await(await call('/api/private-account')).json()).toMatchObject({revision:1,manifest:vault.manifest});expect((await call('/api/market-quotes',{requests:[pair('bitcoin')]})).status).toBe(200);expect((await call('/api/food-lookup?code=12345678')).status).toBe(200);expect(calls.filter(p=>!p.startsWith('/auth/'))).toHaveLength(publicCalls);
+  // Real browser renders the full generated package through the unmodified
+  // route/Worker topology. Only outbound provider responses are intercepted.
+  browser=await chromium.launch({channel:'chrome',headless:true});const a=await browser.newContext(),b=await browser.newContext({viewport:{width:390,height:844},isMobile:true}),pa=await a.newPage(),pb=await b.newPage();
+  const login=async(page,email)=>{await page.goto(origin+'/app/settings');await page.getByLabel('Email address',{exact:true}).fill(email);await page.getByRole('button',{name:'Send email code',exact:true}).click();await page.getByLabel('Email code',{exact:true}).fill('123456');await page.getByRole('button',{name:'Verify email code',exact:true}).click();await page.getByLabel('Sync my Health records with this account.',{exact:false}).check();await page.getByLabel('Vault recovery secret',{exact:true}).fill(vault.recovery);await page.getByRole('button',{name:'Unlock account vault',exact:true}).click();await page.getByText(/Account records synced and acknowledged/).waitFor();};
+  await login(pa,'packaged-a@example.invalid');const cookies=await a.cookies();expect(cookies.filter(v=>v.name.startsWith('zigoals_')).every(v=>v.httpOnly)).toBe(true);expect(await pa.evaluate(()=>document.cookie)).not.toContain('zigoals_session');
+  await pa.getByRole('link',{name:'Today',exact:true}).first().click();await pa.getByRole('link',{name:'+ Create a goal',exact:true}).click();await pa.getByLabel('Goal name',{exact:true}).fill('Packaged fictional Goal');await pa.getByLabel('Target amount',{exact:true}).fill('25');for(let step=0;step<3;step++)await pa.getByRole('button',{name:'Continue →'}).click();await pa.getByRole('button',{name:'Create goal',exact:true}).click();await pa.getByTestId('tracked-progress').waitFor();await pa.getByRole('link',{name:'Health',exact:true}).first().click();await pa.getByRole('button',{name:'Add 250 mL',exact:true}).click();await pa.getByRole('region',{name:'Water journal'}).getByText('250 mL recorded',{exact:false}).waitFor();await pa.getByRole('link',{name:'Settings',exact:true}).first().click();await pa.getByRole('button',{name:'Sync now',exact:true}).click();await pa.getByText(/Account records synced and acknowledged/).waitFor();
+  await login(pb,'packaged-b@example.invalid');await pb.getByRole('link',{name:'Goals',exact:true}).first().click();await pb.getByRole('heading',{name:'Packaged fictional Goal',exact:true}).waitFor();await pb.getByRole('link',{name:'Health',exact:true}).first().click();await pb.getByRole('region',{name:'Water journal'}).getByText('250 mL recorded',{exact:false}).waitFor();expect(await pb.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await pb.reload();await pb.getByRole('link',{name:'Settings',exact:true}).first().click();await pb.getByLabel('Sync my Health records with this account.',{exact:false}).check();await pb.getByLabel('Vault recovery secret',{exact:true}).fill(vault.recovery);await pb.getByRole('button',{name:'Unlock account vault',exact:true}).click();await pb.getByText(/Account records synced and acknowledged/).waitFor();await browser.close();browser=undefined;
   await mf.dispose();mf=await runtime(false);const before=calls.length;expect((await call('/api/private-account?action=status')).status).toBe(503);expect((await call('/api/food-lookup?code=12345678')).status).toBe(503);expect((await call('/api/market-quotes',{requests:[pair('bitcoin')]})).status).toBe(503);expect(calls).toHaveLength(before);
-  await writeFile(join(persist,'evidence.json'),JSON.stringify({source:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),bundleSha256:createHash('sha256').update(script).digest('hex'),at:new Date().toISOString(),upstreamPaths:calls,externalRequests:0,services:5,generatedArtifact:true},null,2));console.log('Packaged runtime receipt: '+join(persist,'evidence.json'));
- }finally{await mf?.dispose();}
-},60000);
+  await writeFile(join(persist,'evidence.json'),JSON.stringify({source:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),bundleSha256:createHash('sha256').update(script).digest('hex'),at:new Date().toISOString(),upstreamPaths:calls,externalRequests:0,services:5,generatedArtifact:true,independentBrowserProfiles:2,packagedBrowserGoalAndHealth:true},null,2));console.log('Packaged runtime receipt: '+join(persist,'evidence.json'));
+ }finally{await browser?.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await mf?.dispose();}
+},120000);
