@@ -1,0 +1,19 @@
+{
+  "source": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "runUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/36277751664",
+  "job": 108503647039,
+  "rawLogSha256": "7969039d09c1690d21b083890152fa7da908aa35755324370f09cc4576fc2f0b",
+  "passed": 412,
+  "skipped": 16,
+  "failed": 2,
+  "cause": "Both camera-unavailable tests depended on host getUserMedia error type. Linux NotFoundError surfaced raw Requested device not found instead of the expected manual-entry guidance.",
+  "redReproduction": {
+    "sourceBuild": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+    "testFileSource": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
+    "twoNotFoundCasesFailed": true,
+    "twoOverconstrainedCasesPassed": true,
+    "rawLogSha256": "4bfaf3c93be624719d3bc350de66eaa70bae13830b4fd75ef477cd72d3d51c25"
+  },
+  "fixSource": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
+  "fix": "Explicitly map NotFoundError and OverconstrainedError to the existing rear-camera-unavailable/manual-entry guidance; deterministic fixtures cover both without modifying existing 404/cooldown/manual assertions."
+}

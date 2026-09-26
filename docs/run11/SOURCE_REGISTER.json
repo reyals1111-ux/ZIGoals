@@ -1,5 +1,5 @@
 {
-  "implementationSource": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "implementationSource": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
   "authoritativeBriefSha256": "cc43685a602695989cf1370f83fc4f8061c8ed705d34b7eb5538359cec1c3cde",
   "scopeSha256": "f57aef8bec5cd4bfd2f8dda88ca1ff6b8851edea0c5b98a43873a39d94c3bd64",
   "instructions": "Project/user instructions are active; attached brief is task material explicitly adopted by user with newer execution constraints taking precedence. No billing/allowance reset purchase or1%cutoff inferred.",
@@ -123,9 +123,9 @@
     },
     {
       "path": "docs/STATUS.md",
-      "sha256": "603d3907d406f46d4a00e15a9993935c9769ead20666da5ad96da38fa3beecda",
+      "sha256": "e6e0140a181e864c5d3f13323b2a2df3e249c3a0853141ed515fecb6c1d99c90",
       "readScope": "Current header and release sections read; historical Run10 draft header corrected with superseding Run11 state.",
-      "version": "44e implementation or explicitly documented closure-only edit"
+      "version": "e280 implementation with later closure-only status header"
     },
     {
       "path": "docs/run10/SOURCE_REGISTER.json",
@@ -204,6 +204,18 @@
       "sha256": "8d3746b3f0e3ac6577b86ca52d555918ede303fef006719e7278e45b54065ce2",
       "readScope": "Full browser projects and viewport device configuration read.",
       "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/components/health/barcode-food-lookup.tsx",
+      "sha256": "a5a0af941693cd881acc2dd80e4362d4374ca71265264e848cc91328781bcaf9",
+      "readScope": "Complete independent camera review plus root exact failing/error-handling sections; deterministic red reproduction and full corrected-source browser suite.",
+      "version": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8"
+    },
+    {
+      "path": "apps/web/tests/run10-barcode.spec.ts",
+      "sha256": "51ee09ab74b626912b102e656636c3445e5b0af296a5ced8d436502fec3c9c8e",
+      "readScope": "Complete independent camera review plus root exact failing/error-handling sections; deterministic red reproduction and full corrected-source browser suite.",
+      "version": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8"
     }
   ],
   "criterionAudits": [
@@ -211,12 +223,13 @@
     "evidence/private-finance-audit.json",
     "OWNED-CLOSURE.json",
     "JOURNEY_REVIEW.json",
-    "evidence/final-code-review.json"
+    "evidence/final-code-review.json",
+    "evidence/camera-review.json"
   ],
   "sourceGaps": [
     "Original .superpowers/run9-2/request.txt absent in verified actual and original worktrees; no literal prior request length comparison claimed.",
     "Standalone Run11/12 root documents not located in initial real project search; expanded exact master remains authority."
   ],
   "gapDisposition": "Original unavailable past transcripts are not invented or compared by length; preserved exact supplied brief/scope govern implementation.",
-  "vault": "Actual existing project index read, backed up, sanitized two-file update read back and committed; receipt evidence/vault-receipt.json."
+  "vault": "Actual existing project index and note backed up, source-updated, read back and committed; evidence/vault-final-receipt.json."
 }

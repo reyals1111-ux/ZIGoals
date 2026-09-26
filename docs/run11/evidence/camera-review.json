@@ -1,0 +1,26 @@
+{
+  "source": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
+  "reviewedAt": "2026-09-26T23:18:31.914172+00:00",
+  "scope": "Independent review of complete camera component and barcode test file plus exact camera correction diff. No Git files changed.",
+  "readPaths": [
+    "apps/web/components/health/barcode-food-lookup.tsx",
+    "apps/web/tests/run10-barcode.spec.ts"
+  ],
+  "gitContentSha256": {
+    "apps/web/components/health/barcode-food-lookup.tsx": "a5a0af941693cd881acc2dd80e4362d4374ca71265264e848cc91328781bcaf9",
+    "apps/web/tests/run10-barcode.spec.ts": "51ee09ab74b626912b102e656636c3445e5b0af296a5ced8d436502fec3c9c8e"
+  },
+  "findings": [],
+  "assessment": [
+    "The production change maps NotFoundError to the existing rear-camera-unavailable/manual-entry guidance. It preserves NotAllowedError guidance, stale-generation rejection, stop/cleanup behavior, rear-only constraints and explicit user activation.",
+    "The previously environment-dependent camera-unavailable test now deterministically exercises both OverconstrainedError and NotFoundError; unchanged assertions still require manual barcode entry, product-not-found feedback, cooldown feedback and accessible private food workflows.",
+    "No assertion weakening, forced interaction, timeout increase, camera upload, front-camera fallback or private-data mutation was introduced.",
+    "The remaining barcode tests retain permission/API fallback, explicit acquisition, track cleanup, local decoding, leading zeros, constraints and stale-scan protections."
+  ],
+  "evidenceLimits": [
+    "This review independently inspected source; it did not rerun tests while the root build was active.",
+    "Root reported deterministic pre-fix NotFoundError failures with OverconstrainedError passes; those counts are not independently remeasured here.",
+    "Browser camera fixtures are local acceptance, not real physical-device proof.",
+    "Earlier hosted source44e browser result must remain recorded as412passes/16skips/2failures; this source correction requires new build/test receipts."
+  ]
+}

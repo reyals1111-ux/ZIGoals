@@ -1,6 +1,6 @@
 # Actual Run #11 — local implementation verified, owner activation pending
 
-Draft [PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) retains preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build is `44e4424e5e6e75e490fedfd5e35c27265a336113`. Integrated local account, market, Goal/Habit/Health/preset and recovery journeys are implemented and accepted. See [current report](run11/FINAL_REPORT.md), [source-bound evidence](run11/EVIDENCE.md), [full closure](run11/CLOSURE.json) and [resume state](run11/STATE.md). The eight [owner activation stages](run11/ACTIVATION.md) remain separate.
+Draft [PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) retains preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build is `e28077d353a37d94ddfae11b90c8d0f10d2cb4f8`. Integrated local account, market, Goal/Habit/Health/preset and recovery journeys are implemented and accepted. See [current report](run11/FINAL_REPORT.md), [source-bound evidence](run11/EVIDENCE.md), [full closure](run11/CLOSURE.json) and [resume state](run11/STATE.md). The eight [owner activation stages](run11/ACTIVATION.md) remain separate.
 
 PR20 is already merged and deployed Run10 stays at `901e2a6600fb8292b7956717d45341f050fd377c`. No Run11 merge/deployment or provider/billing/financial action occurred.
 

@@ -1,0 +1,27 @@
+{
+  "source": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
+  "checkpoint": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-run11-source-recovery-y1ETDd/checkpoint.json",
+  "archiveSha256": "873bea14e09971b39645d80cdaddc5dc6e2be95130966ac5810de7eb0dec516f",
+  "stage": "resumed-and-verified",
+  "verified": {
+    "fileCount": 1422,
+    "offlineFrozenInstall": true,
+    "checks": [
+      "pnpm typecheck",
+      "pnpm exec vitest run apps/web/lib/vault/crypto.test.ts apps/web/lib/vault/local.test.ts scripts/run11/historical-client.test.mjs"
+    ],
+    "routes": [
+      {
+        "route": "/app/health",
+        "status": 200,
+        "bytes": 34854
+      },
+      {
+        "route": "/app/settings",
+        "status": 200,
+        "bytes": 49682
+      }
+    ]
+  },
+  "durableArchive": ".superpowers/run11-recovery/source-e28077d353a37d94ddfae11b90c8d0f10d2cb4f8.tar"
+}

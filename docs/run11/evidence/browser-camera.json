@@ -1,0 +1,5630 @@
+{
+  "source": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
+  "inputSha256": "8fd28eeb2df24210137037aa0a9f7b34386c95e6560a7eba4ae292ef63d67f9b",
+  "stats": {
+    "startTime": "2026-09-26T23:20:05.046Z",
+    "duration": 327756.669,
+    "expected": 424,
+    "skipped": 8,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "coherence.spec.ts",
+      "title": "release, reallocate, pin, lock and delete preserve wealth and Habit history",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5041,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "legacy overview keeps optional simulation recoverable and archives safely",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1951,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "manual selector creates a cash Position and allocates its value on Goal creation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1901,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "deterministic smooth progress rings and responsive top-right wealth dashboard",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 8116,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "release, reallocate, pin, lock and delete preserve wealth and Habit history",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4039,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "legacy overview keeps optional simulation recoverable and archives safely",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1690,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "manual selector creates a cash Position and allocates its value on Goal creation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1389,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "coherence.spec.ts",
+      "title": "deterministic smooth progress rings and responsive top-right wealth dashboard",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6881,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "dashboard-visual.spec.ts",
+      "title": "dashboard destinations, safety and layout work at desktop and 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3658,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "dashboard-visual.spec.ts",
+      "title": "dashboard destinations, safety and layout work at desktop and 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 10340,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "read-only diagnostics keep deployment disabled and display separate public endpoint evidence",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1471,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "support preview is explicit and copying sends only the reviewed safe snapshot",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1001,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "read-only diagnostics keep deployment disabled and display separate public endpoint evidence",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 905,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "diagnostics.spec.ts",
+      "title": "support preview is explicit and copying sends only the reviewed safe snapshot",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 758,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "ecosystem.spec.ts",
+      "title": "ecosystem research is readable without connecting a wallet",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4281,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "ecosystem.spec.ts",
+      "title": "ecosystem research is readable without connecting a wallet",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5988,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "corrupt metadata recovery preserves the original bytes and restores the plan",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1040,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "damaged local funds keep the shell usable and block simulation instead of resetting funds",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1546,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "invalid custom scenario preserves baseline funding health and progress",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 871,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "unsupported saved planning date reports a calculation error without crashing the goal",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 855,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "near-limit Unicode plans export a valid importable backup",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 596,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "local goal lifecycle, metadata recovery, exports and mobile layout",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4054,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "missing wallet is explicit and local mode remains available",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 674,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "corrupt metadata recovery preserves the original bytes and restores the plan",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1139,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "damaged local funds keep the shell usable and block simulation instead of resetting funds",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1356,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "invalid custom scenario preserves baseline funding health and progress",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 842,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "unsupported saved planning date reports a calculation error without crashing the goal",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 657,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "near-limit Unicode plans export a valid importable backup",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 526,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "local goal lifecycle, metadata recovery, exports and mobile layout",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5005,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "goals.spec.ts",
+      "title": "missing wallet is explicit and local mode remains available",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 609,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "habit counts, edit, pause, archive, notes and reload stay local and durable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2363,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "historical dates, missed days and scoped link retention remain correct",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1085,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "corrupt Habit data is preserved and creation fails closed",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 573,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "private habit text never enters requests or overwrites existing Goal data",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1076,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "selected weekdays and keyboard completion expose only scheduled habits",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1154,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "templates, distinct habit types, measurement and reflection controls work together",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1508,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "frequency templates display the period that actually governs completion",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 855,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "habit counts, edit, pause, archive, notes and reload stay local and durable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2145,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "historical dates, missed days and scoped link retention remain correct",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 866,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "corrupt Habit data is preserved and creation fails closed",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 473,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "private habit text never enters requests or overwrites existing Goal data",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1138,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "selected weekdays and keyboard completion expose only scheduled habits",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1250,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "templates, distinct habit types, measurement and reflection controls work together",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1391,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "habits.spec.ts",
+      "title": "frequency templates display the period that actually governs completion",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 667,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health-daily.spec.ts",
+      "title": "saved meal, preview copy, water, planner and export work with fictional private records",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2649,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health-daily.spec.ts",
+      "title": "label basis, gram entry, water corrections and preferred weight units preserve recorded values",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2337,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health-daily.spec.ts",
+      "title": "Health daily panels reflow at phone tablet and desktop widths",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3291,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health-daily.spec.ts",
+      "title": "saved meal, preview copy, water, planner and export work with fictional private records",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2546,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health-daily.spec.ts",
+      "title": "label basis, gram entry, water corrections and preferred weight units preserve recorded values",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1993,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health-daily.spec.ts",
+      "title": "Health daily panels reflow at phone tablet and desktop widths",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 10657,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "rejected food validation keeps the draft and existing private records recoverable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1682,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "food diary create, correct, reload and remove keeps snapshot nutrition",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2282,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "recipe portions calculate from foods and preserve the logged result",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2750,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "explicit targets, weight correction and manual activity persist without a wallet",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2041,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "damaged private data fails closed with no seeded health data",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 936,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "historical diary dates and food edits remain usable at 320 pixels",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2328,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "rejected food validation keeps the draft and existing private records recoverable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1411,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "food diary create, correct, reload and remove keeps snapshot nutrition",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1892,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "recipe portions calculate from foods and preserve the logged result",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3484,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "explicit targets, weight correction and manual activity persist without a wallet",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2003,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "damaged private data fails closed with no seeded health data",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 637,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "health.spec.ts",
+      "title": "historical diary dates and food edits remain usable at 320 pixels",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3449,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "landing.spec.ts",
+      "title": "landing keeps its public contract visible without horizontal overflow",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 695,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "landing.spec.ts",
+      "title": "landing declares a loadable local icon without requesting a missing favicon",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 867,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "landing.spec.ts",
+      "title": "landing keeps its public contract visible without horizontal overflow",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 662,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "landing.spec.ts",
+      "title": "landing declares a loadable local icon without requesting a missing favicon",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 744,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "two tabs cancel stale funds review and retain both sequential deposits",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1670,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "another tab's recovered plan rejects a stale recovery save",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2135,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "mode selection stays in its own tab while local reviews stay local",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1682,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "two tabs share only the active wallet's journal notifications and retain future rows",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 903,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "simultaneous confirmations serialize and the losing tab must review again",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2018,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "two tabs cancel stale funds review and retain both sequential deposits",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1485,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "another tab's recovered plan rejects a stale recovery save",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1772,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "mode selection stays in its own tab while local reviews stay local",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1305,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "two tabs share only the active wallet's journal notifications and retain future rows",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 740,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "multitab.spec.ts",
+      "title": "simultaneous confirmations serialize and the losing tab must review again",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1401,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "one circular family, Today active count and a chosen Goal share exact USD valuation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2843,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "responsive collection, detail and Positions retain access without document overflow",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5823,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "missing price is explicit and stale quote survives failed refresh and reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1851,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "Today reports private-store recovery errors while preserving legacy destinations",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1689,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "Positions utilities expose wallet reader and APR calculator below wealth",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1737,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "one circular family, Today active count and a chosen Goal share exact USD valuation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2030,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "responsive collection, detail and Positions retain access without document overflow",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4524,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "missing price is explicit and stale quote survives failed refresh and reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1189,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "Today reports private-store recovery errors while preserving legacy destinations",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 826,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-polish.spec.ts",
+      "title": "Positions utilities expose wallet reader and APR calculator below wealth",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1668,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "owner setup: stake allocation, contribution plan and supporting Habit stay private",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2013,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "APR persistence, account isolation, utility order and navigation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2467,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "responsive owner preview captures",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2838,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "shared navigation keeps Health accessible without writing its store",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1264,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "owner setup: stake allocation, contribution plan and supporting Habit stay private",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1935,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "APR persistence, account isolation, utility order and navigation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1922,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "responsive owner preview captures",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2683,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "owner-preview.spec.ts",
+      "title": "shared navigation keeps Health accessible without writing its store",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1011,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a linked contribution Habit records behavior but never adds financial progress",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1624,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a stale cross-store reference never offers reconciliation or mutates an unrelated Habit",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1522,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a failed second-store creation reserves one ID and retries without duplicate habits",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1563,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a fractional-cent ZIG price assumption saves exactly without changing observed progress",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2340,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a linked contribution Habit records behavior but never adds financial progress",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1263,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a stale cross-store reference never offers reconciliation or mutates an unrelated Habit",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1561,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a failed second-store creation reserves one ID and retries without duplicate habits",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1267,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-habits.spec.ts",
+      "title": "a fractional-cent ZIG price assumption saves exactly without changing observed progress",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1833,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-visual.spec.ts",
+      "title": "Run 8 additions preserve responsive V2.1 layout and reduced motion",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1894,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform-visual.spec.ts",
+      "title": "Run 8 additions preserve responsive V2.1 layout and reduced motion",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1531,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "private position allocation and plans survive reload without financial or Health side effects",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3322,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "watch-only invalid input never calls a wallet or chain endpoint",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1386,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "mainnet watch-only displays exact six-decimal observations without wallet authority",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2658,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "editing an imported manual Position preserves its asset identity, allocations and historical scale",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2540,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "private position allocation and plans survive reload without financial or Health side effects",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3031,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "watch-only invalid input never calls a wallet or chain endpoint",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 825,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "mainnet watch-only displays exact six-decimal observations without wallet authority",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1469,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "platform.spec.ts",
+      "title": "editing an imported manual Position preserves its asset identity, allocations and historical scale",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 943,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "positions-layout.spec.ts",
+      "title": "wealth leads collapsed read-only utilities and APR stays account-scoped",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1821,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "positions-layout.spec.ts",
+      "title": "wealth leads collapsed read-only utilities and APR stays account-scoped",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1822,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-data.spec.ts",
+      "title": "V1 upgrade, explicit module restore and linked Goal reload preserve all prior namespaces",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2140,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-data.spec.ts",
+      "title": "damaged private exports retain exact bytes and explicit restore quarantines originals",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3333,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-data.spec.ts",
+      "title": "private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7390,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-data.spec.ts",
+      "title": "V1 upgrade, explicit module restore and linked Goal reload preserve all prior namespaces",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1295,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-data.spec.ts",
+      "title": "damaged private exports retain exact bytes and explicit restore quarantines originals",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1765,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-data.spec.ts",
+      "title": "private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4902,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-shell.spec.ts",
+      "title": "unified shell exposes all eight destinations and preserves Alpha controls",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1235,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-shell.spec.ts",
+      "title": "unified shell exposes all eight destinations and preserves Alpha controls",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 881,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-visual.spec.ts",
+      "title": "populated product fits every required viewport with reduced motion and scoped links",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 15064,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "product-visual.spec.ts",
+      "title": "populated product fits every required viewport with reduced motion and scoped links",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6007,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "Alpha declares an explicit same-origin icon that resolves",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 953,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "egress capture detects a sentinel carried only in an HttpOnly cookie",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1450,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "strict production headers, fresh nonce, navigation and script rejection",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3634,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "private lifecycle, backup, diagnostics and connection remain bounded under production CSP",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5333,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "public icon and robots bypass nonce work while lookalike HTML retains CSP",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 180,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "Alpha declares an explicit same-origin icon that resolves",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 639,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "egress capture detects a sentinel carried only in an HttpOnly cookie",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1141,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "strict production headers, fresh nonce, navigation and script rejection",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1541,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "private lifecycle, backup, diagnostics and connection remain bounded under production CSP",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3869,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "public-alpha.spec.ts",
+      "title": "public icon and robots bypass nonce work while lookalike HTML retains CSP",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 57,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-account-access.spec.ts",
+      "title": "fixture email access stays locked and preserves separate local Health at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4720,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-account-access.spec.ts",
+      "title": "fixture email access stays locked and preserves separate local Health at 390px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3252,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-account-access.spec.ts",
+      "title": "unconfigured email access explains unavailable setup without attempting provider calls",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 638,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-account-access.spec.ts",
+      "title": "fixture email access stays locked and preserves separate local Health at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2931,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-account-access.spec.ts",
+      "title": "fixture email access stays locked and preserves separate local Health at 390px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2180,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-account-access.spec.ts",
+      "title": "unconfigured email access explains unavailable setup without attempting provider calls",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 480,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "manual leading-zero lookup previews unknown values and logs only a confirmed private snapshot",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1716,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "OverconstrainedError: rear camera unavailable, not found and cooldown preserve manual workflows",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1600,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "NotFoundError: rear camera unavailable, not found and cooldown preserve manual workflows",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1500,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "unavailable camera API leaves typed barcode entry usable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 830,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "camera is explicit and stops all tracks on cancel and navigation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1212,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "closing the barcode panel stops its camera track",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1055,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "one unconfirmed camera reading does not fill the barcode",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2819,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "account selection change stops active barcode capture",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1109,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "a browser without native decoding can still start a local camera scan",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1119,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "the local decoder reads an EAN-8 label with leading zeros without uploading frames",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1876,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "partial native barcode support falls back to local EAN-8 decoding",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1903,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "throws native barcode support falls back to local EAN-8 decoding",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2197,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "camera request requires a rear camera rather than selecting a front camera",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 920,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "a stale camera failure cannot stop a newer scan",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1110,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "an older scan cannot attach its stopped stream after a newer scan starts",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1251,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "manual leading-zero lookup previews unknown values and logs only a confirmed private snapshot",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1043,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "OverconstrainedError: rear camera unavailable, not found and cooldown preserve manual workflows",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1103,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "NotFoundError: rear camera unavailable, not found and cooldown preserve manual workflows",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1024,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "unavailable camera API leaves typed barcode entry usable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 766,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "camera is explicit and stops all tracks on cancel and navigation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 979,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "closing the barcode panel stops its camera track",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 977,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "one unconfirmed camera reading does not fill the barcode",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2537,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "account selection change stops active barcode capture",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 812,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "a browser without native decoding can still start a local camera scan",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 862,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "the local decoder reads an EAN-8 label with leading zeros without uploading frames",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1683,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "partial native barcode support falls back to local EAN-8 decoding",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1528,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "throws native barcode support falls back to local EAN-8 decoding",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1623,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "camera request requires a rear camera rather than selecting a front camera",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 902,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "a stale camera failure cannot stop a newer scan",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 722,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-barcode.spec.ts",
+      "title": "an older scan cannot attach its stopped stream after a newer scan starts",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 887,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-dashboard-placement.spec.ts",
+      "title": "widget insertion, rail placement and encrypted layout recovery keep one binding",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4277,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-dashboard-placement.spec.ts",
+      "title": "widget insertion, rail placement and encrypted layout recovery keep one binding",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3216,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem filters, clears, opens useful details and keeps external links private",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1367,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem directory reflows at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2280,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem directory reflows at 390px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2234,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem directory reflows at 1440px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2241,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem filters, clears, opens useful details and keeps external links private",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 902,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem directory reflows at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1969,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem directory reflows at 390px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2121,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-ecosystem.spec.ts",
+      "title": "ecosystem directory reflows at 1440px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2200,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-financial-evidence.spec.ts",
+      "title": "manual portfolio evidence yields reviewed flow-boundary return and retains correction on reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3428,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-financial-evidence.spec.ts",
+      "title": "manual dated FX review keeps original EUR and converted USD separate from current wealth",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1401,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-financial-evidence.spec.ts",
+      "title": "manual portfolio evidence yields reviewed flow-boundary return and retains correction on reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2473,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-financial-evidence.spec.ts",
+      "title": "manual dated FX review keeps original EUR and converted USD separate from current wealth",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1049,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "Goal type cards keep shared details and confirm incompatible fields before clearing them",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1142,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "short Goal flow creates all four types with an honest live preview",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2419,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "Goal type cards keep shared details and confirm incompatible fields before clearing them",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1679,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-goal-creator.spec.ts",
+      "title": "short Goal flow creates all four types with an honest live preview",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1775,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-habit-actions.spec.ts",
+      "title": "a future Habit target preserves today, and a saved duration timer survives reload and applies once",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2024,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-habit-actions.spec.ts",
+      "title": "cross-midnight timers retain evidence and require manual day review",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1170,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-habit-actions.spec.ts",
+      "title": "a future Habit target preserves today, and a saved duration timer survives reload and applies once",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1927,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-habit-actions.spec.ts",
+      "title": "cross-midnight timers retain evidence and require manual day review",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 905,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-health-only-journey.spec.ts",
+      "title": "JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5252,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-health-only-journey.spec.ts",
+      "title": "JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5526,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-motion.spec.ts",
+      "title": "visible hero and Goal ring move once per visit and settle on real values",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5774,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-motion.spec.ts",
+      "title": "reduced motion and Off keep final content visible without entrance",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1356,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-motion.spec.ts",
+      "title": "Wealth and Health bars grow only when visible with real saved values",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3718,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-motion.spec.ts",
+      "title": "visible hero and Goal ring move once per visit and settle on real values",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4787,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-motion.spec.ts",
+      "title": "reduced motion and Off keep final content visible without entrance",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1023,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-motion.spec.ts",
+      "title": "Wealth and Health bars grow only when visible with real saved values",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3363,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-plan-revisions.spec.ts",
+      "title": "plan edits retain earlier terms, show explicit installments and survive reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2294,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-plan-revisions.spec.ts",
+      "title": "completion milestone remains visible after closing and reopening without restoring allocations",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1327,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-plan-revisions.spec.ts",
+      "title": "plan edits retain earlier terms, show explicit installments and survive reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1972,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-plan-revisions.spec.ts",
+      "title": "completion milestone remains visible after closing and reopening without restoring allocations",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1029,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "Health storage upgrade keeps records, accepts further writes and reloads",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2243,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "encrypted backup requires recovery acknowledgement and unknown hosted config fails safely",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 697,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "durable edits notify another already-open tab without losing either write",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1738,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "durable Health accepts and exports a real domain backup above the old 2 MB ceiling",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3650,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "Health storage upgrade keeps records, accepts further writes and reloads",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1668,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "encrypted backup requires recovery acknowledgement and unknown hosted config fails safely",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 768,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "durable edits notify another already-open tab without losing either write",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1341,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-private-vault.spec.ts",
+      "title": "durable Health accepts and exports a real domain backup above the old 2 MB ceiling",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2199,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-restored-today.spec.ts",
+      "title": "approved Today hierarchy, copy and rail coexist with saved widgets",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4414,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-restored-today.spec.ts",
+      "title": "approved Today hierarchy, copy and rail coexist with saved widgets",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6386,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Quick add belongs to navigation and Escape returns focus",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1480,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1537,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 360px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1699,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 390px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1763,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 430px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1630,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 768px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1743,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 1440px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1450,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "long build, quit, limit and duration Habit cards reflow with enlarged text and save actions",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1185,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "category rings, exact history and finite route entrance have visible evidence",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7305,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Quick add belongs to navigation and Escape returns focus",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1183,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1334,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 360px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1442,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 390px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1201,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 430px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1338,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 768px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1326,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "Habit labels and controls have distinct space at 1440px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1442,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "long build, quit, limit and duration Habit cards reflow with enlarged text and save actions",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1148,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-shared-visuals.spec.ts",
+      "title": "category rings, exact history and finite route entrance have visible evidence",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6785,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "visual library hides ineligible staking and card menu returns focus on Escape",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1592,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "source-card pinning keeps Goal, Habit, asset and research bindings distinct",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5923,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "a bound Habit updates its Today summary and card after the source changes",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1965,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "a missing Habit binding stays visible and can be rebound to a saved source",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1223,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "visual library hides ineligible staking and card menu returns focus on Escape",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1279,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "source-card pinning keeps Goal, Habit, asset and research bindings distinct",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4754,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "a bound Habit updates its Today summary and card after the source changes",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1720,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-source-pinning.spec.ts",
+      "title": "a missing Habit binding stays visible and can be rebound to a saved source",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1036,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widget-overview.spec.ts",
+      "title": "six selected widgets remain individually reachable and update when hidden or removed",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1224,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widget-overview.spec.ts",
+      "title": "six selected widgets remain individually reachable and update when hidden or removed",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1074,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets-status.spec.ts",
+      "title": "selected staking/rewards and allocation widgets save and reload at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4174,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets-status.spec.ts",
+      "title": "selected staking/rewards and allocation widgets save and reload at 390px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3943,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets-status.spec.ts",
+      "title": "cold selected account has a global locked status and settings action with no identity leakage",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1213,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets-status.spec.ts",
+      "title": "selected staking/rewards and allocation widgets save and reload at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6293,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets-status.spec.ts",
+      "title": "selected staking/rewards and allocation widgets save and reload at 390px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6003,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets-status.spec.ts",
+      "title": "cold selected account has a global locked status and settings action with no identity leakage",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2530,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets.spec.ts",
+      "title": "Health-only setup persists and customization saves, hides, reorders and removes configuration",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3716,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets.spec.ts",
+      "title": "all four presets preview before applying; restored life card precedes attention; Escape preserves settings",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 8357,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets.spec.ts",
+      "title": "Health-only setup persists and customization saves, hides, reorders and removes configuration",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4605,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run10-widgets.spec.ts",
+      "title": "all four presets preview before applying; restored life card precedes attention; Escape preserves settings",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 12825,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-financial-previews.spec.ts",
+      "title": "allocation preview and cancel keep the saved aggregate unchanged until confirmation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2386,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-financial-previews.spec.ts",
+      "title": "allocation preview and cancel keep the saved aggregate unchanged until confirmation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1540,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-unknown.spec.ts",
+      "title": "reviewed barcode per100g accepts unknown core fields, preserves known zero and shows partial coverage after reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1976,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-unknown.spec.ts",
+      "title": "reviewed barcode per100ml accepts unknown core fields, preserves known zero and shows partial coverage after reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2389,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-unknown.spec.ts",
+      "title": "reviewed barcode per100g accepts unknown core fields, preserves known zero and shows partial coverage after reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1263,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-unknown.spec.ts",
+      "title": "reviewed barcode per100ml accepts unknown core fields, preserves known zero and shows partial coverage after reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1375,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-volume.spec.ts",
+      "title": "volume label, measured recipe yield and immutable version survive diary, planning and reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3610,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-volume.spec.ts",
+      "title": "volume label, measured recipe yield and immutable version survive diary, planning and reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2447,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-widgets.spec.ts",
+      "title": "food-entry and meal pins preserve canonical edits, historical navigation and deleted state at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5198,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-widgets.spec.ts",
+      "title": "food-entry and meal pins preserve canonical edits, historical navigation and deleted state at 1280px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4620,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-widgets.spec.ts",
+      "title": "food-entry and meal pins preserve canonical edits, historical navigation and deleted state at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5780,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-food-widgets.spec.ts",
+      "title": "food-entry and meal pins preserve canonical edits, historical navigation and deleted state at 1280px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7730,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "Goal draft navigation and reload require an explicit discard, while cancel retains input",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1917,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "saved Goal detail edits retain input on canceled navigation and discard only the selected form",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1368,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "Goal draft navigation and reload require an explicit discard, while cancel retains input",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1117,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-draft.spec.ts",
+      "title": "saved Goal detail edits retain input on canceled navigation and discard only the selected form",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1070,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-history.spec.ts",
+      "title": "all retained Goal events are reachable, filterable and readable at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1622,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-history.spec.ts",
+      "title": "all retained Goal events are reachable, filterable and readable at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1140,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-options-pointer.spec.ts",
+      "title": "adjacent Goal option panels remain inside their cards and accept ordinary pointer pinning",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2494,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-goal-options-pointer.spec.ts",
+      "title": "adjacent Goal option panels remain inside their cards and accept ordinary pointer pinning",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1320,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-habit-integration.spec.ts",
+      "title": "saved timezone, suggested stack and explicit linked Goal pause/reopen preserve history",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1993,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-habit-integration.spec.ts",
+      "title": "two tabs reject a stale future rule draft while preserving both current and retained history",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1485,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-habit-integration.spec.ts",
+      "title": "saved timezone timer survives reload, logs only after review and retains one diary duration",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1707,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-habit-integration.spec.ts",
+      "title": "saved timezone, suggested stack and explicit linked Goal pause/reopen preserve history",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1736,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-habit-integration.spec.ts",
+      "title": "two tabs reject a stale future rule draft while preserving both current and retained history",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1159,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-habit-integration.spec.ts",
+      "title": "saved timezone timer survives reload, logs only after review and retains one diary duration",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1522,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-large-goal-collection.spec.ts",
+      "title": "larger Goal collections preserve pinned order and offer bounded search, sorting and pages",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1713,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-large-goal-collection.spec.ts",
+      "title": "larger Goal collections preserve pinned order and offer bounded search, sorting and pages",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1419,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-layout-stability.spec.ts",
+      "title": "initial workspace keeps its layout on /app",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1272,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-layout-stability.spec.ts",
+      "title": "initial workspace keeps its layout on /app/health",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1027,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-layout-stability.spec.ts",
+      "title": "initial workspace keeps its layout on /app/wealth",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1130,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-layout-stability.spec.ts",
+      "title": "initial workspace keeps its layout on /app",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 978,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-layout-stability.spec.ts",
+      "title": "initial workspace keeps its layout on /app/health",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1037,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-layout-stability.spec.ts",
+      "title": "initial workspace keeps its layout on /app/wealth",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1091,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-measurements.spec.ts",
+      "title": "timed body measurements preserve identity, correction history, units and CSV after reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2127,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-measurements.spec.ts",
+      "title": "timed body measurements preserve identity, correction history, units and CSV after reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1665,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "finance v1 migration recovers transaction-abort from an already-open second tab",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1877,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "finance v1 migration recovers pointer-publication from an already-open second tab",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2021,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "habits v1 migration recovers transaction-abort from an already-open second tab",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2658,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "habits v1 migration recovers pointer-publication from an already-open second tab",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1604,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "health v1 migration recovers transaction-abort from an already-open second tab",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2409,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "health v1 migration recovers pointer-publication from an already-open second tab",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1967,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "finance v1 migration recovers transaction-abort from an already-open second tab",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1678,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "finance v1 migration recovers pointer-publication from an already-open second tab",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1637,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "habits v1 migration recovers transaction-abort from an already-open second tab",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1510,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "habits v1 migration recovers pointer-publication from an already-open second tab",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1496,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "health v1 migration recovers transaction-abort from an already-open second tab",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1773,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-migration-recovery.spec.ts",
+      "title": "health v1 migration recovers pointer-publication from an already-open second tab",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2072,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-motion-recording.spec.ts",
+      "title": "recorded hero and evidence-line entrances settle once per visit and preserve exact history",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5139,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-motion-recording.spec.ts",
+      "title": "recorded hero and evidence-line entrances settle once per visit and preserve exact history",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4764,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-nutrients.spec.ts",
+      "title": "optional nutrients remain explicit, partial per-meal/day totals survive reload, and old snapshots stay unchanged",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1678,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-nutrients.spec.ts",
+      "title": "optional nutrients remain explicit, partial per-meal/day totals survive reload, and old snapshots stay unchanged",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1701,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-observation-groups.spec.ts",
+      "title": "retained duplicate observations count once; differing corrections require an explicit group review and survive reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2287,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-observation-groups.spec.ts",
+      "title": "retained duplicate observations count once; differing corrections require an explicit group review and survive reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2034,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-observation-import.spec.ts",
+      "title": "reviewed observation file import cancels without mutation and deduplicates after reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1644,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-observation-import.spec.ts",
+      "title": "reviewed observation file import cancels without mutation and deduplicates after reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1573,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected backup wrong secret, damaged ciphertext and future domain schema each fail without changing the existing profile",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2774,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed legacy append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4213,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed transactional append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4367,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected restore preview shows authenticated version, modules, exact counts and stored date range before confirmation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2111,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected backup wrong secret, damaged ciphertext and future domain schema each fail without changing the existing profile",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2102,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed legacy append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3578,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "failed transactional append has no success, preserves prior bytes/history and leaves independent Habit logging usable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4192,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-recovery-failures.spec.ts",
+      "title": "protected restore preview shows authenticated version, modules, exact counts and stored date range before confirmation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1791,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-route-mobile-acceptance.spec.ts",
+      "title": "observe public and private route controls with fictional Showcase detail links",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 11686,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-route-mobile-acceptance.spec.ts",
+      "title": "landscape and shortened keyboard-height food form retains draft and reachable save",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1691,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-route-mobile-acceptance.spec.ts",
+      "title": "observe public and private route controls with fictional Showcase detail links",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 9602,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-route-mobile-acceptance.spec.ts",
+      "title": "landscape and shortened keyboard-height food form retains draft and reachable save",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1705,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-wealth-changes.spec.ts",
+      "title": "owned-wealth review keeps the unexplained gap visible and navigates to exact retained evidence",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1303,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run11-wealth-changes.spec.ts",
+      "title": "owned-wealth review keeps the unexplained gap visible and navigates to exact retained evidence",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 958,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 1440",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 12555,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 1024",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 10173,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 390",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 9743,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 320",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 8820,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 1440",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 37651,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 1024",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 27270,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 390",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 18581,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1-visual.spec.ts",
+      "title": "visual product audit 320",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 18118,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "01 BTC: canonical add, automatic value, chart, edit, crypto Positions",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1995,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "02 Gold: RWA ownership, editing, archive and staking separation",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1925,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "03 Cash: add, edit, allocate, and keep out of staking",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2780,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "04 Watchlist: Bitcoin, Nvidia, Gold without holdings; reorder, Today, detail",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2338,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "05 Goal picker: existing BTC plus canonical ETH, allocation without double count",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1520,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "06 Fund Goal: 20000 USD completes 2000 target once; 18000 remains available",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2048,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "07 History only: records evidence, preserves wealth and allocations",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1213,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "08 Activity: asset, Goal, contribution and Habit events retain filters and links",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2591,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "09 Saved observations: wealth and Goal history show exact tables without prehistory",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1137,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "10 Health: working diary plus clearly planned modules",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1200,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "01 BTC: canonical add, automatic value, chart, edit, crypto Positions",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1517,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "02 Gold: RWA ownership, editing, archive and staking separation",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1852,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "03 Cash: add, edit, allocate, and keep out of staking",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1841,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "04 Watchlist: Bitcoin, Nvidia, Gold without holdings; reorder, Today, detail",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2066,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "05 Goal picker: existing BTC plus canonical ETH, allocation without double count",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1679,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "06 Fund Goal: 20000 USD completes 2000 target once; 18000 remains available",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1947,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "07 History only: records evidence, preserves wealth and allocations",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1126,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "08 Activity: asset, Goal, contribution and Habit events retain filters and links",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1779,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "09 Saved observations: wealth and Goal history show exact tables without prehistory",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 999,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-1.spec.ts",
+      "title": "10 Health: working diary plus clearly planned modules",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 920,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life dashboards use Showcase records and expose exact history and working diary controls",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2525,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Activity categories preserve true dated events and current favourites context",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1648,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 1440px without overflow",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7867,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 1024px without overflow",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7428,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 390px without overflow",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5867,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 320px without overflow",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5969,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Quick Add opens Habit creation from the Habit page and can reopen after cancel",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 845,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Quick Add Health entry leaves another Health view and focuses the working diary form",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2160,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life functional text stays readable at 320 pixels",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2217,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life dashboards use Showcase records and expose exact history and working diary controls",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2192,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Activity categories preserve true dated events and current favourites context",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1372,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 1440px without overflow",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7727,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 1024px without overflow",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7764,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 390px without overflow",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5623,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life pages recompose at 320px without overflow",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5544,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Quick Add opens Habit creation from the Habit page and can reopen after cancel",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 859,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Quick Add Health entry leaves another Health view and focuses the working diary form",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2190,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-life.spec.ts",
+      "title": "Life functional text stays readable at 320 pixels",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2003,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Showcase journey: populated product, explicit history, reset and byte-exact return to normal data",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7123,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Quick Add keyboard, repeatable asset intent, Goal chooser and history-only contribution",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2689,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Market search and favourites keep ownership independent, and blocked images retain identities",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1641,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 1440px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3178,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 1024px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3010,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 390px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3005,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 320px",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3257,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Showcase journey: populated product, explicit history, reset and byte-exact return to normal data",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6568,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Quick Add keyboard, repeatable asset intent, Goal chooser and history-only contribution",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2506,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Market search and favourites keep ownership independent, and blocked images retain identities",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1527,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 1440px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2998,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 1024px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2958,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 390px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2911,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-product.spec.ts",
+      "title": "Product composition and exact two-line slogan at 320px",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2984,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-security.spec.ts",
+      "title": "new public market endpoints reject private payload fields, query injection and arbitrary image destinations",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 26,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-security.spec.ts",
+      "title": "new public market endpoints reject private payload fields, query injection and arbitrary image destinations",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 58,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 1440",
+      "project": "desktop",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 1024",
+      "project": "desktop",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 390",
+      "project": "desktop",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 320",
+      "project": "desktop",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 1440",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 1024",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 390",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9-2-visual.spec.ts",
+      "title": "final Showcase visuals 320",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "durationMs": 0,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "actual contributions stay separate from observed wealth and reversals retain history",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1603,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "Goal intelligence charts and Wealth fit desktop and narrow mobile",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4957,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "viewing migrated v1 never persists v2 until an explicit edit",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 620,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "confirmed Local Demo Add Funds records exactly once and never at preview",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1528,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "automatic selection preserves exact identity, quotes privately, and keeps manual fallback",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1108,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "catalog failure leaves explicit manual valuation usable",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1317,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "actual contributions stay separate from observed wealth and reversals retain history",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1823,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "Goal intelligence charts and Wealth fit desktop and narrow mobile",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3914,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "viewing migrated v1 never persists v2 until an explicit edit",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 546,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "confirmed Local Demo Add Funds records exactly once and never at preview",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1289,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "automatic selection preserves exact identity, quotes privately, and keeps manual fallback",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1280,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "run9.spec.ts",
+      "title": "catalog failure leaves explicit manual valuation usable",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1111,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "transactions.spec.ts",
+      "title": "restart preserves scoped journal and damaged rows without replay",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 955,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "transactions.spec.ts",
+      "title": "restart preserves scoped journal and damaged rows without replay",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 842,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "one collection reconciles incomplete flags, preserves deep links and shows ownership inline",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2089,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1979,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "creation without allocation confirmation saves an empty Goal",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1282,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator preserves Local Demo and legacy detail",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1224,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified responsive Goals and creator keep navigation and Health intact",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2724,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Project completion follows milestones and Value/Reward Goals keep their own source semantics",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3021,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Local simulation remains creatable when independent Position storage is malformed",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1559,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "failed Habit write retries without duplicating Goal or re-allocating reserved units",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1491,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Goal management stays collapsed, supports keyboard and hash links, and skips unneeded market requests",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1239,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "one collection reconciles incomplete flags, preserves deep links and shows ownership inline",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1721,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1771,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "creation without allocation confirmation saves an empty Goal",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1032,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified creator preserves Local Demo and legacy detail",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1278,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "unified responsive Goals and creator keep navigation and Health intact",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1974,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Project completion follows milestones and Value/Reward Goals keep their own source semantics",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3567,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Local simulation remains creatable when independent Position storage is malformed",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1272,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "failed Habit write retries without duplicating Goal or re-allocating reserved units",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1235,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "unified-goals.spec.ts",
+      "title": "Goal management stays collapsed, supports keyboard and hash links, and skips unneeded market requests",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 941,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "visual-v21.spec.ts",
+      "title": "V2.1 artwork, summary-first composition and stable decorative identities",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1952,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "visual-v21.spec.ts",
+      "title": "V2.1 artwork, summary-first composition and stable decorative identities",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1763,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "wallet-reload.spec.ts",
+      "title": "mock Keplr reconnect stays explicit and tab scoped across reload",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1945,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "wallet-reload.spec.ts",
+      "title": "mock Keplr reconnect stays explicit and tab scoped across reload",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 1701,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "wealth.spec.ts",
+      "title": "manual sources stay selected and all allocations are created",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2587,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "wealth.spec.ts",
+      "title": "Wealth shows every category, preserves allocations and fits all viewports",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7318,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "wealth.spec.ts",
+      "title": "manual sources stay selected and all allocations are created",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2171,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "file": "wealth.spec.ts",
+      "title": "Wealth shows every category, preserves allocations and fits all viewports",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 6434,
+          "retry": 0
+        }
+      ]
+    }
+  ]
+}

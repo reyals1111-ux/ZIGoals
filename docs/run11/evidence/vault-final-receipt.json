@@ -1,0 +1,17 @@
+{
+  "source": "e28077d353a37d94ddfae11b90c8d0f10d2cb4f8",
+  "vaultCommit": "df99f3eb803e66b8fa1d91a691a653f75b3edc85",
+  "at": "2026-09-26T23:26:08.750173+00:00",
+  "backup": "/tmp/zigoals-run11-vault-final-20260926T232608Z",
+  "files": [
+    {
+      "path": "30-Projects/Personal AI Lab/ZIGoals/Project Map.md",
+      "sha256": "4e79ef99dacd7be3dee8f2dbd92209cdc29ff241171012dc4497ad647eef72ea"
+    },
+    {
+      "path": "30-Projects/Personal AI Lab/ZIGoals/Release Evidence/Run 11 Completion.md",
+      "sha256": "2b4644c54b026c67cf9f7d167950c0a321eb4b10e99b7f3799db6273e418eb60"
+    }
+  ],
+  "scope": "Sanitized existing Run11 note and current project index only; unrelated files not staged."
+}
