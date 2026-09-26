@@ -2,12 +2,12 @@ import type {PublicMarketWork} from './market-coordinator';
 import type {MarketCommand} from './market-charged-read';
 /** The follower owns only its registration. Its deadline/cancellation cannot cancel
  * a shared provider attempt or extend the owner's publication lease. */
-export async function followMarketWork(work:PublicMarketWork,initial:Record<string,unknown>,{command,signal,waitMs=1000}:{command:MarketCommand;signal?:AbortSignal;waitMs?:number}){
+export async function followMarketWork(work:PublicMarketWork,initial:Record<string,unknown>,{command,signal,cancelToken,waitMs=1000}:{command:MarketCommand;signal?:AbortSignal;cancelToken?:string;waitMs?:number}){
  if(initial.status!=='WAITING'||signal?.aborted)return initial;
  let id:string|undefined,last=initial;const deadline=Date.now()+Math.min(1000,Math.max(0,waitMs));
  try{
   if(Date.now()>=deadline)return initial;
-  const registered=await command({action:'follow',work,waitMs:Math.max(1,Math.floor(deadline-Date.now()))});last={...last,...registered};if(registered.status!=='WAITING'||typeof registered.id!=='string')return last;id=registered.id;
+  const registered=await command({action:'follow',work,...(cancelToken?{cancelToken}:{}),waitMs:Math.max(1,Math.floor(deadline-Date.now()))});last={...last,...registered};if(registered.status!=='WAITING'||typeof registered.id!=='string')return last;id=registered.id;
   while(!signal?.aborted&&Date.now()<deadline){
    await new Promise<void>(resolve=>{const done=()=>{clearTimeout(timer);signal?.removeEventListener('abort',done);resolve();};const timer=setTimeout(done,Math.min(50,Math.max(0,deadline-Date.now())));signal?.addEventListener('abort',done,{once:true});if(signal?.aborted)done();});
    if(signal?.aborted||Date.now()>=deadline)break;

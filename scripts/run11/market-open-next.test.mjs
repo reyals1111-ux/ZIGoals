@@ -1,22 +1,13 @@
+import {marketRuntimeBundles as bundles} from './market-runtime-fixture.mjs';
 import {test,expect} from 'vitest';
 import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
-const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{build}=require('esbuild');
-const root=new URL('../../',import.meta.url).pathname;
+const {Miniflare,convertV4MiniflareOptions}=require('miniflare');
 const pair=id=>({marketRef:{provider:'coingecko',kind:'coin',id},currency:'USD'});
 const policy={providerMinuteLimit:100,providerMonthlyLimit:1000,operating:{minute:90,monthly:900},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:3,monthly:30},optionalCeiling:{minute:80,monthly:800},concurrent:2,queueLimit:16,reservationMs:20000,ownershipMs:10000};
-// Exercise the installed production AsyncLocalStorage wrapper and loader, together
-// with real route modules. Only build-time constants and Next's generated env file
-// are fixtures; the binding/runtime implementation is the installed OpenNext source.
-async function bundles(){
- const productionInit=root+'apps/web/node_modules/@opennextjs/cloudflare/dist/cli/templates/init.js';
- const app=await build({stdin:{contents:`import {runWithCloudflareRequestContext} from ${JSON.stringify(productionInit)};import * as quotes from './apps/web/app/api/market-quotes/route.ts';import * as catalog from './apps/web/app/api/market-assets/route.ts';import * as history from './apps/web/app/api/market-history/route.ts';import * as insights from './apps/web/app/api/market-insights/route.ts';const routes={'/api/market-quotes':quotes,'/api/market-assets':catalog,'/api/market-history':history,'/api/market-insights':insights};export default {fetch(request,env,ctx){return runWithCloudflareRequestContext(request,env,ctx,()=>routes[new URL(request.url).pathname][request.method](request));}}`,resolveDir:root},bundle:true,write:false,format:'esm',platform:'node',target:'es2022',external:['node:*'],alias:{'server-only':root+'apps/web/node_modules/next/dist/compiled/server-only/empty.js','@opennextjs/cloudflare':root+'apps/web/node_modules/@opennextjs/cloudflare/dist/api/cloudflare-context.js'},define:{__BUILD_TIMESTAMP_MS__:'0',__NEXT_BASE_PATH__:'""',__ASSETS_RUN_WORKER_FIRST__:'false',__TRAILING_SLASH__:'false',__DEPLOYMENT_ID__:'"fixture"','process.env.NODE_ENV':'"production"'},plugins:[{name:'generated-env-fixture',setup(build){build.onResolve({filter:/next-env\.mjs$/},()=>({path:'next-env',namespace:'fixture'}));build.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const production={};',loader:'js'}));}}]});
- const market=await build({entryPoints:[root+'workers/market-coordinator/worker.ts'],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']});
- return {app:app.outputFiles[0].text,market:market.outputFiles[0].text};
-}
 test('installed OpenNext production runtime → real routes → named service → one durable account → controlled provider',async()=>{
  const code=await bundles(),now=Date.now(),persist=await mkdtemp(join(tmpdir(),'run11-market-'));let mf,calls=[];
  const config={policy,month:{id:'fixture-month',start:now-1000,end:now+300000},quoteCost:3,operationCosts:{catalog:2,history:4,insights:5,token:6,rwa:7},leaseMs:20000,maxAttempts:128,maxWorks:64};

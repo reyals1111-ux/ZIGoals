@@ -13,7 +13,7 @@ type Command=(command:unknown)=>Promise<Record<string,unknown>>;
 const denied=(reason:unknown):ProviderFailureCategory=>['PAIR_BREAKER_OPEN','QUEUE_WAIT','QUEUE_WAIT_EXPIRED','WAITER_CANCELLED','BREAKER_OPEN','CONCURRENT_LIMIT','QUEUE_LIMIT','FENCED','RESERVATION_EXPIRED','OWNERSHIP_EXPIRED'].includes(String(reason))?'LOCAL_QUEUE':['POLICY_UNAVAILABLE','POLICY_CHANGED','CLOCK_OR_PERIOD','MINUTE_LIMIT','MONTHLY_LIMIT','MONITORING_LIMIT','OPTIONAL_LIMIT','RETENTION_CAPACITY','CACHE_CAPACITY'].includes(String(reason))?'LOCAL_BUDGET':'UNKNOWN';
 /** Quote ownership/publication is durable. Every physical batch, reference read and
  * documented ZIG token fallback receives its own account-wide charged attempt. */
-export async function dispatchDurableQuotes(raw:readonly MarketQuoteRequest[],{command,key,fetcher=fetch,clock=()=>Date.now(),signal}:{command:Command;key?:string;fetcher?:typeof fetch;clock?:()=>number;signal?:AbortSignal}){
+export async function dispatchDurableQuotes(raw:readonly MarketQuoteRequest[],{command,key,fetcher=fetch,clock=()=>Date.now(),signal,cancelToken}:{command:Command;key?:string;fetcher?:typeof fetch;clock?:()=>number;signal?:AbortSignal;cancelToken?:string}){
  const requests=uniqueMarketRequests(raw),quotes=new Map<string,MarketQuote>(),failures:PairFailure[]=[],followers:Promise<void>[]=[];
  const keyOf=marketRequestKey;
  const fail=(members:readonly MarketQuoteRequest[],category:ProviderFailureCategory)=>failures.push(...members.map(request=>({request,category})));
@@ -28,7 +28,7 @@ export async function dispatchDurableQuotes(raw:readonly MarketQuoteRequest[],{c
    if(acquired.ok!==true){fail([request],denied(acquired.reason));continue;}
    if(acquired.status==='CACHE_HIT')continue;
    if(acquired.status==='OWNER'){owners.push({request,work,lease:acquired.lease as WorkLease});continue;}
-   followers.push(followMarketWork(work,acquired,{command,signal}).then(row=>{if(row.quote){const evidence=marketPairEnvelope([request],[row.quote as MarketQuote],[],clock());quotes.set(keyOf(request),evidence.quotes[0]!);}if(row.ok!==true||row.status!=='CACHE_HIT')fail([request],'LOCAL_QUEUE');}).catch(()=>{fail([request],'UNKNOWN');}));
+   followers.push(followMarketWork(work,acquired,{command,signal,cancelToken}).then(row=>{if(row.quote){const evidence=marketPairEnvelope([request],[row.quote as MarketQuote],[],clock());quotes.set(keyOf(request),evidence.quotes[0]!);}if(row.ok!==true||row.status!=='CACHE_HIT')fail([request],'LOCAL_QUEUE');}).catch(()=>{fail([request],'UNKNOWN');}));
   }catch{fail([request],'UNKNOWN');}
  }
  // ZIG has its own atomic response boundary, so its unavailable simple-price result

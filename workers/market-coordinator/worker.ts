@@ -27,11 +27,17 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   const headers={'cache-control':'no-store','content-type':'application/json'};
   if(this.env.MARKET_QUOTE_DISPATCH!=='durable-v1'||!this.env.MARKET_ACCOUNT_ID||!/^[a-zA-Z0-9_-]{1,80}$/.test(this.env.MARKET_ACCOUNT_ID))return Response.json({error:'MARKET_SETUP_REQUIRED'},{status:503,headers});
   const path=new URL(request.url).pathname;
-  if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
-  let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+  if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights','/cancel'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
   const stub=this.env.MARKETS.get(this.env.MARKETS.idFromName(this.env.MARKET_ACCOUNT_ID));
+  if(path==='/cancel'){
+   let token;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),256));if(Object.keys(raw).length!==1||typeof raw.cancelToken!=='string'||!/^([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(raw.cancelToken))throw Error();token=raw.cancelToken;}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+   return stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify({action:'cancel-followers',cancelToken:token})}));
+  }
+  const cancelToken=request.headers.get('x-market-cancel-token')??undefined;
+  if(cancelToken&&!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cancelToken))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
+  let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
   const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:(command as {action?:string}).action==='publish-data'?{'x-market-payload':'evidence'}:{},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll'].includes(String((command as {action?:string}).action))?17*1024*1024:1024*1024)) as Record<string,unknown>;};
-  const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal};
+  const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken};
   const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests,context):await durableInsights(body.requests,context):null;
   return Response.json(result,{headers});
  }

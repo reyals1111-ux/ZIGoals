@@ -213,3 +213,19 @@ test('aggregate follower capacity is bounded across work keys and timeout restor
  const {account,advance}=setup({leaseMs:10000,maxWorks:32});for(let key=0;key<17;key++){await account.apply({action:'acquire',work:work('key-'+key)});if(key===16)break;for(let i=0;i<8;i++)expect(await account.apply({action:'follow',work:work('key-'+key),waitMs:500})).toMatchObject({ok:true});}
  expect(await account.apply({action:'follow',work:work('key-16'),waitMs:500})).toMatchObject({reason:'FOLLOWER_LIMIT'});expect(await account.apply({action:'inspect'})).toMatchObject({followers:128,chargedCredits:0});advance(600);expect(await account.apply({action:'follow',work:work('key-16'),waitMs:500})).toMatchObject({ok:true});expect(await account.apply({action:'inspect'})).toMatchObject({followers:1,chargedCredits:0});
 });
+test('request capability cancellation fences only matching followers, survives restart and races registration',async()=>{
+ const {account,storage,advance}=setup();await account.apply({action:'acquire',work:work('bitcoin')});const token=crypto.randomUUID(),other=crypto.randomUUID();
+ const first=await account.apply({action:'follow',work:work('bitcoin'),waitMs:1000,cancelToken:token});expect(first).toMatchObject({ok:true,status:'WAITING'});
+ const second=await account.apply({action:'follow',work:work('bitcoin'),waitMs:1000,cancelToken:other});expect(second).toMatchObject({ok:true,status:'WAITING'});
+ expect(await account.apply({action:'cancel-followers',cancelToken:token})).toMatchObject({ok:true});
+ expect(await account.apply({action:'poll',id:first.id})).toMatchObject({reason:'FOLLOWER_EXPIRED'});expect(await account.apply({action:'poll',id:second.id})).toMatchObject({status:'WAITING'});
+ const restarted=new DurableMarketAccount(storage,()=>200,JSON.stringify(config));expect(await restarted.apply({action:'follow',work:work('bitcoin'),waitMs:500,cancelToken:token})).toMatchObject({reason:'WAITER_CANCELLED'});
+ expect(await restarted.apply({action:'acquire',work:work('bitcoin')})).toMatchObject({status:'WAITING'});expect(await restarted.apply({action:'inspect'})).toMatchObject({followers:1,chargedCredits:0});
+ const early=crypto.randomUUID();await restarted.apply({action:'cancel-followers',cancelToken:early});expect(await restarted.apply({action:'follow',work:work('bitcoin'),waitMs:500,cancelToken:early})).toMatchObject({reason:'WAITER_CANCELLED'});
+ advance(30201);await account.apply({action:'acquire',work:work('bitcoin')});expect(await account.apply({action:'follow',work:work('bitcoin'),waitMs:500,cancelToken:early})).toMatchObject({status:'WAITING'});
+});
+test('cancellation capabilities have bounded tombstones and reject malformed tokens',async()=>{
+ const {account,storage}=setup();expect(await account.apply({action:'cancel-followers',cancelToken:'guess'})).toMatchObject({reason:'MALFORMED'});
+ for(let i=0;i<128;i++)expect(await account.apply({action:'cancel-followers',cancelToken:crypto.randomUUID()})).toMatchObject({ok:true});
+ expect(await account.apply({action:'cancel-followers',cancelToken:crypto.randomUUID()})).toMatchObject({reason:'FOLLOWER_LIMIT'});expect((storage.rows.get('follower-cancellations') as unknown[])).toHaveLength(128);
+});
