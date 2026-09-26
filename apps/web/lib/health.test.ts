@@ -17,7 +17,7 @@ test("empty health contains no invented personal targets or logs", () => {
   const empty = createEmptyHealth();
   expect(healthSchema.parse(empty)).toEqual(empty);
   expect(empty.targets).toEqual({ kcal: null, proteinMg: null, carbsMg: null, fatMg: null, weightGrams: null, steps: null });
-  expect(dailyHealthSummary(empty, "2026-09-15")).toEqual({ nutrients: { kcal: 0, proteinMg: 0, carbsMg: 0, fatMg: 0 }, entries: 0, steps: 0, minutes: 0 });
+  expect(dailyHealthSummary(empty, "2026-09-15")).toEqual({ nutrients: { kcal: 0, proteinMg: 0, carbsMg: 0, fatMg: 0 }, knownNutrients:{kcal:null,proteinMg:null,carbsMg:null,fatMg:null},coverage:{kcal:{known:0,total:0},proteinMg:{known:0,total:0},carbsMg:{known:0,total:0},fatMg:{known:0,total:0}}, entries: 0, steps: 0, minutes: 0 });
   expect(getHealthActivities(empty)).toEqual([]);
 });
 

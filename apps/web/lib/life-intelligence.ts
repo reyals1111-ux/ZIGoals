@@ -1,4 +1,4 @@
-import { dailyHealthSummary, HEALTH_MEALS, healthHistory, scaleNutrition, type HealthData } from "./health";
+import { dailyHealthSummary, HEALTH_MEALS, healthHistory, type HealthData } from "./health";
 import { habitDay, type Habit } from "./habits";
 import { addLocalDays, localDate } from "./local-date";
 
@@ -6,13 +6,13 @@ import { addLocalDays, localDate } from "./local-date";
 export function nutritionDashboard(data: HealthData, date: string) {
   const summary = dailyHealthSummary(data, date);
   const history = healthHistory(data, date, 30);
-  const logged = history.filter(day => day.entries > 0);
+  const logged = history.filter(day => day.entries > 0),complete=logged.filter(day=>day.nutrients.kcal!==null);
   const meals = HEALTH_MEALS.map(meal => {
     const entries = data.diary.filter(entry => entry.date === date && entry.meal === meal);
-    const kcal = entries.reduce((sum, entry) => sum + scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli).kcal, 0);
-    return { meal, kcal, entries: entries.length, share: summary.nutrients.kcal ? kcal / summary.nutrients.kcal * 100 : 0, names: entries.map(entry => entry.snapshot.name) };
+    const nutrition=dailyHealthSummary({...data,diary:entries},date),kcal=nutrition.nutrients.kcal;
+    return { meal, kcal, nutrition, entries: entries.length, share: summary.nutrients.kcal!==null&&kcal!==null&&summary.nutrients.kcal>0?kcal/summary.nutrients.kcal*100:null, names: entries.map(entry => entry.snapshot.name) };
   });
-  return { ...summary, meals, history, mealCount: meals.filter(meal => meal.entries > 0).length, remaining: data.targets.kcal === null ? null : data.targets.kcal - summary.nutrients.kcal, loggedDays: logged.length, averageKcal: logged.length ? Math.round(logged.reduce((sum, day) => sum + day.nutrients.kcal, 0) / logged.length) : null };
+  return { ...summary, meals, history, mealCount: meals.filter(meal => meal.entries > 0).length, remaining: data.targets.kcal === null || summary.nutrients.kcal===null ? null : data.targets.kcal - summary.nutrients.kcal, loggedDays: logged.length,completeDays:complete.length, averageKcal: complete.length ? Math.round(complete.reduce((sum, day) => sum + day.nutrients.kcal!, 0) / complete.length) : null };
 }
 
 /** Check-in days are distinct from completed target-period streaks shown on cards. */
