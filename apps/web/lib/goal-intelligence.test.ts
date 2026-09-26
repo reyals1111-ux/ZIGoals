@@ -167,3 +167,15 @@ it('refuses a full history append without deleting any accepted observation',()=
  const changed={...source,goals:source.goals.map(g=>({...g,plan:{...g.plan!,amount:'20000'}}))};
  expect(()=>intelligence.recordGoalChanges(source,changed,now+1000)).toThrow(/capacity|export/i);expect(source.goalHistory).toHaveLength(50000);expect(source.goalHistory[0]!.id).toBe('retained-0');
 });
+
+it('retained timeline pages all events in actual instant order with UTC date and kind filters',()=>{
+ const rows=Array.from({length:35},(_,i)=>({id:String(i),goalId:'1',at:new Date(Date.UTC(2026,8,1+i)).toISOString(),kind:i%2?'contribution':'valuation',label:'Evidence',provenance:'MANUAL'}));
+ expect(intelligence.pageGoalTimeline(rows,{page:2}).events.map(e=>e.id)).toEqual(['10','9','8','7','6','5','4','3','2','1','0']);
+ expect(intelligence.pageGoalTimeline(rows,{page:99,kind:'contribution',from:'2026-09-10',to:'2026-09-20'})).toMatchObject({page:0,total:6});
+ const offsets=[{...rows[0]!,id:'later',at:'2026-09-01T01:30:00+02:00'},{...rows[0]!,id:'earlier',at:'2026-08-31T22:30:00Z'}];
+ expect(intelligence.pageGoalTimeline(offsets,{page:0}).events.map(e=>e.id)).toEqual(['later','earlier']);
+});
+it('cumulative contribution evidence aggregates once with exact integers and excludes future or incompatible facts',()=>{
+ const s={...state(),contributions:[event('a'),{...event('b'),direction:'OUT' as const,quantity:'500'},{...event('income'),provenance:'REWARD_INCOME' as const,quantity:'200'},{...event('future'),occurredAt:'2027-01-01T00:00:00Z'}]};
+ expect(intelligence.contributionEvidenceSeries(s,'1',now)).toEqual({actual:[{at:'2026-09-02T12:00:00.000Z',value:'9500'}],income:[{at:'2026-09-02T12:00:00.000Z',value:'200'}]});
+});

@@ -1,3 +1,4 @@
+import {latestWeightObservation} from './body-measurements';
 /** Presentation only: every value resolves from the domain's canonical selector. */
 import {formatUnits} from '@zigoals/chain-config';
 import {allocationBalance,positionSync,type Position,type Platform} from './positions';
@@ -38,7 +39,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   if(widget.metric==='kcal')return {...common,value:summary.entries?`${summary.nutrients.kcal.toLocaleString()} kcal`:'No meals recorded',detail:`${summary.entries} meals & snacks · ${s.healthDate}`};
   if(widget.metric==='macros')return {...common,value:summary.entries?`${(summary.nutrients.proteinMg/1000).toLocaleString()} g protein`:'No meals recorded',detail:summary.entries?`${(summary.nutrients.carbsMg/1000).toLocaleString()} g carbs · ${(summary.nutrients.fatMg/1000).toLocaleString()} g fat`:'Log a meal to start your day.'};
   if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate);return {...common,value:water.entries?`${water.millilitres.toLocaleString()} mL`:'No water recorded',detail:water.targetMl?`Personal target ${water.targetMl.toLocaleString()} mL · ${s.healthDate}`:`${s.healthDate} · no target set`};}
-  if(widget.metric==='weight'){const latest=s.health.weights.filter(w=>w.date<=s.healthDate).sort((a,b)=>b.date.localeCompare(a.date))[0],unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${(latest.grams/(unit==='lb'?453.59237:1000)).toLocaleString(undefined,{maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?`${latest.date} · manual measurement`:'Record a measurement when you choose.'};}
+  if(widget.metric==='weight'){const latest=latestWeightObservation(s.health,s.healthDate),unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${(latest.grams/(unit==='lb'?453.59237:1000)).toLocaleString(undefined,{maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?latest.detail:'Record a measurement when you choose.'};}
   if(widget.metric==='history'){const rhythm=nutritionDashboard(s.health,s.healthDate);return {...common,title:widget.title||'Your nutrition rhythm',value:rhythm.averageKcal===null?'No logged days':`${rhythm.averageKcal.toLocaleString()} kcal`,detail:`${rhythm.loggedDays} of 30 days with entries · average per logged day`,href:'/app/health#nutrition-history'};}
   const recorded=s.health.activity.some(a=>a.date===s.healthDate);return {...common,value:recorded?widget.metric==='steps'?`${summary.steps.toLocaleString()} steps`:`${summary.minutes.toLocaleString()} minutes`:'No activity recorded'};
  }

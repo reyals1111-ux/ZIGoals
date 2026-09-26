@@ -1660,12 +1660,14 @@
     },
     {
       "id": "FIN-13",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "implemented_pending_full_acceptance",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working product delta after d9d92f0",
+      "evidence": [
+        "apps/web/tests/run11-goal-history.spec.ts"
+      ],
+      "delta": "Paged/filterable retained Goal timeline with exact record details and numeric instant ordering; chart totals now one sorted pass. Final full-source and complete cross-workstream reconciliation remains.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -1847,12 +1849,14 @@
     },
     {
       "id": "GOAL-05",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "implemented_pending_full_acceptance",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working product delta after d9d92f0",
+      "evidence": [
+        "apps/web/tests/run11-goal-history.spec.ts"
+      ],
+      "delta": "All retained Goal events reachable with date/type filters and exact details. Final full-source and complete cross-workstream reconciliation remains.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2001,12 +2005,14 @@
     },
     {
       "id": "HLT-05",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "implemented_pending_full_acceptance",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working product delta after d9d92f0",
+      "evidence": [
+        "apps/web/tests/run11-nutrients.spec.ts"
+      ],
+      "delta": "Optional supplied nutrients, unknown/zero distinction, partial per-meal/day totals, recipe incomplete evidence and CSV fields. Final full-source and complete cross-workstream reconciliation remains.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2023,12 +2029,14 @@
     },
     {
       "id": "HLT-07",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "implemented_pending_full_acceptance",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working product delta after d9d92f0",
+      "evidence": [
+        "apps/web/tests/run11-measurements.spec.ts"
+      ],
+      "delta": "Timestamped weight/body kinds, exact conversion with original units/source, retained corrections, paged table, chart and CSV; date-only legacy records unchanged. Final full-source and complete cross-workstream reconciliation remains.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2078,12 +2086,14 @@
     },
     {
       "id": "HLT-12",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "implemented_pending_full_acceptance",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working product delta after d9d92f0",
+      "evidence": [
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "New timed weight records feed Today selector; body measurement correction verified across two browsers using Health opt-in. Final full-source and complete cross-workstream reconciliation remains.",
       "owner": "implementation",
       "dependencies": []
     },

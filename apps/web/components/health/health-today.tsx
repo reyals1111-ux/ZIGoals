@@ -1,4 +1,5 @@
 "use client";
+import {latestWeightObservation} from '../../lib/body-measurements';
 import Link from "next/link";
 import { dailyHealthSummary, formatHealthGrams } from "../../lib/health";
 import { useLocalToday } from "../use-local-today";
@@ -9,7 +10,7 @@ export function HealthToday() {
   const { data, loaded, error } = useHealth();
   const today = useLocalToday();
   const summary = loaded ? dailyHealthSummary(data, today) : null;
-  const weight = data.weights.filter(entry => entry.date <= today).sort((a, b) => b.date.localeCompare(a.date))[0];
+  const weight = latestWeightObservation(data,today);
   return <section className="panel health-today" aria-label="Today's health">
     <div className="health-section-heading"><div><p className="eyebrow">HEALTH · PRIVATE</p><h2>Your daily balance.</h2></div><span className="health-symbol" aria-hidden="true">↗</span></div>
     {!loaded ? <p>Loading your private health entries…</p> : error ? <p>Health data needs attention. Open Health to review it.</p> : summary && summary.entries > 0 ? <>

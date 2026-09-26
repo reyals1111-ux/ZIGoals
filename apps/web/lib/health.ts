@@ -1,3 +1,4 @@
+import {bodyMeasurementSchema} from "./body-measurement-schema";
 import { z } from "zod";
 import { addLocalDays } from "./local-date";
 
@@ -11,7 +12,7 @@ const integer = (max: number, min = 0) => z.number().int().min(min).max(max);
 const quantity = integer(1_000_000, 1);
 const grams = integer(100_000, 1);
 const bodyGrams = integer(1_000_000, 1);
-export const nutritionSchema = z.strictObject({ kcal: integer(1_000_000), proteinMg: integer(1_000_000_000), carbsMg: integer(1_000_000_000), fatMg: integer(1_000_000_000) });
+export const nutritionSchema = z.strictObject({ kcal: integer(1_000_000), proteinMg: integer(1_000_000_000), carbsMg: integer(1_000_000_000), fatMg: integer(1_000_000_000),fiberMg:integer(1_000_000_000).optional(),sugarMg:integer(1_000_000_000).optional(),saturatedFatMg:integer(1_000_000_000).optional(),sodiumMg:integer(1_000_000_000).optional(),potassiumMg:integer(1_000_000_000).optional(),calciumMg:integer(1_000_000_000).optional(),ironMg:integer(1_000_000_000).optional() });
 export type Nutrition = z.infer<typeof nutritionSchema>;
 export const targetsSchema = z.strictObject({
   kcal: integer(100_000, 1).nullable(), proteinMg: integer(10_000_000, 1).nullable(),
@@ -32,6 +33,8 @@ const weightSchema = z.strictObject({ id: localId, date: healthDateSchema, grams
 export type HealthWeight = z.infer<typeof weightSchema>;
 const activitySchema = z.strictObject({ id: localId, date: healthDateSchema, name, steps: integer(1_000_000), minutes: integer(1440), createdAt: stamp, updatedAt: stamp }).refine(a => a.steps > 0 || a.minutes > 0);
 export type HealthActivity = z.infer<typeof activitySchema>;
+export const additionalNutrients=[['fiberMg','Fiber','g',1000],['sugarMg','Sugars','g',1000],['saturatedFatMg','Saturated fats','g',1000],['sodiumMg','Sodium','mg',1],['potassiumMg','Potassium','mg',1],['calciumMg','Calcium','mg',1],['ironMg','Iron','mg',1]] as const;
+export function additionalNutritionSummary(values:readonly Nutrition[]){return Object.fromEntries(additionalNutrients.map(([key])=>{const known=values.flatMap(n=>n[key]===undefined?[]:[n[key]!]);return [key,{value:known.length?known.reduce((sum,n)=>sum+n,0):null,known:known.length,total:values.length}];})) as Record<typeof additionalNutrients[number][0],{value:number|null;known:number;total:number}>;}
 const nutrientKeys = ["kcal", "proteinMg", "carbsMg", "fatMg"] as const;
 const zeroNutrition = (): Nutrition => ({ kcal: 0, proteinMg: 0, carbsMg: 0, fatMg: 0 });
 const roundedRatio = (numerator: bigint, denominator: bigint) => Number((numerator * 2n + denominator) / (denominator * 2n));
@@ -40,13 +43,13 @@ const roundedRatio = (numerator: bigint, denominator: bigint) => Number((numerat
 export function scaleNutrition(nutrients: Nutrition, quantityMilli: number): Nutrition {
   nutritionSchema.parse(nutrients);
   quantity.parse(quantityMilli);
-  return nutritionSchema.parse(Object.fromEntries(nutrientKeys.map(key => [key, roundedRatio(BigInt(nutrients[key]) * BigInt(quantityMilli), 1000n)])));
+  return nutritionSchema.parse(Object.fromEntries([...nutrientKeys,...additionalNutrients.map(([key])=>key)].filter(key=>nutrients[key]!==undefined).map(key => [key, roundedRatio(BigInt(nutrients[key]!) * BigInt(quantityMilli), 1000n)])));
 }
 
 export function recipeNutrition(recipe: HealthRecipe): Nutrition {
   recipeSchema.parse(recipe);
-  return nutritionSchema.parse(Object.fromEntries(nutrientKeys.map(key => [key,
-    roundedRatio(recipe.ingredients.reduce((total, item) => total + BigInt(item.snapshot.nutrients[key]) * BigInt(item.quantityMilli), 0n), BigInt(recipe.portionsMilli)),
+  return nutritionSchema.parse(Object.fromEntries([...nutrientKeys,...additionalNutrients.map(([key])=>key)].filter(key=>recipe.ingredients.every(item=>item.snapshot.nutrients[key]!==undefined)).map(key => [key,
+    roundedRatio(recipe.ingredients.reduce((total, item) => total + BigInt(item.snapshot.nutrients[key]!) * BigInt(item.quantityMilli), 0n), BigInt(recipe.portionsMilli)),
   ])));
 }
 
@@ -79,12 +82,12 @@ export type MealItem = z.infer<typeof mealItemSchema>;
 export type WaterEntry = z.infer<typeof waterSchema>;
 
 export const healthSchema = z.strictObject({
-  schemaVersion: z.literal(1), kind: z.literal("zigoals-health"), targets: targetsSchema, daily: healthDailySchema.optional(),
+  schemaVersion: z.literal(1), kind: z.literal("zigoals-health"), measurements:z.array(bodyMeasurementSchema).max(20000).optional(), targets: targetsSchema, daily: healthDailySchema.optional(),
   foods: z.array(foodSchema).max(1000), recipes: z.array(recipeSchema).max(500),
   diary: z.array(diarySchema).max(10_000), weights: z.array(weightSchema).max(5000), activity: z.array(activitySchema).max(10_000),
 }).superRefine((data, ctx) => {
   const ids = new Set<string>();
-  for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity, data.daily?.water ?? [], data.daily?.savedMeals ?? [], data.daily?.plans ?? []]) {
+  for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity, data.measurements??[], data.daily?.water ?? [], data.daily?.savedMeals ?? [], data.daily?.plans ?? []]) {
     for (const item of list) {
       if (ids.has(item.id)) ctx.addIssue({ code: "custom", message: "Duplicate health record ID." });
       ids.add(item.id);
