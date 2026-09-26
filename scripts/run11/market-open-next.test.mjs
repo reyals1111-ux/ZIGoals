@@ -82,3 +82,21 @@ test('real account breaker survives restart, blocks cross-endpoint sends and cha
   const ns=await mf.getDurableObjectNamespace('MARKETS','market');const state=await(await ns.get(ns.idFromName('fixture-account')).fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json();expect(state).toMatchObject({chargedCredits:6,dispatched:0});
  }finally{await mf?.dispose();}
 },30000);
+
+test('real named service queues independent endpoint work without holding provider slots or replacing accepted reservations',async()=>{
+ const code=await bundles(),now=Date.now();let calls=0,active=0,peak=0,release,entered;
+ const blocked=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;});
+ const config={policy:{...policy,concurrent:1},month:{id:'queue-fixture',start:now-1000,end:now+300000},quoteCost:3,operationCosts:{history:4},leaseMs:20000,maxAttempts:128,maxWorks:64};
+ const mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'app',modules:true,script:'export default {fetch(request,env){return env.MARKET_QUOTES.fetch(request)}}',compatibilityDate:'2026-09-13',serviceBindings:{MARKET_QUOTES:{name:'market',entrypoint:'QuoteService'}}},{name:'market',modules:true,script:code.market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'queue-fixture',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config),COINGECKO_DEMO_API_KEY:'fixture-key'},outboundService:async request=>{
+  calls++;active++;peak=Math.max(peak,active);try{const url=new URL(request.url);if(url.pathname.endsWith('/simple/price')){entered();await blocked;return Response.json({bitcoin:{usd:2,last_updated_at:Math.floor(Date.now()/1000)}});}return Response.json({prices:[[Date.now()-1000,2],[Date.now(),3]]});}finally{active--;}
+ }}]}));
+ const call=async(path,body)=>(await mf.dispatchFetch('https://app/'+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({version:1,...body})})).json();
+ try{
+  const quote=call('quotes',{requests:[pair('bitcoin')]});await started;const history=call('history',{request:{...pair('ethereum'),range:'1d'}});
+  const ns=await mf.getDurableObjectNamespace('MARKETS','market'),stub=ns.get(ns.idFromName('queue-fixture'));
+  let waiting;for(let i=0;i<50;i++){waiting=await(await stub.fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json();if(waiting.attempts===2)break;await new Promise(r=>setTimeout(r,10));}
+  expect(waiting).toMatchObject({attempts:2,dispatched:1,chargedCredits:3});expect(calls).toBe(1);release();
+  expect((await quote).results[0].status).toBe('VERIFIED_FRESH');expect((await history).history).not.toBeNull();expect(peak).toBe(1);expect(calls).toBe(2);
+  expect(await(await stub.fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json()).toMatchObject({attempts:2,dispatched:0,chargedCredits:7});
+ }finally{release();await mf.dispose();}
+},30000);

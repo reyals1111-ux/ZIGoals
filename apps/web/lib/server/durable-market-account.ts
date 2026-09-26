@@ -1,8 +1,8 @@
 import {z} from 'zod';
 import {admitMarketBreakers,settleMarketBreakers} from './market-breaker-storage';
-import {maintainMarketAccount,rememberAttempt,type RetainedAttempt} from './market-retention';
+import {maintainMarketAccount,rememberAttempt,releaseCancelledWork,type RetainedAttempt} from './market-retention';
 import {publicMarketWorkSchema,publicMarketWorkKey,createProviderAttempt,publishAttemptWork,type ProviderAttempt} from './market-coordinator';
-import {emptyBudgetState,validTime,enqueue,reserve,ownDispatch,markDispatched,settle,cancelUndispatched,type BudgetState} from './market-budget-policy';
+import {emptyBudgetState,validTime,nextReservedDispatch,enqueue,reserve,ownDispatch,markDispatched,settle,cancelUndispatched,type BudgetState} from './market-budget-policy';
 import {acquireWork,emptyWorkState,type WorkState} from './market-work-fence';
 import type {MarketQuote} from '../market-quotes';
 import {validateWorkEvidence,workEvidenceStale,workEvidenceTime} from './market-evidence';
@@ -98,11 +98,14 @@ export class DurableMarketAccount {
     await tx.put(key,result.state);return {ok:true};
    }
    if(command.action==='own'||command.action==='dispatch'){for(const association of attempt.associations){const current=await tx.get<WorkState<MarketQuote>>(`work:${publicMarketWorkKey(association.work)}`);if(!current?.lease||current.lease.token!==association.lease.token||current.lease.fence!==association.lease.fence||now>=Math.min(current.lease.deadline,current.lease.expiresAt))return {ok:false,reason:'FENCED'};}}
+   if(command.action==='cancel'&&(budget.reservations[command.id]?.status==='CANCELLED'||!budget.reservations[command.id]&&attempt.cancelled))return {ok:true,replay:true};
    if(command.action==='settle'){const previous=budget.reservations[command.id];if(previous?.status==='SETTLED'&&previous.outcome===command.outcome||!previous&&attempt.outcome===command.outcome)return {ok:true,replay:true};}
    const result=command.action==='reserve'?reserve(budget,config.policy,periods,attempt.reservation,now):command.action==='own'?ownDispatch(budget,config.policy,periods,command.id,now):command.action==='dispatch'?markDispatched(budget,config.policy,periods,command.id,now):command.action==='settle'?settle(budget,command.id,command.outcome,now):cancelUndispatched(budget,command.id,now);
    if(result.ok){
+    if(command.action==='own'&&nextReservedDispatch(budget,config.policy,periods,now)!==command.id)return {ok:false,reason:'QUEUE_WAIT'};
     if(command.action==='dispatch'){const permits=await admitMarketBreakers(tx,config.breaker,command.id,attempt.endpoint??'quote:coin',now);if(!permits)return {ok:false,reason:'BREAKER_OPEN'};await tx.put(`attempt:${command.id}`,{...attempt,breakers:permits});}
     await tx.put('budget',result.state);
+    if(command.action==='cancel')await releaseCancelledWork(tx,attempt,now);
     if(command.action==='settle'||command.action==='cancel')await settleMarketBreakers(tx,config.breaker,attempt.breakers,command.action==='settle'?(command.outcome==='success'?'VERIFIED':command.category??'UNKNOWN'):'UNKNOWN',now);
     if(command.action==='settle'||command.action==='cancel')await tx.put(`attempt:${command.id}`,{...attempt,finishedAt:now,...(command.action==='settle'?{outcome:command.outcome}:{cancelled:true})});}return {ok:result.ok,...(result.reason?{reason:result.reason}:{})};
   });}catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}

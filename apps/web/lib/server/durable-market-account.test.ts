@@ -121,3 +121,34 @@ test('invalid period configuration cannot discard compacted credits before rejec
  const invalid=new DurableMarketAccount(storage,()=>60200,JSON.stringify({...config,operationCosts:{history:2},month:{id:'changed-with-overlap',start:0,end:10000000}}));expect(await invalid.apply({action:'inspect'})).toMatchObject({ok:false,reason:'CLOCK_OR_PERIOD'});
  expect(await account.apply({action:'inspect'})).toMatchObject({currentPeriodCredits:2,chargedCredits:2});
 });
+
+test('durable accepted reservations use bounded priority aging and preserve held credits while queued',async()=>{
+ const {account,advance,storage}=setup({leaseMs:10000,policy:{...policy,optionalCeiling:{minute:7,monthly:70}}});
+ const queue=async(name:string,priority:string)=>{const w=work(name),lease=(await account.apply({action:'acquire',work:w})).lease;const a=await account.apply({action:'enqueue',priority,kind:'request',associations:[{work:w,lease}]});expect(await account.apply({action:'reserve',id:a.id})).toMatchObject({ok:true});return a.id;};
+ const optional=await queue('optional','optional');advance(200);const interactive=await queue('interactive','interactive');
+ expect(await account.apply({action:'own',id:optional})).toMatchObject({ok:false,reason:'QUEUE_WAIT'});
+ expect(await account.apply({action:'own',id:interactive})).toMatchObject({ok:true});expect(await account.apply({action:'dispatch',id:interactive})).toMatchObject({ok:true});
+ advance(1000);const later=await queue('later','interactive');expect(await account.apply({action:'own',id:later})).toMatchObject({reason:'CONCURRENT_LIMIT'});
+ expect((await storage.get<BudgetState>('budget'))?.reservations[optional as string]?.status).toBe('RESERVED');
+ expect(await account.apply({action:'settle',id:interactive,outcome:'success'})).toMatchObject({ok:true});
+ const restarted=new DurableMarketAccount(storage,()=>1000,JSON.stringify({...config,leaseMs:10000,policy:{...policy,optionalCeiling:{minute:7,monthly:70}}}));
+ expect(await restarted.apply({action:'own',id:later})).toMatchObject({reason:'QUEUE_WAIT'});expect(await restarted.apply({action:'own',id:optional})).toMatchObject({ok:true});
+ expect(await restarted.apply({action:'cancel',id:optional})).toMatchObject({ok:true});expect(await restarted.apply({action:'own',id:later})).toMatchObject({ok:true});
+});
+
+test('expired work leases release waiting reservations and crashed ownership releases concurrency without a charge',async()=>{
+ const {account,advance}=setup({operationCosts:{history:2},leaseMs:1000});const old=await attempt(account);await account.apply({action:'reserve',id:old.id});advance(1100);
+ const fresh=await attempt(account,['ethereum']);await account.apply({action:'reserve',id:fresh.id});expect(await account.apply({action:'own',id:fresh.id})).toMatchObject({ok:true});
+ expect(await account.apply({action:'inspect'})).toMatchObject({chargedCredits:0,dispatched:0});advance(3100);
+ const read=await account.apply({action:'enqueue-read',operation:'history'});await account.apply({action:'reserve',id:read.id});expect(await account.apply({action:'own',id:read.id})).toMatchObject({ok:true});expect(await account.apply({action:'dispatch',id:fresh.id})).toMatchObject({ok:false});
+});
+test('queue bounds include accepted waiting reservations, not only unreserved records',async()=>{
+ const {account}=setup({policy:{...policy,queueLimit:1}});const a=await attempt(account);await account.apply({action:'reserve',id:a.id});expect(await attempt(account,['ethereum'])).toMatchObject({ok:false,reason:'QUEUE_LIMIT'});
+ expect(await account.apply({action:'cancel',id:a.id})).toMatchObject({ok:true});expect(await attempt(account,['solana'])).toMatchObject({ok:true});
+});
+
+test('cancellation releases only its lease, replays idempotently and cannot release the successor',async()=>{
+ const {account}=setup();const first=await attempt(account);await account.apply({action:'reserve',id:first.id});expect(await account.apply({action:'cancel',id:first.id})).toMatchObject({ok:true});
+ const next=await account.apply({action:'acquire',work:work('bitcoin')});expect(next.status).toBe('OWNER');expect(next.lease).not.toEqual(first.associations[0]!.lease);
+ expect(await account.apply({action:'cancel',id:first.id})).toMatchObject({ok:true,replay:true});expect(await account.apply({action:'acquire',work:work('bitcoin')})).toMatchObject({status:'WAITING'});
+});

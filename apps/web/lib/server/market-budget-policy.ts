@@ -10,7 +10,7 @@ export type BudgetPeriods={month:BudgetPeriod};
 export type ReservationRequest={id:string;cost:number;kind:'request'|'retry'|'fallback';priority:MarketPriority};
 export type Reservation=ReservationRequest & {status:'QUEUED'|'RESERVED'|'OWNED'|'DISPATCHED'|'SETTLED'|'CANCELLED';reservedAt:number;dispatchedAt?:number;ownershipUntil?:number;periods?:BudgetPeriods;policyKey?:string;outcome?:'success'|'failure'};
 export type BudgetState={lastTime:number;periods?:BudgetPeriods;archived?:{month:string;credits:Record<MarketPriority,number>;attempts:number;lifetimeCredits?:number};reservations:Readonly<Record<string,Reservation>>};
-export type BudgetReason='POLICY_UNAVAILABLE'|'POLICY_CHANGED'|'INVALID_REQUEST'|'CLOCK_OR_PERIOD'|'DUPLICATE_OPERATION'|'INVALID_TRANSITION'|'RESERVATION_EXPIRED'|'OWNERSHIP_EXPIRED'|'MINUTE_LIMIT'|'CONCURRENT_LIMIT'|'MONTHLY_LIMIT'|'MONITORING_LIMIT'|'OPTIONAL_LIMIT'|'QUEUE_LIMIT';
+export type BudgetReason='POLICY_UNAVAILABLE'|'POLICY_CHANGED'|'INVALID_REQUEST'|'CLOCK_OR_PERIOD'|'DUPLICATE_OPERATION'|'INVALID_TRANSITION'|'RESERVATION_EXPIRED'|'OWNERSHIP_EXPIRED'|'MINUTE_LIMIT'|'CONCURRENT_LIMIT'|'MONTHLY_LIMIT'|'MONITORING_LIMIT'|'OPTIONAL_LIMIT'|'QUEUE_LIMIT'|'QUEUE_WAIT';
 export type BudgetDecision={ok:true;state:BudgetState;reason?:never}|{ok:false;state:BudgetState;reason:BudgetReason};
 export const emptyBudgetState=():BudgetState=>({lastTime:0,reservations:{}});
 const integer=(n:number)=>Number.isSafeInteger(n)&&n>=0;
@@ -56,7 +56,7 @@ export function enqueue(s:BudgetState,p:BudgetPolicy|undefined,r:ReservationRequ
  if(!validClock(s,now))return deny(s,'CLOCK_OR_PERIOD');
  if(!validRequest(r))return deny(s,'INVALID_REQUEST');
  if(rowAt(s,r.id))return deny(s,'DUPLICATE_OPERATION');
- if(Object.values(s.reservations).filter(r=>r.status==='QUEUED').length>=p.queueLimit)return deny(s,'QUEUE_LIMIT');
+ if(Object.values(s.reservations).filter(r=>r.status==='QUEUED'||r.status==='RESERVED').length>=p.queueLimit)return deny(s,'QUEUE_LIMIT');
  return put(s,{...r,status:'QUEUED',reservedAt:now},now);
 }
 export function reserve(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPeriods,r:ReservationRequest,now:number):BudgetDecision {
@@ -80,6 +80,15 @@ export function ownDispatch(s:BudgetState,p:BudgetPolicy|undefined,periods:Budge
  // Never free DISPATCHED slots on a timer: uncertain I/O must settle before replacement.
  if(Object.values(s.reservations).filter(r=>r.status==='OWNED'||r.status==='DISPATCHED').length>=p!.concurrent)return deny(s,'CONCURRENT_LIMIT');
  return put(s,{...rowAt(s,id)!,status:'OWNED',ownershipUntil:now+p!.ownershipMs},now,periods);
+}
+/** Queue selection is separate from the reservation transition contract. */
+export function nextReservedDispatch(s:BudgetState,p:BudgetPolicy,periods:BudgetPeriods,now:number){
+ // Priority advantage is bounded to 750ms. An older optional/refresh request
+ // therefore outranks every newly arriving interactive request after that bound.
+ // Stable insertion order breaks equal-time ties; accepted costs remain reserved.
+ const delay:Record<MarketPriority,number>={interactive:0,monitoring:125,refresh:375,optional:750};
+ const next=Object.values(s.reservations).filter(row=>!eligible(s,p,periods,row.id,now,'RESERVED')).sort((a,b)=>(a.reservedAt+delay[a.priority])-(b.reservedAt+delay[b.priority]))[0];
+ return next?.id;
 }
 export function markDispatched(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPeriods,id:string,now:number):BudgetDecision {
  const reason=eligible(s,p,periods,id,now,'OWNED');if(reason)return deny(s,reason);

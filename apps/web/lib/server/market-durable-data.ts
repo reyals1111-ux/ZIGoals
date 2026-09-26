@@ -5,7 +5,7 @@ import {parseMarketInsights,INSIGHTS_UNAVAILABLE,insightIsStale,type MarketInsig
 import {chargedMarketRead,type MarketCommand,type ChargedOperation} from './market-charged-read';
 import type {PublicMarketWork,WorkLease} from './market-coordinator';
 import {validateWorkEvidence,workEvidenceStale,type CatalogEvidence} from './market-evidence';
-type Context={command:MarketCommand;key?:string;fetcher?:typeof fetch;clock?:()=>number};
+type Context={command:MarketCommand;key?:string;fetcher?:typeof fetch;clock?:()=>number;signal?:AbortSignal};
 type Acquired={work:PublicMarketWork;value:unknown;lease?:WorkLease;failed:boolean;fresh:boolean};
 const catalogError='Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.';
 const now=(c:Context)=>c.clock?.()??Date.now();

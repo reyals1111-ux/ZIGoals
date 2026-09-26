@@ -14,6 +14,6 @@ export async function POST(request:Request):Promise<Response>{
   if(new URL(request.url).search)throw Error('Unsupported query');
   body=bodySchema.parse(JSON.parse(await boundedQuoteText(new Response(request.body),8192)));
  }catch{return Response.json({error:'Invalid public market history request.'},{status:400,headers});}
- const result=(await configuredDurableHistory(body.request))??await serverMarketHistoryCache.load(body.request,body.refresh);
+ const result=(await configuredDurableHistory(body.request,request.signal))??await serverMarketHistoryCache.load(body.request,body.refresh);
  return Response.json(result,{status:result.history?200:503,headers});
 }
