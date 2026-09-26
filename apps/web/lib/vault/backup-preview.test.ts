@@ -12,3 +12,7 @@ test('unsupported versions refuse inventory and notes resembling dates never fab
  const goal=privateGoalSchema.parse({id:'811',name:'Do not expose title',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'100000',notes:'1990-01-01',createdAt:'2026-09-23T12:00:00Z',milestones:[]}),rows=summarizeBackupModules({finance:JSON.stringify({...emptyPlatform(),goals:[goal]})});
  expect(rows[0]).toMatchObject({from:'2026-09-23',through:'2026-09-23',counts:expect.arrayContaining([{label:'Goals',count:1}])});expect(JSON.stringify(rows)).not.toContain('Do not expose title');
 });
+test('legacy backup inventory distinguishes original version from the validated restore version',()=>{
+ const finance={schemaVersion:1,kind:'zigoals-platform',positions:[],goals:[],allocations:[],snapshots:[]},habits={schemaVersion:1,kind:'zigoals-habits',habits:[]};
+ expect(summarizeBackupModules({finance:JSON.stringify(finance),habits:JSON.stringify(habits)}).map(r=>({domain:r.domain,version:r.version,restoredVersion:r.restoredVersion}))).toEqual([{domain:'finance',version:1,restoredVersion:3},{domain:'habits',version:1,restoredVersion:2}]);
+});
