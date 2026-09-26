@@ -35,6 +35,13 @@ export class LifecycleAuthority{
     if(body.generation!==current.generation)return reply({error:'LIFECYCLE_CHANGED'},409);
     const next={generation:current.generation+1,deleted:true,provider:'retained',authorizedFamily:body.family,account:request.headers.get('x-verified-account'),deletedAt:new Date().toISOString()};await store.put('lifecycle',next);return reply(next);
    }
+   if(body?.action==='delete-domain'&&!current.deleted&&['finance','habits','health','settings'].includes(body.domain)&&UUID.test(body.operation??'')){
+    const receipt=await store.get('domain-operation:'+body.operation);if(receipt)return receipt.domain===body.domain?reply(current):reply({error:'OPERATION_REUSED'},409);
+    const count=await store.get('domain-operations')??0;if(count>=50000)return reply({error:'LIFECYCLE_CAPACITY'},507);
+    if(body.generation!==(current.domainGenerations?.[body.domain]??0))return reply({error:'DOMAIN_GENERATION_CHANGED'},409);
+    const generation=body.generation+1,next={...current,domainGenerations:{...current.domainGenerations,[body.domain]:generation},domainDecisions:{...current.domainDecisions,[body.domain]:{generation,operation:body.operation,at:new Date().toISOString()}}};
+    await store.put({'lifecycle':next,['domain-operation:'+body.operation]:{domain:body.domain,generation},'domain-operations':count+1});return reply(next);
+   }
    if(body?.action==='request-provider-delete'&&current.deleted){
     if(body.family!==current.authorizedFamily)return reply({error:'SESSION_REVOKED'},401);
     const next={...current,provider:current.provider==='deleted'?'deleted':'pending'};await store.put('lifecycle',next);if(next.provider==='pending')await store.setAlarm(Date.now()+60000);return reply(next);

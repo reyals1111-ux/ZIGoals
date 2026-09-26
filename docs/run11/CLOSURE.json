@@ -125,12 +125,16 @@
     },
     {
       "id": "SRC-02",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -367,23 +371,31 @@
     },
     {
       "id": "RUN-06",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },
     {
       "id": "RUN-07",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -1028,15 +1040,16 @@
     },
     {
       "id": "SYN-07",
-      "implementation": "needs_change",
-      "local_proof": "pass",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "owner_pending",
-      "source": "working-tree-after-f82027c",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
       "evidence": [
-        "scripts/run11/lifecycle-runtime.test.mjs",
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
         "scripts/run10/account-browser.test.mjs"
       ],
-      "delta": "Account deletion and rotation working locally; domain deletion/consent, administrative reconciliation, cleanup and final packaged acceptance remain",
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": [
         "domain lifecycle",
@@ -1100,12 +1113,16 @@
     },
     {
       "id": "SYN-13",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -1232,12 +1249,16 @@
     },
     {
       "id": "DAT-09",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2552,15 +2573,16 @@
     },
     {
       "id": "SEC-05",
-      "implementation": "needs_change",
-      "local_proof": "pass",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "owner_pending",
-      "source": "working-tree-after-f82027c",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
       "evidence": [
-        "scripts/run11/lifecycle-runtime.test.mjs",
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
         "scripts/run10/account-browser.test.mjs"
       ],
-      "delta": "Account deletion and rotation working locally; domain deletion/consent, administrative reconciliation, cleanup and final packaged acceptance remain",
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": [
         "domain lifecycle",
@@ -2679,12 +2701,16 @@
     },
     {
       "id": "JRN-10",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },
@@ -2723,12 +2749,16 @@
     },
     {
       "id": "JRN-14",
-      "implementation": "unassessed",
-      "local_proof": "not_run",
+      "implementation": "partial",
+      "local_proof": "focused_pass",
       "external_proof": "unassessed",
-      "source": null,
-      "evidence": [],
-      "delta": "Assess current source against retained exact criterion",
+      "source": "working source after e9e6b13; lifecycle/forward-recovery checkpoint",
+      "evidence": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "delta": "Selected-domain authority generations, explicit keep-local/restore review and original-queue forward recovery integrated. Final-source package, broader conflict/cleanup/recovery administration and complete journey reconciliation remain internal work.",
       "owner": "implementation",
       "dependencies": []
     },

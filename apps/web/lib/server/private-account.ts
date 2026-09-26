@@ -8,6 +8,7 @@ const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('signout')}).strict(),
  z.object({action:z.literal('refresh')}).strict(),
  z.object({action:z.literal('sync'),operation:z.unknown()}).strict(),
+ z.object({action:z.literal('domain'),operation:z.object({action:z.literal('delete-domain'),domain:z.enum(['finance','health','habits','settings']),confirm:z.string().max(32),operation:z.uuid()}).strict()}).strict(),
  z.object({action:z.literal('rotation'),operation:z.unknown()}).strict(),
  z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()])}).strict(),
  z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()])}).strict(),
@@ -74,10 +75,10 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    return withCookies(reply({signedIn:true,accountId:refreshed.user.id.toLowerCase()}),refreshed.access_token,refreshed.refresh_token,30*86400);
   }
   if(action.action==='session'){if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account'));const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});const data=await readBounded(remote,32768);return reply(data,remote.status,data.currentRevoked?{'Set-Cookie':cookie('',0)}:{});}
-  if(action.action==='sync'||action.action==='rotation'||action.action==='delete'){
+  if(action.action==='sync'||action.action==='rotation'||action.action==='delete'||action.action==='domain'){
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
-   const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});
+   const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});
    return reply(await readBounded(remote,action.action==='rotation'?1_000_000:32768),remote.status);
   }
   const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:true}:{email:action.email,token:action.code,type:'email'})});
