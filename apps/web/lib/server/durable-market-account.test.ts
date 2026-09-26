@@ -191,3 +191,25 @@ test('pair health survives work-cache eviction and mismatched settlement replay 
  expect(await account.apply({action:'settle',id:bad.id,outcome:'success'})).toMatchObject({ok:false,reason:'INVALID_TRANSITION'});
  advance(1100);expect(await account.apply({action:'acquire',work:work('healthy')})).toMatchObject({status:'OWNER'});advance(2100);expect(await account.apply({action:'acquire',work:work('broken')})).toMatchObject({reason:'PAIR_BREAKER_OPEN'});
 });
+
+test('durable followers are independently bounded, cancellable, restart-safe and cannot consume dispatch slots',async()=>{
+ const {account,storage}=setup({leaseMs:10000});const owner=await attempt(account);const followers=[];for(let i=0;i<8;i++){const row=await account.apply({action:'follow',work:work('bitcoin'),waitMs:500});expect(row.status).toBe('WAITING');followers.push(row.id);}
+ expect(await account.apply({action:'follow',work:work('bitcoin'),waitMs:500})).toMatchObject({reason:'FOLLOWER_LIMIT'});expect(await account.apply({action:'inspect'})).toMatchObject({followers:8,dispatched:0,chargedCredits:0});
+ expect(await account.apply({action:'forget',id:followers[0]})).toMatchObject({ok:true});expect(await account.apply({action:'forget',id:followers[0]})).toMatchObject({ok:true});
+ const restarted=new DurableMarketAccount(storage,()=>200,JSON.stringify({...config,leaseMs:10000}));expect(await restarted.apply({action:'poll',id:followers[1]})).toMatchObject({status:'WAITING'});
+ for(const action of ['reserve','own','dispatch'])expect(await restarted.apply({action,id:owner.id})).toMatchObject({ok:true});
+ const quote={base:{network:'coingecko-coin',denom:'bitcoin',decimals:0},marketRef:work('bitcoin').pair.marketRef,currency:'USD',price:'123',priceDecimals:2,source:'CoinGecko',providerAssetId:'bitcoin',verification:'VERIFIED',fetchedAt:new Date(200).toISOString()};
+ await restarted.apply({action:'publish',id:owner.id,work:work('bitcoin'),quote});expect(await restarted.apply({action:'poll',id:followers[1]})).toMatchObject({status:'CACHE_HIT',quote});
+ const expired=new DurableMarketAccount(storage,()=>600,JSON.stringify({...config,leaseMs:10000}));expect(await expired.apply({action:'poll',id:followers[2]})).toMatchObject({reason:'FOLLOWER_EXPIRED'});expect(await expired.apply({action:'inspect'})).toMatchObject({followers:0,chargedCredits:3});
+});
+
+test('cancelling one follower removes only its registration and leaves the charged owner running',async()=>{
+ const {followMarketWork}=await import('./market-follow-work');const {account}=setup({leaseMs:10000});const owner=await attempt(account);for(const action of ['reserve','own','dispatch'])await account.apply({action,id:owner.id});
+ const abort=new AbortController(),initial=await account.apply({action:'acquire',work:work('bitcoin')}),follower=followMarketWork(work('bitcoin') as Parameters<typeof followMarketWork>[0],initial,{command:row=>account.apply(row),signal:abort.signal});
+ for(let i=0;i<20;i++){if((await account.apply({action:'inspect'})).followers===1)break;await Promise.resolve();}
+ expect(await account.apply({action:'inspect'})).toMatchObject({followers:1,dispatched:1,chargedCredits:3});abort.abort();expect(await follower).toMatchObject({reason:'WAITER_CANCELLED'});expect(await account.apply({action:'inspect'})).toMatchObject({followers:0,dispatched:1,chargedCredits:3});
+});
+test('aggregate follower capacity is bounded across work keys and timeout restores slots',async()=>{
+ const {account,advance}=setup({leaseMs:10000,maxWorks:32});for(let key=0;key<17;key++){await account.apply({action:'acquire',work:work('key-'+key)});if(key===16)break;for(let i=0;i<8;i++)expect(await account.apply({action:'follow',work:work('key-'+key),waitMs:500})).toMatchObject({ok:true});}
+ expect(await account.apply({action:'follow',work:work('key-16'),waitMs:500})).toMatchObject({reason:'FOLLOWER_LIMIT'});expect(await account.apply({action:'inspect'})).toMatchObject({followers:128,chargedCredits:0});advance(600);expect(await account.apply({action:'follow',work:work('key-16'),waitMs:500})).toMatchObject({ok:true});expect(await account.apply({action:'inspect'})).toMatchObject({followers:1,chargedCredits:0});
+});

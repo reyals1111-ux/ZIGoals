@@ -1,3 +1,4 @@
+import {liveFollowers,followerCommand} from './market-followers';
 import {pairBlocked} from './market-pair-breaker';
 import {z} from 'zod';
 import {admitMarketBreakers,settleMarketBreakers} from './market-breaker-storage';
@@ -18,6 +19,8 @@ const lease=z.object({token:z.string().min(1).max(100),generation:positive,fence
 const id=z.string().uuid();
 const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('acquire'),work}).strict(),
+ z.object({action:z.literal('follow'),work,waitMs:positive.max(1000)}).strict(),
+ ...(['poll','forget'] as const).map(action=>z.object({action:z.literal(action),id}).strict()),
  z.object({action:z.literal('enqueue-read'),operation:chargedOperation,parentId:id.optional(),associations:z.array(z.object({work,lease}).strict()).min(1).max(64).optional()}).strict(),
  z.object({action:z.literal('enqueue'),priority:z.enum(['interactive','refresh','optional','monitoring']),kind:z.enum(['request','retry','fallback']),associations:z.array(z.object({work,lease}).strict()).min(1).max(64)}).strict(),
  ...(['reserve','own','dispatch','cancel'] as const).map(action=>z.object({action:z.literal(action),id}).strict()),
@@ -44,8 +47,10 @@ export class DurableMarketAccount {
    const date=new Date(now),month=config.month??{id:date.toISOString().slice(0,7),start:Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1),end:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1)};
    if(!validTime(original,{month},now))return {ok:false,reason:'CLOCK_OR_PERIOD'};
    const budget=await maintainMarketAccount(tx,original,month,now,config.leaseMs,config.policy.reservationMs,config.retryRetentionMs??3600000,config.breaker);
+   const followers=await liveFollowers(tx,now);
+   if(command.action==='follow'||command.action==='poll'||command.action==='forget')return followerCommand(tx,command,now);
    const periods={month},index=await tx.get<string[]>('work-index')??[];
-   if(command.action==='inspect'){const rows=Object.values(budget.reservations);return {ok:true,attempts:rows.length,archivedAttempts:budget.archived?.attempts??0,workKeys:index.length,queued:rows.filter(r=>r.status==='QUEUED').length,dispatched:rows.filter(r=>r.status==='DISPATCHED').length,currentPeriodCredits:Object.values(budget.archived?.credits??{}).reduce((sum,n)=>sum+n,0)+rows.filter(r=>(r.status==='DISPATCHED'||r.status==='SETTLED')&&r.periods?.month.id===month.id).reduce((sum,r)=>sum+r.cost,0),chargedCredits:(budget.archived?.lifetimeCredits??0)+rows.filter(r=>r.status==='DISPATCHED'||r.status==='SETTLED').reduce((sum,r)=>sum+r.cost,0)};}
+   if(command.action==='inspect'){const rows=Object.values(budget.reservations);return {ok:true,followers:followers.length,attempts:rows.length,archivedAttempts:budget.archived?.attempts??0,workKeys:index.length,queued:rows.filter(r=>r.status==='QUEUED').length,dispatched:rows.filter(r=>r.status==='DISPATCHED').length,currentPeriodCredits:Object.values(budget.archived?.credits??{}).reduce((sum,n)=>sum+n,0)+rows.filter(r=>(r.status==='DISPATCHED'||r.status==='SETTLED')&&r.periods?.month.id===month.id).reduce((sum,r)=>sum+r.cost,0),chargedCredits:(budget.archived?.lifetimeCredits??0)+rows.filter(r=>r.status==='DISPATCHED'||r.status==='SETTLED').reduce((sum,r)=>sum+r.cost,0)};}
    if(command.action==='acquire'){
     const key=publicMarketWorkKey(command.work),current=await tx.get<WorkState<unknown>>(`work:${key}`)??emptyWorkState<unknown>();
     const value=current.evidence?validateWorkEvidence(command.work,await loadCacheValue(tx,current.evidence.value),now):null;

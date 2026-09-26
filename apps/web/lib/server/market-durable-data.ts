@@ -1,3 +1,4 @@
+import {followMarketWork} from './market-follow-work';
 import {z} from 'zod';
 import {marketRequestsSchema,marketRequestKey,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
 import {historyRequestSchema,HISTORY_DAYS,HISTORY_UNAVAILABLE,RWA_HISTORY_UNAVAILABLE,parseCoinHistory,type MarketHistoryRequest,type MarketHistory} from '../market-history';
@@ -6,12 +7,14 @@ import {chargedMarketRead,type MarketCommand,type ChargedOperation} from './mark
 import type {PublicMarketWork,WorkLease} from './market-coordinator';
 import {validateWorkEvidence,workEvidenceStale,type CatalogEvidence} from './market-evidence';
 type Context={command:MarketCommand;key?:string;fetcher?:typeof fetch;clock?:()=>number;signal?:AbortSignal};
-type Acquired={work:PublicMarketWork;value:unknown;lease?:WorkLease;failed:boolean;fresh:boolean};
+type Acquired={work:PublicMarketWork;value:unknown;lease?:WorkLease;failed:boolean;fresh:boolean;follow?:Promise<void>};
 const catalogError='Market catalog unavailable. Last verified catalog is retained; manual valuation remains available.';
 const now=(c:Context)=>c.clock?.()??Date.now();
 async function acquire(work:PublicMarketWork,c:Context):Promise<Acquired>{
  try{const row=await c.command({action:'acquire',work}),value=row.value?validateWorkEvidence(work,row.value,now(c)):null;
-  return {work,value,lease:row.ok===true&&row.status==='OWNER'?row.lease as WorkLease:undefined,failed:row.ok!==true||row.status==='WAITING',fresh:row.status==='CACHE_HIT'};
+  const acquired:Acquired={work,value,lease:row.ok===true&&row.status==='OWNER'?row.lease as WorkLease:undefined,failed:row.ok!==true||row.status==='WAITING',fresh:row.status==='CACHE_HIT'&&!workEvidenceStale(work,value,now(c))};
+  if(row.status==='WAITING')acquired.follow=followMarketWork(work,row,c).then(next=>{if(next.value)acquired.value=validateWorkEvidence(work,next.value,now(c));acquired.failed=next.ok!==true||next.status!=='CACHE_HIT';acquired.fresh=!!acquired.value&&!workEvidenceStale(work,acquired.value,now(c));}).catch(()=>{acquired.failed=true;});
+  return acquired;
  }catch{return {work,value:null,failed:true,fresh:false};}
 }
 async function read(url:URL,operation:ChargedOperation,limit:number,owners:Acquired[],c:Context,parse:(text:string)=>{owner:Acquired;value:unknown}[]){
@@ -27,6 +30,7 @@ export async function durableCatalog(c:Context){
   const url=new URL(`https://api.coingecko.com/api/v3/${kind==='coin'?'coins':'rwas'}/list`);if(kind==='coin')url.searchParams.set('include_platform','true');
   await read(url,'catalog',kind==='coin'?12*1024*1024:2*1024*1024,[owner],c,text=>[{owner,value:{assets:parseMarketCatalog(text,kind),fetchedAt:new Date(now(c)).toISOString()}}]);
  }
+ await Promise.all(partitions.map(p=>p.follow));
  const assets:MarketCatalogAsset[]=partitions.flatMap(p=>(p.value as CatalogEvidence|null)?.assets??[]),stamps=partitions.flatMap(p=>p.value?[(p.value as CatalogEvidence).fetchedAt]:[]),degraded=partitions.some(p=>p.failed||!p.fresh);
  return {assets,error:degraded?catalogError:null,fetchedAt:stamps.length?stamps.sort()[0]!:null,stale:degraded};
 }
@@ -34,6 +38,7 @@ export async function durableHistory(request:MarketHistoryRequest,c:Context){
  if(request.marketRef.kind!=='coin')return {history:null,error:RWA_HISTORY_UNAVAILABLE,stale:true,nextAttemptAt:0};
  const {range,...pair}=request,owner=await acquire({operation:'history',pair,range},c);
  if(owner.lease){const url=new URL(`https://api.coingecko.com/api/v3/coins/${encodeURIComponent(request.marketRef.id)}/market_chart`);url.searchParams.set('vs_currency',request.currency.toLowerCase());url.searchParams.set('days',String(HISTORY_DAYS[range]));url.searchParams.set('precision','full');await read(url,'history',1024*1024,[owner],c,text=>[{owner,value:parseCoinHistory(text,request,now(c))}]);}
+ await owner.follow;
  return {history:owner.value as MarketHistory|null,error:owner.failed||!owner.fresh?HISTORY_UNAVAILABLE:null,stale:!owner.fresh,nextAttemptAt:now(c)+60000};
 }
 export async function durableInsights(raw:readonly MarketQuoteRequest[],c:Context){
@@ -46,6 +51,7 @@ export async function durableInsights(raw:readonly MarketQuoteRequest[],c:Contex
    await read(url,'insights',4*1024*1024,owners,c,text=>parseMarketInsights(text,members,now(c)).map(value=>({owner:owners.find(o=>o.work.operation==='insights'&&marketRequestKey(o.work.pair)===marketRequestKey(value))!,value})));
   }
  }
+ await Promise.all(items.map(i=>i.follow));
  const entries=items.flatMap(i=>i.value?[i.value as MarketInsight]:[]),results=Object.fromEntries(items.map(i=>[marketRequestKey((i.work as Extract<PublicMarketWork,{operation:'insights'}>).pair),{insight:i.value,error:i.failed||!i.fresh?INSIGHTS_UNAVAILABLE:null,stale:!i.value||insightIsStale(i.value as MarketInsight,now(c))}]));
  return {entries,results,error:items.some(i=>i.failed||!i.fresh)?INSIGHTS_UNAVAILABLE:null};
 }
