@@ -1,3 +1,5 @@
+import {beforeEach as configureMarketDevelopment} from 'vitest';
+configureMarketDevelopment(()=>{vi.stubEnv('NODE_ENV','development');vi.stubEnv('ZIGOALS_MARKET_LOCAL_MODE','direct');});
 import {afterEach,expect,it,vi} from 'vitest';
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.restoreAllMocks();vi.resetModules();});
 const request={marketRef:{provider:'coingecko',kind:'coin',id:'bitcoin'},currency:'USD'};

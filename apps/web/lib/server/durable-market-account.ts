@@ -6,12 +6,14 @@ import {quoteIsStale,type MarketQuote} from '../market-quotes';
 import {marketPairEnvelope} from './market-pair-result';
 const uint=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),positive=uint.positive();
 const capacity=z.object({minute:uint,monthly:uint}).strict();
-const configSchema=z.object({policy:z.object({providerMinuteLimit:positive,providerMonthlyLimit:positive,operating:capacity,monitoringReserve:capacity,monitoringMaximum:capacity,optionalCeiling:capacity,concurrent:positive,queueLimit:positive,reservationMs:positive,ownershipMs:positive}).strict(),month:z.object({id:z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),start:uint,end:uint}).strict(),quoteCost:positive,leaseMs:positive.max(60000),maxAttempts:positive.max(128),maxWorks:positive.max(64)}).strict();
+const chargedOperation=z.enum(['catalog','history','insights','token','rwa']);
+const configSchema=z.object({policy:z.object({providerMinuteLimit:positive,providerMonthlyLimit:positive,operating:capacity,monitoringReserve:capacity,monitoringMaximum:capacity,optionalCeiling:capacity,concurrent:positive,queueLimit:positive,reservationMs:positive,ownershipMs:positive}).strict(),month:z.object({id:z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),start:uint,end:uint}).strict().optional(),calendar:z.object({timeZone:z.literal('UTC'),confirmed:z.literal(true)}).strict().optional(),operationCosts:z.partialRecord(chargedOperation,positive).optional(),quoteCost:positive,leaseMs:positive.max(60000),maxAttempts:positive.max(128),maxWorks:positive.max(64)}).strict().refine(c=>Boolean(c.month)!==Boolean(c.calendar),'Exactly one confirmed accounting period source is required.');
 const work=publicMarketWorkSchema.refine(w=>w.operation==='quote','Only quote persistence is supported in this isolated adapter.');
 const lease=z.object({token:z.string().min(1).max(100),generation:positive,fence:positive,acquiredAt:uint,deadline:uint,expiresAt:uint}).strict();
 const id=z.string().uuid();
 const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('acquire'),work}).strict(),
+ z.object({action:z.literal('enqueue-read'),operation:chargedOperation,parentId:id.optional(),associations:z.array(z.object({work,lease}).strict()).min(1).max(64).optional()}).strict(),
  z.object({action:z.literal('enqueue'),priority:z.enum(['interactive','refresh','optional','monitoring']),kind:z.enum(['request','retry','fallback']),associations:z.array(z.object({work,lease}).strict()).min(1).max(64)}).strict(),
  ...(['reserve','own','dispatch','cancel'] as const).map(action=>z.object({action:z.literal(action),id}).strict()),
  z.object({action:z.literal('settle'),id,outcome:z.enum(['success','failure'])}).strict(),
@@ -19,7 +21,7 @@ const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('inspect')}).strict(),
 ]);
 export interface AtomicMarketStorage {get<T>(key:string):Promise<T|undefined>;put(key:string,value:unknown):Promise<void>;transaction<T>(fn:(transaction:AtomicMarketStorage)=>Promise<T>):Promise<T>}
-/** Isolated durable quote coordinator. Production routes do not call it yet. Each
+/** Account authority shared by quote publication and all supported endpoint reads. Each
  * operation commits its budget/lease mutation before returning permission. There is
  * deliberately no provider I/O here and no automatic recovery/refund or pruning. */
 export class DurableMarketAccount {
@@ -32,7 +34,8 @@ export class DurableMarketAccount {
    const now=this.clock(),budget=await tx.get<BudgetState>('budget')??emptyBudgetState(),lastTime=await tx.get<number>('last-time')??0;
    if(!Number.isSafeInteger(now)||now<Math.max(budget.lastTime,lastTime))return {ok:false,reason:'CLOCK_OR_PERIOD'};
    await tx.put('last-time',now);
-   const periods={month:config.month},index=await tx.get<string[]>('work-index')??[];
+   const date=new Date(now),month=config.month??{id:date.toISOString().slice(0,7),start:Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1),end:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1)};
+   const periods={month},index=await tx.get<string[]>('work-index')??[];
    if(command.action==='inspect'){const rows=Object.values(budget.reservations);return {ok:true,attempts:rows.length,workKeys:index.length,queued:rows.filter(r=>r.status==='QUEUED').length,dispatched:rows.filter(r=>r.status==='DISPATCHED').length,chargedCredits:rows.filter(r=>r.status==='DISPATCHED'||r.status==='SETTLED').reduce((sum,r)=>sum+r.cost,0)};}
    if(command.action==='acquire'){
     const key=publicMarketWorkKey(command.work),current=await tx.get<WorkState<MarketQuote>>(`work:${key}`)??emptyWorkState<MarketQuote>();
@@ -42,12 +45,27 @@ export class DurableMarketAccount {
     if(!next)return {ok:true,status:'WAITING',retryAt:current.lease?.expiresAt,quote:current.evidence?.value??null,degraded:true};
     await tx.put(`work:${key}`,next);if(!index.includes(key))await tx.put('work-index',[...index,key]);return {ok:true,status:'OWNER',lease:next.lease,quote:current.evidence?.value??null,degraded:!!current.evidence};
    }
+   if(command.action==='enqueue-read'){
+    const cost=config.operationCosts?.[command.operation];if(!cost)return {ok:false,reason:'POLICY_UNAVAILABLE'};
+    if(Object.keys(budget.reservations).length>=config.maxAttempts)return {ok:false,reason:'RETENTION_CAPACITY'};
+    if(Boolean(command.parentId)!==Boolean(command.associations)||command.associations&&command.operation!=='token')return {ok:false,reason:'MALFORMED'};
+    if(command.parentId&&command.associations){
+     const parent=await tx.get<ProviderAttempt>(`attempt:${command.parentId}`),row=budget.reservations[command.parentId];
+     if(!parent||row?.status!=='SETTLED'||row.outcome!=='failure')return {ok:false,reason:'INVALID_TRANSITION'};
+     if(await tx.get(`fallback:${command.parentId}`))return {ok:false,reason:'DUPLICATE_OPERATION'};
+     for(const a of command.associations){const current=await tx.get<WorkState<MarketQuote>>(`work:${publicMarketWorkKey(a.work)}`);if(a.work.operation!=='quote'||a.work.pair.marketRef.kind!=='coin'||a.work.pair.marketRef.id!=='zignaly'||!parent.associations.some(p=>publicMarketWorkKey(p.work)===publicMarketWorkKey(a.work)&&JSON.stringify(p.lease)===JSON.stringify(a.lease))||JSON.stringify(current?.lease)!==JSON.stringify(a.lease)||now>=Math.min(a.lease.deadline,a.lease.expiresAt))return {ok:false,reason:'FENCED'};}
+    }
+    const attempt:ProviderAttempt={id:crypto.randomUUID(),reservation:{id:'',cost,priority:'interactive',kind:command.operation==='token'?'fallback':'request'},associations:command.associations??[]};attempt.reservation.id=attempt.id;
+    const result=enqueue(budget,config.policy,attempt.reservation,now);if(!result.ok)return {ok:false,reason:result.reason};
+    await tx.put('budget',result.state);await tx.put(`attempt:${attempt.id}`,attempt);if(command.parentId)await tx.put(`fallback:${command.parentId}`,attempt.id);return {ok:true,id:attempt.id};
+   }
    if(command.action==='enqueue'){
     if(new Set(command.associations.map(a=>publicMarketWorkKey(a.work))).size!==command.associations.length)return {ok:false,reason:'MALFORMED'};
     if(Object.keys(budget.reservations).length>=config.maxAttempts)return {ok:false,reason:'RETENTION_CAPACITY'};
     for(const association of command.associations){const current=await tx.get<WorkState<MarketQuote>>(`work:${publicMarketWorkKey(association.work)}`);if(!current?.lease||JSON.stringify(current.lease)!==JSON.stringify(association.lease)||now>=Math.min(current.lease.deadline,current.lease.expiresAt))return {ok:false,reason:'FENCED'};}
     for(const association of command.associations){const owner=await tx.get<{generation:number}>(`owner:${publicMarketWorkKey(association.work)}`);if(owner?.generation===association.lease.generation)return {ok:false,reason:'DUPLICATE_OPERATION'};}
-    const attempt=createProviderAttempt({id:crypto.randomUUID(),cost:config.quoteCost,priority:command.priority,kind:command.kind},command.associations);
+    const kinds=new Set(command.associations.map(a=>a.work.operation==='quote'?a.work.pair.marketRef.kind:''));if(kinds.size!==1)return {ok:false,reason:'MALFORMED'};const cost=kinds.has('rwa')?config.operationCosts?.rwa:config.quoteCost;if(!cost)return {ok:false,reason:'POLICY_UNAVAILABLE'};
+    const attempt=createProviderAttempt({id:crypto.randomUUID(),cost,priority:command.priority,kind:command.kind},command.associations);
     const result=enqueue(budget,config.policy,attempt.reservation,now);if(!result.ok)return {ok:false,reason:result.reason};
     await tx.put('budget',result.state);await tx.put(`attempt:${attempt.id}`,attempt);for(const association of command.associations)await tx.put(`owner:${publicMarketWorkKey(association.work)}`,{generation:association.lease.generation,id:attempt.id});return {ok:true,id:attempt.id};
    }
@@ -61,6 +79,7 @@ export class DurableMarketAccount {
     await tx.put(key,result.state);return {ok:true};
    }
    if(command.action==='own'||command.action==='dispatch'){for(const association of attempt.associations){const current=await tx.get<WorkState<MarketQuote>>(`work:${publicMarketWorkKey(association.work)}`);if(!current?.lease||current.lease.token!==association.lease.token||current.lease.fence!==association.lease.fence||now>=Math.min(current.lease.deadline,current.lease.expiresAt))return {ok:false,reason:'FENCED'};}}
+   if(command.action==='settle'){const previous=budget.reservations[command.id];if(previous?.status==='SETTLED'&&previous.outcome===command.outcome)return {ok:true,replay:true};}
    const result=command.action==='reserve'?reserve(budget,config.policy,periods,attempt.reservation,now):command.action==='own'?ownDispatch(budget,config.policy,periods,command.id,now):command.action==='dispatch'?markDispatched(budget,config.policy,periods,command.id,now):command.action==='settle'?settle(budget,command.id,command.outcome,now):cancelUndispatched(budget,command.id,now);
    if(result.ok)await tx.put('budget',result.state);return {ok:result.ok,...(result.reason?{reason:result.reason}:{})};
   });}catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}

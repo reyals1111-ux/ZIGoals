@@ -1,9 +1,9 @@
 import {DurableMarketAccount,type AtomicMarketStorage} from '../../apps/web/lib/server/durable-market-account';
 import {WorkerEntrypoint} from 'cloudflare:workers';
-import {marketRequestsSchema} from '../../apps/web/lib/market-assets';
+import {durableCatalog,durableHistory,durableInsights,parseDurableMarketBody} from '../../apps/web/lib/server/market-durable-data';
 import {boundedQuoteText} from '../../apps/web/lib/market-quotes';
 import {dispatchDurableQuotes} from '../../apps/web/lib/server/durable-quote-dispatch';
-/** Internal-only prototype. No public RPC, credentials, provider I/O or production binding. */
+/** Internal durable account; the default Worker endpoint does not expose commands. */
 export class MarketAccount {
  private account:DurableMarketAccount;
  constructor(state:{storage:AtomicMarketStorage},env:{MARKET_POLICY?:string;LOCAL_TEST_NOW?:string;ISOLATED_FIXTURE?:string}){
@@ -26,11 +26,14 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
  async fetch(request:Request){
   const headers={'cache-control':'no-store','content-type':'application/json'};
   if(this.env.MARKET_QUOTE_DISPATCH!=='durable-v1'||!this.env.MARKET_ACCOUNT_ID||!/^[a-zA-Z0-9_-]{1,80}$/.test(this.env.MARKET_ACCOUNT_ID))return Response.json({error:'MARKET_SETUP_REQUIRED'},{status:503,headers});
-  if(request.method!=='POST'||new URL(request.url).pathname!=='/quotes'||new URL(request.url).search)return new Response(null,{status:404,headers});
-  let requests;try{const body=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));if(!body||body.version!==1||Object.keys(body).sort().join(',')!=='requests,version')throw Error('Version or fields');requests=marketRequestsSchema.parse(body.requests);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+  const path=new URL(request.url).pathname;
+  if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
+  let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
   const stub=this.env.MARKETS.get(this.env.MARKETS.idFromName(this.env.MARKET_ACCOUNT_ID));
   const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,1024*1024)) as Record<string,unknown>;};
-  return Response.json(await dispatchDurableQuotes(requests,{command,key:this.env.COINGECKO_DEMO_API_KEY}),{headers});
+  const context={command,key:this.env.COINGECKO_DEMO_API_KEY};
+  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests,context):await durableInsights(body.requests,context):null;
+  return Response.json(result,{headers});
  }
 }
 

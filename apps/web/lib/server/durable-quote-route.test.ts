@@ -9,7 +9,7 @@ vi.mock('@opennextjs/cloudflare',()=>({getCloudflareContext:vi.fn(()=>({env:{}})
 const pairs=['bitcoin','zignaly'].map(id=>({marketRef:{provider:'coingecko' as const,kind:'coin' as const,id},currency:'USD' as const}));
 afterEach(()=>{vi.unstubAllEnvs();vi.restoreAllMocks();});
 test('explicit mode requires configured service; cannot fall back after binding failure',async()=>{
- expect(await configuredDurableQuotes(pairs,async()=>({}))).toBeNull();
+ expect(await configuredDurableQuotes(pairs,async()=>({}))).toMatchObject({version:1,quotes:[],degraded:true});
  for(const env of [{ZIGOALS_MARKET_QUOTES_MODE:'durable-v1'},{ZIGOALS_MARKET_QUOTES_MODE:'unknown'},{ZIGOALS_MARKET_QUOTES_MODE:'durable-v1',MARKET_QUOTES:{fetch:async()=>{throw Error('binding missing');}}}])expect(await configuredDurableQuotes(pairs,async()=>env)).toMatchObject({version:1,quotes:[],degraded:true});
 });
 test('binding receives only canonical public work; versioned partial outcomes survive client transport',async()=>{
