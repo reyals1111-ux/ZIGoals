@@ -124,8 +124,9 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.getByLabel("Or paste backup JSON").fill(JSON.stringify(edited)); await page.getByRole("button",{name:"Import backup"}).click();
   await page.getByText("Advanced Diagnostics", {exact:true}).click();
   await page.getByRole("button",{name:"Check connection"}).click(); await expect(page.getByText("Verified zig-test-2 · height 77")).toBeVisible();
-  await page.getByRole("button",{name:"Copy safe diagnostics"}).click();
+  await page.getByRole("button",{name:"Preview safe diagnostics"}).click();
   const safe=page.getByLabel("Safe diagnostic summary"); await expect(safe).toBeVisible(); expect(await safe.inputValue()).not.toContain(sentinel);
+  await page.getByRole("button",{name:"Copy reviewed diagnostics"}).click();
   await page.goto("/app/goals/1"); await expect(page.getByRole("heading",{name:sentinel+"_EDIT"})).toBeVisible();
   await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
   await page.getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
