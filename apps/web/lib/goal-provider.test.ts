@@ -123,13 +123,24 @@ function Controls() {
     ),
   );
 }
+async function rendered<T>(read: () => T): Promise<T> {
+  return vi.waitFor(async () => {
+    // Commit asynchronously completed provider work before inspecting the DOM.
+    await act(async () => {});
+    return read();
+  });
+}
 async function click(text: string) {
-  const button = [...container.querySelectorAll("button")].find(
-    (b) => b.textContent === text,
-  );
-  expect(button, `button ${text}`).toBeDefined();
+  const button = await rendered(() => {
+    const found = [...container.querySelectorAll("button")].find(
+      (b) => b.textContent === text,
+    );
+    expect(found, `button ${text}`).toBeDefined();
+    expect(found!.disabled, `button ${text} ready`).toBe(false);
+    return found!;
+  });
   await act(async () => {
-    button!.click();
+    button.click();
     await new Promise((resolve) => setTimeout(resolve, 20));
   });
 }
@@ -429,7 +440,9 @@ test("reconnect restores only its durable wallet history and keeps stale signatu
   expect(container.textContent).not.toContain("No broadcast is recorded");
 });
 
-test("recovered receipt proof replaces a live uncertain outcome", async () => {
+test.each([false, true])("recovered receipt proof replaces a live uncertain outcome (held quote: %s)", async (heldQuote) => {
+  const quoteGate = deferred<{feeAmount:string;safeMax:string}>();
+  if (heldQuote) api.quote.mockImplementationOnce(() => quoteGate.promise);
   const journal = new TransactionJournal();
   let record: ReturnType<typeof newOperation>;
   api.execute.mockImplementation(
@@ -464,15 +477,16 @@ test("recovered receipt proof replaces a live uncertain outcome", async () => {
     },
   );
   await click("Connect Keplr");
+  await rendered(() => expect(scope()).toMatchObject({mode:"testnet",owner:ownerA}));
   await click("Prepare transaction");
+  // Completion is queued only after the preparation click returned. The
+  // approval helper must observe readiness, not assume a fixed elapsed delay.
+  if (heldQuote) queueMicrotask(() => quoteGate.resolve({feeAmount:"325000000000000",safeMax:"1999675000000000000"}));
   await click("Approve in Keplr");
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 30));
-  });
-  expect(
+  await rendered(() => expect(
     container.querySelector('[aria-label="Testnet transaction outcomes"]')
       ?.textContent,
-  ).toContain("Confirmation is uncertain");
+  ).toContain("Confirmation is uncertain"));
   api.reconcile.mockImplementation(async () => ({
     records: [
       await journal.transition(record.operationId, {
@@ -484,14 +498,11 @@ test("recovered receipt proof replaces a live uncertain outcome", async () => {
     warnings: [],
   }));
   await click("Refresh journal");
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 30));
+  await rendered(() => {
+    const result = container.querySelector('[aria-label="Testnet transaction outcomes"]')?.textContent;
+    expect(result).toContain("Confirmed on testnet at block 12");
+    expect(result).not.toContain("Confirmation is uncertain");
   });
-  const result = container.querySelector(
-    '[aria-label="Testnet transaction outcomes"]',
-  )?.textContent;
-  expect(result).toContain("Confirmed on testnet at block 12");
-  expect(result).not.toContain("Confirmation is uncertain");
 });
 
 test.each(["available", "unavailable"])(
