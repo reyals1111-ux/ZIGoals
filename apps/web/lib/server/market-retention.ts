@@ -4,7 +4,7 @@ import type {AtomicMarketStorage} from './durable-market-account';
 import {cancelUndispatched,settle,type BudgetState,type BudgetPeriod} from './market-budget-policy';
 import {publicMarketWorkKey,type ProviderAttempt} from './market-coordinator';
 import type {WorkState} from './market-work-fence';
-export type RetainedAttempt=ProviderAttempt & {endpoint?:string;breakers?:StoredPermit[];createdAt?:number;finishedAt?:number;outcome?:'success'|'failure';cancelled?:boolean;recovered?:boolean};
+export type RetainedAttempt=ProviderAttempt & {endpoint?:string;breakers?:StoredPermit[];createdAt?:number;finishedAt?:number;outcome?:'success'|'failure';cancelled?:boolean;recovered?:boolean;pairFailures?:string[]};
 const MINUTE=60000;
 /** Receipt lifetime is an internal retry contract, not a provider quota. Current
  * monthly credits are folded by priority; minute attempts stay uncompressed until

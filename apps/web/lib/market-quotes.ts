@@ -90,12 +90,26 @@ export function parseCoinTokenQuote(text:string,request:MarketQuoteRequest,contr
  if(!Number.isSafeInteger(timestamp)||timestamp<=0||timestamp>now+60000)throw new ProviderValidationError('Invalid quote timestamp.');
  return marketQuote(ref,row[ref.currency.toLowerCase()],now,new Date(timestamp).toISOString());
 }
-export function parseCoinQuotes(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()):MarketQuote[]{
- const selected=uniqueMarketRequests(requests);if(selected.some(r=>r.marketRef.kind!=='coin'))throw new ProviderValidationError('Wrong market kind.');const data=object(exactMarketJson(text));const ids=new Set(selected.map(r=>r.marketRef.id));if(Object.keys(data).some(id=>!ids.has(id)))throw new ProviderValidationError('Unexpected market identity.');
- return selected.map(request=>{const row=object(data[request.marketRef.id]);const stamp=row.last_updated_at;if(!(stamp instanceof JsonNumber)||!/^\d+$/.test(stamp.lexeme))throw new ProviderValidationError('Missing provider observation time.');const timestamp=Number(stamp.lexeme)*1000;if(!Number.isSafeInteger(timestamp)||timestamp<=0||timestamp>now+60000)throw new ProviderValidationError('Invalid quote timestamp.');return marketQuote(request,row[request.currency.toLowerCase()],now,new Date(timestamp).toISOString());});
+function coinBatch(text:string,requests:readonly MarketQuoteRequest[]){
+ const selected=uniqueMarketRequests(requests);if(selected.some(r=>r.marketRef.kind!=='coin'))throw new ProviderValidationError('Wrong market kind.');const data=object(exactMarketJson(text));const ids=new Set(selected.map(r=>r.marketRef.id));if(Object.keys(data).some(id=>!ids.has(id)))throw new ProviderValidationError('Unexpected market identity.');return {selected,data};
 }
-export function parseRwaQuotes(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()):MarketQuote[]{
+function coinRow(request:MarketQuoteRequest,raw:unknown,now:number){
+ const row=object(raw),stamp=row.last_updated_at;if(!(stamp instanceof JsonNumber)||!/^\d+$/.test(stamp.lexeme))throw new ProviderValidationError('Missing provider observation time.');const timestamp=Number(stamp.lexeme)*1000;if(!Number.isSafeInteger(timestamp)||timestamp<=0||timestamp>now+60000)throw new ProviderValidationError('Invalid quote timestamp.');return marketQuote(request,row[request.currency.toLowerCase()],now,new Date(timestamp).toISOString());
+}
+export function parseCoinQuotes(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()):MarketQuote[]{const {selected,data}=coinBatch(text,requests);return selected.map(request=>coinRow(request,data[request.marketRef.id],now));}
+function rwaBatch(text:string,requests:readonly MarketQuoteRequest[]){
  const selected=uniqueMarketRequests(requests);if(selected.some(r=>r.marketRef.kind!=='rwa'||r.currency!=='USD'))throw new ProviderValidationError('RWA references support USD only.');const data=exactMarketJson(text);if(!Array.isArray(data)||data.length>250)throw new ProviderValidationError('Invalid RWA response.');const rows=new Map<string,Record<string,unknown>>();
- for(const raw of data){const row=object(raw);if(typeof row.id!=='string'||rows.has(row.id)||!selected.some(r=>r.marketRef.id===row.id))throw new ProviderValidationError('Unexpected RWA identity.');rows.set(row.id,row);}
- return selected.map(request=>{const row=object(rows.get(request.marketRef.id));if(request.marketRef.kind!=='rwa'||row.asset_type!==request.marketRef.assetType)throw new ProviderValidationError('RWA type mismatch.');const data=object(row.tokenized_market_data);let observedAt:string|undefined;if(data.last_updated!=null){observedAt=z.iso.datetime().parse(data.last_updated);}return marketQuote(request,data.current_price,now,observedAt);});
+ for(const raw of data){const row=object(raw);if(typeof row.id!=='string'||rows.has(row.id)||!selected.some(r=>r.marketRef.id===row.id))throw new ProviderValidationError('Unexpected RWA identity.');rows.set(row.id,row);}return {selected,rows};
 }
+function rwaRow(request:MarketQuoteRequest,raw:unknown,now:number){
+ const row=object(raw);if(request.marketRef.kind!=='rwa'||row.asset_type!==request.marketRef.assetType)throw new ProviderValidationError('RWA type mismatch.');const data=object(row.tokenized_market_data);let observedAt:string|undefined;if(data.last_updated!=null)observedAt=z.iso.datetime().parse(data.last_updated);return marketQuote(request,data.current_price,now,observedAt);
+}
+export function parseRwaQuotes(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()):MarketQuote[]{const {selected,rows}=rwaBatch(text,requests);return selected.map(request=>rwaRow(request,rows.get(request.marketRef.id),now));}
+function independentRows(selected:MarketQuoteRequest[],parse:(request:MarketQuoteRequest)=>MarketQuote){
+ const quotes:MarketQuote[]=[],failures:MarketQuoteRequest[]=[];
+ for(const request of selected){try{quotes.push(parse(request));}catch(error){if(!(error instanceof ProviderValidationError)&&!(error instanceof z.ZodError))throw error;failures.push(request);}}return {quotes,failures};
+}
+/** Whole-body grammar and identities stay atomic. Once those are verified, each
+ * requested pair validates independently using the untouched numeric lexemes. */
+export function parseCoinQuoteResults(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()){const {selected,data}=coinBatch(text,requests);return independentRows(selected,request=>coinRow(request,data[request.marketRef.id],now));}
+export function parseRwaQuoteResults(text:string,requests:readonly MarketQuoteRequest[],now=Date.now()){const {selected,rows}=rwaBatch(text,requests);return independentRows(selected,request=>rwaRow(request,rows.get(request.marketRef.id),now));}

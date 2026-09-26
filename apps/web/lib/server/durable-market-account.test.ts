@@ -171,3 +171,23 @@ test('throttle correlation rejects one-endpoint promotion policy and excludes ex
  for(const [operation,time] of [['history',100],['catalog',1200],['token',1200]] as const){advance(time);const row=await account.apply({action:'enqueue-read',operation});for(const action of ['reserve','own','dispatch'])expect(await account.apply({action,id:row.id})).toMatchObject({ok:true});await account.apply({action:'settle',id:row.id,outcome:operation==='token'?'success':'failure',...(operation!=='token'?{category:'THROTTLED'}:{})});}
  expect(await account.apply({action:'inspect'})).toMatchObject({chargedCredits:6});
 });
+
+test('pair failure blocks only that work endpoint, persists across restart and recovery is budgeted',async()=>{
+ const settings={breaker:{threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1},leaseMs:1000};
+ const {account,storage}=setup(settings);const first=await attempt(account,['bitcoin','bad-pair']);for(const action of ['reserve','own','dispatch'])expect(await account.apply({action,id:first.id})).toMatchObject({ok:true});
+ expect(await account.apply({action:'settle',id:first.id,outcome:'success',pairFailures:[work('bad-pair')]})).toMatchObject({ok:true});
+ const restarted=new DurableMarketAccount(storage,()=>1100,JSON.stringify({...config,...settings}));expect(await restarted.apply({action:'acquire',work:work('bad-pair')})).toMatchObject({ok:false,reason:'PAIR_BREAKER_OPEN'});
+ const healthy=await attempt(restarted,['ethereum']);for(const action of ['reserve','own','dispatch'])expect(await restarted.apply({action,id:healthy.id})).toMatchObject({ok:true});await restarted.apply({action:'settle',id:healthy.id,outcome:'success'});
+ const later=new DurableMarketAccount(storage,()=>2100,JSON.stringify({...config,...settings}));const probe=await attempt(later,['bad-pair']);for(const action of ['reserve','own','dispatch'])expect(await later.apply({action,id:probe.id})).toMatchObject({ok:true});await later.apply({action:'settle',id:probe.id,outcome:'success'});expect(await later.apply({action:'inspect'})).toMatchObject({chargedCredits:9});
+});
+
+test('endpoint priority mapping protects interactive history and ages catalog/insight work',async()=>{
+ const {account,storage}=setup({operationCosts:{history:2,catalog:2,insights:2}});
+ for(const operation of ['catalog','history','insights']){const row=await account.apply({action:'enqueue-read',operation});expect(row.ok).toBe(true);const budget=await storage.get<BudgetState>('budget');expect(budget?.reservations[row.id as string]?.priority).toBe(({catalog:'refresh',history:'interactive',insights:'optional'} as Record<string,string>)[operation]);}
+});
+test('pair health survives work-cache eviction and mismatched settlement replay cannot rewrite it',async()=>{
+ const settings={breaker:{threshold:1,windowMs:10000,cooldownMs:4000,maxCooldownMs:8000,halfOpenProbes:1},maxWorks:1};const {account,advance}=setup(settings);
+ const bad=await attempt(account,['broken']);for(const action of ['reserve','own','dispatch'])await account.apply({action,id:bad.id});expect(await account.apply({action:'settle',id:bad.id,outcome:'success',pairFailures:[work('broken')]})).toMatchObject({ok:true});
+ expect(await account.apply({action:'settle',id:bad.id,outcome:'success'})).toMatchObject({ok:false,reason:'INVALID_TRANSITION'});
+ advance(1100);expect(await account.apply({action:'acquire',work:work('healthy')})).toMatchObject({status:'OWNER'});advance(2100);expect(await account.apply({action:'acquire',work:work('broken')})).toMatchObject({reason:'PAIR_BREAKER_OPEN'});
+});

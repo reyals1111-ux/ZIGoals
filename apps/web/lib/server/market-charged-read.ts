@@ -10,7 +10,7 @@ export function admissionFailure(reason:unknown):ProviderFailureCategory{return 
 /** The caller supplies only internally constructed CoinGecko URLs. One physical
  * read owns one reservation; failure after dispatch remains charged, including a
  * lost/failed body stream. No retry or fallback is hidden in this function. */
-export async function chargedMarketRead(url:URL,operation:ChargedOperation,limit:number,{command,key,fetcher=fetch,fallback,work,validate,signal}:{command:MarketCommand;key?:string;fetcher?:typeof fetch;signal?:AbortSignal;validate?:(text:string)=>unknown;fallback?:{parentId:string;associations:ProviderAttempt['associations'];onAttempt:(id:string)=>void};work?:{associations:ProviderAttempt['associations'];onAttempt:(id:string)=>void}}):Promise<string>{
+export async function chargedMarketRead(url:URL,operation:ChargedOperation,limit:number,{command,key,fetcher=fetch,fallback,work,validate,signal,pairFailures}:{command:MarketCommand;key?:string;fetcher?:typeof fetch;signal?:AbortSignal;pairFailures?:()=>import('./market-coordinator').PublicMarketWork[];validate?:(text:string)=>unknown;fallback?:{parentId:string;associations:ProviderAttempt['associations'];onAttempt:(id:string)=>void};work?:{associations:ProviderAttempt['associations'];onAttempt:(id:string)=>void}}):Promise<string>{
  if(!key?.trim())throw new ProviderFailure('AUTHENTICATION');
  const paths={catalog:/^\/api\/v3\/(coins|rwas)\/list$/,history:/^\/api\/v3\/coins\/[a-z0-9_-]+\/market_chart$/,insights:/^\/api\/v3\/(coins|rwas)\/markets$/,token:/^\/api\/v3\/simple\/token_price\/ethereum$/,rwa:/^\/api\/v3\/rwas\/markets$/};
  if(url.origin!=='https://api.coingecko.com'||!paths[operation].test(url.pathname))throw new ProviderFailure('UNSUPPORTED');
@@ -23,7 +23,7 @@ export async function chargedMarketRead(url:URL,operation:ChargedOperation,limit
   if(failure){await cleanupMarketBody(()=>response.body?.cancel()??Promise.resolve());throw failure;}
   const text=await boundedQuoteText(response,limit);
   if(validate)parseProviderEvidence(()=>validate(text));
-  const settled=await command({action:'settle',id,outcome:'success'});if(settled.ok!==true)throw new ProviderFailure('UNKNOWN');
+  const settled=await command({action:'settle',id,outcome:'success',...(pairFailures?{pairFailures:pairFailures()}:{})});if(settled.ok!==true)throw new ProviderFailure('UNKNOWN');
   return text;
  }catch(error){
   const failure=signal?.aborted?new ProviderFailure('LOCAL_QUEUE'):error instanceof ProviderFailure?error:new ProviderFailure(error instanceof ProviderValidationError?'MALFORMED':error instanceof ProviderTransportError?error.category:error instanceof Error&&['TimeoutError','AbortError'].includes(error.name)?'TIMEOUT':error instanceof TypeError?'NETWORK':'UNKNOWN');

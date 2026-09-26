@@ -114,3 +114,16 @@ test('distinct endpoint throttle evidence opens a persisted account gate and rec
   const ns=await mf.getDurableObjectNamespace('MARKETS','market');expect(await(await ns.get(ns.idFromName('throttle-fixture')).fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json()).toMatchObject({chargedCredits:10,dispatched:0});
  }finally{await mf?.dispose();}
 },30000);
+
+test('real route retains valid batch pairs and durable pair recovery never blocks unrelated assets',async()=>{
+ const code=await bundles(),now=Date.now(),persist=await mkdtemp(join(tmpdir(),'run11-market-pair-'));let mf,calls=[];
+ const config={policy,month:{id:'pair-fixture',start:now-1000,end:now+300000},quoteCost:3,leaseMs:1000,maxAttempts:128,maxWorks:64,breaker:{threshold:1,windowMs:10000,cooldownMs:2000,maxCooldownMs:8000,halfOpenProbes:1}};
+ const runtime=clock=>new Miniflare({...convertV4MiniflareOptions({workers:[{name:'app',modules:true,script:code.app,compatibilityDate:'2026-09-13',compatibilityFlags:['nodejs_compat'],bindings:{ZIGOALS_MARKET_QUOTES_MODE:'durable-v1'},serviceBindings:{MARKET_QUOTES:{name:'market',entrypoint:'QuoteService'}}},{name:'market',modules:true,script:code.market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'pair-fixture',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config),COINGECKO_DEMO_API_KEY:'fixture-key',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(clock)},outboundService:async request=>{const ids=new URL(request.url).searchParams.get('ids').split(',');calls.push(ids);return Response.json(Object.fromEntries(ids.map(id=>[id,{usd:id==='broken'&&calls.length===1?0:2,last_updated_at:Math.floor(now/1000)}])));}}]}),resourcePersistencePath:persist});
+ const call=async ids=>(await mf.dispatchFetch('https://app/api/market-quotes',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({requests:ids.map(pair)})})).json();
+ try{
+  mf=runtime(now);const first=await call(['bitcoin','broken']);expect(first.results.map(r=>r.failure)).toEqual([null,'MALFORMED']);expect(first.quotes.map(q=>q.providerAssetId)).toEqual(['bitcoin']);expect(calls).toEqual([['bitcoin','broken']]);
+  await mf.dispose();mf=runtime(now+1000);const cached=await call(['bitcoin','broken','ethereum']);expect(cached.quotes.map(q=>q.providerAssetId)).toEqual(['bitcoin','ethereum']);expect(calls).toEqual([['bitcoin','broken'],['ethereum']]);expect(cached.quotes[0]).toEqual(first.quotes[0]);
+  await mf.dispose();mf=runtime(now+2000);expect((await call(['broken'])).results[0].status).toBe('VERIFIED_FRESH');expect(calls).toEqual([['bitcoin','broken'],['ethereum'],['broken']]);
+  const ns=await mf.getDurableObjectNamespace('MARKETS','market');expect(await(await ns.get(ns.idFromName('pair-fixture')).fetch('https://internal',{method:'POST',body:JSON.stringify({action:'inspect'})})).json()).toMatchObject({chargedCredits:9,dispatched:0});
+ }finally{await mf?.dispose();}
+},30000);

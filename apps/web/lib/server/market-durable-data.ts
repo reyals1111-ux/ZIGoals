@@ -16,7 +16,7 @@ async function acquire(work:PublicMarketWork,c:Context):Promise<Acquired>{
 }
 async function read(url:URL,operation:ChargedOperation,limit:number,owners:Acquired[],c:Context,parse:(text:string)=>{owner:Acquired;value:unknown}[]){
  let id:string|undefined,values:{owner:Acquired;value:unknown}[]=[];
- try{await chargedMarketRead(url,operation,limit,{...c,validate:text=>{values=parse(text);},work:{associations:owners.map(o=>({work:o.work,lease:o.lease!})),onAttempt:attempt=>{id=attempt;}}});
+ try{await chargedMarketRead(url,operation,limit,{...c,validate:text=>{values=parse(text);},pairFailures:()=>owners.filter(o=>o.work.operation!=='catalog'&&!values.some(v=>v.owner===o)).map(o=>o.work),work:{associations:owners.map(o=>({work:o.work,lease:o.lease!})),onAttempt:attempt=>{id=attempt;}}});
   for(const owner of owners){const value=values.find(v=>v.owner===owner)?.value;if(value===undefined){owner.failed=true;continue;}const published=await c.command({action:'publish-data',id,work:owner.work,value});if(published.ok===true){owner.value=value;owner.failed=false;owner.fresh=!workEvidenceStale(owner.work,value,now(c));}else owner.failed=true;}
  }catch{for(const owner of owners)owner.failed=true;}
 }

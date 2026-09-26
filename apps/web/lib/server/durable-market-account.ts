@@ -1,3 +1,4 @@
+import {pairBlocked} from './market-pair-breaker';
 import {z} from 'zod';
 import {admitMarketBreakers,settleMarketBreakers} from './market-breaker-storage';
 import {maintainMarketAccount,rememberAttempt,releaseCancelledWork,type RetainedAttempt} from './market-retention';
@@ -20,7 +21,7 @@ const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('enqueue-read'),operation:chargedOperation,parentId:id.optional(),associations:z.array(z.object({work,lease}).strict()).min(1).max(64).optional()}).strict(),
  z.object({action:z.literal('enqueue'),priority:z.enum(['interactive','refresh','optional','monitoring']),kind:z.enum(['request','retry','fallback']),associations:z.array(z.object({work,lease}).strict()).min(1).max(64)}).strict(),
  ...(['reserve','own','dispatch','cancel'] as const).map(action=>z.object({action:z.literal(action),id}).strict()),
- z.object({action:z.literal('settle'),id,outcome:z.enum(['success','failure']),category:category.optional()}).strict(),
+ z.object({action:z.literal('settle'),id,outcome:z.enum(['success','failure']),category:category.optional(),pairFailures:z.array(work).max(64).optional()}).strict(),
  z.object({action:z.literal('publish'),id,work,quote:z.unknown()}).strict(),
  z.object({action:z.literal('publish-data'),id,work,value:z.unknown()}).strict(),
  z.object({action:z.literal('inspect')}).strict(),
@@ -50,6 +51,7 @@ export class DurableMarketAccount {
     const value=current.evidence?validateWorkEvidence(command.work,await loadCacheValue(tx,current.evidence.value),now):null;
     const evidence=command.work.operation==='quote'?{quote:value}:{value};
     if(current.evidence?.complete&&!workEvidenceStale(command.work,value,now)){await tx.put(`work:${key}`,{...current,lastTime:now});return {ok:true,status:'CACHE_HIT',...evidence};}
+    if(await pairBlocked(tx,config.breaker,command.work,now))return {ok:false,reason:'PAIR_BREAKER_OPEN',...evidence};
     const capacity=await evictMarketWork(tx,index,now,key,0,config.maxCacheBytes??16*1024*1024,config.maxWorks);if(!capacity.ok)return {ok:false,reason:'CACHE_CAPACITY'};
     const next=acquireWork(current,crypto.randomUUID(),now,now+config.leaseMs,now+config.leaseMs);
     if(!next)return {ok:true,status:'WAITING',retryAt:current.lease?.expiresAt,...evidence,degraded:true};
@@ -69,7 +71,7 @@ export class DurableMarketAccount {
      if(new Set(command.associations.map(a=>publicMarketWorkKey(a.work))).size!==command.associations.length)return {ok:false,reason:'MALFORMED'};
      for(const a of command.associations){if(a.work.operation!==command.operation)return {ok:false,reason:'MALFORMED'};const current=await tx.get<WorkState<unknown>>(`work:${publicMarketWorkKey(a.work)}`);if(JSON.stringify(current?.lease)!==JSON.stringify(a.lease)||now>=Math.min(a.lease.deadline,a.lease.expiresAt))return {ok:false,reason:'FENCED'};const owner=await tx.get<{token:string}>(`owner:${publicMarketWorkKey(a.work)}`);if(owner?.token===a.lease.token)return {ok:false,reason:'DUPLICATE_OPERATION'};}
     }
-    const attempt:ProviderAttempt={id:crypto.randomUUID(),reservation:{id:'',cost,priority:'interactive',kind:command.operation==='token'?'fallback':'request'},associations:command.associations??[]};attempt.reservation.id=attempt.id;
+    const attempt:ProviderAttempt={id:crypto.randomUUID(),reservation:{id:'',cost,priority:command.operation==='catalog'?'refresh':command.operation==='insights'?'optional':'interactive',kind:command.operation==='token'?'fallback':'request'},associations:command.associations??[]};attempt.reservation.id=attempt.id;
     const result=enqueue(budget,config.policy,attempt.reservation,now);if(!result.ok)return {ok:false,reason:result.reason};
     await tx.put('budget',result.state);await rememberAttempt(tx,attempt,now,`${command.operation}:${command.associations?.[0]?.work.operation==='catalog'?command.associations[0].work.kind:'shared'}`);if(command.parentId)await tx.put(`fallback:${command.parentId}`,attempt.id);else for(const a of attempt.associations)await tx.put(`owner:${publicMarketWorkKey(a.work)}`,{token:a.lease.token,id:attempt.id});return {ok:true,id:attempt.id};
    }
@@ -99,15 +101,16 @@ export class DurableMarketAccount {
    }
    if(command.action==='own'||command.action==='dispatch'){for(const association of attempt.associations){const current=await tx.get<WorkState<MarketQuote>>(`work:${publicMarketWorkKey(association.work)}`);if(!current?.lease||current.lease.token!==association.lease.token||current.lease.fence!==association.lease.fence||now>=Math.min(current.lease.deadline,current.lease.expiresAt))return {ok:false,reason:'FENCED'};}}
    if(command.action==='cancel'&&(budget.reservations[command.id]?.status==='CANCELLED'||!budget.reservations[command.id]&&attempt.cancelled))return {ok:true,replay:true};
-   if(command.action==='settle'){const previous=budget.reservations[command.id];if(previous?.status==='SETTLED'&&previous.outcome===command.outcome||!previous&&attempt.outcome===command.outcome)return {ok:true,replay:true};}
+   if(command.action==='settle'&&command.pairFailures){if(command.outcome==='failure'&&command.category!=='MALFORMED'||new Set(command.pairFailures.map(publicMarketWorkKey)).size!==command.pairFailures.length||command.pairFailures.some(w=>w.operation==='catalog'||!attempt.associations.some(a=>publicMarketWorkKey(a.work)===publicMarketWorkKey(w))))return {ok:false,reason:'MALFORMED'};}
+   if(command.action==='settle'){const previous=budget.reservations[command.id];if(previous?.status==='SETTLED'&&previous.outcome===command.outcome||!previous&&attempt.outcome===command.outcome)return JSON.stringify(attempt.pairFailures??[])===JSON.stringify((command.pairFailures??[]).map(publicMarketWorkKey).sort())?{ok:true,replay:true}:{ok:false,reason:'INVALID_TRANSITION'};}
    const result=command.action==='reserve'?reserve(budget,config.policy,periods,attempt.reservation,now):command.action==='own'?ownDispatch(budget,config.policy,periods,command.id,now):command.action==='dispatch'?markDispatched(budget,config.policy,periods,command.id,now):command.action==='settle'?settle(budget,command.id,command.outcome,now):cancelUndispatched(budget,command.id,now);
    if(result.ok){
     if(command.action==='own'&&nextReservedDispatch(budget,config.policy,periods,now)!==command.id)return {ok:false,reason:'QUEUE_WAIT'};
-    if(command.action==='dispatch'){const permits=await admitMarketBreakers(tx,config.breaker,command.id,attempt.endpoint??'quote:coin',now);if(!permits)return {ok:false,reason:'BREAKER_OPEN'};await tx.put(`attempt:${command.id}`,{...attempt,breakers:permits});}
+    if(command.action==='dispatch'){const permits=await admitMarketBreakers(tx,config.breaker,command.id,attempt.endpoint??'quote:coin',now,attempt.associations.map(a=>a.work));if(!permits)return {ok:false,reason:'BREAKER_OPEN'};await tx.put(`attempt:${command.id}`,{...attempt,breakers:permits});}
     await tx.put('budget',result.state);
     if(command.action==='cancel')await releaseCancelledWork(tx,attempt,now);
-    if(command.action==='settle'||command.action==='cancel')await settleMarketBreakers(tx,config.breaker,attempt.breakers,command.action==='settle'?(command.outcome==='success'?'VERIFIED':command.category??'UNKNOWN'):'UNKNOWN',now,{endpoint:attempt.endpoint,accountThrottle:config.accountThrottle});
-    if(command.action==='settle'||command.action==='cancel')await tx.put(`attempt:${command.id}`,{...attempt,finishedAt:now,...(command.action==='settle'?{outcome:command.outcome}:{cancelled:true})});}return {ok:result.ok,...(result.reason?{reason:result.reason}:{})};
+    if(command.action==='settle'||command.action==='cancel')await settleMarketBreakers(tx,config.breaker,attempt.breakers,command.action==='settle'?(command.outcome==='success'?'VERIFIED':command.category??'UNKNOWN'):'UNKNOWN',now,{endpoint:attempt.endpoint,accountThrottle:config.accountThrottle,pairFailures:command.action==='settle'?command.pairFailures:undefined});
+    if(command.action==='settle'||command.action==='cancel')await tx.put(`attempt:${command.id}`,{...attempt,finishedAt:now,...(command.action==='settle'?{outcome:command.outcome,pairFailures:(command.pairFailures??[]).map(publicMarketWorkKey).sort()}:{cancelled:true})});}return {ok:result.ok,...(result.reason?{reason:result.reason}:{})};
   });}catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}
  }
 }
