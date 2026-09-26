@@ -188,21 +188,20 @@
       "id": "JRN-09",
       "title": "Recovery without destructive reset",
       "criterion": "Export an encrypted backup/recovery mechanism using fictional keys, clear a disposable test profile, restore/unlock and verify record counts, operation IDs, layout and history. Wrong passphrase, corrupted ciphertext and future schema each produce a safe distinct failure, leaving existing data unchanged. Account password reset alone cannot falsely claim vault recovery.",
-      "assessment": "partial_local_acceptance",
+      "assessment": "assertions_present",
       "tests": [
         "apps/web/lib/vault/backup.test.ts",
         "apps/web/lib/vault/crypto.test.ts",
-        "scripts/run11/packaged-consumer-journey.mjs"
+        "scripts/run11/packaged-consumer-journey.mjs",
+        "apps/web/tests/run11-recovery-failures.spec.ts"
       ],
-      "assertions_reviewed": "2.1MB+ chunked backup round-trips exact strings, missing chunks fail, wrong secret/tamper/future envelope reject; packaged third profile restores four-domain Goal/Habit/meal/widget state and reloads.",
+      "assertions_reviewed": "2.1MB+ chunked backup round-trips exact strings, missing chunks fail, wrong secret/tamper/future envelope reject; packaged third profile restores four-domain Goal/Habit/meal/widget state and reloads. Actual desktop/mobile wrong valid-format secret, modified ciphertext and authenticated future-domain schema each show failure, offer no restore/success, preserve exact localStorage/all IndexedDB keys+values, retain250mL after reload and permit next250mL save.",
       "implementation_paths": [
         "apps/web/lib/vault/backup.ts",
         "apps/web/components/private-backups.tsx"
       ],
-      "proof_boundary": "No destructive reset is used; crypto failure is fail-closed. Full browser wrong-secret/corrupt/future-schema messages and unchanged preexisting profile are not all asserted together.",
-      "mandatory_local_gaps": [
-        "Add UI failure-message/nonmutation matrix for wrong secret, corrupted backup and future backup schema if claiming the complete JRN09 interaction, beyond existing function rejection tests."
-      ],
+      "proof_boundary": "6 browser cases pass14.7s across this and13/39; only2cases are backup matrix. Wrong secret and tamper intentionally share integrity failure because authenticated encryption cannot safely identify which caused failure; future-domain schema has a separate validation error. Existing packaged third-profile four-domain restore is separate evidence. This is not a claim of three unique cryptographic error causes.",
+      "mandatory_local_gaps": [],
       "external_or_conditional": []
     },
     {
@@ -276,24 +275,23 @@
       "id": "JRN-13",
       "title": "Storage pressure and long history",
       "criterion": "Use defined larger synthetic histories and trigger quota/storage failures. Verify meaningful warnings, paged queries, backup/export and no silent financial-history deletion. Appending a record that cannot persist must not show success. Document actual tested sizes and timings.",
-      "assessment": "partial_local_acceptance",
+      "assessment": "assertions_present",
       "tests": [
         "apps/web/tests/run10-private-vault.spec.ts",
         "apps/web/lib/vault/database.test.ts",
         "apps/web/lib/private-storage.test.ts",
         "apps/web/lib/goal-intelligence.test.ts",
-        "apps/web/tests/run11-goal-history.spec.ts"
+        "apps/web/tests/run11-goal-history.spec.ts",
+        "apps/web/tests/run11-recovery-failures.spec.ts"
       ],
-      "assertions_reviewed": "Browser imports/exports6000 meals above2MB; database300rows\u00d78000chars keeps changed delta under30000bytes and returns exact last10rows; quota failure preserves stored aggregate; history cap rejects append rather than dropping facts;35Goal events paginate3pages and filter to2.",
+      "assertions_reviewed": "Browser imports/exports6000 meals above2MB; database300rows\u00d78000chars keeps changed delta under30000bytes and returns exact last10rows; quota failure preserves stored aggregate; history cap rejects append rather than dropping facts;35Goal events paginate3pages and filter to2. Browser injected legacy QuotaExceededError and durable transaction abort:250mL unchanged, error visible, success empty, exact localStorage/all DB stores unchanged,35 real financial contributions remain paged over3pages; independent Habit persists; reload removes fixture and Health append succeeds.",
       "implementation_paths": [
         "apps/web/lib/vault/database.ts",
         "apps/web/lib/private-storage.ts",
         "apps/web/lib/goal-intelligence.ts"
       ],
-      "proof_boundary": "Sizes are explicit, but a current-source browser quota/save-error/no-success-toast assertion and size-specific timings are not in these tests.",
-      "mandatory_local_gaps": [
-        "Record browser quota rejection with unchanged financial history and no success UI; preserve actual timing for defined larger histories."
-      ],
+      "proof_boundary": "New quota matrix4 desktop/mobile cases within6case14.7s run. It induces failures rather than filling physical disk. Existing6000meal >2MB browser and300x8000-byte unit fixtures provide larger-history/export/paging size evidence separately; no whole-device memory certification.",
+      "mandatory_local_gaps": [],
       "external_or_conditional": []
     },
     {
@@ -657,24 +655,23 @@
       "id": "JRN-39",
       "title": "Graceful partial failure",
       "criterion": "Remove a provider credential, expire auth, deny camera permission and make a local save fail in separate tests. Health/Habit local logging and available manual tracking remain usable where independent; missing sync/provider capability is clear. No endless spinners, silent resets, invented zeroes or falsely successful toasts.",
-      "assessment": "partial_local_acceptance",
+      "assessment": "assertions_present",
       "tests": [
         "apps/web/tests/run9.spec.ts",
         "apps/web/tests/run10-barcode.spec.ts",
         "apps/web/lib/account-access.test.ts",
         "apps/web/lib/private-storage.test.ts",
-        "scripts/run11/packaged-runtime.test.mjs"
+        "scripts/run11/packaged-runtime.test.mjs",
+        "apps/web/tests/run11-recovery-failures.spec.ts"
       ],
-      "assertions_reviewed": "Missing provider config yields503 without outbound fallback; catalog failure leaves manual valuation usable; denied/absent camera retains manual input; expired/revoked auth locks account; quota failure preserves durable data.",
+      "assertions_reviewed": "Missing provider config yields503 without outbound fallback; catalog failure leaves manual valuation usable; denied/absent camera retains manual input; expired/revoked auth locks account; quota failure preserves durable data. Actual browser Health save failures in legacy/durable mode keep250mL/history and show explicit error with empty success; a new Habit is saved while failure injection remains active, survives reload, and Health can append after fixture removal.",
       "implementation_paths": [
         "apps/web/components/health/barcode-food-lookup.tsx",
         "apps/web/components/platform/use-platform.ts",
         "apps/web/components/vault-sync-controls.tsx"
       ],
-      "proof_boundary": "Independent bounded failure tests exist; current browser local-save-failure/no-success-toast plus local Health/Habit usability not all combined.",
-      "mandatory_local_gaps": [
-        "Add actual UI local quota/save rejection assertion (shared withJRN13) and confirm independent local path still works."
-      ],
+      "proof_boundary": "4 quota cases within6case14.7s browser run. All outbound API calls mocked503; tests preserve independent local path. Provider/auth/camera failures remain separate existing tests; no physical camera/cloud outage certification.",
+      "mandatory_local_gaps": [],
       "external_or_conditional": []
     },
     {
@@ -818,10 +815,28 @@
     "workers/private-sync/lifecycle.mjs": "563c285f8bff681fb69a3ac9a849ce1a1f79f70029a373d680a985faad864f1f",
     "workers/private-sync/sessions.mjs": "80932bc12fbe80e7f821e34f8a709d7edc0a600366b857c11e7dc4dc2bd58de0",
     "workers/private-sync/worker.mjs": "ebef7fc4e32439511982156fc02f39639bf554cfb38cc08d9cc5f47460a70904",
-    "scripts/run11/enrollment-isolation.test.mjs": "d9f3fa872ad7322e227c6ee6684bbba9276bbb4a85011b69356868e73ddff959"
+    "scripts/run11/enrollment-isolation.test.mjs": "d9f3fa872ad7322e227c6ee6684bbba9276bbb4a85011b69356868e73ddff959",
+    "apps/web/tests/run11-recovery-failures.spec.ts": "ff3615b8601ae32a70c2771af787239ceef599e190ff1f6ab412763444547db5"
   },
   "review_limits": [
     "No external/live provider calls, owner accounts, email delivery, physical device interaction, signing, deployment or exhaustive security certification.",
     "Root account-switch/migration/Showcase/package/recovery work continues concurrently; this review preserves initial identified boundaries until exact new assertions are read."
+  ],
+  "additional_execution_receipts": [
+    {
+      "test": "apps/web/tests/run11-recovery-failures.spec.ts",
+      "result": "6 passed (14.7s)",
+      "preview": "http://127.0.0.1:3113",
+      "projects": [
+        "desktop",
+        "mobile"
+      ],
+      "artifact": "/tmp/run11-recovery-failure-browser",
+      "checks": [
+        "scoped ESLint passed",
+        "TypeScript --noEmit passed"
+      ],
+      "boundary": "Current working source preview, offline API fixtures, real browser storage and UI; parent final generated-artifact gate separate."
+    }
   ]
 }
