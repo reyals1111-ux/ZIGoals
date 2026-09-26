@@ -86,21 +86,20 @@
       "id": "JRN-04",
       "title": "Empty second device cannot erase data",
       "criterion": "Populate A, then start B empty and begin enrollment twice with an interruption. B must attach to the existing vault without publishing an empty replacement, duplicating records or generating an incompatible key epoch. Wrong unlock input preserves both server ciphertext and A's working data.",
-      "assessment": "local_acceptance_gap",
+      "assessment": "assertions_present",
       "tests": [
         "apps/web/lib/vault/cloud-sync.test.ts",
         "scripts/run10/sync-runtime.test.mjs",
-        "scripts/run10/account-browser.test.mjs"
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/enrollment-isolation.test.mjs"
       ],
-      "assertions_reviewed": "Empty client pulls existing vault; unrelated local initial attach conflicts; repeated accepted write is idempotent; wrong recovery rejects without replacing manifest.",
+      "assertions_reviewed": "Populate A; wrong unlock keeps A journal/server exact; empty B decrypts then interrupts before commit; Worker restart; creation receipt replay; repeated empty B attach makes0 writes; fresh key at stale/current base409; all original ciphertexts/IDs/epoch exact.",
       "implementation_paths": [
         "apps/web/components/vault-sync-controls.tsx",
         "workers/private-sync/worker.mjs"
       ],
-      "proof_boundary": "Unit/runtime guards exist, but exact interrupted second-device enrollment sequence was not found at initial audit.",
-      "mandatory_local_gaps": [
-        "Add interrupted/repeated second-client enrollment against populated vault and compare ciphertext/epoch/record identities before and after. Helper assigned this next."
-      ],
+      "proof_boundary": "Actual local Miniflare Workers, encrypted data, persisted restart.2 tests pass728ms. Browser enrollment controls are separately covered; no hosted identity/storage assertion.",
+      "mandatory_local_gaps": [],
       "external_or_conditional": []
     },
     {
@@ -169,21 +168,20 @@
       "id": "JRN-08",
       "title": "Cross-tenant access denial",
       "criterion": "Try to read/list/write/delete A's vault/blob/export with B's session, altered client IDs and batch/pagination paths. Access must be denied without leaking meaningful record metadata. Test every direct storage/signed-link path as applicable, not only the main UI route.",
-      "assessment": "local_acceptance_gap",
+      "assessment": "assertions_present",
       "tests": [
         "scripts/run10/sync-runtime.test.mjs",
         "apps/web/lib/server/private-account.test.ts",
-        "scripts/run11/incremental-sync.test.mjs"
+        "scripts/run11/incremental-sync.test.mjs",
+        "scripts/run11/enrollment-isolation.test.mjs"
       ],
-      "assertions_reviewed": "Invalid auth401, B sees revision0 rather than A records; captured account mismatch forwarded to authority and rejects; revision-consistent pagination/bounded IDs covered separately.",
+      "assertions_reviewed": "101 encrypted A records force100+1 pagination. B with A fence gets exact ACCOUNT_CHANGED only across10 read/batch/page/write/domain/account/delete/session/rotation paths. B own fence+stolen IDs/cursor returns empty own metadata; stolen-vault write409; unknown direct blob/export/download404; B own cloud delete leaves both A pages exact.",
       "implementation_paths": [
         "workers/private-sync/worker.mjs",
         "apps/web/lib/server/private-account.ts"
       ],
-      "proof_boundary": "Verified identity selects the Durable Object; no public signed-download/object-store path is implemented. Initial audit lacked a complete hostile path matrix.",
-      "mandatory_local_gaps": [
-        "Exercise B token with A account fence/IDs across read, selective batch, pagination, write and delete; helper assigned next."
-      ],
+      "proof_boundary": "Actual local Miniflare Workers, encrypted data, persisted restart.2 tests pass728ms. Browser enrollment controls are separately covered; no hosted identity/storage assertion.",
+      "mandatory_local_gaps": [],
       "external_or_conditional": []
     },
     {
@@ -819,7 +817,8 @@
     "workers/market-coordinator/worker.ts": "1e7046fb1fc8f41a1e3d2f6e148aedf5e98931cb4e84e05a5340491f029002fb",
     "workers/private-sync/lifecycle.mjs": "563c285f8bff681fb69a3ac9a849ce1a1f79f70029a373d680a985faad864f1f",
     "workers/private-sync/sessions.mjs": "80932bc12fbe80e7f821e34f8a709d7edc0a600366b857c11e7dc4dc2bd58de0",
-    "workers/private-sync/worker.mjs": "ebef7fc4e32439511982156fc02f39639bf554cfb38cc08d9cc5f47460a70904"
+    "workers/private-sync/worker.mjs": "ebef7fc4e32439511982156fc02f39639bf554cfb38cc08d9cc5f47460a70904",
+    "scripts/run11/enrollment-isolation.test.mjs": "d9f3fa872ad7322e227c6ee6684bbba9276bbb4a85011b69356868e73ddff959"
   },
   "review_limits": [
     "No external/live provider calls, owner accounts, email delivery, physical device interaction, signing, deployment or exhaustive security certification.",
