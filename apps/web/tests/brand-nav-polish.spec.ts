@@ -5,15 +5,27 @@ async function showcase(page:Page){
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
 
-test('the glowing Z sits above the wordmark, loads the right density and stays decorative',async({page},info)=>{
+test('the glowing Z leads the sidebar, loads the right density and stays decorative',async({page,isMobile},info)=>{
  await showcase(page);
  const brand=page.getByRole('link',{name:'ZIGoals home',exact:true}),logo=brand.locator('img.brand-logo');
  await expect(logo).toBeVisible();await expect(logo).toHaveAttribute('alt','');
  await expect.poll(()=>logo.evaluate(img=>(img as HTMLImageElement).complete&&(img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
  const density=await page.evaluate(()=>devicePixelRatio),source=await logo.evaluate(img=>(img as HTMLImageElement).currentSrc);
  expect(source).toMatch(density>=2.5?/zigoals-z-192\.webp$/:density>=1.5?/zigoals-z-(128|192)\.webp$/:/zigoals-z-(64|128)\.webp$/);
- const mark=(await logo.boundingBox())!,word=(await brand.locator('.brand-wordmark').boundingBox())!;
- expect(mark.y+mark.height).toBeLessThanOrEqual(word.y+1);
+ const mark=(await logo.boundingBox())!,sidebar=(await page.locator('.app-sidebar').boundingBox())!;
+ if(isMobile){
+  const word=(await brand.locator('.brand-wordmark').boundingBox())!;expect(mark.y+mark.height).toBeLessThanOrEqual(word.y+1);
+  await expect(page.locator('.sidebar-signature')).toBeHidden();await expect(page.locator('.app-sidebar>.product-descriptor')).toBeVisible();
+ }else{
+  expect(mark.width).toBeGreaterThanOrEqual(80);expect(Math.abs(mark.x+mark.width/2-(sidebar.x+sidebar.width/2))).toBeLessThanOrEqual(2);
+  await expect(brand.locator('.brand-wordmark')).toBeHidden();await expect(page.locator('.app-sidebar>.product-descriptor')).toBeHidden();
+  const quick=(await page.getByRole('button',{name:'+ Quick add',exact:true}).boundingBox())!,nav=(await page.getByRole('navigation',{name:'Main navigation'}).boundingBox())!;
+  const signature=page.locator('.sidebar-signature'),destination=(await page.locator('.sidebar-destination').boundingBox())!;
+  await expect(signature).toBeVisible();await expect(signature).toContainText('Your Financial Orbit');
+  const sign=(await signature.boundingBox())!,settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!;
+  expect(quick.y).toBeGreaterThanOrEqual(mark.y+mark.height);expect(nav.y).toBeGreaterThanOrEqual(quick.y+quick.height);
+  expect(sign.y).toBeGreaterThanOrEqual(settings.y+settings.height);expect(destination.y).toBeGreaterThanOrEqual(sign.y+sign.height-1);
+ }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
  await brand.screenshot({path:info.outputPath('brand.png')});
 });

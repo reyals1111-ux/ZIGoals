@@ -9,5 +9,5 @@ export function Wordmark() {
 /** Glowing nebula Z: transparent, tightly cropped WebP at 1x/2x/3x. Decorative; the enclosing link names the brand. */
 export function LogoMark() {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img className="brand-logo" src="/brand/zigoals-z-64.webp" srcSet="/brand/zigoals-z-64.webp 57w, /brand/zigoals-z-128.webp 114w, /brand/zigoals-z-192.webp 171w" sizes="(max-width: 900px) 40px, 57px" width={57} height={64} alt="" decoding="async" />;
+  return <img className="brand-logo" src="/brand/zigoals-z-64.webp" srcSet="/brand/zigoals-z-64.webp 57w, /brand/zigoals-z-128.webp 114w, /brand/zigoals-z-192.webp 171w" sizes="(max-width: 900px) 40px, 86px" width={57} height={64} alt="" decoding="async" />;
 }
