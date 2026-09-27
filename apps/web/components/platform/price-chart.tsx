@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useId,useMemo,useRef,useState} from 'react';
+import {useEffect,useId,useMemo,useRef,useState,type CSSProperties} from 'react';
 import type {MarketAssetRef} from '../../lib/market-assets';
 import {availableHistoryRanges,createMarketHistoryCache,fetchPublicMarketHistory,formatHistoryValue,historyIsStale,historyPointsForRange,historyRequestSchema,RWA_HISTORY_UNAVAILABLE,validLocalHistory,type ChartHistoryRange,type HistoryPoint,type MarketHistoryResult} from '../../lib/market-history';
 import './price-chart.css';
@@ -72,7 +72,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
     <defs><linearGradient id={`${id}-line`} x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#45d8ef"/><stop offset="22%" stopColor="#559bfa"/><stop offset="46%" stopColor="#9879fb"/><stop offset="72%" stopColor="#df72de"/><stop offset="100%" stopColor="#fa919f"/></linearGradient><linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#9a79ed" stopOpacity=".22"/><stop offset="100%" stopColor="#9a79ed" stopOpacity="0"/></linearGradient></defs>
     {[34,94,154,214].map(gridY=><line key={gridY} x1="28" x2="732" y1={gridY} y2={gridY} stroke="currentColor" opacity=".1" strokeDasharray="3 6"/>)}
     {groups.filter(group=>group.length>1).map((group,index)=>{const coordinates=group.map(i=>`${x(points[i]!.at)},${y(units[i]!)}`).join(' ');return <g key={index}><polygon points={`${x(points[group[0]!]!.at)},230 ${coordinates} ${x(points[group.at(-1)!]!.at)},230`} fill={`url(#${id}-fill)`}/><polyline className="price-chart-line" pathLength={1} points={coordinates} fill="none" stroke={`url(#${id}-line)`} strokeWidth="2.6" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/></g>;})}
-    {points.map((point,index)=><circle data-observation key={point.at} cx={x(point.at)} cy={y(units[index]!)} r={point.at===current?.at?4:1.8} fill={point.at===current?.at?'#eef5ff':'#aab3ff'}><title>{new Date(point.at).toLocaleString()} · {formatHistoryValue(point)} {currency}</title></circle>)}
+    {points.map((point,index)=><circle data-observation key={point.at} cx={x(point.at)} cy={y(units[index]!)} r={point.at===current?.at?4:1.8} fill={point.at===current?.at?'#eef5ff':'#aab3ff'} style={{'--at':((x(point.at)-28)/704).toFixed(3)} as CSSProperties}><title>{new Date(point.at).toLocaleString()} · {formatHistoryValue(point)} {currency}</title></circle>)}
     {current&&<line x1={x(current.at)} x2={x(current.at)} y1="28" y2="222" stroke="#cad5f3" opacity=".25" strokeDasharray="3 5"/>}
 
    </svg>}

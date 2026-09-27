@@ -1,4 +1,4 @@
-:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1); }
+:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms; }
 .slogan-entrance { display:block; }
 .slogan-entrance[data-entrance=once] { animation:slogan-arrive var(--entrance-duration) var(--entrance-easing) both; }
 @keyframes slogan-arrive { from { opacity:.65;transform:translateY(9px); } to { opacity:1;transform:translateY(0); } }
@@ -11,3 +11,23 @@
 :root[data-app-motion=off] .motion-preview-sample{animation:none}
 :root[data-app-motion=off] :is(.slogan-entrance,.flow-ring-fill,.evidence-line,.price-chart-line,.nutrition-month-bars i,.composition-allocation-bar>span,.top-holding-bar>span) { animation:none!important;transition:none!important; }
 @media(prefers-reduced-motion:reduce) { .slogan-entrance[data-entrance=once],.motion-preview-sample { animation:none; } }
+
+/* Charts: once the line or sweep has drawn, its marks settle in behind it. Values, labels and tables are final from first render; only paint moves. --at is a mark's 0–1 horizontal position, --i its order. */
+@property --ring-reveal { syntax:'<percentage>';inherits:false;initial-value:100%; }
+@keyframes motion-fade-in { from { opacity:0; } }
+@keyframes motion-mark-in { from { opacity:0;transform:scale(.25); } }
+@keyframes motion-line-draw { from { stroke-dasharray:1;stroke-dashoffset:1; } 99% { stroke-dasharray:1; } to { stroke-dasharray:none;stroke-dashoffset:0; } }
+@keyframes motion-sweep { from { --ring-reveal:0%; } to { --ring-reveal:100%; } }
+@keyframes motion-rise { from { transform:scaleY(.04); } to { transform:scaleY(1); } }
+@keyframes motion-cell-in { from { opacity:.15;transform:scale(.72); } }
+:is(.evidence-chart,.price-chart)[data-entrance=once] svg>line { animation:motion-fade-in 520ms ease-out backwards; }
+:is(.evidence-chart,.price-chart)[data-entrance=once] :is(.evidence-point,circle[data-observation]) { transform-box:fill-box;transform-origin:center;animation:motion-mark-in var(--motion-mark) var(--motion-glide) backwards;animation-delay:calc(120ms + var(--at,1) * var(--entrance-duration) * .75); }
+.price-chart[data-entrance=once] .price-chart-plot polygon { animation:motion-fade-in 600ms ease-out 400ms backwards; }
+.price-chart-plot circle[data-observation] { transition:r 180ms var(--motion-glide),fill 180ms ease; }
+.market-movement figure[data-entrance=once] .market-movement-line { animation:motion-line-draw 900ms var(--entrance-easing) both; }
+/* Oversized, unclipped mask: the settled donut, outer glow included, paints exactly as before. */
+.portfolio-composition[data-entrance=once] .composition-donut { mask:conic-gradient(#000 var(--ring-reveal),transparent var(--ring-reveal)) center/200% 200% no-repeat,radial-gradient(circle closest-side,#000 calc(50% - 20px),transparent calc(50% - 20px)) center/200% 200% no-repeat;mask-clip:no-clip;animation:motion-sweep var(--entrance-duration) var(--entrance-easing) both; }
+.nutrition-trend[data-entrance=once] .nutrition-month-bars>div>i { animation-delay:calc(var(--i,0) * 14ms); }
+.habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) both;animation-delay:calc(var(--i,0) * 55ms); }
+.habit-consistency-month[data-entrance=once] .habit-month-grid>span { animation:motion-cell-in 480ms var(--motion-glide) backwards;animation-delay:calc(var(--i,0) * 16ms); }
+:root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.composition-donut,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }

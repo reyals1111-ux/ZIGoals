@@ -1,5 +1,5 @@
 'use client';
-import {useId} from 'react';
+import {useId,type CSSProperties} from 'react';
 import {amount} from './common';
 import {formatExactNumber} from '../../lib/visual-format';
 import {useEntrance} from '../use-entrance';
@@ -35,7 +35,7 @@ export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceS
     {[26,75,124,174].map(v=><line key={v} x1="24" x2="560" y1={v} y2={v} stroke="currentColor" opacity=".12"/>)}
     {clean.map(s=><g key={s.label}>
      {s.kind!=='event'&&segments(s).filter(group=>group.length>1).map((group,i)=><polyline className="evidence-line" key={i} pathLength={1} points={group.flatMap((p,j)=>s.kind==='cumulative'&&j?[`${x(p.at)},${y(group[j-1]!.value)}`,`${x(p.at)},${y(p.value)}`]:[`${x(p.at)},${y(p.value)}`]).join(' ')} fill="none" stroke={s.color} strokeWidth="2.5" vectorEffect="non-scaling-stroke"/>)}
-     {s.points.map((p,i)=><circle className="evidence-point" key={`${p.at}:${i}`} cx={x(p.at)} cy={y(p.value)} r={s.points.length<=2?3.5:2} fill={s.color}><title>{`${s.label} · ${p.at} · ${exact(p.value)} ${currency}`}</title></circle>)}
+     {s.points.map((p,i)=><circle className="evidence-point" key={`${p.at}:${i}`} cx={x(p.at)} cy={y(p.value)} r={s.points.length<=2?3.5:2} fill={s.color} style={{'--at':((x(p.at)-24)/536).toFixed(3)} as CSSProperties}><title>{`${s.label} · ${p.at} · ${exact(p.value)} ${currency}`}</title></circle>)}
     </g>)}
    </svg>
    <div className="evidence-chart-axis"><time dateTime={new Date(start).toISOString()}>{new Date(start).toISOString().slice(0,10)}</time><time dateTime={new Date(end).toISOString()}>{new Date(end).toISOString().slice(0,10)}</time></div>
