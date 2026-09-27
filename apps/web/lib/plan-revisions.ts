@@ -8,7 +8,7 @@ function terms(plan:ContributionPlan|undefined){if(!plan)return null;const {habi
 export function planFingerprint(g:PrivateGoal){return JSON.stringify([terms(g.plan),g.target,g.targetDate,g.planRevisions??[]]);}
 export function effectiveContributionPlan(g:PrivateGoal,date:string){return g.planRevisions?.length?g.planRevisions.filter(r=>r.effectiveFrom<=date).at(-1)?.terms??undefined:g.plan;}
 export function earliestPlanChange(g:PrivateGoal,now=Date.now()){return g.plan||g.planRevisions?.length?[shift(day(now),1),g.planRevisions?.at(-1)?.effectiveFrom??''].sort().at(-1)!:day(now);}
-function revision(g:PrivateGoal,effectiveFrom:string,now:number,index:number,priorHistory:'known'|'unknown'):PlanRevision{return {version:1,id:`plan:${g.id}:${now}:${index}`,effectiveFrom,recordedAt:new Date(now).toISOString(),terms:terms(g.plan),target:g.target,targetDate:g.targetDate,asset:g.asset,decimals:g.decimals,priorHistory};}
+function revision(g:PrivateGoal,effectiveFrom:string,now:number,_index:number,priorHistory:'known'|'unknown'):PlanRevision{return {version:1,id:`plan:${g.id}:${crypto.randomUUID()}`,effectiveFrom,recordedAt:new Date(now).toISOString(),terms:terms(g.plan),target:g.target,targetDate:g.targetDate,asset:g.asset,decimals:g.decimals,priorHistory};}
 /** Legacy terms are only evidenced from the day observed; their earlier history is unknown. */
 export function capturePlanChanges(before:Platform,after:Platform,now:number):Platform {
  let changed=false;const goals=after.goals.map(g=>{
@@ -68,7 +68,7 @@ export function captureGoalLifecycle(before:Platform,after:Platform,now:number,q
  const evidence=(s:Platform,g:PrivateGoal)=>{const allocations=s.allocations.filter(a=>a.goalId===g.id),ids=new Set(allocations.map(a=>a.positionId));return JSON.stringify({target:g.target,targetDate:g.targetDate,type:g.type,asset:g.asset,decimals:g.decimals,milestones:g.milestones.map(m=>({id:m.id,done:m.done})),allocations,positions:s.positions.filter(p=>ids.has(p.id)).map(p=>({id:p.id,quantity:p.quantity,asset:p.asset,denom:p.denom,decimals:p.decimals,network:p.network,verification:p.verification,sync:p.sync,observedAt:p.observedAt,valuation:p.valuation,archivedAt:p.archivedAt}))});};
  let changed=false;const goals=after.goals.map(g=>{
   const old=before.goals.find(x=>x.id===g.id),events=[...(g.lifecycle??[])];let cycle=events.at(-1)?.cycle??0;
-  const add=(kind:GoalLifecycle['kind'],extra:Partial<GoalLifecycle>={})=>{events.push({id:`lifecycle:${g.id}:${now}:${events.length}`,kind,cycle,at:new Date(now).toISOString(),target:g.target,asset:g.asset,decimals:g.decimals,...extra});changed=true;};
+  const add=(kind:GoalLifecycle['kind'],extra:Partial<GoalLifecycle>={})=>{events.push({id:`lifecycle:${g.id}:${crypto.randomUUID()}`,kind,cycle,at:new Date(now).toISOString(),target:g.target,asset:g.asset,decimals:g.decimals,...extra});changed=true;};
   if(old&&(old.target!==g.target||old.targetDate!==g.targetDate)&&JSON.stringify(old.lifecycle)===JSON.stringify(g.lifecycle)){cycle++;add('target_changed');}
   if(old&&old.status!=='closed'&&g.status==='closed'&&JSON.stringify(old.lifecycle)===JSON.stringify(g.lifecycle))add('closed');
   const observed=before===after||!old||evidence(before,old)!==evidence(after,g);
@@ -82,6 +82,6 @@ export function captureGoalLifecycle(before:Platform,after:Platform,now:number,q
 export function reopenGoal(s:Platform,goalId:string,now=Date.now()):Platform {
  const g=s.goals.find(x=>x.id===goalId);if(!g||g.status!=='closed'||g.locked)throw Error('Choose an unlocked, closed Goal.');
  const events=g.lifecycle??[],cycle=(events.at(-1)?.cycle??0)+1;
- const event:GoalLifecycle={id:`lifecycle:${g.id}:${now}:${events.length}`,kind:'reopened',cycle,at:new Date(now).toISOString(),target:g.target,asset:g.asset,decimals:g.decimals};
+ const event:GoalLifecycle={id:`lifecycle:${g.id}:${crypto.randomUUID()}`,kind:'reopened',cycle,at:new Date(now).toISOString(),target:g.target,asset:g.asset,decimals:g.decimals};
  return platformSchema.parse({...s,goals:s.goals.map(x=>x.id===g.id?{...x,status:'active',lifecycle:[...events,event]}:x)});
 }

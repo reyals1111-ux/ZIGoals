@@ -12,7 +12,10 @@ test("ecosystem research is readable without connecting a wallet", async ({ page
   const noble = page.locator(".ecosystem-project").filter({has:page.getByRole("heading",{name:"Noble",exact:true})});
   await noble.locator("summary").click();
   await expect(noble).toContainText("sunset");
-  await expect(noble.getByRole("button")).toHaveCount(0);
+  const actions = noble.locator(".ecosystem-project-actions");
+  await expect(actions.getByRole("link",{name:"Visit website ↗"})).toHaveAttribute("href","https://noble.xyz/");
+  await expect(actions.getByRole("link")).toHaveCount(1);
+  await expect(noble.getByRole("button",{name:/connect|mint|bridge|swap/i})).toHaveCount(0);
   await expect(page.getByText("No external curator, originator, custodian or servicer relationship is configured.")).toBeVisible();
   const fits = await page.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth);
   expect(fits).toBe(true);

@@ -4,15 +4,26 @@ const HASH=/^[a-f0-9]{64}$/;
 export async function sessionAllowed(store,hash){if(!HASH.test(hash??''))return false;return (await store.get(`session:${hash}`))?.active===true;}
 export async function sessionsRequest(request,state,boundedJSON){
  const hash=request.headers.get('x-zigoals-token-hash');if(!HASH.test(hash??''))return reply({error:'SIGN_IN_REQUIRED'},401);
- let action;if(request.method==='POST'){try{action=await boundedJSON(request,2048);}catch{return reply({error:'INVALID_SESSION_REQUEST'},400);}}
+ let action;if(request.method==='POST'){try{action=await boundedJSON(request,8192);}catch{return reply({error:'INVALID_SESSION_REQUEST'},400);}}
  return state.storage.transaction(async store=>{
   if(await store.get('account-deleted'))return reply({error:'ACCOUNT_DELETED'},410);
-  const current=await store.get(`session:${hash}`);
+  const current=await store.get(`session:${hash}`),family=request.headers.get('x-zigoals-session-family');
+  if(!/^[0-9a-f-]{36}$/i.test(family??''))return reply({error:'VERIFIED_SESSION_REQUIRED'},401);
+  const lineage=await store.get(`family:${family}`);if(lineage&&!lineage.active)return reply({error:'SESSION_REVOKED'},401);
+  if(action?.action==='refresh'){
+   if(Object.keys(action).sort().join(',')!=='action,previous'||!/^[-A-Za-z0-9._]{1,4096}$/.test(action.previous??''))return reply({error:'INVALID_SESSION_REQUEST'},400);
+   const previous=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('Bearer '+action.previous)))].map(v=>v.toString(16).padStart(2,'0')).join(''),prior=await store.get(`session:${previous}`);
+   if(lineage?.active&&lineage.currentHash===hash&&lineage.previousHash===previous&&current?.active)return reply({registered:true,id:current.id});
+   if(!prior?.active||prior.family!==family||current&&!current.active||previous===hash)return reply({error:'SESSION_REVOKED'},401);
+   if(current)return reply({error:'SESSION_CONFLICT'},409);
+   await store.put({[`session:${hash}`]:{...prior,active:true},[`family:${family}`]:{active:true,currentHash:hash,previousHash:previous}});await store.delete(`session:${previous}`);return reply({registered:true,id:prior.id});
+  }
   if(action?.action==='register'){
    if(Object.keys(action).some(k=>!['action','label'].includes(k))||typeof action.label!=='string'||!action.label.trim()||action.label.length>80)return reply({error:'INVALID_SESSION_REQUEST'},400);
    if(current)return current.active?reply({registered:true,id:current.id}):reply({error:'SESSION_REVOKED'},401);
+   if(lineage)return reply({error:'SESSION_REFRESH_REQUIRED'},401);
    const count=await store.get('session-count')??0;if(count>=5000)return reply({error:'SESSION_CAPACITY'},507);
-   const record={id:crypto.randomUUID(),label:action.label.trim(),createdAt:new Date().toISOString(),active:true};await store.put({[`session:${hash}`]:record,'session-count':count+1});return reply({registered:true,id:record.id});
+   const record={id:crypto.randomUUID(),family,label:action.label.trim(),createdAt:new Date().toISOString(),active:true};await store.put({[`session:${hash}`]:record,[`family:${family}`]:{active:true,currentHash:hash},'session-count':count+1});return reply({registered:true,id:record.id});
   }
   if(!current?.active)return reply({error:'SESSION_REVOKED'},401);
   const records=await store.list({prefix:'session:',limit:5001});if(records.size>5000)return reply({error:'SESSION_CAPACITY'},507);
@@ -20,7 +31,7 @@ export async function sessionsRequest(request,state,boundedJSON){
   if(!action||!['revoke','revoke-others','signout'].includes(action.action)||Object.keys(action).some(k=>!['action','id'].includes(k))||action.action==='revoke'&&typeof action.id!=='string')return reply({error:'INVALID_SESSION_REQUEST'},400);
   const selected=[...records].filter(([,r])=>r.active&&(action.action==='signout'?r.id===current.id:action.action==='revoke-others'?r.id!==current.id:r.id===action.id));
   if(action.action==='revoke'&&!selected.length)return reply({error:'SESSION_NOT_FOUND'},404);
-  for(const [key,record]of selected)await store.put(key,{...record,active:false,revokedAt:new Date().toISOString()});
+  for(const [key,record]of selected){await store.put({[key]:{...record,active:false,revokedAt:new Date().toISOString()},[`family:${record.family}`]:{active:false,revokedAt:new Date().toISOString()}});}
   return reply({revoked:selected.length,currentRevoked:selected.some(([,r])=>r.id===current.id)});
  });
 }

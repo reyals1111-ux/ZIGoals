@@ -1,3 +1,5 @@
+import {beforeEach as configureMarketDevelopment} from 'vitest';
+configureMarketDevelopment(()=>{vi.stubEnv('NODE_ENV','development');vi.stubEnv('ZIGOALS_MARKET_LOCAL_MODE','direct');});
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {boundedQuoteText} from './market-quotes';
 beforeEach(()=>vi.stubEnv('COINGECKO_DEMO_API_KEY','fixture-key'));

@@ -1,0 +1,40 @@
+{
+  "reviewedSource": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "baseSource": "ec3ac7a5c07df7d37adb2ba300c47dbaeb575266",
+  "reviewedAt": "2026-09-26T22:59:14.995589+00:00",
+  "scope": "Independent review of final Goal menu CSS, pointer regression and generated-package Goal journeys; no Git changes.",
+  "readPaths": [
+    "apps/web/components/goal-summary.css",
+    "apps/web/components/card-options.tsx",
+    "apps/web/components/card-options.css",
+    "apps/web/app/globals.css (card-top rules)",
+    "apps/web/tests/run11-goal-options-pointer.spec.ts",
+    "scripts/run11/packaged-goal-journey.mjs",
+    "scripts/run11/packaged-runtime.test.mjs (full prior file plus complete reviewed diff)",
+    "scripts/run11/packaged-consumer-journey.mjs (prior complete read and final content hash)",
+    "docs/run11/STATE.md (reviewed diff)",
+    "docs/run11/CLOSURE.json (GOAL-06 reviewed diff)"
+  ],
+  "findings": [],
+  "assessment": [
+    "The only production change in the reviewed range is scoped automatic left margin on Goal card pin controls; no funding, data, sync, or cryptographic behavior changes.",
+    "Pointer regression uses ordinary clicks, checks menu bounds inside each card, preserves exact Goal storage bytes and verifies resulting Today widgets; it does not force clicks or bypass obstruction.",
+    "Value and Quantity journeys create records through UI, verify allocation values, retained original contribution, canceled correction, linked reversal and unchanged holdings; independent profile compares exact history and contribution-plan values.",
+    "Project journey explicitly verifies absence of financial funding controls, retained three milestone changes, exact final checkbox states and matching second-profile history.",
+    "Existing consumer, protected restore and four-preset assertions remain in the full package path; new Goal journey executes before the final receipt is written. No weakened assertions or timeout increases found."
+  ],
+  "verifiedReceipt": "/private/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/run11-package-cDIwHH/evidence.json",
+  "receiptChecks": {
+    "sourceEqualsReviewedSource": true,
+    "cleanApplicationBuildEqualsReviewedSource": true,
+    "runtimeTestHashMatchesGitSource": true,
+    "consumerTestHashMatchesGitSource": true,
+    "goalTestHashMatchesGitSource": true,
+    "goalJourneyReceiptRead": true
+  },
+  "limits": [
+    "No additional test run performed for this review; runtime receipt and exact Git content hashes were independently inspected.",
+    "Local isolated providers and browser profiles do not prove real inbox, hosted-provider or physical-device operation.",
+    "Earlier intermittent Breakfast assertion failure remains separately documented; this review does not claim its root cause was resolved."
+  ]
+}

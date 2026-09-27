@@ -1,9 +1,9 @@
 import {DurableMarketAccount,type AtomicMarketStorage} from '../../apps/web/lib/server/durable-market-account';
 import {WorkerEntrypoint} from 'cloudflare:workers';
-import {marketRequestsSchema} from '../../apps/web/lib/market-assets';
+import {durableCatalog,durableHistory,durableInsights,parseDurableMarketBody} from '../../apps/web/lib/server/market-durable-data';
 import {boundedQuoteText} from '../../apps/web/lib/market-quotes';
 import {dispatchDurableQuotes} from '../../apps/web/lib/server/durable-quote-dispatch';
-/** Internal-only prototype. No public RPC, credentials, provider I/O or production binding. */
+/** Internal durable account; the default Worker endpoint does not expose commands. */
 export class MarketAccount {
  private account:DurableMarketAccount;
  constructor(state:{storage:AtomicMarketStorage},env:{MARKET_POLICY?:string;LOCAL_TEST_NOW?:string;ISOLATED_FIXTURE?:string}){
@@ -11,10 +11,10 @@ export class MarketAccount {
  }
  async fetch(request:Request){
   if(request.method!=='POST')return new Response(null,{status:405});
-  const reader=request.body?.getReader();if(!reader)return new Response(null,{status:400});const chunks:Uint8Array[]=[];let total=0;
-  for(;;){const chunk=await reader.read();if(chunk.done)break;total+=chunk.value.byteLength;if(total>65536){void reader.cancel().catch(()=>{});return new Response(null,{status:413});}chunks.push(chunk.value);}
+  const reader=request.body?.getReader();if(!reader)return new Response(null,{status:400});const chunks:Uint8Array[]=[];let total=0;const limit=request.headers.get('x-market-payload')==='evidence'?16*1024*1024:65536;
+  for(;;){const chunk=await reader.read();if(chunk.done)break;total+=chunk.value.byteLength;if(total>limit){void reader.cancel().catch(()=>{});return new Response(null,{status:413});}chunks.push(chunk.value);}
   const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
-  try{const body=new TextDecoder('utf-8',{fatal:true}).decode(bytes);return Response.json(await this.account.apply(JSON.parse(body)),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
+  try{const body=new TextDecoder('utf-8',{fatal:true}).decode(bytes),command=JSON.parse(body);if(total>65536&&command?.action!=='publish-data')return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
  }
 }
 const worker={fetch(){return new Response('Not found',{status:404,headers:{'cache-control':'no-store'}});}};
@@ -26,11 +26,20 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
  async fetch(request:Request){
   const headers={'cache-control':'no-store','content-type':'application/json'};
   if(this.env.MARKET_QUOTE_DISPATCH!=='durable-v1'||!this.env.MARKET_ACCOUNT_ID||!/^[a-zA-Z0-9_-]{1,80}$/.test(this.env.MARKET_ACCOUNT_ID))return Response.json({error:'MARKET_SETUP_REQUIRED'},{status:503,headers});
-  if(request.method!=='POST'||new URL(request.url).pathname!=='/quotes'||new URL(request.url).search)return new Response(null,{status:404,headers});
-  let requests;try{const body=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));if(!body||body.version!==1||Object.keys(body).sort().join(',')!=='requests,version')throw Error('Version or fields');requests=marketRequestsSchema.parse(body.requests);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+  const path=new URL(request.url).pathname;
+  if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights','/cancel'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
   const stub=this.env.MARKETS.get(this.env.MARKETS.idFromName(this.env.MARKET_ACCOUNT_ID));
-  const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,1024*1024)) as Record<string,unknown>;};
-  return Response.json(await dispatchDurableQuotes(requests,{command,key:this.env.COINGECKO_DEMO_API_KEY}),{headers});
+  if(path==='/cancel'){
+   let token;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),256));if(Object.keys(raw).length!==1||typeof raw.cancelToken!=='string'||!/^([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(raw.cancelToken))throw Error();token=raw.cancelToken;}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+   return stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify({action:'cancel-followers',cancelToken:token})}));
+  }
+  const cancelToken=request.headers.get('x-market-cancel-token')??undefined;
+  if(cancelToken&&!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cancelToken))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
+  let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
+  const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:(command as {action?:string}).action==='publish-data'?{'x-market-payload':'evidence'}:{},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll'].includes(String((command as {action?:string}).action))?17*1024*1024:1024*1024)) as Record<string,unknown>;};
+  const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken};
+  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests,context):await durableInsights(body.requests,context):null;
+  return Response.json(result,{headers});
  }
 }
 

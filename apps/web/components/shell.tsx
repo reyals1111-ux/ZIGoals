@@ -101,7 +101,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
         </div>
       </header>}
-      <div className="workspace">
+      <div className="workspace" aria-busy={!selection.ready||!preferences.loaded} style={{visibility:selection.ready&&preferences.loaded?undefined:"hidden"}}>
         <ShowcaseBanner/>
         <WorkspaceStatus/>
         {financial&&!selection.selected&&<div className="mode-strip">

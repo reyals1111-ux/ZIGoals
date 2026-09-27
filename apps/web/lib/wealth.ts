@@ -64,6 +64,7 @@ export function goalMarketRequests(s:Platform,goalId?:string):MarketQuoteRequest
 
 export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string}[];change:string;changePercent?:string};
 /** Reconstruct only complete currency totals from recorded local facts; never backfill a missing Position. */
+export function positionTrackedAt(s:Platform,position:Position,at:string){const id=position.id;if(position.trackingStartedAt&&Date.parse(position.trackingStartedAt)>Date.parse(at))return false;if(position.archivePeriods)return !position.archivePeriods.some(period=>Date.parse(period.from)<=Date.parse(at)&&(!period.to||Date.parse(period.to)>Date.parse(at)));const events=s.assetEvents.filter(e=>e.positionId===id).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));const created=events.find(e=>e.kind==='added');if(created&&Date.parse(created.at)>Date.parse(at))return false;const lifecycle=events.filter(e=>Date.parse(e.at)<=Date.parse(at)&&['archived','restored'].includes(e.kind)).at(-1);return lifecycle?lifecycle.kind!=='archived':!position.archivedAt||Date.parse(position.archivedAt)>Date.parse(at);}
 export function wealthHistory(s:Platform):WealthHistory[]{
  const currencyOf=(p:Position)=>p.valuation?.currency??(p.valuationMode==='automatic'||p.marketRef||sameAsset(p,nativeZigIdentity)?p.quoteCurrency??'USD':undefined);
  const currencies=[...new Set(s.positions.flatMap(p=>currencyOf(p)?[currencyOf(p)!]:[]))];
@@ -73,8 +74,14 @@ export function wealthHistory(s:Platform):WealthHistory[]{
   const latest=new Map<string,bigint>(),points:{at:string;value:string}[]=[];
   for(let index=0;index<snapshots.length;){
    const at=snapshots[index]!.capturedAt;
-   while(index<snapshots.length&&Date.parse(snapshots[index]!.capturedAt)===Date.parse(at)){const snapshot=snapshots[index]!;const value=BigInt(snapshot.value)*(snapshot.decimals<=2?10n**BigInt(2-snapshot.decimals):1n)/(snapshot.decimals>2?10n**BigInt(snapshot.decimals-2):1n);latest.set(snapshot.positionId,value);index++;}
-   const active=required.filter(id=>{const position=s.positions.find(p=>p.id===id)!;if(position.trackingStartedAt&&Date.parse(position.trackingStartedAt)>Date.parse(at))return false;if(position.archivePeriods)return !position.archivePeriods.some(period=>Date.parse(period.from)<=Date.parse(at)&&(!period.to||Date.parse(period.to)>Date.parse(at)));const events=s.assetEvents.filter(e=>e.positionId===id).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));const created=events.find(e=>e.kind==='added');if(created&&Date.parse(created.at)>Date.parse(at))return false;const lifecycle=events.filter(e=>Date.parse(e.at)<=Date.parse(at)&&['archived','restored'].includes(e.kind)).at(-1);return lifecycle?lifecycle.kind!=='archived':!position.archivedAt||Date.parse(position.archivedAt)>Date.parse(at);});
+   const simultaneous=new Map<string,typeof snapshots>();
+   while(index<snapshots.length&&Date.parse(snapshots[index]!.capturedAt)===Date.parse(at)){const snapshot=snapshots[index++]!;simultaneous.set(snapshot.positionId,[...simultaneous.get(snapshot.positionId)??[],snapshot]);}
+   for(const [id,group]of simultaneous){
+    const facts=group.map(({id,capturedAt,...value})=>{void id;void capturedAt;return JSON.stringify(value);});
+    if(new Set(facts).size!==1){latest.delete(id);continue;} // competing device observations stay unresolved
+    const snapshot=group[0]!,value=BigInt(snapshot.value)*100n/10n**BigInt(snapshot.decimals);latest.set(id,value);
+   }
+   const active=required.filter(id=>positionTrackedAt(s,s.positions.find(p=>p.id===id)!,at));
    if(active.length&&active.every(id=>latest.has(id)))points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString()});
   }
   if(!points.length)return [];

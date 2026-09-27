@@ -1,0 +1,6 @@
+import {test,expect} from '@playwright/test';
+import {seed} from './coherence-fixture';
+test('allocation preview and cancel keep the saved aggregate unchanged until confirmation',async({page})=>{
+ await seed(page);await page.goto('/app/goals/tracked/81#allocate');await page.getByRole('button',{name:'Release allocation',exact:true}).click();await page.getByRole('button',{name:'Confirm release'}).click();await page.goto('/app/goals/tracked/82#allocate');await page.locator('#allocate .picker-existing').getByRole('button',{name:/native-zig.*263000 ZIG/}).first().click();
+ const state=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).allocations);const before=await state();await page.getByLabel('Allocation quantity').fill('100');await page.getByRole('button',{name:'Save allocation',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Review allocation'});await expect(dialog).toContainText('100 ZIG');expect(await state()).toEqual(before);await dialog.getByRole('button',{name:'Cancel allocation review'}).click();expect(await state()).toEqual(before);await page.getByRole('button',{name:'Save allocation',exact:true}).click();await dialog.getByRole('button',{name:'Confirm allocation'}).click();await expect.poll(state).not.toEqual(before);
+});

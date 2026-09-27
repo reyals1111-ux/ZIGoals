@@ -1,8 +1,9 @@
 'use client';
-import {useState} from 'react';
+import {useMemo,useState} from 'react';
+import {GoalTimeline} from './goal-timeline';
 import {ActionIntent} from '../action-intent';
 import {useShowcase} from '../showcase-controls';
-import {reverseContribution,contributionTotals,fundingHealth,goalTimeline} from '../../lib/goal-intelligence';
+import {reverseContribution,contributionTotals,fundingHealth,goalTimeline,contributionEvidenceSeries} from '../../lib/goal-intelligence';
 import type {Platform,PrivateGoal} from '../../lib/positions';
 import type {MarketQuote} from '../../lib/market-quotes';
 import {formatGoalAmount} from '../../lib/goal-summary';
@@ -17,7 +18,8 @@ const display=(value:string,goal:PrivateGoal)=>`${value.startsWith('-')?'-':''}$
 export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{data:Platform;goal:PrivateGoal;quotes:readonly MarketQuote[];now:number;update:(fn:(s:Platform)=>Platform)=>Promise<void>;disabled?:boolean}){
  const showcase=useShowcase();
  const [entry,setEntry]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
- const totals=contributionTotals(data,goal.id,now),timeline=goalTimeline(data,goal.id);
+ const totals=contributionTotals(data,goal.id,now),timeline=useMemo(()=>goalTimeline(data,goal.id),[data,goal.id]);
+ const contributionSeries=useMemo(()=>contributionEvidenceSeries(data,goal.id,now),[data,goal.id,now]);
  const health=goal.type==='PROJECT'?null:fundingHealth(data,goal.id,now,quotes);
  const money=(value:string)=>display(value,goal);
  const nextPlan=effectiveContributionPlan(goal,health?.nextDate??new Date(now).toISOString().slice(0,10)),unknownPrior=goal.planRevisions?.[0]?.priorHistory==='unknown';
@@ -25,10 +27,10 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
  const points=data.goalHistory.filter(h=>h.goalId===goal.id&&h.kind==='valuation');
  const series:EvidenceSeries[]=[
   {label:'Counted wealth',color:'#6bded5',points:points.flatMap(p=>p.kind==='valuation'&&p.asset===goal.asset&&p.decimals===goal.decimals?[{at:p.capturedAt,value:p.current}]:[])},
-  {label:'Actual contributions',kind:'cumulative',color:'#8da7ff',points:[...new Set(records.filter(e=>e.provenance!=='REWARD_INCOME'&&Date.parse(e.occurredAt)<=now).map(e=>e.occurredAt))].sort().map(at=>({at,value:contributionTotals(data,goal.id,Date.parse(at)).net}))},
+  {label:'Actual contributions',kind:'cumulative',color:'#8da7ff',points:contributionSeries.actual},
   {label:'Plan at observation',color:'#e1b97a',points:points.flatMap(p=>p.kind==='valuation'&&p.asset===goal.asset&&p.decimals===goal.decimals?[{at:p.capturedAt,value:p.planned}]:[])},
  ];
- const incomeSeries:EvidenceSeries[]=[{label:'Recorded income',kind:'cumulative',color:'#bca1f8',points:[...new Set(records.filter(e=>e.provenance==='REWARD_INCOME'&&Date.parse(e.occurredAt)<=now).map(e=>e.occurredAt))].sort().map(at=>({at,value:contributionTotals(data,goal.id,Date.parse(at)).rewardIncome}))}];
+ const incomeSeries:EvidenceSeries[]=[{label:'Recorded income',kind:'cumulative',color:'#bca1f8',points:contributionSeries.income}];
  const canEdit=!disabled&&!goal.locked&&goal.status!=='closed'&&!busy;
  async function reverse(id:string){setBusy(true);setError('');try{await update(s=>reverseContribution(s,id,crypto.randomUUID(),new Date().toISOString(),'Explicit user reversal'));setMessage('History reversal recorded. The original entry is retained; asset balances and allocations are unchanged.');}catch(e){setError(e instanceof Error?e.message:'Could not reverse contribution.');}finally{setBusy(false);}}
  const max=health?[BigInt(health.actual),BigInt(health.plannedThroughToday),1n].reduce((a,b)=>a>b?a:b):1n;
@@ -49,7 +51,7 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
   {message&&<p role="status" className="fine">{message}</p>}{error&&<p role="alert" className="notice">{error}</p>}
   {entry&&<ContributionFlow data={data} goal={goal} quotes={quotes} update={update} onClose={()=>setEntry(false)} onSaved={text=>{setEntry(false);setMessage(text);}}/>}
   <div className="intelligence-subgrid"><section className="panel" aria-label="Goal progress evidence"><p className="eyebrow">PROGRESS, EXPLAINED</p><h2>Wealth &amp; contribution history</h2><p className="fine">{showcase?'SHOWCASE DATA · fictional wealth observations and contributions illustrate this view.':'Wealth observations and contribution records tell different parts of your story.'}</p><EvidenceChart series={series} decimals={goal.decimals} currency={goal.asset} label="Counted wealth and actual contribution evidence"/>{totals.unvaluedCount>0&&<p className="notice">Some recorded events have no compatible event-time value and are excluded from the contribution total.</p>}</section>
-  <section className="panel" aria-label="Goal timeline"><p className="eyebrow">YOUR JOURNEY</p><h2>Goal timeline</h2><p className="fine">History reversals correct records only. Adjust assets separately if a balance changed.</p><ol className="intelligence-timeline">{timeline.slice(0,12).map(event=>{const record=records.find(r=>`contribution:${r.id}`===event.id);return <li key={event.id}><div><strong>{event.kind==='contribution'?'Contribution recorded':event.kind==='reversal'?'Contribution reversed':event.label}</strong>{event.quantity&&<p>{amount(event.quantity,event.decimals??goal.decimals)} {event.asset}</p>}<time dateTime={event.at}>{new Date(event.at).toLocaleString()}</time><br/><small>{event.provenance.replaceAll('_',' ').toLowerCase()}</small>{record&&!record.reversesId&&!records.some(r=>r.reversesId===record.id)&&<div><button className="quiet" disabled={!canEdit} onClick={()=>void reverse(record.id)}>Reverse history entry</button></div>}</div></li>;})}</ol>{!timeline.length&&<p className="fine">Recorded contributions, plan changes and observations will appear here.</p>}{timeline.length>12&&<p className="fine">Showing the latest 12 events. Your backup contains retained records; older observation snapshots may have been compacted.</p>}</section></div>
+  <GoalTimeline key={goal.id} events={timeline} records={records} decimals={goal.decimals} canEdit={canEdit} reverse={reverse}/></div>
   {(goal.type==='REWARD'||BigInt(totals.rewardIncome)!==0n)&&<section className="intelligence-panel" aria-label="Reward and income evidence"><p className="eyebrow">INCOME, WITH EVIDENCE</p><h2>Rewards &amp; income</h2><div className="income-summary"><div><p>Currently unclaimed, allocated to this Goal</p><strong>{goal.type==='REWARD'&&health?money(health.current):'See native rewards in Positions'}</strong><p>A current balance observation, not cumulative income.</p></div><div><p>Recorded claimed / distributed income</p><strong>{money(totals.rewardIncome)}</strong><p>Dated records, net of explicit reversals.</p></div></div><EvidenceChart series={incomeSeries} decimals={goal.decimals} currency={goal.asset} label="Recorded reward and income history"/><p className="fine">No APY or annualized run-rate is assumed. Future APR scenarios remain separate.</p></section>}
  </div>;
 }

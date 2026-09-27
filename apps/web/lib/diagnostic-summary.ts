@@ -3,6 +3,7 @@ import { parseAppEnvironment } from "./app-environment";
 export function diagnosticSummary(input: {
   environment: string; version: string; commit: string; scope: string;
   rpc: string; rest: string; checkedAt?: string;
+  vault?: string; connectivity?: string; sync?: string; market?: string;
 }) {
   const health = (value: string) => ["healthy", "unavailable", "not checked"].includes(value) ? value : "not checked";
   const checked = input.checkedAt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(input.checkedAt) && Number.isFinite(Date.parse(input.checkedAt)) ? input.checkedAt : "Not checked";
@@ -10,6 +11,10 @@ export function diagnosticSummary(input: {
     `Version: ${/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(input.version) ? input.version : "Unknown"}`,
     `Commit: ${/^[a-f0-9]{40}$/.test(input.commit) ? input.commit : "Unknown"}`,
     `Session: ${input.scope === "local" ? "Local simulation" : input.scope === "testnet" ? "Keplr testnet connection" : "Unknown"}`,
+    `Vault: ${["local-only", "locked", "unlocked", "busy", "needs attention"].includes(input.vault ?? "") ? input.vault : "not checked"}`,
+    `Connectivity: ${["online", "offline"].includes(input.connectivity ?? "") ? input.connectivity : "not checked"}`,
+    `Sync: ${["acknowledged this session", "not acknowledged this session"].includes(input.sync ?? "") ? input.sync : "not checked"}`,
+    `Market provider: ${health(input.market ?? "not checked")}`,
     `RPC: ${health(input.rpc)}`, `REST: ${health(input.rest)}`, `Checked UTC: ${checked}`,
     "No account, balance, goal, backup or raw error data included."].join("\n");
 }

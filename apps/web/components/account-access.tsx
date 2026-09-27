@@ -16,7 +16,7 @@ export function AccountAccess({onAuthenticated,onSignout}:Props){
   pending.current?.abort();const controller=new AbortController();pending.current=controller;setBusy(true);
   try{
    if(isShowcase()){setShowcase(true);setStatus('signed-out');setMessage('Exit Showcase before signing in. Fictional data stays separate.');return;}
-   const generation=getAccountGeneration(),res=await fetch('/api/private-account?action=status',{cache:'no-store',signal:controller.signal}),text=await res.text();
+   const generation=getAccountGeneration();let res=await fetch('/api/private-account?action=status',{cache:'no-store',signal:controller.signal});if(res.status===401){await res.body?.cancel();res=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},body:'{"action":"refresh"}',cache:'no-store',signal:controller.signal});}const text=await res.text();
    if(controller.signal.aborted||generation!==getAccountGeneration())return;
    if(res.status===503){if(getAccountScope())lockAccount();setStatus('unavailable');setMessage('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');return;}
    if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);

@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {HEALTH_MEALS,diarySchema} from './health';
 export const DASHBOARD_SETTINGS_KEY='zigoals:settings:v1';
 export const PRESETS=[{id:'balanced',label:'Balanced',description:'Goals, daily rhythm, Health and Wealth.'},{id:'wealth',label:'Wealth',description:'Your assets and financial destinations.'},{id:'habits-health',label:'Habits + Health',description:'Daily routines and caring for yourself.'},{id:'health',label:'Health-only',description:'Meals, water, movement and measurements.'}] as const;
 export type DashboardPreset=typeof PRESETS[number]['id'];
@@ -7,6 +8,8 @@ export const WIDGET_CATALOG={
  goal:{label:'A chosen Goal',domain:'goals',metrics:['progress','next-contribution']},
  habits:{label:'Daily Habits',domain:'habits',metrics:['overview']},
  habit:{label:'A chosen Habit',domain:'habits',metrics:['today','streak']},
+ 'food-entry':{label:'A logged food entry',domain:'health',metrics:['kcal','macros']},
+ meal:{label:'A meal today',domain:'health',metrics:['kcal','macros']},
  health:{label:'Health metric',domain:'health',metrics:['kcal','macros','water','weight','steps','activity','history']},
  wealth:{label:'Wealth by currency',domain:'wealth',metrics:['USD','EUR','history-USD','history-EUR']},
  asset:{label:'An asset or Position',domain:'wealth',metrics:['quantity','value','available']},
@@ -15,9 +18,11 @@ export const WIDGET_CATALOG={
  ecosystem:{label:'Ecosystem shortcut',domain:'wealth',metrics:['directory']},
 } as const;
 export type WidgetKind=keyof typeof WIDGET_CATALOG;
-const widgetSchema=z.object({id:z.string().min(1).max(100),kind:z.enum(['goals','goal','habits','habit','health','wealth','asset','staking','allocation','ecosystem']),entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)}).strict().superRefine((w,ctx)=>{
+const widgetSchema=z.object({id:z.string().min(1).max(100),kind:z.enum(['goals','goal','habits','habit','health','food-entry','meal','wealth','asset','staking','allocation','ecosystem']),entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)}).strict().superRefine((w,ctx)=>{
  if(!(WIDGET_CATALOG[w.kind].metrics as readonly string[]).includes(w.metric))ctx.addIssue({code:'custom',message:'This metric is not supported by this widget.'});
- if(w.kind!=='ecosystem'&&['goal','habit','asset','staking','allocation'].includes(w.kind)!==!!w.entity)ctx.addIssue({code:'custom',message:'Choose a record only for an entity widget.'});
+ if(w.kind==='meal'&&!(HEALTH_MEALS as readonly string[]).includes(w.entity??''))ctx.addIssue({code:'custom',message:'Choose a supported meal.'});
+ if(w.kind==='food-entry'&&!diarySchema.shape.id.safeParse(w.entity).success)ctx.addIssue({code:'custom',message:'Choose a saved diary entry.'});
+ if(w.kind!=='ecosystem'&&['goal','habit','asset','staking','allocation','food-entry','meal'].includes(w.kind)!==!!w.entity)ctx.addIssue({code:'custom',message:'Choose a record only for an entity widget.'});
 });
 export type DashboardWidget=z.infer<typeof widgetSchema>;
 export const DASHBOARD_BUILTINS=[

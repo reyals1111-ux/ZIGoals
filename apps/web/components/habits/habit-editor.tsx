@@ -19,9 +19,9 @@ const templates = {
   nospend: { title: "No-spend day", category: "Finance", type: "quit", measurement: "count", unit: "purchases", target: 0, targetPeriod: "day", schedule: "daily" },
 } as const;
 
-export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[]; onSave: (input: HabitInput,from?:string,expected?:string) => Promise<void>; onCancel: () => void }) {
+export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[];today:string; onSave: (input: HabitInput,from?:string,expected?:string) => Promise<void>; onCancel: () => void }) {
   const formId = useId();
-  const [effectiveFrom,setEffectiveFrom]=useState(()=>habit?earliestHabitChange(habit):"");
+  const [effectiveFrom,setEffectiveFrom]=useState(()=>habit?earliestHabitChange(habit,today):"");
   const [expected]=useState(()=>habit?habitEditFingerprint(habit):undefined);
   const rule = habit ? latestHabitRule(habit) : undefined;
   const [title, setTitle] = useState(habit?.title ?? "");
@@ -64,7 +64,7 @@ export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?
   function scheduleValue(): HabitRule["schedule"] {
     if (scheduleKind === "daily") return { kind: "daily" };
     if (scheduleKind === "weekdays") return { kind: "weekdays", days: [...days].sort() };
-    if (scheduleKind === "interval") return { kind: "interval", every: interval, anchor: rule?.schedule.kind === "interval" ? rule.schedule.anchor : new Date().toLocaleDateString("en-CA") };
+    if (scheduleKind === "interval") return { kind: "interval", every: interval, anchor: rule?.schedule.kind === "interval" ? rule.schedule.anchor : today };
     if (scheduleKind === "frequency") return { kind: "frequency", times: frequency, period: frequencyPeriod };
     return { kind: "month-dates", days: [...new Set(monthDates.split(",").map(Number).filter((day) => Number.isInteger(day) && day >= 1 && day <= 31))].sort((a, b) => a - b) };
   }
@@ -80,7 +80,7 @@ export function HabitEditor({ habit, goals, habits, onSave, onCancel }: { habit?
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
     <div className="habit-section-heading"><div><p className="eyebrow">Set your cadence</p><h2 id={`${formId}-heading`}>{habit ? "Edit habit" : "Create a habit"}</h2></div><span aria-hidden="true" className="habit-spark">✦</span></div>
     <form onSubmit={submit}><fieldset disabled={busy} className="habit-form-fields">
-      {habit&&<label className="field">Changes effective from<input type="date" required min={earliestHabitChange(habit)} value={effectiveFrom} onChange={event=>setEffectiveFrom(event.target.value)}/><small>Rule changes begin on this future day. Today and earlier dates keep their existing units and targets. Names and notes update now.</small></label>}
+      {habit&&<label className="field">Changes effective from<input type="date" required min={earliestHabitChange(habit,today)} value={effectiveFrom} onChange={event=>setEffectiveFrom(event.target.value)}/><small>Rule changes begin on this future day. Today and earlier dates keep their existing units and targets. Names and notes update now.</small></label>}
       {!habit && <label className="field">Start from template<select defaultValue="" onChange={(event) => applyTemplate(event.target.value)}><option value="">Blank habit</option>{Object.entries(templates).map(([key, template]) => <option key={key} value={key}>{template.title}</option>)}</select></label>}
       <label className="field">Habit title<input autoFocus required maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What would you like to make time for?" /></label>
       <div className="habit-form-grid">

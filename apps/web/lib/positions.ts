@@ -82,7 +82,7 @@ const platformBase=platformV2.extend({...financialEvidenceFields,schemaVersion:z
 export const platformSchema = z.union([platformBase,platformV2.transform(s=>({...s,schemaVersion:3 as const,watchlist:[],assetEvents:[]})),platformV1.transform(s=>({...s,schemaVersion:3 as const,contributions:[],valuationSnapshots:[],goalHistory:[],watchlist:[],assetEvents:[]}))]).superRefine((s,c)=>{
  const issue=(message:string)=>c.addIssue({code:'custom',message});
  for(const message of financialEvidenceIssues(s as Platform))issue(message);
- for(const event of (s as Platform).financialEvents??[]){if(event.relatedContributionId&&!s.contributions.some(e=>e.id===event.relatedContributionId))issue('Unknown related contribution.');if(event.relatedPlanRevisionId&&!s.goals.some(g=>g.planRevisions?.some(r=>r.id===event.relatedPlanRevisionId)))issue('Unknown related plan revision.');}
+ for(const event of (s as Platform).financialEvents??[]){if(event.relatedPositionId&&!s.positions.some(p=>p.id===event.relatedPositionId))issue('Unknown related Position.');if(event.relatedContributionId&&!s.contributions.some(e=>e.id===event.relatedContributionId))issue('Unknown related contribution.');if(event.relatedPlanRevisionId&&!s.goals.some(g=>g.planRevisions?.some(r=>r.id===event.relatedPlanRevisionId)))issue('Unknown related plan revision.');}
  for(const list of [s.positions,s.goals,s.contributions,s.valuationSnapshots,s.goalHistory]) if(new Set(list.map(i=>i.id)).size!==list.length) issue('Duplicate identifier.');
  for(const g of s.goals){
   for(const list of [g.planRevisions??[],g.lifecycle??[]])if(new Set(list.map(e=>e.id)).size!==list.length)issue('Duplicate Goal history identifier.');

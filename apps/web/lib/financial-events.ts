@@ -9,7 +9,7 @@ export const financialPortfolioSchema=z.object({id,name:z.string().trim().min(1)
 export type FinancialPortfolio=z.infer<typeof financialPortfolioSchema>;
 export const manualFxSchema=z.object({id,occurredAt:at,recordedAt:at,source:z.literal('MANUAL'),sourceLabel:z.string().trim().min(1).max(300),original:evidenceMoneySchema,converted:evidenceMoneySchema,rate:rateSchema}).strict();
 export type ManualFx=z.infer<typeof manualFxSchema>;
-const common={id,portfolioId:id,occurredAt:at,recordedAt:at,source:z.literal('MANUAL'),sourceLabel:z.string().trim().min(1).max(300),note:z.string().max(1000),relatedContributionId:id.optional(),relatedPlanRevisionId:id.optional()};
+const common={id,portfolioId:id,occurredAt:at,recordedAt:at,source:z.literal('MANUAL'),sourceLabel:z.string().trim().min(1).max(300),note:z.string().max(1000),relatedContributionId:id.optional(),relatedPlanRevisionId:id.optional(),relatedPositionId:id.optional(),changeDirection:z.enum(['IN','OUT']).optional(),transferGroupId:id.optional()};
 const originalAsset=z.object({symbol:z.string().min(1).max(30),network:id,denom:id,units,decimals}).strict();
 export const financialEventSchema=z.discriminatedUnion('kind',[
  z.object({...common,kind:z.literal('valuation'),amount:evidenceMoneySchema,role:z.enum(['boundary','before_flow','after_flow']),flowId:id.optional()}).strict(),
@@ -63,6 +63,7 @@ export function financialEvidenceIssues(s:Evidence):string[] {
 }
 function validate<T extends Evidence>(s:T):T {const parsed=z.object(financialEvidenceFields).parse(s);const errors=financialEvidenceIssues(parsed);if(errors.length)throw Error(errors[0]);return s;}
 export function appendFinancialEvidence(s:Platform,input:{portfolio?:FinancialPortfolio;event?:FinancialEvent;fx?:ManualFx}):Platform {
+ if(input.event?.relatedPositionId&&!s.positions.some(p=>p.id===input.event!.relatedPositionId))throw Error('Choose a retained Position for owned-wealth evidence.');
  if(Object.values(input).filter(Boolean).length!==1)throw Error('Record one evidence item at a time.');
  const key=input.portfolio?'financialPortfolios':input.event?'financialEvents':'manualFx';
  const value=input.portfolio?financialPortfolioSchema.parse(input.portfolio):input.event?financialEventSchema.parse(input.event):manualFxSchema.parse(input.fx);

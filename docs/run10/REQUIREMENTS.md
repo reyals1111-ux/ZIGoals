@@ -1,3 +1,7 @@
+# Current continuation: Actual Run11
+
+This Run10 record is retained historically. Current exact state and acceptance are in [Run11 STATE](../run11/STATE.md), [314-entry closure](../run11/CLOSURE.json) and [evidence](../run11/EVIDENCE.md). PR20 is merged; PR21 is the isolated completion review. Former Run11/12 required work is retained in the supplied scope; conditional and owner activities remain explicit.
+
 # Actual Run10 requirements ledger
 
 All290 original requirements, including40 integrated journeys and10 ordered screenshots, remain present with their verbatim specification in REQUIREMENTS.json. The source hash still matches the supplied master. High/standard changes no scope. Structural validation is not implementation certification.

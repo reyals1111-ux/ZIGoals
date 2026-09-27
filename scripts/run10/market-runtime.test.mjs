@@ -28,7 +28,7 @@ test('real Workers coordinator persists dispatch, public cache, fences and repla
   expect(await call({action:'cancel',id:selected.id})).toMatchObject({ok:false,reason:'INVALID_TRANSITION'});
   expect(await call({action:'inspect'})).toMatchObject({dispatched:1,chargedCredits:3,attempts:2});
   expect(await call({action:'publish',id:selected.id,work:work(asset),quote:{...quote(asset),providerAssetId:'forged'}})).toMatchObject({ok:false,reason:'MALFORMED'});
-  expect(await call({action:'settle',id:selected.id,outcome:'success'})).toMatchObject({ok:true});expect(await call({action:'settle',id:selected.id,outcome:'success'})).toMatchObject({ok:false});
+  expect(await call({action:'settle',id:selected.id,outcome:'success'})).toMatchObject({ok:true});expect(await call({action:'settle',id:selected.id,outcome:'success'})).toMatchObject({ok:true,replay:true});
   expect(await call({action:'publish',id:selected.id,work:work(asset),quote:quote(asset)})).toMatchObject({ok:true});
   expect(await call({action:'acquire',work:work(asset)})).toMatchObject({status:'CACHE_HIT',quote:quote(asset)});
   const old=selected.id===a.id?b:a;expect(await call({action:'own',id:old.id})).toMatchObject({ok:true});expect(await call({action:'dispatch',id:old.id})).toMatchObject({ok:true});

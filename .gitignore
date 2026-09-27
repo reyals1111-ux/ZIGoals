@@ -155,6 +155,7 @@ test-results/
 .open-next/
 .wrangler/
 .dev.vars*
+/workers/private-sync/wrangler.preview.owner.jsonc
 
 # Isolated browser verification outputs
 apps/web/test-results-*/

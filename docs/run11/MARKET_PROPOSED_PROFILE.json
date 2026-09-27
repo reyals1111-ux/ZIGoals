@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "PROPOSAL_ONLY_NOT_ACTIVATION_CONFIG",
+  "basis": "Owner observed Demo 100 attempts/minute and 10000 monthly credits on 2026-09-22. These historical facts are not current usage or verified endpoint weights.",
+  "activation_prerequisites": {
+    "provider_limits_currently_confirmed": false,
+    "current_period_and_reset_timezone_confirmed": false,
+    "current_usage_seed_and_remaining_credits_confirmed": false,
+    "every_enabled_endpoint_credit_cost_confirmed": false,
+    "exclusive_account_usage_confirmed": false,
+    "hosted_acceptance_and_rollback_reviewed": false
+  },
+  "proposed_policy": {
+    "providerMinuteLimit": 100,
+    "providerMonthlyLimit": 10000,
+    "operating": { "minute": 30, "monthly": 5000 },
+    "monitoringReserve": { "minute": 1, "monthly": 100 },
+    "monitoringMaximum": { "minute": 2, "monthly": 100 },
+    "optionalCeiling": { "minute": 10, "monthly": 500 },
+    "concurrent": 2,
+    "queueLimit": 16,
+    "reservationMs": 30000,
+    "ownershipMs": 10000
+  },
+  "proposed_coordinator": {
+    "leaseMs": 30000,
+    "maxAttempts": 128,
+    "maxWorks": 64,
+    "maxCacheBytes": 16777216,
+    "retryRetentionMs": 3600000,
+    "breaker": { "threshold": 3, "windowMs": 60000, "cooldownMs": 30000, "maxCooldownMs": 300000, "halfOpenProbes": 1 },
+    "accountThrottle": { "distinctEndpoints": 2, "windowMs": 60000 }
+  },
+  "unresolved_do_not_default": {
+    "accounting_period": null,
+    "quoteCost": null,
+    "operationCosts": null,
+    "current_period_credits_already_used": null,
+    "build_identity": null
+  },
+  "observability": { "enabled": false, "suggested_retention_hours_if_separately_approved": 24, "external_sink": "none" },
+  "reasoning": [
+    "Thirty attempts/minute leaves seventy percent headroom beneath the historical provider minute ceiling. Two simultaneous dispatches and sixteen queued records bound local pressure; these are proposed operating choices, not measured production demand.",
+    "Five thousand monthly operating credits is half the historical allowance. Before activation lower the effective ceiling by already-used provider credits and preserve all existing durable spend; never initialize a fresh unrestricted authority mid-period.",
+    "At one confirmed credit per request, a planning workload of 500 quote misses, 100 catalog reads, 100 history reads, 100 insights reads, 100 fallback/retry attempts and 100 monitoring attempts totals 1000 credits. This is a workload hypothesis only. Recalculate the weighted sum using confirmed costs; failures after dispatch remain charged.",
+    "Eight concurrent two-pair callers in the local three-wave fixture produced one physical batch and three synthetic credits. This demonstrates coalescing, not a production cost weight or user capacity estimate.",
+    "Monitoring cannot consume more than 100 monthly credits; optional work yields at its separate ceiling. No closed-page background polling is proposed.",
+    "Do not paste this document as MARKET_POLICY. Build a strict config only after choosing confirmed UTC calendar or exact supplied period, verified endpoint weights and safe current-period allowance. Missing fields must fail closed."
+  ]
+}

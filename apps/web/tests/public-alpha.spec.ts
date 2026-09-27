@@ -104,7 +104,8 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
     Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async()=>{throw Error("Unavailable");}}});
   },{owner:toBech32("zig",new Uint8Array(20).fill(7))});
   await page.goto("/app/goals/new");
-  await page.getByLabel("Category / artwork").selectOption("Travel");
+  await page.getByText("Personalize artwork and notes (optional)").click();
+  await page.getByRole("group",{name:"Category / artwork"}).getByRole("radio",{name:"Travel"}).check();
   await page.getByLabel("Goal name",{exact:true}).fill(sentinel); await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); await page.getByRole("button",{name:"Continue"}).click(); await page.getByRole("button",{name:"Continue"}).click();
   await page.getByRole("button",{name:"Create goal",exact:true}).click();
@@ -123,8 +124,9 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.getByLabel("Or paste backup JSON").fill(JSON.stringify(edited)); await page.getByRole("button",{name:"Import backup"}).click();
   await page.getByText("Advanced Diagnostics", {exact:true}).click();
   await page.getByRole("button",{name:"Check connection"}).click(); await expect(page.getByText("Verified zig-test-2 · height 77")).toBeVisible();
-  await page.getByRole("button",{name:"Copy safe diagnostics"}).click();
+  await page.getByRole("button",{name:"Preview safe diagnostics"}).click();
   const safe=page.getByLabel("Safe diagnostic summary"); await expect(safe).toBeVisible(); expect(await safe.inputValue()).not.toContain(sentinel);
+  await page.getByRole("button",{name:"Copy reviewed diagnostics"}).click();
   await page.goto("/app/goals/1"); await expect(page.getByRole("heading",{name:sentinel+"_EDIT"})).toBeVisible();
   await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
   await page.getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");

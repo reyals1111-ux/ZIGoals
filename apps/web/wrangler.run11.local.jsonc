@@ -1,0 +1,24 @@
+{
+  "$schema":"node_modules/wrangler/config-schema.json",
+  "name":"zigoals-run11-local",
+  "main":".open-next/worker.js",
+  "compatibility_date":"2026-09-13",
+  "compatibility_flags":["nodejs_compat","global_fetch_strictly_public"],
+  "workers_dev":false,
+  "preview_urls":false,
+  "assets":{"directory":".open-next/assets","binding":"ASSETS","run_worker_first":false},
+  "services":[
+    {"binding":"WORKER_SELF_REFERENCE","service":"zigoals-run11-local"},
+    {"binding":"MARKET_QUOTES","service":"zigoals-market-coordinator-local","entrypoint":"QuoteService"},
+    {"binding":"PRIVATE_SYNC","service":"zigoals-private-sync-local"},
+    {"binding":"FOOD_LOOKUP","service":"zigoals-food-lookup-local"},
+    {"binding":"AUTH_ABUSE","service":"zigoals-auth-abuse-local","entrypoint":"AdmissionService"}
+  ],
+  "vars":{
+    "ZIGOALS_MARKET_QUOTES_MODE":"durable-v1",
+    "ZIGOALS_AUTH_ORIGIN":"https://unconfigured.supabase.co",
+    "ZIGOALS_SYNC_ORIGIN":"https://unconfigured.workers.dev"
+  },
+  "limits":{"cpu_ms":2000},
+  "observability":{"enabled":false}
+}

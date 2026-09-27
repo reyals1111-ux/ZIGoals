@@ -63,3 +63,25 @@ test('temporary identity or session-registry outage preserves the session cookie
   expect(res.status).toBe(503);expect(res.headers.has('set-cookie')).toBe(false);expect(await res.json()).not.toHaveProperty('signedIn',false);
  }
 });
+test('rotation proxy requires captured account and forwards only authenticated lifecycle requests',async()=>{
+ const id='10000000-0000-4000-8000-000000000001';
+ for(const method of ['GET','POST']){
+  const operation={action:'commit',operation:crypto.randomUUID()};
+  const req=new Request('https://app.test/api/private-account?action=rotation',{method,headers:{origin:'https://app.test','content-type':'application/json',cookie:'zigoals_session=fixture-token','x-zigoals-account':id},...(method==='POST'?{body:JSON.stringify({action:'rotation',operation})}:{})});
+  const result=await privateAccountRequest(req,config,async(url,init)=>{expect(url).toBe(config.syncOrigin+'/v1/rotation');expect(new Headers(init?.headers).get('x-zigoals-account')).toBe(id);if(method==='POST')expect(JSON.parse(init?.body as string)).toEqual(operation);return Response.json({rotation:null});});
+  expect(result.status).toBe(200);
+ }
+});
+test('refresh rotates durable session access before exposing new cookies and never sends refresh material to the browser body',async()=>{
+ const id='10000000-0000-4000-8000-000000000001';
+ const req=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'zigoals_session=old-token; zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'});
+ const calls:string[]=[];
+ const result=await privateAccountRequest(req(),config,async(input,init)=>{calls.push(String(input));if(String(input).includes('/token?grant_type=refresh_token')){expect(JSON.parse(init?.body as string)).toEqual({refresh_token:'refresh-secret'});return Response.json({access_token:'new-token',refresh_token:'new-refresh',expires_in:3600,user:{id}});}expect(JSON.parse(init?.body as string)).toEqual({action:'refresh',previous:'old-token'});return Response.json({registered:true,id:crypto.randomUUID()});});
+ expect(result.status).toBe(200);expect(result.headers.getSetCookie().length).toBe(2);expect(result.headers.get('set-cookie')).toContain('HttpOnly');expect(await result.text()).not.toMatch(/new-token|new-refresh|refresh-secret/);expect(calls).toHaveLength(2);
+ const denied=await privateAccountRequest(req(),config,async input=>String(input).includes('/token?')?Response.json({access_token:'new-token',refresh_token:'new-refresh',expires_in:3600,user:{id}}):Response.json({error:'SESSION_REVOKED'},{status:401}));expect(denied.status).toBe(400);expect(denied.headers.has('set-cookie')).toBe(false);
+});
+test('deletion proxy preserves identity-stage pending status and requires a captured account fence',async()=>{
+ const id='10000000-0000-4000-8000-000000000001',operation={action:'delete-account',confirm:'DELETE ACCOUNT'};
+ const response=await privateAccountRequest(new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'zigoals_session=fixture','x-zigoals-account':id},body:JSON.stringify({action:'delete',operation})}),config,async(input,init)=>{expect(input).toBe(config.syncOrigin+'/v1/account');expect(JSON.parse(init?.body as string)).toEqual(operation);return Response.json({deleted:true,providerDeleted:false,providerPending:true},{status:202});});
+ expect(response.status).toBe(202);expect(await response.json()).toEqual({deleted:true,providerDeleted:false,providerPending:true});
+});

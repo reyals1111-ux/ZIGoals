@@ -1,3 +1,4 @@
+import {boundedQuoteText} from './market-quotes';
 import {CATALOG_FRESH_MS,marketAssetRefSchema,type MarketCatalogAsset} from './market-assets';
 function validCatalogAsset(value:unknown):value is MarketCatalogAsset{
  if(!value||typeof value!=='object')return false;const row=value as Record<string,unknown>;
@@ -11,7 +12,7 @@ export function createCatalogLoader(fetcher:typeof fetch=fetch,clock=()=>Date.no
   if(pending)return pending;
   if(cached&&clock()>=cachedAt&&clock()-cachedAt<CATALOG_FRESH_MS)return Promise.resolve(cached);
   pending=Promise.resolve().then(()=>fetcher('/api/market-assets',{method:'GET',credentials:'omit',redirect:'error',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(15000)})).then(async response=>{
-   const raw=await response.json() as unknown;if(!response.ok||!raw||typeof raw!=='object')throw Error('Market catalog unavailable.');
+   const raw=JSON.parse(await boundedQuoteText(response,32*1024*1024)) as unknown;if(!response.ok||!raw||typeof raw!=='object')throw Error('Market catalog unavailable.');
    const body=raw as {assets?:unknown;error?:unknown};if(!Array.isArray(body.assets)||body.assets.length>50000||!body.assets.every(validCatalogAsset)||!body.assets.length&&typeof body.error==='string'&&body.error)throw Error('Market catalog unavailable.');
    cached=body.assets;cachedAt=clock();return cached;
   }).finally(()=>{pending=undefined;});return pending;

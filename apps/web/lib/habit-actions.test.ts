@@ -6,6 +6,12 @@ const at=(date:string)=>new Date(`${date}T12:00:00`);
 const input:HabitInput={title:'Fictional reading',category:'Learning',description:'',notes:'',schedule:{kind:'daily'},measurement:{kind:'duration',unit:'minutes'},target:30};
 const make=()=>createHabit(emptyHabitData(),input,at('2026-09-20'),id);
 describe('future Habit rules and saved timers',()=>{
+ it('preserves replay protection for legacy receipts whose id was the timer identity',()=>{
+  const start=at('2026-09-20'),running=startHabitTimer(make(),id,timerId,start,'Europe/Brussels'),committed=commitHabitTimer(pauseHabitTimer(running,id,timerId,new Date(+start+30000)),id,timerId,new Date(+start+30000));
+  const h=committed.habits[0]!,{timerId:unused,...receipt}=h.timerReceipts![0]!;void unused;
+  const legacy=habitDataSchema.parse({...committed,habits:[{...h,timerReceipts:[{...receipt,id:timerId}]}]});
+  expect(commitHabitTimer(legacy,id,timerId,new Date(+start+60000))).toBe(legacy);expect(()=>startHabitTimer(legacy,id,timerId,start)).toThrow(/used/i);expect(legacy.habits[0]!.entries[0]!.count).toBe(.5);
+ });
  it('retains old rules and logged units while applying a chosen future rule only from its day',()=>{
   const s=logHabitValue(make(),id,'2026-09-20',30,{},at('2026-09-20')),old=s.habits[0]!;
   const next=scheduleHabitEdit(s,id,{...input,target:1,measurement:{kind:'duration',unit:'hours'}},'2026-09-22',at('2026-09-20'),habitEditFingerprint(old));
@@ -41,7 +47,7 @@ describe('future Habit rules and saved timers',()=>{
   const committed=commitHabitTimer(stopped,id,timerId,new Date(+start+150_000));
   expect(committed.habits[0]!.entries[0]?.count).toBe(1.5);expect(committed.habits[0]!.timer).toBeUndefined();
   expect(commitHabitTimer(committed,id,timerId,new Date(+start+160_000))).toBe(committed);
-  expect(committed.habits[0]!.timerReceipts?.[0]).toMatchObject({id:timerId,value:1.5,date:'2026-09-20'});
+  expect(committed.habits[0]!.timerReceipts?.[0]).toMatchObject({timerId,value:1.5,date:'2026-09-20'});
  });
  it('does not invent a minimum minute or restart/reuse a timer identity',()=>{
   const start=at('2026-09-20'),s=startHabitTimer(make(),id,timerId,start,'Europe/Brussels');

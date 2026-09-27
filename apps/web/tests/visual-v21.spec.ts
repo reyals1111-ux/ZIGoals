@@ -8,8 +8,10 @@ test("V2.1 artwork, summary-first composition and stable decorative identities",
   await page.goto("/app");
   await expect(page.getByRole("article", { name: "Your destinations", exact: true }).getByRole("link", { name: "First home", exact: true })).toBeVisible();
   await expect(page.locator(".quote-panel")).toHaveCount(0);
-  await expect(page.locator(".personalized-today > .today-hero + section")).toHaveAttribute("aria-label", "Life and Wealth snapshot");
-  await expect(page.getByRole("region", { name: "Life and Wealth snapshot" })).toContainText("3 active Goals");
+  const snapshot = page.getByRole("region", { name: "Your Today widgets" }).getByRole("region", { name: "Life and Wealth snapshot" });
+  await expect(snapshot).toBeVisible();
+  await expect(snapshot.getByRole("heading", { name: "Destinations in motion" })).toBeVisible();
+  expect(await page.locator(".today-hero").evaluate((hero, section) => Boolean(hero.compareDocumentPosition(section as Node) & Node.DOCUMENT_POSITION_FOLLOWING), await snapshot.elementHandle())).toBe(true);
   await expect(page.getByRole("button", { name: "Connect Keplr" })).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.goto("/app/goals");

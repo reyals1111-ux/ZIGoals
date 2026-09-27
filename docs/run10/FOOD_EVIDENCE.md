@@ -1,4 +1,5 @@
-# Food lookup and camera — local evidence
+# Food lookup and camera — historical Run10 evidence
+Current Run11 implementation and notice inventory: [Run11 food evidence](../run11/FOOD_EVIDENCE.md). Historical limits below are retained as the earlier checkpoint.
 - Current official API/schema/licensing/normalization docs checked2026-09-23; latest3.6 changes nutrition/tags. Adapter deliberately pins supported3.4 pre3.5 per100g representation; no guessed latest-schema conversion.
 - Sources: https://openfoodfacts.github.io/openfoodfacts-server/api/ ; api/ref-api-and-product-schema-change-log/ ; api/ref-barcode-normalization/ ; api/tutorials/license-be-on-the-legal-side/ .
 - Data: ODbL database/DbCL contents. UI attribution and private source snapshots; no images or scanner library added (image CC-BY-SA is distinct). Registration/application identity is owner setup; no outreach sent.

@@ -21,3 +21,13 @@ test("read-only diagnostics keep deployment disabled and display separate public
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
   expect(mutations).toEqual([]);expect(errors).toEqual([]);
 });
+
+test('support preview is explicit and copying sends only the reviewed safe snapshot',async({page})=>{
+ await page.addInitScript(()=>{Object.assign(window,{supportCopies:[] as string[]});Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(text:string)=>{(window as unknown as {supportCopies:string[]}).supportCopies.push(text);}}});});
+ await page.goto('/app/settings');await page.getByText('Advanced Diagnostics',{exact:true}).click();
+ await expect(page.getByRole('button',{name:'Copy reviewed diagnostics'})).toHaveCount(0);await page.getByRole('button',{name:'Preview safe diagnostics'}).click();
+ const preview=page.getByLabel('Safe diagnostic summary');await expect(preview).toBeVisible();const reviewed=await preview.inputValue();expect(reviewed).toContain('Vault: local-only');expect(reviewed).toContain('Market provider: not checked');
+ expect(await page.evaluate(()=>(window as unknown as {supportCopies:string[]}).supportCopies)).toEqual([]);
+ await page.getByRole('button',{name:'Close preview',exact:true}).click();await expect(preview).toHaveCount(0);expect(await page.evaluate(()=>(window as unknown as {supportCopies:string[]}).supportCopies)).toEqual([]);
+ await page.getByRole('button',{name:'Preview safe diagnostics'}).click();await page.getByRole('button',{name:'Copy reviewed diagnostics'}).click();expect(await page.evaluate(()=>(window as unknown as {supportCopies:string[]}).supportCopies)).toEqual([reviewed]);
+});

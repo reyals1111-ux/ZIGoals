@@ -60,7 +60,7 @@ const entrySchema = z.object({
 }).strict();
 const timezoneSchema=z.string().min(1).max(100).refine(value=>{try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true;}catch{return false;}});
 const timerSchema=z.object({id:z.uuid(),startedAt:timestampSchema,date:dateSchema,timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),state:z.enum(['running','paused']),segmentStartedAt:timestampSchema,pausedAt:timestampSchema.optional(),elapsedMs:z.number().int().min(0).max(604800000)}).strict().refine(t=>Date.parse(t.segmentStartedAt)>=Date.parse(t.startedAt)&&(t.state==='paused'?!!t.pausedAt&&Date.parse(t.pausedAt)>=Date.parse(t.segmentStartedAt):!t.pausedAt),'Invalid saved timer timestamps or state.');
-const timerReceiptSchema=z.object({id:z.uuid(),date:dateSchema,startedAt:timestampSchema,endedAt:timestampSchema,elapsedMs:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),value:valueSchema,status:z.enum(['logged','discarded']),recordedAt:timestampSchema}).strict();
+const timerReceiptSchema=z.object({id:z.uuid(),timerId:z.uuid().optional(),date:dateSchema,startedAt:timestampSchema,endedAt:timestampSchema,elapsedMs:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),value:valueSchema,status:z.enum(['logged','discarded']),recordedAt:timestampSchema}).strict();
 const habitSchema = z.object({
   id: z.uuid(), title: z.string().trim().min(1).max(100), category: z.string().trim().min(1).max(50), description: z.string().max(500), notes: z.string().max(2000), goalLink: habitGoalLinkSchema.optional(),
   timeOfDay: z.enum(["anytime", "morning", "afternoon", "evening"]), endCondition: endConditionSchema, stackAfterId: z.uuid().optional(), startDate: dateSchema,
@@ -70,13 +70,13 @@ const habitSchema = z.object({
 }).strict().superRefine((habit, context) => {
   if(habit.ruleRevisions&&new Set(habit.ruleRevisions.map(r=>r.id)).size!==habit.ruleRevisions.length)context.addIssue({code:'custom',message:'Duplicate rule revision.'});
   if(habit.timerReceipts&&new Set(habit.timerReceipts.map(r=>r.id)).size!==habit.timerReceipts.length)context.addIssue({code:'custom',message:'Duplicate timer receipt.'});
-  if(habit.timer&&habit.timerReceipts?.some(r=>r.id===habit.timer!.id))context.addIssue({code:'custom',message:'Timer identity has already been used.'});
+  if(habit.timer&&habit.timerReceipts?.some(r=>(r.timerId??r.id)===habit.timer!.id))context.addIssue({code:'custom',message:'Timer identity has already been used.'});
   if (habit.rules[0]!.from !== habit.startDate || habit.rules.some((rule, index) => index > 0 && rule.from <= habit.rules[index - 1]!.from)) context.addIssue({ code: "custom", message: "Habit rules must begin at its start date and be in date order." });
   if (new Set(habit.entries.map((entry) => entry.date)).size !== habit.entries.length || habit.entries.some((entry) => entry.date < habit.startDate)) context.addIssue({ code: "custom", message: "Habit entries must have unique dates on or after its start." });
   if (habit.updatedAt < habit.createdAt) context.addIssue({ code: "custom", message: "Invalid habit timestamps." });
   if (JSON.stringify(habit.endCondition) !== JSON.stringify(habit.rules.at(-1)!.endCondition)) context.addIssue({ code: "custom", message: "The current end condition must match the latest historical rule." });
 });
-const habitDataV2Schema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"), habits: z.array(habitSchema).max(200) }).strict().superRefine((data, context) => {
+const habitDataV2Schema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(habitSchema).max(200) }).strict().superRefine((data, context) => {
   if (new Set(data.habits.map((habit) => habit.id)).size !== data.habits.length) context.addIssue({ code: "custom", message: "Habit identifiers must be unique." });
   const ids = new Set(data.habits.map((habit) => habit.id));
   for (const habit of data.habits) {
@@ -114,6 +114,12 @@ function migrateV1(data: z.infer<typeof habitDataV1Schema>): HabitData {
   })) });
 }
 export const habitDataSchema: z.ZodType<HabitData> = z.union([habitDataV2Schema, habitDataV1Schema]).transform((data) => data.schemaVersion === 1 ? migrateV1(data) : data);
+export function habitCalendarDay(data:Pick<HabitData,'timeZone'>,now=new Date()):string{
+ if(!data.timeZone)return localDate(now);
+ const parts=new Intl.DateTimeFormat('en',{timeZone:timezoneSchema.parse(data.timeZone),year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;
+ return dateSchema.parse(`${get('year')}-${get('month')}-${get('day')}`);
+}
+export function saveHabitTimezone(data:HabitData,timeZone:string):HabitData{return habitDataSchema.parse({...data,timeZone:timezoneSchema.parse(timeZone)});}
 export function emptyHabitData(): HabitData { return { schemaVersion: 2, kind: "zigoals-habits", habits: [] }; }
 export function habitRuleOn(habit: Habit, date: string): HabitRule | undefined { for (let index = habit.rules.length - 1; index >= 0; index--) if (habit.rules[index]!.from <= date) return habit.rules[index]; return undefined; }
 export function latestHabitRule(habit: Habit): HabitRule { return habit.rules[habit.rules.length - 1]!; }
@@ -122,29 +128,29 @@ function replaceHabit(data: HabitData, id: string, transform: (habit: Habit) => 
   if (!data.habits.some((habit) => habit.id === id)) throw new Error("This habit is no longer available. Refresh and try again.");
   return habitDataSchema.parse({ ...data, habits: data.habits.map((habit) => habit.id === id ? transform(habit) : habit) });
 }
-function changeRule(habit: Habit, patch: Partial<HabitRule>, now: Date): Habit {
-  const from = dateSchema.parse(localDate(now));
+function changeRule(habit: Habit, patch: Partial<HabitRule>, now: Date,today=localDate(now)): Habit {
+  const from = dateSchema.parse(today);
   if (from < latestHabitRule(habit).from) throw new Error("Your calendar is earlier than the last habit change. Check your device date.");
   const rule = ruleSchema.parse({ ...latestHabitRule(habit), ...patch, from });
   const rules = [...habit.rules.filter((previous) => previous.from < from), rule];
   return { ...habit, endCondition: rule.endCondition, rules, updatedAt: now.toISOString() };
 }
 export function createHabit(data: HabitData, raw: HabitInput, now = new Date(), id: string = crypto.randomUUID()): HabitData {
-  const parsed = habitInputSchema.parse(raw); const { schedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const startDate = dateSchema.parse(localDate(now));
+  const parsed = habitInputSchema.parse(raw); const { schedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const startDate = dateSchema.parse(habitCalendarDay(data,now));
   if (endCondition.kind === "date" && endCondition.date < startDate) throw new Error("An end date cannot be before this habit begins.");
   return habitDataSchema.parse({ ...data, habits: [...data.habits, { ...details, id, startDate, endCondition, createdAt: now.toISOString(), updatedAt: now.toISOString(), entries: [], rules: [{ from: startDate, schedule, target, type, measurement, targetPeriod, endCondition, state: "active" }] }] });
 }
 export function editHabit(data: HabitData, id: string, raw: HabitInput, now = new Date()): HabitData {
-  const parsed = habitInputSchema.parse(raw); const { schedule: rawSchedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const from = dateSchema.parse(localDate(now));
+  const parsed = habitInputSchema.parse(raw); const { schedule: rawSchedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const from = dateSchema.parse(habitCalendarDay(data,now));
   return replaceHabit(data, id, (habit) => {
     const current = latestHabitRule(habit); let schedule = rawSchedule;
     if (schedule.kind === "interval") schedule = { ...schedule, anchor: current.schedule.kind === "interval" ? current.schedule.anchor : from };
     const endChanged = JSON.stringify(endCondition) !== JSON.stringify(habit.endCondition);
     if (endChanged && endCondition.kind === "date" && endCondition.date < from) throw new Error("An end date cannot be before this habit change.");
-    return { ...changeRule(habit, { schedule, target, type, measurement, targetPeriod, endCondition }, now), ...details, endCondition, goalLink: details.goalLink };
+    return { ...changeRule(habit, { schedule, target, type, measurement, targetPeriod, endCondition }, now,from), ...details, endCondition, goalLink: details.goalLink };
   });
 }
-export function setHabitState(data: HabitData, id: string, state: HabitState, now = new Date()): HabitData { return replaceHabit(data, id, (habit) => changeRule(habit, { state }, now)); }
+export function setHabitState(data: HabitData, id: string, state: HabitState, now = new Date()): HabitData { return replaceHabit(data, id, (habit) => changeRule(habit, { state }, now,habitCalendarDay(data,now))); }
 
 function daysBetween(from: string, to: string): number { return Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000); }
 function recurrenceMatches(rule: HabitRule, date: string): boolean {
@@ -248,7 +254,7 @@ export function habitDay(habit: Habit, date: string, today = localDate()) {
 
 type LogOptions = { note?: string; mood?: Habit["entries"][number]["mood"]; mode?: "set" | "add" };
 export function logHabitValue(data: HabitData, id: string, rawDate: string, rawValue: number, options: LogOptions = {}, now = new Date()): HabitData {
-  const date = dateSchema.parse(rawDate); const value = valueSchema.parse(rawValue); const today = localDate(now);
+  const date = dateSchema.parse(rawDate); const value = valueSchema.parse(rawValue); const today = habitCalendarDay(data,now);
   return replaceHabit(data, id, (habit) => {
     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
     if (rule!.measurement.kind === "count" && !Number.isInteger(value)) throw new Error("Count values must be whole numbers.");
@@ -259,7 +265,7 @@ export function logHabitValue(data: HabitData, id: string, rawDate: string, rawV
 }
 export function logHabitCount(data: HabitData, id: string, date: string, count: number, note = "", now = new Date()): HabitData { return logHabitValue(data, id, date, count, { note }, now); }
 export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string, disposition: "skipped" | "failed", note = "", now = new Date()): HabitData {
-  const date = dateSchema.parse(rawDate); const today = localDate(now);
+  const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data,now);
   return replaceHabit(data, id, (habit) => {
     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
     const previous = habit.entries.find((item) => item.date === date); const entry = entrySchema.parse({ date, count: previous?.count ?? 0, disposition, note, mood: previous?.mood, updatedAt: now.toISOString() });

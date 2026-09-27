@@ -19,7 +19,7 @@ test("safe diagnostics whitelist enums and identities, ignoring adversarial and 
   const text = diagnosticSummary({ environment: "PUBLIC_ALPHA_UNDEPLOYED", version:"0.1.0", commit:"a".repeat(40), scope:"local", rpc:"healthy", rest:"unavailable", checkedAt:"2026-09-13T12:00:00.000Z", owner:"PRIVATE_ACCOUNT", error:"RAW_ERROR", metadata:"PRIVATE_PLAN" } as Parameters<typeof diagnosticSummary>[0]);
   expect(text).toContain("PUBLIC_ALPHA_UNDEPLOYED");
   expect(text).not.toMatch(/PRIVATE|RAW_ERROR/);
-  expect(diagnosticSummary({environment:"<script>secret",version:"secret",commit:"secret",scope:"secret",rpc:"secret",rest:"secret",checkedAt:"secret"})).not.toContain("secret");
+  expect(diagnosticSummary({environment:"<script>secret",version:"secret",commit:"secret",scope:"secret",rpc:"secret",rest:"secret",checkedAt:"secret",vault:"secret",connectivity:"secret",sync:"secret",market:"secret"})).not.toContain("secret");
 });
 
 test("HTTPS middleware overwrites attacker nonce/origin and sends non-cacheable security headers", () => {

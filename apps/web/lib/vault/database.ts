@@ -26,15 +26,18 @@ export class VaultDatabase{
  private connection:Promise<IDBDatabase>|undefined;
  constructor(private name='zigoals-private-vault-v1'){}
  private open(){
-  if(!this.connection)this.connection=new Promise<IDBDatabase>((resolve,reject)=>{
-   const r=indexedDB.open(this.name,1);
-   r.onupgradeneeded=()=>{for(const s of ['headers','records','outbox','receipts','recovery'])r.result.createObjectStore(s);};
-   r.onerror=()=>{this.connection=undefined;reject(Error('Private database unavailable. Check browser storage permissions.'));};
-   r.onblocked=()=>{reject(Error('Close older ZIGoals tabs, then retry the storage upgrade.'));};
-   r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>{db.close();this.connection=undefined;};resolve(db);};
-  });return this.connection;
+  if(!this.connection){
+   const pending=new Promise<IDBDatabase>((resolve,reject)=>{
+    const r=indexedDB.open(this.name,1);let abandoned=false;
+    const clear=()=>{if(this.connection===pending)this.connection=undefined;};
+    r.onupgradeneeded=()=>{if(abandoned){r.transaction?.abort();return;}for(const s of ['headers','records','outbox','receipts','recovery'])if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s);};
+    r.onerror=()=>{clear();reject(Error('Private database unavailable. Check browser storage permissions.'));};
+    r.onblocked=()=>{abandoned=true;clear();reject(Error('Close older ZIGoals tabs, then retry the storage upgrade.'));};
+    r.onsuccess=()=>{const db=r.result;if(abandoned||this.connection!==pending){db.close();reject(Error('Private database opening was interrupted. Retry reading.'));return;}db.onversionchange=()=>{db.close();clear();};resolve(db);};
+   });this.connection=pending;
+  }return this.connection;
  }
- close(){void this.connection?.then(db=>db.close());this.connection=undefined;}
+ close(){void this.connection?.then(db=>db.close(),()=>{});this.connection=undefined;}
  async read(space:string,domain:string):Promise<{revision:number;data:Record<string,unknown>}|null>{
   const db=await this.open(),tx=db.transaction(['headers','records'],'readonly'),finish=done(tx);
   const header=await request(tx.objectStore('headers').get(key(space,domain))) as Header|undefined;

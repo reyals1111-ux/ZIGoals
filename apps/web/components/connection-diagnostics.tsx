@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { TESTNET, formatUnits } from "@zigoals/chain-config";
 import { APP_ENVIRONMENT } from "../lib/app-environment";
+import { useVaultStatus } from "./vault-sync-controls";
+import { ACCOUNT_CHANGE, getAccountScope } from "../lib/account-session";
 import { diagnosticSummary } from "../lib/diagnostic-summary";
 import { deployment } from "../lib/deployment-config";
 import {
@@ -23,7 +25,13 @@ export function ConnectionDiagnostics({
   const [checking, setChecking] = useState(false);
   const generation = useRef(0);
   const [copyStatus, setCopyStatus] = useState("");
-  const [fallback, setFallback] = useState("");
+  const [preview, setPreview] = useState("");
+  const vault = useVaultStatus();
+  useEffect(() => {
+    const clear = () => { generation.current++; setPreview(""); setCopyStatus(""); setChecking(false); };
+    window.addEventListener(ACCOUNT_CHANGE, clear);
+    return () => window.removeEventListener(ACCOUNT_CHANGE, clear);
+  }, []);
   useEffect(
     () => () => {
       generation.current++;
@@ -40,8 +48,11 @@ export function ConnectionDiagnostics({
       if (id === generation.current) setChecking(false);
     }
   }
-  async function copySummary() {
-    const summary = diagnosticSummary({
+  function previewSummary() {
+    let selected: boolean | null = null;
+    try { selected = !!getAccountScope(); } catch { /* Corrupt selection is an attention state, never exported. */ }
+    setCopyStatus("");
+    setPreview(diagnosticSummary({
       environment: APP_ENVIRONMENT,
       version: process.env.NEXT_PUBLIC_APP_VERSION ?? "",
       commit: process.env.NEXT_PUBLIC_APP_COMMIT ?? "",
@@ -49,17 +60,22 @@ export function ConnectionDiagnostics({
       rpc: result ? result.rpc.ok ? "healthy" : "unavailable" : "not checked",
       rest: result ? result.rest.ok ? "healthy" : "unavailable" : "not checked",
       checkedAt: result?.checkedAt,
-    });
+      vault: vault.error || selected === null ? "needs attention" : vault.busy ? "busy" : vault.opened ? "unlocked" : selected ? "locked" : "local-only",
+      connectivity: navigator.onLine ? "online" : "offline",
+      sync: vault.last ? "acknowledged this session" : "not acknowledged this session",
+      market: "not checked",
+    }));
+  }
+  async function copySummary() {
+    if (!preview) return;
     const id = generation.current;
     try {
-      await navigator.clipboard.writeText(summary);
+      await navigator.clipboard.writeText(preview);
       if (id === generation.current) {
         setCopyStatus("Safe diagnostic summary copied.");
-        setFallback("");
       }
     } catch {
       if (id === generation.current) {
-        setFallback(summary);
         setCopyStatus("Clipboard unavailable. Select and copy the safe summary below.");
       }
     }
@@ -165,14 +181,19 @@ export function ConnectionDiagnostics({
       >
         {checking ? "Checking public endpoints…" : "Check connection"}
       </button>
-      <button className="secondary" onClick={() => void copySummary()}>Copy safe diagnostics</button>
+      <button className="secondary" onClick={previewSummary}>Preview safe diagnostics</button>
       <p role="status">{copyStatus}</p>
-      {fallback && (
+      {preview && (
+        <div>
+        <p>Review this snapshot before copying. Online means your browser reports connectivity; it does not verify a provider. No private records or raw errors are included.</p>
         <label>
           Safe diagnostic summary
-          <textarea readOnly value={fallback} rows={11}
+          <textarea readOnly value={preview} rows={15}
             onFocus={event => event.currentTarget.select()} />
         </label>
+        <button className="secondary" onClick={() => void copySummary()}>Copy reviewed diagnostics</button>
+        <button className="quiet" onClick={() => { setPreview(""); setCopyStatus(""); }}>Close preview</button>
+        </div>
       )}
       <p className="fine" role="status">
         Checks query public RPC/REST endpoints. No wallet approval or

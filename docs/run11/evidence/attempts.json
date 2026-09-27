@@ -1,0 +1,36 @@
+{
+  "attempts": [
+    {
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "outcome": "failed",
+      "evidence": "earlier-package-failure.txt",
+      "rawLogSha256": "46121143db4f14a455d73b623b4df87be8a341e34877f3300e3e7f658b5e5784",
+      "cause": "Unresolved: profile B Breakfast150kcal visibility timed out. Initial run had no state capture. Not attributed to a production defect or claimed fixed."
+    },
+    {
+      "source": "d2ae5728c3061e876640d3349bc6b442a04a30d6",
+      "outcome": "three subsequent isolated package passes",
+      "durationSeconds": [
+        35.35,
+        34.4,
+        27.9
+      ],
+      "evidence": "prior-package-pass.json",
+      "change": "Added source-saved150kcal precondition and failure capture; retained B assertions."
+    },
+    {
+      "source": "ec3ac7a5c07df7d37adb2ba300c47dbaeb575266",
+      "outcome": "failed",
+      "rawLogSha256": "3fe1dcab168e2cbdc9f345f6c11e73bc62d4df76ae1bf04029cf84341c370d17",
+      "cause": "Quantity card menu extended outside its card and adjacent card intercepted normal pointer. Reproduced desktop/mobile; fixed210899e with margin-left:auto and ordinary-click regression."
+    },
+    {
+      "source": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+      "outcome": "passed",
+      "durationSeconds": 41.343,
+      "evidence": "package-final.json",
+      "change": "Expanded Value/Quantity/Project consumer and exact second-profile histories run after all prior consumer/preset assertions."
+    }
+  ],
+  "policy": "Historical failures remain visible. Separate source receipts do not erase or diagnose earlier failures."
+}
