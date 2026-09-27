@@ -5,6 +5,7 @@ import { nutritionSummaryText, type HealthData } from "../../lib/health";
 import { useShowcase } from "../showcase-controls";
 import {PinToToday} from "../pin-to-today";
 import {useEntrance} from '../use-entrance';
+import {MotionTrack} from '../motion-track';
 
 export function NutritionDashboard({ data, date }: { data: HealthData; date: string }) {
   const result = nutritionDashboard(data, date);
@@ -14,7 +15,7 @@ export function NutritionDashboard({ data, date }: { data: HealthData; date: str
   return <section className="nutrition-dashboard" aria-label="Nutrition patterns">
     <article className="panel nutrition-distribution">
       <header><p className="eyebrow">YOUR DAY, MEAL BY MEAL</p><h2>Where your energy comes from.</h2><p>{result.mealCount} meal {result.mealCount === 1 ? "group" : "groups"} · {result.entries} diary {result.entries === 1 ? "entry" : "entries"} on {date}</p></header>
-      <div className="nutrition-distribution-track" aria-hidden="true">{result.meals.map((meal, index) => <span className={`nutrition-meal-${index}`} key={meal.meal} style={{ width: `${meal.share??0}%` }} />)}</div>
+      <MotionTrack identity="nutrition-distribution" className="nutrition-distribution-track" aria-hidden="true">{result.meals.map((meal, index) => <span className={`nutrition-meal-${index}`} key={meal.meal} style={{ width: `${meal.share??0}%` }} />)}</MotionTrack>
       <ol className="nutrition-meal-timeline">{result.meals.map((meal, index) => <li key={meal.meal}>
         <span className={`nutrition-meal-dot nutrition-meal-${index}`} aria-hidden="true" />
         <div><a href={`#diary-${meal.meal.toLowerCase()}`}>{meal.meal}</a><p>{meal.names.length ? meal.names.join(" · ") : "Nothing logged"}</p></div>

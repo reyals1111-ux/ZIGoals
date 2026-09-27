@@ -1,4 +1,4 @@
-:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms;--motion-hover:220ms;--motion-press:90ms; }
+:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms;--motion-hover:220ms;--motion-press:90ms;--motion-fill:800ms; }
 .slogan-entrance { display:block; }
 .slogan-entrance[data-entrance=once] { animation:slogan-arrive var(--entrance-duration) var(--entrance-easing) both; }
 @keyframes slogan-arrive { from { opacity:.65;transform:translateY(9px); } to { opacity:1;transform:translateY(0); } }
@@ -43,3 +43,16 @@
 :root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:none!important; }
 :root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):is(:hover,:active) { transform:none!important; }
 :root[data-app-motion=off] .primary::after { content:none; }
+
+/* Progress: fills grow from their start the first time a track is seen, like the portfolio bars, then glide to new values instead of jumping. Widths, roles and ARIA values are final from first render. */
+@keyframes motion-grow-x { from { transform:scaleX(.02); } to { transform:scaleX(1); } }
+@keyframes motion-gauge-sweep { from { stroke-dasharray:0 100; } }
+:is(.pace-track,.today-pace-track,.holding-allocation-track,.habit-overview-track,.health-today-meter,.health-meter)[data-entrance=once]>*,.habit-trends[data-entrance=once] i>span,.nutrition-distribution-track[data-entrance=once] { transform-origin:left;animation:motion-grow-x var(--motion-fill) var(--motion-glide) backwards; }
+.nutrition-gauge[data-entrance=once]>span { transform-origin:bottom;animation:motion-rise var(--motion-fill) var(--motion-glide) backwards; }
+.health-gauge[data-entrance=once] .health-gauge-fill { animation:motion-gauge-sweep calc(var(--motion-fill) + 200ms) var(--motion-glide) backwards; }
+.pace-track[data-entrance=once]>.pace-fill.planned,.habit-trends[data-entrance=once]>:nth-child(2) i>span,.health-macro-carbsMg .health-meter[data-entrance=once]>i { animation-delay:80ms; }
+.habit-trends[data-entrance=once]>:nth-child(3) i>span,.health-macro-fatMg .health-meter[data-entrance=once]>i { animation-delay:160ms; }
+:is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track>span) { transition:width var(--motion-fill) var(--motion-glide); }
+.nutrition-gauge>span { transition:height var(--motion-fill) var(--motion-glide); }
+.health-gauge-fill { transition:stroke-dasharray var(--motion-fill) var(--motion-glide); }
+:root[data-app-motion=off] :is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track,.nutrition-distribution-track>span,.nutrition-gauge>span,.health-gauge-fill) { animation:none!important;transition:none!important; }

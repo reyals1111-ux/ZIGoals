@@ -22,7 +22,7 @@ const sample=(page:Page,name:string)=>page.evaluate(name=>(window as unknown as 
 const starts=(page:Page,name:string)=>page.evaluate(name=>(window as unknown as MotionWindow).motionStarts[name]??0,name);
 async function settled(page:Page,name:string){
  await expect.poll(async()=>(await sample(page,name))?.end,{message:`${name} settles`}).toBeTruthy();
- const result=(await sample(page,name))!;expect(result.start,name).not.toBe(result.end);expect(result.mid,name).not.toBe(result.end);return result;
+ const result=(await sample(page,name)) as Sample&{end:string};expect(result.start,name).not.toBe(result.end);expect(result.mid,name).not.toBe(result.end);return result;
 }
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
@@ -117,4 +117,47 @@ test('reduced motion and the Off preference keep buttons still on every route',a
  await expect(secondary).toHaveCSS('transition-duration','0s');
  await page.goto('/app');
  expect(await page.locator('.today-hero .primary').first().evaluate(el=>getComputedStyle(el,'::after').content)).toBe('none');
+});
+
+test('progress fills grow in once when seen and glide to new values while their state updates at once',async({page},info)=>{
+ await watch(page,{'motion-grow-x':'transform','motion-gauge-sweep':'stroke-dasharray','motion-rise':'transform'});
+ await showcase(page);
+ const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
+ const grow=await settled(page,'motion-grow-x');expect(grow.end).toBe('none');
+ await page.locator('.nutrition-gauge').first().scrollIntoViewIfNeeded();
+ const glass=await settled(page,'motion-rise');expect(glass.end).toBe('none');
+ await page.goto('/app/health');
+ const gauge=page.locator('.health-gauge');await gauge.scrollIntoViewIfNeeded();
+ const sweep=await settled(page,'motion-gauge-sweep');expect(parseFloat(sweep.start)).toBeLessThan(parseFloat(sweep.mid!));
+ const arc=(await gauge.locator('.health-gauge-fill').getAttribute('stroke-dasharray'))!.split(' ').map(Number),settledArc=sweep.end.split(',').map(parseFloat);
+ expect(settledArc[0]).toBeCloseTo(arc[0]!,3);expect(settledArc[1]).toBe(arc[1]);
+ await gauge.screenshot({path:info.outputPath('health-gauge-settled.png')});
+ await page.goto('/app/habits');
+ const overview=page.locator('.habit-overview-track');await overview.scrollIntoViewIfNeeded();
+ await expect(overview).toHaveAttribute('data-entrance','once');
+ await expect.poll(()=>overview.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
+ const before=Number(await overview.getAttribute('aria-valuenow')),fill=overview.locator('span'),start=await fill.evaluate(el=>el.getBoundingClientRect().width);
+ await page.locator('.habits-workspace').getByRole('button',{name:/^Complete /}).first().click();
+ await expect(overview).toHaveAttribute('aria-valuenow',String(before+1));
+ const gliding=await fill.evaluate(el=>el.getBoundingClientRect().width),target=await fill.evaluate(el=>(el as HTMLElement).style.width);
+ await expect.poll(()=>fill.evaluate(el=>el.getAnimations().filter(a=>a.playState==='running').length)).toBe(0);
+ const end=await fill.evaluate(el=>el.getBoundingClientRect().width);
+ expect(gliding).toBeGreaterThanOrEqual(start);expect(gliding).toBeLessThan(end);
+ expect(end/(await overview.evaluate(el=>el.getBoundingClientRect().width))).toBeCloseTo(parseFloat(target)/100,2);
+ await page.locator('.habit-overview').screenshot({path:info.outputPath('habit-overview-settled.png')});
+});
+
+test('reduced motion and the Off preference keep progress complete and still',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await showcase(page);
+ const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
+ await expect(pace).not.toHaveAttribute('data-entrance','once');
+ await expect(pace.locator('span')).toHaveCSS('transition-duration','0s');
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
+ await page.goto('/app/health');
+ const gauge=page.locator('.health-gauge');await gauge.scrollIntoViewIfNeeded();
+ await expect(gauge).not.toHaveAttribute('data-entrance','once');
+ await expect(gauge.locator('.health-gauge-fill')).toHaveCSS('animation-name','none');
+ await expect(gauge.locator('.health-gauge-fill')).toHaveCSS('transition-duration','0s');
 });

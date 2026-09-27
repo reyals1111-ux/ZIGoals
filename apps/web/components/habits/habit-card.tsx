@@ -6,6 +6,7 @@ import {LinkedGoalReview} from './linked-goal-review';
 import {habitStackSuggestions} from '../../lib/habit-linked-policy';
 import type {PrivateGoal} from '../../lib/positions';
 import {HabitTimer} from "./habit-timer";
+import { MotionTrack } from "../motion-track";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { visualTone } from "../visual-tone";
 import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
@@ -75,7 +76,7 @@ function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   const stats = habitStats(habit, today); const trends = habitTrends(habit, today);
   return <div className="habit-insights" aria-label={`${habit.title} insights`}>
     <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {stats.streakUnit}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {stats.streakUnit}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
-    <div className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><i><span style={{ width: `${trend.percentage}%` }} /></i><strong>{trend.percentage}%</strong></div>)}</div>
+    <MotionTrack identity={`habit-trends:${habit.id}`} className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><i><span style={{ width: `${trend.percentage}%` }} /></i><strong>{trend.percentage}%</strong></div>)}</MotionTrack>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
   </div>;
 }
