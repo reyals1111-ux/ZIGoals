@@ -17,3 +17,36 @@ test('the glowing Z sits above the wordmark, loads the right density and stays d
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
  await brand.screenshot({path:info.outputPath('brand.png')});
 });
+
+test('navigation keeps one order, glides its highlight and moves aria-current and focus at once',async({page})=>{
+ await showcase(page);
+ const nav=page.getByRole('navigation',{name:'Main navigation'});
+ expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Stake / Positions','Ecosystem','Activity','Settings']);
+ const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
+ await markets.click();
+ await expect(markets).toHaveAttribute('aria-current','page');
+ await expect(glide).toHaveAttribute('data-state','moving');
+ await expect(page.locator('.app-nav')).toHaveAttribute('data-gliding','');
+ await expect(glide).toHaveAttribute('data-state','done');
+ await expect(page.locator('.app-nav')).not.toHaveAttribute('data-gliding','');
+ const positions=nav.getByRole('link',{name:'Stake / Positions',exact:true});
+ await positions.focus();await page.keyboard.press('Enter');
+ await page.waitForURL('**/app/goals/positions');
+ await expect(positions).toHaveAttribute('aria-current','page');await expect(positions).toBeFocused();
+ await expect(nav.getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current','page');
+});
+
+test('reduced motion and the Off preference switch the navigation glide and page entrance off',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await showcase(page);
+ const nav=page.getByRole('navigation',{name:'Main navigation'});
+ await nav.getByRole('link',{name:'Wealth',exact:true}).click();
+ await expect(nav.getByRole('link',{name:'Wealth',exact:true})).toHaveAttribute('aria-current','page');
+ await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();
+ await nav.getByRole('link',{name:'Health',exact:true}).click();
+ await expect(nav.getByRole('link',{name:'Health',exact:true})).toHaveAttribute('aria-current','page');
+ await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
+ await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');
+});

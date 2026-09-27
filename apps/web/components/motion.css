@@ -63,3 +63,18 @@
 .nutrition-gauge>span { transition:height var(--motion-fill) var(--motion-glide); }
 .health-gauge-fill { transition:stroke-dasharray var(--motion-fill) var(--motion-glide); }
 :root[data-app-motion=off] :is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track,.nutrition-distribution-track>span,.nutrition-gauge>span,.health-gauge-fill) { animation:none!important;transition:none!important; }
+
+/* Navigation: the active highlight glides from the previous item to the new one, items give on press, and page content settles in softly. aria-current and focus move immediately. */
+.app-nav { position:relative; }
+.app-nav a { position:relative;z-index:1;transition:color 180ms,background 180ms,box-shadow 180ms,transform var(--motion-hover) var(--motion-glide); }
+.app-nav a:active { transform:scale(.97);transition-duration:var(--motion-press); }
+.nav-glide { position:absolute;left:0;top:0;z-index:0;box-sizing:border-box;pointer-events:none;opacity:0; }
+.nav-glide[data-state=start] { opacity:1;transition:none; }
+.nav-glide[data-state=moving] { opacity:1;transition:transform 380ms var(--motion-glide),width 380ms var(--motion-glide),height 380ms var(--motion-glide); }
+.nav-glide[data-state=done] { opacity:0;transition:opacity 180ms ease; }
+.app-nav[data-gliding] a[aria-current=page] { background:transparent!important;border-color:transparent!important;box-shadow:none!important; }
+.workspace main>div { animation:motion-page-enter 320ms var(--motion-glide); }
+@keyframes motion-page-enter { from { opacity:.55;transform:translateY(6px); } }
+@media(prefers-reduced-motion:reduce) { .app-nav a:active { transform:none; }.nav-glide { display:none; } }
+:root[data-app-motion=off] :is(.app-nav a,.workspace main>div) { animation:none!important;transition:none!important;transform:none!important; }
+:root[data-app-motion=off] .nav-glide { display:none; }
