@@ -78,3 +78,11 @@
 @media(prefers-reduced-motion:reduce) { .app-nav a:active { transform:none; }.nav-glide { display:none; } }
 :root[data-app-motion=off] :is(.app-nav a,.workspace main>div) { animation:none!important;transition:none!important;transform:none!important; }
 :root[data-app-motion=off] .nav-glide { display:none; }
+
+/* Hero star: a transient layer between the artwork (::before) and its shade (::after), removed when the bloom ends. */
+.hero-star { position:absolute;inset:0;z-index:-2;overflow:hidden;pointer-events:none; }
+.hero-star>span { position:absolute;left:0;top:0;opacity:0;border-radius:50%; }
+.hero-star-veil { background:radial-gradient(closest-side,#020918e0 0%,#020918b0 42%,#0209184d 70%,#02091800 100%); }
+.hero-star-core { background:radial-gradient(closest-side,#fff 0 8%,#fff6ea 14%,#ffd3aecc 24%,#ff9fb866 40%,#a98bff26 60%,#0000 100%);mix-blend-mode:screen; }
+@media(prefers-reduced-motion:reduce) { .hero-star { display:none; } }
+:root[data-app-motion=off] .hero-star { display:none; }

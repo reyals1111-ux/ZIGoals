@@ -50,3 +50,29 @@ test('reduced motion and the Off preference switch the navigation glide and page
  await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
  await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');
 });
+
+test('the hero star rises once per visit, never on re-render, and leaves only the untouched artwork',async({page})=>{
+ await showcase(page);
+ const star=page.locator('.today-hero .hero-star'),nav=page.getByRole('navigation',{name:'Main navigation'});
+ await expect(star).toHaveCount(0,{timeout:6000});
+ await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.waitForTimeout(600);
+ await expect(star).toHaveCount(0);
+ await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
+ await nav.getByRole('link',{name:'Today',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>document.querySelector('.hero-star')?.getAnimations({subtree:true}).length??0)).toBeGreaterThan(0);
+ await expect(star).toHaveAttribute('aria-hidden','true');
+ await expect(star).toHaveCount(0,{timeout:6000});
+ await expect(page.locator('.slogan-entrance')).toHaveText("Today's Goals, Habits & Health = Tomorrow's Wealth");
+});
+
+test('reduced motion and the Off preference never show the hero star',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await showcase(page);
+ await expect(page.locator('.hero-star')).toHaveCount(0);
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
+ const nav=page.getByRole('navigation',{name:'Main navigation'});
+ await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
+ await nav.getByRole('link',{name:'Today',exact:true}).click();await page.waitForURL(/\/app$/);
+ await expect(page.locator('.hero-star')).toHaveCount(0);
+});

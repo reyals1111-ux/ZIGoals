@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { AppIcon } from "./app-icon";
-import { MOTION_PREFERENCE_KEY } from "./use-entrance";
+import { entranceAllowed } from "./use-entrance";
 
 /** The single source of navigation order, for the desktop sidebar and the mobile header alike. */
 export const NAV_ITEMS = [
@@ -22,9 +22,6 @@ export const NAV_ITEMS = [
 const GLIDE_STYLES = ["backgroundImage", "backgroundColor", "backgroundOrigin", "backgroundClip", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth", "borderStyle", "borderColor", "borderRadius", "boxShadow"] as const;
 type Box = { x: number; y: number; w: number; h: number };
 
-function motionAllowed() {
-  try { return localStorage.getItem(MOTION_PREFERENCE_KEY) !== "off" && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
-}
 function boxOf(link: Element, nav: Element): Box {
   const a = link.getBoundingClientRect(), n = nav.getBoundingClientRect();
   return { x: a.left - n.left + nav.scrollLeft, y: a.top - n.top + nav.scrollTop, w: a.width, h: a.height };
@@ -40,7 +37,7 @@ export function AppNav() {
     if (!el || !layer || !active) { previous.current = null; return; }
     const from = previous.current, to = boxOf(active, el);
     previous.current = to;
-    if (!from || (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) || !motionAllowed()) return;
+    if (!from || (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) || !entranceAllowed()) return;
     const style = getComputedStyle(active);
     for (const key of GLIDE_STYLES) layer.style[key] = style[key];
     const place = (box: Box) => { layer.style.width = `${box.w}px`; layer.style.height = `${box.h}px`; layer.style.transform = `translate(${box.x}px, ${box.y}px)`; };
