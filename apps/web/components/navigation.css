@@ -1,4 +1,6 @@
 .app-sidebar { overflow-y:auto; }
+.app-sidebar .brand { flex-direction:column;align-items:flex-start;gap:4px; }
+.brand-logo { display:block;width:57px;height:64px;margin-left:-5px; }
 .sidebar-actions { padding:16px 4px 0; }
 .sidebar-actions .quick-add-trigger { width:100%;min-height:46px;background:linear-gradient(110deg,#16435b,#33244c);border-color:#87bbed77; }
 .app-sidebar .sidebar-destination { min-height:150px;flex-shrink:0;padding-top:90px;margin-top:20px; }
@@ -6,6 +8,7 @@
 .quick-add-dialog { overflow-y:auto;overscroll-behavior:contain; }
 .quick-add-dialog nav :is(a,.quick-action)>span:nth-child(2) { min-width:0;overflow-wrap:anywhere; }
 @media(max-width:900px) {
+ .brand-logo { width:40px;height:45px;margin-left:-3px; }
  .sidebar-actions { grid-column:1/-1;grid-row:3;padding:12px 0 4px; }
  .app-sidebar .app-nav { grid-row:2; }
  .sidebar-actions .quick-add-trigger { max-width:none; }

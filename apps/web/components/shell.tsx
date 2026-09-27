@@ -8,7 +8,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
-import { Wordmark } from "./brand-mark";
+import { LogoMark, Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
 import {ShowcaseBanner,useShowcase} from "./showcase-controls";
 import {WorkspaceStatus,useWorkspaceSelection} from './workspace-status';
@@ -34,6 +34,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </a>
       <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
+          <LogoMark />
           <Wordmark />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
