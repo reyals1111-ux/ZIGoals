@@ -4,6 +4,8 @@ import {MOTION_PREFERENCE_KEY} from './use-entrance';
 import './motion.css';
 function subscribe(callback:()=>void){window.addEventListener('storage',callback);window.addEventListener('zigoals-motion',callback);return()=>{window.removeEventListener('storage',callback);window.removeEventListener('zigoals-motion',callback);};}
 function snapshot(){try{return localStorage.getItem(MOTION_PREFERENCE_KEY)==='off'?'off':'system';}catch{return 'system';}}
+/** Mirrors the saved preference onto <html> on every app route, not only while Settings is open. */
+export function MotionPreferenceSync(){const preference=useSyncExternalStore(subscribe,snapshot,()=> 'system');useEffect(()=>{document.documentElement.dataset.appMotion=preference;},[preference]);return null;}
 export function MotionPreference(){
  const preference=useSyncExternalStore(subscribe,snapshot,()=> 'system'),[error,setError]=useState(''),[preview,setPreview]=useState(0);
  useEffect(()=>{document.documentElement.dataset.appMotion=preference;},[preference]);

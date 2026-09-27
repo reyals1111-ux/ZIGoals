@@ -1,11 +1,27 @@
 .app-sidebar { overflow-y:auto; }
+.app-sidebar .brand { flex-direction:column;align-items:flex-start;gap:4px; }
+.brand-logo { display:block;width:57px;height:64px;margin-left:-5px; }
+/* Desktop sidebar: a larger centred mark on top; the wordmark signs off right above the planet. The mobile header keeps its own brand row. */
+@media(min-width:901px) {
+ .app-sidebar .brand { align-items:center;padding:0; }
+ .app-sidebar .brand .brand-wordmark,.app-sidebar>.product-descriptor { display:none; }
+ .app-sidebar .brand-logo { width:86px;height:96px;margin:0; }
+}
 .sidebar-actions { padding:16px 4px 0; }
 .sidebar-actions .quick-add-trigger { width:100%;min-height:46px;background:linear-gradient(110deg,#16435b,#33244c);border-color:#87bbed77; }
 .app-sidebar .sidebar-destination { min-height:150px;flex-shrink:0;padding-top:90px;margin-top:20px; }
+/* Desktop: the wordmark sits right above the planet; the tagline wears the wordmark's nebula gradient with a soft shade for legibility over the glow. */
+@media(min-width:901px) {
+ .app-sidebar .sidebar-destination { margin-top:auto;padding-top:26px;display:flex;flex-direction:column;align-items:center; }
+ .sidebar-destination .brand-wordmark { position:relative;z-index:1;font-size:37px; }
+ .app-sidebar .sidebar-horizon { inset:84px 0 0; }
+ .app-sidebar .sidebar-destination small { margin-top:58px;font-weight:700;background:var(--nebula-emphasis);background-clip:text;-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px #020918) drop-shadow(0 0 7px #020918e6); }
+}
 .app-topbar .wallet { min-width:0; }
 .quick-add-dialog { overflow-y:auto;overscroll-behavior:contain; }
 .quick-add-dialog nav :is(a,.quick-action)>span:nth-child(2) { min-width:0;overflow-wrap:anywhere; }
 @media(max-width:900px) {
+ .brand-logo { width:40px;height:45px;margin-left:-3px; }
  .sidebar-actions { grid-column:1/-1;grid-row:3;padding:12px 0 4px; }
  .app-sidebar .app-nav { grid-row:2; }
  .sidebar-actions .quick-add-trigger { max-width:none; }

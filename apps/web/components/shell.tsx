@@ -3,26 +3,24 @@ import "./platform/run92-product.css";
 import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
-import { Wordmark } from "./brand-mark";
+import { LogoMark, Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
 import {ShowcaseBanner,useShowcase} from "./showcase-controls";
 import {WorkspaceStatus,useWorkspaceSelection} from './workspace-status';
 import {usePrivateStore} from './use-private-store';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
 import {QuickAdd} from "./quick-add";
+import { AppNav } from "./app-nav";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const showcase=useShowcase();
   const selection=useWorkspaceSelection();
   const preferences=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
   const financial=preferences.loaded&&!preferences.error&&visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
-  const path = usePathname();
-  const isActive = (href: string) => href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -34,32 +32,15 @@ export function Shell({ children }: { children: ReactNode }) {
       </a>
       <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
+          <LogoMark />
           <Wordmark />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
         <div className="sidebar-actions"><QuickAdd/></div>
-        <nav className="app-nav" aria-label="Main navigation">
-          {[
-            ["/app", "Today", "today"],
-            ["/app/goals", "Goals", "goals"],
-            ["/app/goals/positions", "Stake / Positions", "future"],
-            ["/app/habits", "Habits", "habits"],
-            ["/app/health", "Health", "health"],
-            ["/app/wealth", "Wealth", "wallet"],
-            ["/app/markets", "Markets", "activity"],
-            ["/app/ecosystem", "Ecosystem", "ecosystem"],
-            ["/app/activity", "Activity", "activity"],
-            ["/app/settings", "Settings", "settings"],
-          ].map(([href, label, icon]) => (
-            <Link key={href} href={href!}
-              className={icon === "ecosystem" ? "nav-divider" : undefined}
-              aria-current={isActive(href!) ? "page" : undefined}>
-              <AppIcon name={icon!} luminous={isActive(href!)} /><span>{label}</span>
-            </Link>
-          ))}
-        </nav>
+        <AppNav />
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
+          <Wordmark />
           <small>THE GOAL LAYER FOR ZIGCHAIN</small>
         </div>
       </aside>

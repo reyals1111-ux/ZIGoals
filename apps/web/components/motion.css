@@ -1,4 +1,4 @@
-:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1); }
+:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms;--motion-hover:220ms;--motion-press:90ms;--motion-fill:800ms; }
 .slogan-entrance { display:block; }
 .slogan-entrance[data-entrance=once] { animation:slogan-arrive var(--entrance-duration) var(--entrance-easing) both; }
 @keyframes slogan-arrive { from { opacity:.65;transform:translateY(9px); } to { opacity:1;transform:translateY(0); } }
@@ -11,3 +11,78 @@
 :root[data-app-motion=off] .motion-preview-sample{animation:none}
 :root[data-app-motion=off] :is(.slogan-entrance,.flow-ring-fill,.evidence-line,.price-chart-line,.nutrition-month-bars i,.composition-allocation-bar>span,.top-holding-bar>span) { animation:none!important;transition:none!important; }
 @media(prefers-reduced-motion:reduce) { .slogan-entrance[data-entrance=once],.motion-preview-sample { animation:none; } }
+/* Slogan: the second line trails the first by a breath, then one sweep of light travels from today's Habits & Health to tomorrow's Wealth and rests. The words are readable at every frame. */
+.slogan-entrance[data-entrance=once] .slogan-line+.slogan-line { animation:slogan-line-trail calc(var(--entrance-duration) + 150ms) var(--motion-glide) 70ms backwards; }
+@keyframes slogan-line-trail { from { transform:translateY(.2em); } }
+.slogan-entrance[data-entrance=once] .slogan-gradient { background-image:linear-gradient(100deg,transparent 42%,#ffffffa6 50%,transparent 58%),var(--slogan-gradient);background-size:250% 100%,100% 100%;background-repeat:no-repeat;background-position:100% 0,0 0;animation:slogan-shine 1200ms cubic-bezier(.45,0,.25,1) 420ms both; }
+.slogan-entrance[data-entrance=once] .slogan-line+.slogan-line .slogan-gradient { animation-delay:640ms; }
+@keyframes slogan-shine { from { background-position:100% 0,0 0; } to { background-position:0 0,0 0; } }
+:root[data-app-motion=off] :is(.slogan-line,.slogan-gradient) { animation:none!important; }
+
+/* Charts: once the line or sweep has drawn, its marks settle in behind it. Values, labels and tables are final from first render; only paint moves. --at is a mark's 0–1 horizontal position, --i its order. */
+@property --ring-reveal { syntax:'<percentage>';inherits:false;initial-value:100%; }
+@keyframes motion-fade-in { from { opacity:0; } }
+@keyframes motion-mark-in { from { opacity:0;transform:scale(.25); } }
+@keyframes motion-line-draw { from { stroke-dasharray:1;stroke-dashoffset:1; } 99% { stroke-dasharray:1; } to { stroke-dasharray:none;stroke-dashoffset:0; } }
+@keyframes motion-sweep { from { --ring-reveal:0%; } to { --ring-reveal:100%; } }
+@keyframes motion-rise { from { transform:scaleY(.04); } to { transform:scaleY(1); } }
+@keyframes motion-cell-in { from { opacity:.15;transform:scale(.72); } }
+:is(.evidence-chart,.price-chart)[data-entrance=once] svg>line { animation:motion-fade-in 520ms ease-out backwards; }
+:is(.evidence-chart,.price-chart)[data-entrance=once] :is(.evidence-point,circle[data-observation]) { transform-box:fill-box;transform-origin:center;animation:motion-mark-in var(--motion-mark) var(--motion-glide) backwards;animation-delay:calc(120ms + var(--at,1) * var(--entrance-duration) * .75); }
+.price-chart[data-entrance=once] .price-chart-plot polygon { animation:motion-fade-in 600ms ease-out 400ms backwards; }
+.price-chart-plot circle[data-observation] { transition:r 180ms var(--motion-glide),fill 180ms ease; }
+.market-movement figure[data-entrance=once] .market-movement-line { animation:motion-line-draw 900ms var(--entrance-easing) both; }
+/* Oversized, unclipped mask: the settled donut, outer glow included, paints exactly as before. */
+.portfolio-composition[data-entrance=once] .composition-donut { mask:conic-gradient(#000 var(--ring-reveal),transparent var(--ring-reveal)) center/200% 200% no-repeat,radial-gradient(circle closest-side,#000 calc(50% - 20px),transparent calc(50% - 20px)) center/200% 200% no-repeat;mask-clip:no-clip;animation:motion-sweep var(--entrance-duration) var(--entrance-easing) both; }
+.nutrition-trend[data-entrance=once] .nutrition-month-bars>div>i { animation-delay:calc(var(--i,0) * 14ms); }
+.habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) backwards;animation-delay:calc(var(--i,0) * 55ms); }
+.habit-consistency-month[data-entrance=once] .habit-month-grid>span { animation:motion-cell-in 480ms var(--motion-glide) backwards;animation-delay:calc(var(--i,0) * 16ms); }
+:root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.composition-donut,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }
+
+/* Buttons: hover, selection and focus glide; a press gives slightly; a primary action catches one sweep of light on hover, never a loop. Controls are usable at every frame. */
+:is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:transform var(--motion-hover) var(--motion-glide),box-shadow var(--motion-hover) var(--motion-glide),filter var(--motion-hover) ease,background-color var(--motion-hover) ease,border-color var(--motion-hover) ease,color var(--motion-hover) ease,outline-offset 160ms var(--motion-glide); }
+:where(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { outline-offset:8px; }
+:is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):active:not(:disabled) { transform:translateY(0) scale(.97);transition-duration:var(--motion-press); }
+.primary { position:relative;isolation:isolate; }
+.primary::after { content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 38%,#ffffff5c 50%,transparent 62%) 100% 0/250% 100% no-repeat;opacity:0; }
+@media(hover:hover) { .primary:hover:not(:disabled)::after { background-position:0 0;opacity:1;transition:background-position 850ms var(--motion-glide),opacity 120ms ease; } }
+@media(prefers-reduced-motion:reduce) { :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):active { transform:none; }.primary::after { content:none; } }
+:root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:none!important; }
+:root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):is(:hover,:active) { transform:none!important; }
+:root[data-app-motion=off] .primary::after { content:none; }
+
+/* Progress: fills grow from their start the first time a track is seen, like the portfolio bars, then glide to new values instead of jumping. Widths, roles and ARIA values are final from first render. */
+@keyframes motion-grow-x { from { transform:scaleX(.02); } to { transform:scaleX(1); } }
+@keyframes motion-gauge-sweep { from { stroke-dasharray:0 100; } }
+:is(.pace-track,.today-pace-track,.holding-allocation-track,.habit-overview-track,.health-today-meter,.health-meter)[data-entrance=once]>*,.habit-trends[data-entrance=once] i>span,.nutrition-distribution-track[data-entrance=once] { transform-origin:left;animation:motion-grow-x var(--motion-fill) var(--motion-glide) backwards; }
+.nutrition-gauge[data-entrance=once]>span { transform-origin:bottom;animation:motion-rise var(--motion-fill) var(--motion-glide) backwards; }
+.health-gauge[data-entrance=once] .health-gauge-fill { animation:motion-gauge-sweep calc(var(--motion-fill) + 200ms) var(--motion-glide) backwards; }
+.pace-track[data-entrance=once]>.pace-fill.planned,.habit-trends[data-entrance=once]>:nth-child(2) i>span,.health-macro-carbsMg .health-meter[data-entrance=once]>i { animation-delay:80ms; }
+.habit-trends[data-entrance=once]>:nth-child(3) i>span,.health-macro-fatMg .health-meter[data-entrance=once]>i { animation-delay:160ms; }
+:is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track>span) { transition:width var(--motion-fill) var(--motion-glide); }
+.nutrition-gauge>span { transition:height var(--motion-fill) var(--motion-glide); }
+.health-gauge-fill { transition:stroke-dasharray var(--motion-fill) var(--motion-glide); }
+:root[data-app-motion=off] :is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track,.nutrition-distribution-track>span,.nutrition-gauge>span,.health-gauge-fill) { animation:none!important;transition:none!important; }
+
+/* Navigation: the active highlight glides from the previous item to the new one, items give on press, and page content settles in softly. aria-current and focus move immediately. */
+.app-nav { position:relative; }
+.app-nav a { position:relative;z-index:1;transition:color 180ms,background 180ms,box-shadow 180ms,transform var(--motion-hover) var(--motion-glide); }
+.app-nav a:active { transform:scale(.97);transition-duration:var(--motion-press); }
+.nav-glide { position:absolute;left:0;top:0;z-index:0;box-sizing:border-box;pointer-events:none;opacity:0; }
+.nav-glide[data-state=start] { opacity:1;transition:none; }
+.nav-glide[data-state=moving] { opacity:1;transition:transform 380ms var(--motion-glide),width 380ms var(--motion-glide),height 380ms var(--motion-glide); }
+.nav-glide[data-state=done] { opacity:0;transition:opacity 180ms ease; }
+.app-nav[data-gliding] a[aria-current=page] { background:transparent!important;border-color:transparent!important;box-shadow:none!important; }
+.workspace main>div { animation:motion-page-enter 320ms var(--motion-glide); }
+@keyframes motion-page-enter { from { opacity:.55;transform:translateY(6px); } }
+@media(prefers-reduced-motion:reduce) { .app-nav a:active { transform:none; }.nav-glide { display:none; } }
+:root[data-app-motion=off] :is(.app-nav a,.workspace main>div) { animation:none!important;transition:none!important;transform:none!important; }
+:root[data-app-motion=off] .nav-glide { display:none; }
+
+/* Hero star: a transient layer between the artwork (::before) and its shade (::after), removed when the bloom ends. */
+.hero-star { position:absolute;inset:0;z-index:-2;overflow:hidden;pointer-events:none; }
+.hero-star>span { position:absolute;left:0;top:0;opacity:0;border-radius:50%; }
+.hero-star-veil { background:radial-gradient(closest-side,#020918e0 0%,#020918b0 42%,#0209184d 70%,#02091800 100%); }
+.hero-star-core { background:radial-gradient(closest-side,#fff 0 8%,#fff6ea 14%,#ffd3aecc 24%,#ff9fb866 40%,#a98bff26 60%,#0000 100%);mix-blend-mode:screen; }
+@media(prefers-reduced-motion:reduce) { .hero-star { display:none; } }
+:root[data-app-motion=off] .hero-star { display:none; }
