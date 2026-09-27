@@ -20,11 +20,12 @@ test('the glowing Z leads the sidebar, loads the right density and stays decorat
   expect(mark.width).toBeGreaterThanOrEqual(80);expect(Math.abs(mark.x+mark.width/2-(sidebar.x+sidebar.width/2))).toBeLessThanOrEqual(2);
   await expect(brand.locator('.brand-wordmark')).toBeHidden();await expect(page.locator('.app-sidebar>.product-descriptor')).toBeHidden();
   const quick=(await page.getByRole('button',{name:'+ Quick add',exact:true}).boundingBox())!,nav=(await page.getByRole('navigation',{name:'Main navigation'}).boundingBox())!;
-  const signature=page.locator('.sidebar-signature'),destination=(await page.locator('.sidebar-destination').boundingBox())!;
-  await expect(signature).toBeVisible();await expect(signature).toContainText('Your Financial Orbit');
-  const sign=(await signature.boundingBox())!,settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!;
+  const destination=page.locator('.sidebar-destination'),word=destination.locator('.brand-wordmark'),tagline=destination.locator('small');
+  await expect(word).toBeVisible();await expect(destination).not.toContainText('Your Financial Orbit');
+  const settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!,w=(await word.boundingBox())!,t=(await tagline.boundingBox())!,planet=(await destination.locator('.sidebar-horizon').boundingBox())!;
   expect(quick.y).toBeGreaterThanOrEqual(mark.y+mark.height);expect(nav.y).toBeGreaterThanOrEqual(quick.y+quick.height);
-  expect(sign.y).toBeGreaterThanOrEqual(settings.y+settings.height);expect(destination.y).toBeGreaterThanOrEqual(sign.y+sign.height-1);
+  expect(w.y).toBeGreaterThanOrEqual(settings.y+settings.height);expect(planet.y).toBeGreaterThanOrEqual(w.y+w.height-1);expect(t.y).toBeGreaterThanOrEqual(w.y+w.height);
+  expect(await tagline.evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
  await brand.screenshot({path:info.outputPath('brand.png')});

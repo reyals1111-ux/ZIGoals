@@ -38,9 +38,9 @@ export function Shell({ children }: { children: ReactNode }) {
         <p className="product-descriptor">Your Financial Orbit</p>
         <div className="sidebar-actions"><QuickAdd/></div>
         <AppNav />
-        <div className="sidebar-signature"><Wordmark /><p>Your Financial Orbit</p></div>
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
+          <Wordmark />
           <small>THE GOAL LAYER FOR ZIGCHAIN</small>
         </div>
       </aside>
