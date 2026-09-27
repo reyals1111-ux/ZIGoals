@@ -1,4 +1,7 @@
 # IMPLEMENTATION_VERIFIED — OWNER_ACTIVATION_PENDING
+
+> **Status update 2026-09-27:** PR21 was merged into `main` as `fb1e3d9690098fb9958f3a93e9028fa4804f6074` and deployed to Public Alpha by manual run [36339307897](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36339307897) (SUCCESS). Draft/not-merged/not-deployed wording below records the state at the time of writing. Current state: [STATUS](../STATUS.md).
+
 [Review PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) preserves preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build is `44e4424e5e6e75e490fedfd5e35c27265a336113`. Review-head documentation and hosted status are identified separately in [evidence](EVIDENCE.md).
 Completed encrypted account continuity, rotation/revocation/deletion recovery, selected-domain sync, conflict review, durable storage recovery and all preceding nonpublic service/configuration integration.
 Completed integrated Value/Quantity/Project → Habit → Today → retained correction → second-profile journeys, Health/recipes/meal planning, all four edited presets and protected four-domain restoration into a third profile.

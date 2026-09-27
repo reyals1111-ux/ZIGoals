@@ -1,4 +1,7 @@
 # Run11 verification and source boundaries
+
+> **Status update 2026-09-27:** PR21 was merged into `main` as `fb1e3d9690098fb9958f3a93e9028fa4804f6074` and deployed to Public Alpha by manual run [36339307897](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36339307897) (SUCCESS). Draft/not-merged/not-deployed wording below records the state at the time of writing. Current state: [STATUS](../STATUS.md).
+
 **Local implementation verified; owner activation pending.** Review: [draft PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21), implementation/build `44e4424e5e6e75e490fedfd5e35c27265a336113`, preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`. Later evidence-only commits do not change this tested application.
 1. Final clean build: OpenNext and all six isolated dry bundles passed. [Generated package](evidence/package-final.json) binds application, bundle and helper hashes: actual five SQLite services, three browser profiles, intercepted fictional upstreams, zero external requests.
 2. [Value/Quantity/Project](evidence/goal-journeys.json): create, linked plan/Habit where applicable, tracked funding or milestones, canceled then confirmed retained correction, unchanged allocations, Today Goal/Habit pins, exact history and records on profile B. Project correctly has no financial plan/allocation controls. Earlier consumer flow also covers Health/diary/recipe/planning/groceries, surplus, all four edited presets and protected four-domain restoration into profile C.
