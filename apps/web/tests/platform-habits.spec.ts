@@ -15,7 +15,7 @@ test('a linked contribution Habit records behavior but never adds financial prog
  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:habits:v1')!).habits[0].entries.length)).toBe(1);
  // Turn the completed fixture into a prior-day history before reconciling today's plan.
  await page.evaluate(()=>{const data=JSON.parse(localStorage.getItem('zigoals:habits:v1')!);const old=new Date();old.setDate(old.getDate()-1);const date=[old.getFullYear(),String(old.getMonth()+1).padStart(2,'0'),String(old.getDate()).padStart(2,'0')].join('-');const habit=data.habits[0];habit.startDate=date;habit.createdAt=old.toISOString();habit.rules[0].from=date;habit.entries[0].date=date;localStorage.setItem('zigoals:habits:v1',JSON.stringify(data));window.dispatchEvent(new CustomEvent('zigoals:private-change',{detail:'zigoals:habits:v1'}));});
- await page.locator('#contribution-plan > summary').click();await page.getByLabel('Planned amount',{exact:true}).fill('20');await page.getByRole('combobox',{name:'Cadence',exact:true}).selectOption('weekly');
+ await page.locator('#contribution-plan > summary').click();await page.getByLabel('Planned amount',{exact:true}).fill('20');await page.getByRole('group',{name:'Cadence',exact:true}).getByRole('radio',{name:'Weekly',exact:true}).check();
  await page.getByRole('button',{name:'Save contribution plan',exact:true}).click();
  await expect(page.getByText('Contribution habit differs from this plan.',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:'Apply plan to contribution habit',exact:true}).click();
