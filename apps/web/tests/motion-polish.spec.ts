@@ -85,3 +85,36 @@ test('reduced motion and the Off preference leave charts complete and still',asy
  await expect(month.locator('.habit-month-grid>span').first()).toHaveCSS('animation-name','none');
  await expect(month.locator('.habit-month-grid>span').first()).toHaveCSS('opacity','1');
 });
+
+test('primary actions catch one sweep of light on hover, give on press and keep their focus ring',async({page},info)=>{
+ test.skip(info.project.name==='mobile','Hover sweep is limited to hover-capable pointers.');
+ await showcase(page);
+ const action=page.locator('.today-hero .primary').first();await action.scrollIntoViewIfNeeded();
+ const sheen=()=>action.evaluate(el=>{const style=getComputedStyle(el,'::after');return {position:style.backgroundPosition,opacity:style.opacity};});
+ expect(await sheen()).toEqual({position:'100% 0px',opacity:'0'});
+ await action.hover();
+ await expect.poll(sheen).toEqual({position:'0px 0px',opacity:'1'});
+ await expect.poll(()=>action.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
+ await page.mouse.down();
+ await expect.poll(()=>action.evaluate(el=>getComputedStyle(el).transform)).toBe('matrix(0.97, 0, 0, 0.97, 0, 0)');
+ await page.mouse.move(0,0);await page.mouse.up();
+ expect(await sheen()).toEqual({position:'100% 0px',opacity:'0'});
+ await action.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
+ await expect(action).toBeFocused();await expect(action).toHaveCSS('outline-offset','4px');
+});
+
+test('reduced motion and the Off preference keep buttons still on every route',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await showcase(page);
+ const action=page.locator('.today-hero .primary').first();
+ expect(await action.evaluate(el=>getComputedStyle(el,'::after').content)).toBe('none');
+ await expect(action).toHaveCSS('transition-duration','0s');
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
+ await page.goto('/app/goals');
+ await expect(page.locator('html')).toHaveAttribute('data-app-motion','off');
+ const secondary=page.locator('.secondary').first();
+ await expect(secondary).toHaveCSS('transition-duration','0s');
+ await page.goto('/app');
+ expect(await page.locator('.today-hero .primary').first().evaluate(el=>getComputedStyle(el,'::after').content)).toBe('none');
+});

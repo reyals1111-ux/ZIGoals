@@ -1,4 +1,4 @@
-:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms; }
+:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms;--motion-hover:220ms;--motion-press:90ms; }
 .slogan-entrance { display:block; }
 .slogan-entrance[data-entrance=once] { animation:slogan-arrive var(--entrance-duration) var(--entrance-easing) both; }
 @keyframes slogan-arrive { from { opacity:.65;transform:translateY(9px); } to { opacity:1;transform:translateY(0); } }
@@ -31,3 +31,15 @@
 .habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) both;animation-delay:calc(var(--i,0) * 55ms); }
 .habit-consistency-month[data-entrance=once] .habit-month-grid>span { animation:motion-cell-in 480ms var(--motion-glide) backwards;animation-delay:calc(var(--i,0) * 16ms); }
 :root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.composition-donut,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }
+
+/* Buttons: hover, selection and focus glide; a press gives slightly; a primary action catches one sweep of light on hover, never a loop. Controls are usable at every frame. */
+:is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:transform var(--motion-hover) var(--motion-glide),box-shadow var(--motion-hover) var(--motion-glide),filter var(--motion-hover) ease,background-color var(--motion-hover) ease,border-color var(--motion-hover) ease,color var(--motion-hover) ease,outline-offset 160ms var(--motion-glide); }
+:where(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { outline-offset:8px; }
+:is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):active:not(:disabled) { transform:translateY(0) scale(.97);transition-duration:var(--motion-press); }
+.primary { position:relative;isolation:isolate; }
+.primary::after { content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 38%,#ffffff5c 50%,transparent 62%) 100% 0/250% 100% no-repeat;opacity:0; }
+@media(hover:hover) { .primary:hover:not(:disabled)::after { background-position:0 0;opacity:1;transition:background-position 850ms var(--motion-glide),opacity 120ms ease; } }
+@media(prefers-reduced-motion:reduce) { :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):active { transform:none; }.primary::after { content:none; } }
+:root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:none!important; }
+:root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):is(:hover,:active) { transform:none!important; }
+:root[data-app-motion=off] .primary::after { content:none; }
