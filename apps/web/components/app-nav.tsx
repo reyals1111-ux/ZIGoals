@@ -56,6 +56,7 @@ export function AppNav() {
     const el = nav.current;
     if (!el) return;
     const measure = () => { const active = el.querySelector('a[aria-current="page"]'); previous.current = active ? boxOf(active, el) : null; };
+    if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
