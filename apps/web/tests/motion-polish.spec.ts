@@ -161,3 +161,31 @@ test('reduced motion and the Off preference keep progress complete and still',as
  await expect(gauge.locator('.health-gauge-fill')).toHaveCSS('animation-name','none');
  await expect(gauge.locator('.health-gauge-fill')).toHaveCSS('transition-duration','0s');
 });
+
+test('the slogan cascades and carries one sweep of light from Habits & Health to Wealth, then rests',async({page},info)=>{
+ await watch(page,{'slogan-line-trail':'transform','slogan-shine':'background-position'});
+ await showcase(page);
+ const slogan=page.locator('.slogan-entrance');await slogan.scrollIntoViewIfNeeded();
+ await expect(slogan).toHaveText("Today's Goals, Habits & Health = Tomorrow's Wealth");
+ const line=await settled(page,'slogan-line-trail');expect(line.end).toBe('none');
+ const shine=await settled(page,'slogan-shine');expect(shine.end).toMatch(/^0(%|px) 0px, 0px 0px$/);
+ await expect.poll(()=>slogan.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
+ expect(await starts(page,'slogan-shine')).toBe(2);expect(await starts(page,'slogan-line-trail')).toBe(1);
+ await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.waitForTimeout(750);
+ expect(await starts(page,'slogan-shine')).toBe(2);
+ await page.locator('.orbit-slogan').screenshot({path:info.outputPath('slogan-settled.png')});
+});
+
+test('reduced motion and the Off preference keep the slogan exact and still',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await showcase(page);
+ const words=page.locator('.slogan-gradient');
+ await expect(words.first()).toHaveCSS('animation-name','none');
+ expect(await words.first().evaluate(el=>getComputedStyle(el).backgroundImage.split('linear-gradient').length-1)).toBe(1);
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
+ await page.reload();
+ await expect(page.locator('.slogan-entrance')).toHaveText("Today's Goals, Habits & Health = Tomorrow's Wealth");
+ await expect(words.last()).toHaveCSS('animation-name','none');
+ await expect(page.locator('.slogan-line').last()).toHaveCSS('animation-name','none');
+});
