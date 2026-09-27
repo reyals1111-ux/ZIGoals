@@ -35,7 +35,7 @@
 /* Oversized, unclipped mask: the settled donut, outer glow included, paints exactly as before. */
 .portfolio-composition[data-entrance=once] .composition-donut { mask:conic-gradient(#000 var(--ring-reveal),transparent var(--ring-reveal)) center/200% 200% no-repeat,radial-gradient(circle closest-side,#000 calc(50% - 20px),transparent calc(50% - 20px)) center/200% 200% no-repeat;mask-clip:no-clip;animation:motion-sweep var(--entrance-duration) var(--entrance-easing) both; }
 .nutrition-trend[data-entrance=once] .nutrition-month-bars>div>i { animation-delay:calc(var(--i,0) * 14ms); }
-.habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) both;animation-delay:calc(var(--i,0) * 55ms); }
+.habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) backwards;animation-delay:calc(var(--i,0) * 55ms); }
 .habit-consistency-month[data-entrance=once] .habit-month-grid>span { animation:motion-cell-in 480ms var(--motion-glide) backwards;animation-delay:calc(var(--i,0) * 16ms); }
 :root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.composition-donut,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }
 

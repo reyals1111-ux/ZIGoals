@@ -54,7 +54,7 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  const month=page.locator('.habit-consistency-month');await month.scrollIntoViewIfNeeded();
  const cells=await settled(page,'motion-cell-in');expect(Number(cells.start)).toBeLessThan(Number(cells.mid));expect(cells.end).toBe('1');
  const week=page.locator('.habit-week-momentum');await week.scrollIntoViewIfNeeded();
- const bars=await settled(page,'motion-rise');expect(bars.end).toBe('matrix(1, 0, 0, 1, 0, 0)');
+ const bars=await settled(page,'motion-rise');expect(bars.end).toBe('none');
  await expect(week.locator('.habit-week-bars')).toHaveAttribute('aria-label',/Last seven days: /);
  await page.locator('.habit-consistency').screenshot({path:info.outputPath('habit-history-settled.png')});
 });
