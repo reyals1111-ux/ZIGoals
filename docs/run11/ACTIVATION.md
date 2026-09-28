@@ -4,15 +4,15 @@ No provisioning, deployment, live migration, DNS, email, provider account or bil
 ## Configuration and binding matrix
 | Runtime | Public configuration, kept server-side here | Privileged value / binding | Actual consumer |
 |---|---|---|---|
-| OpenNext app | ZIGOALS_AUTH_ORIGIN, ZIGOALS_AUTH_PUBLIC_KEY (publishable/anon only), ZIGOALS_SYNC_ORIGIN, ZIGOALS_MARKET_QUOTES_MODE=durable-v1 | PRIVATE_SYNC, MARKET_QUOTES/QuoteService, FOOD_LOOKUP, AUTH_ABUSE/AdmissionService, WORKER_SELF_REFERENCE | apps/web/app/api/private-account/route.ts; lib/server/runtime-bindings.ts, durable-quote-route.ts; api/food-lookup/route.ts |
-| Private sync | AUTH_ORIGIN, AUTH_PUBLIC_KEY (same public client key), APP_ORIGIN (exact isolated HTTPS app origin) | VAULTS/PrivateVault SQLite; LIFECYCLE/LifecycleService | workers/private-sync/worker.mjs, sessions.mjs |
+| OpenNext app | ZIGOALS_AUTH_ORIGIN, ZIGOALS_AUTH_PUBLIC_KEY (publishable/anon only), ZIGOALS_SYNC_ORIGIN, ZIGOALS_MARKET_QUOTES_MODE=durable-v1 | PRIVATE_SYNC, MARKET_QUOTES/QuoteService, FOOD_LOOKUP, AUTH_ABUSE/AdmissionService, WORKER_SELF_REFERENCE | apps/web/app/api/private-account/route.ts; lib/server/market-runtime.ts (reads MARKET_QUOTES and the mode via runtime-bindings.ts), durable-quote-route.ts; api/food-lookup/route.ts |
+| Private sync | AUTH_ORIGIN, AUTH_PUBLIC_KEY (same public client key), APP_ORIGIN (exact isolated HTTPS app origin) | VAULTS/PrivateVault SQLite; LIFECYCLE/LifecycleService | workers/private-sync/worker.mjs (sessions.mjs is its helper module) |
 | Lifecycle authority | AUTH_ORIGIN; RECOVERY_MODE initially reconcile | LIFECYCLES/LifecycleAuthority SQLite; AUTH_ADMIN_KEY only here for provider identity deletion | workers/private-sync/lifecycle.mjs |
-| Isolated recovery administration | RECOVERY_ACCOUNT_ID and independently retained RECOVERY_CHECKPOINT_SHA256 for one account | Separately authorized named LifecycleRecoveryAdmin binding; never an app/public binding | lifecycle.mjs; scripts/run11/LIFECYCLE_RECOVERY.md |
-| Market coordinator | MARKET_QUOTE_DISPATCH=durable-v1; opaque MARKET_ACCOUNT_ID; confirmed MARKET_POLICY | MARKET_QUOTES named service; MARKETS/MarketAccount SQLite; COINGECKO_DEMO_API_KEY only here | workers/market-coordinator/worker.ts; lib/server/durable-market-account.ts |
+| Isolated recovery administration | RECOVERY_ACCOUNT_ID and independently retained RECOVERY_CHECKPOINT_SHA256 for one account | A separately authorized service binding to the LifecycleRecoveryAdmin entrypoint (a WorkerEntrypoint in lifecycle.mjs, not a binding name); never an app/public binding | lifecycle.mjs; scripts/run11/LIFECYCLE_RECOVERY.md |
+| Market coordinator | MARKET_QUOTE_DISPATCH=durable-v1; opaque MARKET_ACCOUNT_ID; confirmed MARKET_POLICY | MARKET_QUOTES named service; MARKETS/MarketAccount SQLite; COINGECKO_DEMO_API_KEY only here in this topology (the current Alpha still receives it as an app runtime secret; see [ALPHA_BINDING_SPEC.md](ALPHA_BINDING_SPEC.md)) | workers/market-coordinator/worker.ts; lib/server/durable-market-account.ts |
 | Food lookup | FOOD_USER_AGENT beginning ZIGoals/ with owner-approved contact | FOOD_BUDGET/FoodBudget SQLite | workers/food-lookup/worker.mjs |
 | Auth admission | None | AUTH_ADMISSION_KEY (random secret at least32characters); ADMISSION/AdmissionAuthority SQLite | workers/auth-abuse/worker.mjs |
 
-Origins/account labels are configuration, not credentials. Public Supabase keys are still never copied into reports. The service-role/admin key is **not** an acceptable app/private-sync public key. No credential or private email belongs in Git, console logs, screenshots, source archive or NovaVault. Existing `scripts/pre-run11-setup.mjs` validates exact public-key/origin relationships without network calls; its private config must be ignored and0600. The new topology checker supplements it rather than replacing its credential checks.
+Origins/account labels are configuration, not credentials. The templates are deliberately unconfigured, so several values above are not in them yet (for example ZIGOALS_AUTH_PUBLIC_KEY, AUTH_PUBLIC_KEY, the lifecycle AUTH_ORIGIN, MARKET_QUOTE_DISPATCH, MARKET_ACCOUNT_ID, MARKET_POLICY and FOOD_USER_AGENT). The topology checker rejects any template var whose name contains key, secret, token or password, so ZIGOALS_AUTH_PUBLIC_KEY and AUTH_PUBLIC_KEY must be supplied with `secret put` even though their values are publishable. Public Supabase keys are still never copied into reports. The service-role/admin key is **not** an acceptable app/private-sync public key. No credential or private email belongs in Git, console logs, screenshots, source archive or NovaVault. Existing `scripts/pre-run11-setup.mjs` validates exact public-key/origin relationships without network calls; its private config must be ignored and0600. The new topology checker supplements it rather than replacing its credential checks.
 
 ## Eight staged owner activities
 1. **Accounts and limits:** use owner-controlled nonproduction Supabase/Resend and existing approved Cloudflare/CoinGecko access. Confirm regions, plan entitlement, quotas, current usage and spend controls. No subscription, paid upgrade or automatic reload is implied.
@@ -26,7 +26,7 @@ Origins/account labels are configuration, not credentials. Public Supabase keys 
 
 ## Existing executable files and safe command sequence
 Templates: `apps/web/wrangler.run11.local.jsonc`; `workers/private-sync/wrangler.local.jsonc`; `workers/private-sync/wrangler.lifecycle.local.jsonc`; `workers/market-coordinator/wrangler.local.jsonc`; `workers/food-lookup/wrangler.local.jsonc`; `workers/auth-abuse/wrangler.local.jsonc`.
-The topology checker rejects public routes, changed live names, credentials in templates, missing bindings/migrations, automatic lifecycle serving and recovery-admin exposure. It requires exact HEAD and preparation ancestry. It has no deploy/provision/email mode. `--dry-run` bundles only those source-controlled isolated templates and requires a generated app from the same commit.
+The topology checker rejects public routes, changed live names, credentials in templates, missing bindings/migrations, automatic lifecycle serving and recovery-admin exposure. It requires exact HEAD and ancestry from preparation commit `3ca2f42303724ef1317aded6982c9fdd6fd8775d`, so run it in a full clone (`git fetch --unshallow` or CI `fetch-depth: 0`); a shallow clone fails that check. It has no deploy/provision/email mode. `--dry-run` bundles only those source-controlled isolated templates and requires a generated app from the same commit.
 
 ```sh
 # Pinned Node24.19.0 / pnpm11.19.0; clean reviewed source.
@@ -34,7 +34,8 @@ node scripts/run11/activation-check.mjs --source "$(git rev-parse HEAD)"
 pnpm --filter @zigoals/web build:alpha
 node scripts/run11/activation-check.mjs --source "$(git rev-parse HEAD)" --dry-run
 RUN11_PACKAGED=1 RUN11_PACKAGE_BUNDLE=/tmp/zigoals-run11-dry-app/worker.js pnpm exec vitest run scripts/run11/packaged-runtime.test.mjs
-# Existing read-only owner configuration validation, once private values are supplied:
+# Existing read-only owner configuration validation, once private values are supplied
+# (the env file also names ZIGOALS_OWNER_WORKER_CONFIG, a private ignored 0600 Worker JSONC file):
 node --env-file=apps/web/.env.local scripts/pre-run11-setup.mjs
 # Only after separately approving an actual test-email request:
 # node --env-file=apps/web/.env.local scripts/pre-run11-email.mjs request
