@@ -1,3 +1,19 @@
+# Sync self-conflict race fix — 2026-09-28, branch `fix/sync-self-conflict-race` (not merged or deployed)
+
+**Race (fixed on branch).** `synchronize()` published this device's snapshot but advanced the sync journal only in `commit()`. When a local edit landed during the sync, `applyData()` correctly refused to overwrite it, `commit()` was skipped, and the next sync reported this device's *own* upload as "Unlinked local and cloud records differ" (or as a false financial conflict after an earlier sync). Now, once the cloud acknowledges the catalog head, the same journal write that clears the pending operation records each section whose published bytes equal the snapshot read at the start of that sync. Sections that merged another device's edits keep their previous base until `commit()`, so they cannot be silently overwritten. Merge rules, conflict checks, retries and timeouts are unchanged. The newer local edit stays pending and uploads on the next sync. Evidence: unit harness in `apps/web/lib/vault/cloud-sync.test.ts` and the single-profile browser harness `scripts/run11/sync-self-conflict-browser.test.mjs`. Both failed deterministically before the fix and pass after it.
+
+**Test matcher.** `apps/web/tests/unified-goals.spec.ts` now flags chain RPC by hostname or pathname, and `/api/positions` by pathname. It ignores only the query string, so Next `?_rsc=` fetches are no longer misreported.
+
+**Run11 anomaly #1 (profile B "Breakfast today 150 kcal" timeout, `docs/run11/evidence/attempts.json`).** This race is not a likely explanation. In that journey it would have made profile A's own final "Sync now" fail visibly ("Needs attention" plus an Unlinked error), so the failure would have appeared on A, not on B. The root cause remains unresolved; the failed run captured no state. More likely candidates:
+- The failed source `d2ae5728` did not yet verify that A had saved the Breakfast widget before syncing; that precondition was added later, and three passes followed.
+- `waitPackagedSync` can accept a stale "Account records synced and acknowledged" message in the moment between the click and the busy state rendering.
+
+**Open follow-up — lost acknowledgement of the final head write.** If the cloud applies the catalog head but its acknowledgement never reaches the browser (tab closed, network drop), the head stays `pending` and is replayed on the next sync without recording the uploaded snapshot. A local edit made in that window can still surface as a false "Unlinked" or financial conflict, which currently needs manual review. Closing this safely requires persisting the prospective base with the pending operation and applying it only after a confirmed replay; that is a sync-journal format change and was deliberately left out of this fix.
+
+**Observation (no change).** "Sync now" is disabled while any sync runs, and the panel shows "Syncing encrypted account records…". A click in the brief window before the busy state renders is ignored without feedback. An edit made while a sync is running does not schedule its own follow-up sync; it waits for the next 30-second, focus or online trigger.
+
+---
+
 # Actual Run #11 — merged and deployed to Public Alpha, owner activation pending
 
 [PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) was merged into `main` on 2026-09-27 as `fb1e3d9690098fb9958f3a93e9028fa4804f6074` (preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build `44e4424e5e6e75e490fedfd5e35c27265a336113`). Integrated local account, market, Goal/Habit/Health/preset and recovery journeys are implemented and accepted. See [current report](run11/FINAL_REPORT.md), [source-bound evidence](run11/EVIDENCE.md), [full closure](run11/CLOSURE.json) and [resume state](run11/STATE.md). The eight [owner activation stages](run11/ACTIVATION.md) remain separate.
