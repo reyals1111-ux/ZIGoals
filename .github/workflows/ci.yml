@@ -17,8 +17,8 @@ jobs:
   web-checks:
     name: web checks (lint, types, unit, build, audit, secret scan)
     runs-on: ubuntu-24.04
-    # Measured about 4 min (setup plus lint, typecheck, unit tests and build).
-    timeout-minutes: 15
+    # Measured 3.7 min on the first split run (36489960661); about 2.5x headroom.
+    timeout-minutes: 10
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -42,10 +42,11 @@ jobs:
   web-browser:
     name: web browser suite (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-24.04
-    # Measured about 20 min for the whole suite in one job. Each of the three
-    # shards runs about a third of it, still with 2 workers, plus about 2.5 min
-    # of setup and build.
-    timeout-minutes: 20
+    # The whole suite took 15-20 min in one job. Split three ways (2 workers
+    # each) the shards measured 7.6-8.4 min including about 1.5 min of setup
+    # and build (run 36489960661). About 2x headroom for suite growth and
+    # slower runners.
+    timeout-minutes: 18
     strategy:
       fail-fast: false
       matrix:
@@ -89,9 +90,10 @@ jobs:
   web-integration:
     name: web integration (account, market, Run11 package, Alpha gate)
     runs-on: ubuntu-24.04
-    # Measured about 7 min (setup, build, integration 2 min, Alpha build and
-    # package topology 2 min, Workers security gate 0.5 min).
-    timeout-minutes: 20
+    # Measured 5.7 min (integration 2.2 min, Alpha build and package topology
+    # 1.7 min, Workers security gate 0.5 min; run 36489960661). About 2.5x
+    # headroom: the account browser tests wait up to 30 s per step on failure.
+    timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
