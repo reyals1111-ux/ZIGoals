@@ -1,6 +1,6 @@
-# Sync self-conflict race fix — 2026-09-28, branch `fix/sync-self-conflict-race` (not merged or deployed)
+# Sync self-conflict race fix — 2026-09-28, [PR #25](https://github.com/reyals1111-ux/ZIGoals/pull/25) merged into `main` as `7fdea686517cee322a37896b3e7a56931ce0ed6a` (not deployed)
 
-**Race (fixed on branch).** `synchronize()` published this device's snapshot but advanced the sync journal only in `commit()`. When a local edit landed during the sync, `applyData()` correctly refused to overwrite it, `commit()` was skipped, and the next sync reported this device's *own* upload as "Unlinked local and cloud records differ" (or as a false financial conflict after an earlier sync). Now, once the cloud acknowledges the catalog head, the same journal write that clears the pending operation records each section whose published bytes equal the snapshot read at the start of that sync. Sections that merged another device's edits keep their previous base until `commit()`, so they cannot be silently overwritten. Merge rules, conflict checks, retries and timeouts are unchanged. The newer local edit stays pending and uploads on the next sync. Evidence: unit harness in `apps/web/lib/vault/cloud-sync.test.ts` and the single-profile browser harness `scripts/run11/sync-self-conflict-browser.test.mjs`. Both failed deterministically before the fix and pass after it.
+**Race (fixed).** `synchronize()` published this device's snapshot but advanced the sync journal only in `commit()`. When a local edit landed during the sync, `applyData()` correctly refused to overwrite it, `commit()` was skipped, and the next sync reported this device's *own* upload as "Unlinked local and cloud records differ" (or as a false financial conflict after an earlier sync). Now, once the cloud acknowledges the catalog head, the same journal write that clears the pending operation records each section whose published bytes equal the snapshot read at the start of that sync. Sections that merged another device's edits keep their previous base until `commit()`, so they cannot be silently overwritten. Merge rules, conflict checks, retries and timeouts are unchanged. The newer local edit stays pending and uploads on the next sync. Evidence: unit harness in `apps/web/lib/vault/cloud-sync.test.ts` and the single-profile browser harness `scripts/run11/sync-self-conflict-browser.test.mjs`. Both failed deterministically before the fix and pass after it.
 
 **Test matcher.** `apps/web/tests/unified-goals.spec.ts` now flags chain RPC by hostname or pathname, and `/api/positions` by pathname. It ignores only the query string, so Next `?_rsc=` fetches are no longer misreported.
 
@@ -52,27 +52,27 @@ Every value below was checked against GitHub on 2026-09-28.
 
 Target statuses come from the owner. The full target definitions are not recorded in this repository.
 
-## Upcoming CI risk
-GitHub's `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19. This date was supplied by the owner and was not checked here. Milestone quality (`.github/workflows/ci.yml`, both jobs) runs on `ubuntu-latest`. The other workflows pin `ubuntu-24.04`. Verify CI before that date.
+## CI runner image (resolved)
+GitHub's `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19 (date supplied by the owner, not checked here). Milestone quality used to run on `ubuntu-latest`; all workflows now pin `ubuntu-24.04`, so the move does not affect CI until the pin is changed deliberately.
 - [PR #24](https://github.com/reyals1111-ux/ZIGoals/pull/24) was merged (`acf48aa93bf4d241034a676e4e1b97433ad3c5d3`): both Milestone quality jobs (`web`, `contract`) are now pinned to `ubuntu-24.04`.
 
 ---
 
-# Actual Run #11 — merged and deployed to Public Alpha, owner activation pending
+# Run #11 (PR21) — merged and deployed 2026-09-27; superseded as live Alpha by PR #22, owner activation still pending
 
-[PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) was merged into `main` on 2026-09-27 as `fb1e3d9690098fb9958f3a93e9028fa4804f6074` (preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build `44e4424e5e6e75e490fedfd5e35c27265a336113`). Integrated local account, market, Goal/Habit/Health/preset and recovery journeys are implemented and accepted. See [current report](run11/FINAL_REPORT.md), [source-bound evidence](run11/EVIDENCE.md), [full closure](run11/CLOSURE.json) and [resume state](run11/STATE.md). The eight [owner activation stages](run11/ACTIVATION.md) remain separate.
+[PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) was merged into `main` on 2026-09-27 as `fb1e3d9690098fb9958f3a93e9028fa4804f6074` (preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build `44e4424e5e6e75e490fedfd5e35c27265a336113`). Integrated local account, market, Goal/Habit/Health/preset and recovery journeys are implemented and accepted. See [Run11 final report](run11/FINAL_REPORT.md), [source-bound evidence](run11/EVIDENCE.md), [full closure](run11/CLOSURE.json) and [resume state](run11/STATE.md). The eight [owner activation stages](run11/ACTIVATION.md) remain separate.
 
 Manual Alpha deployment run [36339307897](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36339307897) deployed exact `fb1e3d9690098fb9958f3a93e9028fa4804f6074` on 2026-09-27: SUCCESS, Worker version `c7c67184-0449-48dd-8feb-7e3d0752090e`, rollback `1438406e-4ede-423b-81cc-5eeb0d1c1a8a`. The previous Alpha deployment was Run10 (PR20) at `901e2a6600fb8292b7956717d45341f050fd377c`.
 
 ## Historical release reports below
 
-Their original pending/draft descriptions apply to their observation dates, not current Run11 or PR20 state.
+Their original pending/draft descriptions apply to their observation dates, not to the state recorded above.
 
-# Actual Run #10 — PARTIAL, DRAFT PR #20
+# Run #10 (PR #20) — historical record; PR #20 was later merged and deployed (`901e2a6`), then superseded by Run #11
 
 The authoritative expanded Run10 is implemented in part on `codex/run10-beta-reliability-foundation`; it is not merged or deployed. Local four-domain encrypted continuity, Health/Habit/financial/UI work and canonical CI improvements have concrete evidence. Account/domain deletion, key rotation, incremental sync/conflict UI, larger-history and several integrated journeys remain incomplete. Hosted email/backend and physical acceptance are separately unconfigured.
 
-See [current report](run10/FINAL_REPORT.md), [full ledger](run10/REQUIREMENTS.json), [verification](run10/VERIFICATION.md), [blockers](run10/BLOCKERS.md) and [exact resume](run10/RESUME_STATE.md). Earlier Run11/12 scheduling exclusions and open sync decisions are superseded by [the preserved authoritative brief](run10/MASTER_PROMPT.md); required gaps remain inside Run10. The deployed Alpha and financial-execution gates are unchanged.
+See [Run10 final report](run10/FINAL_REPORT.md), [full ledger](run10/REQUIREMENTS.json), [verification](run10/VERIFICATION.md), [blockers](run10/BLOCKERS.md) and [exact resume](run10/RESUME_STATE.md). Earlier Run11/12 scheduling exclusions and open sync decisions are superseded by [the preserved authoritative brief](run10/MASTER_PROMPT.md); required gaps remain inside Run10. The deployed Alpha and financial-execution gates are unchanged.
 
 ---
 
