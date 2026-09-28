@@ -16,9 +16,11 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await expect(page.getByRole("link", { name: "Plan my first goal" })).toHaveAttribute("href", "/app/goals/new");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`dashboard-${viewport.width}.png`), fullPage: true });
-    await page.getByRole("link", { name: "See how it works" }).click();
-    await expect(page).toHaveURL(/#how-it-works$/);
-    await expect(page.getByRole("region", { name: "How it works" })).toBeInViewport();
+    await page.getByRole("button", { name: "See how it works" }).click();
+    await expect(page.getByRole("dialog", { name: "ZIGoals intro" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "How it works" })).toBeAttached();
     await page.getByRole("link", { name: "Plan my first goal" }).click();
     await expect(page).toHaveURL(/\/app\/goals\/new$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
