@@ -12,7 +12,7 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await expect(page.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
     await expect(page.locator(".network-banner")).toContainText("ZIGCHAIN TESTNET · PUBLIC ALPHA");
     await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures.");
-    await expect(page.getByRole("link", { name: "+ Create a goal", exact: true })).toHaveAttribute("href", "/app/goals/new");
+    await expect(page.locator(".today-hero").getByRole("button", { name: "+ Quick add", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Plan my first goal" })).toHaveAttribute("href", "/app/goals/new");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`dashboard-${viewport.width}.png`), fullPage: true });

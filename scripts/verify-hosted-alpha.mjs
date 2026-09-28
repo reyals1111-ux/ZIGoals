@@ -61,7 +61,7 @@ try {
   });
   const sentinels=['M5_FICTIONAL_GOAL_81f3c7','7319.2468','7319246800000000000000','2033-11-27','M5_FICTIONAL_NOTE_29a6f4'];
   await stage('Fictional local create, deposit and withdraw', async()=>{
-    await page.getByRole('link',{name:'+ Create a goal',exact:true}).click();
+    await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click(); await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
     await page.getByRole('button',{name:'Travel',exact:true}).click(); await page.getByRole('button',{name:'Continue →',exact:true}).click();
     await page.getByLabel('Private goal name').fill(sentinels[0]); await page.getByLabel('Target amount').fill(sentinels[1]);
     for(let n=0;n<3;n++) await page.getByRole('button',{name:'Continue →',exact:true}).click();
