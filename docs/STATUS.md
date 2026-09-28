@@ -14,6 +14,50 @@
 
 ---
 
+# Current accepted baseline (2026-09-28)
+
+**Handover rule:** every merged change updates this section. Sections below it are earlier records.
+
+## Release identity
+Every value below was checked against GitHub on 2026-09-28.
+- `main` = `a59bf038a44966eb3816878d935a2c5111ef5b3a`, the merge of [PR #22](https://github.com/reyals1111-ux/ZIGoals/pull/22) (`claude/brand-nav-polish`, head `7e8d2d178d490b5c39200feabacc6d86d8068208`), merged 2026-09-27. Verified: PR API.
+- CI: Milestone quality #119 ([run 36354823188](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36354823188)) on `a59bf03`: success. Verified: Actions API.
+- Deployment: Manual Alpha deployment #9 ([run 36357209395](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36357209395)), exact source `a59bf03`: success. Verified: Actions API.
+- Worker `zigoals-alpha`: new version `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb` (also the observed live version); rollback version `c7c67184-0449-48dd-8feb-7e3d0752090e` (the PR21 deployment), captured and validated before upload; 11/11 smoke routes returned 200 with security PASS. Verified: `deployment.json`/`rollback.json` in the run's `alpha-deployment-36357209395-1` artifact (status `VERIFIED`).
+
+## PR #22 changes
+- Glowing nebula Z above the ZIGoals wordmark. On desktop, a larger Z is centred above the sidebar, and the wordmark with the nebula tagline sits above the sidebar planet.
+- The nav highlight glides between items, with a fallback where ResizeObserver is unavailable. Stake / Positions moved below Markets.
+- The hero star rises along the planet's rim into its flare. The slogan cascades and carries one sweep of light to Wealth.
+- Motion polish: buttons get a gliding hover, a tactile press and one sheen pass on primary buttons. Progress bars and gauges grow in once, then glide to new values. Chart marks, sparklines, the donut and Habit history settle into view. Habit week bars and Health nutrition bars keep no leftover transform after rising.
+- Goal choice tiles in the app's theme replace the native Goal dropdowns.
+- iPhone Safari no longer zooms into 14px fields, and small disclosures are larger.
+- A root `CLAUDE.md` quick start, and the record of PR21 as merged and deployed.
+
+**Rule:** PR #22 is the accepted baseline. Build on top of it. Don't revert or redesign any of it without owner approval.
+
+## The 10 targets
+| # | Status | Note |
+|---|---|---|
+| 1 | OPEN | |
+| 2 | PARTLY | `CLAUDE.md` done |
+| 3 | PARTLY | Run11 final evidence (`414aa52b56bf2de049561dbbd248584d1c29c91b`, docs only) is backed up on branch `backup/run11-final-evidence` and not yet merged |
+| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)) |
+| 5 | OPEN | |
+| 6 | OPEN | |
+| 7 | PARTLY | Real-iPhone check remains |
+| 8 | DONE | |
+| 9 | OPEN | |
+| 10 | OPEN | |
+
+Target statuses come from the owner. The full target definitions are not recorded in this repository.
+
+## Upcoming CI risk
+GitHub's `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19. This date was supplied by the owner and was not checked here. Milestone quality (`.github/workflows/ci.yml`, both jobs) runs on `ubuntu-latest`. The other workflows pin `ubuntu-24.04`. Verify CI before that date.
+- [PR #24](https://github.com/reyals1111-ux/ZIGoals/pull/24) was merged (`acf48aa93bf4d241034a676e4e1b97433ad3c5d3`): both Milestone quality jobs (`web`, `contract`) are now pinned to `ubuntu-24.04`.
+
+---
+
 # Actual Run #11 — merged and deployed to Public Alpha, owner activation pending
 
 [PR21](https://github.com/reyals1111-ux/ZIGoals/pull/21) was merged into `main` on 2026-09-27 as `fb1e3d9690098fb9958f3a93e9028fa4804f6074` (preparation `3ca2f42303724ef1317aded6982c9fdd6fd8775d`; tested implementation/build `44e4424e5e6e75e490fedfd5e35c27265a336113`). Integrated local account, market, Goal/Habit/Health/preset and recovery journeys are implemented and accepted. See [current report](run11/FINAL_REPORT.md), [source-bound evidence](run11/EVIDENCE.md), [full closure](run11/CLOSURE.json) and [resume state](run11/STATE.md). The eight [owner activation stages](run11/ACTIVATION.md) remain separate.
