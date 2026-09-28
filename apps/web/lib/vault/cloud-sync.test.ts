@@ -108,3 +108,30 @@ test('first offline Health preferences merge separate changes against canonical 
  for(const [left,right]of [[a,b],[b,a]])expect(JSON.parse(mergePrivateData(wrap(empty),wrap(left),wrap(right)).health!).daily.preferences).toEqual({...defaults,timezone:'UTC',weightUnit:'lb',waterTargetMl:2500});
  expect(()=>mergePrivateData(wrap(empty),wrap(a),wrap(saveHealthPreferences(empty,{...defaults,timezone:'Europe/Brussels'})))).toThrow('Conflicting');
 });
+
+// A device's own confirmed upload must never read back as an Unlinked/financial conflict when
+// the caller could not commit (local storage changed while the sync ran, so applyData refused).
+test('own uploaded finance without commit syncs normally with a newer local change',async()=>{
+ const s=await setup(),F1='{"fixture":"F1"}',F2='{"fixture":"F2"}';
+ await synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,{finance:F1},noop,noop);expect((await cloudSnapshot(s.cloud,s.vault.key,s.vault.manifest)).data.finance).toBe(F1);
+ const second=await sync(s,{finance:F2});expect(second.data.finance).toBe(F2);expect((await cloudSnapshot(s.cloud,s.vault.key,s.vault.manifest)).data.finance).toBe(F2);
+ const writes=s.cloud.calls.length,settled=await sync(s,{finance:F2});expect(settled.data.finance).toBe(F2);expect(s.cloud.calls).toHaveLength(writes);expect(s.journal.state).toMatchObject({base:{finance:F2},pending:null});
+});
+test('own uploaded finance after an earlier committed base syncs normally with a newer local change',async()=>{
+ const s=await setup(),F0='{"fixture":"F0"}',F1='{"fixture":"F1"}',F2='{"fixture":"F2"}';await sync(s,{finance:F0});
+ await synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,{finance:F1},noop,noop);
+ const second=await sync(s,{finance:F2});expect(second.data.finance).toBe(F2);expect((await cloudSnapshot(s.cloud,s.vault.key,s.vault.manifest)).data.finance).toBe(F2);
+ const writes=s.cloud.calls.length;await sync(s,{finance:F2});expect(s.cloud.calls).toHaveLength(writes);expect(s.journal.state).toMatchObject({base:{finance:F2},pending:null});
+});
+test('another device finance edit after an uncommitted own upload still conflicts without writes',async()=>{
+ const s=await setup(),F0='{"fixture":"F0"}',F1='{"fixture":"F1"}';await sync(s,{finance:F0});const other=new MemoryJournal();other.state=structuredClone(s.journal.state);
+ await synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,{finance:F1},noop,noop);
+ await synchronize(s.cloud,other,s.vault.key,s.vault.manifest,{finance:F0},noop,noop).then(r=>r.commit());await synchronize(s.cloud,other,s.vault.key,s.vault.manifest,{finance:'{"fixture":"FB"}'},noop,noop).then(r=>r.commit());
+ const writes=s.cloud.calls.length;await expect(synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,{finance:'{"fixture":"F2"}'},noop,noop)).rejects.toThrow('Conflicting financial changes');expect(s.cloud.calls).toHaveLength(writes);
+});
+test('a merged section is not marked synced before commit, so another device edit is never overwritten',async()=>{
+ const s=await setup(),S0=JSON.stringify({x:0,y:0});await sync(s,{settings:S0});
+ const other=new MemoryJournal();other.state=structuredClone(s.journal.state);await synchronize(s.cloud,other,s.vault.key,s.vault.manifest,{settings:JSON.stringify({x:0,y:2})},noop,noop).then(r=>r.commit());
+ const local={settings:JSON.stringify({x:1,y:0})},merged=await synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,local,noop,noop);expect(JSON.parse(merged.data.settings!)).toEqual({x:1,y:2});expect(s.journal.state.base.settings).toBe(S0);
+ const retried=await sync(s,local);expect(JSON.parse(retried.data.settings!)).toEqual({x:1,y:2});expect(JSON.parse((await cloudSnapshot(s.cloud,s.vault.key,s.vault.manifest)).data.settings!)).toEqual({x:1,y:2});
+});
