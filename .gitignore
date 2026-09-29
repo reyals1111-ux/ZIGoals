@@ -156,6 +156,8 @@ test-results/
 .wrangler/
 .dev.vars*
 /workers/private-sync/wrangler.preview.owner.jsonc
+# Stage 4 private Worker configs (scripts/run11/make-private-configs.mjs); never committed.
+*.acctest.owner.jsonc
 
 # Isolated browser verification outputs
 apps/web/test-results-*/
