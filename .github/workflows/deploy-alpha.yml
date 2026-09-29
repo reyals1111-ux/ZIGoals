@@ -65,8 +65,65 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/alpha-deploy.mjs authorize
 
-  deploy:
+  # Third-party install, test and build code runs here, in a job with no environment,
+  # no Cloudflare or CoinGecko credential and only the read-only GITHUB_TOKEN. Its only
+  # product is the packed .open-next output and that archive's SHA-256.
+  build:
     needs: authorize
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      sha256: ${{ steps.pack.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.19.0"
+          package-manager-cache: false
+      - run: npm install --global pnpm@11.19.0
+      - name: Verify exact main before building
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/alpha-deploy.mjs source
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Deployment config and regression gates
+        run: |
+          pnpm check:deploy-configs
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+      - name: Build and dry-run Alpha without deployment credentials
+        run: |
+          pnpm --filter @zigoals/web build:alpha
+          pnpm --filter @zigoals/web check:alpha
+      - name: Verify clean exact-source Alpha build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/alpha-deploy.mjs build
+      - name: Pack the built Worker and record its hash
+        id: pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/alpha-build"
+          archive="$RUNNER_TEMP/alpha-build/open-next.tar"
+          tar -C apps/web --sort=name --owner=0 --group=0 --numeric-owner -cf "$archive" .open-next
+          sum=$(sha256sum "$archive" | cut -d' ' -f1)
+          [[ "$sum" =~ ^[a-f0-9]{64}$ ]]
+          echo "sha256=$sum" >> "$GITHUB_OUTPUT"
+          echo "Alpha build archive SHA-256: \`$sum\`" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: alpha-build-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/alpha-build/open-next.tar
+          if-no-files-found: error
+          retention-days: 7
+
+  # Credentials exist only here, behind the owner-approved alpha environment. This job
+  # never builds: it deploys the build job's archive only after its hash matches.
+  deploy:
+    needs: [authorize, build]
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     environment:
@@ -89,18 +146,30 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/alpha-deploy.mjs source
+      # Lifecycle scripts stay disabled; only the pinned deploy tooling is installed.
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Deployment config and regression gates
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: alpha-build-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/alpha-build
+      - name: Verify the build archive hash and unpack only .open-next
+        env:
+          EXPECTED_SHA256: ${{ needs.build.outputs.sha256 }}
         run: |
-          pnpm check:deploy-configs
-          pnpm lint
-          pnpm typecheck
-          pnpm test
-      - name: Build and dry-run Alpha without deployment credentials
-        run: |
-          pnpm --filter @zigoals/web build:alpha
-          pnpm --filter @zigoals/web check:alpha
-      - name: Verify clean exact-source Alpha build
+          archive="$RUNNER_TEMP/alpha-build/open-next.tar"
+          [[ "$EXPECTED_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          echo "$EXPECTED_SHA256  $archive" | sha256sum --check --strict -
+          # Regular files and directories under .open-next/ only: no links, devices,
+          # absolute paths or parent-directory components. Captured first so that
+          # pipefail can never turn a rejection into a skipped check.
+          types=$(tar -tvf "$archive" | cut -c1 | sort -u | tr -d '\n')
+          [[ "$types" =~ ^[-d]+$ ]] || { echo "Unexpected archive entry type: $types"; exit 1; }
+          paths=$(tar -tf "$archive")
+          if grep -Ev '^\.open-next(/|$)' <<<"$paths"; then echo "Unexpected archive path"; exit 1; fi
+          if grep -E '(^|/)\.\.(/|$)' <<<"$paths"; then echo "Parent path in archive"; exit 1; fi
+          test ! -e apps/web/.open-next
+          tar -C apps/web --no-same-owner -xf "$archive"
+      - name: Verify the unpacked build is this exact source
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/alpha-deploy.mjs build
