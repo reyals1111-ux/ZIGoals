@@ -159,16 +159,25 @@ jobs:
           archive="$RUNNER_TEMP/alpha-build/open-next.tar"
           [[ "$EXPECTED_SHA256" =~ ^[a-f0-9]{64}$ ]]
           echo "$EXPECTED_SHA256  $archive" | sha256sum --check --strict -
-          # Regular files and directories under .open-next/ only: no links, devices,
-          # absolute paths or parent-directory components. Captured first so that
-          # pipefail can never turn a rejection into a skipped check.
-          types=$(tar -tvf "$archive" | cut -c1 | sort -u | tr -d '\n')
-          [[ "$types" =~ ^[-d]+$ ]] || { echo "Unexpected archive entry type: $types"; exit 1; }
-          paths=$(tar -tf "$archive")
-          if grep -Ev '^\.open-next(/|$)' <<<"$paths"; then echo "Unexpected archive path"; exit 1; fi
-          if grep -E '(^|/)\.\.(/|$)' <<<"$paths"; then echo "Parent path in archive"; exit 1; fi
           test ! -e apps/web/.open-next
-          tar -C apps/web --no-same-owner -xf "$archive"
+          # Only .open-next/ paths; only regular files, directories and relative symlinks
+          # that resolve inside .open-next/ (pnpm's layout). The data filter guards again.
+          python3 - "$archive" <<'PY'
+          import posixpath, sys, tarfile
+          root = ".open-next"
+          with tarfile.open(sys.argv[1]) as archive:
+              for member in archive.getmembers():
+                  name = member.name
+                  if name != root and not name.startswith(root + "/") or ".." in name.split("/"):
+                      sys.exit(f"Unexpected archive path: {name}")
+                  if member.issym():
+                      target = posixpath.normpath(posixpath.join(posixpath.dirname(name), member.linkname))
+                      if member.linkname.startswith("/") or not target.startswith(root + "/"):
+                          sys.exit(f"Link leaves {root}: {name}")
+                  elif not (member.isfile() or member.isdir()):
+                      sys.exit(f"Unexpected archive entry type: {name}")
+              archive.extractall("apps/web", filter="data")
+          PY
       - name: Verify the unpacked build is this exact source
         env:
           GH_TOKEN: ${{ github.token }}
