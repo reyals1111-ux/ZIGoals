@@ -4,7 +4,7 @@ import {GET,POST} from '../../app/api/private-account/route';
 import {loadRuntimeBindings} from './runtime-bindings';
 test('private account route reads current request bindings and reaches named sync service without public fetch',async()=>{
  const fetcher=vi.spyOn(globalThis,'fetch').mockRejectedValue(Error('public traffic forbidden'));
- try{const response=await GET(new Request('https://app.test/api/private-account',{headers:{cookie:'zigoals_session=fixture','x-zigoals-account':'10000000-0000-4000-8000-000000000001'}}));expect(response.status).toBe(200);expect(loadRuntimeBindings).toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();}finally{fetcher.mockRestore();}
+ try{const response=await GET(new Request('https://app.test/api/private-account',{headers:{cookie:'__Host-zigoals_session=fixture','x-zigoals-account':'10000000-0000-4000-8000-000000000001'}}));expect(response.status).toBe(200);expect(loadRuntimeBindings).toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();}finally{fetcher.mockRestore();}
 });
 test('packaged route uses overwritten middleware origin and fails closed without auth admission',async()=>{
  const fetcher=vi.spyOn(globalThis,'fetch').mockRejectedValue(Error('Provider forbidden'));

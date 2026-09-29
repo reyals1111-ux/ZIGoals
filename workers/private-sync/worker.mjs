@@ -28,7 +28,12 @@ const privateSyncWorker={async fetch(request,env){
  const lifecycleCall=async body=>{const result=await env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:body?'POST':'GET',headers:{'x-verified-account':user.id,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));if(!result.ok)return {error:result};return {value:await boundedJSON(result,4096)};};
  let lifecycle=await lifecycleCall();if(lifecycle.error)return lifecycle.error;
  if(url.pathname==='/v1/account'){
-  if(request.method==='GET')return response(lifecycle.value);
+  if(request.method==='GET'){
+   // Account state is readable only by an active session. After deletion every session is
+   // erased, so the terminal deleted state stays readable for the account's verified identity.
+   if(!lifecycle.value.deleted){const allowed=await stub.fetch(new Request('https://vault.internal/v1/sessions',{headers}));if(!allowed.ok)return allowed;await allowed.body?.cancel();}
+   return response(lifecycle.value);
+  }
   let action;try{action=await boundedJSON(request.clone(),256);}catch{return response({error:'INVALID_ACCOUNT_REQUEST'},400);}
   if(!exact(action,['action','confirm'])||!['delete-cloud-data','delete-account'].includes(action.action)||action.confirm!==(action.action==='delete-account'?'DELETE ACCOUNT':'DELETE CLOUD DATA'))return response({error:'INVALID_ACCOUNT_REQUEST'},400);
   if(!lifecycle.value.deleted){const allowed=await stub.fetch(new Request('https://vault.internal/v1/sessions',{headers}));if(!allowed.ok)return allowed;await allowed.body?.cancel();lifecycle=await lifecycleCall({action:'delete',confirm:'DELETE CLOUD DATA',generation:lifecycle.value.generation,family});if(lifecycle.error)return lifecycle.error;}
