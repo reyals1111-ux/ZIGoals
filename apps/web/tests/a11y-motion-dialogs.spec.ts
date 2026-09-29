@@ -61,6 +61,8 @@ test('keyboard focus on the logo link is never covered by the intro clip',async(
  const brand=page.locator('.app-sidebar .brand');
  await page.keyboard.press('Tab');await page.keyboard.press('Tab');await expect(brand).toBeFocused();
  expect(await brand.evaluate(b=>b.matches(':focus-visible'))).toBe(true);
- expect(await page.locator('.app-sidebar .brand .logo-intro').evaluate(el=>getComputedStyle(el).display)).toBe('none');
- const logo=page.locator('.app-sidebar .brand .brand-logo');if(await logo.count())expect(await logo.evaluate(el=>getComputedStyle(el).opacity)).toBe('1');
+ // Every clip present must step aside: the real one where this browser plays it (CI Chrome) and the stand-in.
+ const clips=await page.locator('.app-sidebar .brand .logo-intro').evaluateAll(els=>els.map(el=>getComputedStyle(el).display));
+ expect(clips.length).toBeGreaterThanOrEqual(1);expect(clips.every(d=>d==='none')).toBe(true);
+ expect((await page.locator('.app-sidebar .brand .brand-logo').evaluateAll(els=>els.map(el=>getComputedStyle(el).opacity))).every(o=>o==='1')).toBe(true);
 });
