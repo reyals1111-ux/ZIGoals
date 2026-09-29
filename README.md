@@ -6,7 +6,7 @@
 [docs/STATUS.md](docs/STATUS.md) is the live source of truth for releases, open work and known issues. In short, as of 2026-09-29:
 
 - **Unaudited Alpha.** Mainnet is disabled. The Goal Manager contract and its code ID are **not deployed**, and financial signing/broadcast stays disabled. `PUBLIC_ALPHA_UNDEPLOYED` means the web app is deployed while the contract is absent.
-- **Public web Alpha:** runs source `07f5c90` (Manual Alpha deployment #11, 2026-09-29), deployed through the [manual owner-approved workflow](docs/deployment/MANUAL_ALPHA_WORKFLOW.md) with a rollback version captured before every upload. A merge never deploys. Exact version IDs and owner checks are in STATUS.
+- **Public web Alpha:** [Open the Alpha](https://alpha.zigoals.app/app). It runs source `07f5c90` (Manual Alpha deployment #11, 2026-09-29), deployed through the [manual owner-approved workflow](docs/deployment/MANUAL_ALPHA_WORKFLOW.md) with a rollback version captured before every upload. A merge never deploys. Exact version IDs and owner checks are in STATUS.
 - **In the app:** Goals, Wealth, Markets, Habits, Health, Today and Activity, plus a fictional Showcase demo.
 - **Account sync:** encrypted account sync and recovery ([Run #11](docs/run11/FINAL_REPORT.md)) are merged, but the hosted services are **not activated**. The owner's [activation stages](docs/run11/ACTIVATION.md) are in progress; Stage 4 local configuration passed.
 - **Testnet:** the owner reports the dedicated test wallet is funded, but it is not on the CosmWasm upload whitelist, so no contract has been uploaded.
