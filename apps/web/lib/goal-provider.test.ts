@@ -505,6 +505,66 @@ test.each([false, true])("recovered receipt proof replaces a live uncertain outc
   });
 });
 
+test("Refresh journal reconciles even while a background journal load is still running", async () => {
+  const journal = new TransactionJournal();
+  const operation = newOperation({
+    chainId: "zig-test-2",
+    wallet: ownerA,
+    contract: "zig1contract",
+    action: "create",
+    amount: "0",
+    denom: "azig",
+  });
+  await act(async () => {
+    await journal.create(operation);
+    await journal.transition(operation.operationId, {
+      state: "BROADCASTING",
+      hash: "A".repeat(64),
+    });
+    await journal.transition(operation.operationId, {
+      state: "UNKNOWN_AFTER_BROADCAST",
+    });
+  });
+  await click("Connect Keplr");
+  await rendered(() => expect(container.textContent).toContain("Confirmation is uncertain"));
+  // Hold the next journal read so a change-triggered load is still in flight
+  // when the user asks for a refresh.
+  const gate = deferred<void>();
+  const load = TransactionJournal.prototype.load;
+  const held = vi
+    .spyOn(TransactionJournal.prototype, "load")
+    .mockImplementationOnce(async function (this: TransactionJournal, ...args) {
+      await gate.promise;
+      return load.apply(this, args);
+    });
+  try {
+    api.reconcile.mockImplementation(async () => ({
+      records: [
+        await journal.transition(operation.operationId, {
+          state: "CONFIRMED",
+          height: 12,
+          code: 0,
+        }),
+      ],
+      warnings: [],
+    }));
+    await act(async () => {
+      window.dispatchEvent(new Event("zigoals:journal-change"));
+    });
+    await rendered(() => expect(held).toHaveBeenCalledTimes(1));
+    await click("Refresh journal");
+    gate.resolve();
+    await rendered(() => {
+      expect(api.reconcile).toHaveBeenCalledTimes(2);
+      expect(container.textContent).toContain("Confirmed on testnet at block 12");
+      expect(container.textContent).not.toContain("Confirmation is uncertain");
+    });
+  } finally {
+    gate.resolve();
+    held.mockRestore();
+  }
+});
+
 test.each(["available", "unavailable"])(
   "damaged history survives receipt lookup failure and resets warnings for a new %s scope",
   async (nextStorage) => {

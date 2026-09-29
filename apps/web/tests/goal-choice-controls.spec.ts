@@ -18,9 +18,10 @@ test('risk and liquidity tiles work by keyboard and touch and save the same valu
  await expect(liquidity.getByRole('radio',{name:'Anytime',exact:true})).not.toBeChecked();
  for(let i=0;i<2;i++)await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByRole('button',{name:'Confirm simulation'}).click();
- await expect(page.getByRole('heading',{name:'Tile preferences',exact:true})).toBeVisible();
- const saved=await page.evaluate(()=>Object.keys(localStorage).map(key=>localStorage.getItem(key)??'').join('\n'));
- expect(saved).toContain('"riskPreference":"Growth"');expect(saved).toContain('"liquidityPreference":"Within a month"');
+ // The review step already shows this heading, so it cannot signal the save: wait for the created Goal's page, then for the stored plan itself.
+ await expect(page).toHaveURL(/\/app\/goals\/\d+$/);await expect(page.getByRole('heading',{name:'Tile preferences',exact:true})).toBeVisible();
+ const saved=()=>page.evaluate(()=>Object.keys(localStorage).map(key=>localStorage.getItem(key)??'').join('\n'));
+ await expect.poll(saved).toContain('"riskPreference":"Growth"');expect(await saved()).toContain('"liquidityPreference":"Within a month"');
 });
 
 test('wealth scope and cadence tiles keep one valid value and the saved plan reopens selected',async({page,isMobile})=>{
