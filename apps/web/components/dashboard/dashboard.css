@@ -53,3 +53,12 @@
 .dashboard-summary-copy>small{font-size:.9rem;color:#c5d8ed}
 .dashboard-summary-copy>strong{font-size:clamp(1.15rem,1.6vw,1.45rem);line-height:1.2;font-variant-numeric:tabular-nums;color:#f6f8ff}
 .dashboard-summary-copy>span{font-size:.875rem;color:#b6cadf;line-height:1.4;overflow-wrap:anywhere}
+/* "See how it works" intro: the Quick add card language; the portrait video fits the viewport at its own aspect ratio. The card, not the dialog, carries the padding, so only the backdrop closes it. */
+.intro-video-dialog{color:#f0f5ff;background:#0b182e;border:1px solid #82b6e963;border-radius:24px;padding:0;width:fit-content;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;box-shadow:0 28px 120px #000b}
+.intro-video-dialog::backdrop{background:#020616c9;backdrop-filter:blur(8px)}
+.intro-video-card{display:grid;gap:14px;padding:18px}
+.intro-video-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.intro-video-card h2{margin:0 0 4px;font-size:22px}
+.intro-video-head p{margin:0;font-size:14px;color:#b7cbe2}
+.intro-video-head .quiet{flex:none;font-size:26px;min-width:44px;min-height:44px;padding:0;line-height:1}
+.intro-video-card video{display:block;justify-self:center;width:auto;height:auto;max-width:100%;max-height:min(85dvh,calc(100dvh - 140px));aspect-ratio:784/1168;border-radius:16px;background:#020616}

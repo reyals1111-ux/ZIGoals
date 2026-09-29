@@ -15,6 +15,8 @@ import {usePrivateStore} from './use-private-store';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
 import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
+import { LogoIntro } from "./logo-intro";
+import { PageArrival } from "./page-arrival";
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const showcase=useShowcase();
@@ -33,6 +35,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
           <LogoMark />
+          <LogoIntro />
           <Wordmark />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
@@ -165,7 +168,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </section>
         )}
-        <main id="main">{children}</main>
+        <main id="main">{children}</main><PageArrival />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
