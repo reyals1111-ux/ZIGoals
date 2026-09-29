@@ -1,0 +1,72 @@
+# EXPERIMENT ONLY (experiment/click-hang-repro, DO NOT MERGE).
+# Repeats the five tests that hung on a click in CI, once with the Chrome channel exactly as
+# Milestone quality installs it and once with Playwright's bundled Chromium. The Milestone quality
+# workflow is unchanged. Diagnostics go to the job log.
+name: Click-hang experiment
+on:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: click-hang-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  repeat:
+    if: github.head_ref == 'experiment/click-hang-repro'
+    name: click-hang ${{ matrix.browser }} (shard ${{ matrix.shard }}/2)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, bundled]
+        shard: [1, 2]
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
+      WRANGLER_SEND_METRICS: "false"
+      CLICK_HANG_BROWSER: ${{ matrix.browser }}
+      REPEATS: "20"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+      - name: Install browser
+        run: |
+          if [ "$CLICK_HANG_BROWSER" = chrome ]; then
+            pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+            google-chrome --version
+          else
+            pnpm --filter @zigoals/web exec playwright install --with-deps chromium
+          fi
+      - run: pnpm build
+      - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
+      - name: Point the five specs at the probe (not committed)
+        working-directory: apps/web/tests
+        run: |
+          sed -i -E "s#from ['\"]@playwright/test['\"]#from './click-hang-probe'#" wealth.spec.ts platform-habits.spec.ts habits.spec.ts run11-motion-recording.spec.ts
+          grep -n "click-hang-probe" wealth.spec.ts platform-habits.spec.ts habits.spec.ts run11-motion-recording.spec.ts
+      - name: Repeat the hung tests
+        run: |
+          for n in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
+            sleep 1
+          done
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --config=playwright.click-hang.config.ts \
+            tests/wealth.spec.ts:23 tests/platform-habits.spec.ts:44 tests/habits.spec.ts:18 tests/run11-motion-recording.spec.ts:3 \
+            --repeat-each=$REPEATS --workers=2 --shard=${{ matrix.shard }}/2 --reporter=line --output=/tmp/click-hang-results
+      - name: Click-hang diagnostics
+        if: always()
+        run: |
+          echo "::group::summary"
+          grep -cE "STUCK CLICK|CLICK FAILED|TEST FAILED" /tmp/click-hang-diag.log || true
+          echo "::endgroup::"
+          cat /tmp/click-hang-diag.log || echo "no diagnostics written"
+          echo "--- server log tail"
+          tail -n 60 /tmp/zigoals-web.log || true
