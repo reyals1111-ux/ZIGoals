@@ -236,17 +236,35 @@ function useGoalState() {
   }, [chain, mode, owner]);
   useEffect(() => {
     let stopped = false;
-    let loading = false;
-    let reloadRequested = false;
+    let running: Promise<void> | undefined;
+    // One follow-up load waits behind the running one. It keeps any requested
+    // receipt reconciliation, so a refresh during a background load is never
+    // reduced to a plain reload.
+    let queued: { reconcile: boolean; done: Promise<void> } | undefined;
     let firstLoad = true;
     const journal = new TransactionJournal();
-    const load = async (reconcile = false) => {
-      if (stopped || mode !== "testnet" || !owner) return;
-      if (loading) {
-        reloadRequested = true;
-        return;
+    const load = (reconcile = false): Promise<void> => {
+      if (stopped || mode !== "testnet" || !owner) return Promise.resolve();
+      if (!running) {
+        running = loadOnce(reconcile).finally(() => {
+          running = undefined;
+        });
+        return running;
       }
-      loading = true;
+      if (queued) {
+        queued.reconcile ||= reconcile;
+        return queued.done;
+      }
+      const next = { reconcile, done: Promise.resolve() };
+      next.done = running.then(() => {
+        queued = undefined;
+        return load(next.reconcile);
+      });
+      queued = next;
+      return next.done;
+    };
+    const loadOnce = async (reconcile: boolean) => {
+      if (stopped) return;
       try {
         const loaded = await journal.load(chain, owner);
         if (stopped) return;
@@ -297,12 +315,6 @@ function useGoalState() {
           setJournalWarnings((previous) =>
             resetWarnings ? [warning] : [...new Set([...previous, warning])],
           );
-        }
-      } finally {
-        loading = false;
-        if (reloadRequested && !stopped) {
-          reloadRequested = false;
-          void load();
         }
       }
     };
