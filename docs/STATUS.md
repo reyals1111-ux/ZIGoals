@@ -1,3 +1,33 @@
+# Alpha deploy — 2026-09-29 night, `5dd2ee7` live
+
+Evidence labels: **CI log** = the deploy job's step "Report version IDs even after failure" in the run below, read by the owner; **Actions API** / **git** = read on 2026-09-29 by the Session B cloud session; **owner-reported** = as the owner reports it.
+
+- **Run:** Manual Alpha deployment #12, [run 36620008178](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36620008178), 2026-09-29 19:32–19:38 UTC, one attempt. Result **success**, `VERIFIED`. (Actions API, CI log)
+- **Source:** `5dd2ee7aae34331ee935eac3f64d5d870c92e997`, `main` after #45. (Actions API)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `f5bb9d20-6edd-4a62-a8a0-8bb8cee30597`. The last observed live version is the same. (CI log)
+- **Rollback:** `f15bb757-328f-46a6-b9c4-193f44fb83d3`, the version deploy #11 published, so the chain holds. Note that the two IDs look alike (`f5bb…` new, `f15b…` rollback). (CI log)
+- **CI on `5dd2ee7`:** Milestone quality #191 ([run 36615665433](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36615665433)): success on attempt 2. Attempt 1 failed only in browser shard 1, at the Chrome download (`curl: (92) HTTP/2 stream 1 was not closed cleanly: INTERNAL_ERROR`); attempt 2 re-ran that shard. (Actions API)
+- **Owner manual checks** (visual, real Keplr/reload/reconnect, Habit/Health persistence, mobile): owner-reported: pending. They are separate from this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#42](https://github.com/reyals1111-ux/ZIGoals/pull/42) (`580ef18`): sync harness diagnostics (test-only).
+- [#44](https://github.com/reyals1111-ux/ZIGoals/pull/44) (`95802cb`): record of the `07f5c90` deploy and README refresh.
+- [#43](https://github.com/reyals1111-ux/ZIGoals/pull/43) (`a5de190`): activation tooling (hermetic harnesses, lifecycle `AUTH_ORIGIN`, private config generator). This closes the three Stage 4 gaps listed below.
+- [#39](https://github.com/reyals1111-ux/ZIGoals/pull/39) (`be00404`): backups include legacy Local simulation Goals (format 2).
+- [#45](https://github.com/reyals1111-ux/ZIGoals/pull/45) (`5dd2ee7`): consent checkbox labels in the account/sync flow.
+
+The section below still lists #39 and #42 as open; it was accurate when written.
+
+## Known CI intermittents
+**Policy:** one re-run each, then investigate. A second failure of the same test is a real failure.
+
+| Intermittent | Seen | Scope | State |
+|---|---|---|---|
+| Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
+| `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | Targeted by Session B Part 1 |
+| `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure | browser shards and integration | Targeted by Session B Part 1 |
+
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
 Evidence labels: **workflow log** = `gh run view 36604090817 --log`, with line numbers from that output; **PR API** / **Actions API** = GitHub read on 2026-09-29; **owner-reported** = as the owner reports it.
@@ -127,7 +157,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-09-29 evening for the [Alpha deploy](#alpha-deploy--2026-09-29-evening-07f5c90-live) above.
+Updated 2026-09-29 night for the [Alpha deploy](#alpha-deploy--2026-09-29-night-5dd2ee7-live) above.
+- Deployed source `5dd2ee7aae34331ee935eac3f64d5d870c92e997`, `main` after [PR #45](https://github.com/reyals1111-ux/ZIGoals/pull/45). Verified: Actions API.
+- CI: Milestone quality #191 ([run 36615665433](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36615665433)) on `5dd2ee7`: success (attempt 2; attempt 1 hit the Chrome download intermittent). Verified: Actions API.
+- Deployment: Manual Alpha deployment #12 ([run 36620008178](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36620008178)), exact source `5dd2ee7`: success, `VERIFIED`. Verified: CI log read by the owner, Actions API.
+- Alpha Worker `zigoals-alpha`: live version `f5bb9d20-6edd-4a62-a8a0-8bb8cee30597`; rollback `f15bb757-328f-46a6-b9c4-193f44fb83d3` (the run #11 deployment). Verified: CI log read by the owner. Owner manual checks: owner-reported: pending.
+
+Previous release identity (PR #40, 2026-09-29 evening):
 - Deployed source `07f5c90fb3a02cf3ba54903e10e1de570e3092e9`, the merge of [PR #40](https://github.com/reyals1111-ux/ZIGoals/pull/40) (after #41 and #36). Verified: PR API.
 - CI: Milestone quality #180 ([run 36602033343](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36602033343)) on `07f5c90`: success. Verified: Actions API.
 - Deployment: Manual Alpha deployment #11 ([run 36604090817](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36604090817)), exact source `07f5c90`: success, `VERIFIED`. Verified: workflow log.
