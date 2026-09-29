@@ -1,15 +1,18 @@
 # ZIGoals
 **Goals, Habits & Health.** The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
 
-Milestones 1–4 provide an **unaudited Alpha implementation**: deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows, and a guarded Keplr testnet client. **No contract has been deployed.** The local demo uses simulated balances; it does not send blockchain transactions. Testnet assets have no monetary value. This software is unaudited and mainnet is disabled.
+## Current state
 
-The Alpha includes durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes remain disabled.
+[docs/STATUS.md](docs/STATUS.md) is the live source of truth for releases, open work and known issues. In short, as of 2026-09-29:
 
-Milestones 1–2 are merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1), with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Current status](docs/STATUS.md) separates owner evidence, automated checks and deployment blockers; historical reports retain their original findings.
+- **Unaudited Alpha.** Mainnet is disabled. The Goal Manager contract and its code ID are **not deployed**, and financial signing/broadcast stays disabled. `PUBLIC_ALPHA_UNDEPLOYED` means the web app is deployed while the contract is absent.
+- **Public web Alpha:** [Open the Alpha](https://alpha.zigoals.app/app). It runs source `07f5c90` (Manual Alpha deployment #11, 2026-09-29), deployed through the [manual owner-approved workflow](docs/deployment/MANUAL_ALPHA_WORKFLOW.md) with a rollback version captured before every upload. A merge never deploys. Exact version IDs and owner checks are in STATUS.
+- **In the app:** Goals, Wealth, Markets, Habits, Health, Today and Activity, plus a fictional Showcase demo.
+- **Account sync:** encrypted account sync and recovery ([Run #11](docs/run11/FINAL_REPORT.md)) are merged, but the hosted services are **not activated**. The owner's [activation stages](docs/run11/ACTIVATION.md) are in progress; Stage 4 local configuration passed.
+- **Testnet:** the owner reports the dedicated test wallet is funded, but it is not on the CosmWasm upload whitelist, so no contract has been uploaded.
+- **Contract release:** no release candidate is approved. The last attested candidate predates current `main`; a fresh candidate from exact current `main` and explicit owner approval are required before any upload.
 
-The owner has merged, deployed and verified Run #7 / V2.1 (PR #9) on the public web Alpha, including Today / Goals / Habits / Health. M6, Visual Refresh v1 and PR #7 housekeeping remain completed historical work. The Apache-2.0 license is retained.
-
-The **[V2.1 visual review package](docs/verification/run7-v21/README.md)** contains final/before/mobile screenshots and all 17 owner corrections; the owner accepted this design and verified it live after merging PR #9. Run #7 adds private Habit schedules/streaks, nutrition/recipes/weight tracking and one connected Today dashboard. The [V2 product specification](docs/product/VISUAL_V2.md) explains the routes, data model and visual system; the [Run #7 report](docs/RUN_7_REPORT.md) records review evidence. Health/Habit data stays in this browser and has separate versioned backups in Settings. No cloud sync or medical/AI backend is implied.
+The local demo uses simulated balances and sends no blockchain transactions. Testnet assets have no monetary value.
 
 ## Run locally
 
@@ -66,7 +69,7 @@ For this checkout's isolated `.toolchain` installation, first use the environmen
 
 Read [current chain evidence](docs/research/ZIGCHAIN_CURRENT_STATE.md) and the [deployment runbook](docs/deployment/TESTNET.md). Live reads on 2026-09-13 confirmed `zig-test-2`, `azig`, 18 decimals, and `v5.0.0-patch-1`. The client rechecks identity and denomination, simulates fees, checks the signer around approval, and requires a verified immutable deployment before financial actions.
 
-The owner still needs dedicated-wallet test funds and confirmed upload permission. No faucet retries, upload, instantiation, mainnet transaction, or external outreach occurred. After downloading and independently verifying a canonical REPRODUCIBLE candidate, preparation validates its actual bytes/source/environment before public network reads and emits an unsigned manifest with null deployment IDs. Use the independently trusted full source SHA and downloaded directory from the [verification guide](docs/deployment/VERIFY_RELEASE_ARTIFACT.md), replacing the two placeholders below:
+Upload permission for the dedicated wallet is still pending (see [current status](docs/STATUS.md)); no upload, instantiation or mainnet transaction has occurred. After downloading and independently verifying a canonical REPRODUCIBLE candidate, preparation validates its actual bytes/source/environment before public network reads and emits an unsigned manifest with null deployment IDs. Use the independently trusted full source SHA and downloaded directory from the [verification guide](docs/deployment/VERIFY_RELEASE_ARTIFACT.md), replacing the two placeholders below:
 
 ```bash
 node scripts/prepare-deployment.mjs EXPECTED_FULL_COMMIT CANDIDATE_DIRECTORY .toolchain/check/bin/cosmwasm-check
@@ -89,22 +92,23 @@ After a separately verified deployment, validate the strict [v2 public manifest]
 
 Valdora and WME integration are [deferred pending canonical interfaces](docs/research/VALDORA_STZIG.md). No invented messages, yield, stablecoin backing, fiat access or delegated wealth-management features are present. The demo's 1:1 display conversion is illustrative and never affects base-unit accounting.
 
-For Run 2 use the [29-part report](docs/RUN_2_REPORT.md), [ecosystem integration map](docs/research/ZIGCHAIN_ECOSYSTEM_INTEGRATION_MAP.md), [owner deployment checklist](docs/deployment/OWNER_TESTNET_CHECKLIST.md) and [real Keplr procedure](docs/deployment/KEPLR_OWNER_CHECKLIST.md).
-
-See the [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md), [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md), and [truthful build log draft](docs/social/BUILD_LOG.md).
+See the [threat model](docs/security/THREAT_MODEL.md), [security checklist](docs/security/SECURITY_CHECKLIST.md), [product scope](docs/product/PHASE1_PRD.md) and [truthful build log draft](docs/social/BUILD_LOG.md).
 
 For safe alpha participation see [tester guide](docs/testing/ALPHA_TESTER_GUIDE.md), [contributing](CONTRIBUTING.md), [privacy](docs/PRIVACY.md) and [security reporting](SECURITY.md). Settings includes read-only connection diagnostics with separate RPC/REST outcomes and a build identifier.
 
-Milestone 3 merged at `7d354e3` with successful [post-merge main CI](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34764912650): [33-part report](docs/RUN_3_REPORT.md), [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md), and [merged PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2). Local verification is 399 JS, 25 Rust and 30 browser cases plus full Chrome restart; actual hosted web/contract checks also passed. Cross-host Wasm byte identity is not established and no contract is deployed.
+## Licence
 
-## Live public Alpha — Run #7 / V2.1
+Apache-2.0. See [LICENSE](LICENSE).
 
-**PUBLIC_ALPHA_DEPLOYED / OWNER_VERIFIED_LIVE:** [Open the Alpha](https://alpha.zigoals.app/app), with [Workers fallback](https://zigoals-alpha.reyals1111.workers.dev/app). The [apex landing](https://zigoals.app) links to the official Alpha. Simulation + wallet connection only; **CONTRACT_NOT_DEPLOYED**. `PUBLIC_ALPHA_UNDEPLOYED` means the financial contract is absent, even though the web app is deployed.
+## History
 
-M6 [PR #6](https://github.com/reyals1111-ux/ZIGoals/pull/6) is merged and owner-deployed. Owner-verified V2.1 Alpha source is `d0ce4481bbe4be67356602be7106edc516239e8f`, Worker version `dd86bc45-0fcd-45e2-b8c4-5ec278d1cb80` at 100%; recorded V1 rollback is `af45987b-f792-4755-a9e6-f58bb49f0cfe`. The owner also confirmed Habit/Health persistence and mobile layout. The owner verified CSP, real Keplr connection, Local Demo after reload, explicit reconnect, Testnet diagnostics and 320px layouts with no financial signing/broadcast. Goal Manager/Code ID remain **NOT DEPLOYED**. `icon.svg` and `robots.txt` are direct static assets. Workers Paid is active; the 2000ms CPU limit is present in deployed config but not separately confirmed by dashboard/version view.
+Earlier milestone records. Each describes the state when it was written, not the current release; [docs/STATUS.md](docs/STATUS.md) supersedes them.
 
-[Sanitized M6 production evidence](docs/verification/m6/OWNER_POST_DEPLOY.json) supports static-routing optimization and a ~6.84% smaller bundle. Dynamic Next/OpenNext SSR CPU did not improve in this window: controlled `/app` and `/app/settings` medians were 42ms and 27ms. `/icon.svg` has no Worker invocation, corroborated by five HTTP 200 client requests and cache hits: asset bypass / Worker CPU N/A. Exact-version last-1h CPU P50/P90/P99/P99.9 were 120/229/428/428ms, with 61 invocations, 12 asset requests, 100% cache hit, 0 subrequests, 0 errors and 0 `exceededCpu` events. Duplicate HSTS and X-Robots-Tag values on dynamic `/app` are a minor cleanup candidate, not a rollback issue.
-
-The current owner-reported reproducible/attested [candidate run 34893952997](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34893952997) is for exact source `4dd859db5ea1f20fe14cc8c3c3a70b728b55fbcb`. Status: **REPRODUCIBLE / NOT_APPROVED**; canonical Goal Manager Wasm is 255532 bytes, SHA256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`. This predates V1 and is not an exact Run #7 candidate or permission to upload. Test ZIG remains owner-observed 0; funding, upload permission and external interfaces remain pending.
-
-Use [current status](docs/STATUS.md), [Run 6 report](docs/RUN_6_REPORT.md), [CPU owner checklist](docs/deployment/CPU_OWNER_CHECKLIST.md), [Run 5 report](docs/RUN_5_REPORT.md), [M5 evidence](docs/verification/m5/README.md), [Alpha operations](docs/deployment/CLOUDFLARE_ALPHA.md), [apex operations](docs/deployment/LANDING.md), and [release verification](docs/deployment/VERIFY_RELEASE_ARTIFACT.md). Historical reports retain what was known then; the M6 rollout is closed. The next documented product gate is owner-controlled testnet readiness and the [first idle-contract deployment/exit proof](docs/deployment/OWNER_TESTNET_CHECKLIST.md), subject to its unmet prerequisites; Run #7 rollout is owner-verified; see [its report](docs/RUN_7_REPORT.md). Subsequent Alpha updates use the [manual owner-approved workflow](docs/deployment/MANUAL_ALPHA_WORKFLOW.md), with environment setup and explicit dispatch required. A merge never deploys.
+- **Milestones 1–4:** deterministic goal planning, a tested idle-custody CosmWasm contract, responsive web flows and a guarded Keplr testnet client, with durable scoped testnet transaction outcomes, known-receipt recovery, verified ZIGScan links, official Range/Hub entry points and an 18-provider research registry. External strategies and funding routes were disabled.
+- **Milestones 1–2:** merged through [PR #1](https://github.com/reyals1111-ux/ZIGoals/pull/1) with successful [GitHub-hosted checks](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34758309957). [Milestone 1 implementation report](docs/IMPLEMENTATION_REPORT.md).
+- **Run 2:** [29-part report](docs/RUN_2_REPORT.md), [ecosystem integration map](docs/research/ZIGCHAIN_ECOSYSTEM_INTEGRATION_MAP.md), [owner deployment checklist](docs/deployment/OWNER_TESTNET_CHECKLIST.md) and [real Keplr procedure](docs/deployment/KEPLR_OWNER_CHECKLIST.md).
+- **Milestone 3:** merged at `7d354e3` ([PR #2](https://github.com/reyals1111-ux/ZIGoals/pull/2), [post-merge main CI](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34764912650)): [33-part report](docs/RUN_3_REPORT.md) and [independent Linux artifact comparison](docs/deployment/M3_REPRODUCIBILITY.md).
+- **M5 / M6:** [Run 5 report](docs/RUN_5_REPORT.md), [M5 evidence](docs/verification/m5/README.md), [Run 6 report](docs/RUN_6_REPORT.md), [sanitized M6 production evidence](docs/verification/m6/OWNER_POST_DEPLOY.json) and [CPU owner checklist](docs/deployment/CPU_OWNER_CHECKLIST.md). The M6 CPU and bundle figures describe that rollout window only.
+- **Run #7 / V2.1:** merged ([PR #9](https://github.com/reyals1111-ux/ZIGoals/pull/9)), deployed and owner-verified in September 2026, later superseded as live Alpha. [V2.1 visual review package](docs/verification/run7-v21/README.md), [V2 product specification](docs/product/VISUAL_V2.md) and [Run #7 report](docs/RUN_7_REPORT.md).
+- **Earlier contract candidate:** [run 34893952997](https://github.com/reyals1111-ux/ZIGoals/actions/runs/34893952997) for source `4dd859db5ea1f20fe14cc8c3c3a70b728b55fbcb`, REPRODUCIBLE / NOT_APPROVED. Superseded; see [release verification](docs/deployment/VERIFY_RELEASE_ARTIFACT.md).
+- **Later runs:** Run #8–#11 records and their evidence links are in [docs/STATUS.md](docs/STATUS.md). Operations: [Alpha](docs/deployment/CLOUDFLARE_ALPHA.md) and [apex landing](docs/deployment/LANDING.md).
