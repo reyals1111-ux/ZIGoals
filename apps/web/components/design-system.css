@@ -74,3 +74,13 @@
 :root .page-heading .page-eyebrow, :root .markets-hero .page-eyebrow, :root .ecosystem-intro .page-eyebrow { font-size: 15px; }
 @media (max-width: 600px) { :root .today-hero-copy > p.page-lede.today-lede { font-size: 17px; } :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: 14px !important; } }
 @media (forced-colors: active) { :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { background: none !important; color: CanvasText !important; -webkit-text-fill-color: CanvasText; } }
+
+/* Wealth headline (Part 5): one total in one currency with the nebula flow; other currencies stay on their own line, never converted. */
+:root .wealth-total-headline { display:block;font-weight:700;line-height:1.02;letter-spacing:-.045em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere; }
+:root .wealth-hero-total > .wealth-total-headline { font-size:clamp(38px,4.4vw,64px); }
+:root .life-orbit-wealth > .wealth-total-headline { font-size:clamp(30px,2.6vw,36px); }
+:root .wealth-total-headline > .nebula-flow { display:inline-block;margin:0;padding-bottom:.06em; }
+:root .wealth-total-headline.wealth-total-empty { font-size:clamp(24px,2.4vw,32px);color:var(--text-secondary); }
+:root :is(.wealth-hero-total,.life-orbit-wealth) > .wealth-total-other { display:block;margin:0;font-size:17px;font-weight:550;letter-spacing:0;text-transform:none;color:var(--text-secondary); }
+:root .wealth-hero-total > .wealth-total-fx { margin:0;font-size:14px;letter-spacing:.01em;color:var(--text-meta); }
+:root .wealth-hero-total > small { font-size:14px;color:var(--text-meta); }
