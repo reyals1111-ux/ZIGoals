@@ -18,6 +18,7 @@ import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
 import { LogoIntro } from "./logo-intro";
 import { PageArrival } from "./page-arrival";
+import { LiquidGlass } from "./liquid-glass";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -187,7 +188,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </section>
         )}
-        <main id="main">{children}</main><PageArrival />
+        <main id="main">{children}</main><PageArrival /><LiquidGlass />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>

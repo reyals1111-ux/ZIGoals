@@ -170,3 +170,56 @@ test.describe('Part 2: personal layouts',()=>{
   await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
  });
 });
+
+test.describe('Part 3: liquid glass',()=>{
+ const lift=(el:import('@playwright/test').Locator)=>el.evaluate(e=>{const s=getComputedStyle(e);return {translate:s.translate,scale:s.scale};});
+ async function hoverCard(page:Page){
+  await page.goto('/app/goals');const card=page.locator('.goal-grid .unified-goal-card').nth(1);await expect(card).toBeVisible();
+  await card.evaluate(e=>e.scrollIntoView({block:'center'}));const r=(await card.boundingBox())!;
+  await page.mouse.move(r.x+r.width*.3,r.y+r.height*.5);await page.mouse.move(r.x+r.width*.35,r.y+r.height*.55,{steps:3});
+  return card;
+ }
+ test('hovering lifts a Goal card and a habit calendar tile, with the shared overlay following',async({page,isMobile})=>{
+  test.skip(isMobile,'Hover needs a fine pointer');
+  await showcase(page);
+  const card=await hoverCard(page);
+  await expect(card).toHaveAttribute('data-glass','card');
+  await expect.poll(()=>lift(card)).toEqual({translate:'0px -2px',scale:'none'});
+  const overlay=page.locator('.glass-light');await expect(overlay).toHaveAttribute('data-on','');await expect(overlay).toHaveAttribute('aria-hidden','true');
+  // Neighbours never move.
+  expect(await page.locator('.goal-grid .unified-goal-card').first().evaluate(e=>getComputedStyle(e).translate)).toBe('none');
+  await page.goto('/app/habits');const tile=page.locator('.habit-month-grid>span').nth(5);await tile.evaluate(e=>e.scrollIntoView({block:'center'}));
+  const t=(await tile.boundingBox())!;await page.mouse.move(t.x+t.width/2,t.y+t.height/2);
+  await expect.poll(()=>lift(tile)).toEqual({translate:'0px -2px',scale:'1.04'});
+  await page.mouse.move(5,5);await expect.poll(()=>lift(tile)).toEqual({translate:'none',scale:'none'});
+ });
+ test('keyboard focus gives the same lift with the focus ring',async({page,isMobile})=>{
+  test.skip(isMobile,'Keyboard check on desktop');
+  await showcase(page);await page.goto('/app/goals');
+  const link=page.locator('.goal-grid .unified-goal-card').first().getByRole('link',{name:'Open Goal →'});
+  await link.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
+  await expect(link).toBeFocused();
+  const card=page.locator('.goal-grid .unified-goal-card').first();
+  await expect(card).toHaveAttribute('data-glass-hover','');
+  expect(await link.evaluate(e=>getComputedStyle(e).outlineStyle)).not.toBe('none');
+ });
+ for(const setting of ['reduced motion','Motion Off'] as const)
+  test(`${setting}: hover never moves anything; a static highlight only`,async({page,isMobile})=>{
+   test.skip(isMobile,'Hover needs a fine pointer');
+   if(setting==='reduced motion')await page.emulateMedia({reducedMotion:'reduce'});else await page.addInitScript(()=>localStorage.setItem('zigoals:motion:v1','off'));
+   await showcase(page);
+   const card=await hoverCard(page);
+   await expect(card).toHaveAttribute('data-glass-hover','');
+   expect(await lift(card)).toEqual({translate:'none',scale:'none'});
+   const overlay=page.locator('.glass-light');await expect(overlay).toHaveAttribute('data-still','');
+   expect(await overlay.locator('i').evaluate(e=>getComputedStyle(e).translate)).toBe('none');
+  });
+ test('touch gets press feedback only, never a hover lift',async({page,isMobile})=>{
+  test.skip(!isMobile,'Touch');
+  await showcase(page);await page.goto('/app/goals');
+  const card=page.locator('.goal-grid .unified-goal-card').first();await expect(card).toBeVisible();
+  await card.locator('h2').tap();
+  expect(await card.getAttribute('data-glass-hover')).toBeNull();
+  await expect(page.locator('.glass-light')).not.toHaveAttribute('data-on','');
+ });
+});
