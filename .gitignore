@@ -158,6 +158,9 @@ test-results/
 /workers/private-sync/wrangler.preview.owner.jsonc
 # Stage 4 private Worker configs (scripts/run11/make-private-configs.mjs); never committed.
 *.acctest.owner.jsonc
+# Stage 6 owner plan figures and the generated MARKET_POLICY (scripts/run11/market-policy.mjs); never committed.
+*.market-policy.owner.json
+*.market-policy.private.json
 
 # Isolated browser verification outputs
 apps/web/test-results-*/
