@@ -13,7 +13,7 @@ import {entranceAllowed} from './use-entrance';
 const WINDOW_MS = 900, MAX_CARDS = 8, MAX_METRICS = 3, SWEEP_PX_PER_S = 1500;
 const CARD = 'section,article,aside,.panel';
 // Elements that already have their own entrance keep it alone.
-const OWN_ENTRANCE = '[data-entrance],.today-hero,.slogan-entrance,.hero-star';
+const OWN_ENTRANCE = '[data-entrance],.today-hero,.slogan-entrance,.hero-star,.nebula-flow';
 
 /** Server-rendered nodes inside a Suspense boundary that has not hydrated yet must not gain attributes, or React reports a hydration mismatch. */
 let pending = false;
@@ -56,7 +56,7 @@ function sweep(el: HTMLElement, duration: number, delay: number) {
   return true;
 }
 function arriveTitle(title: HTMLElement) {
-  if (title.closest(OWN_ENTRANCE) || title.dataset.arrive || !hydrated(title)) return;
+  if (title.closest(OWN_ENTRANCE) || title.querySelector('.nebula-flow') || title.dataset.arrive || !hydrated(title)) return;
   // Constant speed across the title box; gradient words inside it are timed to meet the same band.
   const box = title.getBoundingClientRect(), speed = SWEEP_PX_PER_S / 1000, start = 150;
   const duration = (1.5 * box.width) / speed;
