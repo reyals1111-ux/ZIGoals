@@ -32,6 +32,9 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   }, [key, schema, createEmpty]);
   useEffect(() => {
     let active = true;
+    // The same counter object refresh() reads: the cleanup must invalidate whichever read is in
+    // flight at that time, so it increments the live counter, not a value copied at setup.
+    const reads = generation;
     queueMicrotask(() => { if (active) refresh(); });
     const onStorage = (event: StorageEvent) => { try{if (!isShowcase() && (!event.key || event.key === storageLockKey(getAppStorage(),key))) refresh();}catch{void refresh();} };
     const onAccount=()=>{generation.current++;setData(createEmpty());setLoaded(false);void refresh();};
@@ -41,7 +44,7 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
     if(channel)channel.onmessage=(event:MessageEvent)=>{if(!isShowcase()&&event.data===key)refresh();};
     window.addEventListener("storage", onStorage);
     window.addEventListener(EVENT, onChange);
-    return () => { active = false; generation.current++; window.removeEventListener(ACCOUNT_CHANGE,onAccount); channel?.close(); window.removeEventListener("storage", onStorage); window.removeEventListener(EVENT, onChange); };
+    return () => { active = false; reads.current++; window.removeEventListener(ACCOUNT_CHANGE,onAccount); channel?.close(); window.removeEventListener("storage", onStorage); window.removeEventListener(EVENT, onChange); };
   }, [key, refresh, createEmpty]);
   const publish = useCallback((next: T) => {
     setData(next); setError(""); setLoaded(true);
