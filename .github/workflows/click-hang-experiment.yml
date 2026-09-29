@@ -6,7 +6,8 @@ name: Click-hang experiment
 on:
   pull_request:
 permissions:
-  contents: read
+  # write only so each job can commit its diagnostics to experiment/click-hang-results (logs are read via git).
+  contents: write
 concurrency:
   group: click-hang-${{ github.ref }}
   cancel-in-progress: true
@@ -58,9 +59,10 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
+          set -o pipefail
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --config=playwright.click-hang.config.ts \
             tests/wealth.spec.ts:23 tests/platform-habits.spec.ts:44 tests/habits.spec.ts:18 tests/run11-motion-recording.spec.ts:3 \
-            --repeat-each=$REPEATS --workers=2 --shard=${{ matrix.shard }}/2 --reporter=line --output=/tmp/click-hang-results
+            --repeat-each=$REPEATS --workers=2 --shard=${{ matrix.shard }}/2 --reporter=line --output=/tmp/click-hang-results 2>&1 | tee /tmp/click-hang-run.log
       - name: Click-hang diagnostics
         if: always()
         run: |
@@ -70,3 +72,23 @@ jobs:
           cat /tmp/click-hang-diag.log || echo "no diagnostics written"
           echo "--- server log tail"
           tail -n 60 /tmp/zigoals-web.log || true
+      - name: Publish diagnostics to experiment/click-hang-results
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+          NAME: ${{ github.run_id }}-${{ github.run_attempt }}/${{ matrix.browser }}-shard${{ matrix.shard }}
+        run: |
+          mkdir -p /tmp/out && cd /tmp/out
+          git init -q && git config user.name click-hang-experiment && git config user.email click-hang@users.noreply.github.com
+          remote="https://x-access-token:${TOKEN}@github.com/${{ github.repository }}"
+          for attempt in 1 2 3 4 5 6; do
+            if git fetch -q "$remote" experiment/click-hang-results 2>/dev/null; then git checkout -q -B results FETCH_HEAD; else git checkout -q --orphan results 2>/dev/null || git checkout -q results; fi
+            mkdir -p "$NAME"
+            { echo "sha ${{ github.event.pull_request.head.sha }}"; grep -E "^\s+[0-9]+ (passed|failed|flaky|skipped)|Google Chrome|chromium" /tmp/click-hang-run.log || true; } > "$NAME/summary.txt"
+            cp /tmp/click-hang-diag.log "$NAME/diag.log" 2>/dev/null || echo "no diagnostics" > "$NAME/diag.log"
+            grep -E "^\s+[0-9]+\) |Error|Call log|- " /tmp/click-hang-run.log | head -400 > "$NAME/failures.txt" || true
+            git add -A && git commit -q -m "click-hang results $NAME" || true
+            if git push -q "$remote" results:experiment/click-hang-results; then echo "published $NAME"; exit 0; fi
+            sleep $((attempt * 5))
+          done
+          echo "could not publish diagnostics"; exit 1
