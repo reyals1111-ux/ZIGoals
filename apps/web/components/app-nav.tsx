@@ -52,6 +52,18 @@ export function AppNav() {
     const fallback = window.setTimeout(settle, 700);
     return () => { layer.removeEventListener("transitionend", onEnd); window.clearTimeout(fallback); settle(); };
   }, [path]);
+  // The newly selected item arrives once: its icon gives a small pop and one nebula light passes across it as the glide lands.
+  const mounted = useRef(false);
+  useLayoutEffect(() => {
+    const active = nav.current?.querySelector<HTMLElement>('a[aria-current="page"]');
+    if (!mounted.current) { mounted.current = true; return; }
+    if (!active || !entranceAllowed()) return;
+    active.dataset.arrive = "";
+    const done = (event: AnimationEvent) => { if (event.animationName === "nav-arrive-sweep") delete active.dataset.arrive; };
+    active.addEventListener("animationend", done);
+    active.addEventListener("animationcancel", done);
+    return () => { active.removeEventListener("animationend", done); active.removeEventListener("animationcancel", done); delete active.dataset.arrive; };
+  }, [path]);
   useLayoutEffect(() => {
     const el = nav.current;
     if (!el) return;

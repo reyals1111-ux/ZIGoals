@@ -2,10 +2,10 @@
 // Project progress is milestones, so it deliberately has no financial funding.
 import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
-import {waitPackagedSync} from './packaged-consumer-journey.mjs';
+import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
 const navigate=async(page,name)=>{await page.getByRole('link',{name,exact:true}).first().click();};
 async function openModule(page,id){const section=page.locator('#'+id);if(await section.getAttribute('open')===null)await section.locator('summary').first().click();return section;}
-async function sync(page){await navigate(page,'Settings');await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page);}
+async function sync(page){await navigate(page,'Settings');const synced1=await armPackagedSync(page);await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page,synced1);}
 async function timeline(page,kind){
  const panel=page.getByRole('region',{name:'Goal timeline',exact:true});await panel.getByLabel('Event type',{exact:true}).selectOption(kind);
  await panel.getByRole('status').filter({hasText:'retained events'}).waitFor();
@@ -23,7 +23,7 @@ async function pinGoalAndHabit(page,name,path,habit){
 }
 async function create(page,type){
  const name=`Packaged ${type} continuity`;
- await navigate(page,'Today');await page.getByRole('link',{name:'+ Create a goal',exact:true}).click();
+ await navigate(page,'Today');await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
  await page.getByLabel('Goal name',{exact:true}).fill(name);await page.getByRole('radio',{name:type,exact:true}).check();
  if(type==='Project')await page.getByLabel('Milestones, one per line',{exact:true}).fill('Fictional research review\nFictional delivery review');
  else{await page.getByLabel('Target amount',{exact:true}).fill(type==='Value'?'1000':'10');if(type==='Quantity')await page.getByLabel('Goal asset',{exact:true}).fill('BTC');}

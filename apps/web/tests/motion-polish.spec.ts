@@ -37,7 +37,7 @@ async function fictionalMovement(page:Page){
  });
 }
 
-test('charts draw their marks once and settle on the exact rendered values',async({page},info)=>{
+test('charts draw their marks once and settle on the exact rendered values',async({page,isMobile},info)=>{
  await watch(page,{'motion-sweep':'--ring-reveal','motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform'});
  await showcase(page);
  await page.goto('/app/wealth');
@@ -48,7 +48,8 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  const marks=await settled(page,'motion-mark-in');expect(Number(marks.start)).toBeLessThan(Number(marks.mid));expect(marks.end).toBe('1');
  await expect(history.locator('.evidence-line').first()).toHaveCSS('stroke-dasharray','none');
  await history.screenshot({path:info.outputPath('history-settled.png')});
- await page.getByRole('button',{name:'+ Quick add',exact:true}).click();await page.keyboard.press('Escape');await page.waitForTimeout(750);
+ // Open and close an overlay: Quick add on mobile; desktop Wealth has no Quick add, so use its Add asset dialog.
+ await (isMobile?page.getByRole('button',{name:'+ Quick add',exact:true}):page.getByRole('button',{name:'+ Add asset',exact:true}).first()).click();await page.keyboard.press('Escape');await page.waitForTimeout(750);
  expect(await starts(page,'motion-sweep')).toBe(await page.locator('.composition-donut').count());
  await page.goto('/app/habits');
  const month=page.locator('.habit-consistency-month');await month.scrollIntoViewIfNeeded();
