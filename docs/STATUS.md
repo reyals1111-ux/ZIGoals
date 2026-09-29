@@ -29,6 +29,22 @@ Evidence labels: **CI** = GitHub Actions run, **local** = this session's sandbox
 
 Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing was merged or deployed.
 
+## Daytime run — 2026-09-29 (open PRs, nothing merged or deployed)
+
+- **Merge readiness:** tonight's order is #27 → #26 → #29 → #28 → #30 → #31.
+  - Draft [PR #32](https://github.com/reyals1111-ux/ZIGoals/pull/32) (`integration/tonight-check`, DO NOT MERGE) builds exactly that stack.
+  - Run 1 (`5b97cdb`): one browser test hung once. It did not reproduce in 60 local production runs.
+  - Run 2 (`c9c91d5`, final PR tips): **CI green**.
+  - #28 conflicts with #26 in one sync harness file. A pre-resolved fast-forward is on branch `resolve/pr28-after-29`.
+  - #31 and #30 now contain #28's changes, so the rest of the order merges cleanly (local simulation).
+- **C. Sync follow-up** ([PR #30](https://github.com/reyals1111-ux/ZIGoals/pull/30)): a local edit made during a sync no longer pauses automatic sync; one follow-up uploads it. Real conflicts still pause. New browser tests are included, and CI runs them.
+- **New PRs:**
+  - [#33](https://github.com/reyals1111-ux/ZIGoals/pull/33): auth hardening. Hosted sessions will need one fresh sign-in.
+  - [#34](https://github.com/reyals1111-ux/ZIGoals/pull/34): export → wipe → import round-trip tests for all four modules; no bugs found.
+  - [#35](https://github.com/reyals1111-ux/ZIGoals/pull/35): new logo in the favicon, apple-touch-icon and social cards.
+  - [#36](https://github.com/reyals1111-ux/ZIGoals/pull/36): Alpha deploy split into a credential-free build and a hash-verified deploy. **Merge only after tonight's deploy.**
+- **Owner decision:** legacy "Local simulation" Goals are not included in any backup. "Export Goal Data" saves only their plans.
+
 ---
 
 # Sync self-conflict race fix — 2026-09-28, [PR #25](https://github.com/reyals1111-ux/ZIGoals/pull/25) merged into `main` as `7fdea686517cee322a37896b3e7a56931ce0ed6a` (not deployed)
