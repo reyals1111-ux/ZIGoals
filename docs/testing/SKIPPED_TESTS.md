@@ -2,7 +2,7 @@
 
 Supersedes [../verification/SKIPPED_PLAYWRIGHT_TESTS.md](../verification/SKIPPED_PLAYWRIGHT_TESTS.md) (17 Playwright skips at `7fdea68`; the CI #119 baseline at `a59bf03` recorded 17 Playwright and 6 unit skips).
 
-**Source:** every skip call in the source on branch `chore/reliability-readiness-2026-09-29` (`main` at `5dd2ee7` plus Session B's changes, none of which touch a skip). The totals below come from the source; "Counts" records the measured runs.
+**Source:** every skip call in the source on branch `chore/reliability-readiness-2026-09-29` (`main` at `5dd2ee7` plus Session B's changes, none of which adds or removes a skip call). The totals below come from the source; "Counts" records the measured runs.
 
 Categories: **platform** (the behaviour does not exist on that project/viewport), **opt-in evidence** (a capture tool, not a gate), **env-gated** (skipped in `pnpm test`, run by a dedicated CI step), **real provider** (needs live third-party responses). No skip is a known bug, obsolete or unknown, and there is no `test.fixme`, `test.todo` or `.only`.
 
@@ -29,14 +29,14 @@ Categories: **platform** (the behaviour does not exist on that project/viewport)
 | 8–9 | `a refused Health consent is described by its refusal message`; `local-copy choices are labelled and say why they are unavailable` (scripts/run11/health-consent-a11y-browser.test.mjs:27, :38) | `RUN10_BROWSER` | same | env-gated | same step |
 | 10 | `wealth browser consumes actual mixed-pair route evidence and retains Bitcoin through failed ZIG refresh` (scripts/run11/market-browser.test.mjs:14) | `RUN11_MARKET_BROWSER!=='1'` | same, plus a local market Worker | env-gated | same step |
 | 11 | `full generated OpenNext artifact uses local named account, market and food services across restart` (scripts/run11/packaged-runtime.test.mjs:22) | `RUN11_PACKAGED!=='1'` | Needs the generated Alpha package (`build:alpha` plus `activation-check --dry-run`) | env-gated | CI `web integration`, "Full generated Run11 package and local service topology" |
-| 12 | `all supported Goal controls work in the source preview before package generation` (scripts/run11/packaged-runtime.test.mjs:90) | `RUN11_GOAL_SOURCE!=='1'` | A deliberate pre-build check against a source preview (`RUN11_GOAL_ORIGIN`, default port 3113). All `/api/**` calls are answered by a fixture 503, so there are no providers | env-gated, **not run in CI** | Candidate; see below |
+| 12 | `all supported Goal controls work in the source preview before package generation` (scripts/run11/packaged-runtime.test.mjs:90) | `RUN11_GOAL_SOURCE!=='1'` | A deliberate pre-build check against a source preview (`RUN11_GOAL_ORIGIN`, default port 3113). All `/api/**` calls are answered by a fixture 503, so there are no providers | env-gated | CI `web integration`, "Independent browser account and market integration" (added by Session B; see below) |
 
-**Vitest total in plain `pnpm test`: 12 skipped** (the CI #119 baseline at `a59bf03` had 6: rows 1–3, 10–12. The 6 added since are rows 4–9, the sync and Health-consent browser harnesses). Tests 1–11 are skipped only in `pnpm test`, because the dedicated CI steps set their env flags and run them.
+**Vitest total in plain `pnpm test`: 12 skipped** (the CI #119 baseline at `a59bf03` had 6: rows 1–3, 10–12. The 6 added since are rows 4–9, the sync and Health-consent browser harnesses). All 12 are skipped only in plain `pnpm test`; the CI steps set their env flags and run them.
 
 ## Un-skip decisions
 - None of the Playwright skips can be un-skipped. They are platform-specific or opt-in captures, and the captures would call live providers and write into the repo.
 - Vitest 1–11 already run in CI. Removing the gate would make `pnpm test` depend on a running server and Chrome.
-- Vitest 12 (`RUN11_GOAL_SOURCE`): the only candidate. The result of the reliability trial is recorded under "Counts".
+- Vitest 12 (`RUN11_GOAL_SOURCE`) was the only test no CI step ran. It passed 11 consecutive local runs against the production server (`RUN11_GOAL_ORIGIN=http://127.0.0.1:3101`, about 19 s each). Its `/api/**` calls are fixture-answered, so it needs no provider, secret, wallet or device. The CI integration step now sets `RUN11_GOAL_SOURCE=1` and `RUN11_GOAL_ORIGIN` and runs the file there. The packaged-artifact test in the same file stays gated by `RUN11_PACKAGED` and runs in its own step. The gate stays in plain `pnpm test`, because the test needs a running server.
 
 ## Counts
-Pending: measured after the local account-browser proof finishes (no test suites run in parallel).
+Measured locally on this branch: plain `pnpm test` reports 12 skipped (after removing a local, never-committed profiling copy of account-browser that added 2). The Playwright figure is recorded in the Session B STATUS entry.
