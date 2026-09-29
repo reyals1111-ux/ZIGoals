@@ -62,3 +62,12 @@
 .intro-video-head p{margin:0;font-size:14px;color:#b7cbe2}
 .intro-video-head .quiet{flex:none;font-size:26px;min-width:44px;min-height:44px;padding:0;line-height:1}
 .intro-video-card video{display:block;justify-self:center;width:auto;height:auto;max-width:100%;max-height:min(85dvh,calc(100dvh - 140px));aspect-ratio:784/1168;border-radius:16px;background:#020616}
+/* UI design pass: live preview follows the chosen size; categories show how many widgets they offer; Remove sits apart from Save. */
+.widget-library-group .widget-library-count{margin-left:auto;min-width:26px;padding:2px 8px;border-radius:999px;background:#ffffff14;font-size:14px;font-weight:650;text-align:center;color:#e3ecfa}
+.dashboard-widget-preview{border-radius:20px;border:1px solid #9fc4ff38;background:linear-gradient(160deg,#132340,#0f1830);padding:18px 20px;max-width:340px;transition:max-width 220ms var(--motion-glide,ease)}
+.dashboard-widget-preview[data-size=wide]{max-width:none}
+.dashboard-widget-preview-value{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.dashboard-widget-preview-value strong{font-size:26px;letter-spacing:-.02em}
+.dashboard-dialog .dashboard-actions .dashboard-remove{margin-right:auto;border-color:#f3a6c066;color:#ffd7e4}
+@media(prefers-reduced-motion:reduce){.dashboard-widget-preview{transition:none}}
+:root[data-app-motion=off] .dashboard-widget-preview{transition:none}

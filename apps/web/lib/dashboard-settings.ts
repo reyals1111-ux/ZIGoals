@@ -10,15 +10,21 @@ export const WIDGET_CATALOG={
  habit:{label:'A chosen Habit',domain:'habits',metrics:['today','streak']},
  'food-entry':{label:'A logged food entry',domain:'health',metrics:['kcal','macros']},
  meal:{label:'A meal today',domain:'health',metrics:['kcal','macros']},
- health:{label:'Health metric',domain:'health',metrics:['kcal','macros','water','weight','steps','activity','history']},
+ health:{label:'Health metric',domain:'health',metrics:['kcal','macros','water','weight','steps','activity','history','macros-ring']},
  wealth:{label:'Wealth by currency',domain:'wealth',metrics:['USD','EUR','history-USD','history-EUR']},
  asset:{label:'An asset or Position',domain:'wealth',metrics:['quantity','value','available']},
  staking:{label:'Staking and rewards',domain:'wealth',metrics:['quantity']},
  allocation:{label:'Allocation and availability',domain:'wealth',metrics:['allocation']},
  ecosystem:{label:'Ecosystem shortcut',domain:'wealth',metrics:['directory']},
+ // Added in the UI design pass (additive settings kinds; see docs/STATUS.md for older-build behaviour).
+ milestone:{label:'Next Goal milestone',domain:'goals',metrics:['next']},
+ streak:{label:'Best current streak',domain:'habits',metrics:['best']},
+ checkins:{label:'This week’s check-ins',domain:'habits',metrics:['week']},
+ 'holding-share':{label:'Top holding share',domain:'wealth',metrics:['top']},
+ exercise:{label:'Exercise counters today',domain:'health',metrics:['counts']},
 } as const;
 export type WidgetKind=keyof typeof WIDGET_CATALOG;
-const widgetSchema=z.object({id:z.string().min(1).max(100),kind:z.enum(['goals','goal','habits','habit','health','food-entry','meal','wealth','asset','staking','allocation','ecosystem']),entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)}).strict().superRefine((w,ctx)=>{
+const widgetSchema=z.object({id:z.string().min(1).max(100),kind:z.enum(['goals','goal','habits','habit','health','food-entry','meal','wealth','asset','staking','allocation','ecosystem','milestone','streak','checkins','holding-share','exercise']),entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)}).strict().superRefine((w,ctx)=>{
  if(!(WIDGET_CATALOG[w.kind].metrics as readonly string[]).includes(w.metric))ctx.addIssue({code:'custom',message:'This metric is not supported by this widget.'});
  if(w.kind==='meal'&&!(HEALTH_MEALS as readonly string[]).includes(w.entity??''))ctx.addIssue({code:'custom',message:'Choose a supported meal.'});
  if(w.kind==='food-entry'&&!diarySchema.shape.id.safeParse(w.entity).success)ctx.addIssue({code:'custom',message:'Choose a saved diary entry.'});

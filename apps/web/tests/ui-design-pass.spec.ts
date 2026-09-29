@@ -300,6 +300,7 @@ test.describe('Part 6: journey banner',()=>{
  test('describes ZIGoals in three orbit steps and keeps the Alpha truths visible',async({page})=>{
   await showcase(page);
   const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
+  await expect(page.getByRole('region',{name:'How it works'})).toBeVisible();
   await expect(banner.getByRole('heading',{level:2})).toHaveText('Your goals, habits and health, in one orbit.');
   await expect(banner.locator('.journey-steps strong')).toHaveText(['Choose your orbit','Take a small step','Keep it yours']);
   // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled.
@@ -309,5 +310,27 @@ test.describe('Part 6: journey banner',()=>{
   // The footer keeps the wordmark and its line.
   await expect(page.locator('footer .footer-brand')).toContainText('Same you. A brighter tomorrow.');
   for(const el of await banner.locator('.journey-steps p, .journey-truths p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
+ });
+});
+
+test.describe('Part 7: Today widgets',()=>{
+ test('new widgets add from their category with a live preview, arrow keys move between choices, and Remove works',async({page})=>{
+  await showcase(page);
+  await page.getByRole('button',{name:'Customize Today',exact:true}).click();await page.getByRole('button',{name:'Add widget',exact:true}).click();
+  const editor=page.getByRole('dialog',{name:'Add a widget'});await expect(editor).toBeVisible();
+  const categories=editor.getByRole('group',{name:'Widget categories'});
+  await categories.getByRole('button',{name:/^Habits/}).click();
+  await editor.getByRole('group',{name:'Habits widgets'}).getByRole('button',{name:/Best current streak/}).click();
+  const preview=editor.getByRole('region',{name:'Widget preview'});await expect(preview).toContainText('Best current streak');await expect(preview).toContainText(/\d+ (day|week|month|year)s?|No current streak/);
+  // Keyboard: arrows move focus inside a choice group.
+  await categories.getByRole('button',{name:/^Habits/}).focus();await page.keyboard.press('ArrowRight');
+  await expect(categories.getByRole('button',{name:/^Health/})).toBeFocused();await page.keyboard.press('Enter');
+  await editor.getByRole('group',{name:'Health widgets'}).getByRole('button',{name:/Exercise counters today/}).click();
+  await expect(preview).toContainText('Push-ups');
+  await editor.getByRole('button',{name:'Save widget'}).click();await expect(editor).toHaveCount(0);
+  const card=page.getByRole('article',{name:'Exercise counters today'});await expect(card).toBeVisible();await expect(card).toContainText('Squats');
+  await card.getByRole('button',{name:'Options for Exercise counters today'}).click();await card.getByRole('button',{name:'Edit widget'}).click();
+  const edit=page.getByRole('dialog',{name:'Edit widget'});await edit.getByRole('button',{name:'Remove widget'}).click();
+  await expect(edit).toHaveCount(0);await expect(page.getByRole('article',{name:'Exercise counters today'})).toHaveCount(0);
  });
 });
