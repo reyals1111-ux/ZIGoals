@@ -27,4 +27,4 @@ small{font-size:14px}
 .today-hero .today-hero-copy .orbit-slogan{font-size:clamp(18px,7cqw,90px)!important;line-height:1.15!important;letter-spacing:-.045em;text-wrap:initial}
 .orbit-slogan .slogan-line{display:block;white-space:nowrap}
 
-@media(max-width:379px){.today-hero .hero-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.today-hero .hero-actions a{width:100%;justify-content:center;white-space:normal}}
+@media(max-width:379px){.today-hero .hero-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.today-hero .hero-actions :is(a,button){width:100%;justify-content:center;white-space:normal}}

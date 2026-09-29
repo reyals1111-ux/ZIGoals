@@ -64,9 +64,10 @@ for (const width of [1440, 1024, 390, 320]) test(`Life pages recompose at ${widt
   }
 });
 
-test('Quick Add opens Habit creation from the Habit page and can reopen after cancel', async ({ page }) => {
+test('Quick Add opens Habit creation (from the Habit page on mobile, from Today on desktop) and can reopen after cancel', async ({ page, isMobile }) => {
   await page.goto('/app/habits');
   for (let attempt = 0; attempt < 2; attempt++) {
+    if (!isMobile) await page.goto('/app');
     await page.getByRole('button', { name: '+ Quick add', exact: true }).click();
     await page.getByRole('navigation', { name: 'Quick add actions' }).getByRole('link').filter({ hasText: 'Habit' }).click();
     await expect(page.getByLabel('Habit title', { exact: true })).toBeVisible();
@@ -75,11 +76,12 @@ test('Quick Add opens Habit creation from the Habit page and can reopen after ca
   }
 });
 
-test('Quick Add Health entry leaves another Health view and focuses the working diary form', async ({ page }) => {
+test('Quick Add Health entry leaves another Health view and focuses the working diary form', async ({ page, isMobile }) => {
   await showcase(page);
   await page.goto('/app/health');
   for (let attempt = 0; attempt < 2; attempt++) {
     await page.getByRole('button', { name: 'Weight', exact: true }).click();
+    if (!isMobile) await page.goto('/app');
     await page.getByRole('button', { name: '+ Quick add', exact: true }).click();
     await page.getByRole('navigation', { name: 'Quick add actions' }).getByRole('link').filter({ hasText: 'Health entry' }).click();
     await expect(page.getByRole('form', { name: 'Log a meal' })).toBeInViewport();

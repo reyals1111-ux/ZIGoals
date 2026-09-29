@@ -1,11 +1,11 @@
 .app-sidebar { overflow-y:auto; }
 .app-sidebar .brand { flex-direction:column;align-items:flex-start;gap:4px; }
 .brand-logo { display:block;width:57px;height:64px;margin-left:-5px; }
-/* Desktop sidebar: a larger centred mark on top; the wordmark signs off right above the planet. The mobile header keeps its own brand row. */
+/* Desktop sidebar: the logo fills the top on its own (Quick add lives in the Today hero); the wordmark signs off right above the planet. The mobile header keeps its own brand row and Quick add. */
 @media(min-width:901px) {
  .app-sidebar .brand { align-items:center;padding:0; }
- .app-sidebar .brand .brand-wordmark,.app-sidebar>.product-descriptor { display:none; }
- .app-sidebar .brand-logo { width:86px;height:96px;margin:0; }
+ .app-sidebar .brand .brand-wordmark,.app-sidebar>.product-descriptor,.app-sidebar>.sidebar-actions { display:none; }
+ .app-sidebar .brand-logo { width:141px;height:160px;margin:0; }
 }
 .sidebar-actions { padding:16px 4px 0; }
 .sidebar-actions .quick-add-trigger { width:100%;min-height:46px;background:linear-gradient(110deg,#16435b,#33244c);border-color:#87bbed77; }

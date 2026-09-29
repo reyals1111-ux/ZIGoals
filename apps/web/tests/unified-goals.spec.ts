@@ -20,7 +20,7 @@ test('one collection reconciles incomplete flags, preserves deep links and shows
  if(process.env.RUN81_CAPTURE==='1')await capture(page,info.outputPath('unified-goals-active.png'));
  await page.getByRole('button',{name:'Completed',exact:true}).click();await expect(page.getByRole('heading',{name:'Reached destination',exact:true})).toBeVisible();await expect(page.getByRole('heading',{name:'300K ZIG Goal',exact:true})).toHaveCount(0);await expect(page.getByRole('heading',{name:'Small start',exact:true})).toHaveCount(0);
  if(process.env.RUN81_CAPTURE==='1')await capture(page,info.outputPath('completed-filter.png'));
- await page.goto('/app/goals/tracked');await expect(page.getByRole('heading',{name:'Your goals.',exact:true})).toBeVisible();
+ await page.goto('/app/goals/tracked');await expect(page.getByRole('heading',{name:'Your Goals',exact:true})).toBeVisible();
  await page.goto('/app/goals/positions');const card=page.getByRole('article').filter({has:page.getByRole('heading',{name:'Example validator A',exact:true})});await expect(card).toContainText('Allocated to Goals');await expect(card).toContainText('300K ZIG Goal');await expect(card.getByRole('link',{name:'Manage allocation →'})).toHaveAttribute('href','/app/goals/tracked/81#allocate');
  const shared=page.getByRole('article').filter({has:page.getByRole('heading',{name:'Example validator C',exact:true})});await expect(shared).toContainText('Small start');await expect(shared).toContainText('Reached destination');await expect(shared.getByRole('link',{name:'Manage allocation →'})).toHaveCount(2);
  if(process.env.RUN81_CAPTURE==='1')await card.screenshot({path:info.outputPath('allocation-ownership.png')});
