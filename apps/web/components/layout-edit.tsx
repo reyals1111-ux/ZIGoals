@@ -54,12 +54,6 @@ export function LayoutPage({page, children, unlocked: controlled, onUnlockedChan
     if (unlocked) root.dataset.layoutEditing = page; else if (root.dataset.layoutEditing === page) delete root.dataset.layoutEditing;
     return () => { if (root.dataset.layoutEditing === page) delete root.dataset.layoutEditing; };
   }, [unlocked, page]);
-  useEffect(() => {
-    if (!unlocked) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && !document.querySelector('.layout-ghost') && !document.querySelector('dialog[open]')) { setUnlocked(false); announce('Layout locked.'); } };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [unlocked, setUnlocked, announce]);
   const value = useMemo(() => ({page, unlocked, setUnlocked, announce}), [page, unlocked, setUnlocked, announce]);
   const reset = () => { writeLayout(resetPage(snapshot(), page)); onReset?.(); announce('This page is back to its default layout.'); };
   return <LayoutContext.Provider value={value}>
