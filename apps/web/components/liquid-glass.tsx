@@ -38,7 +38,9 @@ function targetsFor(start: Element | null): {inner: HTMLElement; card?: HTMLElem
 
 export function LiquidGlass() {
   useEffect(() => {
-    const hover = matchMedia('(hover: hover) and (pointer: fine)');
+    // Environments without matchMedia (tests, very old browsers) get no hover glass at all.
+    if (typeof window.matchMedia !== 'function') return;
+    const hover = window.matchMedia('(hover: hover) and (pointer: fine)');
     let still = !entranceAllowed();
     const overlay = document.createElement('div');
     overlay.className = 'glass-light'; overlay.setAttribute('aria-hidden', 'true');
@@ -125,7 +127,7 @@ export function LiquidGlass() {
     window.addEventListener('scroll', onScroll, {passive: true, capture: true});
     window.addEventListener('resize', onScroll, {passive: true});
     window.addEventListener('zigoals-motion', onMotion); window.addEventListener('storage', onMotion);
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)'); reduced.addEventListener?.('change', onMotion);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)'); reduced.addEventListener?.('change', onMotion);
     return () => {
       clear(); cancelAnimationFrame(frame); overlay.remove();
       document.removeEventListener('pointerover', onOver); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerout', onLeaveWindow);
