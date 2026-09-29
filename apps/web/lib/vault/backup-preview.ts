@@ -2,13 +2,15 @@ import {healthSchema} from '../health';
 import {habitDataSchema} from '../habits';
 import {platformSchema} from '../positions';
 import {dashboardSettingsSchema} from '../dashboard-settings';
+import {localSimulationSchema,summarizeLocalSimulation} from './local-simulation-backup';
 const domains={finance:{label:'Goals and Wealth',schema:platformSchema},habits:{label:'Habits',schema:habitDataSchema},health:{label:'Health',schema:healthSchema},settings:{label:'Today preferences',schema:dashboardSettingsSchema}};
 type Domain=keyof typeof domains;
 const labels:Record<string,string>={positions:'Positions',goals:'Goals',allocations:'Allocations',snapshots:'Snapshots',contributions:'Contribution records',valuationSnapshots:'Valuation observations',goalHistory:'Goal history records',assetEvents:'Asset lifecycle records',financialPortfolios:'Financial portfolios',financialEvents:'Financial evidence',manualFx:'Dated exchange rates',performanceReviews:'Performance reviews',habits:'Habits',foods:'Foods',recipes:'Recipes',diary:'Meals',weights:'Weight records',measurements:'Body measurements',activity:'Activity records',widgets:'Widgets',water:'Water records',savedMeals:'Saved meals',plans:'Planned meals'};
-export type BackupModuleSummary={domain:Domain;label:string;version:number;restoredVersion:number;counts:{label:string;count:number}[];from:string|null;through:string|null};
+export type BackupModuleSummary={domain:Domain|'simulation';label:string;version:number;restoredVersion:number;counts:{label:string;count:number}[];from:string|null;through:string|null;warning?:string};
 /** Inventory is computed only from validated decrypted records. It never enters the public transport. */
-export function summarizeBackupModules(data:Partial<Record<Domain,string>>):BackupModuleSummary[]{
+export function summarizeBackupModules(data:Partial<Record<Domain|'simulation',string>>):BackupModuleSummary[]{
  return Object.entries(data).map(([key,raw])=>{
+  if(key==='simulation'){const section=localSimulationSchema.parse(JSON.parse(raw!)),summary=summarizeLocalSimulation(raw!),dates=('ledger' in section&&section.ledger?JSON.parse(section.ledger).activity as {timestamp:string}[]:[]).map(a=>a.timestamp.slice(0,10)).sort();return {domain:'simulation' as const,label:'Local simulation Goals',version:section.schemaVersion,restoredVersion:section.schemaVersion,counts:summary.warning?[]:[{label:'Goals',count:summary.goals},{label:'Simulation activity',count:summary.activity},{label:'Goal plans',count:summary.plans}],from:dates[0]??null,through:dates.at(-1)??null,...(summary.warning?{warning:summary.warning}:{})};}
   if(!Object.hasOwn(domains,key))throw Error('Unsupported backup module.');const domain=key as Domain,definition=domains[domain],original=JSON.parse(raw!),parsed=definition.schema.parse(original) as Record<string,unknown>,counts:{label:string;count:number}[]=[];
   const countArrays=(value:Record<string,unknown>)=>{for(const [name,rows]of Object.entries(value))if(Array.isArray(rows)&&labels[name])counts.push({label:labels[name]!,count:rows.length});};
   countArrays(parsed);if(domain==='health'&&parsed.daily&&typeof parsed.daily==='object')countArrays(parsed.daily as Record<string,unknown>);
