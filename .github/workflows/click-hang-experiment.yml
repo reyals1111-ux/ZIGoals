@@ -27,7 +27,7 @@ jobs:
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
       WRANGLER_SEND_METRICS: "false"
       CLICK_HANG_BROWSER: ${{ matrix.browser }}
-      REPEATS: "30"
+      REPEATS: "60"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -61,7 +61,7 @@ jobs:
           done
           set -o pipefail
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --config=playwright.click-hang.config.ts \
-            tests/wealth.spec.ts:23 tests/platform-habits.spec.ts:44 tests/habits.spec.ts:18 tests/run11-motion-recording.spec.ts:3 \
+            tests/wealth.spec.ts:23 \
             --repeat-each=$REPEATS --workers=2 --shard=${{ matrix.shard }}/2 --reporter=line --output=/tmp/click-hang-results 2>&1 | tee /tmp/click-hang-run.log
       - name: Click-hang diagnostics
         if: always()

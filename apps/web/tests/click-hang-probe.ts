@@ -3,7 +3,7 @@
 // It records page signals and, when a click is still pending after a threshold, writes
 // diagnostics to the job log while the page is still alive (before the 45 s test timeout).
 import {test as base,type Locator,type Page} from '@playwright/test';
-import {appendFileSync} from 'node:fs';
+import {appendFileSync,readFileSync,readdirSync} from 'node:fs';
 export * from '@playwright/test';
 const LOG=process.env.CLICK_HANG_LOG??'/tmp/click-hang-diag.log';
 const THRESHOLDS=(process.env.CLICK_HANG_THRESHOLDS??'25000,36000').split(',').map(Number);
@@ -35,6 +35,9 @@ async function mainThreadStack(page:Page){
   await within(cdp.send('Debugger.resume'),3000);return lines.join('\n');
  }catch(error){return `CDP error ${error instanceof Error?error.message:String(error)}`;}
 }
+// Browser processes from /proc: CPU ticks used over 3 s, scheduler state and kernel wait channel.
+function browserProcesses(){const rows=new Map<string,{type:string;ticks:number;state:string;wchan:string}>();for(const pid of readdirSync('/proc').filter(n=>/^\d+$/.test(n))){try{const cmd=readFileSync(`/proc/${pid}/cmdline`,'utf8').split(/[\0 ]/);if(!/chrom/i.test(cmd[0]??''))continue;const type=cmd.find(a=>a.startsWith('--type='))?.slice(7)??'browser',stat=readFileSync(`/proc/${pid}/stat`,'utf8'),fields=stat.slice(stat.lastIndexOf(')')+2).split(' ');rows.set(pid,{type,ticks:Number(fields[11])+Number(fields[12]),state:fields[0]!,wchan:readFileSync(`/proc/${pid}/wchan`,'utf8')});}catch{}}return rows;}
+async function processSample(){const first=browserProcesses();await new Promise(r=>setTimeout(r,3000));const second=browserProcesses();return [...second].map(([pid,row])=>({pid,type:row.type,cpuTicks3s:row.ticks-(first.get(pid)?.ticks??row.ticks),state:row.state,wchan:row.wchan})).filter(r=>r.type!=='zygote'&&r.type!=='utility'||r.cpuTicks3s>0).sort((a,b)=>b.cpuTicks3s-a.cpuTicks3s).slice(0,12);}
 async function diagnose(locator:Locator,elapsed:number){
  const page=locator.page(),state=signals.get(page),started=Date.now();
  const version=page.context().browser()?.version()??'unknown';
@@ -46,7 +49,7 @@ async function diagnose(locator:Locator,elapsed:number){
  write(`  target count: ${JSON.stringify(count)} | state: ${JSON.stringify(element)}`);
  write(`  pending requests (${state?.pending.size??0}): ${JSON.stringify([...(state?.pending.values()??[])].slice(0,12))}`);
  write(`  console/page errors (${state?.errors.length??0}): ${JSON.stringify(state?.errors.slice(-12)??[])}`);
- if(typeof alive==='string')write(`  main thread: ${await mainThreadStack(page)}`);
+ if(typeof alive==='string'){write(`  processes (100 ticks = 1 CPU-second): ${JSON.stringify(await processSample())}`);write(`  main thread: ${await mainThreadStack(page)}`);}
  write(`  diagnostics took ${Date.now()-started} ms`);
 }
 export const test=base.extend({
