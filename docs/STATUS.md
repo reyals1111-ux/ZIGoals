@@ -1,3 +1,40 @@
+# Alpha deploy — 2026-09-29 evening, `07f5c90` live
+
+Evidence labels: **workflow log** = `gh run view 36604090817 --log`, with line numbers from that output; **PR API** / **Actions API** = GitHub read on 2026-09-29; **owner-reported** = as the owner reports it.
+
+- **Run:** Manual Alpha deployment #11, [run 36604090817](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36604090817), 2026-09-29 17:19–17:27 UTC, one attempt. Result **success**, deploy summary `Result: VERIFIED` (line 1710). It is the only Alpha deploy after run 36593359096. (workflow log, Actions API)
+- **Source:** `07f5c90fb3a02cf3ba54903e10e1de570e3092e9`, the merge of #40. It already contains #41 and #36, so this deploy covers both. (PR API)
+- **Live Alpha:** version `f15bb757-328f-46a6-b9c4-193f44fb83d3` (lines 1693, 1711). The last observed live version is the same (line 1713). (workflow log)
+- **Rollback:** `e30684f9-6aa0-4e17-ae50-90cb3d7413b6`, captured before upload (lines 1612, 1712). This is the version run #10 deployed earlier the same day, so the chain holds. (workflow log)
+- **Log masking fixed:** no "Skip output … may contain secret" lines. Hyphens are visible in the version IDs (lines 1612, 1693, 1711–1713), and the job set its `new_version_id`/`rollback_version_id` outputs (lines 1765–1766). Only tokens and the market-data key's environment line (line 1654) show as `***`. (workflow log)
+- **#36 first real use:** the build job ran without the alpha environment or deployment credentials. Its step "Build and dry-run Alpha without deployment credentials" passed, and the alpha environment deployment was created at 17:23:34 UTC, when the build finished. The deploy job's step "Verify the build archive hash and unpack only .open-next" passed with `open-next.tar: OK` (line 1587), followed by "Verify the unpacked build is this exact source". (workflow log, Actions API)
+- **CI on `07f5c90`:** Milestone quality #180 ([run 36602033343](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36602033343)): success. (Actions API)
+- **Owner manual checks** (visual, real Keplr/reload/reconnect, Habit/Health persistence, mobile): owner-reported: pending.
+
+**Merged since the last record:** (PR API)
+- [#41](https://github.com/reyals1111-ux/ZIGoals/pull/41) (`e8589ca`): record of the `ebd8a9b` deploy.
+- [#36](https://github.com/reyals1111-ux/ZIGoals/pull/36) (`bf84cc5`): deploy hardening: credential-free build, hash-verified deploy.
+- [#40](https://github.com/reyals1111-ux/ZIGoals/pull/40) (`07f5c90`): accessibility fixes for the new motion and dialogs.
+
+**Open PRs:**
+- [#39](https://github.com/reyals1111-ux/ZIGoals/pull/39): backups include legacy Local simulation Goals. Tier 3, blocked on an integration flake.
+- [#42](https://github.com/reyals1111-ux/ZIGoals/pull/42): sync harness diagnostics (logs failing requests, test-only).
+
+**Known issues:** two intermittent web-integration failures:
+- `sync-inflight-edit-browser`: "Sync was not confirmed".
+- `account-browser`: vitest timeout.
+
+**Resolved:** the run #10 log masking (every `-` shown as `***`) came from a malformed secret in the alpha environment. The owner re-saved it as a single line; run #11 shows clean masking. (owner-reported, workflow log)
+
+**Activation:** Stage 4 local configuration **PASS**, run by the owner from an ops checkout at source `ebd8a9b`: private configs, dry runs and the setup checker. `wrangler secret put` is deferred until after Stage 7 approval, because it creates the Worker remotely. (owner-reported)
+
+**Gaps found in Stage 4** (fixes follow in a separate PR):
+- The lifecycle template lacks `AUTH_ORIGIN`.
+- `activation-check` does not validate the private copies of the templates.
+- The packaged-runtime test picks up a developer's `apps/web/.env.local`, which adds one extra request.
+
+The section below still lists #36 and #40 as open; it was accurate when written.
+
 # Alpha deploy — 2026-09-29, `ebd8a9b` live
 
 Evidence labels: **workflow log** = `gh run view 36593359096 --log`; **PR API** / **Actions API** = GitHub read on 2026-09-29. Owner manual checks are recorded only as the owner reports them.
@@ -53,7 +90,7 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 ## Daytime run — 2026-09-29 (open PRs, nothing merged or deployed)
 
 - **Merge readiness:** tonight's order is #27 → #26 → #29 → #28 → #30 → #31.
-  - Draft [PR #32](https://github.com/reyals1111-ux/ZIGoals/pull/32) (`integration/tonight-check`, DO NOT MERGE) builds exactly that stack.
+  - Draft [PR #32](https://github.com/reyals1111-ux/ZIGoals/pull/32) (DO NOT MERGE; later closed unmerged and its branch removed) builds exactly that stack.
   - Run 1 (`5b97cdb`): one browser test hung once. It did not reproduce in 60 local production runs.
   - Run 2 (`c9c91d5`, final PR tips): **CI green**.
   - #28 conflicts with #26 in one sync harness file. A pre-resolved fast-forward is on branch `resolve/pr28-after-29`.
@@ -89,7 +126,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-09-29 for the [Alpha deploy](#alpha-deploy--2026-09-29-ebd8a9b-live) above.
+Updated 2026-09-29 evening for the [Alpha deploy](#alpha-deploy--2026-09-29-evening-07f5c90-live) above.
+- Deployed source `07f5c90fb3a02cf3ba54903e10e1de570e3092e9`, the merge of [PR #40](https://github.com/reyals1111-ux/ZIGoals/pull/40) (after #41 and #36). Verified: PR API.
+- CI: Milestone quality #180 ([run 36602033343](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36602033343)) on `07f5c90`: success. Verified: Actions API.
+- Deployment: Manual Alpha deployment #11 ([run 36604090817](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36604090817)), exact source `07f5c90`: success, `VERIFIED`. Verified: workflow log.
+- Alpha Worker: live version `f15bb757-328f-46a6-b9c4-193f44fb83d3`; rollback `e30684f9-6aa0-4e17-ae50-90cb3d7413b6` (the run #10 deployment), captured before upload. Verified: workflow log. Owner manual checks: owner-reported: pending.
+
+Previous release identity (PR #37, earlier on 2026-09-29):
 - `main` = `ebd8a9be017c986ff33bc813acefbc4c0abad4fc`, the merge of [PR #37](https://github.com/reyals1111-ux/ZIGoals/pull/37). Verified: PR API.
 - CI: Milestone quality #171 ([run 36591715433](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36591715433)) on `ebd8a9b`: success. Verified: Actions API.
 - Deployment: Manual Alpha deployment #10 ([run 36593359096](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36593359096)), exact source `ebd8a9b`: success, `VERIFIED`. Verified: workflow log.
