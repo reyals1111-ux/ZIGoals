@@ -295,3 +295,19 @@ test.describe('Part 5: Wealth headline',()=>{
   await expect(today.locator('.wealth-total-other')).toHaveText(['+ €8,000 held in EUR · not converted']);
  });
 });
+
+test.describe('Part 6: journey banner',()=>{
+ test('describes ZIGoals in three orbit steps and keeps the Alpha truths visible',async({page})=>{
+  await showcase(page);
+  const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
+  await expect(banner.getByRole('heading',{level:2})).toHaveText('Your goals, habits and health, in one orbit.');
+  await expect(banner.locator('.journey-steps strong')).toHaveText(['Choose your orbit','Take a small step','Keep it yours']);
+  // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled.
+  await expect(banner).toContainText('Financial execution is disabled on this Alpha.');
+  await expect(banner).toContainText('Browser storage is not a backup.');
+  await expect(banner.getByRole('link',{name:'Make a backup in Settings →'})).toHaveAttribute('href','/app/settings');
+  // The footer keeps the wordmark and its line.
+  await expect(page.locator('footer .footer-brand')).toContainText('Same you. A brighter tomorrow.');
+  for(const el of await banner.locator('.journey-steps p, .journey-truths p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
+ });
+});
