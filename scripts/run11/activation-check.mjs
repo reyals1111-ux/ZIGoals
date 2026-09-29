@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,realpathSync,statSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync,spawnSync} from 'node:child_process';
 import JSON5 from 'json5';
 export const CONFIGS={app:'apps/web/wrangler.run11.local.jsonc',private:'workers/private-sync/wrangler.local.jsonc',lifecycle:'workers/private-sync/wrangler.lifecycle.local.jsonc',market:'workers/market-coordinator/wrangler.local.jsonc',food:'workers/food-lookup/wrangler.local.jsonc',admission:'workers/auth-abuse/wrangler.local.jsonc'};
-export function validateTopology(configs){
+export function validateTopology(configs,{privateCopies=false}={}){
  const errors=[],names=Object.values(configs).map(v=>v.name);
  if(new Set(names).size!==6)errors.push('Service names must be unique.');
  for(const [kind,c]of Object.entries(configs)){
-  if(!/^zigoals-[a-z0-9-]+-local$/.test(c.name??'')||c.name==='zigoals-alpha'||c.routes||c.route||c.account_id||c.workers_dev!==false||c.preview_urls!==false)errors.push(kind+': isolated nonpublic target required.');
+  if(!(privateCopies?/^[a-z][a-z0-9-]{2,62}$/.test(c.name??'')&&!/-local$/.test(c.name):/^zigoals-[a-z0-9-]+-local$/.test(c.name??''))||c.name==='zigoals-alpha'||c.routes||c.route||c.account_id||c.workers_dev!==false||c.preview_urls!==false)errors.push(kind+': isolated nonpublic target required.');
   if(c.compatibility_date!=='2026-09-13')errors.push(kind+': reviewed compatibility date required.');
   if(c.observability?.enabled!==false)errors.push(kind+': request logging must stay disabled.');
   if(Object.keys(c.vars??{}).some(k=>/key|secret|token|password/i.test(k)))errors.push(kind+': credential values do not belong in templates.');
@@ -18,12 +18,59 @@ export function validateTopology(configs){
  const expectBinding=(c,binding,service,entrypoint)=>{if(!c.services?.some(s=>s.binding===binding&&s.service===service&&s.entrypoint===entrypoint))errors.push(binding+': service topology mismatch.');};
  expectBinding(configs.app,'WORKER_SELF_REFERENCE',configs.app.name,undefined);expectBinding(configs.app,'MARKET_QUOTES',configs.market.name,'QuoteService');expectBinding(configs.app,'PRIVATE_SYNC',configs.private.name,undefined);expectBinding(configs.app,'FOOD_LOOKUP',configs.food.name,undefined);expectBinding(configs.app,'AUTH_ABUSE',configs.admission.name,'AdmissionService');expectBinding(configs.private,'LIFECYCLE',configs.lifecycle.name,'LifecycleService');
  if(Object.values(configs).some(c=>c.services?.some(s=>s.entrypoint==='LifecycleRecoveryAdmin')))errors.push('Recovery administration must remain unbound in runtime templates.');
+ // lifecycle.mjs deletes provider identities at AUTH_ORIGIN; it must name the same provider as private sync.
+ if(typeof configs.lifecycle.vars?.AUTH_ORIGIN!=='string'||configs.lifecycle.vars.AUTH_ORIGIN!==configs.private.vars?.AUTH_ORIGIN)errors.push('lifecycle: AUTH_ORIGIN must match private sync.');
  if(configs.lifecycle.vars?.RECOVERY_MODE!=='reconcile')errors.push('Lifecycle activation requires an explicit reviewed transition from reconcile.');
  return errors;
 }
+// Private copies (Stage 4): the six templates with ".local" replaced by ".acctest.owner", kept inside
+// this checkout, ignored and 0600 (the pre-Run11 setup checker refuses anything else).
+export const privatePath=path=>path.replace(/\.local\.jsonc$/,'.acctest.owner.jsonc');
+const PLACEHOLDER=/unconfigured|127\.0\.0\.1|localhost|example\.(com|org|invalid)/i;
+const exactHttps=value=>{try{const url=new URL(value);return url.protocol==='https:'&&url.origin===value;}catch{return false;}};
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+/** Checks the private copies against their templates. Messages never include var values. */
+export function validatePrivateCopies(copies,templates){
+ const errors=validateTopology(copies,{privateCopies:true}),names=Object.values(copies).map(c=>c.name);
+ const prefix=names[0]?.slice(0,names[0].length-'run11'.length-1);
+ for(const [kind,c]of Object.entries(copies)){
+  const t=templates[kind],expected=prefix+'-'+t.name.slice('zigoals-'.length,-'-local'.length);
+  if(c.name!==expected)errors.push(kind+': name must share the reviewed prefix of the app Worker.');
+  for(const field of ['main','compatibility_date','compatibility_flags','durable_objects','migrations','workers_dev','preview_urls','limits','assets'])if(!same(c[field],t[field]))errors.push(kind+': '+field+' differs from the reviewed template.');
+  for(const [name,value]of Object.entries(c.vars??{}))if(typeof value!=='string'||PLACEHOLDER.test(value))errors.push(kind+': '+name+' is still a placeholder.');
+  if(!same(Object.keys(t.vars??{}).filter(k=>!(k in(c.vars??{}))),[]))errors.push(kind+': a template var is missing.');
+ }
+ const a=copies.app.vars??{},p=copies.private.vars??{},l=copies.lifecycle.vars??{},m=copies.market.vars??{};
+ for(const [kind,name,value]of [['app','ZIGOALS_AUTH_ORIGIN',a.ZIGOALS_AUTH_ORIGIN],['app','ZIGOALS_SYNC_ORIGIN',a.ZIGOALS_SYNC_ORIGIN],['private','AUTH_ORIGIN',p.AUTH_ORIGIN],['private','APP_ORIGIN',p.APP_ORIGIN],['lifecycle','AUTH_ORIGIN',l.AUTH_ORIGIN]])if(!exactHttps(value))errors.push(kind+': '+name+' must be an exact https origin.');
+ if(a.ZIGOALS_AUTH_ORIGIN!==p.AUTH_ORIGIN)errors.push('app: ZIGOALS_AUTH_ORIGIN must match private sync AUTH_ORIGIN.');
+ if(typeof a.ZIGOALS_SYNC_ORIGIN!=='string'||!a.ZIGOALS_SYNC_ORIGIN.startsWith('https://'+copies.private.name+'.'))errors.push('app: ZIGOALS_SYNC_ORIGIN must name the private sync Worker.');
+ if(m.MARKET_QUOTE_DISPATCH!=='durable-v1'||typeof m.MARKET_ACCOUNT_ID!=='string'||!m.MARKET_ACCOUNT_ID)errors.push('market: MARKET_QUOTE_DISPATCH and MARKET_ACCOUNT_ID are required.');
+ try{const policy=JSON.parse(m.MARKET_POLICY);if(!policy||typeof policy!=='object'||Array.isArray(policy))throw Error();}catch{errors.push('market: MARKET_POLICY must be a JSON object.');}
+ return errors;
+}
+/** File checks for a private copy: inside the checkout, a regular 0600 file, ignored by git. */
+export function privateFileProblems(root,path){
+ const base=realpathSync(root),full=resolve(root,path);
+ if(!existsSync(full))return ['missing'];
+ const actual=realpathSync(full),info=statSync(actual),problems=[];
+ if(!actual.startsWith(base+'/'))problems.push('outside the checkout');
+ if(!info.isFile()||info.size>65536)problems.push('not a small regular file');
+ if(info.mode&0o077)problems.push('not mode 0600');
+ if(spawnSync('git',['check-ignore','-q',full],{cwd:base}).status!==0)problems.push('not ignored by git');
+ return problems;
+}
+function checkPrivate(root){
+ const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),problems=[];
+ for(const path of Object.values(CONFIGS))for(const problem of privateFileProblems(root,privatePath(path)))problems.push(privatePath(path)+': '+problem);
+ if(problems.length)throw Error(problems.join('\n'));
+ const errors=validatePrivateCopies(Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,read(privatePath(p))])),Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,read(p)])));
+ if(errors.length)throw Error(errors.join('\n'));
+ console.log('PASS: six private copies are ignored 0600 files with consistent names, exact https origins, no placeholders and unchanged classes, migrations and compatibility dates. Values not printed.');
+}
 function main(){
+ if(process.argv.length===3&&process.argv[2]==='--private'){checkPrivate(resolve(dirname(fileURLToPath(import.meta.url)),'../..'));return;}
  const args=process.argv.slice(2),dry=args.includes('--dry-run'),index=args.indexOf('--source'),source=index>=0?args[index+1]:undefined;
- if(!source||!/^[a-f0-9]{40}$/.test(source)||args.some((a,i)=>a!=='--dry-run'&&a!=='--source'&&i!==index+1)){console.error('Usage: node scripts/run11/activation-check.mjs --source <exact-commit> [--dry-run]');process.exitCode=2;return;}
+ if(!source||!/^[a-f0-9]{40}$/.test(source)||args.some((a,i)=>a!=='--dry-run'&&a!=='--source'&&i!==index+1)){console.error('Usage: node scripts/run11/activation-check.mjs --source <exact-commit> [--dry-run] | --private');process.exitCode=2;return;}
  const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
  if(head!==source||spawnSync('git',['merge-base','--is-ancestor','3ca2f42303724ef1317aded6982c9fdd6fd8775d',head],{cwd:root}).status!==0)throw Error('Source must match HEAD and retain the verified preparation ancestor.');
  const configs=Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,JSON5.parse(readFileSync(resolve(root,p),'utf8'))])),errors=validateTopology(configs);

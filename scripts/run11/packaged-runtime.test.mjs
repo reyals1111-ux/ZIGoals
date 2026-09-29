@@ -9,6 +9,7 @@ import {execFileSync} from 'node:child_process';
 import {fixtureToken,ACCOUNT} from './private-runtime.mjs';
 import {createPackagedRecords,receiveAndCorrectPackagedRecords,armPackagedSync,waitPackagedSync,protectAndRestorePackagedRecords,verifyPackagedPresets} from './packaged-consumer-journey.mjs';
 import {verifyPackagedGoalJourneys,verifySourceGoalControls} from './packaged-goal-journey.mjs';
+import {hermeticWorkerOptions} from './hermetic-wrangler.mjs';
 import {createVault} from '../../apps/web/lib/vault/crypto';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{build}=require('esbuild');
@@ -46,7 +47,8 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
   throw Error('Outbound fixture refused '+url.origin+url.pathname);
  };
  async function runtime(enabled=true){
-  const app=unstable_getMiniflareWorkerOptions(resolve(root,'apps/web/wrangler.run11.local.jsonc')).workerOptions;
+  // Hermetic: a developer's apps/web/.env.local or .dev.vars must not add bindings (it changed the request count).
+  const app=hermeticWorkerOptions(unstable_getMiniflareWorkerOptions,resolve(root,'apps/web/wrangler.run11.local.jsonc')).workerOptions;
   return new Miniflare({...convertV4MiniflareOptions({workers:[
    {compatibilityDate:app.compatibilityDate,compatibilityFlags:app.compatibilityFlags,assets:app.assets,name:'zigoals-run11-local',modules:true,script,bindings:{...app.bindings,...(enabled?{ZIGOALS_AUTH_ORIGIN:'https://fixture.supabase.co',ZIGOALS_AUTH_PUBLIC_KEY:'fixture-public',ZIGOALS_SYNC_ORIGIN:'https://fixture.workers.dev'}:{})},serviceBindings:enabled?app.serviceBindings:{WORKER_SELF_REFERENCE:{name:'zigoals-run11-local'}},outboundService:upstream},
    {name:'zigoals-private-sync-local',modules:true,script:codes[0],compatibilityDate:'2026-09-13',durableObjects:{VAULTS:{className:'PrivateVault',useSQLite:true}},serviceBindings:{LIFECYCLE:{name:'life',entrypoint:'LifecycleService'}},bindings:{AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'fixture-public',APP_ORIGIN:origin},outboundService:upstream},

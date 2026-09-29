@@ -20,6 +20,7 @@
     }
   ],
   "vars": {
+    "AUTH_ORIGIN": "https://unconfigured.supabase.co",
     "RECOVERY_MODE": "reconcile"
   },
   "observability": {
