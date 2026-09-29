@@ -104,9 +104,9 @@ jobs:
     # Measured 5.7 min (integration 2.2 min, Alpha build and package topology
     # 1.7 min, Workers security gate 0.5 min; run 36489960661). About 2.5x
     # headroom: the account browser tests wait up to 30 s per step on failure.
-    # The browser integration files now run one at a time (see that step),
-    # which adds about 1.5-2 min (estimate from the per-file times), so the
-    # job stays well inside 15 min.
+    # The browser integration files now run one at a time (see that step).
+    # Measured locally on 4 vCPUs: the whole step takes 185 s, about 35 s
+    # more than in parallel, so the job stays well inside 15 min.
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: "1"
