@@ -18,6 +18,8 @@ export function validateTopology(configs){
  const expectBinding=(c,binding,service,entrypoint)=>{if(!c.services?.some(s=>s.binding===binding&&s.service===service&&s.entrypoint===entrypoint))errors.push(binding+': service topology mismatch.');};
  expectBinding(configs.app,'WORKER_SELF_REFERENCE',configs.app.name,undefined);expectBinding(configs.app,'MARKET_QUOTES',configs.market.name,'QuoteService');expectBinding(configs.app,'PRIVATE_SYNC',configs.private.name,undefined);expectBinding(configs.app,'FOOD_LOOKUP',configs.food.name,undefined);expectBinding(configs.app,'AUTH_ABUSE',configs.admission.name,'AdmissionService');expectBinding(configs.private,'LIFECYCLE',configs.lifecycle.name,'LifecycleService');
  if(Object.values(configs).some(c=>c.services?.some(s=>s.entrypoint==='LifecycleRecoveryAdmin')))errors.push('Recovery administration must remain unbound in runtime templates.');
+ // lifecycle.mjs deletes provider identities at AUTH_ORIGIN; it must name the same provider as private sync.
+ if(typeof configs.lifecycle.vars?.AUTH_ORIGIN!=='string'||configs.lifecycle.vars.AUTH_ORIGIN!==configs.private.vars?.AUTH_ORIGIN)errors.push('lifecycle: AUTH_ORIGIN must match private sync.');
  if(configs.lifecycle.vars?.RECOVERY_MODE!=='reconcile')errors.push('Lifecycle activation requires an explicit reviewed transition from reconcile.');
  return errors;
 }
