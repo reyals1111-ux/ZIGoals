@@ -19,15 +19,24 @@ async function readBounded(response:Request|Response,max:number){
  try{while(true){const part=await reader.read();if(part.done)break;total+=part.value.length;if(total>max)throw Error('Too large');chunks.push(part.value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
  const all=new Uint8Array(total);let offset=0;for(const c of chunks){all.set(c,offset);offset+=c.length;}return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(all));
 }
-export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify',email:string)=>Promise<Response>):Promise<Response>{
+export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>):Promise<Response>{
  const origin=new URL(request.url).origin;
  if(request.method!=='GET'&&(request.method!=='POST'||request.headers.get('origin')!==origin))return reply({error:'ORIGIN_DENIED'},403);
- const rawToken=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith('zigoals_session='))?.slice(16);
- const token=rawToken&&/^[A-Za-z0-9._-]{1,4096}$/.test(rawToken)?rawToken:null;
- const cookie=(value:string,age:number,name='zigoals_session')=>`${name}=${value}; HttpOnly; SameSite=Strict; Path=/api/private-account; Max-Age=${age}${origin.startsWith('https:')?'; Secure':''}`;
- const refreshRaw=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith('zigoals_refresh='))?.slice(16);
- const refresh=refreshRaw&&/^[A-Za-z0-9._-]{1,4096}$/.test(refreshRaw)?refreshRaw:null;
- function withCookies(result:Response,access:string,refreshToken:string|undefined,age:number){result.headers.append('Set-Cookie',cookie(access,age));result.headers.append('Set-Cookie',cookie(refreshToken??'',refreshToken?30*86400:0,'zigoals_refresh'));return result;}
+ // Hosted (https) sessions use __Host- cookies: Secure, Path=/ and no Domain, so a sibling
+ // subdomain cannot set or shadow them. Plain http exists only for local development and
+ // fixtures, where Secure cookies are not portable; it keeps the previous unprefixed names.
+ const secure=origin.startsWith('https:'),SESSION=secure?'__Host-zigoals_session':'zigoals_session',REFRESH=secure?'__Host-zigoals_refresh':'zigoals_refresh';
+ const pairs=(request.headers.get('cookie')??'').split(';').map(v=>v.trim()).filter(Boolean).map(v=>{const at=v.indexOf('=');return at<0?[v,'']:[v.slice(0,at),v.slice(at+1)];});
+ const named=(name:string)=>pairs.filter(([key])=>key===name).map(([,value])=>value);
+ const cookie=(value:string,age:number,name=SESSION)=>secure?`${name}=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${age}; Secure`:`${name}=${value}; HttpOnly; SameSite=Strict; Path=/api/private-account; Max-Age=${age}`;
+ // Two cookies with one name mean something else set a cookie for this origin: trust neither.
+ if(named(SESSION).length>1||named(REFRESH).length>1){const result=reply({error:'DUPLICATE_SESSION_COOKIE',message:'Sign in again.'},400);result.headers.append('Set-Cookie',cookie('',0));result.headers.append('Set-Cookie',cookie('',0,REFRESH));return result;}
+ const valid=(value:string|undefined)=>value&&/^[A-Za-z0-9._-]{1,4096}$/.test(value)?value:null;
+ const token=valid(named(SESSION)[0]),refresh=valid(named(REFRESH)[0]);
+ function withCookies(result:Response,access:string,refreshToken:string|undefined,age:number){result.headers.append('Set-Cookie',cookie(access,age));result.headers.append('Set-Cookie',cookie(refreshToken??'',refreshToken?30*86400:0,REFRESH));
+  // Expire the pre-__Host- cookies once, so an old pair cannot linger beside the new one.
+  if(secure)for(const legacy of ['zigoals_session','zigoals_refresh'])result.headers.append('Set-Cookie',`${legacy}=; HttpOnly; SameSite=Strict; Path=/api/private-account; Max-Age=0; Secure`);
+  return result;}
  async function upstream(url:string,init:RequestInit){return fetcher(url,{...init,redirect:'manual',signal:AbortSignal.timeout(10000),cache:'no-store'});}
  try{
   let action:z.infer<typeof actionSchema>|undefined;
@@ -83,7 +92,10 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
   }
   if(admit){const admission=await admit(action.action,action.email);await admission.body?.cancel().catch(()=>{});if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
   const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:true}:{email:action.email,token:action.code,type:'email'})});
-  if(!remote.ok){await remote.body?.cancel().catch(()=>{});return reply({error:remote.status===429?'TRY_LATER':'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'},remote.status===429?429:400);}
+  if(!remote.ok){await remote.body?.cancel().catch(()=>{});
+   // A rejected code counts toward the per-email daily cap on failed verifications.
+   if(action.action==='verify'&&remote.status!==429&&admit){const failed=await admit('verify-failed',action.email).catch(()=>null);await failed?.body?.cancel().catch(()=>{});}
+   return reply({error:remote.status===429?'TRY_LATER':'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'},remote.status===429?429:400);}
   if(action.action==='send'){await remote.body?.cancel().catch(()=>{});return reply({message:'If this address can receive a code, check your inbox. Wait at least 60 seconds before requesting another.'});}
   const session=z.object({access_token:z.string().regex(/^[A-Za-z0-9._-]{1,4096}$/),expires_in:z.number().int().min(1).max(86400),refresh_token:z.string().regex(/^[A-Za-z0-9._-]{1,4096}$/).optional(),user:z.object({id:z.uuid()})}).parse(await readBounded(remote,32768));
   const registered=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${session.access_token}`,'x-zigoals-account':session.user.id,'content-type':'application/json'},body:JSON.stringify({action:'register',label:action.label??'Browser session'})});if(!registered.ok){await registered.body?.cancel().catch(()=>{});throw Error('Session registration not confirmed.');}z.object({registered:z.literal(true),id:z.uuid()}).parse(await readBounded(registered,32768));
