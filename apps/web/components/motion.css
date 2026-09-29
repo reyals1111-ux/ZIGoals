@@ -74,8 +74,8 @@
 .nav-glide[data-state=done] { opacity:0;transition:opacity 180ms ease; }
 .app-nav[data-gliding] a[aria-current=page] { background:transparent!important;border-color:transparent!important;box-shadow:none!important; }
 .workspace main>div { animation:motion-page-enter 320ms var(--motion-glide); }
-@keyframes motion-page-enter { from { opacity:.55;transform:translateY(6px); } }
-@media(prefers-reduced-motion:reduce) { .app-nav a:active { transform:none; }.nav-glide { display:none; } }
+@keyframes motion-page-enter { from { opacity:.85;transform:translateY(6px); } }
+@media(prefers-reduced-motion:reduce) { .app-nav a:active { transform:none; }.nav-glide { display:none; }.workspace main>div { animation:none; } }
 :root[data-app-motion=off] :is(.app-nav a,.workspace main>div) { animation:none!important;transition:none!important;transform:none!important; }
 :root[data-app-motion=off] .nav-glide { display:none; }
 
@@ -96,14 +96,14 @@
 /* Page arrival (page-arrival.tsx): one light sweep across the title, a short staggered settle for the first cards that arrive, one shine on the key figures. The band rests past the right edge, so the settled text is exactly as before; marks are removed after their single pass. */
 @keyframes arrive-sweep { from { background-position:100% 0; } to { background-position:0 0; } }
 @keyframes arrive-shine { from { background-position:100% 0,var(--arrive-pos,0 0); } to { background-position:0 0,var(--arrive-pos,0 0); } }
-@keyframes arrive-card { from { opacity:.6;transform:translateY(8px); } }
+@keyframes arrive-card { from { opacity:.85;transform:translateY(8px); } }
 main [data-arrive=tint] { background-image:linear-gradient(100deg,currentColor 38%,var(--brand-cyan) 45%,var(--brand-violet) 50%,var(--brand-magenta) 55%,currentColor 62%)!important;background-size:250% 100%!important;background-repeat:no-repeat!important;background-position:0 0;background-clip:text!important;-webkit-background-clip:text!important;-webkit-text-fill-color:transparent!important;animation:arrive-sweep var(--arrive-duration,1000ms) linear var(--arrive-delay,0ms) backwards; }
 main [data-arrive=shine] { background-image:linear-gradient(100deg,transparent 42%,#ffffffa6 50%,transparent 58%),var(--arrive-base)!important;background-size:250% 100%,var(--arrive-size,auto)!important;background-repeat:no-repeat,var(--arrive-repeat,no-repeat)!important;background-position:0 0,var(--arrive-pos,0 0);animation:arrive-shine var(--arrive-duration,1000ms) linear var(--arrive-delay,0ms) backwards; }
 main [data-arrive=card] { animation:arrive-card 560ms var(--motion-glide) calc(var(--arrive-i,0) * 60ms) backwards; }
 @media(prefers-reduced-motion:reduce) { :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }.app-nav a[data-arrive]::after { content:none; } }
 :root[data-app-motion=off] :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }
 :root[data-app-motion=off] .app-nav a[data-arrive]::after { content:none; }
-@media(forced-colors:active) { main [data-arrive] { animation:none!important; } }
+@media(forced-colors:active) { :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }.app-nav a[data-arrive]::after { content:none; } }
 
 /* Logo intro (logo-intro.tsx): screen blend makes the clip's black vanish into the sidebar; the static logo hides only while the clip actually plays and returns in a crossfade. */
 @media(min-width:901px) { .app-sidebar .brand { position:relative; } }
@@ -115,3 +115,8 @@ main [data-arrive=card] { animation:arrive-card 560ms var(--motion-glide) calc(v
 @media(prefers-reduced-motion:reduce) { .logo-intro { display:none; }.brand-logo[data-intro] { opacity:1; } }
 :root[data-app-motion=off] .logo-intro { display:none; }
 :root[data-app-motion=off] .brand-logo[data-intro] { opacity:1; }
+/* Keyboard focus on the logo link: the clip steps aside for the static logo so it never covers the focus ring. */
+.brand:focus-visible .logo-intro { display:none; }
+.brand:focus-visible .brand-logo[data-intro] { opacity:1; }
+/* The route focus fallback (shell.tsx) focuses the main landmark; a ring around the whole page region adds nothing. */
+#main:focus { outline:none; }
