@@ -62,7 +62,8 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
           <Wordmark />
-          <small>THE GOAL LAYER FOR ZIGCHAIN</small>
+          <small className="sidebar-tagline"><span className="sr-only">Shape &amp; Fold, Your Own Future</span><span aria-hidden="true">Shape &amp; Fold</span><span aria-hidden="true">Your Own Future</span></small>
+          <span className="sidebar-star" aria-hidden="true" />
         </div>
       </aside>
       <div className="app-content">

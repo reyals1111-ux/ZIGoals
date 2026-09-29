@@ -36,9 +36,9 @@ export default function Settings() {
     <div className="settings-page">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Keep your plans with you</p>
+          <p className="eyebrow page-eyebrow">Keep your plans with you</p>
           <h1>Your data. Your control.</h1>
-          <p>
+          <p className="page-lede">
             Goal plans stay on this device. Your wallet controls onchain funds.
           </p>
         </div>

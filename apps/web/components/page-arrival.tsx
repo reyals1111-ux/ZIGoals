@@ -15,12 +15,19 @@ const CARD = 'section,article,aside,.panel';
 // Elements that already have their own entrance keep it alone.
 const OWN_ENTRANCE = '[data-entrance],.today-hero,.slogan-entrance,.hero-star';
 
+/** Server-rendered nodes inside a Suspense boundary that has not hydrated yet must not gain attributes, or React reports a hydration mismatch. */
+let pending = false;
+function hydrated(el: Element) {
+  const ok = Object.keys(el).some(key => key.startsWith('__reactFiber$'));
+  if (!ok) pending = true;
+  return ok;
+}
 function clear(el: HTMLElement) {
   delete el.dataset.arrive;
   for (const name of ['--arrive-i', '--arrive-base', '--arrive-size', '--arrive-repeat', '--arrive-duration', '--arrive-delay', '--arrive-pos']) el.style.removeProperty(name);
 }
 function mark(el: HTMLElement, mode: string, vars: Record<string, string> = {}) {
-  if (el.dataset.arrive) return;
+  if (el.dataset.arrive || !hydrated(el)) return;
   for (const [name, value] of Object.entries(vars)) el.style.setProperty(name, value);
   el.dataset.arrive = mode;
   const done = (event?: AnimationEvent) => {
@@ -49,7 +56,7 @@ function sweep(el: HTMLElement, duration: number, delay: number) {
   return true;
 }
 function arriveTitle(title: HTMLElement) {
-  if (title.closest(OWN_ENTRANCE) || title.dataset.arrive) return;
+  if (title.closest(OWN_ENTRANCE) || title.dataset.arrive || !hydrated(title)) return;
   // Constant speed across the title box; gradient words inside it are timed to meet the same band.
   const box = title.getBoundingClientRect(), speed = SWEEP_PX_PER_S / 1000, start = 150;
   const duration = (1.5 * box.width) / speed;
@@ -117,12 +124,17 @@ export function PageArrival() {
       else if (!initial) arriveCards(main, main.children);
       arriveMetrics(main);
     };
+    pending = false;
     run();
+    // A title still waiting for its Suspense boundary to hydrate gets another look on the next frames.
+    let frame = 0;
+    const retry = () => { if (!pending) return; pending = false; run(); frame = requestAnimationFrame(retry); };
+    frame = requestAnimationFrame(retry);
     // Pages that load their records render them a moment later; watch those insertions briefly.
     const observer = new MutationObserver(records => run(records.flatMap(r => [...r.addedNodes].filter((n): n is Element => n instanceof Element))));
     observer.observe(main, {childList: true, subtree: true});
-    const stop = window.setTimeout(() => observer.disconnect(), WINDOW_MS);
-    return () => { observer.disconnect(); window.clearTimeout(stop); };
+    const stop = window.setTimeout(() => { observer.disconnect(); cancelAnimationFrame(frame); }, WINDOW_MS);
+    return () => { observer.disconnect(); window.clearTimeout(stop); cancelAnimationFrame(frame); };
   }, [path]);
   return null;
 }

@@ -33,8 +33,9 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  await expect(page.getByText('A destination worth building',{exact:true})).toBeVisible();await expect(page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true})).toBeVisible();
  const create=page.getByRole('link',{name:'+ Create a goal',exact:true}),t=(await title.boundingBox())!,c=(await create.boundingBox())!;
  await expect(create).toHaveAttribute('href','/app/goals/new');
- // Directly right of the title on its line.
- expect(c.x).toBeGreaterThanOrEqual(t.x+t.width);expect(c.x-(t.x+t.width)).toBeLessThanOrEqual(32);expect(Math.abs((c.y+c.height/2)-(t.y+t.height/2))).toBeLessThanOrEqual(8);
+ // UI design pass: at the far right of the title row, vertically centred on the title.
+ const header=(await page.locator('.goals-heading').boundingBox())!;
+ expect(c.x).toBeGreaterThanOrEqual(t.x+t.width);expect(Math.abs((c.x+c.width)-(header.x+header.width))).toBeLessThanOrEqual(2);expect(Math.abs((c.y+c.height/2)-(t.y+t.height/2))).toBeLessThanOrEqual(8);
  const toolbar=page.locator('.goals-toolbar'),controls=toolbar.locator(':scope a, :scope button'),count=toolbar.getByText(/^\d+ destinations?$/);
  await expect(toolbar.getByRole('navigation',{name:'Goal workspace'})).toBeVisible();await expect(toolbar.getByRole('navigation',{name:'Goal views'})).toBeVisible();await expect(count).toBeVisible();
  const tops=new Set((await controls.evaluateAll(els=>els.map(e=>Math.round(e.getBoundingClientRect().top)))));expect(tops.size).toBeLessThanOrEqual(isMobile?2:1);

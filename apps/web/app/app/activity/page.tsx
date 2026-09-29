@@ -20,9 +20,9 @@ export default function ActivityPage() {
     <div className="activity-page">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Every step forward</p>
+          <p className="eyebrow page-eyebrow">Every step forward</p>
           <h1>Activity.</h1>
-          <p>
+          <p className="page-lede">
             {s.mode === "local"
               ? "Your Goals, wealth, habits and health — a private history of the steps you take."
               : "Known transactions saved on this device for this wallet and chain. This is incomplete history; other wallets, devices, and applications are not indexed."}

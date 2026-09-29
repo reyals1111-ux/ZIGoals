@@ -1,0 +1,76 @@
+/*
+ * Shared text system (UI design pass). Imported last from app/layout.tsx; rules carry a :root prefix so they
+ * win over the older layered theme files regardless of the order component stylesheets load in.
+ * Secondary text is near-white and medium weight; meta text stays clearly readable (both ≥ 7:1 on #0d1629).
+ * Nebula accents tint key figures only where they add meaning; forced-colors mode falls back to system colours.
+ */
+:root {
+  --text-strong: #f4f8ff;
+  --text-secondary: #dde7f7;
+  --text-meta: #c2d0e5;
+  --text-secondary-size: 15px;
+  --text-meta-size: 15px;
+  --accent-teal: #86f0d6;
+  --accent-cyan: #9ee8f8;
+  --accent-violet: #cbbfff;
+  --accent-magenta: #f3b0e6;
+  --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 60%, #8fa6ff 74%, #c790f6 87%, #f08bd6 100%);
+  --page-lede-size: clamp(17px, 1.05vw + 5px, 20px);
+}
+
+/* Utilities */
+:root .text-secondary { color: var(--text-secondary); font-size: var(--text-secondary-size); font-weight: 500; }
+:root .text-meta { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .figure-accent { color: var(--accent-teal); font-weight: 600; }
+
+/* Nebula flow: the colour starts in the middle of the text and flows to its end. One sweep on entrance
+   (use-entrance sets data-entrance=once); settled and static text is identical. */
+:root .nebula-flow { background-image: var(--nebula-flow-mid); background-size: 100% 100%; background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); }
+:root .nebula-flow[data-entrance=once] { background-image: linear-gradient(100deg, transparent 40%, #ffffffb0 50%, transparent 60%), var(--nebula-flow-mid); background-size: 250% 100%, 100% 100%; background-position: 100% 0, 0 0; animation: nebula-flow-sweep 1300ms cubic-bezier(.45,0,.25,1) 250ms both; }
+@keyframes nebula-flow-sweep { from { background-position: 100% 0, 0 0; } to { background-position: 0 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { :root .nebula-flow[data-entrance=once] { animation: none; background-position: 0 0, 0 0; } }
+:root[data-app-motion=off] .nebula-flow[data-entrance=once] { animation: none; background-position: 0 0, 0 0; }
+
+/* One page-header system: eyebrow, title (actions pushed right on its row), lede; the layout lock sits top-right. */
+:root .page-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow tools" "title actions" "lede lede"; align-items: center; column-gap: 20px; margin: 26px 0 30px; }
+:root .page-header > .page-eyebrow { grid-area: eyebrow; }
+:root .page-header > .page-header-tools { grid-area: tools; display: flex; justify-content: flex-end; gap: 8px; }
+:root .page-header > h1 { grid-area: title; margin: 0; min-width: 0; }
+:root .page-header > .page-header-actions { grid-area: actions; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px; }
+:root .page-header > .page-lede { grid-area: lede; margin: 14px 0 0; }
+:root .page-eyebrow { font-size: 15px; letter-spacing: .2em; font-weight: 700; text-transform: uppercase; color: #d3e2f6; margin: 0 0 12px; }
+:root .page-lede { font-size: var(--page-lede-size); line-height: 1.5; font-weight: 500; color: #e9f0fb; max-width: 680px; letter-spacing: -.005em; }
+@media (max-width: 600px) {
+  :root .page-header { column-gap: 12px; }
+  :root .page-eyebrow { font-size: 14px; letter-spacing: .16em; }
+}
+
+/* Goals cards: secondary text is near-white and medium; key figures carry a quiet nebula tint. */
+:root .unified-goal-card .goal-progress-caption > strong { color: var(--text-secondary); font-size: var(--text-secondary-size); font-weight: 550; -webkit-text-fill-color: currentColor; }
+:root .unified-goal-card .goal-progress-caption > span { font-size: var(--text-secondary-size); font-weight: 500; color: var(--text-secondary); -webkit-text-fill-color: currentColor; }
+:root .unified-goal-card .goal-progress-caption > .goal-remaining { color: var(--accent-teal); font-weight: 600; }
+:root .unified-goal-card .goal-progress-caption > .goal-target { color: var(--accent-cyan); }
+:root .unified-goal-card .goal-value > span { -webkit-text-fill-color: var(--text-meta); color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .goal-mix-legend span { color: var(--accent-violet); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .valuation-state { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .card-bottom small { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .card-bottom strong { color: var(--text-strong); font-weight: 600; }
+:root .unified-goal-card .goal-next-contribution span { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .goal-next-contribution time { color: var(--accent-cyan); }
+:root .goal-card.unified-goal-card .card-footer small { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .card-top .eyebrow { color: #d0def3; }
+
+@media (forced-colors: active) {
+  :root .nebula-flow, :root .nebula-flow[data-entrance=once] { background: none; -webkit-text-fill-color: CanvasText; color: CanvasText; animation: none; }
+  :root :is(.goal-progress-caption > *, .goal-mix-legend span, .figure-accent) { color: CanvasText; -webkit-text-fill-color: CanvasText; }
+}
+
+/* Today hero: the lede is bigger, bolder and whiter; the eyebrow's nebula flows from the middle of the line to its end. */
+:root .today-hero-copy > p.page-lede.today-lede { font-size: clamp(17px, 1.2vw + 4px, 21px); font-weight: 600; line-height: 1.5; color: #f3f8ff; margin-top: 18px; text-shadow: 0 1px 14px #020918cc; }
+:root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: clamp(15px, 1.25vw, 19px) !important; background: linear-gradient(100deg, #f1f6ff 0%, #eef4ff 36%, #8fe8f6 54%, #7fb4ff 68%, #b98ff6 84%, #f08fd8 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; -webkit-text-fill-color: transparent; }
+:root .wealth-hero-copy > .page-eyebrow { font-size: 15px; }
+:root .wealth-hero-copy > p.wealth-intro.page-lede { font-size: var(--page-lede-size); font-weight: 500; color: #e9f0fb; }
+:root .page-heading p.page-lede, :root .markets-hero p.page-lede, :root .ecosystem-intro p.page-lede { font-size: var(--page-lede-size); font-weight: 500; color: #e9f0fb; line-height: 1.5; }
+:root .page-heading .page-eyebrow, :root .markets-hero .page-eyebrow, :root .ecosystem-intro .page-eyebrow { font-size: 15px; }
+@media (max-width: 600px) { :root .today-hero-copy > p.page-lede.today-lede { font-size: 17px; } :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: 14px !important; } }
+@media (forced-colors: active) { :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { background: none !important; color: CanvasText !important; -webkit-text-fill-color: CanvasText; } }
