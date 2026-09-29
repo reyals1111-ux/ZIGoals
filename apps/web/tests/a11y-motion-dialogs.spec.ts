@@ -8,6 +8,8 @@ async function showcase(page:Page){
 
 test('every Quick add dialog on Today is named by its own heading',async({page})=>{
  await showcase(page);
+ // Each Quick add portals its dialog into <body> after hydration: the sidebar one and the Today hero one.
+ await expect.poll(()=>page.locator('dialog.quick-add-dialog').count()).toBeGreaterThanOrEqual(2);
  const named=await page.evaluate(()=>[...document.querySelectorAll('dialog.quick-add-dialog')].map(d=>{const id=d.getAttribute('aria-labelledby')!,heading=document.getElementById(id);return {id,inside:!!heading&&d.contains(heading),matches:document.querySelectorAll(`[id="${CSS.escape(id)}"]`).length};}));
  expect(named.length).toBeGreaterThanOrEqual(2);
  for(const dialog of named){expect(dialog.inside,'the heading naming a dialog is inside that dialog').toBe(true);expect(dialog.matches,'heading ids are unique').toBe(1);}
