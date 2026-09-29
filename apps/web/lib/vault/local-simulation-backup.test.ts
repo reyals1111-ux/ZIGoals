@@ -1,6 +1,6 @@
 import {beforeEach,expect,test,vi} from 'vitest';
 import {encryptBackup,decryptBackup} from './backup';
-import {LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY,exportLocalSimulation,restoreLocalSimulation} from './local-simulation-backup';
+import {LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY,LOCAL_SIMULATION_DAMAGED,LOCAL_SIMULATION_OMITTED,exportLocalSimulation,restoreLocalSimulation} from './local-simulation-backup';
 import {summarizeBackupModules} from './backup-preview';
 import {applyLocal,initialLedger} from '../local-ledger';
 import {emptyPlatform} from '../positions';
@@ -14,7 +14,7 @@ const plans=()=>JSON.stringify({schemaVersion:1,chainId:'local-simulation',walle
 function seeded(){const s=memoryStorage();s.setItem(LOCAL_LEDGER_KEY,ledger());s.setItem(LOCAL_PLANS_KEY,plans());return s;}
 
 test('local simulation Goals round-trip byte-identically through an encrypted backup',async()=>{
- const source=seeded(),section=exportLocalSimulation(source)!;expect(section).not.toBeNull();
+ const source=seeded(),exported=exportLocalSimulation(source)!;expect(exported.warning).toBeNull();const section=exported.section;
  const backup=await encryptBackup({finance:JSON.stringify(emptyPlatform()),simulation:section});
  expect(JSON.parse(backup.file).version).toBe(2);expect(backup.file).not.toContain('Kyoto');
  const restored=await decryptBackup(backup.file,backup.recovery);expect(restored.simulation).toBe(section);
@@ -29,18 +29,28 @@ test('a profile without local simulation records keeps the format 1 backup uncha
 });
 test('plans alone, or a ledger alone, are carried and restored exactly',async()=>{
  for(const only of [LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY]){const source=seeded();source.removeItem(only===LOCAL_LEDGER_KEY?LOCAL_PLANS_KEY:LOCAL_LEDGER_KEY);
-  const target=memoryStorage();target.setItem(only===LOCAL_LEDGER_KEY?LOCAL_PLANS_KEY:LOCAL_LEDGER_KEY,'stale');await restoreLocalSimulation(target,exportLocalSimulation(source)!);
+  const target=memoryStorage();target.setItem(only===LOCAL_LEDGER_KEY?LOCAL_PLANS_KEY:LOCAL_LEDGER_KEY,'stale');await restoreLocalSimulation(target,exportLocalSimulation(source)!.section);
   expect(target.getItem(only)).toBe(source.getItem(only));expect(target.getItem(only===LOCAL_LEDGER_KEY?LOCAL_PLANS_KEY:LOCAL_LEDGER_KEY)).toBeNull();}
 });
 test('the format version must match the sections it carries',async()=>{
- const simulation=exportLocalSimulation(seeded())!,v2=await encryptBackup({simulation}),v1=await encryptBackup({finance:JSON.stringify(emptyPlatform())});
+ const simulation=exportLocalSimulation(seeded())!.section,v2=await encryptBackup({simulation}),v1=await encryptBackup({finance:JSON.stringify(emptyPlatform())});
  await expect(decryptBackup(JSON.stringify({...JSON.parse(v2.file),version:1}),v2.recovery)).rejects.toThrow('Backup format version does not match its sections.');
  await expect(decryptBackup(JSON.stringify({...JSON.parse(v1.file),version:2}),v1.recovery)).rejects.toThrow('Backup format version does not match its sections.');
  await expect(decryptBackup(JSON.stringify({...JSON.parse(v2.file),version:3}),v2.recovery)).rejects.toThrow();
 });
-test('damaged records refuse the backup and a damaged section restores nothing',async()=>{
+test('damaged records are left out with a visible warning and never block the backup',async()=>{
+ const damaged=seeded();damaged.setItem(LOCAL_LEDGER_KEY,damaged.getItem(LOCAL_LEDGER_KEY)!.replace('"balance":"','"balance":"1'));const stored=[damaged.getItem(LOCAL_LEDGER_KEY),damaged.getItem(LOCAL_PLANS_KEY)];
+ const exported=exportLocalSimulation(damaged)!;expect(exported.warning).toBe(LOCAL_SIMULATION_DAMAGED);expect(exported.section).not.toContain('Kyoto');expect(exported.section).not.toContain('balance');
+ expect([damaged.getItem(LOCAL_LEDGER_KEY),damaged.getItem(LOCAL_PLANS_KEY)]).toEqual(stored);
+ const finance=JSON.stringify(emptyPlatform()),backup=await encryptBackup({finance,simulation:exported.section}),restored=await decryptBackup(backup.file,backup.recovery);
+ expect(restored.finance).toBe(finance);
+ expect(summarizeBackupModules({simulation:restored.simulation!})).toEqual([{domain:'simulation',label:'Local simulation Goals',version:1,restoredVersion:1,counts:[],from:null,through:null,warning:LOCAL_SIMULATION_OMITTED}]);
+ const target=seeded(),before=[target.getItem(LOCAL_LEDGER_KEY),target.getItem(LOCAL_PLANS_KEY)];
+ await expect(restoreLocalSimulation(target,restored.simulation!)).rejects.toThrow(LOCAL_SIMULATION_OMITTED);
+ expect([target.getItem(LOCAL_LEDGER_KEY),target.getItem(LOCAL_PLANS_KEY)]).toEqual(before);expect(target.length).toBe(2);
+});
+test('a damaged section inside a backup restores nothing',async()=>{
  const damaged=seeded();damaged.setItem(LOCAL_LEDGER_KEY,damaged.getItem(LOCAL_LEDGER_KEY)!.replace('"balance":"','"balance":"1'));
- expect(()=>exportLocalSimulation(damaged)).toThrow('Local simulation records are unreadable.');
  const target=seeded(),before=[target.getItem(LOCAL_LEDGER_KEY),target.getItem(LOCAL_PLANS_KEY)];
  const bad=JSON.stringify({schemaVersion:1,kind:'zigoals-local-simulation',ledger:damaged.getItem(LOCAL_LEDGER_KEY),plans:plans()});
  await expect(restoreLocalSimulation(target,bad)).rejects.toThrow();await expect(restoreLocalSimulation(target,JSON.stringify({schemaVersion:2,kind:'zigoals-local-simulation',ledger:null,plans:plans()}))).rejects.toThrow();
@@ -48,7 +58,7 @@ test('damaged records refuse the backup and a damaged section restores nothing',
 });
 test('restoring over different records retains the prior bytes',async()=>{
  const target=memoryStorage();target.setItem(LOCAL_LEDGER_KEY,'{"prior":"ledger bytes"}');
- await restoreLocalSimulation(target,exportLocalSimulation(seeded())!);
+ await restoreLocalSimulation(target,exportLocalSimulation(seeded())!.section);
  const kept=[...Array(target.length).keys()].map(i=>target.key(i)!).filter(k=>k.startsWith(`${LOCAL_LEDGER_KEY}:recovery:`));
  expect(kept).toHaveLength(1);expect(target.getItem(kept[0]!)).toBe('{"prior":"ledger bytes"}');
 });

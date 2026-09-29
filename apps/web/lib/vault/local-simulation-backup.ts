@@ -8,25 +8,31 @@ import {storageLockKey} from '../showcase-storage';
 // optional section so a restore brings these Goals back byte for byte.
 export const LOCAL_LEDGER_KEY='zigoals:local-ledger:v1';
 export const LOCAL_PLANS_KEY=metadataKey(LOCAL_CHAIN,LOCAL_OWNER);
-export const localSimulationSchema=z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-local-simulation'),ledger:z.string().min(1).nullable(),plans:z.string().min(1).nullable()}).strict().refine(v=>v.ledger!==null||v.plans!==null);
-export type LocalSimulationSection=z.infer<typeof localSimulationSchema>;
+const dataSection=z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-local-simulation'),ledger:z.string().min(1).nullable(),plans:z.string().min(1).nullable()}).strict().refine(v=>v.ledger!==null||v.plans!==null);
+// Damaged local records are left out of the backup; this marker keeps the omission visible when restoring.
+const omittedSection=z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-local-simulation'),omitted:z.literal('damaged')}).strict();
+export const localSimulationSchema=z.union([dataSection,omittedSection]);
+export type LocalSimulationSection=z.infer<typeof dataSection>;
+export const LOCAL_SIMULATION_DAMAGED="Legacy simulation Goals couldn't be included because their stored data is damaged. The other modules are in this backup; the damaged local data was not changed.";
+export const LOCAL_SIMULATION_OMITTED="Legacy simulation Goals were not included in this backup because their stored data was damaged when it was made. There is nothing to restore for them.";
 function validate(section:LocalSimulationSection){
  const ledger=section.ledger===null?null:parseLocalLedger(section.ledger);
  const plans=section.plans===null?null:parseBackup(section.plans,LOCAL_CHAIN,LOCAL_OWNER);
  return {goals:ledger?.goals.length??0,activity:ledger?.activity.length??0,plans:plans?Object.keys(plans.goals).length:0};
 }
-/** Null when this browser holds no legacy simulation records. Damaged records refuse the backup. */
-export function exportLocalSimulation(storage:Storage):string|null{
+/** Null when this browser holds no legacy simulation records. Damaged records are left out with a warning, never silently. */
+export function exportLocalSimulation(storage:Storage):{section:string;warning:string|null}|null{
  const ledger=storage.getItem(LOCAL_LEDGER_KEY),plans=storage.getItem(LOCAL_PLANS_KEY);
  if(ledger===null&&plans===null)return null;
  const section={schemaVersion:1 as const,kind:'zigoals-local-simulation' as const,ledger,plans};
- try{validate(section);}catch{throw Error('Local simulation records are unreadable. Export your goal plans before backing up.');}
- return JSON.stringify(section);
+ try{validate(section);}catch{return {section:JSON.stringify({schemaVersion:1,kind:'zigoals-local-simulation',omitted:'damaged'}),warning:LOCAL_SIMULATION_DAMAGED};}
+ return {section:JSON.stringify(section),warning:null};
 }
-export function summarizeLocalSimulation(raw:string){return validate(localSimulationSchema.parse(JSON.parse(raw)));}
+export function isOmittedLocalSimulation(raw:string){return 'omitted' in localSimulationSchema.parse(JSON.parse(raw));}
+export function summarizeLocalSimulation(raw:string){const section=localSimulationSchema.parse(JSON.parse(raw));return 'omitted' in section?{goals:0,activity:0,plans:0,warning:LOCAL_SIMULATION_OMITTED}:{...validate(section),warning:null};}
 /** Replaces both legacy keys exactly as backed up. Prior bytes are retained beside each key. */
 export async function restoreLocalSimulation(storage:Storage,raw:string){
- const section=localSimulationSchema.parse(JSON.parse(raw));validate(section);
+ const parsed=localSimulationSchema.parse(JSON.parse(raw));if('omitted' in parsed)throw Error(LOCAL_SIMULATION_OMITTED);const section=parsed;validate(section);
  await withStorageLock(storageLockKey(storage,LOCAL_LEDGER_KEY),()=>withStorageLock(storageLockKey(storage,LOCAL_PLANS_KEY),()=>{
   for(const [key,value] of [[LOCAL_LEDGER_KEY,section.ledger],[LOCAL_PLANS_KEY,section.plans]] as const){
    const previous=storage.getItem(key);if(previous!==null&&previous!==value)storage.setItem(`${key}:recovery:${crypto.randomUUID()}`,previous);
