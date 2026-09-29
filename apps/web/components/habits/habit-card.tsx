@@ -1,4 +1,5 @@
 "use client";
+import type { LayoutAttrs } from "../layout-edit";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
@@ -81,11 +82,11 @@ function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   </div>;
 }
 
-export function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,onViewStack, onEdit }: { habit: Habit; store: HabitsStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;onViewStack?:(id:string)=>void; onEdit: () => void }) {
+export function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,onViewStack, onEdit, ...layout }: LayoutAttrs & { habit: Habit; store: HabitsStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;onViewStack?:(id:string)=>void; onEdit: () => void }) {
   const rule = habitRuleOn(habit,store.today)??habit.rules[0]!,planned=latestHabitRule(habit); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch { setError("The habit was not changed. Try again."); } finally { setBusy(false); } }
-  return <article id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
+  return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
     <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={onEdit} aria-label={`Edit ${habit.title}`}>Edit</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {planned.target} {measurementUnit(planned)} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}

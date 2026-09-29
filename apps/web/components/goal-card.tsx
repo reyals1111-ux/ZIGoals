@@ -11,12 +11,13 @@ import {visualTone} from './visual-tone';
 import {SceneArt} from './scene-art';
 import {ProgressRing} from './platform/financial-ui';
 import {PinToToday} from './pin-to-today';
+import type {LayoutAttrs} from './layout-edit';
 export const displayAmount= formatGoalAmount;
 export function GoalProgressRing({name,progressPct,goalId,assetMix=[],complete}:{assetMix?:AssetMix[];name:string;progressPct:string;goalId?:string;complete?:boolean}){
  return <div className="goal-progress-ring"><ProgressRing percent={progressPct} complete={complete} assetMix={assetMix} identity={goalId??name} size={94} label={`${name} progress`}/></div>;
 }
-export function GoalSummaryCard({summary:g,compact=false}:{summary:GoalSummary;compact?:boolean}){
- return <article className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
+export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&{summary:GoalSummary;compact?:boolean}){
+ return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
   <div className="goal-card-art"><SceneArt scene={g.scene}/><span>{g.type}</span></div>
   <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{!compact&&g.status!=='closed'&&<PinToToday label={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`}]}/>}</div>
   <h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>

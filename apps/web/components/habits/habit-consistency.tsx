@@ -1,17 +1,18 @@
 "use client";
+import type { LayoutAttrs } from "../layout-edit";
 import type { CSSProperties } from "react";
 import { habitConsistency } from "../../lib/life-intelligence";
 import { type Habit } from "../../lib/habits";
 import { useShowcase } from "../showcase-controls";
 import { useEntrance } from "../use-entrance";
 
-export function HabitConsistency({ habits, today }: { habits: Habit[]; today: string }) {
+export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { habits: Habit[]; today: string }) {
   const result = habitConsistency(habits, today);
   const showcase = useShowcase();
   const maximum = Math.max(1, ...result.week.map(day => day.checkins));
   const monthMaximum = Math.max(1, ...result.days.map(day => day.checkins));
   const monthEntrance = useEntrance<HTMLElement>("habit-month", result.days.length > 0), weekEntrance = useEntrance<HTMLElement>("habit-week", result.week.some(day => day.checkins > 0));
-  return <section className="habit-consistency" aria-label="Habit consistency history">
+  return <section {...layout} className="habit-consistency" aria-label="Habit consistency history">
     <article ref={monthEntrance} className="panel habit-consistency-month"><header><p className="eyebrow">SMALL RETURNS ADD UP</p><h2>Your last 30 days.</h2><p>{showcase ? "Showcase example history · fictional check-ins" : "Your saved check-ins · this browser"}</p></header>
       <div className="habit-consistency-stats"><div><strong>{result.activeDays}<small> / 30</small></strong><span>days you checked in</span></div><div><strong>{result.checkins}</strong><span>recorded check-ins</span></div></div>
       <div className="habit-month-grid" role="img" aria-label={`30-day check-in heatmap: ${result.activeDays} days with check-ins. Exact daily counts are in the history table.`}>{result.days.map((day, index) => <span key={day.date} style={{ "--i": index } as CSSProperties} data-level={day.checkins === 0 ? "none" : day.checkins / monthMaximum < .5 ? "some" : day.checkins < monthMaximum ? "many" : "full"} title={`${day.date}: ${day.checkins} check-ins, ${day.completed} completed`}><span>{Number(day.date.slice(-2))}</span></span>)}</div>

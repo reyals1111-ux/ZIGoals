@@ -133,3 +133,9 @@ export function applyDashboardPreset(s:DashboardSettings,preset:DashboardPreset)
  const next={...s,preset,onboarded:true,widgets};const placement=defaultPlacement(next);placement.revision=(s.placement?.revision??1)+1;
  return dashboardSettingsSchema.parse({...next,placement});
 }
+/** "Reset this page": the default order of Today's cards, keeping every widget and each hidden card's choice. Placement only; no format change. */
+export function resetDashboardPlacement(s:DashboardSettings,expectedRevision?:number):DashboardSettings{
+ const p=currentPlacement(s,expectedRevision),defaults=defaultPlacement(dashboardSettingsSchema.parse(s));
+ if(JSON.stringify(p.main)===JSON.stringify(defaults.main)&&JSON.stringify(p.rail)===JSON.stringify(defaults.rail))return s;
+ return dashboardSettingsSchema.parse({...s,onboarded:true,placement:{...p,revision:p.revision+1,main:defaults.main,rail:defaults.rail}});
+}

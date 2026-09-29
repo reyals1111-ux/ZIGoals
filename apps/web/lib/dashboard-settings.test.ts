@@ -126,3 +126,17 @@ test('preset-generated IDs cannot collide with retained custom records',()=>{
  expect(next.widgets.find(w=>w.kind==='health'&&w.metric==='kcal')?.id).toBe('preset-health-0-2');
  expect(new Set(next.widgets.map(w=>w.id)).size).toBe(5);
 });
+test('resetting Today restores the default card order and keeps widgets and hidden choices',async()=>{
+ const {resetDashboardPlacement}=await import('./dashboard-settings');
+ const base=presetSettings('balanced'),start=reconcileDashboardPlacement(base);
+ const widget=base.widgets[0]!,moved=moveDashboardItem(base,{kind:'widget',id:widget.id},{region:'main',anchor:start.main[0]!,position:'before'});
+ const hidden=setDashboardBuiltinHidden(moved,'wallet',true);
+ expect(reconcileDashboardPlacement(hidden).main[0]).toEqual({kind:'widget',id:widget.id});
+ const reset=resetDashboardPlacement(hidden),placement=reconcileDashboardPlacement(reset);
+ expect(placement.main).toEqual(start.main);expect(placement.rail).toEqual(start.rail);
+ expect(placement.hiddenBuiltins).toEqual(['wallet']);expect(reset.widgets).toEqual(hidden.widgets);
+ expect(placement.revision).toBe(reconcileDashboardPlacement(hidden).revision+1);
+ // Already default: unchanged, no revision bump.
+ expect(resetDashboardPlacement(reset)).toBe(reset);
+ expect(()=>resetDashboardPlacement(hidden,999)).toThrow('This layout changed');
+});

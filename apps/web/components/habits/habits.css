@@ -85,3 +85,4 @@
 @media (max-width: 1050px) { .habit-hero { grid-template-columns: minmax(0, 1fr) auto 160px; column-gap: 16px; } }
 @media (max-width: 600px) { .habit-hero .habit-hero-actions { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; margin-top: 18px; gap: 12px 18px; } }
 @media (forced-colors: active) { .habit-hero .habit-eyebrow { background: none; color: CanvasText; -webkit-text-fill-color: CanvasText; } }
+.habit-list-block { display: grid; gap: inherit; min-width: 0; }

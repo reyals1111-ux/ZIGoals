@@ -71,3 +71,102 @@ test.describe('Part 1: readability foundation',()=>{
   expect(warnings).toEqual([]);
  });
 });
+
+test.describe('Part 2: personal layouts',()=>{
+ const order=(page:Page,region:string)=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),region);
+ test('unlock, move with the keyboard, reload keeps it, reset restores it, lock hides the controls',async({page})=>{
+  await showcase(page);await page.goto('/app/habits');
+  await expect(page.locator('.habit-overview')).toBeVisible();
+  const initial=await order(page,'habits:body');expect(initial).toEqual(['habits:overview','habits:consistency','habits:list']);
+  // Locked by default: no controls, nothing marked.
+  await expect(page.locator('.layout-controls')).toHaveCount(0);
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Lock layout',exact:true})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Arrange this page'})).toBeVisible();
+  const down=page.getByRole('button',{name:'Move Today’s rhythm down',exact:true});
+  await down.focus();await page.keyboard.press('Enter');
+  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
+  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 3.');
+  await expect(down).toBeFocused();
+  expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe('{"version":1,"pages":{"habits":{"body":{"order":["habits:consistency","habits:overview","habits:list"]}}}}');
+  await page.reload();await expect(page.locator('.habit-overview')).toBeVisible();
+  expect(await order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
+  // Every load starts locked.
+  await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();await expect(page.locator('.layout-controls')).toHaveCount(0);
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  await page.getByRole('button',{name:'Reset this page',exact:true}).click();
+  await expect.poll(()=>order(page,'habits:body')).toEqual(initial);
+  await page.getByRole('button',{name:'Done',exact:true}).click();
+  await expect(page.locator('.layout-controls')).toHaveCount(0);await expect(page.getByRole('region',{name:'Arrange this page'})).toHaveCount(0);
+ });
+ test('honesty banners and the page header are never movable',async({page})=>{
+  await showcase(page);
+  for(const path of ['/app','/app/goals','/app/wealth','/app/health']){
+   await page.goto(path);await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+   await expect(page.locator('.layout-controls').first()).toBeVisible();
+   for(const selector of ['.network-banner','.showcase-banner','.mode-strip','main h1']){
+    const el=page.locator(selector).first();await expect(el).toBeVisible();
+    expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')||!!e.querySelector('[data-layout-item],.layout-controls')),`${path} ${selector}`).toBe(false);
+   }
+   await page.getByRole('button',{name:'Done',exact:true}).click();
+  }
+ });
+ test('Today moves go through the synced Today placement and Reset restores its default order',async({page})=>{
+  await showcase(page);
+  await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
+  const initial=await order(page,'today:main');
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  // Unlocking Today is the existing Customize mode.
+  await expect(page.getByRole('heading',{name:'Arrange your daily space'})).toBeVisible();
+  await page.getByRole('button',{name:`Move Whole-life overview down`,exact:true}).click();
+  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await page.reload();await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
+  expect(await order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();await page.getByRole('button',{name:'Reset this page',exact:true}).click();
+  await expect.poll(()=>order(page,'today:main')).toEqual(initial);
+ });
+ test('dragging a Goal card with the mouse reorders the collection',async({page,isMobile})=>{
+  test.skip(isMobile,'Mouse drag');
+  await showcase(page);await page.goto('/app/goals');
+  const cards=page.locator('[data-layout-region="goals:cards"]');await expect(cards.first()).toBeVisible();
+  const before=await order(page,'goals:cards');
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  const handle=cards.first().locator('.layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
+  const h=(await handle.boundingBox())!,target=(await cards.nth(2).boundingBox())!;
+  await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();
+  await page.mouse.move(h.x+30,h.y+10,{steps:4});
+  await expect(page.locator('.layout-ghost')).toHaveCount(1);await expect(page.locator('[data-layout-placeholder]')).toHaveCount(1);
+  // Across the first row to the far side of the third card, well away from the auto-scroll edges.
+  await page.mouse.move(target.x+target.width*.8,h.y+h.height/2,{steps:12});
+  await page.mouse.up();
+  await expect(page.locator('.layout-ghost')).toHaveCount(0);
+  await expect.poll(()=>order(page,'goals:cards')).toEqual([before[1],before[2],before[0],...before.slice(3)]);
+  await expect(page.locator('[data-layout-announcer]')).toHaveText(/^Moved .+ to position 3 of 5\.$/);
+ });
+ test('Motion Off: moves are instant, with no glide animations',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('zigoals:motion:v1','off'));
+  await showcase(page);await page.goto('/app/health');
+  await expect(page.locator('[data-layout-region="health:body"]').first()).toBeVisible();
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  await page.getByRole('button',{name:'Move Today’s nourishment down',exact:true}).click();
+  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:roadmap']);
+  expect(await page.evaluate(()=>[...document.querySelectorAll('[data-layout-item]')].flatMap(e=>e.getAnimations()).length)).toBe(0);
+ });
+ test('touch: a long-press on the handle picks a card up and moves it',async({page,isMobile})=>{
+  test.skip(!isMobile,'Touch check on the mobile viewport');
+  await showcase(page);await page.goto('/app/habits');
+  const items=page.locator('[data-layout-region="habits:body"]');await expect(items.first()).toBeVisible();
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  // Carry the second card (consistency) above the first (Today's rhythm), inside the viewport.
+  const handle=items.nth(1).locator('.layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
+  const h=(await handle.boundingBox())!,first=(await items.first().boundingBox())!;
+  const cdp=await page.context().newCDPSession(page);
+  const touch=(type:'touchStart'|'touchMove'|'touchEnd',x:number,y:number)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
+  const x=h.x+h.width/2,y=h.y+h.height/2,to=Math.max(90,first.y+first.height*.25);
+  await touch('touchStart',x,y);await page.waitForTimeout(500);
+  await expect(page.locator('.layout-ghost')).toHaveCount(1);
+  for(let i=1;i<=12;i++)await touch('touchMove',x,y+(to-y)*i/12);
+  await touch('touchEnd',x,to);
+  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
+ });
+});
