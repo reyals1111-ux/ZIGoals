@@ -1,11 +1,13 @@
 /* Journey banner (Today): what ZIGoals is, in the orbit theme. Static art; nothing loops. */
 .journey-panel.journey-orbit { position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:28px;margin-top:28px;padding:clamp(28px,4vw,48px);border:1px solid #8fb6ff33;border-top:1px solid #8fb6ff33;border-radius:28px;
  background:radial-gradient(ellipse at 90% 0,#7a4dff2e,transparent 55%),radial-gradient(ellipse at 0 110%,#1fcfe829,transparent 50%),linear-gradient(160deg,#0e1a33,#0a1224 55%,#15112c); }
-.journey-panel.journey-orbit .journey-orbit-art { position:absolute;z-index:-1;right:-120px;top:-150px;width:520px;height:520px;pointer-events:none;opacity:.9; }
-.journey-panel.journey-orbit .journey-orbit-art i { position:absolute;inset:0;border-radius:50%;border:1px solid #7fd8f033;transform:rotate(-20deg) scaleY(.42); }
-.journey-panel.journey-orbit .journey-orbit-art i:nth-child(2) { inset:60px;border-color:#a98bff40; }
-.journey-panel.journey-orbit .journey-orbit-art i:nth-child(3) { inset:120px;border-color:#f08bd838; }
-.journey-panel.journey-orbit .journey-orbit-art span { position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px;border-radius:50%;background:radial-gradient(circle,#fff 0 25%,#ffd3ae 45%,#ff9fb800 70%);box-shadow:0 0 30px 10px #a98bff55; }
+/* Orbit art: thin elliptical orbits and one star, drawn as gradients on a pseudo-element so nothing leaves the card. */
+.journey-panel.journey-orbit::before { content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:
+  radial-gradient(circle at 93% 8%,#fff 0 3px,#ffd3aecc 4px,#a98bff55 9px,transparent 22px),
+  radial-gradient(ellipse 34% 15% at 93% 8%,transparent 96%,#7fd8f02e 97.5%,transparent 99%),
+  radial-gradient(ellipse 46% 21% at 93% 8%,transparent 97%,#a98bff2b 98%,transparent 99.2%),
+  radial-gradient(ellipse 60% 28% at 93% 8%,transparent 97.6%,#f08bd824 98.4%,transparent 99.4%); }
 .journey-panel.journey-orbit .journey-intro { max-width:880px; }
 .journey-panel.journey-orbit .journey-intro .eyebrow { margin:0 0 12px;font-size:15px;color:#cfe0f7; }
 .journey-panel.journey-orbit .journey-intro h2 { margin:0;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.03em;color:var(--text-strong,#f4f8ff); }
@@ -28,11 +30,10 @@
  .journey-panel.journey-orbit .journey-steps li { grid-template-columns:46px minmax(0,1fr);column-gap:14px; }
  .journey-panel.journey-orbit .journey-steps li>.journey-step-mark { grid-row:span 2; }
  .journey-panel.journey-orbit .journey-steps strong { margin-top:10px; }
- .journey-panel.journey-orbit .journey-orbit-art { right:-220px;top:-200px;opacity:.6; }
 }
 @media (forced-colors:active) {
  .journey-panel.journey-orbit,.journey-panel.journey-orbit .journey-truths { border:1px solid CanvasText; }
  .journey-panel.journey-orbit .journey-title-flow { background:none;color:CanvasText;-webkit-text-fill-color:CanvasText; }
- .journey-panel.journey-orbit .journey-steps::before,.journey-panel.journey-orbit .journey-orbit-art { display:none; }
+ .journey-panel.journey-orbit .journey-steps::before,.journey-panel.journey-orbit::before { display:none; }
  .journey-panel.journey-orbit .journey-step-mark { background:Canvas;color:CanvasText;border:1px solid CanvasText; }
 }

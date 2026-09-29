@@ -8,8 +8,7 @@ const STEPS=[
 ] as const;
 /** What ZIGoals is, in the orbit theme: three steps and the Alpha's standing truths. */
 export function JourneyBanner(){
- return <section id="how-it-works" className="journey-panel journey-orbit" aria-labelledby="journey-title">
-  <div className="journey-orbit-art" aria-hidden="true"><i/><i/><i/><span/></div>
+ return <section id="how-it-works" className="journey-panel journey-orbit" aria-label="How it works">
   <div className="journey-intro">
    <p className="eyebrow">One journey. Your pace.</p>
    <h2 id="journey-title">Your goals, habits and health, <span className="journey-title-flow">in one orbit.</span></h2>
