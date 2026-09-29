@@ -55,6 +55,7 @@ Evidence labels: **workflow log** = `gh run view 36593359096 --log`; **PR API** 
 - [#36](https://github.com/reyals1111-ux/ZIGoals/pull/36): deploy hardening, Tier 3. The next deploy is its first real test.
 - [#39](https://github.com/reyals1111-ux/ZIGoals/pull/39): backups include legacy Local simulation Goals, Tier 3, review pending.
 - [#40](https://github.com/reyals1111-ux/ZIGoals/pull/40): accessibility fixes for the new motion and dialogs.
+- [#45](https://github.com/reyals1111-ux/ZIGoals/pull/45) (added 2026-09-29): consent checkboxes in the account/sync flow get explicit labels, linked reasons and refusals, and focus after sign-in. Tier 2, owner visual OK pending. #37's consent logic is unchanged.
 
 # Overnight readiness run — 2026-09-28/29 (open PRs, nothing merged or deployed)
 
