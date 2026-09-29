@@ -2,10 +2,10 @@
 // Project progress is milestones, so it deliberately has no financial funding.
 import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
-import {waitPackagedSync} from './packaged-consumer-journey.mjs';
+import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
 const navigate=async(page,name)=>{await page.getByRole('link',{name,exact:true}).first().click();};
 async function openModule(page,id){const section=page.locator('#'+id);if(await section.getAttribute('open')===null)await section.locator('summary').first().click();return section;}
-async function sync(page){await navigate(page,'Settings');await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page);}
+async function sync(page){await navigate(page,'Settings');const synced1=await armPackagedSync(page);await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page,synced1);}
 async function timeline(page,kind){
  const panel=page.getByRole('region',{name:'Goal timeline',exact:true});await panel.getByLabel('Event type',{exact:true}).selectOption(kind);
  await panel.getByRole('status').filter({hasText:'retained events'}).waitFor();
