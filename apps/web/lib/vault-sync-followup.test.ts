@@ -15,7 +15,7 @@ vi.mock('./vault/account-transport',()=>({accountTransport:()=>({read:async()=>(
 vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchronize:(...args:any[])=>h.synchronize(...args),cloudSnapshot:async()=>({data:{}}),SyncJournal:class{read=async()=>({base:{},heldDomains:[]});write=async()=>{};}}));
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async()=>({}),applyData:(...args:any[])=>h.apply(...args)}));
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
-import {announceSyncedChanges} from './vault/account-data';
+import {announceSyncedChanges,LocalRecordsChangedDuringSync} from './vault/account-data';
 import {VaultSyncProvider,VaultSyncControls} from '../components/vault-sync-controls';
 const A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';let root:Root,element:HTMLDivElement;
 function deferred(){let resolve!:()=>void;const promise=new Promise<void>(yes=>{resolve=yes;});return {promise,resolve};}
@@ -55,4 +55,19 @@ test('a sync without concurrent edits schedules nothing, and a failed sync never
  const sync=[...element.querySelectorAll('button')].find(b=>b.textContent==='Sync now')!;await act(async()=>{sync.click();await entered.promise;});
  await edit();await act(async()=>release.resolve());await afterDebounce();
  expect(h.synchronize).toHaveBeenCalledTimes(3);expect(element.querySelector('[role=alert]')?.textContent).toBe('Fictional cloud rejection');
+});
+
+test('a local edit refused by apply is a normal outcome: no pause, one follow-up sync',async()=>{
+ await open(A);h.apply.mockImplementationOnce(async()=>{throw new LocalRecordsChangedDuringSync();});
+ const release=await holdSync();await act(async()=>release.resolve());
+ expect(element.textContent).not.toContain('Needs attention');expect(element.querySelector('[role="alert"]')).toBeNull();
+ await afterDebounce();expect(h.synchronize).toHaveBeenCalledTimes(3);expect(element.textContent).toContain('Account records synced and acknowledged');
+ await afterDebounce();expect(h.synchronize).toHaveBeenCalledTimes(3);
+});
+
+test('any other apply failure still pauses automatic sync and runs no follow-up',async()=>{
+ await open(A);h.apply.mockImplementationOnce(async()=>{throw Error('Accepted financial evidence is append-only. Both copies were preserved for review.');});
+ const release=await holdSync();await act(async()=>release.resolve());
+ expect(element.textContent).toContain('Needs attention. Automatic sync paused.');
+ await afterDebounce();await afterDebounce();expect(h.synchronize).toHaveBeenCalledTimes(2);
 });
