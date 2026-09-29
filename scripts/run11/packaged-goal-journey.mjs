@@ -23,7 +23,7 @@ async function pinGoalAndHabit(page,name,path,habit){
 }
 async function create(page,type){
  const name=`Packaged ${type} continuity`;
- await navigate(page,'Today');await page.getByRole('link',{name:'+ Create a goal',exact:true}).click();
+ await navigate(page,'Today');await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
  await page.getByLabel('Goal name',{exact:true}).fill(name);await page.getByRole('radio',{name:type,exact:true}).check();
  if(type==='Project')await page.getByLabel('Milestones, one per line',{exact:true}).fill('Fictional research review\nFictional delivery review');
  else{await page.getByLabel('Target amount',{exact:true}).fill(type==='Value'?'1000':'10');if(type==='Quantity')await page.getByLabel('Goal asset',{exact:true}).fill('BTC');}

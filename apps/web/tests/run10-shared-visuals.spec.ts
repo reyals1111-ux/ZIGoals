@@ -4,9 +4,10 @@ async function showcase(page:Page){
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
  await expect(page.locator('.placed-module[data-module="habits"] .habits-today')).toBeVisible();
 }
-test('Quick add belongs to navigation and Escape returns focus',async({page})=>{
+test('Quick add lives in the mobile header and the Today hero, and Escape returns focus',async({page,isMobile})=>{
  await showcase(page);expect(await page.locator('.app-topbar .quick-add-trigger').count()).toBe(0);
- const trigger=page.locator('.app-sidebar .quick-add-trigger');await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();
+ if(!isMobile)await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeHidden();
+ const trigger=page.locator(isMobile?'.app-sidebar .quick-add-trigger':'.today-hero .quick-add-trigger');await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();
 });
 for(const width of [320,360,390,430,768,1440])test(`Habit labels and controls have distinct space at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await showcase(page);

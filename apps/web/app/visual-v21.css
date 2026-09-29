@@ -68,7 +68,7 @@ body { background: var(--cosmic-dark); }
 .today-hero .eyebrow { letter-spacing: .23em; font-size: 14px; margin-bottom: 15px; color: #9fc7ff; }
 .today-hero-copy > p:not(.eyebrow):not(.hero-truth) { color: #c8d9f0; font-size: 15px; line-height: 1.5; margin-top: 17px; }
 .today-hero .hero-actions { margin-top: 24px; gap: 18px; }
-.today-hero .hero-actions a { min-height: 54px; padding: 12px 25px; font-size: 15px; border-radius: 14px; gap: 12px; }
+.today-hero .hero-actions :is(a,button) { min-height: 54px; padding: 12px 25px; font-size: 15px; border-radius: 14px; gap: 12px; }
 .today-hero .hero-truth { font-size: 14px; color: #b3c5e0; margin-top: 13px; }
 .play-medallion { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid var(--brand-cyan); border-radius: 50%; flex-shrink: 0; background: #05314a50; }
 .hero-pillars { padding: 22px 20px 21px; gap: 15px; }
@@ -174,7 +174,7 @@ body { background: var(--cosmic-dark); }
 .goal-detail-page .ring-value { stroke: var(--item-start); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--item-start) 40%, transparent)); }
 @media (min-width: 1280px) { .habits-workspace .habit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }.habits-workspace .habit-grid .habit-card { padding: 22px; }.habits-workspace .habit-card-heading h2 { font-size: 19px; }.habits-workspace .habit-grid .habit-completion { padding-block: 13px; }.habits-workspace .habit-grid .habit-metrics { padding-block: 16px; } }
 @media (min-width: 1600px) { .today-layout { grid-template-columns: minmax(0, 1fr) 380px; }.today-hero { min-height: 408px; }.today-hero h1 { font-size: 58px; } }
-@media (min-width: 1001px) and (max-width: 1250px) { .today-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; }.today-hero h1 { font-size: 37px; }.today-hero .hero-actions a { padding-inline: 17px; font-size: 14px; }.hero-pillars { gap: 7px; padding-inline: 14px; }.hero-pillars > div { gap: 7px; }.icon-medallion { width: 35px; height: 35px; }.icon-medallion svg { width: 25px; }.hero-pillars small { font-size: 14px; }.hero-pillars strong { font-size: 14px; } }
+@media (min-width: 1001px) and (max-width: 1250px) { .today-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; }.today-hero h1 { font-size: 37px; }.today-hero .hero-actions :is(a,button) { padding-inline: 17px; font-size: 14px; }.hero-pillars { gap: 7px; padding-inline: 14px; }.hero-pillars > div { gap: 7px; }.icon-medallion { width: 35px; height: 35px; }.icon-medallion svg { width: 25px; }.hero-pillars small { font-size: 14px; }.hero-pillars strong { font-size: 14px; } }
 @media (max-width: 1100px) { .app-sidebar .brand .brand-wordmark { font-size: 33px; }.product-descriptor { font-size: 14px; } }
 @media (max-width: 1000px) { .today-layout { grid-template-columns: minmax(0, 1fr); }.today-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }.today-hero { min-height: 370px; }.today-hero h1 { font-size: 49px; }.today-goals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.destination-panel { grid-column: 2; grid-row: 1 / span 2; }.account-panel { min-height: 220px; }.destination-panel { padding-top: 55px; } }
 @media (min-width: 541px) and (max-width: 1100px) { .today-hero::before, .today-hero::after { inset-inline: -20px; }.app-content .workspace > footer::before { inset-inline: -20px; } }
@@ -197,7 +197,7 @@ body { background: var(--cosmic-dark); }
   .today-hero .eyebrow { font-size: 14px; }
   .today-hero-copy > p:not(.eyebrow):not(.hero-truth) { font-size: 14px; margin-top: 19px; }
   .today-hero .hero-actions { gap: 10px; margin-top: 21px; flex-wrap: nowrap; }
-  .today-hero .hero-actions a { min-height: 49px; padding: 9px 12px; font-size: 14px; gap: 8px; border-radius: 11px; }
+  .today-hero .hero-actions :is(a,button) { min-height: 49px; padding: 9px 12px; font-size: 14px; gap: 8px; border-radius: 11px; }
   .play-medallion { width: 22px; height: 22px; }.play-medallion svg { width: 15px; }
   .today-hero .hero-truth { font-size: 14px; line-height: 1.5; }
   .hero-pillars { padding: 19px 14px 22px; gap: 10px; }
@@ -213,7 +213,7 @@ body { background: var(--cosmic-dark); }
   .app-content .workspace > footer::before { inset-inline: -16px; background-size: auto 100%; }
   .health-page .health-summary { padding: 22px 18px; }
 }
-@media (max-width: 359px) { .today-hero h1 { font-size: 27px; }.today-hero .hero-actions { gap: 7px; }.today-hero .hero-actions a { padding-inline: 9px; font-size: 14px; }.hero-pillars { gap: 6px; }.hero-pillars strong { font-size: 14px; }.icon-medallion { width: 24px; height: 24px; }.icon-medallion svg { width: 18px; }.progress-stats strong { font-size: 18px; }.account-panel .account-value { max-width: 90%; } }
+@media (max-width: 359px) { .today-hero h1 { font-size: 27px; }.today-hero .hero-actions { gap: 7px; }.today-hero .hero-actions :is(a,button) { padding-inline: 9px; font-size: 14px; }.hero-pillars { gap: 6px; }.hero-pillars strong { font-size: 14px; }.icon-medallion { width: 24px; height: 24px; }.icon-medallion svg { width: 18px; }.progress-stats strong { font-size: 18px; }.account-panel .account-value { max-width: 90%; } }
 @media (prefers-reduced-motion: reduce) { .primary, .secondary, .app-nav a { transition: none; }.primary:hover, .today-hero .secondary:hover, .account-action:hover { transform: none; }.cosmic-glow { animation: none; } }
 /* Eight main destinations, including the Positions shortcut. */
 @media (min-width:541px) and (max-width:900px) { .app-nav { grid-template-columns:repeat(8,minmax(0,1fr)); } }
