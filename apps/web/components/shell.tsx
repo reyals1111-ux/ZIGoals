@@ -3,6 +3,7 @@ import "./platform/run92-product.css";
 import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
@@ -17,6 +18,22 @@ import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
 import { LogoIntro } from "./logo-intro";
 import { PageArrival } from "./page-arrival";
+/** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
+function RouteFocusFallback() {
+  const pathname = usePathname(), first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    const frame = requestAnimationFrame(() => {
+      if (document.activeElement && document.activeElement !== document.body) return;
+      const main = document.getElementById("main");
+      if (!main) return;
+      if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+      main.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+  return null;
+}
 export function Shell({ children }: { children: ReactNode }) {
   const s = useGoals();
   const showcase=useShowcase();
@@ -29,6 +46,7 @@ export function Shell({ children }: { children: ReactNode }) {
   }, [s.pending]);
   return (
     <>
+      <RouteFocusFallback />
       <a className="skip" href="#main">
         Skip to content
       </a>
