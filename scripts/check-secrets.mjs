@@ -1,21 +1,19 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { findSecrets } from "./secret-patterns.mjs";
 const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
   .split("\0")
   .filter(Boolean);
-const patterns = [
-  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
-  /gh[pousr]_[A-Za-z0-9]{30,}/,
-  /github_pat_[A-Za-z0-9_]{40,}/,
-  /\b(?:mnemonic|private_key|seed_phrase)\s*[:=]\s*["'][A-Za-z0-9+/ ]{20,}["']/i,
-];
+// Pattern definitions and their own fixtures necessarily contain the shapes they detect.
+const exempt = new Set(["scripts/check-secrets.mjs", "scripts/secret-patterns.mjs", "scripts/secret-patterns.test.mjs"]);
 const hits = [];
 for (const file of files) {
   if (/(^|\/)\.env(\.|$)/.test(file) && !file.endsWith(".env.example"))
-    hits.push(file);
-  if (file === "scripts/check-secrets.mjs") continue;
+    hits.push(`${file} (environment file)`);
+  if (exempt.has(file)) continue;
   const data = readFileSync(file, "utf8");
-  if (patterns.some((p) => p.test(data))) hits.push(file);
+  const found = findSecrets(data);
+  if (found.length) hits.push(`${file} (${found.join(", ")})`);
 }
 if (hits.length) {
   console.error(
