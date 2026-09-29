@@ -10,9 +10,15 @@ concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  web:
+  # The web gate is split into independent jobs that run in parallel. Every
+  # step of the former single web job still runs, unchanged, in one of them.
+  # The final "web" job keeps the check name and fails unless all of them
+  # succeeded. Timeouts: see the headroom notes in each job.
+  web-checks:
+    name: web checks (lint, types, unit, build, audit, secret scan)
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Measured 3.7 min on the first split run (36489960661); about 2.5x headroom.
+    timeout-minutes: 10
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -30,9 +36,38 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/doctor.mjs
       - run: pnpm check:deploy-configs && pnpm check:landing
-      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
       - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
       - run: pnpm audit --prod --audit-level high
+      - run: node scripts/check-secrets.mjs
+  web-browser:
+    name: web browser suite (shard ${{ matrix.shard }}/3)
+    runs-on: ubuntu-24.04
+    # The whole suite took 15-20 min in one job. Split three ways (2 workers
+    # each) the shards measured 7.6-8.4 min including about 1.5 min of setup
+    # and build (run 36489960661). About 2x headroom for suite growth and
+    # slower runners.
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+      - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: /tmp/zigoals-web-results.json
@@ -41,23 +76,53 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --reporter=line,json --output=/tmp/zigoals-web-results
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/3 --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Retain fixture-only browser failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: web-browser-${{ github.sha }}
+          name: web-browser-${{ github.sha }}-shard-${{ matrix.shard }}
           path: |
             /tmp/zigoals-web-results.json
             /tmp/zigoals-web-results/
           if-no-files-found: warn
           retention-days: 7
+  web-integration:
+    name: web integration (account, market, Run11 package, Alpha gate)
+    runs-on: ubuntu-24.04
+    # Measured 5.7 min (integration 2.2 min, Alpha build and package topology
+    # 1.7 min, Workers security gate 0.5 min; run 36489960661). About 2.5x
+    # headroom: the account browser tests wait up to 30 s per step on failure.
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+      - run: pnpm build
+      - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - name: Independent browser account and market integration
         env:
           RUN10_BROWSER: "1"
           RUN11_MARKET_BROWSER: "1"
           RUN11_REVIEW_ORIGIN: http://127.0.0.1:3100
-        run: pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/market-browser.test.mjs --reporter=verbose
+        run: |
+          for n in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
+            sleep 1
+          done
+          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/market-browser.test.mjs --reporter=verbose
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
       - name: Full generated Run11 package and local service topology
@@ -74,8 +139,21 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:8788/app >/dev/null
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test public-alpha.spec.ts diagnostics.spec.ts --output=/tmp/zigoals-alpha-results
-      - run: node scripts/check-secrets.mjs
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test public-alpha.spec.ts diagnostics.spec.ts --workers=2 --output=/tmp/zigoals-alpha-results
+  web:
+    # Keeps the "web" check name. Passes only if every web job passed.
+    needs: [web-checks, web-browser, web-integration]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - env:
+          CHECKS: ${{ needs.web-checks.result }}
+          BROWSER: ${{ needs.web-browser.result }}
+          INTEGRATION: ${{ needs.web-integration.result }}
+        run: |
+          echo "web-checks: $CHECKS; web-browser: $BROWSER; web-integration: $INTEGRATION"
+          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success
   contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
