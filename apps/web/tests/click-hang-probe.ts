@@ -12,6 +12,29 @@ const signals=new WeakMap<Page,Signals>();
 let current='';
 const write=(text:string)=>{const line=`[click-hang ${new Date().toISOString()}] ${text}\n`;try{appendFileSync(LOG,line);}catch{}process.stderr.write(line);};
 const within=async<T>(work:Promise<T>,ms:number):Promise<T|string>=>{let timer:ReturnType<typeof setTimeout>|undefined;try{return await Promise.race([work,new Promise<string>(resolve=>{timer=setTimeout(()=>resolve(`TIMEOUT after ${ms} ms`),ms);})]);}catch(error){return `ERROR ${error instanceof Error?error.message.split('\n')[0]:String(error)}`;}finally{clearTimeout(timer);}};
+// The debugger is enabled when each page opens (Debugger.enable needs a free main thread). When the page
+// stops answering, Debugger.pause interrupts its running JS and the stack is logged.
+type Probe={cdp:import('@playwright/test').CDPSession;scripts:Map<string,string>};
+const probes=new WeakMap<Page,Probe>();
+async function attachDebugger(page:Page){
+ try{const cdp=await page.context().newCDPSession(page),scripts=new Map<string,string>();cdp.on('Debugger.scriptParsed',(e:{scriptId:string;url:string})=>{scripts.set(e.scriptId,e.url);});await cdp.send('Debugger.enable');probes.set(page,{cdp,scripts});}
+ catch(error){write(`debugger attach failed: ${error instanceof Error?error.message:String(error)}`);}
+}
+async function mainThreadStack(page:Page){
+ const probe=probes.get(page);if(!probe)return 'debugger not attached';const {cdp,scripts}=probe;
+ try{
+  const paused=new Promise<{reason:string;callFrames:{functionName:string;location:{scriptId:string;lineNumber:number;columnNumber:number}}[]}>(resolve=>cdp.once('Debugger.paused',resolve as never));
+  const pause=await within(cdp.send('Debugger.pause'),5000);if(typeof pause==='string')return `Debugger.pause ${pause}`;
+  const event=await within(paused,8000);if(typeof event==='string')return `no pause event: ${event}`;
+  const lines=[`paused (${event.reason}), ${event.callFrames.length} frames`];
+  for(const [index,frame] of event.callFrames.slice(0,25).entries()){
+   const {scriptId,lineNumber,columnNumber}=frame.location;let snippet='';
+   if(index<8){const source=await within(cdp.send('Debugger.getScriptSource',{scriptId}),3000);if(typeof source!=='string'){const line=source.scriptSource.split('\n')[lineNumber]??'';snippet=line.slice(Math.max(0,columnNumber-160),columnNumber+160).replace(/\s+/g,' ');}}
+   lines.push(`  #${index} ${frame.functionName||'(anonymous)'} ${scripts.get(scriptId)??scriptId}:${lineNumber+1}:${columnNumber+1}${snippet?`\n      …${snippet}…`:''}`);
+  }
+  await within(cdp.send('Debugger.resume'),3000);return lines.join('\n');
+ }catch(error){return `CDP error ${error instanceof Error?error.message:String(error)}`;}
+}
 async function diagnose(locator:Locator,elapsed:number){
  const page=locator.page(),state=signals.get(page),started=Date.now();
  const version=page.context().browser()?.version()??'unknown';
@@ -23,6 +46,7 @@ async function diagnose(locator:Locator,elapsed:number){
  write(`  target count: ${JSON.stringify(count)} | state: ${JSON.stringify(element)}`);
  write(`  pending requests (${state?.pending.size??0}): ${JSON.stringify([...(state?.pending.values()??[])].slice(0,12))}`);
  write(`  console/page errors (${state?.errors.length??0}): ${JSON.stringify(state?.errors.slice(-12)??[])}`);
+ if(typeof alive==='string')write(`  main thread: ${await mainThreadStack(page)}`);
  write(`  diagnostics took ${Date.now()-started} ms`);
 }
 export const test=base.extend({
@@ -34,11 +58,13 @@ export const test=base.extend({
   page.on('request',request=>state.pending.set(request,`${request.method()} ${request.url().slice(0,160)}`));
   page.on('requestfinished',request=>state.pending.delete(request));
   page.on('requestfailed',request=>state.pending.delete(request));
+  await attachDebugger(page);
   await page.addInitScript(()=>{const tasks:{start:number;duration:number}[]=[];(window as unknown as {__clickHangLongTasks:typeof tasks}).__clickHangLongTasks=tasks;try{new PerformanceObserver(list=>{for(const entry of list.getEntries())tasks.push({start:Math.round(entry.startTime),duration:Math.round(entry.duration)});}).observe({type:'longtask',buffered:true});}catch{}});
   const proto=Object.getPrototypeOf(page.locator('body')) as {click:Locator['click'];__clickHangProbe?:boolean};
   if(!proto.__clickHangProbe){proto.__clickHangProbe=true;const click=proto.click;proto.click=async function(this:Locator,...args:Parameters<Locator['click']>){const started=Date.now(),timers=THRESHOLDS.map(ms=>setTimeout(()=>{void diagnose(this,Date.now()-started);},ms));try{return await click.apply(this,args);}catch(error){write(`CLICK FAILED after ${Date.now()-started} ms | ${current} | ${this.toString()} | ${error instanceof Error?error.message.slice(0,1500):String(error)}`);throw error;}finally{for(const timer of timers)clearTimeout(timer);}};}
   if(info.repeatEachIndex===0)write(`worker ${info.workerIndex} ${info.project.name}: browser ${page.context().browser()?.browserType().name()} ${page.context().browser()?.version()}`);
   await provide(page);
+  await probes.get(page)?.cdp.detach().catch(()=>{});
   if(info.status!==info.expectedStatus)write(`TEST FAILED ${state.title}: ${info.error?.message?.slice(0,600)??''}`);
  },
 });

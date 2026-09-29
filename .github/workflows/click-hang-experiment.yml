@@ -26,7 +26,7 @@ jobs:
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
       WRANGLER_SEND_METRICS: "false"
       CLICK_HANG_BROWSER: ${{ matrix.browser }}
-      REPEATS: "20"
+      REPEATS: "30"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
