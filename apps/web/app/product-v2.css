@@ -144,7 +144,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
 .today-hero h1 .nebula-text { display: inline-block; }
 .today-hero-copy > p:not(.eyebrow):not(.hero-truth) { color: #c1d5ee; font-size: 15px; line-height: 1.75; margin-bottom: 0; }
 .today-hero .hero-actions { margin-top: 23px; gap: 14px; }
-.today-hero .hero-actions a { min-height: 48px; padding-inline: 19px; font-size: 14px; }
+.today-hero .hero-actions :is(a,button) { min-height: 48px; padding-inline: 19px; font-size: 14px; }
 .today-hero .hero-truth { font-size: 14px; color: #a9bbd5; margin: 14px 0 0; }
 .hero-pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 9px 20px 17px; }
 .hero-pillars > div { display: flex; align-items: center; gap: 10px; border-right: 1px solid var(--edge-soft); }
@@ -274,7 +274,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
   .today-hero h1 { font-size: clamp(27px, 7.8vw, 39px); letter-spacing: -1.2px; line-height: 1.13; }
   .today-hero-copy > p:not(.eyebrow):not(.hero-truth) { font-size: 14px; }
   .today-hero .hero-actions { gap: 10px; flex-wrap: nowrap; }
-  .today-hero .hero-actions a { font-size: 14px; padding-inline: 12px; min-height: 45px; }
+  .today-hero .hero-actions :is(a,button) { font-size: 14px; padding-inline: 12px; min-height: 45px; }
   .today-hero .hero-truth { font-size: 14px; line-height: 1.5; }
   .hero-pillars { gap: 6px; padding: 0 12px 14px; }
   .hero-pillars > div { flex-direction: column; align-items: flex-start; gap: 5px; }

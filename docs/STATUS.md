@@ -64,6 +64,10 @@ GitHub's `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19. This date was suppl
 
 Manual Alpha deployment run [36339307897](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36339307897) deployed exact `fb1e3d9690098fb9958f3a93e9028fa4804f6074` on 2026-09-27: SUCCESS, Worker version `c7c67184-0449-48dd-8feb-7e3d0752090e`, rollback `1438406e-4ede-423b-81cc-5eeb0d1c1a8a`. The previous Alpha deployment was Run10 (PR20) at `901e2a6600fb8292b7956717d45341f050fd377c`.
 
+### 2026-09-28 — Brand + layout polish (open PR, not merged or deployed)
+
+Branch `ui/logo-quickadd-goals-header`, owner-approved changes to PR #22 baseline elements only: the new Z logo leads the desktop sidebar (Quick add removed there) and replaces the mobile header Z; Quick add replaces the Today hero's "+ Create a goal"; the Goals header reads "Your Goals" with Create beside it and a single compact controls row; "See how it works" opens a placeholder brand intro video dialog. No CSP, wallet, contract, key or sync change. Favicon, app icons, landing and social images are unchanged.
+
 ## Historical release reports below
 
 Their original pending/draft descriptions apply to their observation dates, not current Run11 or PR20 state.
