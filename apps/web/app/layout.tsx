@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: origin ? new URL(origin) : undefined,
     // Use the public entry for every Alpha screen, excluding private goal IDs and queries.
     alternates: origin ? { canonical: new URL("/app", origin).href } : undefined,
-    icons: { icon: { url: "/icon.svg", type: "image/svg+xml", sizes: "any" } },
+    icons: { icon: { url: "/icon.svg", type: "image/svg+xml", sizes: "any" }, apple: { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" } },
     robots: { index: false, follow: false, nocache: true },
     openGraph: {
       title: "ZIGoals Alpha",

@@ -140,7 +140,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
 
 
 test("public icon and robots bypass nonce work while lookalike HTML retains CSP", async ({request}) => {
-  for (const route of ["/icon.svg", "/robots.txt", "/social-card.svg", "/social-card.png"]) {
+  for (const route of ["/icon.svg", "/apple-touch-icon.png", "/robots.txt", "/social-card.svg", "/social-card.png"]) {
     const response = await request.get(route);
     expect(response.status()).toBe(200);
     const h = response.headers();
@@ -156,7 +156,7 @@ test("public icon and robots bypass nonce work while lookalike HTML retains CSP"
       expect(await response.text()).toBe("User-Agent: *\nDisallow: /\n\n");
     }
   }
-  for (const route of ["/favicon.ico", "/icon.svg/app", "/robots.txt/app", "/social-cardXpng", "/_next/image/app"]) {
+  for (const route of ["/favicon.ico", "/icon.svg/app", "/apple-touch-icon.png/app", "/robots.txt/app", "/social-cardXpng", "/_next/image/app"]) {
     const response = await request.get(route);
     expect(response.status()).toBe(404);
     expect(response.headers()["content-security-policy"]).toContain("'nonce-");
