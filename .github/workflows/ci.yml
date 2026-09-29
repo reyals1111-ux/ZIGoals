@@ -66,7 +66,18 @@ jobs:
           package-manager-cache: false
       - run: npm install --global pnpm@11.19.0
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+      # Chrome comes from dl.google.com, which intermittently resets the
+      # download (curl HTTP/2 INTERNAL_ERROR) or hangs. Up to 3 attempts of
+      # at most 3 min each (normally about 30 s), 15 s then 45 s apart.
+      - name: Install Chrome for Playwright (up to 3 attempts)
+        run: |
+          for attempt in 1 2 3; do
+            if timeout -k 10 180 pnpm --filter @zigoals/web exec playwright install --with-deps chrome; then exit 0; fi
+            echo "Chrome install attempt $attempt of 3 failed."
+            if [ "$attempt" = 1 ]; then sleep 15; elif [ "$attempt" = 2 ]; then sleep 45; fi
+          done
+          echo "::error::Chrome install failed after 3 attempts (infrastructure: dl.google.com or playwright install). Re-run the job once; if it fails again, investigate."
+          exit 1
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - env:
@@ -109,7 +120,16 @@ jobs:
           package-manager-cache: false
       - run: npm install --global pnpm@11.19.0
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+      # Same retry as the browser shards; see there.
+      - name: Install Chrome for Playwright (up to 3 attempts)
+        run: |
+          for attempt in 1 2 3; do
+            if timeout -k 10 180 pnpm --filter @zigoals/web exec playwright install --with-deps chrome; then exit 0; fi
+            echo "Chrome install attempt $attempt of 3 failed."
+            if [ "$attempt" = 1 ]; then sleep 15; elif [ "$attempt" = 2 ]; then sleep 45; fi
+          done
+          echo "::error::Chrome install failed after 3 attempts (infrastructure: dl.google.com or playwright install). Re-run the job once; if it fails again, investigate."
+          exit 1
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - name: Independent browser account and market integration
