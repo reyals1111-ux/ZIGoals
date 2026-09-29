@@ -1,3 +1,42 @@
+# Session B — reliability, activation readiness and cleanup (2026-09-29 night, [PR #46](https://github.com/reyals1111-ux/ZIGoals/pull/46), not merged or deployed)
+
+Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, 4 vCPU, production build, Playwright at most 2 workers, Chromium 141 standing in for the `chrome` channel because dl.google.com is blocked here); **CI** = Milestone quality on the PR; **doc** = read from the source; **SEARCH-SUMMARY** / **UNVERIFIED** as defined in [FOOD_READINESS.md](run11/FOOD_READINESS.md). No real provider, account, secret, wallet or deploy was used. Live Alpha is unchanged (deploy #12 above).
+
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Deploy #12 recorded; Known CI intermittents table | `4ef0043` |
+| 1a | **account-browser 90 s timeout fixed.** Root cause: the CI integration step ran its 7 browser files in parallel (vitest default); each drives Chrome and workerd, so they starved the 4-vCPU runner. a-first always overlapped them: CI passes took 72.4–88.7 s, and 3 failures hit exactly 90 006 ms. A trace showed 667 actions, no wait above 2.1 s, and CPU-bound steps (vault unlock, consent, save), so it was not a product or test wait. The files now run one at a time. The 90 s budget and all assertions are unchanged. | `8ca0e03`, `d67845d` |
+| 1b | Chrome install: up to 3 attempts, each capped at 3 min (catches a hang), 15 s then 45 s backoff, then a clear `::error::`. No new action; job names and steps unchanged. | `9edcc67` |
+| 1c | sync-inflight and the click hang: monitor only. Neither failed in any run here (25 local integration runs, 3 CI runs), so there is no #42 diagnostic output to report. | — |
+| 2 | [Skipped-test inventory](testing/SKIPPED_TESTS.md): Playwright 21 (5 platform + 16 opt-in captures), Vitest 12 env-gated. `RUN11_GOAL_SOURCE`, the only test no CI step ran, now runs in the integration step. | `3702bed`, `727bf56` |
+| 3 | `MARKET_POLICY` template and validator ([market-policy.mjs](../scripts/run11/market-policy.mjs)), ignored owner files, 31 tests with a parity check against the real `DurableMarketAccount`; [key custody](run11/MARKET_KEY_CUSTODY.md); ACTIVATION Stage 6 steps. **`deploy-alpha.yml` not changed**: the live app still reads the key (market-quotes 502 vs 503 and the POST error text) and `alphaRuntimeSecrets` asserts it, so the next Manual Alpha deploy behaves exactly as before. | `c7ea4e6` |
+| 4 | [Food readiness](run11/FOOD_READINESS.md): fields and budget checked against the source; `FOOD_USER_AGENT` template plus a 6-test Worker pin; attribution already present, no UI follow-up. The OFF docs were blocked here: limits and licences are SEARCH-SUMMARY, and v3.4 still being served is UNVERIFIED. | `da101c0` |
+| 5 | Nothing to change. `pnpm lint` has 0 warnings and `pnpm typecheck` passes; the `use-private-store` cleanup-ref warning was already fixed in `6f378b4`. Its test and the vault sync/cloud-sync tests: 25/25 pass (no code change, so before = after). The middleware→proxy notice stays parked. Observation only: root `tsc` does not include `scripts/**/*.ts`. | — |
+| 6 | CLAUDE.md: stale AGENTS.md reference fixed, cloud-sandbox Chrome note, "Big sessions" section; every rule kept (mapping in the PR). | `a7e1d28` |
+
+**TIER 3 commits:** `a7e1d28` (project rules). Risk: wording only; no command or rule removed, owner approves in review. There are no auth/sync or deploy-workflow changes.
+
+**Evidence (not summed across runs):**
+- account-browser, local, CI command:
+  - before, all files in parallel: 5/5 runs passed; a-first 75.1–86.6 s, b-first 64.0–66.7 s.
+  - after, one file at a time: **20/20 consecutive runs passed** (all 10 tests each time); a-first 62.8–67.0 s, b-first 62.6–66.5 s; step 180–189 s.
+  - The local before rate (0/5 failures) is lower than CI's (3 of 14 attempts).
+- account-browser, CI after the fix:
+  - [run 36636240339](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36636240339) (`3702bed`): step 176 s, a-first 60.6 s.
+  - [run 36642420563](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36642420563) (`727bf56`): step 198.7 s, a-first 67.2 s, `RUN11_GOAL_SOURCE` check passed in 18.5 s.
+  - Both runs: all checks green.
+- `RUN11_GOAL_SOURCE`, local: 11/11 consecutive passes.
+- Unit, local at `727bf56` (`pnpm test`): 1692 passed, 12 skipped, 1 failed. The failure was `market-disconnect`, a known intermittent; its re-run passed 2/2.
+- New suites: market-policy 31/31, food-user-agent 6/6.
+- Playwright, local full run: 488 passed, 21 skipped, 3 failed. All 3 need the intro MP4, which this sandbox Chromium cannot play; the same specs pass in CI Chrome.
+
+**Owner next steps (Stage 6):**
+1. Fill `scripts/run11/market-policy.template.json` privately from the CoinGecko dashboard. Run `market-policy.mjs`, then pass the output to `make-private-configs --market-policy-file`.
+2. Choose the food contact for `FOOD_USER_AGENT`.
+3. Recheck the Open Food Facts limit, v3.4 and the attribution wording in a normal browser.
+
+**Unverified:** everything the OFF documentation would confirm (listed in FOOD_READINESS.md); real Chrome behaviour locally (CI only); hosted or provider behaviour of any kind.
+
 # Alpha deploy — 2026-09-29 night, `5dd2ee7` live
 
 Evidence labels: **CI log** = the deploy job's step "Report version IDs even after failure" in the run below, read by the owner; **Actions API** / **git** = read on 2026-09-29 by the Session B cloud session; **owner-reported** = as the owner reports it.
@@ -24,9 +63,10 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Intermittent | Seen | Scope | State |
 |---|---|---|---|
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
-| `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | Targeted by Session B Part 1 |
+| `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
-| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure | browser shards and integration | Targeted by Session B Part 1 |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss in the 500 ms follower window under full `pnpm test` load at `727bf56`; the re-run passed | web checks (unit) | Monitor. Timing-sensitive wait in the test; no Session B change touches it |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
