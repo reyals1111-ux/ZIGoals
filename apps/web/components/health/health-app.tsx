@@ -1,4 +1,5 @@
 "use client";
+import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
@@ -93,6 +94,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const invalid = () => setError("Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings.");
   const summary = dailyHealthSummary(data, date);
   return <LayoutPage page="health"><div className="health-page">
+    <ExerciseCounters data={data} update={update} />
     <div className="page-heading"><div><p className="eyebrow page-eyebrow">YOUR EVERYDAY WELLBEING</p><h1><NebulaFlow identity="health-title">A little care, every day.</NebulaFlow></h1><p className="page-lede">Your food, water, movement and progress. Your private journal.</p></div><div className="actions"><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button><Link className="badge" href="/app/settings">Privacy &amp; backups</Link><LayoutLockButton/></div></div>
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} onTargets={() => setView("Targets")} />},

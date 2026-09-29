@@ -223,3 +223,59 @@ test.describe('Part 3: liquid glass',()=>{
   await expect(page.locator('.glass-light')).not.toHaveAttribute('data-on','');
  });
 });
+
+test.describe('Part 4: Health',()=>{
+ const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('output');
+ test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
+  await page.goto('/app/health');
+  const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();
+  // Above the "A little care, every day." header.
+  const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;expect(c.y).toBeLessThan(h.y);
+  await expect(page.getByRole('article',{name:'Push-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Pull-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Squats',exact:true})).toBeVisible();
+  // No entry is not zero; nothing is written before the first tap.
+  await expect(count(page,'Push-ups')).toContainText('No entry today');
+  expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
+  await expect(page.getByRole('button',{name:'Decrease Push-ups'})).toBeDisabled();
+  for(const b of await page.getByRole('article',{name:'Push-ups',exact:true}).getByRole('button',{name:/^(Increase|Decrease) Push-ups$/}).all()){const box=(await b.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
+  const plus=page.getByRole('button',{name:'Increase Push-ups'});
+  await plus.click();await expect(count(page,'Push-ups')).toHaveText('1');await plus.click();await plus.click();await expect(count(page,'Push-ups')).toHaveText('3');
+  await page.getByRole('button',{name:'Decrease Push-ups'}).click();await expect(count(page,'Push-ups')).toHaveText('2');
+  await page.reload();await expect(count(page,'Push-ups')).toHaveText('2');await expect(count(page,'Squats')).toContainText('No entry today');
+  const saved=JSON.parse((await page.evaluate(()=>localStorage.getItem('zigoals:health:v1')))!);
+  expect(saved.exercise.version).toBe(1);expect(saved.exercise.days).toHaveLength(1);expect(saved.exercise.days[0]).toMatchObject({counterId:'health_counter-pushups',count:2});
+  await page.getByRole('button',{name:'Decrease Push-ups'}).click();await page.getByRole('button',{name:'Decrease Push-ups'}).click();
+  await expect(count(page,'Push-ups')).toHaveText('0');await expect(page.getByRole('button',{name:'Decrease Push-ups'})).toBeDisabled();
+ });
+ test('a custom counter can be added, renamed and deleted after confirmation',async({page})=>{
+  await page.goto('/app/health');
+  await page.getByRole('button',{name:'+ Add counter'}).click();
+  const dialog=page.getByRole('dialog',{name:'Add a counter'});await dialog.getByLabel('Counter name').fill('Planks');await dialog.getByRole('radio',{name:'Core'}).check();
+  await dialog.getByRole('button',{name:'Add counter'}).click();await expect(dialog).toHaveCount(0);
+  const planks=page.getByRole('article',{name:'Planks',exact:true});await expect(planks).toBeVisible();
+  await page.getByRole('button',{name:'Increase Planks'}).click();await expect(count(page,'Planks')).toHaveText('1');
+  await planks.getByRole('button',{name:'Options for Planks'}).click();await planks.getByRole('button',{name:'Rename or change icon'}).click();
+  const edit=page.getByRole('dialog',{name:'Edit Planks'});await edit.getByLabel('Counter name').fill('Plank holds');await edit.getByRole('button',{name:'Save counter'}).click();
+  await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toBeVisible();
+  await page.reload();const renamed=page.getByRole('article',{name:'Plank holds',exact:true});await expect(renamed).toBeVisible();await expect(count(page,'Plank holds')).toHaveText('1');
+  await renamed.getByRole('button',{name:'Options for Plank holds'}).click();await renamed.getByRole('button',{name:'Delete counter'}).click();
+  const confirm=page.getByRole('dialog',{name:'Delete Plank holds?'});await expect(confirm).toContainText('its daily history');
+  await confirm.getByRole('button',{name:'Keep counter'}).click();await expect(renamed).toBeVisible();
+  await renamed.getByRole('button',{name:'Options for Plank holds'}).click();await renamed.getByRole('button',{name:'Delete counter'}).click();
+  await page.getByRole('dialog',{name:'Delete Plank holds?'}).getByRole('button',{name:'Delete counter'}).click();
+  await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toHaveCount(0);
+  await page.reload();await expect(page.getByRole('article',{name:'Push-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toHaveCount(0);
+ });
+ test('Showcase counters are fictional and never touch real Health data',async({page})=>{
+  await showcase(page);await page.goto('/app/health');
+  await expect(count(page,'Push-ups')).not.toContainText('No entry');
+  await page.getByRole('button',{name:'Increase Squats'}).click();
+  expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
+ });
+ test('the Health titles carry the nebula flow from the middle',async({page})=>{
+  await showcase(page);await page.goto('/app/health');
+  for(const name of ['A little care, every day.','Every entry adds perspective.']){
+   const flow=page.getByRole('heading',{name,exact:true}).locator('.nebula-flow');await expect(flow).toHaveText(name);
+   expect(await flow.evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
+  }
+ });
+});
