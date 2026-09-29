@@ -42,5 +42,13 @@ export async function applyData(storage:Storage,before:PrivateData,after:Private
   fence();if(batch.length)await localDatabase.commitBatch(space!,batch,fence);
  }
  await locked(0);
- for(const [domain]of entries){const {key}=modules[domain as Domain];window.dispatchEvent(new CustomEvent('zigoals:private-change',{detail:key}));if(typeof BroadcastChannel!=='undefined'){const c=new BroadcastChannel('zigoals:private-updates:v1');c.postMessage(key);c.close();}}
+ announceSyncedChanges(entries.map(([domain])=>modules[domain as Domain].key));
+}
+let announcingSynced=false;
+/** True only while sync announces records it just applied, so listeners can tell them from local edits. Dispatch is synchronous, so no local edit can fall inside this window. */
+export function isSyncedChangeEvent(){return announcingSynced;}
+export function announceSyncedChanges(keys:readonly string[]){
+ announcingSynced=true;
+ try{for(const key of keys){window.dispatchEvent(new CustomEvent('zigoals:private-change',{detail:key}));if(typeof BroadcastChannel!=='undefined'){const c=new BroadcastChannel('zigoals:private-updates:v1');c.postMessage(key);c.close();}}}
+ finally{announcingSynced=false;}
 }
