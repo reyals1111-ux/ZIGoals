@@ -104,6 +104,9 @@ jobs:
     # Measured 5.7 min (integration 2.2 min, Alpha build and package topology
     # 1.7 min, Workers security gate 0.5 min; run 36489960661). About 2.5x
     # headroom: the account browser tests wait up to 30 s per step on failure.
+    # The browser integration files now run one at a time (see that step),
+    # which adds about 1.5-2 min (estimate from the per-file times), so the
+    # job stays well inside 15 min.
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: "1"
@@ -132,6 +135,10 @@ jobs:
           exit 1
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
+      # One file at a time: each file drives real Chrome and a local workerd,
+      # and in parallel they starve each other of CPU on the 4-vCPU runner.
+      # account-browser a-first (about 64 s of work alone) then ran 72-89 s
+      # and timed out at 90 s three times (#41, #42, #44).
       - name: Independent browser account and market integration
         env:
           RUN10_BROWSER: "1"
@@ -142,7 +149,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs --reporter=verbose
+          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs --no-file-parallelism --reporter=verbose
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
       - name: Full generated Run11 package and local service topology
