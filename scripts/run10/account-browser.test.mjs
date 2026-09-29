@@ -22,7 +22,10 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
     if(path.endsWith('/verify'))return Response.json({access_token:token,expires_in:3600,user:{id:account}});
     if(path.endsWith('/user'))return Response.json({id:account});return Response.json({});
    });if(result.status>=400)console.log('Fixture adapter status',r.method(),result.status,'origin',headers.origin??'absent');await route.fulfill({status:result.status,headers:{...Object.fromEntries(result.headers),...(result.headers.getSetCookie().length?{'set-cookie':result.headers.getSetCookie().join('\n')}:{})},body:await result.text()});});return c;}
- async function login(page){await page.goto(origin+'/app/settings');await page.getByLabel('Email address',{exact:true}).fill('fixture@example.invalid');await page.getByRole('button',{name:'Send email code',exact:true}).click();try{await page.getByLabel('Email code',{exact:true}).fill('123456',{timeout:10000});}catch(e){console.log('Email fixture UI',await page.getByRole('region',{name:'Email account access'}).innerText());throw e;}await page.getByRole('button',{name:'Verify email code',exact:true}).click();}
+ async function login(page){await page.goto(origin+'/app/settings');await page.getByLabel('Email address',{exact:true}).fill('fixture@example.invalid');await page.getByRole('button',{name:'Send email code',exact:true}).click();try{await page.getByLabel('Email code',{exact:true}).fill('123456',{timeout:10000});}catch(e){console.log('Email fixture UI',await page.getByRole('region',{name:'Email account access'}).innerText());throw e;}await page.getByRole('button',{name:'Verify email code',exact:true}).click();
+  // Verification finishes asynchronously and re-renders the panel; a Health consent ticked before
+  // that is lost, so wait until the verified vault controls are shown.
+  await page.getByRole('button',{name:'Create encrypted account vault',exact:true}).or(page.getByLabel('Vault recovery secret',{exact:true})).waitFor();}
  // Every wait needs a sync that completes after it was armed: the success message stays on screen,
  // so reading it alone can accept an earlier completion (see ../run11/sync-completion.mjs).
  async function arm(page){await armSyncCompletion(page);return page.evaluate(()=>window.__zigoalsSyncCompletions);}
