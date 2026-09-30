@@ -49,9 +49,10 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  await page.setViewportSize({width:390,height:844});await open(page,'/app/settings');
  const list=page.getByRole('navigation',{name:'Settings sections'});await expect(list).toBeVisible();
  await expect(page.locator('.settings-sections')).toBeHidden();
- const rows=list.getByRole('link');expect(await rows.count()).toBe(12);
+ const rows=list.getByRole('link');expect(await rows.count()).toBe(13);
+ await expect(list.getByRole('link',{name:'Show the welcome again',exact:true})).toHaveAttribute('href','/app/welcome');
  for(const link of await rows.all()){
-  const href=(await link.getAttribute('href'))!;expect(href).toMatch(/^#[a-z-]+$/);
+  const href=(await link.getAttribute('href'))!;if(href==='/app/welcome')continue;expect(href).toMatch(/^#[a-z-]+$/);
   await expect(page.locator(href),href).toHaveCount(1);
   const box=(await link.boundingBox())!;expect(box.height,href).toBeGreaterThanOrEqual(44);
  }
