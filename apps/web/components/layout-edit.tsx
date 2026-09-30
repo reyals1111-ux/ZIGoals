@@ -67,12 +67,16 @@ export function LayoutPage({page, children, unlocked: controlled, onUnlockedChan
 }
 
 const LockIcon = ({open}: {open: boolean}) => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="5" y="10.5" width="14" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d={open ? 'M8.5 10.5V7.8a3.5 3.5 0 0 1 6.8-1.2' : 'M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7'} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="12" cy="15.5" r="1.4" fill="currentColor"/></svg>;
-/** The page's lock: "Unlock layout to rearrange" / "Lock layout". */
-export function LayoutLockButton({className = ''}: {className?: string}) {
+/** The one place for the lock on every page: the Shell's status row, right after the demo balance. */
+export const LAYOUT_LOCK_SLOT = 'layout-lock-slot';
+/** The page's lock: "Unlock layout to rearrange" / "Lock layout". It always renders into the Shell's slot, so it sits in the same spot on every page. */
+export function LayoutLockButton() {
   const context = useLayoutPage();
-  if (!context) return null;
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => { setSlot(document.getElementById(LAYOUT_LOCK_SLOT)); }, []);
+  if (!context || !slot) return null;
   const {unlocked, setUnlocked, announce} = context;
-  return <button type="button" className={`layout-lock ${className}`.trim()} data-unlocked={unlocked || undefined} aria-label={unlocked ? 'Lock layout' : 'Unlock layout to rearrange'} title={unlocked ? 'Lock layout' : 'Rearrange this page'} onClick={() => { setUnlocked(!unlocked); announce(unlocked ? 'Layout locked.' : 'Layout unlocked. Use the arrow buttons on a card, or drag its handle, to rearrange.'); }}><LockIcon open={unlocked}/></button>;
+  return createPortal(<button type="button" className="layout-lock" data-unlocked={unlocked || undefined} aria-label={unlocked ? 'Lock layout' : 'Unlock layout to rearrange'} title={unlocked ? 'Lock layout' : 'Rearrange this page'} onClick={() => { setUnlocked(!unlocked); announce(unlocked ? 'Layout locked.' : 'Layout unlocked. Use the arrow buttons on a card, or drag its handle, to rearrange.'); }}><LockIcon open={unlocked}/></button>, slot);
 }
 
 export type LayoutEntry = {id: string; label: string; node: ReactNode};

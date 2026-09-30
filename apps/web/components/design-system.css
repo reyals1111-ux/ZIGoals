@@ -107,18 +107,10 @@
 :root .bottom-places > li { flex:1 1 220px; }
 /* The Wealth total's label never runs under its options button. */
 :root .wealth-hero-total > span:first-of-type { padding-right:48px; }
-/* The Health hero's lock button keeps its own size next to the other actions. */
-:root .page-heading .actions > .layout-lock { flex:0 0 44px;width:44px;justify-self:start;align-self:center; }
 @media (max-width:700px) {
   /* The mode dot stays with its sentence; the demo balance takes its own line. */
   :root .mode-strip { display:block; }
   :root .mode-strip > .mode-dot { display:inline-block;margin:0 8px 2px 0;vertical-align:middle; }
   :root .mode-strip > .wallet-balance { display:block;margin:6px 0 0; }
-  /* Older headings (Stake / Positions, Activity) keep the lock at the top right, as the shared header does. */
-  :root .page-heading:has(> .layout-lock) { position:relative; }
-  :root .page-heading > .layout-lock { position:absolute;top:0;right:0; }
-  :root .page-heading:has(> .layout-lock) > div:first-child .page-eyebrow { padding-right:56px; }
-  /* Corner lock buttons never cover a hero eyebrow. */
-  :root :is(.habit-hero,.wealth-hero,.markets-hero) .page-eyebrow { padding-right:56px; }
   :root .portfolio-composition > .section-heading { padding-left:0;padding-right:0; }
 }

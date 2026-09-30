@@ -52,4 +52,4 @@
 @media(max-width:900px) { .sidebar-star { display:none; } }
 @media(forced-colors:active) { .sidebar-star { display:none; } }
 /* While the workspace waits for private stores it stays hidden, but the honesty and status banners never do. */
-.workspace[aria-busy=true] > :is(.showcase-banner,.workspace-status,.mode-strip) { visibility:visible; }
+.workspace[aria-busy=true] > :is(.showcase-banner,.workspace-status,.status-row) { visibility:visible; }

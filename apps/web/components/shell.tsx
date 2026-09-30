@@ -19,6 +19,7 @@ import { AppNav } from "./app-nav";
 import { LogoIntro } from "./logo-intro";
 import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
+import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -112,6 +113,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded} style={{visibility:selection.ready&&preferences.loaded?undefined:"hidden"}}>
         <ShowcaseBanner/>
         <WorkspaceStatus/>
+        {/* The status row: the mode strip (an honesty label) and, on pages that can be rearranged, the layout lock right after the demo balance. The row keeps the lock's place when the strip is hidden. */}
+        <div className="status-row">
         {banners&&<div className="mode-strip">
           <span className="mode-dot" />
           {s.mode === "local"
@@ -122,6 +125,8 @@ export function Shell({ children }: { children: ReactNode }) {
             {s.mode === "local" ? "demo balance" : "wallet balance"}
           </span>
         </div>}
+        <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>
+        </div>
         {s.error && (
           <div role="alert" className="alert">
             {s.error}
