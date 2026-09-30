@@ -4,9 +4,15 @@
   :root .wealth-product .wealth-hero { padding: 18px 16px; gap: 14px; }
   :root .wealth-product .wealth-hero-scene, :root .wealth-product .wealth-orbit { display: none; }
   :root .wealth-product .wealth-hero h1 { font-size: clamp(28px, 8.4vw, 34px); margin: 8px 0 10px; }
-  :root .wealth-product .wealth-actions { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
-  :root .wealth-product .wealth-actions > * { flex: 1 1 auto; min-height: 44px; }
-  :root .wealth-product .wealth-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  /* The total follows the title (wealth-view.tsx); Add asset leads the actions, the other two share a row. */
+  :root .wealth-product .wealth-hero-copy > .wealth-hero-total { margin: 4px 0 14px; padding: 16px; border-radius: 20px; }
+  :root .wealth-product .wealth-hero-total > strong { font-size: clamp(30px, 9vw, 38px); }
+  :root .wealth-product .wealth-hero-total small, :root .wealth-product .wealth-total-fx { font-size: 15px; }
+  :root .wealth-product .wealth-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  :root .wealth-product .wealth-actions > * { min-width: 0; min-height: 44px; padding-inline: 10px; font-size: 15px; }
+  :root .wealth-product .wealth-actions > .primary { grid-column: 1 / -1; }
+  :root .wealth-product .wealth-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 0; }
+  :root .wealth-product .wealth-split dd { font-size: 20px; overflow-wrap: anywhere; }
 
   /* Holdings: one scrolling row of filters, compact rows (icon and name, value and quantity, one line each for the
      reference price, allocation and source). The whole row stays the link it already is. */
@@ -16,22 +22,44 @@
   :root .wealth-product .wealth-section-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
   :root .wealth-product .wealth-section-heading > .secondary { min-height: 44px; }
   :root .wealth-product .owned-assets-grid { gap: 10px; }
-  :root .wealth-product .owned-asset-card { padding: 14px 16px; border-radius: 20px; }
-  :root .wealth-product .owned-asset-heading { gap: 12px; }
-  :root .wealth-product .owned-asset-heading h3 { font-size: 18px; }
-  :root .wealth-product .owned-asset-heading p { margin: 2px 0 0; font-size: 15px; }
-  :root .wealth-product .owned-value { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 10px 0 6px; }
-  :root .wealth-product .owned-value strong { font-size: 22px; }
-  :root .wealth-product .holding-unit-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 6px; }
-  :root .wealth-product .owned-asset-card .market-movement { margin: 6px 0; }
-  :root .wealth-product .holding-allocation-labels { margin-top: 6px; }
-  :root .wealth-product :is(.holding-allocation-labels span, .asset-card-source, .asset-updated, .holding-unit-price small) { font-size: 15px; }
-  :root .wealth-product .asset-card-source { margin-top: 6px; }
-  :root .wealth-product .owned-asset-card > .text-link { display: flex; align-items: center; min-height: 44px; }
+  :root .wealth-product .owned-asset-card { position: relative; padding: 12px 14px 2px; border-radius: 20px; }
+  :root .wealth-product .owned-card-link { display: grid; gap: 6px; }
+  :root .wealth-product .owned-asset-heading { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; padding-right: 48px; }
+  :root .wealth-product .owned-asset-heading .asset-orb { width: 44px; height: 44px; }
+  :root .wealth-product .owned-asset-heading > span[aria-hidden="true"]:not(.asset-orb) { display: none; }
+  :root .wealth-product .owned-asset-heading h3 { font-size: 17px; line-height: 1.3; }
+  :root .wealth-product .owned-asset-heading p { margin: 0; font-size: 15px; }
+  :root .wealth-product .owned-value { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; margin: 2px 0 0; }
+  :root .wealth-product .owned-value strong { font-size: 20px; }
+  :root .wealth-product .owned-value > span { display: inline; margin: 0; font-size: 15px; }
+  :root .wealth-product .asset-updated { display: block; margin: 0; }
+  :root .wealth-product .holding-unit-price { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; margin: 0; font-size: 15px; }
+  :root .wealth-product .holding-unit-price > span, :root .wealth-product .holding-unit-price small { display: inline; font-size: 15px; }
+  :root .wealth-product .owned-asset-card .market-movement { margin: 0; }
+  :root .wealth-product .holding-allocation-track { margin: 2px 0 0; }
+  :root .wealth-product .holding-allocation-labels { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 0; }
+  :root .wealth-product .holding-allocation-labels span { display: flex; align-items: baseline; gap: 6px; font-size: 15px; }
+  :root .wealth-product .asset-card-source { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; margin: 0; font-size: 15px; }
+  :root .wealth-product .asset-updated { font-size: 15px; }
+  :root .wealth-product .owned-asset-card > .text-link { display: flex; align-items: center; min-height: 44px; font-size: 15px; }
 
-  /* Composition: each currency compact, the donut beside its legend; each keeps its own "not converted" line. */
+  /* Favourites: a swipeable row of compact cards; Move earlier and Remove stay on each card. */
+  :root .wealth-product .market-watch:not(.compact-watch) .watchlist-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 78%; grid-template-columns: none; gap: 10px; margin: 0 calc(-1 * var(--phone-gutter)); padding: 0 var(--phone-gutter) 6px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  :root .wealth-product .market-watch:not(.compact-watch) .watchlist-grid::-webkit-scrollbar { display: none; }
+  :root .wealth-product .market-watch .watch-card { padding: 14px; border-radius: 20px; scroll-snap-align: start; }
+  :root .wealth-product .market-watch .watch-price { font-size: 20px; }
+  :root .wealth-product .market-watch :is(.owned-asset-heading p, .market-ownership, .asset-card-source, .freshness-badge) { font-size: 15px; }
+  :root .wealth-product .market-watch .watch-actions button { min-height: 44px; font-size: 15px; }
+
+  /* Composition: a smaller ring, tight legend rows and compact top holdings; each currency keeps its own lines. */
   :root .wealth-product .portfolio-composition { padding: 18px 16px; }
   :root .wealth-product .portfolio-composition .composition-group + .composition-group { margin-top: 16px; padding-top: 16px; border-top: 1px solid #7fc8ff1f; }
+  :root .wealth-product .composition-currency { gap: 12px; }
+  :root .wealth-product .composition-donut { width: 150px; height: 150px; margin-inline: auto; }
+  :root .wealth-product .composition-donut > span { width: 112px; height: 112px; font-size: 14px; }
+  :root .wealth-product .composition-legend > div { min-height: 0; padding: 7px 0; font-size: 15px; }
+  :root .wealth-product .composition-details { gap: 14px; margin-top: 12px; }
+  :root .wealth-product .composition-top-holdings li { padding: 6px 0; }
 
   /* Mix: the classes two across, compact. */
   :root .wealth-product .asset-class-summaries { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }

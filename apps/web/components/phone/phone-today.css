@@ -59,35 +59,88 @@
   :root .today-page .life-orbit-daily .flow-ring { --ring-size: 58px !important; }
   :root .today-page .life-orbit-daily .nutrition-gauge { height: 58px; }
 
-  /* Attention, funding agenda and "needs attention": compact rows; every action keeps a 44 px row. */
-  :root .today-page :is(.funding-agenda, .needs-attention, .today-intelligence) { padding: 18px 16px; }
+  /* What matters today: the ring beside the figures, the two dates side by side, both actions on one row. */
+  :root .today-page :is(.funding-agenda, .needs-attention, .today-intelligence) { padding: 16px; }
+  :root .today-page .today-intelligence .intelligence-heading h2 { font-size: 22px; margin: 4px 0 2px; }
+  :root .today-page .today-intelligence .intelligence-heading p { margin: 0; font-size: 15px; }
+  :root .today-page .today-goal-pulse { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; align-items: center; margin-top: 12px; }
+  :root .today-page .today-goal-pulse svg { width: 84px; height: 84px; }
+  :root .today-page .today-goal-pulse strong { font-size: 22px; }
+  :root .today-page .today-goal-pulse strong > span { display: inline; font-size: 15px; }
+  :root .today-page .today-goal-pulse p { margin: 4px 0; font-size: 15px; line-height: 1.4; }
+  :root .today-page .today-contribution-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; padding-top: 12px; }
+  :root .today-page .today-contribution-dates > span { font-size: 15px; }
+  :root .today-page .today-contribution-dates strong { display: block; margin-top: 2px; font-size: 15px; overflow-wrap: anywhere; }
+  :root .today-page .intelligence-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 12px; padding-top: 12px; }
+  :root .today-page .intelligence-actions > * { min-height: 44px; display: inline-flex; align-items: center; }
+
+  /* Funding agenda and needs attention: one compact row per item; the whole row opens it. */
   :root .today-page :is(.funding-agenda, .needs-attention) h2 { font-size: 22px; }
-  :root .today-page .funding-agenda li { gap: 4px 12px; padding: 12px 0; }
-  :root .today-page .funding-agenda li > .text-link { margin-left: 62px; }
-  :root .today-page .needs-attention li { gap: 12px; padding: 12px 0; }
-  :root .today-page :is(.funding-agenda, .needs-attention) h3 { font-size: 16px; margin: 0 0 2px; }
-  :root .today-page :is(.funding-agenda, .needs-attention) li p { font-size: 15px; margin: 2px 0; }
-  :root .today-page .needs-attention .text-link { margin-top: 0; font-size: 15px; }
-  :root .today-page .today-goal-pulse { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center; }
-  :root .today-page .today-goal-pulse svg { width: 96px; height: 96px; }
-  :root .today-page .today-contribution-dates { gap: 8px; margin-top: 12px; padding-top: 12px; }
-  :root .today-page .intelligence-actions { margin-top: 12px; }
+  :root .today-page :is(.funding-agenda, .needs-attention) .section-heading p { margin: 4px 0 8px; font-size: 15px; }
+  :root .today-page .funding-agenda li { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; padding: 10px 0; }
+  :root .today-page .funding-agenda .agenda-date { min-width: 0; padding: 6px 2px; gap: 2px; }
+  :root .today-page .funding-agenda .agenda-date strong { font-size: 20px; }
+  :root .today-page .funding-agenda li > .text-link { margin: 0; min-height: 44px; display: inline-flex; align-items: center; font-size: 15px; }
+  :root .today-page .funding-agenda li > .text-link::after { content: ""; position: absolute; inset: 0; }
+  :root .today-page :is(.funding-agenda, .needs-attention) h3 { font-size: 16px; margin: 0; line-height: 1.3; }
+  :root .today-page :is(.funding-agenda, .needs-attention) li p { font-size: 15px; margin: 2px 0 0; line-height: 1.35; }
+  :root .today-page .funding-agenda .agenda-status { display: block; font-size: 15px; line-height: 1.35; }
+  :root .today-page .needs-attention li { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 12px; padding: 10px 0; }
+  :root .today-page .needs-attention .text-link { display: inline-flex; align-items: center; min-height: 44px; margin: 0; font-size: 15px; }
 
   /* Carousels already scroll on phones; cards get a phone width with a peek of the next. */
   :root .today-page .today-goals-grid > * { flex-basis: 84%; }
-  :root .today-page .compact-watch .watchlist-grid > * { flex-basis: 78%; }
+  :root .today-page .compact-watch .watchlist-grid { grid-auto-columns: 72%; gap: 10px; }
+  /* Goal cards in the carousel: a slim art band, the ring beside the figures. */
+  :root .today-page .today-goals-grid .unified-goal-card { padding: 0 14px 12px; }
+  :root .today-page .today-goals-grid .goal-card-art { height: 56px; margin: 0 -14px 10px; }
+  :root .today-page .today-goals-grid .unified-goal-card h2 { margin: 0 0 4px; font-size: 20px; }
+  :root .today-page .today-goals-grid .goal-value { min-height: 0; margin-bottom: 8px; font-size: 24px; }
+  :root .today-page .today-goals-grid .goal-value > span { display: inline; margin-left: 4px; }
+  :root .today-page .today-goals-grid .goal-progress { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; margin-bottom: 6px; }
+  :root .today-page .today-goals-grid .goal-progress-ring { width: 72px; height: 72px; }
+  :root .today-page .today-goals-grid .goal-progress-ring .flow-ring { --ring-size: 72px !important; }
+  :root .today-page .today-goals-grid .card-bottom { gap: 6px 10px; margin-bottom: 6px; }
+  /* Favourites: compact watch cards; every label stays. */
+  :root .today-page .compact-watch .watch-card { padding: 14px; border-radius: 20px; }
+  :root .today-page .compact-watch .watch-price { font-size: 20px; }
+  :root .today-page .compact-watch .owned-asset-heading p { font-size: 15px; }
+  :root .today-page .compact-watch :is(.market-ownership, .asset-card-source, .freshness-badge) { font-size: 15px; }
 
   /* Rail modules below main, one column, compact. */
   :root .today-page .today-rail { display: grid; grid-template-columns: 1fr; gap: 12px; }
   :root .today-page .today-rail .destination-panel { min-height: 0; }
 
   /* Journey: the three steps become a swipeable row; its truths stay visible below. */
-  :root .today-page ~ * .journey-steps, :root .journey-panel .journey-steps { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
-  :root .journey-panel .journey-steps::-webkit-scrollbar { display: none; }
-  :root .journey-panel .journey-steps > li { flex: 0 0 min(80%, 300px); scroll-snap-align: start; }
+  :root .journey-panel.journey-orbit { gap: 16px; margin-top: 16px; padding: 20px 16px; }
+  :root .journey-panel.journey-orbit .journey-lede { font-size: 16px; }
+  :root .journey-panel.journey-orbit .journey-steps { display: flex; gap: 12px; margin: 0 -16px; padding: 0 16px 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  :root .journey-panel.journey-orbit .journey-steps::-webkit-scrollbar { display: none; }
+  :root .journey-panel.journey-orbit .journey-steps::before { display: none; }
+  :root .journey-panel.journey-orbit .journey-steps > li { flex: 0 0 78%; scroll-snap-align: start; padding: 14px; border: 1px solid #7fc8ff24; border-radius: 18px; background: #0a1123a6; }
+  :root .journey-panel.journey-orbit .journey-truths { margin: 0; }
+
+  /* Habits today: title and count on one line, the check-in controls right under them. */
+  :root .today-page .habits-today .habit-today-list { margin: 10px 0; }
+  :root .today-page .habits-today .habit-today-list li { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 10px 0 10px 12px; }
+  :root .today-page .habits-today .habit-completion-compact { display: contents; }
+  :root .today-page .habits-today .habit-completion-compact > div:first-child { text-align: right; }
+  :root .today-page .habits-today .habit-completion-compact .habit-check-actions { grid-column: 1 / -1; gap: 8px; }
+  :root .today-page .habits-today .habit-today-list small { font-size: 15px; }
+
+  /* Recent activity: compact rows with the time at the top right; the whole row opens its record. */
+  :root .today-page .recent-panel .unified-activity ol { gap: 8px; margin: 12px 0; }
+  :root .today-page .recent-panel .activity-date-heading { margin: 12px 4px 6px; font-size: 16px; }
+  :root .today-page .recent-panel .activity-event { position: relative; grid-template-columns: 38px minmax(0, 1fr); gap: 2px 12px; padding: 12px 14px; border-radius: 18px; }
+  :root .today-page .recent-panel .activity-event time { position: absolute; top: 12px; right: 14px; margin: 0; font-size: 15px; }
+  :root .today-page .recent-panel .activity-category-label { margin: 0 88px 2px 0; font-size: 15px; }
+  :root .today-page .recent-panel .unified-activity .activity-event a { font-size: 17px; line-height: 1.35; }
+  :root .today-page .recent-panel .unified-activity .activity-event a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+  :root .today-page .recent-panel .unified-activity .activity-event p { margin: 2px 0; font-size: 15px; line-height: 1.4; }
+  :root .today-page .recent-panel .unified-activity .activity-event small { font-size: 15px; }
 
   /* Your week: each row's seven days on one line. */
   :root .bottom-row ul { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
   :root .bottom-row li { min-width: 0; padding: 6px 2px; text-align: center; }
-  :root .bottom-row li small { font-size: 14px; }
+  :root .bottom-row li small { display: block; inline-size: min-content; margin-inline: auto; font-size: 14px; line-height: 1.2; white-space: normal; }
 }
