@@ -46,6 +46,8 @@
   :root .today-page .dashboard-summary .dashboard-summary-grid { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
   :root .today-page .dashboard-summary .dashboard-summary-grid::-webkit-scrollbar { display: none; }
   :root .today-page .dashboard-summary .dashboard-summary-item { flex: 0 0 min(72%, 260px); scroll-snap-align: start; padding: 14px; }
+  /* While arranging, the strip stacks so every card sits within the screen next to its controls. */
+  :root[data-layout-editing] .today-page .dashboard-summary .dashboard-summary-grid { display: grid; grid-template-columns: minmax(0, 1fr); overflow: visible; }
 
   /* Whole-life orbit: the three daily rows sit side by side as rings; the wealth line keeps its "not converted" label. */
   :root .today-page .life-wealth-orbit { padding: 18px 16px; }
