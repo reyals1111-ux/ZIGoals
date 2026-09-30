@@ -17,7 +17,7 @@ Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, produc
 
 **Health data change** (TIER 3): optional `exercise: {version: 1, counters: [{id, name, icon}] (≤6), days: [{id, counterId, date, count}]}` on the strict Health schema. Health without it reads byte-identically, and nothing is written before the first tap. Records carry IDs, so the existing generic sync merge combines them; the same day edited on two devices surfaces as the existing conflict review. No change to the sync protocol, encryption or backup format version. **Older builds (deploy #12) cannot read Health data that contains `exercise`:** they show "Private data could not be read" for Health and refuse such a backup, keeping existing data. Deleting counters does not remove the group; rolling back needs an older backup. Known gap (vault code, off-limits): the backup preview's record counts do not include counter days.
 
-**Settings data change** (TIER 3): new widget kinds `milestone`, `streak`, `checkins`, `holding-share`, `exercise` and the Health metric `macros-ring` in `zigoals:settings:v1` (synced, backed up). Presets and existing widgets are unchanged. **Older builds cannot read a settings record that contains a new widget:** Today settings show "Private data could not be read" there until the widget is removed in a newer build or an older backup is restored.
+**Settings data change** (TIER 3): new widget kinds `milestone`, `streak`, `checkins`, `holding-share`, `exercise` and the Health metric `macros-ring` in `zigoals:settings:v1` (synced, backed up). Presets and existing widgets are unchanged. **Older builds cannot read a settings record that contains a new widget:** Today settings show "Private data could not be read" there until the widget is removed in a newer build or an older backup is restored. See **Compatibility and rollback** below: it also hides the Alpha top bar and the Local simulation strip on every page.
 
 **Performance** (local, production builds, same machine): Part 3 slowed `scripts/run10/account-browser` by about 8 s (bisect: main 70.6/70.5 s, Part 2 68.7/67.3 s, Part 3 77.6/78.1 s). A Chrome timeline traced most of it to the display compositor. Fixed in `4187724` (no blend mode or filled animation on the sidebar star, idle glass overlay hidden, sections taller than 1.25 screens never lift, typing never lifts its card, PageArrival reads mutations once per frame) and `c0cf409` (hover intent: an element lifts after the pointer rests 70 ms; a press cancels a pending lift). After: 71.6/71.1 s against 70.6/70.5 s on main. Hover trace earlier (dev): 0 long tasks, frame p50/p95/max 16.7/16.8/16.8 ms over 732 pointer moves.
 
@@ -29,10 +29,90 @@ Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, produc
 - CI on `a8a4e89`: web checks, all three browser shards, contract and canonical reproducibility passed; web integration failed only on account-browser a-first (below), also on its one re-run.
 - CI on `9383f15` (after hover intent): **web integration passed**, including account-browser in both orders; web checks, shards 1 and 3, contract and reproducibility passed. Shard 2 failed only the new hover-intent check, which was timing-dependent on the runner and is made deterministic in the next commit.
 - **CI on `0e5ee0f`: all green** (Milestone quality: web checks, web integration including account-browser in both orders, all three browser shards, contract; canonical reproducibility).
+- Unit (local, Node 24.19.0, `dc667f3`): 187 files passed, 8 skipped; 1690 tests passed, 12 skipped (new: `deploy12-compat`).
+- Playwright full suite (local, production build of `dc667f3`, desktop + mobile, 2 workers): 552 passed, 33 skipped, 3 failed.
+  - The intro-video test (desktop, mobile) needs H.264 and fails only in this sandbox's Chromium.
+  - `run10-widgets.spec.ts:20` (mobile) hit its 45 s budget in the six-width loop, then passed 3/3 alone.
+- **CI on `dc667f3`: all green** (web checks, web integration, all three browser shards, contract, canonical reproducibility). The two red "web" roll-ups on `86633a6` and `99b5cc3` were browser suites cancelled by the next push.
 
 **Known CI intermittents on this PR:** `account-browser` 90 s timeouts on `67a05e1`, `f1bb8bb`, `f5e1ea4` (a-first and b-first), then a-first only on `4187724` and `a8a4e89` (re-run once, failed again); passed on `9383f15` and `0e5ee0f` after the hover-intent change. The root-cause fix (`8ca0e03`, #46) is still worth merging: without it this test has little margin on main too. The fix is Session B's `8ca0e03` (run the integration files one at a time, `.github/workflows/ci.yml`), which this PR may not touch; it takes effect once #46 merges. `run11-route-mobile-acceptance` (desktop) hit its 45 s budget once on `f1bb8bb`; locally it takes 24.6–26.0 s on this branch and 23.0–25.0 s on main.
 
 **Not done / skipped:** half/full width toggle (only Today's existing compact/wide sizes); Ecosystem is a filtered directory, not a card layout, so it stays fixed; Markets catalog cards are not reorderable (they follow the catalog filter); backup preview counts for counter days (vault, off-limits).
+
+**Follow-up (Parts 10–14, same PR):**
+10. `86633a6` Compatibility and data-safety analysis for the counters and widgets, with a rollback guard test (below).
+11. `3369799` Test hygiene: the one unjustified skip now runs (below).
+12. `5f2c813`, `ebdf693` Evidence checks and a performance trace (below).
+13. `8f81c17`, `4b22a9f`, `99b5cc3`, `dc667f3` Polish fixes (below).
+14. Review gallery: [PR #47 comment](https://github.com/reyals1111-ux/ZIGoals/pull/47#issuecomment-5906382196). It has 53 WebP images (≤206 KB each) on branch `review/pr47-screenshots`, which is not for merging: every main page at 1440×900 and 390×844, before (`5dd2ee7`) and after (`dc667f3`), plus close-ups. Showcase data only.
+
+**Compatibility and rollback** (Part 10, `86633a6`; evidence: code reading of 5dd2ee7 = deploy #12, a local cross-version unit check importing 5dd2ee7's own modules, and a local browser run with both production builds on one origin)
+
+What changed in stored data:
+- Health (`zigoals:health:v1`, schemaVersion 1, unchanged): one optional top-level field `exercise {version:1, counters ≤6, days}`, written only by a counter change (tap, add, rename, icon, delete). Records carry IDs and join the Health-wide unique-ID check.
+- Today settings (`zigoals:settings:v1`, schemaVersion 1, unchanged): five widget kinds (`milestone`, `streak`, `checkins`, `holding-share`, `exercise`) and one Health metric (`macros-ring`), written only when such a widget is saved.
+- New device-only key `zigoals:layout:v1` (never synced, never in backups; deploy #12 ignores it).
+- Unchanged: the backup format (`zigoals-encrypted-backup` version 1/2), the sync protocol and envelope, the vault, `use-private-store`, `private-storage`, workers and packages (no diff against 5dd2ee7).
+
+Who is affected by a rollback to deploy #12:
+- Nobody who never tapped a counter and never saved one of the new widgets: their records keep exactly deploy #12's fields (guarded by `lib/deploy12-compat.test.ts`; confirmed against 5dd2ee7's own schemas). The layout key is ignored.
+- Someone who used a counter: deploy #12 shows "Private data could not be read. It has not been changed." on Health (the whole Health page is unavailable) and a Health notice on Today. Goals, Habits, Wealth and the Alpha banners are unaffected (browser run).
+- Someone who saved a new widget: deploy #12 cannot read Today settings. Today shows the read error and "Your saved layout needs recovery in Settings"; Pin to Today is disabled everywhere; encrypted backup creation is refused while a store is unreadable; and — because deploy #12's Shell shows the "ZIGChain testnet · Public Alpha" top bar and the Local simulation / demo balance strip only when Today settings read — those honesty labels disappear on every page (browser run: 0 of 1 on Today, Goals, Habits, Health, Wealth). Today settings are one store of their own (`zigoals:settings:v1`); they do not share a store with Goals or Positions (`zigoals:platform:v1`).
+- Account sync on deploy #12 (code reading): each sync validates every captured domain before and after the merge (`captureData` → `validateData`, `synchronize(..., validateData)`). Once the cloud copy (Health with consent, or settings) contains the new data, a deploy #12 device's sync stops with an error for all domains; nothing is uploaded or applied, its local edits stay local and pending, and nothing in the cloud is overwritten.
+
+Data-loss paths in deploy #12 (none silent):
+- Normal edits: `updatePrivateStore` and `updateDurableStore` re-read the stored record under the cross-tab lock and parse it strictly before calling the edit; a record with the new data fails the parse, so the edit throws and nothing is written ("Could not save private data. Nothing was applied."). `enableDurableStore` (sync migration) parses strictly too.
+- Schemas are strict (`z.strictObject` for Health, `.strict()` plus an enum for widgets), so unknown fields are refused, never stripped and re-saved without them.
+- Stale tab (browser run): a deploy #12 Health/Today tab left open while a new-build tab tapped a counter and saved a widget refreshes on the cross-tab events, shows the read error and hides its forms; its save attempt changed nothing (Health and settings bytes identical before and after). No page errors.
+- Explicit replacement only: restoring an older module backup in deploy #12 replaces the store but keeps the newer record as a recovery copy (`<key>:recovery:<uuid>`, or the durable store's recovery copy); counters and widgets would then only be in that copy.
+- No deploy #12 code writes or removes the Health or settings keys outside those paths.
+
+Recovery: deploy forward. The new build reads everything back (browser run: counter value and widgets intact after the rollback visits). Before a planned rollback, removing new widgets (Customize Today → the widget → Remove widget) makes Today settings readable again; counters cannot be removed that way (deleting counters keeps the group), so Health stays unreadable in deploy #12 until forward. Stale-tab risk: an old tab cannot damage data, but a new-build tab left open after a rollback can keep writing counters/widgets.
+
+**Test hygiene** (Part 11, `3369799`)
+- **Skips.** Full suite on `dc667f3` (local): 33 skipped against 21 on main. All 12 added skips are platform checks (conditional `test.skip` on the project); none skips a test outright.
+  - Count history: 31 at `a8a4e89`, then 32 with the hover-intent check, 31 after the fix below, and 33 with two `ui-evidence` skips.
+  - `tests/ui-design-pass.spec.ts` (10):
+    - Hover with a fine pointer, skipped on mobile (5): Goal card and tile lift, reduced motion, Motion Off, hover intent, long sections.
+    - Keyboard-focus lift, skipped on mobile; the lift CSS applies to fine pointers only (1).
+    - Mouse drag, skipped on mobile; the touch long-press test covers phones (1).
+    - Sidebar signature, skipped on mobile, where the sidebar planet is hidden (1).
+    - Two touch-only checks, skipped on desktop (2).
+  - `tests/ui-evidence.spec.ts` (2): hover and mouse drag under reduced motion and Motion Off, skipped on mobile; the keyboard layout flow covers phones.
+  - Unjustified, fixed in `3369799`: the Habits header check skipped the whole mobile project, though only its side-by-side placement and first-view budget are desktop facts. It now runs on mobile.
+- Existing tests modified by this PR (each in its commit message; none weakened):
+  - `logo-quickadd-goals-header` (Part 1): "+ Create a goal" moved from right after the title to the far right of the title row at the owner's request; now asserted within 2px of the row's right edge (was: within 32px of the title), still right of the title and vertically centred within 8px.
+  - `brand-nav-polish` (Part 1): assertions added only (tagline above the planet, new text, star aria-hidden).
+  - `motion-arrival` (Part 1): layout equality now uses sub-pixel boxes with transforms neutralised for one synchronous read (was integer offsetLeft/offsetTop sums that round per offsetParent level); still exact equality, at 0.01px instead of 1px.
+  - `tests/ui-design-pass.spec.ts` Part 2 layout tests (4187724): expected order now includes Part 8's new last section (`habits:rhythm`, "position 2 of 4", `health:trends`).
+  - `lib/dashboard-settings.test.ts`: one test added; existing tests unchanged.
+
+**Evidence** (Part 12, `5f2c813`, `ebdf693`; local production build)
+- `tests/ui-evidence.spec.ts` (desktop + mobile): reduced motion and Motion Off (no sweep, entrance or arrival on any main page; hover and a mouse drag run no motion), forced colours (every main page renders; the first 14 Tab stops each show a real outline), keyboard-only layout flow on Health and Wealth (unlock → move → announcement → reset → lock), no hydration or page errors on any main page (client navigation and cold load), no horizontal overflow at 390px. Local on `dc667f3`: 18 passed, 2 platform skips (this includes the Part 13 toolbar check).
+- Found and fixed: Motion Off did not stop three older card hover lifts from main (Goal cards on dashboards, watch cards, owned-asset cards); layout move buttons ran empty background-position transitions.
+- Performance (1,098 pointer moves over 18 sweeps, 1440×900, Showcase): 30-day habit calendar main 0.75–0.90 ms main-thread work per frame, this branch 2.5 ms (was 2.7–3.0 before `ebdf693`); Wealth asset list main 1.2–1.8 ms, this branch 2.0–2.1 ms. Both hold 60 fps (p50/p95 16.7/16.7–16.8 ms), no long tasks.
+- The earlier ~8 s account-browser slowdown: mostly Playwright element-stability waits, not rendering. Actions that needed "element is not stable" retries took 15.5 s on the pre-fix branch (39 actions) against 10.7 s on main (21 actions), which is the whole action-time difference of that run; lifts starting as the test pointer arrived moved targets for 220 ms. After hover intent: 22 actions, 11.3 s. The sidebar star's blend mode was a smaller real compositor cost (fixed in `4187724`).
+
+**Polish** (Part 13; local production build, Showcase, every main page reviewed at 1440×900 and 390×844; fixes only):
+- `8f81c17` Goal cards: the caption no longer repeats the asset-class count; the legend below lists each class.
+- `4b22a9f`:
+  - The mode strip is readable over the Today hero.
+  - The Staking "Explore" link wraps as one unit.
+  - Portfolio composition has one divider instead of two.
+  - Settings "Where your data lives" has no orphan card.
+  - The Wealth total label clears the options button.
+  - On phones, the mode dot sits inline with its text, and the layout lock is a 44 px square at the top right of the Positions, Activity and Health headings, with hero eyebrows kept clear of it.
+- `99b5cc3` Unlocked layouts:
+  - Goals: the section's move controls sat on the middle card's controls (desktop) or the only card's (phone).
+  - Activity: the page's own `.activity-context>div` card rule turned the toolbar into a tall column over the text.
+  - Health on phones: counter toolbars spilled over the neighbouring tile.
+  - Now every card's controls stay inside it on one row and never overlap. A new check in `tests/ui-evidence.spec.ts` failed on the previous build and passes now. Edit mode only.
+- `dc667f3` The "Add a widget" category counts line up when a label wraps.
+- Left as is:
+  - Staked principal shows "—" when unknown (correct; Positions is wallet-adjacent).
+  - Today's widget grid can end on a half-empty row (fixing it needs layout rework).
+  - Goal cards show "VALUE GOAL" twice, in the art caption and the header; this is the same on main.
+  - The decorative orbit dot beside "Available for Goals" is main's artwork.
 
 **Remaining "The Goal Layer for ZIGChain":** `README.md:2`, `apps/web/components/ecosystem-directory.tsx:11` (Ecosystem eyebrow), `landing/index.html:7` (page title), and 12 historical files under `docs/`. The app sidebar no longer shows it.
 
