@@ -58,8 +58,9 @@
   :root .phone-tabs[data-active] .phone-tab-pill { opacity: 1; }
   :root .phone-tab[data-arrive] svg { animation: phone-tab-arrive 520ms cubic-bezier(.22, 1, .36, 1); }
   /* Editing a layout replaces the tab bar with the Arrange bar. */
-  :root[data-layout-editing] .phone-tabbar { transform: translateY(110%); visibility: hidden; }
-  :root .layout-bar { bottom: calc(var(--safe-bottom) + 12px); width: calc(100vw - 2 * var(--phone-gutter) - var(--safe-left) - var(--safe-right)); }
+  /* While arranging, the Arrange bar (Reset / Done) docks just above the tab bar, so every page stays one tap away. */
+  :root .layout-bar { bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 10px); width: calc(100vw - 2 * var(--phone-gutter) - var(--safe-left) - var(--safe-right)); }
+  :root[data-layout-editing] .app-content { padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 150px); }
   /* A soft keyboard covers the tab bar anyway; keep it out of the way of fields and sticky actions. */
   :root[data-keyboard] .phone-tabbar { transform: translateY(110%); visibility: hidden; }
 

@@ -1,10 +1,13 @@
 import { test, expect } from "@playwright/test";
+import { closeMore, navLink } from "./phone-nav";
 test("unified shell exposes all eight destinations and preserves Alpha controls", async ({ page }) => {
   await page.goto("/app");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
   for (const [label, href] of [["Today", "/app"], ["Goals", "/app/goals"], ["Stake / Positions", "/app/goals/positions"], ["Habits", "/app/habits"], ["Health", "/app/health"], ["Ecosystem", "/app/ecosystem"], ["Activity", "/app/activity"], ["Settings", "/app/settings"]]) {
-    await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute("href", href!);
+    // On a phone (Session E) the last six destinations are in the More sheet, which navLink opens first.
+    await expect(await navLink(page, label!)).toHaveAttribute("href", href!);
   }
+  await closeMore(page);
   await expect(nav.getByRole("link", { name: "Today", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
   await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures.");
