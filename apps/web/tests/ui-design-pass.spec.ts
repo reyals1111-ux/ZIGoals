@@ -231,7 +231,7 @@ test.describe('Part 3: liquid glass',()=>{
   await tile.evaluate((el,[x,y])=>{const o={bubbles:true,pointerType:'mouse',clientX:x,clientY:y,isPrimary:true};for(const type of ['pointerover','pointermove','pointerdown','pointerup'])el.dispatchEvent(new PointerEvent(type,o));},[x,y]);
   await page.waitForTimeout(250);expect(await tile.getAttribute('data-glass-hover')).toBeNull();
   // Moving on after the press lets it lift once the pointer rests.
-  await tile.evaluate((el,[x,y])=>el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:x+8,clientY:y,isPrimary:true})),[x,y]);
+  await tile.evaluate((el,[x,y])=>el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:x!+8,clientY:y,isPrimary:true})),[x,y]);
   await expect(tile).toHaveAttribute('data-glass-hover','');
  });
  test('long sections and typing stay still; the sidebar star is a plain layer',async({page,isMobile})=>{
