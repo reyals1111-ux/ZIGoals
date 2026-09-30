@@ -12,8 +12,12 @@ test('shared food budget persists before outbound I/O, caches bounded public dat
  let mf=await create();const call=code=>mf.dispatchFetch('https://food.test/lookup?code='+code);
  try{
   expect((await call('https://evil.test')).status).toBe(400);expect(calls).toBe(0);
-  const results=await Promise.all(['0034000470693','11111111','22222222'].map(call));expect(results.map(x=>x.status).sort()).toEqual([200,429,429]);expect(calls).toBe(1);
-  expect((await call('0034000470693')).status).toBe(200);expect(calls).toBe(1);
-  await mf.dispose();mf=await create();expect((await call('0034000470693')).status).toBe(200);expect((await call('33333333')).status).toBe(429);expect(calls).toBe(1);
+  // One slot now; one lookup may wait for the next 12 s slot; a third new barcode meanwhile is refused.
+  const results=await Promise.all(['0034000470693','11111111','22222222'].map(call));expect(results.map(x=>x.status).sort()).toEqual([200,200,429]);expect(calls).toBe(2);
+  expect((await call('0034000470693')).status).toBe(200);expect(calls).toBe(2);
+  // After a restart the cache and the reserved schedule are still there: the next slot is 12 s after the waiting
+  // lookup's, so one new barcode waits for it and another is refused. A lost schedule would serve both ([200,200]).
+  await mf.dispose();mf=await create();expect((await call('0034000470693')).status).toBe(200);
+  const after=await Promise.all(['33333333','44444444'].map(call));expect(after.map(x=>x.status).sort()).toEqual([200,429]);expect(calls).toBe(3);
  }finally{await mf.dispose();}
-},30000);
+},60000);

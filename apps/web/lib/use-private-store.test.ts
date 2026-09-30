@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
-import {act,createElement} from 'react';
+import {act,createElement,useEffect} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {z} from 'zod';
 
@@ -11,6 +11,7 @@ vi.mock('./vault/local',()=>({
  readDurableStore:(_storage:Storage,key:string)=>new Promise(resolve=>reads.set(key,resolve)),
  updateDurableStore:vi.fn(),restoreDurableStore:vi.fn(),exportDurableStore:vi.fn(),
 }));
+const local=await import('./vault/local');
 const {usePrivateStore}=await import('../components/use-private-store');
 const schema=z.object({name:z.string()}),empty=()=>({name:'empty'});
 function Probe({storeKey}:{storeKey:string}){const store=usePrivateStore(storeKey,schema,empty);return createElement('output',null,`${store.loaded}:${store.data.name}`);}
@@ -48,4 +49,13 @@ test('plain local records load without a durable read',async()=>{
  localStorage.setItem('zigoals:settings:v1',JSON.stringify({name:'plain'}));
  await act(async()=>root.render(createElement(Probe,{storeKey:'zigoals:settings:v1'})));await flush();
  expect(container.textContent).toBe('true:plain');
+});
+
+test('a backup cannot be imported over a store whose first read has not finished',async()=>{
+ localStorage.setItem('zigoals:store-a','durable');
+ const held:{store?:ReturnType<typeof usePrivateStore<{name:string}>>}={};
+ function Holder(){const store=usePrivateStore('zigoals:store-a',schema,empty);useEffect(()=>{held.store=store;});return null;}
+ await act(async()=>root.render(createElement(Holder)));await flush();
+ await expect(held.store!.importData(JSON.stringify({name:'backup'}))).rejects.toThrow('still loading');
+ expect(local.restoreDurableStore).not.toHaveBeenCalled();
 });
