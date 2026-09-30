@@ -14,7 +14,7 @@ export class MarketAccount {
   const reader=request.body?.getReader();if(!reader)return new Response(null,{status:400});const chunks:Uint8Array[]=[];let total=0;const limit=request.headers.get('x-market-payload')==='evidence'?16*1024*1024:65536;
   for(;;){const chunk=await reader.read();if(chunk.done)break;total+=chunk.value.byteLength;if(total>limit){void reader.cancel().catch(()=>{});return new Response(null,{status:413});}chunks.push(chunk.value);}
   const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
-  try{const body=new TextDecoder('utf-8',{fatal:true}).decode(bytes),command=JSON.parse(body);if(total>65536&&command?.action!=='publish-data')return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
+  try{const body=new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(bytes),command=JSON.parse(body);if(total>65536&&command?.action!=='publish-data')return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
  }
 }
 const worker={fetch(){return new Response('Not found',{status:404,headers:{'cache-control':'no-store'}});}};
