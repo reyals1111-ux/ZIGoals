@@ -17,6 +17,12 @@ Project rules: `apps/web/AGENTS.md` (imported above), CONTRIBUTING.md, SECURITY.
 - Production check: `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, then `pnpm --filter @zigoals/web start`, then the browser tests against it.
 - Playwright uses at most 2 workers. Never run builds or test suites in parallel.
 
+## Hard rules
+- No new dependencies (runtime, dev or GitHub Actions) without owner approval.
+- Deploys happen only from `main`, through the Manual Alpha workflow, with owner approval (docs/deployment/MANUAL_ALPHA_WORKFLOW.md).
+- Never weaken or delete an assertion to get green; fix the cause or report it.
+- The accepted baseline in docs/STATUS.md ("Current accepted baseline") is protected: no redesign or revert without owner approval.
+
 ## Big sessions
 - One PR per session. Commit and push after each part.
 - Merge commits only: never rebase or force-push. Update from `main` with a merge commit.
