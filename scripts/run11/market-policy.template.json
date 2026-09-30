@@ -1,0 +1,43 @@
+{
+  "schema": "zigoals-market-policy-owner/1",
+  "provider": {
+    "checkedOn": "<owner: YYYY-MM-DD (UTC), the day you read the figures below in the CoinGecko developer dashboard>",
+    "perMinuteLimit": "<owner: plan rate limit, calls per minute>",
+    "monthlyCredits": "<owner: plan credits per billing period>",
+    "creditsUsedThisPeriod": "<owner: credits already used in the current period, as the dashboard shows it>",
+    "reset": {
+      "kind": "<owner: utc-calendar-month if credits reset at 00:00 UTC on the 1st, otherwise exact-window>",
+      "windowId": null,
+      "windowStart": null,
+      "windowEnd": null
+    },
+    "endpointCosts": {
+      "quote": "<owner: credits per /simple/price call>",
+      "catalog": "<owner: credits per catalog call, or \"disabled\">",
+      "history": "<owner: credits per market chart call, or \"disabled\">",
+      "insights": "<owner: credits per insights call, or \"disabled\">",
+      "token": "<owner: credits per token price call, or \"disabled\">",
+      "rwa": "<owner: credits per RWA call, or \"disabled\">"
+    },
+    "exclusiveAccountUse": "<owner: true only if no other app, script or person uses this plan's key>"
+  },
+  "operating": {
+    "operating": { "minute": 30, "monthly": 5000 },
+    "monitoringReserve": { "minute": 1, "monthly": 100 },
+    "monitoringMaximum": { "minute": 2, "monthly": 100 },
+    "optionalCeiling": { "minute": 10, "monthly": 500 },
+    "concurrent": 2,
+    "queueLimit": 16,
+    "reservationMs": 30000,
+    "ownershipMs": 10000
+  },
+  "coordinator": {
+    "leaseMs": 30000,
+    "maxAttempts": 128,
+    "maxWorks": 64,
+    "maxCacheBytes": 16777216,
+    "retryRetentionMs": 3600000,
+    "breaker": { "threshold": 3, "windowMs": 60000, "cooldownMs": 30000, "maxCooldownMs": 300000, "halfOpenProbes": 1 },
+    "accountThrottle": { "distinctEndpoints": 2, "windowMs": 60000 }
+  }
+}

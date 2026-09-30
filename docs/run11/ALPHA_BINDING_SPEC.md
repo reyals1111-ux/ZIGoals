@@ -9,7 +9,7 @@ Facts below were read from the source at `7fdea68` (main, 2026-09-28).
 - With neither `MARKET_QUOTES` nor `ZIGOALS_MARKET_QUOTES_MODE` present, `apps/web/lib/server/market-runtime.ts:23-24` resolves the market mode to `unavailable` when deployed. The direct-provider path is development-only.
 - Private account, email sign-in and food lookup routes have no bindings, so they are unavailable on Alpha.
 - `COINGECKO_DEMO_API_KEY` is still published to the **app** Worker as a runtime secret:
-  - `.github/workflows/deploy-alpha.yml:126` passes it to `scripts/alpha-deploy.mjs deploy`.
+  - `.github/workflows/deploy-alpha.yml:204` (line 126 before #36 split the workflow) passes it to `scripts/alpha-deploy.mjs deploy`.
   - That script writes a 0600 secrets file (`alpha-deploy.mjs:101-111`).
   - `opennextjs-cloudflare deploy … -- --secrets-file` uploads it (`scripts/lib/alpha-deployment.mjs:33-46`).
   - In the app, the value only chooses between a 502 and a 503 message (`apps/web/app/api/market-quotes/route.ts:31`).
@@ -58,7 +58,7 @@ The current guards are designed to refuse the config above:
    wrangler secret put COINGECKO_DEMO_API_KEY --config <reviewed coordinator config>
    ```
    It is consumed there at `workers/market-coordinator/worker.ts:22,40` and only reached through `QuoteService`, which is gated by `MARKET_QUOTE_DISPATCH` and `MARKET_ACCOUNT_ID` (`:28`).
-2. **Workflow.** In `.github/workflows/deploy-alpha.yml`, delete `COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}` from the `publish` step (line 126).
+2. **Workflow.** In `.github/workflows/deploy-alpha.yml`, delete `COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}` from the `publish` step (line 204 at `5dd2ee7`). The full reference list and owner order are in [MARKET_KEY_CUSTODY.md](MARKET_KEY_CUSTODY.md).
 3. **Deploy script.** In `scripts/alpha-deploy.mjs:101-111` and `alphaRuntimeSecrets` (`alpha-deployment.mjs:13-19`), stop requiring and publishing the key. Keep the secrets-file mechanism only if the app gets another secret, such as `ZIGOALS_AUTH_PUBLIC_KEY` (§5); otherwise drop the `--secrets-file` argument and its tests.
 4. **Keep the scrubbing.** Keep `delete result.COINGECKO_DEMO_API_KEY` in `alphaDeploymentEnvironment` (`:29`) and `apps/web/scripts/sanitize-alpha-env.mjs:14-24` as defence in depth.
 5. **Old app secret.** After the first deployment without the key, the app Worker still holds the previously uploaded secret. Remove it with:

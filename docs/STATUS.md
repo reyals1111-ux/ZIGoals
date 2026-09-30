@@ -1,3 +1,87 @@
+# Session B — reliability, activation readiness and cleanup (2026-09-29 night, follow-up Parts 7–13 on 2026-09-30, [PR #46](https://github.com/reyals1111-ux/ZIGoals/pull/46), not merged or deployed)
+
+Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, 4 vCPU, production build, Playwright at most 2 workers, Chromium 141 standing in for the `chrome` channel because dl.google.com is blocked here); **CI** = Milestone quality on the PR; **doc** = read from the source; **SEARCH-SUMMARY** / **UNVERIFIED** as defined in [FOOD_READINESS.md](run11/FOOD_READINESS.md). No real provider, account, secret, wallet or deploy was used. Live Alpha is unchanged (deploy #12 above).
+
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Deploy #12 recorded; Known CI intermittents table | `4ef0043` |
+| 1a | **account-browser 90 s timeout fixed.** Root cause: the CI integration step ran its 7 browser files in parallel (vitest default); each drives Chrome and workerd, so they starved the 4-vCPU runner. a-first always overlapped them: CI passes took 72.4–88.7 s, and 3 failures hit exactly 90 006 ms. A trace showed 667 actions, no wait above 2.1 s, and CPU-bound steps (vault unlock, consent, save), so it was not a product or test wait. The files now run one at a time. The 90 s budget and all assertions are unchanged. | `8ca0e03`, `d67845d` |
+| 1b | Chrome install: up to 3 attempts, each capped at 3 min (catches a hang), 15 s then 45 s backoff, then a clear `::error::`. No new action; job names and steps unchanged. | `9edcc67` |
+| 1c | sync-inflight and the click hang: monitor only. Neither failed in any run here (25 local integration runs, 3 CI runs), so there is no #42 diagnostic output to report. | — |
+| 2 | [Skipped-test inventory](testing/SKIPPED_TESTS.md): Playwright 21 (5 platform + 16 opt-in captures), Vitest 12 env-gated. `RUN11_GOAL_SOURCE`, the only test no CI step ran, now runs in the integration step. | `3702bed`, `727bf56` |
+| 3 | `MARKET_POLICY` template and validator ([market-policy.mjs](../scripts/run11/market-policy.mjs)), ignored owner files, 31 tests with a parity check against the real `DurableMarketAccount`; [key custody](run11/MARKET_KEY_CUSTODY.md); ACTIVATION Stage 6 steps. **`deploy-alpha.yml` not changed**: the live app still reads the key (market-quotes 502 vs 503 and the POST error text) and `alphaRuntimeSecrets` asserts it, so the next Manual Alpha deploy behaves exactly as before. | `c7ea4e6` |
+| 4 | [Food readiness](run11/FOOD_READINESS.md): fields and budget checked against the source; `FOOD_USER_AGENT` template plus a 6-test Worker pin; attribution already present, no UI follow-up. The OFF docs were blocked here: limits and licences are SEARCH-SUMMARY, and v3.4 still being served is UNVERIFIED. | `da101c0` |
+| 5 | Nothing to change. `pnpm lint` has 0 warnings and `pnpm typecheck` passes; the `use-private-store` cleanup-ref warning was already fixed in `6f378b4`. Its test and the vault sync/cloud-sync tests: 25/25 pass (no code change, so before = after). The middleware→proxy notice stays parked. Observation only: root `tsc` does not include `scripts/**/*.ts`. | — |
+| 6 | CLAUDE.md: stale AGENTS.md reference fixed, cloud-sandbox Chrome note, "Big sessions" section; every rule kept (mapping in the PR). | `a7e1d28` |
+| 7 | Runner pin: every job in all four workflows is already `ubuntu-24.04` (ci, deploy-alpha, release-candidate, reproducibility; the reusable calls go to pinned workflows), so no change. Because no job uses `ubuntu-latest`, what it resolves to today could not be read from a "Set up job" log. | — |
+| 8 | **market-disconnect flake fixed** (test-only). Root cause: the final assertion compared a live `traces` array that the cancel route fills through `ctx.waitUntil` after responding, so under load it could lag the durable follower removal. Reproduced deterministically with a 150 ms trace delay. The 500 ms cleanup check stays; the trace now gets its own wait. The CI 30 s abort timeout (#42) did not reproduce, so the steps now have labelled 10 s deadlines. Proof: 30/30 consecutive passes (24 alone, 6 under full `pnpm test`). | `b3a853e` |
+| 9 | Food: 15 product reads/min per IP is the binding limit (doc-verified via the owner's chat session, 2026-09-30); the Worker uses at most 5/min. Shared Cloudflare egress can bring 429/503 below our budget: new `food-throttle.test.mjs` pins the 60 s backoff and the honest "cooling down" path. Fit for about 20 friends: suitable, but lookups are not queued. v3.4 and the licence wording stay UNVERIFIED. | `cc212b9` |
+| 10 | **TIER 3 (project rules):** CLAUDE.md gains a "Hard rules" section with the 4 missing rules (no new dependencies, deploys only via Manual Alpha, never weaken assertions, protected baseline). The other 3 rules were already stated. | `031e567` |
+| 11 | Scripts typecheck: including `scripts/**/*.ts` in root tsc surfaced 14 errors: 2 in scripts, plus 12 from `workers/market-coordinator/worker.ts` (imported by `market-fault-fixture.ts`), which needs `cloudflare:workers` types. Fixing it needs a type shim and production worker edits, or a new dependency, so the config change was kept out (list in the PR). | — |
+| 12 | Dependency report: reported to the owner, not committed. | — |
+| 13 | [ADR-006](architecture/ADR-006-sync-lost-confirmation.md) decision memo (proposal): recommends option A (persist the prospective confirmation, `PENDING_POLICY` 2→3). Identical-content auto-resolve already exists and does not cover the case. | `f5cec44` |
+
+**TIER 3 commits:** `a7e1d28` and `031e567` (project rules). Risk: wording and added rules only; no command or rule removed; the owner approves in review. There are no auth/sync or deploy-workflow changes (Part 7 needed none).
+
+**Evidence (not summed across runs):**
+- account-browser, local, CI command:
+  - before, all files in parallel: 5/5 runs passed; a-first 75.1–86.6 s, b-first 64.0–66.7 s.
+  - after, one file at a time: **20/20 consecutive runs passed** (all 10 tests each time); a-first 62.8–67.0 s, b-first 62.6–66.5 s; step 180–189 s.
+  - The local before rate (0/5 failures) is lower than CI's (3 of 14 attempts).
+- account-browser, CI after the fix:
+  - [run 36636240339](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36636240339) (`3702bed`): step 176 s, a-first 60.6 s.
+  - [run 36642420563](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36642420563) (`727bf56`): step 198.7 s, a-first 67.2 s, `RUN11_GOAL_SOURCE` check passed in 18.5 s.
+  - Both runs: all checks green.
+- `RUN11_GOAL_SOURCE`, local: 11/11 consecutive passes.
+- Unit, local at `727bf56` (`pnpm test`): 1692 passed, 12 skipped, 1 failed. The failure was `market-disconnect`, a known intermittent; its re-run passed 2/2.
+- New suites: market-policy 31/31, food-user-agent 6/6.
+- Playwright, local full run: 488 passed, 21 skipped, 3 failed. All 3 need the intro MP4, which this sandbox Chromium cannot play; the same specs pass in CI Chrome.
+
+**Follow-up evidence (2026-09-30, local unless stated):**
+- market-disconnect: 30/30 consecutive passes after the fix. Failing-first: both cases fail with a 150 ms trace delay before the fix and pass after it. The fixed test still fails if the trace never arrives.
+- Full `pnpm test`, 6 runs: 1695 passed and 12 skipped each; one run also had 1 failure in `goal-provider.test.ts`, now listed as an intermittent.
+- New `food-throttle.test.mjs`: 2/2.
+- Lint and typecheck are clean before every push.
+
+**Owner next steps (Stage 6):**
+1. Fill `scripts/run11/market-policy.template.json` privately from the CoinGecko dashboard. Run `market-policy.mjs`, then pass the output to `make-private-configs --market-policy-file`.
+2. Choose the food contact for `FOOD_USER_AGENT`.
+3. Recheck the Open Food Facts limit, v3.4 and the attribution wording in a normal browser.
+
+**Unverified:** everything the OFF documentation would confirm (listed in FOOD_READINESS.md); real Chrome behaviour locally (CI only); hosted or provider behaviour of any kind.
+
+# Alpha deploy — 2026-09-29 night, `5dd2ee7` live
+
+Evidence labels: **CI log** = the deploy job's step "Report version IDs even after failure" in the run below, read by the owner; **Actions API** / **git** = read on 2026-09-29 by the Session B cloud session; **owner-reported** = as the owner reports it.
+
+- **Run:** Manual Alpha deployment #12, [run 36620008178](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36620008178), 2026-09-29 19:32–19:38 UTC, one attempt. Result **success**, `VERIFIED`. (Actions API, CI log)
+- **Source:** `5dd2ee7aae34331ee935eac3f64d5d870c92e997`, `main` after #45. (Actions API)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `f5bb9d20-6edd-4a62-a8a0-8bb8cee30597`. The last observed live version is the same. (CI log)
+- **Rollback:** `f15bb757-328f-46a6-b9c4-193f44fb83d3`, the version deploy #11 published, so the chain holds. Note that the two IDs look alike (`f5bb…` new, `f15b…` rollback). (CI log)
+- **CI on `5dd2ee7`:** Milestone quality #191 ([run 36615665433](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36615665433)): success on attempt 2. Attempt 1 failed only in browser shard 1, at the Chrome download (`curl: (92) HTTP/2 stream 1 was not closed cleanly: INTERNAL_ERROR`); attempt 2 re-ran that shard. (Actions API)
+- **Owner manual checks** (visual, real Keplr/reload/reconnect, Habit/Health persistence, mobile): owner-reported: pending. They are separate from this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#42](https://github.com/reyals1111-ux/ZIGoals/pull/42) (`580ef18`): sync harness diagnostics (test-only).
+- [#44](https://github.com/reyals1111-ux/ZIGoals/pull/44) (`95802cb`): record of the `07f5c90` deploy and README refresh.
+- [#43](https://github.com/reyals1111-ux/ZIGoals/pull/43) (`a5de190`): activation tooling (hermetic harnesses, lifecycle `AUTH_ORIGIN`, private config generator). This closes the three Stage 4 gaps listed below.
+- [#39](https://github.com/reyals1111-ux/ZIGoals/pull/39) (`be00404`): backups include legacy Local simulation Goals (format 2).
+- [#45](https://github.com/reyals1111-ux/ZIGoals/pull/45) (`5dd2ee7`): consent checkbox labels in the account/sync flow.
+
+The section below still lists #39 and #42 as open; it was accurate when written.
+
+## Known CI intermittents
+**Policy:** one re-run each, then investigate. A second failure of the same test is a real failure.
+
+| Intermittent | Seen | Scope | State |
+|---|---|---|---|
+| Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
+| `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
+| `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
+| `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | Monitor. apps/web test, Session A's lane; not changed here |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
+
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
 Evidence labels: **workflow log** = `gh run view 36604090817 --log`, with line numbers from that output; **PR API** / **Actions API** = GitHub read on 2026-09-29; **owner-reported** = as the owner reports it.
@@ -127,7 +211,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-09-29 evening for the [Alpha deploy](#alpha-deploy--2026-09-29-evening-07f5c90-live) above.
+Updated 2026-09-29 night for the [Alpha deploy](#alpha-deploy--2026-09-29-night-5dd2ee7-live) above.
+- Deployed source `5dd2ee7aae34331ee935eac3f64d5d870c92e997`, `main` after [PR #45](https://github.com/reyals1111-ux/ZIGoals/pull/45). Verified: Actions API.
+- CI: Milestone quality #191 ([run 36615665433](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36615665433)) on `5dd2ee7`: success (attempt 2; attempt 1 hit the Chrome download intermittent). Verified: Actions API.
+- Deployment: Manual Alpha deployment #12 ([run 36620008178](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36620008178)), exact source `5dd2ee7`: success, `VERIFIED`. Verified: CI log read by the owner, Actions API.
+- Alpha Worker `zigoals-alpha`: live version `f5bb9d20-6edd-4a62-a8a0-8bb8cee30597`; rollback `f15bb757-328f-46a6-b9c4-193f44fb83d3` (the run #11 deployment). Verified: CI log read by the owner. Owner manual checks: owner-reported: pending.
+
+Previous release identity (PR #40, 2026-09-29 evening):
 - Deployed source `07f5c90fb3a02cf3ba54903e10e1de570e3092e9`, the merge of [PR #40](https://github.com/reyals1111-ux/ZIGoals/pull/40) (after #41 and #36). Verified: PR API.
 - CI: Milestone quality #180 ([run 36602033343](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36602033343)) on `07f5c90`: success. Verified: Actions API.
 - Deployment: Manual Alpha deployment #11 ([run 36604090817](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36604090817)), exact source `07f5c90`: success, `VERIFIED`. Verified: workflow log.
