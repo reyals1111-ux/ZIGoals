@@ -1,5 +1,7 @@
 # Skipped Playwright tests: inventory
 
+> **Superseded (2026-09-29):** the current inventory, covering Playwright and Vitest, is [../testing/SKIPPED_TESTS.md](../testing/SKIPPED_TESTS.md). This page is kept as the `7fdea68` record.
+
 **Evidence (CI):** Milestone quality run [36487121799](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36487121799), `web` job, on `main` = `7fdea686517cee322a37896b3e7a56931ce0ed6a`. It reported **17 skipped, 451 passed (20.4 m)**. The job's JSON artifact (`web-browser-7fdea68…`) could not be downloaded from this environment. The per-test list below comes from the skip calls in the source at that commit. It adds up to exactly 17, and the CI log lists the same `[mobile]` visual entries in its run order.
 
 | # | Test (file:line) | Project | Why skipped | Expected? |
