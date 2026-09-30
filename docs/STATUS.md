@@ -1,3 +1,56 @@
+# Session C — dependency patch updates, audit cleanup and type coverage (2026-09-30, [PR #48](https://github.com/reyals1111-ux/ZIGoals/pull/48), not merged or deployed)
+
+Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build, Playwright at most 2 workers, Chromium 141 standing in for `chrome`); **CI** = Milestone quality on the PR; **changelog** = official release notes or tag history; **npm** = registry metadata or tarball diff. No account, secret, wallet or deploy was used, and no wrangler command reached Cloudflare. This PR merges after #47 and ships in a later deploy.
+
+## Versions (owner-approved)
+| Package | Old | New | Commit |
+|---|---|---|---|
+| zod (apps/web, shared-types, ecosystem-registry) | 4.6.2 | 4.6.5 | `a43549a` |
+| vitest (root) | 5.0.0 | 5.0.2 (+ @vitest/mocker, @vitest/spy 5.0.2; why-is-node-running 2.3.0 → 3.2.2) | `7ceae39` |
+| next | 16.3.5 | 16.3.6 (+ @next/env, @next/swc-* 16.3.6) | `95b9364` |
+| @opennextjs/cloudflare | 1.20.6 | 1.20.7 (+ @opennextjs/aws 4.1.4 → 4.1.6) | `119f17d` |
+| brace-expansion (transitive) | 1.1.18 / 2.1.4 / 5.0.9 | 1.1.21 / 2.1.7 / 5.0.12 | `5c5e389` |
+| wrangler | 4.131.1 | unchanged (assessment only) | `8227289` |
+
+`eslint-config-next` stays at 16.3.5 (not approved; ESLint tooling only).
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 1 | Baseline recorded at `97e2cfd` (numbers below) | — |
+| 2 | Release notes read for every version (changelog). next 16.3.6 is two commits: the next/og SVG hardening (GHSA-vcvr-r3jv-pc5j, RCE in next/og ImageResponse; the app does not use next/og) and a test removal. OpenNext 1.20.7 and aws 4.1.5/4.1.6 change cache handlers, cache writes and middleware `set-cookie` splitting; the Alpha config has no cache/ISR/R2 and the middleware sets no cookies. Zod 4.6.3–4.6.5: `.properties()`, `z.url()` and `z.currencyCode()`, none used here. Vitest 5.0.1/5.0.2: automock, fake-timer and matcher fixes, no config change. | — |
+| 3 | Four bumps, one commit each, each gated locally (frozen install, lint, typecheck, unit; for next and OpenNext also the build, Alpha package, `RUN11_PACKAGED`, Alpha security gate and full Playwright). **Zod: the stored-data schema snapshot is byte-identical** between 4.6.2 and 4.6.5 (11,203 cases over platform, Habits, Health, dashboard settings, local-simulation backup, vault crypto/sync, financial events, shared types and registry: accept/reject, parsed output, issue codes/paths/messages, JSON Schema). | `a43549a`, `7ceae39`, `95b9364`, `119f17d` |
+| 4 | brace-expansion refreshed in range. 5.x needed a narrow override (`minimatch@10>brace-expansion: ^5.0.12`, inside minimatch's own `^5.0.8`) because `pnpm update --depth Infinity` kept the locked 5.0.9; a fresh resolve picks 5.0.12. The Alpha package is unchanged (same upload size and file sizes; `worker.js` byte-identical). | `5c5e389` |
+| 5 | `pnpm typecheck` now also checks `scripts/**/*.ts` (root program) and `workers/**/*.ts` plus the market fault fixture (new `tsconfig.workers.json`, Workers runtime types from the pinned `wrangler types`, no new dependency). 14 errors fixed type-only, **no real bugs**; details in the commit. The one code edit passes TextDecoder's WHATWG default `ignoreBOM:false` explicitly (identical behaviour), in its own commit. Not covered: the `.mjs` Workers and the frozen `scripts/**/fixtures/**`. | `dbef748`, `5712293` |
+| 6 | [Wrangler upgrade assessment](run11/WRANGLER_UPGRADE_ASSESSMENT.md): recommend 4.144.0 in its own PR. The first release that clears undici is 4.143.1. The deploy output schema, `--secrets-file`, the dry-run size line and the Miniflare API are unchanged. | `8227289` |
+| 7 | Alpha guide versions updated; one new local-only intermittent (below). No skip added or changed. CLAUDE.md lists no versions, so no project-rules commit. | `0c2e4ff` |
+
+## Numbers (local unless stated)
+| | Before (`97e2cfd`) | After |
+|---|---|---|
+| `pnpm audit` (full) | 3 low / 8 moderate / 8 high | 3 low / 5 moderate / 2 high |
+| `pnpm audit --prod` | 0 | 0 |
+| Alpha dry-run upload | 13,345.14 KiB / gzip 2,563.59 KiB | 13,350.56 KiB / gzip 2,566.76 KiB |
+| `.open-next` / server function / handler.mjs | 42,093,019 / 32,981,963 / 9,415,687 B | 42,110,902 / 32,997,521 / 9,422,991 B |
+| Render wall time, median ms, `next start` (`/app`, goals, health, wealth; 20 requests each) | 10.2 / 7.9 / 6.8 / 7.0 | 10.0 / 7.7 / 6.8 / 7.3 |
+| Same under workerd (`preview:alpha`, the OpenNext bundle) | 12.9 / 10.7 / 11.0 / 10.5 | 14.8 / 10.7 / 10.5 / 10.1 |
+| `pnpm test` | 1695 passed, 12 skipped | 1697 passed, 12 skipped (+2 type-drift tests) |
+| Playwright, full, 2 workers | 488 passed, 21 skipped, 3 failed | 489 passed, 21 skipped, 2 failed |
+| Alpha security gate (`public-alpha`, `diagnostics`) | 14 passed | 14 passed |
+| `RUN11_PACKAGED` packaged runtime | passed | passed |
+
+Timings are request wall time on this sandbox, not Cloudflare CPU. Every median moved by at most 2 ms, far below the 2000 ms Alpha CPU cap. The Playwright failures are the intro-video specs this Chromium cannot play, plus, in the baseline, the new local intermittent.
+
+**Remaining audit findings:** 10 undici 7.29.0 advisories (2 high), all through wrangler → miniflare, which pins undici exactly. They clear with wrangler ≥ 4.143.1 (Part 6), which is not approved here.
+
+**CI:** green on `95b9364` ([run 36717235041](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36717235041)) and on `119f17d` ([run 36719858553](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36719858553)). The run for the type coverage and docs (from `0c2e4ff`) was pending when this entry was written; the PR shows its result.
+
+**New intermittent (local only):** `product-data.spec.ts:72` networkidle timeout. A/B: 2/20 on next 16.3.5 and 2/20 on 16.3.6, so the bump did not cause it. Recorded in Known CI intermittents.
+
+**TIER 3 commits:** the five `TIER 3 (dependencies)` commits above, each revertable on its own. No auth/sync, deploy-workflow or project-rules change. No workflow, deploy script, contract, wallet/crypto or AGENTS.md file was touched.
+
+**Unverified:** the server-side default behind wrangler 4.141.0's DO code-update strategy (Part 6); real Chrome locally (CI only).
+
 # Session B — reliability, activation readiness and cleanup (2026-09-29 night, follow-up Parts 7–13 on 2026-09-30, [PR #46](https://github.com/reyals1111-ux/ZIGoals/pull/46), not merged or deployed)
 
 Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, 4 vCPU, production build, Playwright at most 2 workers, Chromium 141 standing in for the `chrome` channel because dl.google.com is blocked here); **CI** = Milestone quality on the PR; **doc** = read from the source; **SEARCH-SUMMARY** / **UNVERIFIED** as defined in [FOOD_READINESS.md](run11/FOOD_READINESS.md). No real provider, account, secret, wallet or deploy was used. Live Alpha is unchanged (deploy #12 above).
