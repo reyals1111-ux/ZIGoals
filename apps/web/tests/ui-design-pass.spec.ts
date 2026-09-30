@@ -42,14 +42,18 @@ test.describe('Part 1: readability foundation',()=>{
   const stops=[...image.matchAll(/(\d+)%/g)].map(m=>Number(m[1]));expect(stops.some(v=>v>30&&v<60)).toBe(true);
  });
  test('Habits: New habit sits beside the orbit and the journal timezone moves to the bottom',async({page,isMobile})=>{
-  test.skip(isMobile,'Desktop first-view budget');
-  await page.setViewportSize({width:1440,height:900});await showcase(page);await page.goto('/app/habits');
+  // Both projects: the actions are in the hero and the journal settings sit at the bottom. Desktop adds the
+  // side-by-side placement and the 1440×900 first-view budget, which do not apply to the stacked phone layout.
+  if(!isMobile)await page.setViewportSize({width:1440,height:900});await showcase(page);await page.goto('/app/habits');
   const create=page.getByRole('button',{name:'+ New habit',exact:true}),title=page.getByRole('heading',{level:1}),orbit=page.locator('.habit-constellation');
   await expect(create).toBeVisible();await expect(page.getByRole('link',{name:'Back up private data ↗'})).toBeVisible();
-  const c=(await create.boundingBox())!,t=(await title.boundingBox())!,o=(await orbit.boundingBox())!;
-  expect(c.x).toBeGreaterThan(t.x+t.width*.5);expect(c.x+c.width).toBeLessThanOrEqual(o.x+8);expect(c.y).toBeLessThan(t.y+t.height+80);
-  // First view at 1440×900: Today's rhythm and the tops of the two consistency cards.
-  for(const text of [/^Today’s rhythm$/i,/^Small returns add up$/i,/^Your week in motion$/i]){const box=(await page.getByText(text).first().boundingBox())!;expect(box.y+box.height,String(text)).toBeLessThanOrEqual(900);}
+  await expect(page.locator('.habit-hero .habit-hero-actions').getByRole('button',{name:'+ New habit',exact:true})).toBeVisible();
+  if(!isMobile){
+   const c=(await create.boundingBox())!,t=(await title.boundingBox())!,o=(await orbit.boundingBox())!;
+   expect(c.x).toBeGreaterThan(t.x+t.width*.5);expect(c.x+c.width).toBeLessThanOrEqual(o.x+8);expect(c.y).toBeLessThan(t.y+t.height+80);
+   // First view at 1440×900: Today's rhythm and the tops of the two consistency cards.
+   for(const text of [/^Today’s rhythm$/i,/^Small returns add up$/i,/^Your week in motion$/i]){const box=(await page.getByText(text).first().boundingBox())!;expect(box.y+box.height,String(text)).toBeLessThanOrEqual(900);}
+  }
   const zone=page.getByText('Habit journal timezone',{exact:true}),semantics=page.locator('.habit-semantics'),privacy=page.locator('.habit-privacy');
   const z=(await zone.boundingBox())!,s=(await semantics.boundingBox())!,p=(await privacy.boundingBox())!;
   expect(z.y).toBeGreaterThan(s.y);expect(p.y).toBeGreaterThan(s.y);
