@@ -234,7 +234,8 @@ test.describe('Part 2: personal layouts',()=>{
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   // Carry the second card above the first (Today's rhythm), inside the viewport. On a phone (Session E) the second card
   // is your habits; elsewhere it is consistency.
-  const handle=items.nth(1).locator('.layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
+  // The card's own handle (on a phone the second card is your habits, whose habit cards carry handles of their own).
+  const handle=items.nth(1).locator(':scope > .layout-controls .layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
   const h=(await handle.boundingBox())!,first=(await items.first().boundingBox())!;
   const cdp=await page.context().newCDPSession(page);
   const touch=(type:'touchStart'|'touchMove'|'touchEnd',x:number,y:number)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
@@ -362,8 +363,9 @@ test.describe('Part 4: Health',()=>{
  test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
   await page.goto('/app/health');
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();
-  // Above the "A little care, every day." header.
-  const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;expect(c.y).toBeLessThan(h.y);
+  // Above the "A little care, every day." header; on a phone (Session E) the title comes first, then the journal date and the counters.
+  const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;
+  if(await isPhone(page))expect(c.y).toBeGreaterThan(h.y+h.height);else expect(c.y).toBeLessThan(h.y);
   await expect(page.getByRole('article',{name:'Push-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Pull-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Squats',exact:true})).toBeVisible();
   // No entry is not zero; nothing is written before the first tap.
   await expect(count(page,'Push-ups')).toContainText('No entry today');

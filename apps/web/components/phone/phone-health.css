@@ -17,6 +17,9 @@
   :root .health-date-strip .health-date .quiet { min-width: 44px; min-height: 44px; padding: 6px 12px; }
 
   :root .health-page .exercise-counters { margin: 0 0 12px; padding: 16px 14px 12px; }
+  /* A counter menu can overflow onto the section below; the press effect makes the card its own stacking context, so
+     the whole counters section stays above what follows it (otherwise a menu button loses the tap at release). */
+  :root .health-page .exercise-counters { position: relative; z-index: 2; }
 
   /* Today's nourishment: the gauge beside its figures, the three macros in one row. */
   :root .health-page .health-summary { grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: 14px 16px; padding: 18px 16px; }

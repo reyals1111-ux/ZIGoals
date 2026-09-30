@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {isPhone} from './phone-nav';
 
 // Evidence for the UI design pass checks (Part 12): motion settings, forced colours, keyboard-only layouts,
 // hydration and phone width, on every main page. Showcase (fictional) data only.
@@ -58,9 +59,11 @@ test('forced colours: every main page renders and keyboard focus stays visible',
  }
 });
 
-for(const [path,region,label] of [['/app/health','health:body','Today’s nourishment'],['/app/wealth','wealth:body','The shape of your wealth']] as const)
+// The first card of each page moves. On a phone (Session E) Wealth starts with the pulse and your assets instead.
+for(const [path,region,desktopLabel,phoneLabel] of [['/app/health','health:body','Today’s nourishment','Today’s nourishment'],['/app/wealth','wealth:body','The shape of your wealth','Portfolio pulse']] as const)
  test(`keyboard only: unlock, move, hear it, reset and lock the ${path.split('/').at(-1)} layout`,async({page})=>{
   await showcase(page);await open(page,path);
+  const label=await isPhone(page)?phoneLabel:desktopLabel;
   const order=()=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),region);
   const before=await order(),count=before.length;expect(count).toBeGreaterThanOrEqual(4);
   await page.locator('body').click({position:{x:1,y:1}}).catch(()=>{});
