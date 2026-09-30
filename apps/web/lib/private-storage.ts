@@ -47,7 +47,11 @@ export async function importPrivateStore<T>(storage: Storage, key: string, schem
       try { version = JSON.parse(previous)?.schemaVersion; } catch { /* preserve corrupt bytes below */ }
       if (typeof version === "number" && version > ((incoming as {schemaVersion?: number}).schemaVersion ?? 1)) throw Error("A newer private data version cannot be replaced by this app.");
       // Explicit replacement retains the exact old record, including malformed bytes.
-      storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
+      const copy = `${key}:recovery:${crypto.randomUUID()}`;
+      storage.setItem(copy, previous);
+      // A refused replacement (a full quota) must not leave the copy behind: the module is unchanged.
+      try { storage.setItem(key, JSON.stringify(incoming)); } catch (error) { storage.removeItem(copy); throw error; }
+      return incoming;
     }
     storage.setItem(key, JSON.stringify(incoming));
     return incoming;
