@@ -3,9 +3,9 @@
  * Liquid glass (UI design pass): hovering an interactive or data element lifts it a little, as if picked up.
  * One delegated handler for the whole app and one shared overlay element: the element itself only moves
  * (the individual translate/scale properties, which compose with any transform it already has); the overlay
- * draws the nebula-tinted shadow, a brighter rim and a specular highlight that follows the pointer.
+ * draws the nebula-tinted shadow and a brighter rim. Nothing follows the pointer: the overlay only tracks its element.
  * Fine pointers with hover only. Touch gets a brief press settle. Keyboard focus gets the same lift with its
- * focus ring. Under reduced motion or Motion Off nothing moves or tracks: a static highlight only.
+ * focus ring. Under reduced motion or Motion Off nothing moves: a static rim and shadow only.
  */
 import {useEffect} from 'react';
 import {entranceAllowed} from './use-entrance';
@@ -55,11 +55,10 @@ export function LiquidGlass() {
     let still = !entranceAllowed();
     const overlay = document.createElement('div');
     overlay.className = 'glass-light'; overlay.setAttribute('aria-hidden', 'true');
-    // The rim and shadow (i) and the specular light (b), which moves by transform alone: no repaint as the pointer moves.
-    const rim = document.createElement('i'), spot = document.createElement('b');
-    rim.append(spot); overlay.append(rim);
+    // The rim and shadow (i).
+    overlay.append(document.createElement('i'));
     document.body.append(overlay);
-    let lifted: HTMLElement[] = [], lit: HTMLElement | null = null, frame = 0, px = 0, py = 0, focusSource = false;
+    let lifted: HTMLElement[] = [], lit: HTMLElement | null = null, frame = 0, focusSource = false;
     const leaveTimers = new WeakMap<HTMLElement, number>();
 
     function place() {
@@ -69,13 +68,11 @@ export function LiquidGlass() {
       const r = lit.getBoundingClientRect(), s = overlay.style, cs = getComputedStyle(lit);
       const [tx = 0, ty = 0] = cs.translate === 'none' ? [] : cs.translate.split(' ').map(parseFloat), scale = cs.scale === 'none' ? 1 : parseFloat(cs.scale) || 1;
       const width = r.width / scale, height = r.height / scale, left = r.left + r.width / 2 - tx - width / 2, top = r.top + r.height / 2 - ty - height / 2;
-      const x = still || focusSource ? width / 2 : px - left, y = still || focusSource ? height * .3 : py - top;
-      // Only what changed is written: a pointer moving inside the same element updates the light, not the box.
-      const box = `${width}|${height}|${left}|${top}`, light = `${Math.round(x)}|${Math.round(y)}`;
+      // Only a changed box is written.
+      const box = `${width}|${height}|${left}|${top}`;
       if (box !== written.box) { s.width = `${width}px`; s.height = `${height}px`; s.transform = `translate(${left}px, ${top}px)`; written.box = box; }
-      if (light !== written.light) { spot.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`; written.light = light; }
     }
-    const written = {box: '', light: ''};
+    const written = {box: ''};
     const schedule = () => { if (!frame) frame = requestAnimationFrame(place); };
     function arm(el: HTMLElement) {
       window.clearTimeout(leaveTimers.get(el));
@@ -107,7 +104,8 @@ export function LiquidGlass() {
 
     // Hover intent: an element lifts once the pointer rests on it for a moment, so a pointer sweeping across a
     // page (or heading straight for a click) does not set every card it crosses in motion. Leaving is immediate.
-    // A press cancels a pending lift; the next lift waits until the pointer moves again.
+    // A press cancels a pending lift; the next lift waits until the pointer moves again (the only time pointer
+    // movement is watched, and only until it has moved a few pixels).
     let intent = 0, pressed: {x: number; y: number} | null = null;
     const hoverAt = (target: Element | null) => {
       window.clearTimeout(intent);
@@ -122,20 +120,17 @@ export function LiquidGlass() {
     };
     const onOver = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || !hover.matches || dragging()) return;
-      px = event.clientX; py = event.clientY;
       if (!pressed) hoverAt(event.target as Element);
     };
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
-      if (Math.abs(event.clientX - px) < 1 && Math.abs(event.clientY - py) < 1 && !pressed) return;
-      px = event.clientX; py = event.clientY;
-      if (pressed && Math.hypot(px - pressed.x, py - pressed.y) > 3) { pressed = null; if (hover.matches && !dragging()) hoverAt(event.target as Element); }
-      if (lit && !still) schedule();
+    const onMoveAfterPress = (event: PointerEvent) => {
+      if (event.pointerType === 'touch' || !pressed || Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) <= 3) return;
+      pressed = null; document.removeEventListener('pointermove', onMoveAfterPress);
+      if (hover.matches && !dragging()) hoverAt(event.target as Element);
     };
     const onLeaveWindow = (event: PointerEvent) => { if (!event.relatedTarget) { window.clearTimeout(intent); if (!focusSource) clear(); } };
     const onDown = (event: PointerEvent) => {
       window.clearTimeout(intent);
-      if (event.pointerType !== 'touch') pressed = {x: event.clientX, y: event.clientY};
+      if (event.pointerType !== 'touch') { pressed = {x: event.clientX, y: event.clientY}; document.addEventListener('pointermove', onMoveAfterPress, {passive: true}); }
       const found = targetsFor(event.target as Element), el = found ? (kindOf(found.inner) === 'control' ? found.card : found.inner) : undefined;
       if (!el || still) return;
       el.dataset.glass ??= kindOf(el); el.dataset.glassPress = '';
@@ -152,7 +147,6 @@ export function LiquidGlass() {
     const onScroll = () => { if (lit) schedule(); };
     const onMotion = () => { still = !entranceAllowed(); overlay.toggleAttribute('data-still', still); };
     document.addEventListener('pointerover', onOver, {passive: true});
-    document.addEventListener('pointermove', onMove, {passive: true});
     document.addEventListener('pointerout', onLeaveWindow, {passive: true});
     document.addEventListener('pointerdown', onDown, {passive: true});
     document.addEventListener('focusin', onFocusIn);
@@ -163,7 +157,7 @@ export function LiquidGlass() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)'); reduced.addEventListener?.('change', onMotion);
     return () => {
       window.clearTimeout(intent); clear(); cancelAnimationFrame(frame); overlay.remove();
-      document.removeEventListener('pointerover', onOver); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerout', onLeaveWindow);
+      document.removeEventListener('pointerover', onOver); document.removeEventListener('pointermove', onMoveAfterPress); document.removeEventListener('pointerout', onLeaveWindow);
       document.removeEventListener('pointerdown', onDown); document.removeEventListener('focusin', onFocusIn); document.removeEventListener('focusout', onFocusOut);
       window.removeEventListener('scroll', onScroll, {capture: true}); window.removeEventListener('resize', onScroll);
       window.removeEventListener('zigoals-motion', onMotion); window.removeEventListener('storage', onMotion); reduced.removeEventListener?.('change', onMotion);

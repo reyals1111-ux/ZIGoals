@@ -1,8 +1,8 @@
 /*
  * Liquid glass (liquid-glass.tsx). The hovered element only moves, through the individual translate/scale
- * properties so any transform it already has (press, arrival, glide) composes. Shadow, rim and specular light
- * come from one shared overlay (.glass-light) above it: no pseudo-elements on targets, no backdrop-filter,
- * no box-shadow animation. Only transform and opacity animate.
+ * properties so any transform it already has (press, arrival, glide) composes. Shadow and rim come from one shared
+ * overlay (.glass-light) above it: no pseudo-elements on targets, no backdrop-filter, no box-shadow animation, and
+ * nothing that follows the pointer. Only transform and opacity animate.
  */
 :root { --glass-spring:cubic-bezier(.3,1.35,.5,1);--glass-settle:220ms; }
 @media (hover:hover) and (pointer:fine) {
@@ -21,18 +21,13 @@
 /* Hidden once faded out, so an idle overlay is never drawn. */
 .glass-light { position:fixed;left:0;top:0;z-index:25;pointer-events:none;opacity:0;visibility:hidden;transition:opacity 180ms ease,visibility 0s linear 180ms;contain:layout style; }
 .glass-light[data-on] { opacity:1;visibility:visible;transition:opacity 180ms ease; }
-.glass-light>i { position:absolute;inset:0;border-radius:inherit;overflow:hidden;transition:translate var(--glass-settle) var(--glass-spring),scale var(--glass-settle) var(--glass-spring);
+.glass-light>i { position:absolute;inset:0;border-radius:inherit;transition:translate var(--glass-settle) var(--glass-spring),scale var(--glass-settle) var(--glass-spring);
   box-shadow:0 22px 46px -24px #4a6effb8,0 10px 26px -18px #c36cff73,inset 0 0 0 1px #d2e2ff52,inset 0 1px 0 #ffffff4d; }
-/* The specular light: a circle centred on the pointer (its own layer, moved by transform only). */
-.glass-light>i>b { --r:380px;position:absolute;left:0;top:0;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin:calc(var(--r) * -1) 0 0 calc(var(--r) * -1);border-radius:50%;will-change:transform;
-  background:radial-gradient(closest-side,#ffffff1c,#a8c4ff0f 35%,transparent 62%); }
 .glass-light[data-on][data-kind=card]>i { translate:0 -2px; }
 .glass-light[data-on][data-kind=tile]>i { translate:0 -2px;scale:1.04;box-shadow:0 10px 20px -10px #6f7dffb3,0 0 16px -6px #c77dff80,inset 0 0 0 1px #eef5ff80; }
-.glass-light[data-kind=tile]>i>b { --r:70px;background:radial-gradient(closest-side,#ffffff14,transparent 70%); }
 .glass-light[data-on][data-kind=row]>i { translate:0 -1px; }
-.glass-light[data-kind=row]>i>b { --r:240px;background:radial-gradient(closest-side,#ffffff14,transparent 60%); }
 
-/* Reduced motion and Motion Off: nothing moves or tracks; a static highlight only. */
+/* Reduced motion and Motion Off: nothing moves; a static rim and shadow only. */
 @media (prefers-reduced-motion:reduce) {
   [data-glass],[data-glass][data-glass-hover],[data-glass][data-glass-press] { translate:none!important;scale:none!important;transition:none!important;will-change:auto!important; }
   .glass-light,.glass-light>i { transition:none!important;translate:none!important;scale:none!important; }

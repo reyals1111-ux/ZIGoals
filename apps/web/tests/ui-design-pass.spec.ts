@@ -183,13 +183,18 @@ test.describe('Part 3: liquid glass',()=>{
   await page.mouse.move(r.x+r.width*.3,r.y+r.height*.5);await page.mouse.move(r.x+r.width*.35,r.y+r.height*.55,{steps:3});
   return card;
  }
- test('hovering lifts a Goal card and a habit calendar tile, with the shared overlay following',async({page,isMobile})=>{
+ test('hovering lifts a Goal card and a habit calendar tile; the shared rim follows the element, never the pointer',async({page,isMobile})=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);
   const card=await hoverCard(page);
   await expect(card).toHaveAttribute('data-glass','card');
   await expect.poll(()=>lift(card)).toEqual({translate:'0px -2px',scale:'none'});
   const overlay=page.locator('.glass-light');await expect(overlay).toHaveAttribute('data-on','');await expect(overlay).toHaveAttribute('aria-hidden','true');
+  // Owner review: nothing follows the pointer. The overlay is the rim and shadow only, and moving within the card changes nothing.
+  await expect(overlay.locator('*')).toHaveCount(1);
+  const drawn=()=>overlay.evaluate(e=>e.outerHTML);const before=await drawn();
+  const r=(await card.boundingBox())!;await page.mouse.move(r.x+r.width*.2,r.y+r.height*.1,{steps:4});await page.mouse.move(r.x+r.width*.8,r.y+r.height*.12,{steps:4});await page.waitForTimeout(150);
+  expect(await drawn()).toBe(before);
   // Neighbours never move.
   expect(await page.locator('.goal-grid .unified-goal-card').first().evaluate(e=>getComputedStyle(e).translate)).toBe('none');
   await page.goto('/app/habits');const tile=page.locator('.habit-month-grid>span').nth(5);await tile.evaluate(e=>e.scrollIntoView({block:'center'}));
