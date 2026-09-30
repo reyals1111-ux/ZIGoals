@@ -17,6 +17,8 @@ const paths: Record<string, string> = {
   chevron: "m6 9 6 6 6-6",
   refresh: "M20 7v5h-5M4 17v-5h5m10-2a7 7 0 0 0-12-5M5 14a7 7 0 0 0 12 5",
   plus: "M12 5v14M5 12h14",
+  more: "M5 12h.01M12 12h.01M19 12h.01M4 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0",
+  back: "m15 5-7 7 7 7",
 };
 export function AppIcon({ name, size = 20, luminous = false }: { name: string; size?: number; luminous?: boolean }) {
   const id = useId();

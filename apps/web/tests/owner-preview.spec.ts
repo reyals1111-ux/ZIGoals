@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {closeMore,navLink} from './phone-nav';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
 const fixture=()=>({...emptyPlatform(),positions:['a','b'].map((id,i)=>positionSchema.parse({id,providerId:'native-zig',sourceType:'NATIVE_STAKING',network:'zigchain-1',account:'fictional-preview-account',asset:'ZIG',denom:'uzig',decimals:6,quantity:i?'63559957014':'200000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'BONDED',provenance:'Fictional owner-preview fixture; no live chain data',validator:{address:`fictional-validator-${id}`,name:`Example validator ${id.toUpperCase()}`,status:'BONDED',commission:'0.05',votingTokens:'1000000000000'}})),goals:[privateGoalSchema.parse({id:'81',name:'300K GOAL',network:'zigchain-1',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'300000000000000000000000',notes:'Fictional preview data',createdAt:new Date().toISOString(),milestones:[]})]});
 test('owner setup: stake allocation, contribution plan and supporting Habit stay private',async({page},info)=>{
@@ -26,10 +27,10 @@ test('owner setup: stake allocation, contribution plan and supporting Habit stay
  expect(financial).toEqual([]);expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
 });
 test('APR persistence, account isolation, utility order and navigation',async({page})=>{
- await page.goto('/app');await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Stake / Positions',exact:true}).click();const card=page.locator('.positions-scenario');await expect(card).toContainText('Not set');
+ await page.goto('/app');await (await navLink(page,'Stake / Positions')).click();const card=page.locator('.positions-scenario');await expect(card).toContainText('Not set');
  await page.evaluate(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),fixture());await page.reload();
- await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Stake / Positions',exact:true})).toHaveAttribute('aria-current','page');
- await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current');
+ await expect(await navLink(page,'Stake / Positions')).toHaveAttribute('aria-current','page');
+ await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current');await closeMore(page);
  await page.locator('.positions-scenario > summary').click();await page.getByLabel('Net APR assumption %',{exact:true}).fill('7.25');await page.getByRole('button',{name:'Save APR assumption'}).click();await expect(page.getByRole('status').filter({hasText:'Net APR assumption saved'})).toBeVisible();await page.reload();await page.locator('.positions-scenario > summary').click();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('7.25');
  await page.locator('.positions-wallet > summary').click();await page.getByLabel('Read-only network').selectOption('TESTNET_READ_ONLY');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('');
  await page.goto('/app/goals/positions');await expect(card).toContainText('7.25%');await expect(page.locator('.position-metrics')).toContainText('263559.957014');
@@ -42,7 +43,7 @@ test('responsive owner preview captures',async({page},info)=>{
  for(const width of info.project.name==='desktop'?[1440,768]:[390,320]){
   await page.setViewportSize({width,height:1000});
   for(const [name,route] of [['today','/app'],['tracked-goals','/app/goals/tracked'],['positions','/app/goals/positions'],['goal-detail','/app/goals/tracked/81']]){
-   await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();await expect(page.getByRole('link',{name:'Stake / Positions',exact:true})).toBeVisible();
+   await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();await expect(await navLink(page,'Stake / Positions')).toBeVisible();await closeMore(page);
    await page.locator('.platform-workspace,.personalized-today').first().waitFor();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name} ${width}`).toBe(true);
    if(name==='goal-detail'){expect(await page.locator('.goal-detail-overview').evaluate(el=>el.getBoundingClientRect().top<document.querySelector('.goal-management-grid')!.getBoundingClientRect().top)).toBe(true);await expect(page.locator('.goal-management-module[open]')).toHaveCount(0);}

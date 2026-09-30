@@ -1,4 +1,5 @@
 import {test,expect,type Page} from '@playwright/test';
+import {navLink} from './phone-nav';
 import {applyLocal,initialLedger} from '../lib/local-ledger';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
 test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
@@ -52,7 +53,7 @@ test('unified responsive Goals and creator keep navigation and Health intact',as
   await page.setViewportSize({width,height:1000});for(const [name,route] of [['goals','/app/goals'],['create','/app/goals/new']]){await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name} ${width}`).toBe(true);if(process.env.RUN81_CAPTURE==='1')await capture(page,info.outputPath(`${name}-${width}.png`));if(name==='create'){await page.getByLabel('Goal name',{exact:true}).fill('My next chapter');await page.getByLabel('Target amount',{exact:true}).fill('300000');for(let step=1;step<=3;step++){await page.getByRole('button',{name:'Continue →'}).click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`creator step ${step+1} at ${width}`).toBe(true);}}}
  }
  page.once('dialog',async dialog=>{expect(dialog.message()).toBe('Discard your unsaved Goal changes?');await dialog.accept();});
- await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Stake / Positions',exact:true}).click();await expect(page).toHaveURL(/\/goals\/positions$/);await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Health',exact:true}).click();await expect(page).toHaveURL(/\/app\/health$/);expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
+ await (await navLink(page,'Stake / Positions')).click();await expect(page).toHaveURL(/\/goals\/positions$/);await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Health',exact:true}).click();await expect(page).toHaveURL(/\/app\/health$/);expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
 });
 
 test('Project completion follows milestones and Value/Reward Goals keep their own source semantics',async({page})=>{

@@ -27,9 +27,14 @@ function boxOf(link: Element, nav: Element): Box {
   return { x: a.left - n.left + nav.scrollLeft, y: a.top - n.top + nav.scrollTop, w: a.width, h: a.height };
 }
 
+/** Whether a navigation destination is the current page (Stake / Positions lives under /app/goals but is its own item). */
+export function isNavActive(path: string, href: string) {
+  return href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
+}
+
 export function AppNav() {
   const path = usePathname();
-  const isActive = (href: string) => href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
+  const isActive = (href: string) => isNavActive(path, href);
   const nav = useRef<HTMLElement>(null), glide = useRef<HTMLSpanElement>(null), previous = useRef<Box | null>(null);
   // The highlight travels from the previous item to the new one; aria-current and focus move immediately.
   useLayoutEffect(() => {
@@ -57,7 +62,8 @@ export function AppNav() {
   useLayoutEffect(() => {
     const active = nav.current?.querySelector<HTMLElement>('a[aria-current="page"]');
     if (!mounted.current) { mounted.current = true; return; }
-    if (!active || !entranceAllowed()) return;
+    // A nav that is not rendered (the phone layout hides it) never gets an arrival mark it could not clear.
+    if (!active || !entranceAllowed() || !active.getClientRects().length) return;
     active.dataset.arrive = "";
     const done = (event: AnimationEvent) => { if (event.animationName === "nav-arrive-sweep") delete active.dataset.arrive; };
     active.addEventListener("animationend", done);

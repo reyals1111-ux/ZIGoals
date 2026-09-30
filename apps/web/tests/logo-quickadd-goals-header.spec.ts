@@ -16,8 +16,8 @@ test('the Today hero Quick add is the primary action and opens the same Quick ad
  expect(await options.allTextContents()).toEqual(OPTIONS);
  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
  if(isMobile){
-  // The mobile header keeps its own Quick add, with the same options.
-  const header=page.locator('.app-sidebar .quick-add-trigger');await header.click();
+  // The phone top bar (Session E) keeps its own Quick add, with the same options.
+  const header=page.locator('.phone-topbar .quick-add-trigger');await header.click();
   expect(await options.allTextContents()).toEqual(OPTIONS);await page.keyboard.press('Escape');await expect(header).toBeFocused();
  }
  await trigger.click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();

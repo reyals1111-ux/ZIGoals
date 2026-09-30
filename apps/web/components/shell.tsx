@@ -21,6 +21,7 @@ import { LogoIntro } from "./logo-intro";
 import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
 import { LAYOUT_LOCK_SLOT } from "./layout-edit";
+import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -60,6 +61,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <a className="skip" href="#main">
         Skip to content
       </a>
+      <PhoneTopBar />
       <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
           <LogoMark />
@@ -339,6 +341,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </dialog>
       )}
+      <PhoneTabBar />
     </>
   );
 }
