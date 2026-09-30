@@ -1,22 +1,38 @@
-/* Quick exercise counters (exercise-counters.tsx): a row of small glass cards at the top of Health. */
-.exercise-counters { display:grid;gap:14px;margin:24px 0 8px;padding:22px 24px 18px;border:1px solid #8fb6ff2e;border-radius:24px;background:radial-gradient(ellipse at 88% 0,#8a5cff1f,transparent 55%),radial-gradient(ellipse at 0 100%,#26d6f01a,transparent 50%),linear-gradient(150deg,#0e1a31,#0b1426); }
+/* Quick exercise counters (exercise-counters.tsx): glass bars at the top of Health, three to a row on desktop, two on
+   tablets, one on phones (by the card's own width), wrapping onto new rows as counters are added. */
+.exercise-counters { container-type:inline-size;display:grid;gap:14px;margin:24px 0 8px;padding:22px 24px 18px;border:1px solid #8fb6ff2e;border-radius:24px;background:radial-gradient(ellipse at 88% 0,#8a5cff1f,transparent 55%),radial-gradient(ellipse at 0 100%,#26d6f01a,transparent 50%),linear-gradient(150deg,#0e1a31,#0b1426); }
 .exercise-counters-heading { display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px; }
 .exercise-counters-heading .eyebrow { margin:0 0 6px;color:var(--accent-teal,#86f0d6); }
 .exercise-counters-heading h2 { margin:0;font-size:clamp(20px,1.6vw,24px); }
 .exercise-counters-day { margin:4px 0 0;color:var(--text-meta,#c2d0e5);font-size:15px;font-weight:500; }
-.exercise-counter-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:14px; }
-.exercise-counter { position:relative;display:grid;gap:10px;padding:16px 16px 12px;border-radius:20px;border:1px solid #a9c9ff2e;background:linear-gradient(160deg,#152440,#101a30 60%,#161433);box-shadow:inset 0 1px 0 #ffffff12; }
-.exercise-counter-heading { display:flex;align-items:center;gap:12px;min-width:0; }
-.exercise-counter-heading h3 { margin:0;flex:1;min-width:0;font-size:17px;font-weight:650;color:var(--text-strong,#f4f8ff);overflow-wrap:anywhere; }
-.exercise-counter-heading .card-options { margin-left:auto; }
-.exercise-medallion { display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:16px;background:radial-gradient(circle at 30% 25%,#2b4a7a,#141f3a 70%);box-shadow:inset 0 0 0 1px #9fd6ff33,0 0 22px -6px #8f7dff88; }
-.exercise-counter-controls { display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px; }
+.exercise-counter-grid { display:grid;grid-template-columns:minmax(0,1fr);gap:12px; }
+@container (min-width:620px) { .exercise-counter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@container (min-width:1040px) { .exercise-counter-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+.exercise-counter { position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;min-height:76px;padding:12px 10px;border-radius:20px;border:1px solid #a9c9ff2e;background:linear-gradient(160deg,#152440,#101a30 60%,#161433);box-shadow:inset 0 1px 0 #ffffff12; }
+/* The name stays on one line (never "Push-/ups"); a long custom name ends in an ellipsis and shows in full on hover. Today's state sits under it. */
+.exercise-counter-name { display:grid;gap:2px;min-width:0;padding-left:4px; }
+.exercise-counter-name h3 { margin:0;font-size:17px;font-weight:650;line-height:1.25;color:var(--text-strong,#f4f8ff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.exercise-counter { grid-template-areas:"icon name controls menu"; }
+.exercise-counter > .exercise-medallion { grid-area:icon; }
+.exercise-counter-name { grid-area:name; }
+.exercise-counter-controls { grid-area:controls; }
+.exercise-counter > .card-options { grid-area:menu;justify-self:end; }
+/* Phones: icon, name and − / count / + keep one line; the small caption and the options take a second line below
+   them, so the name always has room ("Push-ups" never truncates) and nothing wraps. */
+@container (max-width:439px) {
+  .exercise-counter { grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon name controls" "icon caption menu";row-gap:4px; }
+  .exercise-counter-name { display:contents; }
+  .exercise-counter-name h3 { grid-area:name;padding-left:4px; }
+  .exercise-counter-name .exercise-counter-caption { grid-area:caption;padding-left:4px; }
+}
+.exercise-medallion { display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:16px;background:radial-gradient(circle at 30% 25%,#2b4a7a,#141f3a 70%);box-shadow:inset 0 0 0 1px #9fd6ff33,0 0 22px -6px #8f7dff88; }
+.exercise-counter-controls { display:grid;grid-template-columns:44px minmax(40px,auto) 44px;align-items:center;gap:4px; }
 .exercise-step { display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:14px;border:1px solid #a9c9ff4d;background:#ffffff0d;color:#eef5ff;font-size:24px;font-weight:600;line-height:1; }
 .exercise-step:hover:not(:disabled) { background:#ffffff1c;border-color:#9fe6ff99; }
 .exercise-step:last-child { background:linear-gradient(135deg,#5fe0f0,#a3a0ff);color:#0a1428;border-color:transparent; }
-.exercise-count { text-align:center;font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
+.exercise-count { text-align:center;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
 .exercise-count[data-empty] { color:#9fb2cf; }
-.exercise-counter-caption { margin:0;text-align:center;font-size:14px;color:var(--text-meta,#c2d0e5);font-weight:500; }
+.exercise-counter-caption { margin:0;font-size:14px;color:var(--text-meta,#c2d0e5);font-weight:500; }
 .exercise-counters-status { margin:0;min-height:0;font-size:15px;color:var(--text-meta,#c2d0e5); }
 .exercise-counters-status:empty { display:none; }
 
@@ -39,17 +55,11 @@
 .exercise-icon-choice input:focus-visible+span { outline:3px solid var(--cyan,#45d8ef);outline-offset:2px; }
 @media (max-width:600px) {
   .exercise-counters { padding:18px 16px 14px;margin-top:16px; }
-  .exercise-counter-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
-  .exercise-counter { padding:12px 10px 10px; }
   .exercise-medallion { width:40px;height:40px;border-radius:13px; }
-  .exercise-counter-heading { flex-wrap:wrap;gap:8px; }
-  .exercise-counter-heading h3 { order:3;flex-basis:100%;font-size:16px;overflow-wrap:normal;hyphens:auto; }
-  .exercise-counter-controls { grid-template-columns:44px minmax(0,1fr) 44px;gap:4px; }
-  .exercise-count { font-size:26px; }
-  /* While rearranging on a phone, one counter per row so its move controls never cover its name. */
-  :root[data-layout-editing] .exercise-counter-grid { grid-template-columns:minmax(0,1fr); }
+  .exercise-counter-name h3 { font-size:16px; }
 }
-@media (max-width:360px) { .exercise-counter-grid { grid-template-columns:minmax(0,1fr); } }
+/* While rearranging, each bar makes room above its content for its move controls. */
+:root[data-layout-editing] .exercise-counter { padding-top:64px; }
 @media (forced-colors:active) {
   .exercise-counters,.exercise-counter,.exercise-step,.exercise-icon-choice span { border:1px solid CanvasText; }
   .exercise-icon { stroke:CanvasText; }
