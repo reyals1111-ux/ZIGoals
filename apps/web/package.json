@@ -24,13 +24,13 @@
     "@zxing/library": "0.23.0",
     "cosmjs-types": "0.11.0",
     "decimal.js": "10.6.0",
-    "next": "16.3.5",
+    "next": "16.3.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.2"
+    "zod": "4.6.5"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "1.20.6",
+    "@opennextjs/cloudflare": "1.20.7",
     "@playwright/test": "1.63.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",

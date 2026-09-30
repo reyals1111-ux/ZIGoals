@@ -5,3 +5,9 @@ allowBuilds:
   esbuild: false
   workerd: false
   unrs-resolver: false
+overrides:
+  # In-range audit fix (GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p, GHSA-q2hr-2g5m-vwhr):
+  # minimatch 10 (ESLint tooling only) declares brace-expansion ^5.0.8, but
+  # `pnpm update --depth Infinity` keeps the locked 5.0.9. Remove once the lock
+  # resolves >=5.0.12 without it.
+  "minimatch@10>brace-expansion": ^5.0.12

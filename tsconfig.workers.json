@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {"lib": ["ES2022"], "types": []},
+  "include": ["workers/worker-runtime.d.ts", "workers/runtime-overrides.d.ts", "workers/market-coordinator/**/*.ts", "scripts/run11/market-fault-fixture.ts"]
+}
