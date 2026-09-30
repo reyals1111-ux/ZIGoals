@@ -9,7 +9,7 @@
     "./deployment": "./src/deployment.ts"
   },
   "dependencies": {
-    "zod": "4.6.2",
+    "zod": "4.6.5",
     "@cosmjs/encoding": "0.38.1"
   }
 }
