@@ -60,7 +60,7 @@ test.describe('Part 1: readability foundation',()=>{
   await zone.click();await page.getByLabel('Habit timezone',{exact:true}).fill('Not/AZone');await page.getByRole('button',{name:'Save Habit timezone',exact:true}).click();
   await expect(page.locator('.habit-timezone [role=status]')).toHaveText('Choose a valid IANA timezone, such as Europe/Brussels.');
  });
- test('sidebar signature reads Shape & Fold, Your Own Future above the horizon',async({page,isMobile})=>{
+ test('sidebar signature reads Shape & Fold, Your Own Future on the planet',async({page,isMobile})=>{
   test.skip(isMobile,'The mobile header hides the sidebar planet');
   await showcase(page);
   const destination=page.locator('.sidebar-destination'),tagline=destination.locator('.sidebar-tagline');
