@@ -1,5 +1,7 @@
 # Wrangler upgrade assessment: 4.131.1 → 4.x latest (2026-09-30)
 
+**Update (Session D, 2026-09-30):** wrangler is now **4.144.0** (owner-approved, [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50)). The upgrade followed the procedure below; results are in docs/STATUS.md and the owner's first-deploy checklist is [WATCHED_DEPLOY_WRANGLER.md](WATCHED_DEPLOY_WRANGLER.md). Also observed: a dry run writes a `deploy` entry to the output file too, with `version_id: null`, and `deployedVersion` refuses it (pinned with real output in `scripts/fixtures/wrangler-output/`). The text below is the assessment as written.
+
 Status: **assessment only. Wrangler is not bumped** (`apps/web/package.json` stays at `4.131.1`). No wrangler command was run against a Cloudflare account; only local, account-free commands (`deploy --dry-run`, `dev`, `types`) were used.
 
 ## Evidence limits (read first)
