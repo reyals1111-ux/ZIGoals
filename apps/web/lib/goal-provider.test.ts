@@ -426,8 +426,10 @@ test("reconnect restores only its durable wallet history and keeps stale signatu
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 40));
   });
-  expect(container.textContent).toContain("No broadcast is recorded");
-  expect(container.textContent).toContain(ownerA);
+  await rendered(() => {
+    expect(container.textContent).toContain("No broadcast is recorded");
+    expect(container.textContent).toContain(ownerA);
+  });
   api.connect.mockResolvedValue(ownerB);
   await act(async () => {
     window.dispatchEvent(new Event("keplr_keystorechange"));
@@ -436,8 +438,10 @@ test("reconnect restores only its durable wallet history and keeps stale signatu
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 40));
   });
-  expect(container.textContent).not.toContain(ownerA);
-  expect(container.textContent).not.toContain("No broadcast is recorded");
+  await rendered(() => {
+    expect(container.textContent).not.toContain(ownerA);
+    expect(container.textContent).not.toContain("No broadcast is recorded");
+  });
 });
 
 test.each([false, true])("recovered receipt proof replaces a live uncertain outcome (held quote: %s)", async (heldQuote) => {
@@ -619,10 +623,12 @@ test.each(["available", "unavailable"])(
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 40));
     });
-    expect(container.textContent).toContain("Unreadable or unsupported");
-    expect(container.textContent).toContain("Alice receipt lookup failed");
-    expect(container.textContent).toContain("Confirmation is uncertain");
-    expect(container.textContent).toContain("A".repeat(64));
+    await rendered(() => {
+      expect(container.textContent).toContain("Unreadable or unsupported");
+      expect(container.textContent).toContain("Alice receipt lookup failed");
+      expect(container.textContent).toContain("Confirmation is uncertain");
+      expect(container.textContent).toContain("A".repeat(64));
+    });
     const load =
       nextStorage === "unavailable"
         ? vi
@@ -638,17 +644,19 @@ test.each(["available", "unavailable"])(
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 40));
       });
-      expect(container.textContent).not.toContain(
-        "Alice receipt lookup failed",
-      );
-      if (nextStorage === "available")
-        expect(container.textContent).toContain("Unreadable or unsupported");
-      else {
-        expect(container.textContent).toContain("Bob journal unavailable");
+      await rendered(() => {
         expect(container.textContent).not.toContain(
-          "Unreadable or unsupported",
+          "Alice receipt lookup failed",
         );
-      }
+        if (nextStorage === "available")
+          expect(container.textContent).toContain("Unreadable or unsupported");
+        else {
+          expect(container.textContent).toContain("Bob journal unavailable");
+          expect(container.textContent).not.toContain(
+            "Unreadable or unsupported",
+          );
+        }
+      });
     } finally {
       load?.mockRestore();
     }
@@ -667,7 +675,7 @@ test.each(["available", "unavailable"])(
 
 test("scoped external local writes reload balances and cancel a reviewed simulation", async () => {
   await click("Prepare transaction");
-  expect(container.textContent).toContain("Confirm simulation");
+  await rendered(() => expect(container.textContent).toContain("Confirm simulation"));
   const next = applyLocal(
     initialLedger(),
     { kind: "create" },
@@ -695,8 +703,8 @@ test("confirmation checks stored revision even before another tab's event arrive
   const raw = JSON.stringify(next);
   localStorage.setItem("zigoals:local-ledger:v1", raw);
   await click("Confirm simulation");
+  await rendered(() => expect(container.textContent).toMatch(/changed.*review/i));
   expect(localStorage.getItem("zigoals:local-ledger:v1")).toBe(raw);
-  expect(container.textContent).toMatch(/changed.*review/i);
 });
 test("unrelated storage scopes leave the active review intact", async () => {
   await click("Prepare transaction");
@@ -713,7 +721,7 @@ test("unrelated storage scopes leave the active review intact", async () => {
 test("external same-scope journal intent cancels testnet review before signing", async () => {
   await click("Connect Keplr");
   await click("Prepare transaction");
-  expect(container.textContent).toContain("Approve in Keplr");
+  await rendered(() => expect(container.textContent).toContain("Approve in Keplr"));
   const channel = new BroadcastChannel("zigoals:transaction-journal");
   await act(async () => {
     channel.postMessage({
@@ -724,15 +732,15 @@ test("external same-scope journal intent cancels testnet review before signing",
     await new Promise((resolve) => setTimeout(resolve, 30));
   });
   channel.close();
-  expect(container.textContent).not.toContain("Approve in Keplr");
+  await rendered(() => expect(container.textContent).not.toContain("Approve in Keplr"));
   expect(api.execute).not.toHaveBeenCalled();
 });
 
 test("private plan review describes a future save and storage failure does not claim success", async () => {
   await click("Prepare private goal");
-  expect(container.textContent).toContain(
+  await rendered(() => expect(container.textContent).toContain(
     "will be saved on this device after confirmation",
-  );
+  ));
   expect(
     localStorage.getItem(
       "zigoals:metadata:v1:local-simulation:local-demo-user",
@@ -747,8 +755,10 @@ test("private plan review describes a future save and storage failure does not c
     });
   try {
     await click("Confirm simulation");
-    expect(scope().goals).toEqual(["1"]);
-    expect(container.textContent).toContain("private plan could not be saved");
+    await rendered(() => {
+      expect(scope().goals).toEqual(["1"]);
+      expect(container.textContent).toContain("private plan could not be saved");
+    });
     expect(
       localStorage.getItem(
         "zigoals:metadata:v1:local-simulation:local-demo-user",
@@ -775,7 +785,7 @@ test("durable journal revisions stop signing even when the external event was mi
   });
   // Same-document fixture writes deliberately omit the external notification.
   await click("Approve in Keplr");
-  expect(container.textContent).toMatch(/history changed.*review again/i);
+  await rendered(() => expect(container.textContent).toMatch(/history changed.*review again/i));
   expect(api.execute).not.toHaveBeenCalled();
 });
 
