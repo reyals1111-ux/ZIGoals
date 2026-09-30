@@ -1,0 +1,121 @@
+/*
+ * Shared text system (UI design pass). Imported last from app/layout.tsx; rules carry a :root prefix so they
+ * win over the older layered theme files regardless of the order component stylesheets load in.
+ * Secondary text is near-white and medium weight; meta text stays clearly readable (both ≥ 7:1 on #0d1629).
+ * Nebula accents tint key figures only where they add meaning; forced-colors mode falls back to system colours.
+ */
+:root {
+  --text-strong: #f4f8ff;
+  --text-secondary: #dde7f7;
+  --text-meta: #c2d0e5;
+  --text-secondary-size: 15px;
+  --text-meta-size: 15px;
+  --accent-teal: #86f0d6;
+  --accent-cyan: #9ee8f8;
+  --accent-violet: #cbbfff;
+  --accent-magenta: #f3b0e6;
+  --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 60%, #8fa6ff 74%, #c790f6 87%, #f08bd6 100%);
+  --page-lede-size: clamp(17px, 1.05vw + 5px, 20px);
+}
+
+/* Utilities */
+:root .text-secondary { color: var(--text-secondary); font-size: var(--text-secondary-size); font-weight: 500; }
+:root .text-meta { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .figure-accent { color: var(--accent-teal); font-weight: 600; }
+
+/* Nebula flow: the colour starts in the middle of the text and flows to its end. One sweep on entrance
+   (use-entrance sets data-entrance=once); settled and static text is identical. */
+:root .nebula-flow { background-image: var(--nebula-flow-mid); background-size: 100% 100%; background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); }
+:root .nebula-flow[data-entrance=once] { background-image: linear-gradient(100deg, transparent 40%, #ffffffb0 50%, transparent 60%), var(--nebula-flow-mid); background-size: 250% 100%, 100% 100%; background-position: 100% 0, 0 0; animation: nebula-flow-sweep 1300ms cubic-bezier(.45,0,.25,1) 250ms both; }
+@keyframes nebula-flow-sweep { from { background-position: 100% 0, 0 0; } to { background-position: 0 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { :root .nebula-flow[data-entrance=once] { animation: none; background-position: 0 0, 0 0; } }
+:root[data-app-motion=off] .nebula-flow[data-entrance=once] { animation: none; background-position: 0 0, 0 0; }
+
+/* One page-header system: eyebrow, title (actions pushed right on its row), lede; the layout lock sits top-right. */
+:root .page-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow tools" "title actions" "lede lede"; align-items: center; gap: 0 20px; margin: 26px 0 30px; }
+:root .page-header > .page-eyebrow { grid-area: eyebrow; }
+:root .page-header > .page-header-tools { grid-area: tools; display: flex; justify-content: flex-end; gap: 8px; }
+:root .page-header > h1 { grid-area: title; margin: 0; min-width: 0; }
+:root .page-header > .page-header-actions { grid-area: actions; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px; }
+:root .page-header > .page-lede { grid-area: lede; margin: 14px 0 0; }
+:root .page-eyebrow { font-size: 15px; letter-spacing: .2em; font-weight: 700; text-transform: uppercase; color: #d3e2f6; margin: 0 0 12px; }
+:root .page-lede { font-size: var(--page-lede-size); line-height: 1.5; font-weight: 500; color: #e9f0fb; max-width: 680px; letter-spacing: -.005em; }
+@media (max-width: 600px) {
+  :root .page-header { column-gap: 12px; }
+  :root .page-eyebrow { font-size: 14px; letter-spacing: .16em; }
+}
+
+/* Goals cards: secondary text is near-white and medium; key figures carry a quiet nebula tint. */
+:root .unified-goal-card .goal-progress-caption > strong { color: var(--text-secondary); font-size: var(--text-secondary-size); font-weight: 550; -webkit-text-fill-color: currentColor; }
+:root .unified-goal-card .goal-progress-caption > span { font-size: var(--text-secondary-size); font-weight: 500; color: var(--text-secondary); -webkit-text-fill-color: currentColor; }
+:root .unified-goal-card .goal-progress-caption > .goal-remaining { color: var(--accent-teal); font-weight: 600; }
+:root .unified-goal-card .goal-progress-caption > .goal-target { color: var(--accent-cyan); }
+:root .unified-goal-card .goal-value > span { -webkit-text-fill-color: var(--text-meta); color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .goal-mix-legend span { color: var(--accent-violet); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .valuation-state { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .card-bottom small { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .card-bottom strong { color: var(--text-strong); font-weight: 600; }
+:root .unified-goal-card .goal-next-contribution span { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .goal-next-contribution time { color: var(--accent-cyan); }
+:root .goal-card.unified-goal-card .card-footer small { color: var(--text-meta); font-size: var(--text-meta-size); font-weight: 500; }
+:root .unified-goal-card .card-top .eyebrow { color: #d0def3; }
+
+@media (forced-colors: active) {
+  :root .nebula-flow, :root .nebula-flow[data-entrance=once] { background: none; -webkit-text-fill-color: CanvasText; color: CanvasText; animation: none; }
+  :root :is(.goal-progress-caption > *, .goal-mix-legend span, .figure-accent) { color: CanvasText; -webkit-text-fill-color: CanvasText; }
+}
+
+/* Today hero: the lede is bigger, bolder and whiter. (Eyebrow colour: .nebula-flow, like every title and topic.) */
+:root .today-hero-copy > p.page-lede.today-lede { font-size: clamp(17px, 1.2vw + 4px, 21px); font-weight: 600; line-height: 1.5; color: #f3f8ff; margin-top: 18px; text-shadow: 0 1px 14px #020918cc; }
+:root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: clamp(15px, 1.25vw, 19px) !important; }
+:root .wealth-hero-copy > .page-eyebrow { font-size: 15px; }
+:root .wealth-hero-copy > p.wealth-intro.page-lede { font-size: var(--page-lede-size); font-weight: 500; color: #e9f0fb; }
+:root .page-heading p.page-lede, :root .markets-hero p.page-lede, :root .ecosystem-intro p.page-lede { font-size: var(--page-lede-size); font-weight: 500; color: #e9f0fb; line-height: 1.5; }
+:root .page-heading .page-eyebrow, :root .markets-hero .page-eyebrow, :root .ecosystem-intro .page-eyebrow { font-size: 15px; }
+@media (max-width: 600px) { :root .today-hero-copy > p.page-lede.today-lede { font-size: 17px; } :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: 14px !important; } }
+
+/* Wealth headline (Part 5): one total in one currency with the nebula flow; other currencies stay on their own line, never converted. */
+:root .wealth-total-headline { display:block;font-weight:700;line-height:1.02;letter-spacing:-.045em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere; }
+:root .wealth-hero-total > .wealth-total-headline { font-size:clamp(38px,4.4vw,64px); }
+:root .life-orbit-wealth > .wealth-total-headline { font-size:clamp(30px,2.6vw,36px); }
+:root .wealth-total-headline > .nebula-flow { display:inline-block;margin:0;padding-bottom:.06em; }
+:root .wealth-total-headline.wealth-total-empty { font-size:clamp(24px,2.4vw,32px);color:var(--text-secondary); }
+:root :is(.wealth-hero-total,.life-orbit-wealth) > .wealth-total-other { display:block;margin:0;font-size:17px;font-weight:550;letter-spacing:0;text-transform:none;color:var(--text-secondary); }
+:root .wealth-hero-total > .wealth-total-fx { margin:0;font-size:14px;letter-spacing:.01em;color:var(--text-meta); }
+:root .wealth-hero-total > small { font-size:14px;color:var(--text-meta); }
+
+/* Part 9 sweep. A text-link that is a <button> looks like its link siblings, never like the browser's grey button
+   face (it had a #6b6b6b background and an outset border, 3.6:1). Its colour, size and focus ring stay as set. */
+:root button.text-link:not(.primary,.secondary,.quiet) { background:none;border:0;border-radius:6px;padding:4px 0;font-family:inherit;cursor:pointer; }
+:root button.text-link:not(.primary,.secondary,.quiet):hover { text-decoration:underline;text-underline-offset:3px; }
+/* Labels are at least 14px: Ecosystem's category labels were 12px. */
+:root .ecosystem-project .eyebrow { font-size:14px;color:var(--text-meta); }
+/* Motion Off covers the older card hover lifts too (reduced motion already did): no rise, no transform transition. */
+:root[data-app-motion=off] :is(.dashboard .goal-card,.watch-card,.owned-asset-card) { transition:none; }
+:root[data-app-motion=off] :is(.dashboard .goal-card,.watch-card,.owned-asset-card):is(:hover,:active) { transform:none!important; }
+
+/* ── Part 13 polish (fixes only) ─────────────────────────────────────────────────────────────── */
+/* The Local simulation line is an honesty label: near-white and above the Today hero art that bleeds under it. */
+:root .mode-strip { position:relative;z-index:1;color:var(--text-secondary);text-shadow:0 1px 2px #020716e6,0 0 14px #020716; }
+/* A text link after a button wraps as one piece, never mid-phrase (Today's ZIG reward reserve card). */
+:root .staking-card .text-link { display:inline-block; }
+/* Portfolio composition: one divider under its heading, not two. */
+:root .portfolio-composition > .section-heading { border-bottom:0; }
+/* "Where your data lives": the last row stretches instead of leaving one card alone. */
+:root .bottom-places { display:flex;flex-wrap:wrap; }
+:root .bottom-places > li { flex:1 1 220px; }
+/* The Wealth total's label never runs under its options button. */
+:root .wealth-hero-total > span:first-of-type { padding-right:48px; }
+@media (max-width:700px) {
+  /* The mode dot stays with its sentence; the demo balance takes its own line. */
+  :root .mode-strip { display:block; }
+  :root .mode-strip > .mode-dot { display:inline-block;margin:0 8px 2px 0;vertical-align:middle; }
+  :root .mode-strip > .wallet-balance { display:block;margin:6px 0 0; }
+  :root .portfolio-composition > .section-heading { padding-left:0;padding-right:0; }
+}
+
+/* ── Part 18.5: one white→nebula style for every page title and topic ───────────────────────────── */
+/* The colour comes from .nebula-flow alone (nebula-flow.tsx): white on the left, the nebula from the middle to the
+   right, one light sweep that ends in that state. A title or eyebrow around it never adds a gradient of its own. */
+:root :is(h1,h2,h3,p):has(> .nebula-flow) { background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:var(--text-strong)!important;-webkit-text-fill-color:currentColor!important;animation:none!important; }
+@media (forced-colors: active) { :root :is(h1,h2,h3,p):has(> .nebula-flow) { color:CanvasText!important; } }

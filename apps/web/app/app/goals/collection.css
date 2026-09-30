@@ -3,11 +3,9 @@
 .goal-collection-controls :is(input,select) { width:100%; min-width:0; }
 .goal-collection-pages { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
 .goal-collection-pages [role=status] { font-size:14px; }
-/* Goals header: "+ Create a goal" sits right of the title. The Goals/Positions switch, view filters and count share one compact row, then the cards. */
-.goals-page .goals-heading { margin-bottom:0; }
-.goals-title-row { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; margin-bottom:12px; }
-.goals-title-row h1 { margin:0; }
-.goals-page .goals-title-row .primary { flex:none; margin:0; }
+/* Goals header (shared page-header system): "+ Create a goal" sits at the far right of the title row, centred on "Your Goals". The Goals/Positions switch, view filters and count share one compact row, then the cards. */
+.goals-page .page-header.goals-heading { margin-bottom:10px; }
+.goals-page .goals-heading .page-header-actions .primary { flex:none; margin:0; }
 .goals-page .goals-toolbar { flex-wrap:wrap; justify-content:flex-start; gap:10px 14px; margin:0; }
 .goals-toolbar :is(.platform-nav,.goal-view-filters) { margin:0; gap:7px; }
 .goals-toolbar .platform-nav a { display:inline-flex; align-items:center; min-height:44px; }

@@ -18,6 +18,8 @@ import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
 import { LogoIntro } from "./logo-intro";
 import { PageArrival } from "./page-arrival";
+import { LiquidGlass } from "./liquid-glass";
+import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -39,7 +41,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const showcase=useShowcase();
   const selection=useWorkspaceSelection();
   const preferences=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
-  const financial=preferences.loaded&&!preferences.error&&visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
+  // The testnet bar and the mode strip follow the app mode. Only a readable choice hides them (a Health/Habits-only
+  // Today, or a selected account); a store that is loading, unreadable, corrupt or from a newer build never does.
+  const nonFinancialChoice=preferences.loaded&&!preferences.error&&!visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
+  const accountView=selection.ready&&selection.selected&&!selection.error;
+  const banners=!nonFinancialChoice&&!accountView;
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -62,11 +68,12 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
           <Wordmark />
-          <small>THE GOAL LAYER FOR ZIGCHAIN</small>
+          <small className="sidebar-tagline"><span className="sr-only">Shape &amp; Fold, Your Own Future</span><span aria-hidden="true">Shape &amp; Fold</span><span aria-hidden="true">Your Own Future</span></small>
+          <span className="sidebar-star" aria-hidden="true" />
         </div>
       </aside>
       <div className="app-content">
-      {financial&&!selection.selected&&<header className="app-topbar">
+      {banners&&<header className="app-topbar">
         <div className="network-banner">
           <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
           <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
@@ -106,7 +113,9 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded} style={{visibility:selection.ready&&preferences.loaded?undefined:"hidden"}}>
         <ShowcaseBanner/>
         <WorkspaceStatus/>
-        {financial&&!selection.selected&&<div className="mode-strip">
+        {/* The status row: the mode strip (an honesty label) and, on pages that can be rearranged, the layout lock right after the demo balance. The row keeps the lock's place when the strip is hidden. */}
+        <div className="status-row">
+        {banners&&<div className="mode-strip">
           <span className="mode-dot" />
           {s.mode === "local"
             ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
@@ -116,6 +125,8 @@ export function Shell({ children }: { children: ReactNode }) {
             {s.mode === "local" ? "demo balance" : "wallet balance"}
           </span>
         </div>}
+        <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>
+        </div>
         {s.error && (
           <div role="alert" className="alert">
             {s.error}
@@ -186,7 +197,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </section>
         )}
-        <main id="main">{children}</main><PageArrival />
+        <main id="main">{children}</main><PageArrival /><LiquidGlass />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>

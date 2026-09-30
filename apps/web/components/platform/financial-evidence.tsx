@@ -1,4 +1,5 @@
 'use client';
+import type {LayoutAttrs} from '../layout-edit';
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import {formatUnits,parseUnits} from '@zigoals/chain-config';
 import type {Platform} from '../../lib/positions';
@@ -7,7 +8,7 @@ import './financial-evidence.css';
 const money=(m:EvidenceMoney)=>`${formatUnits(m.value,m.decimals)} ${m.currency}`;
 const utcInput=()=>new Date().toISOString().slice(0,16);
 const instant=(value:FormDataEntryValue|null)=>new Date(`${String(value)}Z`).toISOString();
-export function FinancialEvidence({data,update}:{data:Platform;update:(fn:(s:Platform)=>Platform)=>Promise<void>}){
+export function FinancialEvidence({data,update,...layout}:LayoutAttrs&{data:Platform;update:(fn:(s:Platform)=>Platform)=>Promise<void>}){
  const [selected,setSelected]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');const guard=useRef(false);
  const portfolios=data.financialPortfolios??[],portfolio=portfolios.find(p=>p.id===selected)??portfolios[0];
  const [kind,setKind]=useState('valuation'),[role,setRole]=useState('boundary'),[eventAt,setEventAt]=useState(utcInput),[eventAmount,setEventAmount]=useState(''),[fxId,setFxId]=useState('');
@@ -35,7 +36,7 @@ export function FinancialEvidence({data,update}:{data:Platform;update:(fn:(s:Pla
  },'Evidence saved. Current holdings and Goals are unchanged.');}
  async function previewFx(e:FormEvent<HTMLFormElement>){e.preventDefault();const form=new FormData(e.currentTarget);setError('');try{setFxPreview(makeManualFx({id:crypto.randomUUID(),occurredAt:instant(form.get('time')),recordedAt:new Date().toISOString(),sourceLabel:String(form.get('source')),original:{value:parseUnits(String(form.get('amount')),2).toString(),decimals:2,currency:String(form.get('base'))},quoteCurrency:String(form.get('quote')),quoteDecimals:2,rate:{value:parseUnits(String(form.get('rate')),18).toString(),decimals:18}}));}catch(e){setError(e instanceof Error?e.message:'Review the FX entry.');}}
  async function review(){if(!portfolio||!flowsComplete||!valuationsComplete||!incomeComplete||reviewStale||!reviewedBasis)return;const expected=reviewedBasis,id=crypto.randomUUID(),recordedAt=new Date().toISOString();await run(()=>update(s=>{if(financialEvidenceBasis(s,portfolio.id,startId,endId)!==expected)throw Error('Evidence changed while you reviewed it. Review the current records again.');return recordPerformanceReview(s,{id,portfolioId:portfolio.id,startId,endId,recordedAt,flowsComplete:true,valuationsComplete:true,incomeAndFeesIncluded:true});}),'Completeness review saved.');}
- return <section className="financial-evidence panel" aria-label="Financial evidence and returns"><p className="eyebrow">YOUR DATED FINANCIAL RECORDS</p><h2>Evidence &amp; returns</h2><p>Record a named portfolio from your statements, including its cash and all holdings. These manual records are separate from current Wealth, Goals and contributions; no balances or funds move.</p>
+ return <section {...layout} className="financial-evidence panel" aria-label="Financial evidence and returns"><p className="eyebrow">YOUR DATED FINANCIAL RECORDS</p><h2>Evidence &amp; returns</h2><p>Record a named portfolio from your statements, including its cash and all holdings. These manual records are separate from current Wealth, Goals and contributions; no balances or funds move.</p>
  <form className="financial-evidence-form" onSubmit={create}><label>Portfolio name<input name="name" required maxLength={120} placeholder="For example: my brokerage statement"/></label><label>Portfolio currency<select name="currency"><option>USD</option><option>EUR</option></select></label><button className="secondary" disabled={busy}>Create evidence portfolio</button></form>
  {!!portfolios.length&&<><label>Evidence portfolio<select value={portfolio?.id} onChange={e=>choose(e.target.value)}>{portfolios.map(p=><option key={p.id} value={p.id}>{p.name} · {p.currency}</option>)}</select></label>
  <form className="financial-evidence-form" aria-label="Record financial evidence" onSubmit={save}><h3>Record a statement fact</h3><label>Evidence type<select value={kind} onChange={e=>{setKind(e.target.value);setFxId('');}}><option value="valuation">Complete portfolio valuation</option><option value="external_flow">External deposit / withdrawal</option><option value="income">Income included in valuation</option><option value="fee">Fee included in valuation</option><option value="transfer">Transfer needing classification</option><option value="quantity_correction">Quantity correction needing review</option><option value="unclassified">Unclassified difference</option></select></label>

@@ -1,4 +1,5 @@
 import {bodyMeasurementSchema} from "./body-measurement-schema";
+import {exerciseSchema} from "./health-counters";
 import { z } from "zod";
 import { addLocalDays } from "./local-date";
 
@@ -109,9 +110,11 @@ export const healthSchema = z.strictObject({
   schemaVersion: z.literal(1), kind: z.literal("zigoals-health"), measurements:z.array(bodyMeasurementSchema).max(20000).optional(), targets: targetsSchema, daily: healthDailySchema.optional(),
   foods: z.array(foodSchema).max(1000), recipes: z.array(recipeSchema).max(500),
   diary: z.array(diarySchema).max(10_000), weights: z.array(weightSchema).max(5000), activity: z.array(activitySchema).max(10_000),
+  // Additive (UI design pass): quick exercise counters. Absent in older data; see lib/health-counters.ts.
+  exercise: exerciseSchema.optional(),
 }).superRefine((data, ctx) => {
   const ids = new Set<string>();
-  for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity, data.measurements??[], data.daily?.water ?? [], data.daily?.savedMeals ?? [], data.daily?.plans ?? []]) {
+  for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity, data.measurements??[], data.daily?.water ?? [], data.daily?.savedMeals ?? [], data.daily?.plans ?? [], data.exercise?.counters ?? [], data.exercise?.days ?? []]) {
     for (const item of list) {
       if (ids.has(item.id)) ctx.addIssue({ code: "custom", message: "Duplicate health record ID." });
       ids.add(item.id);

@@ -4,11 +4,12 @@ import Image from 'next/image';
 import {directoryEntries,directoryResources,directoryCategories,directoryReviewedAt,filterDirectory} from '@zigoals/ecosystem-registry/providers';
 import {PinToToday} from './pin-to-today';
 import './ecosystem-directory.css';
+import {NebulaFlow} from './nebula-flow';
 export function EcosystemDirectory(){
  const [query,setQuery]=useState(''),[category,setCategory]=useState('All');const visible=filterDirectory(directoryEntries,query,category);
  function clear(){setQuery('');setCategory('All');}
  return <section className="ecosystem-directory" aria-labelledby="ecosystem-directory-title">
-  <div className="ecosystem-intro"><p className="eyebrow">The Goal Layer for ZIGChain</p><h1 id="ecosystem-directory-title">Explore the ZIGChain ecosystem.</h1><p>Discover projects, understand their role, and follow official sources. Your plan stays yours.</p><div className="ecosystem-review"><span>{directoryEntries.length} research records</span><span>Sources reviewed <time dateTime={directoryReviewedAt}>{directoryReviewedAt}</time></span><span>No external execution in ZIGoals</span></div></div>
+  <div className="ecosystem-intro"><p className="eyebrow page-eyebrow"><NebulaFlow identity="ecosystem-eyebrow">The Goal Layer for ZIGChain</NebulaFlow></p><h1 id="ecosystem-directory-title"><NebulaFlow identity="ecosystem-title">Explore the ZIGChain ecosystem.</NebulaFlow></h1><p className="page-lede">Discover projects, understand their role, and follow official sources. Your plan stays yours.</p><div className="ecosystem-review"><span>{directoryEntries.length} research records</span><span>Sources reviewed <time dateTime={directoryReviewedAt}>{directoryReviewedAt}</time></span><span>No external execution in ZIGoals</span></div></div>
   <p className="ecosystem-context">An ecosystem listing is not a ZIGoals partnership, endorsement or security audit. Descriptions summarize project or network sources. External sites set their own network, access rules and terms.</p>
   <div className="ecosystem-controls"><label>Search projects<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Name, role or topic"/></label><label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{directoryCategories.map(c=><option key={c}>{c}</option>)}</select></label><button type="button" className="quiet" onClick={clear} disabled={!query&&category==='All'}>Clear filters</button></div>
   <p className="ecosystem-result" role="status">{visible.length} of {directoryEntries.length} projects{category!=='All'?` · ${category}`:''}</p>

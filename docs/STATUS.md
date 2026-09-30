@@ -1,3 +1,172 @@
+# UI design pass (Session A) — 2026-09-30, PR #47 (open; not merged or deployed)
+
+Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Chromium via the `chrome` channel); **CI** = Milestone quality on the PR head; **dev** = `next dev` only. Baseline: main `5dd2ee7` (Alpha deploy #12 is recorded by Session B, not here).
+
+**Parts** (branch `ui/design-pass-2026-09-29`, [PR #47](https://github.com/reyals1111-ux/ZIGoals/pull/47)):
+1. `b036d12` Readability and headers: shared text tokens (`components/design-system.css`), one `PageHeader` system, Goals "+ Create a goal" at the far right, sidebar signature "Shape & Fold" / "Your Own Future" with a star, Habits actions beside the orbit and the journal timezone at the bottom. Also fixes a pre-existing hydration warning on Habits/Health (PageArrival marked nodes before hydration).
+2. `9c68600`, `67a05e1` Drag-and-drop layouts on Today, Goals, Habits, Health, Wealth, Markets, Stake/Positions and Activity (unlock → drag handle or Move buttons → Done/Reset; touch after a long-press). **TIER 3 (new persistence key).**
+3. `7799ba2`, `e572385` Liquid-glass hover/press/focus lift: one delegated handler, one shared overlay, transform/opacity only, static under reduced motion / Motion Off / forced colours.
+4. `f05d06c` Health gradient titles; `3680569` quick exercise counters (Push-ups, Pull-ups, Squats by default; up to 6; 8 original icons). **TIER 3 (Health data format).**
+5. `c91f169` Wealth single-total headline in one currency; other currencies on their own line, "not converted"; no FX.
+6. `c084b9c`, `3f13854` Journey banner in the orbit theme; the Alpha truths stay visible.
+7. `f1bb8bb` Six new Today widget choices (next Goal milestone, best streak, week check-ins, top holding share, exercise counters, calories and macros) and a clearer Customize menu. **TIER 3 (settings data format).**
+8. `f5e1ea4` A closing section on each page (week across areas, milestones, weekday consistency, 7-day Health trends, allocation and coverage, how values are sourced, where data lives).
+9. `4187724`, `a8a4e89`, `c0cf409`, `8b3abc0`, `0e5ee0f` Quality sweep: performance fixes found through CI (below); `button.text-link` without the browser's grey button face (pre-existing, 3.6:1); Ecosystem labels at 14px; the Part 2 tests updated for Part 8's new sections. Sweep (local, production build, Showcase): every app page at 1440×900, 1920×1080, 1280×800 and 390×844 with no document overflow and no console errors beyond the offline market fixture; Motion Off and reduced motion leave no running animation; Tab through each page shows a focus ring at every stop; forced colours load cleanly.
+
+**Layout key `zigoals:layout:v1`** (TIER 3): per device in browser storage (Showcase: the tab's session storage). Stores page, region and card IDs and their order only; Goal/Habit/holding cards use hashed IDs, so no names or keys are written. Not synced and not in backups. Corrupt or oversized data falls back to the default layout; unknown IDs are ignored; new cards appear in their default spot. Today's main column and rail keep using the existing synced Today placement in `zigoals:settings:v1` (no format change; new `resetDashboardPlacement`). Rollback: delete the key or use Reset this page; older builds ignore it.
+
+**Health data change** (TIER 3): optional `exercise: {version: 1, counters: [{id, name, icon}] (≤6), days: [{id, counterId, date, count}]}` on the strict Health schema. Health without it reads byte-identically, and nothing is written before the first tap. Records carry IDs, so the existing generic sync merge combines them; the same day edited on two devices surfaces as the existing conflict review. No change to the sync protocol, encryption or backup format version. **Older builds (deploy #12) cannot read Health data that contains `exercise`:** they show "Private data could not be read" for Health and refuse such a backup, keeping existing data. Deleting counters does not remove the group; rolling back needs an older backup. Known gap (vault code, off-limits): the backup preview's record counts do not include counter days.
+
+**Settings data change** (TIER 3): new widget kinds `milestone`, `streak`, `checkins`, `holding-share`, `exercise` and the Health metric `macros-ring` in `zigoals:settings:v1` (synced, backed up). Presets and existing widgets are unchanged. **Older builds cannot read a settings record that contains a new widget:** Today settings show "Private data could not be read" there until the widget is removed in a newer build or an older backup is restored. See **Compatibility and rollback** below: it also hides the Alpha top bar and the Local simulation strip on every page.
+
+**Performance** (local, production builds, same machine): Part 3 slowed `scripts/run10/account-browser` by about 8 s (bisect: main 70.6/70.5 s, Part 2 68.7/67.3 s, Part 3 77.6/78.1 s). A Chrome timeline traced most of it to the display compositor. Fixed in `4187724` (no blend mode or filled animation on the sidebar star, idle glass overlay hidden, sections taller than 1.25 screens never lift, typing never lifts its card, PageArrival reads mutations once per frame) and `c0cf409` (hover intent: an element lifts after the pointer rests 70 ms; a press cancels a pending lift). After: 71.6/71.1 s against 70.6/70.5 s on main. Hover trace earlier (dev): 0 long tasks, frame p50/p95/max 16.7/16.8/16.8 ms over 732 pointer moves.
+
+**Tests** (counts are per run; they overlap and are not summed):
+- Unit (local, Node 24.19.0, `c0cf409`): 186 files passed, 8 skipped; 1686 tests passed, 12 skipped. New: `page-layout`, `health-counters`, `wealth-total`, `dashboard-widgets-design-pass`, `bottom-insights` and one `dashboard-settings` test.
+- Playwright full suite (local, production build of `a8a4e89`, desktop + mobile, 2 workers): 531 passed, 31 skipped, 4 failed. Two are the intro-video test (desktop, mobile), which needs H.264 and fails only in this sandbox's Chromium. `wealth.spec.ts:23` (desktop, a click that never completed) and `run10-widgets.spec.ts:20` (mobile, 45 s timeout) then passed 12/12 alone and in CI.
+- Playwright on `c0cf409` (local): ui-design-pass, motion-polish, goal-choice-controls and brand-nav-polish, 75 passed; the new hover-intent check 3/3.
+- New spec `tests/ui-design-pass.spec.ts` covers Parts 1–9. Updated with reasons in their commits: `logo-quickadd-goals-header` (Create at the far right), `brand-nav-polish` (tagline above the planet), `motion-arrival` (sub-pixel layout measurement).
+- CI on `a8a4e89`: web checks, all three browser shards, contract and canonical reproducibility passed; web integration failed only on account-browser a-first (below), also on its one re-run.
+- CI on `9383f15` (after hover intent): **web integration passed**, including account-browser in both orders; web checks, shards 1 and 3, contract and reproducibility passed. Shard 2 failed only the new hover-intent check, which was timing-dependent on the runner and is made deterministic in the next commit.
+- **CI on `0e5ee0f`: all green** (Milestone quality: web checks, web integration including account-browser in both orders, all three browser shards, contract; canonical reproducibility).
+- Unit (local, Node 24.19.0, `dc667f3`): 187 files passed, 8 skipped; 1690 tests passed, 12 skipped (new: `deploy12-compat`).
+- Playwright full suite (local, production build of `dc667f3`, desktop + mobile, 2 workers): 552 passed, 33 skipped, 3 failed.
+  - The intro-video test (desktop, mobile) needs H.264 and fails only in this sandbox's Chromium.
+  - `run10-widgets.spec.ts:20` (mobile) hit its 45 s budget in the six-width loop, then passed 3/3 alone.
+- **CI on `dc667f3`: all green** (web checks, web integration, all three browser shards, contract, canonical reproducibility). The two red "web" roll-ups on `86633a6` and `99b5cc3` were browser suites cancelled by the next push.
+- **CI green on `d5ec3db` (Part 15), `1cd6840` (Part 16) and the main merge `e110ced`** (web checks, web integration, all three browser shards, contract, canonical reproducibility; 10/10 each).
+
+**Known CI intermittents on this PR:** `account-browser` 90 s timeouts on `67a05e1`, `f1bb8bb`, `f5e1ea4` (a-first and b-first), then a-first only on `4187724` and `a8a4e89` (re-run once, failed again); passed on `9383f15` and `0e5ee0f` after the hover-intent change. The root-cause fix is Session B's `8ca0e03` (#46: the integration files run one at a time). #46 is merged, and this branch has it since `e110ced`. `run11-route-mobile-acceptance` (desktop) hit its 45 s budget once on `f1bb8bb`; locally it takes 24.6–26.0 s on this branch and 23.0–25.0 s on main.
+
+**Not done / skipped:** half/full width toggle (only Today's existing compact/wide sizes); Ecosystem is a filtered directory, not a card layout, so it stays fixed; Markets catalog cards are not reorderable (they follow the catalog filter); backup preview counts for counter days (vault, off-limits).
+
+**Follow-up (Parts 10–14, same PR):**
+10. `86633a6` Compatibility and data-safety analysis for the counters and widgets, with a rollback guard test (below).
+11. `3369799` Test hygiene: the one unjustified skip now runs (below).
+12. `5f2c813`, `ebdf693` Evidence checks and a performance trace (below).
+13. `8f81c17`, `4b22a9f`, `99b5cc3`, `dc667f3` Polish fixes (below).
+14. Review gallery: [PR #47 comment](https://github.com/reyals1111-ux/ZIGoals/pull/47#issuecomment-5906382196). It has 53 WebP images (≤206 KB each) on branch `review/pr47-screenshots`, which is not for merging: every main page at 1440×900 and 390×844, before (`5dd2ee7`) and after (`dc667f3`), plus close-ups. Showcase data only.
+15. `d5ec3db` **TIER 3 (honesty banners):** the testnet bar and the Local simulation strip never depend on readable private data (below).
+16. `1cd6840` `run10-widgets.spec.ts:20` mobile timeout: root cause found and fixed (below).
+17. `dd16ffd` `goal-provider.test.ts` intermittent: root cause found and fixed with a deterministic failing-first proof (below).
+Merge of main after #46: `e110ced` (both STATUS entries and the Known CI intermittents table kept).
+
+**Compatibility and rollback** (Part 10, `86633a6`; evidence: code reading of 5dd2ee7 = deploy #12, a local cross-version unit check importing 5dd2ee7's own modules, and a local browser run with both production builds on one origin)
+
+What changed in stored data:
+- Health (`zigoals:health:v1`, schemaVersion 1, unchanged): one optional top-level field `exercise {version:1, counters ≤6, days}`, written only by a counter change (tap, add, rename, icon, delete). Records carry IDs and join the Health-wide unique-ID check.
+- Today settings (`zigoals:settings:v1`, schemaVersion 1, unchanged): five widget kinds (`milestone`, `streak`, `checkins`, `holding-share`, `exercise`) and one Health metric (`macros-ring`), written only when such a widget is saved.
+- New device-only key `zigoals:layout:v1` (never synced, never in backups; deploy #12 ignores it).
+- Unchanged: the backup format (`zigoals-encrypted-backup` version 1/2), the sync protocol and envelope, the vault, `use-private-store`, `private-storage`, workers and packages (no diff against 5dd2ee7).
+
+Who is affected by a rollback to deploy #12:
+- Nobody who never tapped a counter and never saved one of the new widgets: their records keep exactly deploy #12's fields (guarded by `lib/deploy12-compat.test.ts`; confirmed against 5dd2ee7's own schemas). The layout key is ignored.
+- Someone who used a counter: deploy #12 shows "Private data could not be read. It has not been changed." on Health (the whole Health page is unavailable) and a Health notice on Today. Goals, Habits, Wealth and the Alpha banners are unaffected (browser run).
+- Someone who saved a new widget: deploy #12 cannot read Today settings. Today shows the read error and "Your saved layout needs recovery in Settings"; Pin to Today is disabled everywhere; encrypted backup creation is refused while a store is unreadable; and — because deploy #12's Shell shows the "ZIGChain testnet · Public Alpha" top bar and the Local simulation / demo balance strip only when Today settings read — those honesty labels disappear on every page (browser run: 0 of 1 on Today, Goals, Habits, Health, Wealth). Today settings are one store of their own (`zigoals:settings:v1`); they do not share a store with Goals or Positions (`zigoals:platform:v1`).
+- Account sync on deploy #12 (code reading): each sync validates every captured domain before and after the merge (`captureData` → `validateData`, `synchronize(..., validateData)`). Once the cloud copy (Health with consent, or settings) contains the new data, a deploy #12 device's sync stops with an error for all domains; nothing is uploaded or applied, its local edits stay local and pending, and nothing in the cloud is overwritten.
+
+Data-loss paths in deploy #12 (none silent):
+- Normal edits: `updatePrivateStore` and `updateDurableStore` re-read the stored record under the cross-tab lock and parse it strictly before calling the edit; a record with the new data fails the parse, so the edit throws and nothing is written ("Could not save private data. Nothing was applied."). `enableDurableStore` (sync migration) parses strictly too.
+- Schemas are strict (`z.strictObject` for Health, `.strict()` plus an enum for widgets), so unknown fields are refused, never stripped and re-saved without them.
+- Stale tab (browser run): a deploy #12 Health/Today tab left open while a new-build tab tapped a counter and saved a widget refreshes on the cross-tab events, shows the read error and hides its forms; its save attempt changed nothing (Health and settings bytes identical before and after). No page errors.
+- Explicit replacement only: restoring an older module backup in deploy #12 replaces the store but keeps the newer record as a recovery copy (`<key>:recovery:<uuid>`, or the durable store's recovery copy); counters and widgets would then only be in that copy.
+- No deploy #12 code writes or removes the Health or settings keys outside those paths.
+
+Recovery: deploy forward. The new build reads everything back (browser run: counter value and widgets intact after the rollback visits). Before a planned rollback, removing new widgets (Customize Today → the widget → Remove widget) makes Today settings readable again; counters cannot be removed that way (deleting counters keeps the group), so Health stays unreadable in deploy #12 until forward. Stale-tab risk: an old tab cannot damage data, but a new-build tab left open after a rollback can keep writing counters/widgets.
+
+From this build on (`d5ec3db`), honesty banners don't depend on readable private data. The testnet bar and the Local simulation strip render from the app mode even when Today settings, Health or the account selection are unreadable, corrupt, from a newer build or still loading. Only a readable Health/Habits-only Today or a selected account hides them, as before. Deploy #12 itself still hides them after a rollback (above).
+
+**Test hygiene** (Part 11, `3369799`)
+- **Skips.** Full suite on `dc667f3` (local): 33 skipped against 21 on main. All 12 added skips are platform checks (conditional `test.skip` on the project); none skips a test outright.
+  - Count history: 31 at `a8a4e89`, then 32 with the hover-intent check, 31 after the fix below, and 33 with two `ui-evidence` skips.
+  - `tests/ui-design-pass.spec.ts` (10):
+    - Hover with a fine pointer, skipped on mobile (5): Goal card and tile lift, reduced motion, Motion Off, hover intent, long sections.
+    - Keyboard-focus lift, skipped on mobile; the lift CSS applies to fine pointers only (1).
+    - Mouse drag, skipped on mobile; the touch long-press test covers phones (1).
+    - Sidebar signature, skipped on mobile, where the sidebar planet is hidden (1).
+    - Two touch-only checks, skipped on desktop (2).
+  - `tests/ui-evidence.spec.ts` (2): hover and mouse drag under reduced motion and Motion Off, skipped on mobile; the keyboard layout flow covers phones.
+  - Unjustified, fixed in `3369799`: the Habits header check skipped the whole mobile project, though only its side-by-side placement and first-view budget are desktop facts. It now runs on mobile.
+- Existing tests modified by this PR (each in its commit message; none weakened):
+  - `logo-quickadd-goals-header` (Part 1): "+ Create a goal" moved from right after the title to the far right of the title row at the owner's request; now asserted within 2px of the row's right edge (was: within 32px of the title), still right of the title and vertically centred within 8px.
+  - `brand-nav-polish` (Part 1): assertions added only (tagline above the planet, new text, star aria-hidden).
+  - `motion-arrival` (Part 1): layout equality now uses sub-pixel boxes with transforms neutralised for one synchronous read (was integer offsetLeft/offsetTop sums that round per offsetParent level); still exact equality, at 0.01px instead of 1px.
+  - `tests/ui-design-pass.spec.ts` Part 2 layout tests (4187724): expected order now includes Part 8's new last section (`habits:rhythm`, "position 2 of 4", `health:trends`).
+  - `lib/dashboard-settings.test.ts`: one test added; existing tests unchanged.
+
+**Evidence** (Part 12, `5f2c813`, `ebdf693`; local production build)
+- `tests/ui-evidence.spec.ts` (desktop + mobile): reduced motion and Motion Off (no sweep, entrance or arrival on any main page; hover and a mouse drag run no motion), forced colours (every main page renders; the first 14 Tab stops each show a real outline), keyboard-only layout flow on Health and Wealth (unlock → move → announcement → reset → lock), no hydration or page errors on any main page (client navigation and cold load), no horizontal overflow at 390px. Local on `dc667f3`: 18 passed, 2 platform skips (this includes the Part 13 toolbar check).
+- Found and fixed: Motion Off did not stop three older card hover lifts from main (Goal cards on dashboards, watch cards, owned-asset cards); layout move buttons ran empty background-position transitions.
+- Performance (1,098 pointer moves over 18 sweeps, 1440×900, Showcase): 30-day habit calendar main 0.75–0.90 ms main-thread work per frame, this branch 2.5 ms (was 2.7–3.0 before `ebdf693`); Wealth asset list main 1.2–1.8 ms, this branch 2.0–2.1 ms. Both hold 60 fps (p50/p95 16.7/16.7–16.8 ms), no long tasks.
+  - Update (Part 18.2): the pointer-following light is removed, so a moving pointer no longer drives any work. Main-thread work per frame on the same sweeps: habit calendar 1.90–1.92 ms, Wealth list 1.89–1.90 ms (two runs each). No long tasks. One habit run had 3 frames over 20 ms (max 83 ms); the other runs had none.
+- The earlier ~8 s account-browser slowdown: mostly Playwright element-stability waits, not rendering. Actions that needed "element is not stable" retries took 15.5 s on the pre-fix branch (39 actions) against 10.7 s on main (21 actions), which is the whole action-time difference of that run; lifts starting as the test pointer arrived moved targets for 220 ms. After hover intent: 22 actions, 11.3 s. The sidebar star's blend mode was a smaller real compositor cost (fixed in `4187724`).
+
+**Polish** (Part 13; local production build, Showcase, every main page reviewed at 1440×900 and 390×844; fixes only):
+- `8f81c17` Goal cards: the caption no longer repeats the asset-class count; the legend below lists each class.
+- `4b22a9f`:
+  - The mode strip is readable over the Today hero.
+  - The Staking "Explore" link wraps as one unit.
+  - Portfolio composition has one divider instead of two.
+  - Settings "Where your data lives" has no orphan card.
+  - The Wealth total label clears the options button.
+  - On phones, the mode dot sits inline with its text, and the layout lock is a 44 px square at the top right of the Positions, Activity and Health headings, with hero eyebrows kept clear of it.
+- `99b5cc3` Unlocked layouts:
+  - Goals: the section's move controls sat on the middle card's controls (desktop) or the only card's (phone).
+  - Activity: the page's own `.activity-context>div` card rule turned the toolbar into a tall column over the text.
+  - Health on phones: counter toolbars spilled over the neighbouring tile.
+  - Now every card's controls stay inside it on one row and never overlap. A new check in `tests/ui-evidence.spec.ts` failed on the previous build and passes now. Edit mode only.
+- `dc667f3` The "Add a widget" category counts line up when a label wraps.
+- Left as is:
+  - Staked principal shows "—" when unknown (correct; Positions is wallet-adjacent).
+  - Today's widget grid can end on a half-empty row (fixing it needs layout rework).
+  - Goal cards show "VALUE GOAL" twice, in the art caption and the header; this is the same on main.
+  - The decorative orbit dot beside "Available for Goals" is main's artwork.
+
+**Fail-safe honesty banners** (Part 15, `d5ec3db`):
+- Dependencies found, all in `components/shell.tsx`:
+  - Both banners required Today settings to be loaded and readable.
+  - A damaged account selection (`useWorkspaceSelection` reports `selected` with `error`) hid them.
+  - While stores loaded, the whole workspace, including the Showcase banner, workspace status and mode strip, was hidden.
+- All three are removed in Shell and CSS. No private-store, vault or sync code changed, and none was needed.
+- Checked and not dependent:
+  - The Showcase banner uses the tab's Showcase flag.
+  - Today's "Testnet Alpha · simulated financial progress" line falls back to the balanced preset when settings are unreadable.
+  - The journey banner is static.
+- New `tests/honesty-banners.spec.ts` (desktop + mobile, 14 tests):
+  - Cases: newer-build and corrupt Today settings, newer-build and corrupt Health, a damaged account selection, and the server-rendered loading state.
+  - Each case keeps both banners on all 10 main pages.
+  - "Private data could not be read" still shows on Today (settings, Health) and on Health (Health), and stored bytes stay unchanged.
+  - A readable Health/Habits-only Today still hides the financial bars.
+  - Local: 8 of 14 failed on the previous build (settings ×2, account selection, loading; both projects); 14/14 pass now. The Health cases already passed: Health never gated the banners.
+  - Related specs (top bar, mode strip, workspace status, ui-design-pass, ui-evidence): 154 passed.
+- Seen, not changed (vault/durable-store code): a durable-store read that never settles would keep the workspace hidden indefinitely. The banners now still show.
+
+**run10-widgets mobile timeout** (Part 16, `1cd6840`):
+- Reproduced: 3 of 20 mobile runs timed out (local, production build, 2 workers), median 44.1 s against a 45 s budget.
+- Step timing: the four full-page preset screenshots took 6–12 s each (about 35 s); the six-width overflow loop took under 1 s.
+- Root cause:
+  - The capture cost is linear in page height, 0.82–0.84 ms per CSS px on both builds. iPhone 13 renders at 3×, so each capture is a 12–18 MB PNG.
+  - This branch's Today is 1,300–1,400 px taller per preset (Part 8's week section, the journey banner).
+  - On main `5dd2ee7` the same test already took about 35 s.
+- Fix: the screenshots are review attachments only, so they are now captured at CSS-pixel scale. No assertion or timeout changed.
+- After: 20/20 mobile passes (median 11.1 s, max 13.1 s), plus 3 of 3 inside full suites (10.8–12.0 s).
+
+**goal-provider intermittent** (Part 17, `dd16ffd`):
+- Reproduction:
+  - 0 failures in 20 plain full `pnpm test` runs.
+  - Under CPU load (6 busy loops on 4 cores, `--repeats=15`): 2 failures in one run of two ("external same-scope journal intent cancels testnet review before signing" and Session B's "durable journal revisions stop signing…").
+- Root cause: `click()` sleeps a fixed 20 ms, and some tests sleep 30–40 ms. The next lines then assert synchronously on async provider work (quote, journal revision check, Web Locks). Session B's `ec3ac7a` had fixed one instance of this.
+- Fix: assertions now wait for the state with the file's own `rendered()` poll, and expected disappearances poll until gone. "Unchanged"/"not executed" checks run after the outcome. No expectation was removed and no timeout changed.
+- Deterministic proof: a temporary copy with 30 ms latency on every Web Lock and on the quote failed 4 of 29 before the fix and 0 of 29 after. The fixed file under CPU load passed 2 of 2 runs.
+
+**Local-only observations** (not seen in CI, not changed):
+- `product-data.spec.ts:72` (desktop) timed out in `waitForLoadState("networkidle")` after a reload:
+  - This branch: 6 of 20. Main `5dd2ee7`: 3 of 20. So it predates this PR.
+  - The test doesn't stub `/api/market-*`, so the likely cause is a slow outbound request in this sandbox (not verified).
+- `health-daily.spec.ts:93` (desktop) and `owner-preview.spec.ts:28` (mobile) each stalled once in 3 full suites and then passed 20/20 alone.
+
+**Remaining "The Goal Layer for ZIGChain":** `README.md:2`, `apps/web/components/ecosystem-directory.tsx:11` (Ecosystem eyebrow), `landing/index.html:7` (page title), and 12 historical files under `docs/`. The app sidebar no longer shows it.
+
 # Session C — dependency patch updates, audit cleanup and type coverage (2026-09-30, [PR #48](https://github.com/reyals1111-ux/ZIGoals/pull/48), not merged or deployed)
 
 Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build, Playwright at most 2 workers, Chromium 141 standing in for `chrome`); **CI** = Milestone quality on the PR; **changelog** = official release notes or tag history; **npm** = registry metadata or tarball diff. No account, secret, wallet or deploy was used, and no wrangler command reached Cloudflare. This PR merges after #47 and ships in a later deploy.
@@ -132,7 +301,8 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
 | `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
-| `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | Monitor. apps/web test, Session A's lane; not changed here |
+| `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
+| `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 1/10 on mobile at `main` `97e2cfd`. Not seen in CI | web browser suite | Monitor. During these runs the egress proxy rejected the sandbox Chromium's background requests (e.g. www.google.com), which may keep the page from reaching networkidle; unconfirmed. apps/web test, Session A's lane; not changed here |
 

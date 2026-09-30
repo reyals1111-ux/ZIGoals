@@ -1,4 +1,8 @@
 "use client";
+import { HealthTrends } from "../bottom-sections";
+import { ExerciseCounters } from "./exercise-counters";
+import { NebulaFlow } from "../nebula-flow";
+import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useId, useEffect, useRef, type FormEvent, type ReactNode } from "react";
@@ -90,10 +94,13 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   };
   const invalid = () => setError("Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings.");
   const summary = dailyHealthSummary(data, date);
-  return <div className="health-page">
-    <div className="page-heading"><div><p className="eyebrow">YOUR EVERYDAY WELLBEING</p><h1>A little care, every day.</h1><p>Your food, water, movement and progress. Your private journal.</p></div><div className="actions"><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button><Link className="badge" href="/app/settings">Privacy &amp; backups</Link></div></div>
-    <HealthSummary data={data} date={date} onTargets={() => setView("Targets")} />
-    <NutritionDashboard data={data} date={date} />
+  return <LayoutPage page="health"><div className="health-page">
+    <ExerciseCounters data={data} update={update} />
+    <div className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="health-eyebrow">YOUR EVERYDAY WELLBEING</NebulaFlow></p><h1><NebulaFlow identity="health-title">A little care, every day.</NebulaFlow></h1><p className="page-lede">Your food, water, movement and progress. Your private journal.</p></div><div className="actions"><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button><Link className="badge" href="/app/settings">Privacy &amp; backups</Link><LayoutLockButton/></div></div>
+    <LayoutRegion region="body" items={[
+    {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} onTargets={() => setView("Targets")} />},
+    {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
+    {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => setDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") setDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => setDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => setDate(healthDay(dailyData(data).preferences.timezone))}>Today</button></div>
     </div>
@@ -109,21 +116,25 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Activity" && <ActivityView data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Targets" && <TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} />}
     </fieldset>
-    <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section><p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
-  </div>;
+    </div>},
+    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
+    {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={healthDay(dailyData(data).preferences.timezone)} />},
+    ]}/>
+    <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
+  </div></LayoutPage>;
 }
 
-function HealthSummary({ data, date, onTargets }: { data: HealthData; date: string; onTargets: () => void }) {
+function HealthSummary({ data, date, onTargets, ...layout }: LayoutAttrs & { data: HealthData; date: string; onTargets: () => void }) {
   const gradientId = useId();
   const summary = dailyHealthSummary(data, date);
   const kcal = summary.nutrients.kcal;
   const target = data.targets.kcal;
   const progress = target && kcal!==null ? Math.min(1, kcal / target) : 0;
-  return <section className="panel health-summary" aria-label="Daily nutrition summary">
+  return <section {...layout} className="panel health-summary" aria-label="Daily nutrition summary">
     <PinToToday label="Daily nutrition" choices={[{kind:'health',metric:'kcal',label:'Meals today'},{kind:'health',metric:'macros',label:'Macros today'}]}/>
     <div className="health-aurora" aria-hidden="true"><i /><i /><i /></div>
     <MotionTrack identity="health-gauge" className="health-gauge"><svg viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#62deed"/><stop offset=".3" stopColor="#7298ff"/><stop offset=".6" stopColor="#b197ff"/><stop offset=".8" stopColor="#e894dd"/><stop offset="1" stopColor="#f7a4b2"/></linearGradient></defs><circle cx="80" cy="80" r="68" className="health-gauge-track" /><circle cx="80" cy="80" r="68" pathLength="100" className="health-gauge-fill" style={{ stroke: `url(#${gradientId})` }} strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 80 80)" /></svg><div><strong>{formatNutrient(kcal)}</strong><span>kcal logged</span></div></MotionTrack>
-    <div className="health-summary-main"><p className="eyebrow">{date === healthDay(dailyData(data).preferences.timezone) ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? "Every entry adds perspective." : "Start with one small entry."}</h2><p>{target ? `${target.toLocaleString()} kcal target` : "No calorie target set"}</p>{target && kcal!==null ? <p className="fine">{kcal <= target ? `${(target - kcal).toLocaleString()} kcal remaining to your target` : `${(kcal - target).toLocaleString()} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}{kcal===null&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}. Total and target comparison unavailable.</p>}<p className="health-daily-facts">{new Set(data.diary.filter(entry => entry.date === date).map(entry => entry.meal)).size} meal groups · {summary.entries} entries{summary.steps > 0 ? ` · ${summary.steps.toLocaleString()} steps logged` : ""}{summary.minutes > 0 ? ` · ${summary.minutes} min movement` : ""}</p><button className="quiet" onClick={onTargets}>Edit personal targets</button></div>
+    <div className="health-summary-main"><p className="eyebrow">{date === healthDay(dailyData(data).preferences.timezone) ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? <NebulaFlow identity="health-summary-title">Every entry adds perspective.</NebulaFlow> : "Start with one small entry."}</h2><p>{target ? `${target.toLocaleString()} kcal target` : "No calorie target set"}</p>{target && kcal!==null ? <p className="fine">{kcal <= target ? `${(target - kcal).toLocaleString()} kcal remaining to your target` : `${(kcal - target).toLocaleString()} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}{kcal===null&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}. Total and target comparison unavailable.</p>}<p className="health-daily-facts">{new Set(data.diary.filter(entry => entry.date === date).map(entry => entry.meal)).size} meal groups · {summary.entries} entries{summary.steps > 0 ? ` · ${summary.steps.toLocaleString()} steps logged` : ""}{summary.minutes > 0 ? ` · ${summary.minutes} min movement` : ""}</p><button className="quiet" onClick={onTargets}>Edit personal targets</button></div>
     <div className="health-macro-grid">{([ ["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"] ] as const).map(([label, key]) => {
       const personalTarget = data.targets[key];
       return <div className={`health-macro health-macro-${key}`} key={key}><span>{label}</span><strong>{nutritionSummaryText(summary,key,"g",1000)}</strong><MotionTrack identity={`health-macro:${key}`} className="health-meter" aria-hidden="true"><i style={{ width: `${personalTarget && summary.nutrients[key]!==null ? Math.min(100, summary.nutrients[key]! / personalTarget * 100) : 0}%` }} /></MotionTrack><small>{personalTarget ? `${formatHealthGrams(personalTarget)} g target` : "Target not set"}</small></div>;

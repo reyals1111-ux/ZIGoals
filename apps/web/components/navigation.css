@@ -10,12 +10,12 @@
 .sidebar-actions { padding:16px 4px 0; }
 .sidebar-actions .quick-add-trigger { width:100%;min-height:46px;background:linear-gradient(110deg,#16435b,#33244c);border-color:#87bbed77; }
 .app-sidebar .sidebar-destination { min-height:150px;flex-shrink:0;padding-top:90px;margin-top:20px; }
-/* Desktop: the wordmark sits right above the planet; the tagline wears the wordmark's nebula gradient with a soft shade for legibility over the glow. */
+/* Desktop: the wordmark sits right above the planet; the tagline's lines wear the wordmark's nebula gradient with a soft shade for legibility over the planet. */
 @media(min-width:901px) {
  .app-sidebar .sidebar-destination { margin-top:auto;padding-top:26px;display:flex;flex-direction:column;align-items:center; }
  .sidebar-destination .brand-wordmark { position:relative;z-index:1;font-size:37px; }
  .app-sidebar .sidebar-horizon { inset:84px 0 0; }
- .app-sidebar .sidebar-destination small { margin-top:58px;font-weight:700;background:var(--nebula-emphasis);background-clip:text;-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px #020918) drop-shadow(0 0 7px #020918e6); }
+ .app-sidebar .sidebar-destination small { margin-top:58px;font-weight:700; }
 }
 .app-topbar .wallet { min-width:0; }
 .quick-add-dialog { overflow-y:auto;overscroll-behavior:contain; }
@@ -33,3 +33,23 @@
 }
 
 .workspace-status{display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:space-between;align-items:center;padding:.75rem 0;color:var(--muted);font-size:.875rem;overflow-wrap:anywhere}.workspace-status a{min-height:44px;display:inline-flex;align-items:center}.workspace-status>span{min-width:0}
+/* Sidebar signature (UI design pass): two lines, "Shape & Fold" / "Your Own Future", rest on the planet's body below the
+   horizon, clear of the bright rim and the star. Only the two visible lines wear the nebula gradient: the screen-reader
+   copy is never inside a text-clipped background, so no engine can paint it as a second line. A bright star rests on the
+   rim in the header star's style. No blend mode and no filled animation: the sidebar stays one cheap layer on every frame. */
+.sidebar-tagline>span[aria-hidden] { display:block;text-transform:uppercase; }
+@media(min-width:901px) {
+ .app-sidebar .sidebar-destination { min-height:300px; }
+ .app-sidebar .sidebar-destination small.sidebar-tagline { position:relative;z-index:1;margin-top:auto;padding-bottom:30px;line-height:1.75;background:none;color:var(--text-strong,#f4f8ff);filter:none; }
+ .app-sidebar .sidebar-tagline>span[aria-hidden] { background:var(--nebula-emphasis);background-clip:text;-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px #020918) drop-shadow(0 0 7px #020918e6); }
+ .app-sidebar .sidebar-horizon { inset:142px 0 0; }
+ .sidebar-star { position:absolute;z-index:1;left:64%;top:151px;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,#fff 0 9%,#fff6ea 15%,#ffd3aecc 25%,#ff9fb866 42%,#a98bff26 62%,#0000 100%); }
+ .sidebar-star::after { content:'';position:absolute;inset:-18px;border-radius:50%;background:radial-gradient(closest-side,#9fe9ff55,#a98bff22 55%,#0000);opacity:.8; }
+}
+@media(min-width:901px) and (prefers-reduced-motion:no-preference) { :root:not([data-app-motion=off]) .sidebar-star { animation:sidebar-star-glow 1600ms cubic-bezier(.22,1,.36,1) 500ms backwards; } }
+@keyframes sidebar-star-glow { from { opacity:0;transform:scale(.4); } 55% { opacity:1;transform:scale(1.35); } to { opacity:1;transform:scale(1); } }
+@media(max-width:900px) { .sidebar-star { display:none; } }
+@media(forced-colors:active) { .sidebar-star { display:none; } }
+/* While the workspace waits for private stores it stays hidden, but the honesty and status banners never do. */
+.workspace[aria-busy=true] > :is(.showcase-banner,.workspace-status,.status-row) { visibility:visible; }

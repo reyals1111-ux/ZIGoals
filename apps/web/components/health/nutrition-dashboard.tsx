@@ -1,4 +1,5 @@
 "use client";
+import type { LayoutAttrs } from "../layout-edit";
 import type { CSSProperties } from "react";
 import { nutritionDashboard } from "../../lib/life-intelligence";
 import { nutritionSummaryText, type HealthData } from "../../lib/health";
@@ -7,12 +8,12 @@ import {PinToToday} from "../pin-to-today";
 import {useEntrance} from '../use-entrance';
 import {MotionTrack} from '../motion-track';
 
-export function NutritionDashboard({ data, date }: { data: HealthData; date: string }) {
+export function NutritionDashboard({ data, date, ...layout }: LayoutAttrs & { data: HealthData; date: string }) {
   const result = nutritionDashboard(data, date);
   const showcase = useShowcase();
   const max = Math.max(1, ...result.history.flatMap(day => day.nutrients.kcal===null?[]:[day.nutrients.kcal]));
   const entrance=useEntrance<HTMLElement>('nutrition-rhythm',result.loggedDays>0);
-  return <section className="nutrition-dashboard" aria-label="Nutrition patterns">
+  return <section {...layout} className="nutrition-dashboard" aria-label="Nutrition patterns">
     <article className="panel nutrition-distribution">
       <header><p className="eyebrow">YOUR DAY, MEAL BY MEAL</p><h2>Where your energy comes from.</h2><p>{result.mealCount} meal {result.mealCount === 1 ? "group" : "groups"} · {result.entries} diary {result.entries === 1 ? "entry" : "entries"} on {date}</p></header>
       <MotionTrack identity="nutrition-distribution" className="nutrition-distribution-track" aria-hidden="true">{result.meals.map((meal, index) => <span className={`nutrition-meal-${index}`} key={meal.meal} style={{ width: `${meal.share??0}%` }} />)}</MotionTrack>

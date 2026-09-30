@@ -18,6 +18,7 @@ import { visualTone } from "../../../../components/visual-tone";
 import { SceneArt } from "../../../../components/scene-art";
 import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
 import { CONTRACT_ADDRESS } from "../../../../lib/wallet";
+import { NebulaFlow } from "../../../../components/nebula-flow";
 export default function GoalDetail({
   params,
 }: {
@@ -100,7 +101,7 @@ export default function GoalDetail({
  <section className="panel goal-detail-overview" aria-label="Goal overview">
  <div className="goal-detail-art"><SceneArt scene={summary.scene}/></div>
  <details className="goal-actions"><summary aria-label="Goal actions">…</summary><div className="panel"><button className="quiet" onClick={()=>void preference({pinned:!ui.pinned})}>{ui.pinned?'Unpin Goal':'Pin Goal'}</button><button className="quiet" onClick={()=>void preference({locked:!ui.locked})}>{ui.locked?'Unlock editing':'Lock editing'}</button><button className="quiet" disabled={!!ui.locked} onClick={()=>setRemove(true)}>Remove Goal from ZIGoals</button></div></details>
- <div className="goal-detail-heading"><p className="eyebrow">{summary.type} · {summary.source}</p><h1>{summary.name}</h1><span className="badge">{summary.status}</span></div>
+ <div className="goal-detail-heading"><p className="eyebrow">{summary.type} · {summary.source}</p><h1><NebulaFlow identity={`goal-title-${summary.name}`}>{summary.name}</NebulaFlow></h1><span className="badge">{summary.status}</span></div>
  <div className="goal-detail-progress"><GoalProgressRing goalId={id} name={summary.name} progressPct={summary.progressPct}/><div><p className="eyebrow">Current progress</p><strong className="goal-detail-current">{displayAmount(current,summary.currency)}</strong><p>{summary.target?`of ${displayAmount(summary.target,summary.currency)}`:'Recover your private plan'}</p></div></div>
  <dl className="goal-detail-facts"><div><dt>Remaining</dt><dd>{summary.remaining?displayAmount(summary.remaining,summary.currency):'Review plan'}</dd></div><div><dt>Funding Wealth</dt><dd>{summary.fundingHealth}</dd></div><div><dt>Target date</dt><dd>{summary.targetDate??'Your own pace'}</dd></div></dl>
  <p className="fine">{s.mode==='local'?'Simulation only — no real funds.':'Legacy Goal Manager record.'} Your Goal organizes your plan. New Goals can use wealth where it already exists.</p>

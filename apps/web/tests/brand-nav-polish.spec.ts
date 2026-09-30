@@ -27,7 +27,14 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   const settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!,w=(await word.boundingBox())!,t=(await tagline.boundingBox())!,planet=(await destination.locator('.sidebar-horizon').boundingBox())!;
   expect(nav.y).toBeGreaterThanOrEqual(mark.y+mark.height);
   expect(w.y).toBeGreaterThanOrEqual(settings.y+settings.height);expect(planet.y).toBeGreaterThanOrEqual(w.y+w.height-1);expect(t.y).toBeGreaterThanOrEqual(w.y+w.height);
-  expect(await tagline.evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
+  // UI design pass (owner review): the two-line signature rests on the planet's body, below the bright rim and its star.
+  const star=(await destination.locator('.sidebar-star').boundingBox())!;
+  expect(t.y).toBeGreaterThanOrEqual(star.y+star.height);expect(t.y).toBeGreaterThanOrEqual(planet.y);expect(t.y+t.height).toBeLessThanOrEqual(planet.y+planet.height+1);
+  await expect(tagline).toHaveText('Shape & Fold, Your Own FutureShape & FoldYour Own Future');
+  await expect(destination.getByText('Shape & Fold, Your Own Future',{exact:true})).toHaveCount(1);await expect(destination.locator('.sidebar-star')).toHaveAttribute('aria-hidden','true');
+  // Only the visible lines are text-clipped; the screen-reader copy never sits inside a text-clipped background.
+  for(const line of await tagline.locator('span[aria-hidden]').all())expect(await line.evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
+  expect(await tagline.evaluate(e=>[getComputedStyle(e).backgroundImage,getComputedStyle(e).backgroundClip])).toEqual(['none','border-box']);
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
  await brand.screenshot({path:info.outputPath('brand.png')});

@@ -7,10 +7,10 @@ import {stakingWidgetSource,type DashboardSources} from './dashboard-metrics';
 
 /** Only canonical, safe selectors can become Today widgets. */
 export const WIDGET_GROUPS=[
- {id:'goals',label:'Goals',icon:'goals',kinds:['goals','goal']},
- {id:'habits',label:'Habits',icon:'habits',kinds:['habits','habit']},
- {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry']},
- {id:'wealth',label:'Wealth & Positions',icon:'wallet',kinds:['wealth','asset','staking','allocation']},
+ {id:'goals',label:'Goals',icon:'goals',kinds:['goals','goal','milestone']},
+ {id:'habits',label:'Habits',icon:'habits',kinds:['habits','habit','streak','checkins']},
+ {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry','exercise']},
+ {id:'wealth',label:'Wealth & Positions',icon:'wallet',kinds:['wealth','asset','staking','allocation','holding-share']},
  {id:'ecosystem',label:'Ecosystem',icon:'ecosystem',kinds:['ecosystem']},
 ] as const satisfies readonly {id:string;label:string;icon:string;kinds:readonly WidgetKind[]}[];
 
@@ -21,6 +21,9 @@ export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={
  health:'Meals, water, activity and measurements',wealth:'Known value in one currency',
  asset:'Quantity, value or availability for one asset',staking:'Verified read-only stake or rewards',
  allocation:'Allocated and unallocated amounts for one Position',ecosystem:'Official research directory shortcut',
+ milestone:'The nearest saved target date across active Goals',streak:'Your longest current streak across Habits',
+ checkins:'Recorded check-ins over the last 7 days','holding-share':'Your largest holding within its own currency',
+ exercise:'Today’s quick exercise counters, each in its own count',
 };
 
 export function eligibleWidgetSources(kind:WidgetKind,s:DashboardSources):{id:string;label:string}[]{

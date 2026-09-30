@@ -9,15 +9,19 @@ async function showcase(page:Page){
  await page.addInitScript(RECORDER);
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
-/** Layout boxes in the first viewport, where arrivals play (offset geometry ignores transforms), so an in-flight entrance must match the settled page exactly. */
-const layout=(page:Page)=>page.evaluate(()=>[...document.querySelectorAll('main h1,main details,main strong,main section,main article,.app-sidebar .brand-logo,.app-nav a')].map(e=>{let x=0,y=0,n=e as HTMLElement|null;const w=(e as HTMLElement).offsetWidth,h=(e as HTMLElement).offsetHeight;while(n){x+=n.offsetLeft;y+=n.offsetTop;n=n.offsetParent as HTMLElement|null;}return [e.tagName,x,y,w,h];}).filter(([,,y])=>(y as number)<innerHeight).map(b=>b.join(':')));
+/** Layout boxes in the first viewport, where arrivals play, so an in-flight entrance must match the settled page exactly. Transforms are
+ * neutralised for one synchronous read (author !important outranks animations) and boxes are compared at sub-pixel precision; summing
+ * integer offsetLeft/offsetTop instead rounds per offsetParent level, and a card mid-animation briefly becomes that offsetParent. */
+const layout=(page:Page)=>page.evaluate(()=>{const still=document.createElement('style');still.textContent='*,*::before,*::after{transform:none!important;translate:none!important;scale:none!important;rotate:none!important}';document.head.append(still);const boxes=[...document.querySelectorAll('main h1,main details,main strong,main section,main article,.app-sidebar .brand-logo,.app-nav a')].map(e=>{const r=e.getBoundingClientRect();return [e.tagName,r.left+scrollX,r.top+scrollY,r.width,r.height];}).filter(([,,y])=>(y as number)<innerHeight).map(b=>b.map(v=>typeof v==='number'?v.toFixed(2):v).join(':'));still.remove();return boxes;});
 
 test('a newly selected page arrives once: nav pop and light sweep, title sweep, card settle, figure shine, and no layout change',async({page},info)=>{
  await showcase(page);
  const nav=page.getByRole('navigation',{name:'Main navigation'}),habits=nav.getByRole('link',{name:'Habits',exact:true});
  await habits.click();await page.waitForURL('**/app/habits');
  await expect(habits).toHaveAttribute('aria-current','page');
- await expect.poll(async()=>(await seen(page)).arrive).toEqual(expect.arrayContaining(['A:','H1:tint','SPAN:shine']));
+ await expect.poll(async()=>(await seen(page)).arrive).toEqual(expect.arrayContaining(['A:']));
+ // The title's sweep is its own one-time nebula entrance (Part 18.5: one white→nebula style for every title), which ends mid-to-right.
+ await expect(page.locator('main h1 .nebula-flow')).toHaveAttribute('data-entrance','once');
  await expect.poll(async()=>(await seen(page)).arrive.some(m=>m.endsWith(':card'))).toBe(true);
  const moving=await layout(page);
  await page.screenshot({path:info.outputPath('habits-arriving.png')});

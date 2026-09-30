@@ -3,6 +3,7 @@ import {emptyPlatform,platformSchema,PLATFORM_KEY,type Platform,type Position,ty
 import {contributionTotals} from './goal-intelligence';
 import {emptyHabitData,createHabit,habitDataSchema,HABITS_KEY,type HabitInput} from './habits';
 import {createEmptyHealth,healthSchema,HEALTH_STORAGE_KEY,HEALTH_MEALS} from './health';
+import {DEFAULT_COUNTERS} from './health-counters';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
 const rwa=(id:string,assetType:'stock'|'etf'|'commodity'):MarketAssetRef=>({provider:'coingecko',kind:'rwa',id,assetType});
@@ -47,6 +48,9 @@ export function buildShowcase(day:string){
  const meals=[['Berry overnight oats',420,22000,59000,12000],['Chicken and quinoa bowl',620,44000,70000,18000],['Salmon, rice and greens',690,48000,69000,25000],['Yogurt and almonds',240,17000,19000,10000]] as const;
  meals.forEach(([name,kcal,proteinMg,carbsMg,fatMg],i)=>health.foods.push({id:`health_food-000${i}`,name,brand:'Showcase kitchen',servingGrams:300,nutrients:{kcal,proteinMg,carbsMg,fatMg},createdAt:start,updatedAt:start}));
  for(let n=0;n<30;n++){const d=date(-29+n),stamp=at(-29+n);health.foods.forEach((f,i)=>health.diary.push({id:`health_diary-${String(n).padStart(3,'0')}-${i}`,sourceId:f.id,sourceKind:'food',snapshot:{name:f.name,servingGrams:f.servingGrams,nutrients:f.nutrients},date:d,meal:HEALTH_MEALS[i]!,quantityMilli:n===29?1000:900+(n%5)*50,createdAt:stamp,updatedAt:stamp}));health.activity.push({id:`health_activity-${String(n).padStart(3,'0')}`,date:d,name:'Showcase walk',steps:6000+(n%5)*700,minutes:35+n%4*5,createdAt:stamp,updatedAt:stamp});if(n%4===0)health.weights.push({id:`health_weight-${String(n).padStart(3,'0')}`,date:d,grams:74600-n*40,createdAt:stamp,updatedAt:stamp});}
+ // Fictional quick exercise counters for the last 14 days; some days have no entry.
+ health.exercise={version:1,counters:DEFAULT_COUNTERS.map(c=>({...c})),days:[]};
+ for(let n=0;n<14;n++){if(n%4===2)continue;const d=date(-13+n);DEFAULT_COUNTERS.forEach((c,i)=>{if((n+i)%5===4)return;health.exercise!.days.push({id:`${c.id}@${d}`,counterId:c.id,date:d,count:[20,6,30][i]!+((n*7+i*3)%11)});});}
  const records:Record<string,string>={[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health))};
  return {day,records};
 }

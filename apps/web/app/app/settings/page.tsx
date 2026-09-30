@@ -1,4 +1,5 @@
 "use client";
+import { DataHome } from "../../../components/bottom-sections";
 import "../../../components/life-pages.css";
 import {getAppStorage} from "../../../lib/showcase-storage";
 import Link from "next/link";
@@ -13,6 +14,7 @@ import { useGoals } from "../../../components/goal-provider";
 import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
 import { shortAccount } from "../../../lib/diagnostics";
 import { loadMetadata } from "../../../lib/storage";
+import { NebulaFlow } from "../../../components/nebula-flow";
 export default function Settings() {
   const s = useGoals();
   const [backup, setBackup] = useState("");
@@ -36,9 +38,9 @@ export default function Settings() {
     <div className="settings-page">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Keep your plans with you</p>
-          <h1>Your data. Your control.</h1>
-          <p>
+          <p className="eyebrow page-eyebrow"><NebulaFlow identity="settings-eyebrow">Keep your plans with you</NebulaFlow></p>
+          <h1><NebulaFlow identity="settings-title">Your data. Your control.</NebulaFlow></h1>
+          <p className="page-lede">
             Goal plans stay on this device. Your wallet controls onchain funds.
           </p>
         </div>
@@ -151,6 +153,7 @@ export default function Settings() {
           This alpha is unaudited and does not support mainnet.
         </p>
       </section>
+      <DataHome />
     </div>
   );
 }
