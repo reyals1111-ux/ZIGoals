@@ -19,6 +19,9 @@ export class MarketAccount {
 }
 const worker={fetch(){return new Response('Not found',{status:404,headers:{'cache-control':'no-store'}});}};
 
+// parseDurableMarketBody validates these payloads with zod, but its inferred return type
+// collapses to {version:1} (subtype reduction of its conditional), so name them here.
+type HistoryRequest=Parameters<typeof durableHistory>[0];type QuoteRequests=Parameters<typeof dispatchDurableQuotes>[0];
 type QuoteEnv={MARKET_QUOTE_DISPATCH?:string;MARKET_ACCOUNT_ID?:string;COINGECKO_DEMO_API_KEY?:string;MARKETS:{idFromName:(name:string)=>unknown;get:(id:unknown)=>{fetch:(request:Request)=>Promise<Response>}}};
 /** Available only through an explicitly configured named service binding. The default
  * public endpoint above cannot reach provider dispatch or coordinator commands. */
@@ -38,7 +41,7 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
   const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:(command as {action?:string}).action==='publish-data'?{'x-market-payload':'evidence'}:{},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll'].includes(String((command as {action?:string}).action))?17*1024*1024:1024*1024)) as Record<string,unknown>;};
   const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken};
-  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests,context):await durableInsights(body.requests,context):null;
+  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request as HistoryRequest,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests as QuoteRequests,context):await durableInsights(body.requests as QuoteRequests,context):null;
   return Response.json(result,{headers});
  }
 }

@@ -1,5 +1,5 @@
 {
   "compilerOptions": {"target": "ES2022", "lib": ["ES2022", "DOM", "DOM.Iterable"], "module": "ESNext", "moduleResolution": "Bundler", "strict": true, "noUncheckedIndexedAccess": true, "esModuleInterop": true, "resolveJsonModule": true, "jsx": "react-jsx", "skipLibCheck": true, "noEmit": true},
-  "include": ["packages/**/*.ts", "apps/web/**/*.ts", "apps/web/**/*.tsx"],
-  "exclude": ["node_modules", "apps/web/.next", "apps/web/next-env.d.ts"]
+  "include": ["packages/**/*.ts", "apps/web/**/*.ts", "apps/web/**/*.tsx", "scripts/**/*.ts"],
+  "exclude": ["node_modules", "apps/web/.next", "apps/web/next-env.d.ts", "scripts/**/fixtures/**", "scripts/run11/market-fault-fixture.ts"]
 }
