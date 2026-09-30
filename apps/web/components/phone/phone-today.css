@@ -27,6 +27,8 @@
   :root .today-page .dashboard-layout-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   :root .today-page .dashboard-layout-grid > .placed-module { grid-column: 1 / -1; min-width: 0; }
   :root .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] { grid-column: auto !important; }
+  /* While arranging, every widget takes the full width so its move controls never cover its own buttons. */
+  :root[data-layout-editing] .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] { grid-column: 1 / -1 !important; }
   :root .today-page :is(.dashboard-layout-grid, .today-rail) > .placed-module > * { margin-bottom: 0; }
   :root .today-page .today-pulse-stack { gap: 12px; }
   :root .today-page .placed-module[data-kind="widget"][data-size="compact"] .dashboard-widget { height: 100%; margin: 0; padding: 14px 12px 12px; }
