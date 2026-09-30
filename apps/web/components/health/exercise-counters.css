@@ -46,6 +46,8 @@
   .exercise-counter-heading h3 { order:3;flex-basis:100%;font-size:16px;overflow-wrap:normal;hyphens:auto; }
   .exercise-counter-controls { grid-template-columns:44px minmax(0,1fr) 44px;gap:4px; }
   .exercise-count { font-size:26px; }
+  /* While rearranging on a phone, one counter per row so its move controls never cover its name. */
+  :root[data-layout-editing] .exercise-counter-grid { grid-template-columns:minmax(0,1fr); }
 }
 @media (max-width:360px) { .exercise-counter-grid { grid-template-columns:minmax(0,1fr); } }
 @media (forced-colors:active) {

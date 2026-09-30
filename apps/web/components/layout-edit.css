@@ -7,10 +7,15 @@
 
 :root[data-layout-editing] [data-layout-item] { position:relative;outline:1px solid #9fc8ff66;outline-offset:5px;border-radius:var(--radius,20px); }
 :root[data-layout-editing] [data-layout-item]:focus-within { outline-color:#9fe6ff; }
-.layout-controls { position:absolute;z-index:6;top:8px;left:50%;translate:-50% 0;display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;border:1px solid #a9c9ff55;background:linear-gradient(140deg,#0f1c33,#1a1633);box-shadow:0 10px 30px -12px #4f7bffaa,0 0 0 4px #060b19b3,inset 0 1px 0 #ffffff1c; }
-.layout-handle { display:grid;place-items:center;width:44px;height:44px;border-radius:999px;color:#cfe3ff;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none; }
+/* A movable section whose own children are movable cards gets a lane for its controls, clear of the first row's. */
+:root[data-layout-editing] [data-layout-item]:has(> [data-layout-item]) { padding-top:66px; }
+/* Controls are portalled into the card itself, so `:root` keeps a page's own child rules (e.g. `.x > div`, `.x span`) off them.
+   Centred by auto margins so a narrow card wraps them onto two rows instead of spilling over its neighbour. */
+:root .layout-controls { position:absolute;z-index:6;top:8px;left:0;right:0;width:max-content;max-width:calc(100% - 4px);margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;padding:4px;border-radius:27px;border:1px solid #a9c9ff55;background:linear-gradient(140deg,#0f1c33,#1a1633);box-shadow:0 10px 30px -12px #4f7bffaa,0 0 0 4px #060b19b3,inset 0 1px 0 #ffffff1c; }
+:root .layout-handle { display:grid;place-items:center;width:44px;height:44px;border-radius:999px;color:#cfe3ff;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none; }
 .layout-handle:active { cursor:grabbing; }
 .layout-move { display:grid;place-items:center;min-width:44px;height:44px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#e7f0ff;font-size:18px;font-weight:700;line-height:1;transition:background-color .15s,border-color .15s,color .15s; }
+:root .layout-move > span { font:inherit;color:inherit; }
 .layout-move:hover:not(:disabled) { background:#ffffff14;border-color:#a9c9ff55; }
 .layout-move:disabled { opacity:.35; }
 .layout-move:focus-visible { outline:3px solid var(--cyan);outline-offset:1px; }
@@ -35,8 +40,8 @@
 :root[data-app-motion=off] .layout-ghost { transform:none;transition:none; }
 @media (forced-colors:active) {
   :root[data-layout-editing] [data-layout-item] { outline:2px solid CanvasText; }
-  .layout-controls, .layout-bar { border:1px solid CanvasText;background:Canvas; }
-  .layout-move, .layout-handle { color:ButtonText; }
+  :root .layout-controls, .layout-bar { border:1px solid CanvasText;background:Canvas; }
+  .layout-move, :root .layout-handle { color:ButtonText; }
   [data-layout-placeholder] { outline:2px dashed Highlight!important; }
 }
 /* While a card is carried, the bar steps aside so it never covers a drop target. */

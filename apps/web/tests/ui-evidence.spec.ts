@@ -77,6 +77,20 @@ for(const [path,region,label] of [['/app/health','health:body','Today’s nouris
   await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();
  });
 
+test('unlocked layouts: each card keeps its move controls inside itself, never over another card\'s',async({page})=>{
+ await showcase(page);
+ for(const path of PAGES){await open(page,path);
+  const lock=page.getByRole('button',{name:'Unlock layout to rearrange',exact:true});if(!await lock.count())continue;
+  await lock.first().click();await expect(page.locator('.layout-controls').first()).toBeVisible();
+  const problems=await page.evaluate(()=>{const bars=[...document.querySelectorAll<HTMLElement>('.layout-controls')].map(e=>({name:e.getAttribute('aria-label')??'',box:e.getBoundingClientRect(),card:e.parentElement!.getBoundingClientRect(),flow:getComputedStyle(e).flexDirection}));const out:string[]=[];
+   for(const b of bars){if(b.box.left<b.card.left-1||b.box.right>b.card.right+1)out.push(`${b.name} spills out of its card`);if(b.box.height>110||b.flow!=='row')out.push(`${b.name} is not a toolbar row (${Math.round(b.box.height)}px, ${b.flow})`);}
+   bars.forEach((a,i)=>bars.slice(i+1).forEach(c=>{if(a.box.left<c.box.right&&c.box.left<a.box.right&&a.box.top<c.box.bottom&&c.box.top<a.box.bottom)out.push(`${a.name} overlaps ${c.name}`);}));
+   return out;});
+  expect(problems,path).toEqual([]);
+  await page.getByRole('button',{name:'Lock layout',exact:true}).first().click();
+ }
+});
+
 test('no hydration errors or page errors on any main page',async({page})=>{
  const problems:string[]=[];
  page.on('console',m=>{if(/hydrat|did not match|server rendered/i.test(m.text()))problems.push(`${m.type()}: ${m.text().slice(0,200)}`);});
