@@ -1,4 +1,4 @@
-# UI design pass (Session A) — 2026-09-30, PR #47 (open; not merged or deployed)
+# UI design pass (Session A) — 2026-09-30, [PR #47](https://github.com/reyals1111-ux/ZIGoals/pull/47) merged as `dd0e8a1`, live in Alpha deploy #14
 
 Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Chromium via the `chrome` channel); **CI** = Milestone quality on the PR head; **dev** = `next dev` only. Baseline: main `5dd2ee7` (Alpha deploy #12 is recorded by Session B, not here).
 
@@ -191,6 +191,13 @@ From this build on (`d5ec3db`), honesty banners don't depend on readable private
     - lint, typecheck (now including scripts and Workers), unit 1731 passed, `pnpm audit --prod --audit-level high` clean;
     - focused Part 18 specs: 119 passed.
 
+**Open follow-ups** (after Part 18):
+- Phones: the layout lock is not on the first screen; the status strip sits below the navigation.
+- A durable-store read that never finishes keeps the page area hidden (the banners still show). This is vault code: TIER 3.
+- `product-data.spec.ts:72`: the local-only networkidle timeout (unstubbed market request; see the Known CI intermittents table).
+- Wrangler 4.144.0 upgrade, per [WRANGLER_UPGRADE_ASSESSMENT.md](run11/WRANGLER_UPGRADE_ASSESSMENT.md).
+- [ADR-006](architecture/ADR-006-sync-lost-confirmation.md) decision: parked until Stage 8.
+
 **Local-only observations** (not seen in CI, not changed):
 - `product-data.spec.ts:72` (desktop) timed out in `waitForLoadState("networkidle")` after a reload:
   - This branch: 6 of 20. Main `5dd2ee7`: 3 of 20. So it predates this PR.
@@ -303,6 +310,20 @@ Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11
 3. Recheck the Open Food Facts limit, v3.4 and the attribution wording in a normal browser.
 
 **Unverified:** everything the OFF documentation would confirm (listed in FOOD_READINESS.md); real Chrome behaviour locally (CI only); hosted or provider behaviour of any kind.
+
+# Alpha deploy — 2026-09-30 evening, `dd0e8a1` live
+
+Evidence labels: **CI log** = the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session A cloud session on 2026-09-30; **Actions API** / **git** = read at the same time; **owner-reported** = as the owner reports it.
+
+- **Run:** Manual Alpha deployment #14, [run 36758399823](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36758399823), 2026-09-30 18:24–18:33 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `dd0e8a120917f009ea12103f12373a582056c7e1`, `main` after #47. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `48806961-9b29-41a5-a402-f24851d32e6f`. The last observed live version is the same. (CI log)
+- **Rollback:** `c4dda780-bf37-48ac-9e0d-633b22991018`, the version deploy #13 published, so the chain holds. (CI log)
+- **CI on `dd0e8a1`:** Milestone quality #247 ([run 36756950723](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36756950723)): success on attempt 1. (Actions API)
+- **Owner manual checks:** owner-reported: the live Alpha works after this deploy (owner visual check). Real Keplr/reload/reconnect, Habit/Health persistence and mobile checks are not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#47](https://github.com/reyals1111-ux/ZIGoals/pull/47) (`dd0e8a1`): Session A UI design pass (Parts 1–18). The Session A entry above was finished after the merge (this docs PR).
 
 # Alpha deploy — 2026-09-30 evening, `c4135f1` live
 
@@ -484,7 +505,19 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-09-29 night for the [Alpha deploy](#alpha-deploy--2026-09-29-night-5dd2ee7-live) above.
+Updated 2026-09-30 evening for the [Alpha deploy #14](#alpha-deploy--2026-09-30-evening-dd0e8a1-live) above.
+- Deployed source `dd0e8a120917f009ea12103f12373a582056c7e1`, `main` after [PR #47](https://github.com/reyals1111-ux/ZIGoals/pull/47). Verified: Actions API.
+- CI: Milestone quality #247 ([run 36756950723](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36756950723)) on `dd0e8a1`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #14 ([run 36758399823](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36758399823)), exact source `dd0e8a1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `48806961-9b29-41a5-a402-f24851d32e6f`; rollback `c4dda780-bf37-48ac-9e0d-633b22991018` (the run #13 deployment). Verified: CI log. Owner manual checks: owner-reported: the live Alpha works (visual check); the other checks pending.
+
+Previous release identity (PR #48, 2026-09-30 evening):
+- Deployed source `c4135f1cca5e827e805a45f822eaea4a01a8d6fc`, `main` after [PR #48](https://github.com/reyals1111-ux/ZIGoals/pull/48). Verified: Actions API.
+- CI: Milestone quality #245 ([run 36753124379](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36753124379)) on `c4135f1`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #13 ([run 36754770398](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36754770398)), exact source `c4135f1`: success, `VERIFIED`. Verified: CI log read by the owner, Actions API.
+- Alpha Worker `zigoals-alpha`: live version `c4dda780-bf37-48ac-9e0d-633b22991018`; rollback `f5bb9d20-6edd-4a62-a8a0-8bb8cee30597` (the run #12 deployment). Verified: CI log read by the owner. Owner manual checks: not reported.
+
+Previous release identity (PR #45, 2026-09-29 night):
 - Deployed source `5dd2ee7aae34331ee935eac3f64d5d870c92e997`, `main` after [PR #45](https://github.com/reyals1111-ux/ZIGoals/pull/45). Verified: Actions API.
 - CI: Milestone quality #191 ([run 36615665433](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36615665433)) on `5dd2ee7`: success (attempt 2; attempt 1 hit the Chrome download intermittent). Verified: Actions API.
 - Deployment: Manual Alpha deployment #12 ([run 36620008178](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36620008178)), exact source `5dd2ee7`: success, `VERIFIED`. Verified: CI log read by the owner, Actions API.
