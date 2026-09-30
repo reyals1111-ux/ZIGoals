@@ -22,6 +22,8 @@ const REGISTRY: [Kind, string][] = [
 const ALL = REGISTRY.map(([, selector]) => selector).join(',');
 // Headers, the sidebar, dialogs, layout editing and anything carried are never lifted.
 const EXCLUDED = '.app-sidebar,dialog,.layout-controls,.layout-ghost,.layout-bar,.today-hero,.wealth-hero,.habit-hero,.markets-hero,.page-header,.page-heading,[data-glass-off]';
+/** How long the pointer rests on an element before it lifts. */
+const INTENT_MS = 70;
 const kindOf = (el: Element): Kind => REGISTRY.find(([, selector]) => el.matches(selector))![0];
 
 /**
@@ -98,21 +100,36 @@ export function LiquidGlass() {
     function clear() { set(null); }
     const dragging = () => document.documentElement.dataset.layoutDragging !== undefined;
 
+    // Hover intent: an element lifts once the pointer rests on it for a moment, so a pointer sweeping across a
+    // page (or heading straight for a click) does not set every card it crosses in motion. Leaving is immediate.
+    // A press cancels a pending lift; the next lift waits until the pointer moves again.
+    let intent = 0, pressed: {x: number; y: number} | null = null;
+    const hoverAt = (target: Element | null) => {
+      window.clearTimeout(intent);
+      const next = targetsFor(target);
+      // A still pointer re-targeted by layout changes must not drop a keyboard focus lift.
+      if (!next && focusSource) return;
+      if (!next) { set(null); return; }
+      if (next.inner === lifted[0]) return;
+      // Moving between controls of the same card keeps the card up; anything else settles first.
+      if (lifted.length && !focusSource && !lifted.some(el => el === next.inner || el === next.card)) set(null);
+      intent = window.setTimeout(() => { if (!pressed && !dragging()) set(next); }, INTENT_MS);
+    };
     const onOver = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || !hover.matches || dragging()) return;
       px = event.clientX; py = event.clientY;
-      const next = targetsFor(event.target as Element);
-      // A still pointer re-targeted by layout changes must not drop a keyboard focus lift.
-      if (!next && focusSource) return;
-      set(next);
+      if (!pressed) hoverAt(event.target as Element);
     };
     const onMove = (event: PointerEvent) => {
-      if (event.pointerType === 'touch' || !lit) return;
+      if (event.pointerType === 'touch') return;
       px = event.clientX; py = event.clientY;
-      if (!still) schedule();
+      if (pressed && Math.hypot(px - pressed.x, py - pressed.y) > 3) { pressed = null; if (hover.matches && !dragging()) hoverAt(event.target as Element); }
+      if (lit && !still) schedule();
     };
-    const onLeaveWindow = (event: PointerEvent) => { if (!event.relatedTarget && !focusSource) clear(); };
+    const onLeaveWindow = (event: PointerEvent) => { if (!event.relatedTarget) { window.clearTimeout(intent); if (!focusSource) clear(); } };
     const onDown = (event: PointerEvent) => {
+      window.clearTimeout(intent);
+      if (event.pointerType !== 'touch') pressed = {x: event.clientX, y: event.clientY};
       const found = targetsFor(event.target as Element), el = found ? (kindOf(found.inner) === 'control' ? found.card : found.inner) : undefined;
       if (!el || still) return;
       el.dataset.glass ??= kindOf(el); el.dataset.glassPress = '';
@@ -139,7 +156,7 @@ export function LiquidGlass() {
     window.addEventListener('zigoals-motion', onMotion); window.addEventListener('storage', onMotion);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)'); reduced.addEventListener?.('change', onMotion);
     return () => {
-      clear(); cancelAnimationFrame(frame); overlay.remove();
+      window.clearTimeout(intent); clear(); cancelAnimationFrame(frame); overlay.remove();
       document.removeEventListener('pointerover', onOver); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerout', onLeaveWindow);
       document.removeEventListener('pointerdown', onDown); document.removeEventListener('focusin', onFocusIn); document.removeEventListener('focusout', onFocusOut);
       window.removeEventListener('scroll', onScroll, {capture: true}); window.removeEventListener('resize', onScroll);

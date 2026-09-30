@@ -222,6 +222,15 @@ test.describe('Part 3: liquid glass',()=>{
   expect(await card.getAttribute('data-glass-hover')).toBeNull();
   await expect(page.locator('.glass-light')).not.toHaveAttribute('data-on','');
  });
+ test('hover intent: a pointer that presses straight away never lifts the tile; resting lifts it',async({page,isMobile})=>{
+  test.skip(isMobile,'Hover needs a fine pointer');
+  await showcase(page);await page.goto('/app/habits');const tile=page.locator('.habit-month-grid>span').nth(5);
+  await tile.evaluate(e=>e.scrollIntoView({block:'center'}));const t=(await tile.boundingBox())!;
+  await page.mouse.move(t.x+t.width/2,t.y+t.height/2);await page.mouse.down();await page.mouse.up();
+  await page.waitForTimeout(250);expect(await tile.getAttribute('data-glass-hover')).toBeNull();
+  await page.mouse.move(t.x+t.width/2+5,t.y+t.height/2,{steps:2});
+  await expect(tile).toHaveAttribute('data-glass-hover','');
+ });
  test('long sections and typing stay still; the sidebar star is a plain layer',async({page,isMobile})=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);await page.goto('/app/wealth');await expect(page.locator('main h1')).toBeVisible();
