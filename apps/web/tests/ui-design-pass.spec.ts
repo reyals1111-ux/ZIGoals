@@ -377,3 +377,14 @@ test.describe('Part 8: bottom sections',()=>{
   await expect(home).toContainText('not synced or backed up');expect(await home.getAttribute('data-layout-item')).toBeNull();
  });
 });
+
+test.describe('Part 9: quality sweep',()=>{
+ test('button text links read as links, and Ecosystem labels are at least 14px',async({page})=>{
+  await showcase(page);await page.goto('/app/wealth');
+  const link=page.getByRole('button',{name:/need attention/}).first();await expect(link).toBeVisible();
+  // No grey browser button face: the link sits on its card (it was #6b6b6b with an outset border, 3.6:1).
+  expect(await link.evaluate(e=>{const c=getComputedStyle(e);return [c.backgroundColor,c.borderTopStyle]})).toEqual(['rgba(0, 0, 0, 0)','none']);
+  await page.goto('/app/ecosystem');const label=page.locator('.ecosystem-project .eyebrow').first();await expect(label).toBeVisible();
+  expect(parseFloat(await label.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
+ });
+});

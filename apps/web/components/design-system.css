@@ -84,3 +84,10 @@
 :root :is(.wealth-hero-total,.life-orbit-wealth) > .wealth-total-other { display:block;margin:0;font-size:17px;font-weight:550;letter-spacing:0;text-transform:none;color:var(--text-secondary); }
 :root .wealth-hero-total > .wealth-total-fx { margin:0;font-size:14px;letter-spacing:.01em;color:var(--text-meta); }
 :root .wealth-hero-total > small { font-size:14px;color:var(--text-meta); }
+
+/* Part 9 sweep. A text-link that is a <button> looks like its link siblings, never like the browser's grey button
+   face (it had a #6b6b6b background and an outset border, 3.6:1). Its colour, size and focus ring stay as set. */
+:root button.text-link:not(.primary,.secondary,.quiet) { background:none;border:0;border-radius:6px;padding:4px 0;font-family:inherit;cursor:pointer; }
+:root button.text-link:not(.primary,.secondary,.quiet):hover { text-decoration:underline;text-underline-offset:3px; }
+/* Labels are at least 14px: Ecosystem's category labels were 12px. */
+:root .ecosystem-project .eyebrow { font-size:14px;color:var(--text-meta); }
