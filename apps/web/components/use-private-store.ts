@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import type { z } from "zod";
 import { importPrivateStore, readPrivateStore, updatePrivateStore } from "../lib/private-storage";
 import {isDurableMarker,readDurableStore,updateDurableStore,restoreDurableStore,exportDurableStore} from "../lib/vault/local";
+import {beginFirstRead,endFirstRead,PRIVATE_READ_RETRY} from "./private-read-delay";
 const EVENT = "zigoals:private-change";
 /** Browser-only private state. No backend, wallet dependency, or automatic demo seeding. */
 export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpty: () => T) {
@@ -13,6 +14,9 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   const [error, setError] = useState("");
   const [importLimit,setImportLimit]=useState(2_000_000);
   const generation = useRef(0);
+  // Identifies this store instance for the slow-read notice; loadedRef mirrors `loaded` for event handlers.
+  const owner = useRef({}), loadedRef = useRef(false);
+  const markLoaded = useCallback(() => { loadedRef.current = true; endFirstRead(owner.current); setLoaded(true); }, []);
   const refresh = useCallback(async () => {
     const current=++generation.current;
     try {
@@ -28,29 +32,33 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
       let locked=false;try{locked=!!getAccountScope()&&isAccountLocked();}catch{}
       setError(locked?"Account records are locked. Verify your account and unlock the vault in Settings.":"Private data could not be read. It has not been changed. Export the original from Settings before restoring a backup.");
     }
-    setLoaded(true);
-  }, [key, schema, createEmpty]);
+    markLoaded();
+  }, [key, schema, createEmpty, markLoaded]);
   useEffect(() => {
     let active = true;
     // The same counter object refresh() reads: the cleanup must invalidate whichever read is in
     // flight at that time, so it increments the live counter, not a value copied at setup.
-    const reads = generation;
+    const reads = generation, instance = owner.current;
+    if (!loadedRef.current) beginFirstRead(instance);
     queueMicrotask(() => { if (active) refresh(); });
     const onStorage = (event: StorageEvent) => { try{if (!isShowcase() && (!event.key || event.key === storageLockKey(getAppStorage(),key))) refresh();}catch{void refresh();} };
-    const onAccount=()=>{generation.current++;setData(createEmpty());setLoaded(false);void refresh();};
+    const onAccount=()=>{generation.current++;setData(createEmpty());loadedRef.current=false;setLoaded(false);beginFirstRead(instance);void refresh();};
+    // Retry from the slow-read notice: only a store that has not loaded reads again.
+    const onRetry=()=>{if(!loadedRef.current)void refresh();};
+    window.addEventListener(PRIVATE_READ_RETRY,onRetry);
     window.addEventListener(ACCOUNT_CHANGE,onAccount);
     const onChange = (event: Event) => { if ((event as CustomEvent<string>).detail === key) refresh(); };
     const channel=typeof BroadcastChannel!=="undefined"?new BroadcastChannel("zigoals:private-updates:v1"):null;
     if(channel)channel.onmessage=(event:MessageEvent)=>{if(!isShowcase()&&event.data===key)refresh();};
     window.addEventListener("storage", onStorage);
     window.addEventListener(EVENT, onChange);
-    return () => { active = false; reads.current++; window.removeEventListener(ACCOUNT_CHANGE,onAccount); channel?.close(); window.removeEventListener("storage", onStorage); window.removeEventListener(EVENT, onChange); };
+    return () => { active = false; reads.current++; endFirstRead(instance); window.removeEventListener(PRIVATE_READ_RETRY,onRetry); window.removeEventListener(ACCOUNT_CHANGE,onAccount); channel?.close(); window.removeEventListener("storage", onStorage); window.removeEventListener(EVENT, onChange); };
   }, [key, refresh, createEmpty]);
   const publish = useCallback((next: T) => {
-    setData(next); setError(""); setLoaded(true);
+    setData(next); setError(""); markLoaded();
     window.dispatchEvent(new CustomEvent(EVENT, { detail: key }));
     if(!isShowcase()&&typeof BroadcastChannel!=="undefined"){const channel=new BroadcastChannel("zigoals:private-updates:v1");channel.postMessage(key);channel.close();}
-  }, [key]);
+  }, [key, markLoaded]);
   const update = useCallback(async (updater: (latest: T) => T) => {
     if (!loaded) throw Error("Private data is still loading.");
     let draftError:unknown;const apply=(latest:T)=>{try{return updater(latest);}catch(error){draftError=error;throw error;}};
@@ -65,13 +73,15 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
     }
   }, [loaded, publish, key, schema, createEmpty, refresh]);
   const importData = useCallback(async (raw: string) => {
+    // Like update: never replace a store before its current contents were read.
+    if (!loaded) throw Error("Private data is still loading.");
     try { const storage=getAppStorage(); const next=await (isDurableMarker(storage.getItem(key)) ? restoreDurableStore(storage,key,schema,raw) : importPrivateStore(storage,key,schema,raw)); if(storage===getAppStorage())publish(next); }
     catch {
       refresh();
       const message = "Backup could not be imported. Check its module, version and size. Existing private data was preserved.";
       throw Error(message);
     }
-  }, [key, schema, publish, refresh]);
+  }, [loaded, key, schema, publish, refresh]);
   const exportData = useCallback(async () => { const storage=getAppStorage();return isDurableMarker(storage.getItem(key))?await exportDurableStore(storage,key):storage.getItem(key)??JSON.stringify(createEmpty()); }, [key, createEmpty]);
   return { data, loaded, error, importLimit, update, importData, exportData, refresh };
 }

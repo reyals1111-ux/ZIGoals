@@ -24,22 +24,59 @@ function split(data:unknown,revision:number):{header:Header;rows:Map<string,{fie
 }
 export class VaultDatabase{
  private connection:Promise<IDBDatabase>|undefined;
+ private opened:IDBDatabase|undefined;
+ /** Starts one more request for the connection that is still pending; undefined once it settled. */
+ private reopen:(()=>void)|undefined;
  constructor(private name='zigoals-private-vault-v1'){}
  private open(){
   if(!this.connection){
+   let settled=false;
    const pending=new Promise<IDBDatabase>((resolve,reject)=>{
-    const r=indexedDB.open(this.name,1);let abandoned=false;
-    const clear=()=>{if(this.connection===pending)this.connection=undefined;};
-    r.onupgradeneeded=()=>{if(abandoned){r.transaction?.abort();return;}for(const s of ['headers','records','outbox','receipts','recovery'])if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s);};
-    r.onerror=()=>{clear();reject(Error('Private database unavailable. Check browser storage permissions.'));};
-    r.onblocked=()=>{abandoned=true;clear();reject(Error('Close older ZIGoals tabs, then retry the storage upgrade.'));};
-    r.onsuccess=()=>{const db=r.result;if(abandoned||this.connection!==pending){db.close();reject(Error('Private database opening was interrupted. Retry reading.'));return;}db.onversionchange=()=>{db.close();clear();};resolve(db);};
+    const clear=()=>{if(this.connection===pending){this.connection=undefined;this.opened=undefined;this.reopen=undefined;}};
+    const fail=(error:Error)=>{if(settled)return;settled=true;clear();reject(error);};
+    // Several requests may feed this one connection (see retryOpen). The first success is used;
+    // any later success is closed. An error or a blocked upgrade still fails the connection.
+    const attempt=()=>{
+     let r:IDBOpenDBRequest;try{r=indexedDB.open(this.name,1);}catch{fail(Error('Private database unavailable. Check browser storage permissions.'));return;}
+     let abandoned=false;
+     r.onupgradeneeded=()=>{if(abandoned||settled){r.transaction?.abort();return;}for(const s of ['headers','records','outbox','receipts','recovery'])if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s);};
+     r.onerror=()=>fail(Error('Private database unavailable. Check browser storage permissions.'));
+     r.onblocked=()=>{abandoned=true;fail(Error('Close older ZIGoals tabs, then retry the storage upgrade.'));};
+     r.onsuccess=()=>{
+      const db=r.result;
+      if(settled){db.close();return;}
+      if(abandoned||this.connection!==pending){db.close();fail(Error('Private database opening was interrupted. Retry reading.'));return;}
+      settled=true;this.opened=db;this.reopen=undefined;
+      db.onversionchange=()=>{db.close();clear();};
+      // The browser can close a connection itself (storage eviction, cleared site data). Forget it so the next read reopens.
+      db.onclose=()=>clear();
+      resolve(db);
+     };
+    };
+    this.reopen=attempt;attempt();
    });this.connection=pending;
   }return this.connection;
  }
- close(){void this.connection?.then(db=>db.close(),()=>{});this.connection=undefined;}
+ /**
+  * A connection request can stall without any event: Safari's first-open hang, or a request queued behind another
+  * tab's upgrade or deletion. While the connection is still pending, start one more request for it. Everything
+  * already waiting (reads, and writers holding a storage lock) continues on whichever request succeeds first.
+  * A settled connection is never touched.
+  */
+ retryOpen(){this.reopen?.();}
+ close(){void this.connection?.then(db=>db.close(),()=>{});this.connection=undefined;this.opened=undefined;this.reopen=undefined;}
+ /** A transaction on a connection the browser already closed throws InvalidStateError before its close event arrives. */
+ private async readTransaction(stores:string[]){
+  const db=await this.open();
+  try{return db.transaction(stores,'readonly');}
+  catch(error){
+   if((error as {name?:unknown})?.name!=='InvalidStateError'||this.opened!==db)throw error;
+   this.connection=undefined;this.opened=undefined;
+   return (await this.open()).transaction(stores,'readonly');
+  }
+ }
  async read(space:string,domain:string):Promise<{revision:number;data:Record<string,unknown>}|null>{
-  const db=await this.open(),tx=db.transaction(['headers','records'],'readonly'),finish=done(tx);
+  const tx=await this.readTransaction(['headers','records']),finish=done(tx);
   const header=await request(tx.objectStore('headers').get(key(space,domain))) as Header|undefined;
   if(!header){await finish;return null;}
   const data={...header.fields};
