@@ -5,7 +5,8 @@ Status: **no provider call, account, contact or deployment was made.** The food-
 ## Evidence limits (read first)
 - The official OFF pages (`openfoodfacts.github.io`, `world.openfoodfacts.org`) are **blocked by this session's network egress**, both through direct fetch and curl. They could not be opened.
 - A web search restricted to the official OFF domains returned result summaries that name the official pages. These are labelled **SEARCH-SUMMARY** below. They are not full-page reads, and conflicting summaries are recorded as conflicting.
-- Anything not covered by either source is **UNVERIFIED**. Nothing was filled in from memory.
+- On 2026-09-30 the owner's own chat session read the official API page and supplied its rate-limit statements. Those are labelled **doc-verified (owner's chat session)** below.
+- Anything not covered by these sources is **UNVERIFIED**. Nothing was filled in from memory.
 - The last full read of the official docs is Run10's, on 2026-09-23 ([Run10 food evidence](../run10/FOOD_EVIDENCE.md)). That is where the v3.4 pin comes from.
 
 ## Fields the service reads (verified against the source)
@@ -18,16 +19,28 @@ Status: **no provider call, account, contact or deployment was made.** The food-
 **Schema drift check:** Run10 recorded that API 3.6 changed nutrition and tags, and deliberately pinned v3.4 with no guessed conversion. Whether v3.4 is still served, and whether anything changed after 2026-09-23, is **UNVERIFIED** (the change log could not be opened). No parser change is justified without that evidence. A future v3.4 retirement would surface as `PROVIDER_UNAVAILABLE` or a parse failure, never as zero nutrients.
 
 ## Rate limits and the Worker budget
-- **Documented limit:**
-  - **SEARCH-SUMMARY, conflicting.** A summary attributed to the official API introduction gives 15 requests/min/IP for product reads and 10/min for search. Other summaries give 100/min for product reads, 10/min for search and 2/min for facets.
-  - Exceeding the limit may lead to an IP ban (SEARCH-SUMMARY).
-  - Which figure is current is **UNVERIFIED**.
-- **Worker budget (verified in source):**
-  - One shared Durable Object (`shared-provider-budget-v1`) admits **one provider request per 12 s**, at most 5 per minute for the whole deployment, reserved before I/O and not refunded on failure.
-  - A 429 or 503 from OFF sets a **60 s** backoff.
-  - Successful products are cached for **24 h**, capped at 256 entries.
-  - Only product reads are made; no search or facet calls.
-- **Fit:** 5 per minute is below both documented figures (15 and 100). The 12 s spacing (`worker.mjs`, `next=now+12000`) needs no change. Because the limit is per IP, Cloudflare egress IPs are shared with other tenants; the 60 s backoff is the mitigation.
+**Documented limits** (**doc-verified: official page, read via the owner's chat session, 2026-09-30**, from https://openfoodfacts.github.io/openfoodfacts-server/api/):
+- **15 requests/min per IP for all product reads** (`GET /api/v*/product` or a product page). This is the binding limit for this Worker.
+- 10 requests/min per IP for search. The Worker makes no search or facet calls.
+- Exceeding these limits can lead to an IP ban.
+- When requests come directly from users (for example a mobile app), the limits apply per user. Ours do not: every lookup goes out through the one server-side Worker, so the limit applies to its egress IP, shared by all our users. This is why the budget is one shared Durable Object.
+- Separate global limits, regardless of IP, return HTTP 503.
+- The 100/min figure seen in the earlier search summaries appears only in third-party sources. It is not the official limit.
+
+**Worker budget (verified in source, `workers/food-lookup/worker.mjs`):**
+- One shared Durable Object (`shared-provider-budget-v1`) admits **one provider request per 12 s**: at most 5 per minute for the whole deployment, a third of the official 15/min. The slot is reserved before I/O and not refunded on failure.
+- Successful products are cached for **24 h**, capped at 256 entries; cache hits make no provider call. Not-found and error responses are not cached.
+
+**Throttling from shared egress:** Cloudflare Workers call out from egress IPs that other Cloudflare customers may share, so OFF can answer 429 (per-IP limit) or 503 (global limit) even when we are far below our own budget. Both are handled the same way, pinned by `scripts/run11/food-throttle.test.mjs`:
+- **Worker:** an upstream 429 or 503 sets a **60 s** backoff on the shared budget and returns `429 {error:'PROVIDER_THROTTLED', retryAfter:60}`. Other barcodes are then refused locally (`TRY_LATER`) with no further provider call.
+- **App route:** a Worker 429 becomes `TRY_LATER` (`apps/web/app/api/food-lookup/route.ts`).
+- **UI:** the user sees "Lookup is cooling down. Wait a minute and retry." (`barcode-food-lookup.tsx:32`). "Product not found" appears only for a real 404, so a throttled or overloaded provider is never presented as a missing product. Network errors and other upstream failures show "Food lookup is unavailable…".
+
+**Fit for a ~20-person friends Alpha:** suitable, with one known rough edge.
+- **Capacity:** 5 misses/min is 7,200/day, far above a plausible 20-person load (for example 5 new products per person per day = 100 misses/day), and repeat scans of the same barcode hit the 24 h cache.
+- **Headroom:** 5/min leaves two thirds of the per-IP limit for retries and for other tenants on a shared egress IP. Backoff is shared, so one throttle pauses everyone for 60 s rather than letting 20 users each hit OFF.
+- **Rough edge:** lookups are not queued. Two people looking up *different* uncached barcodes within the same 12 s get "cooling down" for the second. For 20 friends this should be occasional, most likely at mealtimes, and the message is honest.
+- **Possible follow-ups, not changed here:** short negative caching of 404s, so repeated scans of an unknown product do not spend the budget; a small wait-and-retry instead of an immediate `TRY_LATER`. Both are Worker changes for a separate reviewed PR.
 
 ## FOOD_USER_AGENT template
 OFF asks for a custom User-Agent in the form `AppName/Version (ContactEmail)`; its example is `MyApp/1.0 (myapp@example.com)` (SEARCH-SUMMARY). The Worker accepts only `^ZIGoals/[^\r\n]{1,160}$`.
@@ -51,5 +64,5 @@ ZIGoals/<app version, e.g. 0.1.0 from apps/web/package.json> (<owner contact ema
 
 ## Owner steps (Stage 6, food)
 1. Choose the contact and fill the template. Put it only in the private food config.
-2. Before activation, open the official API page and terms from a normal browser. Confirm the current product-read limit, that v3.4 is still served, and the attribution wording. Record the check date.
-3. If the limit is below 5/min, raise the Worker spacing in a reviewed PR before activation.
+2. The product-read limit is settled: 15/min per IP, per the official page read on 2026-09-30. Before activation, still confirm from a normal browser that API v3.4 is served and what attribution wording the terms require. Record the check date.
+3. If OFF ever lowers the product-read limit below the Worker's 5/min, widen the 12 s spacing in a reviewed PR before relying on lookups.
