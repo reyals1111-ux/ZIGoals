@@ -50,6 +50,8 @@ Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, produc
 16. `1cd6840` `run10-widgets.spec.ts:20` mobile timeout: root cause found and fixed (below).
 17. `dd16ffd` `goal-provider.test.ts` intermittent: root cause found and fixed with a deterministic failing-first proof (below).
 Merge of main after #46: `e110ced` (both STATUS entries and the Known CI intermittents table kept).
+18. Owner review fixes: `a96c63d`, `93f9925`, `5c54e6c`, `3219879`, `9a06f0e`, `56e2e37` (below). No data-format changes.
+Merge of main after #48 (next 16.3.6 and the other approved dependency updates): `02658e7`.
 
 **Compatibility and rollback** (Part 10, `86633a6`; evidence: code reading of 5dd2ee7 = deploy #12, a local cross-version unit check importing 5dd2ee7's own modules, and a local browser run with both production builds on one origin)
 
@@ -158,6 +160,36 @@ From this build on (`d5ec3db`), honesty banners don't depend on readable private
 - Root cause: `click()` sleeps a fixed 20 ms, and some tests sleep 30–40 ms. The next lines then assert synchronously on async provider work (quote, journal revision check, Web Locks). Session B's `ec3ac7a` had fixed one instance of this.
 - Fix: assertions now wait for the state with the file's own `rendered()` poll, and expected disappearances poll until gone. "Unchanged"/"not executed" checks run after the outcome. No expectation was removed and no timeout changed.
 - Deterministic proof: a temporary copy with 30 ms latency on every Web Lock and on the quote failed 4 of 29 before the fix and 0 of 29 after. The fixed file under CPU load passed 2 of 2 runs.
+
+**Owner review fixes** (Part 18; local production build, Showcase; no data-format changes):
+- 18.1 `a96c63d` **Sidebar tagline.** One visible two-line "SHAPE & FOLD / YOUR OWN FUTURE", resting on the planet's body below the horizon, clear of the rim and the star; the wordmark is unchanged.
+  - Cause of the overlap: the gradient was text-clipped on the `<small>` that also held the screen-reader copy, and some engines paint that copy as a second, mixed-case line. The gradient now sits on the two visible lines only; the accessible name is unchanged.
+  - Mobile hides this block, as before.
+- 18.2 `93f9925` **Nothing follows the pointer.** The specular light, its CSS and the always-on `pointermove` handler are removed. Lift, rim, shadow, hover intent and focus lift are unchanged.
+  - Part 12 note updated: per-frame main-thread work on the same sweeps is now 1.90–1.92 ms on the habit calendar and 1.89–1.90 ms on the Wealth list.
+- 18.3 `5c54e6c` **Row hover.** Every row-kind target gets a rounded glass pill: radius ≥ 14 px, soft fill, faint rim, extended outward when the row's content reaches its edges. Rows never move or scale, and SVG shapes are never targets.
+  - Cause of the Wealth rectangle: the composition rows were registered as tiles (scale 1.04), and the overlay copied their 0 px radius and 0 px padding.
+  - Tiles and cards keep their pop-out.
+- 18.4 `3219879` **One place for the layout lock.** The Shell has a status row with a slot right after "1000 ZIG demo balance"; `LayoutLockButton` renders there through a portal on every page.
+  - The row keeps the lock at the right when the strip is hidden. Settings and Ecosystem have no lock.
+  - On phones the lock lines up with the balance line. The whole status strip sits below the navigation there, so "first view" holds on desktop.
+- 18.5 `9a06f0e` **One white→nebula style.** Every page title and page eyebrow, plus the standout headings that had their own gradient, use `NebulaFlow` (white to 42%, then the nebula; one sweep that ends in that state; static under reduced motion, Motion Off and forced colours).
+  - Removed copies: `.nebula-text` on titles, `.bottom-flow`, `.journey-title-flow`, the `.financial-orbit` gradient, the Habits eyebrow gradient and the Goal detail h1 gradient.
+  - The Today hero headline is unchanged.
+- 18.6 `56e2e37` **Quick counters as bars.** Icon and name (with today's state under it), then − / count / + and "…", all in one row.
+  - 3 per row on desktop, 2 on tablets, 1 on phones, by the card's own width. Names stay on one line.
+  - On phones the caption and "…" take a second line, so names never truncate.
+  - While unlocked, each bar makes room for its move controls.
+- Tests:
+  - New `ui-design-pass` checks for 18.3, 18.4, 18.5 and 18.6.
+  - Updated at the owner's request, each with its reason in its commit: `brand-nav-polish` (tagline placement), the Part 3 hover test (no pointer tracking), `logo-quickadd-goals-header` and `motion-arrival` (the shared title style).
+  - Full suite (local, production build of `56e2e37`, 2 workers): 581 passed, 34 skipped, 3 failed.
+    - The intro-video test (desktop, mobile) fails only in this sandbox's Chromium.
+    - `product-data.spec.ts:72` (mobile) is the pre-existing local networkidle timeout (see the Known CI intermittents table).
+    - The one new skip is the row-pill hover check on mobile.
+  - After the #48 merge (`02658e7`, next 16.3.6):
+    - lint, typecheck (now including scripts and Workers), unit 1731 passed, `pnpm audit --prod --audit-level high` clean;
+    - focused Part 18 specs: 119 passed.
 
 **Local-only observations** (not seen in CI, not changed):
 - `product-data.spec.ts:72` (desktop) timed out in `waitForLoadState("networkidle")` after a reload:
@@ -271,6 +303,23 @@ Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11
 3. Recheck the Open Food Facts limit, v3.4 and the attribution wording in a normal browser.
 
 **Unverified:** everything the OFF documentation would confirm (listed in FOOD_READINESS.md); real Chrome behaviour locally (CI only); hosted or provider behaviour of any kind.
+
+# Alpha deploy — 2026-09-30 evening, `c4135f1` live
+
+Evidence labels: **CI log** = the deploy job's step "Report version IDs" in the run below, read by the owner; **Actions API** / **git** = read on 2026-09-30 by the Session A cloud session; **owner-reported** = as the owner reports it.
+
+- **Run:** Manual Alpha deployment #13, [run 36754770398](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36754770398), 2026-09-30 17:54–18:04 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `c4135f1cca5e827e805a45f822eaea4a01a8d6fc`, `main` after #48. (Actions API)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `c4dda780-bf37-48ac-9e0d-633b22991018`. The last observed live version is the same. (CI log)
+- **Rollback:** `f5bb9d20-6edd-4a62-a8a0-8bb8cee30597`, the version deploy #12 published, so the chain holds. The new version starts `c4dd…`, the rollback `f5bb…`. (CI log)
+- **CI on `c4135f1`:** Milestone quality #245 ([run 36753124379](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36753124379)): success on attempt 1. (Actions API)
+- **Owner manual checks** (visual, real Keplr/reload/reconnect, Habit/Health persistence, mobile): not reported with this record. They are separate from it.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#46](https://github.com/reyals1111-ux/ZIGoals/pull/46) (`97e2cfd`): Session B reliability, activation readiness and cleanup (integration files run one at a time, Chrome install retries, project rules).
+- [#48](https://github.com/reyals1111-ux/ZIGoals/pull/48) (`c4135f1`): Session C dependency patch updates, including next 16.3.5 → 16.3.6 for GHSA-vcvr-r3jv-pc5j, audit cleanup and a typecheck of scripts and Workers.
+
+Not in this deploy: [PR #47](https://github.com/reyals1111-ux/ZIGoals/pull/47) (this UI design pass) is still open. The Session B and Session C entries above were written before their PRs merged.
 
 # Alpha deploy — 2026-09-29 night, `5dd2ee7` live
 
