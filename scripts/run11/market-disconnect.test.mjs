@@ -4,6 +4,8 @@ import {marketRuntimeBundles} from './market-runtime-fixture.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare');
 const webRequire=createRequire(new URL('../../apps/web/package.json',import.meta.url)),{chromium}=webRequire('@playwright/test');
+// A CI run once hit the 30 s test timeout here with no stack. Name the step that stalls instead.
+const step=(label,promise,ms=10000)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' did not finish within '+ms+' ms')),ms);})]).finally(()=>clearTimeout(timer));};
 test.each(['abort','navigation'])('%s of an actual app request forgets its follower without cancelling the shared provider owner',async mode=>{
  const code=await marketRuntimeBundles(),now=Date.now();let release,entered,calls=0;const traces=[];
  // Use the shipped client cancellation path: this local ingress does not emit
@@ -20,12 +22,15 @@ test.each(['abort','navigation'])('%s of an actual app request forgets its follo
  const browser=await chromium.launch({channel:'chrome',headless:true}),page=await browser.newPage();await page.goto(String(await mf.unsafeGetDirectURL('app')));
  let owner,follower;
  try{
-  owner=load();await started;await page.evaluate(body=>{window.fixtureAbort=new AbortController();window.fixtureFollower=MarketClient.fetchPublicMarketQuotes(JSON.parse(body).requests,false,fetch,window.fixtureAbort.signal).then(()=>window.fixtureAbort.signal.aborted);},body);
+  owner=load();await step('provider dispatch of the owner request',started);await step('follower request start',page.evaluate(body=>{window.fixtureAbort=new AbortController();window.fixtureFollower=MarketClient.fetchPublicMarketQuotes(JSON.parse(body).requests,false,fetch,window.fixtureAbort.signal).then(()=>window.fixtureAbort.signal.aborted);},body));
   let state;for(let i=0;i<40;i++){state=await inspect();if(state.followers===1)break;await new Promise(resolve=>setTimeout(resolve,5));}expect(state).toMatchObject({followers:1,dispatched:1,chargedCredits:3});
   const wrong=await fetch(new URL('/api/market-quotes/cancel',await mf.unsafeGetDirectURL('app')),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({cancelToken:crypto.randomUUID()})});expect(wrong.status).toBe(204);expect((await inspect()).followers).toBe(1);await vi.waitFor(()=>expect(traces).toEqual(['/app-cancel']));traces.length=0;
   const malformed=await fetch(new URL('/api/market-quotes/cancel',await mf.unsafeGetDirectURL('app')),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({cancelToken:'guess'})});expect(malformed.status).toBe(400);await vi.waitFor(()=>expect(traces).toEqual(['/app-cancel']));traces.length=0;
-  const stopped=performance.now();if(mode==='abort'){follower=page.evaluate(()=>{window.fixtureAbort.abort();return window.fixtureFollower;});expect(await follower).toBe(true);}else await page.goto('about:blank');
+  const stopped=performance.now();if(mode==='abort'){follower=page.evaluate(()=>{window.fixtureAbort.abort();return window.fixtureFollower;});expect(await step('aborted follower settling',follower)).toBe(true);}else await step('navigation away',page.goto('about:blank'));
   while(performance.now()-stopped<500){state=await inspect();if(state.followers===0)break;await new Promise(resolve=>setTimeout(resolve,10));}
-  expect({state,traces}).toMatchObject({state:{followers:0,dispatched:1,chargedCredits:3},traces:['/app-cancel']});expect(calls).toBe(1);release();expect((await(await owner).json()).results[0].status).toBe('VERIFIED_FRESH');
+  // The durable follower cleanup must finish within the 500 ms window above. The '/app-cancel'
+  // trace is sent by the cancel route through ctx.waitUntil after it responds, so under load it
+  // can land after the follower is gone: wait for it separately (as above) and compare a copy.
+  expect(state).toMatchObject({followers:0,dispatched:1,chargedCredits:3});await vi.waitFor(()=>expect([...traces]).toEqual(['/app-cancel']));expect(calls).toBe(1);release();expect((await(await step('owner response',owner)).json()).results[0].status).toBe('VERIFIED_FRESH');
  }finally{release();await Promise.allSettled([owner,follower]);await browser.close();await mf.dispose();}
 },30000);
