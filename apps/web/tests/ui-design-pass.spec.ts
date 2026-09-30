@@ -226,9 +226,12 @@ test.describe('Part 3: liquid glass',()=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);await page.goto('/app/habits');const tile=page.locator('.habit-month-grid>span').nth(5);
   await tile.evaluate(e=>e.scrollIntoView({block:'center'}));const t=(await tile.boundingBox())!;
-  await page.mouse.move(t.x+t.width/2,t.y+t.height/2);await page.mouse.down();await page.mouse.up();
+  // Arrive and press in the same moment (one task), so the check does not depend on how fast the runner is.
+  const x=t.x+t.width/2,y=t.y+t.height/2;
+  await tile.evaluate((el,[x,y])=>{const o={bubbles:true,pointerType:'mouse',clientX:x,clientY:y,isPrimary:true};for(const type of ['pointerover','pointermove','pointerdown','pointerup'])el.dispatchEvent(new PointerEvent(type,o));},[x,y]);
   await page.waitForTimeout(250);expect(await tile.getAttribute('data-glass-hover')).toBeNull();
-  await page.mouse.move(t.x+t.width/2+5,t.y+t.height/2,{steps:2});
+  // Moving on after the press lets it lift once the pointer rests.
+  await tile.evaluate((el,[x,y])=>el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:x+8,clientY:y,isPrimary:true})),[x,y]);
   await expect(tile).toHaveAttribute('data-glass-hover','');
  });
  test('long sections and typing stay still; the sidebar star is a plain layer',async({page,isMobile})=>{
