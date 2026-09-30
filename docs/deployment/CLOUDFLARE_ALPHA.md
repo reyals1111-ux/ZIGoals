@@ -6,7 +6,7 @@
 
 ## Root build and local validation
 
-Use Node **24.19.0**, pnpm **11.19.0** and the frozen workspace lock. The adapter is `@opennextjs/cloudflare 1.20.6`, Wrangler `4.131.1`, Next `16.3.5`. Run from repository root:
+Use Node **24.19.0**, pnpm **11.19.0** and the frozen workspace lock. The adapter is `@opennextjs/cloudflare 1.20.7`, Wrangler `4.131.1`, Next `16.3.6`. Run from repository root:
 
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts

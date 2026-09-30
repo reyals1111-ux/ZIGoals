@@ -53,7 +53,7 @@ export async function boundedQuoteText(response:Response,limit=8192):Promise<str
  if(length>limit)throw new ProviderValidationError('Quote response too large.');chunks.push(chunk.value);
  }}finally{await cleanupMarketBody(()=>reader.cancel());reader.releaseLock();}
  const data=new Uint8Array(length);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength;}
- try{return new TextDecoder('utf-8',{fatal:true}).decode(data);}catch(error){if(error instanceof TypeError)throw new ProviderValidationError('Invalid UTF-8.');throw error;}
+ try{return new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(data);}catch(error){if(error instanceof TypeError)throw new ProviderValidationError('Invalid UTF-8.');throw error;}
 }
 export function verifiedNativeQuote(raw:unknown,now=Date.now()):MarketQuote {
  const quote=marketQuoteSchema.parse(raw);

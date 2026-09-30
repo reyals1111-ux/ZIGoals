@@ -14,11 +14,14 @@ export class MarketAccount {
   const reader=request.body?.getReader();if(!reader)return new Response(null,{status:400});const chunks:Uint8Array[]=[];let total=0;const limit=request.headers.get('x-market-payload')==='evidence'?16*1024*1024:65536;
   for(;;){const chunk=await reader.read();if(chunk.done)break;total+=chunk.value.byteLength;if(total>limit){void reader.cancel().catch(()=>{});return new Response(null,{status:413});}chunks.push(chunk.value);}
   const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
-  try{const body=new TextDecoder('utf-8',{fatal:true}).decode(bytes),command=JSON.parse(body);if(total>65536&&command?.action!=='publish-data')return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
+  try{const body=new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(bytes),command=JSON.parse(body);if(total>65536&&command?.action!=='publish-data')return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
  }
 }
 const worker={fetch(){return new Response('Not found',{status:404,headers:{'cache-control':'no-store'}});}};
 
+// parseDurableMarketBody validates these payloads with zod, but its inferred return type
+// collapses to {version:1} (subtype reduction of its conditional), so name them here.
+type HistoryRequest=Parameters<typeof durableHistory>[0];type QuoteRequests=Parameters<typeof dispatchDurableQuotes>[0];
 type QuoteEnv={MARKET_QUOTE_DISPATCH?:string;MARKET_ACCOUNT_ID?:string;COINGECKO_DEMO_API_KEY?:string;MARKETS:{idFromName:(name:string)=>unknown;get:(id:unknown)=>{fetch:(request:Request)=>Promise<Response>}}};
 /** Available only through an explicitly configured named service binding. The default
  * public endpoint above cannot reach provider dispatch or coordinator commands. */
@@ -38,7 +41,7 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
   const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:(command as {action?:string}).action==='publish-data'?{'x-market-payload':'evidence'}:{},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll'].includes(String((command as {action?:string}).action))?17*1024*1024:1024*1024)) as Record<string,unknown>;};
   const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken};
-  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests,context):await durableInsights(body.requests,context):null;
+  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request as HistoryRequest,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests as QuoteRequests,context):await durableInsights(body.requests as QuoteRequests,context):null;
   return Response.json(result,{headers});
  }
 }

@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "pnpm --filter @zigoals/web dev",
     "build": "pnpm --filter @zigoals/web build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.workers.json",
     "test": "vitest run",
     "lint": "eslint .",
     "check:deploy-configs": "node scripts/check-deployment-configs.mjs",
@@ -28,6 +28,6 @@
     "json-schema-to-typescript": "15.0.4",
     "json5": "2.2.3",
     "typescript": "5.9.3",
-    "vitest": "5.0.0"
+    "vitest": "5.0.2"
   }
 }
