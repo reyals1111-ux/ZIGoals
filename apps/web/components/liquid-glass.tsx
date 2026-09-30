@@ -55,7 +55,9 @@ export function LiquidGlass() {
     let still = !entranceAllowed();
     const overlay = document.createElement('div');
     overlay.className = 'glass-light'; overlay.setAttribute('aria-hidden', 'true');
-    overlay.append(document.createElement('i'));
+    // The rim and shadow (i) and the specular light (b), which moves by transform alone: no repaint as the pointer moves.
+    const rim = document.createElement('i'), spot = document.createElement('b');
+    rim.append(spot); overlay.append(rim);
     document.body.append(overlay);
     let lifted: HTMLElement[] = [], lit: HTMLElement | null = null, frame = 0, px = 0, py = 0, focusSource = false;
     const leaveTimers = new WeakMap<HTMLElement, number>();
@@ -67,10 +69,13 @@ export function LiquidGlass() {
       const r = lit.getBoundingClientRect(), s = overlay.style, cs = getComputedStyle(lit);
       const [tx = 0, ty = 0] = cs.translate === 'none' ? [] : cs.translate.split(' ').map(parseFloat), scale = cs.scale === 'none' ? 1 : parseFloat(cs.scale) || 1;
       const width = r.width / scale, height = r.height / scale, left = r.left + r.width / 2 - tx - width / 2, top = r.top + r.height / 2 - ty - height / 2;
-      s.width = `${width}px`; s.height = `${height}px`; s.transform = `translate(${left}px, ${top}px)`;
       const x = still || focusSource ? width / 2 : px - left, y = still || focusSource ? height * .3 : py - top;
-      s.setProperty('--gx', `${Math.round(x)}px`); s.setProperty('--gy', `${Math.round(y)}px`);
+      // Only what changed is written: a pointer moving inside the same element updates the light, not the box.
+      const box = `${width}|${height}|${left}|${top}`, light = `${Math.round(x)}|${Math.round(y)}`;
+      if (box !== written.box) { s.width = `${width}px`; s.height = `${height}px`; s.transform = `translate(${left}px, ${top}px)`; written.box = box; }
+      if (light !== written.light) { spot.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`; written.light = light; }
     }
+    const written = {box: '', light: ''};
     const schedule = () => { if (!frame) frame = requestAnimationFrame(place); };
     function arm(el: HTMLElement) {
       window.clearTimeout(leaveTimers.get(el));
@@ -122,6 +127,7 @@ export function LiquidGlass() {
     };
     const onMove = (event: PointerEvent) => {
       if (event.pointerType === 'touch') return;
+      if (Math.abs(event.clientX - px) < 1 && Math.abs(event.clientY - py) < 1 && !pressed) return;
       px = event.clientX; py = event.clientY;
       if (pressed && Math.hypot(px - pressed.x, py - pressed.y) > 3) { pressed = null; if (hover.matches && !dragging()) hoverAt(event.target as Element); }
       if (lit && !still) schedule();
