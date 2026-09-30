@@ -19,8 +19,8 @@
     --phone-glass-edge: #7fc8ff33;
     scroll-padding-top: calc(var(--phone-bar) + var(--safe-top) + 12px);
     scroll-padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 16px);
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
+    /* No text-size-adjust here: even inside this query, Chromium's full-page capture of desktop pages renders
+       differently when the property is present anywhere (desktop freeze check). */
   }
   :root body { -webkit-tap-highlight-color: transparent; }
 
