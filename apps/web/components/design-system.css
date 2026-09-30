@@ -91,3 +91,6 @@
 :root button.text-link:not(.primary,.secondary,.quiet):hover { text-decoration:underline;text-underline-offset:3px; }
 /* Labels are at least 14px: Ecosystem's category labels were 12px. */
 :root .ecosystem-project .eyebrow { font-size:14px;color:var(--text-meta); }
+/* Motion Off covers the older card hover lifts too (reduced motion already did): no rise, no transform transition. */
+:root[data-app-motion=off] :is(.dashboard .goal-card,.watch-card,.owned-asset-card) { transition:none; }
+:root[data-app-motion=off] :is(.dashboard .goal-card,.watch-card,.owned-asset-card):is(:hover,:active) { transform:none!important; }
