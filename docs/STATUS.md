@@ -34,8 +34,9 @@ Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, produc
   - The intro-video test (desktop, mobile) needs H.264 and fails only in this sandbox's Chromium.
   - `run10-widgets.spec.ts:20` (mobile) hit its 45 s budget in the six-width loop, then passed 3/3 alone.
 - **CI on `dc667f3`: all green** (web checks, web integration, all three browser shards, contract, canonical reproducibility). The two red "web" roll-ups on `86633a6` and `99b5cc3` were browser suites cancelled by the next push.
+- **CI green on `d5ec3db` (Part 15), `1cd6840` (Part 16) and the main merge `e110ced`** (web checks, web integration, all three browser shards, contract, canonical reproducibility; 10/10 each).
 
-**Known CI intermittents on this PR:** `account-browser` 90 s timeouts on `67a05e1`, `f1bb8bb`, `f5e1ea4` (a-first and b-first), then a-first only on `4187724` and `a8a4e89` (re-run once, failed again); passed on `9383f15` and `0e5ee0f` after the hover-intent change. The root-cause fix (`8ca0e03`, #46) is still worth merging: without it this test has little margin on main too. The fix is Session B's `8ca0e03` (run the integration files one at a time, `.github/workflows/ci.yml`), which this PR may not touch; it takes effect once #46 merges. `run11-route-mobile-acceptance` (desktop) hit its 45 s budget once on `f1bb8bb`; locally it takes 24.6–26.0 s on this branch and 23.0–25.0 s on main.
+**Known CI intermittents on this PR:** `account-browser` 90 s timeouts on `67a05e1`, `f1bb8bb`, `f5e1ea4` (a-first and b-first), then a-first only on `4187724` and `a8a4e89` (re-run once, failed again); passed on `9383f15` and `0e5ee0f` after the hover-intent change. The root-cause fix is Session B's `8ca0e03` (#46: the integration files run one at a time). #46 is merged, and this branch has it since `e110ced`. `run11-route-mobile-acceptance` (desktop) hit its 45 s budget once on `f1bb8bb`; locally it takes 24.6–26.0 s on this branch and 23.0–25.0 s on main.
 
 **Not done / skipped:** half/full width toggle (only Today's existing compact/wide sizes); Ecosystem is a filtered directory, not a card layout, so it stays fixed; Markets catalog cards are not reorderable (they follow the catalog filter); backup preview counts for counter days (vault, off-limits).
 
@@ -45,6 +46,10 @@ Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, produc
 12. `5f2c813`, `ebdf693` Evidence checks and a performance trace (below).
 13. `8f81c17`, `4b22a9f`, `99b5cc3`, `dc667f3` Polish fixes (below).
 14. Review gallery: [PR #47 comment](https://github.com/reyals1111-ux/ZIGoals/pull/47#issuecomment-5906382196). It has 53 WebP images (≤206 KB each) on branch `review/pr47-screenshots`, which is not for merging: every main page at 1440×900 and 390×844, before (`5dd2ee7`) and after (`dc667f3`), plus close-ups. Showcase data only.
+15. `d5ec3db` **TIER 3 (honesty banners):** the testnet bar and the Local simulation strip never depend on readable private data (below).
+16. `1cd6840` `run10-widgets.spec.ts:20` mobile timeout: root cause found and fixed (below).
+17. `dd16ffd` `goal-provider.test.ts` intermittent: root cause found and fixed with a deterministic failing-first proof (below).
+Merge of main after #46: `e110ced` (both STATUS entries and the Known CI intermittents table kept).
 
 **Compatibility and rollback** (Part 10, `86633a6`; evidence: code reading of 5dd2ee7 = deploy #12, a local cross-version unit check importing 5dd2ee7's own modules, and a local browser run with both production builds on one origin)
 
@@ -68,6 +73,8 @@ Data-loss paths in deploy #12 (none silent):
 - No deploy #12 code writes or removes the Health or settings keys outside those paths.
 
 Recovery: deploy forward. The new build reads everything back (browser run: counter value and widgets intact after the rollback visits). Before a planned rollback, removing new widgets (Customize Today → the widget → Remove widget) makes Today settings readable again; counters cannot be removed that way (deleting counters keeps the group), so Health stays unreadable in deploy #12 until forward. Stale-tab risk: an old tab cannot damage data, but a new-build tab left open after a rollback can keep writing counters/widgets.
+
+From this build on (`d5ec3db`), honesty banners don't depend on readable private data. The testnet bar and the Local simulation strip render from the app mode even when Today settings, Health or the account selection are unreadable, corrupt, from a newer build or still loading. Only a readable Health/Habits-only Today or a selected account hides them, as before. Deploy #12 itself still hides them after a rollback (above).
 
 **Test hygiene** (Part 11, `3369799`)
 - **Skips.** Full suite on `dc667f3` (local): 33 skipped against 21 on main. All 12 added skips are platform checks (conditional `test.skip` on the project); none skips a test outright.
@@ -113,6 +120,49 @@ Recovery: deploy forward. The new build reads everything back (browser run: coun
   - Today's widget grid can end on a half-empty row (fixing it needs layout rework).
   - Goal cards show "VALUE GOAL" twice, in the art caption and the header; this is the same on main.
   - The decorative orbit dot beside "Available for Goals" is main's artwork.
+
+**Fail-safe honesty banners** (Part 15, `d5ec3db`):
+- Dependencies found, all in `components/shell.tsx`:
+  - Both banners required Today settings to be loaded and readable.
+  - A damaged account selection (`useWorkspaceSelection` reports `selected` with `error`) hid them.
+  - While stores loaded, the whole workspace, including the Showcase banner, workspace status and mode strip, was hidden.
+- All three are removed in Shell and CSS. No private-store, vault or sync code changed, and none was needed.
+- Checked and not dependent:
+  - The Showcase banner uses the tab's Showcase flag.
+  - Today's "Testnet Alpha · simulated financial progress" line falls back to the balanced preset when settings are unreadable.
+  - The journey banner is static.
+- New `tests/honesty-banners.spec.ts` (desktop + mobile, 14 tests):
+  - Cases: newer-build and corrupt Today settings, newer-build and corrupt Health, a damaged account selection, and the server-rendered loading state.
+  - Each case keeps both banners on all 10 main pages.
+  - "Private data could not be read" still shows on Today (settings, Health) and on Health (Health), and stored bytes stay unchanged.
+  - A readable Health/Habits-only Today still hides the financial bars.
+  - Local: 8 of 14 failed on the previous build (settings ×2, account selection, loading; both projects); 14/14 pass now. The Health cases already passed: Health never gated the banners.
+  - Related specs (top bar, mode strip, workspace status, ui-design-pass, ui-evidence): 154 passed.
+- Seen, not changed (vault/durable-store code): a durable-store read that never settles would keep the workspace hidden indefinitely. The banners now still show.
+
+**run10-widgets mobile timeout** (Part 16, `1cd6840`):
+- Reproduced: 3 of 20 mobile runs timed out (local, production build, 2 workers), median 44.1 s against a 45 s budget.
+- Step timing: the four full-page preset screenshots took 6–12 s each (about 35 s); the six-width overflow loop took under 1 s.
+- Root cause:
+  - The capture cost is linear in page height, 0.82–0.84 ms per CSS px on both builds. iPhone 13 renders at 3×, so each capture is a 12–18 MB PNG.
+  - This branch's Today is 1,300–1,400 px taller per preset (Part 8's week section, the journey banner).
+  - On main `5dd2ee7` the same test already took about 35 s.
+- Fix: the screenshots are review attachments only, so they are now captured at CSS-pixel scale. No assertion or timeout changed.
+- After: 20/20 mobile passes (median 11.1 s, max 13.1 s), plus 3 of 3 inside full suites (10.8–12.0 s).
+
+**goal-provider intermittent** (Part 17, `dd16ffd`):
+- Reproduction:
+  - 0 failures in 20 plain full `pnpm test` runs.
+  - Under CPU load (6 busy loops on 4 cores, `--repeats=15`): 2 failures in one run of two ("external same-scope journal intent cancels testnet review before signing" and Session B's "durable journal revisions stop signing…").
+- Root cause: `click()` sleeps a fixed 20 ms, and some tests sleep 30–40 ms. The next lines then assert synchronously on async provider work (quote, journal revision check, Web Locks). Session B's `ec3ac7a` had fixed one instance of this.
+- Fix: assertions now wait for the state with the file's own `rendered()` poll, and expected disappearances poll until gone. "Unchanged"/"not executed" checks run after the outcome. No expectation was removed and no timeout changed.
+- Deterministic proof: a temporary copy with 30 ms latency on every Web Lock and on the quote failed 4 of 29 before the fix and 0 of 29 after. The fixed file under CPU load passed 2 of 2 runs.
+
+**Local-only observations** (not seen in CI, not changed):
+- `product-data.spec.ts:72` (desktop) timed out in `waitForLoadState("networkidle")` after a reload:
+  - This branch: 6 of 20. Main `5dd2ee7`: 3 of 20. So it predates this PR.
+  - The test doesn't stub `/api/market-*`, so the likely cause is a slow outbound request in this sandbox (not verified).
+- `health-daily.spec.ts:93` (desktop) and `owner-preview.spec.ts:28` (mobile) each stalled once in 3 full suites and then passed 20/20 alone.
 
 **Remaining "The Goal Layer for ZIGChain":** `README.md:2`, `apps/web/components/ecosystem-directory.tsx:11` (Ecosystem eyebrow), `landing/index.html:7` (page title), and 12 historical files under `docs/`. The app sidebar no longer shows it.
 
@@ -197,7 +247,8 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
 | `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
-| `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | Monitor. apps/web test, Session A's lane; not changed here |
+| `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
+| `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
