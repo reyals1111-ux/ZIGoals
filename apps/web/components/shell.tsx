@@ -40,7 +40,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const showcase=useShowcase();
   const selection=useWorkspaceSelection();
   const preferences=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
-  const financial=preferences.loaded&&!preferences.error&&visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
+  // The testnet bar and the mode strip follow the app mode. Only a readable choice hides them (a Health/Habits-only
+  // Today, or a selected account); a store that is loading, unreadable, corrupt or from a newer build never does.
+  const nonFinancialChoice=preferences.loaded&&!preferences.error&&!visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
+  const accountView=selection.ready&&selection.selected&&!selection.error;
+  const banners=!nonFinancialChoice&&!accountView;
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -68,7 +72,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <div className="app-content">
-      {financial&&!selection.selected&&<header className="app-topbar">
+      {banners&&<header className="app-topbar">
         <div className="network-banner">
           <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
           <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
@@ -108,7 +112,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded} style={{visibility:selection.ready&&preferences.loaded?undefined:"hidden"}}>
         <ShowcaseBanner/>
         <WorkspaceStatus/>
-        {financial&&!selection.selected&&<div className="mode-strip">
+        {banners&&<div className="mode-strip">
           <span className="mode-dot" />
           {s.mode === "local"
             ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
