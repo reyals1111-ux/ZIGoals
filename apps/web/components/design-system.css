@@ -94,3 +94,31 @@
 /* Motion Off covers the older card hover lifts too (reduced motion already did): no rise, no transform transition. */
 :root[data-app-motion=off] :is(.dashboard .goal-card,.watch-card,.owned-asset-card) { transition:none; }
 :root[data-app-motion=off] :is(.dashboard .goal-card,.watch-card,.owned-asset-card):is(:hover,:active) { transform:none!important; }
+
+/* ── Part 13 polish (fixes only) ─────────────────────────────────────────────────────────────── */
+/* The Local simulation line is an honesty label: near-white and above the Today hero art that bleeds under it. */
+:root .mode-strip { position:relative;z-index:1;color:var(--text-secondary);text-shadow:0 1px 2px #020716e6,0 0 14px #020716; }
+/* A text link after a button wraps as one piece, never mid-phrase (Today's ZIG reward reserve card). */
+:root .staking-card .text-link { display:inline-block; }
+/* Portfolio composition: one divider under its heading, not two. */
+:root .portfolio-composition > .section-heading { border-bottom:0; }
+/* "Where your data lives": the last row stretches instead of leaving one card alone. */
+:root .bottom-places { display:flex;flex-wrap:wrap; }
+:root .bottom-places > li { flex:1 1 220px; }
+/* The Wealth total's label never runs under its options button. */
+:root .wealth-hero-total > span:first-of-type { padding-right:48px; }
+/* The Health hero's lock button keeps its own size next to the other actions. */
+:root .page-heading .actions > .layout-lock { flex:0 0 44px;width:44px;justify-self:start;align-self:center; }
+@media (max-width:700px) {
+  /* The mode dot stays with its sentence; the demo balance takes its own line. */
+  :root .mode-strip { display:block; }
+  :root .mode-strip > .mode-dot { display:inline-block;margin:0 8px 2px 0;vertical-align:middle; }
+  :root .mode-strip > .wallet-balance { display:block;margin:6px 0 0; }
+  /* Older headings (Stake / Positions, Activity) keep the lock at the top right, as the shared header does. */
+  :root .page-heading:has(> .layout-lock) { position:relative; }
+  :root .page-heading > .layout-lock { position:absolute;top:0;right:0; }
+  :root .page-heading:has(> .layout-lock) > div:first-child .page-eyebrow { padding-right:56px; }
+  /* Corner lock buttons never cover a hero eyebrow. */
+  :root :is(.habit-hero,.wealth-hero,.markets-hero) .page-eyebrow { padding-right:56px; }
+  :root .portfolio-composition > .section-heading { padding-left:0;padding-right:0; }
+}
