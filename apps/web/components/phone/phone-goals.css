@@ -1,10 +1,10 @@
 /* Goals on a phone (Session E): list, detail and the create flow. Content, honesty labels and saved order unchanged. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   /* List header: title with "+ Create a goal" on its right, centred on it (as on desktop). */
-  :root .goals-page .page-header.goals-heading { margin: 8px 0 10px; }
+  :root .goals-page .page-header.goals-heading { margin: 8px 0 0; }
   :root .goals-page .goals-heading .primary { min-height: 44px; padding-inline: 14px; font-size: 15px; white-space: nowrap; }
   /* Goals | Positions and the view filters: one scrolling row of 44 px chips. */
-  :root .goals-page .goals-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+  :root .goals-page .goals-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 0; }
   :root .goals-page .goal-view-filters { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; order: 0; width: auto; }
   :root .goals-page .goal-view-filters::-webkit-scrollbar { display: none; }
   :root .goals-page .goal-view-filters button { flex: none; min-height: 44px; padding-inline: 14px; }
