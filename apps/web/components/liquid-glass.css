@@ -10,13 +10,15 @@
   [data-glass][data-glass-hover] { will-change:translate,scale; }
   [data-glass=card][data-glass-hover] { translate:0 -2px; }
   [data-glass=tile][data-glass-hover] { translate:0 -2px;scale:1.04; }
-  [data-glass=row][data-glass-hover],[data-glass=control][data-glass-hover] { translate:0 -1px; }
+  [data-glass=control][data-glass-hover] { translate:0 -1px; }
   /* Lifted elements rise above their neighbours (flex and grid items take z-index as they are). */
   [data-glass=card][data-glass-hover],[data-glass=tile][data-glass-hover] { z-index:2; }
 }
 /* Press: a brief settle, for every pointer. */
 [data-glass][data-glass-press] { scale:.99;transition-duration:90ms; }
 [data-glass=tile][data-glass-press] { scale:.97; }
+/* Rows never move, on hover or press: nothing inside them shifts or clips. */
+[data-glass=row][data-glass-press] { scale:none; }
 
 /* Hidden once faded out, so an idle overlay is never drawn. */
 .glass-light { position:fixed;left:0;top:0;z-index:25;pointer-events:none;opacity:0;visibility:hidden;transition:opacity 180ms ease,visibility 0s linear 180ms;contain:layout style; }
@@ -25,7 +27,9 @@
   box-shadow:0 22px 46px -24px #4a6effb8,0 10px 26px -18px #c36cff73,inset 0 0 0 1px #d2e2ff52,inset 0 1px 0 #ffffff4d; }
 .glass-light[data-on][data-kind=card]>i { translate:0 -2px; }
 .glass-light[data-on][data-kind=tile]>i { translate:0 -2px;scale:1.04;box-shadow:0 10px 20px -10px #6f7dffb3,0 0 16px -6px #c77dff80,inset 0 0 0 1px #eef5ff80; }
-.glass-light[data-on][data-kind=row]>i { translate:0 -1px; }
+/* Rows: a rounded glass pill around the row (sized in liquid-glass.tsx), a soft fill and a faint rim; no hard outline, no lift. */
+.glass-light[data-kind=row]>i { background:linear-gradient(135deg,#ffffff10,#a9c6ff0a 55%,#c38bff0a);
+  box-shadow:0 12px 26px -20px #4a6effa6,0 6px 16px -14px #c36cff59,inset 0 0 0 1px #cfe0ff26,inset 0 1px 0 #ffffff1f; }
 
 /* Reduced motion and Motion Off: nothing moves; a static rim and shadow only. */
 @media (prefers-reduced-motion:reduce) {

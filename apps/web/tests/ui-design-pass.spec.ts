@@ -202,6 +202,26 @@ test.describe('Part 3: liquid glass',()=>{
   await expect.poll(()=>lift(tile)).toEqual({translate:'0px -2px',scale:'1.04'});
   await page.mouse.move(5,5);await expect.poll(()=>lift(tile)).toEqual({translate:'none',scale:'none'});
  });
+ test('list rows get a rounded glass pill that never moves or crowds their content',async({page,isMobile})=>{
+  test.skip(isMobile,'Hover needs a fine pointer');
+  await showcase(page);
+  for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/goals/positions','.platform-position-row'],['/app','.habit-today-list>li']] as const){
+   await page.goto(path);const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
+   const before=await row.evaluate(e=>{const o=e.getBoundingClientRect();return [...e.querySelectorAll('*')].slice(0,6).map(c=>{const r=c.getBoundingClientRect();return [Math.round((r.left-o.left)*10),Math.round((r.top-o.top)*10),Math.round(r.width*10)];});});
+   const r=(await row.boundingBox())!;await page.mouse.move(r.x+r.width*.3,r.y+r.height/2);await page.mouse.move(r.x+r.width*.35,r.y+r.height/2,{steps:3});
+   await expect(row,path).toHaveAttribute('data-glass','row');await expect(row,path).toHaveAttribute('data-glass-hover','');
+   const overlay=page.locator('.glass-light');await expect(overlay,path).toHaveAttribute('data-kind','row');await page.waitForTimeout(300);
+   // The row never moves and nothing inside it shifts (its card may pop out around it, as cards do).
+   expect(await lift(row),path).toEqual({translate:'none',scale:'none'});
+   expect(await row.evaluate(e=>{const o=e.getBoundingClientRect();return [...e.querySelectorAll('*')].slice(0,6).map(c=>{const r=c.getBoundingClientRect();return [Math.round((r.left-o.left)*10),Math.round((r.top-o.top)*10),Math.round(r.width*10)];});}),path).toEqual(before);
+   // A rounded pill, never a hard rectangle, with room around the content.
+   const pill=await overlay.evaluate(e=>({radius:parseFloat(getComputedStyle(e).borderTopLeftRadius),box:e.getBoundingClientRect().toJSON()}));
+   expect(pill.radius,path).toBeGreaterThanOrEqual(12);
+   const content=await row.evaluate(e=>{const rs=[...e.querySelectorAll('*')].map(c=>c.getBoundingClientRect()).filter(b=>b.width&&b.height);return {left:Math.min(...rs.map(b=>b.left)),right:Math.max(...rs.map(b=>b.right))};});
+   expect(content.left-pill.box.left,path).toBeGreaterThanOrEqual(8);expect(pill.box.right-content.right,path).toBeGreaterThanOrEqual(8);
+   await page.mouse.move(5,5);
+  }
+ });
  test('keyboard focus gives the same lift with the focus ring',async({page,isMobile})=>{
   test.skip(isMobile,'Keyboard check on desktop');
   await showcase(page);await page.goto('/app/goals');

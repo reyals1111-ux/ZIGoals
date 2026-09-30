@@ -14,8 +14,8 @@ import './liquid-glass.css';
 type Kind = 'card' | 'tile' | 'row' | 'control';
 /** The one registry of what lifts, most specific kinds first. */
 const REGISTRY: [Kind, string][] = [
-  ['tile', ['.habit-month-grid>span', '.habit-week-bars>*', '.habit-calendar-day', '.nutrition-month-bars>div', '.nutrition-gauge', '.goal-mix-legend>span', '.composition-legend>*', '.evidence-chart-legend>*', '.habit-map-legend>*', '.habit-calendar-legend>*', '.health-macro', '.hero-pillars>div', '.progress-stats>div', '.destination-steps>div', '.attention-count', '.class-summary', '.goal-choice-tiles>*', '.widget-library-tile', '.exercise-counter'].join(',')],
-  ['row', ['.activity-row', '.health-library-row', '.platform-position-row', '.archived-row', '.asset-goal-row', '.financial-event-list>li', '.habit-today-list>li', '.dashboard-summary-item', '.dashboard-goal-links>li', '.health-simple-list>li', '.pace-track', '.today-pace-track', '.habit-overview-track', '.holding-allocation-track', '.nutrition-distribution-track', '.health-gauge-track', '.progress', '.agenda-row', '.activity-context>div', '.metrics>div', '.position-metrics>div', '.dashboard-metric-facts>div', '.card-bottom>div'].join(',')],
+  ['tile', ['.habit-month-grid>span', '.habit-week-bars>*', '.habit-calendar-day', '.nutrition-month-bars>div', '.nutrition-gauge', '.goal-mix-legend>span', '.evidence-chart-legend>*', '.habit-map-legend>*', '.habit-calendar-legend>*', '.health-macro', '.hero-pillars>div', '.progress-stats>div', '.destination-steps>div', '.attention-count', '.class-summary', '.goal-choice-tiles>*', '.widget-library-tile', '.exercise-counter'].join(',')],
+  ['row', ['.composition-legend>*', '.activity-row', '.health-library-row', '.platform-position-row', '.archived-row', '.asset-goal-row', '.financial-event-list>li', '.habit-today-list>li', '.dashboard-summary-item', '.dashboard-goal-links>li', '.health-simple-list>li', '.pace-track', '.today-pace-track', '.habit-overview-track', '.holding-allocation-track', '.nutrition-distribution-track', '.health-gauge-track', '.progress', '.agenda-row', '.activity-context>div', '.metrics>div', '.position-metrics>div', '.dashboard-metric-facts>div', '.card-bottom>div'].join(',')],
   ['control', ['.primary', '.secondary', '.text-link', '.quiet', '.badge[href]', '.picker-tabs button', '.view-tabs button', '.health-views button', '.habit-filter-bar button', '.market-favourite', '.card-options-trigger', '.layout-lock'].join(',')],
   ['card', ['.panel', '.goal-card', '.dashboard-widget', '.habit-card', '.market-product-card', '.watch-card', '.owned-asset-card', '.position-card', '.health-roadmap-grid>article', '.ecosystem-projects>article', '.new-destination-card', '.account-panel', '.recent-panel', '.destination-panel', '.staking-card', '.markets-intro-card', '.habit-overview', '.habit-consistency>article', '.nutrition-dashboard>*', '.activity-favourites', '.intro-video-card'].join(',')],
 ];
@@ -31,7 +31,15 @@ const kindOf = (el: Element): Kind => REGISTRY.find(([, selector]) => el.matches
  * one would turn several screens of content into its own layer, redrawn on every frame. Cards up to a little over
  * a screen tall lift.
  */
-const liftable = (el: HTMLElement) => kindOf(el) !== 'card' || el.getBoundingClientRect().height <= Math.max(900, innerHeight * 1.25);
+const liftable = (el: Element) => !(el instanceof SVGElement) && (kindOf(el) !== 'card' || el.getBoundingClientRect().height <= Math.max(900, innerHeight * 1.25));
+/**
+ * Rows (list entries, table-like lines, tracks) never move: they get a rounded glass pill instead. A row whose content
+ * runs to its own edges gets a pill a little larger than itself, so no dot, label or figure ever touches the rim.
+ */
+function rowPill(el: HTMLElement) {
+  const cs = getComputedStyle(el);
+  return {x: parseFloat(cs.paddingLeft) < 10 ? 12 : 0, y: parseFloat(cs.paddingTop) < 6 ? 6 : 0, radius: parseFloat(cs.borderTopLeftRadius) >= 12 ? cs.borderRadius : '14px'};
+}
 /** The innermost target under an element, plus its nearest card ancestor (so a card stays lifted while a control inside it lifts). */
 function targetsFor(start: Element | null): {inner: HTMLElement; card?: HTMLElement} | null {
   let inner = start?.closest<HTMLElement>(ALL);
@@ -58,7 +66,7 @@ export function LiquidGlass() {
     // The rim and shadow (i).
     overlay.append(document.createElement('i'));
     document.body.append(overlay);
-    let lifted: HTMLElement[] = [], lit: HTMLElement | null = null, frame = 0, focusSource = false;
+    let lifted: HTMLElement[] = [], lit: HTMLElement | null = null, pill: {x: number; y: number} | null = null, frame = 0, focusSource = false;
     const leaveTimers = new WeakMap<HTMLElement, number>();
 
     function place() {
@@ -67,7 +75,8 @@ export function LiquidGlass() {
       // The resting box: remove the element's own lift (the overlay applies the same lift itself); ancestors' current lift stays included.
       const r = lit.getBoundingClientRect(), s = overlay.style, cs = getComputedStyle(lit);
       const [tx = 0, ty = 0] = cs.translate === 'none' ? [] : cs.translate.split(' ').map(parseFloat), scale = cs.scale === 'none' ? 1 : parseFloat(cs.scale) || 1;
-      const width = r.width / scale, height = r.height / scale, left = r.left + r.width / 2 - tx - width / 2, top = r.top + r.height / 2 - ty - height / 2;
+      const pad = pill ?? {x: 0, y: 0};
+      const width = r.width / scale + pad.x * 2, height = r.height / scale + pad.y * 2, left = r.left + r.width / 2 - tx - width / 2, top = r.top + r.height / 2 - ty - height / 2;
       // Only a changed box is written.
       const box = `${width}|${height}|${left}|${top}`;
       if (box !== written.box) { s.width = `${width}px`; s.height = `${height}px`; s.transform = `translate(${left}px, ${top}px)`; written.box = box; }
@@ -93,7 +102,8 @@ export function LiquidGlass() {
         lit = light;
         if (lit) {
           const kind = kindOf(lit);
-          overlay.dataset.kind = kind; overlay.style.borderRadius = getComputedStyle(lit).borderRadius;
+          const row = kind === 'row' ? rowPill(lit) : null;
+          pill = row; overlay.dataset.kind = kind; overlay.style.borderRadius = row ? row.radius : getComputedStyle(lit).borderRadius;
           overlay.toggleAttribute('data-still', still);
           place(); overlay.dataset.on = '';
         } else delete overlay.dataset.on;
