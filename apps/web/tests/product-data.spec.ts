@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Request } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { createHabit, emptyHabitData, HABITS_KEY } from "../lib/habits";
 import { createEmptyHealth, HEALTH_STORAGE_KEY, saveFood } from "../lib/health";
@@ -18,6 +18,23 @@ async function openGoalModule(page: Page, id: string) {
   await page.locator(`#${id}`).evaluate((element) => {
     (element as HTMLDetailsElement).open = true;
   });
+}
+// Like waitForLoadState("networkidle") after a navigation: every request the page starts from now on has
+// finished or failed, and no new one started for 500 ms. Playwright's own networkidle can wait forever when
+// the navigation cancelled a Next.js link prefetch of the previous document while a page.route handler held
+// it: Playwright never reports that request as finished or failed, so the frame stays "busy" (local sandbox,
+// 4 of 20 runs; those requests' headers are still readable and recorded).
+async function requestsSettled(page: Page) {
+  const open = new Set<Request>();
+  let changed = Date.now();
+  const started = (request: Request) => { open.add(request); changed = Date.now(); };
+  const ended = (request: Request) => { open.delete(request); changed = Date.now(); };
+  page.on("request", started); page.on("requestfinished", ended); page.on("requestfailed", ended);
+  try {
+    await expect.poll(() => open.size === 0 && Date.now() - changed >= 500, { timeout: 20_000, intervals: [100] }).toBe(true);
+  } finally {
+    page.off("request", started); page.off("requestfinished", ended); page.off("requestfailed", ended);
+  }
 }
 async function restore(page: Page, name: "Habits" | "Health", raw: string) {
   const panel = page.getByRole("region", { name: `${name} backup`, exact: true });
@@ -94,7 +111,7 @@ test("private Habit and Health sentinel values stay outside requests, headers, l
     await page.goto(route); await expect(page.locator("main")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  await page.reload(); await page.waitForLoadState("networkidle");
+  await page.reload(); await requestsSettled(page);
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText(`${sentinel}_food`);
   const records: string[] = []; let seen = 0;
   while (seen < requests.length) { const batch = requests.slice(seen); seen += batch.length; records.push(...await Promise.all(batch)); }
