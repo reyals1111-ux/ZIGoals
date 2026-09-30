@@ -24,14 +24,23 @@ const ALL = REGISTRY.map(([, selector]) => selector).join(',');
 const EXCLUDED = '.app-sidebar,dialog,.layout-controls,.layout-ghost,.layout-bar,.today-hero,.wealth-hero,.habit-hero,.markets-hero,.page-header,.page-heading,[data-glass-off]';
 const kindOf = (el: Element): Kind => REGISTRY.find(([, selector]) => el.matches(selector))![0];
 
+/**
+ * Long sections (a whole list, the signed-in account panel) are page structure, not something to pick up: lifting
+ * one would turn several screens of content into its own layer, redrawn on every frame. Cards up to a little over
+ * a screen tall lift.
+ */
+const liftable = (el: HTMLElement) => kindOf(el) !== 'card' || el.getBoundingClientRect().height <= Math.max(900, innerHeight * 1.25);
 /** The innermost target under an element, plus its nearest card ancestor (so a card stays lifted while a control inside it lifts). */
 function targetsFor(start: Element | null): {inner: HTMLElement; card?: HTMLElement} | null {
-  const inner = start?.closest<HTMLElement>(ALL);
+  let inner = start?.closest<HTMLElement>(ALL);
   if (!inner || inner.closest(EXCLUDED) || inner.matches(':disabled') || inner.closest('[data-layout-placeholder]')) return null;
+  // A section too large to lift passes the pointer on to the next target around it, if any.
+  while (inner && !liftable(inner)) inner = inner.parentElement?.closest<HTMLElement>(ALL);
+  if (!inner || inner.closest(EXCLUDED)) return null;
   let card: HTMLElement | undefined;
   for (let n = inner.parentElement?.closest<HTMLElement>(ALL); n; n = n.parentElement?.closest<HTMLElement>(ALL)) {
     if (n.closest(EXCLUDED)) break;
-    if (kindOf(n) === 'card') { card = n; break; }
+    if (kindOf(n) === 'card') { if (liftable(n)) card = n; break; }
   }
   return {inner, card};
 }
@@ -112,7 +121,8 @@ export function LiquidGlass() {
     };
     const onFocusIn = (event: FocusEvent) => {
       const el = event.target as HTMLElement;
-      if (dragging() || !el.matches?.(':focus-visible')) return;
+      // Typing keeps its own focus ring; the card around a text field stays still.
+      if (dragging() || !el.matches?.(':focus-visible') || el.matches('input:not([type=checkbox],[type=radio],[type=button],[type=submit],[type=range]),textarea,select,[contenteditable]')) return;
       set(targetsFor(el), true);
     };
     const onFocusOut = () => { if (focusSource) clear(); };

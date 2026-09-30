@@ -77,8 +77,10 @@ function arriveMetrics(main: HTMLElement) {
   for (const el of main.querySelectorAll<HTMLElement>('strong,span,p,b,output,dd')) {
     if (count >= MAX_METRICS) return;
     if (!numeric(el) || el.closest(OWN_ENTRANCE) || el.closest('h1')) continue;
+    // Style before layout: most numbers are small, so their boxes are never measured.
+    if (parseFloat(getComputedStyle(el).fontSize) < 30) continue;
     const r = el.getBoundingClientRect();
-    if (r.bottom <= 0 || r.top >= innerHeight || parseFloat(getComputedStyle(el).fontSize) < 30) continue;
+    if (r.bottom <= 0 || r.top >= innerHeight) continue;
     // Gradient figures inherit a transparent fill; the shine goes on the element that paints the gradient.
     let target: HTMLElement | null = el;
     while (target && target !== main && getComputedStyle(target).webkitTextFillColor === 'rgba(0, 0, 0, 0)' && getComputedStyle(target).backgroundImage === 'none') target = target.parentElement;
@@ -126,12 +128,23 @@ export function PageArrival() {
     };
     pending = false;
     run();
+    // Pages that load their records render them a moment later; watch those insertions briefly. React
+    // commits arrive in several batches per frame, so they are read once per frame, not once per batch.
     // A title still waiting for its Suspense boundary to hydrate gets another look on the next frames.
-    let frame = 0;
-    const retry = () => { if (!pending) return; pending = false; run(); frame = requestAnimationFrame(retry); };
-    frame = requestAnimationFrame(retry);
-    // Pages that load their records render them a moment later; watch those insertions briefly.
-    const observer = new MutationObserver(records => run(records.flatMap(r => [...r.addedNodes].filter((n): n is Element => n instanceof Element))));
+    let frame = 0, retries = 0, added: Element[] | undefined;
+    const flush = () => {
+      frame = 0;
+      const batch = added;
+      added = undefined;
+      pending = false;
+      run(batch);
+      if (pending && retries++ < 30) frame = requestAnimationFrame(flush);
+    };
+    if (pending) frame = requestAnimationFrame(flush);
+    const observer = new MutationObserver(records => {
+      (added ??= []).push(...records.flatMap(r => [...r.addedNodes].filter((n): n is Element => n instanceof Element)));
+      if (!frame) frame = requestAnimationFrame(flush);
+    });
     observer.observe(main, {childList: true, subtree: true});
     const stop = window.setTimeout(() => { observer.disconnect(); cancelAnimationFrame(frame); }, WINDOW_MS);
     return () => { observer.disconnect(); window.clearTimeout(stop); cancelAnimationFrame(frame); };

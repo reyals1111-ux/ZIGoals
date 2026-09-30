@@ -77,7 +77,7 @@ test.describe('Part 2: personal layouts',()=>{
  test('unlock, move with the keyboard, reload keeps it, reset restores it, lock hides the controls',async({page})=>{
   await showcase(page);await page.goto('/app/habits');
   await expect(page.locator('.habit-overview')).toBeVisible();
-  const initial=await order(page,'habits:body');expect(initial).toEqual(['habits:overview','habits:consistency','habits:list']);
+  const initial=await order(page,'habits:body');expect(initial).toEqual(['habits:overview','habits:consistency','habits:list','habits:rhythm']);
   // Locked by default: no controls, nothing marked.
   await expect(page.locator('.layout-controls')).toHaveCount(0);
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
@@ -85,12 +85,12 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.getByRole('region',{name:'Arrange this page'})).toBeVisible();
   const down=page.getByRole('button',{name:'Move Today’s rhythm down',exact:true});
   await down.focus();await page.keyboard.press('Enter');
-  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
-  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 3.');
+  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list','habits:rhythm']);
+  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 4.');
   await expect(down).toBeFocused();
-  expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe('{"version":1,"pages":{"habits":{"body":{"order":["habits:consistency","habits:overview","habits:list"]}}}}');
+  expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe('{"version":1,"pages":{"habits":{"body":{"order":["habits:consistency","habits:overview","habits:list","habits:rhythm"]}}}}');
   await page.reload();await expect(page.locator('.habit-overview')).toBeVisible();
-  expect(await order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
+  expect(await order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list','habits:rhythm']);
   // Every load starts locked.
   await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();await expect(page.locator('.layout-controls')).toHaveCount(0);
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
@@ -149,7 +149,7 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('[data-layout-region="health:body"]').first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   await page.getByRole('button',{name:'Move Today’s nourishment down',exact:true}).click();
-  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:roadmap']);
+  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:roadmap','health:trends']);
   expect(await page.evaluate(()=>[...document.querySelectorAll('[data-layout-item]')].flatMap(e=>e.getAnimations()).length)).toBe(0);
  });
  test('touch: a long-press on the handle picks a card up and moves it',async({page,isMobile})=>{
@@ -167,7 +167,7 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('.layout-ghost')).toHaveCount(1);
   for(let i=1;i<=12;i++)await touch('touchMove',x,y+(to-y)*i/12);
   await touch('touchEnd',x,to);
-  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list']);
+  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list','habits:rhythm']);
  });
 });
 
@@ -221,6 +221,26 @@ test.describe('Part 3: liquid glass',()=>{
   await card.locator('h2').tap();
   expect(await card.getAttribute('data-glass-hover')).toBeNull();
   await expect(page.locator('.glass-light')).not.toHaveAttribute('data-on','');
+ });
+ test('long sections and typing stay still; the sidebar star is a plain layer',async({page,isMobile})=>{
+  test.skip(isMobile,'Hover needs a fine pointer');
+  await showcase(page);await page.goto('/app/wealth');await expect(page.locator('main h1')).toBeVisible();
+  // A section several screens tall is page structure: the pointer over it never lifts it.
+  const tall=page.locator('main .panel').filter({has:page.locator('*')});
+  const index=await tall.evaluateAll(els=>els.findIndex(e=>e.getBoundingClientRect().height>Math.max(900,innerHeight*1.25)));
+  expect(index).toBeGreaterThanOrEqual(0);
+  const section=tall.nth(index);await section.evaluate(e=>e.scrollIntoView({block:'start'}));
+  const box=(await section.boundingBox())!;await page.mouse.move(box.x+12,box.y+12);await page.mouse.move(box.x+16,box.y+16,{steps:2});
+  expect(await section.getAttribute('data-glass-hover')).toBeNull();
+  // Typing keeps its focus ring only; the card around the field stays where it is.
+  await page.goto('/app/health');const field=page.getByLabel('Water amount',{exact:true});await expect(field).toBeVisible();
+  // Its card fits the screen, so only the typing rule keeps it still.
+  expect(await field.evaluate(e=>e.closest<HTMLElement>('.panel')!.getBoundingClientRect().height<=Math.max(900,innerHeight*1.25))).toBe(true);
+  await field.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');await expect(field).toBeFocused();
+  expect(await field.evaluate(e=>e.matches(':focus-visible')&&e.closest('[data-glass-hover]')===null)).toBe(true);
+  const star=page.locator('.sidebar-star');
+  expect(await star.evaluate(e=>getComputedStyle(e).mixBlendMode)).toBe('normal');
+  await expect.poll(()=>star.evaluate(e=>getComputedStyle(e).transform)).toBe('none');
  });
 });
 
