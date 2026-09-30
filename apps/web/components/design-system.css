@@ -65,15 +65,14 @@
   :root :is(.goal-progress-caption > *, .goal-mix-legend span, .figure-accent) { color: CanvasText; -webkit-text-fill-color: CanvasText; }
 }
 
-/* Today hero: the lede is bigger, bolder and whiter; the eyebrow's nebula flows from the middle of the line to its end. */
+/* Today hero: the lede is bigger, bolder and whiter. (Eyebrow colour: .nebula-flow, like every title and topic.) */
 :root .today-hero-copy > p.page-lede.today-lede { font-size: clamp(17px, 1.2vw + 4px, 21px); font-weight: 600; line-height: 1.5; color: #f3f8ff; margin-top: 18px; text-shadow: 0 1px 14px #020918cc; }
-:root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: clamp(15px, 1.25vw, 19px) !important; background: linear-gradient(100deg, #f1f6ff 0%, #eef4ff 36%, #8fe8f6 54%, #7fb4ff 68%, #b98ff6 84%, #f08fd8 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; -webkit-text-fill-color: transparent; }
+:root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: clamp(15px, 1.25vw, 19px) !important; }
 :root .wealth-hero-copy > .page-eyebrow { font-size: 15px; }
 :root .wealth-hero-copy > p.wealth-intro.page-lede { font-size: var(--page-lede-size); font-weight: 500; color: #e9f0fb; }
 :root .page-heading p.page-lede, :root .markets-hero p.page-lede, :root .ecosystem-intro p.page-lede { font-size: var(--page-lede-size); font-weight: 500; color: #e9f0fb; line-height: 1.5; }
 :root .page-heading .page-eyebrow, :root .markets-hero .page-eyebrow, :root .ecosystem-intro .page-eyebrow { font-size: 15px; }
 @media (max-width: 600px) { :root .today-hero-copy > p.page-lede.today-lede { font-size: 17px; } :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { font-size: 14px !important; } }
-@media (forced-colors: active) { :root .today-hero .financial-orbit, :root .markets-hero .financial-orbit { background: none !important; color: CanvasText !important; -webkit-text-fill-color: CanvasText; } }
 
 /* Wealth headline (Part 5): one total in one currency with the nebula flow; other currencies stay on their own line, never converted. */
 :root .wealth-total-headline { display:block;font-weight:700;line-height:1.02;letter-spacing:-.045em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere; }
@@ -114,3 +113,9 @@
   :root .mode-strip > .wallet-balance { display:block;margin:6px 0 0; }
   :root .portfolio-composition > .section-heading { padding-left:0;padding-right:0; }
 }
+
+/* ── Part 18.5: one white→nebula style for every page title and topic ───────────────────────────── */
+/* The colour comes from .nebula-flow alone (nebula-flow.tsx): white on the left, the nebula from the middle to the
+   right, one light sweep that ends in that state. A title or eyebrow around it never adds a gradient of its own. */
+:root :is(h1,h2,h3,p):has(> .nebula-flow) { background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:var(--text-strong)!important;-webkit-text-fill-color:currentColor!important;animation:none!important; }
+@media (forced-colors: active) { :root :is(h1,h2,h3,p):has(> .nebula-flow) { color:CanvasText!important; } }

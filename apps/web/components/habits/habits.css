@@ -78,11 +78,9 @@
 .habit-hero { grid-template-columns: minmax(0, 1fr) auto 240px; column-gap: 28px; min-height: 236px; }
 .habit-hero .habit-hero-actions { margin: 0; flex-direction: column; align-items: flex-end; gap: 14px; position: relative; z-index: 1; }
 .habit-hero-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
-.habit-hero .habit-eyebrow { background: linear-gradient(95deg, #dfe7f8 0%, #c9d4f1 40%, #b9c6ee 62%, #c7b9ea 82%, #d9bfe6 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
 .habit-hero p.page-lede { max-width: 560px; color: #e9f0fb; }
 .habit-journal-settings { display: grid; gap: 12px; }
 .habit-journal-settings .habit-privacy { margin: 0; }
 @media (max-width: 1050px) { .habit-hero { grid-template-columns: minmax(0, 1fr) auto 160px; column-gap: 16px; } }
 @media (max-width: 600px) { .habit-hero .habit-hero-actions { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; margin-top: 18px; gap: 12px 18px; } }
-@media (forced-colors: active) { .habit-hero .habit-eyebrow { background: none; color: CanvasText; -webkit-text-fill-color: CanvasText; } }
 .habit-list-block { display: grid; gap: inherit; min-width: 0; }

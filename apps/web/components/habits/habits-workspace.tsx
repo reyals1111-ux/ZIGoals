@@ -13,6 +13,7 @@ import { LayoutLockButton, LayoutPage, LayoutRegion } from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
 import { HabitEditor } from "./habit-editor";
 import { habitDay, habitRuleOn,saveHabitTimezone } from "../../lib/habits";
+import { NebulaFlow } from "../nebula-flow";
 
 type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening" | "Goal linked" | "Archived";
 export function HabitsWorkspace() {
@@ -53,7 +54,7 @@ export function HabitsWorkspace() {
   });
   const editingHabit = editor && editor !== "new" ? store.data.habits.find((habit) => habit.id === editor) : undefined;
   return <LayoutPage page="habits"><div className="habits-workspace">
-    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow">Small steps. Your own rhythm.</p><h1 id="habits-title">Find your <span className="nebula-text">daily cadence.</span></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
+    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>

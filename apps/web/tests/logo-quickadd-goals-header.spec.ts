@@ -28,8 +28,9 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  await showcase(page);await page.goto('/app/goals');
  const title=page.getByRole('heading',{level:1,name:'Your Goals',exact:true});
  await expect(title).toBeVisible();await expect(page.getByRole('heading',{name:'Your goals.',exact:true})).toHaveCount(0);
- await expect(title.locator('.nebula-text')).toHaveText('Your Goals');
- expect(await title.locator('.nebula-text').evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
+ // Part 18.5: white on the left, the nebula from the middle to the right, through the one shared utility.
+ await expect(title.locator('.nebula-flow')).toHaveText('Your Goals');
+ expect(await title.locator('.nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage)).toMatch(/linear-gradient.*42%/);
  await expect(page.getByText('A destination worth building',{exact:true})).toBeVisible();await expect(page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true})).toBeVisible();
  const create=page.getByRole('link',{name:'+ Create a goal',exact:true}),t=(await title.boundingBox())!,c=(await create.boundingBox())!;
  await expect(create).toHaveAttribute('href','/app/goals/new');

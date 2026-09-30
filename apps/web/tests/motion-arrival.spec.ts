@@ -19,7 +19,9 @@ test('a newly selected page arrives once: nav pop and light sweep, title sweep, 
  const nav=page.getByRole('navigation',{name:'Main navigation'}),habits=nav.getByRole('link',{name:'Habits',exact:true});
  await habits.click();await page.waitForURL('**/app/habits');
  await expect(habits).toHaveAttribute('aria-current','page');
- await expect.poll(async()=>(await seen(page)).arrive).toEqual(expect.arrayContaining(['A:','H1:tint','SPAN:shine']));
+ await expect.poll(async()=>(await seen(page)).arrive).toEqual(expect.arrayContaining(['A:']));
+ // The title's sweep is its own one-time nebula entrance (Part 18.5: one white→nebula style for every title), which ends mid-to-right.
+ await expect(page.locator('main h1 .nebula-flow')).toHaveAttribute('data-entrance','once');
  await expect.poll(async()=>(await seen(page)).arrive.some(m=>m.endsWith(':card'))).toBe(true);
  const moving=await layout(page);
  await page.screenshot({path:info.outputPath('habits-arriving.png')});

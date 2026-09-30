@@ -37,7 +37,7 @@ test.describe('Part 1: readability foundation',()=>{
  });
  test('Today eyebrow nebula flows from the middle of the line',async({page})=>{
   await showcase(page);
-  const eyebrow=page.locator('.today-hero .financial-orbit');await expect(eyebrow).toHaveText('YOUR FINANCIAL ORBIT');
+  const eyebrow=page.locator('.today-hero .financial-orbit .nebula-flow');await expect(eyebrow).toHaveText('YOUR FINANCIAL ORBIT');
   const image=await eyebrow.evaluate(e=>getComputedStyle(e).backgroundImage);
   // Colour stops begin before the last word: the tint starts within the first 60% of the line.
   const stops=[...image.matchAll(/(\d+)%/g)].map(m=>Number(m[1]));expect(stops.some(v=>v>30&&v<60)).toBe(true);
@@ -74,6 +74,28 @@ test.describe('Part 1: readability foundation',()=>{
   const warnings:string[]=[];page.on('console',m=>{if(/hydrat/i.test(m.text()))warnings.push(m.text());});
   await showcase(page);for(const path of ['/app/habits','/app/health']){await page.goto(path);await page.waitForTimeout(1200);}
   expect(warnings).toEqual([]);
+ });
+});
+
+test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
+ const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+ test('every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility',async({page})=>{
+  await showcase(page);
+  for(const path of PAGES){
+   await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(1900);
+   const r=await page.evaluate(()=>{const flow=(el:Element|null)=>{const f=el?.querySelector(':scope > .nebula-flow');if(!f)return null;const s=getComputedStyle(f),p=getComputedStyle(el!);
+     // The shared mid-to-right gradient (white to 42%, then the nebula) is on the text; the parent adds nothing of its own.
+     return {white:/rgb\(244, 248, 255\) 0%, rgb\(244, 248, 255\) 42%/.test(s.backgroundImage),clip:s.backgroundClip.split(', ').every(c=>c==='text'),parent:p.backgroundImage};};
+    const title=document.querySelector('main h1');return {eyebrow:flow(document.querySelector('main .page-eyebrow')),title:title?.classList.contains('orbit-slogan')?'today-hero':flow(title)};});
+   const want={white:true,clip:true,parent:'none'};
+   expect(r.eyebrow,`${path} eyebrow`).toEqual(want);
+   if(r.title!=='today-hero')expect(r.title,`${path} title`).toEqual(want);
+  }
+ });
+ test('reduced motion and Motion Off show the final mid-to-right state at once',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await showcase(page);
+  await page.goto('/app/goals/positions');const flow=page.locator('main h1 .nebula-flow');await expect(flow).toHaveText('Your ZIG / Positions');
+  expect(await flow.evaluate(e=>[e.dataset.entrance??null,getComputedStyle(e).animationName,getComputedStyle(e).backgroundImage.split('linear-gradient').length-1])).toEqual([null,'none',1]);
  });
 });
 

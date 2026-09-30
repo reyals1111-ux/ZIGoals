@@ -12,6 +12,7 @@ import {
 } from "../../../lib/transaction-journal";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { LayoutLockButton, LayoutPage, LayoutRegion } from "../../../components/layout-edit";
+import { NebulaFlow } from "../../../components/nebula-flow";
 export default function ActivityPage() {
   const s = useGoals();
   const platform = usePlatform();
@@ -21,8 +22,8 @@ export default function ActivityPage() {
     <LayoutPage page="activity"><div className="activity-page">
       <div className="page-heading">
         <div>
-          <p className="eyebrow page-eyebrow">Every step forward</p>
-          <h1>Activity.</h1>
+          <p className="eyebrow page-eyebrow"><NebulaFlow identity="activity-eyebrow">Every step forward</NebulaFlow></p>
+          <h1><NebulaFlow identity="activity-title">Activity.</NebulaFlow></h1>
           <p className="page-lede">
             {s.mode === "local"
               ? "Your Goals, wealth, habits and health — a private history of the steps you take."
