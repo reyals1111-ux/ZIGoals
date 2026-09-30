@@ -1,4 +1,4 @@
-# Session B — reliability, activation readiness and cleanup (2026-09-29 night, [PR #46](https://github.com/reyals1111-ux/ZIGoals/pull/46), not merged or deployed)
+# Session B — reliability, activation readiness and cleanup (2026-09-29 night, follow-up Parts 7–13 on 2026-09-30, [PR #46](https://github.com/reyals1111-ux/ZIGoals/pull/46), not merged or deployed)
 
 Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, 4 vCPU, production build, Playwright at most 2 workers, Chromium 141 standing in for the `chrome` channel because dl.google.com is blocked here); **CI** = Milestone quality on the PR; **doc** = read from the source; **SEARCH-SUMMARY** / **UNVERIFIED** as defined in [FOOD_READINESS.md](run11/FOOD_READINESS.md). No real provider, account, secret, wallet or deploy was used. Live Alpha is unchanged (deploy #12 above).
 
@@ -13,8 +13,15 @@ Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11
 | 4 | [Food readiness](run11/FOOD_READINESS.md): fields and budget checked against the source; `FOOD_USER_AGENT` template plus a 6-test Worker pin; attribution already present, no UI follow-up. The OFF docs were blocked here: limits and licences are SEARCH-SUMMARY, and v3.4 still being served is UNVERIFIED. | `da101c0` |
 | 5 | Nothing to change. `pnpm lint` has 0 warnings and `pnpm typecheck` passes; the `use-private-store` cleanup-ref warning was already fixed in `6f378b4`. Its test and the vault sync/cloud-sync tests: 25/25 pass (no code change, so before = after). The middleware→proxy notice stays parked. Observation only: root `tsc` does not include `scripts/**/*.ts`. | — |
 | 6 | CLAUDE.md: stale AGENTS.md reference fixed, cloud-sandbox Chrome note, "Big sessions" section; every rule kept (mapping in the PR). | `a7e1d28` |
+| 7 | Runner pin: every job in all four workflows is already `ubuntu-24.04` (ci, deploy-alpha, release-candidate, reproducibility; the reusable calls go to pinned workflows), so no change. Because no job uses `ubuntu-latest`, what it resolves to today could not be read from a "Set up job" log. | — |
+| 8 | **market-disconnect flake fixed** (test-only). Root cause: the final assertion compared a live `traces` array that the cancel route fills through `ctx.waitUntil` after responding, so under load it could lag the durable follower removal. Reproduced deterministically with a 150 ms trace delay. The 500 ms cleanup check stays; the trace now gets its own wait. The CI 30 s abort timeout (#42) did not reproduce, so the steps now have labelled 10 s deadlines. Proof: 30/30 consecutive passes (24 alone, 6 under full `pnpm test`). | `b3a853e` |
+| 9 | Food: 15 product reads/min per IP is the binding limit (doc-verified via the owner's chat session, 2026-09-30); the Worker uses at most 5/min. Shared Cloudflare egress can bring 429/503 below our budget: new `food-throttle.test.mjs` pins the 60 s backoff and the honest "cooling down" path. Fit for about 20 friends: suitable, but lookups are not queued. v3.4 and the licence wording stay UNVERIFIED. | `cc212b9` |
+| 10 | **TIER 3 (project rules):** CLAUDE.md gains a "Hard rules" section with the 4 missing rules (no new dependencies, deploys only via Manual Alpha, never weaken assertions, protected baseline). The other 3 rules were already stated. | `031e567` |
+| 11 | Scripts typecheck: including `scripts/**/*.ts` in root tsc surfaced 14 errors: 2 in scripts, plus 12 from `workers/market-coordinator/worker.ts` (imported by `market-fault-fixture.ts`), which needs `cloudflare:workers` types. Fixing it needs a type shim and production worker edits, or a new dependency, so the config change was kept out (list in the PR). | — |
+| 12 | Dependency report: reported to the owner, not committed. | — |
+| 13 | [ADR-006](architecture/ADR-006-sync-lost-confirmation.md) decision memo (proposal): recommends option A (persist the prospective confirmation, `PENDING_POLICY` 2→3). Identical-content auto-resolve already exists and does not cover the case. | `f5cec44` |
 
-**TIER 3 commits:** `a7e1d28` (project rules). Risk: wording only; no command or rule removed, owner approves in review. There are no auth/sync or deploy-workflow changes.
+**TIER 3 commits:** `a7e1d28` and `031e567` (project rules). Risk: wording and added rules only; no command or rule removed; the owner approves in review. There are no auth/sync or deploy-workflow changes (Part 7 needed none).
 
 **Evidence (not summed across runs):**
 - account-browser, local, CI command:
@@ -29,6 +36,12 @@ Evidence labels: **local** = this cloud session's sandbox (Node 24.19.0, pnpm 11
 - Unit, local at `727bf56` (`pnpm test`): 1692 passed, 12 skipped, 1 failed. The failure was `market-disconnect`, a known intermittent; its re-run passed 2/2.
 - New suites: market-policy 31/31, food-user-agent 6/6.
 - Playwright, local full run: 488 passed, 21 skipped, 3 failed. All 3 need the intro MP4, which this sandbox Chromium cannot play; the same specs pass in CI Chrome.
+
+**Follow-up evidence (2026-09-30, local unless stated):**
+- market-disconnect: 30/30 consecutive passes after the fix. Failing-first: both cases fail with a 150 ms trace delay before the fix and pass after it. The fixed test still fails if the trace never arrives.
+- Full `pnpm test`, 6 runs: 1695 passed and 12 skipped each; one run also had 1 failure in `goal-provider.test.ts`, now listed as an intermittent.
+- New `food-throttle.test.mjs`: 2/2.
+- Lint and typecheck are clean before every push.
 
 **Owner next steps (Stage 6):**
 1. Fill `scripts/run11/market-policy.template.json` privately from the CoinGecko dashboard. Run `market-policy.mjs`, then pass the output to `make-private-configs --market-policy-file`.
@@ -65,7 +78,8 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
-| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss in the 500 ms follower window under full `pnpm test` load at `727bf56`; the re-run passed | web checks (unit) | Monitor. Timing-sensitive wait in the test; no Session B change touches it |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
+| `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | Monitor. apps/web test, Session A's lane; not changed here |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
