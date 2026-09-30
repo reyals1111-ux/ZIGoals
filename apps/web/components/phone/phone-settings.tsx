@@ -1,5 +1,6 @@
 "use client";
 import "./phone-settings.css";
+import Link from "next/link";
 import { AppIcon } from "../app-icon";
 import { usePhoneChrome } from "./use-phone-layout";
 
@@ -10,7 +11,7 @@ import { usePhoneChrome } from "./use-phone-layout";
  */
 // Row and group names are distinct from every other name on the page and in the phone chrome (the "Habits" and "Health"
 // tabs, the section headings), so a link or text lookup by name still finds exactly one element.
-const GROUPS: { title: string; rows: [label: string, note: string, id: string][] }[] = [
+const GROUPS: { title: string; rows: [label: string, note: string, target: string][] }[] = [
   { title: "Data & backups", rows: [
     ["Backups & restore", "Encrypted download and module copies", "private-vault"],
     ["Privacy & storage", "What stays in this browser", "privacy"],
@@ -19,6 +20,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, id: string][]
   { title: "Try & display", rows: [
     ["Showcase tour", "Fictional demo data in separate storage", "showcase"],
     ["Motion & display", "Follow device preference, or Off", "appearance"],
+    ["Show the welcome again", "Set up a first goal and habit", "/app/welcome"],
   ] },
   { title: "Wallet & network", rows: [
     ["Wallet account", "Local Demo or Keplr", "account"],
@@ -42,10 +44,11 @@ export function PhoneSettingsList() {
     {GROUPS.map(group => <section key={group.title} aria-label={group.title}>
       <h2>{group.title}</h2>
       <ul>
-        {group.rows.map(([label, note, id]) => <li key={id}><a href={`#${id}`} aria-label={label}>
-          <span className="phone-settings-copy"><strong>{label}</strong><small>{note}</small></span>
-          <span className="phone-settings-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
-        </a></li>)}
+        {group.rows.map(([label, note, target]) => {
+          const content = <><span className="phone-settings-copy"><strong>{label}</strong><small>{note}</small></span><span className="phone-settings-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span></>;
+          // Section rows jump within the page; the welcome row opens its own page (phones only, by the owner's choice).
+          return <li key={target}>{target.startsWith("/") ? <Link href={target} aria-label={label}>{content}</Link> : <a href={`#${target}`} aria-label={label}>{content}</a>}</li>;
+        })}
       </ul>
     </section>)}
   </nav>;
