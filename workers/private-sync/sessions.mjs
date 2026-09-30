@@ -1,9 +1,13 @@
 /** Revocation authority for verified bearer tokens. Never stores token bytes. */
+/** @param {unknown} body @param {number} [status] */
 const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 const HASH=/^[a-f0-9]{64}$/;
+/** @param {RecordTransaction} store @param {string|null|undefined} hash */
 export async function sessionAllowed(store,hash){if(!HASH.test(hash??''))return false;return (await store.get(`session:${hash}`))?.active===true;}
+/** @param {Request} request @param {RecordState} state @param {(request:Request,limit:number)=>Promise<any>} boundedJSON */
 export async function sessionsRequest(request,state,boundedJSON){
  const hash=request.headers.get('x-zigoals-token-hash');if(!HASH.test(hash??''))return reply({error:'SIGN_IN_REQUIRED'},401);
+ /** @type {any} */
  let action;if(request.method==='POST'){try{action=await boundedJSON(request,8192);}catch{return reply({error:'INVALID_SESSION_REQUEST'},400);}}
  return state.storage.transaction(async store=>{
   if(await store.get('account-deleted'))return reply({error:'ACCOUNT_DELETED'},410);

@@ -1,4 +1,4 @@
-// Corrections to the generated workers/worker-runtime.d.ts (workerd 1.20260911.1,
+// Corrections to the generated workers/worker-runtime.d.ts (workerd 1.20260926.1,
 // compatibility date 2026-09-13). Each was checked against that workerd through
 // Miniflare: fetch() accepts `credentials` and `referrerPolicy`, and `typeof window`
 // is "undefined" (shared app modules test for it before use).

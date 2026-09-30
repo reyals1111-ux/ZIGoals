@@ -315,3 +315,29 @@ test('camera permission is confined to the Health document',async()=>{
  expect(()=>assertHtml(response,html,'/app/health')).not.toThrow();expect(()=>assertHtml(response,html,'/app')).toThrow(/permission/);
  response.headers.set('permissions-policy','camera=*, microphone=(), geolocation=()');expect(()=>assertHtml(response,html,'/app/health')).toThrow(/permission/);
 });
+
+// Real output of the pinned wrangler, captured offline (scripts/fixtures/wrangler-output/README.md).
+const captured = (version, file) => readFileSync(new URL(`./fixtures/wrangler-output/${version}/${file}`, import.meta.url), "utf8");
+const deployEntry = jsonl => jsonl.trim().split("\n").map(line => JSON.parse(line)).find(entry => entry.type === "deploy");
+test.each(["4.131.1", "4.144.0"])("the real wrangler %s deploy output yields the new version ID", version => {
+  expect(deployedVersion(captured(version, "deploy-mock-api.jsonl"))).toBe("5f2b7c1e-3a4d-4e6f-8a9b-0c1d2e3f4a5b");
+});
+test("the deploy entry keeps the same fields and types from wrangler 4.131.1 to the pinned version", () => {
+  const shape = entry => Object.entries(entry).filter(([key]) => key !== "timestamp").map(([key, value]) => `${key}:${value === null ? "null" : Array.isArray(value) ? "array" : typeof value}`).sort();
+  expect(shape(deployEntry(captured("4.144.0", "deploy-mock-api.jsonl")))).toEqual(shape(deployEntry(captured("4.131.1", "deploy-mock-api.jsonl"))));
+  expect(deployEntry(captured("4.144.0", "deploy-mock-api.jsonl"))).toMatchObject({ type: "deploy", version: 1, worker_name: "zigoals-alpha" });
+});
+test.each(["4.131.1", "4.144.0"])("a real wrangler %s dry run is never read as a deployment", version => {
+  const dryRun = captured(version, "alpha-dry-run.jsonl");
+  expect(deployEntry(dryRun)).toMatchObject({ type: "deploy", worker_name: "zigoals-alpha", version_id: null });
+  expect(() => deployedVersion(dryRun)).toThrow("valid version ID");
+});
+test.each(["4.131.1", "4.144.0"])("the dry-run upload size line the docs quote keeps its format in wrangler %s", version => {
+  expect(captured(version, "alpha-dry-run.txt")).toMatch(/^Total Upload: \d+\.\d{2} KiB \/ gzip: \d+\.\d{2} KiB$/m);
+  expect(captured(version, "alpha-dry-run.txt")).toContain("env.WORKER_SELF_REFERENCE (zigoals-alpha)");
+});
+test.each(["4.131.1", "4.144.0"])("--secrets-file still uploads secrets additively in wrangler %s", version => {
+  const metadata = JSON.parse(captured(version, "upload-metadata.json"));
+  expect(metadata.bindings).toEqual([{ name: "FIXTURE_SECRET", type: "secret_text", text: "not-a-secret" }]);
+  expect(metadata.keep_bindings).toEqual(["secret_text", "secret_key"]);
+});

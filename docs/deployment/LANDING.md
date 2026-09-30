@@ -4,7 +4,7 @@ The static landing page and the application Alpha are separate Cloudflare Worker
 
 ## Local validation
 
-Run these commands from the repository root. They use the checked-in Wrangler 4.131.1 dependency from `@zigoals/web`; no global Wrangler installation is used.
+Run these commands from the repository root. They use the checked-in Wrangler 4.144.0 dependency from `@zigoals/web`; no global Wrangler installation is used.
 
 ```sh
 pnpm check:deploy-configs

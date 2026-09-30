@@ -13,6 +13,7 @@ import { AppIcon } from "./app-icon";
 import {ShowcaseBanner,useShowcase} from "./showcase-controls";
 import {WorkspaceStatus,useWorkspaceSelection} from './workspace-status';
 import {usePrivateStore} from './use-private-store';
+import {retryPrivateReads,usePrivateReadDelay} from './private-read-delay';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
 import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
@@ -46,6 +47,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const nonFinancialChoice=preferences.loaded&&!preferences.error&&!visibleDomains(preferences.data).some(d=>d==='wealth'||d==='goals');
   const accountView=selection.ready&&selection.selected&&!selection.error;
   const banners=!nonFinancialChoice&&!accountView;
+  // A private read that is still pending after a while gets an honest notice instead of an endless blank page.
+  // The page stays unrendered and writes stay blocked until a read succeeds; a late read renders normally.
+  const slowRead=usePrivateReadDelay(),settingsPending=!preferences.loaded;
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -110,6 +114,14 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
         </div>
       </header>}
+      {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
+        <h2>Your private data is taking longer than usual to open.</h2>
+        <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
+        <div className="actions">
+          <button type="button" className="secondary" onClick={retryPrivateReads}>Retry</button>
+          {settingsPending?<span className="fine">Your backups are in Settings once your data opens.</span>:<Link className="text-link" href="/app/settings#privacy">Backups in Settings →</Link>}
+        </div>
+      </section>}
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded} style={{visibility:selection.ready&&preferences.loaded?undefined:"hidden"}}>
         <ShowcaseBanner/>
         <WorkspaceStatus/>
@@ -197,7 +209,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </section>
         )}
-        <main id="main">{children}</main><PageArrival /><LiquidGlass />
+        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}>{children}</main><PageArrival /><LiquidGlass />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>

@@ -1,3 +1,172 @@
+# Session D — platform hardening (2026-09-30, [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50), not merged or deployed)
+
+Evidence labels:
+- **local**: this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright at most 2 workers, Chromium 141 standing in for `chrome`).
+- **CI**: Milestone quality on the PR.
+- **changelog**: the official `cloudflare/workers-sdk` release notes.
+- **captured**: real wrangler output recorded offline, as in `scripts/fixtures/wrangler-output/README.md`.
+
+No account, secret, wallet or deploy was used. No wrangler command reached Cloudflare. Base: main `39fdcf0`.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Deploys #13 and #14 were already recorded on main (`68cecc8`, PR #49; #14's rollback is `c4dda780-…`). No commit. | — |
+| 1 | **Private reads that never finish.** After 8 s the page shows "Your private data is taking longer than usual to open" instead of staying blank, with Retry and a pointer to Settings backups. Writes stay blocked until a read succeeds, and a late read renders without a reload. At the source: a stalled `indexedDB.open` can be retried onto the same pending connection, and a connection the browser closes is reopened (below). | `9b2c8f2` |
+| 2 | **wrangler 4.131.1 → 4.144.0.** Worker types regenerated. The deploy path's real output is pinned by tests. New [owner checklist for the first watched deploy](run11/WATCHED_DEPLOY_WRANGLER.md). | `2d11e22`, `f976340`, `bb5519a` |
+| 3 | eslint-config-next 16.3.5 → 16.3.6. Package contents are identical apart from the version; lint output is identical (0 problems). | `82af17d` |
+| 4 | `product-data.spec.ts:72`: the root cause is not a market request (below). Test-only fix, 40/40. | `0a11876` |
+| 5 | **Food lookup queue.** A second new barcode within 12 s now waits for the next slot instead of "cooling down". | `7d749ff` |
+| 6 | The 6 `.mjs` Workers are type-checked (checkJs + JSDoc), and the market fault fixture is really checked now. | `59ca984`, `7527e88` |
+| — | This entry | (this commit) |
+
+**TIER 3 commits and risk:**
+- `9b2c8f2` **(private store)**:
+  - Change: the vault connection code (`retryOpen`, `onclose`, one reopen on `InvalidStateError` during a read), plus the read-delay notice.
+  - Risk: a retry opens a second IndexedDB request that feeds the same pending promise; a surplus connection is closed.
+  - No data-format or sync-protocol change.
+- `2d11e22` **(dependencies)**:
+  - Change: wrangler, miniflare, workerd and undici. The same Alpha build bundles byte-identically under 4.131.1 and 4.144.0.
+  - Risk: the deploy step itself runs new wrangler code. See the watched-deploy checklist.
+- `f976340` **(deploy tooling)**:
+  - Change: tests and fixtures only. No script or workflow changed.
+  - Risk: none at runtime.
+- `59ca984` **(auth/sync)**:
+  - Change: JSDoc in the private-sync and auth-abuse Workers.
+  - Two behaviour-neutral code edits (see Part 6); verified by re-printing old and new code with esbuild.
+  - Risk: none intended.
+
+No `.github/workflows` file changed (none pins wrangler). No contract, wallet/Keplr or crypto/key-derivation code changed.
+
+**UI files touched** (Part 1 only):
+- `apps/web/components/shell.tsx`: the notice, and `<main>` hidden while Today settings are the pending store.
+- `apps/web/components/private-vault-tools.tsx`: "Upgrade selected module storage" is disabled until that module has read.
+
+## Part 1 — private reads that never finish (details)
+**Where rendering waited:**
+- The Shell hides `.workspace` until Today settings (`zigoals:settings:v1`) load. That means every page, including Settings.
+- Pages gate their own stores ("Loading…").
+
+**Causes, and what changed:**
+- An `indexedDB.open` that fires no event, such as the Safari first-open hang or an open queued behind another tab's blocked upgrade or deletion. The cached pending promise made every later read, and any retry, wait forever.
+  - Retry now starts one more open for the same pending connection. Readers and lock-holding writers continue on whichever succeeds.
+- A connection the browser closes itself (eviction, cleared site data) failed every later read until reload. Now it is forgotten and reopened.
+- Already handled, and kept:
+  - `blocked` rejects ("Close older ZIGoals tabs…");
+  - `versionchange` closes the connection;
+  - a newer database version shows the read error;
+  - private mode fails fast.
+- Web Locks: the durable read takes no lock, so a held lock cannot stall a read.
+- A transaction stuck behind another tab's transaction cannot be fixed at the source. The bounded wait covers it.
+
+**Safety:**
+- `loaded` is never set by the timer.
+- No default data is rendered as real.
+- `update` already refused while loading; now `importData` does too (it did not before). Storage migration is disabled until that module has read.
+- The banners stay visible throughout, and the server-rendered output is unchanged.
+
+**Tests (failing first):**
+- Unit:
+  - `lib/vault/database-lifecycle.test.ts` (3 new): on main, `retryOpen` is missing and the forced-close case fails with InvalidStateError.
+  - `lib/private-read-delay.test.ts` (3): on main, the module is missing.
+  - One importData guard in `lib/use-private-store.test.ts`: on main, it resolved and called the durable restore.
+- Browser: `tests/private-read-delay.spec.ts`, desktop + mobile.
+  - Cases:
+    - a stalled Today-settings open (notice, no page, no readwrite transaction or store write, banners, late release renders in place);
+    - Retry;
+    - a stalled page store (the Settings link);
+    - another tab's blocked upgrade (recovers when the other tab closes).
+  - 8/8 on this build; **8/8 fail on main** (no notice).
+  - Related specs: 72/72 (honesty-banners, layout stability, private vault, export/backup, recovery/migration, multitab).
+- CI green on `9b2c8f2` ([run 36767626937](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36767626937)).
+
+## Part 2 — wrangler 4.144.0 (details)
+- **Lockfile:**
+  - wrangler 4.144.0, miniflare 5.20260926.1-alpha, workerd 1.20260926.1 (+ binaries), `@cloudflare/unenv-preset` 2.16.2, undici 7.29.1. Nothing else.
+  - OpenNext 1.20.7 peers `wrangler ^4.125.0`: satisfied, with no peer warning.
+  - pnpm 11 refused 4.144.0 in a frozen install until it was 24 h old (published 2026-09-29 21:09 UTC). No `minimumReleaseAgeExclude` was committed; the push waited, and a frozen install passed at 21:09:47 UTC.
+- **Release notes** 4.131.2–4.144.0 and miniflare 5.20260911.1–5.20260926.1 were all read (changelog). Nothing touches the commands, flags or output our deploy path uses. Relevant items:
+  - `code_update_strategy` sent with every deploy (4.141.0; Durable Objects only; the Alpha has none);
+  - workers.dev settings read from the Worker resource (4.136.1);
+  - the types header whitespace fix (4.136.2);
+  - asset-upload retries on 502/503/504 (4.132.0);
+  - undici 7.29.1 (4.143.1).
+- **Real output, captured** (`scripts/fixtures/wrangler-output/`):
+  - Method: a real `wrangler deploy --secrets-file` of a throwaway Worker against a local mock API, inside a network namespace with no route off the machine, for both versions.
+  - The JSONL `deploy` entry has the same fields and types.
+  - The upload metadata adds only `code_update_strategy {deferred, 300}`.
+  - `--secrets-file` is still additive.
+  - After the upload, deploy reads `GET …/workers/workers/<name>` instead of `…/scripts/<name>/subdomain`.
+  - A dry run writes a `deploy` entry with `version_id: null`, which `deployedVersion` refuses (tested).
+  - `--help` for every command and flag we use still accepts them (new `scripts/wrangler-cli-surface.test.mjs`); only additive flags appeared.
+  - The `tail --format json` printer and `WRANGLER_WRITE_LOGS` are unchanged code.
+- **Alpha package** (local):
+  - The same `.open-next` bundled under 4.131.1 and 4.144.0 gives a **byte-identical** `worker.js` (13,886,407 B).
+  - Dry run: 13,560.94 KiB / gzip 2,625.33 KiB under both. Against this branch's pre-bump build: 13,560.92 / 2,625.63; the difference is Next build IDs.
+  - `.open-next/worker.js` is byte-identical.
+  - Bindings: `WORKER_SELF_REFERENCE` and `ASSETS`, as before.
+- **Types:** `worker-runtime.d.ts` was regenerated (workerd 1.20260926.1). The three `runtime-overrides.d.ts` entries are still needed and were re-checked on that workerd through Miniflare.
+- **Gates on 4.144.0** (local):
+  - lint, typecheck, `pnpm test` 1738 passed / 12 skipped (all Miniflare harnesses, types drift, hermetic-wrangler);
+  - `check:deploy-configs`, `check:landing`, `build:alpha`, `check:alpha`;
+  - `activation-check --dry-run` (6 configs), then `RUN11_PACKAGED` packaged runtime: passed;
+  - `preview:alpha` + public-alpha + diagnostics: 14/14.
+- **Owner:** before the first Manual Alpha deploy after this merges, read [WATCHED_DEPLOY_WRANGLER.md](run11/WATCHED_DEPLOY_WRANGLER.md). It covers the steps and outputs, a correct version-ID report, the rollback commands, and updating the ops checkout before activation Stage 7.
+
+## Part 4 — `product-data.spec.ts:72` (details)
+- **Root cause** (local instrumentation):
+  - No `/api/market-*` request happens in this test, so there was nothing to stub.
+  - The requests that kept `networkidle` from firing were Next.js `<Link>` RSC prefetches. The previous document started them, and the navigation cancelled them while the test's catch-all `page.route()` held them.
+  - Playwright never reports such a request as finished or failed, so the frame looks busy forever. It happened in 4/20 runs. The server answers those prefetches in about 10 ms.
+- **Rejected** (measured):
+  - idle before the reload: 6/40 failed;
+  - routing only external hosts: 7/33;
+  - no route + host-resolver rules: `allHeaders()` hangs, 12/14.
+- **Fix:** `requestsSettled()` waits like `networkidle` for what the reloaded page starts. The route, the recorder and every assertion are unchanged.
+- **Proof:** 40/40 consecutive (20 desktop + 20 mobile), and the whole spec 6/6.
+
+## Part 5 — food lookup queue (details)
+- A new barcode that finds the 12 s slot taken reserves the next one and waits. At most one lookup waits, and never for more than 15 s. Otherwise it gets an immediate honest `TRY_LATER` with the seconds until the next slot.
+- After waiting, the lookup re-checks the cache and the backoff:
+  - a throttle that happened meanwhile gives `PROVIDER_THROTTLED` with no provider call;
+  - a throttled lookup is never "not found".
+- Budget (≤5/min), 60 s backoff, cache and timeouts are unchanged. There is no route or UI change.
+- **Tests** (Miniflare, real time):
+  - new `food-queue.test.mjs` 4/4; all 4 fail on the previous Worker;
+  - `food-runtime.test.mjs` now expects `[200,200,429]` (was `[200,429,429]`), the new intended behaviour, and still proves persistence across a restart. Its timeout went from 30 s to 60 s for two real 12 s slots.
+- [FOOD_READINESS.md](run11/FOOD_READINESS.md) is updated.
+
+## Part 6 — `.mjs` Workers type-checked (details)
+- `tsconfig.workers.json` adds `allowJs`/`checkJs` for `workers/*/*.mjs` (6 files).
+- The probe found 133 errors (125 implicit `any`). All are fixed with JSDoc:
+  - per-Worker binding typedefs;
+  - `workers/checkjs.d.ts` for Durable Object storage (stored values `any`: schemaless JSON validated where read);
+  - casts that name the runtime guard.
+- **No real bug found.** Two behaviour-neutral code edits:
+  - `ignoreBOM:false` in 4 `TextDecoder`s (the WHATWG default; workerd's types require it);
+  - `split(';')[0]?.trim()` in 2 content-type checks (split never returns an empty array).
+  - Everything else is identical code (esbuild re-print).
+- **Also fixed:** the Workers program inherited the root `exclude`, so `scripts/run11/market-fault-fixture.ts` had never been checked (it is clean).
+
+## Numbers (local unless stated)
+| | Before (`39fdcf0`) | After |
+|---|---|---|
+| `pnpm audit` | 3 low / 5 moderate / 2 high (all undici 7.29.0 via wrangler) | **0** |
+| `pnpm audit --prod` | 0 | 0 |
+| `pnpm lint` / `pnpm typecheck` | clean / clean | clean / clean (now including the `.mjs` Workers and the fault fixture) |
+| `pnpm test` | — | 1762 passed, 12 skipped (`7527e88`) |
+| Alpha dry-run upload | 13,560.92 KiB / gzip 2,625.63 KiB (4.131.1) | 13,560.94 KiB / gzip 2,625.33 KiB (4.144.0; byte-identical bundle for the same build) |
+| Playwright full suite, 2 workers | — | 590 passed, 34 skipped, 2 failed (`0a11876`; the 2 are the intro-video test, desktop + mobile, which this sandbox's Chromium cannot play; 34 skips = the previous full run's 34, none added) |
+
+**CI:** green on `9b2c8f2` ([run 36767626937](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36767626937)) and on `0a11876` ([run 36778296039](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36778296039): web checks, web integration incl. the RUN11_PACKAGED package and the Alpha Workers gate on wrangler 4.144.0, all three browser shards, contract; canonical reproducibility green). The red `web` roll-up on `7527e88` was that run's jobs cancelled by the `0a11876` push. The final push (this entry) shows its own result on the PR.
+
+**Known CI intermittents:** `product-data.spec.ts:72` is fixed (`0a11876`); see the table.
+
+**Not done / notes:**
+- The watched first deploy on 4.144.0 is the owner's step.
+- The server-side effect of `code_update_strategy` stays **UNVERIFIED** (it matters only for the Stage 7 Durable Object Workers).
+- `9b2c8f2`, `2d11e22` and `f976340` lack the session attribution lines; not amended (no history rewrite).
+
 # UI design pass (Session A) — 2026-09-30, [PR #47](https://github.com/reyals1111-ux/ZIGoals/pull/47) merged as `dd0e8a1`, live in Alpha deploy #14
 
 Evidence labels: **local** = this session's cloud checkout (Node 24.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Chromium via the `chrome` channel); **CI** = Milestone quality on the PR head; **dev** = `next dev` only. Baseline: main `5dd2ee7` (Alpha deploy #12 is recorded by Session B, not here).
@@ -374,7 +543,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
-| `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 1/10 on mobile at `main` `97e2cfd`. Not seen in CI | web browser suite | Monitor. During these runs the egress proxy rejected the sandbox Chromium's background requests (e.g. www.google.com), which may keep the page from reaching networkidle; unconfirmed. apps/web test, Session A's lane; not changed here |
+| `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 

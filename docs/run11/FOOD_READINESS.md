@@ -36,11 +36,11 @@ Status: **no provider call, account, contact or deployment was made.** The food-
 - **App route:** a Worker 429 becomes `TRY_LATER` (`apps/web/app/api/food-lookup/route.ts`).
 - **UI:** the user sees "Lookup is cooling down. Wait a minute and retry." (`barcode-food-lookup.tsx:32`). "Product not found" appears only for a real 404, so a throttled or overloaded provider is never presented as a missing product. Network errors and other upstream failures show "Food lookup is unavailable…".
 
-**Fit for a ~20-person friends Alpha:** suitable, with one known rough edge.
+**Fit for a ~20-person friends Alpha:** suitable.
 - **Capacity:** 5 misses/min is 7,200/day, far above a plausible 20-person load (for example 5 new products per person per day = 100 misses/day), and repeat scans of the same barcode hit the 24 h cache.
 - **Headroom:** 5/min leaves two thirds of the per-IP limit for retries and for other tenants on a shared egress IP. Backoff is shared, so one throttle pauses everyone for 60 s rather than letting 20 users each hit OFF.
-- **Rough edge:** lookups are not queued. Two people looking up *different* uncached barcodes within the same 12 s get "cooling down" for the second. For 20 friends this should be occasional, most likely at mealtimes, and the message is honest.
-- **Possible follow-ups, not changed here:** short negative caching of 404s, so repeated scans of an unknown product do not spend the budget; a small wait-and-retry instead of an immediate `TRY_LATER`. Both are Worker changes for a separate reviewed PR.
+- **Queue (Session D, 2026-09-30, [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50)):** a new barcode that finds the 12 s slot taken now waits for the next slot instead of failing at once. Only one lookup waits at a time and never for more than 15 s; a third new barcode inside that window, or any new barcode during a 60 s backoff, still gets an immediate honest `429 TRY_LATER` with the seconds until the next slot ("cooling down" in the app). A waiting lookup re-checks the cache (another person may have fetched the same product) and the backoff (it returns `PROVIDER_THROTTLED` if the provider throttled us meanwhile) before calling Open Food Facts. The shared 5/min budget, the 60 s backoff and "never not found for a throttled lookup" are unchanged; pinned by `scripts/run11/food-queue.test.mjs` and `scripts/run10/food-runtime.test.mjs`. So two people looking up different uncached barcodes within 12 s both get their product; the second waits up to 12 s (the button shows the lookup as busy).
+- **Possible follow-up, not changed here:** short negative caching of 404s, so repeated scans of an unknown product do not spend the budget. A Worker change for a separate reviewed PR.
 
 ## FOOD_USER_AGENT template
 OFF asks for a custom User-Agent in the form `AppName/Version (ContactEmail)`; its example is `MyApp/1.0 (myapp@example.com)` (SEARCH-SUMMARY). The Worker accepts only `^ZIGoals/[^\r\n]{1,160}$`.
