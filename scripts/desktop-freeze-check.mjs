@@ -98,6 +98,9 @@ async function openContext(browser, origin, size, { seedOnboarding }) {
 }
 
 async function shoot(page, out, name, manifest, path) {
+  // A focus lift or glide still running under load would otherwise be caught mid-way (seen once on the Add asset
+  // dialog's close button): wait until nothing is running, for at most 5 s, then capture.
+  await page.waitForFunction(() => document.getAnimations().every(a => a.playState !== "running"), null, { timeout: 5000 }).catch(() => {});
   const png = await page.screenshot({ fullPage: true, animations: "disabled", caret: "hide" });
   const aria = await page.locator("body").ariaSnapshot();
   await writeFile(join(out, `${name}.png`), png);
