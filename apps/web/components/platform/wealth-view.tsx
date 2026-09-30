@@ -1,4 +1,5 @@
 'use client';
+import {WealthAllocationSection} from '../bottom-sections';
 import {WealthTotal} from './wealth-total';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
 import {entityLayoutId} from '../../lib/page-layout';
@@ -56,6 +57,7 @@ export function WealthView(){
   {id:'wealth:changes',label:'Explain recorded wealth change',node:<WealthChanges data={store.data}/>},
   {id:'wealth:evidence',label:'Evidence and returns',node:<FinancialEvidence data={store.data} update={store.update}/>},
   store.data.positions.some(p=>p.archivedAt)&&{id:'wealth:archived',label:'Archived assets',node:<details className="panel"><summary>Archived assets</summary><p>Historical evidence is retained. Restoring an asset adds it back to current wealth without recreating allocations.</p>{store.data.positions.filter(p=>p.archivedAt).map(p=><div className="archived-row" key={p.id}><span>{p.providerId}</span><button className="secondary" onClick={()=>void store.update(s=>restoreAsset(s,p.id)).catch(e=>setError(String(e)))}>Restore {p.providerId}</button></div>)}</details>},
+ {id:'wealth:allocation',label:'Allocation and coverage',node:<WealthAllocationSection overview={overview}/>},
  ]}/>
 {error&&<p role="alert">{error}</p>}{adding&&<Sheet title="Add to your wealth" onClose={()=>setAdding(false)}><ManualSourceCards update={store.update} onSaved={()=>setAdding(false)}/></Sheet>}
  </div></LayoutPage>;

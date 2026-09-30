@@ -1,4 +1,5 @@
 'use client';
+import {ValueSources} from '../bottom-sections';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
 import Link from 'next/link';
 import { SceneArt } from '../scene-art';
@@ -60,5 +61,6 @@ export function PositionsView(){
  showcaseRewards.length>0&&{id:'positions:showcase',label:'Crypto reward examples',node:<section className="showcase-reward-positions" aria-label="Showcase crypto reward examples"><div className="positions-section-heading"><p className="eyebrow">SHOWCASE DATA</p><h2>Crypto reward examples</h2><p>Fictional recorded rewards, separate from the selected network’s observed stake and totals. No onchain rewards have been verified.</p></div><div className="goal-grid">{showcaseRewards.map(renderPosition)}</div></section>},
  {id:'positions:manual',label:'Tracked crypto',node:<section aria-labelledby="manual-positions-title"><div className="positions-section-heading"><p className="eyebrow">Wealth beyond your wallet</p><h2 className="nebula-number" id="manual-positions-title">Tracked crypto</h2></div><div className="goal-grid" aria-label="Manual positions">{store.data.positions.filter(p=>p.sourceType==='MANUAL'&&isCryptoPosition(p)).map(renderPosition)}</div> <p className="picker-mode-note">Wealth is home to all your assets. This view brings together crypto holdings and staking.</p><Link className="primary" href="/app/wealth">Add & manage assets in Wealth →</Link>{editing&&<Sheet title={`Edit ${editing.providerId}`} onClose={()=>setEditing(undefined)}><AssetEditor position={editing} update={store.update} onSaved={()=>setEditing(undefined)}/></Sheet>}</section>},
  {id:'positions:providers',label:'Future provider architecture',node:<details className="panel"><summary>Future provider architecture</summary><p>No live integration or execution is implied.</p><ul>{FUTURE_PROVIDERS.map(p=><li key={p.name}>{p.name} · {p.state}{providerResearch[p.name]&&<> · <Link className="text-link" href={`/app/ecosystem#project-${providerResearch[p.name]}`}>Research {p.name} →</Link></>}</li>)}</ul></details>},
+ {id:'positions:sources',label:'What’s tracked, and how',node:<ValueSources variant="positions" platform={store.data}/>},
 ]}/></div></div></div></LayoutPage>;
 }

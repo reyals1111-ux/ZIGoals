@@ -334,3 +334,26 @@ test.describe('Part 7: Today widgets',()=>{
   await expect(edit).toHaveCount(0);await expect(page.getByRole('article',{name:'Exercise counters today'})).toHaveCount(0);
  });
 });
+
+test.describe('Part 8: bottom sections',()=>{
+ test('each main page ends with its new section, movable and honest',async({page})=>{
+  await showcase(page);
+  for(const [path,region,id,text] of [
+   ['/app','today:bottom','today:week','A dash means nothing was recorded that day.'],
+   ['/app/goals','goals:body','goals:milestones','Target dates saved in your active Goals'],
+   ['/app/habits','habits:body','habits:rhythm','Best streaks'],
+   ['/app/health','health:body','health:trends','A dash means no entry, not zero.'],
+   ['/app/wealth','wealth:body','wealth:allocation','Valuation coverage is incomplete'],
+   ['/app/markets','markets:body','markets:sources','no new price appears'],
+   ['/app/goals/positions','positions:main','positions:sources','Public ZIG positions'],
+  ] as const){
+   await page.goto(path);
+   const items=page.locator(`[data-layout-region="${region}"]`);await expect(items.last()).toHaveAttribute('data-layout-item',id);
+   await expect(items.last()).toContainText(text);
+   // No invented prices, projections or advice words in these summaries.
+   await expect(items.last()).not.toContainText(/projected|forecast to|you should|recommend(?!ation)/i);
+  }
+  await page.goto('/app/settings');const home=page.getByRole('region',{name:'Where your data lives.'});await expect(home).toContainText('Browser storage is not a backup');
+  await expect(home).toContainText('not synced or backed up');expect(await home.getAttribute('data-layout-item')).toBeNull();
+ });
+});

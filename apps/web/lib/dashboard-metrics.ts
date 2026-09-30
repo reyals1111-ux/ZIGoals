@@ -14,7 +14,6 @@ import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 import {nutritionDashboard,habitConsistency} from './life-intelligence';
 import {countOn,exerciseData} from './health-counters';
 import {splitWealthTotals} from './wealth-total';
-import {addLocalDays} from './local-date';
 export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string};
 export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean;facts?:{label:string;value:string}[]};
 const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',history:'30-day nutrition rhythm','history-USD':'Recorded USD wealth','history-EUR':'Recorded EUR wealth',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary',next:'Next milestone',best:'Best current streak',week:'Last 7 days',top:'Largest holding',counts:'Counts today','macros-ring':'Calories and macros'};

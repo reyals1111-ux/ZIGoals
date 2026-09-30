@@ -1,4 +1,5 @@
 "use client";
+import { HabitRhythmSection } from "../bottom-sections";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -69,6 +70,7 @@ export function HabitsWorkspace() {
         return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store} scope={scope} privateGoal={privateGoal} onViewStack={id=>{setFilter("All");requestAnimationFrame(()=>{const card=document.getElementById(`habit-${id}`);card?.scrollIntoView({block:"center"});card?.focus();});}} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={() => { setEditor(habit.id); setMessage(""); window.scrollTo({ top: 0, behavior: "instant" }); }} />};
       })}/></section> : <section className="panel habit-empty"><span aria-hidden="true">✧</span><h2>{store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."}</h2><p>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</p>{filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>}</section>}
         </div>},
+        {id: "habits:rhythm", label: "Consistency by weekday", node: <HabitRhythmSection habits={store.data} today={store.today} />},
       ]}/>
       <p className="fine habit-semantics">Streaks count scheduled successful days or completed target periods. Non-scheduled and paused dates do not count against consistency. Skips and failures remain distinct. Saved timers retain timestamps across reloads and require review before logging; browser-closed reminders are not promised.</p>
     </>}

@@ -1,4 +1,5 @@
 'use client';
+import {TodayWeek} from '../bottom-sections';
 import Link from 'next/link';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {OrbitSlogan} from '../orbit-slogan';
@@ -157,6 +158,7 @@ export function TodayDashboard(){
    </section>
   </div><aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={regionItems('rail')} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside></div>
   <JourneyBanner/>
+  {platform.loaded&&habits.loaded&&health.loaded&&<LayoutRegion region="bottom" items={[{id:'today:week',label:'Your week',node:<TodayWeek today={today} habits={habits.data} health={health.data} platform={platform.data} financial={financial}/>}]}/>}
   {editor&&<WidgetEditor key={editor==='new'?'new':editor.id} initial={editor==='new'?undefined:editor} sources={sources} ready={loaded} onRemove={editor==='new'?undefined:()=>change(s=>removeWidget(s,editor.id),'Widget removed. Your underlying record was kept.')} onClose={()=>{setEditor(null);setInsertAt(null);}} onSave={(w,rev)=>change(s=>{const saved=saveWidget(s,w,rev);return editor==='new'&&insertAt?moveDashboardItem(saved,{kind:'widget',id:w.id},{region:insertAt.region,anchor:insertAt.anchor,position:'after'}):saved;},'Widget saved on this device.')}/>}
   {preset&&<Modal title="Choose your Today layout" onClose={()=>setPreset(null)}><fieldset className="dashboard-preset-choices"><legend>Choose a starting point</legend>{PRESETS.map(p=><label key={p.id}><input type="radio" name="dashboard-preset" value={p.id} checked={preset===p.id} onChange={()=>setPreset(p.id)}/><span><strong>{p.label}</strong><small>{p.description}</small></span></label>)}</fieldset><h3>Layout preview</h3>{presetPreview?<><ul>{presetPreview.widgets.filter(w=>!w.hidden).map(w=><li key={w.id}>{w.title||WIDGET_CATALOG[w.kind].label} · {widgetMetricLabel(w.metric)}</li>)}</ul><p>{presetPreview.widgets.filter(w=>w.hidden).length} existing widgets will be kept but hidden. This changes placement and visibility only; Goals, Habits, Health and assets remain saved.</p></>:<p role="alert">{presetError}</p>}<div className="dashboard-actions"><button className="secondary" onClick={()=>setPreset(null)}>Cancel</button><button className="primary" disabled={busy||!presetPreview} onClick={()=>void change(s=>applyDashboardPreset(s,preset),'Preset saved on this device.').then(()=>setPreset(null)).catch(()=>{})}>Apply layout</button></div>{error&&<p role="alert">{error}</p>}</Modal>}
  </div></LayoutPage>;

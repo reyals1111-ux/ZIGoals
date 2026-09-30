@@ -1,4 +1,5 @@
 "use client";
+import { DataHome } from "../../../components/bottom-sections";
 import "../../../components/life-pages.css";
 import {getAppStorage} from "../../../lib/showcase-storage";
 import Link from "next/link";
@@ -151,6 +152,7 @@ export default function Settings() {
           This alpha is unaudited and does not support mainnet.
         </p>
       </section>
+      <DataHome />
     </div>
   );
 }
