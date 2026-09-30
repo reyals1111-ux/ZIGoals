@@ -1,5 +1,14 @@
 "use client";
 import "./phone-shell.css";
+import "./phone-base.css";
+import "./phone-today.css";
+import "./phone-goals.css";
+import "./phone-habits.css";
+import "./phone-health.css";
+import "./phone-wealth.css";
+import "./phone-positions.css";
+import "./phone-markets.css";
+import "./phone-lists.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";

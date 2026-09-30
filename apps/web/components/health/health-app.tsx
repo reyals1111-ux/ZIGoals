@@ -26,6 +26,7 @@ import { bodyWeightGrams, dailyData, healthDay, servingsFromMeasure } from "../.
 import { EvidenceChart } from "../platform/evidence-chart";
 import {healthDateSchema} from "../../lib/health";
 import {PinToToday} from "../pin-to-today";
+import { usePhoneActive } from "../phone/use-phone-layout";
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
@@ -62,7 +63,7 @@ export function HealthApp() {
 
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
-  const router = useRouter();
+  const router = useRouter(), phone = usePhoneActive();
   const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
   const addIntent = searchParams.get("add") === "entry";
   const [handledIntent, setHandledIntent] = useState(false);
@@ -94,15 +95,20 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   };
   const invalid = () => setError("Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings.");
   const summary = dailyHealthSummary(data, date);
+  const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => setDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") setDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => setDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => setDate(healthDay(dailyData(data).preferences.timezone))}>Today</button></div>;
   return <LayoutPage page="health"><div className="health-page">
-    <ExerciseCounters data={data} update={update} />
+    {!phone && <ExerciseCounters data={data} update={update} />}
     <div className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="health-eyebrow">YOUR EVERYDAY WELLBEING</NebulaFlow></p><h1><NebulaFlow identity="health-title">A little care, every day.</NebulaFlow></h1><p className="page-lede">Your food, water, movement and progress. Your private journal.</p></div><div className="actions"><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button><Link className="badge" href="/app/settings">Privacy &amp; backups</Link><LayoutLockButton/></div></div>
+    {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
+        the counters at the top, Part 18.6, and the date beside the views). */}
+    {phone && <div className="health-date-strip">{dateControl}</div>}
+    {phone && <ExerciseCounters data={data} update={update} />}
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
-      <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => setDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") setDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => setDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => setDate(healthDay(dailyData(data).preferences.timezone))}>Today</button></div>
+      {!phone && dateControl}
     </div>
     <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && <p className="health-error" role="alert">{error}</p>}
 

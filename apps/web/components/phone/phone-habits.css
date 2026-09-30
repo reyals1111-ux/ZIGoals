@@ -1,0 +1,41 @@
+/* Habits on a phone (Session E): today's check-ins first (default order set in habits-workspace.tsx), compact cards
+   with every control still visible, one scrolling row of filters and phone-sized charts. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .habits-workspace .habit-hero { min-height: 0; padding: 8px 0 4px; }
+  :root .habits-workspace .habit-hero h1 { font-size: clamp(28px, 8.4vw, 34px); max-width: none; margin: 8px 0 10px; }
+  :root .habits-workspace .habit-hero p:not(.eyebrow) { max-width: none; }
+  :root .habits-workspace .habit-hero .habit-constellation { opacity: .5; width: 120px; height: 120px; top: 0; right: -24px; }
+  :root .habits-workspace .habit-hero .actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
+
+  /* Today's rhythm: one compact strip. */
+  :root .habits-workspace .habit-overview { grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; padding: 14px 16px; border-radius: 20px; }
+  :root .habits-workspace .habit-overview strong { font-size: 2rem; }
+  :root .habits-workspace .habit-overview :is(small, p) { font-size: 15px; }
+
+  /* Filters: one horizontal row of 44 px chips. */
+  :root .habits-workspace .habit-filter-bar { flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 4px -16px 10px; padding: 0 16px; }
+  :root .habits-workspace .habit-filter-bar::-webkit-scrollbar { display: none; }
+  :root .habits-workspace .habit-filter-bar .quiet { flex: none; font-size: 15px; }
+
+  /* Cards: tighter rhythm; the check-in controls lead; the 28 days sit on two rows of small dots. */
+  :root .habits-workspace .habit-grid { gap: 12px; }
+  :root .habits-workspace .habit-card { padding: 16px; border-radius: 20px; margin: 0; }
+  :root .habits-workspace .habit-card-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: start; gap: 6px; }
+  :root .habits-workspace .habit-card-heading h2 { margin: 4px 0 2px; font-size: 20px; }
+  :root .habits-workspace .habit-card-heading .eyebrow, :root .habits-workspace .habit-card-heading small { font-size: 14px; }
+  :root .habits-workspace .habit-check-actions .quiet { min-width: 48px; min-height: 48px; }
+  :root .habits-workspace .habit-check-actions :is(.primary, .secondary) { min-height: 48px; font-size: 15px; }
+  :root .habits-workspace .habit-cadence { gap: 4px; margin: 12px 0; }
+  :root .habits-workspace .habit-details > summary, :root .habits-workspace .habit-quick-log > summary { min-height: 44px; font-size: 15px; }
+  :root .habits-workspace .habit-card .fine { margin: 8px 0 6px; }
+  :root .habits-workspace .habit-management { gap: 8px; }
+  :root .habits-workspace .habit-management .quiet { min-height: 44px; }
+
+  /* Consistency: the month and the week side by side as a swipeable pair. */
+  :root .habits-workspace .habit-consistency { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  :root .habits-workspace .habit-consistency::-webkit-scrollbar { display: none; }
+  :root .habits-workspace .habit-consistency > :is(.habit-consistency-month, .habit-week-momentum) { flex: 0 0 88%; scroll-snap-align: start; min-width: 0; margin: 0; padding: 16px; }
+  :root .habits-workspace .habit-month-grid { gap: 4px; }
+
+  :root .habits-workspace .habit-semantics, :root .habits-workspace .habit-privacy { font-size: 15px; }
+}

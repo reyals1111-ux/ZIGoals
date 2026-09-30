@@ -1,0 +1,45 @@
+/* Phone page grammar (Session E), shared by every page. Phones only (same query as phone-shell.css); `:root` prefixes
+   beat the older theme files regardless of order, while `main header` (two element selectors) outranks only the bare
+   `header {}` rules that leak into cards, never a component's own class rule. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  /* Large titles: the page's own h1, eyebrow and lede, tightened for a phone. */
+  :root main .page-header { margin: 10px 0 18px; }
+  :root main .page-heading h1, :root main .page-header h1 { font-size: clamp(28px, 8.4vw, 34px); line-height: 1.12; letter-spacing: -.02em; }
+  :root main .page-lede { font-size: 17px; line-height: 1.5; }
+
+  /* Cards: one rhythm (16 px padding, 12–16 px gaps, 20 px radius). */
+  :root main .panel { padding: 18px 16px; border-radius: 20px; margin-bottom: 16px; }
+
+  /* Readable secondary text: 15 px where the desktop uses 14 px. */
+  :root main :is(.fine, small, .text-meta) { font-size: 15px; }
+
+  /* Every tap target at least 44 px: inline text links become rows, disclosures get a full-height summary. */
+  :root main a.text-link, :root main button.text-link { display: inline-flex; align-items: center; min-height: 44px; }
+  :root main details > summary { min-height: 44px; align-content: center; cursor: pointer; }
+  :root main :is(input, select, textarea) { font-size: 16px; }
+  :root main input[type="checkbox"], :root main input[type="radio"] { width: 22px; height: 22px; }
+
+  /* The bare `header {}` / `footer {}` element rules were written for page chrome and leak into card headers. */
+  :root main header { max-width: none; margin: 0; padding: 0; border-bottom: 0; }
+  :root main article footer { flex-direction: row; }
+
+  /* Controls never select text on a long press; content still does. */
+  :root :is(button, .primary, .secondary, .quiet, [role="tab"], summary) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+  /* Liquid-glass press on touch: a gentle give (transform only); hover lifts stay desktop-only. */
+  :root main :is(button, .primary, .secondary, a.card-link):active:not(:disabled) { transform: scale(.97); }
+
+  /* Horizontal carousels share one feel: snap, a peek of the next card, no scrollbar chrome. */
+  :root .phone-carousel { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  :root .phone-carousel::-webkit-scrollbar { display: none; }
+  :root .phone-carousel > * { flex: 0 0 min(84%, 340px); scroll-snap-align: start; }
+
+  /* The footer keeps its brand line ("Same you. A brighter tomorrow.") and support links, compact. */
+  :root .workspace > footer { padding: 28px 4px 12px; gap: 10px; font-size: 14px; }
+}
+@media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
+  :root main :is(button, .primary, .secondary, a.card-link):active:not(:disabled) { transform: none; }
+}
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root[data-app-motion="off"] main :is(button, .primary, .secondary, a.card-link):active:not(:disabled) { transform: none; }
+}

@@ -1,0 +1,37 @@
+/* Markets on a phone (Session E): a compact header with the favourites count beside "+ Find a market", the views as one
+   scrolling row, and tappable cards about half their old height. Every label stays on every card. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .markets-page { gap: 16px; }
+  :root .markets-page .markets-hero { gap: 14px; padding: 8px 0 0; }
+  :root .markets-page .markets-hero h1 { font-size: clamp(28px, 8.4vw, 34px); margin: 8px 0 10px; }
+  :root .markets-page .markets-intro-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; padding: 14px 16px; border-radius: 20px; }
+  :root .markets-page .markets-intro-card > strong { font-size: 30px; }
+  :root .markets-page .markets-intro-card > strong > span { font-size: 18px; }
+  :root .markets-page .markets-intro-card > p { margin: 0; font-size: 15px; }
+  :root .markets-page .markets-intro-card > .primary { min-height: 44px; padding-inline: 14px; font-size: 15px; white-space: nowrap; }
+  :root .markets-page .markets-intro-card > small { grid-column: 1 / -1; margin-top: 2px; font-size: 15px; }
+
+  :root .markets-page .market-toolbar { gap: 10px; margin-bottom: 12px; }
+  :root .markets-page .market-toolbar > .secondary { min-height: 44px; }
+  :root .markets-page .market-explorer > .picker-tabs { flex-wrap: nowrap; gap: 6px; margin: 0 calc(-1 * var(--phone-gutter)) 12px; padding: 0 var(--phone-gutter); overflow-x: auto; scrollbar-width: none; }
+  :root .markets-page .market-explorer > .picker-tabs::-webkit-scrollbar { display: none; }
+  :root .markets-page .market-explorer > .picker-tabs button { flex: none; min-height: 44px; font-size: 15px; white-space: nowrap; }
+  :root .markets-page .market-pagination { font-size: 15px; }
+  :root .markets-page .market-pagination button { min-height: 44px; }
+
+  /* Cards: one row of icon, name and star; the whole card opens the asset, the star stays its own button. */
+  :root .markets-grid { gap: 12px; }
+  :root .market-product-card { position: relative; padding: 16px; border-radius: 20px; }
+  :root .market-product-card > header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 12px; }
+  :root .market-product-card h2 { font-size: 19px; }
+  :root .market-product-card h2 a::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+  :root .market-product-card header p { margin-top: 2px; font-size: 15px; }
+  :root .market-product-card .market-favourite { position: relative; z-index: 2; min-width: 44px; min-height: 44px; }
+  :root .market-product-card .market-card-price { margin: 12px 0 2px; }
+  :root .market-product-card .market-card-price > strong { font-size: 24px; }
+  :root .market-product-card .market-movement { margin: 8px 0; }
+  :root .market-product-card :is(.market-change > span, .movement-missing, .market-ownership, .freshness-badge) { font-size: 15px; }
+  :root .market-product-card footer { padding-top: 10px; }
+  :root .market-product-card footer .text-link { position: relative; z-index: 2; }
+  :root .markets-page .market-method-note { font-size: 15px; }
+}

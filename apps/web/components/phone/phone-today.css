@@ -1,0 +1,93 @@
+/* Today on a phone (Session E): a true phone dashboard. The saved (synced) placement order is untouched; each module
+   gets a phone presentation, compact widgets pair up like iOS widgets, and repeated figures shrink to glanceable rows. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  /* Hero: the slogan stays the moment it is; copy and actions tighten. */
+  :root .today-page .today-hero { margin: 0 -6px 14px; border-radius: 22px; }
+  :root .today-page .today-hero-copy { padding: 20px 16px 14px; }
+  :root .today-page .today-hero .today-lede { font-size: 16px; line-height: 1.45; margin-block: 10px 14px; }
+  :root .today-page .today-hero .hero-actions { gap: 10px; }
+  :root .today-page .today-hero .hero-actions :is(a, button) { min-height: 48px; font-size: 16px; }
+  :root .today-page .today-hero .hero-truth { font-size: 15px; line-height: 1.45; margin-top: 12px; }
+  /* Pillars: three compact rows with their captions visible again ("ZIGChain vision · Alpha simulation." is an honesty label). */
+  :root .today-page .hero-pillars { grid-template-columns: 1fr; gap: 0; padding: 0 16px 12px; }
+  :root .today-page .hero-pillars > div { flex-direction: row; align-items: center; gap: 12px; padding: 8px 0; border-right: 0; border-top: 1px solid var(--edge-soft); }
+  :root .today-page .hero-pillars .icon-medallion { width: 34px; height: 34px; }
+  :root .today-page .hero-pillars strong { font-size: 15px; }
+  :root .today-page .hero-pillars small { display: block; font-size: 15px; }
+
+  /* "Make Today yours.": four tiles in a 2×2 grid, the continue link a full-width row. */
+  :root .dashboard-welcome h2 { font-size: 22px; }
+  :root .dashboard-welcome .dashboard-preset-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+  :root .dashboard-welcome .dashboard-preset-choices > button { align-content: start; justify-items: start; gap: 6px; padding: 14px 12px; min-height: 104px; }
+  :root .dashboard-welcome .dashboard-preset-choices strong { font-size: 16px; }
+  :root .dashboard-welcome .dashboard-preset-choices button > span { font-size: 15px; line-height: 1.35; }
+  :root .dashboard-welcome > button.text-link { width: 100%; justify-content: center; border-radius: 14px; border: 1px solid #6fdcff44; margin-bottom: 6px; }
+
+  /* The widget area: builtins full width; compact widgets two across, wide widgets full width. */
+  :root .today-page .dashboard-layout-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  :root .today-page .dashboard-layout-grid > .placed-module { grid-column: 1 / -1; min-width: 0; }
+  :root .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] { grid-column: auto !important; }
+  :root .today-page :is(.dashboard-layout-grid, .today-rail) > .placed-module > * { margin-bottom: 0; }
+  :root .today-page .today-pulse-stack { gap: 12px; }
+  :root .today-page .placed-module[data-kind="widget"][data-size="compact"] .dashboard-widget { height: 100%; margin: 0; padding: 14px 12px 12px; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-widget-art { display: none; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading { padding-right: 40px; gap: 6px; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading h3 { font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-metric-value { display: grid; justify-items: start; gap: 8px; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-metric-value svg { width: 64px; height: 64px; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-metric-value strong { font-size: 20px; overflow-wrap: anywhere; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-metric-facts { grid-template-columns: 1fr; gap: 6px; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-widget :is(p, dd, dt, li) { overflow-wrap: anywhere; }
+  :root .today-page .dashboard-widget .card-options { top: 8px; right: 8px; }
+
+  /* The widget summary becomes a glanceable strip; "Customize Today" stays on it. */
+  :root .today-page .dashboard-summary .dashboard-summary-grid { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  :root .today-page .dashboard-summary .dashboard-summary-grid::-webkit-scrollbar { display: none; }
+  :root .today-page .dashboard-summary .dashboard-summary-item { flex: 0 0 min(72%, 260px); scroll-snap-align: start; padding: 14px; }
+
+  /* Whole-life orbit: the three daily rows sit side by side as rings; the wealth line keeps its "not converted" label. */
+  :root .today-page .life-wealth-orbit { padding: 18px 16px; }
+  :root .today-page .life-orbit-main h2 { font-size: 26px; }
+  :root .today-page .life-orbit-main { padding: 18px 16px 14px; }
+  :root .today-page .life-orbit-main h2 { margin: 8px 0; }
+  :root .today-page .life-orbit-wealth { margin-top: 14px; padding-top: 14px; }
+  :root .today-page .life-orbit-daily { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 10px 8px 12px; }
+  :root .today-page .life-orbit-daily > a { display: grid; justify-items: center; align-content: start; text-align: center; gap: 6px; padding: 8px 2px; border-bottom: 0; min-height: 44px; }
+  :root .today-page .life-orbit-daily > a > span { gap: 4px; }
+  :root .today-page .life-orbit-daily h3 { font-size: 15px; line-height: 1.25; }
+  :root .today-page .life-orbit-daily :is(strong, small) { font-size: 14px; line-height: 1.3; }
+  :root .today-page .life-orbit-daily .flow-ring { --ring-size: 58px !important; }
+  :root .today-page .life-orbit-daily .nutrition-gauge { height: 58px; }
+
+  /* Attention, funding agenda and "needs attention": compact rows; every action keeps a 44 px row. */
+  :root .today-page :is(.funding-agenda, .needs-attention, .today-intelligence) { padding: 18px 16px; }
+  :root .today-page :is(.funding-agenda, .needs-attention) h2 { font-size: 22px; }
+  :root .today-page .funding-agenda li { gap: 4px 12px; padding: 12px 0; }
+  :root .today-page .funding-agenda li > .text-link { margin-left: 62px; }
+  :root .today-page .needs-attention li { gap: 12px; padding: 12px 0; }
+  :root .today-page :is(.funding-agenda, .needs-attention) h3 { font-size: 16px; margin: 0 0 2px; }
+  :root .today-page :is(.funding-agenda, .needs-attention) li p { font-size: 15px; margin: 2px 0; }
+  :root .today-page .needs-attention .text-link { margin-top: 0; font-size: 15px; }
+  :root .today-page .today-goal-pulse { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center; }
+  :root .today-page .today-goal-pulse svg { width: 96px; height: 96px; }
+  :root .today-page .today-contribution-dates { gap: 8px; margin-top: 12px; padding-top: 12px; }
+  :root .today-page .intelligence-actions { margin-top: 12px; }
+
+  /* Carousels already scroll on phones; cards get a phone width with a peek of the next. */
+  :root .today-page .today-goals-grid > * { flex-basis: 84%; }
+  :root .today-page .compact-watch .watchlist-grid > * { flex-basis: 78%; }
+
+  /* Rail modules below main, one column, compact. */
+  :root .today-page .today-rail { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  :root .today-page .today-rail .destination-panel { min-height: 0; }
+
+  /* Journey: the three steps become a swipeable row; its truths stay visible below. */
+  :root .today-page ~ * .journey-steps, :root .journey-panel .journey-steps { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  :root .journey-panel .journey-steps::-webkit-scrollbar { display: none; }
+  :root .journey-panel .journey-steps > li { flex: 0 0 min(80%, 300px); scroll-snap-align: start; }
+
+  /* Your week: each row's seven days on one line. */
+  :root .bottom-row ul { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  :root .bottom-row li { min-width: 0; padding: 6px 2px; text-align: center; }
+  :root .bottom-row li small { font-size: 14px; }
+}
