@@ -1,9 +1,14 @@
 import {sessionAllowed} from './sessions.mjs';
+/** @param {unknown} value @param {number} [status] */
 const reply=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store'}});
+/** @param {unknown} a @param {unknown} b */
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-async function rows(store,prefix){const all=new Map();let cursor;for(;;){const page=await store.list({prefix,startAfter:cursor,limit:128});for(const [k,v]of page)all.set(k,v);if(page.size<128)break;cursor=[...page.keys()].at(-1);}return all;}
+/** @param {RecordTransaction} store @param {string} prefix */
+async function rows(store,prefix){const all=new Map();/** @type {string|undefined} */let cursor;for(;;){const page=await store.list({prefix,startAfter:cursor,limit:128});for(const [k,v]of page)all.set(k,v);if(page.size<128)break;cursor=[...page.keys()].at(-1);}return all;}
 /** Staging lives beside the active generation; no manifest changes until one transaction publishes every row. */
+/** @param {Request} request @param {RecordState} state @param {(request:Request)=>Promise<any>} readJSON @param {(manifest:unknown)=>boolean} validManifest @param {(envelope:unknown)=>boolean} validEnvelope */
 export async function rotationRequest(request,state,readJSON,validManifest,validEnvelope){
+ /** @type {any} */
  let input;if(request.method==='POST'){try{input=await readJSON(request);}catch{return reply({error:'INVALID_ROTATION'},400);}}
  const hash=request.headers.get('x-zigoals-token-hash');
  return state.storage.transaction(async store=>{
@@ -23,11 +28,11 @@ export async function rotationRequest(request,state,readJSON,validManifest,valid
   if(!rotation||rotation.operation!==input.operation||rotation.base!==revision)return reply({error:'ROTATION_CONFLICT'},409);
   if(input.action==='staged'&&Object.keys(input).every(k=>['action','operation','cursor'].includes(k))){
    const cursor=input.cursor;if(cursor!==undefined&&cursor!==null&&(typeof cursor!=='string'||!/^rotation-row:[0-9a-f-]{36}$/i.test(cursor)))return reply({error:'INVALID_CURSOR'},400);
-   const page=await store.list({prefix:'rotation-row:',startAfter:cursor||undefined,limit:3}),entries=[...page.entries()];return reply({rows:entries.slice(0,2).map(([,v])=>v),cursor:entries.length>2?entries[1][0]:null});
+   const page=await store.list({prefix:'rotation-row:',startAfter:cursor||undefined,limit:3}),entries=[...page.entries()];return reply({rows:entries.slice(0,2).map(([,v])=>v),cursor:entries.length>2?/** @type {[string,unknown]} */(entries[1])[0]:null});
   }
   if(input.action==='abort'&&Object.keys(input).length===2){await store.delete([...(await rows(store,'rotation-row:')).keys(),'rotation']);return reply({aborted:true});}
   if(input.action==='stage'&&Object.keys(input).length===3&&Array.isArray(input.rows)&&input.rows.length>0&&input.rows.length<=100){
-   const seen=new Set(),writes={};
+   const seen=new Set(),/** @type {Record<string,unknown>} */writes={};
    for(const row of input.rows){
     if(!row||Object.keys(row).sort().join(',')!=='deleted,domain,envelope,epoch,id,revision'||typeof row.id!=='string'||seen.has(row.id)||row.epoch!==rotation.manifest.epoch||!validEnvelope(row.envelope))return reply({error:'INVALID_ROTATION_RECORD'},400);
     seen.add(row.id);const prior=await store.get(`record:${row.id}`),staged=await store.get(`rotation-row:${row.id}`);
