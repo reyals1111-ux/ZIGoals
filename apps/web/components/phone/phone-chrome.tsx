@@ -9,6 +9,7 @@ import "./phone-wealth.css";
 import "./phone-positions.css";
 import "./phone-markets.css";
 import "./phone-lists.css";
+import "./phone-sheets.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
