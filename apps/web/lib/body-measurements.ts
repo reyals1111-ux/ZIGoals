@@ -1,4 +1,5 @@
 import {healthSchema,type HealthData} from './health';
+import {healthDay} from './health-daily';
 import {bodyMeasurementSchema,measurementValueSchema,canonicalMeasurement,type MeasurementDraft,type BodyMeasurement} from './body-measurement-schema';
 export type MeasurementGroup={id:string;copies:BodyMeasurement[];canonical:BodyMeasurement|null;conflict:'source'|'values'|null};
 const sourceKey=(r:{provider:string;sourceId:string})=>JSON.stringify([r.provider,r.sourceId]);
@@ -45,9 +46,11 @@ export function exportMeasurementsCsv(data:HealthData){
  return rows.map(row=>row.map(value=>{const raw=String(value),safe=/^[\s]*[=+\-@\t\r]/.test(raw)?"'"+raw:raw;return '"'+safe.replaceAll('"','""')+'"';}).join(',')).join('\r\n');
 }
 
+/** A timed reading belongs to the calendar day of the zone it was entered in, not the UTC day. */
+function readingDay(r:BodyMeasurement){try{return healthDay(r.timezone,new Date(r.observedAt));}catch{return r.observedAt.slice(0,10);}}
 /** Date-only legacy readings are never assigned a fabricated measurement instant. */
 export function latestWeightObservation(data:HealthData,through:string){
- const daily=[...data.weights].filter(r=>r.date<=through).sort((a,b)=>b.date.localeCompare(a.date))[0],timed=measurementHistory(data,'weight').readings.filter(r=>r.observedAt.slice(0,10)<=through).at(-1);
- if(timed&&(!daily||timed.observedAt.slice(0,10)>=daily.date))return {id:timed.id,date:timed.observedAt.slice(0,10),grams:timed.canonical/1000,detail:timed.observedAt+' · '+timed.sourceLabel+(daily?.date===timed.observedAt.slice(0,10)?' · separate date-only reading also retained':'')};
+ const daily=[...data.weights].filter(r=>r.date<=through).sort((a,b)=>b.date.localeCompare(a.date))[0],timed=measurementHistory(data,'weight').readings.filter(r=>readingDay(r)<=through).at(-1),day=timed&&readingDay(timed);
+ if(timed&&day&&(!daily||day>=daily.date))return {id:timed.id,date:day,grams:timed.canonical/1000,detail:timed.observedAt+' · '+timed.sourceLabel+(daily?.date===day?' · separate date-only reading also retained':'')};
  return daily?{...daily,detail:daily.date+' · manual date-only reading'}:undefined;
 }

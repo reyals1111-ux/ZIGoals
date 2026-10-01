@@ -34,9 +34,24 @@ export function summarizeLocalSimulation(raw:string){const section=localSimulati
 export async function restoreLocalSimulation(storage:Storage,raw:string){
  const parsed=localSimulationSchema.parse(JSON.parse(raw));if('omitted' in parsed)throw Error(LOCAL_SIMULATION_OMITTED);const section=parsed;validate(section);
  await withStorageLock(storageLockKey(storage,LOCAL_LEDGER_KEY),()=>withStorageLock(storageLockKey(storage,LOCAL_PLANS_KEY),()=>{
-  for(const [key,value] of [[LOCAL_LEDGER_KEY,section.ledger],[LOCAL_PLANS_KEY,section.plans]] as const){
-   const previous=storage.getItem(key);if(previous!==null&&previous!==value)storage.setItem(`${key}:recovery:${crypto.randomUUID()}`,previous);
-   if(value===null)storage.removeItem(key);else storage.setItem(key,value);
+  // All or nothing: if the browser refuses any write (for example a full quota), put back
+  // the exact prior bytes of both keys and drop this attempt's recovery copies.
+  const written:{key:string;previous:string|null;copy:string|null}[]=[];let pendingCopy:string|null=null;
+  try{
+   for(const [key,value] of [[LOCAL_LEDGER_KEY,section.ledger],[LOCAL_PLANS_KEY,section.plans]] as const){
+    const previous=storage.getItem(key);pendingCopy=null;
+    if(previous!==null&&previous!==value){pendingCopy=`${key}:recovery:${crypto.randomUUID()}`;storage.setItem(pendingCopy,previous);}
+    if(value===null)storage.removeItem(key);else storage.setItem(key,value);
+    written.push({key,previous,copy:pendingCopy});pendingCopy=null;
+   }
+  }catch(error){
+   // The refused key was never changed; its copy is dropped first to free space for the rollback.
+   if(pendingCopy)storage.removeItem(pendingCopy);
+   for(const {key,previous,copy} of written.reverse()){
+    try{if(previous===null)storage.removeItem(key);else storage.setItem(key,previous);}catch{continue;} // keep the copy if its rollback fails
+    if(copy)storage.removeItem(copy);
+   }
+   throw error;
   }
  }));
 }
