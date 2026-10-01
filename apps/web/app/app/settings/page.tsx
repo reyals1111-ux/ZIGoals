@@ -1,7 +1,8 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
+import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
-import {getAppStorage} from "../../../lib/showcase-storage";
+import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-controls";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
@@ -28,7 +29,7 @@ export default function Settings() {
       );
       const a = document.createElement("a");
       a.href = url;
-      a.download = `zigoals-${s.chain}-goals.json`;
+      a.download = exportFileName(`zigoals-${s.chain}-goals.json`, isShowcase());
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {

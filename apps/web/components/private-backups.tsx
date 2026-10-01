@@ -5,15 +5,20 @@ import { habitDataSchema } from "../lib/habits";
 import { usePlatform } from "./platform/use-platform";
 import { platformSchema } from "../lib/positions";
 import { healthSchema } from "../lib/health";
+import { isShowcase } from "../lib/showcase-storage";
+import { exportFileName, isShowcaseBackup, type ShowcaseModule } from "../lib/showcase-detect";
 
 import { useHabits } from "./habits/use-habits";
 import { useHealth } from "./health/use-health";
 
 type BackupStore = { importLimit:number; loaded: boolean; error: string; exportData: () => Promise<string>; importData: (raw: string) => Promise<void>; refresh: () => void };
-function ModuleBackup<T>({ name, schema, store, describe }: { name: string; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string }) {
+function ModuleBackup<T>({ name, module, schema, store, describe }: { name: string; module: ShowcaseModule; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string }) {
   const [raw, setRaw] = useState("");
   const [summary, setSummary] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  // A Showcase demo file restored into real data needs its own confirmation (QA-17).
+  const [demo, setDemo] = useState(false);
+  const [demoConfirmed, setDemoConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -22,14 +27,14 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
     try {
       const url = URL.createObjectURL(new Blob([await store.exportData()], { type: "application/json" }));
       const anchor = document.createElement("a");
-      anchor.href = url; anchor.download = name === "Health" ? "zigoals-health-v1.json" : `zigoals-${name.toLowerCase()}-backup.json`;
+      anchor.href = url; anchor.download = exportFileName(name === "Health" ? "zigoals-health-v1.json" : `zigoals-${name.toLowerCase()}-backup.json`, isShowcase());
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage("Backup download started. Keep this file private."); setError("");
     } catch { setError("The original data could not be read. Check browser storage access."); }
   }
   async function selectFile(file?: File) {
     const current = ++selection.current;
-    setRaw(""); setSummary(""); setConfirmed(false); setError(""); setMessage("");
+    setRaw(""); setSummary(""); setConfirmed(false); setDemo(false); setDemoConfirmed(false); setError(""); setMessage("");
     if (!file) return;
     try {
       if (file.size > store.importLimit) throw Error();
@@ -37,15 +42,15 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
       if(new TextEncoder().encode(text).length>store.importLimit)throw Error();
       const data = schema.parse(JSON.parse(text));
       if (current !== selection.current) return;
-      setRaw(text); setSummary(describe(data));
+      setRaw(text); setSummary(describe(data)); setDemo(!isShowcase() && isShowcaseBackup(module, data));
     } catch { if (current === selection.current) setError(`Choose a valid supported backup for this module, under ${store.importLimit/1_000_000} MB. Existing data was not changed.`); }
   }
   async function restore() {
-    if (!confirmed || !raw || busy) return;
+    if (!confirmed || !raw || busy || demo && !demoConfirmed) return;
     setBusy(true); setError(""); setMessage("");
     try {
       await store.importData(raw);
-      setRaw(""); setSummary(""); setConfirmed(false);
+      setRaw(""); setSummary(""); setConfirmed(false); setDemo(false); setDemoConfirmed(false);
       setMessage(`${name} restored. Previous stored bytes were preserved in a local recovery record.`);
     } catch { setError("Restore failed. Existing data was preserved. A newer stored version cannot be replaced by this app."); }
     finally { setBusy(false); }
@@ -57,7 +62,7 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
     <button className="secondary" disabled={!store.loaded || busy} onClick={download}>Export {name}</button>
     <details className="backup-restore"><summary>Restore {name} from a file</summary><p className="fine">This replaces this module only. Export a separate copy first. Other modules are kept.</p>
       <label>Choose {name} backup<input type="file" accept="application/json,.json" disabled={busy} onChange={event => void selectFile(event.target.files?.[0])}/></label>
-      {raw && <><p className="backup-preview">Valid supported backup · {summary}</p><label className="checkbox"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={busy}/>Replace my {name.toLowerCase()} with this backup.</label><button className="primary" disabled={!confirmed || busy} onClick={() => void restore()}>{busy ? "Restoring…" : `Restore ${name}`}</button></>}
+      {raw && <><p className="backup-preview">Valid supported backup · {summary}</p>{demo && <><p className="notice">This file is Showcase demo data: fictional examples, not your own records. Restoring it replaces your {name.toLowerCase()} with the demo examples.</p><label className="checkbox"><input type="checkbox" checked={demoConfirmed} onChange={event => setDemoConfirmed(event.target.checked)} disabled={busy}/>I understand this is Showcase demo data, not my records.</label></>}<label className="checkbox"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={busy}/>Replace my {name.toLowerCase()} with this backup.</label><button className="primary" disabled={!confirmed || demo && !demoConfirmed || busy} onClick={() => void restore()}>{busy ? "Restoring…" : `Restore ${name}`}</button></>}
     </details>
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
   </section>;
@@ -65,8 +70,8 @@ function ModuleBackup<T>({ name, schema, store, describe }: { name: string; sche
 export function PrivateBackups() {
   const habits = useHabits(), health = useHealth(), platform = usePlatform();
   return <div className="private-backup-grid">
-    <ModuleBackup name="Positions and Goals" schema={platformSchema} store={platform} describe={data => `${data.goals.length} goals · ${data.positions.length} positions · ${data.allocations.length} allocations · plans and snapshots included`}/>
-    <ModuleBackup name="Habits" schema={habitDataSchema} store={habits} describe={data => `${data.habits.length} habits · ${data.habits.reduce((sum, habit) => sum + habit.entries.length, 0)} check-ins`}/>
-    <ModuleBackup name="Health" schema={healthSchema} store={health} describe={data => `${data.foods.length} foods · ${data.recipes.length} recipes · ${data.diary.length} meals · ${data.weights.length} weights · ${data.activity.length} activities`}/>
+    <ModuleBackup name="Positions and Goals" module="platform" schema={platformSchema} store={platform} describe={data => `${data.goals.length} goals · ${data.positions.length} positions · ${data.allocations.length} allocations · plans and snapshots included`}/>
+    <ModuleBackup name="Habits" module="habits" schema={habitDataSchema} store={habits} describe={data => `${data.habits.length} habits · ${data.habits.reduce((sum, habit) => sum + habit.entries.length, 0)} check-ins`}/>
+    <ModuleBackup name="Health" module="health" schema={healthSchema} store={health} describe={data => `${data.foods.length} foods · ${data.recipes.length} recipes · ${data.diary.length} meals · ${data.weights.length} weights · ${data.activity.length} activities`}/>
   </div>;
 }
