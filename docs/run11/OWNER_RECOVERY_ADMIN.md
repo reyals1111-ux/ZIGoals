@@ -39,6 +39,8 @@ Do not rely on hosted recovery before then.
 ## Stage 7 rehearsal (required once, before relying on the tool)
 Use fictional data and a separate, non-production lifecycle Worker. This needs the Stage 7 approval to deploy that one rehearsal Worker.
 
+Run every command from the checkout root. `pnpm --filter @zigoals/web exec` runs wrangler inside `apps/web`, so wrangler config paths are written as `"$PWD/…"`.
+
 **What wrangler 4.144 does, read from its code but not yet observed:**
 - `remote: true` opens a "remote proxy session".
 - It uploads a temporary edge-preview proxy Worker, named after the admin Worker, to your `workers.dev` subdomain.
@@ -64,7 +66,7 @@ The rehearsal checks all of this.
    Keep `RECOVERY_MODE` at `reconcile`, and put no secret on this Worker. Then:
    ```sh
    node scripts/run11/activation-check.mjs --admin
-   pnpm --filter @zigoals/web exec wrangler deploy --config workers/private-sync/wrangler.lifecycle.acctest.owner.jsonc
+   pnpm --filter @zigoals/web exec wrangler deploy --config "$PWD/workers/private-sync/wrangler.lifecycle.acctest.owner.jsonc"
    ```
    Deploy the lifecycle copy only, not the other five.
 3. **Fixture.** Copy the fixture outside the checkout, 0600:
@@ -81,7 +83,7 @@ The rehearsal checks all of this.
 5. **Nothing else can reach it.**
    - In a second terminal, start the admin Worker by hand without a session token. It then refuses every request itself:
      ```sh
-     pnpm --filter @zigoals/web exec wrangler dev --config workers/recovery-admin/wrangler.acctest.owner.jsonc --ip 127.0.0.1 --port 8799 --disable-dev-registry
+     pnpm --filter @zigoals/web exec wrangler dev --config "$PWD/workers/recovery-admin/wrangler.acctest.owner.jsonc" --ip 127.0.0.1 --port 8799 --disable-dev-registry
      ```
    - While it runs, use another device on another network (for example a phone on mobile data, not signed in to Cloudflare). Open `https://<admin Worker name>.<workers.dev subdomain>.workers.dev/` and `/admin/export` there.
    - Expected: no JSON from ZIGoals, only a Cloudflare error page or nothing.
