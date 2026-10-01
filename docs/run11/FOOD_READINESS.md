@@ -48,7 +48,7 @@ OFF asks for a custom User-Agent in the form `AppName/Version (ContactEmail)`; i
 ```
 ZIGoals/<app version, e.g. 0.1.0 from apps/web/package.json> (<owner contact email>)
 ```
-- Put it in the private food config (`*.acctest.owner.jsonc`, Stage 4) as the `FOOD_USER_AGENT` var. It is not a secret, but the contact is private, so never commit, log or report the filled value.
+- Put it in the private food config (`*.acctest.owner.jsonc`, Stage 4) as the `FOOD_USER_AGENT` var with `node scripts/run11/make-private-configs.mjs --set-food-user-agent "…"` ([ACTIVATION.md](ACTIVATION.md) Stage 6, step 4). It refuses anything but this template's form and never prints the value. It is not a secret, but the contact is private, so never commit, log or report the filled value.
 - Use a contact you are willing to have OFF reach you at, for example a dedicated alias. Choosing it is an owner decision.
 - `scripts/run11/food-user-agent.test.mjs` proves that a filled template is sent unchanged. A missing value, another app name, CR/LF, or more than 160 characters after `ZIGoals/` returns `PROVIDER_SETUP_REQUIRED` without contacting OFF.
 
