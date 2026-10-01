@@ -14,6 +14,7 @@ import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import type { HabitCardStore } from "./use-habits";
 import { formatDate, formatDateTime, formatPlainDecimal } from "../../lib/visual-format";
+import { unitFor } from "../../lib/plural";
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
@@ -23,8 +24,8 @@ function moveMonth(month: string, amount: number) { const date = new Date(`${mon
 function targetCopy(habit: Habit,today:string) {
   const rule = habitRuleOn(habit,today)??habit.rules[0]!; const unit = measurementUnit(rule); const period = habitTargetPeriod(rule);
   if (rule.type === "quit") return `Avoid ${unit || "the behavior"}`;
-  if (rule.type === "limit") return `Limit ${plain(rule.target)}${unit ? ` ${unit}` : ""} per ${period}`;
-  return `${plain(rule.target)}${unit ? ` ${unit}` : ""} per ${period}`;
+  if (rule.type === "limit") return `Limit ${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} per ${period}`;
+  return `${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} per ${period}`;
 }
 
 export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitCardStore; compact?: boolean }) {
@@ -38,7 +39,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   if (!day.scheduled) return <span className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]}</span>;
   const smartLabel = rule.type === "quit" ? `Stayed on track for ${habit.title}` : rule.type === "limit" ? `Stayed within limit for ${habit.title}` : `${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`;
   return <div className={`habit-completion ${compact ? "habit-completion-compact" : ""}`}>
-    <div><div className="habit-count"><strong>{plain(day.count)}</strong><span> / {plain(day.target)}{unit ? ` ${unit}` : ""}{compact ? "" : ` per ${habitTargetPeriod(rule)}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
+    <div><div className="habit-count"><strong>{plain(day.count)}</strong><span> / {plain(day.target)}{unit ? ` ${unitFor(day.target, unit)}` : ""}{compact ? "" : ` per ${habitTargetPeriod(rule)}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
     <div className="habit-check-actions">
       {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={busy || day.count === 0} onClick={() => void run(() => store.adjustCount(habit.id, store.today, -1))}>−</button>}
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={busy} onClick={() => void run(() => store.addValue(habit.id, store.today, 1))}>+</button>}
@@ -68,7 +69,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
     <p className="habit-calendar-legend"><span>● Complete</span><span>◐ Partial</span><span>× Failed</span><span>○ Skipped</span><span>— Not scheduled</span></p>
     <form onSubmit={save} className="habit-day-editor" key={`${selectedDate}-${day.count}-${day.note}-${day.mood ?? ""}`}>
       <label className="field">Day to review<input type="date" required min={habit.startDate} max={store.today} value={selectedDate} onChange={(event) => chooseDate(event.target.value)} /></label>
-      <p className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]} · Target {plain(day.target)} {measurementUnit(rule)}</p>
+      <p className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]} · Target {plain(day.target)} {unitFor(day.target, measurementUnit(rule))}</p>
       <fieldset className="habit-form-fields" disabled={busy || !day.scheduled || selectedDate > store.today}>
         <label className="field">Value for this day<input name="count" aria-label="Count for this day" type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" required defaultValue={formNumberText(day.count)} /></label>
         <label className="field">Mood (optional)<select name="mood" defaultValue={day.mood ?? ""}><option value="">No mood tag</option><option value="energized">Energized</option><option value="good">Good</option><option value="calm">Calm</option><option value="neutral">Neutral</option><option value="difficult">Difficult</option></select></label>
@@ -76,14 +77,14 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
         <div className="habit-history-actions"><button className="secondary" type="submit">{busy ? "Saving…" : "Save day"}</button><button className="quiet" type="button" onClick={() => void mark("skipped")}>Skip day</button><button className="quiet" type="button" onClick={() => void mark("failed")}>Mark failed</button></div>
       </fieldset>{message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     </form>
-    <details className="habit-rule-history"><summary>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time>{item.from}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {plain(item.target)} {measurementUnit(item)} per {habitTargetPeriod(item)}</li>)}</ul>{!!habit.ruleRevisions?.length&&<details><summary>Retained rule revisions ({habit.ruleRevisions.length})</summary><p className="fine">Original and scheduled terms are retained, including superseded future terms. Earlier same-day edits before this record were not retained.</p><ol>{habit.ruleRevisions.map(r=><li key={r.id}>Effective {r.rule.from} · {r.rule.state} · {plain(r.rule.target)} {measurementUnit(r.rule)} per {habitTargetPeriod(r.rule)} · {scheduleLabel(r.rule.schedule)}<p className="fine">Recorded {formatDateTime(r.recordedAt)} · {r.source==='retained'?'Existing rule captured':'Scheduled edit'}</p></li>)}</ol></details>}</details>
+    <details className="habit-rule-history"><summary>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time>{item.from}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {plain(item.target)} {unitFor(item.target, measurementUnit(item))} per {habitTargetPeriod(item)}</li>)}</ul>{!!habit.ruleRevisions?.length&&<details><summary>Retained rule revisions ({habit.ruleRevisions.length})</summary><p className="fine">Original and scheduled terms are retained, including superseded future terms. Earlier same-day edits before this record were not retained.</p><ol>{habit.ruleRevisions.map(r=><li key={r.id}>Effective {r.rule.from} · {r.rule.state} · {plain(r.rule.target)} {unitFor(r.rule.target, measurementUnit(r.rule))} per {habitTargetPeriod(r.rule)} · {scheduleLabel(r.rule.schedule)}<p className="fine">Recorded {formatDateTime(r.recordedAt)} · {r.source==='retained'?'Existing rule captured':'Scheduled edit'}</p></li>)}</ol></details>}</details>
   </div>;
 }
 
 function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   const stats = habitStats(habit, today); const trends = habitTrends(habit, today);
   return <div className="habit-insights" aria-label={`${habit.title} insights`}>
-    <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {stats.streakUnit}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {stats.streakUnit}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
+    <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
     <MotionTrack identity={`habit-trends:${habit.id}`} className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><i><span style={{ width: `${trend.percentage}%` }} /></i><strong>{trend.percentage}%</strong></div>)}</MotionTrack>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
   </div>;
@@ -102,7 +103,7 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
   return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
     <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}
-    {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {measurementUnit(planned)} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
+    {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {unitFor(planned.target, measurementUnit(planned))} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
     <HabitCompletion habit={habit} store={store} />
     <HabitTimer habit={habit} store={store}/>
     {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}

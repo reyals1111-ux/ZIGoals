@@ -9,6 +9,7 @@ import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dail
 import {dailyData,waterSummary} from './health-daily';
 import type {MarketQuote} from './market-quotes';
 import {formatExactNumber,formatNumber} from './visual-format';
+import {plural,unitFor} from './plural';
 import {WIDGET_CATALOG,type DashboardWidget} from './dashboard-settings';
 import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 import {nutritionDashboard,habitConsistency} from './life-intelligence';
@@ -65,7 +66,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  if(widget.kind==='habit'){
   const habit=s.habits.habits.find(h=>h.id===widget.entity);if(!habit)return unavailable('/app/habits','This Habit is unavailable. Choose another or remove this widget.');
   const day=habitDay(habit,habitToday,habitToday),rule=habitRuleOn(habit,habitToday),stats=widget.metric==='streak'?habitStats(habit,habitToday):undefined;
-  return {...defaults,title:widget.title||habit.title,value:stats?`${stats.currentStreak} ${stats.streakUnit}`:`${formatNumber(day.count)}${rule?` ${measurementUnit(rule)}`:''}`,detail:stats?'Current streak · natural periods':`${day.status.replaceAll('-',' ')} · target ${formatNumber(day.target)}${rule?` ${measurementUnit(rule)}`:''}`,href:'/app/habits',warning:day.status==='archived'||day.status==='paused'?`Habit ${day.status}`:undefined};
+  return {...defaults,title:widget.title||habit.title,value:stats?`${stats.currentStreak} ${unitFor(stats.currentStreak,stats.streakUnit)}`:`${formatNumber(day.count)}${rule?` ${unitFor(day.count,measurementUnit(rule))}`:''}`,detail:stats?'Current streak · natural periods':`${day.status.replaceAll('-',' ')} · target ${formatNumber(day.target)}${rule?` ${unitFor(day.target,measurementUnit(rule))}`:''}`,href:'/app/habits',warning:day.status==='archived'||day.status==='paused'?`Habit ${day.status}`:undefined};
  }
  if(widget.kind==='food-entry'||widget.kind==='meal'){
   const entry=widget.kind==='food-entry'?s.health.diary.find(row=>row.id===widget.entity):undefined;
@@ -74,7 +75,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const meal=entry?.meal??widget.entity!,date=entry?.date??s.healthDate;
   const summary=dailyHealthSummary({...s.health,diary:s.health.diary.filter(row=>row.meal===meal)},date),nutrients=entry?scaleNutrition(entry.snapshot.nutrients,entry.quantityMilli):summary.nutrients,count=entry?1:summary.entries,nutrition=entry?summarizeNutrition([nutrients]):summary;
   return {...defaults,title:widget.title||(entry?entry.snapshot.name:`${meal} today`),value:count?widget.metric==='macros'?nutritionSummaryText(nutrition,"proteinMg","g protein",1000):nutritionSummaryText(nutrition,"kcal","kcal"):'No meals recorded',
-   detail:`${date} · ${meal} · ${entry?`${entry.quantityMilli/1000} servings · saved diary entry`:`${count} entries · current Health day`}${count&&widget.metric==='macros'?` · ${nutritionSummaryText(nutrition,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(nutrition,"fatMg","g fat",1000)}`:''}`,
+   detail:`${date} · ${meal} · ${entry?`${entry.quantityMilli/1000} ${plural(entry.quantityMilli/1000,'serving')} · saved diary entry`:`${count} ${plural(count,'entry','entries')} · current Health day`}${count&&widget.metric==='macros'?` · ${nutritionSummaryText(nutrition,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(nutrition,"fatMg","g fat",1000)}`:''}`,
    href:`/app/health?date=${date}#${entry?`entry-${entry.id}`:`diary-${meal.toLowerCase()}`}`};
  }
  if(widget.kind==='health'){

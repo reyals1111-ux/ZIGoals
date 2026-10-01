@@ -4,6 +4,7 @@ import {HEALTH_MEALS} from './health';
 import {habitRuleOn} from './habits';
 import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 import {stakingWidgetSource,type DashboardSources} from './dashboard-metrics';
+import {plural} from './plural';
 
 /** Only canonical, safe selectors can become Today widgets. */
 export const WIDGET_GROUPS=[
@@ -27,7 +28,7 @@ export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={
 };
 
 export function eligibleWidgetSources(kind:WidgetKind,s:DashboardSources):{id:string;label:string}[]{
- if(kind==='food-entry')return [...s.health.diary].sort((a,b)=>b.date.localeCompare(a.date)||a.createdAt.localeCompare(b.createdAt)).map(entry=>({id:entry.id,label:`${entry.snapshot.name} · ${entry.date} · ${entry.meal} · ${entry.quantityMilli/1000} servings`}));
+ if(kind==='food-entry')return [...s.health.diary].sort((a,b)=>b.date.localeCompare(a.date)||a.createdAt.localeCompare(b.createdAt)).map(entry=>({id:entry.id,label:`${entry.snapshot.name} · ${entry.date} · ${entry.meal} · ${entry.quantityMilli/1000} ${plural(entry.quantityMilli/1000,'serving')}`}));
  if(kind==='meal')return HEALTH_MEALS.map(meal=>({id:meal,label:`${meal} today`}));
  if(kind==='goal')return s.goals.filter(g=>g.status!=='closed').map(g=>({id:g.key,label:`${g.name} · ${g.source}`}));
  if(kind==='habit')return s.habits.habits.filter(h=>habitRuleOn(h,s.today)?.state!=='archived').map(h=>({id:h.id,label:h.title}));

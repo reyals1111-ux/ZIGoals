@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import {useId,useMemo,useState,type ReactNode} from 'react';
 import {usePhoneActive} from './phone/use-phone-layout';
+import {plural} from '../lib/plural';
 import type {LayoutAttrs} from './layout-edit';
 import {WEEKDAYS,goalTimeline,habitRhythm,healthWeek,wealthAllocation,weekAcross} from '../lib/bottom-insights';
 import {ASSET_COLORS,type wealthOverview} from '../lib/wealth';
@@ -54,7 +55,7 @@ export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:
  const r=useMemo(()=>habitRhythm(habits,today),[habits,today]),max=Math.max(1,...r.byWeekday.map(d=>d.checkins));
  return <Shell layout={layout} id="bottom-habit-rhythm" eyebrow="YOUR RHYTHM" title={<>Consistency by weekday.</>} lede="Check-ins recorded over the last four weeks, and your best streaks.">
   <div className="bottom-two">
-   <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} check-ins`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>
+   <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} ${plural(d.checkins,'check-in')}`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>
    <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {s.unit}</strong><small>Now {s.current} {s.unit}</small></li>)}</ol>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
   </div>
   {!r.total&&<p className="bottom-note">No check-ins in the last four weeks yet.</p>}
