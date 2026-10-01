@@ -81,12 +81,20 @@ async function settle(page) {
   await page.mouse.move(0, 0);
   await page.locator("main h1").first().waitFor({ state: "visible", timeout: 30000 });
   await page.waitForFunction(() => !document.querySelector('.workspace[aria-busy="true"]'), null, { timeout: 30000 });
-  // Scroll through once so lazy images and in-view effects have run, then return to the top.
+  // Scroll through once so lazy images and in-view effects have run, then return to the top. page.evaluate has no
+  // timeout of its own and one run hung here for 30 minutes, so the wait is bounded: anything still unfinished after
+  // 15 s shows up as a difference in `compare`, never as a silent pass.
   await page.evaluate(async () => {
-    for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight) { scrollTo(0, y); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); }
+    let stopped = false;
+    const settled = (async () => {
+      for (let y = 0; !stopped && y < document.documentElement.scrollHeight; y += Math.max(innerHeight, 1)) { scrollTo(0, y); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); }
+      scrollTo(0, 0);
+      await document.fonts.ready;
+      await Promise.all([...document.images].map(img => img.complete ? null : new Promise(r => { img.addEventListener("load", r, { once: true }); img.addEventListener("error", r, { once: true }); })));
+    })();
+    await Promise.race([settled, new Promise(r => setTimeout(r, 15000))]);
+    stopped = true;
     scrollTo(0, 0);
-    await document.fonts.ready;
-    await Promise.all([...document.images].map(img => img.complete ? null : new Promise(r => { img.addEventListener("load", r, { once: true }); img.addEventListener("error", r, { once: true }); })));
   });
   await page.waitForTimeout(600);
 }
