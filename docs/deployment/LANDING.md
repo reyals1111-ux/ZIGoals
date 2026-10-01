@@ -11,7 +11,21 @@ pnpm check:deploy-configs
 WRANGLER_SEND_METRICS=false pnpm check:landing
 ```
 
-`check:deploy-configs` reads both repository configs without network access and fails on a target, path, route, binding, or static-asset isolation mismatch. `check:landing` is the canonical apex dry run. It compiles and inspects the static upload without contacting the deployment API or changing Cloudflare. Wrangler reports three directory entries before ignore filtering; `.assetsignore` and `wrangler.jsonc` are ignored, leaving only `index.html` in the upload manifest. For a local audit of those decisions, set `WRANGLER_LOG=debug` and direct `WRANGLER_LOG_PATH` to a scratch file outside `landing/`.
+`check:deploy-configs` reads both repository configs without network access and fails on a target, path, route, binding, or static-asset isolation mismatch. It also enforces the apex upload allowlist: `landing/.assetsignore` must deny everything with `*` and may re-include only the public runtime (`index.html`, `favicon.ico`, `styles/*.css`, `scripts/*.js`, `scripts/*.mjs`, `assets/**`); the type denials that follow it must stay; and the real `landing/` tree must contain no non-public file — no `.wrangler/`, `node_modules/`, `docs/`, `review/`, `tools/`, `backups/` or `source/` directory, and no `.md`, `.json`, `.jsonc`, `.py`, `.sh`, `.test.*` or `.env*` file.
+
+`check:landing` is the canonical apex dry run. It compiles and inspects the static upload without contacting the deployment API or changing Cloudflare. Wrangler reports every entry in `landing/` before ignore filtering — currently 225, which is 204 files plus 21 directories — and then ignores `.assetsignore`, `wrangler.jsonc` and `_headers`. For a local audit of those decisions, set `WRANGLER_LOG=debug` and direct `WRANGLER_LOG_PATH` to a scratch file outside `landing/`; the log prints an `Ignoring asset:` line per excluded file.
+
+`landing/_headers` is excluded from the upload on purpose. Wrangler still parses it into the Worker's response headers — it logs `✨ Parsed 1 valid header rule.` — so the security policy applies while the file itself is not fetchable. Keep it denied in `.assetsignore`.
+
+### Serving the apex locally
+
+To exercise the deployable bytes through the real Workers-Assets runtime, including `_headers`:
+
+```sh
+pnpm --filter @zigoals/web exec wrangler dev --config ../../landing/wrangler.jsonc --name zigoals --port 8788 --ip 127.0.0.1
+```
+
+This writes Miniflare state to `landing/.wrangler/`. Delete that directory afterwards; `check:deploy-configs` fails while it is present, because nothing but the public site may sit in the deployable tree.
 
 ## Owner-only deployment
 
@@ -31,7 +45,15 @@ pnpm --filter @zigoals/web exec wrangler deploy --config ../../landing/wrangler.
 pnpm --filter @zigoals/web exec wrangler deployments list --config ../../landing/wrangler.jsonc --name zigoals
 ```
 
-Verify `https://zigoals.app/` and the CTA links after publication. This procedure does not publish `zigoals-alpha`, add routes, change DNS or email records, sign a release, or authorize any chain upload.
+Verify `https://zigoals.app/` and the CTA links after publication, and confirm the security policy survived the upload:
+
+```sh
+curl -sSI https://zigoals.app/
+```
+
+Expect `content-security-policy`, `x-content-type-options`, `x-frame-options`, `referrer-policy`, `permissions-policy` and `cross-origin-opener-policy`, and expect `https://zigoals.app/_headers` to answer 404. There is deliberately no HSTS header in `landing/_headers`; adding one, or any `includeSubDomains`/`preload` directive, is a separate zone-level decision and is not part of this procedure.
+
+This procedure does not publish `zigoals-alpha`, add routes, change DNS or email records, sign a release, or authorize any chain upload.
 
 ## Rollback
 
