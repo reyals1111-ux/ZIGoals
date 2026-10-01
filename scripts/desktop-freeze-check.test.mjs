@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { captureName, matrix, ONBOARDING_KEY, PAGES, SIZES, snapshotDiff, STATES, validateBase } from "./desktop-freeze-check.mjs";
+import { captureName, intendedDifference, matrix, ONBOARDING_KEY, PAGES, SIZES, snapshotDiff, STATES, validateBase } from "./desktop-freeze-check.mjs";
 
 describe("desktop freeze check", () => {
   test("covers every main page at the four frozen sizes, in Showcase and empty", () => {
@@ -32,4 +32,15 @@ describe("desktop freeze check", () => {
     expect(snapshotDiff("a\nb", "a\nc\nd")).toEqual(["line 2: - b | + c", "line 3: - (none) | + d"]);
   });
   test("seeds the same onboarding key the app reads", () => expect(ONBOARDING_KEY).toBe("zigoals:onboarding:v1"));
+  test("accepts only the owner-authorized QA-01 change: Health amount fields from spinbutton to textbox, same name and value", () => {
+    const before = '- main:\n  - spinbutton "Water amount"\n  - spinbutton "Servings": "1"', after = '- main:\n  - textbox "Water amount"\n  - textbox "Servings": "1"';
+    expect(intendedDifference("health", before, after)).toBe("QA-01");
+    // Not on another page, not with a changed name or value, not with any other change alongside, and not without a change.
+    expect(intendedDifference("habits", before, after)).toBeNull();
+    expect(intendedDifference("health", before, after.replace('"Servings": "1"', '"Servings": "2"'))).toBeNull();
+    expect(intendedDifference("health", before, after.replace("Water amount", "Water"))).toBeNull();
+    expect(intendedDifference("health", `${before}\n  - heading "Health"`, `${after}\n  - heading "Wealth"`)).toBeNull();
+    expect(intendedDifference("health", before, `${after}\n  - button "New"`)).toBeNull();
+    expect(intendedDifference("health", before, before)).toBeNull();
+  });
 });

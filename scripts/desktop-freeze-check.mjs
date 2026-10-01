@@ -10,7 +10,8 @@
 // Capture the baseline from a production build of main and the candidate from a production build of the branch, on the
 // same machine and browser (each on its own loopback port). APIs are answered by a local 503 fixture and the clock is
 // fixed, so two captures of the same build are identical. Empty-state captures mark onboarding as seen, so they compare
-// the pages themselves; `first-run` captures the brand-new-user Today separately, as evidence of the one intended change.
+// the pages themselves; `first-run` captures the brand-new-user Today separately, as evidence of the welcome card.
+// INTENDED lists the owner-authorized differences (QA-01); compare reports them apart and fails on anything else.
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -71,6 +72,27 @@ export function snapshotDiff(a, b, limit = 8) {
   for (let i = 0; i < Math.max(left.length, right.length) && out.length < limit; i++)
     if (left[i] !== right[i]) out.push(`line ${i + 1}: - ${left[i] ?? "(none)"} | + ${right[i] ?? "(none)"}`);
   return out;
+}
+
+/**
+ * Owner-authorized differences at desktop and tablet sizes. QA-01 (owner request on PR #52): Health amount fields are
+ * text fields with a decimal keypad instead of <input type="number">, so their accessibility role changes from
+ * spinbutton to textbox, with the same name and value. A capture counts as intended only when its pixels are identical
+ * and every changed snapshot line is such a change on that page; anything else stays a failure.
+ */
+export const INTENDED = [
+  { id: "QA-01", page: "health", note: "Health amount fields are text fields with a decimal keypad (spinbutton -> textbox, same name and value; pixels identical)",
+    matches: (before, after) => /^\s*- spinbutton\b/.test(before) && after === before.replace("- spinbutton", "- textbox") },
+];
+/** The id of the owner-authorized change that explains every difference between two snapshots of a page, or null. */
+export function intendedDifference(page, before, after) {
+  const a = before.split("\n"), b = after.split("\n");
+  if (a.length !== b.length) return null;
+  for (const rule of INTENDED.filter(rule => rule.page === page)) {
+    const changed = a.flatMap((line, i) => line === b[i] ? [] : [[line, b[i]]]);
+    if (changed.length && changed.every(([x, y]) => rule.matches(x, y))) return rule.id;
+  }
+  return null;
 }
 
 function playwright() { return createRequire(new URL("../apps/web/package.json", import.meta.url))("@playwright/test"); }
@@ -204,13 +226,14 @@ export async function compare({ baseline, candidate, diff }) {
   const results = [];
   let page = null, browser = null;
   try {
-    for (const { name } of matrix()) {
+    for (const { name, page: target } of matrix()) {
       const a = before.captures[name], b = after.captures[name];
       if (!a || !b) { results.push({ name, status: "missing", detail: !a ? "not in baseline" : "not in candidate" }); continue; }
       const entry = { name, status: "same" };
+      let authorized = null;
       if (a.aria !== b.aria) {
         const [x, y] = await Promise.all([readFile(join(baseline, `${name}.aria.yml`), "utf8"), readFile(join(candidate, `${name}.aria.yml`), "utf8")]);
-        entry.status = "different"; entry.aria = snapshotDiff(x, y);
+        entry.status = "different"; entry.aria = snapshotDiff(x, y); authorized = intendedDifference(target.name, x, y);
       }
       if (a.png !== b.png) {
         if (!page) { const { chromium } = playwright(); browser = await chromium.launch({ channel: "chrome", headless: true }); page = await browser.newPage(); }
@@ -221,11 +244,13 @@ export async function compare({ baseline, candidate, diff }) {
           if (diff && result.image) { await mkdir(diff, { recursive: true }); await writeFile(join(diff, `${name}.diff.png`), Buffer.from(result.image, "base64")); }
         } else entry.encodingOnly = true;
       }
+      // Identical pixels and only an owner-authorized snapshot change: reported as intended, not as a failure.
+      if (authorized && entry.pixels === undefined) { entry.status = "intended"; entry.intended = authorized; }
       results.push(entry);
     }
   } finally { await browser?.close(); }
-  const different = results.filter(r => r.status !== "same");
-  return { compared: results.length, same: results.length - different.length, different, pageErrors: { baseline: before.pageErrors ?? [], candidate: after.pageErrors ?? [] } };
+  const different = results.filter(r => r.status !== "same" && r.status !== "intended"), intended = results.filter(r => r.status === "intended");
+  return { compared: results.length, same: results.length - different.length - intended.length, intended, different, pageErrors: { baseline: before.pageErrors ?? [], candidate: after.pageErrors ?? [] } };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -240,7 +265,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } else if (command === "compare" && values.baseline && values.candidate) {
     const report = await compare({ baseline: values.baseline, candidate: values.candidate, diff: values.diff });
     console.log(JSON.stringify(report, null, 1));
-    console.log(report.different.length ? `FREEZE CHECK FAILED: ${report.different.length} of ${report.compared} captures differ.` : `FREEZE CHECK PASSED: ${report.compared} of ${report.compared} captures identical (pixels and accessibility snapshot).`);
+    const intended = INTENDED.filter(rule => report.intended.some(entry => entry.intended === rule.id)).map(rule => `${report.intended.filter(entry => entry.intended === rule.id).length} differ only by the owner-authorized ${rule.id} change: ${rule.note}`);
+    console.log(report.different.length ? `FREEZE CHECK FAILED: ${report.different.length} of ${report.compared} captures differ.` : `FREEZE CHECK PASSED: ${report.same} of ${report.compared} captures identical (pixels and accessibility snapshot)${intended.length ? `; ${intended.join("; ")}` : ""}.`);
     process.exitCode = report.different.length ? 1 : 0;
   } else {
     console.error("Usage: desktop-freeze-check.mjs capture --base-url <loopback origin> --out <dir> [--only <regex>]\n       desktop-freeze-check.mjs compare --baseline <dir> --candidate <dir> [--diff <dir>]\n       desktop-freeze-check.mjs first-run --base-url <loopback origin> --out <dir>");
