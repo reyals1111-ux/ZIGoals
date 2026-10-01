@@ -3,9 +3,9 @@ import {closeMore,isPhone,mainNav,navLink,openMore} from './phone-nav';
 
 // Session E, Part 2: the phone shell. Phone sizes are set explicitly so both projects run them (the desktop project with a
 // fine pointer, the mobile project with a coarse one); the landscape case needs the coarse pointer.
-const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
-const LOCKED=new Set(['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity']);
-const MORE=['Wealth','Markets','Stake / Positions','Ecosystem','Activity','Settings'];
+const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity']);
+const MORE=['Wealth','Markets','Staking','Ecosystem','Activity','Settings'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 

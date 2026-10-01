@@ -94,12 +94,12 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   return {...defaults,title:widget.title||`Tracked Wealth · ${widget.metric}`,value:subtotal?formatGoalAmount(formatUnits(subtotal.value.toString(),2),widget.metric):'No recorded value',detail:'Known values only · currencies stay separate',href:'/app/wealth',warning:missing?'Valuation coverage is incomplete. Some assets have no value.':stale?'Includes stale evidence. Refresh or review values.':undefined};
  }
  if(widget.kind==='staking'||widget.kind==='allocation'){
-  const position=s.platform.positions.find(p=>p.id===widget.entity),href=widget.kind==='staking'?'/app/goals/positions':'/app/wealth';
+  const position=s.platform.positions.find(p=>p.id===widget.entity),href=widget.kind==='staking'?'/app/staking':'/app/wealth';
   if(!position||widget.kind==='staking'&&!stakingWidgetSource(position))return unavailable(href,'The selected Position is unavailable or no longer matches this widget. Choose another record.');
   if(position.archivedAt)return {...unavailable(href,'This Position is archived. Restore it or choose another record.'),title:widget.title||position.providerId};
   const balance=allocationBalance(s.platform,position.id),amount=(raw:string)=>`${formatExactNumber(formatUnits(raw,position.decimals))} ${position.asset}`,sync=positionSync(position,s.now);
   const source=position.sourceType==='NATIVE_STAKING'?'Staked principal':position.sourceType==='NATIVE_REWARDS'?'Unclaimed rewards':position.sourceType==='NATIVE_UNBONDING'?'Unbonding':'Recorded balance';
-  const warnings=[balance.deficit!=='0'?'Allocation exceeds this source balance. Review the deficit.':'',sync==='ERROR'?'Last refresh failed. Showing the saved observation.':sync==='STALE'?'Saved observation is stale. Refresh in Positions.':''];
+  const warnings=[balance.deficit!=='0'?'Allocation exceeds this source balance. Review the deficit.':'',sync==='ERROR'?'Last refresh failed. Showing the saved observation.':sync==='STALE'?'Saved observation is stale. Refresh it on Staking.':''];
   return {...defaults,title:widget.title||`${widget.kind==='staking'?source:'Allocations'} · ${position.validator?.name??position.providerId}`,value:amount(position.quantity),href:`/app/wealth/asset/${encodeURIComponent(position.id)}`,
    detail:`Selected Position only · ${source} · ${position.network} · ${position.verification==='MANUAL'?'manual record':'read-only observation'} · ${position.observedAt}${widget.kind==='staking'?` · ${position.liquidity.toLowerCase()} · recorded rewards are not future yield`:'. Unallocated is an accounting amount, not a guarantee of spendable funds.'}`,
    warning:warnings.filter(Boolean).join(' ')||undefined,

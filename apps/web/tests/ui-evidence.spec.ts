@@ -3,7 +3,7 @@ import {isPhone} from './phone-nav';
 
 // Evidence for the UI design pass checks (Part 12): motion settings, forced colours, keyboard-only layouts,
 // hydration and phone width, on every main page. Showcase (fictional) data only.
-const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');

@@ -5,7 +5,7 @@ import {ACCOUNT_SELECTOR} from '../lib/account-session';
 
 // Part 15: the testnet bar and the mode strip follow the app mode. A private store that is loading, unreadable,
 // corrupt or written by a newer build must never hide them (deploy #12 hid both when Today settings failed to read).
-const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 const UNREADABLE='Private data could not be read. It has not been changed.';
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function expectBanners(page:Page,path:string){

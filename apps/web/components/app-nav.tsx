@@ -5,19 +5,33 @@ import { useLayoutEffect, useRef } from "react";
 import { AppIcon } from "./app-icon";
 import { entranceAllowed } from "./use-entrance";
 
-/** The single source of navigation order, for the desktop sidebar and the mobile header alike. */
-export const NAV_ITEMS = [
-  ["/app", "Today", "today"],
-  ["/app/goals", "Goals", "goals"],
-  ["/app/habits", "Habits", "habits"],
-  ["/app/health", "Health", "health"],
-  ["/app/wealth", "Wealth", "wallet"],
-  ["/app/markets", "Markets", "activity"],
-  ["/app/goals/positions", "Stake / Positions", "future"],
-  ["/app/ecosystem", "Ecosystem", "ecosystem"],
-  ["/app/activity", "Activity", "activity"],
-  ["/app/settings", "Settings", "settings"],
+/**
+ * The single source of navigation order and grouping, for the desktop sidebar, the tablet header and the phone More sheet
+ * alike (Session I): your life areas, then money tools, then the rest. Groups are separated by space, never a divider.
+ */
+export const NAV_GROUPS = [
+  [
+    ["/app", "Today", "today"],
+    ["/app/goals", "Goals", "goals"],
+    ["/app/habits", "Habits", "habits"],
+    ["/app/health", "Health", "health"],
+    ["/app/wealth", "Wealth", "wallet"],
+  ],
+  [
+    ["/app/markets", "Markets", "activity"],
+    ["/app/staking", "Staking", "future"],
+  ],
+  [
+    ["/app/ecosystem", "Ecosystem", "ecosystem"],
+    ["/app/activity", "Activity", "activity"],
+    ["/app/settings", "Settings", "settings"],
+  ],
 ] as const;
+export const NAV_ITEMS = NAV_GROUPS.flat();
+/** The group a destination opens (2 or 3), for the space before it; the first group needs none. */
+export const NAV_GROUP_START: ReadonlyMap<string, number> = new Map(NAV_GROUPS.slice(1).map((group, index) => [group[0][0], index + 2]));
+/** The Staking page's former address (until Session I it sat under Goals); it now redirects to /app/staking. */
+export const LEGACY_STAKING_PATH = "/app/goals/positions";
 /** The active item's own box styles, copied onto the glide so it looks identical at every breakpoint. */
 const GLIDE_STYLES = ["backgroundImage", "backgroundColor", "backgroundOrigin", "backgroundClip", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth", "borderStyle", "borderColor", "borderRadius", "boxShadow"] as const;
 type Box = { x: number; y: number; w: number; h: number };
@@ -27,9 +41,11 @@ function boxOf(link: Element, nav: Element): Box {
   return { x: a.left - n.left + nav.scrollLeft, y: a.top - n.top + nav.scrollTop, w: a.width, h: a.height };
 }
 
-/** Whether a navigation destination is the current page (Stake / Positions lives under /app/goals but is its own item). */
+/** Whether a navigation destination is the current page (the old Staking address under /app/goals belongs to Staking). */
 export function isNavActive(path: string, href: string) {
-  return href === "/app" ? path === href : href === "/app/goals" ? (path === href || path.startsWith(`${href}/`)) && path !== "/app/goals/positions" : path === href || path.startsWith(`${href}/`);
+  if (href === "/app") return path === href;
+  if (path === LEGACY_STAKING_PATH) return href === "/app/staking";
+  return path === href || path.startsWith(`${href}/`);
 }
 
 export function AppNav() {
@@ -83,7 +99,7 @@ export function AppNav() {
     <nav ref={nav} className="app-nav" aria-label="Main navigation">
       {NAV_ITEMS.map(([href, label, icon]) => (
         <Link key={href} href={href}
-          className={icon === "ecosystem" ? "nav-divider" : undefined}
+          data-group-start={NAV_GROUP_START.get(href)}
           aria-current={isActive(href) ? "page" : undefined}>
           <AppIcon name={icon} luminous={isActive(href)} /><span>{label}</span>
         </Link>

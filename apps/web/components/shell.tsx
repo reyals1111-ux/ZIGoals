@@ -19,6 +19,7 @@ import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,vi
 import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
 import { LogoIntro } from "./logo-intro";
+import { PageMark } from "./page-mark";
 import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
 import { LAYOUT_LOCK_SLOT } from "./layout-edit";
@@ -74,12 +75,13 @@ export function Shell({ children }: { children: ReactNode }) {
           <Wordmark />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
-        <div className="sidebar-actions"><QuickAdd/></div>
         <AppNav />
+        {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
+        <div className="sidebar-actions"><QuickAdd/></div>
+        {/* Above the planet: this page's mark, or the wordmark (Session I). The "Shape & Fold" tagline now lives in the Today swan's artwork. */}
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
-          <Wordmark />
-          <small className="sidebar-tagline"><span className="sr-only">Shape &amp; Fold, Your Own Future</span><span aria-hidden="true">Shape &amp; Fold</span><span aria-hidden="true">Your Own Future</span></small>
+          <PageMark />
           <span className="sidebar-star" aria-hidden="true" />
         </div>
       </aside>

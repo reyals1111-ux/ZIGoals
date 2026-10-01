@@ -23,26 +23,26 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   const sheet=await openMore(page),descriptor=sheet.locator('.phone-more-descriptor'),word=sheet.locator('.brand-wordmark');
   await expect(descriptor).toHaveText('Your Financial Orbit');await expect(word).toBeVisible();
   expect((await descriptor.boundingBox())!.y+(await descriptor.boundingBox())!.height).toBeLessThanOrEqual((await word.boundingBox())!.y+1);
-  await expect(sheet.locator('.phone-more-tagline span[aria-hidden]')).toHaveText(['Shape & Fold','Your Own Future']);
+  // Session I: the "Shape & Fold / Your Own Future" tagline is gone everywhere (the Today swan mark carries those words).
+  await expect(sheet.locator('.phone-more-tagline')).toHaveCount(0);await expect(sheet).not.toContainText(/Shape & Fold|Your Own Future/i);
   await page.keyboard.press('Escape');
  }else{
   expect(mark.width).toBeGreaterThanOrEqual(130);expect(mark.height).toBeGreaterThanOrEqual(150);expect(Math.abs(mark.x+mark.width/2-(sidebar.x+sidebar.width/2))).toBeLessThanOrEqual(2);
   await expect(brand.locator('.brand-wordmark')).toBeHidden();await expect(page.locator('.app-sidebar>.product-descriptor')).toBeHidden();
   await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeHidden();
   const nav=(await page.getByRole('navigation',{name:'Main navigation'}).boundingBox())!;
-  const destination=page.locator('.sidebar-destination'),word=destination.locator('.brand-wordmark'),tagline=destination.locator('small');
-  await expect(word).toBeVisible();await expect(destination).not.toContainText('Your Financial Orbit');
-  const settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!,w=(await word.boundingBox())!,t=(await tagline.boundingBox())!,planet=(await destination.locator('.sidebar-horizon').boundingBox())!;
+  // Session I: above the planet, Today's own mark (the swan, which carries "Shape & Fold / Your Own Future" in its artwork)
+  // takes the wordmark's place; the separate tagline is gone. tests/page-marks.spec.ts covers every page.
+  const destination=page.locator('.sidebar-destination'),box=destination.locator('.sidebar-mark'),art=box.locator('img');
+  await expect(box).toHaveAttribute('data-mark','today-swan');await expect(destination).not.toContainText('Your Financial Orbit');
+  await expect.poll(()=>art.evaluate(i=>(i as HTMLImageElement).complete?(i as HTMLImageElement).currentSrc:'')).toMatch(/\/brand\/marks\/today-swan(@2x)?\.webp$/);
+  await expect(art).toHaveAttribute('alt','');await expect(art).toHaveAttribute('aria-hidden','true');
+  const settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!,m=(await box.boundingBox())!,planet=(await destination.locator('.sidebar-horizon').boundingBox())!;
   expect(nav.y).toBeGreaterThanOrEqual(mark.y+mark.height);
-  expect(w.y).toBeGreaterThanOrEqual(settings.y+settings.height);expect(planet.y).toBeGreaterThanOrEqual(w.y+w.height-1);expect(t.y).toBeGreaterThanOrEqual(w.y+w.height);
-  // UI design pass (owner review): the two-line signature rests on the planet's body, below the bright rim and its star.
-  const star=(await destination.locator('.sidebar-star').boundingBox())!;
-  expect(t.y).toBeGreaterThanOrEqual(star.y+star.height);expect(t.y).toBeGreaterThanOrEqual(planet.y);expect(t.y+t.height).toBeLessThanOrEqual(planet.y+planet.height+1);
-  await expect(tagline).toHaveText('Shape & Fold, Your Own FutureShape & FoldYour Own Future');
-  await expect(destination.getByText('Shape & Fold, Your Own Future',{exact:true})).toHaveCount(1);await expect(destination.locator('.sidebar-star')).toHaveAttribute('aria-hidden','true');
-  // Only the visible lines are text-clipped; the screen-reader copy never sits inside a text-clipped background.
-  for(const line of await tagline.locator('span[aria-hidden]').all())expect(await line.evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
-  expect(await tagline.evaluate(e=>[getComputedStyle(e).backgroundImage,getComputedStyle(e).backgroundClip])).toEqual(['none','border-box']);
+  expect(m.y).toBeGreaterThanOrEqual(settings.y+settings.height);expect(planet.y).toBeGreaterThanOrEqual(m.y+m.height-1);
+  await expect(destination.locator('.sidebar-star')).toHaveAttribute('aria-hidden','true');
+  await expect(destination.locator('small, .sidebar-tagline')).toHaveCount(0);
+  expect(await page.evaluate(()=>document.body.textContent)).not.toMatch(/Shape & Fold|Your Own Future/i);
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
  await brand.screenshot({path:info.outputPath('brand.png')});
@@ -55,7 +55,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   // Phone experience (Session E): four tabs, then the More sheet with the other six, in the same order.
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health']);
   await openMore(page);
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Stake / Positions','Ecosystem','Activity','Settings']);
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Ecosystem','Activity','Settings']);
   await page.keyboard.press('Escape');
   // The active tab's pill glides to the new tab (a running transform transition), then settles.
   const pill=page.locator('.phone-tab-pill'),habits=nav.getByRole('link',{name:'Habits',exact:true});
@@ -64,9 +64,9 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   await expect.poll(()=>pill.evaluate(e=>e.getAnimations().length)).toBeGreaterThan(0);
   await expect.poll(()=>pill.evaluate(e=>e.getAnimations().length)).toBe(0);
   expect(await page.locator('.phone-tabs').evaluate(e=>getComputedStyle(e).getPropertyValue('--tab-index').trim())).toBe('2');
-  const positions=await navLink(page,'Stake / Positions');
+  const positions=await navLink(page,'Staking');
   await positions.focus();await page.keyboard.press('Enter');
-  await page.waitForURL('**/app/goals/positions');
+  await page.waitForURL('**/app/staking');
   // Focus returns to More, which now marks the current section; the link itself carries aria-current.
   const more=nav.getByRole('button',{name:'More',exact:true});
   await expect(more).toBeFocused();await expect(more).toHaveAttribute('data-current','true');
@@ -74,7 +74,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   await expect(nav.getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current','page');
   return;
  }
- expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Stake / Positions','Ecosystem','Activity','Settings']);
+ expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Ecosystem','Activity','Settings']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
  await markets.click();
  await expect(markets).toHaveAttribute('aria-current','page');
@@ -82,9 +82,9 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  await expect(page.locator('.app-nav')).toHaveAttribute('data-gliding','');
  await expect(glide).toHaveAttribute('data-state','done');
  await expect(page.locator('.app-nav')).not.toHaveAttribute('data-gliding','');
- const positions=nav.getByRole('link',{name:'Stake / Positions',exact:true});
+ const positions=nav.getByRole('link',{name:'Staking',exact:true});
  await positions.focus();await page.keyboard.press('Enter');
- await page.waitForURL('**/app/goals/positions');
+ await page.waitForURL('**/app/staking');
  await expect(positions).toHaveAttribute('aria-current','page');await expect(positions).toBeFocused();
  await expect(nav.getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current','page');
 });

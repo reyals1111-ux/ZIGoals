@@ -3,7 +3,7 @@ import {emptyPlatform,positionSchema} from '../lib/positions';
 
 test('wealth leads collapsed read-only utilities and APR stays account-scoped',async({page},info)=>{
  const position=positionSchema.parse({id:'layout-stake',providerId:'native-zig',sourceType:'NATIVE_STAKING',network:'zigchain-1',account:'fictional-layout-account',asset:'ZIG',denom:'uzig',decimals:6,quantity:'263000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'BONDED',provenance:'Fictional layout fixture'});
- await page.goto('/app/goals/positions');
+ await page.goto('/app/staking');
  await page.evaluate(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),{...emptyPlatform(),positions:[position]});await page.reload();
  const wallet=page.locator('.positions-wallet'),scenario=page.locator('.positions-scenario');
  await expect(wallet).not.toHaveAttribute('open','');await expect(scenario).not.toHaveAttribute('open','');

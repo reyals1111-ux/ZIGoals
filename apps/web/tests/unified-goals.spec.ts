@@ -9,7 +9,7 @@ const chainOrPositions=(raw:string)=>{const u=new URL(raw);return /rpc/i.test(u.
 test('network matcher flags chain RPC and Positions API but ignores query strings',()=>{
  expect(chainOrPositions('https://rpc.zigchain.com/status')).toBe(true);expect(chainOrPositions('https://zigchain.example/rpc/status')).toBe(true);
  expect(chainOrPositions('http://127.0.0.1:3100/api/positions?refresh=1')).toBe(true);
- expect(chainOrPositions('http://127.0.0.1:3100/app/goals/positions?_rsc=rpcXYZ')).toBe(false);
+ expect(chainOrPositions('http://127.0.0.1:3100/app/staking?_rsc=rpcXYZ')).toBe(false);
 });
 async function capture(page:Page,path:string){await page.evaluate(()=>window.scrollTo(0,0));await page.waitForFunction(()=>window.scrollY===0);await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));await page.screenshot({path,fullPage:true,animations:'disabled',scale:'css'});}
 // Keep this suite on the actual Run #8 v1 wire shape to exercise read-only migration.
@@ -22,7 +22,7 @@ test('one collection reconciles incomplete flags, preserves deep links and shows
  await page.getByRole('button',{name:'Completed',exact:true}).click();await expect(page.getByRole('heading',{name:'Reached destination',exact:true})).toBeVisible();await expect(page.getByRole('heading',{name:'300K ZIG Goal',exact:true})).toHaveCount(0);await expect(page.getByRole('heading',{name:'Small start',exact:true})).toHaveCount(0);
  if(process.env.RUN81_CAPTURE==='1')await capture(page,info.outputPath('completed-filter.png'));
  await page.goto('/app/goals/tracked');await expect(page.getByRole('heading',{name:'Your Goals',exact:true})).toBeVisible();
- await page.goto('/app/goals/positions');const card=page.getByRole('article').filter({has:page.getByRole('heading',{name:'Example validator A',exact:true})});await expect(card).toContainText('Allocated to Goals');await expect(card).toContainText('300K ZIG Goal');await expect(card.getByRole('link',{name:'Manage allocation →'})).toHaveAttribute('href','/app/goals/tracked/81#allocate');
+ await page.goto('/app/staking');const card=page.getByRole('article').filter({has:page.getByRole('heading',{name:'Example validator A',exact:true})});await expect(card).toContainText('Allocated to Goals');await expect(card).toContainText('300K ZIG Goal');await expect(card.getByRole('link',{name:'Manage allocation →'})).toHaveAttribute('href','/app/goals/tracked/81#allocate');
  const shared=page.getByRole('article').filter({has:page.getByRole('heading',{name:'Example validator C',exact:true})});await expect(shared).toContainText('Small start');await expect(shared).toContainText('Reached destination');await expect(shared.getByRole('link',{name:'Manage allocation →'})).toHaveCount(2);
  if(process.env.RUN81_CAPTURE==='1')await card.screenshot({path:info.outputPath('allocation-ownership.png')});
  await page.goto('/app/goals/tracked/82#allocate');const form=page.locator('#allocate form');await form.locator('.picker-existing').getByRole('button',{name:/native-zig.*200000 ZIG/}).click();await expect(form).toContainText('Observed quantity: 200000 ZIG');await expect(form).toContainText('This Goal’s existing allocation: 0 ZIG');await expect(form).toContainText('Unallocated across Goals: 0 ZIG');await expect(form.getByRole('link',{name:'Manage allocation →'})).toHaveAttribute('href','/app/goals/tracked/81#allocate');await expect(form).toContainText('Available for this Goal: 0 ZIG');await expect(form).toContainText('300K ZIG Goal');await form.getByLabel('Allocation quantity').fill('1');await form.getByRole('button',{name:'Save allocation'}).click();await expect(form.getByRole('alert')).toContainText('Only 0 ZIG');
@@ -30,7 +30,7 @@ test('one collection reconciles incomplete flags, preserves deep links and shows
 });
 test('unified creator explicitly allocates existing wealth and optionally creates a Habit without financial authority',async({page},info)=>{
  const data=fixture();data.goals=[];data.allocations=[];await seed(page,data);
- await page.goto('/app/goals/positions');await page.getByRole('link',{name:'Create a Goal for this Position →'}).first().click();await expect(page).toHaveURL(/\/app\/goals\/new\?position=a/);
+ await page.goto('/app/staking');await page.getByRole('link',{name:'Create a Goal for this Position →'}).first().click();await expect(page).toHaveURL(/\/app\/goals\/new\?position=a/);
  const requests:string[]=[],publicInsights:{requests:{marketRef:{id:string};currency:string}[];refresh:boolean}[]=[];page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/market-insights'){publicInsights.push(r.postDataJSON());return;}if(r.method()==='POST'||chainOrPositions(r.url()))requests.push(r.url());});await page.evaluate(()=>Object.defineProperty(window,'keplr',{get(){throw Error('Wallet access prohibited');}}));
  await page.getByLabel('Goal name',{exact:true}).fill('My new destination');await page.getByLabel('Target amount',{exact:true}).fill('300000');
  if(process.env.RUN81_CAPTURE==='1')await capture(page,info.outputPath('unified-create.png'));
@@ -53,7 +53,7 @@ test('unified responsive Goals and creator keep navigation and Health intact',as
   await page.setViewportSize({width,height:1000});for(const [name,route] of [['goals','/app/goals'],['create','/app/goals/new']]){await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name} ${width}`).toBe(true);if(process.env.RUN81_CAPTURE==='1')await capture(page,info.outputPath(`${name}-${width}.png`));if(name==='create'){await page.getByLabel('Goal name',{exact:true}).fill('My next chapter');await page.getByLabel('Target amount',{exact:true}).fill('300000');for(let step=1;step<=3;step++){await page.getByRole('button',{name:'Continue →'}).click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`creator step ${step+1} at ${width}`).toBe(true);}}}
  }
  page.once('dialog',async dialog=>{expect(dialog.message()).toBe('Discard your unsaved Goal changes?');await dialog.accept();});
- await (await navLink(page,'Stake / Positions')).click();await expect(page).toHaveURL(/\/goals\/positions$/);await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Health',exact:true}).click();await expect(page).toHaveURL(/\/app\/health$/);expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
+ await (await navLink(page,'Staking')).click();await expect(page).toHaveURL(/\/app\/staking$/);await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Health',exact:true}).click();await expect(page).toHaveURL(/\/app\/health$/);expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
 });
 
 test('Project completion follows milestones and Value/Reward Goals keep their own source semantics',async({page})=>{

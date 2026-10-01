@@ -4,7 +4,7 @@ import {test,expect} from '@playwright/test';
 test('observe public and private route controls with fictional Showcase detail links',async({page},info)=>{
  await page.route('**/api/market-**',r=>r.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
- const routes=new Set(['/','/app','/app/goals','/app/goals/new','/app/goals/tracked','/app/goals/positions','/app/wealth','/app/habits','/app/health','/app/markets','/app/ecosystem','/app/activity','/app/settings']);const inventory=[];
+ const routes=new Set(['/','/app','/app/goals','/app/goals/new','/app/goals/tracked','/app/staking','/app/wealth','/app/habits','/app/health','/app/markets','/app/ecosystem','/app/activity','/app/settings']);const inventory=[];
  for(const route of routes){
   const response=await page.goto(route);expect(response?.status()??(await page.request.get(route)).status(),route).toBe(200);await expect(page.locator('main')).toBeVisible();await expect(page.locator('main h1').first()).toBeVisible();
   const controls=await page.locator('main').evaluate(root=>[...root.querySelectorAll('a,button,input,select,summary')].filter(el=>el.getClientRects().length).map(el=>({tag:el.tagName.toLowerCase(),name:el.getAttribute('aria-label')||el.textContent?.trim().replace(/\s+/g,' ').slice(0,120)||el.getAttribute('name')||'',href:el.getAttribute('href'),disabled:el.hasAttribute('disabled')})));

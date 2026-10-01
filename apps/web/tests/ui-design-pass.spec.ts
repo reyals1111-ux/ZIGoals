@@ -62,13 +62,14 @@ test.describe('Part 1: readability foundation',()=>{
   await zone.click();await page.getByLabel('Habit timezone',{exact:true}).fill('Not/AZone');await page.getByRole('button',{name:'Save Habit timezone',exact:true}).click();
   await expect(page.locator('.habit-timezone [role=status]')).toHaveText('Choose a valid IANA timezone, such as Europe/Brussels.');
  });
- test('sidebar signature reads Shape & Fold, Your Own Future on the planet',async({page,isMobile})=>{
+ test('the sidebar shows the page mark above the planet, and no longer a Shape & Fold tagline',async({page,isMobile})=>{
   test.skip(isMobile,'The mobile header hides the sidebar planet');
   await showcase(page);
-  const destination=page.locator('.sidebar-destination'),tagline=destination.locator('.sidebar-tagline');
-  await expect(tagline.locator('span[aria-hidden]')).toHaveText(['Shape & Fold','Your Own Future']);
-  await expect(tagline.locator('.sr-only')).toHaveText('Shape & Fold, Your Own Future');
-  expect(await tagline.locator('span[aria-hidden]').first().evaluate(e=>getComputedStyle(e).textTransform)).toBe('uppercase');
+  // Session I: the owner's page marks replace the wordmark on the five life pages; the tagline lives in the Today swan's artwork.
+  const destination=page.locator('.sidebar-destination');
+  await expect(destination.locator('.sidebar-mark')).toHaveAttribute('data-mark','today-swan');
+  await expect(destination.locator('.sidebar-tagline')).toHaveCount(0);
+  await expect(page.locator('.app-sidebar')).not.toContainText(/Shape & Fold|Your Own Future/i);
   await expect(page.locator('.app-sidebar')).not.toContainText('THE GOAL LAYER');
  });
  test('Habits and Health load without hydration warnings',async({page})=>{
@@ -96,7 +97,7 @@ test.describe('Part 18.6: quick counters as bars',()=>{
 });
 
 test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
- const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+ const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
  test('every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility',async({page})=>{
   await showcase(page);
   for(const path of PAGES){
@@ -112,13 +113,13 @@ test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
  });
  test('reduced motion and Motion Off show the final mid-to-right state at once',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await showcase(page);
-  await page.goto('/app/goals/positions');const flow=page.locator('main h1 .nebula-flow');await expect(flow).toHaveText('Your ZIG / Positions');
+  await page.goto('/app/staking');const flow=page.locator('main h1 .nebula-flow');await expect(flow).toHaveText('Staking');
   expect(await flow.evaluate(e=>[e.dataset.entrance??null,getComputedStyle(e).animationName,getComputedStyle(e).backgroundImage.split('linear-gradient').length-1])).toEqual([null,'none',1]);
  });
 });
 
 test.describe('Part 18.4: one place for the layout lock',()=>{
- const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity'];
+ const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity'];
  const where=(page:Page)=>page.evaluate(()=>{const lock=document.querySelector<HTMLElement>('.layout-lock')!,b=lock.getBoundingClientRect(),row=lock.closest('.status-row'),balance=row?.querySelector('.wallet-balance')?.getBoundingClientRect(),main=document.querySelector('main')!.getBoundingClientRect(),workspace=document.querySelector('.workspace')!.getBoundingClientRect();
   return {inRow:!!row,afterBalance:balance?b.left>=balance.right-1&&b.top<balance.bottom&&b.bottom>balance.top:null,right:Math.round(workspace.right-b.right),padding:Math.round(parseFloat(getComputedStyle(document.querySelector('.workspace')!).paddingRight)),size:[Math.round(b.width),Math.round(b.height)],firstView:b.top>=0&&b.bottom<=innerHeight,clearOfMain:b.bottom<=main.top-4,count:document.querySelectorAll('.layout-lock').length};});
  test('the lock sits right after the demo balance, in the same spot on every page',async({page,isMobile})=>{
@@ -278,7 +279,7 @@ test.describe('Part 3: liquid glass',()=>{
  test('list rows get a rounded glass pill that never moves or crowds their content',async({page,isMobile})=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);
-  for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/goals/positions','.platform-position-row'],['/app','.habit-today-list>li']] as const){
+  for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/staking','.platform-position-row'],['/app','.habit-today-list>li']] as const){
    await page.goto(path);const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
    const before=await row.evaluate(e=>{const o=e.getBoundingClientRect();return [...e.querySelectorAll('*')].slice(0,6).map(c=>{const r=c.getBoundingClientRect();return [Math.round((r.left-o.left)*10),Math.round((r.top-o.top)*10),Math.round(r.width*10)];});});
    const r=(await row.boundingBox())!;await page.mouse.move(r.x+r.width*.3,r.y+r.height/2);await page.mouse.move(r.x+r.width*.35,r.y+r.height/2,{steps:3});
@@ -482,7 +483,7 @@ test.describe('Part 8: bottom sections',()=>{
    ['/app/health','health:body','health:trends','A dash means no entry, not zero.'],
    ['/app/wealth','wealth:body','wealth:allocation','Valuation coverage is incomplete'],
    ['/app/markets','markets:body','markets:sources','no new price appears'],
-   ['/app/goals/positions','positions:main','positions:sources','Public ZIG positions'],
+   ['/app/staking','positions:main','positions:sources','Public ZIG positions'],
   ] as const){
    await page.goto(path);
    const items=page.locator(`[data-layout-region="${region}"]`);await expect(items.last()).toHaveAttribute('data-layout-item',id);
