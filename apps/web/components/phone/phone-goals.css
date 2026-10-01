@@ -10,22 +10,20 @@
   :root .goals-page .goal-view-filters button { flex: none; min-height: 44px; padding-inline: 14px; }
   :root .goals-page .goals-count { font-size: 15px; }
 
-  /* Goal cards: about a third of a screen; the art becomes a slim band, the ring sits beside the value, and the whole
-     card opens the Goal (the ⋯ menu stays above that tap area). */
+  /* Goal cards: about a third of a screen; the art becomes a slim band and the ring sits beside the value. The title and
+     "Open Goal" stay the links (a whole-card link would turn every touch on the card into a navigation). */
   :root .unified-goal-card:not(.compact-goal) { position: relative; padding: 0 16px 14px; }
   :root .unified-goal-card:not(.compact-goal) .goal-card-art { height: 64px; margin: 0 -16px 12px; }
   :root .unified-goal-card .goal-card-art > span { display: none; }
   :root .unified-goal-card:not(.compact-goal) .card-top { min-height: 0; margin-bottom: 6px; }
-  :root .unified-goal-card:not(.compact-goal) .card-top .pin-to-today { position: relative; z-index: 2; }
   :root .unified-goal-card:not(.compact-goal) h2 { margin: 0 0 4px; font-size: 22px; }
-  :root .unified-goal-card:not(.compact-goal) h2 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
   :root .unified-goal-card:not(.compact-goal) .goal-value { min-height: 0; margin-bottom: 10px; font-size: 26px; }
   :root .unified-goal-card:not(.compact-goal) .goal-progress { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 8px; }
   :root .unified-goal-card:not(.compact-goal) .goal-progress-ring svg { width: 72px; height: 72px; }
   :root .unified-goal-card:not(.compact-goal) .goal-mix-legend { margin: 4px 0; }
   :root .unified-goal-card:not(.compact-goal) .card-bottom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-bottom: 8px; }
   :root .unified-goal-card:not(.compact-goal) .card-footer { padding-top: 8px; }
-  :root .unified-goal-card:not(.compact-goal) .card-footer .text-link { position: relative; z-index: 2; }
+  :root .unified-goal-card:not(.compact-goal) .card-footer .text-link { display: inline-flex; align-items: center; min-height: 44px; }
   :root .goals-page .goal-grid { gap: 12px; }
 
   /* Goal detail: facts in a 3-up row, metrics two across, modules as tidy 56 px rows. */
