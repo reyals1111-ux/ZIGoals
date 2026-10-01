@@ -103,11 +103,12 @@ try {
   const alphaCaptureCount=captures.length;
   await stage('Live landing CTA, safety copy, social links and responsiveness', async()=>{
     await page.goto(apex); await page.waitForLoadState('networkidle');
-    const cta=page.getByRole('link',{name:'Explore the Alpha →',exact:true});
+    const cta=page.getByRole('link',{name:'Launch Alpha',exact:false}).first();
     assert.equal(await cta.getAttribute('href'),alpha+'/app'); assert.equal(await cta.getAttribute('target'),'_blank');
     assert.match(await cta.getAttribute('rel'),/noopener/); assert.match(await cta.getAttribute('rel'),/noreferrer/);
-    await expect(page.getByText('Public Alpha · Simulation + wallet connection only.',{exact:false})).toBeVisible();
-    await expect(page.getByText('Goal Manager is not deployed. No blockchain transaction will be sent.',{exact:false})).toBeVisible();
+    await expect(page.locator('.alpha-status')).toHaveText('Public Alpha / Financial execution disabled');
+    await expect(page.getByText('Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed.',{exact:false})).toBeVisible();
+    await expect(page.getByText('Independent project · Not affiliated with ZIGChain · Financial execution disabled',{exact:false})).toBeVisible();
     report.landingLinks=await page.locator('a').evaluateAll(nodes=>nodes.map(a=>({text:a.textContent.trim(),href:a.href,target:a.target,rel:a.rel})));
     for(const url of ['https://x.com/ZIGoals','https://x.com/ZIGFluencer','https://github.com/reyals1111-ux/ZIGoals']) assert(report.landingLinks.some(a=>a.href===url));
     await layout('landing'); await page.screenshot({path:output+'/landing.png',fullPage:true});
