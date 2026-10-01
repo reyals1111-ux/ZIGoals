@@ -20,7 +20,10 @@ export async function encryptBackup(input:unknown){
 }
 export async function decryptBackup(raw:string,recovery:string):Promise<z.infer<typeof dataSchema>>{
  if(new TextEncoder().encode(raw).length>48_000_000)throw Error('Encrypted backup exceeds 48 MB.');
- const file=backupSchema.parse(JSON.parse(raw)),key=await unlockVault(file.manifest,recovery),inventory=inventorySchema.parse(await openRecord(key,context(file.manifest.vault,file.index.id),file.index.envelope));
+ let file:z.infer<typeof backupSchema>;
+ // Settings shows this message as is: a truncated download or another file gets a plain reason.
+ try{file=backupSchema.parse(JSON.parse(raw));}catch{throw Error('This file is not a complete ZIGoals encrypted backup, or a newer app version made it. Existing data was not changed.');}
+ const key=await unlockVault(file.manifest,recovery),inventory=inventorySchema.parse(await openRecord(key,context(file.manifest.vault,file.index.id),file.index.envelope));
  if((file.version===2)!==inventory.parts.some(p=>p.domain==='simulation'))throw Error('Backup format version does not match its sections.');
  if(new Set(inventory.parts.map(p=>p.id)).size!==inventory.parts.length||new Set(file.chunks.map(c=>c.id)).size!==file.chunks.length||file.chunks.length!==inventory.parts.length)throw Error('Backup inventory is incomplete.');
  const data:Record<string,string>={};for(const {id,domain} of inventory.parts){const chunk=file.chunks.find(c=>c.id===id&&c.domain===domain);if(!chunk)throw Error('Backup part is missing.');const value=await openRecord(key,context(file.manifest.vault,id,domain),chunk.envelope);if(typeof value!=='string'||value.length>48000)throw Error('Invalid backup part.');data[domain]=(data[domain]??'')+value;}

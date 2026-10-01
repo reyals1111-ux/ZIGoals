@@ -253,12 +253,14 @@ export function habitDay(habit: Habit, date: string, today = localDate()) {
 }
 
 type LogOptions = { note?: string; mood?: Habit["entries"][number]["mood"]; mode?: "set" | "add" };
+// Nine decimals keep timer milliseconds while dropping binary noise (0.7 + 0.1 must be 0.8, not 0.7999999999999999).
+const addValues = (a: number, b: number) => Number((a + b).toFixed(9));
 export function logHabitValue(data: HabitData, id: string, rawDate: string, rawValue: number, options: LogOptions = {}, now = new Date()): HabitData {
   const date = dateSchema.parse(rawDate); const value = valueSchema.parse(rawValue); const today = habitCalendarDay(data,now);
   return replaceHabit(data, id, (habit) => {
     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
     if (rule!.measurement.kind === "count" && !Number.isInteger(value)) throw new Error("Count values must be whole numbers.");
-    const previous = habit.entries.find((item) => item.date === date); const count = valueSchema.parse(options.mode === "add" ? (previous?.count ?? 0) + value : value);
+    const previous = habit.entries.find((item) => item.date === date); const count = valueSchema.parse(options.mode === "add" ? addValues(previous?.count ?? 0, value) : value);
     const entry = entrySchema.parse({ date, count, disposition: "logged", note: options.note ?? previous?.note ?? "", mood: options.mood ?? previous?.mood, updatedAt: now.toISOString() });
     return { ...habit, updatedAt: now.toISOString(), entries: [...habit.entries.filter((item) => item.date !== date), entry].sort((a, b) => a.date.localeCompare(b.date)) };
   });

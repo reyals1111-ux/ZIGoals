@@ -143,9 +143,18 @@ export function createEmptyHealth(): HealthData {
 }
 export function newHealthId(): string { return `health_${crypto.randomUUID()}`; }
 
+/** A decimal comma ("72,5") is read as a decimal point only when it cannot be a thousands separator. */
+function decimalComma(value: string, scale: 1 | 1000): string {
+  if (!value.includes(",") || scale === 1) return value;
+  const match = /^(\d+),(\d{1,3})$/.exec(value);
+  if (!match) return value;
+  const whole = match[1]!, fraction = match[2]!;
+  if (fraction.length === 3 && !/^0+$/.test(whole)) throw new Error(`“${value}” could mean ${whole}${fraction} or ${whole}.${fraction}. Type it without a thousands separator.`);
+  return `${whole}.${fraction}`;
+}
 /** Parse decimal form values without exponent syntax, implicit defaults, or lost precision. */
 export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number): number {
-  const value = raw.trim();
+  const value = decimalComma(raw.trim(), scale);
   const pattern = scale === 1 ? /^\d+$/ : /^\d+(?:\.\d{1,3})?$/;
   if (!pattern.test(value) || value.length > 18) throw new Error("Enter a number within the displayed range.");
   const [whole = "0", fraction = ""] = value.split(".");
