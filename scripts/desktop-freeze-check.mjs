@@ -76,6 +76,9 @@ export function snapshotDiff(a, b, limit = 8) {
 function playwright() { return createRequire(new URL("../apps/web/package.json", import.meta.url))("@playwright/test"); }
 
 async function settle(page) {
+  // The pointer rests where the last click happened (Load Showcase Demo); whatever a later page puts under it would
+  // show its hover state or the glass light, depending on timing. Park it in the corner before every capture.
+  await page.mouse.move(0, 0);
   await page.locator("main h1").first().waitFor({ state: "visible", timeout: 30000 });
   await page.waitForFunction(() => !document.querySelector('.workspace[aria-busy="true"]'), null, { timeout: 30000 });
   // Scroll through once so lazy images and in-view effects have run, then return to the top.
