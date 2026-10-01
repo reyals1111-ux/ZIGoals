@@ -3,6 +3,7 @@ import type {LayoutAttrs} from '../layout-edit';
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import {formatUnits} from '@zigoals/chain-config';
 import {parseAmountInput} from '../../lib/amount-input';
+import {visibleName} from '../../lib/visible-text';
 import type {Platform} from '../../lib/positions';
 import {financialEvidenceBasis,activeFinancialEvents,appendFinancialEvidence,evaluateTwr,makeManualFx,recordPerformanceReview,voidFinancialEvent,type EvidenceMoney,type FinancialEvent,type ManualFx} from '../../lib/financial-events';
 import './financial-evidence.css';
@@ -25,7 +26,7 @@ export function FinancialEvidence({data,update,...layout}:LayoutAttrs&{data:Plat
  function confirmPart(part:'flows'|'valuations'|'income',checked:boolean){if(!checked){resetReview();return;}if(!flowsComplete&&!valuationsComplete&&!incomeComplete)setReviewedBasis(currentBasis);if(part==='flows')setFlowsComplete(true);if(part==='valuations')setValuationsComplete(true);if(part==='income')setIncomeComplete(true);}
  function resetReview(){setReviewedBasis(null);setFlowsComplete(false);setValuationsComplete(false);setIncomeComplete(false);}
  function choose(id:string){setSelected(id);setStart('');setEnd('');setCorrection('');setFxId('');setPage(0);resetReview();}
- async function create(e:FormEvent<HTMLFormElement>){e.preventDefault();const form=new FormData(e.currentTarget),id=crypto.randomUUID(),createdAt=new Date().toISOString();await run(async()=>{await update(s=>appendFinancialEvidence(s,{portfolio:{id,name:String(form.get('name')),currency:String(form.get('currency')),createdAt}}));choose(id);},'Evidence portfolio created.');}
+ async function create(e:FormEvent<HTMLFormElement>){e.preventDefault();const form=new FormData(e.currentTarget),id=crypto.randomUUID(),createdAt=new Date().toISOString();await run(async()=>{await update(s=>appendFinancialEvidence(s,{portfolio:{id,name:visibleName(String(form.get('name')),'Name the portfolio with at least one visible character.'),currency:String(form.get('currency')),createdAt}}));choose(id);},'Evidence portfolio created.');}
  async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();if(!portfolio)return;const form=new FormData(e.currentTarget),recordedAt=new Date().toISOString(),id=crypto.randomUUID();await run(async()=>{
   const occurredAt=instant(form.get('time')),amount={value:parseAmountInput(eventAmount,2).toString(),decimals:2,currency:portfolio.currency};
   const common={id,portfolioId:portfolio.id,occurredAt,recordedAt,source:'MANUAL' as const,sourceLabel:String(form.get('source')),note:String(form.get('note')??''),...(form.get('position')?{relatedPositionId:String(form.get('position'))}:{}),...(form.get('changeDirection')?{changeDirection:String(form.get('changeDirection')) as 'IN'|'OUT'}:{}),...(form.get('transferGroup')?{transferGroupId:String(form.get('transferGroup'))}:{}),...(form.get('contribution')?{relatedContributionId:String(form.get('contribution'))}:{}),...(form.get('revision')?{relatedPlanRevisionId:String(form.get('revision'))}:{})};

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import {parseAmountInput} from "../../lib/amount-input";
+import { hasVisibleText } from "../../lib/visible-text";
 import { NebulaFlow } from "../nebula-flow";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
@@ -89,6 +90,7 @@ export function OnboardingFlow() {
     try {
       if (!category) throw Error("Choose what your goal is for.");
       if (!name.trim()) throw Error("Give your Goal a name.");
+      if (!hasVisibleText(name)) throw Error("Give your Goal a name with at least one visible character.");
       if (date && date < localDate()) throw Error("Choose today or a future target date.");
       const units = parseAmountInput(target, 2);
       if (units <= 0n) throw Error("Enter a positive target.");

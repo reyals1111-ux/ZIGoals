@@ -8,6 +8,7 @@ import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {amountInputPreview,parseAmountInput} from '../lib/amount-input';
 import {normalizeDecimalInput} from '../lib/decimal-input';
+import {hasVisibleText} from '../lib/visible-text';
 import {CATEGORIES,validateMetadata,type GoalMetadata} from '@zigoals/shared-types';
 import './goal-creator.css';
 import {CADENCES,cadenceLabel} from './platform/cadence';
@@ -83,6 +84,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  const typed=(raw:string,decimals:number)=>{const read=amountInputPreview(raw,decimals);return 'text' in read?read.text:`Unreadable amount · ${read.error}`;};
  function validatePurpose(){
   if(!name.trim())throw Error('Give your Goal a name.');
+  if(!hasVisibleText(name))throw Error('Give your Goal a name with at least one visible character.');
   if(date&&date<localDate())throw Error('Choose today or a future target date.');
   if(isProject){if(!milestones.trim())throw Error('Add at least one milestone.');}else if(BigInt(parseAmountInput(target,precision))<=0n)throw Error('Enter a positive target.');
  }

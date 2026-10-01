@@ -9,6 +9,7 @@
  * counting independently create identical definitions.
  */
 import {z} from 'zod';
+import { hasVisibleText } from './visible-text';
 
 export const EXERCISE_ICONS = ['pushup', 'pullup', 'squat', 'run', 'jump', 'stretch', 'core', 'bike'] as const;
 export type ExerciseIcon = typeof EXERCISE_ICONS[number];
@@ -55,7 +56,7 @@ export function changeCount<T extends WithExercise>(h: T, id: string, day: strin
   const days = existing ? e.days.map(d => d === existing ? {...d, count} : d) : [...e.days, {id: dayId(id, day), counterId: id, date: day, count}];
   return put(h, {...e, days});
 }
-const cleanName = (value: string) => { const name = value.trim().replace(/\s+/g, ' '); if (!name || name.length > 40) throw Error('Name the counter in 1 to 40 characters.'); return name; };
+const cleanName = (value: string) => { const name = value.trim().replace(/\s+/g, ' '); if (!name || name.length > 40) throw Error('Name the counter in 1 to 40 characters.'); if (!hasVisibleText(name)) throw Error('Name the counter with at least one visible character.'); return name; };
 export function addCounter<T extends WithExercise>(h: T, name: string, icon: ExerciseIcon, id: string): T {
   const e = exerciseData(h);
   if (e.counters.length >= MAX_COUNTERS) throw Error(`You can keep up to ${MAX_COUNTERS} counters. Delete one to add another.`);

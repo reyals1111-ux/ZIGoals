@@ -24,6 +24,7 @@ import {HabitCompletion} from '../habits/habit-card';
 import {useMarketQuotes} from '../platform/use-market-quotes';
 import {useEvidenceNow} from '../platform/use-evidence-now';
 import {useLocalToday} from '../use-local-today';
+import {isInvisibleName} from '../../lib/visible-text';
 import {ProgressRing} from '../platform/financial-ui';
 import {TodayIntelligence} from '../platform/today-intelligence';
 import {StakingCard} from '../platform/staking-card';
@@ -55,7 +56,7 @@ function WidgetEditor({initial,sources,ready,onSave,onRemove,onClose}:{initial?:
  const requiresEntity=widgetNeedsSource(kind);
  const draft:DashboardWidget={id:id.current,kind,metric,...(requiresEntity||kind==='ecosystem'&&entity?{entity}:{}),title,size,hidden:initial?.hidden??false,revision:initial?.revision??1};
  const preview=widgetMetric(draft,sources);
- async function save(){setBusy(true);setError('');try{await onSave(draft,initial?.revision);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this widget.');}finally{setBusy(false);}}
+ async function save(){if(isInvisibleName(title)){setError('Give the card title at least one visible character, or leave it empty.');return;}setBusy(true);setError('');try{await onSave(draft,initial?.revision);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this widget.');}finally{setBusy(false);}}
  return <Modal title={initial?'Edit widget':'Add a widget'} onClose={onClose}><form onSubmit={e=>{e.preventDefault();void save();}}><WidgetLibrary kind={kind} metric={metric} entity={entity} title={title} size={size} initial={initial} sources={sources} ready={ready} onKind={next=>{setKind(next);setMetric(WIDGET_CATALOG[next].metrics[0]);setEntity('');}} onMetric={setMetric} onEntity={setEntity} onTitle={setTitle} onSize={setSize}/><section className="dashboard-widget-preview" aria-label="Widget preview" data-size={size} data-domain={WIDGET_CATALOG[kind].domain}><p className="eyebrow">PREVIEW · YOUR CURRENT RECORDS · {size==='wide'?'WIDE':'COMPACT'} CARD</p><h3>{preview.title}</h3><div className="dashboard-widget-preview-value">{preview.percent!==undefined&&<ProgressRing percent={preview.percent} complete={preview.complete} size={64} identity={`preview-${id.current}`} label={`${preview.title} progress`}/>}<strong>{preview.value}</strong></div><p>{preview.detail}</p>{preview.facts&&<dl className="dashboard-metric-facts">{preview.facts.map(f=><div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>}{preview.warning&&<p>{preview.warning}</p>}</section>{error&&<p role="alert">{error}</p>}<div className="dashboard-actions">{initial&&onRemove&&<button type="button" className="secondary dashboard-remove" disabled={busy} onClick={()=>{setBusy(true);void onRemove().then(onClose).catch(e=>{setError(e instanceof Error?e.message:'Could not remove this widget.');setBusy(false);});}}>Remove widget</button>}<button type="button" className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={busy||requiresEntity&&!entity}>{busy?'Saving…':'Save widget'}</button></div></form></Modal>;
 }
 export function TodayDashboard(){

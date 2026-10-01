@@ -3,6 +3,7 @@ import { useId, useState, type FormEvent } from "react";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type HabitInput, type HabitRule } from "../../lib/habits";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
+import { INVISIBLE_NAME, isInvisibleName } from "../../lib/visible-text";
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };
 type MeasurementKind = HabitRule["measurement"]["kind"];
@@ -82,6 +83,7 @@ export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget); const goal = String(form.get("goal"));
     const goalLink = goal === "keep" ? savedLink : goal ? goals.find((option) => JSON.stringify(option.link) === goal)?.link : undefined;
+    if (isInvisibleName(title)) { setError(`Habit title: ${INVISIBLE_NAME}`); return; }
     if (endKind === "goal" && !goalLink) { setError("Choose a linked Goal before using the Goal target end condition."); return; }
     // Typed numbers follow Health's decimal-comma rule; each refusal names its field.
     let targetValue = 0, every = 2, times = 1, count = 30;

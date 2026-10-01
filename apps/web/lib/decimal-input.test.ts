@@ -9,7 +9,7 @@ describe("normalizeDecimalInput: Health's unambiguous-comma rule, shared", () =>
     expect(normalizeDecimalInput("1200,50")).toBe("1200.50");
     expect(normalizeDecimalInput("0,00012345")).toBe("0.00012345");
     expect(normalizeDecimalInput(" 1000 ")).toBe("1000");
-    expect(normalizeDecimalInput(" 1,5\t")).toBe("1.5");
+    expect(normalizeDecimalInput("\u00a01,5\t")).toBe("1.5");
   });
   it("refuses a comma that could be a thousands separator, with a reason", () => {
     expect(() => normalizeDecimalInput("1,234")).toThrow("“1,234” could mean 1234 or 1.234. Type it without a thousands separator.");
