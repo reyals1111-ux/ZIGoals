@@ -7,11 +7,15 @@
 // Behind an HTTPS proxy, run with NODE_USE_ENV_PROXY=1 so fetch uses it.
 import {execFileSync} from 'node:child_process';
 import {existsSync,readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const REPO='reyals1111-ux/ZIGoals';
 const run=(cmd,args)=>{try{return execFileSync(cmd,args,{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}catch{return null;}};
-const hasGh=run('gh',['auth','status'])!==null;
+// Checked when the snapshot runs, not when a test imports recordedLiveWorker.
+let hasGh;
 async function api(path){
+ hasGh??=run('gh',['auth','status'])!==null;
  if(hasGh){const out=run('gh',['api',path]);if(out!==null)return JSON.parse(out);}
  const response=await fetch(`https://api.github.com/${path}`,{headers:{accept:'application/vnd.github+json','user-agent':'zigoals-status-snapshot'}});
  if(!response.ok)throw Error(`GitHub API ${path}: HTTP ${response.status}`);
@@ -19,11 +23,22 @@ async function api(path){
 }
 const line=(label,value)=>console.log(`${label.padEnd(22)} ${value}`);
 
+/** The live Alpha Worker version recorded by hand in docs/STATUS.md: the first "live version" under the current
+ * "## Release identity". Deploy entries' wording changed over time (`zigoals-alpha`: vs `zigoals-alpha`,), and the
+ * oldest entries sit lowest in the file, so a file-wide pattern found a stale version. */
+export function recordedLiveWorker(status){
+ const start=status.indexOf('\n## Release identity\n');if(start<0)return null;
+ const rest=status.slice(start+1),end=rest.slice(1).search(/\n#{1,2} /),section=end<0?rest:rest.slice(0,end+1);
+ return section.match(/live version `([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})`/)?.[1]??null;
+}
+
+async function main(){
 console.log(`ZIGoals status snapshot (${new Date().toISOString()})`);
 run('git',['fetch','--quiet','origin','main']);
 const main=run('git',['rev-parse','origin/main'])??run('git',['rev-parse','main']);
 line('main',main?`${main} ${run('git',['log','-1','--format=%s (%cs)',main])}`:'unavailable');
 line('local HEAD',`${run('git',['rev-parse','--abbrev-ref','HEAD'])} ${run('git',['rev-parse','--short','HEAD'])}${run('git',['status','--porcelain'])?' (uncommitted changes)':''}`);
+hasGh??=run('gh',['auth','status'])!==null;
 line('GitHub access',hasGh?'gh':'public REST API (no credentials)');
 
 try{
@@ -51,6 +66,8 @@ try{
 
 // The live Alpha version is recorded by hand in docs/STATUS.md from the deployment artifact; this reads that record, it does not query Cloudflare.
 const status=existsSync('docs/STATUS.md')?readFileSync('docs/STATUS.md','utf8'):'';
-const recorded=status.match(/Worker `zigoals-alpha`: new version `([0-9a-f-]{36})`/)??status.match(/Worker version `([0-9a-f-]{36})`/);
+const recorded=recordedLiveWorker(status);
 console.log('\nPublic Alpha');
-line('recorded live Worker',recorded?`${recorded[1]} (from docs/STATUS.md, not queried live)`:'not found in docs/STATUS.md');
+line('recorded live Worker',recorded?`${recorded} (from docs/STATUS.md "Release identity", not queried live)`:'not found in docs/STATUS.md');
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await main();

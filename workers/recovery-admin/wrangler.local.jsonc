@@ -1,0 +1,24 @@
+// Local-only owner recovery administration (ADR-007 option A). Never deploy this Worker.
+// scripts/run11/recovery-admin.mjs runs it with `wrangler dev` on 127.0.0.1 for one command.
+// This template is deliberately unconfigured: the owner's private copy
+// (wrangler.acctest.owner.jsonc, from make-private-configs.mjs --recovery-admin) names the
+// private lifecycle Worker. activation-check.mjs refuses routes, workers.dev, preview URLs,
+// triggers and any binding other than ADMIN, and refuses this entrypoint in every other config.
+{
+  "name": "zigoals-recovery-admin-local-only",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-13",
+  "workers_dev": false,
+  "preview_urls": false,
+  "services": [
+    {
+      "binding": "ADMIN",
+      "service": "zigoals-lifecycle-local",
+      "entrypoint": "LifecycleRecoveryAdmin",
+      "remote": true
+    }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}

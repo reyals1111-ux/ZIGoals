@@ -3,6 +3,8 @@ import {withStorageLock} from '../storage';
 import {storageLockKey} from '../showcase-storage';
 import {parsePrivateData} from '../private-storage';
 import {VaultDatabase} from './database';
+import {PrivateStorageError,asStorageError} from './storage-errors';
+import {pruneRecoveryCopies} from './recovery-copies';
 export const localDatabase=new VaultDatabase();
 const marker=JSON.stringify({schemaVersion:100,kind:'zigoals-indexeddb-pointer',database:'zigoals-private-vault-v1',protocol:1});
 export function isDurableMarker(raw:string|null){return raw===marker;}
@@ -33,24 +35,34 @@ export async function readDurableStore<T>(storage:Storage,key:string,schema:z.Zo
  if(!isDurableMarker(storage.getItem(key)))throw Error('Storage selection changed. Reload before continuing.');
  const value=await db.read(space,key);if(!value)throw Error('Private database missing. Restore from your private backup; do not reset.');fence(storage,key);return schema.parse(value.data);
 }
+const conflict=()=>new PrivateStorageError('CONFLICT',{message:'Storage changed in another tab, so nothing was changed. Reload and review before saving.'});
 export async function updateDurableStore<T>(storage:Storage,key:string,schema:z.ZodType<T>,updater:(value:T)=>T,db=localDatabase):Promise<T>{
  const space=durableSpace(storage,key);
  return withStorageLock(storageLockKey(storage,key),async()=>{
-  if(!isDurableMarker(storage.getItem(key)))throw Error('Storage changed. Reload.');
+  if(!isDurableMarker(storage.getItem(key)))throw conflict();
   const previous=await db.read(space,key);if(!previous)throw Error('Private database missing.');
   const latest=schema.parse(previous.data),next=updater(latest);if(next===latest)return latest;
-  const validated=schema.parse(next);fence(storage,key);await db.commit(space,key,previous.revision,validated);return validated;
+  const validated=schema.parse(next);fence(storage,key);
+  try{await db.commit(space,key,previous.revision,validated);}catch(error){throw asStorageError(error,{durable:true});}
+  return validated;
  });
 }
 export async function restoreDurableStore<T>(storage:Storage,key:string,schema:z.ZodType<T>,raw:string,db=localDatabase):Promise<T>{
- if(new TextEncoder().encode(raw).length>32_000_000)throw Error('Backup exceeds 32 MB.');
+ if(new TextEncoder().encode(raw).length>32_000_000)throw new PrivateStorageError('MODULE_LIMIT',{durable:true});
  const data=schema.parse(JSON.parse(raw));
  const space=durableSpace(storage,key);
  return withStorageLock(storageLockKey(storage,key),async()=>{
-  if(!isDurableMarker(storage.getItem(key)))throw Error('Storage changed. Reload.');
+  if(!isDurableMarker(storage.getItem(key)))throw conflict();
   const previous=await db.read(space,key);if(!previous)throw Error('Private database missing.');
-  if(Number(previous.data.schemaVersion)>Number((data as {schemaVersion?:number}).schemaVersion))throw Error('Cannot replace a newer schema.');
-  fence(storage,key);await db.commit(space,key,previous.revision,data,crypto.randomUUID(),JSON.stringify(previous.data));return data;
+  if(Number(previous.data.schemaVersion)>Number((data as {schemaVersion?:number}).schemaVersion))throw new PrivateStorageError('NEWER_VERSION');
+  // Some refinements throw on malformed input instead of reporting an issue: that store is not readable either.
+  const operation=crypto.randomUUID();let readable=false;try{readable=schema.safeParse(previous.data).success;}catch{/* keep every copy */}
+  fence(storage,key);
+  try{await db.commit(space,key,previous.revision,data,operation,JSON.stringify(previous.data));}catch(error){throw asStorageError(error,{durable:true});}
+  // QA-02, after the confirmed commit and only over a readable, valid store: keep this restore's copy alone, here and among
+  // the module's browser-storage copies from before its move to transactional storage (all older). Best effort.
+  if(readable){await db.pruneRecovery(space,key,operation).catch(()=>{});pruneRecoveryCopies(storage,key,'');}
+  return data;
  });
 }
 
