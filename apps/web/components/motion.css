@@ -105,18 +105,25 @@ main [data-arrive=card] { animation:arrive-card 560ms var(--motion-glide) calc(v
 :root[data-app-motion=off] .app-nav a[data-arrive]::after { content:none; }
 @media(forced-colors:active) { :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }.app-nav a[data-arrive]::after { content:none; } }
 
-/* Logo intro (logo-intro.tsx): screen blend makes the clip's black vanish into the sidebar; the static logo hides only while the clip actually plays and returns in a crossfade. */
-@media(min-width:901px) { .app-sidebar .brand { position:relative; } }
-.logo-intro { position:absolute;max-width:none;pointer-events:none;mix-blend-mode:screen;opacity:1; }
+/* Logo fold intro (logo-intro.tsx, Session I): screen blend makes the clip's near-black vanish into the dark UI; the static Z
+   hides only while the clip actually plays and returns in a 240 ms crossfade. The frame clips to the sidebar's width and
+   never forms a stacking context of its own, so the blend still sees the sidebar behind it. The clip starts slightly
+   smaller (the folded figures are wider than the Z) and eases to its exact size once the bull is a Z again. */
+.app-sidebar .brand { position:relative; }
+.logo-intro-frame { position:absolute;overflow:hidden;pointer-events:none; }
+.logo-intro { position:absolute;max-width:none;pointer-events:none;mix-blend-mode:screen;opacity:1;transform-origin:var(--intro-origin,50% 50%);transform:scale(var(--intro-start,1)); }
+.logo-intro.logo-intro-phone { position:fixed;z-index:41; }
+.logo-intro[data-settle] { transform:none;transition:transform 500ms var(--motion-glide); }
 .logo-intro[data-state=waiting] { opacity:0; }
-.logo-intro[data-state=ending] { opacity:0;transition:opacity 500ms ease; }
+.logo-intro[data-state=ending] { opacity:0;transition:opacity 240ms ease,transform 500ms var(--motion-glide); }
 .brand-logo[data-intro=playing] { opacity:0; }
-.brand-logo[data-intro=ending] { opacity:1;transition:opacity 500ms ease; }
-@media(prefers-reduced-motion:reduce) { .logo-intro { display:none; }.brand-logo[data-intro] { opacity:1; } }
-:root[data-app-motion=off] .logo-intro { display:none; }
+.brand-logo[data-intro=ending] { opacity:1;transition:opacity 240ms ease; }
+@media(prefers-reduced-motion:reduce) { :is(.logo-intro,.logo-intro-frame) { display:none; }.brand-logo[data-intro] { opacity:1; } }
+:root[data-app-motion=off] :is(.logo-intro,.logo-intro-frame) { display:none; }
 :root[data-app-motion=off] .brand-logo[data-intro] { opacity:1; }
 /* Keyboard focus on the logo link: the clip steps aside for the static logo so it never covers the focus ring. */
-.brand:focus-visible .logo-intro { display:none; }
-.brand:focus-visible .brand-logo[data-intro] { opacity:1; }
+.brand:focus-visible :is(.logo-intro,.logo-intro-frame) { display:none; }
+:root:has(.phone-home:focus-visible) .logo-intro-phone { display:none; }
+:is(.brand,.phone-home):focus-visible .brand-logo[data-intro] { opacity:1; }
 /* The route focus fallback (shell.tsx) focuses the main landmark; a ring around the whole page region adds nothing. */
 #main:focus { outline:none; }

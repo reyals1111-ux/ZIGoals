@@ -54,7 +54,7 @@ test('reduced motion: the page settle animation is off by its own rule',async({p
 });
 
 test('keyboard focus on the logo link is never covered by the intro clip',async({page,isMobile})=>{
- test.skip(isMobile,'The logo intro is desktop only.');
+ test.skip(isMobile,'Phones have no sidebar logo; tests/logo-fold.spec.ts covers focus on the top bar Z.');
  await page.goto('/app/goals');
  // Stand in for the clip while it plays (this Chromium build may not decode it), then focus the link by keyboard.
  await page.evaluate(()=>{const brand=document.querySelector('.app-sidebar .brand')!,clip=document.createElement('video');clip.className='logo-intro';clip.dataset.state='playing';clip.setAttribute('aria-hidden','true');brand.append(clip);brand.querySelector('.brand-logo')?.setAttribute('data-intro','playing');});

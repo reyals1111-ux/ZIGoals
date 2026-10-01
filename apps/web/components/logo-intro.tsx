@@ -1,51 +1,110 @@
 'use client';
-import {useEffect,useRef,useState,type CSSProperties} from 'react';
-import {entranceAllowed} from './use-entrance';
+import {useEffect} from 'react';
+import {MOTION_PREFERENCE_KEY} from './use-entrance';
+import {CROSSFADE_MS,LOGO_INTRO_KEY,READY_MS,SETTLE_AT_S,decideLogoIntro,foldPlacement,type AutoplayPolicy,type FoldSource,type IntroEnvironment} from './logo-intro-decision';
 
-export const LOGO_INTRO_KEY='zigoals:logo-intro:v1';
-const READY_MS=1500,CROSSFADE_MS=500,RATE=1.5;
-// Where the Z sits in each image, in its own pixels: the clip's first frame (400×382) and the static logo (422×480).
-const CLIP={w:400,h:382,z:{x:75,y:59,w:252,h:284}},LOGO={w:422,h:480,z:{x:11,y:16,w:399,h:448}};
+export {LOGO_INTRO_KEY};
+type Host='sidebar'|'phone';
+const LOGO:Record<Host,string>={sidebar:'.app-sidebar .brand>.brand-logo',phone:'.phone-home>.brand-logo'};
+/** One clip per page load: the first visible host claims it (the sidebar Z on desktop and tablets, the top bar Z on phones). */
+let claimed=false;
 
-/** Size and place the clip so its Z covers the static logo's Z exactly; everything else overflows harmlessly (no layout role). */
-function placement(logo:HTMLImageElement):CSSProperties{
- const sx=logo.offsetWidth/LOGO.w,sy=logo.offsetHeight/LOGO.h;
- const k=(LOGO.z.w*sx/CLIP.z.w+LOGO.z.h*sy/CLIP.z.h)/2;
- return {left:logo.offsetLeft+LOGO.z.x*sx-CLIP.z.x*k,top:logo.offsetTop+LOGO.z.y*sy-CLIP.z.y*k,width:CLIP.w*k,height:CLIP.h*k};
+function environment(logo:HTMLElement|null):IntroEnvironment{
+ const nav=navigator as Navigator&{connection?:{saveData?:boolean};getAutoplayPolicy?:(type:'mediaelement')=>string};
+ let session:IntroEnvironment['session'],motionOff:boolean,autoplay:AutoplayPolicy='unknown';
+ try{session=sessionStorage.getItem(LOGO_INTRO_KEY)?'played':'unplayed';}catch{session='unavailable';}
+ try{motionOff=localStorage.getItem(MOTION_PREFERENCE_KEY)==='off';}catch{motionOff=true;}
+ try{const policy=nav.getAutoplayPolicy?.('mediaelement');if(policy==='allowed'||policy==='allowed-muted'||policy==='disallowed')autoplay=policy;}catch{/* not exposed */}
+ let probe:HTMLVideoElement|undefined;
+ return {
+  hostVisible:!!logo&&logo.offsetWidth>0&&logo.getClientRects().length>0,
+  reducedMotion:!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+  motionOff,session,saveData:nav.connection?.saveData===true,autoplay,
+  canPlay:type=>(probe??=document.createElement('video')).canPlayType(type)!=='',
+ };
 }
+
 /**
- * First load per browser session, desktop sidebar only: the folding Z plays once over the static logo,
- * screen-blended so its black never shows, then crossfades into the static logo. The static logo stays in
- * the DOM throughout and is shown at once under reduced motion, Motion Off, on later loads, or when the
- * clip cannot play promptly (blocked autoplay, an error, not ready within 1.5s).
+ * Plays the fold once over the static Z and hands back to it. The clip is a sibling layer that never takes pointer events
+ * or focus, and nothing in the layout moves: the static Z keeps its box and only fades while the clip is on screen.
  */
-export function LogoIntro(){
- const [style,setStyle]=useState<CSSProperties|null>(null),video=useRef<HTMLVideoElement>(null);
+function playFold(host:Host,logo:HTMLImageElement,sources:FoldSource[]){
+ const link=logo.parentElement!,video=document.createElement('video');
+ let frame:HTMLSpanElement|null=null;
+ video.className=host==='phone'?'logo-intro logo-intro-phone':'logo-intro';
+ video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='none';video.tabIndex=-1;video.disablePictureInPicture=true;
+ for(const attribute of ['muted','playsinline','disablepictureinpicture','disableremoteplayback'])video.setAttribute(attribute,'');
+ video.setAttribute('aria-hidden','true');video.dataset.state='waiting';
+ for(const {src,type} of sources){const source=document.createElement('source');source.src=src;source.type=type;video.append(source);}
+ const logoRect=logo.getBoundingClientRect();
+ if(host==='phone'){
+  // The top bar is its own stacking context, so the clip sits on the page (fixed over the Z) where its screen blend sees the background.
+  const {box,origin,startScale}=foldPlacement({left:logoRect.left,top:logoRect.top,width:logoRect.width,height:logoRect.height},0,document.documentElement.clientWidth);
+  Object.assign(video.style,{left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`});
+  video.style.setProperty('--intro-origin',`${origin.x}px ${origin.y}px`);video.style.setProperty('--intro-start',String(startScale));
+  document.body.append(video);
+ }else{
+  // Inside the brand link (the sidebar's own layer), clipped to the sidebar's width so the wide figures never add a scrollbar.
+  const sidebar=link.closest<HTMLElement>('.app-sidebar')??link,linkRect=link.getBoundingClientRect(),sideRect=sidebar.getBoundingClientRect();
+  const originX=linkRect.left+link.clientLeft,originY=linkRect.top+link.clientTop;
+  const clipLeft=sideRect.left+sidebar.clientLeft-originX,clipRight=clipLeft+sidebar.clientWidth;
+  const {box,origin,startScale}=foldPlacement({left:logoRect.left-originX,top:logoRect.top-originY,width:logoRect.width,height:logoRect.height},clipLeft,clipRight);
+  frame=document.createElement('span');frame.className='logo-intro-frame';frame.setAttribute('aria-hidden','true');
+  Object.assign(frame.style,{left:`${clipLeft}px`,top:`${box.top}px`,width:`${clipRight-clipLeft}px`,height:`${box.height}px`});
+  Object.assign(video.style,{left:`${box.left-clipLeft}px`,top:'0px',width:`${box.width}px`,height:`${box.height}px`});
+  video.style.setProperty('--intro-origin',`${origin.x}px ${origin.y}px`);video.style.setProperty('--intro-start',String(startScale));
+  frame.append(video);link.append(frame);
+ }
+ const layer=frame??video,width=window.innerWidth,timers:number[]=[];
+ let finished=false;
+ const listeners:[EventTarget,string,EventListener][]=[];
+ const on=(target:EventTarget,type:string,handler:EventListener)=>{target.addEventListener(type,handler);listeners.push([target,type,handler]);};
+ const finish=(handOver:boolean)=>{
+  if(finished)return;finished=true;
+  timers.forEach(t=>window.clearTimeout(t));listeners.forEach(([target,type,handler])=>target.removeEventListener(type,handler));
+  if(handOver&&logo.isConnected){
+   video.dataset.settle='';logo.dataset.intro='ending';video.dataset.state='ending';
+   window.setTimeout(()=>{delete logo.dataset.intro;layer.remove();},CROSSFADE_MS+80);
+   return;
+  }
+  // Static Z at once: stop the clip, drop its sources so any download in flight is abandoned, and take it out.
+  delete logo.dataset.intro;
+  video.pause();video.querySelectorAll('source').forEach(source=>source.remove());video.removeAttribute('src');
+  try{video.load();}catch{/* already detached */}
+  layer.remove();
+ };
+ const fail=()=>finish(false);
+ on(video,'playing',()=>{if(finished)return;window.clearTimeout(timers[0]);logo.dataset.intro='playing';video.dataset.state='playing';});
+ // The bull has folded back into the Z: ease to the exact size so the last frame sits on the static Z.
+ on(video,'timeupdate',()=>{if(!logo.isConnected||!layer.isConnected)fail();else if(video.currentTime>=SETTLE_AT_S)video.dataset.settle='';});
+ on(video,'ended',()=>finish(true));
+ on(video,'error',fail);
+ on(video.lastElementChild!,'error',fail);
+ // A resize could move or rescale the static Z (e.g. across the sidebar breakpoint); the Motion setting can change mid-clip.
+ on(window,'resize',()=>{if(window.innerWidth!==width)fail();});
+ on(window,'zigoals-motion',fail);
+ on(window,'pagehide',fail);
+ timers.push(window.setTimeout(()=>{if(video.dataset.state!=='playing')fail();},READY_MS));
+ video.play()?.catch(fail);
+}
+
+/**
+ * Logo fold intro (Session I; extends the PR #29 intro). On the first app load of a browser session, the owner's fold
+ * (Z → swan → lotus → butterfly → heart → bull → Z) plays once over the static Z, screen-blended so its near-black frame
+ * vanishes on the dark UI, then crossfades into the static Z in 240 ms. Reduced motion, Motion Off, data saver, a
+ * disallowed autoplay policy or no playable format: no video element is created and nothing is requested. Blocked
+ * autoplay, an error or no frame within 1.5 s: the clip is removed at once and the static Z stays.
+ */
+export function LogoIntro({host}:{host:Host}){
  useEffect(()=>{
-  if(!window.matchMedia?.('(min-width: 901px)').matches||!entranceAllowed())return;
-  try{if(sessionStorage.getItem(LOGO_INTRO_KEY))return;sessionStorage.setItem(LOGO_INTRO_KEY,'played');}catch{return;}
-  const logo=document.querySelector<HTMLImageElement>('.app-sidebar .brand>.brand-logo');
-  if(!logo||!logo.offsetWidth)return;
-  setStyle(placement(logo));
- },[]);
- useEffect(()=>{
-  const clip=video.current,logo=document.querySelector<HTMLImageElement>('.app-sidebar .brand>.brand-logo');
-  if(!style||!clip||!logo)return;
-  let finished=false;const timers:number[]=[];
-  const finish=(crossfade:boolean)=>{
-   if(finished)return;finished=true;timers.forEach(t=>window.clearTimeout(t));
-   if(!crossfade){delete logo.dataset.intro;setStyle(null);return;}
-   logo.dataset.intro='ending';clip.dataset.state='ending';
-   timers.push(window.setTimeout(()=>{delete logo.dataset.intro;setStyle(null);},CROSSFADE_MS+80));
-  };
-  const playing=()=>{if(finished)return;window.clearTimeout(timers[0]);logo.dataset.intro='playing';clip.dataset.state='playing';};
-  const ended=()=>finish(true),failed=()=>finish(false);
-  clip.addEventListener('playing',playing);clip.addEventListener('ended',ended);clip.addEventListener('error',failed);
-  timers.push(window.setTimeout(()=>{if(clip.dataset.state!=='playing')failed();},READY_MS));
-  clip.defaultPlaybackRate=RATE;clip.playbackRate=RATE;
-  clip.play()?.catch(failed);
-  return()=>{clip.removeEventListener('playing',playing);clip.removeEventListener('ended',ended);clip.removeEventListener('error',failed);timers.forEach(t=>window.clearTimeout(t));delete logo.dataset.intro;};
- },[style]);
- if(!style)return null;
- return <video ref={video} className="logo-intro" style={style} src="/media/zigoals-logo-intro.mp4" muted autoPlay playsInline preload="auto" aria-hidden="true" tabIndex={-1} data-state="waiting"/>;
+  // No cleanup: the clip ends itself (and notices if its logo goes away), so a remount never restarts or cuts it.
+  if(claimed)return;
+  const logo=document.querySelector<HTMLImageElement>(LOGO[host]);
+  const decision=decideLogoIntro(environment(logo));
+  if(!decision.play||!logo)return;
+  try{sessionStorage.setItem(LOGO_INTRO_KEY,'played');}catch{return;}
+  claimed=true;
+  playFold(host,logo,decision.sources);
+ },[host]);
+ return null;
 }

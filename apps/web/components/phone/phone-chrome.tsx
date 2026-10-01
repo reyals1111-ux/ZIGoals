@@ -17,6 +17,7 @@ import { createPortal } from "react-dom";
 import { AppIcon } from "../app-icon";
 import { NAV_ITEMS, isNavActive } from "../app-nav";
 import { LogoMark, Wordmark } from "../brand-mark";
+import { LogoIntro } from "../logo-intro";
 import { QuickAdd } from "../quick-add";
 import { entranceAllowed } from "../use-entrance";
 import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
@@ -127,7 +128,7 @@ export function PhoneTopBar() {
     <div className="phone-topbar-row">
       {route.back
         ? <Link className="phone-back" href={route.back.href} aria-label={`Back to ${route.back.label}`}><AppIcon name="back" size={22} /><span aria-hidden="true">{route.back.label}</span></Link>
-        : <Link className="phone-home" href="/app" aria-label="ZIGoals home"><LogoMark /></Link>}
+        : <Link className="phone-home" href="/app" aria-label="ZIGoals home"><LogoMark /><LogoIntro host="phone" /></Link>}
       <p className="phone-title" aria-hidden="true">{route.title}</p>
       <div className="phone-actions">
         <QuickAdd triggerClassName="phone-quick-add" />

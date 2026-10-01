@@ -70,7 +70,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <aside className="app-sidebar" aria-label="Application sidebar">
         <Link href="/app" className="brand" aria-label="ZIGoals home">
           <LogoMark />
-          <LogoIntro />
+          <LogoIntro host="sidebar" />
           <Wordmark />
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>

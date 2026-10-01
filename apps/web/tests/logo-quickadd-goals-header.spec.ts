@@ -50,8 +50,8 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
 });
 
 test('"See how it works" opens the intro video dialog, which loads nothing until opened and returns focus',async({page})=>{
- // The sidebar logo intro clip is separate and plays on the first desktop load; only the hero's intro video must wait to be opened.
- const media:string[]=[];page.on('request',r=>{if(r.url().includes('/media/')&&!r.url().endsWith('/media/zigoals-logo-intro.mp4'))media.push(r.url());});
+ // The logo fold intro is separate (/brand/logo-fold/, tests/logo-fold.spec.ts); the hero's intro video must wait to be opened.
+ const media:string[]=[];page.on('request',r=>{if(r.url().includes('/media/'))media.push(r.url());});
  await showcase(page);
  const trigger=page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true});
  await expect(trigger).toBeVisible();await expect(page.getByRole('region',{name:'How it works',exact:true})).toBeAttached();

@@ -60,44 +60,5 @@ for(const setting of ['reduced motion','Motion Off'] as const)
   expect(await page.locator('.app-sidebar img.brand-logo').evaluate(e=>getComputedStyle(e).opacity)).toBe('1');
  });
 
-test('the logo intro plays once per browser session on desktop and settles on the static logo without moving it',async({page,isMobile},info)=>{
- await page.addInitScript(RECORDER);
- await page.goto('/app');
- const logo=page.locator('.app-sidebar img.brand-logo');
- await expect(logo).toHaveAttribute('alt','ZIGoals');
- const box=await logo.boundingBox();
- if(isMobile){
-  await page.waitForTimeout(1200);expect((await seen(page)).intro).toBe(0);await expect(page.locator('video.logo-intro')).toHaveCount(0);return;
- }
- await expect.poll(async()=>(await seen(page)).intro).toBe(1);
- expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:logo-intro:v1'))).toBe('played');
- const video=page.locator('video.logo-intro');
- const h264=await page.evaluate(()=>document.createElement('video').canPlayType('video/mp4; codecs="avc1.42E01E"')!=='');
- if(h264){
-  // The clip plays muted at 1.5x over the static logo, blended so its black never shows, then hands back to the logo.
-  await expect(video).toHaveAttribute('data-state','playing',{timeout:1500});
-  expect(await video.evaluate(v=>{const c=v as HTMLVideoElement;return [c.muted,c.playbackRate,getComputedStyle(c).mixBlendMode,getComputedStyle(c).pointerEvents];})).toEqual([true,1.5,'screen','none']);
-  await expect(logo).toHaveAttribute('data-intro','playing');
-  expect(await page.locator('.app-sidebar').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
-  await page.locator('.app-sidebar').screenshot({path:info.outputPath('logo-intro-playing.png')});
- }
- // Either way (played, or this browser cannot decode the clip) the static logo returns fully and the clip is gone.
- await expect(video).toHaveCount(0,{timeout:8000});
- await expect(logo).not.toHaveAttribute('data-intro');
- expect(await logo.evaluate(e=>getComputedStyle(e).opacity)).toBe('1');
- expect(await logo.boundingBox()).toEqual(box);
- await page.reload();await expect(logo).toBeVisible();await page.waitForTimeout(1600);
- expect((await seen(page)).intro).toBe(0);
-});
-
-for(const failure of ['error','not ready'] as const)
- test(`the static logo stays when the intro clip ${failure==='error'?'fails':'is not ready in time'}`,async({page,isMobile})=>{
-  test.skip(isMobile,'The intro is desktop only.');
-  await page.route('**/media/zigoals-logo-intro.mp4',route=>failure==='error'?route.fulfill({status:404,body:''}):new Promise(()=>{}));
-  await page.addInitScript(RECORDER);await page.goto('/app');
-  const logo=page.locator('.app-sidebar img.brand-logo');
-  await expect.poll(async()=>(await seen(page)).intro).toBe(1);
-  await expect(page.locator('video.logo-intro')).toHaveCount(0,{timeout:failure==='error'?1400:2500});
-  await expect(logo).not.toHaveAttribute('data-intro');
-  expect(await logo.evaluate(e=>getComputedStyle(e).opacity)).toBe('1');
- });
+// The logo intro's own checks (once per session, the hand-over to the static Z, failures, every layout) live in
+// tests/logo-fold.spec.ts since Session I extended it to the owner's fold film on desktop, tablets and phones.
