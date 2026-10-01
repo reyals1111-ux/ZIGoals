@@ -9,6 +9,7 @@ import Link from "next/link";
 import Decimal from "decimal.js";
 import { evaluateGoal } from "@zigoals/goal-engine";
 import { formatUnits, parseUnits, TESTNET } from "@zigoals/chain-config";
+import { normalizeDecimalInput } from "../../../../lib/decimal-input";
 import { useGoals } from "../../../../components/goal-provider";
 import { GoalWizard } from "../../../../components/goal-wizard";
 import { displayAmount, GoalProgressRing } from "../../../../components/goal-card";
@@ -76,7 +77,7 @@ export default function GoalDetail({
       scenarioResult = evaluateGoal({
         ...evaluation,
         annualReturnAssumption: new Decimal(
-          scenario === "custom" ? custom : scenario,
+          scenario === "custom" ? normalizeDecimalInput(custom) : scenario,
         )
           .div(100)
           .toFixed(),

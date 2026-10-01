@@ -1,7 +1,7 @@
 'use client';
 import './asset-search.css';
 import {createCatalogLoader} from '../../lib/market-catalog-client';
-import {parseUnits} from '@zigoals/chain-config';
+import {parseAmountInput} from '../../lib/amount-input';
 import {useEffect,useMemo,useState} from 'react';
 import {useMarketInsights} from './use-market-insights';
 import {FEATURED_MARKETS,marketCategory} from '../../lib/product-insights';
@@ -24,7 +24,7 @@ const AUTOMATIC_CLASSES=ASSET_CLASSES.filter(assetClass=>!['Property','Cash'].in
 export function automaticSourcePosition(input:AutomaticSourceInput,id=crypto.randomUUID(),observedAt=new Date().toISOString()):Position{
  if(!AUTOMATIC_CLASSES.includes(input.assetClass))throw Error(input.assetClass==='Property'?'Property remains manual in Beta.':'Choose an explicit asset classification.');
  if(input.asset.ref.kind==='rwa'&&input.currency!=='USD')throw Error('CoinGecko tokenized RWA references are available in USD only.');
- const marketRef=marketAssetRefSchema.parse(input.asset.ref),quantity=parseUnits(input.quantity,18);
+ const marketRef=marketAssetRefSchema.parse(input.asset.ref),quantity=parseAmountInput(input.quantity,18);
  if(quantity<=0n)throw Error('Enter a positive quantity.');
  const asset=(input.asset.symbol.trim()||input.asset.name.trim()||input.asset.ref.id).slice(0,30).toUpperCase();
  return positionSchema.parse({

@@ -1,7 +1,7 @@
 'use client';
 import {useState,type FormEvent} from 'react';
 import Link from 'next/link';
-import {parseUnits} from '@zigoals/chain-config';
+import {parseAmountInput} from '../../lib/amount-input';
 import {allocate,allocationBalance,goalProgress,type Platform,type Position} from '../../lib/positions';
 import {amount} from './common';
 import {AssetPicker} from './asset-picker';
@@ -19,7 +19,7 @@ export function AllocationForm({data,goalId,positions,update,disabled,quotes=[]}
  const available=BigInt(p.quantity)>elsewhere?BigInt(p.quantity)-elsewhere:0n;
  const ownership=owners.map(a=>`${amount(a.quantity,p.decimals)} ${p.asset} is allocated to ${data.goals.find(g=>g.id===a.goalId)!.name}`).join('. ');
  async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();if(!p)return;setError('');setBusy(true);try{
-  const quantity=parseUnits(String(new FormData(e.currentTarget).get('quantity')),p.decimals).toString();
+  const quantity=parseAmountInput(String(new FormData(e.currentTarget).get('quantity')),p.decimals).toString();
   // Validate against displayed evidence for useful feedback, then recheck under the storage lock.
   try{allocate(data,goalId,p.id,quantity);}catch(e){if(BigInt(quantity)>available)throw Error(`Only ${amount(available.toString(),p.decimals)} ${p.asset} is available for this Goal. ${ownership}`);throw e;}
   const proposed=allocate(data,goalId,p.id,quantity),before=goalProgress(data,goalId,Date.now(),quotes),after=goalProgress(proposed,goalId,Date.now(),quotes);setPreview({position:p,quantity,basis:basis(data),current:before.current,after:after.current,review:after.requiresReview});

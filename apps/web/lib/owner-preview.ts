@@ -1,5 +1,6 @@
 /** Private preview helpers. No reader, wallet or execution dependencies. */
 import {allocate,allocationBalance,assetMatches,platformSchema,positionSync,rescaleUnits,stakingProjection,type Platform,type PrivateGoal} from './positions';
+import {normalizeDecimalInput} from './decimal-input';
 export function availableNativeStake(s:Platform,g:PrivateGoal){
  return s.positions.filter(p=>g.type==='QUANTITY'&&g.asset==='ZIG'&&p.network===g.network&&p.providerId==='native-zig'&&p.sourceType==='NATIVE_STAKING'&&p.verification==='VERIFIED_READ_ONLY'&&positionSync(p)==='CURRENT'&&assetMatches(g,p)&&BigInt(allocationBalance(s,p.id).unallocated)>0n).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
 }
@@ -33,6 +34,6 @@ export function watchScope(s:Platform,network=s.watchScope?.network??'zigchain-1
 export function readAprAssumption(s:Platform,network:string,account:string){return s.aprAssumptions?.find(a=>a.network===network&&a.account===account)?.percent??'';}
 export function saveAprAssumption(s:Platform,network:string,account:string,percent:string):Platform{
  if(!s.positions.some(p=>p.network===network&&p.account===account&&p.providerId==='native-zig'))throw Error('Choose an observed account before saving an assumption.');
- percent=percent.trim();if(percent!=='')stakingProjection('0',percent,1);
+ percent=normalizeDecimalInput(percent);if(percent!=='')stakingProjection('0',percent,1);
  return platformSchema.parse({...s,aprAssumptions:[...(s.aprAssumptions??[]).filter(a=>a.network!==network||a.account!==account),...(percent===''?[]:[{network,account,percent}])]});
 }
