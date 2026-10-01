@@ -48,13 +48,22 @@ export function phoneRoute(path: string): PhoneRoute {
   return { title: item ? item[1] : "ZIGoals" };
 }
 
-/** iOS applies :active press styles on touch only when a touchstart listener exists. */
+/**
+ * iOS applies :active press styles on touch only when a touchstart listener exists. A long press on a control never
+ * starts a text selection (content still selects); done here because CSS user-select alters desktop rendering.
+ */
+const CONTROLS = 'button, .primary, .secondary, .quiet, [role="tab"], summary, .phone-tab, .phone-more-row';
 function usePressFeedback(active: boolean) {
   useEffect(() => {
     if (!active) return;
     const noop = () => {};
+    const noSelect = (event: Event) => {
+      const node = event.target as Node | null, element = node instanceof Element ? node : node?.parentElement;
+      if (element?.closest(CONTROLS)) event.preventDefault();
+    };
     document.addEventListener("touchstart", noop, { passive: true });
-    return () => document.removeEventListener("touchstart", noop);
+    document.addEventListener("selectstart", noSelect);
+    return () => { document.removeEventListener("touchstart", noop); document.removeEventListener("selectstart", noSelect); };
   }, [active]);
 }
 

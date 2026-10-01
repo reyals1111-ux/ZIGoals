@@ -23,8 +23,9 @@
   :root main header { max-width: none; margin: 0; padding: 0; border-bottom: 0; }
   :root main article footer { flex-direction: row; }
 
-  /* Controls never select text on a long press; content still does. */
-  :root :is(button, .primary, .secondary, .quiet, [role="tab"], summary) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  /* Controls show no callout on a long press. Text selection on controls is stopped in phone-chrome.tsx instead of with
+     user-select: that property, even inside this query, changes Chromium's render of desktop dialogs (freeze check). */
+  :root :is(button, .primary, .secondary, .quiet, [role="tab"], summary) { -webkit-touch-callout: none; }
 
   /* Liquid-glass press on touch: a gentle give (transform only); hover lifts stay desktop-only. */
   :root main :is(button, .primary, .secondary, a.card-link):active:not(:disabled) { transform: scale(.97); }
