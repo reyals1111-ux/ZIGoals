@@ -1,7 +1,8 @@
 'use client';
 /** Sections at the bottom of each page (UI design pass, Part 8): summaries and info sheets from real records only. */
 import Link from 'next/link';
-import {useMemo,type ReactNode} from 'react';
+import {useId,useMemo,useState,type ReactNode} from 'react';
+import {usePhoneActive} from './phone/use-phone-layout';
 import type {LayoutAttrs} from './layout-edit';
 import {WEEKDAYS,goalTimeline,habitRhythm,healthWeek,wealthAllocation,weekAcross} from '../lib/bottom-insights';
 import {ASSET_COLORS,type wealthOverview} from '../lib/wealth';
@@ -25,10 +26,15 @@ const Count=({value,label}:{value:number;label:string})=>value?<strong>{formatNu
 /** Today: the last 7 days across Goals, Habits and Health. */
 export function TodayWeek({today,habits,health,platform,financial,...layout}:LayoutAttrs&{today:string;habits:HabitData;health:HealthData;platform:Platform;financial:boolean}){
  const week=weekAcross({today,habits,health,platform});
- type Row={key:'goalContributions'|'habitCheckins'|'healthRecords';label:string;tone:string};
- const rows:Row[]=[...(financial?[{key:'goalContributions',label:'Goal contributions',tone:'goals'} as Row]:[]),{key:'habitCheckins',label:'Habit check-ins',tone:'habits'},{key:'healthRecords',label:'Health entries',tone:'health'}];
+ type Row={key:'goalContributions'|'habitCheckins'|'healthRecords';label:string;one:string;tone:string};
+ const rows:Row[]=[...(financial?[{key:'goalContributions',label:'Goal contributions',one:'Goal contribution',tone:'goals'} as Row]:[]),{key:'habitCheckins',label:'Habit check-ins',one:'Habit check-in',tone:'habits'},{key:'healthRecords',label:'Health entries',one:'Health entry',tone:'health'}];
+ // On a phone the seven-day rows fold into one line of totals (Session G, Part 4); the note below stays in view.
+ const phone=usePhoneActive(),[days,setDays]=useState(false),rowsId=useId();
+ const totals=rows.map(r=>{const total=week.reduce((n,d)=>n+d[r.key],0);return total?`${formatNumber(total)} ${(total===1?r.one:r.label).toLowerCase()}`:`no ${r.label.toLowerCase()}`;}).join(' · ');
  return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede="How many records you saved each day. A dash means nothing was recorded that day.">
-  <div className="bottom-rows">{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);return <li key={d.date} data-today={d.date===today||undefined}><small>{l.weekday} {l.day}</small><Count value={d[r.key]} label={r.label.toLowerCase()}/></li>;})}</ul></div>)}</div>
+  {phone&&<p className="bottom-week-totals">Last 7 days: {totals}.</p>}
+  <div className="bottom-rows" id={rowsId} {...(phone&&!days?{'data-phone-collapsed':''}:{})}>{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);return <li key={d.date} data-today={d.date===today||undefined}><small>{l.weekday} {l.day}</small><Count value={d[r.key]} label={r.label.toLowerCase()}/></li>;})}</ul></div>)}</div>
+  {phone&&<button type="button" className="secondary phone-show-all" aria-controls={rowsId} aria-expanded={days} onClick={()=>setDays(!days)}>{days?'Hide each day':'Show each day'}</button>}
   <p className="bottom-note">Counts of saved records on this device’s data. They are not scores and they do not predict anything.</p>
  </Shell>;
 }

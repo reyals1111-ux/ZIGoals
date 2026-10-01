@@ -37,6 +37,17 @@
 
   /* The footer keeps its brand line ("Same you. A brighter tomorrow.") and support links, compact. */
   :root .workspace > footer { padding: 28px 4px 12px; gap: 10px; font-size: 14px; }
+
+  /* "Show all N" (Session G, phone-show-all.tsx): items past the first N stay in the page, hidden until the button is
+     pressed; while a page is being arranged every item shows and the button steps aside. */
+  :root:not([data-layout-editing]) [data-phone-limit="2"] > :nth-child(n+3),
+  :root:not([data-layout-editing]) [data-phone-limit="3"] > :nth-child(n+4),
+  :root:not([data-layout-editing]) [data-phone-limit="4"] > :nth-child(n+5) { display: none !important; }
+  :root .phone-show-all { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px; margin-top: 10px; font-size: 15px; }
+  :root[data-layout-editing] .phone-show-all { display: none; }
+  /* A folded section (its one-line summary stays above it). */
+  :root [data-phone-collapsed] { display: none !important; }
+  :root .bottom-week-totals { margin: 0 0 4px; font-size: 15px; line-height: 1.45; }
 }
 @media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
   :root main :is(button, .primary, .secondary, a.card-link):active:not(:disabled) { transform: none; }

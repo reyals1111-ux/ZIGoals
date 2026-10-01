@@ -11,6 +11,7 @@ import {IntroVideo} from './intro-video';
 import {formatUnits,TESTNET} from '@zigoals/chain-config';
 import {AppIcon} from '../app-icon';
 import {ActivityFeed} from '../activity-feed';
+import {usePhoneActive} from '../phone/use-phone-layout';
 import {GoalSummaryCard} from '../goal-card';
 import {SceneArt} from '../scene-art';
 import {usePrivateStore} from '../use-private-store';
@@ -63,7 +64,7 @@ function WidgetEditor({initial,sources,ready,onSave,onRemove,onClose}:{initial?:
 export function TodayDashboard(){
  const settings=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
  const platform=usePlatform(),legacy=useGoals(),habits=useHabits(),health=useHealth(),today=useLocalToday();
- const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false);
+ const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false),phone=usePhoneActive();
  // The first-run welcome (Session E) appears only for a device that is certainly brand-new: every store read without
  // error, Today not yet chosen, no Showcase, no account, no private record stored and the welcome never seen here.
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
@@ -136,7 +137,7 @@ export function TodayDashboard(){
    case 'wallet':return financial?<section className="account-panel"><div><h2>Your wallet <span className="pill">{legacy.mode==='local'?'Local demo':'Testnet'}</span></h2><strong className="account-value">{formatPlainDecimal(formatUnits(legacy.balance,TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><p>{legacy.mode==='local'?'Simulated balance · this browser':`${legacy.owner.slice(0,10)}…${legacy.owner.slice(-5)}`}</p><Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>:null;
    case 'staking':return financial?<StakingCard/>:null;
    case 'destination':return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">Start with what matters</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">A destination for your next chapter.</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. Give your ZIG a purpose.</p><Link href="/app/goals/new" className="primary">{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
-   case 'activity':return financial?<section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={4}/></section>:null;
+   case 'activity':return financial?<section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={phone?2:4}/></section>:null;
   }
  }
  function renderPlaced(ref:DashboardItemRef,region:DashboardRegion,index:number){
