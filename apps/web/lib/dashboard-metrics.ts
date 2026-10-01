@@ -8,7 +8,7 @@ import {habitCalendarDay,habitDay,habitRuleOn,habitStats,measurementUnit,type Ha
 import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dailyHealthSummary,type HealthData} from './health';
 import {dailyData,waterSummary} from './health-daily';
 import type {MarketQuote} from './market-quotes';
-import {formatExactNumber} from './visual-format';
+import {formatExactNumber,formatNumber} from './visual-format';
 import {WIDGET_CATALOG,type DashboardWidget} from './dashboard-settings';
 import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 import {nutritionDashboard,habitConsistency} from './life-intelligence';
@@ -28,14 +28,14 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const next=s.goals.filter(g=>g.status==='active'&&g.targetDate&&g.targetDate>=s.today).sort((a,b)=>a.targetDate!.localeCompare(b.targetDate!)||a.name.localeCompare(b.name))[0];
   if(!next)return {...defaults,title:widget.title||'Next Goal milestone',value:'No upcoming target date',detail:'Save a target date on a Goal to see it here.',href:'/app/goals'};
   const days=Math.round((Date.parse(`${next.targetDate}T00:00:00Z`)-Date.parse(`${s.today}T00:00:00Z`))/86400000);
-  return {...defaults,title:widget.title||'Next Goal milestone',value:next.name,detail:`Target date ${next.targetDate} · saved in your plan`,href:next.href,percent:next.progressPct,complete:false,facts:[{label:'Days to the target date',value:days.toLocaleString()},{label:next.currency==='milestones'?'Milestones left':'Remaining',value:next.remaining!==undefined?formatGoalAmount(next.remaining,next.currency):'Not available'}]};
+  return {...defaults,title:widget.title||'Next Goal milestone',value:next.name,detail:`Target date ${next.targetDate} · saved in your plan`,href:next.href,percent:next.progressPct,complete:false,facts:[{label:'Days to the target date',value:formatNumber(days)},{label:next.currency==='milestones'?'Milestones left':'Remaining',value:next.remaining!==undefined?formatGoalAmount(next.remaining,next.currency):'Not available'}]};
  }
  if(widget.kind==='streak'||widget.kind==='checkins'){
   const active=s.habits.habits.filter(h=>habitRuleOn(h,habitToday)?.state!=='archived');
   if(!active.length)return {...defaults,title:widget.title||WIDGET_CATALOG[widget.kind].label,value:'No Habits yet',detail:'Create a Habit to start a pattern.',href:'/app/habits'};
   if(widget.kind==='checkins'){
    const week=habitConsistency(active,habitToday).week,total=week.reduce((n,d)=>n+d.checkins,0),days=week.filter(d=>d.checkins>0).length;
-   return {...defaults,title:widget.title||'This week’s check-ins',value:`${total.toLocaleString()} check-in${total===1?'':'s'}`,detail:`Last 7 days · ${days} of 7 days with a check-in`,href:'/app/habits'};
+   return {...defaults,title:widget.title||'This week’s check-ins',value:`${formatNumber(total)} check-in${total===1?'':'s'}`,detail:`Last 7 days · ${days} of 7 days with a check-in`,href:'/app/habits'};
   }
   const ranked=active.map(h=>({habit:h,stats:habitStats(h,habitToday)})).sort((a,b)=>b.stats.currentStreak-a.stats.currentStreak||a.habit.title.localeCompare(b.habit.title));
   const top=ranked[0]!;
@@ -47,11 +47,11 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   if(!primary||primary.value<=0n)return {...defaults,title:widget.title||'Top holding share',value:wealth.rows.length?'Needs valuation':'No valued assets yet',detail:'Shares use known values in one currency only.',href:'/app/wealth',missing:!!wealth.rows.length};
   const rows=wealth.rows.filter(r=>r.currency===primary.currency&&r.value!==undefined).sort((a,b)=>a.value!>b.value!?-1:a.value!<b.value!?1:0),top=rows[0]!;
   const pct=Number(top.value!*10000n/primary.value)/100,incomplete=wealth.rows.some(r=>r.value===undefined);
-  return {...defaults,title:widget.title||'Top holding share',value:`${pct.toLocaleString(undefined,{maximumFractionDigits:1})}%`,detail:`${top.position.providerId} · of known ${primary.currency} value · other currencies not included`,href:`/app/wealth/asset/${encodeURIComponent(top.position.id)}`,percent:String(pct),complete:false,warning:incomplete?'Valuation coverage is incomplete. Assets without a value are left out.':undefined};
+  return {...defaults,title:widget.title||'Top holding share',value:`${formatNumber(pct, {maximumFractionDigits:1})}%`,detail:`${top.position.providerId} · of known ${primary.currency} value · other currencies not included`,href:`/app/wealth/asset/${encodeURIComponent(top.position.id)}`,percent:String(pct),complete:false,warning:incomplete?'Valuation coverage is incomplete. Assets without a value are left out.':undefined};
  }
  if(widget.kind==='exercise'){
   const counters=exerciseData(s.health).counters,counts=counters.map(c=>({c,n:countOn(s.health,c.id,s.healthDate)})),logged=counts.filter(x=>x.n!==null).length;
-  return {...defaults,title:widget.title||'Exercise counters today',value:counters.length?`${logged} of ${counters.length} counted`:'No counters',detail:`${s.healthDate} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':n.toLocaleString()}))};
+  return {...defaults,title:widget.title||'Exercise counters today',value:counters.length?`${logged} of ${counters.length} counted`:'No counters',detail:`${s.healthDate} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':formatNumber(n)}))};
  }
  if(widget.kind==='goals')return {...defaults,title:widget.title||'Your destinations',value:`${s.goals.filter(g=>g.status==='active').length} active Goals`,detail:`${s.goals.filter(g=>g.status==='completed').length} completed · recorded progress`,href:'/app/goals'};
  if(widget.kind==='goal'){
@@ -65,7 +65,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  if(widget.kind==='habit'){
   const habit=s.habits.habits.find(h=>h.id===widget.entity);if(!habit)return unavailable('/app/habits','This Habit is unavailable. Choose another or remove this widget.');
   const day=habitDay(habit,habitToday,habitToday),rule=habitRuleOn(habit,habitToday),stats=widget.metric==='streak'?habitStats(habit,habitToday):undefined;
-  return {...defaults,title:widget.title||habit.title,value:stats?`${stats.currentStreak} ${stats.streakUnit}`:`${day.count.toLocaleString()}${rule?` ${measurementUnit(rule)}`:''}`,detail:stats?'Current streak · natural periods':`${day.status.replaceAll('-',' ')} · target ${day.target.toLocaleString()}${rule?` ${measurementUnit(rule)}`:''}`,href:'/app/habits',warning:day.status==='archived'||day.status==='paused'?`Habit ${day.status}`:undefined};
+  return {...defaults,title:widget.title||habit.title,value:stats?`${stats.currentStreak} ${stats.streakUnit}`:`${formatNumber(day.count)}${rule?` ${measurementUnit(rule)}`:''}`,detail:stats?'Current streak · natural periods':`${day.status.replaceAll('-',' ')} · target ${formatNumber(day.target)}${rule?` ${measurementUnit(rule)}`:''}`,href:'/app/habits',warning:day.status==='archived'||day.status==='paused'?`Habit ${day.status}`:undefined};
  }
  if(widget.kind==='food-entry'||widget.kind==='meal'){
   const entry=widget.kind==='food-entry'?s.health.diary.find(row=>row.id===widget.entity):undefined;
@@ -79,13 +79,13 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  }
  if(widget.kind==='health'){
   const summary=dailyHealthSummary(s.health,s.healthDate),common={...defaults,title:widget.title||widgetMetricLabel(widget.metric),detail:`${s.healthDate} · manually logged`,href:'/app/health'};
-  if(widget.metric==='macros-ring'){const target=s.health.targets.kcal,kcal=summary.nutrients.kcal;if(!summary.entries)return {...common,value:'No meals recorded',detail:'Log a meal to start your day.'};return {...common,value:nutritionSummaryText(summary,'kcal','kcal'),detail:target?`Personal target ${target.toLocaleString()} kcal · ${s.healthDate}`:`${s.healthDate} · no calorie target set`,...(target&&kcal!==null?{percent:String(Math.min(100,kcal/target*100)),complete:false}:{}),facts:[{label:'Protein',value:nutritionSummaryText(summary,'proteinMg','g',1000)},{label:'Carbs',value:nutritionSummaryText(summary,'carbsMg','g',1000)},{label:'Fat',value:nutritionSummaryText(summary,'fatMg','g',1000)}]};}
+  if(widget.metric==='macros-ring'){const target=s.health.targets.kcal,kcal=summary.nutrients.kcal;if(!summary.entries)return {...common,value:'No meals recorded',detail:'Log a meal to start your day.'};return {...common,value:nutritionSummaryText(summary,'kcal','kcal'),detail:target?`Personal target ${formatNumber(target)} kcal · ${s.healthDate}`:`${s.healthDate} · no calorie target set`,...(target&&kcal!==null?{percent:String(Math.min(100,kcal/target*100)),complete:false}:{}),facts:[{label:'Protein',value:nutritionSummaryText(summary,'proteinMg','g',1000)},{label:'Carbs',value:nutritionSummaryText(summary,'carbsMg','g',1000)},{label:'Fat',value:nutritionSummaryText(summary,'fatMg','g',1000)}]};}
   if(widget.metric==='kcal')return {...common,value:summary.entries?nutritionSummaryText(summary,"kcal","kcal"):'No meals recorded',detail:`${summary.entries} meals & snacks · ${s.healthDate}`};
   if(widget.metric==='macros')return {...common,value:summary.entries?nutritionSummaryText(summary,"proteinMg","g protein",1000):'No meals recorded',detail:summary.entries?`${nutritionSummaryText(summary,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(summary,"fatMg","g fat",1000)}`:'Log a meal to start your day.'};
-  if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate);return {...common,value:water.entries?`${water.millilitres.toLocaleString()} mL`:'No water recorded',detail:water.targetMl?`Personal target ${water.targetMl.toLocaleString()} mL · ${s.healthDate}`:`${s.healthDate} · no target set`};}
-  if(widget.metric==='weight'){const latest=latestWeightObservation(s.health,s.healthDate),unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${(latest.grams/(unit==='lb'?453.59237:1000)).toLocaleString(undefined,{maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?latest.detail:'Record a measurement when you choose.'};}
-  if(widget.metric==='history'){const rhythm=nutritionDashboard(s.health,s.healthDate);return {...common,title:widget.title||'Your nutrition rhythm',value:rhythm.averageKcal===null?'No logged days':`${rhythm.averageKcal.toLocaleString()} kcal`,detail:`${rhythm.loggedDays} of 30 days with entries · average per complete calorie day`,href:'/app/health#nutrition-history'};}
-  const recorded=s.health.activity.some(a=>a.date===s.healthDate);return {...common,value:recorded?widget.metric==='steps'?`${summary.steps.toLocaleString()} steps`:`${summary.minutes.toLocaleString()} minutes`:'No activity recorded'};
+  if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate);return {...common,value:water.entries?`${formatNumber(water.millilitres)} mL`:'No water recorded',detail:water.targetMl?`Personal target ${formatNumber(water.targetMl)} mL · ${s.healthDate}`:`${s.healthDate} · no target set`};}
+  if(widget.metric==='weight'){const latest=latestWeightObservation(s.health,s.healthDate),unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${formatNumber((latest.grams/(unit==='lb'?453.59237:1000)), {maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?latest.detail:'Record a measurement when you choose.'};}
+  if(widget.metric==='history'){const rhythm=nutritionDashboard(s.health,s.healthDate);return {...common,title:widget.title||'Your nutrition rhythm',value:rhythm.averageKcal===null?'No logged days':`${formatNumber(rhythm.averageKcal)} kcal`,detail:`${rhythm.loggedDays} of 30 days with entries · average per complete calorie day`,href:'/app/health#nutrition-history'};}
+  const recorded=s.health.activity.some(a=>a.date===s.healthDate);return {...common,value:recorded?widget.metric==='steps'?`${formatNumber(summary.steps)} steps`:`${formatNumber(summary.minutes)} minutes`:'No activity recorded'};
  }
  if(widget.kind==='wealth'){
   const wealth=wealthOverview(s.platform,s.now,s.quotes),subtotal=wealth.subtotals.find(t=>t.currency===widget.metric),missing=wealth.rows.some(r=>r.value===undefined),stale=wealth.rows.some(r=>r.currency===widget.metric&&r.stale);

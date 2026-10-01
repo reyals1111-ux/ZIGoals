@@ -4,7 +4,8 @@ import {wealthOverview,ASSET_COLORS} from './wealth';
 import type {Platform,Position} from './positions';
 import {verifiedMarketQuote,quoteMatchesPosition,type MarketQuote} from './market-quotes';
 import {marketRefKey,type MarketAssetRef} from './market-assets';
-export function referencePriceLabel(quote:MarketQuote){const value=formatUnits(quote.price,quote.priceDecimals);return `${quote.currency==='USD'?'$':quote.currency==='EUR'?'€':''}${value}${['USD','EUR'].includes(quote.currency)?'':` ${quote.currency}`}`;}
+import {formatPlainDecimal} from './visual-format';
+export function referencePriceLabel(quote:MarketQuote){const value=formatPlainDecimal(formatUnits(quote.price,quote.priceDecimals));return `${quote.currency==='USD'?'$':quote.currency==='EUR'?'€':''}${value}${['USD','EUR'].includes(quote.currency)?'':` ${quote.currency}`}`;}
 /** Reference prices are independent public evidence, never derived from a holding total. */
 export function referenceQuote(ref:MarketAssetRef,currency:string,quotes:readonly MarketQuote[],now=Date.now()):MarketQuote|undefined{
  return quotes.flatMap(raw=>{try{const quote=verifiedMarketQuote(raw,now);if(quote.currency!==currency)return [];const matches=quote.marketRef?marketRefKey(quote.marketRef)===marketRefKey(ref)&&(ref.kind!=='rwa'||quote.marketRef.kind==='rwa'&&ref.assetType===quote.marketRef.assetType):ref.kind==='coin'&&ref.id==='zignaly'&&quote.providerAssetId==='zignaly';return matches?[quote]:[];}catch{return [];}}).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt!)-Date.parse(a.observedAt??a.fetchedAt!))[0];

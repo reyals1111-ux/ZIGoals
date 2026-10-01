@@ -3,6 +3,7 @@ import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
 import { z } from "zod";
 import { addLocalDays } from "./local-date";
+import { formatNumber } from "./visual-format";
 
 export const HEALTH_STORAGE_KEY = "zigoals:health:v1";
 export const HEALTH_MEALS = ["Breakfast", "Lunch", "Dinner", "Snacks"] as const;
@@ -47,7 +48,7 @@ export function summarizeNutrition(values:readonly Nutrition[]){
  for(const key of nutrientKeys){const known=values.flatMap(value=>value[key]===null?[]:[value[key]]);coverage[key]={known:known.length,total:values.length};const sum=known.reduce((total,value)=>total+value,0);nutrients[key]=known.length===values.length?sum:null;knownNutrients[key]=known.length?sum:null;}
  return {nutrients,knownNutrients,coverage};
 }
-export const formatNutrient=(value:number|null,scale=1)=>value===null?'Unknown':(value/scale).toLocaleString(undefined,{maximumFractionDigits:3});
+export const formatNutrient=(value:number|null,scale=1)=>value===null?'Unknown':formatNumber((value/scale), {maximumFractionDigits:3});
 export function nutritionSummaryText(summary:ReturnType<typeof summarizeNutrition>,key:CoreNutrient,unit:string,scale=1){
  const value=summary.nutrients[key],coverage=summary.coverage[key];
  if(value!==null)return `${formatNutrient(value,scale)} ${unit}`;
@@ -246,6 +247,6 @@ export function getHealthActivities(data: HealthData): { id: string; category: "
   return [
     ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${e.date}`, at: e.updatedAt, href: "/app/health" })),
     ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${formatHealthGrams(w.grams)} kg · ${w.date}`, at: w.updatedAt, href: "/app/health" })),
-    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${a.steps.toLocaleString()} steps · ${a.date}`, at: a.updatedAt, href: "/app/health" })),
+    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${a.date}`, at: a.updatedAt, href: "/app/health" })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 }

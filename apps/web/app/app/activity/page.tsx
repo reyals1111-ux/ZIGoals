@@ -13,6 +13,7 @@ import {
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { LayoutLockButton, LayoutPage, LayoutRegion } from "../../../components/layout-edit";
 import { NebulaFlow } from "../../../components/nebula-flow";
+import {formatDateTime,formatPlainDecimal} from "../../../lib/visual-format";
 export default function ActivityPage() {
   const s = useGoals();
   const platform = usePlatform();
@@ -65,7 +66,7 @@ export default function ActivityPage() {
                   <strong>
                     {record.action} · {record.state.replaceAll("_", " ")}
                   </strong>
-                  <small>{new Date(record.createdAt).toLocaleString()}</small>
+                  <small>{formatDateTime(record.createdAt)}</small>
                   <p>
                     {!isTerminal(record.state)
                       ? pendingDescription(record)
@@ -88,7 +89,7 @@ export default function ActivityPage() {
                 )}
                 <span>
                   {record.amount !== "0"
-                    ? `${formatUnits(record.amount, TESTNET.nativeAsset.decimals)} ZIG`
+                    ? `${formatPlainDecimal(formatUnits(record.amount, TESTNET.nativeAsset.decimals))} ZIG`
                     : ""}
                 </span>
                 {record.hash && (
@@ -123,14 +124,14 @@ export default function ActivityPage() {
                 </span>
                 <div>
                   <strong>{a.action}</strong>
-                  <small>{new Date(a.timestamp).toLocaleString()}</small>
+                  <small>{formatDateTime(a.timestamp)}</small>
                 </div>
                 <Link href={`/app/goals/${a.goalId}`}>
                   {s.metadata?.goals[a.goalId]?.name ?? `Goal #${a.goalId}`}
                 </Link>
                 <span>
                   {a.amount !== "0"
-                    ? formatUnits(a.amount, TESTNET.nativeAsset.decimals) +
+                    ? formatPlainDecimal(formatUnits(a.amount, TESTNET.nativeAsset.decimals)) +
                       " ZIG"
                     : ""}
                 </span>

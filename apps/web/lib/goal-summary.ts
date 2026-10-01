@@ -1,7 +1,7 @@
 /** One presentation contract; private and legacy financial records remain separate. */
 import {goalAssetMix,type AssetMix} from './wealth';
 import Decimal from 'decimal.js';
-import {formatExactNumber} from './visual-format';
+import {displayLocale,formatExactNumber} from './visual-format';
 import {formatUnits} from '@zigoals/chain-config';
 import {evaluateGoal} from '@zigoals/goal-engine';
 import type {GoalMetadata} from '@zigoals/shared-types';
@@ -13,7 +13,7 @@ import {effectiveContributionPlan} from './plan-revisions';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 export type GoalSummary={assetMix?:AssetMix[];key:string;id:string;href:string;name:string;type:string;source:string;status:'active'|'completed'|'closed';scene:'horizon'|'mountains'|'home'|'garden'|'aurora';current:string;target?:string;currency:string;progressPct:string;remaining?:string;targetDate?:string;nextContributionDate?:string|null;fundingHealth:string;requiresReview:boolean;valuationLabel?:string;metadata:{label:string;value:string}[]};
-export function formatGoalAmount(value:string,currency:string,locale='en-US'){
+export function formatGoalAmount(value:string,currency:string,locale=displayLocale()){
  if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))return 'Unavailable';
  const decimal=new Decimal(value);if(!decimal.isFinite())return 'Unavailable';
  const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();

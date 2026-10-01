@@ -7,7 +7,7 @@ import {reverseContribution,contributionTotals,fundingHealth,goalTimeline,contri
 import type {Platform,PrivateGoal} from '../../lib/positions';
 import type {MarketQuote} from '../../lib/market-quotes';
 import {formatGoalAmount} from '../../lib/goal-summary';
-import {amount} from './common';
+import {amount,shownAmount} from './common';
 import {EvidenceChart,type EvidenceSeries} from './evidence-chart';
 import {MotionTrack} from '../motion-track';
 import './intelligence.css';
@@ -15,6 +15,7 @@ import {ContributionFlow} from './contribution-flow';
 import {ProgressRing,MetricCard} from './financial-ui';
 import {effectiveContributionPlan} from '../../lib/plan-revisions';
 import {goalProgress} from '../../lib/positions';
+import { formatDate } from '../../lib/visual-format';
 const display=(value:string,goal:PrivateGoal)=>`${value.startsWith('-')?'-':''}${formatGoalAmount(amount(value.replace(/^-/,''),goal.decimals),goal.asset)}`;
 export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{data:Platform;goal:PrivateGoal;quotes:readonly MarketQuote[];now:number;update:(fn:(s:Platform)=>Platform)=>Promise<void>;disabled?:boolean}){
  const showcase=useShowcase();
@@ -39,7 +40,7 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
  return <div className="goal-intelligence"><ActionIntent param="contribute" value="1" ready={canEdit} onAction={()=>setEntry(true)}/>
   {health&&<section className="intelligence-panel" aria-label="Funding Wealth overview">
    <div className="funding-wealth-hero"><div><p className="eyebrow">WHERE YOU ARE. WHAT COMES NEXT.</p><h2>Funding Wealth</h2><div className="funding-status-line"><span className="intelligence-status" data-status={health.status}>{health.status==='NO_PLAN'?'No plan':health.status==='REVIEW'?'Needs review':health.status==='COMPLETED'?'Complete':health.status.replaceAll('_',' ').toLowerCase()}</span><p>{health.status==='COMPLETED'?'Your Goal is fully funded.':health.status==='NO_PLAN'?'Give your Goal a contribution rhythm.':health.overdue?'Your recorded contributions are behind your plan.':'Your wealth and contribution pace, together.'}</p></div><div className="intelligence-actions"><button className="primary" disabled={!canEdit} onClick={()=>{setEntry(true);setError('');}}>Fund Goal</button><a className="text-link" href="#contribution-plan">{goal.plan?'Review contribution plan':'Create contribution plan'} →</a></div></div><div className="funding-wealth-progress"><ProgressRing percent={Number(goalProgress(data,goal.id,now,quotes).progressPct)} size={148}/><div><strong>{money(health.current)}</strong><p>of {money(health.target)}</p><span>{money(health.remaining)} remaining</span></div></div></div>
-   <div className="funding-preview-metrics"><MetricCard label="Target date" value={goal.targetDate??'No date set'}/><MetricCard label="Next contribution" value={health.nextDate??'No plan scheduled'} detail={nextPlan?`${amount(nextPlan.amount,nextPlan.decimals)} ${nextPlan.asset} · ${nextPlan.cadence}`:'Choose an amount and rhythm that works for you'}/><MetricCard label="Latest contribution" value={health.latest?new Date(health.latest.occurredAt).toLocaleDateString():'No contribution yet'} detail={health.latest?`${amount(health.latest.quantity,health.latest.decimals)} ${health.latest.asset}`:'New funding will appear here'}/></div>
+   <div className="funding-preview-metrics"><MetricCard label="Target date" value={goal.targetDate??'No date set'}/><MetricCard label="Next contribution" value={health.nextDate??'No plan scheduled'} detail={nextPlan?`${shownAmount(nextPlan.amount,nextPlan.decimals)} ${nextPlan.asset} · ${nextPlan.cadence}`:'Choose an amount and rhythm that works for you'}/><MetricCard label="Latest contribution" value={health.latest?formatDate(health.latest.occurredAt):'No contribution yet'} detail={health.latest?`${shownAmount(health.latest.quantity,health.latest.decimals)} ${health.latest.asset}`:'New funding will appear here'}/></div>
    <h3 className="funding-subtitle">Your contribution pace</h3>
    <dl className="intelligence-metrics"><div><dt>Actual contributed</dt><dd>{money(health.actual)}</dd><small>Explicit records, net of reversals</small></div><div><dt>Planned through today</dt><dd>{money(health.plannedThroughToday)}</dd><small>{goal.planRevisions?.length?'Retained revisions · not payment receipts':'Current plan · not a payment receipt'}</small></div><div><dt>Contribution variance</dt><dd>{unknownPrior?'Unavailable':`${BigInt(health.variance)>0n?'+':''}${money(health.variance)}`}</dd><small>{unknownPrior?'Earlier plan terms were not retained':health.overdue?'Behind the recorded plan':'Compared with planned contributions'}</small></div></dl>
    <div className="pace-comparison"><span>Actual</span><MotionTrack identity="pace" className="pace-track"><span className="pace-fill" style={{width:width(health.actual)}}/></MotionTrack><strong>{money(health.actual)}</strong></div><div className="pace-comparison"><span>Planned</span><MotionTrack identity="pace" className="pace-track"><span className="pace-fill planned" style={{width:width(health.plannedThroughToday)}}/></MotionTrack><strong>{money(health.plannedThroughToday)}</strong></div>
@@ -47,7 +48,7 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
    <p className="fine">Planned future {money(health.plannedFuture)} · Shortfall {money(health.shortfall)} · Surplus {money(health.surplus)}</p>
    {health.warnings.map(w=><p key={w} className="history-note">{w}</p>)}
    <p className="fine">Market movement can change wealth. It cannot satisfy a missed contribution. Unmatched actual records remain separate from scheduled payments.</p>
-   <div className="intelligence-actions"><button className="primary" disabled={!canEdit} onClick={()=>{setEntry(!entry);setError('');}}>Record contribution</button><a className="secondary" href="#contribution-plan">Review plan</a>{totals.latest&&<span className="fine">Latest actual · {new Date(totals.latest.occurredAt).toLocaleDateString()}</span>}</div>
+   <div className="intelligence-actions"><button className="primary" disabled={!canEdit} onClick={()=>{setEntry(!entry);setError('');}}>Record contribution</button><a className="secondary" href="#contribution-plan">Review plan</a>{totals.latest&&<span className="fine">Latest actual · {formatDate(totals.latest.occurredAt)}</span>}</div>
   </section>}
   {message&&<p role="status" className="fine">{message}</p>}{error&&<p role="alert" className="notice">{error}</p>}
   {entry&&<ContributionFlow data={data} goal={goal} quotes={quotes} update={update} onClose={()=>setEntry(false)} onSaved={text=>{setEntry(false);setMessage(text);}}/>}

@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {z} from 'zod';
 import {getAccountScope,getAccountGeneration,lockAccount} from '../lib/account-session';
+import { formatDateTime } from '../lib/visual-format';
 const sessionsSchema=z.object({sessions:z.array(z.object({id:z.uuid(),label:z.string().min(1).max(80),createdAt:z.iso.datetime(),current:z.boolean()}).strict()).max(5000)}).strict();
 type Session=z.infer<typeof sessionsSchema>['sessions'][number];
 export function AccountDevices({account}:{account:string}){
@@ -15,6 +16,6 @@ export function AccountDevices({account}:{account:string}){
   }catch(e){setMessage(e instanceof Error?e.message:'Session management unavailable.');}finally{setBusy(false);}
  }
  return <section className="panel" aria-label="Account sessions"><h2>Devices and sessions</h2><p>Revoking a session blocks its future vault reads and writes, including requests using a still-valid email provider token. It cannot erase a downloaded copy or revoke knowledge of a recovery secret. Domain-key rotation is not available in this preview.</p><button className="secondary" disabled={busy} onClick={()=>void run()}>Refresh sessions</button>{sessions.length>0&&<button className="secondary" disabled={busy} onClick={()=>setConfirm('others')}>Revoke other sessions</button>}
- <ul>{sessions.slice(0,50).map(s=><li key={s.id}><strong>{s.label}{s.current?' · this session':''}</strong><p>Signed in {new Date(s.createdAt).toLocaleString()}</p><button className="secondary" disabled={busy} onClick={()=>setConfirm(s.id)}>Revoke {s.current?'this session':s.label}</button></li>)}</ul>{sessions.length>50&&<p>Showing50 of{sessions.length} sessions. Revoke other sessions applies to all other active sessions.</p>}
+ <ul>{sessions.slice(0,50).map(s=><li key={s.id}><strong>{s.label}{s.current?' · this session':''}</strong><p>Signed in {formatDateTime(s.createdAt)}</p><button className="secondary" disabled={busy} onClick={()=>setConfirm(s.id)}>Revoke {s.current?'this session':s.label}</button></li>)}</ul>{sessions.length>50&&<p>Showing50 of{sessions.length} sessions. Revoke other sessions applies to all other active sessions.</p>}
  {confirm&&<div className="notice"><p>Keep a private backup of unsynced work on the affected device. Its local copy remains there. Confirm revocation of {confirm==='others'?'all other sessions':'the selected session'}?</p><button className="primary" disabled={busy} onClick={()=>void run(confirm==='others'?{action:'revoke-others'}:{action:'revoke',id:confirm})}>Confirm session revocation</button><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>Cancel revocation</button></div>}<p role="status">{message}</p></section>;
 }
