@@ -1,3 +1,21 @@
+# Alpha deploy — 2026-10-01 morning, `61035dc` live
+
+Evidence labels:
+- **CI log:** the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session G cloud session on 2026-10-01.
+- **Actions API** / **git:** read at the same time.
+
+- **Run:** Manual Alpha deployment #17, [run 36836555458](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36836555458), 2026-10-01 08:28–08:35 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `61035dc5ba3b26bafe41276599a0452b45c3208b`, `main` after #52. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `be41026f-1be9-423e-b4d8-71d4be54aea0`. The last observed live version is the same. (CI log)
+- **Rollback:** `f00a117f-a283-4b6e-a8f7-ab0bfed248af`, the version deploy #16 published, so the chain holds. (CI log)
+- **CI on `61035dc`:** Milestone quality #276 ([run 36834550733](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36834550733)): success on attempt 1. (Actions API)
+- **Owner manual checks:** not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#52](https://github.com/reyals1111-ux/ZIGoals/pull/52) (`61035dc`): Session E, the phone experience and first-run welcome, plus the UI half of QA-01 (Health number fields are text fields with a decimal keypad).
+
+**QA-01 is fixed on the live Alpha** with this deploy: both halves (#51's parser, #52's text fields) are now live. Not re-measured on the live site by this session; the local evidence is in the Session E entry below.
+
 # Session E — native-quality phone experience + first-run welcome (2026-09-30 → 10-01, [PR #52](https://github.com/reyals1111-ux/ZIGoals/pull/52), not merged or deployed)
 
 Evidence labels:
@@ -954,7 +972,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-01 morning for the [Alpha deploy #16](#alpha-deploy--2026-10-01-morning-771e2ad-live) above (recorded by Session E).
+Updated 2026-10-01 morning for the [Alpha deploy #17](#alpha-deploy--2026-10-01-morning-61035dc-live) above (recorded by Session G).
+- Deployed source `61035dc5ba3b26bafe41276599a0452b45c3208b`, `main` after [PR #52](https://github.com/reyals1111-ux/ZIGoals/pull/52). Verified: Actions API.
+- CI: Milestone quality #276 ([run 36834550733](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36834550733)) on `61035dc`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #17 ([run 36836555458](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36836555458)), exact source `61035dc`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `be41026f-1be9-423e-b4d8-71d4be54aea0`; rollback `f00a117f-a283-4b6e-a8f7-ab0bfed248af` (the run #16 deployment). Verified: CI log. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #51, 2026-10-01 morning, recorded by Session E):
 - Deployed source `771e2ad4f3ab1bbc976d58662b896448e06a99e6`, `main` after [PR #51](https://github.com/reyals1111-ux/ZIGoals/pull/51). Verified: Actions API.
 - CI: Milestone quality #272 ([run 36820681369](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36820681369)) on `771e2ad`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #16 ([run 36826122295](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36826122295)), exact source `771e2ad`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
