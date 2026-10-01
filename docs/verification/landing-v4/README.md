@@ -42,13 +42,14 @@ Every copied file is byte-identical to the standalone source, verified with `dif
 
 ## Changes made during import
 
-Three, all owner-approved, none of them design:
+Four, all owner-approved; only the first touches rendering, and it restores authored behaviour rather than introducing new design:
 
+0. **The equation's stepped reveal repaired** (owner-instructed, after the import): fifteen added lines in `styles/final-v4.css`, confined to the equation, leaving the fully lit state unchanged. See below.
 1. **`<meta name="robots" content="noindex, nofollow">` removed.** The standalone was deliberately unindexable; the apex is the public company site.
 2. **The comment calling the canonical and social URLs "illustrative" removed.** They are the real production URLs now.
 3. **The footer's `LOCAL WEBSITE CONCEPT` label removed**, keeping its decorative `✧` so the footer's three-column balance is unchanged. The string is false once the page is served from `zigoals.app`. Nothing else in the footer changed; the independent/unaudited line is untouched.
 
-The design itself was not reinterpreted. Copy, layout, palette, motion, the equation treatment and the exact owner slogan are the approved bytes.
+The design itself was not reinterpreted. Copy, layout, palette, the equation's colour treatment and the exact owner slogan are the approved bytes; every imported file except `index.html` and `styles/final-v4.css` is byte-identical to the source, and both diffs are listed above.
 
 ## Security headers
 
@@ -83,9 +84,11 @@ Three places outside `landing/` asserted the old page and had to follow it: `app
 
 No assertion was dropped to make them pass. The harness now serves the real `landing/` directory with Cloudflare's content types, and every original assertion has a V4 equivalent. Four are new: no third-party request, no Google Fonts link, the equation's stepped reveal, and its reduced-motion settled state. These are the only files this work touches outside `landing/` and `docs/`.
 
-## A defect inherited from the approved package
+## A defect inherited from the approved package, now fixed
 
-The equation's four-step reveal does not reach the words. The state machine and the four progress bars step correctly, but a rule in `styles/final-v4.css` overrides the dimming in `styles/motion.css`, and removing it only half works because V4 paints the spectrum from the parent, so a child's `opacity` cannot dim its glyph. It is the same in the standalone directory — the bytes are identical — so this is not an import regression. Nothing was changed; the measurements, the cause and three possible fixes are in [QA.md](QA.md).
+The equation's four-step reveal never reached the words: the state machine and the four progress bars stepped correctly, but a rule in `styles/final-v4.css` overrode the dimming in `styles/motion.css`, and removing that rule only half worked, because V4 paints the spectrum from the parent and a child's `opacity` cannot dim a glyph the parent fills. The standalone directory has identical bytes and behaved identically, so this was never an import regression.
+
+Fixed on the owner's instruction, in fifteen added lines confined to the equation: an inactive part carries the existing quiet `#6a7c9c` and hands the glyph back to the parent gradient when its step lights. The fully lit state is unchanged — every part is `color: transparent` again, and a pixel comparison against the committed stylesheet differs by at most 3/255, inside the renderer's own run-to-run variance. Reduced motion, `?motion=off`, phones and forced colours are untouched. Measurements are in [QA.md](QA.md).
 
 ## Limits of this evidence
 

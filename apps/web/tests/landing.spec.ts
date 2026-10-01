@@ -144,38 +144,80 @@ test("the equation reveals its four steps in scroll order", async ({ page }, inf
     return { top: rect.top + scrollY, height: rect.height };
   });
 
+  // A lit part is transparent, so the one continuous spectrum painted by its
+  // parent shows through. A dim part carries its own quiet colour instead, which
+  // is what makes the reveal visible rather than merely stateful.
+  const LIT = "rgba(0, 0, 0, 0)";
+  const DIM = "rgb(106, 124, 156)";
+
   const stateAt = async (progress: number) => {
     await page.evaluate(
       ({ top, height, at }) => window.scrollTo(0, Math.round(top + (height - innerHeight) * at)),
       { ...section, at: progress },
     );
-    await page.waitForTimeout(250);
+    // Longer than the 0.55s colour transition, so a reading is a settled state.
+    await page.waitForTimeout(900);
     return page.evaluate(() => ({
-      words: [...document.querySelectorAll("[data-equation]")].map(el => el.classList.contains("active")),
+      active: [...document.querySelectorAll("[data-equation]")].map(el => el.classList.contains("active")),
       ticks: [...document.querySelectorAll(".equation-track span")].map(el => el.classList.contains("active")),
+      inputs: [...document.querySelectorAll(".equation-inputs [data-equation]")].map(el => getComputedStyle(el).color),
+      plus: [...document.querySelectorAll(".equation-inputs i")].map(el => getComputedStyle(el).color),
+      wealth: [...document.querySelectorAll(".equation-result i, .equation-result .gradient-text")]
+        .map(el => getComputedStyle(el).color),
     }));
   };
 
-  // Goals, then + Habits, then + Health, then = Wealth, each with its own tick.
-  expect(await stateAt(0.02)).toEqual({ words: [true, false, false, false], ticks: [true, false, false, false] });
-  expect(await stateAt(0.25)).toEqual({ words: [true, true, false, false], ticks: [true, true, false, false] });
-  expect(await stateAt(0.5)).toEqual({ words: [true, true, true, false], ticks: [true, true, true, false] });
-  expect(await stateAt(0.75)).toEqual({ words: [true, true, true, true], ticks: [true, true, true, true] });
+  // Goals — then + Habits — then + Health — then = Wealth. Each step lights its
+  // own word, the operator that introduces it, and its progress tick.
+  expect(await stateAt(0.02)).toEqual({
+    active: [true, false, false, false],
+    ticks: [true, false, false, false],
+    inputs: [LIT, DIM, DIM],
+    plus: [DIM, DIM],
+    wealth: [DIM, DIM],
+  });
+  expect(await stateAt(0.25)).toEqual({
+    active: [true, true, false, false],
+    ticks: [true, true, false, false],
+    inputs: [LIT, LIT, DIM],
+    plus: [LIT, DIM],
+    wealth: [DIM, DIM],
+  });
+  expect(await stateAt(0.5)).toEqual({
+    active: [true, true, true, false],
+    ticks: [true, true, true, false],
+    inputs: [LIT, LIT, LIT],
+    plus: [LIT, LIT],
+    wealth: [DIM, DIM],
+  });
+  // Fully revealed: every part is transparent again, so the equation is exactly
+  // the approved continuous spectrum with nothing of this reveal left in it.
+  expect(await stateAt(0.75)).toEqual({
+    active: [true, true, true, true],
+    ticks: [true, true, true, true],
+    inputs: [LIT, LIT, LIT],
+    plus: [LIT, LIT],
+    wealth: [LIT, LIT],
+  });
 
-  // The ticks are the visible progress: an inactive one is the dim rail colour.
-  const tickColours = await page.evaluate(() =>
-    [...document.querySelectorAll(".equation-track span")].map(el => getComputedStyle(el).backgroundColor),
-  );
-  expect(new Set(tickColours).size).toBe(1);
-  await stateAt(0.02);
-  const mixedColours = await page.evaluate(() =>
-    [...document.querySelectorAll(".equation-track span")].map(el => getComputedStyle(el).backgroundColor),
-  );
-  expect(new Set(mixedColours).size).toBe(2);
+  // A dim part must stay legible rather than disappear: this is a quiet
+  // near-white on the near-black section, not a near-invisible ghost.
+  const contrast = await page.evaluate(dim => {
+    const channel = (value: number) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+    const luminance = (colour: string) => {
+      const [r, g, b] = colour.match(/\d+/g)!.slice(0, 3).map(part => channel(Number(part) / 255));
+      return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+    };
+    const background = luminance(getComputedStyle(document.body).backgroundColor);
+    return (luminance(dim) + 0.05) / (background + 0.05);
+  }, DIM);
+  expect(contrast).toBeGreaterThan(3);
 
-  // Scrolling back up steps the reveal back down: the sequence is deterministic,
-  // not a one-way entrance.
-  expect(await stateAt(0.5)).toEqual({ words: [true, true, true, false], ticks: [true, true, true, false] });
+  // Scrolling back up steps the reveal back down: deterministic, not a one-way
+  // entrance.
+  const back = await stateAt(0.5);
+  expect(back.inputs).toEqual([LIT, LIT, LIT]);
+  expect(back.wealth).toEqual([DIM, DIM]);
 });
 
 test("reduced motion settles the equation on all four steps without scrolling", async ({ page }, info) => {
@@ -185,15 +227,20 @@ test("reduced motion settles the equation on all four steps without scrolling", 
   await page.goto(landingUrl);
   await page.waitForTimeout(300);
 
+  // Nothing dim, nothing mid-transition: the settled, fully lit spectrum.
   expect(await page.evaluate(() => ({
     enabled: document.documentElement.classList.contains("equation-enabled"),
     words: [...document.querySelectorAll("[data-equation]")].map(el => el.classList.contains("active")),
     ticks: [...document.querySelectorAll(".equation-track span")].map(el => el.classList.contains("active")),
     opacities: [...document.querySelectorAll("[data-equation]")].map(el => getComputedStyle(el).opacity),
+    colours: [...document.querySelectorAll(
+      ".equation-inputs [data-equation], .equation-inputs i, .equation-result i, .equation-result .gradient-text",
+    )].map(el => getComputedStyle(el).color),
   }))).toEqual({
     enabled: false,
     words: [true, true, true, true],
     ticks: [true, true, true, true],
     opacities: ["1", "1", "1", "1"],
+    colours: Array(7).fill("rgba(0, 0, 0, 0)"),
   });
 });
