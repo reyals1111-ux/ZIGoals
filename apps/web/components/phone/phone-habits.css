@@ -30,6 +30,8 @@
   :root .habits-workspace .habit-card .fine { margin: 8px 0 6px; }
   :root .habits-workspace .habit-management { gap: 8px; }
   :root .habits-workspace .habit-management .quiet { min-height: 44px; }
+  /* Calendar: seven days across with 2 px gaps gives 44 px day buttons from a 390 px phone up (about 40 px at 360). */
+  :root .habits-workspace .habit-calendar { gap: 2px; }
 
   /* Consistency: the month and the week side by side as a swipeable pair. */
   :root .habits-workspace .habit-consistency { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
