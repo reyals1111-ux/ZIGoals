@@ -9,11 +9,11 @@ export function AssetIcon({symbol,kind='Crypto',logoUrl}:{symbol:string;kind?:st
  // The validated, same-origin raster proxy bounds bytes and host; no client provider credential.
  // eslint-disable-next-line @next/next/no-img-element
  <img src={logo} alt="" width={48} height={48} loading="lazy" onError={()=>setFailed(logo)}/>:fallback}</span>;}
-export function ProgressRing({percent,size=112,label='Goal progress',complete,assetMix=[],identity=label}:{percent:number|string|null|undefined;size?:number;label?:string;complete?:boolean;assetMix?:AssetMix[];identity?:string}){
+export function ProgressRing({percent,size=112,label='Goal progress',complete,assetMix=[],identity=label,valueText}:{percent:number|string|null|undefined;size?:number;label?:string;complete?:boolean;assetMix?:AssetMix[];identity?:string;valueText?:string}){
  const progress=progressPresentation(percent,complete),ref=useEntrance<HTMLDivElement>(`progress:${identity}`,Boolean(progress&&progress.arc>0));
  const segments=progress?ringSegments(assetMix,progress.exact):[];
  const composition=segments.length?smoothConicGradient(segments.map(s=>({color:ASSET_COLORS[s.assetClass],offset:s.offset,size:s.size}))):undefined;
- return <div ref={ref} className="flow-ring" role={progress?'progressbar':'img'} aria-label={progress?label:`${label}: Unavailable`} aria-valuemin={progress?0:undefined} aria-valuemax={progress?100:undefined} aria-valuenow={progress?.arc} aria-valuetext={progress?`${progress.exact}% exact progress${complete===false||Number(progress.exact)<100?' · target not yet reached':''}`:undefined} title={progress?`${progress.exact}% exact progress`:'Progress unavailable'} style={{'--progress':`${progress?.arc??0}%`,'--ring-size':`${size}px`,'--composition':composition} as CSSProperties}>
+ return <div ref={ref} className="flow-ring" role={progress?'progressbar':'img'} aria-label={progress?label:`${label}: Unavailable`} aria-valuemin={progress?0:undefined} aria-valuemax={progress?100:undefined} aria-valuenow={progress?.arc} aria-valuetext={progress?valueText??`${progress.exact}% exact progress${complete===false||Number(progress.exact)<100?' · target not yet reached':''}`:undefined} title={progress?`${progress.exact}% exact progress`:'Progress unavailable'} style={{'--progress':`${progress?.arc??0}%`,'--ring-size':`${size}px`,'--composition':composition} as CSSProperties}>
   <div className="flow-ring-track" aria-hidden="true"/><div className="flow-ring-fill" aria-hidden="true"/><span aria-hidden="true">{progress?<>{progress.label}<small>%</small></>:'—'}</span>
  </div>;
 }
