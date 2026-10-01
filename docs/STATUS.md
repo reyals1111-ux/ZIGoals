@@ -1,3 +1,105 @@
+# Session G — correctness fixes, Habits speed, worldwide number formatting, phone refinements (2026-10-01, [PR #54](https://github.com/reyals1111-ux/ZIGoals/pull/54), not merged or deployed)
+
+Evidence labels:
+- **local**: this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright at most 2 workers and one run at a time, Chromium 141 standing in for `chrome`).
+- **CI**: Milestone quality on the PR.
+
+No account, secret, wallet or deploy was used. Base: main `61035dc`; main `75bf649` (Session H, #53) was merged in as `6659073`. Input: Session F's QA backlog ([QA_SWEEP_2026-09-30.md](qa/QA_SWEEP_2026-09-30.md)).
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Alpha deploy #17 (`61035dc`, after #52) recorded; release identity updated. | `3f00127` |
+| 1 | **Correctness**, one bug per commit, each with a test that failed first:<ul><li>Habits value fields read a decimal comma; "1,234" is refused with its reason (QA-01's twin).</li><li>Money and quantity fields: decimal comma and surrounding spaces read like Health; the Goal preview shows what saving reads, or why it refuses (QA-14). Chain amounts and `parseUnits` are unchanged.</li><li>An open Health page follows the journal day across midnight and keeps a half-typed entry (QA-16).</li><li>Titles made only of zero-width characters are refused in every create/edit form (QA-32); schemas unchanged.</li><li>Focus returns to a Wealth sheet's trigger, a new habit gets focus, one heading id on Today (QA-19, QA-20, QA-30).</li><li>Showcase exports are named `showcase-demo`; restoring demo data into real data needs its own confirmation (QA-17). Detected from the demo's fixed markers; backup format unchanged.</li><li>A fully allocated source cannot be included; a 0-unit source is refused by name (QA-15).</li><li>Today's Health card uses the journal day (QA-24); empty days get words, not "0 more chances" (QA-31); the timer day key comes from date parts (QA-34); Settings says what the older Goal export covers (QA-33).</li></ul> | `e960cf9`, `6405258`, `cc49284`, `800eb23`, `15ad75c`, `0d20012`, `a2bfc06`, `a593a5b`, `98da853`, `804aa43`, `9bd1dee` |
+| 2 | **Performance** (QA-05): Habits day/stats/trends kept per habit object; one check-in re-renders one card (memoized cards, stable props, shared habit objects); a store no longer parses its own save again (**TIER 3**); Wealth and Today formatters built once, wealth history and overview linear and reused. Numbers below. | `877e203`, `798bde0`, `b65143b`, `c0c27f6` |
+| 3 | **Locale-aware display** (QA-06, QA-29): one module, `lib/visual-format.ts`. Numbers and money follow the browser's locale, each currency keeps its own code, nothing is converted. Dates with words are English for the user's region (en-GB, en-DE…), so weekday and month names are English everywhere; digit-only dates follow the locale; ISO dates stay ISO. en-US is unchanged (freeze check: no difference from this part). | `5383293`, `e528cc5` |
+| 4 | **Phone** (phone query only; freeze check: no difference from this part): "Show all N" for long Wealth and Today lists, Today's week folded into one line of totals; Habits calendar days ≥ 44 px down to 360 px; drag a sheet's grabber down to close it. | `81c3fc8`, `fe12e13`, `a05c5f7` |
+| — | Merge main (Session H, #53) with a merge commit. Only `docs/STATUS.md` conflicted; both entries kept. | `6659073` |
+| 5 | **Copy and small UX:** one unlock restores several modules, readable module names (QA-21, UI only); one export file-name pattern (QA-26); one date format for contributions (QA-27); "1 time", "1 asset", "1 serving" (QA-28). One existing spec expected the old "1 pages" and now expects "1 page" (`d8d49f5`). | `89af0a0`, `8d3595b`, `b06cf56`, `a8c42e9`, `d8d49f5` |
+| 6 | **Safari:** not run. Playwright's WebKit download is refused here (`cdn.playwright.dev`: CONNECT 403, organization network policy). | — |
+| 7 | Evidence (below); review gallery: 37 WebP on `review/polish-g-screenshots` (`faf27fd`, never merged) and [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/54#issuecomment-5935683736). This entry. | (this commit) |
+
+`8d3595b` (QA-26) and `b06cf56` (QA-27) also carry QA-28's plural changes in the same files, which import `lib/plural.ts` from `a8c42e9`; on their own they do not build, together with `a8c42e9` they do. History was not rewritten.
+
+**TIER 3 commit and risk:**
+- `b65143b` **(private store)**, behaviour-preserving: `usePrivateStore` skips re-reading a localStorage store when the stored text is exactly what this instance just wrote or already holds; instances on one page share one parse of the same text (keyed by storage, key, schema and raw text). Transactional (IndexedDB) stores, other tabs and other keys refresh as before. Risk: a stale view if two different texts compared equal, which a string comparison rules out. Guard: `lib/private-store-echo.test.ts`.
+- No new persistence key: the display locale, "Show all" and folded sections are not stored.
+
+Not touched: auth/OTP, vault/recovery/encryption (`lib/vault/**`), the sync engine, wallet/Keplr, `parseUnits`, contracts/, workers/, scripts/, packages/, .github/workflows, deploy scripts, secrets, apps/web/AGENTS.md, CLAUDE.md. No new dependency; no data-format, sync-protocol or key change. CSP unchanged; no new network request.
+
+## Intended desktop and tablet differences
+Freeze check (`scripts/desktop-freeze-check.mjs`, run unchanged; it is Session H's lane) of the final build against `61035dc`: **52 of 130 captures differ, all intended**, 0 page errors. Parts 3 and 4 each added none (checked after each part).
+| Change | Captures | Before → after |
+|---|---|---|
+| QA-31 (Part 1) | empty Today ×6 | "0% exact progress … 0 more chances to take a small step." → "No Habits scheduled today … Create your first habit to see today's rhythm." |
+| QA-33 (Part 1) | Settings, empty and Showcase ×12 | one added line under Export Goal Data |
+| QA-27 (Part 5) | Showcase Today ×6, Goal detail ×6, Quick add over Today ×2 | "1 CUSTOM · 9/30/2026" → "1 CUSTOM · 2026-09-30" |
+| QA-28 (Part 5) | Showcase Habits ×6, Health ×6, Wealth ×6, Add asset over Wealth ×2 | "1 times per day" → "1 time per day", "1 servings" → "1 serving", "1 assets" → "1 asset" |
+
+Also intended, not in the captures: the restore preview after a module restore (QA-21), export file names (QA-26), focus after closing a sheet or creating a habit (QA-19, QA-20), the new refusal messages (QA-14, QA-15, QA-32, Habits comma), the Showcase restore confirmation (QA-17), and any browser locale other than en-US (Part 3).
+
+## Evidence
+**Performance** (local, production builds, same machine, 45 habits / ~12,900 check-ins, 3 years of Health, 200 positions, restored through Settings; 3 runs × 10 taps each, Event Timing tap → next paint):
+| | main `61035dc` | this branch |
+|---|---|---|
+| Habits: tap a check-in, median (p90, max) | 899 ms (1051, 1144) | **139 ms** (158, 170) |
+| Habits: page ready / long tasks | 1325 ms / 977 ms | 763 ms / 481 ms |
+| Today: page ready / long tasks | 1506 ms / 1676 ms | 834 ms / 564 ms |
+| Wealth: page ready / long tasks | 1501 ms / 2699 ms | 788 ms / 765 ms |
+| Health: page ready / long tasks | 610 ms / 402 ms | 576 ms / 340 ms |
+
+The < 100 ms target was not reached. One tap still costs one long task (79–124 ms, median 94 ms), most of it `updatePrivateStore` in `lib/private-storage.ts` (Session H's file): it validates the new data twice (schema, then a parse of the serialized text), parses the previous text again for its version and measures the size with a `TextEncoder`. Proposal for its owner: validate `next` once and reuse the serialized text and its size.
+
+**Phone audit** (Session E's method: page height ÷ viewport, production build, fixed clock; the driver stays in the scratchpad):
+| Showcase | 390×844 | 375×667 | 360×800 |
+|---|---|---|---|
+| Today | 14.6 → **13.5** | 18.9 → 17.5 | 16.4 → 15.2 |
+| Wealth | 15.7 → **11.3** | 20.1 → 14.5 | 17.3 → 12.6 |
+| Settings | 14.1 → 14.1 | 18.0 → 18.2 | 15.5 → 15.7 (QA-33's added line) |
+
+Empty data at 390×844: Today 10.4 → 10.1, Wealth 5.5 → 5.3. Every other page is unchanged within 0.1 screen. No page scrolls sideways at any size. Habits calendar days at 360×800: 40.3 px → ≥ 44 px (`tests/phone-refinements.spec.ts`).
+
+**Tests:**
+- Unit (local): 225 files, 1998 passed, 12 skipped.
+- Full Playwright suite on the final build (local, app code of `a8c42e9`, one project at a time): desktop 361 passed, 12 skipped, 2 failed; mobile 350 passed, 24 skipped, 1 failed. The failures: `logo-quickadd-goals-header.spec.ts:52` (intro video, both projects), which this sandbox's Chromium cannot play (CLAUDE.md; it passes in CI); and on desktop `run10-source-pinning.spec.ts:67`, which still expected "1 pages" (updated in `d8d49f5`; 8 of 8 on both projects afterwards; the mobile run already had the update).
+- New specs: `habits-decimal-comma`, `amount-input`, `health-midnight`, `invisible-names`, `focus-return`, `showcase-export-guard`, `goal-source-allocation`, `health-today-journal-day`, `today-empty-copy`, `display-locale` (en-US, de-DE, nl-BE, ja-JP; no hydration error), `phone-refinements`, `copy-polish`. New unit tests: `decimal-input`, `amount-input`, `visible-text`, `showcase-detect`, `habit-timer-day`, `habit-replace`, `habit-sharing`, `habit-card-render` (45 cards, one check-in → one card renders), `private-store-echo`, `wealth-cache`, `visual-format` (en-US parity with `toLocale…String`; en-GB, de-DE, nl-BE, fr-FR, ja-JP, hi-IN), `plural`.
+- CI: on `a8c42e9` browser shards 1 and 3 failed on the one "1 pages" spec above (all else green); on `d8d49f5` Milestone quality #301 ([run 36893511772](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36893511772)) and Canonical reproducibility ([run 36893511489](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36893511489)) succeeded on attempt 1. This docs-only commit runs CI again.
+
+**Known CI intermittents** (table below updated): `run11-recovery-failures.spec.ts:22` (mobile) hit the 45 s budget at `page.reload` (`net::ERR_ABORTED`) once, on `9bd1dee` ([run 36868939969](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36868939969)); it passed on every later run and 30/30 locally. On the merge commit `6659073` ([run 36884511291](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36884511291)) browser shard 2 failed in "Install Chrome for Playwright" (all 3 attempts) before any test ran; the next push ran everything again.
+
+## Decisions made without the owner
+- **en-US stays exactly as before**, so QA-06's dropped trailing zero ("$47,900.5") is unchanged: keeping cents would change en-US. Owner decision.
+- **Hydration:** the server render and hydration always use en-US. Right after hydration the Shell switches to the browser's locale in a layout effect and remounts the page content once, before the first paint and while the workspace is still hidden; en-US never remounts. No hydration error in en-US, de-DE, nl-BE or ja-JP (`display-locale.spec.ts`).
+- **What follows the locale:** grouping, decimal sign and digits for numbers and money; currency stays per currency (`501.800 $` in de-DE, `US$ 501.800` in nl-BE). Raw amounts shown without grouping today ("1234.5 ZIG", percentages, habit counts) keep their digits ungrouped and change only the decimal sign. Form inputs are never localized.
+- **Dates:** a date or time with words is written in English with the region's order (en-DE "1 October 2026"); digit-only dates follow the locale ("1.10.2026"); ISO dates shown as ISO stay ISO.
+- **Typing in dot-grouping locales:** fields keep reading "." as the decimal sign everywhere. Refusing "1.234" in de-DE would also refuse values the app itself prefills (Health pounds such as "154.324"). The Goal preview shows the parsed amount in the user's locale, so a mistaken "1.234" is visible before saving.
+- **Today is 13.5 screens, not ~10:** its lists were already capped (Needs attention 4, Recent activity 4, habits 3). The rest is the user's own arrangement of modules, each with its honesty line; folding whole modules would hide them. Wealth reached 11.3.
+- **Recent activity on phones** shows the 2 latest records (the other lists keep every item in the page behind "Show all"); its existing "View all →" opens Activity.
+- **Forms stay in place, with their action pinned** (habit editor and food log, as since Session E): the food log, Water and the wallet/APR forms are permanent forms in the page, not opened by a trigger; a modal habit editor would make the rest of the page inert while Quick add, focus return and existing journeys drive it in place. Water and APR forms are one or two fields with the button right below, so nothing needed pinning.
+- **Drag-to-dismiss** is one phone-only listener, not an edit of each dialog: no dialog's markup changed (the transaction review included), and a completed drag closes through the same `cancel` path as Escape.
+- **QA-21:** the decrypted preview stays in memory until Done, Cancel or an account change (it was already in memory while previewed); the secret is still cleared at unlock.
+- **QA-26:** the date in export names is the local date; encrypted and recovery file names are unchanged.
+- **QA-28:** only the plural units the app offers ("times", "minutes", "days"…) become singular after 1; a unit the person typed stays as typed.
+- **Session H's UI hand-off** (map `STORAGE_FULL`/`MODULE_LIMIT`/`CONFLICT` in the UI: QA-03's check-in message, QA-18, QA-22) is left for a follow-up: it changes `use-private-store.ts` (TIER 3) and H marked it "later".
+- `scripts/desktop-freeze-check.mjs` is Session H's lane: it ran unchanged and the intended differences are listed above instead of in its `INTENDED` list. No phone audit script was committed (scripts/** is H's); the method is the one Session E recorded.
+- The render-count guard uses React's own `Profiler` and `createRoot` in jsdom (no new testing library).
+
+## Deferred / not done
+- **WebKit / Safari:** not run; the environment's network policy refuses `cdn.playwright.dev`. The owner can allow that host (or a broader access level) under Network access in the cloud environment's settings.
+- **Habits < 100 ms:** 139 ms median (proposal above, in Session H's file).
+- **Today ~10 screens:** 13.5 (above).
+- **Storage error codes in the UI** (QA-03 message, QA-18, QA-22): follow-up on top of #53's codes.
+- **Owner decisions, unchanged:** QA-04 (funding days in UTC), QA-23 (offline shell), QA-35–38 (format and honesty decisions), QA-06's trailing zero.
+- **No real-device check.**
+
+## How the owner can review
+1. `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`, then Settings → Load Showcase Demo.
+2. **Locale:** Chrome → Settings → Languages, put Deutsch (Deutschland) or Nederlands (België) first and reload: money, numbers and digit-only dates follow it; month and weekday names stay English. Back to English (United States): exactly as before.
+3. **Habits speed:** restore a large Habits backup and tap Complete; one card updates.
+4. **Phone:** DevTools device mode at 390×844 and 360×800: Wealth "Show all 13 assets", Today's folded week, the Habits calendar, and drag a sheet's grabber (Add asset, More).
+5. **Restore:** Settings → Restore an encrypted backup → restore one module, then another without the secret again.
+6. **Review screenshots:** the gallery comment on the PR.
+
 # Session H — owner recovery admin tool (ADR-007 A), recovery-copy cleanup, activation readiness (2026-10-01, [PR #53](https://github.com/reyals1111-ux/ZIGoals/pull/53), not merged or deployed)
 
 Evidence labels:
@@ -1005,11 +1107,12 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 |---|---|---|---|
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
+| `run11-recovery-failures.spec.ts:22` (mobile) 45 s timeout at `page.reload` (`net::ERR_ABORTED`) | CI: once on #54 (`9bd1dee`, run 36868939969, shard 3); passed on every later run, 30/30 locally | web browser suite | Monitor |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
 | `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
-| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
