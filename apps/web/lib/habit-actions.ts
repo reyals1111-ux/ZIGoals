@@ -23,7 +23,8 @@ export function scheduleHabitEdit(data:HabitData,id:string,input:HabitInput,from
 export function scheduleHabitState(data:HabitData,id:string,state:HabitState,from:string,now=new Date(),expected?:string):HabitData{
  const h=habitById(data,id);checkChange(h,from,habitCalendarDay(data,now),expected);return replace(data,revised(h,ruleSchema.parse({...latestHabitRule(h),state,from}),now));
 }
-function zonedDay(now:Date,timeZone:string){return new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
+// The timer's day key is read from date parts, like habitCalendarDay, never from a locale's display pattern (QA-34).
+function zonedDay(now:Date,timeZone:string){const parts=new Intl.DateTimeFormat('en',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;return `${get('year')}-${get('month')}-${get('day')}`;}
 function ruleFingerprint(rule:HabitRule){return JSON.stringify(rule);}
 function assertTimerReview(h:Habit,expected?:string){if(expected!==undefined&&JSON.stringify(h.timer)!==expected)throw Error('The timer changed after your review. Review its current timestamps again.');}
 function timerFor(h:Habit,id:string){if(!h.timer||h.timer.id!==id)throw Error('The saved timer changed. Review the current timer.');return h.timer;}
