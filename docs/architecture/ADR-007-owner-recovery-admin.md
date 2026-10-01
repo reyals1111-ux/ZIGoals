@@ -1,6 +1,8 @@
 # ADR-007: owner-only caller for lifecycle recovery administration
 
-Status: **Proposal — awaiting owner decision.** Nothing here is implemented. It adds operator tooling next to the auth/sync lifecycle Worker, so any implementation needs explicit owner approval and its own reviewed PR, labelled TIER 3 (lifecycle). Code references are to `main` at `d21ba8f`. No Cloudflare account, secret or wrangler command was used to write this.
+Status: **Accepted — option A (owner decision 2026-10-01).** Options B, C and D below stay as recorded when the proposal was written; B is the fallback if the option A rehearsal fails. The implementation is a separate reviewed PR, labelled TIER 3 (admin tooling). Code references are to `main` at `d21ba8f`. No Cloudflare account, secret or wrangler command was used to write this.
+
+Proposal status before the decision: proposal, awaiting owner decision; nothing implemented.
 
 ## Decision requested
 Choose one of:
@@ -10,6 +12,8 @@ Choose one of:
 - **no change**: keep Stage 5 manual and blocked.
 
 The recommendation is at the end.
+
+**Decision (owner, 2026-10-01): A.** A local owner command-line tool, nothing deployed, with the owner's own Cloudflare login as the credential.
 
 ## Context: the gap
 - **The authority.** `LifecycleAuthority` (`workers/private-sync/lifecycle.mjs`) owns account deletion and domain generations. Its history can only be restored from a checkpoint kept **outside** Cloudflare storage (`scripts/run11/LIFECYCLE_RECOVERY.md`).
