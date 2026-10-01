@@ -123,6 +123,8 @@
   :root .journey-panel.journey-orbit .journey-steps::before { display: none; }
   :root .journey-panel.journey-orbit .journey-steps > li { flex: 0 0 78%; scroll-snap-align: start; padding: 14px; border: 1px solid #7fc8ff24; border-radius: 18px; background: #0a1123a6; }
   :root .journey-panel.journey-orbit .journey-truths { margin: 0; }
+  /* While arranging, the steps stack too, so nothing on Today sits past the screen edge next to the move controls. */
+  :root[data-layout-editing] .journey-panel.journey-orbit .journey-steps { display: grid; margin: 0; padding: 0; overflow: visible; }
 
   /* Habits today: title and count on one line, the check-in controls right under them. */
   :root .today-page .habits-today .habit-today-list { margin: 10px 0; }
