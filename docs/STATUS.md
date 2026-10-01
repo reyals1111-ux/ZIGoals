@@ -19,7 +19,7 @@ No account, secret, wallet or deploy was used. Base: main `d21ba8f` (Session D m
 | 4 | **Sheets**: every existing dialog is a bottom sheet on phones (grabber, sticky header, sticky primary, above the keyboard via `visualViewport`); the habit editor and food log stay in place with their action pinned. | `b6f8145` |
 | 5 | **First-run welcome**: a card on Today for brand-new devices only; `/app/welcome` (welcome → what matters → first goal → first habit → your data); "Show the welcome again" in Settings on phones. | `114ebac` (TIER 3), `c687248`, `32453d4`, `df8164e` |
 | 6 | Native polish, folded into Parts 2 and 4 (press feedback, title fade, frosting bar, sheet slide-up; each static under reduced motion and Motion Off). | — |
-| 7 | Quality pass (below); landscape overflow fixed; phone specs measure against the device width; two CI-only failures fixed (below); 44 px Habits calendar days. Skip list updated (34 → 36). | `d75fdba`, `c0b4221`, `7907c8f`, `f244986` |
+| 7 | Quality pass (below); landscape overflow fixed; phone specs measure against the device width; three CI-only failures fixed (below); 44 px Habits calendar days. Skip list updated (34 → 36). | `d75fdba`, `c0b4221`, `7907c8f`, `f244986`, `7ade6a9` |
 | 8 | Review gallery: 58 WebP on `review/mobile-e-screenshots` (`b8197ff`, never merged) and [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/52#issuecomment-5924740102). This entry. | (this commit) |
 
 **TIER 3 commit and risk:**
@@ -114,10 +114,13 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
 - **CI:** green on `f244986` ([run 36812115852](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36812115852)) and on `7907c8f` ([run 36806633019](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36806633019)): web checks, the three browser shards, web integration (including the RUN11_PACKAGED package and the Alpha Workers gate), contract, and canonical builds A/B with compare.
 - **Known intermittent:** `market-disconnect.test.mjs` timed out once at 30 s on `212c61e` ([run 36804922026](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36804922026)). This PR does not touch `scripts/run11` or `workers/`. It passed on the next run (the policy's one re-run). The table below records the recurrence.
 
-**CI-only failures fixed on the way** (`212c61e`, `7907c8f`). Each was reproduced locally first:
+**CI-only failures fixed on the way** (`212c61e`, `7907c8f`, `7ade6a9`). Each was reproduced locally first:
 - **Packaged consumer journey** (`scripts/run11`, unchanged): it clicks a visible "Wealth" link at 390×844, so Wealth became a top-bar link as well as staying in More.
 - **`dashboard-visual` (mobile project, unchanged):** a full-page screenshot in Chromium's mobile emulation briefly shrinks the viewport to 1×1 px, where the phone query matches. A page whose content is clipped to the viewport then kept a 4× zoom afterwards. The content clip now applies to landscape phones only, where the overflow was.
 - **`brand-nav-polish` (mobile):** the More sheet was measured mid-slide; `openMore` now waits for the slide to finish.
+- **`ui-design-pass` Part 4 "quick counters" (mobile):** this failed on the docs-only `0403cd7` after passing on `f244986`, reading a counter button as 43.99994 px against ≥ 44. The test measured while the page entrance (a 6 px slide) was still running; the race exists on main too.
+  - Reproduced at 0.05× animation speed: 102 of 424 measurements were under 44 px mid-slide, 0 at rest.
+  - The test now measures once the entrance ends; the assertion is unchanged. It then passed 80 of 80 runs.
 
 ## Decisions made without the owner
 - Tabs: Today · Goals · Habits · Health · More (daily-use pages first; Wealth first in More).
