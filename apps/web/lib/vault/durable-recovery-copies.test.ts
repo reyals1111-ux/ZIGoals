@@ -48,6 +48,15 @@ test('an invalid current store is replaced, but no older copy is deleted',async(
  expect((await db.recovery('local',HEALTH)).sort()).toEqual([raw('original'),raw('copy before invalid'),JSON.stringify({schemaVersion:1,rows:[{id:'a',value:5}]})].sort());
 });
 
+test('a stored module whose refinement throws is still replaced, and no copy is deleted',async()=>{
+ const refined=schema.superRefine((value,ctx)=>{if(value.rows[0]!.value==='')ctx.addIssue({code:'custom',message:'empty'});});
+ const s=await durable(HEALTH,raw('original')),current=await db.read('local',HEALTH);
+ await db.commit('local',HEALTH,current!.revision,{schemaVersion:1,rows:[]},crypto.randomUUID(),raw('copy before rows were emptied'));
+ expect(()=>refined.safeParse({schemaVersion:1,rows:[]})).toThrow(TypeError);
+ await expect(restoreDurableStore(s,HEALTH,refined,raw('restored'),db)).resolves.toEqual(JSON.parse(raw('restored')));
+ expect(await db.recovery('local',HEALTH)).toHaveLength(3);
+});
+
 test('a newer stored version is refused as NEWER_VERSION and every copy stays',async()=>{
  const s=await durable(HEALTH,raw('original')),current=await db.read('local',HEALTH);
  await db.commit('local',HEALTH,current!.revision,{schemaVersion:2,rows:[]},crypto.randomUUID(),raw('copy'));

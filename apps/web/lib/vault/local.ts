@@ -55,7 +55,8 @@ export async function restoreDurableStore<T>(storage:Storage,key:string,schema:z
   if(!isDurableMarker(storage.getItem(key)))throw conflict();
   const previous=await db.read(space,key);if(!previous)throw Error('Private database missing.');
   if(Number(previous.data.schemaVersion)>Number((data as {schemaVersion?:number}).schemaVersion))throw new PrivateStorageError('NEWER_VERSION');
-  const operation=crypto.randomUUID(),readable=schema.safeParse(previous.data).success;
+  // Some refinements throw on malformed input instead of reporting an issue: that store is not readable either.
+  const operation=crypto.randomUUID();let readable=false;try{readable=schema.safeParse(previous.data).success;}catch{/* keep every copy */}
   fence(storage,key);
   try{await db.commit(space,key,previous.revision,data,operation,JSON.stringify(previous.data));}catch(error){throw asStorageError(error,{durable:true});}
   // QA-02, after the confirmed commit and only over a readable, valid store: keep this restore's copy alone, here and among
