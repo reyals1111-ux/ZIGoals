@@ -6,6 +6,9 @@ import { usePlatform } from "./platform/use-platform";
 import { platformSchema } from "../lib/positions";
 import { healthSchema } from "../lib/health";
 import { isShowcase } from "../lib/showcase-storage";
+import { localDate } from "../lib/local-date";
+import { plural } from "../lib/plural";
+const count = (n: number, one: string, many?: string) => `${n} ${plural(n, one, many)}`;
 import { exportFileName, isShowcaseBackup, type ShowcaseModule } from "../lib/showcase-detect";
 
 import { useHabits } from "./habits/use-habits";
@@ -27,7 +30,8 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
     try {
       const url = URL.createObjectURL(new Blob([await store.exportData()], { type: "application/json" }));
       const anchor = document.createElement("a");
-      anchor.href = url; anchor.download = exportFileName(name === "Health" ? "zigoals-health-v1.json" : `zigoals-${name.toLowerCase()}-backup.json`, isShowcase());
+      // One pattern for the three modules (QA-26): zigoals-<module>-backup-<local date>.json, no spaces.
+      anchor.href = url; anchor.download = exportFileName(`zigoals-${name.toLowerCase().replace(/\s+/g, "-")}-backup-${localDate()}.json`, isShowcase());
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage("Backup download started. Keep this file private."); setError("");
     } catch { setError("The original data could not be read. Check browser storage access."); }
@@ -70,8 +74,8 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
 export function PrivateBackups() {
   const habits = useHabits(), health = useHealth(), platform = usePlatform();
   return <div className="private-backup-grid">
-    <ModuleBackup name="Positions and Goals" module="platform" schema={platformSchema} store={platform} describe={data => `${data.goals.length} goals · ${data.positions.length} positions · ${data.allocations.length} allocations · plans and snapshots included`}/>
-    <ModuleBackup name="Habits" module="habits" schema={habitDataSchema} store={habits} describe={data => `${data.habits.length} habits · ${data.habits.reduce((sum, habit) => sum + habit.entries.length, 0)} check-ins`}/>
-    <ModuleBackup name="Health" module="health" schema={healthSchema} store={health} describe={data => `${data.foods.length} foods · ${data.recipes.length} recipes · ${data.diary.length} meals · ${data.weights.length} weights · ${data.activity.length} activities`}/>
+    <ModuleBackup name="Positions and Goals" module="platform" schema={platformSchema} store={platform} describe={data => `${count(data.goals.length, "goal")} · ${count(data.positions.length, "position")} · ${count(data.allocations.length, "allocation")} · plans and snapshots included`}/>
+    <ModuleBackup name="Habits" module="habits" schema={habitDataSchema} store={habits} describe={data => `${count(data.habits.length, "habit")} · ${count(data.habits.reduce((sum, habit) => sum + habit.entries.length, 0), "check-in")}`}/>
+    <ModuleBackup name="Health" module="health" schema={healthSchema} store={health} describe={data => `${count(data.foods.length, "food")} · ${count(data.recipes.length, "recipe")} · ${count(data.diary.length, "meal")} · ${count(data.weights.length, "weight")} · ${count(data.activity.length, "activity", "activities")}`}/>
   </div>;
 }

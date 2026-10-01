@@ -18,13 +18,16 @@ async function exportHabits(page: Page) {
   return { name: file.suggestedFilename(), text: await readFile((await file.path())!, "utf8") };
 }
 
+const today = (page: Page) => page.evaluate(() => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`; });
+
 test("a Showcase export is named showcase-demo, and restoring it into real data needs an explicit demo confirmation", async ({ page }) => {
   await page.goto("/app/settings");
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");
   await page.goto("/app/settings");
   const demo = await exportHabits(page);
-  expect(demo.name).toBe("zigoals-showcase-demo-habits-backup.json");
+  // Export names carry the local date (QA-26).
+  expect(demo.name).toBe(`zigoals-showcase-demo-habits-backup-${await today(page)}.json`);
   expect(JSON.parse(demo.text).habits).toHaveLength(6);
 
   await page.getByRole("button", { name: "Return to my data", exact: true }).click();
@@ -48,7 +51,7 @@ test("an ordinary export keeps its name and restores without the demo confirmati
   await expect(page.getByRole("article", { name: "Evening walk", exact: true })).toBeVisible();
   await page.goto("/app/settings");
   const own = await exportHabits(page);
-  expect(own.name).toBe("zigoals-habits-backup.json");
+  expect(own.name).toBe(`zigoals-habits-backup-${await today(page)}.json`);
   const section = page.getByRole("region", { name: "Habits backup", exact: true });
   await section.getByText("Restore Habits from a file", { exact: true }).click();
   await section.getByLabel("Choose Habits backup").setInputFiles({ name: own.name, mimeType: "application/json", buffer: Buffer.from(own.text) });
