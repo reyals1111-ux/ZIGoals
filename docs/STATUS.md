@@ -1,3 +1,23 @@
+# Apex landing deploy — 2026-10-01 evening, `1e676ba` live on zigoals.app
+
+A separate record from the Alpha deploy numbering: the apex Worker `zigoals` is published by hand with wrangler, not by the Manual Alpha workflow, so there is no Actions run.
+
+Evidence labels:
+- **Owner:** the owner's Terminal output, reported to the Session G cloud session on 2026-10-01. This session did not re-check the site: its network policy refuses `zigoals.app`.
+- **git** / **STATUS:** read by the same session.
+
+- **Deploy:** run locally by the owner per [LANDING.md](deployment/LANDING.md) ("Owner-only deployment"), 2026-10-01 about 18:40 UTC. (Owner)
+- **Source:** `1e676ba54466ff3fdfd1d0f26c48b2b7d5e927d8`, `main` after [#55](https://github.com/reyals1111-ux/ZIGoals/pull/55) (Landing V4), the same source as Alpha deploy #19. (Owner, git)
+- **Live apex:** Worker `zigoals` (zigoals.app), new version `4d96d9c9-38a9-425e-9679-515508c17754`. (Owner)
+- **Rollback:** `de83a26a-d2ce-4f19-8067-09fa46a49fff`, the previous landing page (2026-09-13); the 2026-09-17 record below lists the same version as the live apex. (Owner, STATUS)
+- **Owner checks:**
+  - `zigoals.app` serves the V4 page.
+  - A cache-bypassing request (`/?check=1`) shows all six security headers from `landing/_headers`: `content-security-policy`, `x-frame-options: DENY`, `x-content-type-options: nosniff`, `referrer-policy`, `permissions-policy` and `cross-origin-opener-policy`.
+  - `/_headers` answers 404.
+  - `zigoals-alpha` is unchanged: still `f6ed4ca7-064d-4ede-b19c-9657e5e2ec39` (Alpha deploy #19).
+- **Cache:** the first plain request still returned a cached pre-deploy response; the headers above come from the cache-bypassing request. A later plain request was not reported with this record. (Owner)
+- **Afterwards:** `wrangler logout` was run. (Owner)
+
 # Alpha deploy — 2026-10-01 evening, `1e676ba` live
 
 Evidence labels:
@@ -14,7 +34,7 @@ Evidence labels:
 **Merged since the last record** (git, first-parent history of `main`):
 - [#55](https://github.com/reyals1111-ux/ZIGoals/pull/55) (`1e676ba`): Landing V4, the approved apex company site in `landing/`, its contract tests, and the stricter apex upload allowlist (TIER 3, deploy config checks).
 
-This run publishes the Alpha Worker `zigoals-alpha` only. Whether the apex Worker `zigoals` now serves Landing V4 is not part of this record and was not checked by this session; the Landing V4 entry below describes its separate owner-gated procedure.
+This run publishes the Alpha Worker `zigoals-alpha` only. The owner published Landing V4 to the apex Worker `zigoals` separately: see the [Apex landing deploy](#apex-landing-deploy--2026-10-01-evening-1e676ba-live-on-zigoalsapp) above.
 
 # Landing V4 integration — the apex company site (2026-10-01, branch `landing/final-v4-integration`, not merged or deployed)
 
@@ -102,7 +122,7 @@ No account, secret, wallet or deploy was used. Base: main `61035dc`; main `75bf6
 ## Parts
 | Part | Result | Commits |
 |---|---|---|
-| 0 | Alpha deploy #17 (`61035dc`, after #52) recorded; release identity updated. Alpha deploy #18 (`75bf649`, after #53) recorded in the final STATUS commit, and Alpha deploy #19 (`1e676ba`, after #55) after the next merge, both at the owner's request. | `3f00127`, `3a50d4b`, (deploy #19 STATUS commit) |
+| 0 | Alpha deploy #17 (`61035dc`, after #52) recorded; release identity updated. Alpha deploy #18 (`75bf649`, after #53) recorded in the final STATUS commit, and Alpha deploy #19 (`1e676ba`, after #55) after the next merge, then the owner's apex landing deploy of the same source, all at the owner's request. | `3f00127`, `3a50d4b`, `a88c722`, (apex STATUS commit) |
 | 1 | **Correctness**, one bug per commit, each with a test that failed first:<ul><li>Habits value fields read a decimal comma; "1,234" is refused with its reason (QA-01's twin).</li><li>Money and quantity fields: decimal comma and surrounding spaces read like Health; the Goal preview shows what saving reads, or why it refuses (QA-14). Chain amounts and `parseUnits` are unchanged.</li><li>An open Health page follows the journal day across midnight and keeps a half-typed entry (QA-16).</li><li>Titles made only of zero-width characters are refused in every create/edit form (QA-32); schemas unchanged.</li><li>Focus returns to a Wealth sheet's trigger, a new habit gets focus, one heading id on Today (QA-19, QA-20, QA-30).</li><li>Showcase exports are named `showcase-demo`; restoring demo data into real data needs its own confirmation (QA-17). Detected from the demo's fixed markers; backup format unchanged.</li><li>A fully allocated source cannot be included; a 0-unit source is refused by name (QA-15).</li><li>Today's Health card uses the journal day (QA-24); empty days get words, not "0 more chances" (QA-31); the timer day key comes from date parts (QA-34); Settings says what the older Goal export covers (QA-33).</li></ul> | `e960cf9`, `6405258`, `cc49284`, `800eb23`, `15ad75c`, `0d20012`, `a2bfc06`, `a593a5b`, `98da853`, `804aa43`, `9bd1dee` |
 | 2 | **Performance** (QA-05): Habits day/stats/trends kept per habit object; one check-in re-renders one card (memoized cards, stable props, shared habit objects); a store no longer parses its own save again (**TIER 3**); Wealth and Today formatters built once, wealth history and overview linear and reused. Numbers below. | `877e203`, `798bde0`, `b65143b`, `c0c27f6` |
 | 3 | **Locale-aware display** (QA-06, QA-29): one module, `lib/visual-format.ts`. Numbers and money follow the browser's locale, each currency keeps its own code, nothing is converted. Dates with words are English for the user's region (en-GB, en-DE…), so weekday and month names are English everywhere; digit-only dates follow the locale; ISO dates stay ISO. en-US is unchanged (freeze check: no difference from this part). | `5383293`, `e528cc5` |
@@ -1403,6 +1423,13 @@ Previous release identity (PR #22), checked against GitHub on 2026-09-28:
 - CI: Milestone quality #119 ([run 36354823188](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36354823188)) on `a59bf03`: success. Verified: Actions API.
 - Deployment: Manual Alpha deployment #9 ([run 36357209395](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36357209395)), exact source `a59bf03`: success. Verified: Actions API.
 - Worker `zigoals-alpha`: new version `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb` (also the observed live version); rollback version `c7c67184-0449-48dd-8feb-7e3d0752090e` (the PR21 deployment), captured and validated before upload; 11/11 smoke routes returned 200 with security PASS. Verified: `deployment.json`/`rollback.json` in the run's `alpha-deployment-36357209395-1` artifact (status `VERIFIED`).
+
+## Apex landing deploys
+The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](deployment/LANDING.md), outside the Alpha deploy numbering above. Newest first.
+
+| Date (UTC) | Source | Version | Rollback | Evidence |
+|---|---|---|---|---|
+| 2026-10-01, about 18:40 | `1e676ba` (`main` after #55, Landing V4) | `4d96d9c9-38a9-425e-9679-515508c17754` | `de83a26a-d2ce-4f19-8067-09fa46a49fff` (previous landing, 2026-09-13) | Owner Terminal output; [record](#apex-landing-deploy--2026-10-01-evening-1e676ba-live-on-zigoalsapp) |
 
 ## PR #22 changes
 - Glowing nebula Z above the ZIGoals wordmark. On desktop, a larger Z is centred above the sidebar, and the wordmark with the nebula tagline sits above the sidebar planet.
