@@ -50,3 +50,12 @@ Two platform skips, one per new phone spec. Both skip only on the `desktop` proj
 | E2 | `landscape phone: no sideways scroll and the title on the first screen on every page` (phone-pages.spec.ts:67) | `!isMobile` | Same | platform | Keep. Mobile runs it. |
 
 The full local Playwright run on `main` before Session E reported 34 skipped (Session D entry in docs/STATUS.md); with these two it reports 36. No existing skip changed.
+
+## Session J additions (2026-10-01, branch `platform/session-j-2026-10-01`)
+
+### Platform skip: CI Chrome-install script (non-Linux only)
+`scripts/ci/install-chrome.test.mjs` (10 tests) runs `scripts/ci/install-chrome.sh`, which reads `/proc/locks` to find apt/dpkg lock holders. The suite is `describe.skipIf(process.platform!=='linux')`.
+
+| # | Test (file:line) | Condition | Reason | Category | Action |
+|---|---|---|---|---|---|
+| J1–J10 | `CI Chrome install retries` (install-chrome.test.mjs:58) | not Linux | `/proc/locks` exists only on Linux | platform | Keep. CI (`ubuntu-24.04`, web checks) and every Linux checkout run all 10; on Linux, plain `pnpm test` gains 10 passed and no skip. |
