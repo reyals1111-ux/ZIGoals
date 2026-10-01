@@ -25,6 +25,7 @@ import {synchronize,cloudSnapshot,SyncJournal,type Domain} from '../lib/vault/cl
 import {accountTransport} from '../lib/vault/account-transport';
 import {localDatabase} from '../lib/vault/local';
 import {captureData,applyData,validateData,modules,isSyncedChangeEvent,LocalRecordsChangedDuringSync} from '../lib/vault/account-data';
+import { formatTime } from '../lib/visual-format';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
 type AttachPreview={plan:AttachPlan;file:string;recovery:string;generation:number};
@@ -68,7 +69,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
     // A local edit landed during this sync. The upload is recorded, nothing was overwritten: not a
     // conflict, so automatic sync stays on and one follow-up uploads the newer edit.
     if(!(error instanceof LocalRecordsChangedDuringSync))throw error;fence();followUp.current=true;auto.current=true;setMessage('Newer local edits found. Syncing them next…');return;}
-   await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(new Date().toLocaleTimeString());setMessage('Account records synced and acknowledged.');auto.current=true;
+   await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(formatTime(new Date()));setMessage('Account records synced and acknowledged.');auto.current=true;
   });
   }finally{syncing.current=false;}
  });if(followUp.current){followUp.current=false;scheduleRef.current();}}

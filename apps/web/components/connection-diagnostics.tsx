@@ -12,6 +12,7 @@ import {
   type Diagnostics,
 } from "../lib/diagnostics";
 import { explorers } from "@zigoals/ecosystem-registry";
+import { formatPlainDecimal } from "../lib/visual-format";
 export function ConnectionDiagnostics({
   chain,
   owner,
@@ -103,7 +104,7 @@ export function ConnectionDiagnostics({
               ? "Wallet balance"
               : "Simulated wallet balance"}
           </dt>
-          <dd>{formatUnits(balance, 18)} ZIG</dd>
+          <dd>{formatPlainDecimal(formatUnits(balance, 18))} ZIG</dd>
         </div>
         <div>
           <dt>Expected chain / asset</dt>

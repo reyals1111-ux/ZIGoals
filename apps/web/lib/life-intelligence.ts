@@ -1,6 +1,7 @@
 import { dailyHealthSummary, HEALTH_MEALS, healthHistory, type HealthData } from "./health";
 import { habitDay, type Habit } from "./habits";
 import { addLocalDays, localDate } from "./local-date";
+import { formatDate } from "./visual-format";
 
 /** Saved diary snapshots, never current library values or assumed missing meals. */
 export function nutritionDashboard(data: HealthData, date: string) {
@@ -47,5 +48,5 @@ export function activityDateHeading(at: string, today = localDate()) {
   const date = localDate(new Date(at));
   if (date === today) return "Today";
   if (date === addLocalDays(today, -1)) return "Yesterday";
-  return new Date(at).toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric", year: "numeric" });
+  return formatDate(at, { weekday: "short", month: "long", day: "numeric", year: "numeric" });
 }

@@ -21,6 +21,7 @@ import { QuickAdd } from "../quick-add";
 import { entranceAllowed } from "../use-entrance";
 import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
 import { useVisualViewportInsets } from "./use-visual-viewport";
+import { useSheetDrag } from "./use-sheet-drag";
 
 /**
  * The phone shell (Session E): a top bar with the page's identity, Quick add and Settings, and a glass tab bar whose More
@@ -157,6 +158,7 @@ function useTabArrival(tabs: RefObject<HTMLDivElement | null>, path: string) {
 export function PhoneTabBar() {
   const show = usePhoneChrome(), path = usePathname(), sheet = useRef<HTMLDialogElement>(null), tabs = useRef<HTMLDivElement>(null), titleId = useId(), [open, setOpen] = useState(false);
   useTabArrival(tabs, path);
+  useSheetDrag(show);
   // Arriving on a page closes More, whatever started the navigation.
   useEffect(() => { setOpen(false); }, [path]);
   useEffect(() => {

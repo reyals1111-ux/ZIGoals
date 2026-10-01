@@ -76,14 +76,17 @@ const habitSchema = z.object({
   if (habit.updatedAt < habit.createdAt) context.addIssue({ code: "custom", message: "Invalid habit timestamps." });
   if (JSON.stringify(habit.endCondition) !== JSON.stringify(habit.rules.at(-1)!.endCondition)) context.addIssue({ code: "custom", message: "The current end condition must match the latest historical rule." });
 });
-const habitDataV2Schema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(habitSchema).max(200) }).strict().superRefine((data, context) => {
+function checkHabitSet(data: { habits: readonly { id: string; stackAfterId?: string }[] }, context: z.core.$RefinementCtx) {
   if (new Set(data.habits.map((habit) => habit.id)).size !== data.habits.length) context.addIssue({ code: "custom", message: "Habit identifiers must be unique." });
   const ids = new Set(data.habits.map((habit) => habit.id));
   for (const habit of data.habits) {
     if (habit.stackAfterId === habit.id) context.addIssue({ code: "custom", message: "A habit cannot be stacked after itself." });
     if (habit.stackAfterId && !ids.has(habit.stackAfterId)) context.addIssue({ code: "custom", message: "A stacked habit must reference an available habit." });
   }
-});
+}
+const habitDataV2Schema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(habitSchema).max(200) }).strict().superRefine(checkHabitSet);
+/** The same module rules for habits that are each already valid (see replaceHabit). */
+const habitSetSchema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(z.custom<Habit>()).max(200) }).strict().superRefine(checkHabitSet);
 
 const v1ScheduleSchema = z.discriminatedUnion("kind", [z.object({ kind: z.literal("daily") }).strict(), z.object({ kind: z.literal("weekdays"), days: z.array(z.number().int().min(0).max(6)).min(1).max(7).refine((days) => new Set(days).size === days.length) }).strict()]);
 const v1RuleSchema = z.object({ from: dateSchema, schedule: v1ScheduleSchema, target: z.number().int().min(1).max(10000), state: z.enum(["active", "paused", "archived"]) }).strict();
@@ -126,7 +129,11 @@ export function latestHabitRule(habit: Habit): HabitRule { return habit.rules[ha
 export function goalLinkMatches(link: HabitGoalLink | undefined, scope: HabitGoalLink): boolean { return !!link && link.chainId === scope.chainId && link.owner === scope.owner && link.goalId === scope.goalId; }
 function replaceHabit(data: HabitData, id: string, transform: (habit: Habit) => Habit): HabitData {
   if (!data.habits.some((habit) => habit.id === id)) throw new Error("This habit is no longer available. Refresh and try again.");
-  return habitDataSchema.parse({ ...data, habits: data.habits.map((habit) => habit.id === id ? transform(habit) : habit) });
+  // Only the changed habit is parsed again (Session G, Part 2); the others come from a validated read, the module rules
+  // are checked here, and the store validates the whole module once more before it writes anything.
+  if (data.schemaVersion !== 2) return habitDataSchema.parse({ ...data, habits: data.habits.map((habit) => habit.id === id ? transform(habit) : habit) });
+  const habits = data.habits.map((habit) => habit.id === id ? habitSchema.parse(transform(habit)) : habit);
+  return habitSetSchema.parse({ ...data, habits }) as HabitData;
 }
 function changeRule(habit: Habit, patch: Partial<HabitRule>, now: Date,today=localDate(now)): Habit {
   const from = dateSchema.parse(today);
@@ -177,7 +184,27 @@ type AggregateOutcome = {
   start: string; end: string; period: "week" | "month" | "year"; unit: "weeks" | "months" | "years";
   status: "complete" | "failed" | "open"; complete: boolean; failed: boolean; partial: boolean; scheduledDates: string[];
 };
-function rawAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] {
+/**
+ * Per-habit memo (Session G, Part 2). Habit records are never changed in place: every change makes a new object (a
+ * schema parse or a spread), so a result can be kept for the habit object it was computed from. The stamp guards
+ * against an in-place push or a replaced array anyway, which then recomputes. Keys hold the arguments.
+ */
+type HabitMemo = { entries: Habit["entries"]; rules: Habit["rules"]; entryCount: number; ruleCount: number; values: Map<string, unknown> };
+const habitMemo = new WeakMap<Habit, HabitMemo>();
+function memoized<T>(habit: Habit, key: string, compute: () => T): T {
+  let memo = habitMemo.get(habit);
+  if (!memo || memo.entries !== habit.entries || memo.rules !== habit.rules || memo.entryCount !== habit.entries.length || memo.ruleCount !== habit.rules.length) {
+    memo = { entries: habit.entries, rules: habit.rules, entryCount: habit.entries.length, ruleCount: habit.rules.length, values: new Map() };
+    habitMemo.set(habit, memo);
+  }
+  if (memo.values.has(key)) return memo.values.get(key) as T;
+  const value = compute(); memo.values.set(key, value); return value;
+}
+function entryOn(habit: Habit, date: string) {
+  return memoized(habit, "entries-by-date", () => new Map(habit.entries.map((entry) => [entry.date, entry]))).get(date);
+}
+function rawAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] { return memoized(habit, `aggregate:${today}`, () => computeAggregateOutcomes(habit, today)); }
+function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] {
   type Group = { start: string; end: string; period: "week" | "month" | "year"; latestRule: HabitRule; signatures: Set<string>; scheduledDates: string[] };
   const groups = new Map<string, Group>();
   for (let date = habit.startDate; date <= today; date = addLocalDays(date, 1)) {
@@ -210,7 +237,8 @@ function rawAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] {
     return { start: group.start, end: group.end, period: group.period, unit: `${group.period}s` as AggregateOutcome["unit"], status: complete ? "complete" as const : failed ? "failed" as const : "open" as const, complete, failed, partial, scheduledDates: group.scheduledDates };
   }).sort((a, b) => a.start.localeCompare(b.start));
 }
-function completedOutcomesBefore(habit: Habit, date: string): number {
+function completedOutcomesBefore(habit: Habit, date: string): number { return memoized(habit, `completed-before:${date}`, () => countCompletedOutcomesBefore(habit, date)); }
+function countCompletedOutcomesBefore(habit: Habit, date: string): number {
   const cutoff = addLocalDays(date, -1); if (cutoff < habit.startDate) return 0;
   const dayCompletions = habit.entries.filter((entry) => {
     if (entry.date > cutoff || entry.disposition !== "logged") return false;
@@ -231,8 +259,9 @@ function periodResult(habit: Habit, rule: HabitRule, date: string, today: string
   return rawAggregateOutcomes(habit, today).find((outcome) => outcome.period === period && outcome.start === bounds.start)
     ?? { complete: false, partial: false, failed: false, status: "open" as const, start: bounds.start, end: bounds.end, period, unit: `${period}s` as const, scheduledDates: [] };
 }
-export function habitDay(habit: Habit, date: string, today = localDate()) {
-  const rule = habitRuleOn(habit, date); const entry = habit.entries.find((item) => item.date === date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
+export function habitDay(habit: Habit, date: string, today = localDate()) { return memoized(habit, `day:${date}:${today}`, () => computeHabitDay(habit, date, today)); }
+function computeHabitDay(habit: Habit, date: string, today: string) {
+  const rule = habitRuleOn(habit, date); const entry = entryOn(habit, date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
   if (date > today) return { status: "future" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   if (!rule) return { status: "not-started" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   if (rule.state !== "active") return { status: rule.state, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
@@ -275,7 +304,8 @@ export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string
   });
 }
 
-export function habitStats(habit: Habit, today = localDate()) {
+export function habitStats(habit: Habit, today = localDate()) { return memoized(habit, `stats:${today}`, () => computeHabitStats(habit, today)); }
+function computeHabitStats(habit: Habit, today: string) {
   type StreakUnit = "days" | "weeks" | "months" | "years";
   type Outcome = { start: string; end: string; unit: StreakUnit; status: "complete" | "failed" | "skipped" | "open" };
   const weekStart = addLocalDays(today, -((localWeekday(today) + 6) % 7)); const weekEnd = addLocalDays(weekStart, 6);
@@ -305,7 +335,8 @@ export function habitStats(habit: Habit, today = localDate()) {
   const currentPeriod = aggregatePeriod(habitRuleOn(habit,today)??habit.rules[0]!); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
   return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
-export function habitTrends(habit: Habit, today = localDate()) {
+export function habitTrends(habit: Habit, today = localDate()) { return memoized(habit, `trends:${today}`, () => computeHabitTrends(habit, today)); }
+function computeHabitTrends(habit: Habit, today: string) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;
   return windows.map(({ key, days }) => {
     const start = addLocalDays(today, -(days - 1)); let success = 0, total = 0;

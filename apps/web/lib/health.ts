@@ -1,7 +1,9 @@
 import {bodyMeasurementSchema} from "./body-measurement-schema";
+import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
 import { z } from "zod";
 import { addLocalDays } from "./local-date";
+import { formatNumber } from "./visual-format";
 
 export const HEALTH_STORAGE_KEY = "zigoals:health:v1";
 export const HEALTH_MEALS = ["Breakfast", "Lunch", "Dinner", "Snacks"] as const;
@@ -46,7 +48,7 @@ export function summarizeNutrition(values:readonly Nutrition[]){
  for(const key of nutrientKeys){const known=values.flatMap(value=>value[key]===null?[]:[value[key]]);coverage[key]={known:known.length,total:values.length};const sum=known.reduce((total,value)=>total+value,0);nutrients[key]=known.length===values.length?sum:null;knownNutrients[key]=known.length?sum:null;}
  return {nutrients,knownNutrients,coverage};
 }
-export const formatNutrient=(value:number|null,scale=1)=>value===null?'Unknown':(value/scale).toLocaleString(undefined,{maximumFractionDigits:3});
+export const formatNutrient=(value:number|null,scale=1)=>value===null?'Unknown':formatNumber((value/scale), {maximumFractionDigits:3});
 export function nutritionSummaryText(summary:ReturnType<typeof summarizeNutrition>,key:CoreNutrient,unit:string,scale=1){
  const value=summary.nutrients[key],coverage=summary.coverage[key];
  if(value!==null)return `${formatNutrient(value,scale)} ${unit}`;
@@ -143,14 +145,10 @@ export function createEmptyHealth(): HealthData {
 }
 export function newHealthId(): string { return `health_${crypto.randomUUID()}`; }
 
-/** A decimal comma ("72,5") is read as a decimal point only when it cannot be a thousands separator. */
+/** A decimal comma ("72,5") is read as a decimal point only when it cannot be a thousands separator (shared rule). */
 function decimalComma(value: string, scale: 1 | 1000): string {
   if (!value.includes(",") || scale === 1) return value;
-  const match = /^(\d+),(\d{1,3})$/.exec(value);
-  if (!match) return value;
-  const whole = match[1]!, fraction = match[2]!;
-  if (fraction.length === 3 && !/^0+$/.test(whole)) throw new Error(`“${value}” could mean ${whole}${fraction} or ${whole}.${fraction}. Type it without a thousands separator.`);
-  return `${whole}.${fraction}`;
+  return normalizeDecimalInput(value);
 }
 /** Parse decimal form values without exponent syntax, implicit defaults, or lost precision. */
 export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number): number {
@@ -249,6 +247,6 @@ export function getHealthActivities(data: HealthData): { id: string; category: "
   return [
     ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${e.date}`, at: e.updatedAt, href: "/app/health" })),
     ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${formatHealthGrams(w.grams)} kg · ${w.date}`, at: w.updatedAt, href: "/app/health" })),
-    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${a.steps.toLocaleString()} steps · ${a.date}`, at: a.updatedAt, href: "/app/health" })),
+    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${a.date}`, at: a.updatedAt, href: "/app/health" })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 }

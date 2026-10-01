@@ -13,7 +13,7 @@
   @starting-style {
     :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transform: translateY(100%); }
   }
-  /* The grabber: a visual cue only; dismissing stays with Close, Cancel, Escape or the backdrop as before. */
+  /* The grabber. Dragging it down closes the sheet as Escape does (use-sheet-drag.ts); Close, Cancel, Escape and the backdrop work as before. */
   :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open]::before {
     content: ""; display: block; width: 40px; height: 5px; margin: 8px auto 0; border-radius: 3px; background: #9fb6d866;
   }

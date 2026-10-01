@@ -9,6 +9,7 @@ import Link from "next/link";
 import Decimal from "decimal.js";
 import { evaluateGoal } from "@zigoals/goal-engine";
 import { formatUnits, parseUnits, TESTNET } from "@zigoals/chain-config";
+import { normalizeDecimalInput } from "../../../../lib/decimal-input";
 import { useGoals } from "../../../../components/goal-provider";
 import { GoalWizard } from "../../../../components/goal-wizard";
 import { displayAmount, GoalProgressRing } from "../../../../components/goal-card";
@@ -19,6 +20,7 @@ import { SceneArt } from "../../../../components/scene-art";
 import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
 import { CONTRACT_ADDRESS } from "../../../../lib/wallet";
 import { NebulaFlow } from "../../../../components/nebula-flow";
+import {formatDateTime,formatPlainDecimal} from "../../../../lib/visual-format";
 export default function GoalDetail({
   params,
 }: {
@@ -76,7 +78,7 @@ export default function GoalDetail({
       scenarioResult = evaluateGoal({
         ...evaluation,
         annualReturnAssumption: new Decimal(
-          scenario === "custom" ? custom : scenario,
+          scenario === "custom" ? normalizeDecimalInput(custom) : scenario,
         )
           .div(100)
           .toFixed(),
@@ -202,11 +204,11 @@ export default function GoalDetail({
               </span>
               <div>
                 <strong>{a.action}</strong>
-                <small>{new Date(a.timestamp).toLocaleString()}</small>
+                <small>{formatDateTime(a.timestamp)}</small>
               </div>
               <span>
                 {a.amount !== "0"
-                  ? formatUnits(a.amount, TESTNET.nativeAsset.decimals) + " ZIG"
+                  ? formatPlainDecimal(formatUnits(a.amount, TESTNET.nativeAsset.decimals)) + " ZIG"
                   : ""}
               </span>
               {s.mode === "testnet" && a.hash && (
@@ -224,7 +226,7 @@ export default function GoalDetail({
  <GoalModule id="local-simulation" title={s.mode==='local'?'Local simulation':'Legacy execution adapter'} description={s.mode==='local'?'Simulation only — no real funds.':'Optional legacy controls'}>          <p className="notice">Simulation only — no real funds.</p>
           <p>Available in this goal</p>
           <strong>
-            {formatUnits(goal.position_units, TESTNET.nativeAsset.decimals)} ZIG
+            {formatPlainDecimal(formatUnits(goal.position_units, TESTNET.nativeAsset.decimals))} ZIG
           </strong>
           <label>
             Amount in ZIG

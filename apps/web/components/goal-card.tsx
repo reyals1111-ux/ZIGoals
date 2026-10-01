@@ -10,6 +10,7 @@ import {formatGoalAmount,legacyGoalSummary,type GoalSummary} from '../lib/goal-s
 import {visualTone} from './visual-tone';
 import {SceneArt} from './scene-art';
 import {ProgressRing} from './platform/financial-ui';
+import {formatPlainDecimal} from '../lib/visual-format';
 import {PinToToday} from './pin-to-today';
 import type {LayoutAttrs} from './layout-edit';
 export const displayAmount= formatGoalAmount;
@@ -23,7 +24,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
   <h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>
   <p className="goal-value nebula-number">{formatGoalAmount(g.current,g.currency)}<span> / {g.target?formatGoalAmount(g.target,g.currency):'No target saved'}</span></p>
   <div className="goal-progress"><GoalProgressRing goalId={g.id} name={g.name} progressPct={g.progressPct} assetMix={g.assetMix} complete={g.status==='closed'?undefined:g.status==='completed'}/><div className="goal-progress-caption"><strong>{g.currency==='milestones'?'Of your journey complete':'Of your goal funded'}</strong><span className={g.remaining!==undefined?'goal-remaining':undefined}>{g.remaining!==undefined?`${formatGoalAmount(g.remaining,g.currency)} remaining`:'Recover your plan'}</span>{g.targetDate&&<span className="goal-target">Target <time dateTime={g.targetDate}>{g.targetDate}</time></span>}</div></div>
-  {g.assetMix&&g.assetMix.length>1&&<p className="goal-mix-legend">{g.assetMix.map(a=><span key={a.assetClass}><i style={{background:a.color}}/>{a.assetClass} {a.percent.toFixed(1)}%</span>)}</p>}
+  {g.assetMix&&g.assetMix.length>1&&<p className="goal-mix-legend">{g.assetMix.map(a=><span key={a.assetClass}><i style={{background:a.color}}/>{a.assetClass} {formatPlainDecimal(a.percent.toFixed(1))}%</span>)}</p>}
   {g.valuationLabel&&<p className="fine valuation-state">{g.valuationLabel}</p>}
   <div className="card-bottom">{g.metadata.map(m=><div key={m.label}><small>{m.label}</small><strong>{m.value}</strong></div>)}</div>
   {g.nextContributionDate&&<p className="goal-next-contribution"><span>Next contribution</span><time dateTime={g.nextContributionDate}>{g.nextContributionDate}</time></p>}

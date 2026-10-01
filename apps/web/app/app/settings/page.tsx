@@ -1,7 +1,8 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
+import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
-import {getAppStorage} from "../../../lib/showcase-storage";
+import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-controls";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
@@ -28,7 +29,7 @@ export default function Settings() {
       );
       const a = document.createElement("a");
       a.href = url;
-      a.download = `zigoals-${s.chain}-goals.json`;
+      a.download = exportFileName(`zigoals-${s.chain}-goals.json`, isShowcase());
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -72,6 +73,10 @@ export default function Settings() {
           <p className="fine">
             Backups contain personal information. Store them somewhere private.
             Local demo and testnet backups are separate.
+          </p>
+          <p className="fine">
+            This older format holds local simulation Goal plans only. Tracked Goals and Wealth are in the Positions and
+            Goals backup above, and Today preferences only in the encrypted backup.
           </p>
           <button
             className="primary"

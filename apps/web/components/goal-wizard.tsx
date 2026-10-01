@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { isInvisibleName } from "../lib/visible-text";
 import {
   CATEGORIES,
   validateMetadata,
@@ -37,6 +38,7 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
     setPlan((p) => ({ ...p, [key]: value }));
   function next() {
     try {
+      if (step === 0 && isInvisibleName(plan.name)) throw Error("Give your Goal a name with at least one visible character.");
       if (step === 0 && !plan.name) set("name", plan.category);
       if (step === 1) {
         validateMetadata({ ...plan, name: plan.name || plan.category });

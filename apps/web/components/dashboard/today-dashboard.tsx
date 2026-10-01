@@ -11,6 +11,7 @@ import {IntroVideo} from './intro-video';
 import {formatUnits,TESTNET} from '@zigoals/chain-config';
 import {AppIcon} from '../app-icon';
 import {ActivityFeed} from '../activity-feed';
+import {usePhoneActive} from '../phone/use-phone-layout';
 import {GoalSummaryCard} from '../goal-card';
 import {SceneArt} from '../scene-art';
 import {usePrivateStore} from '../use-private-store';
@@ -24,6 +25,7 @@ import {HabitCompletion} from '../habits/habit-card';
 import {useMarketQuotes} from '../platform/use-market-quotes';
 import {useEvidenceNow} from '../platform/use-evidence-now';
 import {useLocalToday} from '../use-local-today';
+import {isInvisibleName} from '../../lib/visible-text';
 import {ProgressRing} from '../platform/financial-ui';
 import {TodayIntelligence} from '../platform/today-intelligence';
 import {StakingCard} from '../platform/staking-card';
@@ -43,6 +45,7 @@ import {WelcomeCard} from '../onboarding/welcome-card';
 import {useShowcase} from '../showcase-controls';
 import {noExistingData,onboardingSeen} from '../../lib/onboarding';
 import {getAccountScope} from '../../lib/account-session';
+import { formatPlainDecimal } from "../../lib/visual-format";
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
  const ref=useRef<HTMLDialogElement>(null);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null,dialog=ref.current;dialog?.showModal();return()=>{dialog?.close();previous?.focus();};},[]);
@@ -55,13 +58,13 @@ function WidgetEditor({initial,sources,ready,onSave,onRemove,onClose}:{initial?:
  const requiresEntity=widgetNeedsSource(kind);
  const draft:DashboardWidget={id:id.current,kind,metric,...(requiresEntity||kind==='ecosystem'&&entity?{entity}:{}),title,size,hidden:initial?.hidden??false,revision:initial?.revision??1};
  const preview=widgetMetric(draft,sources);
- async function save(){setBusy(true);setError('');try{await onSave(draft,initial?.revision);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this widget.');}finally{setBusy(false);}}
+ async function save(){if(isInvisibleName(title)){setError('Give the card title at least one visible character, or leave it empty.');return;}setBusy(true);setError('');try{await onSave(draft,initial?.revision);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this widget.');}finally{setBusy(false);}}
  return <Modal title={initial?'Edit widget':'Add a widget'} onClose={onClose}><form onSubmit={e=>{e.preventDefault();void save();}}><WidgetLibrary kind={kind} metric={metric} entity={entity} title={title} size={size} initial={initial} sources={sources} ready={ready} onKind={next=>{setKind(next);setMetric(WIDGET_CATALOG[next].metrics[0]);setEntity('');}} onMetric={setMetric} onEntity={setEntity} onTitle={setTitle} onSize={setSize}/><section className="dashboard-widget-preview" aria-label="Widget preview" data-size={size} data-domain={WIDGET_CATALOG[kind].domain}><p className="eyebrow">PREVIEW · YOUR CURRENT RECORDS · {size==='wide'?'WIDE':'COMPACT'} CARD</p><h3>{preview.title}</h3><div className="dashboard-widget-preview-value">{preview.percent!==undefined&&<ProgressRing percent={preview.percent} complete={preview.complete} size={64} identity={`preview-${id.current}`} label={`${preview.title} progress`}/>}<strong>{preview.value}</strong></div><p>{preview.detail}</p>{preview.facts&&<dl className="dashboard-metric-facts">{preview.facts.map(f=><div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>}{preview.warning&&<p>{preview.warning}</p>}</section>{error&&<p role="alert">{error}</p>}<div className="dashboard-actions">{initial&&onRemove&&<button type="button" className="secondary dashboard-remove" disabled={busy} onClick={()=>{setBusy(true);void onRemove().then(onClose).catch(e=>{setError(e instanceof Error?e.message:'Could not remove this widget.');setBusy(false);});}}>Remove widget</button>}<button type="button" className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={busy||requiresEntity&&!entity}>{busy?'Saving…':'Save widget'}</button></div></form></Modal>;
 }
 export function TodayDashboard(){
  const settings=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
  const platform=usePlatform(),legacy=useGoals(),habits=useHabits(),health=useHealth(),today=useLocalToday();
- const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false);
+ const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false),phone=usePhoneActive();
  // The first-run welcome (Session E) appears only for a device that is certainly brand-new: every store read without
  // error, Today not yet chosen, no Showcase, no account, no private record stored and the welcome never seen here.
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
@@ -126,15 +129,15 @@ export function TodayDashboard(){
   }
   switch(id){
    case 'goals':return financial?<section className="today-goals surface-featured" aria-label="Your goals"><div className="section-heading"><div><h2>Your goals</h2><p>Small steps. A bigger future.</p></div><Link href="/app/goals" className="text-link">View all goals →</Link></div>{!legacy.loaded||!platform.loaded?<p role="status">Loading your Goals…</p>:active.length?<div className="today-goals-grid">{activeCards.map(g=><GoalSummaryCard key={g.key} summary={g} compact/>)}<Link href="/app/goals/new" className="new-destination-card"><span aria-hidden="true">＋</span><strong>Create a new goal</strong><small>A new destination<br/>is waiting.</small></Link></div>:<div className="today-goal-empty"><div><AppIcon name="goals" size={42}/><h3>A plan with your name on it.</h3><p>Choose what matters. Set a target. See the next step.</p><Link className="text-link" href="/app/goals/new">Create your first goal →</Link></div><SceneArt scene="home"/></div>}<p className="local-label">{legacy.mode==='local'?'Local demo · simulated ZIG, never wallet funds':'Testnet wallet view · financial execution disabled'}</p></section>:null;
-   case 'progress':return financial?<section className="progress-summary" aria-label="Your financial progress"><div className="section-heading"><div><h2>Your progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div><div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatUnits(legacy.goals.reduce((total,g)=>total+BigInt(g.position_units),0n).toString(),TESTNET.nativeAsset.decimals)} <span>ZIG</span></strong><small>{legacy.mode==='local'?'Simulated local allocation':'Known wallet Goal allocation'}</small></div><div><AppIcon name="ecosystem"/><strong>None</strong><small>Future return assumed</small></div></div></section>:null;
+   case 'progress':return financial?<section className="progress-summary" aria-label="Your financial progress"><div className="section-heading"><div><h2>Your progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div><div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatPlainDecimal(formatUnits(legacy.goals.reduce((total,g)=>total+BigInt(g.position_units),0n).toString(),TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><small>{legacy.mode==='local'?'Simulated local allocation':'Known wallet Goal allocation'}</small></div><div><AppIcon name="ecosystem"/><strong>None</strong><small>Future return assumed</small></div></div></section>:null;
    case 'habits':return domains.includes('habits')?<HabitsToday/>:null;
    case 'health':return domains.includes('health')?<HealthToday/>:null;
    case 'next-action':return financial&&nextGoal?<div className="next-step"><span className="eyebrow">Your next goal action</span><Link href={nextGoal.href} className="text-link">Review {nextGoal.name} →</Link></div>:null;
    case 'summary':return <WidgetOverview widgets={settings.data.widgets} sources={sources} loaded={settings.loaded} error={settings.error} ready={loaded} domainError={domainError} customizing={customize} onCustomize={()=>setCustomize(x=>!x)}/>;
-   case 'wallet':return financial?<section className="account-panel"><div><h2>Your wallet <span className="pill">{legacy.mode==='local'?'Local demo':'Testnet'}</span></h2><strong className="account-value">{formatUnits(legacy.balance,TESTNET.nativeAsset.decimals)} <span>ZIG</span></strong><p>{legacy.mode==='local'?'Simulated balance · this browser':`${legacy.owner.slice(0,10)}…${legacy.owner.slice(-5)}`}</p><Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>:null;
+   case 'wallet':return financial?<section className="account-panel"><div><h2>Your wallet <span className="pill">{legacy.mode==='local'?'Local demo':'Testnet'}</span></h2><strong className="account-value">{formatPlainDecimal(formatUnits(legacy.balance,TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><p>{legacy.mode==='local'?'Simulated balance · this browser':`${legacy.owner.slice(0,10)}…${legacy.owner.slice(-5)}`}</p><Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>:null;
    case 'staking':return financial?<StakingCard/>:null;
    case 'destination':return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">Start with what matters</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">A destination for your next chapter.</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. Give your ZIG a purpose.</p><Link href="/app/goals/new" className="primary">{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
-   case 'activity':return financial?<section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={4}/></section>:null;
+   case 'activity':return financial?<section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={phone?2:4}/></section>:null;
   }
  }
  function renderPlaced(ref:DashboardItemRef,region:DashboardRegion,index:number){

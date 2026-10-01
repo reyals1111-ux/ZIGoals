@@ -81,11 +81,13 @@ test('a bound Habit updates its Today summary and card after the source changes'
  await source.getByRole('button',{name:/^Add one to/}).click();
  await expect(source.locator('.habit-count strong')).toHaveText('1');
  await page.goto('/app');
- await expect(item).toContainText('1 pages');
- await expect(card).toContainText('1 pages');
+ // One page is singular (Session G, QA-28); "1 pages" no longer matches.
+ const onePage=/1 page(?!s)/;
+ await expect(item).toContainText(onePage);
+ await expect(card).toContainText(onePage);
  await page.reload();
- await expect(item).toContainText('1 pages');
- await expect(card).toContainText('1 pages');
+ await expect(item).toContainText(onePage);
+ await expect(card).toContainText(onePage);
  await card.getByRole('button',{name:'Options for Reading today'}).click();
  await card.getByRole('button',{name:'Remove widget'}).click();
  await expect(card).toHaveCount(0);

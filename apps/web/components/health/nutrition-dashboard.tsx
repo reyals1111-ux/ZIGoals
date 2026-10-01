@@ -7,6 +7,7 @@ import { useShowcase } from "../showcase-controls";
 import {PinToToday} from "../pin-to-today";
 import {useEntrance} from '../use-entrance';
 import {MotionTrack} from '../motion-track';
+import { formatNumber } from "../../lib/visual-format";
 
 export function NutritionDashboard({ data, date, ...layout }: LayoutAttrs & { data: HealthData; date: string }) {
   const result = nutritionDashboard(data, date);
@@ -26,7 +27,7 @@ export function NutritionDashboard({ data, date, ...layout }: LayoutAttrs & { da
     </article>
     <article ref={entrance} className="panel nutrition-trend" id="nutrition-history"><PinToToday label="Nutrition history" choices={[{kind:'health',metric:'history',label:'30-day nutrition rhythm'}]}/>
       <header><p className="eyebrow">30 DAYS OF PERSPECTIVE</p><h2>Your nutrition rhythm.</h2><p>{showcase ? "Showcase example history · fictional diary entries" : "Saved diary history · this browser"}</p></header>
-      <div className="nutrition-trend-stats"><div><strong>{result.averageKcal?.toLocaleString() ?? "—"}</strong><span>kcal per complete logged day</span></div><div><strong>{result.loggedDays}<small> / 30</small></strong><span>days with entries · {result.completeDays} complete calorie days</span></div></div>
+      <div className="nutrition-trend-stats"><div><strong>{result.averageKcal == null ? "—" : formatNumber(result.averageKcal)}</strong><span>kcal per complete logged day</span></div><div><strong>{result.loggedDays}<small> / 30</small></strong><span>days with entries · {result.completeDays} complete calorie days</span></div></div>
       <div className="nutrition-month-bars" role="img" aria-label={`30-day calorie history ending ${date}. ${result.loggedDays} logged days. Exact values in the nutrition history table below.`}>{result.history.map((day, index) => <div key={day.date} title={`${day.date}: ${day.entries ? nutritionSummaryText(day,"kcal","kcal") : "No entries"}`}><i style={{ height: `${day.entries && day.nutrients.kcal!==null ? Math.max(2, day.nutrients.kcal / max * 100) : 0}%`, "--i": index } as CSSProperties} /></div>)}</div>
       <div className="nutrition-chart-axis"><span>{result.history[0]?.date}</span><span>{date}</span></div>
       <p className="fine">Dates with no entries or incomplete calories are excluded from bars and the average. Values describe what you logged.</p>
