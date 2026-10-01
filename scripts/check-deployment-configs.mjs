@@ -1,8 +1,80 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+// The apex upload is deny-by-default: `.assetsignore` starts with `*`, and only
+// these negations may put a path back. Anything else — a config, a review
+// package, a capture source tree, a build tool — stays out of the public site.
+const publishableAssetPatterns = new Set([
+  "!index.html",
+  "!favicon.ico",
+  "!styles",
+  "!styles/*.css",
+  "!scripts",
+  "!scripts/*.js",
+  "!scripts/*.mjs",
+  "!assets",
+  "!assets/**",
+]);
+
+// Kept after the negations so a file added later under an allowed directory is
+// still denied by type rather than silently published. `_headers` is denied on
+// purpose: Wrangler still parses it into response headers ("Parsed 1 valid
+// header rule") while leaving it out of the upload, so the policy applies
+// without the file itself being fetchable.
+const requiredAssetDenials = [
+  "_headers",
+  "wrangler.jsonc",
+  "*.md",
+  "*.json",
+  "*.jsonc",
+  "*.test.js",
+  "*.test.mjs",
+  "*.py",
+  "*.sh",
+];
+
+// `.wrangler` is here because `wrangler dev` writes its Miniflare state into
+// the assets directory; the sqlite files are denied by `*` but must not sit in
+// a deployable tree at all.
+const nonPublicLandingDirectories = new Set([
+  ".wrangler",
+  "backups",
+  "docs",
+  "node_modules",
+  "review",
+  "source",
+  "tools",
+]);
+
+const nonPublicLandingFile = (name) =>
+  name !== "wrangler.jsonc" &&
+  (/\.(md|json|jsonc|py|sh|zip|mov|prores)$/i.test(name) ||
+    /\.test\.(js|mjs|ts)$/i.test(name) ||
+    name.startsWith(".env"));
+
+// Walks the real deployable directory. `.assetsignore` states the intent; this
+// proves the tree itself carries nothing that must never reach zigoals.app.
+export function unpublishableLandingFiles(landingRoot, prefix = "") {
+  if (!existsSync(landingRoot)) return [];
+  const found = [];
+  for (const entry of readdirSync(landingRoot, { withFileTypes: true })) {
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      if (nonPublicLandingDirectories.has(entry.name)) {
+        found.push(`${relative}/`);
+        continue;
+      }
+      found.push(...unpublishableLandingFiles(resolve(landingRoot, entry.name), relative));
+    } else if (nonPublicLandingFile(entry.name)) {
+      found.push(relative);
+    }
+  }
+  return found.sort();
+}
+
 const staticLandingFields = new Set([
   "$schema",
   "name",
@@ -104,17 +176,26 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
     ? readFileSync(assetsIgnorePath, "utf8")
         .split(/\r?\n/)
         .map((line) => line.trim())
-        .filter(Boolean)
+        .filter((line) => line.length > 0 && !line.startsWith("#"))
     : [];
-  if (
-    assetsIgnorePatterns.length !== 2 ||
-    assetsIgnorePatterns[0] !== "*" ||
-    assetsIgnorePatterns[1] !== "!index.html"
-  ) {
-    errors.push('landing/.assetsignore must allow only "index.html"');
+  if (assetsIgnorePatterns[0] !== "*") {
+    errors.push('landing/.assetsignore must deny everything first with "*"');
+  }
+  for (const pattern of assetsIgnorePatterns.filter((line) => line.startsWith("!"))) {
+    if (!publishableAssetPatterns.has(pattern)) {
+      errors.push(`landing/.assetsignore must not republish ${pattern.slice(1)}`);
+    }
+  }
+  for (const pattern of requiredAssetDenials) {
+    if (!assetsIgnorePatterns.includes(pattern)) {
+      errors.push(`landing/.assetsignore must keep denying ${pattern}`);
+    }
   }
   if (!existsSync(resolve(root, "landing/index.html"))) {
     errors.push("landing/index.html must exist");
+  }
+  for (const file of unpublishableLandingFiles(resolve(root, "landing"))) {
+    errors.push(`landing must not contain the non-public file ${file}`);
   }
 
   return errors;

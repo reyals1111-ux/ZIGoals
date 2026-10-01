@@ -1,3 +1,60 @@
+# Landing V4 integration — the apex company site (2026-10-01, branch `landing/final-v4-integration`, not merged or deployed)
+
+The owner-approved V4 landing page replaces the one-page hero that `landing/` has carried until now, so a future apex deploy can no longer publish the obsolete page. The design came from the isolated standalone concept at `/Users/Shared/ZIGoals-Website-Concept`, which was read and left unmodified; this PR imports it, hardens it and documents it. It does not touch the Alpha application.
+
+Evidence labels:
+- **local**: this machine (Node 24.19.0 via the repository pin, pnpm 11.19.0, Chrome `chrome` channel driven by Playwright 1.63.0).
+- **Workers-Assets**: the deployable bytes served by `wrangler dev --config ../../landing/wrangler.jsonc --name zigoals`, so `_headers` applies exactly as Cloudflare applies it.
+
+No Cloudflare account, secret or deploy was used, and no wrangler command reached Cloudflare. Base: main `75bf649` (merge of PR #53). The apex Worker remains `zigoals`; the Alpha Worker `zigoals-alpha` was neither configured, deployed nor read from an account. No DNS, route or custom-domain change is in this PR.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 1 | **TIER 3 (deploy config checks).** The apex upload allowlist becomes deny-by-default instead of "exactly `index.html`", and `landing/_headers` adds the security policy the apex has never had. Every existing isolation rule is unchanged | `3262534` |
+| 2 | **The V4 page.** `index.html`, 7 stylesheets, 4 scripts, brand mark and favicons, the Open Graph card, and the 19 real public-Alpha captures the page references. Byte-identical to the approved source | `976f616` |
+| 3 | **Film and origami scroll.** The two optimized film encodes, the poster, and 162 scroll assets — six shapes × (20 desktop frames + 6 mobile frames + 1 settled still) | `8944e83` |
+| 4 | **Verification package** (`docs/verification/landing-v4/`) and the corrected apex procedure in `docs/deployment/LANDING.md` | `70f7ee4` |
+| 5 | This entry | `bbb56d0` |
+| 6 | **The landing contract tests carried over to V4**, plus checks for the equation's stepped reveal and its reduced-motion settled state | `014d7b3`, `5288263` |
+| 7 | **The equation's stepped reveal repaired** — owner-instructed, fifteen added lines confined to the equation, fully lit state measured unchanged. Below | this commit |
+
+## What changed in the page
+Four edits. One is the equation reveal repair below, which restores authored behaviour rather than introducing design. The other three are not design at all: the `noindex, nofollow` meta is gone (the apex is the public company site), the comment calling the canonical and social URLs "illustrative" is gone, and the footer's `LOCAL WEBSITE CONCEPT` label is gone — its decorative mark stays, so the footer's three-column balance is unchanged. Copy, layout, palette, motion, the equation treatment and the exact owner slogan are the approved bytes. The old landing's Google Fonts CDN link and fabricated CSS "Z" favicon go with the old page.
+
+## TIER 3 commit and risk
+- `3262534` **(deploy config checks):** `landing/.assetsignore` still opens with `*`; only ten approved public paths may be re-included, type denials follow them, and `check-deployment-configs.mjs` additionally walks the real `landing/` tree and fails on any non-public file. Risk: a stricter check could refuse a legitimate future file — it refuses only configs, docs, review material, build tools, capture sources, dev-server state and test files, which must never reach the public apex. Worker names, `assets.directory`, host-scoped routes and the ban on bindings/vars/services are untouched, as are all Alpha-side rules. Behaviour-preserving for `zigoals-alpha`.
+- `landing/_headers` introduces **no HSTS**, no `includeSubDomains`, no `preload` and no Cloudflare zone change. The live apex returns no security headers at all today (`curl -sSI https://zigoals.app/`, 2026-10-01), so this only adds protection.
+
+## Numbers (local unless stated)
+- **Payload:** 204 files, 7,481,170 bytes. First view — HTML, all CSS, all JS, the preloaded brand mark and the favicon — is 220,290 bytes across 14 files. The hero requests no origami frame and no video.
+- **Film:** 2,601,932 bytes desktop, 814,441 bytes mobile, 71,338 bytes poster, re-measured after import. The 15,737,961-byte 4K master is not committed.
+- **Origami:** 120 desktop frames / 1,934,676 bytes, 36 mobile frames / 258,896 bytes, 6 settled stills / 200,488 bytes — reproducing the standalone measurements exactly. The frames provably come from the approved film: the provenance manifest's source hash `219ecaae…447e` matches the master on disk.
+- **Contrast:** the standalone QA's "violet large-text stop at 2.89:1" came from a synthetic all-white backdrop. Against the real page background that stop is 8.25:1, and rendered pixels sampled with the origami screen-blend layer at full strength measure 7.40:1 to 17.95:1 across ten text elements. No design change.
+
+## Tests
+- `pnpm check:deploy-configs` pass; `WRANGLER_SEND_METRICS=false pnpm check:landing` pass (Wrangler 4.144.0 reads 225 entries — 204 files plus 21 directories — then ignores `.assetsignore`, `wrangler.jsonc` and `_headers`).
+- `pnpm typecheck` pass; `pnpm lint` pass.
+- `pnpm test`: **213 files passed, 8 skipped; 1989 tests passed, 12 skipped.** `scripts/check-deployment-configs.test.ts` goes from 20 to 59 tests; each new rule was run as a negative control before being trusted, with 34 deliberately broken variants each producing their specific error.
+- **Workers-Assets, 65 browser checks, all passing.** Five viewport sizes (1920×1080, 1440×900, 768×1024, 430×932, 390×844), each loaded and scrolled end to end: no horizontal overflow, no broken image, no failed request, no page error, no console error or warning, and zero third-party network requests at every width. Muted desktop autoplay with opt-in sound and a Replay offer; a phone downloads no video and keeps the poster; all six origami chapters render in order; reduced motion hides the canvas, downloads no transition frame and shows the settled stills; keyboard focus rings on the first 14 stops; FAQ, image dialog and mobile menu operate and return focus. `/wrangler.jsonc`, `/.assetsignore` and `/_headers` each answer 404 while the header rule is applied.
+- **Links:** every external destination is one of the four approved ones, each `target="_blank" rel="noopener noreferrer"`, every in-page anchor resolves, and all four answer HTTP 200. X refuses automated browsers (403 to Playwright's client, `ERR_HTTP_RESPONSE_CODE_FAILURE` to automated Chrome), so the two X links were confirmed with an ordinary client; they are the pair worth one manual click before release.
+- **Claims:** every substantive claim re-validated against this base and the live Alpha, not the 30 September snapshot. Unaudited Alpha, disabled financial signing and broadcasting, undeployed Goal Manager, disabled mainnet execution and built-but-inactive hosted sync all still hold; Sessions E, G and H moved none of those boundaries. See [CLAIMS.md](verification/landing-v4/CLAIMS.md).
+- **Privacy:** all 19 captures were opened and read, not sampled — no email address, wallet address, account identifier, person's name, real balance or real health record.
+
+## Landing contract tests and an inherited defect
+`apps/web/tests/landing.spec.ts` is the landing's own contract test and the import invalidated all of it — it asserted the old `Explore the Alpha →` CTA, the old `.alpha-note` copy, the old `.consumer-slogan` markup and a `data:` favicon, and served `index.html` alone from an in-memory server, which cannot render a multi-file site. It is rewritten against V4 with no assertion dropped: the harness serves the real `landing/` directory with Cloudflare's content types, every original assertion has a V4 equivalent, and four are new (no third-party request, no Google Fonts link, the equation's stepped reveal, its reduced-motion settled state). The same two ported assertions were applied to `tests/run9-2-visual.spec.ts` and `scripts/verify-hosted-alpha.mjs`. Those three files are the only ones this work touches outside `landing/` and `docs/`. Local: 6 passed, 2 platform skips; the reveal check fails as a negative control when `motion.js` is forced to activate every word at once.
+
+**The equation's four-step reveal did not reach the words** (owner-reported, reproduced, now fixed). The state machine and the four progress bars stepped correctly — `Goals`, `+ Habits`, `+ Health`, `= Wealth` — but every word measured `opacity: 1` throughout, because `styles/final-v4.css` carried an unconditional rule with the same selector and specificity as the dimming rule in `styles/motion.css` and loads last. Removing it only half works: V4 paints one continuous spectrum from the parent `.equation-inputs` with `background-clip: text` and forces `color: transparent !important` on the children, so a child's `opacity` cannot dim a glyph the parent fills — measured with the rule removed, `= Wealth` faded correctly while the three inputs stayed bright and only shifted 10px. The standalone package has identical bytes and behaved identically, so this was **not** an import regression; it was a latent defect in the approved V4.
+
+Fixed on the owner's instruction (option 3 of the three written up): an inactive part carries the existing quiet `#6a7c9c` from `base.css` and hands the glyph back to the parent gradient when its step lights, with each `+` lighting alongside the word it introduces. Fifteen added lines in `styles/final-v4.css`, no deletions, nothing outside the equation. **The fully lit state is unchanged and that was measured, not assumed:** at step 4 every part is `color: transparent` exactly as before, and a pixel comparison of the 1328×900 equation crop against the same frame from the committed stylesheet differs by at most 3/255 per channel, where two runs of the same stylesheet differ by up to 2/255. The quiet colour sits at 4.40:1 on the section background and below every stop of the equation's own gradient (luminance 0.199 against 0.246–0.560), so a quiet part always reads as subordinate while staying legible — the authored `opacity: .13` computed to about 1.56:1. Measured unchanged in every other mode: `prefers-reduced-motion: reduce`, `?motion=off` and phones at 390px light all four steps with no scrolling, and `forced-colors: active` still paints the whole equation `CanvasText`, because the new rules live inside `@media (forced-colors: none)`.
+
+## Not verified / deliberately not done
+- **Physical iPhone Safari in the foreground is unverified.** Everything above is Chrome on macOS; the standalone package said the same, and importing does not change it. Do not read these results as a Safari pass.
+- `prefers-contrast: more` is unhandled by the stylesheets (`prefers-reduced-motion` and `forced-colors: active` are handled). The minimal fix would be additive — one media block that hides the origami layer and paints gradient headings in the solid text token — and is deliberately left out of this PR for a separate owner decision.
+- No WCAG certification, Core Web Vitals measurement, Low Power Mode test, slow-network test, back/forward-cache test, screen-reader pass or security audit is claimed.
+- The local dev server answers `Range` with `200` and the whole file rather than `206`, so range behaviour could not be exercised locally. Cloudflare's production asset server supports ranges; the page has no seek control.
+- **No deployment happened.** `zigoals` was not published, `zigoals-alpha` was not touched, no DNS or custom-domain assignment changed, and no automatic deploy was enabled. Publication is a separate owner gate; the procedure is in [LANDING.md](deployment/LANDING.md).
+
 # Session H — owner recovery admin tool (ADR-007 A), recovery-copy cleanup, activation readiness (2026-10-01, [PR #53](https://github.com/reyals1111-ux/ZIGoals/pull/53), not merged or deployed)
 
 Evidence labels:

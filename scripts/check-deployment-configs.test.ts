@@ -1,16 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, expect, test } from "vitest";
 import {
   readDeploymentConfigs,
+  unpublishableLandingFiles,
   validateDeploymentConfigs,
 } from "./check-deployment-configs.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const temporaryDirectories: string[] = [];
+const requiredDenials = "_headers\nwrangler.jsonc\n*.md\n*.json\n*.jsonc\n*.test.js\n*.test.mjs\n*.py\n*.sh\n";
 
 afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) {
@@ -110,6 +112,15 @@ test("validation fails when the landing entry asset is missing", () => {
   );
 });
 
+function landingRoot(assetsIgnore = readFileSync(resolve(repositoryRoot, "landing/.assetsignore"), "utf8")) {
+  const root = mkdtempSync(resolve(tmpdir(), "zigoals-deployment-config-test-"));
+  temporaryDirectories.push(root);
+  mkdirSync(resolve(root, "landing"));
+  writeFileSync(resolve(root, "landing/index.html"), "<!doctype html>");
+  writeFileSync(resolve(root, "landing/.assetsignore"), assetsIgnore);
+  return root;
+}
+
 test("validation fails without the narrow landing asset allowlist", () => {
   const configs = pair();
   const root = mkdtempSync(resolve(tmpdir(), "zigoals-deployment-config-test-"));
@@ -117,9 +128,94 @@ test("validation fails without the narrow landing asset allowlist", () => {
   mkdirSync(resolve(root, "landing"));
   writeFileSync(resolve(root, "landing/index.html"), "<!doctype html>");
 
-  expect(validateDeploymentConfigs({ ...configs, root })).toContain(
-    'landing/.assetsignore must allow only "index.html"',
+  expect(validateDeploymentConfigs({ ...configs, root })).toEqual(
+    expect.arrayContaining([
+      'landing/.assetsignore must deny everything first with "*"',
+      "landing/.assetsignore must keep denying wrangler.jsonc",
+    ]),
   );
+});
+
+test("the landing allowlist must open with the deny-everything rule", () => {
+  const configs = pair();
+  const root = landingRoot("!index.html\n*\n");
+
+  expect(validateDeploymentConfigs({ ...configs, root })).toContain(
+    'landing/.assetsignore must deny everything first with "*"',
+  );
+});
+
+test.each([
+  "!_headers",
+  "!wrangler.jsonc",
+  "!docs",
+  "!docs/**",
+  "!review/**",
+  "!tools/**",
+  "!backups/**",
+  "!assets/product/source/**",
+  "!**",
+  "!*",
+])("the landing allowlist cannot republish %s", (negation) => {
+  const configs = pair();
+  const root = landingRoot(`*\n!index.html\n${negation}\n${requiredDenials}`);
+
+  expect(validateDeploymentConfigs({ ...configs, root })).toContain(
+    `landing/.assetsignore must not republish ${negation.slice(1)}`,
+  );
+});
+
+test.each(["_headers", "wrangler.jsonc", "*.md", "*.json", "*.jsonc", "*.test.js", "*.test.mjs", "*.py", "*.sh"])(
+  "the landing allowlist must keep denying %s by type",
+  (denial) => {
+    const configs = pair();
+    const kept = requiredDenials
+      .split("\n")
+      .filter((line) => line.trim() && line.trim() !== denial)
+      .join("\n");
+    const root = landingRoot(`*\n!index.html\n${kept}\n`);
+
+    expect(validateDeploymentConfigs({ ...configs, root })).toContain(
+      `landing/.assetsignore must keep denying ${denial}`,
+    );
+  },
+);
+
+test.each([
+  [".wrangler/state/v3/cache/metadata.sqlite", ".wrangler/"],
+  ["docs/LANDING_NOTES.md", "docs/"],
+  ["node_modules/left-pad/index.js", "node_modules/"],
+  ["review/final-v4/QA.md", "review/"],
+  ["tools/extract-origami-v4.py", "tools/"],
+  ["backups/final-v4/index.html", "backups/"],
+  ["assets/product/source/raw-capture.png", "assets/product/source/"],
+])("a non-public %s cannot sit inside the deployable landing tree", (path, reported) => {
+  const configs = pair();
+  const root = landingRoot();
+  const target = resolve(root, "landing", path);
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, "x");
+
+  expect(validateDeploymentConfigs({ ...configs, root })).toContain(
+    `landing must not contain the non-public file ${reported}`,
+  );
+});
+
+test.each(["CLAIMS.md", "payload.json", "provenance.jsonc", "audit.py", "serve.sh", "origami-state.test.mjs", ".env.local"])(
+  "a stray %s in the landing tree fails the check",
+  (name) => {
+    const configs = pair();
+    const root = landingRoot();
+    writeFileSync(resolve(root, "landing", name), "x");
+
+    expect(validateDeploymentConfigs({ ...configs, root })).toContain(
+      `landing must not contain the non-public file ${name}`,
+    );
+  },
+);
+
+test("the repository landing tree carries no non-public file", () => {
+  expect(unpublishableLandingFiles(resolve(repositoryRoot, "landing"))).toEqual([]);
 });
 
 

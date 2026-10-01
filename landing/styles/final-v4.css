@@ -1,0 +1,57 @@
+/* Current public Alpha spectrum, measured from its Today headline. */
+:root{--gradient:linear-gradient(100deg,#1cd9ee 0%,#459df7 23%,#936eff 48%,#e665e9 72%,#ffa59e 100%);--white-spectrum:linear-gradient(100deg,#f3f6ff 0%,#f3f6ff 17%,#1cd9ee 35%,#459df7 50%,#936eff 67%,#e665e9 85%,#ffa59e 100%)}
+.muted-heading,.health-accent,.nebula-emphasis{background:var(--gradient);background-clip:text;-webkit-background-clip:text;color:transparent}
+.chapter h2.chapter-title{background:var(--white-spectrum);background-clip:text;-webkit-background-clip:text;color:transparent}
+.chapter-habits{--white-spectrum:linear-gradient(100deg,#f3f6ff 0%,#f3f6ff 14%,#1cd9ee 28%,#459df7 43%,#936eff 60%,#e665e9 85%,#ffa59e 100%)}
+.chapter-health{--white-spectrum:linear-gradient(100deg,#f3f6ff 0%,#f3f6ff 20%,#1cd9ee 39%,#459df7 53%,#936eff 69%,#e665e9 87%,#ffa59e 100%)}
+.chapter-wealth{--white-spectrum:linear-gradient(100deg,#f3f6ff 0%,#f3f6ff 12%,#1cd9ee 27%,#459df7 41%,#936eff 58%,#e665e9 79%,#ffa59e 100%)}
+.dimension h3{background:var(--white-spectrum);background-clip:text;-webkit-background-clip:text;color:transparent;width:fit-content;font-weight:650}
+.dimension .icon{stroke:url(#spectrum);stroke-width:1.7}.dimension>span{color:#dbe9fc;font-size:16px}.dimension p{color:#e3ecfa}.dimension{border-color:#90ade33d}
+body .equation-sticky .eyebrow{font-size:19px;letter-spacing:.14em;font-weight:700;background:linear-gradient(100deg,#abf3ff,#70c0ff 45%,#bb9fff);background-clip:text;-webkit-background-clip:text;color:transparent;margin-bottom:38px}
+.equation-inputs{background:linear-gradient(100deg,#f3f6ff 0%,#b6f6ff 10%,#1cd9ee 21%,#459df7 37%,#936eff 59%,#e665e9 83%,#ffa59e 100%);background-clip:text;-webkit-background-clip:text;color:transparent;gap:25px}
+.equation-inputs [data-equation],.equation-inputs i{color:transparent!important;background:none!important;font-weight:550}
+.equation-inputs i{font-size:.55em;font-weight:400}
+.equation-result{background:linear-gradient(100deg,#d9f8ff 0%,#1cd9ee 15%,#459df7 30%,#936eff 50%,#e665e9 75%,#ffa59e 100%);background-clip:text;-webkit-background-clip:text;color:transparent;gap:24px}
+.equation-result i,.equation-result .gradient-text{color:transparent;background:none;background-clip:initial;-webkit-background-clip:initial}.equation-result i{font-weight:400}
+html.equation-enabled:not(.motion-off) [data-equation]{opacity:1;transform:none;transition:none}
+/* Stepped reveal. The spectrum is painted once by .equation-inputs and clipped to
+   its text, so a child's opacity cannot dim it; an inactive part instead carries a
+   quiet near-white of its own, and hands the glyph back to the parent gradient when
+   its step lights. Every part active = every part transparent = the approved
+   gradient, unchanged. Skipped under forced colours, which paint their own. */
+@media (forced-colors: none){
+  html.equation-enabled:not(.motion-off) .equation-inputs [data-equation],
+  html.equation-enabled:not(.motion-off) .equation-inputs i,
+  html.equation-enabled:not(.motion-off) .equation-result i,
+  html.equation-enabled:not(.motion-off) .equation-result .gradient-text{transition:color .55s var(--ease)}
+  html.equation-enabled:not(.motion-off) .equation-inputs [data-equation]:not(.active),
+  html.equation-enabled:not(.motion-off) .equation-inputs i:has(+ [data-equation]:not(.active)),
+  html.equation-enabled:not(.motion-off) .equation-result:not(.active) i,
+  html.equation-enabled:not(.motion-off) .equation-result:not(.active) .gradient-text{color:#6a7c9c!important}
+}
+.equation-caption{font-size:clamp(28px,2.65vw,38px);line-height:1.4;letter-spacing:-.035em;font-weight:600;color:#f3f6ff;margin-top:30px}
+.equation-caption .nebula-emphasis{color:transparent}.equation-caption .caption-line{display:block;color:#f3f6ff}.equation-caption .caption-line .nebula-emphasis{color:transparent}
+.equation-section .quiet-note{font-size:16px;color:#e0eaf8;max-width:none}.equation-track{margin-block:25px 18px}
+/* One isolated, screen-blended film surface beneath all foreground content. */
+#origami-scroll{position:fixed;inset:76px 0 0;z-index:1;pointer-events:none;overflow:hidden;mix-blend-mode:screen;opacity:0;mask-image:linear-gradient(transparent,black 13%,black 84%,transparent);-webkit-mask-image:linear-gradient(transparent,black 13%,black 84%,transparent)}
+#origami-scroll canvas{position:absolute;left:50%;top:46%;width:142vw;max-width:none;height:auto;transform:translate(-50%,-50%);will-change:transform}
+main>section:not(.hero){isolation:auto}main>section>.container:not(.equation-sticky){position:relative;z-index:2}.equation-sticky{z-index:2}main>section.hero>.hero-main{z-index:auto}main>section.hero>.hero-bottom{z-index:2}
+.origami-static{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;mix-blend-mode:screen;opacity:.19;mask-image:linear-gradient(transparent,black 18%,black 65%,transparent);-webkit-mask-image:linear-gradient(transparent,black 18%,black 65%,transparent)}
+.origami-static img{position:absolute;width:142vw;max-width:none;height:auto;left:50%;top:0;transform:translateX(-50%)}
+.origami-enhanced .origami-static{visibility:hidden}.fold-planes{display:none!important}.final-horizon{z-index:0}.final-cta:before{z-index:0}
+@media(min-width:1600px){#origami-scroll canvas,.origami-static img{width:135vw}}
+@media(max-width:950px){.equation-caption{font-size:30px}.equation-inputs{gap:17px}.equation-section .quiet-note{max-width:540px}.origami-static{opacity:.16}}
+@media(max-width:700px){
+ body .equation-sticky .eyebrow{font-size:16px;letter-spacing:.1em;margin-bottom:34px}.equation-inputs{font-size:50px;gap:10px}.equation-inputs i{font-size:27px}.equation-result{font-size:83px;gap:18px}.equation-caption{font-size:24px;line-height:1.42;margin-top:30px}.equation-section .quiet-note{font-size:16px;max-width:330px}.equation-track{margin-top:27px}.dimension>span{font-size:16px;letter-spacing:0}.dimension h3{font-size:28px}.dimension p{font-size:16px}
+ #origami-scroll{inset:70px 0 0;mask-image:linear-gradient(transparent,black 12%,black 75%,transparent);-webkit-mask-image:linear-gradient(transparent,black 12%,black 75%,transparent)}#origami-scroll canvas{width:160vw;top:38%}.origami-static img{width:160vw;top:40px}.origami-static{max-height:620px;opacity:.16}
+}
+@media(prefers-reduced-motion:reduce){#origami-scroll{display:none!important}.origami-static{visibility:visible!important}.origami-static img{transform:translateX(-50%)}.chapter-title{animation:none!important}}
+html.motion-off #origami-scroll{display:none!important}html.motion-off .origami-static{visibility:visible!important}
+@media(forced-colors:active){.gradient-text,.muted-heading,.health-accent,.nebula-emphasis,.chapter h2.chapter-title,.dimension h3,.equation-inputs,.equation-result,.equation-inputs [data-equation],.equation-inputs i,.equation-result i,.equation-result .gradient-text,body .equation-sticky .eyebrow{color:CanvasText!important;background:none!important}#origami-scroll,.origami-static{display:none}}
+/* The same spectral wave follows the mobile stack vertically. */
+@media(max-width:700px){.equation-inputs{background-image:linear-gradient(172deg,#f3f6ff 0%,#b6f6ff 12%,#1cd9ee 27%,#459df7 45%,#936eff 64%,#e665e9 86%,#ffa59e 100%)}}
+
+/* The calm footer closes the atmospheric chapter. */
+.site-footer{z-index:2}
+
+.origami-static img:not([src]){visibility:hidden}
