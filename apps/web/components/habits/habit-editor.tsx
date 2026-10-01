@@ -18,6 +18,15 @@ const templates = {
   savings: { title: "Add to savings", category: "Finance", type: "build", measurement: "quantity", unit: "USD", target: 100, targetPeriod: "month", schedule: "daily" },
   nospend: { title: "No-spend day", category: "Finance", type: "quit", measurement: "count", unit: "purchases", target: 0, targetPeriod: "day", schedule: "daily" },
 } as const;
+export type HabitTemplateKey = keyof typeof templates;
+export const HABIT_TEMPLATE_TITLES: Record<HabitTemplateKey, string> = Object.fromEntries(Object.entries(templates).map(([key, t]) => [key, t.title])) as Record<HabitTemplateKey, string>;
+/** A template as a complete new habit, exactly as the editor would save it after choosing that template and nothing else. */
+export function habitTemplateInput(key: HabitTemplateKey): HabitInput {
+  const t = templates[key];
+  const measurement = t.measurement === "boolean" ? { kind: "boolean" as const } : t.measurement === "duration" ? { kind: "duration" as const, unit: t.unit === "hours" ? "hours" as const : "minutes" as const } : { kind: t.measurement, unit: t.unit };
+  const schedule: HabitRule["schedule"] = t.schedule === "daily" ? { kind: "daily" } : t.schedule === "weekdays" ? { kind: "weekdays", days: [1, 2, 3, 4, 5] } : { kind: "frequency", times: 1, period: t.title === "Buy ZIG" ? "month" : "week" };
+  return habitInputSchema.parse({ title: t.title, category: t.category, description: "", notes: "", type: t.type, measurement, target: t.type === "quit" ? 0 : t.target, targetPeriod: schedule.kind === "frequency" ? "day" : t.targetPeriod, schedule, timeOfDay: "anytime", endCondition: { kind: "none" } });
+}
 
 export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[];today:string; onSave: (input: HabitInput,from?:string,expected?:string) => Promise<void>; onCancel: () => void }) {
   const formId = useId();

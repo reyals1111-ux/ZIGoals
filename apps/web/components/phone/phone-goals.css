@@ -1,0 +1,51 @@
+/* Goals on a phone (Session E): list, detail and the create flow. Content, honesty labels and saved order unchanged. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  /* List header: title with "+ Create a goal" on its right, centred on it (as on desktop). */
+  :root .goals-page .page-header.goals-heading { margin: 8px 0 0; }
+  :root .goals-page .goals-heading .primary { min-height: 44px; padding-inline: 14px; font-size: 15px; white-space: nowrap; }
+  /* Goals | Positions and the view filters: one scrolling row of 44 px chips. */
+  :root .goals-page .goals-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 0; }
+  :root .goals-page .goal-view-filters { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; order: 0; width: auto; }
+  :root .goals-page .goal-view-filters::-webkit-scrollbar { display: none; }
+  :root .goals-page .goal-view-filters button { flex: none; min-height: 44px; padding-inline: 14px; }
+  :root .goals-page .goals-count { font-size: 15px; }
+
+  /* Goal cards: about a third of a screen; the art becomes a slim band and the ring sits beside the value. The title and
+     "Open Goal" stay the links (a whole-card link would turn every touch on the card into a navigation). */
+  :root .unified-goal-card:not(.compact-goal) { position: relative; padding: 0 16px 14px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-card-art { height: 64px; margin: 0 -16px 12px; }
+  :root .unified-goal-card .goal-card-art > span { display: none; }
+  :root .unified-goal-card:not(.compact-goal) .card-top { min-height: 0; margin-bottom: 6px; }
+  :root .unified-goal-card:not(.compact-goal) h2 { margin: 0 0 4px; font-size: 22px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-value { min-height: 0; margin-bottom: 10px; font-size: 26px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 8px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress-ring svg { width: 72px; height: 72px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-mix-legend { margin: 4px 0; }
+  :root .unified-goal-card:not(.compact-goal) .card-bottom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-bottom: 8px; }
+  :root .unified-goal-card:not(.compact-goal) .card-footer { padding-top: 8px; }
+  :root .unified-goal-card:not(.compact-goal) .card-footer .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+  :root .goals-page .goal-grid { gap: 12px; }
+
+  /* Goal detail: facts in a 3-up row, metrics two across, modules as tidy 56 px rows. */
+  :root .goal-detail-workspace .goal-detail-overview { padding: 18px 16px; }
+  :root .goal-detail-workspace .goal-detail-overview dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  :root .goal-detail-workspace .goal-detail-overview dl > div { min-width: 0; }
+  :root .goal-detail-workspace .goal-detail-overview :is(dt, dd) { overflow-wrap: anywhere; }
+  :root .goal-intelligence .intelligence-panel { padding: 18px 16px; }
+  :root .goal-intelligence .intelligence-metrics, :root .goal-intelligence .funding-preview-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  :root .goal-intelligence .pace-comparison { gap: 10px; }
+  :root .goal-management-grid { gap: 10px; }
+  :root .goal-management-module > summary { min-height: 56px; padding: 10px 16px; }
+
+  /* Create goal: full-screen steps with the actions pinned above the keyboard and tab bar. */
+  :root .unified-wizard .steps { gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  :root .unified-wizard .wizard-story { display: none; }
+  :root .unified-wizard.wizard-v2 { grid-template-columns: 1fr; }
+  :root .unified-wizard .wizard-content { padding: 16px; }
+  :root .unified-wizard .goal-type-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  :root .unified-wizard .goal-type-cards label { min-height: 88px; padding: 12px; }
+  :root .unified-wizard .form-grid small { font-size: 15px; }
+  :root .unified-wizard .wizard-actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + var(--keyboard-inset, 0px)); z-index: 5; display: flex; gap: 10px; margin: 16px -16px -16px; padding: 12px 16px; background: linear-gradient(180deg, #071228e6, #050c1ef7); border-top: 1px solid #7fc8ff2e; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  :root[data-keyboard] .unified-wizard .wizard-actions { bottom: var(--keyboard-inset, 0px); }
+  :root .unified-wizard .wizard-actions > * { flex: 1; min-height: 48px; }
+}

@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {closeMore,isPhone,navLink} from './phone-nav';
 
 // Records every arrival mark and every logo intro clip inserted during a page load, even if removed again.
 const RECORDER=()=>{const seen={arrive:[] as string[],intro:0};Object.assign(window,{motionSeen:seen});new MutationObserver(records=>{for(const r of records){if(r.type==='attributes'&&(r.target as Element).hasAttribute('data-arrive'))seen.arrive.push((r.target as Element).tagName+':'+(r.target as HTMLElement).dataset.arrive+((r.target as HTMLElement).dataset.arriveMetric!==undefined?'+metric':''));for(const n of r.addedNodes)if(n instanceof Element&&(n.matches('video.logo-intro')||n.querySelector('video.logo-intro')))seen.intro++;}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['data-arrive']});};
@@ -35,13 +36,15 @@ test('a newly selected page arrives once: nav pop and light sweep, title sweep, 
  await page.locator('.habit-filter-bar button').nth(1).click();await page.waitForTimeout(400);
  expect((await seen(page)).arrive.length).toBe(before);
  // Key figures in view get one shine: the Health calories and the Wealth total.
- for(const name of ['Health','Wealth']){await nav.getByRole('link',{name,exact:true}).click();await expect(nav.getByRole('link',{name,exact:true})).toHaveAttribute('aria-current','page');await expect.poll(()=>page.locator('[data-arrive]').count(),{timeout:4000}).toBe(0);}
+ // On a phone (Session E) Wealth sits in the More sheet: its arrival is the More tab's (a button), and it is checked there.
+ const phone=await isPhone(page),navMark=(m:string)=>m==='A:'||(phone&&m==='BUTTON:');
+ for(const name of ['Health','Wealth']){await (await navLink(page,name)).click();await page.waitForURL(`**/app/${name.toLowerCase()}`);await expect(await navLink(page,name)).toHaveAttribute('aria-current','page');await closeMore(page);await expect.poll(()=>page.locator('[data-arrive]').count(),{timeout:4000}).toBe(0);}
  expect((await seen(page)).arrive.filter(m=>m.endsWith('+metric')).length).toBeGreaterThanOrEqual(1);
  // Returning to an item plays its arrival again, once.
- expect((await seen(page)).arrive.filter(m=>m==='A:').length).toBe(3);
+ expect((await seen(page)).arrive.filter(navMark).length).toBe(3);
  await nav.getByRole('link',{name:'Today',exact:true}).click();await page.waitForURL(/\/app$/);
  await expect.poll(()=>page.locator('[data-arrive]').count(),{timeout:4000}).toBe(0);
- expect((await seen(page)).arrive.filter(m=>m==='A:').length).toBe(4);
+ expect((await seen(page)).arrive.filter(navMark).length).toBe(4);
  await page.screenshot({path:info.outputPath('today-arrived.png')});
 });
 
@@ -50,8 +53,7 @@ for(const setting of ['reduced motion','Motion Off'] as const)
   if(setting==='reduced motion')await page.emulateMedia({reducedMotion:'reduce'});
   else await page.addInitScript(()=>localStorage.setItem('zigoals:motion:v1','off'));
   await showcase(page);
-  const nav=page.getByRole('navigation',{name:'Main navigation'});
-  for(const name of ['Habits','Wealth','Goals']){await nav.getByRole('link',{name,exact:true}).click();await expect(nav.getByRole('link',{name,exact:true})).toHaveAttribute('aria-current','page');}
+  for(const name of ['Habits','Wealth','Goals']){await (await navLink(page,name)).click();await page.waitForURL(`**/app/${name.toLowerCase()}`);await expect(await navLink(page,name)).toHaveAttribute('aria-current','page');await closeMore(page);}
   await page.waitForTimeout(900);
   expect(await seen(page)).toEqual({arrive:[],intro:0});
   await expect(page.locator('.app-sidebar img.brand-logo')).toHaveAttribute('alt','ZIGoals');

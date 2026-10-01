@@ -1,0 +1,42 @@
+/* Sheets on a phone (Session E, Part 4): every existing dialog rises from the bottom edge with a grabber, a sticky
+   header and its own scroll; forms that stay in the page keep their primary action pinned above the tab bar, or above
+   the keyboard while one is open (--keyboard-inset from use-visual-viewport.ts). Desktop and tablet dialogs are
+   untouched: everything here is inside the phone query. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] {
+    box-sizing: border-box; width: 100%; max-width: 100%; margin: auto 0 var(--keyboard-inset, 0px);
+    max-height: calc(var(--visual-height, 100dvh) - var(--safe-top) - 12px); overflow-y: auto; overscroll-behavior: contain;
+    border-bottom: 0; border-radius: 24px 24px 0 0;
+    padding-bottom: calc(var(--safe-bottom) + 16px);
+    transform: none; transition: transform 280ms cubic-bezier(.22, 1, .36, 1);
+  }
+  @starting-style {
+    :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transform: translateY(100%); }
+  }
+  /* The grabber: a visual cue only; dismissing stays with Close, Cancel, Escape or the backdrop as before. */
+  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open]::before {
+    content: ""; display: block; width: 40px; height: 5px; margin: 8px auto 0; border-radius: 3px; background: #9fb6d866;
+  }
+  :root dialog.wealth-sheet > header, :root dialog.dashboard-dialog > header { position: sticky; top: 0; z-index: 3; background: linear-gradient(180deg, #0b1529 80%, #0b1529e6); }
+  :root dialog.wealth-sheet :is(.picker-tabs) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  :root dialog.wealth-sheet :is(.picker-tabs)::-webkit-scrollbar { display: none; }
+  :root dialog.wealth-sheet :is(.picker-tabs) button { flex: none; min-height: 44px; white-space: nowrap; }
+  :root :is(dialog.wealth-sheet, dialog.dashboard-dialog) :is(input, select, textarea) { font-size: 16px; }
+  :root :is(dialog.wealth-sheet, dialog.dashboard-dialog) form :is(button[type="submit"], .dashboard-actions) { position: sticky; bottom: 0; z-index: 2; }
+  :root dialog.dashboard-dialog .dashboard-actions { margin-inline: -1rem; padding: 12px 1rem; background: linear-gradient(180deg, #0b1529e6, #0b1529); border-top: 1px solid #7fc8ff24; }
+  :root dialog.quick-add-dialog > div { padding-top: 4px; }
+
+  /* Forms in the page: their primary action stays in reach. */
+  :root .habit-editor .actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); z-index: 3; margin: 12px -16px -16px; padding: 12px 16px; background: linear-gradient(180deg, #071228e6, #050c1ef7); border-top: 1px solid #7fc8ff2e; border-radius: 0 0 20px 20px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  :root .habit-editor .actions > * { flex: 1; min-height: 48px; }
+  :root .habit-editor { scroll-margin-top: calc(var(--phone-bar) + var(--safe-top) + 12px); }
+  :root form[aria-label="Log a meal"] > button[type="submit"] { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); z-index: 3; min-height: 48px; box-shadow: 0 10px 30px #0009; }
+  :root[data-keyboard] :is(.habit-editor .actions, form[aria-label="Log a meal"] > button[type="submit"]) { bottom: calc(var(--keyboard-inset, 0px) + 8px); }
+  :root .private-vault-actions, :root #private-vault .notice .actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); z-index: 3; }
+}
+@media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
+  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transition: none; }
+}
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root[data-app-motion="off"] :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transition: none; }
+}

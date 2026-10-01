@@ -1,0 +1,185 @@
+/* Phone shell (Session E). Every rule below the first one is inside the phone query, so widths of 768 px and more, and
+   tablets with a coarse pointer (taller than 500 px), never see any of it. `:root` prefixes win over the older theme
+   files regardless of stylesheet order (the design-system.css convention). Motion is transform/opacity only and has a
+   static state under reduced motion and the in-app Motion Off. */
+
+/* Server-rendered phone chrome stays invisible elsewhere until hydration removes it. */
+.phone-topbar, .phone-tabbar { display: none; }
+
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root {
+    --phone-bar: 52px;
+    --phone-tabs: 60px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --phone-gutter: 16px;
+    --phone-glass: linear-gradient(160deg, #0a1a33f0, #070f24f2 55%, #150f33f0);
+    --phone-glass-edge: #7fc8ff33;
+    scroll-padding-top: calc(var(--phone-bar) + var(--safe-top) + 12px);
+    scroll-padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 16px);
+    /* No text-size-adjust here: even inside this query, Chromium's full-page capture of desktop pages renders
+       differently when the property is present anywhere (desktop freeze check). */
+  }
+  :root body { -webkit-tap-highlight-color: transparent; }
+
+  /* The desktop sidebar (and its 10-link grid) gives way to the top bar and the tab bar. */
+  :root .app-sidebar { display: none; }
+  :root .app-content { padding-left: var(--safe-left); padding-right: var(--safe-right); padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); }
+  /* Nothing in the content may widen a landscape phone's layout viewport (decorative art reached past the edge there).
+     clip, unlike hidden, makes no scroll container, so sticky bars and in-page anchors behave as before. Landscape only:
+     portrait has no overflow, and a full-page screenshot in Chromium's mobile emulation briefly shrinks the viewport to
+     1x1 px (portrait), where a clipped page fits exactly and keeps a 4x zoom after the viewport is restored. */
+  @media (orientation: landscape) {
+    :root .app-content { overflow-x: clip; }
+  }
+
+  /* ---------- Top bar ---------- */
+  :root .phone-topbar { display: block; position: sticky; top: 0; z-index: 40; padding: var(--safe-top) calc(var(--safe-right) + 8px) 0 calc(var(--safe-left) + 8px); }
+  :root .phone-topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #020918f2, #020918d9); border-bottom: 1px solid transparent; opacity: 0; transition: opacity 200ms ease; pointer-events: none; -webkit-backdrop-filter: saturate(1.4) blur(18px); backdrop-filter: saturate(1.4) blur(18px); }
+  :root .phone-topbar[data-scrolled]::before { opacity: 1; border-bottom-color: #7fc8ff26; }
+  :root .phone-topbar-row { display: grid; grid-template-columns: minmax(44px, auto) minmax(0, 1fr) auto; align-items: center; gap: 4px; height: var(--phone-bar); }
+  :root .phone-home, :root .phone-back, :root .phone-settings, :root .phone-wealth { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 14px; color: var(--text); text-decoration: none; }
+  :root .phone-home .brand-logo { display: block; width: 30px; height: 34px; margin: 0; filter: drop-shadow(0 0 8px #4897ff55); }
+  :root .phone-back { gap: 2px; padding: 0 8px 0 2px; font-size: 17px; font-weight: 600; color: #9fe6ff; }
+  :root .phone-title { margin: 0; text-align: center; font-size: 17px; font-weight: 650; letter-spacing: -.01em; color: var(--text-strong, #f4f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transform: translateY(6px); transition: opacity 200ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1); }
+  :root .phone-topbar[data-title-shown] .phone-title { opacity: 1; transform: none; }
+  :root .phone-actions { display: flex; align-items: center; gap: 2px; }
+  :root :is(.phone-settings, .phone-wealth)[aria-current="page"] { background: #0d2a44; box-shadow: inset 0 0 0 1px #6fdcff55; }
+  /* Quick add: the same component and name ("+ Quick add"), shown as a round "+". */
+  :root .phone-topbar .phone-quick-add { position: relative; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 1px solid transparent; font-size: 0; color: #041126; background: var(--nebula-emphasis) padding-box, linear-gradient(120deg, #bff4ff, #9d8cff) border-box; box-shadow: inset 0 1px 2px #e4fcffb0, 0 0 14px #2edbff40; }
+  :root .phone-topbar .phone-quick-add::before, :root .phone-topbar .phone-quick-add::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 2.5px; border-radius: 2px; background: #041126; translate: -50% -50%; }
+  :root .phone-topbar .phone-quick-add::after { rotate: 90deg; }
+
+  /* ---------- Tab bar ---------- */
+  :root .phone-tabbar { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; padding: 6px calc(var(--safe-right) + 8px) calc(var(--safe-bottom) + 6px) calc(var(--safe-left) + 8px); background: linear-gradient(180deg, #06112af0, #030a1cf7); border-top: 1px solid #7fc8ff2e; box-shadow: 0 -12px 40px #0008; -webkit-backdrop-filter: saturate(1.5) blur(20px); backdrop-filter: saturate(1.5) blur(20px); transition: transform 280ms cubic-bezier(.22, 1, .36, 1); }
+  :root .phone-tabs { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 560px; margin: 0 auto; }
+  :root .phone-tab { position: relative; z-index: 1; box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; min-width: 0; padding: 4px 2px; border: 0; border-radius: 16px; background: none; color: #a9bcd9; font: inherit; font-size: 13px; font-weight: 600; line-height: 1.15; text-decoration: none; cursor: pointer; -webkit-touch-callout: none; }
+  :root .phone-tab > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  :root .phone-tab[aria-current="page"], :root .phone-more-button[data-current] { color: var(--text-strong, #f4f8ff); }
+  :root .phone-tab[aria-current="page"] svg, :root .phone-more-button[data-current] svg { filter: drop-shadow(0 0 5px #25dfff80); }
+  /* The active tab's pill glides between tabs (transform only). */
+  :root .phone-tab-pill { position: absolute; z-index: 0; top: 2px; bottom: 2px; left: 0; width: 20%; opacity: 0; transform: translateX(calc(var(--tab-index, 0) * 100%)); transition: transform 320ms cubic-bezier(.22, 1, .36, 1), opacity 200ms ease; pointer-events: none; }
+  :root .phone-tab-pill::before { content: ""; position: absolute; inset: 0 6px; border-radius: 16px; border: 1px solid transparent; background: linear-gradient(110deg, #063557, #081531 65%, #09283c) padding-box, linear-gradient(120deg, var(--brand-cyan), #3b84e1 43%, var(--brand-violet) 70%, var(--brand-cyan)) border-box; box-shadow: inset 0 0 14px #1dc7ff28, inset 0 -2px 4px #e886ff66, 0 0 14px #00cfff24; }
+  :root .phone-tabs[data-active] .phone-tab-pill { opacity: 1; }
+  :root .phone-tab[data-arrive] svg { animation: phone-tab-arrive 520ms cubic-bezier(.22, 1, .36, 1); }
+  /* Editing a layout replaces the tab bar with the Arrange bar. */
+  /* While arranging, the Arrange bar (Reset / Done) docks just above the tab bar, so every page stays one tap away. */
+  :root .layout-bar { bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 10px); width: calc(100vw - 2 * var(--phone-gutter) - var(--safe-left) - var(--safe-right)); }
+  :root[data-layout-editing] .app-content { padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 150px); }
+  /* A soft keyboard covers the tab bar anyway; keep it out of the way of fields and sticky actions. */
+  :root[data-keyboard] .phone-tabbar { transform: translateY(110%); visibility: hidden; }
+
+  /* ---------- Sheets (More here; the other dialogs in phone-sheets.css) ---------- */
+  :root dialog.phone-sheet { position: fixed; inset: auto 0 0 0; box-sizing: border-box; width: 100%; max-width: none; max-height: calc(100dvh - var(--safe-top) - 16px); margin: 0; padding: 0; border: 1px solid var(--phone-glass-edge); border-bottom: 0; border-radius: 26px 26px 0 0; background: linear-gradient(180deg, #0b1a33fa, #050c1efa); color: var(--text); box-shadow: 0 -20px 70px #000b; overflow-y: auto; overscroll-behavior: contain; transition: transform 300ms cubic-bezier(.22, 1, .36, 1); }
+  :root dialog.phone-sheet[open] { transform: none; }
+  @starting-style { :root dialog.phone-sheet[open] { transform: translateY(100%); } }
+  :root dialog.phone-sheet::backdrop { background: #01050dc7; }
+  :root .phone-sheet-panel { padding: 8px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 16px); }
+  :root .phone-grabber { width: 38px; height: 5px; margin: 0 auto 6px; border-radius: 3px; background: #9fb6d866; }
+  :root .phone-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+  :root .phone-sheet-head h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+  :root .phone-sheet-close { display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #9fc8ff33; border-radius: 50%; background: #0e2038; color: var(--text); font-size: 26px; line-height: 1; }
+  :root .phone-more-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+  :root .phone-tabbar :is(.phone-tab, .phone-more-row) { border-bottom: 0; flex: none; }
+  :root .phone-more-row { text-align: left; display: grid; grid-template-columns: 44px minmax(0, 1fr) 24px; align-items: center; gap: 14px; min-height: 64px; padding: 8px 12px; border-radius: 18px; border: 1px solid #7fc8ff1f; background: linear-gradient(130deg, #0a1b33e6, #0a1128e6 60%, #1a1438e0); color: var(--text); text-decoration: none; }
+  :root .phone-more-row .icon-medallion { width: 44px; height: 44px; }
+  :root .phone-more-row[aria-current="page"] { border-color: #6fdcff88; box-shadow: inset 0 0 16px #1dc7ff22; }
+  :root .phone-more-copy { display: grid; gap: 2px; min-width: 0; }
+  :root .phone-more-copy strong { font-size: 17px; font-weight: 650; }
+  :root .phone-more-copy::after { content: attr(data-note); font-size: 15px; line-height: 1.35; color: var(--text-meta, #c2d0e5); }
+  :root .phone-more-chevron { display: grid; place-items: center; color: #8fb3dc; transform: rotate(180deg); }
+  :root .phone-more-signature { position: relative; display: grid; justify-items: center; gap: 4px; margin-top: 18px; padding: 26px 12px 10px; border-radius: 22px; overflow: hidden; background: linear-gradient(180deg, #02091800, #020918cc), var(--cosmic-destination) center 30% / cover no-repeat; text-align: center; }
+  :root .phone-more-descriptor { margin: 0 0 4px; line-height: 1.4; color: #b3cff2; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+  :root .phone-more-signature .brand-wordmark { font-size: 32px; }
+  :root .phone-more-tagline { margin: 6px 0 0; font-size: 15px; font-weight: 700; line-height: 1.6; letter-spacing: .08em; }
+  :root .phone-more-tagline > span[aria-hidden] { display: block; text-transform: uppercase; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; color: transparent; filter: drop-shadow(0 1px 1px #020918); }
+
+  /* ---------- Honesty status strip ----------
+     The same testnet bar, wallet buttons, Showcase banner, sync line and Local simulation strip, restyled as one compact
+     stack right under the top bar. Labels never clip; only the long sentences are clamped while "Status details" is closed. */
+  :root .app-topbar { display: grid; gap: 6px; max-width: none; margin: 6px calc(var(--phone-gutter) - 6px) 0; padding: 4px 6px 6px 12px; border: 1px solid var(--phone-glass-edge); border-radius: 18px; background: var(--phone-glass); box-shadow: inset 0 1px 0 #67bbff1c; }
+  :root .app-topbar .network-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; width: auto; max-width: none; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; text-align: left; min-height: 44px; }
+  :root .app-topbar .network-banner strong { flex: 1 1 0; min-width: 0; font-size: 13px; line-height: 1.3; letter-spacing: .03em; white-space: normal; overflow-wrap: normal; }
+  :root .app-topbar .network-banner > span { flex: 1 0 100%; order: 3; padding-bottom: 6px; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }
+  :root .phone-status-toggle { order: 2; flex: none; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #9fc8ff33; border-radius: 14px; background: #0c1e36; color: #bfe9ff; transition: transform 200ms ease; }
+  :root .phone-status-toggle svg { transition: transform 240ms cubic-bezier(.22, 1, .36, 1); }
+  :root .phone-status-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  :root .app-topbar .wallet { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 6px; width: auto; margin: 0; order: 0; }
+  :root .app-topbar .wallet button { min-height: 44px; min-width: 0; margin: 0; padding: 6px 10px; border-radius: 14px; font-size: 15px; justify-content: center; }
+  :root .app-topbar .wallet .quiet { display: inline-flex; align-items: center; border: 1px solid #9fc8ff2e; background: #0a1a30; color: var(--text); }
+  :root .app-topbar .wallet .quiet[aria-pressed="true"] { border-color: #6fdcff77; background: #0b2a42; color: #fff; }
+  :root .app-topbar .wallet-connect { gap: 8px; min-width: 0; }
+  :root .app-topbar .wallet-identity { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* The status rows share the strip's card language; the lock stays flush with the content edge (Part 18.4). */
+  :root .app-content .workspace { padding-inline: var(--phone-gutter); }
+  :root .workspace > .showcase-banner { align-items: center; gap: 8px; margin: 8px -6px 0; padding: 0 6px 0 12px; min-height: 48px; border-radius: 16px; font-size: 14px; }
+  :root .workspace > .showcase-banner > div { display: block; min-width: 0; }
+  :root .workspace > .showcase-banner strong { display: block; font-size: 13px; letter-spacing: .05em; }
+  :root .workspace > .showcase-banner span { display: block; font-size: 15px; line-height: 1.4; }
+  :root .workspace > .showcase-banner button { flex: none; min-height: 44px; padding: 0 12px; font-size: 15px; }
+  :root .workspace > .workspace-status { flex-wrap: nowrap; gap: 8px; padding: 2px 0 0; font-size: 14px; }
+  :root .workspace > .workspace-status > span { flex: 1 1 auto; }
+  :root .workspace > .workspace-status a { flex: none; font-size: 14px; }
+  :root .workspace > .status-row { position: relative; align-items: flex-end; gap: 8px; margin: 6px 0 0; padding: 6px 0 6px 6px; }
+  :root .workspace > .status-row::before { content: ""; position: absolute; inset: 0 -6px; z-index: -1; border: 1px solid var(--phone-glass-edge); border-radius: 16px; background: var(--phone-glass); pointer-events: none; }
+  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock))::before { display: none; }
+  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)) { padding: 0; margin: 0; }
+  :root .status-row > .mode-strip { display: block; padding: 2px 0; font-size: 13px; line-height: 1.45; letter-spacing: .02em; }
+  :root .status-row > .mode-strip .wallet-balance { display: block; margin: 2px 0 0; font-size: 15px; letter-spacing: 0; color: var(--text-strong, #f4f8ff); }
+  :root .status-row > .layout-lock-slot { margin-bottom: 0; }
+
+  /* Closed "Status details": long sentences shorten to one or two lines; the labels stay whole. */
+  :root[data-phone-status="closed"] .app-topbar .network-banner > span { display: none; }
+  :root[data-phone-status="closed"] .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  :root[data-phone-status="closed"] .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* The mode text is one bare text node, so the strip itself is clamped; the balance is lifted out below it (its
+     containing block is the status row, outside the clip). */
+  :root[data-phone-status="closed"] .status-row > .mode-strip { position: static; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; margin-bottom: 22px; padding-bottom: 0; }
+  :root[data-phone-status="closed"] .status-row > .mode-strip .wallet-balance { position: absolute; left: 6px; bottom: 6px; margin: 0; white-space: nowrap; }
+
+  /* Session D's "taking longer than usual" panel sits under the strip with phone gutters. */
+  :root .app-content > .private-read-delay { margin: 8px var(--phone-gutter) 0; padding: 18px 16px; border-radius: 18px; }
+  :root .app-content > .private-read-delay h2 { font-size: 19px; line-height: 1.3; }
+  :root .app-content > .private-read-delay .actions > * { min-height: 44px; }
+
+  /* Press feedback on touch (no hover effects): a gentle liquid-glass give on controls. */
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
+}
+
+@keyframes phone-tab-arrive { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+/* Landscape phones: a short screen, so the bars and the strip fold into single rows and the page title stays on screen. */
+@media (pointer: coarse) and (max-height: 500px) {
+  :root { --phone-bar: 44px; --phone-tabs: 48px; }
+  :root .phone-tab { flex-direction: row; gap: 8px; min-height: 44px; }
+  :root .phone-tab-pill { top: 0; bottom: 0; }
+  :root .app-topbar { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding-block: 2px; }
+  :root .app-topbar .network-banner { min-height: 44px; }
+  :root .app-topbar .wallet { grid-template-columns: auto auto; }
+  :root .workspace > .showcase-banner { min-height: 44px; }
+  :root[data-phone-status="closed"] .status-row > .mode-strip { -webkit-line-clamp: 1; line-clamp: 1; margin-bottom: 0; padding-right: 190px; }
+  :root[data-phone-status="closed"] .status-row > .mode-strip .wallet-balance { left: auto; right: 58px; bottom: 50%; translate: 0 50%; }
+  :root .workspace > .status-row { align-items: center; }
+}
+
+/* Static equivalents: no glide, fade or slide under reduced motion or the in-app Motion Off. */
+@media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
+  :root .phone-topbar::before { transition: none; }
+  :root :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
+}
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root[data-app-motion="off"] .phone-topbar::before { transition: none; }
+  :root[data-app-motion="off"] :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
+  :root[data-app-motion="off"] :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
+}
+@media (forced-colors: active) and (max-width: 767.98px), (forced-colors: active) and (pointer: coarse) and (max-height: 500px) {
+  :root .phone-topbar::before, :root .phone-tabbar, :root dialog.phone-sheet { background: Canvas; border-color: CanvasText; }
+  :root .phone-tab-pill::before { background: none; border-color: Highlight; box-shadow: none; }
+  :root .phone-topbar .phone-quick-add { background: ButtonFace; border-color: ButtonText; }
+  :root .phone-topbar .phone-quick-add::before, :root .phone-topbar .phone-quick-add::after { background: ButtonText; }
+}

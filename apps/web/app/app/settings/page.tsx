@@ -15,6 +15,7 @@ import { ConnectionDiagnostics } from "../../../components/connection-diagnostic
 import { shortAccount } from "../../../lib/diagnostics";
 import { loadMetadata } from "../../../lib/storage";
 import { NebulaFlow } from "../../../components/nebula-flow";
+import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 export default function Settings() {
   const s = useGoals();
   const [backup, setBackup] = useState("");
@@ -45,6 +46,7 @@ export default function Settings() {
           </p>
         </div>
       </div>
+      <PhoneSettingsList/>
       <ShowcaseControls/>
       <nav className="settings-sections" aria-label="Settings sections">{[["Demo / Showcase", "showcase"], ["Backups & privacy", "privacy"], ["Market data", "market-data"], ["Account", "account"], ["Network", "network"], ["Goals / Contract", "contract"], ["Habits", "habits-settings"], ["Health", "health-settings"], ["Diagnostics", "diagnostics"]].map(([label, id]) => <a href={`#${id}`} key={id}>{label}</a>)}</nav>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>

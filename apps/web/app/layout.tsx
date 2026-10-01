@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { headers } from "next/headers";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./visual-theme.css";
 import "./product-v2.css";
@@ -8,6 +8,17 @@ import "./visual-v21.css";
 import "./product-beta.css";
 import "../components/motion.css";
 import "../components/design-system.css";
+/**
+ * Phones draw edge to edge and pad with safe-area insets (Session E); the browser chrome takes the cosmic background colour
+ * on phones only. Nothing here changes how a desktop or tablet browser renders the page.
+ */
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(max-width: 767.98px)", color: "#020918" },
+    { media: "(pointer: coarse) and (max-height: 500px)", color: "#020918" },
+  ],
+};
 export async function generateMetadata(): Promise<Metadata> {
   // Middleware overwrites this header from the URL being served, never a supplied header.
   const origin = (await headers()).get("x-zigoals-origin");

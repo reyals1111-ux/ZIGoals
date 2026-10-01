@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { navLink } from "./phone-nav";
 
 test("ecosystem research is readable without connecting a wallet", async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", error=>errors.push(error.message));
   await page.goto("/app");
-  await page.getByRole("navigation", {name:"Main navigation"}).getByRole("link", { name: "Ecosystem", exact:true }).click();
+  await (await navLink(page, "Ecosystem")).click();
   await expect(page.getByRole("heading", { name: "Explore the ZIGChain ecosystem." })).toBeVisible();
   await page.locator(".ecosystem-tools > summary").click();
   await expect(page.getByRole("link", { name: "Open Range testnet ↗" })).toHaveAttribute("href", "https://app.range.org/zigchain-testnet/general");

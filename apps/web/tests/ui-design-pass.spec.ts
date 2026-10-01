@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {isPhone} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 
 async function showcase(page:Page){
@@ -147,7 +148,11 @@ test.describe('Part 2: personal layouts',()=>{
  test('unlock, move with the keyboard, reload keeps it, reset restores it, lock hides the controls',async({page})=>{
   await showcase(page);await page.goto('/app/habits');
   await expect(page.locator('.habit-overview')).toBeVisible();
-  const initial=await order(page,'habits:body');expect(initial).toEqual(['habits:overview','habits:consistency','habits:list','habits:rhythm']);
+  // A phone (Session E) starts with today's check-ins: Today's rhythm, your habits, then the charts. Moving the first card
+  // down swaps it with the second in either default order.
+  const phone=await isPhone(page);
+  const initial=await order(page,'habits:body');expect(initial).toEqual(phone?['habits:overview','habits:list','habits:consistency','habits:rhythm']:['habits:overview','habits:consistency','habits:list','habits:rhythm']);
+  const moved=phone?['habits:list','habits:overview','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:rhythm'];
   // Locked by default: no controls, nothing marked.
   await expect(page.locator('.layout-controls')).toHaveCount(0);
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
@@ -155,12 +160,12 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.getByRole('region',{name:'Arrange this page'})).toBeVisible();
   const down=page.getByRole('button',{name:'Move Today’s rhythm down',exact:true});
   await down.focus();await page.keyboard.press('Enter');
-  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list','habits:rhythm']);
+  await expect.poll(()=>order(page,'habits:body')).toEqual(moved);
   await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 4.');
   await expect(down).toBeFocused();
-  expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe('{"version":1,"pages":{"habits":{"body":{"order":["habits:consistency","habits:overview","habits:list","habits:rhythm"]}}}}');
+  expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe(`{"version":1,"pages":{"habits":{"body":{"order":${JSON.stringify(moved)}}}}}`);
   await page.reload();await expect(page.locator('.habit-overview')).toBeVisible();
-  expect(await order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list','habits:rhythm']);
+  expect(await order(page,'habits:body')).toEqual(moved);
   // Every load starts locked.
   await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();await expect(page.locator('.layout-controls')).toHaveCount(0);
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
@@ -227,8 +232,10 @@ test.describe('Part 2: personal layouts',()=>{
   await showcase(page);await page.goto('/app/habits');
   const items=page.locator('[data-layout-region="habits:body"]');await expect(items.first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
-  // Carry the second card (consistency) above the first (Today's rhythm), inside the viewport.
-  const handle=items.nth(1).locator('.layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
+  // Carry the second card above the first (Today's rhythm), inside the viewport. On a phone (Session E) the second card
+  // is your habits; elsewhere it is consistency.
+  // The card's own handle (on a phone the second card is your habits, whose habit cards carry handles of their own).
+  const handle=items.nth(1).locator(':scope > .layout-controls .layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
   const h=(await handle.boundingBox())!,first=(await items.first().boundingBox())!;
   const cdp=await page.context().newCDPSession(page);
   const touch=(type:'touchStart'|'touchMove'|'touchEnd',x:number,y:number)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
@@ -237,7 +244,7 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('.layout-ghost')).toHaveCount(1);
   for(let i=1;i<=12;i++)await touch('touchMove',x,y+(to-y)*i/12);
   await touch('touchEnd',x,to);
-  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:consistency','habits:overview','habits:list','habits:rhythm']);
+  await expect.poll(()=>order(page,'habits:body')).toEqual(await isPhone(page)?['habits:list','habits:overview','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:rhythm']);
  });
 });
 
@@ -356,13 +363,16 @@ test.describe('Part 4: Health',()=>{
  test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
   await page.goto('/app/health');
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();
-  // Above the "A little care, every day." header.
-  const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;expect(c.y).toBeLessThan(h.y);
+  // Above the "A little care, every day." header; on a phone (Session E) the title comes first, then the journal date and the counters.
+  const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;
+  if(await isPhone(page))expect(c.y).toBeGreaterThan(h.y+h.height);else expect(c.y).toBeLessThan(h.y);
   await expect(page.getByRole('article',{name:'Push-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Pull-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Squats',exact:true})).toBeVisible();
   // No entry is not zero; nothing is written before the first tap.
   await expect(count(page,'Push-ups')).toContainText('No entry today');
   expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
   await expect(page.getByRole('button',{name:'Decrease Push-ups'})).toBeDisabled();
+  // Measure at rest: while the page entrance runs (a 6 px slide, 320 ms) the buttons' boxes read a fraction of a pixel off.
+  await page.locator('.workspace main > div').first().evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>undefined))));
   for(const b of await page.getByRole('article',{name:'Push-ups',exact:true}).getByRole('button',{name:/^(Increase|Decrease) Push-ups$/}).all()){const box=(await b.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   const plus=page.getByRole('button',{name:'Increase Push-ups'});
   await plus.click();await expect(count(page,'Push-ups')).toHaveText('1');await plus.click();await plus.click();await expect(count(page,'Push-ups')).toHaveText('3');

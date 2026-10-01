@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { navLink } from './phone-nav';
 
 test('JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests', async ({ page, context, isMobile }, info) => {
   expect(await context.storageState()).toEqual({ cookies: [], origins: [] });
@@ -58,7 +59,7 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   const widget = page.getByRole('article', { name: 'My saved water', exact: true });
   await expect(widget).toContainText('250 mL');
   await activate(page.getByRole('button', { name: 'Finish customizing' }));
-  const settings = nav.getByRole('link', { name: 'Settings', exact: true });
+  const settings = await navLink(page, 'Settings');
   await settings.focus();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/app\/settings$/);

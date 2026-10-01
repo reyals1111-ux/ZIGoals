@@ -7,7 +7,8 @@ async function showcase(page:Page){
 test('Quick add lives in the mobile header and the Today hero, and Escape returns focus',async({page,isMobile})=>{
  await showcase(page);expect(await page.locator('.app-topbar .quick-add-trigger').count()).toBe(0);
  if(!isMobile)await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeHidden();
- const trigger=page.locator(isMobile?'.app-sidebar .quick-add-trigger':'.today-hero .quick-add-trigger');await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();
+ // Phones keep Quick add in the top bar (Session E); it is never inside the testnet bar.
+ const trigger=page.locator(isMobile?'.phone-topbar .quick-add-trigger':'.today-hero .quick-add-trigger');await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await trigger.click();await expect(page.getByRole('dialog')).toBeVisible();
 });
 for(const width of [320,360,390,430,768,1440])test(`Habit labels and controls have distinct space at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await showcase(page);

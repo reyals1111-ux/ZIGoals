@@ -1,0 +1,30 @@
+/* Stake / Positions on a phone (Session E): the two headline totals side by side, the other five as a swipeable row,
+   the wallet and scenario tools as compact rows, and compact position cards. Every label and disclaimer stays. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .positions-workspace .positions-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  :root .positions-workspace .position-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; gap: 10px; }
+  :root .positions-workspace .position-metrics > div { min-height: 0; min-width: 0; padding: 14px 12px; }
+  :root .positions-workspace .position-metrics > :is(.stake-hero, .observed-metric) strong { font-size: 24px; overflow-wrap: anywhere; }
+  :root .positions-workspace .position-metrics > .supporting-metric strong { font-size: 18px; overflow-wrap: anywhere; }
+  :root .positions-workspace .position-metrics small { font-size: 15px; }
+  :root .positions-workspace .position-metrics > .supporting-metric:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  /* Wallet and scenario: compact rows; their bodies open in place with every sentence. */
+  :root .positions-workspace .positions-rail { display: grid; gap: 10px; }
+  :root .positions-workspace .positions-utility { padding: 0; }
+  :root .positions-workspace .positions-utility > summary { min-height: 64px; padding: 14px 16px; }
+  :root .positions-workspace .positions-utility-art { display: none; }
+  :root .positions-workspace .positions-utility-copy { gap: 2px 10px; }
+  :root .positions-workspace .positions-utility-title { font-size: 19px; }
+  :root .positions-workspace .positions-apr-value { font-size: 22px; }
+  :root .positions-workspace .positions-utility-action { min-height: 44px; display: inline-flex; align-items: center; }
+  :root .positions-workspace .positions-utility-body { padding: 0 16px 16px; }
+  :root .positions-workspace .positions-utility .fine { font-size: 15px; }
+
+  /* Position cards. */
+  :root .positions-workspace .position-card { padding: 16px; border-radius: 20px; }
+  :root .positions-workspace .position-card :is(.fine, small, .position-state) { font-size: 15px; }
+  :root .positions-workspace .position-card :is(.text-link, .allocation-owners a, .position-goal-action a, .position-goal-action summary) { display: inline-flex; align-items: center; min-height: 44px; }
+  :root .positions-workspace .positions-section-heading { gap: 8px; }
+  :root .positions-workspace .positions-section-heading .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+}
