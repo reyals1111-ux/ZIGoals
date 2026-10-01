@@ -14,3 +14,7 @@ export interface DeploymentConfigPair {
 export function validateDeploymentConfigs(input: Partial<DeploymentConfigPair> & { root?: string }): string[];
 export function readDeploymentConfigs(root?: string): DeploymentConfigPair;
 export function validateRepositoryDeploymentConfigs(root?: string): string[];
+
+/** Paths, relative to the landing directory, that must never reach the public apex.
+ * Directories are reported with a trailing slash; an empty array means the tree is clean. */
+export function unpublishableLandingFiles(landingRoot: string, prefix?: string): string[];
