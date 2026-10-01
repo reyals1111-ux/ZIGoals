@@ -4,7 +4,7 @@ Evidence labels:
 - **local**: this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright at most 2 workers, Chromium 141 standing in for `chrome`).
 - **CI**: Milestone quality on the PR.
 
-No account, secret, wallet or deploy was used. Base: main `d21ba8f` (Session D merged into this branch as `a2f11bc`).
+No account, secret, wallet or deploy was used. Base: main `d21ba8f`. Session D was merged into this branch as `a2f11bc`, and main `771e2ad` (Session F, #51) as `e170f00`.
 
 **Scope.** A phone experience only below 768 CSS px, or on a landscape phone (coarse pointer and at most 500 px tall): one query, `PHONE_QUERY` in `components/phone/use-phone-layout.ts`, guards every phone rule. Desktop and tablet are unchanged (freeze check below), except for one owner-authorized fix: QA-01.
 
@@ -14,13 +14,14 @@ No account, secret, wallet or deploy was used. Base: main `d21ba8f` (Session D m
 | 0 | Phone audit of every page at 390×844, 375×667, 430×932, 412×915 and 844×390 (Showcase and empty) and the design plan; owner-approved with four additions. | — |
 | 1 | **Desktop/tablet freeze check** `scripts/desktop-freeze-check.mjs` (+ unit test): 130 full-page captures (11 pages × Showcase/empty × 1440×900, 1280×800, 1024×768, 820×1180, plus 820×1180 and 1180×820 with a coarse pointer, plus Quick add and Add asset open at 1024×768 and 820×1180-touch), compared pixel for pixel and by accessibility snapshot. Fixed clock, 503 API fixture, reduced motion; each capture waits for running animations. | `707e355`, `b8500ab`, `40aaada`, `5521773` |
 | — | Merge main (Session D, PR #50) with a merge commit; its slow-read panel gets phone gutters. | `a2f11bc` |
+| — | Merge main (Session F, PR #51) with a merge commit. Only `docs/STATUS.md` conflicted (both PRs add an entry at the top). | `e170f00` |
 | 2 | **Phone shell**: top bar (logo or "Back to Goals/Wealth", compact title, Quick add, Settings), glass tab bar Today · Goals · Habits · Health · More, More sheet (the other six, plus the brand signature). The honesty banners are the same elements restyled into one strip on every page's first screen; "Status details" only clamps the long sentences, never the labels. The layout lock keeps its Part 18.4 place. Wealth and Settings are also top-bar links (CI's integration journeys click them by name at 390×844). | `d28bee7`, `b755563`, `6fcaeaa`, `2f5db8d`, `212c61e` |
 | 3 | **Phone layouts for every page** (CSS, plus small phone-only JSX): Health title → journal date → counters; Habits and Wealth phone default orders (a saved order still wins); Wealth total right after the title; Settings grouped list; compact cards and rows; carousels; no sideways scroll. | `173fb5f`, `d106a8a`, `fd42f70`, `ac56641`, `41514e8`, `604ef8e`, `2b51a93`, `80d3dc4` |
 | 4 | **Sheets**: every existing dialog is a bottom sheet on phones (grabber, sticky header, sticky primary, above the keyboard via `visualViewport`); the habit editor and food log stay in place with their action pinned. | `b6f8145` |
 | 5 | **First-run welcome**: a card on Today for brand-new devices only; `/app/welcome` (welcome → what matters → first goal → first habit → your data); "Show the welcome again" in Settings on phones. | `114ebac` (TIER 3), `c687248`, `32453d4`, `df8164e` |
 | 6 | Native polish, folded into Parts 2 and 4 (press feedback, title fade, frosting bar, sheet slide-up; each static under reduced motion and Motion Off). | — |
 | 7 | Quality pass (below); landscape overflow fixed; phone specs measure against the device width; three CI-only failures fixed (below); 44 px Habits calendar days. Skip list updated (34 → 36). | `d75fdba`, `c0b4221`, `7907c8f`, `f244986`, `7ade6a9` |
-| QA-01 | **Owner request (Session F blocker QA-01):** every Health number field is a text field with a decimal keypad (`type="text"`, `inputMode="decimal"`; whole-number fields keep the numeric keypad), read by the existing `parseHealthNumber`. An English Chrome dropped a typed comma from `type="number"`, so "72,5" kg was saved as 725 kg and "1,5" mL of water as 15 mL. With main's parser "72,5" is now refused with the form's message; once #51 (`cab9133`) is merged it is read as 72.5. The freeze check reports this change apart (below). | `bcdd0f1`, `c27f4ae` |
+| QA-01 | **Owner request (Session F blocker QA-01):** every Health number field is a text field with a decimal keypad (`type="text"`, `inputMode="decimal"`; whole-number fields keep the numeric keypad), read by the existing `parseHealthNumber`. An English Chrome dropped a typed comma from `type="number"`, so "72,5" kg was saved as 725 kg and "1,5" mL of water as 15 mL. With #51's parser (`cab9133`, merged in `e170f00`) "72,5" kg is saved as 72.5 kg and "1,5" mL as 1.5 mL; an ambiguous "1,234" is refused with the form's message. The freeze check reports this change apart (below). | `bcdd0f1`, `c27f4ae`, `6872a64` |
 | 8 | Review gallery: 58 WebP on `review/mobile-e-screenshots` (`b8197ff`, never merged) and [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/52#issuecomment-5924740102). This entry. | (this commit) |
 
 **TIER 3 commit and risk:**
@@ -43,10 +44,10 @@ Not touched: auth/OTP, vault/recovery/encryption, the sync engine, wallet/Keplr 
 
 ## Freeze check (desktop and tablet unchanged, apart from QA-01)
 Final run of `scripts/desktop-freeze-check.mjs`:
-- **Baseline:** a fresh capture from a production build of main `d21ba8f`.
-- **Candidate:** this branch at `c27f4ae` (app code as at `bcdd0f1`), captured with the same script.
+- **Baseline:** a fresh capture from a production build of main `771e2ad`, after #51.
+- **Candidate:** this branch at `e170f00`, whose app code is the final head's (`6872a64` changes only a test), captured with the same script.
 - **Result:** **118 of 130 captures identical; the other 12 differ only by the owner-authorized QA-01 change. 0 differ otherwise.** The 12 are the Health page at every size, Showcase and empty. In each, the pixels are identical, and "Servings" and "Water amount" are a textbox instead of a spinbutton, with the same name and value.
-- **Before QA-01:** `f244986` and `7907c8f` matched 130 of 130.
+- **Earlier runs:** against main `d21ba8f`, `bcdd0f1` gave the same 118 + 12. Before QA-01, `f244986` and `7907c8f` matched 130 of 130.
 - **How the rule works:** `INTENDED` in the script names this single change. A capture counts as intended only when its pixels are identical and every changed snapshot line on the Health page is that role change. Anything else, on any page, still fails.
 
 **Matrix:**
@@ -102,11 +103,15 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
 - **4× CPU, Wealth, Habits and Health:** 16, 10 and 7 long tasks while loading. Scrolling: 0.
 
 ## Tests
-- **Unit:** `pnpm test` 1774 passed, 12 skipped (`c27f4ae`; 1773 at `f244986`). Includes `lib/onboarding.test.ts` and the freeze-check unit test.
+- **Unit:** `pnpm test` 1874 passed, 12 skipped after the #51 merge (`e170f00`). Earlier: 1774 at `c27f4ae` and 1773 at `f244986`. Includes `lib/onboarding.test.ts` and the freeze-check unit test.
 - **New browser specs:**
   - `phone-shell` (tabs, More, back links, strip and lock on every first screen at 390×844 and 360×800, landscape, no-JS, Session D's panel, the link names CI's journeys click);
   - `phone-pages` (no sideways scroll at 390×844, 360×800, 320×568 and landscape; phone default orders and a saved order winning; Wealth total on the first screen; Settings list);
-  - `health-decimal-comma` (QA-01, locale en-US: typing "72,5" in Weight and "1,5" in Water keeps the comma, nothing is saved as 725 kg or 15 mL, and no Health view has a number field; failing first against main, where the field read "725");
+  - `health-decimal-comma` (QA-01, locale en-US):
+    - "72,5" kg is saved as 72.5 kg and "1,5" mL of water as 1.5 mL, never as 725 kg or 15 mL;
+    - an ambiguous "1,234" is refused with the form's message and nothing is saved;
+    - no Health view has a number field.
+    - It failed first against main `771e2ad`, where the fields read "725" and "1234". It now passes 6 of 6. The Health specs plus `ui-design-pass` pass 145, with 11 skipped;
   - `onboarding` (brand-new devices only; never with records, a chosen Today or Showcase; Skip and Not now write only the flag; templates create real records; reduced motion; phone-only reopen).
 - **Existing mobile-project specs**, only where the phone UI intentionally changed, never loosened:
   - navigation goes through `tests/phone-nav.ts` (`navLink` opens More first; `openMore` returns the sheet at rest);
@@ -115,8 +120,11 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
   - `ui-evidence` expects the Wealth phone label.
   - The desktop project's assertions are unchanged.
 - **Owner addition 3:** the welcome card did not affect any existing desktop-size spec, so no shared setup seeds the onboarding flag. The freeze check seeds it for its empty-state captures only.
-- **Playwright full suite, 2 workers:** on `bcdd0f1`, 638 passed, 36 skipped and 2 failed (29.9 min). On `f244986` it was 634 passed, 36 skipped and 2 failed (29.4 min). The 2 failures are the intro-video test (desktop and mobile), which this sandbox's Chromium cannot play; CI runs it. The 36 skips are the previous 34 plus the 2 new landscape-phone platform skips (`docs/testing/SKIPPED_TESTS.md` E1, E2).
-- **CI:** green on `f244986` ([run 36812115852](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36812115852)) and on `7907c8f` ([run 36806633019](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36806633019)): web checks, the three browser shards, web integration (including the RUN11_PACKAGED package and the Alpha Workers gate), contract, and canonical builds A/B with compare.
+- **Playwright full suite, 2 workers:**
+  - On `e170f00` (after the #51 merge): 637 passed, 36 skipped, 3 failed (32.0 min). Two failures are the intro-video test (desktop and mobile), which this sandbox's Chromium cannot play; CI runs it. The third is `run11-motion-recording.spec.ts:4` on desktop: under full-suite load it stalled 45 s scrolling after a reload on Wealth, a page QA-01 does not touch. It then passed 3 of 3 alone (about 7.5 s each), and in CI on the same code.
+  - On `bcdd0f1`: 638 passed, 36 skipped, 2 failed (29.9 min).
+  - On `f244986`: 634 passed, 36 skipped, 2 failed (29.4 min). The 36 skips are the previous 34 plus the 2 new landscape-phone platform skips (`docs/testing/SKIPPED_TESTS.md` E1, E2).
+- **CI:** green on `6872a64` ([run 36829162312](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36829162312)), on `e170f00` ([run 36824039909](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36824039909)), on `f244986` ([run 36812115852](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36812115852)) and on `7907c8f` ([run 36806633019](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36806633019)): web checks, the three browser shards, web integration (including the RUN11_PACKAGED package and the Alpha Workers gate), contract, and canonical builds A/B with compare.
 - **Known intermittent:** `market-disconnect.test.mjs` timed out once at 30 s on `212c61e` ([run 36804922026](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36804922026)). This PR does not touch `scripts/run11` or `workers/`. It passed on the next run (the policy's one re-run). The table below records the recurrence.
 
 **CI-only failures fixed on the way** (`212c61e`, `7907c8f`, `7ade6a9`). Each was reproduced locally first:
@@ -152,7 +160,6 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
 - The content clip that stops landscape overflow applies to landscape phones only: in portrait there was no overflow, and the clip made Chromium's mobile emulation keep a 4x zoom after a full-page screenshot (an emulation artefact that broke an unchanged spec in CI).
 
 ## Deferred / not done
-- **QA-01 until #51 merges:** with main's parser, "72,5" is refused with the form's message instead of being read as 72.5. Merging main after #51 completes the fix.
 - **Habits value fields** (check-in values and targets) are still `type="number"`, so they likely drop a decimal comma in the same way. They are outside the owner's Health scope and were not changed.
 - **WebKit / Safari:** not tested. The environment's network policy blocks Playwright's WebKit download (cdn.playwright.dev, playwright.download.prss.microsoft.com). The owner can allow those hosts in the environment's network settings. Until then, Safari-specific behaviour (the `visualViewport` keyboard inset, safe areas, `@starting-style`) is unverified here. Chromium with iPhone emulation only.
 - **Today and Wealth are not at the ~9 / ~10 screens planned** (14.6 / 15.7 with Showcase data). Going further would mean hiding content or honesty lines.
@@ -167,6 +174,25 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
    - Android: USB with Chrome's port forwarding (chrome://inspect → Port forwarding 3101 → localhost:3101). The phone then uses `localhost`, which counts as secure.
    - iPhone: an HTTPS tunnel the owner trusts (Safari's Web Inspector on a Mac can then inspect the page).
 5. **Review screenshots:** branch `review/mobile-e-screenshots` (never merged) and the gallery comment on the PR.
+
+# Alpha deploy — 2026-10-01 morning, `771e2ad` live
+
+Evidence labels:
+- **CI log:** the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session E cloud session on 2026-10-01.
+- **Actions API** / **git:** read at the same time.
+- **local:** the Session E sandbox, production build of `771e2ad`.
+
+- **Run:** Manual Alpha deployment #16, [run 36826122295](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36826122295), 2026-10-01 06:41–06:47 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `771e2ad4f3ab1bbc976d58662b896448e06a99e6`, `main` after #51. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `f00a117f-a283-4b6e-a8f7-ab0bfed248af`. The last observed live version is the same. (CI log)
+- **Rollback:** `c1b3c40c-3559-4b7d-a3d7-04f2f9657e6d`, the version deploy #15 published, so the chain holds. (CI log)
+- **CI on `771e2ad`:** Milestone quality #272 ([run 36820681369](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36820681369)): success on attempt 1. (Actions API)
+- **Owner manual checks:** not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#51](https://github.com/reyals1111-ux/ZIGoals/pull/51) (`771e2ad`): Session F QA sweep. It brings 7 logic fixes, including the Health decimal-comma parser, plus regression tests, the QA report and the ADR-007 proposal.
+
+**QA-01 is still live.** The UI half of the fix (Health text fields) is in PR #52, not in this deploy. So on the live Alpha, an English Chrome still saves "72,5" kg as 725 kg until #52 is merged and deployed. Measured locally on the `771e2ad` build: 725 kg and 15 mL, with "Weight saved.".
 
 # Session F — QA sweep: user simulation, logic fixes, regression tests (2026-09-30/10-01, [PR #51](https://github.com/reyals1111-ux/ZIGoals/pull/51), not merged or deployed)
 
@@ -928,7 +954,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-09-30 night for the [Alpha deploy #15](#alpha-deploy--2026-09-30-night-d21ba8f-live) above (recorded by Session F).
+Updated 2026-10-01 morning for the [Alpha deploy #16](#alpha-deploy--2026-10-01-morning-771e2ad-live) above (recorded by Session E).
+- Deployed source `771e2ad4f3ab1bbc976d58662b896448e06a99e6`, `main` after [PR #51](https://github.com/reyals1111-ux/ZIGoals/pull/51). Verified: Actions API.
+- CI: Milestone quality #272 ([run 36820681369](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36820681369)) on `771e2ad`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #16 ([run 36826122295](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36826122295)), exact source `771e2ad`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `f00a117f-a283-4b6e-a8f7-ab0bfed248af`; rollback `c1b3c40c-3559-4b7d-a3d7-04f2f9657e6d` (the run #15 deployment). Verified: CI log. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #50, 2026-09-30 night, recorded by Session F):
 - Deployed source `d21ba8fdc6eefdd2af3418dfb2d104831c60467f`, `main` after [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50). Verified: Actions API.
 - CI: Milestone quality #254 ([run 36783131097](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36783131097)) on `d21ba8f`: success (attempt 2; attempt 1 not examined here). Verified: Actions API.
 - Deployment: Manual Alpha deployment #15 ([run 36785808558](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36785808558)), exact source `d21ba8f`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
