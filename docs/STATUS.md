@@ -1,3 +1,87 @@
+# Session F — QA sweep: user simulation, logic fixes, regression tests (2026-09-30/10-01, [PR #51](https://github.com/reyals1111-ux/ZIGoals/pull/51), not merged or deployed)
+
+Evidence labels:
+- **browser**: Playwright-driven sessions against a local production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`) in this sandbox. Node 24.19.0, pnpm 11.19.0, Chromium 141 standing in for `chrome`, one browser at a time.
+- **unit**: vitest, local.
+- **code**: read only, not reproduced.
+- **CI**: Milestone quality on the PR.
+- **Actions API**: GitHub, read by this session.
+
+No account, secret, wallet, provider or deploy was used; market, food and positions APIs were answered with 503 fixtures. Base: main `d21ba8f`. Full report: [docs/qa/QA_SWEEP_2026-09-30.md](qa/QA_SWEEP_2026-09-30.md).
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Branch and draft PR. Before each lib edit, Session E's branch diff was checked (E touches `lib/onboarding.ts` and components, none of the files fixed here) | `88bd98d` |
+| 1 | Four personas (Nina, Tom, Robin, Power user) at 1440×900, 1280×800, 1024×768 and 820×1180. Robin logged 49 simulated days across 2026-10-25; Tom funded monthly for 8 simulated months at 21:30 New York; Power user used 45 habits (12,882 and 18,783 check-ins), 3 years of Health and 200 positions (browser) | — |
+| 2 | Torture matrix: time, locales, backups, storage, inputs, honesty, privacy and network, a11y, performance (browser, unit) | — |
+| 3 | 7 logic fixes, each with a failing-first test and its own commit (below) | `9cb79e1`, `cab9133`, `596f826`, `d4d8bcc`, `ebb3a9f`, `a0dc0cf`, `b675934` |
+| 4 | Regression tests: calendar days and streaks across both DST ends, rollovers, year end and the leap day, switching TZ per case, so CI runs them under UTC, Brussels and New York with no ci.yml change; backup round-trips for counters, measurements, timers, financial evidence and v1 Habits | `13c44bc`, `46e7569` |
+| 5 | Findings report (38 findings, top 10, UI backlog with file:line), screenshots on the unmerged `review/qa-sweep-screenshots` (`5bf9e60`), linked from one PR comment | `73f08dd` |
+| 6 | [ADR-007](architecture/ADR-007-owner-recovery-admin.md): owner-only recovery admin caller. Proposal, awaiting owner decision; recommends option A (local CLI, remote named-entrypoint binding, nothing deployed) | `27b5856` |
+| — | Alpha deploy #15 recorded (below), release identity updated, and this entry | (this commit) |
+
+## Fixes (failing first on `d21ba8f`)
+| Commit | Fix | Failing first |
+|---|---|---|
+| `9cb79e1` | Health: today's latest weight uses the reading's own zone day (a New York 21:00 reading was hidden until the next day; a Brussels 00:30 reading was dated the day before) | 9/12 in `latest-weight-day.test.ts` (3 device zones) |
+| `cab9133` | Health parser accepts an unambiguous decimal comma ("72,5", "0,125") and refuses "1,234" with a reason. Owner-approved. Users only see it once the UI half of QA-01 lands | 9/21 in `health-decimal-comma.test.ts` |
+| `596f826` | **TIER 3 (vault backup):** a refused legacy-simulation restore no longer half-applies (ledger replaced, plans not) | 2/4 in `local-simulation-restore-atomic.test.ts` |
+| `d4d8bcc` | **TIER 3 (private store):** a refused module restore leaves no orphan `:recovery:` copy | 1/3 in `private-storage-import-refused.test.ts` |
+| `ebb3a9f` | **TIER 3 (vault backup):** an unreadable encrypted backup gets a plain reason, not a JSON position or a zod dump | 4/5 in `backup-unreadable-file.test.ts` |
+| `a0dc0cf` | Habits: "add" sums exactly (0.7 + 0.1 completes a 0.8 target) | 2/5 in `habit-add-exact.test.ts` |
+| `b675934` | Goals: UNKNOWN liquidity (manual stocks, property, custom) is reported as unknown, not "not liquid" | 1/3 in `goal-liquidity-honesty.test.ts` |
+
+**TIER 3 risk.** All three change only failure paths:
+- a rollback of bytes read under the same storage locks;
+- removing this attempt's own recovery copy;
+- the message for an unparseable file.
+
+The success paths, formats, sync, encryption and keys are unchanged. No data-format or sync-protocol change was made anywhere in this PR. No contract, wallet or key code changed, and no dependency was added.
+
+## Open findings (31)
+- **By severity:** 1 blocker, 5 major, 15 minor, 10 polish. Fixed: 3 major, 4 minor.
+- **Blocker QA-01 (UI lane):** Health `<input type="number">` fields drop a typed decimal comma in Chrome with an English UI. "72,5" kg is saved as 725 kg with "Weight saved.". Suggested fix: `type="text" inputMode="decimal"` in `components/health/health-app.tsx:42` and the water and measurement fields (E touches `health-app.tsx`).
+- **Majors:**
+  - recovery copies are never pruned, so after a few large restores localStorage is full and restores fail with a misleading reason (owner decision on retention);
+  - the 2 MB module limit shows "Try again";
+  - funding and plan days are UTC, so New York evenings see "behind" on the due day (owner decision);
+  - Habits is slow with 45 habits (1.5 s per tap);
+  - money is always formatted en-US.
+- **Also:** 5 owner decisions and the UI backlog are listed in the report. **Security:** nothing exploitable was found.
+
+## Numbers (local unless stated)
+| | Result |
+|---|---|
+| `pnpm lint` / `pnpm typecheck` | clean / clean |
+| `pnpm test` | 1862 passed, 12 skipped (the same 12 env-gated skips as SKIPPED_TESTS.md), including the 9 new test files in this PR |
+| Date regression tests under host TZ UTC, Brussels, New York, Auckland, Kolkata | 54/54 each |
+| Playwright full suite, 2 workers, production build of this branch | 589 passed, 34 skipped, 3 failed (32.0 min, `27b5856` build). Two failures are the intro-video spec (desktop, mobile), which needs H.264 and fails only in this sandbox's Chromium. The third is `run11-route-mobile-acceptance.spec.ts:4` (desktop), at its 45 s budget; it then passed 3/3 alone. An A/B on this machine gives 27.6–29.8 s on main against 27.5–28.4 s on this branch, so the PR does not slow it. The 34 skips equal Session D's 34; no skip was added |
+| CI | **Green on `27b5856`**: Milestone quality #261 ([run 36792897491](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36792897491)) passed web checks, all three browser shards, web integration and contract, and canonical reproducibility passed (compare plus builds a and b). The red `web` roll-ups on `cab9133`, `a0dc0cf`, `b675934`, `46e7569` and `73f08dd` are runs cancelled by the next push (job log: "web-checks: cancelled; web-browser: cancelled; web-integration: cancelled"); `88bd98d` was green. This final push is docs only and shows its own result on the PR |
+
+**Known CI intermittents:** none new. Locally, `run11-route-mobile-acceptance.spec.ts:4` (desktop) hit its 45 s budget once in the full run, as already noted in the Session A entry. It passed in CI and 3/3 alone (see the A/B above).
+
+**Not done / notes:**
+- Phones were not tested (Session E); the 820×1180 tablet shows the phone navigation, so layout findings there are left to E.
+- Firefox and Safari were not tested. The decimal-comma behaviour of `type="number"` differs per browser and browser language.
+- No Playwright spec was added. The fixes are proven by unit tests, and E is editing many specs.
+- Exploratory drivers are not committed.
+
+# Alpha deploy — 2026-09-30 night, `d21ba8f` live
+
+Evidence labels: **CI log** = the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session F cloud session on 2026-10-01; **Actions API** / **git** = read at the same time; **owner-reported** = as the owner reports it.
+
+- **Run:** Manual Alpha deployment #15, [run 36785808558](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36785808558), 2026-09-30 22:28–22:35 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `d21ba8fdc6eefdd2af3418dfb2d104831c60467f`, `main` after #50. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `c1b3c40c-3559-4b7d-a3d7-04f2f9657e6d`. The last observed live version is the same. (CI log)
+- **Rollback:** `48806961-9b29-41a5-a402-f24851d32e6f`, the version deploy #14 published, so the chain holds. (CI log)
+- **CI on `d21ba8f`:** Milestone quality #254 ([run 36783131097](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36783131097)): success on attempt 2. Attempt 1 was not examined by this session. (Actions API)
+- **Owner manual checks:** not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#49](https://github.com/reyals1111-ux/ZIGoals/pull/49) (`39fdcf0`): STATUS for PR #47 Part 18 and Alpha deploys #13–#14 (docs).
+- [#50](https://github.com/reyals1111-ux/ZIGoals/pull/50) (`d21ba8f`): Session D platform hardening (vault read hang, Wrangler 4.144, food queue, test/type fixes).
+
 # Session D — platform hardening (2026-09-30, [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50), not merged or deployed)
 
 Evidence labels:
@@ -674,7 +758,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-09-30 evening for the [Alpha deploy #14](#alpha-deploy--2026-09-30-evening-dd0e8a1-live) above.
+Updated 2026-09-30 night for the [Alpha deploy #15](#alpha-deploy--2026-09-30-night-d21ba8f-live) above (recorded by Session F).
+- Deployed source `d21ba8fdc6eefdd2af3418dfb2d104831c60467f`, `main` after [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50). Verified: Actions API.
+- CI: Milestone quality #254 ([run 36783131097](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36783131097)) on `d21ba8f`: success (attempt 2; attempt 1 not examined here). Verified: Actions API.
+- Deployment: Manual Alpha deployment #15 ([run 36785808558](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36785808558)), exact source `d21ba8f`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `c1b3c40c-3559-4b7d-a3d7-04f2f9657e6d`; rollback `48806961-9b29-41a5-a402-f24851d32e6f` (the run #14 deployment). Verified: CI log. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #47, 2026-09-30 evening):
 - Deployed source `dd0e8a120917f009ea12103f12373a582056c7e1`, `main` after [PR #47](https://github.com/reyals1111-ux/ZIGoals/pull/47). Verified: Actions API.
 - CI: Milestone quality #247 ([run 36756950723](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36756950723)) on `dd0e8a1`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #14 ([run 36758399823](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36758399823)), exact source `dd0e8a1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
