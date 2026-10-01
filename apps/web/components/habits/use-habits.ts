@@ -18,7 +18,7 @@ export function useHabits() {
   }, [timeZone]);
   return {
     ...store, today,
-    create: (input: HabitInput) => store.update((data) => createHabit(data, input)),
+    create: (input: HabitInput, id?: string) => store.update((data) => createHabit(data, input, new Date(), id)),
     edit: (id: string, input: HabitInput, from?:string, expected?:string) => store.update((data) => scheduleHabitEdit(data, id, input, from??earliestHabitChange(data.habits.find(h=>h.id===id)!,habitCalendarDay(data)),new Date(),expected)),
     setState: (id: string, state: HabitState,from?:string,expected?:string) => store.update((data) => scheduleHabitState(data, id, state,from??earliestHabitChange(data.habits.find(h=>h.id===id)!,habitCalendarDay(data)),new Date(),expected)),
     setCount: (id: string, date: string, count: number, note: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => store.update((data) => logHabitValue(data, id, date, count, { note, mood })),

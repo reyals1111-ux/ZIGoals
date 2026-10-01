@@ -1,6 +1,6 @@
 "use client";
 import { HabitRhythmSection } from "../bottom-sections";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGoals } from "../goal-provider";
@@ -27,6 +27,14 @@ export function HabitsWorkspace() {
   const platform = usePlatform();
   const [filter, setFilter] = useState<Filter>("Today");
   const [editor, setEditor] = useState<string | null>(null);
+  // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
+  const [focusTarget, setFocusTarget] = useState<string | null>(null);
+  const newHabitButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!focusTarget || editor) return;
+    const target = focusTarget === "new-habit" ? newHabitButton.current : document.getElementById(focusTarget);
+    if (target) { target.focus(); setFocusTarget(null); }
+  }, [focusTarget, editor, store.data]);
   const router = useRouter();
   const addIntent = useSearchParams().get("add") === "habit";
   const [handledIntent, setHandledIntent] = useState(false);
@@ -65,7 +73,7 @@ export function HabitsWorkspace() {
     return () => cancelAnimationFrame(frame);
   }, [phone, editor]);
   return <LayoutPage page="habits"><div className="habits-workspace">
-    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
+    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
@@ -73,7 +81,7 @@ export function HabitsWorkspace() {
         {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><MotionTrack identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)}><span style={{ width: `${due.length ? completed.length / due.length * 100 : 0}%` }} /></MotionTrack><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
         store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">
-          {editor && <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} onCancel={() => setEditor(null)} onSave={async (input,from,expected) => { if (editingHabit) await store.edit(editingHabit.id, input,from,expected); else await store.create(input); setMessage(editingHabit ? "Habit saved." : "Habit created."); setEditor(null); setFilter("All"); }} />}
+          {editor && <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); setMessage(editingHabit ? "Habit saved." : "Habit created."); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} />}
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map((habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;
