@@ -1,3 +1,162 @@
+# Session H — owner recovery admin tool (ADR-007 A), recovery-copy cleanup, activation readiness (2026-10-01, [PR #53](https://github.com/reyals1111-ux/ZIGoals/pull/53), not merged or deployed)
+
+Evidence labels:
+- **local**: this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright at most 2 workers, Chromium 141 standing in for `chrome`).
+- **Miniflare**: local workerd through Miniflare; no Cloudflare account.
+- **CI**: Milestone quality on the PR.
+
+No account, secret, wallet or deploy was used, and no wrangler command reached Cloudflare. Base: main `61035dc`. Session G records Alpha deploy #17; this entry does not.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 1 | [ADR-007](architecture/ADR-007-owner-recovery-admin.md) accepted: option A (owner decision 2026-10-01). Alternatives kept as recorded, with an implementation note added | `a986111` |
+| 2 | **Owner recovery admin tool**, delivered as:<ul><li>a local-only admin Worker and an unconfigured template;</li><li>a seventh ignored 0600 config (`make-private-configs.mjs --recovery-admin`);</li><li>`activation-check` admin rules, plus a scan of every Worker config;</li><li>the CLI `scripts/run11/recovery-admin.mjs` (status, export, verify, dry-run, reconcile);</li><li>Miniflare end-to-end tests;</li><li>the [owner runbook](run11/OWNER_RECOVERY_ADMIN.md);</li><li>ACTIVATION Stages 5 and 8, with the owner's Stage 5 decisions.</li></ul> | `22cc9af`, `9e51020`, `ef44979`, `0593850`, `94c6172`, `9dba9ac` |
+| 3 | **QA-02/QA-03.** After a successful restore, only the newest recovery copy per module is kept. Storage errors carry stable codes (`STORAGE_FULL`, `MODULE_LIMIT`, `NEWER_VERSION`, `CONFLICT`) with plain messages | `77483a2`, `2ffee65` |
+| 4 | **QA-25.** zod `jitless` on the client removes the blocked-eval CSP violation from every page. Applied: identical results, and no slowdown on the browser's path | `d8d6cd6` |
+| 5 | Done:<ul><li>Stage 7 preflight (read-only, offline);</li><li>the [Stage 8 acceptance sheet](run11/STAGE8_ACCEPTANCE.md);</li><li>the [timezone backlog](product/TIMEZONE_BACKLOG.md);</li><li>the `status-snapshot` fix.</li></ul> | `3a59906`, `3c6e2c4`, `96bbdc6` |
+| 6 | Evidence (below); a CI diagnostic for `market-disconnect.test.mjs` (Known CI intermittents, below); this entry | `aa7cdaa`, this commit |
+
+**TIER 3 commits and risk:**
+- `22cc9af` **(admin tooling):** a new local-only Worker and template. Risk: none at runtime. Nothing binds or deploys it.
+- `9e51020` **(admin tooling):** new checker rules and a generator flag; the six-config rules are unchanged. Risk: a stricter check could refuse an owner's existing setup. It refuses only routes or bindings that must never exist.
+- `ef44979` **(admin tooling):** the owner CLI.
+  - Risk: it runs `wrangler dev` with a remote binding under the owner's login. That behaviour is **UNVERIFIED** until the Stage 7 rehearsal.
+  - No deployed surface; it fails closed.
+- `77483a2` **(vault):** deletes old `:recovery:` copies after a successful restore.
+  - Risk: this deletes user bytes by design (owner-approved). Safeguards:
+    - only that module's copies, and only after success;
+    - only when the replaced store read as valid;
+    - never the current copy;
+    - put back byte for byte if a make-room retry fails.
+  - Formats, keys, sync and UI are unchanged.
+- `2ffee65` **(vault):** one more guard. A stored module whose refinement throws counts as unreadable, so the restore proceeds and keeps every copy.
+
+Not touched: wallet, contracts, key derivation, the sync protocol, user data formats, `.github/workflows`, the deploy scripts, CLAUDE.md and AGENTS.md. No new dependency.
+
+Out-of-lane files, each checked against G's branch before editing. Re-checked at G's `9bd1dee`: no file is changed by both branches. G's `private-backups.tsx` change adds the Showcase-file confirmation; the restore error text is as before.
+- `apps/web/lib/private-storage.ts`: call sites only;
+- `apps/web/instrumentation-client.ts`: new, one import.
+
+## Part 2 — recovery admin (details)
+- **The CLI:**
+  - It refuses unless the ignored owner configs name one private lifecycle Worker: admin binding → that Worker; private sync's `LIFECYCLE` → the same Worker. No other config may bind the entrypoint.
+  - It starts `wrangler dev` itself on 127.0.0.1, with the dev registry off and a per-run session token, then stops it after one command. wrangler's output is never printed.
+  - `export` writes a new 0600 file outside the checkout and prints the digest and counts only.
+  - `reconcile` requires `RECOVERY_MODE=reconcile`, then a dry run, then the owner typing the UUID and digest. It then re-exports and compares digests.
+- **Miniflare end to end** (`recovery-admin.test.mjs`, 7 tests): the real admin Worker → a local binding → the real `LifecycleRecoveryAdmin`, using the lifecycle-recovery fictional identities.
+  - Flow: export → verify → dry-run → reconcile after a total loss → re-export → replay.
+  - Refusals: wrong mode (CLI and Worker), wrong digest, foreign anchor, wrong account, missing or wrong typed confirmation, non-0600 input or output, output inside the repo, a stray binding, `.dev.vars`, a missing session token.
+  - The output never contains the UUIDs or checkpoint fields.
+  - Mutation checks: removing the token check or the mode check fails the tests.
+- **Checker tests** (`recovery-admin-config.test.mjs`, 38): the admin config is refused for each of:
+  - a route, `workers_dev`, preview URLs or a cron;
+  - a queue, KV, DO, vars, an account id, a second binding or `remote:false`;
+  - a wrong entrypoint or service, logging, or the Alpha name.
+
+  A recovery binding added to any of the six runtime configs, the Alpha config or landing is reported.
+- **UNVERIFIED (owner rehearsal at Stage 7, runbook steps 3–8):**
+  - that a named-entrypoint remote binding works on the owner's account;
+  - that wrangler's remote proxy session is not reachable from outside.
+
+  Read from wrangler 4.144's code: it uploads a temporary edge-preview proxy (with `workers_dev` on) that holds the binding, and it creates a `workers.dev` subdomain if the account has none. Fallback if the rehearsal fails: option B, with Stage 5 staying paused.
+
+## Part 3 — recovery copies and storage errors (details)
+- **Policy (all three restore paths: browser-storage modules, transactional modules, legacy simulation):**
+  - after the module write succeeds, remove that module's other copies;
+  - in browser storage, if the write is refused for space, older copies are held in memory, removed, and the write retried once. If the retry fails, they are put back.
+  - The one-time cleanup of copies piled up by earlier builds happens on the **next successful restore**. Existing copies have random keys with no order, so only a restore makes a known-newest copy.
+- **Unit tests, failing first on `61035dc`: 13 of 17 failed** (the 4 guards pass on both), and `storage-errors.test.ts` (3) cannot load there. `2ffee65`'s added test failed first on `77483a2`.
+  - Session F's sequence (10 large restores, Chromium-like quota): on main, restore 7 is refused (`QuotaExceededError`, 4 Habits and 2 Health copies). On this branch all 10 succeed, with 1 copy each and 3.2 of 5.24 M units used.
+- **Browser** (local, Settings UI, F-sized files of 1.38/1.96/1.41 MB Habits and 1.16 MB Health):
+
+  | | main `61035dc` | this branch |
+  |---|---|---|
+  | F's 8 restores | restores 1–3 ok; 4–8 fail ("A newer stored version cannot be replaced") | 7 of 8 ok, one Habits copy throughout |
+  | A store plus 2 piled-up copies, then a restore | fails | ok; copies 2 → 1 |
+
+  Restore 7 still fails on the branch, and correctly. A Health copy no longer fits beside Habits at 1.96 MB with its own copy. Removing another module's copy is not allowed, so this is genuinely full: `STORAGE_FULL` in the lib. The remedy is transactional storage.
+- **For Session G (UI, later; nothing needs to change now):** `storageErrorCode(error)` in `lib/vault/storage-errors.ts`.
+  - `components/use-private-store.ts` (`importData`/`update`) currently throws a new Error without the cause. Keeping `{cause: error}` there lets `private-backups.tsx` and the check-in surfaces map these codes:
+
+    | Code | Suggested text |
+    |---|---|
+    | `STORAGE_FULL` | "Your browser storage is full…" (`storageErrorMessage`) |
+    | `MODULE_LIMIT` | "…more than the 2 MB this module can hold…" (QA-03) |
+    | `NEWER_VERSION` | the current text, which is accurate only for this case |
+    | `CONFLICT` | "changed on another tab or device" |
+
+- **Found by the Part 4 corpus, not changed:** some schema refinements throw a TypeError on malformed input instead of reporting an issue. One example is `habits.ts:74` (`rules[0]` when `rules` is empty); finance has similar cases. `safeParse` then throws. Every caller already treats that as a failure, so no data is at risk. A fix belongs to the module owner.
+
+## Part 4 — zod CSP probe (details)
+- **CSP:** across 11 pages, main showed 11 blocked-`eval` violations and this branch 0. `__zod_globalConfig.jitless` is true on every page (local, production builds, Chromium).
+- **Equivalence** (`lib/vault/zod-jitless.test.ts`): JIT-built and jitless-built copies of 13 stored-data schemas agree on **10,802** valid, mutated and invalid inputs, for acceptance, output, issues, and the 24 inputs where a refinement throws. A `Function` spy shows that the jitless copies never compile.
+- **Timing** (`scripts/zod-jitless-benchmark.mjs`, Node 24, power-user stores: 45 habits / 12,915 check-ins, 3 years / 3,288 meals, 200 positions). Median ms: JIT / eval blocked as in the browser / jitless.
+
+  | Store | JIT | Eval blocked | Jitless | Jitless vs eval blocked |
+  |---|---|---|---|---|
+  | finance | 4.5 | 7.1 | 7.9 | +10.4% |
+  | habits | 36.5 | 51.9 | 55.3 | +6.4% |
+  | health | 39.3 | 69.0 | 68.0 | −1.4% |
+
+  Both of the last two columns run the same interpreted parser, so the differences are noise (finance moved ±25% between rounds). JIT never ran in production browsers; only `next dev` loses it.
+
+## Part 5 (details)
+- `scripts/run11/stage7-preflight.mjs` (10 tests) checks:
+  - clean git, HEAD containing main, and full history;
+  - Node, pnpm and wrangler pins;
+  - all seven configs ignored and 0600;
+  - `--private`, with `MARKET_POLICY` reported apart as **KNOWN (Stage 6)**;
+  - `RECOVERY_MODE=reconcile`;
+  - the admin config.
+
+  It prints the five Stage 7 secret names with their sources and commands, never values.
+- `status-snapshot.mjs` reported `05de2b25-…` (2026-09-28) as the live Worker: its pattern expected a colon, and newer entries write a comma. It now reads the current "Release identity". Session E's note itself was not found in the repo or on PR #52; this was the stale version the script printed.
+
+## Numbers (local unless stated)
+| | Result |
+|---|---|
+| `pnpm lint` / `pnpm typecheck` | clean / clean |
+| `pnpm test` | 1,954 passed, 12 skipped (221 files); the same in CI on `aa7cdaa` |
+| Lifecycle and Worker harnesses (`lifecycle-recovery` 4, `lifecycle-runtime` 5, `domain-deletion` 2, `recovery-admin` 7, `recovery-admin-config` 38, `activation-check` 9, `make-private-configs` 24, `stage7-preflight` 10, `status-snapshot` 2, `market-disconnect` 2) | 103/103 |
+| Focused browser specs (export-roundtrip, local-simulation-backup, product-data, run10-private-vault, run10-restored-today, run11-recovery-failures, private-read-delay) | 38/38 (3.1 min) |
+| Playwright full suite, 2 workers, production build of the final app code (`96bbdc6`; later commits change docs and one script test only) | 634 passed, 36 skipped, 8 failed (46.4 min). Of the 8, 2 are the intro-video specs (this sandbox's Chromium cannot play the video; known). The other 6 are timing under two-worker load: `run11-route-mobile-acceptance:4` and `ui-evidence:97` (45 s budget, desktop and mobile), `motion-polish:166` and `run10-motion:5` (mobile, animation sampled at rest). Run alone with 1 worker, all 8 pass on this branch and on main `61035dc`, with equal timings (route 33.4/35.3 s here vs 35.6/34.7 s on main), so this is not a regression |
+| CI | Green on `aa7cdaa`: Milestone quality ([run 36872688014](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36872688014)) passed web checks, browser shards 1–3, web integration (with the Run11 package and the Alpha Workers gate) and contract. Canonical reproducibility ([run 36872687891](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36872687891)) passed builds A and B and the compare step. This entry changes only STATUS; its own run is on the PR |
+
+**Known CI intermittents:** `scripts/run11/market-disconnect.test.mjs` "abort of an actual app request…" (web checks; already in the table below from #42 and #52) timed out at 30 s on `96bbdc6` ([run 36863279127](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36863279127)). It timed out again on the next commit, `9dba9ac` ([run 36864633479](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36864633479)), which served as the one re-run. A second failure means investigate, so it was not re-run again.
+- **Not caused by this branch.** Its Worker bundles are byte-identical to main's (after path normalisation), and this branch does not change the market code it exercises. Locally it did not reproduce: alone, in the full suite, with and without the Vitest cache.
+- **Why the message said nothing.** `finally` awaited the in-page follower, which never settles once a step has failed. So a named step failure surfaced only as "Test timed out in 30000ms".
+- **`aa7cdaa` (test only; no assertion or timeout changed):**
+  - builds the bundles once before the test;
+  - names the setup steps (Workers start, Chrome launch, page load);
+  - closes the browser before settling, and bounds the settle.
+
+  Locally, a deliberately stalled follower now fails at 11.5 s and names its step, instead of failing at 30 s. CI on `aa7cdaa` passed. If it recurs, the log names the stalled step. The table row is updated.
+
+## Decisions made without the owner
+- **Branch:** `platform/recovery-admin-2026-10-01`, as in the brief. The harness proposed another name.
+- **The CLI starts and stops `wrangler dev` itself.** It adds a per-run session token (DNS rebinding, other local processes) and turns the dev registry off. ADR-007 had the owner run `wrangler dev` separately.
+- **The admin Worker lives in `workers/recovery-admin/`, and its copy is `wrangler.acctest.owner.jsonc`.** That follows the Stage 4 convention, so the existing ignore rule and file checks apply. The ADR had `scripts/run11/recovery-admin/` and `<prefix>.recovery-admin.owner.jsonc`.
+- **Lowercase account UUIDs only.** The lifecycle authority keys its Durable Object by the exact string, and the provider issues lowercase.
+- **A committed fictional rehearsal checkpoint** (`scripts/run11/fixtures/recovery-rehearsal-checkpoint.json`), so the owner's rehearsal uses no real account.
+- **The deploy workflow is not changed.** It deploys a fixed `wrangler.alpha.jsonc`, and the new scan covers every config in the checkout.
+- **One-time cleanup on the next successful restore**, not after a plain read. Existing copies have no order. A make-room retry keeps that reachable when storage is already full.
+- **"A failed restore keeps its copy"** is read as "the module's existing copies are kept". F's merged fix still removes the failed attempt's own copy, which duplicates the unchanged store.
+- **Durable restores also remove that module's older browser-storage copies.** They predate its move to transactional storage.
+- **Migration copies** (`updatePrivateStore`) follow the same per-module rule on the next restore.
+- **Storage messages:** the lib's quota message still contains "quota", so F's assertion is unchanged.
+- **The zod init point** is `apps/web/instrumentation-client.ts` (new, runs before hydration), importing H's `lib/vault/zod-jitless.ts`. `app/layout.tsx` is G's file.
+- **No new browser spec**, since UI tests are G's lane. Scratch Playwright drivers (not committed) gave the browser evidence.
+
+## Owner next steps
+1. **Stage 7 rehearsal**, with fictional data, following [OWNER_RECOVERY_ADMIN.md](run11/OWNER_RECOVERY_ADMIN.md) steps 1–10. Until it passes, hosted recovery is not relied on.
+2. **Custody setup:**
+   - two Bitwarden items per export (file, digest);
+   - an AES-256 Disk Utility image on an offline stick;
+   - an account inventory note.
+3. **Before Stage 7 approval:** `node scripts/run11/stage7-preflight.mjs` in the ops checkout.
+4. **Stage 8:** fill a copy of [STAGE8_ACCEPTANCE.md](run11/STAGE8_ACCEPTANCE.md).
+
 # Session E — native-quality phone experience + first-run welcome (2026-09-30 → 10-01, [PR #52](https://github.com/reyals1111-ux/ZIGoals/pull/52), not merged or deployed)
 
 Evidence labels:
@@ -819,7 +978,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
-| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), and once more on #52 (`212c61e`, run 36804922026; passed on the next run). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Local: one assertion miss under full `pnpm test` load; the CI timeout never reproduced locally | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Diagnosed in #53** (`aa7cdaa`, test only): the 30 s timeout hid which labelled step failed, because cleanup awaited the never-settling in-page follower. Cleanup is now bounded and setup is named, so a recurrence names the stalled step. Passed on `aa7cdaa`. Monitor |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
