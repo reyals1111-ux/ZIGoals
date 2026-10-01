@@ -4,7 +4,8 @@ import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { useDisplayLocaleKey } from "./display-locale";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
@@ -22,6 +23,7 @@ import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
 import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
+import { formatPlainDecimal } from "../lib/visual-format";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -39,6 +41,9 @@ function RouteFocusFallback() {
   return null;
 }
 export function Shell({ children }: { children: ReactNode }) {
+  // Number, money and date formats follow the browser locale; this remounts the page content once after hydration
+  // when that locale is not en-US (components/display-locale.ts, lib/visual-format.ts).
+  const localeKey = useDisplayLocaleKey();
   const s = useGoals();
   const showcase=useShowcase();
   const selection=useWorkspaceSelection();
@@ -111,7 +116,7 @@ export function Shell({ children }: { children: ReactNode }) {
                   : s.walletReconnectHint
                     ? "Reconnect Keplr"
                     : "Connect Keplr"}
-            {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG · Testnet</small>}</span>
+            {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG · Testnet</small>}</span>
             <AppIcon name={s.walletState === "CONNECTED" ? "chevron" : "arrow"} size={14}/>
           </button>
         </div>
@@ -135,7 +140,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
             : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`}
           <span className="wallet-balance">
-            {formatUnits(s.balance, TESTNET.nativeAsset.decimals)} ZIG{" "}
+            {formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG{" "}
             {s.mode === "local" ? "demo balance" : "wallet balance"}
           </span>
         </div>}
@@ -211,7 +216,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </section>
         )}
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}>{children}</main><PageArrival /><LiquidGlass />
+        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
@@ -268,10 +273,10 @@ export function Shell({ children }: { children: ReactNode }) {
           </p>
           {"amount" in s.pending.action && (
             <p className="large-number">
-              {formatUnits(
+              {formatPlainDecimal(formatUnits(
                 s.pending.action.amount,
                 TESTNET.nativeAsset.decimals,
-              )}{" "}
+              ))}{" "}
               ZIG
             </p>
           )}
@@ -290,10 +295,10 @@ export function Shell({ children }: { children: ReactNode }) {
               <dt>Estimated network fee</dt>
               <dd>
                 {s.pending.quote
-                  ? formatUnits(
+                  ? formatPlainDecimal(formatUnits(
                       s.pending.quote.feeAmount,
                       TESTNET.nativeAsset.decimals,
-                    )
+                    ))
                   : "0"}{" "}
                 ZIG
               </dd>
@@ -302,11 +307,11 @@ export function Shell({ children }: { children: ReactNode }) {
               <dt>Available after fee reserve</dt>
               <dd>
                 {s.pending.quote
-                  ? formatUnits(
+                  ? formatPlainDecimal(formatUnits(
                       s.pending.quote.safeMax,
                       TESTNET.nativeAsset.decimals,
-                    )
-                  : formatUnits(s.balance, TESTNET.nativeAsset.decimals)}{" "}
+                    ))
+                  : formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))}{" "}
                 ZIG
               </dd>
             </div>
