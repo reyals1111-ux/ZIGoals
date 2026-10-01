@@ -1,10 +1,9 @@
 "use client";
 import type { LayoutAttrs } from "../layout-edit";
-import { useState, type FormEvent } from "react";
+import { memo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
 import {LinkedGoalReview} from './linked-goal-review';
-import {habitStackSuggestions} from '../../lib/habit-linked-policy';
 import type {PrivateGoal} from '../../lib/positions';
 import {HabitTimer} from "./habit-timer";
 import { MotionTrack } from "../motion-track";
@@ -13,7 +12,7 @@ import { visualTone } from "../visual-tone";
 import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
-import type { HabitsStore } from "./use-habits";
+import type { HabitCardStore } from "./use-habits";
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "not-started": "Before you started" };
 function formatDate(date: string) { return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }); }
@@ -25,7 +24,7 @@ function targetCopy(habit: Habit,today:string) {
   return `${rule.target}${unit ? ` ${unit}` : ""} per ${period}`;
 }
 
-export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitsStore; compact?: boolean }) {
+export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitCardStore; compact?: boolean }) {
   const day = habitDay(habit, store.today, store.today); const rule = habitRuleOn(habit,store.today)??habit.rules[0]!; const unit = measurementUnit(rule);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(() => formNumberText(day.count));
   async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch { setError("Could not save this check-in. Try again."); } finally { setBusy(false); } }
@@ -47,7 +46,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   </div>;
 }
 
-function HabitHistory({ habit, store }: { habit: Habit; store: HabitsStore }) {
+function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore }) {
   const [month, setMonth] = useState(store.today.slice(0, 7)); const [selectedDate, setSelectedDate] = useState(store.today); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState("");
   const first = `${month}-01`; const gridStart = addLocalDays(first, -((localWeekday(first) + 6) % 7)); const day = habitDay(habit, selectedDate, store.today); const rule = habitRuleOn(habit, selectedDate) ?? latestHabitRule(habit);
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -87,23 +86,29 @@ function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   </div>;
 }
 
-export function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,onViewStack, onEdit, ...layout }: LayoutAttrs & { habit: Habit; store: HabitsStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;onViewStack?:(id:string)=>void; onEdit: () => void }) {
-  const rule = habitRuleOn(habit,store.today)??habit.rules[0]!,planned=latestHabitRule(habit); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+/** A stack suggestion: the habit to view next (lib/habit-linked-policy.ts). */
+export type HabitStackNext = { id: string; title: string };
+/**
+ * Memoized (Session G, Part 2): every prop is a primitive or keeps its identity while this habit is unchanged, so a
+ * check-in re-renders only its own card. "History & reflection" mounts when first opened and then stays mounted.
+ */
+export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,stackNext,onViewStack, onEdit, ...layout }: LayoutAttrs & { habit: Habit; store: HabitCardStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;stackNext?:readonly HabitStackNext[];onViewStack?:(id:string)=>void; onEdit: (id: string) => void }) {
+  const rule = habitRuleOn(habit,store.today)??habit.rules[0]!,planned=latestHabitRule(habit); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [historyOpen, setHistoryOpen] = useState(false);
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch { setError("The habit was not changed. Try again."); } finally { setBusy(false); } }
   return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
-    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={onEdit} aria-label={`Edit ${habit.title}`}>Edit</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
+    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {planned.target} {measurementUnit(planned)} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
     <HabitCompletion habit={habit} store={store} />
     <HabitTimer habit={habit} store={store}/>
     {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
-    {onViewStack&&habitStackSuggestions(store.data,habit.id,store.today).map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
+    {onViewStack&&stackNext?.map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
     <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} /></details>
     <div className="habit-cadence" role="img" aria-label={`Last 28 days of ${habit.title}. Open History to review each day.`}>{Array.from({ length: 28 }, (_, index) => { const date = addLocalDays(store.today, index - 27); const result = habitDay(habit, date, store.today); return <span key={date} className={`habit-dot habit-day-${result.status}`} title={`${date}: ${statusLabel[result.status]}`} />; })}</div>
     {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}
-    <details className="habit-details"><summary>History &amp; reflection</summary><HabitHistory habit={habit} store={store} /></details>
+    <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
     {habit.notes && <details className="habit-details"><summary>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
     <p className="fine">Pause, resume and archive changes begin {earliestHabitChange(habit,store.today)}. Today’s recorded history stays unchanged.</p><div className="habit-management"><button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => void state("archived")}>Archive habit</button>}</div>{error && <p role="alert">{error}</p>}
   </article>;
-}
+});

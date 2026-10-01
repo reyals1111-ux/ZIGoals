@@ -1,7 +1,7 @@
 'use client';
 /** Sections at the bottom of each page (UI design pass, Part 8): summaries and info sheets from real records only. */
 import Link from 'next/link';
-import type {ReactNode} from 'react';
+import {useMemo,type ReactNode} from 'react';
 import type {LayoutAttrs} from './layout-edit';
 import {WEEKDAYS,goalTimeline,habitRhythm,healthWeek,wealthAllocation,weekAcross} from '../lib/bottom-insights';
 import {ASSET_COLORS,type wealthOverview} from '../lib/wealth';
@@ -44,7 +44,7 @@ export function GoalMilestones({goals,today,...layout}:LayoutAttrs&{goals:readon
 
 /** Habits: check-ins by weekday over 4 weeks, and best streaks. */
 export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:HabitData;today:string}){
- const r=habitRhythm(habits,today),max=Math.max(1,...r.byWeekday.map(d=>d.checkins));
+ const r=useMemo(()=>habitRhythm(habits,today),[habits,today]),max=Math.max(1,...r.byWeekday.map(d=>d.checkins));
  return <Shell layout={layout} id="bottom-habit-rhythm" eyebrow="YOUR RHYTHM" title={<>Consistency by weekday.</>} lede="Check-ins recorded over the last four weeks, and your best streaks.">
   <div className="bottom-two">
    <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} check-ins`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>

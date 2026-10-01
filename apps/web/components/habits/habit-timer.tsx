@@ -2,8 +2,8 @@
 import {useEffect,useRef,useState} from 'react';
 import {habitRuleOn,type Habit,type HabitData} from '../../lib/habits';
 import {commitHabitTimer,discardHabitTimer,habitTimerPreview,pauseHabitTimer,resumeHabitTimer,startHabitTimer} from '../../lib/habit-actions';
-import type {HabitsStore} from './use-habits';
-export function HabitTimer({habit,store}:{habit:Habit;store:HabitsStore}){
+import type {HabitCardStore} from './use-habits';
+export function HabitTimer({habit,store}:{habit:Habit;store:HabitCardStore}){
  const [now,setNow]=useState(()=>new Date()),[busy,setBusy]=useState(false),[error,setError]=useState('');const saving=useRef(false);
  const timer=habit.timer,rule=habitRuleOn(habit,store.today);
  useEffect(()=>{if(!timer||timer.state!=='running')return;const update=()=>setNow(new Date()),id=window.setInterval(update,1000);window.addEventListener('focus',update);return()=>{window.clearInterval(id);window.removeEventListener('focus',update);};},[timer]);

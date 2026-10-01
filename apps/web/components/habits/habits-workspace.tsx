@@ -1,13 +1,15 @@
 "use client";
 import { HabitRhythmSection } from "../bottom-sections";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "./use-habits";
 import { HabitConsistency } from "./habit-consistency";
-import { HabitCard } from "./habit-card";
+import { HabitCard, type HabitStackNext } from "./habit-card";
+import { habitStackSuggestions } from "../../lib/habit-linked-policy";
+import type { HabitData } from "../../lib/habits";
 import { MotionTrack } from "../motion-track";
 import { LayoutLockButton, LayoutPage, LayoutRegion } from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
@@ -17,6 +19,21 @@ import { NebulaFlow } from "../nebula-flow";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
 
+/** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
+function useStackSuggestions(data: HabitData, today: string) {
+  const previous = useRef(new Map<string, readonly HabitStackNext[]>());
+  return useMemo(() => {
+    const next = new Map<string, readonly HabitStackNext[]>();
+    for (const habit of data.habits) {
+      const list = habitStackSuggestions(data, habit.id, today).map((item) => ({ id: item.id, title: item.title }));
+      const old = previous.current.get(habit.id);
+      next.set(habit.id, old && old.length === list.length && old.every((item, i) => item.id === list[i]!.id && item.title === list[i]!.title) ? old : list);
+    }
+    previous.current = next;
+    return next;
+  }, [data, today]);
+}
+const PRIVATE_SCOPE = { chainId: "private", owner: "local" };
 type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening" | "Goal linked" | "Archived";
 /** On a phone, today's check-ins come first: Today's rhythm, your habits, then the charts. */
 const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm"];
@@ -66,6 +83,11 @@ export function HabitsWorkspace() {
     return day.scheduled;
   });
   const editingHabit = editor && editor !== "new" ? store.data.habits.find((habit) => habit.id === editor) : undefined;
+  // Card props keep their identity between check-ins (Session G, Part 2), so React.memo skips unchanged cards.
+  const contractScope = useMemo(() => ({ chainId: goals.chain, owner: goals.owner }), [goals.chain, goals.owner]);
+  const stacks = useStackSuggestions(store.data, store.today);
+  const viewStack = useCallback((id: string) => { setFilter("All"); requestAnimationFrame(() => { const card = document.getElementById(`habit-${id}`); card?.scrollIntoView({ block: "center" }); card?.focus(); }); }, []);
+  const editHabit = useCallback((id: string) => { setEditor(id); setMessage(""); window.scrollTo({ top: 0, behavior: "instant" }); }, []);
   // On a phone the editor opens in place, scrolled into view under the top bar, with its actions pinned (phone-sheets.css).
   useEffect(() => {
     if (!phone || !editor) return;
@@ -86,8 +108,8 @@ export function HabitsWorkspace() {
           {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map((habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;
         const contractGoalName = habit.goalLink && !privateGoal && goals.goals.some((goal) => goal.id === habit.goalLink!.goalId) ? goals.metadata?.goals[habit.goalLink.goalId]?.name ?? `Goal #${habit.goalLink.goalId}` : undefined;
-        const scope = privateGoal ? { chainId: "private", owner: "local" } : { chainId: goals.chain, owner: goals.owner };
-        return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store} scope={scope} privateGoal={privateGoal} onViewStack={id=>{setFilter("All");requestAnimationFrame(()=>{const card=document.getElementById(`habit-${id}`);card?.scrollIntoView({block:"center"});card?.focus();});}} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={() => { setEditor(habit.id); setMessage(""); window.scrollTo({ top: 0, behavior: "instant" }); }} />};
+        const scope = privateGoal ? PRIVATE_SCOPE : contractScope;
+        return {id: entityLayoutId(habit.id), label: habit.title, node: <HabitCard key={habit.id} habit={habit} store={store.card} scope={scope} privateGoal={privateGoal} stackNext={stacks.get(habit.id)} onViewStack={viewStack} goalName={privateGoal?.name ?? contractGoalName} goalHref={privateGoal ? `/app/goals/tracked/${encodeURIComponent(privateGoal.id)}` : habit.goalLink ? `/app/goals/${encodeURIComponent(habit.goalLink.goalId)}` : undefined} stackName={store.data.habits.find((candidate) => candidate.id === habit.stackAfterId)?.title} onEdit={editHabit} />};
       })}/></section> : <section className="panel habit-empty"><span aria-hidden="true">✧</span><h2>{store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."}</h2><p>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</p>{filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>}</section>}
         </div>},
         {id: "habits:rhythm", label: "Consistency by weekday", node: <HabitRhythmSection habits={store.data} today={store.today} />},

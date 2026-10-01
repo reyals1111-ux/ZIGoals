@@ -1,13 +1,13 @@
 "use client";
 import type { LayoutAttrs } from "../layout-edit";
-import type { CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { habitConsistency } from "../../lib/life-intelligence";
 import { type Habit } from "../../lib/habits";
 import { useShowcase } from "../showcase-controls";
 import { useEntrance } from "../use-entrance";
 
 export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { habits: Habit[]; today: string }) {
-  const result = habitConsistency(habits, today);
+  const result = useMemo(() => habitConsistency(habits, today), [habits, today]);
   const showcase = useShowcase();
   const maximum = Math.max(1, ...result.week.map(day => day.checkins));
   const monthMaximum = Math.max(1, ...result.days.map(day => day.checkins));
