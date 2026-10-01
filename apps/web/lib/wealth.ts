@@ -64,13 +64,33 @@ export function goalMarketRequests(s:Platform,goalId?:string):MarketQuoteRequest
 
 export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string}[];change:string;changePercent?:string};
 /** Reconstruct only complete currency totals from recorded local facts; never backfill a missing Position. */
-export function positionTrackedAt(s:Platform,position:Position,at:string){const id=position.id;if(position.trackingStartedAt&&Date.parse(position.trackingStartedAt)>Date.parse(at))return false;if(position.archivePeriods)return !position.archivePeriods.some(period=>Date.parse(period.from)<=Date.parse(at)&&(!period.to||Date.parse(period.to)>Date.parse(at)));const events=s.assetEvents.filter(e=>e.positionId===id).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));const created=events.find(e=>e.kind==='added');if(created&&Date.parse(created.at)>Date.parse(at))return false;const lifecycle=events.filter(e=>Date.parse(e.at)<=Date.parse(at)&&['archived','restored'].includes(e.kind)).at(-1);return lifecycle?lifecycle.kind!=='archived':!position.archivedAt||Date.parse(position.archivedAt)>Date.parse(at);}
+// Session G, Part 2: Platform records are never changed in place, so derived indexes and results are kept per object
+// (and rebuilt if the arrays they read were replaced). Results are identical to computing them afresh.
+const eventIndex=new WeakMap<Platform,{events:Platform['assetEvents'];byPosition:Map<string,Platform['assetEvents']>}>();
+function eventsOf(s:Platform,positionId:string){
+ let index=eventIndex.get(s);
+ if(!index||index.events!==s.assetEvents){
+  const byPosition=new Map<string,Platform['assetEvents']>();
+  for(const event of s.assetEvents){const list=byPosition.get(event.positionId);if(list)list.push(event);else byPosition.set(event.positionId,[event]);}
+  for(const list of byPosition.values())list.sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));
+  index={events:s.assetEvents,byPosition};eventIndex.set(s,index);
+ }
+ return index.byPosition.get(positionId)??[];
+}
+export function positionTrackedAt(s:Platform,position:Position,at:string){const id=position.id;if(position.trackingStartedAt&&Date.parse(position.trackingStartedAt)>Date.parse(at))return false;if(position.archivePeriods)return !position.archivePeriods.some(period=>Date.parse(period.from)<=Date.parse(at)&&(!period.to||Date.parse(period.to)>Date.parse(at)));const events=eventsOf(s,id);const created=events.find(e=>e.kind==='added');if(created&&Date.parse(created.at)>Date.parse(at))return false;const lifecycle=events.filter(e=>Date.parse(e.at)<=Date.parse(at)&&['archived','restored'].includes(e.kind)).at(-1);return lifecycle?lifecycle.kind!=='archived':!position.archivedAt||Date.parse(position.archivedAt)>Date.parse(at);}
+const historyCache=new WeakMap<Platform,{positions:Platform['positions'];snapshots:Platform['valuationSnapshots'];events:Platform['assetEvents'];result:WealthHistory[]}>();
 export function wealthHistory(s:Platform):WealthHistory[]{
+ const cached=historyCache.get(s);
+ if(cached&&cached.positions===s.positions&&cached.snapshots===s.valuationSnapshots&&cached.events===s.assetEvents)return cached.result;
+ const result=computeWealthHistory(s);historyCache.set(s,{positions:s.positions,snapshots:s.valuationSnapshots,events:s.assetEvents,result});return result;
+}
+function computeWealthHistory(s:Platform):WealthHistory[]{
+ const byId=new Map(s.positions.map(p=>[p.id,p]));
  const currencyOf=(p:Position)=>p.valuation?.currency??(p.valuationMode==='automatic'||p.marketRef||sameAsset(p,nativeZigIdentity)?p.quoteCurrency??'USD':undefined);
  const currencies=[...new Set(s.positions.flatMap(p=>currencyOf(p)?[currencyOf(p)!]:[]))];
  return currencies.flatMap(currency=>{
-  const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id);
-  const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&required.includes(v.positionId)).sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt));
+  const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id),requiredIds=new Set(required);
+  const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&requiredIds.has(v.positionId)).sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt));
   const latest=new Map<string,bigint>(),points:{at:string;value:string}[]=[];
   for(let index=0;index<snapshots.length;){
    const at=snapshots[index]!.capturedAt;
@@ -81,7 +101,7 @@ export function wealthHistory(s:Platform):WealthHistory[]{
     if(new Set(facts).size!==1){latest.delete(id);continue;} // competing device observations stay unresolved
     const snapshot=group[0]!,value=BigInt(snapshot.value)*100n/10n**BigInt(snapshot.decimals);latest.set(id,value);
    }
-   const active=required.filter(id=>positionTrackedAt(s,s.positions.find(p=>p.id===id)!,at));
+   const active=required.filter(id=>positionTrackedAt(s,byId.get(id)!,at));
    if(active.length&&active.every(id=>latest.has(id)))points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString()});
   }
   if(!points.length)return [];
@@ -91,11 +111,21 @@ export function wealthHistory(s:Platform):WealthHistory[]{
  });
 }
 
+type OverviewInputs={s:Platform;positions:Platform['positions'];allocations:Platform['allocations'];snapshots:Platform['valuationSnapshots'];events:Platform['assetEvents'];now:number;quotes:readonly MarketQuote[]};
+let lastOverview:{inputs:OverviewInputs;result:ReturnType<typeof computeWealthOverview>}|undefined;
+/** Today shows several summaries of the same records in one render; the latest result is reused for the same inputs. */
 export function wealthOverview(s:Platform,now=Date.now(),quotes:readonly MarketQuote[]=[]){
+ const inputs:OverviewInputs={s,positions:s.positions,allocations:s.allocations,snapshots:s.valuationSnapshots,events:s.assetEvents,now,quotes};
+ const last=lastOverview?.inputs;
+ if(last&&(Object.keys(inputs) as (keyof OverviewInputs)[]).every(key=>last[key]===inputs[key]))return lastOverview!.result;
+ const result=computeWealthOverview(s,now,quotes);lastOverview={inputs,result};return result;
+}
+function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote[]){
+ const validQuotes=quotes.filter(q=>marketQuoteSchema.safeParse(q).success);
  const rows=s.positions.filter(p=>!p.archivedAt).map(p=>{
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
   const requestedCurrency=p.quoteCurrency??'USD';
-  const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
+  const matching=validQuotes.filter(q=>quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
   const currency=p.valuation?.currency??matching?.currency??(p.valuationMode==='automatic'?requestedCurrency:undefined);
   const value=p.valuation?BigInt(p.valuation.value)*100n/10n**BigInt(p.valuation.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
