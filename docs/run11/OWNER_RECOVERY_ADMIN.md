@@ -33,6 +33,7 @@ Do not rely on hosted recovery before then.
 4. Your Cloudflare login, for each session in which you use the tool:
    - Run `pnpm --filter @zigoals/web exec wrangler login` (browser sign-in, with 2FA on the account).
    - Or, for that shell only, export an API token limited to this account (Workers Scripts: Edit). Use `CLOUDFLARE_API_TOKEN` plus `CLOUDFLARE_ACCOUNT_ID`.
+   - If your login can see more than one Cloudflare account, also set `CLOUDFLARE_ACCOUNT_ID` in that shell. The tool runs wrangler without a prompt, so wrangler cannot ask you which account to use.
    - Never write these into a file in the checkout.
    - After the session, run `wrangler logout` or revoke the token.
 
@@ -99,8 +100,8 @@ The rehearsal checks all of this.
    - Run the reconcile again. Expected: `ALREADY RECONCILED`.
    - `export` to `~/zigoals-rehearsal/after.json`. Expected: `Receipts: 1`.
 7. **A wrong anchor is refused.**
-   - Run `dry-run` with `--digest` set to `before.json`'s digest and `--file` set to `before.json`.
-   - Expected: "not the anchor configured on the Worker".
+   - Run `dry-run` with `--file ~/zigoals-rehearsal/before.json` and `--digest` set to `before.json`'s digest.
+   - Expected: "Refused: the recovery anchor in the private lifecycle config names another account or digest. Nothing was sent." The CLI refuses before the Worker is asked; the Worker's own anchor check is covered by the local tests.
 8. **After.**
    - Compare the dashboard with step 1. Only the rehearsal lifecycle Worker should be new.
    - No new route, custom domain, or `workers.dev` subdomain should appear (a subdomain counts only if you already had one).
