@@ -74,6 +74,10 @@ export default function Settings() {
             Backups contain personal information. Store them somewhere private.
             Local demo and testnet backups are separate.
           </p>
+          <p className="fine">
+            This older format holds local simulation Goal plans only. Tracked Goals and Wealth are in the Positions and
+            Goals backup above, and Today preferences only in the encrypted backup.
+          </p>
           <button
             className="primary"
             onClick={exportData}
