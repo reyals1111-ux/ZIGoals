@@ -1,3 +1,22 @@
+# Alpha deploy — 2026-10-01 evening, `fc906e8` live
+
+Evidence labels:
+- **CI log:** the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session J cloud session on 2026-10-01.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** the source, version and rollback IDs the owner reported in the Session J brief. All three equal what the CI log shows.
+
+- **Run:** Manual Alpha deployment #20, [run 36914399467](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36914399467), 2026-10-01 19:27–19:33 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `fc906e8d30fdcd4a64e01b18d387d3de5b5fc48c`, `main` after #54. (Actions API, CI log, Owner)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `c583cf24-6f44-4236-bbf2-c886548d406b`. The last observed live version is the same. (CI log, Owner)
+- **Rollback:** `f6ed4ca7-064d-4ede-b19c-9657e5e2ec39`, the version deploy #19 published, so the chain holds. (CI log, Owner)
+- **CI on `fc906e8`:** Milestone quality #310 ([run 36912067520](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36912067520)): success on attempt 1. (Actions API)
+- **Owner manual checks:** not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#54](https://github.com/reyals1111-ux/ZIGoals/pull/54) (`fc906e8`): Session G, correctness fixes, Habits speed, worldwide number formatting and phone refinements. See the Session G entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Apex landing deploy — 2026-10-01 evening, `1e676ba` live on zigoals.app
 
 A separate record from the Alpha deploy numbering: the apex Worker `zigoals` is published by hand with wrangler, not by the Manual Alpha workflow, so there is no Actions run.
@@ -1358,7 +1377,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-01 evening for the [Alpha deploy #19](#alpha-deploy--2026-10-01-evening-1e676ba-live) above (recorded by Session G).
+Updated 2026-10-01 evening for the [Alpha deploy #20](#alpha-deploy--2026-10-01-evening-fc906e8-live) above (recorded by Session J).
+- Deployed source `fc906e8d30fdcd4a64e01b18d387d3de5b5fc48c`, `main` after [PR #54](https://github.com/reyals1111-ux/ZIGoals/pull/54). Verified: Actions API.
+- CI: Milestone quality #310 ([run 36912067520](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36912067520)) on `fc906e8`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #20 ([run 36914399467](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36914399467)), exact source `fc906e8`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `c583cf24-6f44-4236-bbf2-c886548d406b`; rollback `f6ed4ca7-064d-4ede-b19c-9657e5e2ec39` (the run #19 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #55, 2026-10-01 evening, recorded by Session G):
 - Deployed source `1e676ba54466ff3fdfd1d0f26c48b2b7d5e927d8`, `main` after [PR #55](https://github.com/reyals1111-ux/ZIGoals/pull/55). Verified: Actions API.
 - CI: Milestone quality #307 ([run 36904485055](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36904485055)) on `1e676ba`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #19 ([run 36906398979](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36906398979)), exact source `1e676ba`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
