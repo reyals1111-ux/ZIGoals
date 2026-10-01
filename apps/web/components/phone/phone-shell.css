@@ -36,13 +36,13 @@
   :root .phone-topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #020918f2, #020918d9); border-bottom: 1px solid transparent; opacity: 0; transition: opacity 200ms ease; pointer-events: none; -webkit-backdrop-filter: saturate(1.4) blur(18px); backdrop-filter: saturate(1.4) blur(18px); }
   :root .phone-topbar[data-scrolled]::before { opacity: 1; border-bottom-color: #7fc8ff26; }
   :root .phone-topbar-row { display: grid; grid-template-columns: minmax(44px, auto) minmax(0, 1fr) auto; align-items: center; gap: 4px; height: var(--phone-bar); }
-  :root .phone-home, :root .phone-back, :root .phone-settings { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 14px; color: var(--text); text-decoration: none; }
+  :root .phone-home, :root .phone-back, :root .phone-settings, :root .phone-wealth { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 14px; color: var(--text); text-decoration: none; }
   :root .phone-home .brand-logo { display: block; width: 30px; height: 34px; margin: 0; filter: drop-shadow(0 0 8px #4897ff55); }
   :root .phone-back { gap: 2px; padding: 0 8px 0 2px; font-size: 17px; font-weight: 600; color: #9fe6ff; }
   :root .phone-title { margin: 0; text-align: center; font-size: 17px; font-weight: 650; letter-spacing: -.01em; color: var(--text-strong, #f4f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transform: translateY(6px); transition: opacity 200ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1); }
   :root .phone-topbar[data-title-shown] .phone-title { opacity: 1; transform: none; }
   :root .phone-actions { display: flex; align-items: center; gap: 2px; }
-  :root .phone-settings[aria-current="page"] { background: #0d2a44; box-shadow: inset 0 0 0 1px #6fdcff55; }
+  :root :is(.phone-settings, .phone-wealth)[aria-current="page"] { background: #0d2a44; box-shadow: inset 0 0 0 1px #6fdcff55; }
   /* Quick add: the same component and name ("+ Quick add"), shown as a round "+". */
   :root .phone-topbar .phone-quick-add { position: relative; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 1px solid transparent; font-size: 0; color: #041126; background: var(--nebula-emphasis) padding-box, linear-gradient(120deg, #bff4ff, #9d8cff) border-box; box-shadow: inset 0 1px 2px #e4fcffb0, 0 0 14px #2edbff40; }
   :root .phone-topbar .phone-quick-add::before, :root .phone-topbar .phone-quick-add::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 2.5px; border-radius: 2px; background: #041126; translate: -50% -50%; }
@@ -142,8 +142,8 @@
   :root .app-content > .private-read-delay .actions > * { min-height: 44px; }
 
   /* Press feedback on touch (no hover effects): a gentle liquid-glass give on controls. */
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-status-toggle, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
 }
 
 @keyframes phone-tab-arrive { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1); } }
@@ -165,13 +165,13 @@
 /* Static equivalents: no glide, fade or slide under reduced motion or the in-app Motion Off. */
 @media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
   :root .phone-topbar::before { transition: none; }
-  :root :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-sheet-close) { transition: none; }
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
+  :root :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
 }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root[data-app-motion="off"] .phone-topbar::before { transition: none; }
-  :root[data-app-motion="off"] :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-sheet-close) { transition: none; }
-  :root[data-app-motion="off"] :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
+  :root[data-app-motion="off"] :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
+  :root[data-app-motion="off"] :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
 }
 @media (forced-colors: active) and (max-width: 767.98px), (forced-colors: active) and (pointer: coarse) and (max-height: 500px) {
   :root .phone-topbar::before, :root .phone-tabbar, :root dialog.phone-sheet { background: Canvas; border-color: CanvasText; }

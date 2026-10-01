@@ -121,7 +121,7 @@ export function PhoneTopBar() {
   usePressFeedback(active);
   useTitleOnScroll(active, bar, path);
   if (!show) return null;
-  const route = phoneRoute(path), onSettings = path === "/app/settings";
+  const route = phoneRoute(path), onSettings = path === "/app/settings", onWealth = isNavActive(path, "/app/wealth");
   return <div ref={bar} className="phone-topbar">
     <div className="phone-topbar-row">
       {route.back
@@ -130,6 +130,8 @@ export function PhoneTopBar() {
       <p className="phone-title" aria-hidden="true">{route.title}</p>
       <div className="phone-actions">
         <QuickAdd triggerClassName="phone-quick-add" />
+        {/* Wealth and Settings are one tap away in the bar as well as in More (CI journeys open them by these names). */}
+        <Link className="phone-wealth" href="/app/wealth" aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>
         <Link className="phone-settings" href="/app/settings" aria-label="Settings" aria-current={onSettings ? "page" : undefined}><AppIcon name="settings" size={22} luminous={onSettings} /></Link>
       </div>
     </div>

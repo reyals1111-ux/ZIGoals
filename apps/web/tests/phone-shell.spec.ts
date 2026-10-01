@@ -151,3 +151,13 @@ test('a stalled private read (Session D): the notice sits under the honesty stri
  const retry=(await panel.getByRole('button',{name:'Retry'}).boundingBox())!;expect(retry.height).toBeGreaterThanOrEqual(44);expect(retry.y+retry.height).toBeLessThanOrEqual(tabs.y);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 });
+
+test('the names CI journeys click stay visible links on a phone: Today, Goals, Habits, Health, Wealth and Settings',async({page})=>{
+ // scripts/run10 and scripts/run11 open these pages with getByRole('link',{name,exact:true}).first() at 390x844.
+ await page.setViewportSize({width:390,height:844});await page.goto('/app');await expect(page.locator('main h1')).toBeVisible();
+ for(const [name,url] of [['Wealth','/app/wealth'],['Settings','/app/settings'],['Goals','/app/goals'],['Habits','/app/habits'],['Health','/app/health'],['Today','/app']] as const){
+  const link=page.getByRole('link',{name,exact:true}).first();await expect(link).toBeVisible();
+  const box=(await link.boundingBox())!;expect(box.width,name).toBeGreaterThanOrEqual(44);expect(box.height,name).toBeGreaterThanOrEqual(44);
+  await link.click();await page.waitForURL(url==='/app'?/\/app$/:`**${url}`);await expect(page.locator('main h1')).toBeVisible();
+ }
+});
