@@ -1,3 +1,162 @@
+# Session E — native-quality phone experience + first-run welcome (2026-09-30 → 10-01, [PR #52](https://github.com/reyals1111-ux/ZIGoals/pull/52), not merged or deployed)
+
+Evidence labels:
+- **local**: this cloud session's sandbox (Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright at most 2 workers, Chromium 141 standing in for `chrome`).
+- **CI**: Milestone quality on the PR.
+
+No account, secret, wallet or deploy was used. Base: main `d21ba8f` (Session D merged into this branch as `a2f11bc`).
+
+**Scope.** A phone experience only below 768 CSS px, or on a landscape phone (coarse pointer and at most 500 px tall): one query, `PHONE_QUERY` in `components/phone/use-phone-layout.ts`, guards every phone rule. Desktop and tablet are unchanged (freeze check below).
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Phone audit of every page at 390×844, 375×667, 430×932, 412×915 and 844×390 (Showcase and empty) and the design plan; owner-approved with four additions. | — |
+| 1 | **Desktop/tablet freeze check** `scripts/desktop-freeze-check.mjs` (+ unit test): 130 full-page captures (11 pages × Showcase/empty × 1440×900, 1280×800, 1024×768, 820×1180, plus 820×1180 and 1180×820 with a coarse pointer, plus Quick add and Add asset open at 1024×768 and 820×1180-touch), compared pixel for pixel and by accessibility snapshot. Fixed clock, 503 API fixture, reduced motion; each capture waits for running animations. | `707e355`, `b8500ab`, `40aaada`, `5521773` |
+| — | Merge main (Session D, PR #50) with a merge commit; its slow-read panel gets phone gutters. | `a2f11bc` |
+| 2 | **Phone shell**: top bar (logo or "Back to Goals/Wealth", compact title, Quick add, Settings), glass tab bar Today · Goals · Habits · Health · More, More sheet (the other six, plus the brand signature). The honesty banners are the same elements restyled into one strip on every page's first screen; "Status details" only clamps the long sentences, never the labels. The layout lock keeps its Part 18.4 place. Wealth and Settings are also top-bar links (CI's integration journeys click them by name at 390×844). | `d28bee7`, `b755563`, `6fcaeaa`, `2f5db8d`, `212c61e` |
+| 3 | **Phone layouts for every page** (CSS, plus small phone-only JSX): Health title → journal date → counters; Habits and Wealth phone default orders (a saved order still wins); Wealth total right after the title; Settings grouped list; compact cards and rows; carousels; no sideways scroll. | `173fb5f`, `d106a8a`, `fd42f70`, `ac56641`, `41514e8`, `604ef8e`, `2b51a93`, `80d3dc4` |
+| 4 | **Sheets**: every existing dialog is a bottom sheet on phones (grabber, sticky header, sticky primary, above the keyboard via `visualViewport`); the habit editor and food log stay in place with their action pinned. | `b6f8145` |
+| 5 | **First-run welcome**: a card on Today for brand-new devices only; `/app/welcome` (welcome → what matters → first goal → first habit → your data); "Show the welcome again" in Settings on phones. | `114ebac` (TIER 3), `c687248`, `32453d4`, `df8164e` |
+| 6 | Native polish, folded into Parts 2 and 4 (press feedback, title fade, frosting bar, sheet slide-up; each static under reduced motion and Motion Off). | — |
+| 7 | Quality pass (below); landscape overflow fixed; phone specs measure against the device width; two CI-only failures fixed (below); 44 px Habits calendar days. Skip list updated (34 → 36). | `d75fdba`, `c0b4221`, `7907c8f`, `f244986` |
+| 8 | Review gallery: 58 WebP on `review/mobile-e-screenshots` (`b8197ff`, never merged) and [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/52#issuecomment-5924740102). This entry. | (this commit) |
+
+**TIER 3 commit and risk:**
+- `114ebac` **(new persistence key)** `zigoals:onboarding:v1` = `{"version":1,"seen":true}`:
+  - Device-only localStorage, no personal content, not synced, not in backups.
+  - Loading fails closed: any stored value or storage error counts as "seen", so the welcome never returns to someone with data.
+  - Risk: a device whose storage refuses writes may see the welcome again; nothing else reads the key.
+  - No existing key or data format changed.
+
+Not touched: auth/OTP, vault/recovery/encryption, the sync engine, wallet/Keplr logic, contracts/, workers/, packages/, .github/workflows, deploy scripts, secrets, apps/web/AGENTS.md, CLAUDE.md. No new dependency. CSP unchanged; no new network request.
+
+**Files touched outside `components/phone/` and `components/onboarding/`** (all phone-gated or additive):
+- `components/shell.tsx`: one import and two elements (`PhoneTopBar`, `PhoneTabBar`).
+- `app/layout.tsx`: `viewport` export (`viewportFit:"cover"`, `themeColor` only for the phone query). Head-only; no visual effect on desktop or tablet browsers.
+- `components/app-icon.tsx` (two glyphs), `components/app-nav.tsx` (`isNavActive` export; no arrival mark on a nav that is not rendered).
+- `habits-workspace.tsx`, `health-app.tsx`, `wealth-view.tsx`, `app/app/settings/page.tsx`: phone-only order or placement (`usePhoneActive`, false on the server and on desktop).
+- `habit-editor.tsx`: exports `habitTemplateInput` (the editor's own templates as a valid `HabitInput`).
+- `dashboard/today-dashboard.tsx`: the welcome card for brand-new devices.
+
+## Freeze check (desktop and tablet unchanged)
+Final run of `scripts/desktop-freeze-check.mjs`:
+- **Baseline:** a fresh capture from a production build of main `d21ba8f`.
+- **Candidate:** this branch's final head, `f244986`, captured with the same script (`5521773`).
+- **Result:** **130 of 130 captures identical**, pixels and accessibility snapshot, with 0 page errors on either side. The previous head, `7907c8f`, also matched 130 of 130.
+
+**Matrix:**
+- Sizes: 1440×900, 1280×800, 1024×768 and 820×1180, plus 820×1180 and 1180×820 with touch.
+- 11 pages in Showcase and empty.
+- The Quick add and Add asset dialogs open.
+
+The check also ran after every part. It caught two real leaks: `text-size-adjust` and `user-select` inside the phone query (which does not match at these sizes) still moved Chromium's desktop render of a dialog by a sub-pixel. Both are gone (`b755563`, `2f5db8d`).
+
+The one intended difference is the welcome card on Today for a brand-new device (no records, not Showcase). `first-run` captures it separately as evidence, at 1440×900 and 820×1180.
+
+**The script itself, made robust along the way:**
+- It waits for running animations (`b8500ab`).
+- It parks the pointer (`40aaada`). Seven tablet captures had differed only by a hover state under the resting pointer.
+- It bounds its settle step (`5521773`). One run hung.
+
+## Phone numbers (local, Showcase data, production build)
+"After" is the Part 7 after-audit; Habits targets were re-measured on `f244986`. Screens are page height ÷ viewport height. "Title" is the page `h1`'s top edge in CSS px. Targets are visible controls under 44×44 px. Small text is text under 15 px.
+
+| Page (390×844) | Screens before → after | Title at | Targets < 44 | Text < 15 px |
+|---|---|---|---|---|
+| Today | 18.2 → 14.6 | 953 → 401 | 41 → 19 | 153 → 66 |
+| Goals | 7.0 → 5.5 | 981 → 418 | 15 → 11 | 20 → 14 |
+| Goal detail | 11.4 → 10.6 | 1083 → 548 | 31 → 13 | 106 → 57 |
+| Create goal | 5.3 → 4.5 | 912 → 398 | 26 → 26 ¹ | 10 → 3 |
+| Habits | 11.2 → 9.4 | 930 → 389 | 190 → 2 ² | 87 → 37 |
+| Health | 12.4 → 10.2 | **1548** → 409 | 34 → 11 | 213 → 179 |
+| Wealth | **23.9** → 15.7 | 950 → 401 | 35 → 14 | 165 → 74 |
+| Markets | 9.5 → 6.7 | 955 → 397 | 29 → 12 | 53 → 1 |
+| Stake / Positions | 10.0 → 9.4 | 945 → 402 | 32 → 4 | 42 → 9 |
+| Ecosystem | 14.1 → 11.4 | 921 → 402 | 150 → 9 | 166 → 19 |
+| Activity | 11.9 → 8.7 | 937 → 402 | 33 → 32 ³ | 63 → 1 |
+| Settings | 13.6 → 14.1 ⁴ | 917 → 403 | 10 → 4 | 14 → 2 |
+
+1. Radio inputs that are visually hidden inside 44 px+ labelled tiles; the tile is the target.
+2. Mostly the calendar's day buttons, seven across, 43.7 px at the time of the audit. `f244986` makes them 44.6 px at 390 and 40.3 px at 360; a 44 px day at 360 would need the calendar edge to edge.
+3. Each Activity row is one whole-row link; its title anchor (23 px tall) still counts.
+4. The grouped Settings list (13 rows) is added above the existing sections.
+
+At 375×667 every page is shorter, too (e.g. Today 23.5 → 18.9, Wealth 30.6 → 20.1, Health 16.0 → 13.0), and every title is now on the first screen.
+- **360×800:** Today 20.1 → 16.4, Wealth 26.3 → 17.3, Health 13.7 → 11.1, Habits 12.9 → 10.4.
+- **Landscape (844×390, coarse pointer):** Today 32.6 → 29.6, Wealth 33.3 → 24.1, Habits 22.2 → 17.8, Health 18.7 → 14.6, Positions 16.8 → 14.8, Goals 10.1 → 7.6. Settings is 22.0 → 22.3 because of the added list.
+
+No page scrolls sideways at any of these sizes (strict check against the device width).
+
+At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · PUBLIC ALPHA` and ⓘ) never truncates its label. `phone-shell.spec.ts` asserts it on every page, along with no sideways scroll and the title above the tab bar.
+
+**Quality pass** (Chromium, 390×844, Showcase, 11 pages): 36 of 36 checks pass.
+- **130% text:** no sideways scroll, and the status labels stay whole.
+- **Forced colours:** the tab bar and strip keep a solid edge.
+- **Reduced motion and Motion Off:** no running animation after load on any page or on the welcome.
+- **4× CPU, Today:** 18 long tasks while loading (max 431 ms; main: 16, max 329 ms). Scrolling: 0 long tasks, 0 of 98 frames over 50 ms.
+- **4× CPU, Wealth, Habits and Health:** 16, 10 and 7 long tasks while loading. Scrolling: 0.
+
+## Tests
+- **Unit:** `pnpm test` 1773 passed, 12 skipped (`f244986`). Includes `lib/onboarding.test.ts` and the freeze-check unit test.
+- **New browser specs:**
+  - `phone-shell` (tabs, More, back links, strip and lock on every first screen at 390×844 and 360×800, landscape, no-JS, Session D's panel, the link names CI's journeys click);
+  - `phone-pages` (no sideways scroll at 390×844, 360×800, 320×568 and landscape; phone default orders and a saved order winning; Wealth total on the first screen; Settings list);
+  - `onboarding` (brand-new devices only; never with records, a chosen Today or Showcase; Skip and Not now write only the flag; templates create real records; reduced motion; phone-only reopen).
+- **Existing mobile-project specs**, only where the phone UI intentionally changed, never loosened:
+  - navigation goes through `tests/phone-nav.ts` (`navLink` opens More first; `openMore` returns the sheet at rest);
+  - Quick add uses the top-bar trigger;
+  - Habits and Health use per-project expected orders;
+  - `ui-evidence` expects the Wealth phone label.
+  - The desktop project's assertions are unchanged.
+- **Owner addition 3:** the welcome card did not affect any existing desktop-size spec, so no shared setup seeds the onboarding flag. The freeze check seeds it for its empty-state captures only.
+- **Playwright full suite, 2 workers:** on `f244986`: 634 passed, 36 skipped, 2 failed (29.4 min). The 2 failures are the intro-video test (desktop and mobile), which this sandbox's Chromium cannot play; CI runs it. The 36 skips are the previous 34 plus the 2 new landscape-phone platform skips (`docs/testing/SKIPPED_TESTS.md` E1, E2).
+- **CI:** green on `f244986` ([run 36812115852](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36812115852)) and on `7907c8f` ([run 36806633019](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36806633019)): web checks, the three browser shards, web integration (including the RUN11_PACKAGED package and the Alpha Workers gate), contract, and canonical builds A/B with compare.
+- **Known intermittent:** `market-disconnect.test.mjs` timed out once at 30 s on `212c61e` ([run 36804922026](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36804922026)). This PR does not touch `scripts/run11` or `workers/`. It passed on the next run (the policy's one re-run). The table below records the recurrence.
+
+**CI-only failures fixed on the way** (`212c61e`, `7907c8f`). Each was reproduced locally first:
+- **Packaged consumer journey** (`scripts/run11`, unchanged): it clicks a visible "Wealth" link at 390×844, so Wealth became a top-bar link as well as staying in More.
+- **`dashboard-visual` (mobile project, unchanged):** a full-page screenshot in Chromium's mobile emulation briefly shrinks the viewport to 1×1 px, where the phone query matches. A page whose content is clipped to the viewport then kept a 4× zoom afterwards. The content clip now applies to landscape phones only, where the overflow was.
+- **`brand-nav-polish` (mobile):** the More sheet was measured mid-slide; `openMore` now waits for the slide to finish.
+
+## Decisions made without the owner
+- Tabs: Today · Goals · Habits · Health · More (daily-use pages first; Wealth first in More).
+- Settings and Wealth are also top-bar links (gear and wallet icons), as well as in More: CI integration journeys (scripts/run10, scripts/run11 packaged) click visible "Settings" and "Wealth" links at 390×844 and must stay unchanged. Wealth was added after CI's packaged journey failed on 40aaada.
+- Onboarding entry is an inline welcome card on Today (not a takeover), because fresh test browsers are brand-new users.
+- Health quick counters stay 1 bar per row on phones (Part 18.6 accepted baseline), not a carousel.
+- The layout lock keeps its Part 18.4 place (status row, after the balance), now on the phone's first screen.
+- Back links in the top bar are named "Back to Goals" / "Back to Wealth" so they never collide with the "Goals" tab link.
+- viewport-fit=cover is global (<head> only); no visual effect on desktop/tablet browsers.
+- Habit cards on phones are compacted with CSS only; history, trends, notes and pause/archive stay visible (a "Details" wrapper would hide controls that existing flows and tests use).
+- No `text-size-adjust` and no `user-select` in the phone CSS: their mere presence, even inside the phone-only query, changes Chromium's render of a desktop dialog by a sub-pixel, which the freeze check caught (bisected on an idle machine). iOS keeps its default text sizing; a long press on a control is kept from selecting text by a phone-only selectstart guard instead.
+- While arranging a page on a phone, the tab bar stays and the Arrange bar (Reset / Done) docks just above it (the plan had the Arrange bar replace the tab bar); every page stays one tap away, as on desktop, and the existing hero-star journey keeps working unchanged.
+- Settings rows on phones use names that exist nowhere else on the page or in the phone chrome ("Habit settings", not "Habits"), so name-based lookups (tests, CI journeys, assistive tech) still find exactly one element.
+- Habit templates offered in the welcome exclude "Buy ZIG" and "Add to savings" (money-moving wording and a monthly target on a daily schedule could read as advice); the six offered are Walk, Drink water, Read, Exercise, Study and Review budget.
+- Part 4: the existing dialogs (Quick add, Today's widget and preset dialogs, exercise counters, every Wealth/Markets sheet, the transaction review) become bottom sheets with phone-only CSS. The New/Edit habit editor, the food/water log and the wallet/APR forms stay in place (the plan had them as sheets): many existing flows and tests drive them in place, and a modal would make the rest of the page inert. On phones they scroll into view when opened and their primary action stays pinned above the tab bar or keyboard.
+- Today on phones is 14.6 screens with Showcase data (18.2 before), not the ~9 targeted; Wealth is 15.7 (23.9 before), not ~10. Going further would mean hiding content or honesty lines. Empty-state Today is 10.4 screens.
+- Part 6 (native polish) was folded into Parts 2 and 4: press feedback (transform only), no tap highlight, no text selection on a long press of a control (selectstart guard), the large-title fade, the frosting top bar and sheet slide-ups, each with a static state under reduced motion and Motion Off. Not added: drag-to-dismiss on sheet grabbers (the grabber is a visual cue; Close, Cancel, Escape and the backdrop dismiss as before, with no custom touch handlers competing with iOS gestures) and skeleton placeholders while stores open (the existing "Loading…" status lines stay; nothing data-shaped is drawn).
+- The welcome card sits right after Today's hero (the slogan keeps the first screen), not above it.
+- Owner addition 3 did not trigger: in the full suite on the build with the welcome card, no existing spec at a desktop or tablet size failed because of it (fresh browsers do see it). So no shared test setup seeds the onboarding flag; the freeze check seeds it for its own empty-state captures only.
+- While Today is being arranged on a phone, compact widgets take the full width and the summary strip and journey steps stack, so move controls never cover a card's own buttons and nothing sits past the screen edge (existing customize specs).
+- Goal cards on phones keep their title and "Open Goal" links rather than becoming one whole-card link (a whole-card link turns every touch into a navigation); Markets cards and Activity rows are whole-row links.
+- Habits calendar on phones: 2 px gaps give 44 px day buttons from 390 px up; at 360 px they are about 40 px (above WCAG 2.2 AA's 24 px) rather than running the calendar edge to edge of its card.
+- The content clip that stops landscape overflow applies to landscape phones only: in portrait there was no overflow, and the clip made Chromium's mobile emulation keep a 4x zoom after a full-page screenshot (an emulation artefact that broke an unchanged spec in CI).
+
+## Deferred / not done
+- **WebKit / Safari:** not tested. The environment's network policy blocks Playwright's WebKit download (cdn.playwright.dev, playwright.download.prss.microsoft.com). The owner can allow those hosts in the environment's network settings. Until then, Safari-specific behaviour (the `visualViewport` keyboard inset, safe areas, `@starting-style`) is unverified here. Chromium with iPhone emulation only.
+- **Today and Wealth are not at the ~9 / ~10 screens planned** (14.6 / 15.7 with Showcase data). Going further would mean hiding content or honesty lines.
+- **Not modal sheets:** the habit editor, the food/water log and the wallet/APR forms stay in place, with their action pinned. Not added: drag-to-dismiss, skeleton placeholders.
+- **No real-device check:** no real phone was available in this session.
+
+## How the owner can review
+1. Start the dev server: `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101` (as in CLAUDE.md). Open http://127.0.0.1:3101/app in Chrome DevTools device mode (iPhone 12/13/14, Pixel 7, and 360×800). Rotate for landscape. Settings → Load Showcase Demo fills in example data.
+2. **The welcome:** a fresh profile or Incognito window shows the card on Today. On a phone, Settings → "Show the welcome again" reopens it.
+3. **Desktop and tablet:** any width ≥ 768 px should look exactly as the live Alpha.
+4. **A real phone on the same Wi-Fi:** the dev server would need `--hostname 0.0.0.0`, and even then `http://<laptop-ip>:3101` is not a secure context. `crypto.randomUUID` and WebCrypto are unavailable there, so creating goals and anything encrypted fails. That is the address, not the app. Instead:
+   - Android: USB with Chrome's port forwarding (chrome://inspect → Port forwarding 3101 → localhost:3101). The phone then uses `localhost`, which counts as secure.
+   - iPhone: an HTTPS tunnel the owner trusts (Safari's Web Inspector on a Mac can then inspect the page).
+5. **Review screenshots:** branch `review/mobile-e-screenshots` (never merged) and the gallery comment on the PR.
+
 # Session D — platform hardening (2026-09-30, [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50), not merged or deployed)
 
 Evidence labels:
@@ -539,7 +698,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
-| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), and once more on #52 (`212c61e`, run 36804922026; passed on the next run). Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. The CI timeout did not reproduce, so the steps now have labelled deadlines |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
