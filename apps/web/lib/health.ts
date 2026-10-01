@@ -1,4 +1,5 @@
 import {bodyMeasurementSchema} from "./body-measurement-schema";
+import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
 import { z } from "zod";
 import { addLocalDays } from "./local-date";
@@ -143,14 +144,10 @@ export function createEmptyHealth(): HealthData {
 }
 export function newHealthId(): string { return `health_${crypto.randomUUID()}`; }
 
-/** A decimal comma ("72,5") is read as a decimal point only when it cannot be a thousands separator. */
+/** A decimal comma ("72,5") is read as a decimal point only when it cannot be a thousands separator (shared rule). */
 function decimalComma(value: string, scale: 1 | 1000): string {
   if (!value.includes(",") || scale === 1) return value;
-  const match = /^(\d+),(\d{1,3})$/.exec(value);
-  if (!match) return value;
-  const whole = match[1]!, fraction = match[2]!;
-  if (fraction.length === 3 && !/^0+$/.test(whole)) throw new Error(`“${value}” could mean ${whole}${fraction} or ${whole}.${fraction}. Type it without a thousands separator.`);
-  return `${whole}.${fraction}`;
+  return normalizeDecimalInput(value);
 }
 /** Parse decimal form values without exponent syntax, implicit defaults, or lost precision. */
 export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number): number {

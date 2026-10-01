@@ -12,6 +12,7 @@ import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions"
 import { visualTone } from "../visual-tone";
 import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
+import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import type { HabitsStore } from "./use-habits";
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "not-started": "Before you started" };
@@ -26,9 +27,12 @@ function targetCopy(habit: Habit,today:string) {
 
 export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitsStore; compact?: boolean }) {
   const day = habitDay(habit, store.today, store.today); const rule = habitRuleOn(habit,store.today)??habit.rules[0]!; const unit = measurementUnit(rule);
-  const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(String(day.count));
+  const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(() => formNumberText(day.count));
   async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch { setError("Could not save this check-in. Try again."); } finally { setBusy(false); } }
-  async function saveManual(event: FormEvent) { event.preventDefault(); await run(() => store.setValue(habit.id, store.today, Number(manual))); }
+  // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
+  function typed() { try { return readFormNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(e instanceof Error ? e.message : "Enter a number."); return null; } }
+  async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => store.setValue(habit.id, store.today, value)); }
+  async function addManual() { const value = typed(); if (value !== null) await run(() => store.addValue(habit.id, store.today, value)); }
   if (!day.scheduled) return <span className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]}</span>;
   const smartLabel = rule.type === "quit" ? `Stayed on track for ${habit.title}` : rule.type === "limit" ? `Stayed within limit for ${habit.title}` : `${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`;
   return <div className={`habit-completion ${compact ? "habit-completion-compact" : ""}`}>
@@ -38,7 +42,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={busy} onClick={() => void run(() => store.addValue(habit.id, store.today, 1))}>+</button>}
       <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={busy} onClick={() => void run(() => day.status === "complete" && rule.type === "build" ? store.setValue(habit.id, store.today, 0) : store.smartDone(habit.id, store.today))}>{busy ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
     </div>
-    {!compact && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="number" min={0} max={1_000_000_000} step={rule.measurement.kind === "count" ? 1 : "any"} value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void run(() => store.addValue(habit.id, store.today, Number(manual)))}>Add value</button></div></form></details>}
+    {!compact && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div></form></details>}
     {error && <p className="habit-inline-error" role="alert">{error}</p>}
   </div>;
 }
@@ -48,7 +52,8 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitsStore }) {
   const first = `${month}-01`; const gridStart = addLocalDays(first, -((localWeekday(first) + 6) % 7)); const day = habitDay(habit, selectedDate, store.today); const rule = habitRuleOn(habit, selectedDate) ?? latestHabitRule(habit);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget); const mood = String(form.get("mood")) as "energized" | "good" | "neutral" | "difficult" | "calm" | "";
-    setBusy(true); setMessage(""); setError(""); try { await store.setCount(habit.id, selectedDate, Number(form.get("count")), String(form.get("note")), mood || undefined); setMessage("Day saved."); } catch { setError("This day could not be saved. Choose a scheduled active day up to today."); } finally { setBusy(false); }
+    let count: number; try { count = readFormNumber(String(form.get("count")), { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setMessage(""); setError(e instanceof Error ? e.message : "Enter a number."); return; }
+    setBusy(true); setMessage(""); setError(""); try { await store.setCount(habit.id, selectedDate, count, String(form.get("note")), mood || undefined); setMessage("Day saved."); } catch { setError("This day could not be saved. Choose a scheduled active day up to today."); } finally { setBusy(false); }
   }
   async function mark(status: "skipped" | "failed") { setBusy(true); setMessage(""); setError(""); try { await store.markDay(habit.id, selectedDate, status, day.note); setMessage(status === "skipped" ? "Day skipped." : "Day marked failed."); } catch { setError("This day could not be changed."); } finally { setBusy(false); } }
   function chooseDate(date: string) { if (!date) return; setSelectedDate(date); setMonth(date.slice(0, 7)); setMessage(""); setError(""); }
@@ -63,7 +68,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitsStore }) {
       <label className="field">Day to review<input type="date" required min={habit.startDate} max={store.today} value={selectedDate} onChange={(event) => chooseDate(event.target.value)} /></label>
       <p className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]} · Target {day.target} {measurementUnit(rule)}</p>
       <fieldset className="habit-form-fields" disabled={busy || !day.scheduled || selectedDate > store.today}>
-        <label className="field">Value for this day<input name="count" aria-label="Count for this day" type="number" inputMode="decimal" min={0} max={1_000_000_000} step={rule.measurement.kind === "count" ? 1 : "any"} required defaultValue={day.count} /></label>
+        <label className="field">Value for this day<input name="count" aria-label="Count for this day" type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" required defaultValue={formNumberText(day.count)} /></label>
         <label className="field">Mood (optional)<select name="mood" defaultValue={day.mood ?? ""}><option value="">No mood tag</option><option value="energized">Energized</option><option value="good">Good</option><option value="calm">Calm</option><option value="neutral">Neutral</option><option value="difficult">Difficult</option></select></label>
         <label className="field">Day reflection (optional)<textarea name="note" rows={2} maxLength={2000} defaultValue={day.note} /></label>
         <div className="habit-history-actions"><button className="secondary" type="submit">{busy ? "Saving…" : "Save day"}</button><button className="quiet" type="button" onClick={() => void mark("skipped")}>Skip day</button><button className="quiet" type="button" onClick={() => void mark("failed")}>Mark failed</button></div>
