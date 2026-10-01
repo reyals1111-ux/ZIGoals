@@ -1,9 +1,12 @@
 /** Transactional local records. Plaintext at rest; encryption is a separate upload/backup boundary. */
+import {PrivateStorageError,isQuotaError} from './storage-errors';
 type Header={revision:number;fields:Record<string,unknown>;arrays:Record<string,string[]>};
 type Change={field:string;id:string;value:unknown;deleted:boolean};
 export type PendingOperation={space:string;domain:string;operation:string;base:number;revision:number;changes:Change[];header:Header};
-const request=<T>(r:IDBRequest<T>)=>new Promise<T>((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(Error('Private storage request failed. No success was recorded.'));});
-const done=(t:IDBTransaction)=>new Promise<void>((resolve,reject)=>{t.oncomplete=()=>resolve();t.onabort=()=>reject(Error('Private storage transaction failed. Previous data was preserved.'));t.onerror=()=>{};});
+// A refusal for lack of space is reported as STORAGE_FULL (storage-errors.ts); other failures keep their words, with the browser's error as the cause.
+const full=(cause:unknown)=>new PrivateStorageError('STORAGE_FULL',{durable:true,cause});
+const request=<T>(r:IDBRequest<T>)=>new Promise<T>((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(isQuotaError(r.error)?full(r.error):Error('Private storage request failed. No success was recorded.',{cause:r.error}));});
+const done=(t:IDBTransaction)=>new Promise<void>((resolve,reject)=>{t.oncomplete=()=>resolve();t.onabort=()=>reject(isQuotaError(t.error)?full(t.error):Error('Private storage transaction failed. Previous data was preserved.',{cause:t.error}));t.onerror=()=>{};});
 const key=(...parts:string[])=>JSON.stringify(parts);
 const prefixRange=(...parts:string[])=>{const prefix=JSON.stringify(parts).slice(0,-1)+',';return IDBKeyRange.bound(prefix,prefix+'\uffff');};
 const byteLength=(v:unknown)=>new TextEncoder().encode(JSON.stringify(v)).length;
@@ -109,7 +112,7 @@ export class VaultDatabase{
     fence();const receiptKey=key(space,operation),receipt=await request(tx.objectStore('receipts').get(receiptKey)) as {domain:string;digest:string;revision:number}|undefined;
     if(receipt){if(receipt.domain!==domain||receipt.digest!==digest)throw Error('Operation identity was reused for different data.');revisions.push(receipt.revision);continue;}
     const headKey=key(space,domain),current=await request(tx.objectStore('headers').get(headKey)) as Header|undefined;
-    if((current?.revision??0)!==base)throw Error('Data changed on another tab or device. Reload and review before saving.');
+    if((current?.revision??0)!==base)throw new PrivateStorageError('CONFLICT');
     const changes:Change[]=[];
     for(const [field,ids]of Object.entries(current?.arrays??{}))for(const id of ids)if(!prepared.rows.has(key(field,id))){tx.objectStore('records').delete(key(space,domain,field,id));changes.push({field,id,value:null,deleted:true});}
     for(const row of prepared.rows.values()){
@@ -127,5 +130,11 @@ export class VaultDatabase{
  }
  async pending(space:string):Promise<PendingOperation[]>{const db=await this.open(),tx=db.transaction('outbox','readonly'),finish=done(tx);const selected=await request(tx.objectStore('outbox').getAll(prefixRange(space))) as PendingOperation[];await finish;return selected;}
  async acknowledge(space:string,operation:string){const db=await this.open(),tx=db.transaction('outbox','readwrite'),finish=done(tx);tx.objectStore('outbox').delete(key(space,operation));await finish;}
+ /** QA-02: after a confirmed restore, remove this domain's recovery copies except the one `keep` wrote. One transaction: a failure removes none. */
+ async pruneRecovery(space:string,domain:string,keep:string):Promise<number>{
+  const db=await this.open(),tx=db.transaction('recovery','readwrite'),finish=done(tx),store=tx.objectStore('recovery'),kept=key(space,domain,keep);
+  try{const keys=await request(store.getAllKeys(prefixRange(space,domain)));let removed=0;for(const row of keys)if(row!==kept){store.delete(row);removed++;}await finish;return removed;}
+  catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}
+ }
  async recovery(space:string,domain:string):Promise<string[]>{const db=await this.open(),tx=db.transaction('recovery','readonly'),finish=done(tx);const selected=await request(tx.objectStore('recovery').getAll(prefixRange(space,domain))) as {space:string;domain:string;raw:string}[];await finish;return selected.map(x=>x.raw);}
 }

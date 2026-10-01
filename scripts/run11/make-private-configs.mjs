@@ -4,16 +4,18 @@
 // service targets and non-secret vars change. It never handles secrets (use `wrangler secret put`
 // after Stage 7 approval), refuses to overwrite, writes 0600 files that git must ignore, and prints
 // only which names and var names changed, never values.
+// `--recovery-admin` (ADR-007 option A, after Stage 4) adds the seventh, local-only recovery admin copy.
 import {existsSync,readFileSync,writeFileSync,chmodSync,unlinkSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import JSON5 from 'json5';
-import {CONFIGS,privatePath,privateFileProblems,validatePrivateCopies} from './activation-check.mjs';
+import {CONFIGS,ADMIN_CONFIG,privatePath,privateFileProblems,validatePrivateCopies,validateAdminConfig,lifecycleTargetProblems} from './activation-check.mjs';
 
 const FLAGS=['--auth-ref','--workers-subdomain','--app-origin','--name-prefix','--market-account-id','--market-policy-file'];
-const USAGE='Usage: node scripts/run11/make-private-configs.mjs '+FLAGS.map(f=>f+' <value>').join(' ');
+const USAGE='Usage: node scripts/run11/make-private-configs.mjs '+FLAGS.map(f=>f+' <value>').join(' ')+'\n   or: node scripts/run11/make-private-configs.mjs --recovery-admin   (after Stage 4: the seventh, local-only config)';
 export function parseArgs(argv){
+ if(argv.length===1&&argv[0]==='--recovery-admin')return {recoveryAdmin:true};
  const values={};
  for(let i=0;i<argv.length;i+=2){if(!FLAGS.includes(argv[i])||argv[i+1]===undefined||argv[i] in values)throw Error(USAGE);values[argv[i]]=argv[i+1];}
  if(FLAGS.some(f=>!(f in values)))throw Error(USAGE);
@@ -73,9 +75,30 @@ export function makePrivateConfigs(root,input){
  }catch(error){for(const target of written)try{unlinkSync(target);}catch{}throw error;}
  return Object.keys(CONFIGS).map(kind=>summary(kind,templates[kind],copies[kind]));
 }
+/** The seventh copy (ADR-007 option A): the local-only recovery admin config, bound to the private lifecycle Worker. */
+export function buildAdminCopy(template,lifecycleName){
+ const copy=structuredClone(template);copy.name=lifecycleName.replace(/-lifecycle$/,'')+'-recovery-admin-local-only';
+ copy.services=template.services.map(s=>({...s,service:lifecycleName}));return copy;
+}
+/** Writes the recovery admin copy next to its template, from the existing Stage 4 lifecycle and private-sync copies. */
+export function makeAdminConfig(root){
+ const lifecycle=privatePath(CONFIGS.lifecycle),sync=privatePath(CONFIGS.private),path=privatePath(ADMIN_CONFIG),target=resolve(root,path);
+ const problems=[lifecycle,sync].flatMap(p=>privateFileProblems(root,p).map(x=>p+': '+x));
+ if(problems.length)throw Error('Generate the six Stage 4 private configs first; nothing written:\n'+problems.join('\n'));
+ const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),l=read(lifecycle),template=read(ADMIN_CONFIG),copy=buildAdminCopy(template,l.name);
+ const errors=[...lifecycleTargetProblems(l),...validateAdminConfig(copy,template,l.name,{privateCopy:true})];
+ if(!read(sync).services?.some(s=>s.binding==='LIFECYCLE'&&s.service===l.name&&s.entrypoint==='LifecycleService'))errors.push('recovery-admin: private sync must bind the same lifecycle Worker.');
+ if(errors.length)throw Error(errors.join('\n'));
+ if(existsSync(target))throw Error('Refusing to overwrite the existing recovery admin config: '+path);
+ if(spawnSync('git',['check-ignore','-q',target],{cwd:root}).status!==0)throw Error('git would not ignore '+path+'; nothing written.');
+ writeFileSync(target,JSON.stringify(copy,null,2)+'\n',{flag:'wx',mode:0o600});
+ try{chmodSync(target,0o600);const left=privateFileProblems(root,path);if(left.length)throw Error(path+': '+left.join(', '));}catch(error){try{unlinkSync(target);}catch{}throw error;}
+ return `${path}: name ${template.name} → ${copy.name}; services ADMIN→${l.name} (LifecycleRecoveryAdmin, remote)`;
+}
 function main(){
- const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
- const lines=makePrivateConfigs(root,parseArgs(process.argv.slice(2)));
+ const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),input=parseArgs(process.argv.slice(2));
+ if(input.recoveryAdmin){console.log(['Wrote the recovery admin config (0600, ignored by git, never deployed):',makeAdminConfig(root),'Next: `node scripts/run11/activation-check.mjs --admin`, then docs/run11/OWNER_RECOVERY_ADMIN.md.'].join('\n'));return;}
+ const lines=makePrivateConfigs(root,input);
  console.log(['Wrote six private configs (0600, ignored by git):',...lines,'Next: review them, then `node scripts/run11/activation-check.mjs --private`. Supply secrets only after Stage 7 approval.'].join('\n'));
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))try{main();}catch(error){console.error(error.message);process.exitCode=1;}

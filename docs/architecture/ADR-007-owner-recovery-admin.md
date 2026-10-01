@@ -1,6 +1,8 @@
 # ADR-007: owner-only caller for lifecycle recovery administration
 
-Status: **Proposal — awaiting owner decision.** Nothing here is implemented. It adds operator tooling next to the auth/sync lifecycle Worker, so any implementation needs explicit owner approval and its own reviewed PR, labelled TIER 3 (lifecycle). Code references are to `main` at `d21ba8f`. No Cloudflare account, secret or wrangler command was used to write this.
+Status: **Accepted — option A (owner decision 2026-10-01).** Options B, C and D below stay as recorded when the proposal was written; B is the fallback if the option A rehearsal fails. The implementation is a separate reviewed PR, labelled TIER 3 (admin tooling). Code references are to `main` at `d21ba8f`. No Cloudflare account, secret or wrangler command was used to write this.
+
+Proposal status before the decision: proposal, awaiting owner decision; nothing implemented.
 
 ## Decision requested
 Choose one of:
@@ -10,6 +12,8 @@ Choose one of:
 - **no change**: keep Stage 5 manual and blocked.
 
 The recommendation is at the end.
+
+**Decision (owner, 2026-10-01): A.** A local owner command-line tool, nothing deployed, with the owner's own Cloudflare login as the credential.
 
 ## Context: the gap
 - **The authority.** `LifecycleAuthority` (`workers/private-sync/lifecycle.mjs`) owns account deletion and domain generations. Its history can only be restored from a checkpoint kept **outside** Cloudflare storage (`scripts/run11/LIFECYCLE_RECOVERY.md`).
@@ -114,3 +118,24 @@ It is plaintext **metadata**: no vault data, keys or credentials. It is still pe
 - **Custody:** the checkpoint file in the password manager and the digest in a separate entry, plus an encrypted offline copy. Export after every deletion decision.
 - **Revisit C** once account numbers make manual export after each deletion impractical. Prefer A over B unless the owner needs to act from a device without the repository.
 - **Until approved:** Stage 5 stays as documented (`RECOVERY_MODE=reconcile`, nothing binds the admin entrypoint), and hosted recovery is not relied on.
+
+## Implementation (2026-10-01, Session H)
+Option A is implemented as decided. Where the code needed it, the design above was refined:
+- **Files:**
+  - the admin Worker is `workers/recovery-admin/worker.mjs`, with the template `workers/recovery-admin/wrangler.local.jsonc`. It lives under `workers/`, not `scripts/run11/recovery-admin/`, so the Workers type-check covers it;
+  - the private copy follows the Stage 4 convention, `workers/recovery-admin/wrangler.acctest.owner.jsonc` (ignored, 0600), not `<prefix>.recovery-admin.owner.jsonc`.
+- **The CLI owns the wrangler lifetime.** `scripts/run11/recovery-admin.mjs` starts `wrangler dev` on exactly the checked config, then stops it after one command. It runs on 127.0.0.1 with the dev registry off and the inspector on loopback.
+  - A random per-run session token, passed in a 0600 temporary env file, is required on every request to the admin Worker. This covers other local processes and DNS rebinding.
+  - wrangler's output is never printed (it can include the login email).
+- **The checker:**
+  - `--admin` checks the copy;
+  - `--private` also checks it when present;
+  - `--source` checks the template;
+  - a scan of every Worker config in the checkout, including ignored owner copies, allows only the admin template and its copy to name the entrypoint.
+  - The deploy workflow is unchanged: it deploys a fixed config path, so the admin config cannot reach it.
+- **What wrangler 4.144 does with `remote: true`** (read from its code, not observed):
+  - it opens a remote proxy session;
+  - it uploads a temporary edge-preview proxy Worker, named after the admin Worker, with `workers_dev` on for that preview. That proxy holds the binding;
+  - it creates a `workers.dev` subdomain if the account has none.
+  This makes the "is the remote proxy session reachable" question in test plan step 4 concrete. The Stage 7 rehearsal in [OWNER_RECOVERY_ADMIN.md](../run11/OWNER_RECOVERY_ADMIN.md) checks it before anything relies on it. Until it passes, the remote binding stays **UNVERIFIED**.
+- The lifecycle Worker, its endpoints and the checkpoint format are unchanged.

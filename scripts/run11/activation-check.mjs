@@ -59,6 +59,50 @@ export function privateFileProblems(root,path){
  if(spawnSync('git',['check-ignore','-q',full],{cwd:base}).status!==0)problems.push('not ignored by git');
  return problems;
 }
+// Owner recovery administration (ADR-007 option A): a seventh, local-only config that is never deployed and
+// never part of the runtime topology above. Its private copy is privatePath(ADMIN_CONFIG).
+export const ADMIN_CONFIG='workers/recovery-admin/wrangler.local.jsonc';
+const ADMIN_FIELDS=['$schema','name','main','compatibility_date','workers_dev','preview_urls','services','observability'];
+/** The lifecycle Worker a recovery-admin config may target: the private lifecycle copy, never a template or the Alpha. */
+export function lifecycleTargetProblems(lifecycle){
+ const problems=[];
+ if(!/^[a-z][a-z0-9-]{2,62}$/.test(lifecycle?.name??'')||!lifecycle.name.endsWith('-lifecycle')||/-local$/.test(lifecycle.name)||lifecycle.name==='zigoals-alpha')problems.push('lifecycle: the private lifecycle Worker name is required.');
+ if(lifecycle?.main!=='lifecycle.mjs'||!lifecycle.durable_objects?.bindings?.some(b=>b.name==='LIFECYCLES'&&b.class_name==='LifecycleAuthority'))problems.push('lifecycle: the target is not the lifecycle authority Worker.');
+ return problems;
+}
+/** Local only: no routes, workers.dev, preview URLs, triggers, vars or other bindings; exactly one remote ADMIN
+ * binding to the lifecycle Worker's LifecycleRecoveryAdmin entrypoint. Messages name fields, never values. */
+export function validateAdminConfig(c,template,lifecycleName,{privateCopy=false}={}){
+ const errors=[],extra=Object.keys(c??{}).filter(k=>!ADMIN_FIELDS.includes(k));
+ if(extra.length)errors.push('recovery-admin: local-only Worker; remove '+extra.join(', ')+' (no routes, triggers, vars, account or other bindings).');
+ const name=privateCopy?String(lifecycleName).replace(/-lifecycle$/,'')+'-recovery-admin-local-only':'zigoals-recovery-admin-local-only';
+ if(c?.name!==name||c.name==='zigoals-alpha')errors.push('recovery-admin: name must be the lifecycle prefix plus "-recovery-admin-local-only".');
+ if(c?.workers_dev!==false||c?.preview_urls!==false)errors.push('recovery-admin: workers.dev and preview URLs must be disabled.');
+ if(c?.main!==template.main||c?.compatibility_date!==template.compatibility_date)errors.push('recovery-admin: main and compatibility date must match the reviewed template.');
+ if(c?.observability?.enabled!==false)errors.push('recovery-admin: request logging must stay disabled.');
+ const s=c?.services;
+ if(!Array.isArray(s)||s.length!==1||Object.keys(s[0]??{}).sort().join()!=='binding,entrypoint,remote,service'||s[0].binding!=='ADMIN'||s[0].service!==lifecycleName||s[0].entrypoint!=='LifecycleRecoveryAdmin'||s[0].remote!==true)errors.push("recovery-admin: exactly one remote ADMIN binding to the lifecycle Worker's LifecycleRecoveryAdmin entrypoint is required.");
+ return errors;
+}
+/** Worker configs in the checkout (tracked, new, or ignored owner copies) that name the recovery-admin entrypoint,
+ * other than the admin template and its private copy. Text match, so TOML and comments count too. */
+export function strayAdminBindings(root){
+ const list=args=>execFileSync('git',['ls-files','-z',...args],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
+ const configs=[...list(['-c','-o','--exclude-standard','--','*.jsonc','*.toml','*wrangler*.json']),...list(['-o','-i','--exclude-standard','--','*.owner.jsonc','*.owner.json','*.owner.toml'])];
+ return [...new Set(configs)].filter(p=>p!==ADMIN_CONFIG&&p!==privatePath(ADMIN_CONFIG)&&readFileSync(resolve(root,p),'utf8').includes('LifecycleRecoveryAdmin')).map(p=>p+': binds the recovery admin entrypoint; only the local recovery-admin config may.');
+}
+/** Stage 5 check of the private recovery admin copy against the private lifecycle and private-sync copies. */
+export function checkAdmin(root,{required=true}={}){
+ const path=privatePath(ADMIN_CONFIG),lifecycle=privatePath(CONFIGS.lifecycle),sync=privatePath(CONFIGS.private);
+ if(!required&&!existsSync(resolve(root,path)))return 'Recovery admin: no private copy yet (Stage 5; create it with make-private-configs.mjs --recovery-admin).';
+ const problems=[path,lifecycle,sync].flatMap(p=>privateFileProblems(root,p).map(x=>p+': '+x));
+ if(problems.length)throw Error(problems.join('\n'));
+ const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),l=read(lifecycle);
+ const errors=[...lifecycleTargetProblems(l),...validateAdminConfig(read(path),read(ADMIN_CONFIG),l.name,{privateCopy:true}),...strayAdminBindings(root)];
+ if(!read(sync).services?.some(s=>s.binding==='LIFECYCLE'&&s.service===l.name&&s.entrypoint==='LifecycleService'))errors.push('recovery-admin: private sync must bind the same lifecycle Worker.');
+ if(errors.length)throw Error(errors.join('\n'));
+ return 'PASS: the recovery admin copy is an ignored 0600 local-only config (no routes, workers.dev, preview URLs or triggers) with one remote ADMIN binding to the private lifecycle Worker; no other config binds the entrypoint. Values not printed.';
+}
 function checkPrivate(root){
  const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),problems=[];
  for(const path of Object.values(CONFIGS))for(const problem of privateFileProblems(root,privatePath(path)))problems.push(privatePath(path)+': '+problem);
@@ -66,15 +110,17 @@ function checkPrivate(root){
  const errors=validatePrivateCopies(Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,read(privatePath(p))])),Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,read(p)])));
  if(errors.length)throw Error(errors.join('\n'));
  console.log('PASS: six private copies are ignored 0600 files with consistent names, exact https origins, no placeholders and unchanged classes, migrations and compatibility dates. Values not printed.');
+ console.log(checkAdmin(root,{required:false}));
 }
 function main(){
  if(process.argv.length===3&&process.argv[2]==='--private'){checkPrivate(resolve(dirname(fileURLToPath(import.meta.url)),'../..'));return;}
+ if(process.argv.length===3&&process.argv[2]==='--admin'){console.log(checkAdmin(resolve(dirname(fileURLToPath(import.meta.url)),'../..')));return;}
  const args=process.argv.slice(2),dry=args.includes('--dry-run'),index=args.indexOf('--source'),source=index>=0?args[index+1]:undefined;
- if(!source||!/^[a-f0-9]{40}$/.test(source)||args.some((a,i)=>a!=='--dry-run'&&a!=='--source'&&i!==index+1)){console.error('Usage: node scripts/run11/activation-check.mjs --source <exact-commit> [--dry-run] | --private');process.exitCode=2;return;}
+ if(!source||!/^[a-f0-9]{40}$/.test(source)||args.some((a,i)=>a!=='--dry-run'&&a!=='--source'&&i!==index+1)){console.error('Usage: node scripts/run11/activation-check.mjs --source <exact-commit> [--dry-run] | --private | --admin');process.exitCode=2;return;}
  const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
  if(head!==source||spawnSync('git',['merge-base','--is-ancestor','3ca2f42303724ef1317aded6982c9fdd6fd8775d',head],{cwd:root}).status!==0)throw Error('Source must match HEAD and retain the verified preparation ancestor.');
- const configs=Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,JSON5.parse(readFileSync(resolve(root,p),'utf8'))])),errors=validateTopology(configs);
- if(errors.length)throw Error(errors.join('\n'));console.log('PASS: exact source '+head+'; six isolated template targets and named topology.');
+ const configs=Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,JSON5.parse(readFileSync(resolve(root,p),'utf8'))])),errors=[...validateTopology(configs),...validateAdminConfig(JSON5.parse(readFileSync(resolve(root,ADMIN_CONFIG),'utf8')),JSON5.parse(readFileSync(resolve(root,ADMIN_CONFIG),'utf8')),configs.lifecycle.name),...strayAdminBindings(root)];
+ if(errors.length)throw Error(errors.join('\n'));console.log('PASS: exact source '+head+'; six isolated template targets and named topology; the local-only recovery admin template is the only config that binds its entrypoint.');
  if(dry){const metadata=JSON.parse(readFileSync(resolve(root,'apps/web/.open-next/alpha-build.json'),'utf8'));if(metadata.commit!==head)throw Error('Generated application source differs from the requested source. Rebuild first.');if(!existsSync(resolve(root,'apps/web/.open-next/worker.js')))throw Error('Generate the OpenNext build first.');for(const [kind,path]of Object.entries(CONFIGS)){execFileSync('pnpm',['--filter','@zigoals/web','exec','wrangler','deploy','--config',resolve(root,path),'--dry-run','--outdir','/tmp/zigoals-run11-dry-'+kind],{cwd:root,stdio:'inherit',env:{...process.env,WRANGLER_SEND_METRICS:'false'}});}}
  console.log('OWNER_SETUP_PENDING: credentials, exact nonproduction origins/policy, lifecycle authority activation and real inbox/device/provider/PITR proof. No provisioning or deployment performed.');
 }
