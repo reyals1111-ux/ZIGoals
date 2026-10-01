@@ -77,6 +77,16 @@ No HSTS and no `includeSubDomains`/`preload` directive is introduced, and no Clo
 
 Every other isolation guarantee is unchanged: Worker names, `assets.directory`, host-scoped routes, the ban on bindings, vars and services, and the Alpha-side checks.
 
+## Landing contract tests
+
+Three places outside `landing/` asserted the old page and had to follow it: `apps/web/tests/landing.spec.ts` (the landing's own contract test, which CI runs), `apps/web/tests/run9-2-visual.spec.ts` (an opt-in capture) and `scripts/verify-hosted-alpha.mjs` (the live-apex verifier). Each asserted the old `Explore the Alpha →` CTA and the old safety copy; the first two also served `index.html` alone from an in-memory server, which cannot render a multi-file site.
+
+No assertion was dropped to make them pass. The harness now serves the real `landing/` directory with Cloudflare's content types, and every original assertion has a V4 equivalent. Four are new: no third-party request, no Google Fonts link, the equation's stepped reveal, and its reduced-motion settled state. These are the only files this work touches outside `landing/` and `docs/`.
+
+## A defect inherited from the approved package
+
+The equation's four-step reveal does not reach the words. The state machine and the four progress bars step correctly, but a rule in `styles/final-v4.css` overrides the dimming in `styles/motion.css`, and removing it only half works because V4 paints the spectrum from the parent, so a child's `opacity` cannot dim its glyph. It is the same in the standalone directory — the bytes are identical — so this is not an import regression. Nothing was changed; the measurements, the cause and three possible fixes are in [QA.md](QA.md).
+
 ## Limits of this evidence
 
 - **Physical iPhone Safari is unverified.** Everything below was measured in Chrome on macOS. The standalone package said the same; importing does not change it.

@@ -23,6 +23,11 @@ Browser checks ran against `http://127.0.0.1:8788` in Chrome (the `chrome` chann
 | `pnpm lint` | pass |
 | `pnpm test` | 213 files passed, 8 skipped; 1987 tests passed, 12 skipped |
 | `pnpm exec vitest run scripts/check-deployment-configs.test.ts` | 59 passed |
+| `pnpm --filter @zigoals/web exec playwright test tests/landing.spec.ts --workers=2` | 6 passed, 2 platform skips |
+
+`apps/web/tests/landing.spec.ts` is the repository's own landing contract, and the import invalidated every assertion in it — it asserted the old `Explore the Alpha →` CTA, the old `.alpha-note` copy, the old `.consumer-slogan` markup and a `data:` URI favicon, and it served `index.html` alone from an in-memory server, which cannot render a multi-file site. It is rewritten against V4 rather than trimmed: the harness now serves the real `landing/` directory with Cloudflare's content types, and every original assertion has a V4 equivalent (CTA target and `rel`, honesty copy, the two-line slogan and its right edge at 320/390/768/1024/1280/1440, no horizontal overflow at each width, a loadable declared icon). Four assertions are new: no third-party request, no Google Fonts link, the stepped equation reveal, and the reduced-motion settled state. The same two ported assertions were applied to `tests/run9-2-visual.spec.ts` (opt-in capture) and `scripts/verify-hosted-alpha.mjs` (the live-apex verifier), which would otherwise have failed the first time they ran against the new page.
+
+The reveal check was verified as a negative control: forcing `motion.js` to activate every word at once makes it fail, and only it — the other three landing tests still pass.
 
 The deploy-config rules were also run as negative controls before being trusted: the real tree validates clean, and each of 34 deliberately broken variants produces its specific error — a missing leading `*`, each of nine forbidden negations, each of nine missing type denials, and a planted `.wrangler/`, `docs/`, `node_modules/`, `review/`, `tools/`, `backups/`, `assets/product/source/` directory or stray `.md`, `.json`, `.jsonc`, `.py`, `.sh`, `.test.mjs`, `.env.local` file.
 
@@ -63,6 +68,45 @@ Response headers on `/` carried the full policy: `content-security-policy`, `x-c
 - Scrolling renders all six chapters in order: **swan → lotus → butterfly → heart → bull → z**.
 - The canvas is `aria-hidden="true"`.
 - Native scrolling throughout; no scroll interception, no scroll-triggered audio.
+
+## The equation's stepped reveal — a defect inherited from the approved package
+
+The equation section is authored to reveal in four scroll steps: **Goals**, then **+ Habits**, then **+ Health**, then **= Wealth**, with the four progress bars below advancing in step. Measured against the Workers-Assets server at 1440×900, scrolling the section from top to bottom:
+
+| scroll progress | `.active` words | `.active` ticks | computed opacity of the four words |
+| ---: | --- | --- | --- |
+| 0.00 | `Goals` | 1 of 4 | 1.00 1.00 1.00 1.00 |
+| 0.19 | `Goals` `Habits` | 2 of 4 | 1.00 1.00 1.00 1.00 |
+| 0.39 | `Goals` `Habits` `Health` | 3 of 4 | 1.00 1.00 1.00 1.00 |
+| 0.70 | all four | 4 of 4 | 1.00 1.00 1.00 1.00 |
+
+So the state machine in `scripts/motion.js` is correct and the **progress bars do advance one per step**, but the words themselves never dim: they are fully opaque from the first frame.
+
+Cause, confirmed by reading the cascade and by removing the rule and re-measuring. `styles/motion.css` dims an inactive word with
+
+```css
+html.equation-enabled:not(.motion-off) [data-equation]{opacity:.13;transform:translateY(10px);…}
+```
+
+and `styles/final-v4.css`, which loads last, carries an unconditional rule with the *same* selector and specificity:
+
+```css
+html.equation-enabled:not(.motion-off) [data-equation]{opacity:1;transform:none;transition:none}
+```
+
+The later rule wins, so no word is ever dim.
+
+Removing that one rule does not restore the authored effect either, and this is the part that matters: V4 moved the nebula spectrum onto the **parent** (`.equation-inputs` paints one continuous gradient with `background-clip: text`, and forces `color: transparent !important` on its children). A child's `opacity` therefore cannot dim a glyph whose fill is painted by the parent. Measured with the rule removed: `= Wealth` fades correctly — `data-equation="3"` sits on `.equation-result`, which owns its own gradient — while `Goals`, `Habits` and `Health` stay fully bright and merely shift 10px. That is almost certainly why the override was added.
+
+Restoring a four-step *visual* reveal therefore needs a small design decision, not a one-line fix, because the only ways to dim a parent-painted word all change something the owner has protected:
+
+1. give each word its own gradient — breaks the single continuous spectrum across `Goals + Habits + Health`;
+2. dim inactive words with a scrim in the page background colour — preserves the spectrum exactly, but is new CSS authored into an approved design;
+3. swap `opacity` for an opaque dim `color` on inactive words, letting the parent gradient show only on active ones — smallest change, but the dim state becomes a flat colour rather than a 13% tint of that word's own gradient stop.
+
+**No change was made.** `styles/final-v4.css` and `scripts/motion.js` are byte-identical to the approved source, verified with `diff`. This is a latent defect in the approved V4 package, not an import regression: the standalone directory has the same bytes and therefore the same behaviour.
+
+Two related notes for anyone previewing locally: `python3 -m http.server` serves `.mjs` as `application/octet-stream`, so the browser refuses `scripts/origami-scroll.mjs` and the scroll artwork silently disappears — use the `wrangler dev` command above instead. And with macOS "Reduce motion" on, every step is active from the first frame by design, which looks identical to the defect above.
 
 ## Reduced motion
 
