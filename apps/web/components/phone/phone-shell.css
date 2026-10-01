@@ -27,6 +27,9 @@
   /* The desktop sidebar (and its 10-link grid) gives way to the top bar and the tab bar. */
   :root .app-sidebar { display: none; }
   :root .app-content { padding-left: var(--safe-left); padding-right: var(--safe-right); padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); }
+  /* Nothing in the content may widen a phone's layout viewport (decorative art reached past the edge in landscape).
+     clip, unlike hidden, makes no scroll container, so sticky bars and in-page anchors behave as before. */
+  :root .app-content { overflow-x: clip; }
 
   /* ---------- Top bar ---------- */
   :root .phone-topbar { display: block; position: sticky; top: 0; z-index: 40; padding: var(--safe-top) calc(var(--safe-right) + 8px) 0 calc(var(--safe-left) + 8px); }

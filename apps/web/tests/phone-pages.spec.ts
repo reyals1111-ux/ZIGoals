@@ -12,7 +12,7 @@ for(const [width,height] of [[390,844],[360,800],[320,568]] as const)
   await page.setViewportSize({width,height});await showcase(page);
   for(const path of PAGES){
    await open(page,path);
-   const r=await page.evaluate(()=>({over:document.documentElement.scrollWidth-innerWidth,title:document.querySelector('main h1')!.getBoundingClientRect().top,tabs:document.querySelector('.phone-tabbar')!.getBoundingClientRect().top}));
+   const r=await page.evaluate(()=>({over:document.documentElement.scrollWidth-document.documentElement.clientWidth,title:document.querySelector('main h1')!.getBoundingClientRect().top,tabs:document.querySelector('.phone-tabbar')!.getBoundingClientRect().top}));
    expect(r.over,path).toBeLessThanOrEqual(0);expect(r.title,path).toBeLessThan(r.tabs);
   }
  });
@@ -69,7 +69,7 @@ test('landscape phone: no sideways scroll and the title on the first screen on e
  await page.setViewportSize({width:844,height:390});await showcase(page);
  for(const path of PAGES){
   await open(page,path);
-  const r=await page.evaluate(()=>({over:document.documentElement.scrollWidth-innerWidth,title:document.querySelector('main h1')!.getBoundingClientRect().top,tabs:document.querySelector('.phone-tabbar')!.getBoundingClientRect().top}));
+  const r=await page.evaluate(()=>({over:document.documentElement.scrollWidth-document.documentElement.clientWidth,title:document.querySelector('main h1')!.getBoundingClientRect().top,tabs:document.querySelector('.phone-tabbar')!.getBoundingClientRect().top}));
   expect(r.over,path).toBeLessThanOrEqual(0);expect(r.title,path).toBeLessThan(r.tabs);
  }
 });

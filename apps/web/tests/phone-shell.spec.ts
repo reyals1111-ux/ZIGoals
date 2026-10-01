@@ -16,7 +16,7 @@ async function firstScreen(page:Page,path:string){
  return page.evaluate(()=>{
   const box=(selector:string)=>{const e=document.querySelector(selector);if(!e)return null;const r=e.getBoundingClientRect();return r.width&&r.height?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}:null;};
   const label=document.querySelector('.app-topbar .network-banner strong') as HTMLElement|null;
-  return {height:innerHeight,width:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,
+  return {height:innerHeight,width:innerWidth,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
    testnet:box('.app-topbar .network-banner strong'),testnetText:label?.textContent,labelWhole:label?label.scrollWidth<=label.clientWidth&&label.scrollHeight<=label.clientHeight&&getComputedStyle(label).textOverflow!=='ellipsis':false,
    labelLines:label?Math.round(label.getBoundingClientRect().height/parseFloat(getComputedStyle(label).lineHeight)):0,
    mode:box('.mode-strip'),modeText:document.querySelector('.mode-strip')?.textContent??'',showcase:box('.showcase-banner strong'),
@@ -149,5 +149,5 @@ test('a stalled private read (Session D): the notice sits under the honesty stri
  expect(p.x).toBeGreaterThanOrEqual(12);expect(p.x+p.width).toBeLessThanOrEqual(390-12);
  expect(p.y).toBeGreaterThanOrEqual(strip.y+strip.height);expect(p.y).toBeLessThan(tabs.y);
  const retry=(await panel.getByRole('button',{name:'Retry'}).boundingBox())!;expect(retry.height).toBeGreaterThanOrEqual(44);expect(retry.y+retry.height).toBeLessThanOrEqual(tabs.y);
- expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 });
