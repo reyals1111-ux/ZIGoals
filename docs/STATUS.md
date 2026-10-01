@@ -1,3 +1,21 @@
+# Alpha deploy — 2026-10-01 afternoon, `75bf649` live
+
+Evidence labels:
+- **CI log:** the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session G cloud session on 2026-10-01.
+- **Actions API** / **git:** read at the same time.
+
+- **Run:** Manual Alpha deployment #18, [run 36893334826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36893334826), 2026-10-01 16:37–16:45 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `75bf6497400f1c19915a0e8ec20634faf1baf65f`, `main` after #53. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `84cf9652-f7fc-4bd8-a83b-0f1c663172ff`. The last observed live version is the same. (CI log)
+- **Rollback:** `be41026f-1be9-423e-b4d8-71d4be54aea0`, the version deploy #17 published, so the chain holds. (CI log)
+- **CI on `75bf649`:** Milestone quality #297 ([run 36882221079](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36882221079)): success on attempt 2. Attempt 1 failed only in browser shard 2's "Install Chrome for Playwright (up to 3 attempts)" step, before any test ran (the known Chrome-download intermittent); every other job passed. (Actions API)
+- **Owner manual checks:** not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#53](https://github.com/reyals1111-ux/ZIGoals/pull/53) (`75bf649`): Session H, the owner recovery admin tool (ADR-007 A), recovery-copy cleanup and stable storage error codes (QA-02/QA-03), zod `jitless` on the client (QA-25), and activation readiness (Stage 7 preflight, Stage 8 sheet).
+
+**QA-02 and QA-25 are fixed on the live Alpha** with this deploy. Not re-measured on the live site by this session; the local evidence is in the Session H entry below.
+
 # Session G — correctness fixes, Habits speed, worldwide number formatting, phone refinements (2026-10-01, [PR #54](https://github.com/reyals1111-ux/ZIGoals/pull/54), not merged or deployed)
 
 Evidence labels:
@@ -9,12 +27,12 @@ No account, secret, wallet or deploy was used. Base: main `61035dc`; main `75bf6
 ## Parts
 | Part | Result | Commits |
 |---|---|---|
-| 0 | Alpha deploy #17 (`61035dc`, after #52) recorded; release identity updated. | `3f00127` |
+| 0 | Alpha deploy #17 (`61035dc`, after #52) recorded; release identity updated. Alpha deploy #18 (`75bf649`, after #53) recorded in the final STATUS commit, at the owner's request. | `3f00127`, (final STATUS commit) |
 | 1 | **Correctness**, one bug per commit, each with a test that failed first:<ul><li>Habits value fields read a decimal comma; "1,234" is refused with its reason (QA-01's twin).</li><li>Money and quantity fields: decimal comma and surrounding spaces read like Health; the Goal preview shows what saving reads, or why it refuses (QA-14). Chain amounts and `parseUnits` are unchanged.</li><li>An open Health page follows the journal day across midnight and keeps a half-typed entry (QA-16).</li><li>Titles made only of zero-width characters are refused in every create/edit form (QA-32); schemas unchanged.</li><li>Focus returns to a Wealth sheet's trigger, a new habit gets focus, one heading id on Today (QA-19, QA-20, QA-30).</li><li>Showcase exports are named `showcase-demo`; restoring demo data into real data needs its own confirmation (QA-17). Detected from the demo's fixed markers; backup format unchanged.</li><li>A fully allocated source cannot be included; a 0-unit source is refused by name (QA-15).</li><li>Today's Health card uses the journal day (QA-24); empty days get words, not "0 more chances" (QA-31); the timer day key comes from date parts (QA-34); Settings says what the older Goal export covers (QA-33).</li></ul> | `e960cf9`, `6405258`, `cc49284`, `800eb23`, `15ad75c`, `0d20012`, `a2bfc06`, `a593a5b`, `98da853`, `804aa43`, `9bd1dee` |
 | 2 | **Performance** (QA-05): Habits day/stats/trends kept per habit object; one check-in re-renders one card (memoized cards, stable props, shared habit objects); a store no longer parses its own save again (**TIER 3**); Wealth and Today formatters built once, wealth history and overview linear and reused. Numbers below. | `877e203`, `798bde0`, `b65143b`, `c0c27f6` |
 | 3 | **Locale-aware display** (QA-06, QA-29): one module, `lib/visual-format.ts`. Numbers and money follow the browser's locale, each currency keeps its own code, nothing is converted. Dates with words are English for the user's region (en-GB, en-DE…), so weekday and month names are English everywhere; digit-only dates follow the locale; ISO dates stay ISO. en-US is unchanged (freeze check: no difference from this part). | `5383293`, `e528cc5` |
 | 4 | **Phone** (phone query only; freeze check: no difference from this part): "Show all N" for long Wealth and Today lists, Today's week folded into one line of totals; Habits calendar days ≥ 44 px down to 360 px; drag a sheet's grabber down to close it. | `81c3fc8`, `fe12e13`, `a05c5f7` |
-| — | Merge main (Session H, #53) with a merge commit. Only `docs/STATUS.md` conflicted; both entries kept. | `6659073` |
+| — | Merge main (Session H, #53) with a merge commit. Only `docs/STATUS.md` conflicted; both entries kept. When the owner later asked to merge main again (for deploy #18), `main` was still `75bf649`, already in this branch, so there was nothing new to merge. | `6659073` |
 | 5 | **Copy and small UX:** one unlock restores several modules, readable module names (QA-21, UI only); one export file-name pattern (QA-26); one date format for contributions (QA-27); "1 time", "1 asset", "1 serving" (QA-28). One existing spec expected the old "1 pages" and now expects "1 page" (`d8d49f5`). | `89af0a0`, `8d3595b`, `b06cf56`, `a8c42e9`, `d8d49f5` |
 | 6 | **Safari:** not run. Playwright's WebKit download is refused here (`cdn.playwright.dev`: CONNECT 403, organization network policy). | — |
 | 7 | Evidence (below); review gallery: 37 WebP on `review/polish-g-screenshots` (`faf27fd`, never merged) and [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/54#issuecomment-5935683736). This entry. | (this commit) |
@@ -1112,7 +1130,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
-| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
@@ -1244,7 +1262,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-01 morning for the [Alpha deploy #17](#alpha-deploy--2026-10-01-morning-61035dc-live) above (recorded by Session G).
+Updated 2026-10-01 afternoon for the [Alpha deploy #18](#alpha-deploy--2026-10-01-afternoon-75bf649-live) above (recorded by Session G).
+- Deployed source `75bf6497400f1c19915a0e8ec20634faf1baf65f`, `main` after [PR #53](https://github.com/reyals1111-ux/ZIGoals/pull/53). Verified: Actions API.
+- CI: Milestone quality #297 ([run 36882221079](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36882221079)) on `75bf649`: success (attempt 2; attempt 1 failed only in a Chrome download step before any test ran). Verified: Actions API.
+- Deployment: Manual Alpha deployment #18 ([run 36893334826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36893334826)), exact source `75bf649`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `84cf9652-f7fc-4bd8-a83b-0f1c663172ff`; rollback `be41026f-1be9-423e-b4d8-71d4be54aea0` (the run #17 deployment). Verified: CI log. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #52, 2026-10-01 morning, recorded by Session G):
 - Deployed source `61035dc5ba3b26bafe41276599a0452b45c3208b`, `main` after [PR #52](https://github.com/reyals1111-ux/ZIGoals/pull/52). Verified: Actions API.
 - CI: Milestone quality #276 ([run 36834550733](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36834550733)) on `61035dc`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #17 ([run 36836555458](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36836555458)), exact source `61035dc`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
