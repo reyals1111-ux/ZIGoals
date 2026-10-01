@@ -2,14 +2,16 @@
 import {latestWeightObservation} from '../../lib/body-measurements';
 import Link from "next/link";
 import { dailyHealthSummary, formatHealthGrams,formatNutrient,nutritionSummaryText } from "../../lib/health";
-import { useLocalToday } from "../use-local-today";
+import { dailyData } from "../../lib/health-daily";
+import { useHealthToday } from "./use-health-today";
 import { useHealth } from "./use-health";
 import { MotionTrack } from "../motion-track";
 import "./health.css";
 
 export function HealthToday() {
   const { data, loaded, error } = useHealth();
-  const today = useLocalToday();
+  // The Health journal's day, as on the Health page (QA-24), not the device's day.
+  const today = useHealthToday(dailyData(data).preferences.timezone);
   const summary = loaded ? dailyHealthSummary(data, today) : null;
   const weight = latestWeightObservation(data,today);
   return <section className="panel health-today" aria-label="Today's health">
