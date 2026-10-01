@@ -40,3 +40,13 @@ Categories: **platform** (the behaviour does not exist on that project/viewport)
 
 ## Counts
 Measured locally on this branch: plain `pnpm test` reports 12 skipped (after removing a local, never-committed profiling copy of account-browser that added 2). A full local Playwright run (2 workers, production build) reports 21 skipped, exactly the rows above. Its 3 failures are the intro-video specs, which this sandbox Chromium cannot play; they pass in CI Chrome.
+
+## Session E additions (2026-10-01, [PR #52](https://github.com/reyals1111-ux/ZIGoals/pull/52))
+Two platform skips, one per new phone spec. Both skip only on the `desktop` project, because the landscape phone layout needs a coarse pointer and a desktop window of that size keeps its desktop layout; the `mobile` project runs both.
+
+| # | Test (file:line) | Condition | Reason | Category | Action |
+|---|---|---|---|---|---|
+| E1 | `landscape phone: the strip folds into single rows and the title stays on the first screen` (phone-shell.spec.ts:60) | `!isMobile` | Landscape phone layout needs a coarse pointer | platform | Keep. Mobile runs it. |
+| E2 | `landscape phone: no sideways scroll and the title on the first screen on every page` (phone-pages.spec.ts:67) | `!isMobile` | Same | platform | Keep. Mobile runs it. |
+
+The full local Playwright run on `main` before Session E reported 34 skipped (Session D entry in docs/STATUS.md); with these two it reports 36. No existing skip changed.
