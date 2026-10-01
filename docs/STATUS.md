@@ -15,7 +15,7 @@ No account, secret, wallet or deploy was used, and no wrangler command reached C
 | 3 | **QA-02/QA-03.** After a successful restore, only the newest recovery copy per module is kept. Storage errors carry stable codes (`STORAGE_FULL`, `MODULE_LIMIT`, `NEWER_VERSION`, `CONFLICT`) with plain messages | `77483a2`, `2ffee65` |
 | 4 | **QA-25.** zod `jitless` on the client removes the blocked-eval CSP violation from every page. Applied: identical results, and no slowdown on the browser's path | `d8d6cd6` |
 | 5 | Done:<ul><li>Stage 7 preflight (read-only, offline);</li><li>the [Stage 8 acceptance sheet](run11/STAGE8_ACCEPTANCE.md);</li><li>the [timezone backlog](product/TIMEZONE_BACKLOG.md);</li><li>the `status-snapshot` fix.</li></ul> | `3a59906`, `3c6e2c4`, `96bbdc6` |
-| 6 | Evidence (below); a CI diagnostic for `market-disconnect.test.mjs` (Known CI intermittents, below); this entry | `aa7cdaa`, this commit |
+| 6 | Evidence (below), and the root cause and fix of the `market-disconnect.test.mjs` intermittent (Known CI intermittents, below). This entry | `aa7cdaa`, `e73142c`; `11222cb` and this commit (STATUS) |
 
 **TIER 3 commits and risk:**
 - `22cc9af` **(admin tooling):** a new local-only Worker and template. Risk: none at runtime. Nothing binds or deploys it.
@@ -121,17 +121,27 @@ Out-of-lane files, each checked against G's branch before editing. Re-checked at
 | Lifecycle and Worker harnesses (`lifecycle-recovery` 4, `lifecycle-runtime` 5, `domain-deletion` 2, `recovery-admin` 7, `recovery-admin-config` 38, `activation-check` 9, `make-private-configs` 24, `stage7-preflight` 10, `status-snapshot` 2, `market-disconnect` 2) | 103/103 |
 | Focused browser specs (export-roundtrip, local-simulation-backup, product-data, run10-private-vault, run10-restored-today, run11-recovery-failures, private-read-delay) | 38/38 (3.1 min) |
 | Playwright full suite, 2 workers, production build of the final app code (`96bbdc6`; later commits change docs and one script test only) | 634 passed, 36 skipped, 8 failed (46.4 min). Of the 8, 2 are the intro-video specs (this sandbox's Chromium cannot play the video; known). The other 6 are timing under two-worker load: `run11-route-mobile-acceptance:4` and `ui-evidence:97` (45 s budget, desktop and mobile), `motion-polish:166` and `run10-motion:5` (mobile, animation sampled at rest). Run alone with 1 worker, all 8 pass on this branch and on main `61035dc`, with equal timings (route 33.4/35.3 s here vs 35.6/34.7 s on main), so this is not a regression |
-| CI | Green on `aa7cdaa`: Milestone quality ([run 36872688014](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36872688014)) passed web checks, browser shards 1–3, web integration (with the Run11 package and the Alpha Workers gate) and contract. Canonical reproducibility ([run 36872687891](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36872687891)) passed builds A and B and the compare step. This entry changes only STATUS; its own run is on the PR |
+| CI | Green on `aa7cdaa`: Milestone quality ([run 36872688014](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36872688014)) passed web checks, browser shards 1–3, web integration (with the Run11 package and the Alpha Workers gate) and contract. Canonical reproducibility ([run 36872687891](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36872687891)) passed builds A and B and the compare step. On `11222cb`, web checks failed in `market-disconnect` (below); `e73142c` fixes it. This commit's run is on the PR |
 
 **Known CI intermittents:** `scripts/run11/market-disconnect.test.mjs` "abort of an actual app request…" (web checks; already in the table below from #42 and #52) timed out at 30 s on `96bbdc6` ([run 36863279127](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36863279127)). It timed out again on the next commit, `9dba9ac` ([run 36864633479](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36864633479)), which served as the one re-run. A second failure means investigate, so it was not re-run again.
 - **Not caused by this branch.** Its Worker bundles are byte-identical to main's (after path normalisation), and this branch does not change the market code it exercises. Locally it did not reproduce: alone, in the full suite, with and without the Vitest cache.
-- **Why the message said nothing.** `finally` awaited the in-page follower, which never settles once a step has failed. So a named step failure surfaced only as "Test timed out in 30000ms".
-- **`aa7cdaa` (test only; no assertion or timeout changed):**
-  - builds the bundles once before the test;
-  - names the setup steps (Workers start, Chrome launch, page load);
-  - closes the browser before settling, and bounds the settle.
+- **Why the message said nothing.** Two things hid the cause:
+  - `finally` awaited the in-page follower, which never settles once a step has failed;
+  - Chrome's start shared the case's 30 s with Playwright's own 30 s launch timeout.
 
-  Locally, a deliberately stalled follower now fails at 11.5 s and names its step, instead of failing at 30 s. CI on `aa7cdaa` passed. If it recurs, the log names the stalled step. The table row is updated.
+  Either one surfaced only as "Test timed out in 30000ms".
+- **`aa7cdaa` (test only, no assertion changed):** it builds the bundles once, names the setup steps, closes the browser before settling and bounds the settle. It passed CI. But its 10 s step limit was tighter than the setup had before.
+- **Root cause, named on `11222cb`** ([run 36875302540](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36875302540)): "Chrome launch did not finish within 10000 ms", in both cases. This is Chrome's cold start on a busy runner. When the 10 s limit fired, the launch also left its browser unclosed.
+- **`e73142c` (test only; no assertion changed, case timeout still 30 s):**
+  - Chrome starts once in `beforeAll`, outside each case's budget, still under Playwright's 30 s launch timeout;
+  - each case uses its own browser context;
+  - setup steps get what is left of the case's budget.
+- **Reproduced locally** by delaying Chrome's start in temporary copies:
+  - the `aa7cdaa` version with 12 s fails both cases at 10.5 s with CI's message;
+  - `e73142c` with 25 s passes both;
+  - a follower that never settles is still named at 11.7 s.
+
+  Full `pnpm test` passed (1,954). The table row is updated.
 
 ## Decisions made without the owner
 - **Branch:** `platform/recovery-admin-2026-10-01`, as in the brief. The harness proposed another name.
@@ -978,7 +988,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
-| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Local: one assertion miss under full `pnpm test` load; the CI timeout never reproduced locally | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Diagnosed in #53** (`aa7cdaa`, test only): the 30 s timeout hid which labelled step failed, because cleanup awaited the never-settling in-page follower. Cleanup is now bounded and setup is named, so a recurrence names the stalled step. Passed on `aa7cdaa`. Monitor |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
