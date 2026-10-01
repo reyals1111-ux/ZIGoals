@@ -12,6 +12,9 @@ export const mainNav=(page:Page)=>page.getByRole('navigation',{name:'Main naviga
 export async function openMore(page:Page){
  const more=mainNav(page).getByRole('button',{name:'More',exact:true}),sheet=mainNav(page).getByRole('dialog',{name:'More'});
  await expect(async()=>{if(!await sheet.isVisible())await more.click();await expect(sheet).toBeVisible({timeout:1500});}).toPass({timeout:15000});
+ // The sheet slides up (280 ms, none under reduced motion or Motion Off): return it at rest, so measurements of its
+ // contents are taken in one place rather than across the slide.
+ await sheet.evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished.catch(()=>undefined))));
  return sheet;
 }
 
