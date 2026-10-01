@@ -6,7 +6,7 @@ Evidence labels:
 
 No account, secret, wallet or deploy was used. Base: main `d21ba8f` (Session D merged into this branch as `a2f11bc`).
 
-**Scope.** A phone experience only below 768 CSS px, or on a landscape phone (coarse pointer and at most 500 px tall): one query, `PHONE_QUERY` in `components/phone/use-phone-layout.ts`, guards every phone rule. Desktop and tablet are unchanged (freeze check below).
+**Scope.** A phone experience only below 768 CSS px, or on a landscape phone (coarse pointer and at most 500 px tall): one query, `PHONE_QUERY` in `components/phone/use-phone-layout.ts`, guards every phone rule. Desktop and tablet are unchanged (freeze check below), except for one owner-authorized fix: QA-01.
 
 ## Parts
 | Part | Result | Commits |
@@ -20,6 +20,7 @@ No account, secret, wallet or deploy was used. Base: main `d21ba8f` (Session D m
 | 5 | **First-run welcome**: a card on Today for brand-new devices only; `/app/welcome` (welcome → what matters → first goal → first habit → your data); "Show the welcome again" in Settings on phones. | `114ebac` (TIER 3), `c687248`, `32453d4`, `df8164e` |
 | 6 | Native polish, folded into Parts 2 and 4 (press feedback, title fade, frosting bar, sheet slide-up; each static under reduced motion and Motion Off). | — |
 | 7 | Quality pass (below); landscape overflow fixed; phone specs measure against the device width; three CI-only failures fixed (below); 44 px Habits calendar days. Skip list updated (34 → 36). | `d75fdba`, `c0b4221`, `7907c8f`, `f244986`, `7ade6a9` |
+| QA-01 | **Owner request (Session F blocker QA-01):** every Health number field is a text field with a decimal keypad (`type="text"`, `inputMode="decimal"`; whole-number fields keep the numeric keypad), read by the existing `parseHealthNumber`. An English Chrome dropped a typed comma from `type="number"`, so "72,5" kg was saved as 725 kg and "1,5" mL of water as 15 mL. With main's parser "72,5" is now refused with the form's message; once #51 (`cab9133`) is merged it is read as 72.5. The freeze check reports this change apart (below). | `bcdd0f1`, `c27f4ae` |
 | 8 | Review gallery: 58 WebP on `review/mobile-e-screenshots` (`b8197ff`, never merged) and [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/52#issuecomment-5924740102). This entry. | (this commit) |
 
 **TIER 3 commit and risk:**
@@ -38,12 +39,15 @@ Not touched: auth/OTP, vault/recovery/encryption, the sync engine, wallet/Keplr 
 - `habits-workspace.tsx`, `health-app.tsx`, `wealth-view.tsx`, `app/app/settings/page.tsx`: phone-only order or placement (`usePhoneActive`, false on the server and on desktop).
 - `habit-editor.tsx`: exports `habitTemplateInput` (the editor's own templates as a valid `HabitInput`).
 - `dashboard/today-dashboard.tsx`: the welcome card for brand-new devices.
+- `health/health-app.tsx`, `health/daily-tools.tsx`, `health/body-measurements.tsx`: QA-01 only, at every size. Their number fields are now text fields with a decimal or numeric keypad and no `min`/`max`/`step` attributes; each form's `parseHealthNumber` call already enforces the range. No parser, data or storage change.
 
-## Freeze check (desktop and tablet unchanged)
+## Freeze check (desktop and tablet unchanged, apart from QA-01)
 Final run of `scripts/desktop-freeze-check.mjs`:
 - **Baseline:** a fresh capture from a production build of main `d21ba8f`.
-- **Candidate:** this branch's final head, `f244986`, captured with the same script (`5521773`).
-- **Result:** **130 of 130 captures identical**, pixels and accessibility snapshot, with 0 page errors on either side. The previous head, `7907c8f`, also matched 130 of 130.
+- **Candidate:** this branch at `c27f4ae` (app code as at `bcdd0f1`), captured with the same script.
+- **Result:** **118 of 130 captures identical; the other 12 differ only by the owner-authorized QA-01 change. 0 differ otherwise.** The 12 are the Health page at every size, Showcase and empty. In each, the pixels are identical, and "Servings" and "Water amount" are a textbox instead of a spinbutton, with the same name and value.
+- **Before QA-01:** `f244986` and `7907c8f` matched 130 of 130.
+- **How the rule works:** `INTENDED` in the script names this single change. A capture counts as intended only when its pixels are identical and every changed snapshot line on the Health page is that role change. Anything else, on any page, still fails.
 
 **Matrix:**
 - Sizes: 1440×900, 1280×800, 1024×768 and 820×1180, plus 820×1180 and 1180×820 with touch.
@@ -52,7 +56,7 @@ Final run of `scripts/desktop-freeze-check.mjs`:
 
 The check also ran after every part. It caught two real leaks: `text-size-adjust` and `user-select` inside the phone query (which does not match at these sizes) still moved Chromium's desktop render of a dialog by a sub-pixel. Both are gone (`b755563`, `2f5db8d`).
 
-The one intended difference is the welcome card on Today for a brand-new device (no records, not Showcase). `first-run` captures it separately as evidence, at 1440×900 and 820×1180.
+The freeze captures mark onboarding as seen, so the welcome card on Today for a brand-new device (no records, not Showcase; approved in the plan) is not in them. `first-run` captures it separately as evidence, at 1440×900 and 820×1180.
 
 **The script itself, made robust along the way:**
 - It waits for running animations (`b8500ab`).
@@ -98,10 +102,11 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
 - **4× CPU, Wealth, Habits and Health:** 16, 10 and 7 long tasks while loading. Scrolling: 0.
 
 ## Tests
-- **Unit:** `pnpm test` 1773 passed, 12 skipped (`f244986`). Includes `lib/onboarding.test.ts` and the freeze-check unit test.
+- **Unit:** `pnpm test` 1774 passed, 12 skipped (`c27f4ae`; 1773 at `f244986`). Includes `lib/onboarding.test.ts` and the freeze-check unit test.
 - **New browser specs:**
   - `phone-shell` (tabs, More, back links, strip and lock on every first screen at 390×844 and 360×800, landscape, no-JS, Session D's panel, the link names CI's journeys click);
   - `phone-pages` (no sideways scroll at 390×844, 360×800, 320×568 and landscape; phone default orders and a saved order winning; Wealth total on the first screen; Settings list);
+  - `health-decimal-comma` (QA-01, locale en-US: typing "72,5" in Weight and "1,5" in Water keeps the comma, nothing is saved as 725 kg or 15 mL, and no Health view has a number field; failing first against main, where the field read "725");
   - `onboarding` (brand-new devices only; never with records, a chosen Today or Showcase; Skip and Not now write only the flag; templates create real records; reduced motion; phone-only reopen).
 - **Existing mobile-project specs**, only where the phone UI intentionally changed, never loosened:
   - navigation goes through `tests/phone-nav.ts` (`navLink` opens More first; `openMore` returns the sheet at rest);
@@ -110,7 +115,7 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
   - `ui-evidence` expects the Wealth phone label.
   - The desktop project's assertions are unchanged.
 - **Owner addition 3:** the welcome card did not affect any existing desktop-size spec, so no shared setup seeds the onboarding flag. The freeze check seeds it for its empty-state captures only.
-- **Playwright full suite, 2 workers:** on `f244986`: 634 passed, 36 skipped, 2 failed (29.4 min). The 2 failures are the intro-video test (desktop and mobile), which this sandbox's Chromium cannot play; CI runs it. The 36 skips are the previous 34 plus the 2 new landscape-phone platform skips (`docs/testing/SKIPPED_TESTS.md` E1, E2).
+- **Playwright full suite, 2 workers:** on `bcdd0f1`, 638 passed, 36 skipped and 2 failed (29.9 min). On `f244986` it was 634 passed, 36 skipped and 2 failed (29.4 min). The 2 failures are the intro-video test (desktop and mobile), which this sandbox's Chromium cannot play; CI runs it. The 36 skips are the previous 34 plus the 2 new landscape-phone platform skips (`docs/testing/SKIPPED_TESTS.md` E1, E2).
 - **CI:** green on `f244986` ([run 36812115852](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36812115852)) and on `7907c8f` ([run 36806633019](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36806633019)): web checks, the three browser shards, web integration (including the RUN11_PACKAGED package and the Alpha Workers gate), contract, and canonical builds A/B with compare.
 - **Known intermittent:** `market-disconnect.test.mjs` timed out once at 30 s on `212c61e` ([run 36804922026](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36804922026)). This PR does not touch `scripts/run11` or `workers/`. It passed on the next run (the policy's one re-run). The table below records the recurrence.
 
@@ -143,9 +148,12 @@ At **360×800** (owner addition 4) the strip's first row (`ZIGCHAIN TESTNET · P
 - While Today is being arranged on a phone, compact widgets take the full width and the summary strip and journey steps stack, so move controls never cover a card's own buttons and nothing sits past the screen edge (existing customize specs).
 - Goal cards on phones keep their title and "Open Goal" links rather than becoming one whole-card link (a whole-card link turns every touch into a navigation); Markets cards and Activity rows are whole-row links.
 - Habits calendar on phones: 2 px gaps give 44 px day buttons from 390 px up; at 360 px they are about 40 px (above WCAG 2.2 AA's 24 px) rather than running the calendar edge to edge of its card.
+- QA-01: whole-number Health fields (steps, minutes, kcal and step targets, serving weight in g, the water target in mL) keep `inputMode="numeric"`, as before; every field with decimals uses `inputMode="decimal"`. `autoComplete` is off on these fields, since a number field never offered autofill.
 - The content clip that stops landscape overflow applies to landscape phones only: in portrait there was no overflow, and the clip made Chromium's mobile emulation keep a 4x zoom after a full-page screenshot (an emulation artefact that broke an unchanged spec in CI).
 
 ## Deferred / not done
+- **QA-01 until #51 merges:** with main's parser, "72,5" is refused with the form's message instead of being read as 72.5. Merging main after #51 completes the fix.
+- **Habits value fields** (check-in values and targets) are still `type="number"`, so they likely drop a decimal comma in the same way. They are outside the owner's Health scope and were not changed.
 - **WebKit / Safari:** not tested. The environment's network policy blocks Playwright's WebKit download (cdn.playwright.dev, playwright.download.prss.microsoft.com). The owner can allow those hosts in the environment's network settings. Until then, Safari-specific behaviour (the `visualViewport` keyboard inset, safe areas, `@starting-style`) is unverified here. Chromium with iPhone emulation only.
 - **Today and Wealth are not at the ~9 / ~10 screens planned** (14.6 / 15.7 with Showcase data). Going further would mean hiding content or honesty lines.
 - **Not modal sheets:** the habit editor, the food/water log and the wallet/APR forms stay in place, with their action pinned. Not added: drag-to-dismiss, skeleton placeholders.
