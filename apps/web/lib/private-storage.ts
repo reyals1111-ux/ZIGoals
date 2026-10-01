@@ -1,12 +1,14 @@
 import type { z } from "zod";
 import { withStorageLock } from "./storage";
 import {storageLockKey} from "./showcase-storage";
+import {PrivateStorageError,asStorageError} from "./vault/storage-errors";
+import {replaceWithRecoveryCopy} from "./vault/recovery-copies";
 export const PRIVATE_MAX_BYTES = 2_000_000;
 function validateKey(key: string) {
   if (key !== "zigoals:habits:v1" && key !== "zigoals:health:v1" && key !== "zigoals:platform:v1" && key !== "zigoals:settings:v1") throw Error("Unknown private data store.");
 }
 export function parsePrivateData<T>(raw: string, schema: z.ZodType<T>): T {
-  if (new TextEncoder().encode(raw).byteLength > PRIVATE_MAX_BYTES) throw Error("Private backup exceeds 2 MB.");
+  if (new TextEncoder().encode(raw).byteLength > PRIVATE_MAX_BYTES) throw new PrivateStorageError("MODULE_LIMIT");
   let value: unknown;
   try { value = JSON.parse(raw); } catch { throw Error("Private data is damaged. Original data was preserved."); }
   const result = schema.safeParse(value);
@@ -27,13 +29,15 @@ export async function updatePrivateStore<T>(storage: Storage, key: string, schem
     const serialized = JSON.stringify(next);
     const validated = parsePrivateData(serialized, schema);
     const previous = storage.getItem(key);
-    if (previous !== null) {
-      const oldVersion = (JSON.parse(previous) as {schemaVersion?: unknown}).schemaVersion;
-      const newVersion = (validated as {schemaVersion?: unknown}).schemaVersion;
-      if (typeof oldVersion === "number" && typeof newVersion === "number" && oldVersion < newVersion)
-        storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
-    }
-    storage.setItem(key, serialized);
+    try {
+      if (previous !== null) {
+        const oldVersion = (JSON.parse(previous) as {schemaVersion?: unknown}).schemaVersion;
+        const newVersion = (validated as {schemaVersion?: unknown}).schemaVersion;
+        if (typeof oldVersion === "number" && typeof newVersion === "number" && oldVersion < newVersion)
+          storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
+      }
+      storage.setItem(key, serialized);
+    } catch (error) { throw asStorageError(error); }
     return validated;
   });
 }
@@ -45,15 +49,16 @@ export async function importPrivateStore<T>(storage: Storage, key: string, schem
     if (previous !== null) {
       let version: unknown;
       try { version = JSON.parse(previous)?.schemaVersion; } catch { /* preserve corrupt bytes below */ }
-      if (typeof version === "number" && version > ((incoming as {schemaVersion?: number}).schemaVersion ?? 1)) throw Error("A newer private data version cannot be replaced by this app.");
-      // Explicit replacement retains the exact old record, including malformed bytes.
-      const copy = `${key}:recovery:${crypto.randomUUID()}`;
-      storage.setItem(copy, previous);
-      // A refused replacement (a full quota) must not leave the copy behind: the module is unchanged.
-      try { storage.setItem(key, JSON.stringify(incoming)); } catch (error) { storage.removeItem(copy); throw error; }
+      if (typeof version === "number" && version > ((incoming as {schemaVersion?: number}).schemaVersion ?? 1)) throw new PrivateStorageError("NEWER_VERSION");
+      // Explicit replacement retains the exact old record, including malformed bytes. A refused replacement
+      // leaves no copy behind; after success only this copy is kept, unless the old record was unreadable
+      // or invalid (vault/recovery-copies.ts, QA-02).
+      let readable = true;
+      try { parsePrivateData(previous, schema); } catch { readable = false; }
+      try { replaceWithRecoveryCopy(storage, key, previous, JSON.stringify(incoming), readable); } catch (error) { throw asStorageError(error); }
       return incoming;
     }
-    storage.setItem(key, JSON.stringify(incoming));
+    try { storage.setItem(key, JSON.stringify(incoming)); } catch (error) { throw asStorageError(error); }
     return incoming;
   });
 }

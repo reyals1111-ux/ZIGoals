@@ -3,6 +3,8 @@ import {metadataKey,parseBackup} from '@zigoals/shared-types';
 import {LOCAL_CHAIN,LOCAL_OWNER,parseLocalLedger} from '../local-ledger';
 import {withStorageLock} from '../storage';
 import {storageLockKey} from '../showcase-storage';
+import {pruneRecoveryCopies} from './recovery-copies';
+import {asStorageError} from './storage-errors';
 // Legacy "Local simulation" Goals live outside the four private modules: the simulated ledger
 // plus the plans saved for its demo owner. The backup carries both exact stored strings as one
 // optional section so a restore brings these Goals back byte for byte.
@@ -30,13 +32,23 @@ export function exportLocalSimulation(storage:Storage):{section:string;warning:s
 }
 export function isOmittedLocalSimulation(raw:string){return 'omitted' in localSimulationSchema.parse(JSON.parse(raw));}
 export function summarizeLocalSimulation(raw:string){const section=localSimulationSchema.parse(JSON.parse(raw));return 'omitted' in section?{goals:0,activity:0,plans:0,warning:LOCAL_SIMULATION_OMITTED}:{...validate(section),warning:null};}
-/** Replaces both legacy keys exactly as backed up. Prior bytes are retained beside each key. */
+/** Readable and valid prior bytes; only then may older copies of that key be pruned (QA-02). */
+function readable(key:string,raw:string){try{if(key===LOCAL_LEDGER_KEY)parseLocalLedger(raw);else parseBackup(raw,LOCAL_CHAIN,LOCAL_OWNER);return true;}catch{return false;}}
+/** Replaces both legacy keys exactly as backed up. Prior bytes are retained beside each key; after success only that newest copy is kept per key. */
 export async function restoreLocalSimulation(storage:Storage,raw:string){
  const parsed=localSimulationSchema.parse(JSON.parse(raw));if('omitted' in parsed)throw Error(LOCAL_SIMULATION_OMITTED);const section=parsed;validate(section);
  await withStorageLock(storageLockKey(storage,LOCAL_LEDGER_KEY),()=>withStorageLock(storageLockKey(storage,LOCAL_PLANS_KEY),()=>{
   // All or nothing: if the browser refuses any write (for example a full quota), put back
   // the exact prior bytes of both keys and drop this attempt's recovery copies.
   const written:{key:string;previous:string|null;copy:string|null}[]=[];let pendingCopy:string|null=null;
+  const rollback=()=>{
+   // The refused key was never changed; its copy is dropped first to free space for the rollback.
+   if(pendingCopy)storage.removeItem(pendingCopy);
+   for(const {key,previous,copy} of [...written].reverse()){
+    try{if(previous===null)storage.removeItem(key);else storage.setItem(key,previous);}catch{continue;} // keep the copy if its rollback fails
+    if(copy)storage.removeItem(copy);
+   }
+  };
   try{
    for(const [key,value] of [[LOCAL_LEDGER_KEY,section.ledger],[LOCAL_PLANS_KEY,section.plans]] as const){
     const previous=storage.getItem(key);pendingCopy=null;
@@ -45,13 +57,10 @@ export async function restoreLocalSimulation(storage:Storage,raw:string){
     written.push({key,previous,copy:pendingCopy});pendingCopy=null;
    }
   }catch(error){
-   // The refused key was never changed; its copy is dropped first to free space for the rollback.
-   if(pendingCopy)storage.removeItem(pendingCopy);
-   for(const {key,previous,copy} of written.reverse()){
-    try{if(previous===null)storage.removeItem(key);else storage.setItem(key,previous);}catch{continue;} // keep the copy if its rollback fails
-    if(copy)storage.removeItem(copy);
-   }
-   throw error;
+   rollback();
+   throw asStorageError(error);
   }
+  // Both keys are written: only now are older copies of each changed key pruned (QA-02).
+  for(const {key,previous,copy} of written)if(copy&&previous!==null&&readable(key,previous))pruneRecoveryCopies(storage,key,copy);
  }));
 }
