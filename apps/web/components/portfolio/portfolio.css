@@ -6,6 +6,8 @@
 .portfolio-note { margin: 4px 0 0; padding: 12px 16px; border: 1px solid #8fd2ff40; border-radius: 16px; background: #13203acc; color: #d8e6f7; font-size: 15px; line-height: 1.5; max-width: 760px; }
 .portfolio-message { margin: 0; color: #bff3dd; font-size: 15px; }
 .portfolio-switcher { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+/* An older narrow-screen rule moves every <nav> to the end of the page; this one belongs under the title. */
+.portfolio-page > .portfolio-switcher { order: 0; width: auto; }
 .portfolio-switcher > button { display: grid; gap: 2px; justify-items: start; min-height: 48px; padding: 8px 16px; text-align: start; }
 .portfolio-switcher > button small { font-size: 14px; color: #c4d3e6; font-weight: 500; }
 .portfolio-switcher > button[aria-pressed="true"] { border-color: #6fdcff; box-shadow: 0 0 0 1px #6fdcff66 inset; }
@@ -16,7 +18,7 @@
 .portfolio-choice legend { margin-bottom: 6px; font-size: 15px; font-weight: 600; }
 .portfolio-choice label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }
 .portfolio-panel { display: grid; gap: 18px; }
-.portfolio-panel-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.portfolio-panel > .portfolio-panel-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; background: none; text-align: start; }
 .portfolio-panel-head h2 { margin: 4px 0 0; font-size: clamp(24px, 2.6vw, 32px); }
 .portfolio-panel-actions { display: flex; gap: 8px; }
 .portfolio-panel-actions button, .portfolio-holding > .text-link, .portfolio-transactions button { min-height: 44px; }
@@ -58,6 +60,8 @@
 .portfolio-coin-results button[aria-pressed="true"] { border-color: #6fdcff; background: #173257; }
 .portfolio-files { display: grid; gap: 10px; }
 .portfolio-files h2 { margin: 0; }
+.portfolio-files .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.portfolio-files .actions > * { flex: 0 0 auto; }
 .portfolio-file-input { position: relative; display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; }
 .portfolio-file-input input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .portfolio-file-input:focus-within { outline: 2px solid #6fdcff; outline-offset: 2px; }
