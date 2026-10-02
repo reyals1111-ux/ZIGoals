@@ -1,6 +1,6 @@
 # Stage 8 coverage map: what automation already proves
 
-For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the automated tests that prove it locally or in CI, what they cannot prove, and a verdict. The owner's human-only steps follow in a separate run-sheet (Session L, Part 4).
+For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the automated tests that prove it locally or in CI, what they cannot prove, and a verdict. The owner's human-only steps are in [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md).
 
 - **Written:** 2026-10-02 (Session L), at source `c189313` (`main`, Alpha deploy #21). **Updated after Session L Part 2**, which added rehearsal tests for every PARTIAL row (`scripts/run11/stage8-rehearsal/`, "L-" IDs below).
 - **Checked:** every test below was found by file, line and name in that source.
