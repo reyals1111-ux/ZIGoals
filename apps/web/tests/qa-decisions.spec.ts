@@ -26,6 +26,25 @@ test('QA-23: offline, in-app links keep the page, which keeps saving; back onlin
   await expect(page).toHaveURL(/\/app\/habits$/);
 });
 
+test('QA-23: right after reconnecting, a link opens even before the page has heard the browser is online', async ({page, context}) => {
+  await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+  await page.addInitScript(() => {
+    try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ }
+    // Registered before the app, so it can hold back the "online" event: the moment between reconnecting and the
+    // page hearing about it, made as long as the test needs.
+    window.addEventListener('online', event => { if ((window as {muteOnline?: boolean}).muteOnline) event.stopImmediatePropagation(); });
+  });
+  await page.goto('/app/health');
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await context.setOffline(true);
+  await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
+  await page.evaluate(() => { (window as {muteOnline?: boolean}).muteOnline = true; });
+  await context.setOffline(false);
+  expect(await page.evaluate(() => navigator.onLine)).toBe(true);
+  await (await navLink(page, 'Habits')).click();
+  await expect(page).toHaveURL(/\/app\/habits$/);
+});
+
 test('QA-38: a Goal with a source that has no value shows its progress as a lower bound, and says why', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   // The Showcase emergency fund, with its USDC source's saved value removed: one source valued, one not.

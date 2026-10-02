@@ -16,6 +16,9 @@ export function OfflineNotice() {
   useEffect(() => {
     if (online) return;
     const hold = (event: MouseEvent) => {
+      // Read the connection at the click itself: right after reconnecting, this listener can still be in place for a
+      // moment before the "online" event has reached the page, and a link must never be held once the browser is online.
+      if (navigator.onLine) return;
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
       if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
