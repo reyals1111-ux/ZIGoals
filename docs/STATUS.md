@@ -1,3 +1,23 @@
+# Alpha deploy — 2026-10-02 morning, `c189313` live
+
+Evidence labels:
+- **CI log:** the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session K cloud session on 2026-10-02.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in the Session K brief, 2026-10-02.
+
+- **Run:** Manual Alpha deployment #21, [run 36985497999](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36985497999), 2026-10-02 08:41–08:47 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `c18931350bc9622769085588481abeda172ad1d6`, `main` after #57. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `2a8015bd-d161-460e-9d37-59c0cc439578`. The last observed live version is the same. (CI log)
+- **Rollback:** `c583cf24-6f44-4236-bbf2-c886548d406b`, the version deploy #20 published, so the chain holds. (CI log)
+- **CI on `c189313`:** Milestone quality #334 ([run 36983085143](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36983085143)): success on attempt 1. (Actions API)
+- **Owner manual check:** the owner checked this deploy on a real iPhone and found everything fine. (Owner, 2026-10-02)
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#56](https://github.com/reyals1111-ux/ZIGoals/pull/56) (`b3f64c7`): Session J, platform and CI (deploy #20 record, the Chrome-install lock wait, ADR-006 preparation, timezone design, upgrade notes, activation tooling). See the Session J entry below.
+- [#57](https://github.com/reyals1111-ux/ZIGoals/pull/57) (`c189313`): Session I, the logo fold, page marks, Staking, liquid-glass progress, Ecosystem cards, reminders, phone pages, QA decisions and Portfolio. See the Session I entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Session I — logo fold, page marks, liquid-glass progress, Ecosystem cards, reminders, phone pages, QA decisions, Portfolio (2026-10-01/02, [PR #57](https://github.com/reyals1111-ux/ZIGoals/pull/57), not merged or deployed)
 
 The owner calls this "Session A".
@@ -1752,7 +1772,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-01 evening for the [Alpha deploy #20](#alpha-deploy--2026-10-01-evening-fc906e8-live) above (recorded by Session J).
+Updated 2026-10-02 morning for the [Alpha deploy #21](#alpha-deploy--2026-10-02-morning-c189313-live) above (recorded by Session K).
+- Deployed source `c18931350bc9622769085588481abeda172ad1d6`, `main` after [PR #57](https://github.com/reyals1111-ux/ZIGoals/pull/57) (which follows [PR #56](https://github.com/reyals1111-ux/ZIGoals/pull/56)). Verified: Actions API.
+- CI: Milestone quality #334 ([run 36983085143](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36983085143)) on `c189313`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #21 ([run 36985497999](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36985497999)), exact source `c189313`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `2a8015bd-d161-460e-9d37-59c0cc439578`; rollback `c583cf24-6f44-4236-bbf2-c886548d406b` (the run #20 deployment). Verified: CI log. Owner manual checks: owner-reported, checked on a real iPhone and everything fine (2026-10-02).
+
+Previous release identity (PR #54, 2026-10-01 evening, recorded by Session J):
 - Deployed source `fc906e8d30fdcd4a64e01b18d387d3de5b5fc48c`, `main` after [PR #54](https://github.com/reyals1111-ux/ZIGoals/pull/54). Verified: Actions API.
 - CI: Milestone quality #310 ([run 36912067520](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36912067520)) on `fc906e8`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #20 ([run 36914399467](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36914399467)), exact source `fc906e8`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
