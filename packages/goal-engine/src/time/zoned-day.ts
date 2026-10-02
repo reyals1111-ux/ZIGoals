@@ -35,9 +35,15 @@ function checkInstant(instant: number) {
   }
 }
 
+// UTC itself, 1900-01-01 to 9999-12-31: the wall clock is the instant, so Intl is skipped. Funding and plan days call
+// this on every render (timezone phase 2). Equal to the Intl path, which every other zone and range still uses
+// ("UTC fast path" in zoned-day.test.ts).
+const FAST_UTC_FIRST = Date.UTC(1900, 0, 1), FAST_UTC_END = Date.UTC(10000, 0, 1);
+
 // The zone's wall clock at `instant`, as if that wall clock were UTC (milliseconds).
 function wallClock(instant: number, zone: string): number {
   checkInstant(instant);
+  if (zone === "UTC" && instant >= FAST_UTC_FIRST && instant < FAST_UTC_END) return instant;
   const ms = ((instant % 1000) + 1000) % 1000;
   const f: Record<string, number> = {};
   for (const part of formatter(zone).formatToParts(instant)) if (part.type !== "literal") f[part.type] = Number(part.value);
