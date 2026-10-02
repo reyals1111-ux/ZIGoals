@@ -1,10 +1,15 @@
 # Timezone design (for the later timezone project)
 
-**Status (2026-10-01, Session J):** design only. Nothing in the app changes.
+**Status (2026-10-02, Session N):** the owner answered the four open decisions (below), confirmed at the Session N plan approval. This session implements phases 1–2 of the QA-04 path only (owner choice T5):
+- **Phase 1:** failing-first suites, registered as expected failures.
+- **Phase 2:** the helpers wired into funding and plan days with zone `"UTC"`, proven identical.
+
+Unchanged:
 - **Stored formats:** no stored format, schema version, sync rule or UI changes.
 - **QA-04:** Goal funding and plan days stay **UTC**, exactly as today (owner decision 2026-10-01).
-- **Helpers:** the pure helpers this design relies on exist in `packages/goal-engine/src/time/` (below), tested but not wired into the app.
 - **Open items** are tracked in [TIMEZONE_BACKLOG.md](TIMEZONE_BACKLOG.md), which maps where each part of the app decides "today".
+
+**Earlier status (2026-10-01, Session J):** design only, with the pure helpers in `packages/goal-engine/src/time/` tested but not wired into the app.
 
 Paths are relative to `apps/web/` unless stated. Line references are to `main` at `fc906e8`.
 
@@ -125,7 +130,29 @@ All live in `packages/goal-engine/src/time/`. They are not exported from the pac
 7. **Today:** show the zone next to "Today" when it differs from the device (backlog items 4/QA-24).
 8. **Accessibility and locale:** zone names are written out ("Europe/Brussels", not "CET"), and dates follow the existing English-for-region display rules (Session G, `lib/visual-format.ts`).
 
-## Open owner decisions
+## Owner decisions (answered 2026-10-02, confirmed at the Session N plan approval)
+These were the four open decisions of this design. The answers follow the design, and T4 is stricter than proposed.
+
+| # | Decision | Answer |
+|---|---|---|
+| T1 | Should plans follow a journal zone by default for *new* plans, or stay UTC until the user picks one? | **New plans follow the journal zone.** The default is chosen when a plan is created or revised; existing plans keep UTC, and a later journal-zone change never moves existing instalments ("Journal timezone" above: plans do not follow the journal zone automatically). |
+| T2 | One account-level journal zone with per-module overrides, or three independent settings? | **One account-level journal zone, with per-module overrides** (the resolution order in "Journal timezone" above). |
+| T3 | Should valuation capture days move with the plan zone, or stay UTC (backlog item 6)? | **They stay UTC.** `captureValuations` and the history date filters keep UTC days. |
+| T4 | The R1 → R2 gap? | **At least one Alpha deploy *and* at least one week** between the read-support release (R1, phase 3) and the write release (R2, phase 4). |
+| T5 | Scope of the first implementation session | **Phases 1–2 only** (Session N): failing-first suites and the UTC wiring. No stored-format change and no read-support release. |
+
+### What this means for the phases
+- **Phases 1–2 (Session N)** change no stored format, so they don't wait for Stage 8.
+- **Phase 3 (R1, read support):** STATUS ("Recommended order after Stage 8", Session J) puts it after Stage 8 and ADR-006 option A, because its format change syncs.
+  - **In R1:** finance v4 and settings v2 in the Zod unions, absent zone = UTC, and the version-specific sync message. Funding reads `plan.timeZone ?? "UTC"`.
+  - **What flips:** the phase 1 expected failures that carry a plan zone.
+- **Phase 4 (R2, writes and UI):** at least one Alpha deploy **and** one week after R1 (T4).
+  - **Defaults in R2:** a plan's zone defaults to the journal zone (T1). A journal-zone setting with per-module overrides (T2).
+  - **What flips:** the remaining expected failures.
+  - **Re-run there:** Session F's 49-day DST sweep, and Stage 8 rows B2, B4 and B5 on two devices in different zones.
+- **Phase 5:** valuation capture days stay UTC (T3). Health "today" on the Today card (QA-24) remains a separate decision.
+
+### Earlier wording of the open decisions (Session J, kept for the record)
 1. Should plans follow a journal zone by default for *new* plans (this design), or stay UTC until the user picks one?
 2. One account-level journal zone with per-module overrides (this design), or keep three independent settings?
 3. Should valuation capture days move with the plan zone, or stay UTC (backlog item 6)?
