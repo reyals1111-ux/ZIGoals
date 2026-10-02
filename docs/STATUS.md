@@ -1,3 +1,103 @@
+# Session N (PR 3) — Timezone phases 1–2: the owner's decisions, failing-first suites, and funding and plan days through the time helpers with zone "UTC" (2026-10-02, [PR #62](https://github.com/reyals1111-ux/ZIGoals/pull/62), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141.0.7390.37 standing in for `chrome`. It cannot play the intro video, so the two intro-video specs fail here and pass in CI.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+
+No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** main `57275a6` (Alpha deploy #23 source).
+- Session N ran three PRs from it: Landing V5 ([#61](https://github.com/reyals1111-ux/ZIGoals/pull/61)), Earn & staking foundations (PR 2) and this one.
+- Session M ran in parallel (`polish/session-m-2026-10-02`, `accounts/session-m-2026-10-02`). This PR touches none of M's files: `apps/web/lib/goal-summary.ts` was struck from it for M (owner decision N12).
+
+**Behaviour:** unchanged. Funding days and plan days stay UTC, exactly as QA-04 recorded, and no stored format changes.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 3.1 | **The owner's decisions T1–T5** in [TIMEZONE_DESIGN.md](product/TIMEZONE_DESIGN.md), with a status line, what each phase must do and the ordering (phase 3 after Stage 8 and ADR-006 option A). Docs only | `613940d` |
+| 3.2 | **Phase 1: failing-first suites** (new test files only):<ul><li>66 regression-lock runs under 11 device zones;</li><li>expected failures Z1–Z16 for the decided behaviour;</li><li>guards G1–G4 that pin today's exact failure reasons;</li><li>all registered in [SKIPPED_TESTS.md](testing/SKIPPED_TESTS.md): `pnpm test` gains 17 expected failures, 21 in all</li></ul> | `655eb1b` |
+| 3.3 A | **Parity harness,** committed and green on main's code before the switch (below) | `44739cf` |
+| 3.3 A2 | **Edge digest** for instants no device clock produces and stored dates outside 1900–9999, also committed before the switch. It holds **92** rows (4 fixtures × 22 instants, plus one instalment row per fixture); its commit message says 88, which is wrong | `c4a8689` |
+| 3.3 B | **[Tier 3] (goal-engine exports)** the time helpers as `@zigoals/goal-engine/time` | `d4cd7b8` |
+| 3.3 C | **[Tier 3] (funding days)** funding and plan days come from the helpers, with zone `"UTC"` (below) | `56fe2ec` |
+| 3.3 D | **Benchmark,** `scripts/timezone-parity-benchmark.mjs` | `de61e33` |
+| 3.4 | Full gate, freeze check and this entry | this commit |
+
+## What phase 2 switched
+- **`plan-revisions.ts`:** new `planDay(now)` and `shiftPlanDay(date, n)` replace the private `day` and `shift`. They are used by `earliestPlanChange`, new revisions and `revisionInstallments`.
+  - Inside 1900–9999 they are `zonedDate(now, "UTC")` and the calendar-date helpers.
+  - Outside that range (no device clock, or a stored date before 1900) they keep the earlier expression, so every answer and every error stays the same (owner decision N11).
+- **`goal-intelligence.ts` `fundingHealth`:** today and tomorrow come from `planDay`, after the same instant check as before.
+- **Not switched:** the valuation-capture day and the history filters (T3: capture days stay UTC), and `goal-summary.ts:54` (N12, Session M's lane). The parity digest covers both, unchanged.
+- **`zoned-day.ts`:** a UTC fast path. For exactly `"UTC"` inside 1900–9999 the wall clock is the instant, so Intl is skipped.
+  - It is proven equal to the Intl path (`"Etc/UTC"`) on 20,006 instants and at both edges.
+  - Without it, `earliestPlanChange` was 4.5× slower and `fundingHealth` about 20% slower.
+
+## Parity: phase 2 changes nothing
+| Proof | Coverage | Result |
+|---|---|---|
+| Helper level (`funding-day-parity.test.ts`, part 1) | 15,206 deterministic instants across 1900–9999, both sides of 400 UTC midnights to the millisecond, plus 22,000 calendar steps of −400…+400 days | identical to the old string expressions |
+| Output digest (part 2) | Full outputs of `fundingHealth`, `earliestPlanChange`, `privateGoalSummary` and the capture days. 10 fixtures × 1,000 instants near their instalment dates, on UTC, New York and Kolkata devices | the same SHA-256 per fixture before and after the switch |
+| Edge digest (`funding-day-edges.test.ts`) | 92 rows: NaN, ±Infinity, ±8.64e15 and one past, years −1, 0, 1, 1066, 1899, 1900, 9999, 10000 and 275760, and revisions stored at 1850, 1900 and 9999 | same digest, error class and message included |
+| `planDay` / `shiftPlanDay` (`plan-day.test.ts`) | 15,013 instants over the whole representable range, and 22,165 date steps, errors included | identical to the earlier expressions |
+| UTC fast path (`zoned-day.test.ts`) | 20,006 instants and both edges, against the Intl path | identical |
+
+- **Sensitivity** (local, not committed): a one-day shift of the legacy "tomorrow" changes the 3 legacy fixtures' digests, and a 1 ms shift of "today" in funding or in plan revisions changes all 10.
+- **Phase 1 still holds:** all 66 locks pass, and Z1–Z16 still fail as expected.
+
+## Performance (`scripts/timezone-parity-benchmark.mjs`, local)
+Two esbuild bundles of the real app code that differ only in the two switched files, run on Session F's power-user store in interleaved Node processes, 15 rounds:
+
+| Measure (median of 40 passes) | Before | After | Change |
+|---|---|---|---|
+| `fundingHealth`, 50 × every Goal | 13.24 ms | 13.67 ms | +3.2%, inside the rig's own A/A noise (+4.2%, −4.8%) |
+| `earliestPlanChange`, 2,000 × every Goal | 14.27 ms | 12.04 ms | −15.6% |
+
+Micro: `planDay` takes 254 ns against 533 ns for the earlier slice, and a plan-day step takes 994 ns against 1,360 ns.
+
+## [Tier 3] commits and risk
+- **`d4cd7b8` (goal-engine exports):**
+  - **Risk:** none in behaviour. `packages/goal-engine/package.json` `exports` gains `"./time"` next to `"."`, the same subpath pattern as `@zigoals/ecosystem-registry` and `@zigoals/shared-types`. The `"."` export and every existing import are unchanged; no dependency or lockfile changes.
+  - **Rollback:** revert.
+- **`56fe2ec` (funding days):**
+  - **Risk:** `fundingHealth` decides every "behind / on track" label, so a slip would show on every Goal. The two committed digests, the per-instant proofs, the freeze check and the full browser suite all say nothing moved.
+  - **Rollback:** revert this commit; commits A, A2 and B are harmless on their own.
+- **Not touched:** stored formats, the sync protocol, vault, auth, Workers, wallet, contracts, signing and keys; AGENTS.md and CLAUDE.md. No new dependency.
+- **Outside the plan's file table:** `packages/goal-engine/README.md` ("Time helpers": now exported as `@zigoals/goal-engine/time` and wired with UTC), a description of the export only.
+
+## Gate
+| Check | Where | Result |
+|---|---|---|
+| `pnpm lint`, `pnpm typecheck` | local, `de61e33` | pass |
+| `pnpm test` | local, `de61e33` | 264 files (250 passed, 14 skipped); 2,253 tests passed, 21 expected failures (17 added by this PR), 22 skipped |
+| Full Playwright, production build, 2 workers | local, `de61e33` | 889 passed, 47 skipped, 6 failed:<ul><li>the 4 intro-video runs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this Chromium cannot play;</li><li>`logo-fold.spec.ts:107` (mobile: the fold was not removed within its 1.4 s limit under the full suite's load);</li><li>`counters-compact.spec.ts:42` (mobile: the 45 s test timeout).</li></ul>The last two passed when re-run alone (33 of 33, 1 skipped); neither touches this PR's files, and both pass in CI on the same commit |
+| Freeze check (`scripts/desktop-freeze-check.mjs`, 154 captures) | local, against main `57275a6` | 142 identical. The other 12 are the Help page at every size and state: its feedback link carries the build's commit (`57275a6` → `de61e33`). Their pixels are identical |
+| CI on `de61e33` | [Milestone quality](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37066712943), [Canonical reproducibility](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37066712959) | all 10 checks green; the final head's run is on the PR |
+
+## Next phases and their preconditions
+- **Phase 3, R1 (read support):** after Stage 8 and ADR-006 option A.
+  - R1 adds finance v4 and settings v2 to the Zod unions (an absent zone means UTC), and funding reads `plan.timeZone ?? "UTC"`.
+  - Z1–Z15 flip to passing; that PR converts them to plain tests and updates guards G1–G3.
+- **Phase 4, R2 (writes and UI):** at least one Alpha deploy **and** one week after R1 (T4).
+  - New plans default to the journal zone (T1); Z16 flips and guard G4 is updated.
+  - Re-run Session F's 49-day DST sweep, and Stage 8 rows B2, B4 and B5 on two devices in different zones.
+- **Phase 5:** valuation capture days stay UTC (T3). Health "today" on the Today card (QA-24) remains a separate decision.
+- **Recorded, not decided:** a due-today instalment already counts as "planned through today", so "must not be behind −€500" cannot flip from the zone alone. The due-day rule is a separate owner decision.
+
+## Follow-ups (not done here)
+- **Session M's lane, after both PRs merge:** `goal-summary.ts:54` reads its applicable-plan day through `planDay` (N12). The output digest already covers that path and will prove parity.
+- **UI "today" computations, M's lane:**
+  - `plan-history.tsx`;
+  - `tracked-detail.tsx`;
+  - `contribution-flow.tsx`;
+  - `use-valuation-history.ts`;
+  - `components/platform/goal-intelligence.tsx:28`.
+
 # Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs; then main #58 merged in and the owner's follow-ups (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
 
 **Evidence labels**
