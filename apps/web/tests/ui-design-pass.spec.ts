@@ -81,16 +81,19 @@ test.describe('Part 1: readability foundation',()=>{
 
 test.describe('Part 18.6: quick counters as bars',()=>{
  for(const [label,width,perRow] of [['desktop',1440,3],['tablet',1024,2],['phone',390,1]] as const)
-  test(`${label}: ${perRow} bar${perRow>1?'s':''} per row; icon and name on the left, − / count / + on the right, in one row`,async({page})=>{
+  // Phones (Session I, Part 4): with no subtitle, the name shares its line with the icon and the options, and − / count / +
+  // take the second line, so a long name keeps its room. Desktop and tablet keep one row.
+  test(`${label}: ${perRow} bar${perRow>1?'s':''} per row; icon and name on the left, − / count / + ${perRow>1?'on the right, in one row':'on a second line'}`,async({page})=>{
    await page.setViewportSize({width,height:900});await showcase(page);await page.goto('/app/health');
    const bars=page.locator('.exercise-counter');await expect(bars).toHaveCount(3);await bars.first().scrollIntoViewIfNeeded();await page.mouse.move(1,1);
    // Measured at rest: no bar lifted by a pointer that just passed over it.
    await expect(page.locator('.exercise-counter[data-glass]')).toHaveCount(0);
    const r=await bars.evaluateAll(els=>els.map(e=>{const box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),b=e.getBoundingClientRect(),icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),menu=box('.card-options-trigger'),h3=e.querySelector('h3')!;
     return {top:Math.round(b.top),width:b.width,iconLeftOfName:icon.right<=name.left,nameLeftOfControls:name.right<=minus.left,sameRow:name.top<minus.bottom&&minus.top<name.bottom&&minus.top<plus.bottom&&plus.top<minus.bottom,
+     controlsBelow:minus.top>=name.bottom-1&&Math.abs(minus.top-plus.top)<1,menuOnNameRow:menu.top<name.bottom&&name.top<menu.bottom,
      nameWhole:h3.scrollWidth<=h3.clientWidth,nameOneLine:name.height<30,targets:[minus,plus,menu].every(t=>t.width>=44&&t.height>=44),inside:[icon,name,minus,plus,menu].every(t=>t.left>=b.left&&t.right<=b.right)};}));
    const rows=[...new Set(r.map(x=>x.top))];expect(rows.length).toBe(Math.ceil(3/perRow));
-   for(const x of r)expect(x).toMatchObject({iconLeftOfName:true,nameLeftOfControls:true,sameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true});
+   for(const x of r)expect(x).toMatchObject(perRow>1?{iconLeftOfName:true,nameLeftOfControls:true,sameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true}:{iconLeftOfName:true,controlsBelow:true,menuOnNameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true});
    // The bars fill the card: a full row spans its width.
    const card=(await page.locator('.exercise-counter-grid').boundingBox())!;expect(Math.abs(r.slice(0,perRow).reduce((a,x)=>a+x.width,0)+(perRow-1)*12-card.width)).toBeLessThanOrEqual(2);
   });

@@ -54,10 +54,11 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
  const tap=(c:ExerciseCounter,delta:number)=>{void run(h=>changeCount(h,c.id,today,delta)).catch(()=>{});};
  const card=(c:ExerciseCounter)=>{
   const count=countOn(data,c.id,today);
-  // A bar: icon and name (with today's state under it) on the left, − / count / + and the options on the right.
+  // A bar: icon and name on the left, − / count / + and the options on the right (Session I: no visible subtitle; the
+  // section heading already says "Today in your Health journal"). "Today" stays in what is announced with the name.
   return <article className="exercise-counter" aria-label={c.name}>
    <span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span>
-   <div className="exercise-counter-name"><h3 title={c.name}>{c.name}</h3><p className="exercise-counter-caption">{count===null?'No entry today':'Today'}</p></div>
+   <div className="exercise-counter-name"><h3 title={c.name}>{c.name}</h3><p className="exercise-counter-caption sr-only">{count===null?'No entry today':'Today'}</p></div>
    <div className="exercise-counter-controls">
     <button type="button" className="exercise-step" aria-label={`Decrease ${c.name}`} disabled={!count} onClick={()=>tap(c,-1)}>−</button>
     <output className="exercise-count" aria-live="polite" aria-label={`${c.name} today`} data-empty={count===null||undefined}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry today</span></>:count}</output>
