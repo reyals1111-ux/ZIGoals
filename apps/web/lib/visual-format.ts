@@ -38,13 +38,18 @@ function numberFormat(locale:string,options:Intl.NumberFormatOptions={}){const k
 const localeDigits=new Map<string,{decimal:string;digits:string[]}>();
 function digitsFor(locale:string){let found=localeDigits.get(locale);if(!found){found={decimal:numberFormat(locale).formatToParts(1.1).find(p=>p.type==='decimal')?.value??'.',digits:Array.from({length:10},(_,n)=>numberFormat(locale,{useGrouping:false}).format(n))};localeDigits.set(locale,found);}return found;}
 /** Presentation only. Never feed this localized string back into domain arithmetic. */
+// Session M (QA2-08): Wealth formats a few thousand amounts while it loads. What depends only on the locale and the
+// currency (its minor digits; where the number, the sign and the symbol go) is worked out once; every output is unchanged.
+const groupers=new Map<string,Intl.NumberFormat>(),shapes=new Map<string,Intl.NumberFormatPart[]>();
 export function formatExactNumber(value:string,locale=displayLocale(),currency?:string){
  if(!/^-?\d+(?:\.\d+)?$/.test(value))return 'Unavailable';
  const negative=value.startsWith('-'),[integer,fraction]=value.replace(/^-/,'').split('.');
- const grouped=numberFormat(locale,{maximumFractionDigits:0}).format(BigInt(integer!));
+ let grouper=groupers.get(locale);if(!grouper){grouper=numberFormat(locale,{maximumFractionDigits:0});groupers.set(locale,grouper);}
+ const grouped=grouper.format(BigInt(integer!));
  const {decimal,digits}=digitsFor(locale);
  const number=grouped+(fraction?decimal+fraction.replace(/\d/g,d=>digits[Number(d)]!):'');
- const parts=numberFormat(locale,{...(currency?{style:'currency' as const,currency}:{}),minimumFractionDigits:0,maximumFractionDigits:0}).formatToParts(negative?-1:1);
+ const shape=`${locale}|${currency??''}|${negative?'-':'+'}`;let parts=shapes.get(shape);
+ if(!parts){parts=numberFormat(locale,{...(currency?{style:'currency' as const,currency}:{}),minimumFractionDigits:0,maximumFractionDigits:0}).formatToParts(negative?-1:1);shapes.set(shape,parts);}
  return parts.map(p=>p.type==='integer'?number:p.value).join('');
 }
 /**
@@ -61,8 +66,11 @@ export function isMoneyCurrency(code:string){
  return isoCurrencies.has(code);
 }
 /** The currency's minor digits, or null when the code is not money. */
+const minorDigits=new Map<string,number|null>();
 export function currencyDigits(code:string):number|null{
- return isMoneyCurrency(code)?numberFormat(DEFAULT_DISPLAY_LOCALE,{style:'currency',currency:code}).resolvedOptions().maximumFractionDigits??2:null;
+ let digits=minorDigits.get(code);
+ if(digits===undefined){digits=isMoneyCurrency(code)?numberFormat(DEFAULT_DISPLAY_LOCALE,{style:'currency',currency:code}).resolvedOptions().maximumFractionDigits??2:null;if(/^[A-Z]{3}$/.test(code))minorDigits.set(code,digits);}
+ return digits;
 }
 const DECIMAL=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 /**

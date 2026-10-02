@@ -121,3 +121,26 @@ describe("money", () => {
     expect(formatPrice("0.0043", "ZIG", "en-US")).toBe("Unavailable");
   });
 });
+
+describe("Session M (QA2-08): what depends only on the locale and the currency is worked out once", () => {
+  // The same text as Intl writes it from scratch, for every locale, currency and sign, in any order of calls.
+  const fresh = (value: string, locale: string, currency?: string) => {
+    const negative = value.startsWith("-"), [integer, fraction] = value.replace(/^-/, "").split(".");
+    const plain = (options: Intl.NumberFormatOptions = {}) => new Intl.NumberFormat(locale, options);
+    const decimal = plain().formatToParts(1.1).find(p => p.type === "decimal")?.value ?? ".";
+    const digits = Array.from({length: 10}, (_, n) => plain({useGrouping: false}).format(n));
+    const number = plain({maximumFractionDigits: 0}).format(BigInt(integer!)) + (fraction ? decimal + fraction.replace(/\d/g, d => digits[Number(d)]!) : "");
+    return plain({...(currency ? {style: "currency" as const, currency} : {}), minimumFractionDigits: 0, maximumFractionDigits: 0}).formatToParts(negative ? -1 : 1).map(p => p.type === "integer" ? number : p.value).join("");
+  };
+  it("formatExactNumber and currencyDigits give the same results, call after call", () => {
+    const values = ["0", "-0.5", "12.34", "-1234567.891", "9000", "-42"], locales = ["en-US", "nl-BE", "de-DE", "ja-JP", "ar-EG", "en-IN"];
+    for (let round = 0; round < 2; round++)
+      for (const locale of round ? [...locales].reverse() : locales)
+        for (const currency of [undefined, "USD", "EUR", "JPY", "KWD", "GBP"])
+          for (const value of round ? [...values].reverse() : values)
+            expect(formatExactNumber(value, locale, currency), `${locale} ${currency} ${value}`).toBe(fresh(value, locale, currency));
+    for (const code of ["USD", "JPY", "KWD", "BHD", "CLF", "XAU", "ZIG", "usd", "US", "USDT"])
+      for (let round = 0; round < 2; round++)
+        expect(currencyDigits(code), code).toBe(/^[A-Z]{3}$/.test(code) && !code.startsWith("X") && Intl.supportedValuesOf("currency").includes(code) ? new Intl.NumberFormat("en-US", {style: "currency", currency: code}).resolvedOptions().maximumFractionDigits ?? 2 : null);
+  });
+});
