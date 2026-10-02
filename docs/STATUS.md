@@ -1,3 +1,34 @@
+# Alpha deploy — 2026-10-02 evening, `57275a6` live
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session M cloud session on 2026-10-02. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in the Session M brief, 2026-10-02.
+
+- **Run:** Manual Alpha deployment #23, [run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899), 2026-10-02 18:35–18:42 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after #59. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `02a62cef-e67f-48db-afcd-dfb8c784b031`. The last observed live version is the same. (CI log)
+- **Rollback:** `8848babc-8168-4c07-a5e4-0712cc6d4a54`, the version deploy #22 published, so the chain holds. (CI log)
+- **CI on `57275a6`:** Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)): success on attempt 2. (Actions API)
+  - Attempt 1 failed in one job, "web browser suite (shard 3/3)": `[mobile] tests/run9-2-product.spec.ts:10` timed out at 120 s in `locator.click`, after Playwright logged "performing click action" on the Activity "Wealth" filter. That is the known "Browser click hang" (Known CI intermittents table). Every other job passed. (CI log)
+  - Attempt 2 re-ran the failed jobs, and they passed. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37048456899-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result. No manual check is reported with this record. (Owner, 2026-10-02)
+- **Activation (owner-reported, 2026-10-02):** Stage 6 (public-data policy) is complete. The Stage 7 preflight (`node scripts/run11/stage7-preflight.mjs`) reports READY at `57275a6`. Stages 7 and 8 themselves remain the owner's ([ACTIVATION.md](run11/ACTIVATION.md)). (Owner)
+
+**Merged since the last record** (git, first-parent history of `main`): [#59](https://github.com/reyals1111-ux/ZIGoals/pull/59) (`57275a6`), Session L, friends-Alpha readiness. It includes:
+- the Stage 8 coverage map and rehearsal tests;
+- the encrypted-sync offer;
+- Help at `/app/help`;
+- the install guide and "Keep my data on this device";
+- the installable app manifest;
+- the iPhone storage research;
+- the friends and privacy drafts.
+
+See the Session L entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs; then main #58 merged in and the owner's follow-ups (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
 
 **Evidence labels**
@@ -2242,7 +2273,14 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 afternoon for the [Alpha deploy #22](#alpha-deploy--2026-10-02-afternoon-f3220e1-live) above (recorded by Session L).
+Updated 2026-10-02 evening for the [Alpha deploy #23](#alpha-deploy--2026-10-02-evening-57275a6-live) above (recorded by Session M).
+- Deployed source `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59). Verified: Actions API.
+- CI: Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)) on `57275a6`: success (attempt 2; attempt 1 hit the known browser click hang in one test). Verified: Actions API, CI log.
+- Deployment: Manual Alpha deployment #23 ([run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899)), exact source `57275a6`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `02a62cef-e67f-48db-afcd-dfb8c784b031`; rollback `8848babc-8168-4c07-a5e4-0712cc6d4a54` (the run #22 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+- Activation: Stage 6 complete, and the Stage 7 preflight READY at `57275a6`. Owner-reported, 2026-10-02.
+
+Previous release identity (PR #58, 2026-10-02 afternoon, recorded by Session L):
 - Deployed source `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58). Verified: Actions API.
 - CI: Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)) on `f3220e1`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #22 ([run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305)), exact source `f3220e1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
@@ -2350,7 +2388,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 | 1 | OPEN | |
 | 2 | PARTLY | `CLAUDE.md` done |
 | 3 | PARTLY | Run11 final evidence (`414aa52b56bf2de049561dbbd248584d1c29c91b`, docs only) is backed up on branch `backup/run11-final-evidence` and not yet merged |
-| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)) |
+| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 6 is complete and the Stage 7 preflight is READY at `57275a6` (owner-reported, 2026-10-02) |
 | 5 | OPEN | |
 | 6 | OPEN | |
 | 7 | PARTLY | Real-iPhone check remains |
