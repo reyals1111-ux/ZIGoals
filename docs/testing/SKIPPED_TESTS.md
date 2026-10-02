@@ -107,12 +107,12 @@ Rows 1–5 and 14–21 above are corrected for #57: the logo intro is no longer 
 | K20–K21 | `<setting>: hover never moves anything; a static highlight only` (ui-design-pass.spec.ts:314, one per setting in its loop) | `isMobile` | Hover needs a fine pointer | platform | Session A |
 | K22 | `touch gets press feedback only, never a hover lift` (ui-design-pass.spec.ts:324) | `!isMobile` | Touch only | platform | Session A |
 | K23–K24 | `hover intent: a pointer that presses straight away never lifts the tile…`; `long sections and typing stay still; the sidebar star is a plain layer` (ui-design-pass.spec.ts:332, :344) | `isMobile` | Hover needs a fine pointer | platform | Session A |
-| K25 | `hover and a mouse drag move nothing on their own…` (ui-evidence.spec.ts:30) | `isMobile` | Hover and mouse drag need a fine pointer; its keyboard flow covers phones | platform | Session A |
-| K26–K27 | `the equation reveals its four steps in scroll order`; `reduced motion settles the equation on all four steps without scrolling` (landing.spec.ts:138, :224) | project not `desktop` | The stepped reveal runs above 700 px; phones get the settled state | platform | Landing V4 (#55) |
+| K25–K26 | `<setting>: hover and a mouse drag move nothing on their own…` (ui-evidence.spec.ts:30, one per setting in its loop: reduced motion and Motion Off) | `isMobile` | Hover and mouse drag need a fine pointer; its keyboard flow covers phones | platform | Session A |
+| K27–K28 | `the equation reveals its four steps in scroll order`; `reduced motion settles the equation on all four steps without scrolling` (landing.spec.ts:138, :224) | project not `desktop` | The stepped reveal runs above 700 px; phones get the settled state | platform | Landing V4 (#55) |
 
 **Expected totals from the source** (a full local run measures them; see the Session K entry in [STATUS](../STATUS.md)):
 - **desktop project:** 19 skipped;
-- **mobile project:** 27 skipped;
-- **both projects:** 46, including the 16 opt-in captures (rows 6–21).
+- **mobile project:** 28 skipped;
+- **both projects:** 47, including the 16 opt-in captures (rows 6–21). The full local run of Session K's final build counted 47 skipped (Session K, Part 9: K25 first listed one test where its loop makes two).
 
 The runtime row K1–K2 is not counted, because both browsers decode a fold format. No skip is a known bug, obsolete or unknown, and there is still no `test.fixme`, `test.todo` or `.only`.
