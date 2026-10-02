@@ -18,6 +18,9 @@ import { habitDay, habitRuleOn,saveHabitTimezone } from "../../lib/habits";
 import { NebulaFlow } from "../nebula-flow";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
+import { useReminders } from "../reminders/use-reminders";
+import { reminderTime } from "../../lib/reminders/schema";
+import { setHabitReminder } from "../../lib/reminders/store";
 
 /** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
 function useStackSuggestions(data: HabitData, today: string) {
@@ -42,6 +45,7 @@ export function HabitsWorkspace() {
   const phone = usePhoneActive();
   const goals = useGoals();
   const platform = usePlatform();
+  const reminders = useReminders();
   const [filter, setFilter] = useState<Filter>("Today");
   const [editor, setEditor] = useState<string | null>(null);
   // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
@@ -103,7 +107,11 @@ export function HabitsWorkspace() {
         {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
         store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">
-          {editor && <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); setMessage(editingHabit ? "Habit saved." : "Habit created."); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} />}
+          {editor && <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}-${reminders.loaded}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} reminder={editingHabit ? reminders.data.habits[editingHabit.id]?.time ?? "" : ""} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected,reminder="") => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); let saved = editingHabit ? "Habit saved." : "Habit created.";
+            // The reminder time is this device's own (lib/reminders), written only when it changed. The habit is already saved.
+            const time = reminderTime(reminder);
+            if ((reminders.data.habits[id]?.time ?? null) !== time) { try { reminders.update(store.today, current => setHabitReminder(current, id, time, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch { saved += " The reminder time was not saved on this device."; } }
+            setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} />}
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map((habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;

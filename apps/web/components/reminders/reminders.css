@@ -1,0 +1,11 @@
+/* In-app reminders (Session I, Part 8). */
+.reminder-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin:0 0 18px}
+.reminder-card{display:grid;gap:8px;padding:18px 20px;border:1px solid #8fd2ff40;background:radial-gradient(circle at 0 0,#2bd6ff1c,transparent 45%),linear-gradient(150deg,#16243e,#111a31)}
+.reminder-card .eyebrow{margin:0}
+.reminder-card h2{margin:0;font-size:1.25rem}
+.reminder-card p{margin:0;font-size:15px;color:#c4d3e6}
+.reminder-card-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.reminder-card-actions :is(a,button){min-height:44px}
+.reminder-time-field{display:grid;gap:6px}
+.reminder-time-field input{min-height:44px;font-size:16px;max-width:12rem}
+.reminder-time-field small{font-size:14px;color:#b7c8de;line-height:1.5}
