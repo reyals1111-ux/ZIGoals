@@ -116,3 +116,21 @@ Rows 1–5 and 14–21 above are corrected for #57: the logo intro is no longer 
 - **both projects:** 47, including the 16 opt-in captures (rows 6–21). The full local run of Session K's final build counted 47 skipped (Session K, Part 9: K25 first listed one test where its loop makes two).
 
 The runtime row K1–K2 is not counted, because both browsers decode a fold format. No skip is a known bug, obsolete or unknown, and there is still no `test.fixme`, `test.todo` or `.only`.
+
+## Session L additions (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59))
+The Stage 8 rehearsals in `scripts/run11/stage8-rehearsal/` drive real Chrome against a production server, with fixture sign-in and the real Workers in Miniflare. Like rows 1–9 above, each is skipped in plain `pnpm test` and runs in CI `web integration`, "Independent browser account and market integration". That step sets `RUN10_BROWSER=1` and lists the six files. `sign-in-codes.test.mjs` and `reconcile-mode.test.mjs` in the same folder are not gated; they run in plain `pnpm test`.
+
+| # | Test (file:line) | Condition | Reason | Category | Where it runs |
+|---|---|---|---|---|---|
+| L1 | `the sign-in panel refuses wrong, expired and reused codes without a session, and a second code only after the cooldown` (scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs:8) | `RUN10_BROWSER!=='1'` | Needs a running production server and Chrome | env-gated | CI `web integration`, "Independent browser account and market integration" |
+| L2 | `locking hides account records until unlocked, and a second account sees none of the first account's records` (lock-switch-browser.test.mjs:8) | `RUN10_BROWSER` | same | env-gated | same step |
+| L3 | `Health is uploaded only after consent, and another device receives it only after its own consent` (health-consent-cloud-browser.test.mjs:8) | `RUN10_BROWSER` | same | env-gated | same step |
+| L4–L5 | `a reload while the head write's acknowledgement is held replays the funding and its correction exactly once`; `a dropped acknowledgement of the first write and a retry replay the funding and its correction exactly once` (replay-browser.test.mjs:92, :93) | `RUN10_BROWSER` | same | env-gated | same step |
+| L6–L7 | `C1: a refused camera permission is explained and manual entry still logs a food`; `C2: cancelling a scan stops the camera and leaves the saved Health log unchanged` (camera-browser.test.mjs:22, :47) | `RUN10_BROWSER` | same (the camera is a stand-in in the page) | env-gated | same step |
+| L8 | `the offer turns sync on through the existing controls; Goals, Habits and Today sync, Health only after each device's own consent…` (sync-offer-browser.test.mjs:13) | `RUN10_BROWSER` | same | env-gated | same step |
+
+**Also gated, from #58 (Session K) and not listed until now:** two sync-race tests in `scripts/run11/sync-inflight-edit-browser.test.mjs`. They extend rows 5–6 above, run in the same step, and are gated by `RUN10_BROWSER`:
+- `a review asked for just as an automatic sync starts opens when that sync ends` (:90);
+- `an automatic sync scheduled before a review began does not run during the review` (:109).
+
+**Vitest total in plain `pnpm test`: 22 skipped.** That is rows 1–12 (12 tests), the 2 #58 tests above, and L1–L8. Measured on Session L's branch after merging `main` `f3220e1`: 2,172 passed, 4 expected to fail (X1–X4) and 22 skipped. Every one runs in a CI step that sets its flag. The Playwright totals above are unchanged: Session L adds no Playwright skip.
