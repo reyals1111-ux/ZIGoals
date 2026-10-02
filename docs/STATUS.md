@@ -16,6 +16,8 @@ No account, secret, wallet or deploy was used. Nothing reached Cloudflare.
 
 **Base:** main `fc906e8` (Alpha deploy #20 source). The owner brand assets came in by a merge commit (`d895aee`) and now live under `apps/web/public/brand/`. Once this is merged, the branch `assets/brand-2026-10-01` can be deleted.
 
+**Merged with main after Session J (#56):** `12fda56` merges `b3f64c7`. Only `docs/STATUS.md` overlapped; Session J's entry is kept unchanged below this one. Lint and typecheck passed locally on the merge. CI on the final head is reported on the PR.
+
 ## Parts
 | Part | Result | Commits |
 |---|---|---|
@@ -166,7 +168,7 @@ Totals are listed per run and never added together.
   - change the page list to `/app/staking` (the old path works through the redirect) and add `/app/portfolio`;
   - take a new baseline after the merge, and update its unit test.
 - **`docs/testing/SKIPPED_TESTS.md`:** the logo intro specs are no longer desktop-only.
-- **README and existing docs:** they still say "Stake / Positions" or "The Goal Layer for ZIGChain".
+- **Existing docs:** older run reports (`docs/RUN_8_*`, `docs/RUN_9_*`) still say "Stake / Positions" or "The Goal Layer for ZIGChain". Session J (#56) already updated the README.
 - **Ecosystem registry (`packages/ecosystem-registry`):**
   - `notes` ("ZIGoals capability") is developer wording ("Integration surface…") and the cards show it verbatim;
   - several records have no audits, an unknown KYC status, or only one description line.
