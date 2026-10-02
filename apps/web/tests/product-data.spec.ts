@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Request } from "@playwright/test";
+import {openMealLog} from "./phone-nav";
 import { readFile } from "node:fs/promises";
 import { createHabit, emptyHabitData, HABITS_KEY } from "../lib/habits";
 import { createEmptyHealth, HEALTH_STORAGE_KEY, saveFood } from "../lib/health";
@@ -83,7 +84,8 @@ test("damaged private exports retain exact bytes and explicit restore quarantine
   await page.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: HEALTH_STORAGE_KEY, raw: future });
   await page.reload();
   await restore(page, "Health", JSON.stringify(createEmptyHealth()));
-  await expect(panel.getByRole("alert")).toContainText("A newer stored version cannot be replaced");
+  await expect(panel.getByRole("alert")).toContainText("This browser holds a newer version of this module than this app can replace, so nothing was changed.");
+  await expect(panel.getByRole("alert")).toContainText("(NEWER_VERSION)");
   expect(await page.evaluate(key => localStorage.getItem(key), HEALTH_STORAGE_KEY)).toBe(future);
 });
 test("private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls", async ({ page }) => {
@@ -104,6 +106,7 @@ test("private Habit and Health sentinel values stay outside requests, headers, l
   await page.getByRole("button", { name: `Complete ${sentinel}_habit`, exact: true }).click();
   await expect(page.getByRole("button", { name: `Undo completion for ${sentinel}_habit` })).toBeVisible();
   await page.goto("/app/health");
+  await openMealLog(page);
   await page.getByRole("combobox", { name: "Food or recipe", exact: true }).selectOption(healthData.foods[0]!.id);
   await page.getByRole("button", { name: "Log to diary", exact: true }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText(`${sentinel}_food`);

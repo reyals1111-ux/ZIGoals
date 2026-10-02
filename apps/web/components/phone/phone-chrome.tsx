@@ -15,8 +15,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { AppIcon } from "../app-icon";
-import { NAV_ITEMS, isNavActive } from "../app-nav";
+import { LEGACY_STAKING_PATH, NAV_GROUP_START, NAV_ITEMS, isNavActive } from "../app-nav";
 import { LogoMark, Wordmark } from "../brand-mark";
+import { LogoIntro } from "../logo-intro";
 import { QuickAdd } from "../quick-add";
 import { entranceAllowed } from "../use-entrance";
 import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
@@ -32,7 +33,8 @@ const TABS = NAV_ITEMS.slice(0, 4), MORE = NAV_ITEMS.slice(4);
 const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
   "/app/markets": "Prices you follow · watch-only",
-  "/app/goals/positions": "Public ZIG positions · read-only",
+  "/app/staking": "Public ZIG staking and positions · read-only",
+  "/app/portfolio": "Coins you hold or plan · this device only",
   "/app/ecosystem": "ZIGChain projects · research only",
   "/app/activity": "Your recent steps, in order",
   "/app/settings": "Backups, privacy, motion and Showcase",
@@ -42,7 +44,7 @@ export type PhoneRoute = { title: string; back?: { href: string; label: string }
 /** The top bar's title and back link for a path. Detail and creation pages step back to their list. */
 export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/goals/new") return { title: "New Goal", back: { href: "/app/goals", label: "Goals" } };
-  if (/^\/app\/goals\/(tracked\/)?[^/]+$/.test(path) && !["/app/goals/positions", "/app/goals/tracked"].includes(path)) return { title: "Goal", back: { href: "/app/goals", label: "Goals" } };
+  if (/^\/app\/goals\/(tracked\/)?[^/]+$/.test(path) && ![LEGACY_STAKING_PATH, "/app/goals/tracked"].includes(path)) return { title: "Goal", back: { href: "/app/goals", label: "Goals" } };
   if (path.startsWith("/app/wealth/asset/")) return { title: "Asset", back: { href: "/app/wealth", label: "Wealth" } };
   if (path === "/app/welcome") return { title: "Welcome" };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
@@ -127,7 +129,7 @@ export function PhoneTopBar() {
     <div className="phone-topbar-row">
       {route.back
         ? <Link className="phone-back" href={route.back.href} aria-label={`Back to ${route.back.label}`}><AppIcon name="back" size={22} /><span aria-hidden="true">{route.back.label}</span></Link>
-        : <Link className="phone-home" href="/app" aria-label="ZIGoals home"><LogoMark /></Link>}
+        : <Link className="phone-home" href="/app" aria-label="ZIGoals home"><LogoMark /><LogoIntro host="phone" /></Link>}
       <p className="phone-title" aria-hidden="true">{route.title}</p>
       <div className="phone-actions">
         <QuickAdd triggerClassName="phone-quick-add" />
@@ -187,7 +189,8 @@ export function PhoneTabBar() {
           {MORE.map(([href, label, icon]) => {
             const current = isNavActive(path, href);
             // The one-line note is drawn by CSS, so the link's text and name stay exactly the destination's label.
-            return <li key={href}><Link href={href} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
+            // The same groups as the sidebar (Session I): Wealth, then the money tools, then the rest, separated by space.
+            return <li key={href} data-group-start={NAV_GROUP_START.get(href)}><Link href={href} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
               <span className="icon-medallion"><AppIcon name={icon} size={22} luminous /></span>
               <span className="phone-more-copy" data-note={MORE_NOTES[href]}><strong>{label}</strong></span>
               <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
@@ -197,7 +200,6 @@ export function PhoneTabBar() {
         <div className="phone-more-signature">
           <p className="phone-more-descriptor">Your Financial Orbit</p>
           <Wordmark />
-          <p className="phone-more-tagline"><span className="sr-only">Shape &amp; Fold, Your Own Future</span><span aria-hidden="true">Shape &amp; Fold</span><span aria-hidden="true">Your Own Future</span></p>
         </div>
       </div>
     </dialog>

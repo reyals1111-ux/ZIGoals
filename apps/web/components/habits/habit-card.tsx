@@ -6,15 +6,16 @@ import {PinToToday} from "../pin-to-today";
 import {LinkedGoalReview} from './linked-goal-review';
 import type {PrivateGoal} from '../../lib/positions';
 import {HabitTimer} from "./habit-timer";
-import { MotionTrack } from "../motion-track";
+import { GlassBar } from "../progress/glass-progress";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { visualTone } from "../visual-tone";
-import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
+import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitData, type HabitGoalLink } from "../../lib/habits";
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
-import type { HabitCardStore } from "./use-habits";
+import { habitCheckIn, type HabitCardStore } from "./use-habits";
 import { formatDate, formatDateTime, formatPlainDecimal } from "../../lib/visual-format";
 import { unitFor } from "../../lib/plural";
+import { checkInFailureMessage, storageMessageOr } from "../../lib/storage-error-copy";
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
@@ -28,10 +29,29 @@ function targetCopy(habit: Habit,today:string) {
   return `${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} per ${period}`;
 }
 
+/** Runs once the next frame has painted; a hidden tab paints no frames, so a short timer stands in. */
+function afterPaint(run: () => void) {
+  let done = false; const once = () => { if (!done) { done = true; run(); } };
+  requestAnimationFrame(() => setTimeout(once, 0)); setTimeout(once, 100);
+}
 export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitCardStore; compact?: boolean }) {
-  const day = habitDay(habit, store.today, store.today); const rule = habitRuleOn(habit,store.today)??habit.rules[0]!; const unit = measurementUnit(rule);
+  // Paint first, then save (Session I, Part 9): a tap shows its result on the next frame, and the save runs after that
+  // frame. If the save fails, the card returns to what is saved and says why (Part 5's coded message), so a check-in is
+  // never left showing as saved when it was not.
+  const [pending, setPending] = useState<Habit | null>(null);
+  const shown = pending ?? habit;
+  const day = habitDay(shown, store.today, store.today); const rule = habitRuleOn(shown,store.today)??shown.rules[0]!; const unit = measurementUnit(rule);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(() => formNumberText(day.count));
-  async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch { setError("Could not save this check-in. Try again."); } finally { setBusy(false); } }
+  async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch (error) { setError(checkInFailureMessage(error)); } finally { setBusy(false); } }
+  function checkIn(change: (data: HabitData) => HabitData) {
+    if (busy) return;
+    let preview: Habit | undefined;
+    // The change applied to this habit alone (only the changed habit is validated again, lib/habits.ts); if it is
+    // refused, nothing is painted early and the save reports why.
+    try { preview = change({ schemaVersion: 2, kind: "zigoals-habits", habits: [habit], ...(store.data.timeZone ? { timeZone: store.data.timeZone } : {}) }).habits[0]; } catch { preview = undefined; }
+    setBusy(true); setError(""); setPending(preview ?? null);
+    afterPaint(() => void store.update(change).catch((error: unknown) => setError(checkInFailureMessage(error))).finally(() => { setPending(null); setBusy(false); }));
+  }
   // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
   function typed() { try { return readFormNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(e instanceof Error ? e.message : "Enter a number."); return null; } }
   async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => store.setValue(habit.id, store.today, value)); }
@@ -41,9 +61,9 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   return <div className={`habit-completion ${compact ? "habit-completion-compact" : ""}`}>
     <div><div className="habit-count"><strong>{plain(day.count)}</strong><span> / {plain(day.target)}{unit ? ` ${unitFor(day.target, unit)}` : ""}{compact ? "" : ` per ${habitTargetPeriod(rule)}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
     <div className="habit-check-actions">
-      {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={busy || day.count === 0} onClick={() => void run(() => store.adjustCount(habit.id, store.today, -1))}>−</button>}
-      {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={busy} onClick={() => void run(() => store.addValue(habit.id, store.today, 1))}>+</button>}
-      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={busy} onClick={() => void run(() => day.status === "complete" && rule.type === "build" ? store.setValue(habit.id, store.today, 0) : store.smartDone(habit.id, store.today))}>{busy ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
+      {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={!pending && busy || day.count === 0} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.adjustCount(habit.id, store.today, -1))}>−</button>}
+      {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.addValue(habit.id, store.today, 1))}>+</button>}
+      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(day.status === "complete" && rule.type === "build" ? habitCheckIn.setValue(habit.id, store.today, 0) : habitCheckIn.smartDone(habit.id, store.today))}>{busy && !pending ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
     </div>
     {!compact && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div></form></details>}
     {error && <p className="habit-inline-error" role="alert">{error}</p>}
@@ -56,9 +76,9 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget); const mood = String(form.get("mood")) as "energized" | "good" | "neutral" | "difficult" | "calm" | "";
     let count: number; try { count = readFormNumber(String(form.get("count")), { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setMessage(""); setError(e instanceof Error ? e.message : "Enter a number."); return; }
-    setBusy(true); setMessage(""); setError(""); try { await store.setCount(habit.id, selectedDate, count, String(form.get("note")), mood || undefined); setMessage("Day saved."); } catch { setError("This day could not be saved. Choose a scheduled active day up to today."); } finally { setBusy(false); }
+    setBusy(true); setMessage(""); setError(""); try { await store.setCount(habit.id, selectedDate, count, String(form.get("note")), mood || undefined); setMessage("Day saved."); } catch (error) { setError(storageMessageOr(error, "This day could not be saved. Choose a scheduled active day up to today.")); } finally { setBusy(false); }
   }
-  async function mark(status: "skipped" | "failed") { setBusy(true); setMessage(""); setError(""); try { await store.markDay(habit.id, selectedDate, status, day.note); setMessage(status === "skipped" ? "Day skipped." : "Day marked failed."); } catch { setError("This day could not be changed."); } finally { setBusy(false); } }
+  async function mark(status: "skipped" | "failed") { setBusy(true); setMessage(""); setError(""); try { await store.markDay(habit.id, selectedDate, status, day.note); setMessage(status === "skipped" ? "Day skipped." : "Day marked failed."); } catch (error) { setError(storageMessageOr(error, "This day could not be changed.")); } finally { setBusy(false); } }
   function chooseDate(date: string) { if (!date) return; setSelectedDate(date); setMonth(date.slice(0, 7)); setMessage(""); setError(""); }
   return <div className="habit-history">
     <div className="habit-calendar-heading"><button className="quiet" aria-label={`Previous month for ${habit.title}`} disabled={month <= habit.startDate.slice(0, 7)} onClick={() => setMonth(moveMonth(month, -1))}>←</button><strong>{formatDate(`${first}T12:00:00`, { month: "long", year: "numeric" })}</strong><button className="quiet" aria-label={`Next month for ${habit.title}`} disabled={month >= store.today.slice(0, 7)} onClick={() => setMonth(moveMonth(month, 1))}>→</button></div>
@@ -85,7 +105,7 @@ function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   const stats = habitStats(habit, today); const trends = habitTrends(habit, today);
   return <div className="habit-insights" aria-label={`${habit.title} insights`}>
     <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
-    <MotionTrack identity={`habit-trends:${habit.id}`} className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><i><span style={{ width: `${trend.percentage}%` }} /></i><strong>{trend.percentage}%</strong></div>)}</MotionTrack>
+    <div className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><GlassBar identity={`habit-trends:${habit.id}:${trend.period}`} className="habit-trend-track" aria-hidden="true" value={trend.percentage / 100} /><strong>{trend.percentage}%</strong></div>)}</div>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
   </div>;
 }
@@ -99,7 +119,7 @@ export type HabitStackNext = { id: string; title: string };
 export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,stackNext,onViewStack, onEdit, ...layout }: LayoutAttrs & { habit: Habit; store: HabitCardStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;stackNext?:readonly HabitStackNext[];onViewStack?:(id:string)=>void; onEdit: (id: string) => void }) {
   const rule = habitRuleOn(habit,store.today)??habit.rules[0]!,planned=latestHabitRule(habit); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [historyOpen, setHistoryOpen] = useState(false);
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
-  async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch { setError("The habit was not changed. Try again."); } finally { setBusy(false); } }
+  async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch (error) { setError(storageMessageOr(error, "The habit was not changed. Try again.")); } finally { setBusy(false); } }
   return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
     <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}

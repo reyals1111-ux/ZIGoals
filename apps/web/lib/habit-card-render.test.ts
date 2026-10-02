@@ -10,7 +10,6 @@ import { shareHabitData } from "./habit-sharing";
 const renders = vi.hoisted(() => new Map<string, number>());
 vi.mock("../components/pin-to-today", () => ({ PinToToday: ({ label }: { label: string }) => { renders.set(label, (renders.get(label) ?? 0) + 1); return null; } }));
 vi.mock("../components/habits/habit-timer", () => ({ HabitTimer: () => null }));
-vi.mock("../components/motion-track", () => ({ MotionTrack: ({ children }: { children?: unknown }) => children ?? null }));
 const { HabitCard } = await import("../components/habits/habit-card");
 import type { HabitCardStore } from "../components/habits/use-habits";
 

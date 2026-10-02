@@ -36,7 +36,7 @@ test('private position allocation and plans survive reload without financial or 
 test('watch-only invalid input never calls a wallet or chain endpoint',async({page})=>{
  await page.addInitScript(()=>{Object.defineProperty(window,'keplr',{get(){throw Error('Signer boundary touched');}});});
  const external:string[]=[];page.on('request',r=>{if(new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
- await page.goto('/app/goals/positions');
+ await page.goto('/app/staking');
  await page.locator('.positions-wallet > summary').click();
  await expect(page.getByText('Mainnet Read-Only / Watch-Only',{exact:true}).first()).toBeVisible();
  await page.getByLabel('Public ZIG address').fill('invalid');
@@ -53,7 +53,7 @@ test('mainnet watch-only displays exact six-decimal observations without wallet 
   if(fail){await route.fulfill({status:502,json:{error:'Public evidence unavailable'}});return;}
   await route.fulfill({json:{positions:[{id:`zigchain-1:${account}:liquid`,providerId:'native-zig',sourceType:'WALLET_LIQUID',network:'zigchain-1',account,asset:'ZIG',denom:'uzig',decimals:6,quantity:'123456789',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'LIQUID',provenance:'https://api.zigchain.com · block 123',executionAuthority:'NONE',notes:'',risk:''}]}});
  });
- await page.goto('/app/goals/positions');await page.locator('.positions-wallet > summary').click();await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
+ await page.goto('/app/staking');await page.locator('.positions-wallet > summary').click();await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
  await expect(page.getByRole('status').filter({hasText:'Public snapshot saved'})).toBeVisible();
  await expect(page.getByRole('region',{name:'zigchain-1 observed totals'})).toContainText('123.456789 ZIG');
  expect(calls).toHaveLength(1);
@@ -65,7 +65,7 @@ test('mainnet watch-only displays exact six-decimal observations without wallet 
 });
 
 test('editing an imported manual Position preserves its asset identity, allocations and historical scale',async({page})=>{
- await page.goto('/app/goals/positions');
+ await page.goto('/app/staking');
  await page.evaluate(()=>localStorage.setItem('zigoals:platform:v1',JSON.stringify({schemaVersion:1,kind:'zigoals-platform',positions:[{id:'manual-six',providerId:'Imported reserve',sourceType:'MANUAL',network:'manual',account:'local',asset:'ZIG',denom:'uzig',decimals:6,quantity:'1234567',verification:'MANUAL',sync:'MANUAL',liquidity:'UNKNOWN',observedAt:'2026-09-17T00:00:00Z',provenance:'Manual import',notes:'',risk:'',executionAuthority:'NONE'}],goals:[],allocations:[],snapshots:[{positionId:'manual-six',quantity:'1000000',observedAt:'2026-09-16T00:00:00Z'}]})));
  await page.goto('/app/wealth/asset/manual-six');await page.getByRole('button',{name:'Edit asset',exact:true}).click();
  const editor=page.getByRole('dialog',{name:'Edit Imported reserve'});

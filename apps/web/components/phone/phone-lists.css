@@ -45,7 +45,7 @@
   :root .ecosystem-description a { display: inline-flex; align-items: center; min-height: 44px; }
   :root .ecosystem-project-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; }
   :root .ecosystem-project-actions a { min-height: 44px; justify-content: center; }
-  :root .ecosystem-evidence > summary, :root .ecosystem-coverage > summary, :root .ecosystem-tools > summary { min-height: 44px; }
-  :root .ecosystem-evidence a { display: flex; align-items: center; min-height: 44px; }
-  :root .ecosystem-evidence :is(small, li, p) { font-size: 15px; }
+  :root .ecosystem-coverage > summary, :root .ecosystem-tools > summary { min-height: 44px; }
+  :root .ecosystem-details a { display: flex; align-items: center; min-height: 44px; }
+  :root .ecosystem-details :is(small, li, p) { font-size: 15px; }
 }

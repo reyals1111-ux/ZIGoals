@@ -1,3 +1,201 @@
+# Session I — logo fold, page marks, liquid-glass progress, Ecosystem cards, reminders, phone pages, QA decisions, Portfolio (2026-10-01/02, [PR #57](https://github.com/reyals1111-ux/ZIGoals/pull/57), not merged or deployed)
+
+The owner calls this "Session A".
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63.0 with at most 2 workers.
+  - Chromium 141 standing in for `chrome`. It cannot play H.264, so the brand film's `play()` steps fail here and pass in CI.
+- **CI:** Milestone quality on the PR.
+- **trace:** a Playwright or performance trace taken locally.
+- None of this is a hosted or real-device claim.
+
+No account, secret, wallet or deploy was used. Nothing reached Cloudflare.
+
+**Base:** main `fc906e8` (Alpha deploy #20 source). The owner brand assets came in by a merge commit (`d895aee`) and now live under `apps/web/public/brand/`. Once this is merged, the branch `assets/brand-2026-10-01` can be deleted.
+
+**Merged with main after Session J (#56):** `12fda56` merges `b3f64c7`. Only `docs/STATUS.md` overlapped; Session J's entry is kept unchanged below this one. Lint and typecheck passed locally on the merge. CI on the final head is reported on the PR.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | Owner brand assets merged; `marks/`, `figures/`, `logo-fold/` and `how-it-works/` moved to `apps/web/public/brand/`; the README is now [docs/brand/ASSETS_2026-10-01.md](brand/ASSETS_2026-10-01.md) | `d895aee`, `de30404` |
+| 1 | **Logo fold intro** on the brand Z (sidebar, narrow-tablet header and phone top bar):<ul><li>once per browser session (`sessionStorage zigoals:logo-intro:v1`), 1×, muted, no controls, no loop;</li><li>it settles exactly on the static Z with a crossfade;</li><li>with reduced motion, Motion Off, Save-Data, autoplay "disallowed" or no playable type, no `<video>` is created and nothing is requested;</li><li>any failure leaves the static Z</li></ul> | `c1c0eca` |
+| 2 | **Page marks:**<ul><li>on Today, Goals, Habits, Health and Wealth the sidebar shows that page's mark in a fixed box above the planet;</li><li>the "Shape & Fold" tagline is gone.</li></ul>**Navigation:**<ul><li>three groups, spaced not divided;</li><li>DOM order equals the visual order.</li></ul>**"Stake / Positions" becomes "Staking":**<ul><li>the route is `/app/staking`;</li><li>`/app/goals/positions` redirects there with a page-level 307</li></ul> | `f8c7174`, `888651d` |
+| 3 | **Liquid-glass progress everywhere:** one shared `GlassBar` and `GlassRing` (`components/progress/`).<ul><li>A single fill on first view and a glide on change, using transform and stroke-dashoffset only.</li><li>Exact ARIA kept, no layout shift, and the final state at once under reduced motion or Motion Off</li></ul> | `6d36773` |
+| 4 | **Quick counters:** the visible "Today / No entry today" caption is removed at every size (it stays as screen-reader text); the phone layout uses two rows | `b83cf06` |
+| 5 | **Money** always shows its currency's minor digits ("$501,800.00", "¥9,000", "KWD 1.250"), cut and never rounded up. A market price keeps its sub-cent digits | `e7f12e5` |
+| 5 | **[Tier 3] Storage errors** say what happened, ending in a code: `STORAGE_FULL`, `MODULE_LIMIT`, `NEWER_VERSION`, `CONFLICT`, `STORAGE_BLOCKED`, `SAVE_FAILED` (QA-03, QA-18). Each refused backup says why: `TOO_LARGE`, `NOT_A_BACKUP`, `WRONG_MODULE`, `NEWER_BACKUP`, `DAMAGED` (QA-22) | `4a129cb` |
+| 6 | **Ecosystem cards** open in place:<ul><li>the header is a button (Enter and Space; several cards can be open; focus stays put);</li><li>it opens the registry's own record, server-rendered, with no request;</li><li>`#project-<id>` links open their card;</li><li>no contract addresses, rates or partnership words.</li></ul>The eyebrow is now "ZIG Chain ecosystem" | `12562e1` |
+| 7 | **Staking:** a "Valdora liquid staking (stZIG)" card, marked "Not tracked yet". It makes no request and shows no numbers. It links to Valdora's research record | `4a8c724` |
+| 8 | **"See how it works"** plays the 16-second brand film: 720p (1080p on wide high-density screens), WebP poster, controls, no autoplay. Nothing is requested before the dialog opens | `8900263` |
+| 8 | **[Tier 3] In-app reminders** ([REMINDERS_V1](product/REMINDERS_V1.md)):<ul><li>a reminder time on a habit or on Water;</li><li>a card on Today once the device clock passes it, until the habit is done or the card is dismissed for today;</li><li>device key `zigoals:reminders:v1`</li></ul> | `a93b51a` |
+| 9 | **Habits tap:** the check-in paints first, then saves. If the save fails, the check-in is visibly taken back with the coded reason (Addition 1) | `fe9fa60` |
+| 9 | **Phone pages:**<ul><li>Today and Wealth fold their secondary modules to rows that open in place (nothing removed);</li><li>the habit editor, Log a meal and Staking's wallet and reward forms open as bottom sheets;</li><li>amounts no longer split inside a number</li></ul> | `ca4316d`, `d03307a` |
+| 10 | **QA decisions:**<ul><li>**QA-23:** an offline line, and in-app links keep the page (a link opens again right after reconnecting, `9be5ba5`);</li><li>**QA-35:** duplicate ids render safely, with no format change;</li><li>**QA-36:** a device-clock message, and the guard is kept;</li><li>**QA-37:** simulated ZIG is never valued 1:1;</li><li>**QA-38:** progress is a lower bound or "Unavailable"</li></ul> | `300ec48`, `9be5ba5` |
+| 11 | **[Tier 3] Portfolio** ([PORTFOLIO_V1](product/PORTFOLIO_V1.md)):<ul><li>`/app/portfolio` with real or hypothetical portfolios in USD or EUR;</li><li>coins from the catalog, with the featured-coins fallback;</li><li>buy, sell and transfer transactions, with exact average-cost results only when a price is known;</li><li>device key `zigoals:portfolio:v1`</li></ul> | `dc11029`, `c2e533d` |
+| 12 | Freeze check, full gate, screenshots, product docs, this entry | `7a71bd4` (test robustness), `14df38b` (docs), this commit |
+
+## [Tier 3] commits and risk
+- **`4a129cb` (storage errors, `components/use-private-store.ts`):**
+  - **Risk:** only the wording changes when storage refuses something. How data is read, written, validated and restored is unchanged, and no message contains private data.
+  - **Rollback:** revert this commit.
+- **`a93b51a` (device key `zigoals:reminders:v1`):**
+  - **Risk:** a new key, written only when someone sets or clears a time or dismisses a card. Unreadable data reads as "no reminders" and is left untouched. It is not synced and is in no backup.
+  - **Rollback:** revert. Older builds ignore the key.
+- **`dc11029` (device key `zigoals:portfolio:v1`):**
+  - **Risk:** a new key, written only by the reader's own changes. Unreadable data is shown as such and is never replaced unless the reader chooses "Start over". Writes touch only this key, and nothing else reads it.
+  - **Rollback:** revert. The route and navigation entry go, and older builds ignore the key.
+- **Not done (owner decision f):** making `lib/private-storage.ts` validate once and reuse the serialized text. It stays a **future Tier 3 follow-up**. Part 9 reached the target with paint-first instead, and `lib/private-storage.ts` is not touched.
+- **Not touched:** wallet, contracts, signing, keys, sync, encryption, CSP, `.github/workflows`, `scripts/`, `workers/`, `packages/`, README, AGENTS.md and CLAUDE.md. No new dependency.
+- **Owner-approved lib files, limited to the described changes:**
+  - `lib/goal-summary.ts`;
+  - `lib/valuation.ts`;
+  - `lib/dashboard-metrics.ts` (Staking link copy, QA-37/38).
+
+## New device keys
+| Key | Where | Written | Rollback |
+|---|---|---|---|
+| `zigoals:logo-intro:v1` | `sessionStorage` | once per browser session, when the intro claims it | ignored by older builds |
+| `zigoals:reminders:v1` | `getAppStorage()` (per account; tab storage in Showcase) | setting or clearing a time, or dismissing a card | ignored by older builds |
+| `zigoals:portfolio:v1` | `getAppStorage()` (per account; tab storage in Showcase) | the reader's own Portfolio changes | ignored by older builds |
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs` run unchanged)
+- **Final against base `fc906e8`:** 130 of 130 captures differ (local).
+- **Attribution:** each part was captured and compared with the previous part, so every difference traces to one authorized item (local).
+
+| Step | Captures that differ | What differs | Authorized item |
+|---|---|---|---|
+| Part 1 against base | 0 / 130 | none (captures use reduced motion) | the logo fold intro |
+| Part 2 against Part 1 | 130 | sidebar mark and no tagline, navigation groups, Staking rename (link, h1, Today's "View staking"), narrow-tablet Quick add after the navigation (accessibility tree only) | marks, tagline, groups, Staking rename |
+| Part 3 against Part 2 | 58 | every page with a progress bar or ring; the accessibility tree is unchanged on all 130 | progress styling |
+| Part 4 against Part 3 | 16 | Health counters | counter subtitle |
+| Part 5 against Part 4 | 30 | money figures on Showcase Today, Goals, Goal detail, Wealth and dialogs | minor digits |
+| Part 6 against Part 5 | 12 | Ecosystem | cards and eyebrow |
+| Part 7 against Part 6 | 12 | Staking | Valdora placeholder |
+| Part 8 against Part 7 | 24 | Health (Water reminder field), Settings (reminder sentence) | reminders |
+| Part 9 against Part 8 | 0 | none (phone only) | — |
+| Part 10 against Part 9 | 0 | none; QA-37/38 change no Showcase figure, and QA-23 shows only offline | QA decisions |
+| Part 11 against Part 10 | 130 | the Portfolio navigation entry; Settings "Where your data lives" | Portfolio entry and page |
+
+- The how-it-works film and reminder cards appear only when opened or due.
+- `/app/portfolio` is not in the script's page list (follow-up for Session J).
+
+## Numbers (local unless stated)
+- **Habits tap** (the #54 method; production build; power-user fixture; 1440×900; 3 runs × 10 taps; trace):
+
+  | Build | Tap → next paint | Tap → check-in shown | Habits ready |
+  |---|---|---|---|
+  | main `fc906e8` | median 32 ms (p90 32, max 40) | median 152–153 ms (p90 167–182, max 183–214) | 459–542 ms |
+  | Part 9a | median 32 ms (p90 32, max 40) | **median 41 ms (p90 56, max 60)** | 503 ms |
+
+- **Phone length** (Showcase; screens = page height ÷ viewport height):
+
+  | Viewport | Today (`fc906e8` → now) | Wealth (`fc906e8` → now) |
+  |---|---|---|
+  | 390×844 | 13.51 → 10.08 | 11.26 → 7.50 |
+  | 375×667 | 17.49 → 13.18 | 14.50 → 9.65 |
+  | 360×800 | 15.25 → 11.53 | 12.62 → 8.43 |
+
+## QA-37 and QA-38: every displayed number that changes (Addition 2)
+**On the Showcase demo** (base `fc906e8` against Part 10, every goal figure on Today, Goals, the six Goal details and Wealth): 18 groups differ, and **all are Part 5's minor digits** (for example "$9,000" → "$9,000.00"). **QA-37 and QA-38 change no Showcase number.** Its value Goals (9201–9203) have a value for every source, and it holds no simulated-ZIG Goal in EUR or USD.
+
+Where they do change, two worked examples (local):
+
+**QA-38.** The Showcase platform as ordinary data, with the emergency fund's USDC source left without a value.
+
+| Where | Before | After |
+|---|---|---|
+| Goal card value | "$5,000 / $20,000" | "At least $5,000.00 / $20,000.00" |
+| Goal card ring | "25%" ("25% exact progress") | "≥25%" ("At least 25% · some sources have no value yet") |
+| Goal card caption | "Of your goal funded · $15,000 remaining" | "At least 25% of your goal funded · At most $15,000.00 remaining", plus "1 source has no value yet, so progress may be higher." |
+| Goal detail, current | "$5,000" | "At least $5,000.00" |
+| Goal detail, remaining | "$15,000" | "At most $15,000.00" |
+| Funding Wealth and Today pulse | "25% $5,000 of $20,000 $15,000 remaining" | "≥25% At least $5,000.00 of $20,000.00 At most $15,000.00 remaining" |
+| Today Goal widgets (read from the code, not captured) | a ring and the exact value | no ring for a lower bound or an unknown value; the Goal widget reads "At least $5,000.00"; the milestone widget adds "Progress: At least 25%" and "At most $15,000.00" |
+| Timeline pill | "25% funded" | "At least 25% funded" |
+
+With no source valued, the ring shows "—" with "Unavailable", the value "Value unavailable", and the caption "Progress unavailable · Remaining unknown".
+
+**QA-37.** A legacy simulation Goal with a EUR plan holding 250 simulated ZIG, target €1,000.
+
+| Where | Before | After |
+|---|---|---|
+| Card badge | "BEHIND" | "Value unknown" |
+| Card value | "€250 / €1,000" | "250 ZIG / €1,000.00" |
+| Card ring | "25%" | "—" (Unavailable) |
+| Card caption | "Of your goal funded · €750 remaining" | "Progress unavailable · Remaining unknown" |
+| Card label | "Demo valuation" | "Value in EUR: unknown — simulated ZIG has no price" |
+| Required monthly | "€75" | "Unknown — no price" |
+| Detail ring | 25% | — |
+| Detail current | "CURRENT PROGRESS €250 of €1,000" | "SIMULATED ZIG HELD 250 ZIG of €1,000.00" plus the reason |
+| Detail remaining | "€750" | "Unknown" |
+| Detail Funding Wealth | "BEHIND" | "Value unknown" |
+
+ZIG-target Goals are unchanged. The plan editor's "Demo valuation: 1 simulated ZIG = 1 EUR" notice now explains this.
+
+## Tests
+Totals are listed per run and never added together.
+- **Unit (local, final head):** 233 files passed, 8 skipped; 2,094 tests passed, 12 skipped.
+  - New: `lib/logo-intro`, `glass-progress`, `visual-format` (money), `storage-error-copy`, `lib/reminders`, `activity-keys`, `legacy-restore-clock`, `goal-progress-bounds`, `lib/portfolio`.
+- **Full gate: CI on `c2e533d`, all green** (see CI below). The owner accepted it as the final gate. After the merge with main, CI on `f61d584` was all green, including `account-browser` in both orders. CI on the final head, with the QA-23 follow-up `9be5ba5`, is reported on the PR.
+- **Browser, full suite (local, `c2e533d`, 2 workers): partial.** It was stopped on the owner's instruction before printing its summary, so it has no passed or skipped totals.
+  - The log shows all 868 tests started. The last ones had no confirmed result.
+  - **Failures reported: 4,** the 2 known sandbox brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) in both the desktop and mobile projects. They need H.264 `play()`, which this Chromium lacks, and pass in CI.
+  - There were no other failures.
+- **Browser, per part (local, focused):** recorded in each commit message.
+- **CI (Milestone quality and Canonical reproducibility, per push; no re-run was used):**
+  - **`c2e533d`: all green.** Web checks, browser shards 1–3, web integration, contract and the canonical compare ([run 36968140271](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36968140271), [run 36968140209](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36968140209)).
+  - **All green:** `6d36773`, `b83cf06` (with `888651d`), `4a129cb` (with `e7f12e5`), `12562e1`, `4a8c724` and `fe9fa60`.
+  - **`14df38b` (carrying `d03307a`, `300ec48` and `dc11029`):** everything passed except browser shard 2, which the next push cancelled. The summary check "web" is red only for that reason ([run 36967045429](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36967045429)). `a93b51a` was the same: shards cancelled by the next push.
+  - **`c1c0eca`:** web integration "account browser (b first)" timed out at "Section recovery secret" ([run 36935232780](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36935232780)). Part 1 does not touch account code, and it did not reproduce locally (4 of 4 passed, both orders). It passed on every later push.
+  - **`f8c7174`:** `run11-food-widgets` (mobile) failed: the test left the page while a Remove was still saving ([run 36939984693](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36939984693)). `7a71bd4` makes it wait for the save; no assertion changed. It passed 12 of 12 locally and on every later push.
+  - **`ca4316d`:** `platform.spec` (mobile) found the same alert twice, on the page and in the open phone sheet ([run 36962607684](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36962607684)). A real Part 9b defect, fixed in `d03307a`: the page's alert waits while a sheet is open.
+  - **`8898235` (STATUS only; its code is `c2e533d`'s):** in web integration, `account-browser` (b-first) timed out after 10 s waiting for the sync after "Confirm reviewed resolution" (`account-browser.test.mjs:90`, [run 36970726468](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36970726468)). It was this test's second failure on this PR, so it was investigated, not re-run:
+    - **Nothing ties it to this PR:**
+      - The diff touches no sync, vault or account code; `use-private-store.ts` changes only error wording.
+      - This PR's runs were not slower. b-first averaged 57.1 s over its 11 passing runs, against 63.8 s over 9 runs of main, Session J and Session G; a-first averaged 61.0 s against 63.7 s (CI logs).
+      - Locally it passed 4 of 4 on each build: this branch 62.6–66.9 s, base `fc906e8` 65.9–66.5 s.
+    - **Not proven unrelated either:** 2 failures in 13 runs here (at two different steps, both b-first) against 0 in 9 elsewhere is too few to decide.
+    - **Diagnostics:** when its 10 s wait fails, the test logs nothing (`log: []`), so CI cannot show the cause. Follow-up below.
+    - **Defect found:** the investigation found a real QA-23 defect, fixed in `9be5ba5` with a test. A link click right after reconnecting could be held. It is not this failure's cause: a held click would have stopped the test earlier, at "Sync now".
+  - **`f61d584` (merge with main, and STATUS): all green.** Web checks, browser shards 1–3, web integration (`account-browser` passed in both orders), contract and the canonical compare ([run 36971184064](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36971184064), [run 36971184061](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36971184061)).
+- **New specs:**
+  - `logo-fold`, `page-marks`, `progress-glass`, `counters-compact`;
+  - `storage-errors`, `ecosystem-cards`, `staking-page`;
+  - `reminders`, `habit-paint-first` (Addition 1: a refused save is shown, refused, then visibly taken back with `(STORAGE_FULL)`);
+  - `phone-folds`, `phone-form-sheets`, `qa-decisions`, `portfolio`.
+- **Tests changed because the owner changed the behaviour.** Each is named in its commit, with no assertion weakened:
+  - text: money digits, coded storage messages, the film, "Staking", the navigation with Portfolio;
+  - flows that now open a folded module or a sheet on phones, through `openFold`, `openMealLog` and `closeFormSheet` in `tests/phone-nav.ts`.
+- **Known local-only failures:** `logo-quickadd-goals-header` (the film's `play()` needs H.264).
+
+## Follow-ups (Session J's lane, not done here)
+- **`scripts/desktop-freeze-check.mjs`:**
+  - change the page list to `/app/staking` (the old path works through the redirect) and add `/app/portfolio`;
+  - take a new baseline after the merge, and update its unit test.
+- **`docs/testing/SKIPPED_TESTS.md`:** the logo intro specs are no longer desktop-only.
+- **Existing docs:** older run reports (`docs/RUN_8_*`, `docs/RUN_9_*`) still say "Stake / Positions" or "The Goal Layer for ZIGChain". Session J (#56) already updated the README.
+- **Ecosystem registry (`packages/ecosystem-registry`):**
+  - `notes` ("ZIGoals capability") is developer wording ("Integration surface…") and the cards show it verbatim;
+  - several records have no audits, an unknown KYC status, or only one description line.
+- **Alpha:** connect the market catalog and prices, so Markets and Portfolio show live values.
+- **Unused assets:** `/media/zigoals-intro.mp4`, its poster and `/media/zigoals-logo-intro.mp4` are no longer used; they are a cleanup candidate.
+- **`scripts/run10/account-browser.test.mjs`:** on a timeout in `synced()`, print the sync panel's status and alert lines, so a CI failure shows its cause (see CI above, `8898235`).
+- **(f) Tier 3:** `lib/private-storage.ts` validate-once (see the Tier 3 section above).
+
+## How the owner can review
+- **Screenshots:** the branch `review/session-i-screenshots`, linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/57#issuecomment-5946033122).
+- **Local preview:** run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, open `/app/settings`, choose **Load Showcase Demo**, then:
+  1. Look at the sidebar (mark, groups, Portfolio).
+  2. Look at Today's rings.
+  3. Open an Ecosystem card.
+  4. Open Staking.
+  5. Open Portfolio.
+  6. At phone width, check Today, Wealth and the sheets.
+
 # Session J — platform and CI: deploy #20, Chrome-install lock wait, ADR-006 preparation, timezone design, upgrade notes, activation tooling fixes, food readiness check (2026-10-01, [PR #56](https://github.com/reyals1111-ux/ZIGoals/pull/56), not merged or deployed)
 
 The owner calls it "Session B". It ran in parallel with Session I (`ui/session-i-2026-10-01`); `docs/STATUS.md` is the only file both lanes touch.

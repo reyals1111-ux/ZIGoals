@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import {openMealLog} from "./phone-nav";
 
 test("rejected food validation keeps the draft and existing private records recoverable", async ({ page }) => {
   await page.goto("/app/health");
@@ -38,6 +39,7 @@ test("food diary create, correct, reload and remove keeps snapshot nutrition", a
   await expect(page.getByText("No calorie target set")).toBeVisible();
   await food(page);
   await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await openMealLog(page);
   const form = page.getByRole("form", { name: "Log a meal" });
   await form.getByLabel("Food or recipe").selectOption({ label: "Test oats · food" });
   await form.getByLabel("Servings").fill("1.5");
@@ -75,6 +77,7 @@ test("recipe portions calculate from foods and preserve the logged result", asyn
   await recipe.getByRole("button", { name: "Save recipe" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Recipe saved" })).toContainText("Recipe saved");
   await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal" });
   await log.getByLabel("Food or recipe").selectOption({ label: "Oat bowls · recipe" });
   await log.getByLabel("Meal", { exact: true }).selectOption("Lunch");
@@ -137,6 +140,7 @@ test("historical diary dates and food edits remain usable at 320 pixels", async 
   await expect(page.getByRole("status").filter({ hasText: "Food saved" })).toContainText("Food saved");
   await page.getByRole("button", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2024-02-29");
+  await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal" });
   await log.getByLabel("Food or recipe").selectOption({ label: "History oats · food" });
   await log.getByRole("button", { name: "Log to diary" }).click();

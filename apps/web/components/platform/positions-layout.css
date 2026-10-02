@@ -76,3 +76,13 @@
 @media(max-width:900px){.positions-workspace .positions-top{grid-template-columns:minmax(0,1fr)}.positions-workspace .positions-top .positions-rail{grid-row:auto}.positions-workspace .positions-top .stake-hero{min-height:180px}}
 @media(max-width:580px){.positions-workspace .positions-top .supporting-metric,.positions-workspace .positions-top .observed-metric{min-height:110px}.positions-workspace .allocation-owners .platform-position-row{grid-template-columns:1fr}.positions-workspace .allocation-owners .platform-position-row a{grid-column:1;grid-row:auto}}
 .positions-workspace .positions-utility-copy>.nebula-number,.positions-workspace .wallet-totals .nebula-number,.positions-workspace .positions-section-heading>.nebula-number,.positions-workspace .position-card>h2.nebula-number,.positions-workspace .allocation-owners .nebula-number{width:fit-content;max-width:100%}
+
+/* Session I, Part 7: a liquid-staking option that is named but not tracked. Quiet glass, a dashed edge for "not yet". */
+.staking-placeholder{display:grid;gap:.55rem;padding:clamp(1.1rem,2.4vw,1.6rem);border:1px dashed #8fb6e066;background:linear-gradient(145deg,#15233b,#101a2e)}
+.staking-placeholder-head{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.staking-placeholder-head .eyebrow{margin:0}
+.staking-placeholder-badge{display:inline-flex;align-items:center;min-height:30px;padding:3px 12px;border-radius:999px;border:1px solid #edc68c66;color:#f2d29e;font-size:.875rem;font-weight:650}
+.staking-placeholder h2{margin:0;font-size:clamp(1.15rem,2vw,1.4rem)}
+.staking-placeholder p{margin:0;color:#c4d3e6;font-size:.9375rem;line-height:1.6}
+.staking-placeholder .text-link{justify-self:start;min-height:44px;display:inline-flex;align-items:center}
+.staking-placeholder-more{padding-top:.55rem;border-top:1px solid #8fb1dc24}

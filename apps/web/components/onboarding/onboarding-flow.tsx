@@ -20,6 +20,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
+import { GlassBar } from "../progress/glass-progress";
 
 /**
  * The first-run welcome (Session E): five short steps to a first goal and habit. Every record is created by the
@@ -125,7 +126,7 @@ export function OnboardingFlow() {
   return <section className="onboarding panel" aria-labelledby={`${id}-title`} data-step={step}>
     <div className="onboarding-progress">
       <p className="eyebrow">Step {index + 1} of {STEPS.length}</p>
-      <div className="onboarding-track" aria-hidden="true"><span style={{ transform: `scaleX(${(index + 1) / STEPS.length})` }} /></div>
+      <GlassBar identity="onboarding-steps" className="onboarding-track" aria-hidden="true" value={(index + 1) / STEPS.length} />
     </div>
     <h1 id={`${id}-title`} ref={heading} tabIndex={-1}><NebulaFlow identity="welcome-title">{TITLES[step]}</NebulaFlow></h1>
     {!ready && !storeError && <p role="status">Opening your private records…</p>}

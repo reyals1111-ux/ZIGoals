@@ -29,7 +29,7 @@ test('one circular family, Today active count and a chosen Goal share exact USD 
 });
 test('responsive collection, detail and Positions retain access without document overflow',async({page})=>{
  await seed(page);
- for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});for(const [route,name] of [['/app/goals','15-goals'],['/app/goals/tracked/82','16-detail'],['/app/goals/positions','17-positions']]){await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${route} at ${width}`).toBe(true);if(width===390)await shot(page,`${name}-390`);}}
+ for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});for(const [route,name] of [['/app/goals','15-goals'],['/app/goals/tracked/82','16-detail'],['/app/staking','17-positions']]){await page.goto(route!);await expect(page.locator('main h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${route} at ${width}`).toBe(true);if(width===390)await shot(page,`${name}-390`);}}
 });
 test('missing price is explicit and stale quote survives failed refresh and reload',async({page})=>{
  await seed(page);
@@ -80,7 +80,7 @@ test('Today reports private-store recovery errors while preserving legacy destin
 
 
 test('Positions utilities expose wallet reader and APR calculator below wealth',async({page})=>{
- await page.setViewportSize({width:1440,height:1000});await seed(page);await page.goto('/app/goals/positions');
+ await page.setViewportSize({width:1440,height:1000});await seed(page);await page.goto('/app/staking');
  await expect(page.locator('.position-metrics')).toContainText('526000');
  await shot(page,'09-wealth-first');await shot(page,'10-positions-right-rail');
  await page.locator('.positions-wallet > summary').click();await expect(page.getByLabel('Public ZIG address')).toBeVisible();await shot(page,'11-track-wallet-open');

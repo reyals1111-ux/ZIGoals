@@ -3,7 +3,7 @@
    the keyboard while one is open (--keyboard-inset from use-visual-viewport.ts). Desktop and tablet dialogs are
    untouched: everything here is inside the phone query. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] {
+  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog, dialog.phone-form-sheet)[open] {
     box-sizing: border-box; width: 100%; max-width: 100%; margin: auto 0 var(--keyboard-inset, 0px);
     max-height: calc(var(--visual-height, 100dvh) - var(--safe-top) - 12px); overflow-y: auto; overscroll-behavior: contain;
     border-bottom: 0; border-radius: 24px 24px 0 0;
@@ -11,10 +11,10 @@
     transform: none; transition: transform 280ms cubic-bezier(.22, 1, .36, 1);
   }
   @starting-style {
-    :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transform: translateY(100%); }
+    :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog, dialog.phone-form-sheet)[open] { transform: translateY(100%); }
   }
   /* The grabber. Dragging it down closes the sheet as Escape does (use-sheet-drag.ts); Close, Cancel, Escape and the backdrop work as before. */
-  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open]::before {
+  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog, dialog.phone-form-sheet)[open]::before {
     content: ""; display: block; width: 40px; height: 5px; margin: 8px auto 0; border-radius: 3px; background: #9fb6d866;
   }
   :root dialog.wealth-sheet > header, :root dialog.dashboard-dialog > header { position: sticky; top: 0; z-index: 3; background: linear-gradient(180deg, #0b1529 80%, #0b1529e6); }
@@ -35,8 +35,28 @@
   :root .private-vault-actions, :root #private-vault .notice .actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); z-index: 3; }
 }
 @media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
-  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transition: none; }
+  :root :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog, dialog.phone-form-sheet)[open] { transition: none; }
 }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  :root[data-app-motion="off"] :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog)[open] { transition: none; }
+  :root[data-app-motion="off"] :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog, dialog.phone-form-sheet)[open] { transition: none; }
+}
+
+/* Forms as sheets on a phone (Session I, Part 9): the habit editor, Log a meal, and Staking's wallet and reward scenario. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root dialog.phone-form-sheet { color: var(--text); background: linear-gradient(180deg, #0b1a33fa, #050c1efa); border: 1px solid #7fc8ff2e; padding: 0 16px; box-shadow: 0 -20px 70px #000b; }
+  :root dialog.phone-form-sheet::backdrop { background: #01050dc7; }
+  :root .phone-form-sheet-head { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; margin: 0 -16px; padding: 4px 16px 8px; background: linear-gradient(180deg, #0b1a33 85%, #0b1a33e6); }
+  :root .phone-form-sheet-head h2 { margin: 0; font-size: 22px; line-height: 1.2; }
+  :root .phone-form-sheet-head .icon-button { min-width: 44px; min-height: 44px; }
+  :root .phone-form-sheet-body { display: grid; gap: 14px; padding-top: 4px; }
+  :root dialog.phone-form-sheet :is(input, select, textarea) { font-size: 16px; }
+  /* The habit editor's own panel and title give way to the sheet's. */
+  :root dialog.phone-form-sheet .habit-editor { padding: 0; border: 0; background: none; box-shadow: none; }
+  :root dialog.phone-form-sheet .habit-editor > .habit-section-heading { display: none; }
+  :root dialog.phone-form-sheet .habit-editor .actions { bottom: 0; margin: 12px -16px 0; border-radius: 0; }
+  :root[data-keyboard] dialog.phone-form-sheet .habit-editor .actions { bottom: 0; }
+  :root dialog.phone-form-sheet form[aria-label="Log a meal"] > button[type="submit"] { bottom: 8px; }
+  :root dialog.phone-form-sheet :is(.positions-utility-body) { padding: 0; }
+  :root dialog.phone-form-sheet[aria-label="Staking reward scenario"] .positions-utility-body > h2:first-child { display: none; }
+  :root .phone-form-trigger { width: 100%; min-height: 48px; font-size: 16px; }
 }

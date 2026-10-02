@@ -27,13 +27,13 @@ test('after Quick add navigates away from Today, focus lands on the new page, no
  expect(await page.evaluate(()=>!!document.getElementById('main')?.contains(document.activeElement))).toBe(true);
 });
 
-test('the intro video has an accessible name and says it is music only',async({page})=>{
+test('the brand film has an accessible name and a one-line summary that says it has no speech',async({page})=>{
  await showcase(page);
  await page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}).click();
- const dialog=page.getByRole('dialog',{name:'ZIGoals intro',exact:true});
- await expect(dialog.getByText('Music only, no narration.',{exact:false})).toBeVisible();
- await expect(dialog.locator('video')).toHaveAccessibleName('ZIGoals intro video (music only, no narration)');
- await expect(dialog).toHaveAccessibleDescription(/Music only, no narration\./);
+ const dialog=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true});
+ await expect(dialog.getByText('Music and on-screen words, no speech.',{exact:false})).toBeVisible();
+ await expect(dialog.locator('video')).toHaveAccessibleName('ZIGoals brand film (music and on-screen words, no speech)');
+ await expect(dialog).toHaveAccessibleDescription(/^A 16-second film: the Z folds into a swan, lotus, butterfly, heart and bull, then becomes the ZIGoals logo — Goals, Habits & Health = Wealth\. Music and on-screen words, no speech\.$/);
 });
 
 test('forced colors: the navigation arrival sweep and pop are off',async({page,isMobile})=>{
@@ -54,7 +54,7 @@ test('reduced motion: the page settle animation is off by its own rule',async({p
 });
 
 test('keyboard focus on the logo link is never covered by the intro clip',async({page,isMobile})=>{
- test.skip(isMobile,'The logo intro is desktop only.');
+ test.skip(isMobile,'Phones have no sidebar logo; tests/logo-fold.spec.ts covers focus on the top bar Z.');
  await page.goto('/app/goals');
  // Stand in for the clip while it plays (this Chromium build may not decode it), then focus the link by keyboard.
  await page.evaluate(()=>{const brand=document.querySelector('.app-sidebar .brand')!,clip=document.createElement('video');clip.className='logo-intro';clip.dataset.state='playing';clip.setAttribute('aria-hidden','true');brand.append(clip);brand.querySelector('.brand-logo')?.setAttribute('data-intro','playing');});

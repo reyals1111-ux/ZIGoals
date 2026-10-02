@@ -11,7 +11,7 @@ test("ecosystem research is readable without connecting a wallet", async ({ page
   await expect(page.getByRole("link", { name: "Open Range testnet ↗" })).toHaveAttribute("href", "https://app.range.org/zigchain-testnet/general");
   await expect(page.getByRole("link", { name: "Open ZIGScan testnet ↗" })).toHaveAttribute("href", "https://testnet.zigscan.org/");
   const noble = page.locator(".ecosystem-project").filter({has:page.getByRole("heading",{name:"Noble",exact:true})});
-  await noble.locator("summary").click();
+  await noble.getByRole("button", { name: "Noble", exact: true }).click();
   await expect(noble).toContainText("sunset");
   const actions = noble.locator(".ecosystem-project-actions");
   await expect(actions.getByRole("link",{name:"Visit website ↗"})).toHaveAttribute("href","https://noble.xyz/");

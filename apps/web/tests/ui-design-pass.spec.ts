@@ -1,5 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
-import {isPhone} from './phone-nav';
+import {isPhone,openFold} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 
 async function showcase(page:Page){
@@ -62,13 +62,14 @@ test.describe('Part 1: readability foundation',()=>{
   await zone.click();await page.getByLabel('Habit timezone',{exact:true}).fill('Not/AZone');await page.getByRole('button',{name:'Save Habit timezone',exact:true}).click();
   await expect(page.locator('.habit-timezone [role=status]')).toHaveText('Choose a valid IANA timezone, such as Europe/Brussels.');
  });
- test('sidebar signature reads Shape & Fold, Your Own Future on the planet',async({page,isMobile})=>{
+ test('the sidebar shows the page mark above the planet, and no longer a Shape & Fold tagline',async({page,isMobile})=>{
   test.skip(isMobile,'The mobile header hides the sidebar planet');
   await showcase(page);
-  const destination=page.locator('.sidebar-destination'),tagline=destination.locator('.sidebar-tagline');
-  await expect(tagline.locator('span[aria-hidden]')).toHaveText(['Shape & Fold','Your Own Future']);
-  await expect(tagline.locator('.sr-only')).toHaveText('Shape & Fold, Your Own Future');
-  expect(await tagline.locator('span[aria-hidden]').first().evaluate(e=>getComputedStyle(e).textTransform)).toBe('uppercase');
+  // Session I: the owner's page marks replace the wordmark on the five life pages; the tagline lives in the Today swan's artwork.
+  const destination=page.locator('.sidebar-destination');
+  await expect(destination.locator('.sidebar-mark')).toHaveAttribute('data-mark','today-swan');
+  await expect(destination.locator('.sidebar-tagline')).toHaveCount(0);
+  await expect(page.locator('.app-sidebar')).not.toContainText(/Shape & Fold|Your Own Future/i);
   await expect(page.locator('.app-sidebar')).not.toContainText('THE GOAL LAYER');
  });
  test('Habits and Health load without hydration warnings',async({page})=>{
@@ -80,23 +81,26 @@ test.describe('Part 1: readability foundation',()=>{
 
 test.describe('Part 18.6: quick counters as bars',()=>{
  for(const [label,width,perRow] of [['desktop',1440,3],['tablet',1024,2],['phone',390,1]] as const)
-  test(`${label}: ${perRow} bar${perRow>1?'s':''} per row; icon and name on the left, − / count / + on the right, in one row`,async({page})=>{
+  // Phones (Session I, Part 4): with no subtitle, the name shares its line with the icon and the options, and − / count / +
+  // take the second line, so a long name keeps its room. Desktop and tablet keep one row.
+  test(`${label}: ${perRow} bar${perRow>1?'s':''} per row; icon and name on the left, − / count / + ${perRow>1?'on the right, in one row':'on a second line'}`,async({page})=>{
    await page.setViewportSize({width,height:900});await showcase(page);await page.goto('/app/health');
    const bars=page.locator('.exercise-counter');await expect(bars).toHaveCount(3);await bars.first().scrollIntoViewIfNeeded();await page.mouse.move(1,1);
    // Measured at rest: no bar lifted by a pointer that just passed over it.
    await expect(page.locator('.exercise-counter[data-glass]')).toHaveCount(0);
    const r=await bars.evaluateAll(els=>els.map(e=>{const box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),b=e.getBoundingClientRect(),icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),menu=box('.card-options-trigger'),h3=e.querySelector('h3')!;
     return {top:Math.round(b.top),width:b.width,iconLeftOfName:icon.right<=name.left,nameLeftOfControls:name.right<=minus.left,sameRow:name.top<minus.bottom&&minus.top<name.bottom&&minus.top<plus.bottom&&plus.top<minus.bottom,
+     controlsBelow:minus.top>=name.bottom-1&&Math.abs(minus.top-plus.top)<1,menuOnNameRow:menu.top<name.bottom&&name.top<menu.bottom,
      nameWhole:h3.scrollWidth<=h3.clientWidth,nameOneLine:name.height<30,targets:[minus,plus,menu].every(t=>t.width>=44&&t.height>=44),inside:[icon,name,minus,plus,menu].every(t=>t.left>=b.left&&t.right<=b.right)};}));
    const rows=[...new Set(r.map(x=>x.top))];expect(rows.length).toBe(Math.ceil(3/perRow));
-   for(const x of r)expect(x).toMatchObject({iconLeftOfName:true,nameLeftOfControls:true,sameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true});
+   for(const x of r)expect(x).toMatchObject(perRow>1?{iconLeftOfName:true,nameLeftOfControls:true,sameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true}:{iconLeftOfName:true,controlsBelow:true,menuOnNameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true});
    // The bars fill the card: a full row spans its width.
    const card=(await page.locator('.exercise-counter-grid').boundingBox())!;expect(Math.abs(r.slice(0,perRow).reduce((a,x)=>a+x.width,0)+(perRow-1)*12-card.width)).toBeLessThanOrEqual(2);
   });
 });
 
 test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
- const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
+ const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
  test('every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility',async({page})=>{
   await showcase(page);
   for(const path of PAGES){
@@ -112,13 +116,13 @@ test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
  });
  test('reduced motion and Motion Off show the final mid-to-right state at once',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await showcase(page);
-  await page.goto('/app/goals/positions');const flow=page.locator('main h1 .nebula-flow');await expect(flow).toHaveText('Your ZIG / Positions');
+  await page.goto('/app/staking');const flow=page.locator('main h1 .nebula-flow');await expect(flow).toHaveText('Staking');
   expect(await flow.evaluate(e=>[e.dataset.entrance??null,getComputedStyle(e).animationName,getComputedStyle(e).backgroundImage.split('linear-gradient').length-1])).toEqual([null,'none',1]);
  });
 });
 
 test.describe('Part 18.4: one place for the layout lock',()=>{
- const PAGES=['/app','/app/goals','/app/goals/positions','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity'];
+ const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity'];
  const where=(page:Page)=>page.evaluate(()=>{const lock=document.querySelector<HTMLElement>('.layout-lock')!,b=lock.getBoundingClientRect(),row=lock.closest('.status-row'),balance=row?.querySelector('.wallet-balance')?.getBoundingClientRect(),main=document.querySelector('main')!.getBoundingClientRect(),workspace=document.querySelector('.workspace')!.getBoundingClientRect();
   return {inRow:!!row,afterBalance:balance?b.left>=balance.right-1&&b.top<balance.bottom&&b.bottom>balance.top:null,right:Math.round(workspace.right-b.right),padding:Math.round(parseFloat(getComputedStyle(document.querySelector('.workspace')!).paddingRight)),size:[Math.round(b.width),Math.round(b.height)],firstView:b.top>=0&&b.bottom<=innerHeight,clearOfMain:b.bottom<=main.top-4,count:document.querySelectorAll('.layout-lock').length};});
  test('the lock sits right after the demo balance, in the same spot on every page',async({page,isMobile})=>{
@@ -278,7 +282,7 @@ test.describe('Part 3: liquid glass',()=>{
  test('list rows get a rounded glass pill that never moves or crowds their content',async({page,isMobile})=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);
-  for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/goals/positions','.platform-position-row'],['/app','.habit-today-list>li']] as const){
+  for(const [path,selector] of [['/app/wealth','.composition-legend>*'],['/app/staking','.platform-position-row'],['/app','.habit-today-list>li']] as const){
    await page.goto(path);const row=page.locator(selector).nth(1);await row.evaluate(e=>e.scrollIntoView({block:'center'}));await expect(row).toBeVisible();
    const before=await row.evaluate(e=>{const o=e.getBoundingClientRect();return [...e.querySelectorAll('*')].slice(0,6).map(c=>{const r=c.getBoundingClientRect();return [Math.round((r.left-o.left)*10),Math.round((r.top-o.top)*10),Math.round(r.width*10)];});});
    const r=(await row.boundingBox())!;await page.mouse.move(r.x+r.width*.3,r.y+r.height/2);await page.mouse.move(r.x+r.width*.35,r.y+r.height/2,{steps:3});
@@ -421,22 +425,22 @@ test.describe('Part 5: Wealth headline',()=>{
  test('one headline total in one currency; other currencies on their own line, never converted',async({page})=>{
   await showcase(page);await page.goto('/app/wealth');
   const total=page.locator('.wealth-hero-total');await expect(total).toBeVisible();
-  await expect(total.locator('.wealth-total-headline')).toHaveText('$501,800');
-  await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000 held in EUR · not converted']);
+  await expect(total.locator('.wealth-total-headline')).toHaveText('$501,800.00');
+  await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
   await expect(total).toContainText('Currency totals stay separate. No FX assumed.');
   await expect(total).toContainText('KNOWN TRACKED WEALTH');await expect(total).toContainText('13 assets');
   // No combined cross-currency figure anywhere on the card.
   await expect(total).not.toContainText('509,800');
   expect(await total.locator('.wealth-total-headline .nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
-  await page.goto('/app');const today=page.locator('.life-orbit-wealth');await expect(today.locator('.wealth-total-headline')).toHaveText('$501,800');
-  await expect(today.locator('.wealth-total-other')).toHaveText(['+ €8,000 held in EUR · not converted']);
+  await page.goto('/app');const today=page.locator('.life-orbit-wealth');await expect(today.locator('.wealth-total-headline')).toHaveText('$501,800.00');
+  await expect(today.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
  });
 });
 
 test.describe('Part 6: journey banner',()=>{
  test('describes ZIGoals in three orbit steps and keeps the Alpha truths visible',async({page})=>{
   await showcase(page);
-  const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
+  await openFold(page,'How it works');const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
   await expect(page.getByRole('region',{name:'How it works'})).toBeVisible();
   await expect(banner.getByRole('heading',{level:2})).toHaveText('Your goals, habits and health, in one orbit.');
   await expect(banner.locator('.journey-steps strong')).toHaveText(['Choose your orbit','Take a small step','Keep it yours']);
@@ -482,7 +486,7 @@ test.describe('Part 8: bottom sections',()=>{
    ['/app/health','health:body','health:trends','A dash means no entry, not zero.'],
    ['/app/wealth','wealth:body','wealth:allocation','Valuation coverage is incomplete'],
    ['/app/markets','markets:body','markets:sources','no new price appears'],
-   ['/app/goals/positions','positions:main','positions:sources','Public ZIG positions'],
+   ['/app/staking','positions:main','positions:sources','Public ZIG positions'],
   ] as const){
    await page.goto(path);
    const items=page.locator(`[data-layout-region="${region}"]`);await expect(items.last()).toHaveAttribute('data-layout-item',id);

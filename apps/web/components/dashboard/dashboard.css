@@ -61,7 +61,8 @@
 .intro-video-card h2{margin:0 0 4px;font-size:22px}
 .intro-video-head p{margin:0;font-size:14px;color:#b7cbe2}
 .intro-video-head .quiet{flex:none;font-size:26px;min-width:44px;min-height:44px;padding:0;line-height:1}
-.intro-video-card video{display:block;justify-self:center;width:auto;height:auto;max-width:100%;max-height:min(85dvh,calc(100dvh - 140px));aspect-ratio:784/1168;border-radius:16px;background:#020616}
+.intro-video-card video{display:block;justify-self:center;width:min(960px,calc(100vw - 60px));height:auto;max-width:100%;max-height:min(80dvh,calc(100dvh - 170px));aspect-ratio:16/9;object-fit:contain;border-radius:16px;background:#020616}
+.intro-video-head p{max-width:62ch;font-size:15px;line-height:1.55}
 /* UI design pass: live preview follows the chosen size; categories show how many widgets they offer; Remove sits apart from Save. */
 .widget-library-group .widget-library-count{margin-left:auto;min-width:26px;padding:2px 8px;border-radius:999px;background:#ffffff14;font-size:14px;font-weight:650;text-align:center;color:#e3ecfa}
 /* Counts line up across the row even when a label wraps onto two lines. */

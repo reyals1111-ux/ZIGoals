@@ -4,6 +4,7 @@ import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions"
 import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type HabitInput, type HabitRule } from "../../lib/habits";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import { INVISIBLE_NAME, isInvisibleName } from "../../lib/visible-text";
+import { ReminderTimeField } from "../reminders/reminder-time-field";
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };
 type MeasurementKind = HabitRule["measurement"]["kind"];
@@ -30,7 +31,8 @@ export function habitTemplateInput(key: HabitTemplateKey): HabitInput {
   return habitInputSchema.parse({ title: t.title, category: t.category, description: "", notes: "", type: t.type, measurement, target: t.type === "quit" ? 0 : t.target, targetPeriod: schedule.kind === "frequency" ? "day" : t.targetPeriod, schedule, timeOfDay: "anytime", endCondition: { kind: "none" } });
 }
 
-export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[];today:string; onSave: (input: HabitInput,from?:string,expected?:string) => Promise<void>; onCancel: () => void }) {
+/** `reminder` is this device's reminder time for the habit ("" for none); it is saved apart from the habit (lib/reminders). */
+export function HabitEditor({ habit, goals, habits,today, reminder = "", onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[];today:string; reminder?: string; onSave: (input: HabitInput,from?:string,expected?:string,reminder?:string) => Promise<void>; onCancel: () => void }) {
   const formId = useId();
   const [effectiveFrom,setEffectiveFrom]=useState(()=>habit?earliestHabitChange(habit,today):"");
   const [expected]=useState(()=>habit?habitEditFingerprint(habit):undefined);
@@ -55,6 +57,7 @@ export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { 
   const [endDate, setEndDate] = useState(habit?.endCondition.kind === "date" ? habit.endCondition.date : "");
   const [endCount, setEndCount] = useState(String(habit?.endCondition.kind === "completions" ? habit.endCondition.count : 30));
   const [stackAfterId, setStackAfterId] = useState(habit?.stackAfterId ?? "");
+  const [reminderTime, setReminderTime] = useState(reminder);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const savedLink = habit?.goalLink;
@@ -97,14 +100,14 @@ export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { 
     const endCondition = endKind === "date" ? { kind: "date" as const, date: endDate } : endKind === "completions" ? { kind: "completions" as const, count } : endKind === "goal" && goalLink ? { kind: "goal" as const, goal: goalLink } : { kind: "none" as const };
     const parsed = habitInputSchema.safeParse({ title, category, description, notes, goalLink, type, measurement: measurementValue(), target: targetValue, targetPeriod: scheduleKind === "frequency" ? "day" : targetPeriod, schedule: scheduleValue(every, times), timeOfDay, endCondition, stackAfterId: stackAfterId || undefined });
     if (!parsed.success) { setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
-    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
+    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected,reminderTime); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
   }
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
     <div className="habit-section-heading"><div><p className="eyebrow">Set your cadence</p><h2 id={`${formId}-heading`}>{habit ? "Edit habit" : "Create a habit"}</h2></div><span aria-hidden="true" className="habit-spark">✦</span></div>
     <form onSubmit={submit}><fieldset disabled={busy} className="habit-form-fields">
       {habit&&<label className="field">Changes effective from<input type="date" required min={earliestHabitChange(habit,today)} value={effectiveFrom} onChange={event=>setEffectiveFrom(event.target.value)}/><small>Rule changes begin on this future day. Today and earlier dates keep their existing units and targets. Names and notes update now.</small></label>}
       {!habit && <label className="field">Start from template<select defaultValue="" onChange={(event) => applyTemplate(event.target.value)}><option value="">Blank habit</option>{Object.entries(templates).map(([key, template]) => <option key={key} value={key}>{template.title}</option>)}</select></label>}
-      <label className="field">Habit title<input autoFocus required maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What would you like to make time for?" /></label>
+      <label className="field">Habit title<input autoFocus data-sheet-focus required maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What would you like to make time for?" /></label>
       <div className="habit-form-grid">
         <label className="field">Habit type<select value={type} onChange={(event) => { const next = event.target.value as HabitRule["type"]; setType(next); if (next === "quit") setTarget("0"); else if (target.trim() === "0") setTarget("1"); }}><option value="build">BUILD · reach a target</option><option value="quit">QUIT · avoid an event</option><option value="limit">LIMIT · stay at or below</option></select></label>
         <label className="field">Time of day<select value={timeOfDay} onChange={(event) => setTimeOfDay(event.target.value as typeof timeOfDay)}><option value="anytime">Any time</option><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option></select></label>
@@ -121,6 +124,7 @@ export function HabitEditor({ habit, goals, habits,today, onSave, onCancel }: { 
       {scheduleKind === "interval" && <label className="field">Repeat every (days)<input type="text" inputMode="numeric" autoComplete="off" value={interval} onChange={(event) => setInterval(event.target.value)} /></label>}
       {scheduleKind === "frequency" && <div className="habit-form-grid"><label className="field">Times per period<input type="text" inputMode="numeric" autoComplete="off" value={frequency} onChange={(event) => setFrequency(event.target.value)} /></label><label className="field">Frequency period<select value={frequencyPeriod} onChange={(event) => { const next = event.target.value as typeof frequencyPeriod; setFrequencyPeriod(next); setTargetPeriod(next); setFrequency((current) => { const limit = { week: 7, month: 28, year: 365 }[next]; return /^\d+$/.test(current.trim()) && Number(current) > limit ? String(limit) : current; }); }}><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option></select></label></div>}
       {scheduleKind === "month-dates" && <label className="field">Dates in month<input value={monthDates} onChange={(event) => setMonthDates(event.target.value)} placeholder="1, 15, 28" /><small>Comma-separated dates from 1 to 31. Months without that date simply skip it.</small></label>}
+      <ReminderTimeField value={reminderTime} onChange={setReminderTime} />
       <label className="field">Linked Goal (optional)<select name="goal" defaultValue={unmatchedLink ? "keep" : savedGoalIndex < 0 ? "" : JSON.stringify(goals[savedGoalIndex]!.link)}><option value="">Standalone habit</option>{unmatchedLink && <option value="keep">Keep existing link · another Goal scope</option>}{goals.map((option) => <option key={JSON.stringify(option.link)} value={JSON.stringify(option.link)}>{option.label}</option>)}</select></label>
       <label className="field">Stack after (optional)<select value={stackAfterId} onChange={(event) => setStackAfterId(event.target.value)}><option value="">No habit stack</option>{habits.filter((item) => item.id !== habit?.id).map((item) => <option value={item.id} key={item.id}>After {item.title}</option>)}</select></label>
       <div className="habit-form-grid"><label className="field">End condition<select value={endKind} onChange={(event) => setEndKind(event.target.value as typeof endKind)}><option value="none">No end date</option><option value="date">End date</option><option value="completions">Number of completions</option><option value="goal" disabled>Linked Goal target · metadata only</option></select></label>{endKind === "date" && <label className="field">End date<input type="date" required value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>}{endKind === "completions" && <label className="field">Completion count<input type="text" inputMode="numeric" autoComplete="off" value={endCount} onChange={(event) => setEndCount(event.target.value)} /></label>}</div>

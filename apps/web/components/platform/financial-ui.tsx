@@ -3,19 +3,20 @@ import {useEffect,useRef,useState,type ReactNode,type CSSProperties} from 'react
 import './financial-ui.css';
 import {progressPresentation} from '../../lib/visual-format';
 import {ASSET_COLORS,ringSegments,type AssetMix} from '../../lib/wealth';
-import {smoothConicGradient} from '../../lib/visual-gradients';
-import {useEntrance} from '../use-entrance';
+import {GlassRing} from '../progress/glass-progress';
 export function AssetIcon({symbol,kind='Crypto',logoUrl}:{symbol:string;kind?:string;logoUrl?:string|null}){const [failed,setFailed]=useState('');const logo=logoUrl?.startsWith('/api/market-logo?url=')&&failed!==logoUrl?logoUrl:null;const fallback=kind==='ETFs'?'▦':kind==='Stocks'?'▥':kind==='Stablecoins'?'◎':kind==='Precious Metals'||kind==='Precious metals'?'△':kind==='Property'?'⌂':kind==='Custom'?'✧':kind==='Cash'?symbol==='EUR'?'€':'$':symbol==='BTC'?'₿':symbol==='ETH'?'Ξ':symbol.slice(0,3).toUpperCase();return <span className="asset-orb" data-kind={kind} aria-hidden="true">{logo?
  // The validated, same-origin raster proxy bounds bytes and host; no client provider credential.
  // eslint-disable-next-line @next/next/no-img-element
  <img src={logo} alt="" width={48} height={48} loading="lazy" onError={()=>setFailed(logo)}/>:fallback}</span>;}
-export function ProgressRing({percent,size=112,label='Goal progress',complete,assetMix=[],identity=label,valueText}:{percent:number|string|null|undefined;size?:number;label?:string;complete?:boolean;assetMix?:AssetMix[];identity?:string;valueText?:string}){
- const progress=progressPresentation(percent,complete),ref=useEntrance<HTMLDivElement>(`progress:${identity}`,Boolean(progress&&progress.arc>0));
+/** `bound` (Session I, Part 10): 'at-least' marks a lower bound (QA-38); 'unavailable' shows no progress at all (QA-37/38). */
+export function ProgressRing({percent,size=112,label='Goal progress',complete,assetMix=[],identity=label,valueText,bound}:{percent:number|string|null|undefined;size?:number;label?:string;complete?:boolean;assetMix?:AssetMix[];identity?:string;valueText?:string;bound?:'at-least'|'unavailable'}){
+ const progress=bound==='unavailable'?null:progressPresentation(percent,complete),atLeast=bound==='at-least'&&!!progress;
  const segments=progress?ringSegments(assetMix,progress.exact):[];
- const composition=segments.length?smoothConicGradient(segments.map(s=>({color:ASSET_COLORS[s.assetClass],offset:s.offset,size:s.size}))):undefined;
- return <div ref={ref} className="flow-ring" role={progress?'progressbar':'img'} aria-label={progress?label:`${label}: Unavailable`} aria-valuemin={progress?0:undefined} aria-valuemax={progress?100:undefined} aria-valuenow={progress?.arc} aria-valuetext={progress?valueText??`${progress.exact}% exact progress${complete===false||Number(progress.exact)<100?' · target not yet reached':''}`:undefined} title={progress?`${progress.exact}% exact progress`:'Progress unavailable'} style={{'--progress':`${progress?.arc??0}%`,'--ring-size':`${size}px`,'--composition':composition} as CSSProperties}>
-  <div className="flow-ring-track" aria-hidden="true"/><div className="flow-ring-fill" aria-hidden="true"/><span aria-hidden="true">{progress?<>{progress.label}<small>%</small></>:'—'}</span>
- </div>;
+ // Composition rings keep their legend colours, one arc per asset class; otherwise one nebula arc.
+ const arcs=!progress?[]:segments.length?segments.map(s=>({key:s.assetClass,end:s.offset+s.size,color:ASSET_COLORS[s.assetClass]})):[{key:'progress',end:progress.arc}];
+ return <GlassRing identity={`progress:${identity}`} ready={Boolean(progress&&progress.arc>0)} arcs={arcs} className="flow-ring" role={progress?'progressbar':'img'} aria-label={progress?label:`${label}: Unavailable`} aria-valuemin={progress?0:undefined} aria-valuemax={progress?100:undefined} aria-valuenow={progress?.arc} aria-valuetext={progress?valueText??(atLeast?`At least ${progress.exact}% · some sources have no value yet`:`${progress.exact}% exact progress${complete===false||Number(progress.exact)<100?' · target not yet reached':''}`):undefined} title={progress?atLeast?`At least ${progress.exact}%`:`${progress.exact}% exact progress`:'Progress unavailable'} style={{'--ring-size':`${size}px`} as CSSProperties}>
+  <span aria-hidden="true">{progress?<>{atLeast&&<small className="ring-at-least">≥</small>}{progress.label}<small>%</small></>:'—'}</span>
+ </GlassRing>;
 }
 export function FreshnessBadge({state}:{state:string}){return <span className="freshness-badge" data-state={state}>{state==='fresh'?'Current':state==='stale'?'Needs refresh':state==='manual'?'Manual value':'Needs value'}</span>;}
 export function MetricCard({label,value,detail}:{label:string;value:ReactNode;detail?:ReactNode}){return <div className="financial-metric"><span>{label}</span><strong>{value}</strong>{detail&&<small>{detail}</small>}</div>;}

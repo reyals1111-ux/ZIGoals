@@ -15,8 +15,8 @@ test('missing entities stay missing, even when other records have a similar name
 });
 test('money currencies and unknown valuations stay separate and qualified',()=>{
  const s=source();s.platform.positions=[manualSourcePosition({category:'Cash',name:'Dollar',quantity:'12500',currency:'USD'},'usd'),manualSourcePosition({category:'Cash',name:'Euro',quantity:'300',currency:'EUR'},'eur'),manualSourcePosition({category:'Crypto',name:'Unknown',symbol:'ZZZ',quantity:'1',currency:'USD'},'unknown')];
- expect(widgetMetric(widget('wealth','USD'),s)).toMatchObject({value:'$12,500',warning:expect.stringContaining('incomplete')});
- expect(widgetMetric(widget('wealth','EUR'),s).value).toBe('€300');
+ expect(widgetMetric(widget('wealth','USD'),s)).toMatchObject({value:'$12,500.00',warning:expect.stringContaining('incomplete')});
+ expect(widgetMetric(widget('wealth','EUR'),s).value).toBe('€300.00');
  expect(widgetMetric(widget('asset','value','unknown'),s).value).toBe('Value unavailable');
 });
 test('Health unknown days never become confirmed zero and measurement timestamps stay visible',()=>{

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import {openFold} from "./phone-nav";
 
 // Session G, Part 4: shorter phone pages without removing anything ("Show all N", a folded week with its totals), 44 px
 // Habits calendar days at 360 px, and drag-to-dismiss on sheet grabbers. Sizes are set explicitly so both projects run
@@ -35,7 +36,8 @@ test("Wealth on a phone: four holdings, then Show all 13 assets; every card stay
   await expect(fewer).toHaveAttribute("aria-expanded", "true");
   await fewer.click();
   expect(await visibleCount(cards)).toBe(4);
-  // Asset classes: four tiles, then the rest.
+  // Asset classes: four tiles, then the rest (their section folds to a row on a phone, Session I Part 9).
+  await openFold(page, "Your wealth, in perspective");
   const classes = page.locator(".asset-class-summaries .class-summary"), total = await classes.count();
   expect(total).toBeGreaterThan(4);
   expect(await visibleCount(classes)).toBe(4);
@@ -68,6 +70,7 @@ test("Today on a phone: shorter lists with Show all, and the week folded into it
   await attention.getByRole("button", { name: /^View all \d+ items$/ }).click();
   expect(await visibleCount(attention.locator("li"))).toBe(await attention.locator("li").count());
 
+  await openFold(page, "Your week");
   const week = page.getByRole("region", { name: "Your week, all in one orbit." });
   await expect(week.locator(".bottom-week-totals")).toHaveText(/^Last 7 days: .*habit check-ins.*health entr.*\.$/);
   await expect(week.getByText("They are not scores and they do not predict anything.")).toBeVisible();

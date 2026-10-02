@@ -43,8 +43,7 @@
 .bottom-streaks li span { font-weight:600;color:#f4f8ff;overflow-wrap:anywhere; }
 .bottom-streaks li strong { color:var(--accent-violet,#cbbfff); }
 .bottom-streaks li small { grid-column:1/-1;font-size:14px;color:var(--text-meta,#c2d0e5); }
-.bottom-stack { display:flex;height:16px;border-radius:999px;overflow:hidden;background:#ffffff0a; }
-.bottom-stack i { display:block;height:100%; }
+.bottom-stack { height:16px;border-radius:999px; }
 .bottom-legend { list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px 22px; }
 .bottom-legend li { display:flex;align-items:center;gap:8px;font-size:15px;color:#e3ecfa; }
 .bottom-legend li i { width:10px;height:10px;border-radius:50%; }
@@ -70,5 +69,5 @@
 }
 @media (forced-colors:active) {
  .bottom-section,.bottom-coverage,.bottom-counts div,.bottom-sources li,.bottom-places li,.bottom-streaks li { border:1px solid CanvasText; }
- .bottom-bar-track i,.bottom-stack i,.bottom-timeline-dot { background:Highlight!important; }
+ .bottom-bar-track i,.bottom-timeline-dot { background:Highlight!important; }
 }

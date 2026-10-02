@@ -10,7 +10,7 @@ import { HabitConsistency } from "./habit-consistency";
 import { HabitCard, type HabitStackNext } from "./habit-card";
 import { habitStackSuggestions } from "../../lib/habit-linked-policy";
 import type { HabitData } from "../../lib/habits";
-import { MotionTrack } from "../motion-track";
+import { GlassBar } from "../progress/glass-progress";
 import { LayoutLockButton, LayoutPage, LayoutRegion } from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
 import { HabitEditor } from "./habit-editor";
@@ -18,6 +18,10 @@ import { habitDay, habitRuleOn,saveHabitTimezone } from "../../lib/habits";
 import { NebulaFlow } from "../nebula-flow";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
+import { PhoneFormSheet } from "../phone/phone-form-sheet";
+import { useReminders } from "../reminders/use-reminders";
+import { reminderTime } from "../../lib/reminders/schema";
+import { setHabitReminder } from "../../lib/reminders/store";
 
 /** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
 function useStackSuggestions(data: HabitData, today: string) {
@@ -42,6 +46,7 @@ export function HabitsWorkspace() {
   const phone = usePhoneActive();
   const goals = useGoals();
   const platform = usePlatform();
+  const reminders = useReminders();
   const [filter, setFilter] = useState<Filter>("Today");
   const [editor, setEditor] = useState<string | null>(null);
   // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
@@ -87,23 +92,26 @@ export function HabitsWorkspace() {
   const contractScope = useMemo(() => ({ chainId: goals.chain, owner: goals.owner }), [goals.chain, goals.owner]);
   const stacks = useStackSuggestions(store.data, store.today);
   const viewStack = useCallback((id: string) => { setFilter("All"); requestAnimationFrame(() => { const card = document.getElementById(`habit-${id}`); card?.scrollIntoView({ block: "center" }); card?.focus(); }); }, []);
-  const editHabit = useCallback((id: string) => { setEditor(id); setMessage(""); window.scrollTo({ top: 0, behavior: "instant" }); }, []);
-  // On a phone the editor opens in place, scrolled into view under the top bar, with its actions pinned (phone-sheets.css).
-  useEffect(() => {
-    if (!phone || !editor) return;
-    const frame = requestAnimationFrame(() => document.querySelector(".habit-editor")?.scrollIntoView({ block: "start", behavior: "instant" }));
-    return () => cancelAnimationFrame(frame);
-  }, [phone, editor]);
+  // On a phone the editor opens as a sheet over the page, so the page keeps its place.
+  const editHabit = useCallback((id: string) => { setEditor(id); setMessage(""); if (!phone) window.scrollTo({ top: 0, behavior: "instant" }); }, [phone]);
+  const habitEditor = editor ? <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}-${reminders.loaded}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} reminder={editingHabit ? reminders.data.habits[editingHabit.id]?.time ?? "" : ""} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected,reminder="") => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); let saved = editingHabit ? "Habit saved." : "Habit created.";
+            // The reminder time is this device's own (lib/reminders), written only when it changed. The habit is already saved.
+            const time = reminderTime(reminder);
+            if ((reminders.data.habits[id]?.time ?? null) !== time) { try { reminders.update(store.today, current => setHabitReminder(current, id, time, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch { saved += " The reminder time was not saved on this device."; } }
+            setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <LayoutPage page="habits"><div className="habits-workspace">
     <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <LayoutRegion region="body" items={phoneOrder(phone, [
-        {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><MotionTrack identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)}><span style={{ width: `${due.length ? completed.length / due.length * 100 : 0}%` }} /></MotionTrack><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
+        {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
         store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">
-          {editor && <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); setMessage(editingHabit ? "Habit saved." : "Habit created."); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} />}
+          {editor && (phone
+            // On a phone the editor is a bottom sheet (Session I, Part 9); elsewhere it stays in the page.
+            ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
+            : habitEditor)}
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map((habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;

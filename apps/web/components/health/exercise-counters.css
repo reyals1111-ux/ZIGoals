@@ -9,7 +9,8 @@
 @container (min-width:620px) { .exercise-counter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @container (min-width:1040px) { .exercise-counter-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 .exercise-counter { position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;min-height:76px;padding:12px 10px;border-radius:20px;border:1px solid #a9c9ff2e;background:linear-gradient(160deg,#152440,#101a30 60%,#161433);box-shadow:inset 0 1px 0 #ffffff12; }
-/* The name stays on one line (never "Push-/ups"); a long custom name ends in an ellipsis and shows in full on hover. Today's state sits under it. */
+/* The name stays on one line (never "Push-/ups"); a long custom name ends in an ellipsis and shows in full on hover. It sits
+   centred beside its icon: today's state is announced with it but no longer shown under it (Session I). */
 .exercise-counter-name { display:grid;gap:2px;min-width:0;padding-left:4px; }
 .exercise-counter-name h3 { margin:0;font-size:17px;font-weight:650;line-height:1.25;color:var(--text-strong,#f4f8ff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .exercise-counter { grid-template-areas:"icon name controls menu"; }
@@ -17,13 +18,13 @@
 .exercise-counter-name { grid-area:name; }
 .exercise-counter-controls { grid-area:controls; }
 .exercise-counter > .card-options { grid-area:menu;justify-self:end; }
-/* Phones: icon, name and − / count / + keep one line; the small caption and the options take a second line below
-   them, so the name always has room ("Push-ups" never truncates) and nothing wraps. */
+/* Phones (Session I): the icon, the name and the options share the first line, with the name centred beside its icon;
+   − / count / + take the second line, at the end. A name of about 20 characters keeps room down to 320 px (it may wrap
+   onto a second line, never mid-number), and every count and button stays whole. */
 @container (max-width:439px) {
-  .exercise-counter { grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon name controls" "icon caption menu";row-gap:4px; }
-  .exercise-counter-name { display:contents; }
-  .exercise-counter-name h3 { grid-area:name;padding-left:4px; }
-  .exercise-counter-name .exercise-counter-caption { grid-area:caption;padding-left:4px; }
+  .exercise-counter { grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon name menu" "controls controls controls";row-gap:8px; }
+  .exercise-counter-name h3 { white-space:normal;overflow-wrap:break-word;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2; }
+  .exercise-counter-controls { justify-self:end; }
 }
 .exercise-medallion { display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:16px;background:radial-gradient(circle at 30% 25%,#2b4a7a,#141f3a 70%);box-shadow:inset 0 0 0 1px #9fd6ff33,0 0 22px -6px #8f7dff88; }
 .exercise-counter-controls { display:grid;grid-template-columns:44px minmax(40px,auto) 44px;align-items:center;gap:4px; }

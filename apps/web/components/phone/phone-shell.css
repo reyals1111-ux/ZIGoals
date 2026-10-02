@@ -93,8 +93,8 @@
   :root .phone-more-signature { position: relative; display: grid; justify-items: center; gap: 4px; margin-top: 18px; padding: 26px 12px 10px; border-radius: 22px; overflow: hidden; background: linear-gradient(180deg, #02091800, #020918cc), var(--cosmic-destination) center 30% / cover no-repeat; text-align: center; }
   :root .phone-more-descriptor { margin: 0 0 4px; line-height: 1.4; color: #b3cff2; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
   :root .phone-more-signature .brand-wordmark { font-size: 32px; }
-  :root .phone-more-tagline { margin: 6px 0 0; font-size: 15px; font-weight: 700; line-height: 1.6; letter-spacing: .08em; }
-  :root .phone-more-tagline > span[aria-hidden] { display: block; text-transform: uppercase; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; color: transparent; filter: drop-shadow(0 1px 1px #020918); }
+  /* The More list keeps the sidebar's groups (Session I): extra space before the money tools and before the rest. */
+  :root .phone-more-list > li[data-group-start] { margin-top: 14px; }
 
   /* ---------- Honesty status strip ----------
      The same testnet bar, wallet buttons, Showcase banner, sync line and Local simulation strip, restyled as one compact

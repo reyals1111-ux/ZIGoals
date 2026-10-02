@@ -1,4 +1,4 @@
-/* Stake / Positions on a phone (Session E): the two headline totals side by side, the other five as a swipeable row,
+/* Staking (formerly Stake / Positions) on a phone (Session E): the two headline totals side by side, the other five as a swipeable row,
    the wallet and scenario tools as compact rows, and compact position cards. Every label and disclaimer stays. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root .positions-workspace .positions-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }

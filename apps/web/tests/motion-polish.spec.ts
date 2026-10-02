@@ -1,23 +1,33 @@
-import {expect,test,type Page} from '@playwright/test';
+import {expect,test,type Locator,type Page} from '@playwright/test';
+import {openFold} from './phone-nav';
 
-type Sample={name:string;start:string;mid?:string;end?:string};
+type Sample={name:string;start:string;mid?:string;end?:string;final?:string};
+/** The computed property to sample, optionally only for targets inside `within` (several indicators share one animation). */
+type Watched=string|{property:string;within:string};
 type MotionWindow={motionSamples:Sample[];motionStarts:Record<string,number>};
 
-/** Samples the first element each named animation touches: at start, shortly after, and on its own end. */
-async function watch(page:Page,properties:Record<string,string>){
+/**
+ * Samples the first element each named animation touches: at start, shortly after, and on its own end. `final` keeps the
+ * target's own inline value (a ring arc's stroke-dashoffset), the value the animation must settle on.
+ */
+async function watch(page:Page,properties:Record<string,Watched>){
  await page.addInitScript(properties=>{
   const samples:Sample[]=[],starts:Record<string,number>={};Object.assign(window,{motionSamples:samples,motionStarts:starts});
   document.addEventListener('animationstart',event=>{
-   const property=properties[event.animationName],target=event.target;
+   const watched=properties[event.animationName],target=event.target;
+   const property=typeof watched==='string'?watched:watched?.property,within=typeof watched==='object'?watched.within:null;
+   if(!(target instanceof Element)||event.pseudoElement||(within&&!target.closest(within)))return;
    starts[event.animationName]=(starts[event.animationName]??0)+1;
-   if(!property||!(target instanceof Element)||samples.some(s=>s.name===event.animationName))return;
+   if(!property||samples.some(s=>s.name===event.animationName))return;
    const read=()=>getComputedStyle(target).getPropertyValue(property).trim();
-   const sample:Sample={name:event.animationName,start:read()};samples.push(sample);
+   const sample:Sample={name:event.animationName,start:read(),final:(target as SVGElement).style?.getPropertyValue(property)||undefined};samples.push(sample);
    setTimeout(()=>{sample.mid=read();},120);
    target.addEventListener('animationend',end=>{if(end.target===target&&(end as AnimationEvent).animationName===sample.name)sample.end=read();});
   },true);
  },properties);
 }
+/** A computed transform's translation, in px. */
+const translate=(transform:string)=>{const m=/matrix\(([^)]+)\)/.exec(transform),v=m?m[1]!.split(',').map(Number):[1,0,0,1,0,0];return {x:v[4]!,y:v[5]!};};
 const sample=(page:Page,name:string)=>page.evaluate(name=>(window as unknown as MotionWindow).motionSamples.find(s=>s.name===name),name);
 const starts=(page:Page,name:string)=>page.evaluate(name=>(window as unknown as MotionWindow).motionStarts[name]??0,name);
 async function settled(page:Page,name:string){
@@ -38,19 +48,23 @@ async function fictionalMovement(page:Page){
 }
 
 test('charts draw their marks once and settle on the exact rendered values',async({page,isMobile},info)=>{
- await watch(page,{'motion-sweep':'--ring-reveal','motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform'});
+ await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform'});
  await showcase(page);
  await page.goto('/app/wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
- const sweep=await settled(page,'motion-sweep');expect(parseFloat(sweep.start)).toBeLessThan(parseFloat(sweep.mid!));expect(sweep.end).toBe('100%');
+ // Each arc draws from empty (dashoffset 100 of 100) and settles exactly on its own share.
+ const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat(sweep.final!),3);
  await donut.screenshot({path:info.outputPath('donut-settled.png')});
+ await openFold(page,'Your wealth over time');
  const history=page.locator('.wealth-history .evidence-chart').first();await history.scrollIntoViewIfNeeded();
  const marks=await settled(page,'motion-mark-in');expect(Number(marks.start)).toBeLessThan(Number(marks.mid));expect(marks.end).toBe('1');
  await expect(history.locator('.evidence-line').first()).toHaveCSS('stroke-dasharray','none');
  await history.screenshot({path:info.outputPath('history-settled.png')});
  // Open and close an overlay: Quick add on mobile; desktop Wealth has no Quick add, so use its Add asset dialog.
  await (isMobile?page.getByRole('button',{name:'+ Quick add',exact:true}):page.getByRole('button',{name:'+ Add asset',exact:true}).first()).click();await page.keyboard.press('Escape');await page.waitForTimeout(750);
- expect(await starts(page,'motion-sweep')).toBe(await page.locator('.composition-donut').count());
+ // Each donut fills when it is first seen (one below the fold may not have been yet); an overlay never replays one.
+ const entered=await page.locator('.composition-donut[data-entrance=once] .glass-ring-arc').count();expect(entered).toBeGreaterThan(0);
+ expect(await starts(page,'glass-ring-draw')).toBe(entered);
  await page.goto('/app/habits');
  const month=page.locator('.habit-consistency-month');await month.scrollIntoViewIfNeeded();
  const cells=await settled(page,'motion-cell-in');expect(Number(cells.start)).toBeLessThan(Number(cells.mid));expect(cells.end).toBe('1');
@@ -76,8 +90,8 @@ test('reduced motion and the Off preference leave charts complete and still',asy
  await showcase(page);
  await page.goto('/app/wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
- await expect(page.locator('.portfolio-composition')).not.toHaveAttribute('data-entrance','once');
- await expect(donut).toHaveCSS('animation-name','none');
+ await expect(donut).not.toHaveAttribute('data-entrance','once');
+ await expect(donut.locator('.glass-ring-arc').first()).toHaveCSS('animation-name','none');
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
  await page.goto('/app/habits');
@@ -121,30 +135,35 @@ test('reduced motion and the Off preference keep buttons still on every route',a
 });
 
 test('progress fills grow in once when seen and glide to new values while their state updates at once',async({page},info)=>{
- await watch(page,{'motion-grow-x':'transform','motion-gauge-sweep':'stroke-dasharray','motion-rise':'transform'});
+ await watch(page,{'glass-fill-x':{property:'transform',within:'.today-pace-track'},'glass-fill-y':{property:'transform',within:'.nutrition-gauge'},'glass-ring-draw':{property:'stroke-dashoffset',within:'.health-gauge'}});
  await showcase(page);
+ const share=(locator:Locator)=>locator.evaluate(el=>({value:Number(getComputedStyle(el).getPropertyValue('--glass-value')),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
+ // A bar slides in from wholly before its start and settles exactly where its value says.
  const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
- const grow=await settled(page,'motion-grow-x');expect(grow.end).toBe('none');
- await page.locator('.nutrition-gauge').first().scrollIntoViewIfNeeded();
- const glass=await settled(page,'motion-rise');expect(glass.end).toBe('none');
+ const grow=await settled(page,'glass-fill-x'),paceShare=await share(pace);
+ expect(translate(grow.start).x).toBeLessThan(translate(grow.mid!).x);expect(translate(grow.mid!).x).toBeLessThan(translate(grow.end).x);expect(translate(grow.end).x).toBeCloseTo((paceShare.value-1)*paceShare.width,0);
+ const gaugeGlass=page.locator('.nutrition-gauge').first();await gaugeGlass.scrollIntoViewIfNeeded();
+ const glass=await settled(page,'glass-fill-y'),glassShare=await share(gaugeGlass);
+ expect(translate(glass.start).y).toBeGreaterThan(translate(glass.mid!).y);expect(translate(glass.mid!).y).toBeGreaterThan(translate(glass.end).y);expect(translate(glass.end).y).toBeCloseTo((1-glassShare.value)*(glassShare.height-2),0);
  await page.goto('/app/health');
  const gauge=page.locator('.health-gauge');await gauge.scrollIntoViewIfNeeded();
- const sweep=await settled(page,'motion-gauge-sweep');expect(parseFloat(sweep.start)).toBeLessThan(parseFloat(sweep.mid!));
- const arc=(await gauge.locator('.health-gauge-fill').getAttribute('stroke-dasharray'))!.split(' ').map(Number),settledArc=sweep.end.split(',').map(parseFloat);
- expect(settledArc[0]).toBeCloseTo(arc[0]!,3);expect(settledArc[1]).toBe(arc[1]);
+ const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));
+ expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat((await gauge.locator('.glass-ring-arc').getAttribute('style'))!.replace(/[^0-9.]/g,'')),3);
  await gauge.screenshot({path:info.outputPath('health-gauge-settled.png')});
  await page.goto('/app/habits');
  const overview=page.locator('.habit-overview-track');await overview.scrollIntoViewIfNeeded();
  await expect(overview).toHaveAttribute('data-entrance','once');
  await expect.poll(()=>overview.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
- const before=Number(await overview.getAttribute('aria-valuenow')),fill=overview.locator('span'),start=await fill.evaluate(el=>el.getBoundingClientRect().width);
+ // The visible fill runs from the track's start to the fill's (translated) end.
+ const filled=()=>overview.evaluate(el=>el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left);
+ const before=Number(await overview.getAttribute('aria-valuenow')),start=await filled();
  await page.locator('.habits-workspace').getByRole('button',{name:/^Complete /}).first().click();
  await expect(overview).toHaveAttribute('aria-valuenow',String(before+1));
- const gliding=await fill.evaluate(el=>el.getBoundingClientRect().width),target=await fill.evaluate(el=>(el as HTMLElement).style.width);
- await expect.poll(()=>fill.evaluate(el=>el.getAnimations().filter(a=>a.playState==='running').length)).toBe(0);
- const end=await fill.evaluate(el=>el.getBoundingClientRect().width);
+ const gliding=await filled(),target=await overview.evaluate(el=>Number((el as HTMLElement).style.getPropertyValue('--glass-value')));
+ await expect.poll(()=>overview.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
+ const end=await filled();
  expect(gliding).toBeGreaterThanOrEqual(start);expect(gliding).toBeLessThan(end);
- expect(end/(await overview.evaluate(el=>el.getBoundingClientRect().width))).toBeCloseTo(parseFloat(target)/100,2);
+ expect(end/(await overview.evaluate(el=>el.getBoundingClientRect().width))).toBeCloseTo(target,2);
  await page.locator('.habit-overview').screenshot({path:info.outputPath('habit-overview-settled.png')});
 });
 
@@ -153,14 +172,14 @@ test('reduced motion and the Off preference keep progress complete and still',as
  await showcase(page);
  const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
  await expect(pace).not.toHaveAttribute('data-entrance','once');
- await expect(pace.locator('span')).toHaveCSS('transition-duration','0s');
+ await expect(pace.locator('.glass-fill')).toHaveCSS('transition-duration','0s');
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));
  await page.goto('/app/health');
  const gauge=page.locator('.health-gauge');await gauge.scrollIntoViewIfNeeded();
  await expect(gauge).not.toHaveAttribute('data-entrance','once');
- await expect(gauge.locator('.health-gauge-fill')).toHaveCSS('animation-name','none');
- await expect(gauge.locator('.health-gauge-fill')).toHaveCSS('transition-duration','0s');
+ await expect(gauge.locator('.glass-ring-arc')).toHaveCSS('animation-name','none');
+ await expect(gauge.locator('.glass-ring-arc')).toHaveCSS('transition-duration','0s');
 });
 
 test('the slogan cascades and carries one sweep of light from Habits & Health to Wealth, then rests',async({page},info)=>{

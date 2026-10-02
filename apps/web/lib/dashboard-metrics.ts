@@ -3,7 +3,7 @@ import {latestWeightObservation} from './body-measurements';
 import {formatUnits} from '@zigoals/chain-config';
 import {allocationBalance,positionSync,type Position,type Platform} from './positions';
 import {wealthOverview} from './wealth';
-import {formatGoalAmount,type GoalSummary} from './goal-summary';
+import {formatGoalAmount,progressText,type GoalSummary} from './goal-summary';
 import {habitCalendarDay,habitDay,habitRuleOn,habitStats,measurementUnit,type HabitData} from './habits';
 import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dailyHealthSummary,type HealthData} from './health';
 import {dailyData,waterSummary} from './health-daily';
@@ -29,7 +29,9 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const next=s.goals.filter(g=>g.status==='active'&&g.targetDate&&g.targetDate>=s.today).sort((a,b)=>a.targetDate!.localeCompare(b.targetDate!)||a.name.localeCompare(b.name))[0];
   if(!next)return {...defaults,title:widget.title||'Next Goal milestone',value:'No upcoming target date',detail:'Save a target date on a Goal to see it here.',href:'/app/goals'};
   const days=Math.round((Date.parse(`${next.targetDate}T00:00:00Z`)-Date.parse(`${s.today}T00:00:00Z`))/86400000);
-  return {...defaults,title:widget.title||'Next Goal milestone',value:next.name,detail:`Target date ${next.targetDate} · saved in your plan`,href:next.href,percent:next.progressPct,complete:false,facts:[{label:'Days to the target date',value:formatNumber(days)},{label:next.currency==='milestones'?'Milestones left':'Remaining',value:next.remaining!==undefined?formatGoalAmount(next.remaining,next.currency):'Not available'}]};
+  // QA-37/38 (Session I, Part 10): progress that is a lower bound or unknown is said so, never drawn as exact.
+  const remaining=next.heldAsset||next.progressBound==='unavailable'?'Unknown':next.remaining!==undefined?`${next.progressBound==='at-least'?'At most ':''}${formatGoalAmount(next.remaining,next.currency)}`:'Not available';
+  return {...defaults,title:widget.title||'Next Goal milestone',value:next.name,detail:`Target date ${next.targetDate} · saved in your plan`,href:next.href,percent:next.progressBound?undefined:next.progressPct,complete:false,facts:[{label:'Days to the target date',value:formatNumber(days)},...(next.progressBound?[{label:'Progress',value:progressText(next.progressPct,next.progressBound)}]:[]),{label:next.currency==='milestones'?'Milestones left':'Remaining',value:remaining}]};
  }
  if(widget.kind==='streak'||widget.kind==='checkins'){
   const active=s.habits.habits.filter(h=>habitRuleOn(h,habitToday)?.state!=='archived');
@@ -57,7 +59,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  if(widget.kind==='goals')return {...defaults,title:widget.title||'Your destinations',value:`${s.goals.filter(g=>g.status==='active').length} active Goals`,detail:`${s.goals.filter(g=>g.status==='completed').length} completed · recorded progress`,href:'/app/goals'};
  if(widget.kind==='goal'){
   const goal=s.goals.find(g=>g.key===widget.entity);if(!goal)return unavailable('/app/goals','This Goal may be archived or outside the current account. Choose another or remove this widget.');
-  return {...defaults,title:widget.title||goal.name,value:widget.metric==='next-contribution'?goal.nextContributionDate??'Not scheduled':formatGoalAmount(goal.current,goal.currency),detail:widget.metric==='next-contribution'?goal.metadata.find(m=>m.label==='Contribution plan')?.value??'Open the Goal to set a plan.':`of ${goal.target?formatGoalAmount(goal.target,goal.currency):'no target'} · ${goal.source}`,href:goal.href,percent:widget.metric==='progress'&&!goal.requiresReview?goal.progressPct:undefined,complete:goal.status==='completed',warning:goal.status==='closed'?'Closed Goal · retained for your history':goal.requiresReview?goal.valuationLabel??'Progress needs review':undefined};
+  return {...defaults,title:widget.title||goal.name,value:widget.metric==='next-contribution'?goal.nextContributionDate??'Not scheduled':goal.progressBound==='unavailable'&&!goal.heldAsset?'Value unavailable':`${goal.progressBound==='at-least'?'At least ':''}${formatGoalAmount(goal.current,goal.heldAsset??goal.currency)}`,detail:widget.metric==='next-contribution'?goal.metadata.find(m=>m.label==='Contribution plan')?.value??'Open the Goal to set a plan.':`of ${goal.target?formatGoalAmount(goal.target,goal.currency):'no target'} · ${goal.source}`,href:goal.href,percent:widget.metric==='progress'&&!goal.requiresReview&&!goal.progressBound?goal.progressPct:undefined,complete:goal.status==='completed',warning:goal.status==='closed'?'Closed Goal · retained for your history':goal.requiresReview||goal.heldAsset?goal.valuationLabel??'Progress needs review':undefined};
  }
  if(widget.kind==='habits'){
   const due=s.habits.habits.filter(h=>habitDay(h,habitToday,habitToday).scheduled),complete=due.filter(h=>habitDay(h,habitToday,habitToday).status==='complete');
@@ -94,12 +96,12 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   return {...defaults,title:widget.title||`Tracked Wealth · ${widget.metric}`,value:subtotal?formatGoalAmount(formatUnits(subtotal.value.toString(),2),widget.metric):'No recorded value',detail:'Known values only · currencies stay separate',href:'/app/wealth',warning:missing?'Valuation coverage is incomplete. Some assets have no value.':stale?'Includes stale evidence. Refresh or review values.':undefined};
  }
  if(widget.kind==='staking'||widget.kind==='allocation'){
-  const position=s.platform.positions.find(p=>p.id===widget.entity),href=widget.kind==='staking'?'/app/goals/positions':'/app/wealth';
+  const position=s.platform.positions.find(p=>p.id===widget.entity),href=widget.kind==='staking'?'/app/staking':'/app/wealth';
   if(!position||widget.kind==='staking'&&!stakingWidgetSource(position))return unavailable(href,'The selected Position is unavailable or no longer matches this widget. Choose another record.');
   if(position.archivedAt)return {...unavailable(href,'This Position is archived. Restore it or choose another record.'),title:widget.title||position.providerId};
   const balance=allocationBalance(s.platform,position.id),amount=(raw:string)=>`${formatExactNumber(formatUnits(raw,position.decimals))} ${position.asset}`,sync=positionSync(position,s.now);
   const source=position.sourceType==='NATIVE_STAKING'?'Staked principal':position.sourceType==='NATIVE_REWARDS'?'Unclaimed rewards':position.sourceType==='NATIVE_UNBONDING'?'Unbonding':'Recorded balance';
-  const warnings=[balance.deficit!=='0'?'Allocation exceeds this source balance. Review the deficit.':'',sync==='ERROR'?'Last refresh failed. Showing the saved observation.':sync==='STALE'?'Saved observation is stale. Refresh in Positions.':''];
+  const warnings=[balance.deficit!=='0'?'Allocation exceeds this source balance. Review the deficit.':'',sync==='ERROR'?'Last refresh failed. Showing the saved observation.':sync==='STALE'?'Saved observation is stale. Refresh it on Staking.':''];
   return {...defaults,title:widget.title||`${widget.kind==='staking'?source:'Allocations'} · ${position.validator?.name??position.providerId}`,value:amount(position.quantity),href:`/app/wealth/asset/${encodeURIComponent(position.id)}`,
    detail:`Selected Position only · ${source} · ${position.network} · ${position.verification==='MANUAL'?'manual record':'read-only observation'} · ${position.observedAt}${widget.kind==='staking'?` · ${position.liquidity.toLowerCase()} · recorded rewards are not future yield`:'. Unallocated is an accounting amount, not a guarantee of spendable funds.'}`,
    warning:warnings.filter(Boolean).join(' ')||undefined,

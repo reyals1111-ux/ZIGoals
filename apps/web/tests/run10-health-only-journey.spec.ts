@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-import { navLink } from './phone-nav';
+import { navLink, openMealLog } from './phone-nav';
 
 test('JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests', async ({ page, context, isMobile }, info) => {
   expect(await context.storageState()).toEqual({ cookies: [], origins: [] });
@@ -29,6 +29,7 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await expect(page.getByRole('status').filter({ hasText: 'Food saved' })).toBeVisible();
   await activate(page.getByRole('button', { name: 'Diary', exact: true }));
   const journalDate = await page.getByLabel('Journal date').inputValue();
+  await openMealLog(page);
   const meal = page.getByRole('form', { name: 'Log a meal', exact: true });
   await meal.getByLabel('Food or recipe').selectOption({ label: 'Fictional journey oats · food' });
   await meal.getByLabel('Servings', { exact: true }).fill('1.5');

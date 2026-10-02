@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { closeFormSheet } from './phone-nav';
 
 async function showcase(page: Page) {
   await page.goto('/app/settings');
@@ -80,6 +81,8 @@ test('Quick Add Health entry leaves another Health view and focuses the working 
   await showcase(page);
   await page.goto('/app/health');
   for (let attempt = 0; attempt < 2; attempt++) {
+    // On a phone the diary form opens as a sheet (Session I, Part 9); the reader closes it before moving on.
+    await closeFormSheet(page);
     await page.getByRole('button', { name: 'Weight', exact: true }).click();
     if (!isMobile) await page.goto('/app');
     await page.getByRole('button', { name: '+ Quick add', exact: true }).click();

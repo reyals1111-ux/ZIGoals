@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { DEFAULT_DISPLAY_LOCALE, displayGroupsWithDot, displayLocale, formatDate, formatDateTime, formatExactNumber, formatNumber, formatPlainDecimal, formatTime, resolveDisplayLocale, setDisplayLocale, wordLocale } from "./visual-format";
+import { DEFAULT_DISPLAY_LOCALE, currencyDigits, displayGroupsWithDot, displayLocale, formatDate, formatDateTime, formatExactNumber, formatMoney, formatNumber, formatPlainDecimal, formatPrice, formatTime, isMoneyCurrency, resolveDisplayLocale, setDisplayLocale, wordLocale } from "./visual-format";
 
 // Session G, Part 3 (QA-06, QA-29): numbers and money follow the browser's locale, en-US looks exactly as before, and
 // any date with words in it is written in English for the user's region.
@@ -74,5 +74,36 @@ describe("other locales", () => {
   it("knows which locales group thousands with a dot", () => {
     expect(displayGroupsWithDot()).toBe(false);
     for (const [locale, dot] of [["de-DE", true], ["nl-BE", true], ["fr-FR", false], ["ja-JP", false]] as const) { setDisplayLocale(locale); expect(displayGroupsWithDot(), locale).toBe(dot); }
+  });
+});
+
+// Session I, Part 5: money always shows its currency's minor digits through one formatter; prices keep sub-cent digits.
+describe("money", () => {
+  it("knows each currency's minor digits and what is not money", () => {
+    expect(["USD", "EUR", "JPY", "KWD", "GBP"].map(currencyDigits)).toEqual([2, 2, 0, 3, 2]);
+    for (const code of ["ZIG", "BTC", "XAU", "milestones", "usd"]) { expect(isMoneyCurrency(code)).toBe(false); expect(currencyDigits(code)).toBeNull(); }
+  });
+  it("writes the minor digits in en-US, nl-BE, de-DE and ja-JP, cutting extra digits and never rounding up", () => {
+    const cases = [
+      ["en-US", "9000", "USD", "$9,000.00"], ["en-US", "1234.567", "EUR", "€1,234.56"], ["en-US", "-47900.5", "USD", "-$47,900.50"], ["en-US", "9000.9", "JPY", "¥9,000"],
+      ["nl-BE", "1234567.8", "EUR", `€${NBSP}1.234.567,80`], ["nl-BE", "0.999", "USD", `US$${NBSP}0,99`],
+      ["de-DE", "1234567.8", "EUR", `1.234.567,80${NBSP}€`], ["de-DE", "12", "USD", `12,00${NBSP}$`],
+      ["ja-JP", "1234567.89", "JPY", "￥1,234,567"], ["ja-JP", "1234.5", "USD", "$1,234.50"],
+    ] as const;
+    for (const [locale, value, currency, expected] of cases) expect(formatMoney(value, currency, locale), `${locale} ${value} ${currency}`).toBe(expected);
+    expect(formatMoney("1.2345", "KWD", "en-US")).toBe(`KWD${NBSP}1.234`);
+  });
+  it("writes the code instead of the symbol when asked, and never shows -0", () => {
+    expect(formatMoney("1500", "GBP", "en-US", { display: "code" })).toBe("1,500.00 GBP");
+    expect(formatMoney("-0.004", "USD", "en-US")).toBe("$0.00");
+  });
+  it("is unavailable for anything that is not an amount of money", () => {
+    for (const [value, currency] of [["12e3", "USD"], ["", "USD"], ["abc", "EUR"], ["100", "ZIG"], ["100", "BTC"]] as const) expect(formatMoney(value, currency, "en-US")).toBe("Unavailable");
+  });
+  it("prices keep sub-cent digits below one unit, up to four significant digits and eight decimals", () => {
+    const cases = [["0.0043", "$0.0043"], ["0.00431299", "$0.004312"], ["0.000000123456", "$0.00000012"], ["0.5", "$0.50"], ["0.12345", "$0.1234"], ["63412.5789", "$63,412.57"], ["1", "$1.00"], ["0", "$0.00"]] as const;
+    for (const [value, expected] of cases) expect(formatPrice(value, "USD", "en-US"), value).toBe(expected);
+    expect(formatPrice("0.0043", "EUR", "de-DE")).toBe(`0,0043${NBSP}€`);
+    expect(formatPrice("0.0043", "ZIG", "en-US")).toBe("Unavailable");
   });
 });

@@ -1,0 +1,74 @@
+/* Portfolio (Session I, Part 11): deep navy panels, readable labels (≥ 14 px), body 15–16 px, 44 px targets. */
+.portfolio-page { display: grid; gap: 24px; min-width: 0; }
+.portfolio-page > * { min-width: 0; }
+.portfolio-hero { display: grid; gap: 10px; padding: 32px 12px 8px; background: radial-gradient(at 80% 40%, #3b4a8a33, transparent 60%); }
+.portfolio-hero h1 { margin: 0; font-size: clamp(36px, 4.4vw, 60px); line-height: 1.06; }
+.portfolio-note { margin: 4px 0 0; padding: 12px 16px; border: 1px solid #8fd2ff40; border-radius: 16px; background: #13203acc; color: #d8e6f7; font-size: 15px; line-height: 1.5; max-width: 760px; }
+.portfolio-message { margin: 0; color: #bff3dd; font-size: 15px; }
+.portfolio-switcher { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+/* An older narrow-screen rule moves every <nav> to the end of the page; this one belongs under the title. */
+.portfolio-page > .portfolio-switcher { order: 0; width: auto; }
+.portfolio-switcher > button { display: grid; gap: 2px; justify-items: start; min-height: 48px; padding: 8px 16px; text-align: start; }
+.portfolio-switcher > button small { font-size: 14px; color: #c4d3e6; font-weight: 500; }
+.portfolio-switcher > button[aria-pressed="true"] { border-color: #6fdcff; box-shadow: 0 0 0 1px #6fdcff66 inset; }
+.portfolio-form { display: grid; gap: 14px; }
+.portfolio-form h2 { margin: 0; }
+.portfolio-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.portfolio-choice { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding: 0; border: 0; }
+.portfolio-choice legend { margin-bottom: 6px; font-size: 15px; font-weight: 600; }
+.portfolio-choice label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }
+.portfolio-panel { display: grid; gap: 18px; }
+.portfolio-panel > .portfolio-panel-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; background: none; text-align: start; }
+.portfolio-panel-head h2 { margin: 4px 0 0; font-size: clamp(24px, 2.6vw, 32px); }
+.portfolio-panel-actions { display: flex; gap: 8px; }
+.portfolio-panel-actions button, .portfolio-holding > .text-link, .portfolio-transactions button { min-height: 44px; }
+.portfolio-inline-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.portfolio-confirm { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid #ffcf7a55; border-radius: 16px; background: #221d16cc; }
+.portfolio-confirm p { margin: 0; font-size: 15px; }
+.portfolio-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin: 0; }
+.portfolio-totals > div { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid #7fc8ff24; border-radius: 18px; background: #0f1a30cc; }
+.portfolio-totals dt { font-size: 14px; color: #c4d3e6; }
+.portfolio-totals dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.portfolio-totals small { font-size: 14px; color: #c4d3e6; line-height: 1.4; }
+.portfolio-sort { display: flex; justify-content: flex-end; }
+.portfolio-sort select { min-height: 44px; }
+.portfolio-holdings { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.portfolio-holding { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid #7fc8ff24; border-radius: 18px; background: linear-gradient(150deg, #142340cc, #0f1830e6); }
+.portfolio-holding-main { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+.portfolio-holding-main > div { display: grid; gap: 2px; }
+.portfolio-holding-main strong { font-size: 17px; }
+.portfolio-holding-main small { font-size: 15px; color: #c4d3e6; font-variant-numeric: tabular-nums; }
+.portfolio-holding-value { text-align: end; }
+.portfolio-holding-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px 16px; margin: 0; }
+.portfolio-holding-facts dt { font-size: 14px; color: #b7c8de; }
+.portfolio-holding-facts dd { margin: 0; font-size: 15px; font-variant-numeric: tabular-nums; }
+.portfolio-holding-facts small { display: block; font-size: 14px; color: #b7c8de; }
+.portfolio-holding-facts small[data-stale] { color: #ffd58a; }
+.portfolio-holding > .text-link { justify-self: start; }
+.portfolio-transactions { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.portfolio-transactions li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 8px 0; border-top: 1px solid #7fc8ff1f; font-size: 15px; }
+.portfolio-transactions li small { grid-column: 1; font-size: 14px; color: #c4d3e6; }
+.portfolio-transactions li button { grid-row: 1 / span 2; grid-column: 2; }
+.portfolio-add > summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; cursor: pointer; }
+.portfolio-add[open] > summary { margin-bottom: 12px; }
+.portfolio-coin-picker { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; }
+.portfolio-coin-picker legend { margin-bottom: 4px; font-size: 15px; font-weight: 600; }
+.portfolio-coin-chosen { margin: 0; font-size: 15px; }
+.portfolio-coin-results { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.portfolio-coin-results button { display: inline-flex; align-items: baseline; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid #7fc8ff33; border-radius: 999px; background: #10203acc; color: inherit; font: inherit; font-size: 15px; cursor: pointer; }
+.portfolio-coin-results button span { color: #c4d3e6; font-size: 14px; }
+.portfolio-coin-results button[aria-pressed="true"] { border-color: #6fdcff; background: #173257; }
+.portfolio-files { display: grid; gap: 10px; }
+.portfolio-files h2 { margin: 0; }
+.portfolio-files .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.portfolio-files .actions > * { flex: 0 0 auto; }
+.portfolio-file-input { position: relative; display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; }
+.portfolio-file-input input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.portfolio-file-input:focus-within { outline: 2px solid #6fdcff; outline-offset: 2px; }
+.portfolio-privacy { margin: 0; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  .portfolio-hero { padding: 18px 4px 0; }
+  .portfolio-page :is(input, select, textarea) { font-size: 16px; }
+  .portfolio-holding-value { text-align: start; }
+  .portfolio-switcher > button { flex: 1 1 calc(50% - 10px); }
+}

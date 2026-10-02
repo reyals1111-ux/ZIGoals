@@ -135,7 +135,7 @@ body { background: var(--cosmic-dark); }
 .habits-workspace .habit-hero { background: radial-gradient(ellipse at 92% 20%, #9c4be522, transparent 53%); }
 .habits-workspace .habit-constellation { border-color: #63dfff40; box-shadow: 0 0 55px #407cff19, inset 0 0 30px #c364ff12; }
 .habits-workspace .habit-overview, .today-daily .habits-today { background: linear-gradient(120deg, #06263cc7, #0b152bec 50%, #211440bc); border-color: var(--cosmic-edge); }
-.habits-workspace .habit-overview-track > span { background: var(--nebula-emphasis); }
+.habits-workspace .habit-overview-track { --glass-ink: var(--nebula-emphasis); }
 .habits-workspace .habit-card { background: linear-gradient(145deg, #061b30ec, #080f23f5 65%, #16102df2); border-color: #6699d62e; border-top-color: color-mix(in srgb, var(--item-start) 42%, transparent); }
 .habits-workspace .habit-card .eyebrow { color: var(--item-start); }
 .habits-workspace .habit-filter-bar .quiet[aria-pressed="true"] { color: var(--text); background: linear-gradient(105deg, #08374b, #17284c, #322044); border-color: #53d0ff69; box-shadow: inset 0 -1px 3px #d06bff55; }
@@ -152,11 +152,10 @@ body { background: var(--cosmic-dark); }
 .health-page .health-aurora i { border-color: var(--brand-cyan); box-shadow: 0 -16px 50px #35c9ff30, inset 0 8px 30px #45d3ff24; }
 .health-page .health-aurora i:nth-child(2) { border-color: var(--brand-violet); box-shadow: 0 -10px 45px #9e88fa40; }
 .health-page .health-aurora i:nth-child(3) { border-color: var(--brand-magenta); box-shadow: 0 -10px 55px #f06dff30; }
-.health-page .health-gauge-fill { filter: drop-shadow(0 0 5px #23dbff50); }
 .health-page .health-gauge span { color: #b5c7e1; }
-.health-page .health-macro .health-meter i { background: linear-gradient(90deg, var(--brand-cyan), var(--brand-blue)); }
-.health-page .health-macro-carbsMg .health-meter i { background: linear-gradient(90deg, var(--brand-blue), var(--brand-violet)); }
-.health-page .health-macro-fatMg .health-meter i { background: linear-gradient(90deg, var(--brand-violet), var(--brand-magenta)); }
+.health-page .health-macro .health-meter { --glass-ink: linear-gradient(90deg, var(--brand-cyan), var(--brand-blue)); }
+.health-page .health-macro-carbsMg .health-meter { --glass-ink: linear-gradient(90deg, var(--brand-blue), var(--brand-violet)); }
+.health-page .health-macro-fatMg .health-meter { --glass-ink: linear-gradient(90deg, var(--brand-violet), var(--brand-magenta)); }
 .health-page .health-views button[aria-pressed=true] { color: var(--text); background: linear-gradient(110deg, #08384b, #182e52, #352147); border-color: #62cefc69; }
 .health-page .health-meal, .health-page .health-library-grid > .panel { background: linear-gradient(130deg, #061c30f0, #091224f2); border-color: #729ed72e; }
 .health-page .health-meal:nth-child(2n) { border-top-color: #967bff52; }
@@ -166,7 +165,7 @@ body { background: var(--cosmic-dark); }
 .health-page .health-bars > div:nth-child(3n) .health-bar-track i { background: linear-gradient(0deg, #743aa180, var(--brand-magenta)); }
 .health-page .health-chart-line { stroke: var(--brand-blue); }.health-page .health-chart-point { fill: var(--brand-cyan); stroke: #174174; }
 .health-page .health-form :is(input,select):focus-visible, .health-page .health-search input:focus-visible { outline-color: var(--brand-cyan); }
-.today-page .health-today-meter span { background: var(--nebula-emphasis); }
+.today-page .health-today-meter { --glass-ink: var(--nebula-emphasis); }
 .today-page .health-today-macros span:nth-child(1) strong { color: var(--brand-cyan); }.today-page .health-today-macros span:nth-child(2) strong { color: #bfaaff; }.today-page .health-today-macros span:nth-child(3) strong { color: #f5a0ff; }
 .habits-workspace .habit-constellation::before { border-color: #39d6ff70; }.habits-workspace .habit-constellation::after { border-color: #da74ff70; }
 .habits-workspace .habit-constellation i:nth-child(odd) { background: var(--brand-cyan); box-shadow: 0 0 18px var(--brand-blue); }.habits-workspace .habit-constellation i:nth-child(even) { background: var(--brand-magenta); box-shadow: 0 0 18px var(--brand-violet); }
