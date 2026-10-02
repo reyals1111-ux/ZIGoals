@@ -47,6 +47,48 @@ export function formatExactNumber(value:string,locale=displayLocale(),currency?:
  const parts=numberFormat(locale,{...(currency?{style:'currency' as const,currency}:{}),minimumFractionDigits:0,maximumFractionDigits:0}).formatToParts(negative?-1:1);
  return parts.map(p=>p.type==='integer'?number:p.value).join('');
 }
+/**
+ * Money (Session I, Part 5): one formatter, so every amount of money shows its currency's minor digits (2 for USD and
+ * EUR, 0 for JPY, 3 for KWD), written in the display locale. Digits beyond them are cut, never rounded up: a balance
+ * never reads higher than it is. Quantities (ZIG, BTC…) and chain amounts are not money and keep their own formatting.
+ */
+let isoCurrencies: Set<string> | undefined;
+/** True for an ISO 4217 currency this runtime knows, except the X codes (metals, test and accounting units). */
+export function isMoneyCurrency(code:string){
+ if(!/^[A-Z]{3}$/.test(code)||code.startsWith('X'))return false;
+ if(!isoCurrencies){try{isoCurrencies=new Set(Intl.supportedValuesOf('currency'));}catch{isoCurrencies=new Set(['USD','EUR']);}}
+ return isoCurrencies.has(code);
+}
+/** The currency's minor digits, or null when the code is not money. */
+export function currencyDigits(code:string):number|null{
+ return isMoneyCurrency(code)?numberFormat(DEFAULT_DISPLAY_LOCALE,{style:'currency',currency:code}).resolvedOptions().maximumFractionDigits??2:null;
+}
+const DECIMAL=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+/**
+ * An amount of money with exactly its currency's minor digits: "$9,000.00", "9.000,00 €" (de-DE), "¥9,000". `code`
+ * writes "9,000.00 GBP" instead of the symbol, as the app does for currencies other than USD and EUR.
+ */
+export function formatMoney(value:string,currency:string,locale=displayLocale(),{display='symbol'}:{display?:'symbol'|'code'}={}){
+ const digits=currencyDigits(currency);
+ if(digits===null||!DECIMAL.test(value))return 'Unavailable';
+ const amount=new Decimal(value);if(!amount.isFinite())return 'Unavailable';
+ const fixed=amount.toDecimalPlaces(digits,Decimal.ROUND_DOWN).toFixed(digits),signed=fixed.startsWith('-')&&/^-0(?:\.0*)?$/.test(fixed)?fixed.slice(1):fixed;
+ return display==='code'?`${formatExactNumber(signed,locale)} ${currency}`:formatExactNumber(signed,locale,currency);
+}
+/**
+ * A market price: at least the currency's minor digits, and below one unit enough further digits for four significant
+ * ones (up to 8 decimals), so "$0.0043" never reads as "$0.00". Cut, never rounded up.
+ */
+export function formatPrice(value:string,currency:string,locale=displayLocale()){
+ const digits=currencyDigits(currency);
+ if(digits===null||!DECIMAL.test(value))return 'Unavailable';
+ const amount=new Decimal(value);if(!amount.isFinite())return 'Unavailable';
+ const small=amount.abs().lt(1)&&!amount.isZero()?Math.min(8,Math.max(digits,-Math.floor(Math.log10(amount.abs().toNumber()))+3)):digits;
+ // Extra digits only as far as they say something: "0.0043", not "0.004300"; the minor digits always stay.
+ let fixed=amount.toDecimalPlaces(small,Decimal.ROUND_DOWN).toFixed(small);
+ while(small>digits&&fixed.endsWith('0')&&fixed.split('.')[1]!.length>digits)fixed=fixed.slice(0,-1);
+ return formatExactNumber(fixed,locale,currency);
+}
 export function progressPresentation(value:number|string|null|undefined,complete?:boolean){
  if(value===null||value===undefined||value===''||typeof value==='string'&&!/^\d+(?:\.\d+)?$/.test(value))return null;
  const exact=new Decimal(value);if(!exact.isFinite()||exact.isNegative())return null;

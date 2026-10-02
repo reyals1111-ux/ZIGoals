@@ -425,15 +425,15 @@ test.describe('Part 5: Wealth headline',()=>{
  test('one headline total in one currency; other currencies on their own line, never converted',async({page})=>{
   await showcase(page);await page.goto('/app/wealth');
   const total=page.locator('.wealth-hero-total');await expect(total).toBeVisible();
-  await expect(total.locator('.wealth-total-headline')).toHaveText('$501,800');
-  await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000 held in EUR · not converted']);
+  await expect(total.locator('.wealth-total-headline')).toHaveText('$501,800.00');
+  await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
   await expect(total).toContainText('Currency totals stay separate. No FX assumed.');
   await expect(total).toContainText('KNOWN TRACKED WEALTH');await expect(total).toContainText('13 assets');
   // No combined cross-currency figure anywhere on the card.
   await expect(total).not.toContainText('509,800');
   expect(await total.locator('.wealth-total-headline .nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
-  await page.goto('/app');const today=page.locator('.life-orbit-wealth');await expect(today.locator('.wealth-total-headline')).toHaveText('$501,800');
-  await expect(today.locator('.wealth-total-other')).toHaveText(['+ €8,000 held in EUR · not converted']);
+  await page.goto('/app');const today=page.locator('.life-orbit-wealth');await expect(today.locator('.wealth-total-headline')).toHaveText('$501,800.00');
+  await expect(today.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
  });
 });
 

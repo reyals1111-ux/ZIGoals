@@ -1,7 +1,7 @@
 /** One presentation contract; private and legacy financial records remain separate. */
 import {goalAssetMix,type AssetMix} from './wealth';
 import Decimal from 'decimal.js';
-import {displayLocale,formatExactNumber} from './visual-format';
+import {displayLocale,formatExactNumber,formatMoney,isMoneyCurrency} from './visual-format';
 import {formatUnits} from '@zigoals/chain-config';
 import {evaluateGoal} from '@zigoals/goal-engine';
 import type {GoalMetadata} from '@zigoals/shared-types';
@@ -13,11 +13,13 @@ import {effectiveContributionPlan} from './plan-revisions';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 export type GoalSummary={assetMix?:AssetMix[];key:string;id:string;href:string;name:string;type:string;source:string;status:'active'|'completed'|'closed';scene:'horizon'|'mountains'|'home'|'garden'|'aurora';current:string;target?:string;currency:string;progressPct:string;remaining?:string;targetDate?:string;nextContributionDate?:string|null;fundingHealth:string;requiresReview:boolean;valuationLabel?:string;metadata:{label:string;value:string}[]};
+/** Money (an ISO currency) always shows its minor digits (Session I, Part 5); quantities (ZIG, BTC, milestones) are unchanged. */
 export function formatGoalAmount(value:string,currency:string,locale=displayLocale()){
  if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))return 'Unavailable';
  const decimal=new Decimal(value);if(!decimal.isFinite())return 'Unavailable';
+ if(isMoneyCurrency(currency))return formatMoney(value,currency,locale,{display:currency==='USD'||currency==='EUR'?'symbol':'code'});
  const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
- return currency==='USD'||currency==='EUR'?formatExactNumber(n,locale,currency):`${formatExactNumber(n,locale)} ${currency}`;
+ return `${formatExactNumber(n,locale)} ${currency}`;
 }
 const sceneFor=(category?:string):GoalSummary['scene']=>category==='Travel'?'mountains':category==='First Home'?'home':'garden';
 export function legacyGoalSummary(goal:LocalGoal,plan?:GoalMetadata,source='Local simulation',now=Date.now()):GoalSummary{

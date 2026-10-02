@@ -18,10 +18,10 @@ function watchErrors(page: Page) {
 }
 
 const cases = [
-  { locale: "en-US", wealth: "$501,800", euro: "€8,000", share: "63.77%", kcal: "1,970" },
-  { locale: "de-DE", wealth: "501.800 $", euro: "8.000 €", share: "63,77%", kcal: "1.970" },
-  { locale: "nl-BE", wealth: "US$ 501.800", euro: "€ 8.000", share: "63,77%", kcal: "1.970" },
-  { locale: "ja-JP", wealth: "$501,800", euro: "€8,000", share: "63.77%", kcal: "1,970" },
+  { locale: "en-US", wealth: "$501,800.00", euro: "€8,000.00", share: "63.77%", kcal: "1,970" },
+  { locale: "de-DE", wealth: "501.800,00 $", euro: "8.000,00 €", share: "63,77%", kcal: "1.970" },
+  { locale: "nl-BE", wealth: "US$ 501.800,00", euro: "€ 8.000,00", share: "63,77%", kcal: "1.970" },
+  { locale: "ja-JP", wealth: "$501,800.00", euro: "€8,000.00", share: "63.77%", kcal: "1,970" },
 ] as const;
 
 for (const c of cases) test.describe(c.locale, () => {
