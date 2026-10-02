@@ -2,7 +2,7 @@
 
 For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the automated tests that prove it locally or in CI, what they cannot prove, and a verdict. The owner's human-only steps follow in a separate run-sheet (Session L, Part 4).
 
-- **Written:** 2026-10-02 (Session L), at source `c189313` (`main`, Alpha deploy #21).
+- **Written:** 2026-10-02 (Session L), at source `c189313` (`main`, Alpha deploy #21). **Updated after Session L Part 2**, which added rehearsal tests for every PARTIAL row (`scripts/run11/stage8-rehearsal/`, "L-" IDs below).
 - **Checked:** every test below was found by file, line and name in that source.
 - **Not a hosted claim:** nothing here touched a provider, a real inbox, a physical phone or a Cloudflare account.
 
@@ -24,10 +24,11 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | **shards** | `playwright test --shard=n/3`: every PW spec |
 | **integ** | "Independent browser account and market integration": the 8 listed BR/PKG files, one at a time, with `RUN10_BROWSER=1` |
 | **pkg** | `RUN11_PACKAGED=1` run of `packaged-runtime.test.mjs` against the generated bundle |
+| **local** | Not in CI yet: the Session L browser rehearsals (`RUN10_BROWSER=1`). They need lines in `ci.yml`'s integration list, which Session K owns (follow-up in STATUS) |
 
 **Verdicts** (about our code's behaviour; Stage 8 still confirms everything on real services)
 - **PROVEN-LOCAL:** tests exercise everything our app and Workers do for this row, end to end. What stays open is only the real-world confirmation in "Cannot prove".
-- **PARTIAL:** tests cover part of the row. The gap can be automated with fixture auth and Miniflare, without real providers. Part 2 of Session L targets these.
+- **PARTIAL:** tests cover part of the row. The gap can be automated with fixture auth and Miniflare, without real providers. Session L Part 2 closed every PARTIAL row; "was PARTIAL" marks them.
 - **HUMAN-ONLY:** the decisive part needs a real provider, a physical device or the hosted Cloudflare account. Local tests prove only the logic.
 
 **Nothing local can prove:**
@@ -40,23 +41,23 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 ## A. Sign-in and sessions
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
 |---|---|---|---|---|
-| A1 | Wrong one-time code | PA-122 (unit: a rejected code is reported to admission as a failed verification); PA-50 (no session cookie without registration); AA-50 (failed verifications capped per email, MF) | No test enters a refused code in the app: neither the message "Account access was not confirmed. Check the code and try again." (`account-access.tsx:14`) nor "no session" afterwards is asserted. The real provider's decision | **PARTIAL** |
-| A2 | Expired code | Same as A1. AA-16 (a second send inside 60 s gets 429; allowed again after 61 s, MF); ACC-17 (cooldown and verification select only the returned account; its fake timers are never advanced) | An expired code refused, then the countdown re-enabling the button and a new code working: not rehearsed. The provider's real expiry | **PARTIAL** |
-| A3 | Reused code | Only the generic refusal path of A1 | The app path for a reused code is not rehearsed (the BR fake accepts any code). Reuse itself is the provider's rule | **PARTIAL** |
-| A4 | Send cooldown | AA-16, AA-32, AA-62 (admission Worker, MF); ACC-17; RAS-3 (send button disabled after sending, PW) | No end-to-end second request refused by the real admission Worker, for example after a reload (which resets the on-screen countdown). Neither "Please wait…" nor the "(Ns)" countdown is asserted. The BR harness does not pass the admission Worker | **PARTIAL** |
+| A1 | Wrong one-time code | **L-CODES-BR** (the panel shows "Account access was not confirmed. Check the code and try again."; no cookie, no account selected, no vault controls, local); **L-CODES** (400, no cookie, MF); PA-122 (unit: a rejected code is reported to admission as a failed verification); PA-50 (no session cookie without registration); AA-50 (failed verifications capped per email, MF) | The real provider's decision and real email | **PROVEN-LOCAL** (was PARTIAL) |
+| A2 | Expired code | **L-CODES-BR** (the right code after expiry is refused with the same message and no session; after the cooldown a new code arrives and signs in, local); **L-CODES** (MF); AA-16 (a second send inside 60 s gets 429; allowed again after 61 s, MF); ACC-17 | The provider's real expiry time | **PROVEN-LOCAL** (was PARTIAL) |
+| A3 | Reused code | **L-CODES-BR** (after sign-out and a new send, the already-used code is refused with no session; the newest code works, local); **L-CODES** (the same code twice: 400 the second time, no cookie, MF) | Reuse itself is the provider's rule | **PROVEN-LOCAL** (was PARTIAL) |
+| A4 | Send cooldown | **L-CODES-BR** (the button counts down "(60s)"; after a reload resets that countdown, the real admission Worker still refuses with "Please wait before requesting another code." and the provider is never asked, local); **L-CODES** (429 before the provider, MF); AA-16, AA-32, AA-62 (admission Worker, MF); ACC-17; RAS-3 (PW) | The provider's own send limits | **PROVEN-LOCAL** (was PARTIAL) |
 | A5 | Sign out | AB (step at line 130, BR); SW (BR); RAS-3 (PW); ACC-22; PA-28, PA-45 (unit); SR (refresh cannot revive a revoked session, MF) | Real provider sign-out | **PROVEN-LOCAL** |
 | A6 | Revocation | AB (lines 122–123: "Revoke other sessions", then the other device shows "Account access changed. Sign in and unlock again.", BR); RR (MF); SYN (MF); LR-31 (MF); PA-54; VO-41, VO-47 (unit) | Real provider tokens | **PROVEN-LOCAL** |
-| A7 | Lock and account switch | SW (switch to B; A's late response cannot enter B's workspace, BR); AI-8, AI-14 (unit); ACC-28 (unit); RAS-3 (PW); EI-47 (hostile B identity, MF) | "Lock account vault" (`vault-sync-controls.tsx`) is never clicked in any test, so "locking hides account records" is not shown in a browser | **PARTIAL** |
+| A7 | Lock and account switch | **L-LOCK** ("Lock account vault" hides A's records until the recovery secret unlocks them; signed out, and as account B before and after B's vault, none of A's records; back as A, none of B's, local); SW (switch to B; A's late response cannot enter B's workspace, BR); AI-8, AI-14 (unit); ACC-28 (unit); RAS-3 (PW); EI-47 (hostile B identity, MF) | Physical devices | **PROVEN-LOCAL** (was PARTIAL) |
 
 ## B. Private data and sync
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
 |---|---|---|---|---|
 | B1 | Local attachment | AB (lines 35–48: local records stay separate through sign-in; copy only after explicit protected review; a populated section refuses a repeat, BR); HA-38 (BR); LA-11, LA-17, LA-21, LA-26 (unit); CS-37 (unit); EI-16 (MF) | Physical devices | **PROVEN-LOCAL** |
 | B2 | Four-domain sync | AB (lines 50–68: Habits, Health, a project Goal and a Today widget between desktop and a mobile context, BR); PKG (funded Goal, cash position, presets) | A real phone, Safari | **PROVEN-LOCAL** |
-| B3 | Explicit Health consent | HV (consent kept or not yet offered during verification, BR); HA-27 (BR); CL-32, CL-39, CL-54 (PW); CS-40 (Health exclusion skips Health decryption and publication, unit); CS-44 (revoked permission cannot replay Health, unit) | Every BR test ticks consent before creating the vault. No test writes Health without consent, shows the Worker holds no Health rows, then grants consent and sees Health arrive | **PARTIAL** |
+| B3 | Explicit Health consent | **L-HEALTH** (a vault without consent: the Worker holds Habits but no Health record; the second device gets the Habit, not Health; after consent on the first device the Worker holds Health; the second device receives it only after its own consent, local); HV (BR); HA-27 (BR); CL-32, CL-39, CL-54 (PW); CS-40, CS-44 (unit) | Physical devices | **PROVEN-LOCAL** (was PARTIAL) |
 | B4 | Offline edits | AB (lines 75–82: both devices offline; water 250 + 500 = 750 mL; preferences and Habits merge; both reconnect orders, BR); CS-60, CS-67, CS-105 (unit) | Real network loss; the ADR-006 false conflict (X1–X4 below) | **PROVEN-LOCAL** |
 | B5 | Conflict review | AB (lines 84–91: a 77/78 cm conflict, both copies kept, explicit review, BR); IF-64 (BR); SC (BR); CR-12 (MF); HC (4 kinds, MF); CRV-7, CRV-12, CRV-18 (unit) | None beyond devices; ADR-006 false conflicts are a known bug | **PROVEN-LOCAL** |
-| B6 | Correction and funding replay | CR-28 (two funding aggregates replay without duplication, MF); SYN (same operation twice, MF); OC (MF); CS-28 (lost acknowledgement replays the same operation, unit); DB-12 (replay idempotent, unit); PKG (fund, then a confirmed reversal: exactly one of each on profile B); R9-45, UG-66, TX-6 (PW) | No browser test holds or drops a sync response, or reloads mid-sync, after a funding or a correction and then checks both devices | **PARTIAL** |
+| B6 | Correction and funding replay | **L-REPLAY-HEAD** (a Goal funding and its reversal; the head write's acknowledgement is held and the page reloads; after unlock the upload replays; both devices show exactly one contribution and one reversal, the same entries, and no review prompt, local); **L-REPLAY-RETRY** (the same with the first write's acknowledgement dropped and "Sync now" retried, local); CR-28, SYN, OC (MF); CS-28, DB-12 (unit); PKG; R9-45, UG-66, TX-6 (PW) | Real network loss. An edit made *after* a lost acknowledgement is the known ADR-006 false conflict (X1–X4 below), deliberately not repeated | **PROVEN-LOCAL** (was PARTIAL) |
 | B7 | Key rotation | AB (lines 101–105: the next recovery secret is shown and confirmed before "Activate new vault key", BR); RT-4, RT-31 (MF) | Minor: no test asserts the activate button stays disabled until the save box is ticked | **PROVEN-LOCAL** |
 | B8 | Old-key denial | AB (lines 106–108: the other device gets "Account or vault changed"; the old secret gives "Unlock or integrity check failed", BR); RT-4 (an old-epoch write gets 409, MF); CRY-11 (unit) | A device or backup restored to the old key, then synced, in a browser | **PROVEN-LOCAL** |
 | B9 | Section deletion | AB (lines 110–114, BR); DD-5 (persists across restart, fences old writes, keeps other domains, MF); DR-9, DR-22, DR-31 (MF) | The browser does not re-check the other sections on the second device | **PROVEN-LOCAL** |
@@ -66,8 +67,8 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 ## C. Device and providers
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
 |---|---|---|---|---|
-| C1 | Camera permission | BC-26 (camera only on request; all tracks stop on cancel and navigation); BC-11 (`OverconstrainedError`, `NotFoundError`); BC-20, BC-117 (PW, mocked camera) | The refused-permission branch ("Camera permission was denied. Manual barcode entry remains available.", `barcode-food-lookup.tsx:29`) is never tested. The real system prompt | **PARTIAL** |
-| C2 | Camera cancel | BC-26, BC-41, BC-67, BC-128, BC-142 (PW) | Tracks are shown to stop, but the food log is never checked unchanged after "Stop camera" | **PARTIAL** |
+| C1 | Camera permission | **L-CAM-C1** (a refused permission shows "Camera permission was denied. Manual barcode entry remains available.", no camera controls stay open, and a typed barcode is looked up and logged, local); BC-26 (camera only on request); BC-11, BC-20, BC-117 (PW, mocked camera) | The real system prompt on a physical phone | **PROVEN-LOCAL** (was PARTIAL) |
+| C2 | Camera cancel | **L-CAM-C2** ("Stop camera" stops the one camera track; the saved Health log is byte for byte unchanged, also after a reload; no lookup is made, local); BC-26, BC-41, BC-67, BC-128, BC-142 (PW) | A physical camera | **PROVEN-LOCAL** (was PARTIAL) |
 | C3 | Physical barcode | BC-91 (local EAN-8 decoding, no frames uploaded); BC-105, BC-53, BC-3, BC-11 (PW); FQ (one provider call per 12 s slot), FR, FT (MF); PKG food path | A real product from the real provider, a physical camera. The "at most 5 lookups a minute" logic is proven locally | **HUMAN-ONLY** |
 | C4 | Bounded provider refresh | MB (refresh plus reload gives exactly one price call, BR); MO-11 (credits charged exactly; nothing new after restart), MO-41 to MO-109 (MF); MP-44 (MF) | A real CoinGecko call against the owner's real `MARKET_POLICY` | **HUMAN-ONLY** |
 
@@ -77,7 +78,7 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | D0 | Stage 7 rehearsal | RA-184 (the committed fixture reconciles into an empty authority); RA-61 (MATCH, DRY RUN OK, RECONCILED, ALREADY RECONCILED); RA-95 (wrong anchor and other refusals); RA-128, RA-144 (MF, with a local stand-in for the remote binding); RAC-25, RAC-62; S7-28 | Wrangler's real remote binding, the outside-reach probe (runbook step 5), the dashboard comparison (step 8) | **HUMAN-ONLY** |
 | D1 | Export after a deletion decision | RA-61 (export after deletions: 0600 file and digest, MF); LRC-14 (MF) | Bitwarden and offline-image custody | **HUMAN-ONLY** |
 | D2 | Custody check | RA-61 (MATCH), RA-95 (MISMATCH, not 0600, changed after export) | Checking the real custody copies | **HUMAN-ONLY** |
-| D3 | Point-in-time recovery | LR-17 (recovery mode disables serving even with valid identity, 503, MF); LRC-44 (a copied persist directory as a local stand-in for PITR, MF); LR-6 (MF) | Hosted PITR. Locally only reads are asserted to get 503 in reconcile mode; writes, registration, section deletion and rotation are not | **HUMAN-ONLY** |
+| D3 | Point-in-time recovery | **L-RECONCILE** (in reconcile mode every route gets 503 `LIFECYCLE_RECONCILIATION_REQUIRED`: reads, writes, session registration, account and section deletion, rotation; back in serve mode the vault and account state are unchanged, MF, CI: checks); LR-17 (MF); LRC-44 (a copied persist directory as a local stand-in for PITR, MF); LR-6 (MF) | Hosted PITR | **HUMAN-ONLY** |
 | D4 | Dry run and reconcile | RA-61, RA-128; LRC-14, LRC-25, LRC-32 (MF) | The hosted run | **HUMAN-ONLY** |
 | D5 | Old-client denial after recovery | LRC-44 (offline re-enrollment denied with 410, MF); LR-6 (MF); AB (line 128, 410 after deletion, BR) | A stale browser client after a hosted reconcile | **HUMAN-ONLY** |
 | D6 | Return to serve | AC-7 (a `serve` template is rejected); S7-46 (a serving lifecycle Worker is "not ready") | The owner's decision and deploy; nothing checks that the anchor vars are removed in the same change | **HUMAN-ONLY** |
@@ -88,14 +89,16 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | E1 | Account-wide quotas re-checked | None. `market-policy.test.mjs` only validates the figures the owner types in | Provider dashboards | **HUMAN-ONLY** |
 | E2 | Spend controls | None | Provider billing settings | **HUMAN-ONLY** |
 
-## Counts (31 rows, at `c189313`)
-| Verdict | Rows | Count |
+## Counts (31 rows)
+| Verdict | At `c189313` (before Part 2) | After Session L Part 2 |
 |---|---|---|
-| PROVEN-LOCAL | A5, A6, B1, B2, B4, B5, B7, B8, B9, B10, B11 | 11 |
-| PARTIAL | A1, A2, A3, A4, A7, B3, B6, C1, C2 | 9 |
-| HUMAN-ONLY | C3, C4, D0, D1, D2, D3, D4, D5, D6, E1, E2 | 11 |
+| PROVEN-LOCAL | 11: A5, A6, B1, B2, B4, B5, B7, B8, B9, B10, B11 | **20**: the 11, plus A1, A2, A3, A4, A7, B3, B6, C1, C2 |
+| PARTIAL | 9: A1, A2, A3, A4, A7, B3, B6, C1, C2 | **0** |
+| HUMAN-ONLY | 11: C3, C4, D0, D1, D2, D3, D4, D5, D6, E1, E2 | **11** (unchanged; D3's logic is now fully covered) |
 
-A3 is counted PARTIAL, not HUMAN-ONLY: reuse is the provider's rule, but how the app handles that refusal can be rehearsed with a stricter fixture, exactly like A1.
+A3 was counted PARTIAL, not HUMAN-ONLY: reuse is the provider's rule, but how the app handles that refusal can be rehearsed with a stricter fixture, exactly like A1.
+
+**PROVEN-LOCAL is not Stage 8 done.** Every row still gets its real-world check from the owner (real inboxes, the physical iPhone, hosted services); the run-sheet lists only what automation cannot do.
 
 ## Known expected failures (ADR-006)
 These four `test.fails` tests document a known sync bug: the cloud applies the final write but its acknowledgement is lost, so a later local edit reads as a false conflict. No data is lost; automatic sync pauses for review. They touch B4, B5 and B6.
@@ -103,6 +106,19 @@ These four `test.fails` tests document a known sync bug: the cloud applies the f
 - X4: `scripts/run11/sync-lost-ack-runtime.test.mjs:43` (MF).
 
 ## Test index
+**Session L rehearsal** (`scripts/run11/stage8-rehearsal/`; shared helpers in `harness.mjs`: a stand-in code provider with one single-use code per send and an expiry clock, the real admission Worker in Miniflare, the same route adapter as the BR tests)
+| ID | Test | Kind / CI |
+|---|---|---|
+| L-CODES | `sign-in-codes.test.mjs:11` "wrong, expired and reused codes are refused without a session, and the send cooldown is enforced by the admission Worker" | MF (route handler, admission and private-sync Workers) / checks |
+| L-CODES-BR | `sign-in-codes-browser.test.mjs:8` "the sign-in panel refuses wrong, expired and reused codes without a session, and a second code only after the cooldown" | BR with the admission Worker / local |
+| L-LOCK | `lock-switch-browser.test.mjs:8` "locking hides account records until unlocked, and a second account sees none of the first account's records" | BR / local |
+| L-HEALTH | `health-consent-cloud-browser.test.mjs:8` "Health is uploaded only after consent, and another device receives it only after its own consent" | BR (desktop and mobile contexts) / local |
+| L-REPLAY-HEAD | `replay-browser.test.mjs:92` "a reload while the head write's acknowledgement is held replays the funding and its correction exactly once" | BR / local |
+| L-REPLAY-RETRY | `replay-browser.test.mjs:93` "a dropped acknowledgement of the first write and a retry replay the funding and its correction exactly once" | BR / local |
+| L-CAM-C1 | `camera-browser.test.mjs:22` "C1: a refused camera permission is explained and manual entry still logs a food" | Chrome against the app (stand-in camera and lookup) / local |
+| L-CAM-C2 | `camera-browser.test.mjs:47` "C2: cancelling a scan stops the camera and leaves the saved Health log unchanged" | Chrome against the app / local |
+| L-RECONCILE | `reconcile-mode.test.mjs:14` "reconcile mode refuses reads, writes, registration, section deletion, rotation and account deletion, then serving resumes unchanged" | MF / checks |
+
 **BR and PKG** (CI: integ, unless noted)
 | ID | Test |
 |---|---|
@@ -192,4 +208,6 @@ pnpm --filter @zigoals/web start &          # http://127.0.0.1:3100
 RUN10_BROWSER=1 RUN11_REVIEW_ORIGIN=http://127.0.0.1:3100 \
   pnpm exec vitest run scripts/run10/account-browser.test.mjs --no-file-parallelism   # one BR file at a time
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3100 pnpm --filter @zigoals/web exec playwright test run10-barcode.spec.ts --workers=2
+RUN10_BROWSER=1 RUN11_REVIEW_ORIGIN=http://127.0.0.1:3100 \
+  pnpm exec vitest run scripts/run11/stage8-rehearsal/ --no-file-parallelism   # the Session L rehearsal (about 1 minute)
 ```
