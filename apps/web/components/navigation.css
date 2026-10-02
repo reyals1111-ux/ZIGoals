@@ -31,18 +31,30 @@
 }
 
 .workspace-status{display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:space-between;align-items:center;padding:.75rem 0;color:var(--muted);font-size:.875rem;overflow-wrap:anywhere}.workspace-status a{min-height:44px;display:inline-flex;align-items:center}.workspace-status>span{min-width:0}
-/* Sidebar page mark (Session I, page-mark.tsx): one fixed 160×168 box above the planet holds the page's mark (Today's swan,
-   Goals' lotus, Habits' butterfly, Health's heart, Wealth's bull), bottom-aligned, or the "ZIGoals" wordmark at its usual
-   height above the rim. The box never changes size, so the planet and its star never move between pages. The former
-   "Shape & Fold / Your Own Future" tagline is gone: the Today swan carries those words in its artwork. A bright star rests
-   on the rim in the header star's style. No blend mode and no filled animation: the sidebar stays one cheap layer. */
+/* Sidebar page mark (Session I, page-mark.tsx; Session K): one fixed 160×168 box above the planet holds the page's fold
+   figure (Today's swan, Goals' lotus, Habits' butterfly, Health's heart, Wealth's bull; every other page shows the swan),
+   bottom-aligned. The box never changes size, so the planet and its star never move between pages. Each figure keeps
+   its Session I size and place: its words, baked into the mark file, are clipped off in the middle of the fully
+   transparent gap between figure and words (measured on the @2x files; the clip reaches 2 px past the other three
+   edges, so only the bottom is cut and the figure's own pixels are untouched), and the same words, cut out on their own
+   (public/brand/words), sit larger on the planet below. A bright star rests on the rim in the header star's style.
+   No blend mode and no filled animation: the sidebar stays one cheap layer. */
 @media(min-width:901px) {
  .app-sidebar .sidebar-destination { min-height:340px; }
  .sidebar-mark { position:relative;z-index:1;display:grid;width:160px;height:168px;flex-shrink:0; }
  .sidebar-mark-layer { grid-area:1/1;display:flex;align-items:flex-end;justify-content:center;min-width:0; }
- .sidebar-mark-layer[data-mark=wordmark] { padding-bottom:53px; }
  .sidebar-mark-layer :is(picture,img) { display:block; }
- .sidebar-mark-layer img { width:160px;height:auto; }
+ .sidebar-mark-figure img { width:160px;height:auto; }
+ .sidebar-mark-layer[data-mark=today-swan] .sidebar-mark-figure img { clip-path:inset(-2px -2px 25.9% -2px); }
+ .sidebar-mark-layer[data-mark=goals-lotus] .sidebar-mark-figure img { clip-path:inset(-2px -2px 19.66% -2px); }
+ .sidebar-mark-layer[data-mark=habits-butterfly] .sidebar-mark-figure img { clip-path:inset(-2px -2px 19.53% -2px); }
+ .sidebar-mark-layer[data-mark=health-heart] .sidebar-mark-figure img { clip-path:inset(-2px -2px 20.7% -2px); }
+ .sidebar-mark-layer[data-mark=wealth-bull] .sidebar-mark-figure img { clip-path:inset(-2px -2px 18.81% -2px); }
+ /* The words, centred in a band 260–324 px from the destination's top (the mark box starts 26 px down): below the
+    planet's top (200 px; its rim shows at 210–234 px) and the star's glow (169–249 px), inside the 340 px destination,
+    and never wider than the sidebar less 12 px each side. They fade with their figure (same layer). */
+ .sidebar-mark-layer .sidebar-mark-words { position:absolute;left:50%;top:234px;height:64px;display:flex;align-items:center;justify-content:center;translate:-50% 0;pointer-events:none; }
+ .sidebar-mark-words img { max-width:calc(var(--sidebar-width) - 24px);height:auto; }
  .app-sidebar .sidebar-horizon { inset:200px 0 0; }
  .sidebar-star { position:absolute;z-index:1;left:64%;top:209px;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;pointer-events:none;
   background:radial-gradient(closest-side,#fff 0 9%,#fff6ea 15%,#ffd3aecc 25%,#ff9fb866 42%,#a98bff26 62%,#0000 100%); }
