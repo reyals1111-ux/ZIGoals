@@ -162,6 +162,53 @@ quickly and a burst of change is not dragged out.
 | `assets/origami-scroll/z/phone/17.webp` | 10,074 | `30fe409788d3ec933535a7540b59fabf9fd763a6a13c5dd4c9a38c4fb2cde310` |
 | `assets/origami-scroll/z/phone/19.webp` | 11,394 | `717baf7c0f6a62ffb6494dc40747e71f6ea6fbbdbc587d3a890d4f49a1ba6b8e` |
 
+## Product captures (refreshed from main's Showcase)
+
+All 19 files keep their V4 names and widths; heights follow the captured region, and `index.html` carries the new sizes
+with a `?v=v5-1` tag so a cached V4 image is never shown at the new shape. 19 files, 822,276 bytes (V4: 971,356).
+
+- **Source:** a production build of `main` at `57275a6` (`NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED`,
+  `next start` on 127.0.0.1), Settings → Load Showcase Demo. Every `/api/**` call answered by a local 503, clock fixed at
+  `2026-10-02T10:00:00.000Z`, reduced motion, dark scheme, onboarding marked as seen. So prices read "Price unavailable" and
+  positions say "no wallet observation", which is what the captions say.
+- **Tool:** `apps/web/tests/landing-v5-captures.spec.ts` (opt-in, `LANDING_CAPTURE=1`), Playwright's Chromium 141.0.7390.37.
+  Desktop regions at a 1440 × 900 viewport, phone regions at 430 × 932, each at the density that makes it exactly
+  its V4 width. Fixed-position chrome (the phone tab bar) is hidden for the capture, as in V4's captures.
+- **Font:** the app's font stack starts with Inter, which the app does not ship, so a capture machine without it falls
+  back to a wider font (here DejaVu Sans). The captures were rendered with Inter: `InterVariable.ttf` from
+  `https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/InterVariable.ttf` (SIL OFL 1.1, 879,708 bytes,
+  SHA-256 `4989b125924991b90d05b2d16e0e388c48f7d5bb8b30539bbf9c755278d0ccaf`), given only to the capture browser on the app's own
+  origin. Nothing was added to the app or the landing.
+- **Encoding:** FFmpeg 6.1.1 libwebp, `-quality 82 -compression_level 6 -preset picture`, Lanczos to the exact size.
+- **Privacy:** every image was opened and read. Only fictional Showcase records appear (Emergency fund, First home
+  deposit, Japan adventure, the $501,800.00 fictional total, the Bitcoin, Ethereum and USD Coin manual examples). No
+  address, name, account, real balance or real price.
+- **Seen while reading them (app, Session M's lane):** on phones the Goal card's progress ring overlaps the start of its
+  text by 4 px at each width measured (320, 360, 375, 390, 414, 430 and 600 px), with Inter and with the fallback font
+  ("$11,000.00 remaining" in `goals-mobile.webp`); at 768 px it is clear by 18 px. Listed as a follow-up; recapture `goals-mobile` once it is fixed.
+
+| file | size | viewport and density | bytes | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| `today-desktop.webp` | 1150 × 688 | 1440 × 900 at 1.3956× | 52,022 | `cedd64a59dabde7c7fe72a14a5d76765bae2e6fc4d412857f4150cb7b2547cd8` |
+| `today-mobile.webp` | 398 × 720 | 430 × 932 at 1× | 27,828 | `2de9ac9e928b1eb78c49b7c261923393a58ff1c426ea3aab7401a79a8553c098` |
+| `goal-detail-desktop.webp` | 1548 × 1067 | 1440 × 900 at 1.3208× | 47,732 | `4e7880847c5528d84e2c94256436a2100810125b99e2a15b8bda0373d366c9e2` |
+| `goal-detail-mobile.webp` | 398 × 644 | 430 × 932 at 1× | 19,154 | `4c164b5f9cad9408f45be9dcb38d757c69122e206dc41e0fe3976dd98770f4e7` |
+| `goal-creator-desktop.webp` | 710 × 600 | 1440 × 900 at 1× | 19,726 | `3ae5e56154429ed7bc7f87b774c8e5af2f02a3e2703945fc65ccda9c56f5ea7b` |
+| `goals-overview-desktop.webp` | 1548 × 1306 | 1440 × 900 at 1.2857× | 118,884 | `c463fdb0477eee00d8d67d45d74397e8127a615cb9933c2737d334b18311e4cd` |
+| `goals-mobile.webp` | 398 × 608 | 430 × 932 at 1× | 20,912 | `302e1b4742884e0d20e39eabbe3297934149ad6e862cd190777c5eebdb663116` |
+| `habits-desktop.webp` | 1548 × 1042 | 1440 × 900 at 1.3208× | 64,630 | `b501f999e047177a40c19cfa56a36f29b489bc5aa6bdf319b0e6087ba88b1321` |
+| `habits-mobile.webp` | 398 × 771 | 430 × 932 at 1.1339× | 23,026 | `33dfbe2cb92f92ac89468be5cff90258a8c30f43eb5da6ebcb534913f7a8dc22` |
+| `health-desktop.webp` | 1548 × 1133 | 1440 × 900 at 1.3208× | 62,204 | `b820cfba81b878845a609154603b35865e22c5c78ae36d6034128f61db2cf6b6` |
+| `health-mobile.webp` | 398 × 562 | 430 × 932 at 1× | 19,728 | `085b1958f6b2d9e5e92fce12463023018658ceded2e92831871536e5d2872791` |
+| `wealth-desktop.webp` | 1548 × 862 | 1440 × 900 at 1.3208× | 65,644 | `661916a4585afb0b688383a02dae84f63029bf6094fde56a7b417882ce017ca8` |
+| `wealth-mobile.webp` | 398 × 797 | 430 × 932 at 1× | 30,712 | `9baff74f3221445dfef6875a18682d276bbba037d1acac34deabad5784fe4898` |
+| `positions-desktop.webp` | 1548 × 1265 | 1440 × 900 at 1.2857× | 89,938 | `7a5f34587e8e30503ff3db00e40c487834964d8459784855fbc5a79356e271fc` |
+| `positions-card.webp` | 502 × 1166 | 1440 × 900 at 1.3351× | 29,990 | `8c240dcc83b12fa258ccd132ae273f2a13d2ebdac8fae79ee9d46687509949dc` |
+| `markets-desktop.webp` | 1548 × 960 | 1440 × 900 at 1.3208× | 62,316 | `27548ec350f7c00c3eea0299d08e8d5c877dfd0c7bc915a6a60bf793ad919771` |
+| `markets-card.webp` | 374 × 430 | 1440 × 900 at 0.9868× | 9,544 | `47f0740e049f2da06f3543e9e3552e1d434dc31cbaaa02835ffaedfbe845398e` |
+| `ecosystem-desktop.webp` | 1548 × 724 | 1440 × 900 at 1.2857× | 36,188 | `892fd5a61405e27bf4956acbf9a0f71c1fb12f9ad1cd8638155667aa6b57bbf1` |
+| `ecosystem-mobile.webp` | 398 × 704 | 430 × 932 at 1× | 22,098 | `eb47ea8abc07c24552be6f26a3adf2f8e1cad3c106ffcce44dcf2933ad84d82b` |
+
 ## Retired scripts
 
 `scripts/origami-scroll.mjs` and `scripts/origami-state.mjs` (V4's single fixed background canvas) are removed; the
