@@ -18,7 +18,17 @@
 .help-topics a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #95b2f332; background: #809bf214; color: #e5edfc; font-size: 15px; font-weight: 600; }
 .help-section { scroll-margin-top: 80px; }
 .help-section > .eyebrow { margin-bottom: 8px; }
-.help-steps { margin: 12px 0 16px; padding-left: 24px; display: grid; gap: 8px; }
+.help-steps, .help-list { margin: 12px 0 16px; padding-left: 24px; display: grid; gap: 8px; }
+.help-question { border-top: 1px solid #25334f; }
+.help-question:last-of-type { border-bottom: 1px solid #25334f; }
+.help-question > summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 48px; padding: 6px 0; list-style: none; font-size: 16px; font-weight: 650; color: var(--text-strong, #f4f8ff); cursor: pointer; }
+/* A drawn chevron (no text, so screen readers hear only the question and its open state); it flips without motion. */
+.help-question > summary::-webkit-details-marker { display: none; }
+.help-question > summary::after { content: ""; flex: none; width: 9px; height: 9px; margin-right: 8px; border-right: 2px solid #accffa; border-bottom: 2px solid #accffa; transform: translateY(-2px) rotate(45deg); }
+.help-question[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.help-question > div { padding: 0 0 12px; }
+.help-question > div > p { margin: 0; }
+.help-page .help-mail { white-space: normal; text-align: center; font-size: 15px; }
 .help-status { min-height: 1.6em; font-weight: 600; color: var(--accent-cyan, #9ee8f8) !important; }
 .help-page .keep-data { margin-top: 4px; }
 .help-page .keep-data .primary { margin: 6px 0 4px; font-size: 15px; }
