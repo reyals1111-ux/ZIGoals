@@ -34,7 +34,7 @@ No account, secret, wallet or deploy was used. Nothing reached Cloudflare.
 | 8 | **[Tier 3] In-app reminders** ([REMINDERS_V1](product/REMINDERS_V1.md)):<ul><li>a reminder time on a habit or on Water;</li><li>a card on Today once the device clock passes it, until the habit is done or the card is dismissed for today;</li><li>device key `zigoals:reminders:v1`</li></ul> | `a93b51a` |
 | 9 | **Habits tap:** the check-in paints first, then saves. If the save fails, the check-in is visibly taken back with the coded reason (Addition 1) | `fe9fa60` |
 | 9 | **Phone pages:**<ul><li>Today and Wealth fold their secondary modules to rows that open in place (nothing removed);</li><li>the habit editor, Log a meal and Staking's wallet and reward forms open as bottom sheets;</li><li>amounts no longer split inside a number</li></ul> | `ca4316d`, `d03307a` |
-| 10 | **QA decisions:**<ul><li>**QA-23:** an offline line, and in-app links keep the page;</li><li>**QA-35:** duplicate ids render safely, with no format change;</li><li>**QA-36:** a device-clock message, and the guard is kept;</li><li>**QA-37:** simulated ZIG is never valued 1:1;</li><li>**QA-38:** progress is a lower bound or "Unavailable"</li></ul> | `300ec48` |
+| 10 | **QA decisions:**<ul><li>**QA-23:** an offline line, and in-app links keep the page (a link opens again right after reconnecting, `9be5ba5`);</li><li>**QA-35:** duplicate ids render safely, with no format change;</li><li>**QA-36:** a device-clock message, and the guard is kept;</li><li>**QA-37:** simulated ZIG is never valued 1:1;</li><li>**QA-38:** progress is a lower bound or "Unavailable"</li></ul> | `300ec48`, `9be5ba5` |
 | 11 | **[Tier 3] Portfolio** ([PORTFOLIO_V1](product/PORTFOLIO_V1.md)):<ul><li>`/app/portfolio` with real or hypothetical portfolios in USD or EUR;</li><li>coins from the catalog, with the featured-coins fallback;</li><li>buy, sell and transfer transactions, with exact average-cost results only when a price is known;</li><li>device key `zigoals:portfolio:v1`</li></ul> | `dc11029`, `c2e533d` |
 | 12 | Freeze check, full gate, screenshots, product docs, this entry | `7a71bd4` (test robustness), `14df38b` (docs), this commit |
 
@@ -140,19 +140,28 @@ ZIG-target Goals are unchanged. The plan editor's "Demo valuation: 1 simulated Z
 Totals are listed per run and never added together.
 - **Unit (local, final head):** 233 files passed, 8 skipped; 2,094 tests passed, 12 skipped.
   - New: `lib/logo-intro`, `glass-progress`, `visual-format` (money), `storage-error-copy`, `lib/reminders`, `activity-keys`, `legacy-restore-clock`, `goal-progress-bounds`, `lib/portfolio`.
-- **Full gate: CI on `c2e533d`, all green** (see CI below). The owner accepted it as the final gate.
+- **Full gate: CI on `c2e533d`, all green** (see CI below). The owner accepted it as the final gate. After the merge with main, CI on `f61d584` was all green, including `account-browser` in both orders. CI on the final head, with the QA-23 follow-up `9be5ba5`, is reported on the PR.
 - **Browser, full suite (local, `c2e533d`, 2 workers): partial.** It was stopped on the owner's instruction before printing its summary, so it has no passed or skipped totals.
   - The log shows all 868 tests started. The last ones had no confirmed result.
   - **Failures reported: 4,** the 2 known sandbox brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) in both the desktop and mobile projects. They need H.264 `play()`, which this Chromium lacks, and pass in CI.
   - There were no other failures.
 - **Browser, per part (local, focused):** recorded in each commit message.
 - **CI (Milestone quality and Canonical reproducibility, per push; no re-run was used):**
-  - **`c2e533d` (the code head): all green.** Web checks, browser shards 1–3, web integration, contract and the canonical compare ([run 36968140271](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36968140271), [run 36968140209](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36968140209)).
+  - **`c2e533d`: all green.** Web checks, browser shards 1–3, web integration, contract and the canonical compare ([run 36968140271](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36968140271), [run 36968140209](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36968140209)).
   - **All green:** `6d36773`, `b83cf06` (with `888651d`), `4a129cb` (with `e7f12e5`), `12562e1`, `4a8c724` and `fe9fa60`.
   - **`14df38b` (carrying `d03307a`, `300ec48` and `dc11029`):** everything passed except browser shard 2, which the next push cancelled. The summary check "web" is red only for that reason ([run 36967045429](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36967045429)). `a93b51a` was the same: shards cancelled by the next push.
   - **`c1c0eca`:** web integration "account browser (b first)" timed out at "Section recovery secret" ([run 36935232780](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36935232780)). Part 1 does not touch account code, and it did not reproduce locally (4 of 4 passed, both orders). It passed on every later push.
   - **`f8c7174`:** `run11-food-widgets` (mobile) failed: the test left the page while a Remove was still saving ([run 36939984693](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36939984693)). `7a71bd4` makes it wait for the save; no assertion changed. It passed 12 of 12 locally and on every later push.
   - **`ca4316d`:** `platform.spec` (mobile) found the same alert twice, on the page and in the open phone sheet ([run 36962607684](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36962607684)). A real Part 9b defect, fixed in `d03307a`: the page's alert waits while a sheet is open.
+  - **`8898235` (STATUS only; its code is `c2e533d`'s):** in web integration, `account-browser` (b-first) timed out after 10 s waiting for the sync after "Confirm reviewed resolution" (`account-browser.test.mjs:90`, [run 36970726468](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36970726468)). It was this test's second failure on this PR, so it was investigated, not re-run:
+    - **Nothing ties it to this PR:**
+      - The diff touches no sync, vault or account code; `use-private-store.ts` changes only error wording.
+      - This PR's runs were not slower. b-first averaged 57.1 s over its 11 passing runs, against 63.8 s over 9 runs of main, Session J and Session G; a-first averaged 61.0 s against 63.7 s (CI logs).
+      - Locally it passed 4 of 4 on each build: this branch 62.6–66.9 s, base `fc906e8` 65.9–66.5 s.
+    - **Not proven unrelated either:** 2 failures in 13 runs here (at two different steps, both b-first) against 0 in 9 elsewhere is too few to decide.
+    - **Diagnostics:** when its 10 s wait fails, the test logs nothing (`log: []`), so CI cannot show the cause. Follow-up below.
+    - **Defect found:** the investigation found a real QA-23 defect, fixed in `9be5ba5` with a test. A link click right after reconnecting could be held. It is not this failure's cause: a held click would have stopped the test earlier, at "Sync now".
+  - **`f61d584` (merge with main, and STATUS): all green.** Web checks, browser shards 1–3, web integration (`account-browser` passed in both orders), contract and the canonical compare ([run 36971184064](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36971184064), [run 36971184061](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36971184061)).
 - **New specs:**
   - `logo-fold`, `page-marks`, `progress-glass`, `counters-compact`;
   - `storage-errors`, `ecosystem-cards`, `staking-page`;
@@ -174,6 +183,7 @@ Totals are listed per run and never added together.
   - several records have no audits, an unknown KYC status, or only one description line.
 - **Alpha:** connect the market catalog and prices, so Markets and Portfolio show live values.
 - **Unused assets:** `/media/zigoals-intro.mp4`, its poster and `/media/zigoals-logo-intro.mp4` are no longer used; they are a cleanup candidate.
+- **`scripts/run10/account-browser.test.mjs`:** on a timeout in `synced()`, print the sync panel's status and alert lines, so a CI failure shows its cause (see CI above, `8898235`).
 - **(f) Tier 3:** `lib/private-storage.ts` validate-once (see the Tier 3 section above).
 
 ## How the owner can review
