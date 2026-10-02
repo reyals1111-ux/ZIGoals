@@ -1,5 +1,5 @@
 # ZIGoals
-**Goals, Habits & Health.** The Goal Layer for ZIGChain — goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
+**Goals, Habits & Health = Wealth.** Goal-oriented onchain wealth planning, progress tracking and strategy orchestration.
 
 ## Current state
 

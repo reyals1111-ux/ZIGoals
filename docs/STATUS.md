@@ -184,6 +184,202 @@ Totals are listed per run and never added together.
   5. Open Portfolio.
   6. At phone width, check Today, Wealth and the sheets.
 
+# Session J — platform and CI: deploy #20, Chrome-install lock wait, ADR-006 preparation, timezone design, upgrade notes, activation tooling fixes, food readiness check (2026-10-01, [PR #56](https://github.com/reyals1111-ux/ZIGoals/pull/56), not merged or deployed)
+
+The owner calls it "Session B". It ran in parallel with Session I (`ui/session-i-2026-10-01`); `docs/STATUS.md` is the only file both lanes touch.
+
+Evidence labels:
+- **local:** this cloud session's sandbox: Ubuntu 24.04 as root, Node 24.19.0, pnpm 11.19.0, a production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright with 2 workers, and Chromium 141 standing in for `chrome`.
+- **Miniflare:** local workerd, with no Cloudflare account.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **Actions API** / **CI log:** read through the GitHub API.
+- **changelog** / **npm:** see [PENDING_UPGRADES_2026-10.md](dependencies/PENDING_UPGRADES_2026-10.md).
+
+No account, secret, wallet, Cloudflare login or deploy was used.
+- **Base:** main `fc906e8` (Alpha deploy #20).
+- **Unchanged:** no runtime, Worker or wrangler-config change; no dependency or lockfile change; no sync or encryption behaviour change.
+- **Not touched:** nothing under `apps/web/**`, `landing/**`, `workers/**`, `CLAUDE.md` or `AGENTS.md`.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | **Alpha deploy #20** recorded ([its record](#alpha-deploy--2026-10-01-evening-fc906e8-live), below), and the release identity updated. The Actions API and the deploy log equal the owner's values: source `fc906e8`, version `c583cf24-…`, rollback `f6ed4ca7-…` (deploy #19). **No mismatch.** | `3ebbc72` |
+| 1 | **TIER 3 (workflow).** Before each Chrome-install retry, CI waits (bounded, logged) for any apt/dpkg lock a timed-out attempt left held, instead of failing on it. `scripts/ci/install-chrome.sh`, with its tests, is called from both Chrome steps. | `f41e7e4` |
+| 2 | **ADR-006 preparation:** 4 failing-first `test.fails` reproductions of the sync false conflict and 6 guards. An [implementation plan for option A](architecture/ADR-006-sync-lost-confirmation.md#implementation-plan-option-a), which also corrects A's downgrade note. | `293e833`, `30ff077` |
+| 3 | **Timezone project:** [TIMEZONE_DESIGN.md](product/TIMEZONE_DESIGN.md), linked from the backlog. Pure helpers in `packages/goal-engine/src/time/`, not wired into the app. QA-04 stays UTC. | `b18f3bc`, `09ac3c7` |
+| 4 | **Upgrade notes:** [PENDING_UPGRADES_2026-10.md](dependencies/PENDING_UPGRADES_2026-10.md) covers Wrangler 4.146 (after Stage 7), CosmJS 0.39 (skipped) and middleware → proxy. No version changed. | `97b2a33` |
+| 5 | **README:** "The Goal Layer for ZIGChain" becomes the owner's slogan, "Goals, Habits & Health = Wealth". "Shape & Fold Your Own Future" is added nowhere. | `97d3afd` |
+| 5b | **Owner follow-up, TIER 3 (activation safety checker):** the stray admin-binding scan no longer reads nested repositories as files (the EISDIR fix). | `1048d2a` |
+| 5c | **Owner follow-up, TIER 3 (activation tooling):** `make-private-configs.mjs --set-market-policy` and `--set-food-user-agent` change one var in an existing private copy, byte for byte. [ACTIVATION.md](run11/ACTIVATION.md) Stage 6 steps 3–4 use them. | `c3e1a05` |
+| 5d | **Owner follow-up, docs only:** [FOOD_READINESS.md](run11/FOOD_READINESS.md) records the owner's browser check of 2026-10-01. Open Food Facts v3.4 is still served (the Nutella product, per-100g nutriments). The terms still list ODbL, DbCL and CC BY-SA, which matches the app's attribution. The API docs show v3 current, v3.6 latest and v2 deprecated, with no v3.4 deprecation. The v3.4 and attribution items are verified for 2026-10-01. The ODbL "derived database" question stays open. The move from v3.4 to v3.6 (tags schema) is added as an open item. | `6913a6f` |
+| 6 | The full gate (below) and this entry. | (this commit) |
+
+## TIER 3 commits and risk
+- **`f41e7e4` (workflow).**
+  - **Risk:** a misjudged lock could cost up to 4 min of waiting, or end in a clear "lock still held" error instead of a retry.
+  - **Safety:**
+    - With no lock held, the behaviour is identical to before: 3 × `timeout -k 10 180`, 15 s then 45 s apart, with the same messages.
+    - A 720 s step deadline keeps the old 630 s worst case and caps any new wait.
+    - The script never kills apt-get, which could interrupt dpkg.
+    - Job names (`web`, `contract`, `compare`), step names, the `ubuntu-24.04` pins, job timeouts and branch protection are unchanged. Only the two Chrome steps in `ci.yml` changed.
+- **`1048d2a` (activation safety checker).**
+  - **Risk:** skipping too much could hide a stray binding.
+  - **What it skips:** only directory entries, non-files and dangling links.
+  - **What it still reads:** every regular file, and every symlink that leads to one (stricter than the requested "skip non-files"). An unreadable regular file still stops the check (fail closed).
+- **`c3e1a05` (activation tooling).**
+  - **Risk:** a wrong edit could break a private config or set a bad value.
+  - **Safety:**
+    - Exactly one var changes. Its bytes are replaced in place or inserted; nothing else moves.
+    - The parsed result must equal the original with only that var changed.
+    - Atomic 0600 write with a read-back check.
+    - Refuses unsafe files (missing, outside the checkout, not 0600, not ignored), unsupported JSONC and bad values.
+    - Prints names only.
+  - No template, runtime, Worker or wrangler change.
+
+## Part 1 (details)
+- **Root cause** ([H's comment on #53](https://github.com/reyals1111-ux/ZIGoals/pull/53#issuecomment-5933639011)): `timeout` stops pnpm, but the sudo'd `apt-get` from `playwright install --with-deps` keeps running and holds `/var/lib/dpkg/lock-frontend`.
+- **Holder detection:** holders come from `/proc/locks`, matched by device and inode. That needs no `fuser`/psmisc (not guaranteed on the runner) and no sudo.
+- **Local, real dpkg lock** (Ubuntu 24.04, root), held 90 s by a detached process after a "timed-out" attempt 1:
+  - **old loop:** attempts 2 and 3 failed with "Unable to acquire the dpkg frontend lock", exit 1 after 60 s;
+  - **script, default settings:** logged the holder's PID every 15 s, saw the release after 75 s, and attempt 2's real `apt-get` succeeded (exit 0 after 92 s).
+- **Tests:** `scripts/ci/install-chrome.test.mjs`, 10 tests, Linux only. They include a negative control (a lock the script cannot see fails exactly as in run 36875302540). 5 of 5 local runs passed; CI web checks passed them on `ubuntu-24.04`.
+- **CI, Tier 3 commit `f41e7e4`:** Milestone quality [run 36927253971](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36927253971) and Canonical reproducibility [run 36927254044](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36927254044) succeeded on attempt 1: `web`, `contract`, `compare` and all four Chrome steps.
+- **What CI showed: the slow-mirror timeout happened on that very run.**
+  - Shard 2's attempt 1 hit the 180 s limit. apt fetched the font packages at 137 kB/s (`Fetched 21.1 MB in 2min 34s`), while the Chrome download itself took 0.7 s.
+  - The orphaned apt work kept running, finished about 1 s after the kill, and so was done inside the 15 s backoff.
+  - The lock check found no holder, and attempt 2 succeeded in 4 s.
+  - So the cause seen in CI is the Ubuntu mirror, not dl.google.com.
+- **The lock wait did its job in real CI** on `1048d2a` ([run 36929661133](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36929661133), shard 3):
+  - The mirror ran at 76 kB/s (`Fetched 21.1 MB in 4min 36s`), and attempt 1 timed out.
+  - The orphaned `apt-get` (PID 2754) held the lock. The script logged it every 15 s and waited 95 s ("apt/dpkg locks released after 95 s").
+  - Attempt 2 then succeeded.
+  - The old loop would have retried into the held lock and failed the job.
+- **But the shard still went red:** its 231 tests passed in 12.6 min, and the job crossed `timeout-minutes: 18` by about 49 s during cleanup, so it was marked cancelled.
+  - That budget was set when shards took 7.6–8.4 min; on `main` they now take 12–15 min.
+  - The known intermittent's one re-run was used, and [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/56#issuecomment-5941480974) explains it. The re-run of shard 3 (attempt 2) passed, and run #314 is green on `1048d2a`.
+- **Proposal for the owner (not done, outside the two Chrome steps this PR was limited to):** raise `web-browser` `timeout-minutes` from 18 to about 22, or pre-install the Playwright font packages in a cached step. The mirror, not the script, sets the Chrome step's length.
+
+## Part 2 (details)
+- **Tests:**
+  - `scripts/run11/sync-lost-ack.test.ts`, in memory, the same cloud shape as `cloud-sync.test.ts`;
+  - `scripts/run11/sync-lost-ack-runtime.test.mjs`, against the real private sync Worker in Miniflare.
+  - Registered as X1–X4 in [SKIPPED_TESTS.md](testing/SKIPPED_TESTS.md#expected-failures-testfails-known-bugs).
+- **Expected failures** (each fails today with the error ADR-006 describes):
+  - finance: "Conflicting financial changes";
+  - a first upload: "Unlinked local and cloud records differ";
+  - a settings field: "Conflicting settings field";
+  - the finance case on the real Worker.
+- **Guards:**
+  - the preconditions (the real Worker answers the replay idempotently with `base+1`);
+  - option C (identical content already syncs quietly);
+  - another device's head is still a real conflict;
+  - a head write that never applied clears without advancing the base;
+  - an unknown journal key is refused as damaged.
+- **Flip proof (local, never committed):** a throwaway option-A prototype turned all 4 red ("Expect test to fail"), while the 6 guards and `cloud-sync.test.ts` (19) stayed green.
+- **ADR finding:** `SyncJournal.read` is strict (`syncStateSchema`), so an older build refuses a journal with any unknown key as "damaged" *before* reading `pendingPolicy`. The pending-recovery file embeds the same schema.
+  - The plan therefore recommends **A2**: a companion record in the same IndexedDB store, which older builds ignore.
+  - **A1** (the original A) would show "Sync journal is damaged" during the in-flight window.
+  - Estimate: about 2–2.5 days, up from 1.5–2. The owner decides.
+
+## Numbers
+- **Unit (local):**
+  - `pnpm test` on the final code `c3e1a05`: **232 files passed, 8 skipped; 2091 passed, 4 expected fail, 12 skipped.**
+  - The 7 new files add 58 passed and the 4 expected failures:
+    - `install-chrome` 10;
+    - `sync-lost-ack` 5 + 3 expected fail;
+    - `sync-lost-ack-runtime` 1 + 1 expected fail;
+    - `calendar-date` 11;
+    - `zoned-day` 19;
+    - `activation-check-entries` 4;
+    - `make-private-configs-update` 8.
+  - No existing test or assertion changed.
+  - The skip count is unchanged: the new platform skip applies only off Linux.
+- **Lint, typecheck, `check:deploy-configs`:** clean.
+- **Helpers:** the 30 tests pass under host TZ UTC, Kiritimati, New York, Kolkata and Etc/GMT+12. UTC parity with the current `fundingHealth` and plan-revision expressions holds on 10,030 instants.
+- **EISDIR fix:**
+  - **Failing first:** on the old code, 3 of the 4 new tests fail (two with the exact EISDIR).
+  - **End to end,** in a scratch ops clone with the owner's kind of nested repos:
+    - old code: `activation-check.mjs --admin` exit 1 with "EISDIR", and stage7-preflight "FAIL recovery admin config is safe";
+    - fix: both PASS, and a stray binding still fails by name.
+  - The related suites pass: 68 tests.
+- **Update modes (`c3e1a05`):**
+  - **Tests:** 8, on owner copies carrying line and block comments and a trailing comma:
+    - byte-identical except the one value: replacement checked with `before.replace(old, new)`; insertion by removing the added bytes;
+    - refusals for policy files (outside, not ignored, missing, 0644, not an object), 14 bad User-Agent values (none echoed), and target copies (0644, missing, un-ignored, JSON5-only syntax, duplicate keys);
+    - no temp leftovers.
+  - **End to end,** in a scratch clone: each command changed exactly one value, or added only the new `vars` block and a comma. The files stayed 0600, an `example.com` contact was refused, and `node scripts/run11/activation-check.mjs --private` printed PASS.
+  - The related suites pass: 93 tests.
+- **Playwright (local, full suite, 2 workers, production build of `1048d2a`; `c3e1a05` changes only scripts and docs, so nothing under `apps/` differs):** **754 tests: 714 passed, 38 skipped, 2 failed (34.4 min).** The 2 failures are `logo-quickadd-goals-header.spec.ts:52` on desktop and mobile: the intro video never leaves `paused`. This sandbox's Chromium cannot play the intro (CLAUDE.md), and it passed in every CI shard. The app is unchanged by this PR, so this is a regression gate, not new coverage.
+- **CI on `1048d2a`:** Milestone quality #314 ([run 36929661133](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36929661133)) succeeded on attempt 2. Attempt 1 failed only because shard 3 crossed its 18-min job limit by about 49 s, after all its tests had passed (above). Canonical reproducibility ([run 36929661279](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36929661279)) succeeded on attempt 1.
+- **CI on `6913a6f`** (the final code of `c3e1a05` plus the FOOD_READINESS docs; #315 on `c3e1a05` was cancelled by that push): Milestone quality ([run 36935633323](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36935633323)) and Canonical reproducibility ([run 36935633283](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36935633283)) **succeeded on attempt 1**: `web`, the three browser shards, web integration, web checks, `contract` and `compare`. This docs-only commit runs CI again.
+
+## Decisions made without the owner
+- **Branch:** `platform/session-j-2026-10-01`, as in the brief; the harness proposed another name.
+- **The PR was opened as a draft** after Part 1, because CI runs only on `pull_request`. Later parts were pushed only after the Tier 3 commit's CI finished, so its run was not cancelled.
+- **The retry logic moved to `scripts/ci/install-chrome.sh`**, so there is one copy and it is testable, instead of two inline loops. Step names are kept.
+- **ADR-006 tests live in `scripts/run11/`** (this lane), importing `apps/web/lib/vault/cloud-sync.ts` read-only, as 10 existing tests there do.
+- **The time helpers live in `packages/goal-engine/src/time/`** and are not exported from the package index, so the app cannot reach them.
+- **README:** the slogan also absorbs the old bold "Goals, Habits & Health." lead, which would otherwise repeat.
+- **EISDIR fix:** symlinks to regular files are read rather than skipped; dangling links are skipped. Only `activation-check.mjs` used `git ls-files -o` in `scripts/run11`. `scripts/check-secrets.mjs` lists tracked files only.
+- **Update modes:**
+  - **Where they live:** in `make-private-configs.mjs` itself, sharing creation's policy check.
+  - **FOOD_USER_AGENT is inserted when absent:** neither template has `vars`, so a generated food copy never has one.
+  - **The User-Agent must be printable ASCII with an email contact,** stricter than the Worker's `^ZIGoals/[^\r\n]{1,160}$`.
+  - **Shell history:** the value is an argument, so it lands in shell history. ACTIVATION.md says so.
+  - **After writing,** the commands report the `--private` result but do not fail on problems in other copies. Stage 6 steps 3 and 4 can therefore run in either order.
+- **Lane notes from the owner, followed:**
+  - only the two Chrome steps changed in `ci.yml`;
+  - SKIPPED_TESTS and STATUS got new sections only, apart from the Release identity block;
+  - the Known CI intermittents table itself was not edited (see below).
+
+## Known CI intermittents (for the table above; not edited, per the lane note)
+- **Chrome download / install:** lock wait added in #56 (`f41e7e4`).
+  - The slow Ubuntu mirror (font packages at 76–137 kB/s) caused attempt-1 timeouts twice on this PR: `f41e7e4` shard 2, recovered without a wait, and `1048d2a` shard 3, recovered after a 95 s lock wait.
+  - On `1048d2a` the slower Chrome step then pushed shard 3 past its 18-min job limit by about 49 s (one re-run).
+  - Suggested table text: "slow mirror plus a tight 18-min browser-job budget".
+- **New entries:** none.
+
+## Deferred / not done
+- **The ADR-006 browser test** (`sync-lost-ack-browser.test.mjs`) belongs to the fix PR. Its CI list line would make it run against unfixed code.
+- **`shellcheck`** is not installed here, so `bash -n` was used locally. CI runs the script itself.
+- **Not read:** `nextjs.org` and `opennext.js.org` (blocked by this sandbox's network policy). Recheck before the proxy migration.
+- **No Safari or real-device run;** not needed for this lane.
+
+## Recommended order after Stage 8
+1. **ADR-006 option A first** (owner picks A1 or A2), in one small TIER 3 (auth/sync) PR:
+   - the 4 expected failures flip;
+   - add the browser test;
+   - re-accept Stage 8 rows B4, B5 and B6, plus a lost-acknowledgement row.
+
+   It is sync-only, about 2–2.5 days, and it removes the most alarming false conflict before more people sync.
+2. **Then the timezone project, in its five steps:**
+   1. failing-first TZ suites, including the QA-04 `test.fails`;
+   2. UTC-parity wiring of the helpers (no behaviour change);
+   3. the read-support release (finance v4, settings v2, the version-specific sync message);
+   4. at least one deploy later, write support and the UI;
+   5. valuation days and Health "today" as separate decisions.
+
+   It goes after ADR-006 because its format change syncs. Shipping it on a sync engine that still raises false conflicts would mix two kinds of review prompts.
+
+# Alpha deploy — 2026-10-01 evening, `fc906e8` live
+
+Evidence labels:
+- **CI log:** the deploy job's step "Report version IDs even after failure" in the run below, read via the Actions API by the Session J cloud session on 2026-10-01.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** the source, version and rollback IDs the owner reported in the Session J brief. All three equal what the CI log shows.
+
+- **Run:** Manual Alpha deployment #20, [run 36914399467](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36914399467), 2026-10-01 19:27–19:33 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `fc906e8d30fdcd4a64e01b18d387d3de5b5fc48c`, `main` after #54. (Actions API, CI log, Owner)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `c583cf24-6f44-4236-bbf2-c886548d406b`. The last observed live version is the same. (CI log, Owner)
+- **Rollback:** `f6ed4ca7-064d-4ede-b19c-9657e5e2ec39`, the version deploy #19 published, so the chain holds. (CI log, Owner)
+- **CI on `fc906e8`:** Milestone quality #310 ([run 36912067520](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36912067520)): success on attempt 1. (Actions API)
+- **Owner manual checks:** not reported with this record.
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#54](https://github.com/reyals1111-ux/ZIGoals/pull/54) (`fc906e8`): Session G, correctness fixes, Habits speed, worldwide number formatting and phone refinements. See the Session G entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Apex landing deploy — 2026-10-01 evening, `1e676ba` live on zigoals.app
 
 A separate record from the Alpha deploy numbering: the apex Worker `zigoals` is published by hand with wrangler, not by the Manual Alpha workflow, so there is no Actions run.
@@ -1544,7 +1740,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-01 evening for the [Alpha deploy #19](#alpha-deploy--2026-10-01-evening-1e676ba-live) above (recorded by Session G).
+Updated 2026-10-01 evening for the [Alpha deploy #20](#alpha-deploy--2026-10-01-evening-fc906e8-live) above (recorded by Session J).
+- Deployed source `fc906e8d30fdcd4a64e01b18d387d3de5b5fc48c`, `main` after [PR #54](https://github.com/reyals1111-ux/ZIGoals/pull/54). Verified: Actions API.
+- CI: Milestone quality #310 ([run 36912067520](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36912067520)) on `fc906e8`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #20 ([run 36914399467](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36914399467)), exact source `fc906e8`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `c583cf24-6f44-4236-bbf2-c886548d406b`; rollback `f6ed4ca7-064d-4ede-b19c-9657e5e2ec39` (the run #19 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #55, 2026-10-01 evening, recorded by Session G):
 - Deployed source `1e676ba54466ff3fdfd1d0f26c48b2b7d5e927d8`, `main` after [PR #55](https://github.com/reyals1111-ux/ZIGoals/pull/55). Verified: Actions API.
 - CI: Milestone quality #307 ([run 36904485055](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36904485055)) on `1e676ba`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #19 ([run 36906398979](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36906398979)), exact source `1e676ba`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.

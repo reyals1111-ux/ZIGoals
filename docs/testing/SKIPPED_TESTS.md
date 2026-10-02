@@ -50,3 +50,33 @@ Two platform skips, one per new phone spec. Both skip only on the `desktop` proj
 | E2 | `landscape phone: no sideways scroll and the title on the first screen on every page` (phone-pages.spec.ts:67) | `!isMobile` | Same | platform | Keep. Mobile runs it. |
 
 The full local Playwright run on `main` before Session E reported 34 skipped (Session D entry in docs/STATUS.md); with these two it reports 36. No existing skip changed.
+
+## Session J additions (2026-10-01, branch `platform/session-j-2026-10-01`)
+
+### Platform skip: CI Chrome-install script (non-Linux only)
+`scripts/ci/install-chrome.test.mjs` (10 tests) runs `scripts/ci/install-chrome.sh`, which reads `/proc/locks` to find apt/dpkg lock holders. The suite is `describe.skipIf(process.platform!=='linux')`.
+
+| # | Test (file:line) | Condition | Reason | Category | Action |
+|---|---|---|---|---|---|
+| J1–J10 | `CI Chrome install retries` (install-chrome.test.mjs:58) | not Linux | `/proc/locks` exists only on Linux | platform | Keep. CI (`ubuntu-24.04`, web checks) and every Linux checkout run all 10; on Linux, plain `pnpm test` gains 10 passed and no skip. |
+
+### Expected failures (`test.fails`, known bugs)
+These are not skips. Each test states the behaviour a planned fix must produce, and it fails today. Vitest runs each one and counts it on its own, as "N expected fail", next to "passed" and "skipped". So `pnpm test` stays green, and the skip totals above do not change. When the fix lands, the test passes, Vitest reports "Expect test to fail" and the run turns red. The fix PR then converts it to a plain `test`, which is the flip. Never re-add `.fails` to silence one.
+
+| # | Test (file:line) | Today's failure (checked by converting to `test`) | Known bug | Fix PR action |
+|---|---|---|---|---|
+| X1 | `a finance edit made after a lost acknowledgement syncs without a false financial conflict` (scripts/run11/sync-lost-ack.test.ts:50) | "Conflicting financial changes…" | [ADR-006](../architecture/ADR-006-sync-lost-confirmation.md): the lost confirmation of the final sync upload | Convert to `test` with option A |
+| X2 | `a first upload whose acknowledgement was lost does not read back as unlinked records` (scripts/run11/sync-lost-ack.test.ts:55) | "Unlinked local and cloud records differ…" | ADR-006 | Same |
+| X3 | `a field edited again after a lost acknowledgement is a plain local change, not a field conflict` (scripts/run11/sync-lost-ack.test.ts:60) | "Conflicting settings field…" | ADR-006 | Same |
+| X4 | `a finance edit after a lost acknowledgement syncs without a false conflict against the real sync Worker` (scripts/run11/sync-lost-ack-runtime.test.mjs:43, Miniflare) | "Conflicting financial changes…" | ADR-006 | Same |
+
+**Guards:** 6 plain tests in the same two files, which pass today and must still pass after the fix:
+- the reproduction's preconditions, in memory and against the real Worker, which answers the replay idempotently with `base+1`;
+- identical content already syncs quietly (option C);
+- another device's newer head is still a real conflict;
+- a head write that never applied, overtaken by another device, clears without advancing the base;
+- a journal key this build does not know is refused as damaged.
+
+A `test.fails` whose setup broke would "pass" for the wrong reason; the precondition guards fail instead.
+
+**Flip proof (local, never committed):** a throwaway option-A prototype in `cloud-sync.ts` turned X1–X4 red with "Expect test to fail". All 6 guards and the 19 tests in `apps/web/lib/vault/cloud-sync.test.ts` stayed green. The file was then restored.

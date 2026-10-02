@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {readFileSync,existsSync,realpathSync,statSync} from 'node:fs';
+import {readFileSync,existsSync,realpathSync,statSync,lstatSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync,spawnSync} from 'node:child_process';
@@ -85,11 +85,21 @@ export function validateAdminConfig(c,template,lifecycleName,{privateCopy=false}
  return errors;
 }
 /** Worker configs in the checkout (tracked, new, or ignored owner copies) that name the recovery-admin entrypoint,
- * other than the admin template and its private copy. Text match, so TOML and comments count too. */
+ * other than the admin template and its private copy. Text match, so TOML and comments count too.
+ * `git ls-files -o` also returns nested repositories (old worktrees, .toolchain/advisory-db/) as directory entries
+ * ending in "/"; those and other non-files are skipped. A symlink is read when it leads to a regular file, and an
+ * unreadable regular file still throws, so the check fails closed. */
 export function strayAdminBindings(root){
  const list=args=>execFileSync('git',['ls-files','-z',...args],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
  const configs=[...list(['-c','-o','--exclude-standard','--','*.jsonc','*.toml','*wrangler*.json']),...list(['-o','-i','--exclude-standard','--','*.owner.jsonc','*.owner.json','*.owner.toml'])];
- return [...new Set(configs)].filter(p=>p!==ADMIN_CONFIG&&p!==privatePath(ADMIN_CONFIG)&&readFileSync(resolve(root,p),'utf8').includes('LifecycleRecoveryAdmin')).map(p=>p+': binds the recovery admin entrypoint; only the local recovery-admin config may.');
+ const regularFile=p=>{
+  if(p.endsWith('/'))return false;
+  const full=resolve(root,p),entry=lstatSync(full);
+  if(entry.isFile())return true;
+  if(!entry.isSymbolicLink())return false;
+  try{return statSync(full).isFile();}catch(error){if(error?.code==='ENOENT')return false;throw error;}
+ };
+ return [...new Set(configs)].filter(p=>p!==ADMIN_CONFIG&&p!==privatePath(ADMIN_CONFIG)&&regularFile(p)&&readFileSync(resolve(root,p),'utf8').includes('LifecycleRecoveryAdmin')).map(p=>p+': binds the recovery admin entrypoint; only the local recovery-admin config may.');
 }
 /** Stage 5 check of the private recovery admin copy against the private lifecycle and private-sync copies. */
 export function checkAdmin(root,{required=true}={}){
