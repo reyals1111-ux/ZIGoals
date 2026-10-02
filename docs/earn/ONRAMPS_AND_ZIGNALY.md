@@ -54,7 +54,8 @@ registry still lists native ZIG as `uzig`/6, and a factory token named "ZIG" exi
   service accounts ([B-zignaly-api-keys](evidence/c-zignaly.md#b-zignaly-api-keys)). It is a private trading API. No
   public API, with or without keys, could be found: the API agreement, the site and the docs host were unreadable
   ([B-zignaly-public-api](evidence/c-zignaly.md#b-zignaly-public-api)).
-- **Custody.** Funds are pooled (PAMM) and held in Binance, off-chain and in Zignaly's custody
+- **Custody.** Funds are pooled (PAMM) and held off-chain in Binance accounts under Zignaly's broker arrangement;
+  investors cannot use their own exchange account
   ([B-zignaly-custody-offchain](evidence/c-zignaly.md#b-zignaly-custody-offchain)).
 - **Eligibility.** KYC applies to every user, and 14 places are excluded, the United States and Canada among them.
   Trading services left the marketplace on 2026-08-31 ([F20](EVIDENCE_2026-10.md#f20)).
