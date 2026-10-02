@@ -108,6 +108,66 @@
 - Digital Content Directive (EU) 2019/770, <https://eur-lex.europa.eu/eli/dir/2019/770/oj>
 - EU VAT One-Stop Shop, <https://vat-one-stop-shop.ec.europa.eu/>
 
+## 6. Earn: on-ramps, stablecoins, staking promotion, copy trading, referrals, KYC/AML and disclosures (research, Session N, 2026-10-02)
+Questions for the planned "earn and staking" features in [EARN_DESIGN.md](../earn/EARN_DESIGN.md). They build on §3 and do not repeat it. The facts behind them are in [EVIDENCE_2026-10.md](../earn/EVIDENCE_2026-10.md); the legal sources, each with its access time and a quote, are in its [legal register](../earn/evidence/legal-sources.md).
+
+**How these sources were checked:** this session opened the ESMA, EBA, FSMA, FCA and European Parliament pages below on 2026-10-02. EUR-Lex itself returned an AWS WAF challenge (HTTP 202, empty body) and could not be read; the same official texts were read from the EU Publications Office (Cellar), whose addresses are given next to the EUR-Lex ones. Nothing here is an answer.
+
+**What the earn design would do** (none of it is built): show options run by others (native staking, Valdora liquid staking, vaults) with their published facts and fees labelled as the provider's claims; hand the person off to a regulated on-ramp of their choice; later, prepare transactions on testnet that the person signs in their own wallet. ZIGoals would never hold funds or keys, take payment from providers, or use referral links.
+
+### 6.1 On-ramps (card or bank to crypto)
+1. Would a link or embedded widget that hands a person to a regulated on-ramp, with their own wallet address filled in, be a crypto-asset service by ZIGoals under MiCA (Art. 3(1)(16), for example reception and transmission of orders, or placing)? Does it matter whether the provider pays nothing and the address is only prefilled?
+2. Is any part of such a hand-off a payment service under PSD2 (Directive (EU) 2015/2366, Art. 4, Annex I), given that ZIGoals never touches the funds?
+3. In a hand-off, which duties stay with the on-ramp provider (identity checks, disclosures, complaints, Art. 66 information) and which, if any, fall on ZIGoals?
+4. If a provider is outside the EU, what does MiCA Art. 61 (exclusive initiative of the client) mean for showing it to EU residents at all?
+
+### 6.2 Stablecoins (MiCA Titles III and IV)
+1. Showing a balance of, or later preparing a self-signed transfer of, a stablecoin that has no MiCA white paper in ESMA's register (USDT reaches ZIGChain via IBC Eureka; ESMA's EMT register lists no Tether entry): does the Commission's Q&A 2404 or ESMA's statement on non-compliant ARTs and EMTs reach a non-custodial app?
+2. EBA's Opinion on PSD2 and MiCA says CASPs that transact e-money tokens needed PSD2 authorisation after a transition ending 2 March 2026. Could a non-custodial app that prepares user-signed EMT transfers be affected?
+3. USDC from Noble is being wound down by Circle (new minting stops 13 October 2026; the Noble USDC contract and CCTP routes pause on 12 January 2027). What must an app say to people who hold that USDC on ZIGChain, and when?
+
+### 6.3 Promoting staking and liquid staking
+1. ESMA Q&A 2067 says staking services need authorisation for custody and administration (Art. 75). Is showing third-party staking options, with their published fees and exit times, a marketing communication or advice under MiCA (Art. 3(1)(24), Art. 66(2) "fair, clear and not misleading")?
+2. Does showing a provider's own published fee (for example "10% performance fee on rewards", labelled as the provider's claim with its source and date) need further warnings, and in which form?
+3. Belgium: does the FSMA Regulation of 5 January 2023 on distributing virtual currencies to consumers (approved by the Royal Decree of 8 February 2023, in force 17 May 2023) apply to an app that shows staking or stablecoin options to Belgian consumers without selling anything? This session found no FSMA instrument from 2024.
+
+### 6.4 Copy trading
+1. The design lists Zignaly as information only (its services are off-chain and custodial). Does listing such a service, without links that pay, create duties under MiFID II (portfolio management, Art. 4(1)(8); Annex I) or ESMA's copy-trading briefing?
+2. Under MiCA, ESMA Q&A 2463 applies the copy-trading guidance to crypto-assets. Would describing how copy trading works, with its risks, be a marketing communication?
+
+### 6.5 Affiliate and referral rules
+1. ZIGoals takes no payment and uses no referral or affiliate links. Does it need to say so on each listing, and is there a standard form?
+2. The FCA (UK, PS23/6) bans "refer a friend" and new-joiner incentives for crypto promotions, and ESMA's finfluencer factsheet asks for disclosure of payments. Which EU or Belgian rules would apply if that ever changed? (No change is planned.)
+
+### 6.6 KYC and AML in a hand-off model
+1. Under the AMLR (Regulation (EU) 2024/1624; CASPs are obliged entities, applying from 10 July 2027), does a non-custodial app that never holds funds have any obligation of its own?
+2. The Transfer of Funds Regulation (Regulation (EU) 2023/1113, Art. 14) sets rules for transfers with self-hosted addresses above EUR 1,000. Who carries them when ZIGoals only prepares a transfer the person signs to or from a CASP?
+
+### 6.7 Consumer disclosures
+1. Which risk statements does each option need (slashing, unbonding and queue delays, smart-contract risk, a single admin key that can migrate the code, issuer wind-down) under the UCPD (Directive 2005/29/EC, Art. 5 to 7) and MiCA Art. 66?
+2. Does the distance-marketing regime for financial services (Directive (EU) 2023/2673, applying from 19 June 2026) apply to an app that shows options and hands off, without concluding any contract?
+3. Is the format "provider's claim · source · time read" adequate for fees and exit times, or is more needed?
+
+### 6.8 Authorisation status of the providers
+1. The MiCA transitional period ended EU-wide on 1 July 2026 (ESMA statement ESMA75-113276571-1679). Before any hand-off, how should ZIGoals check a provider's authorisation, and is ESMA's interim register (CASPS.csv) enough?
+
+**Read first** (opened 2026-10-02 unless marked):
+- MiCA, Regulation (EU) 2023/1114: <https://eur-lex.europa.eu/eli/reg/2023/1114/oj> (EUR-Lex, not opened: bot wall); read at <https://publications.europa.eu/resource/celex/32023R1114>.
+- PSD2, Directive (EU) 2015/2366: <https://eur-lex.europa.eu/eli/dir/2015/2366/oj> (not opened); read at <https://publications.europa.eu/resource/celex/32015L2366>. PSD3 and the PSR are not adopted: <https://oeil.secure.europarl.europa.eu/oeil/en/procedure-file?reference=2023/0209(COD)> and <https://oeil.secure.europarl.europa.eu/oeil/en/procedure-file?reference=2023/0210(COD)>.
+- MiFID II, Directive 2014/65/EU: <https://eur-lex.europa.eu/eli/dir/2014/65/oj> (not opened); read at <https://publications.europa.eu/resource/celex/02014L0065-20260606>.
+- Transfer of Funds Regulation (EU) 2023/1113: read at <https://publications.europa.eu/resource/celex/32023R1113>; EBA travel-rule guidelines: <https://www.eba.europa.eu/sites/default/files/2024-07/6de6e9b9-0ed9-49cd-985d-c0834b5b4356/Travel%20Rule%20Guidelines.pdf>.
+- AMLR, Regulation (EU) 2024/1624: read at <https://publications.europa.eu/resource/celex/32024R1624>.
+- UCPD, Directive 2005/29/EC: read at <https://publications.europa.eu/resource/celex/02005L0029-20260927>.
+- Directive (EU) 2023/2673 (distance financial services): read at <https://publications.europa.eu/resource/celex/32023L2673>.
+- ESMA Q&A 2404 (non-compliant ARTs and EMTs): <https://www.esma.europa.eu/publications-data/questions-answers/2404>; ESMA statement on stablecoins: <https://www.esma.europa.eu/sites/default/files/2025-01/ESMA75-223375936-6099_Statement_on_stablecoins.pdf>.
+- ESMA Q&A 2067 (staking): <https://www.esma.europa.eu/publications-data/questions-answers/2067>.
+- ESMA copy-trading briefing: <https://www.esma.europa.eu/sites/default/files/2023-03/ESMA35-42-1428_Supervisory_Briefing_on_Copy_Trading.pdf>; Q&A 2463: <https://www.esma.europa.eu/publications-data/questions-answers/2463>.
+- ESMA on the end of MiCA transitional periods: <https://www.esma.europa.eu/sites/default/files/2026-04/ESMA75-113276571-1679_Statement_on_the_end_of_transitional_periods_under_MiCA.pdf>; ESMA's MiCA page and interim register: <https://www.esma.europa.eu/esmas-activities/digital-finance-and-innovation/markets-crypto-assets-regulation-mica>.
+- ESMA finfluencer factsheet: <https://www.esma.europa.eu/document/finfluencers-tips-responsible-promotion>.
+- EBA on ARTs and EMTs, including the PSD2 and MiCA opinion: <https://www.eba.europa.eu/regulation-and-policy/asset-referenced-and-e-money-tokens-mica>.
+- FSMA (Belgium) virtual-currency distribution rules: <https://www.fsma.be/en/news/new-rules-advertisements-virtual-currencies-enter-force>; the Regulation: <https://www.fsma.be/sites/default/files/media/files/2023-03/reglem_05-01-2023_en.pdf>; CASPs: <https://www.fsma.be/en/crypto-asset-service-provider-casp>.
+- FCA (UK, reference only): PS23/6 <https://www.fca.org.uk/publication/policy/ps23-6.pdf> and FG24/1 <https://www.fca.org.uk/publication/finalised-guidance/fg24-1.pdf>.
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);
