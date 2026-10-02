@@ -4,20 +4,21 @@ import { captureName, intendedDifference, matrix, ONBOARDING_KEY, PAGES, SIZES, 
 describe("desktop freeze check", () => {
   test("covers every main page at the four frozen sizes, in Showcase and empty", () => {
     const names = new Set(matrix().map(item => item.name));
-    const pages = ["today", "goals", "goal-detail", "habits", "health", "wealth", "markets", "staking", "portfolio", "ecosystem", "activity", "settings"];
+    const pages = ["today", "goals", "goal-detail", "habits", "health", "wealth", "markets", "staking", "portfolio", "ecosystem", "activity", "settings", "help"];
     for (const size of ["1440x900", "1280x800", "1024x768", "820x1180"]) for (const page of pages) {
       expect(names.has(captureName(size, "showcase", page))).toBe(true);
       // An empty profile has no Goal to open, so Goal detail is Showcase-only.
       expect(names.has(captureName(size, "empty", page))).toBe(page !== "goal-detail");
     }
   });
-  test("captures Staking at its own address and Portfolio, never the redirecting Stake / Positions address", () => {
+  test("captures Staking at its own address, Portfolio and Help, never the redirecting Stake / Positions address", () => {
     const paths = PAGES.map(page => page.path);
     expect(paths).toContain("/app/staking");
     expect(paths).toContain("/app/portfolio");
+    expect(paths).toContain("/app/help");
     expect(paths).not.toContain("/app/goals/positions");
-    // 6 sizes x (12 pages x 2 states - the Showcase-only Goal detail) + 4 dialog captures.
-    expect(matrix().length).toBe(142);
+    // 6 sizes x (13 pages x 2 states - the Showcase-only Goal detail) + 4 dialog captures.
+    expect(matrix().length).toBe(154);
   });
   test("never includes a phone size: every size is at least 768 wide and taller than 500", () => {
     for (const size of SIZES) { expect(size.width).toBeGreaterThanOrEqual(768); expect(size.height).toBeGreaterThan(500); }
