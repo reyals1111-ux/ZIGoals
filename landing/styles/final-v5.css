@@ -1,0 +1,60 @@
+/* Landing V5 (Session N). Loaded last. V4's language and tokens are kept; this layer owns the equation story,
+   the fold stages and the V5 sections. Motion only ever changes transform and opacity, nothing loops, and every
+   motion state has a complete static form: reduced motion, ?motion=off (html.motion-off), no script, short screens. */
+
+/* ---------- The equation: Goals, Habits & Health = Wealth ---------- */
+.eqv5{position:relative;background:radial-gradient(ellipse at 50% 38%,#49356326,transparent 58%),linear-gradient(#040a18,#030917)}
+.eqv5-stage{position:relative;display:flex;align-items:center;padding:120px 0 40px}
+.eqv5-stage:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;background:radial-gradient(1px 1px at 12% 22%,#d9ecff 50%,transparent 51%),radial-gradient(1px 1px at 82% 14%,#c9d8ff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 66% 72%,#f2d8ff 50%,transparent 51%),radial-gradient(1px 1px at 28% 84%,#bfefff 50%,transparent 51%),radial-gradient(1px 1px at 92% 58%,#e2e9ff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 6% 62%,#d6f6ff 50%,transparent 51%)}
+.eqv5-inner{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center}
+.eqv5 .eqv5-eyebrow{justify-content:center;font-size:16px;letter-spacing:.14em;font-weight:700;background:linear-gradient(100deg,#abf3ff,#70c0ff 45%,#bb9fff);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:clamp(18px,4vh,44px)}
+.eqv5-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:clamp(12px,2.4vw,40px);row-gap:clamp(14px,3vh,30px);width:100%;max-width:1280px;align-items:end}
+.eqv5-cell{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.6vh,18px);min-width:0}
+.eqv5-figure{width:100%;max-width:320px;max-height:30vh;aspect-ratio:640/440;height:auto;object-fit:contain;filter:drop-shadow(0 18px 38px #6d5cff2e)}
+.eqv5-word{display:inline-flex;align-items:baseline;white-space:nowrap}
+/* Each word paints its own segment of V4's spectrum, so a word can appear on its own and the four together still
+   read as one continuous nebula. Words only ever change opacity and position; their colours never change. */
+.eqv5-ink,.eqv5-comma{display:inline-block;font-size:clamp(36px,4.5vw,76px);font-weight:600;letter-spacing:-.045em;line-height:1.12;padding:0 .03em .1em;-webkit-background-clip:text;background-clip:text;color:transparent}
+.eqv5-ink i{font-style:normal;font-weight:400}
+.eqv5-comma{padding-left:0;background-image:linear-gradient(100deg,#36b6f5,#3fa8f6)}
+.eqv5-cell[data-equation="0"] .eqv5-ink{background-image:linear-gradient(100deg,#f3f6ff 0%,#b6f6ff 16%,#1cd9ee 60%,#36b6f5 100%)}
+.eqv5-cell[data-equation="1"] .eqv5-ink{background-image:linear-gradient(100deg,#3fa8f6 0%,#459df7 30%,#7b7cfb 100%)}
+.eqv5-cell[data-equation="2"] .eqv5-ink{background-image:linear-gradient(100deg,#7b7cfb 0%,#936eff 34%,#c968f2 100%)}
+.eqv5-cell[data-equation="3"] .eqv5-ink{background-image:linear-gradient(100deg,#c968f2 0%,#e665e9 42%,#ffa59e 100%);font-weight:650}
+.eqv5 .equation-track{justify-content:center;margin:clamp(18px,3.4vh,34px) 0 0}
+.eqv5-steps{list-style:none;margin:0;padding:0}
+.eqv5-outro{position:relative;text-align:center;padding:clamp(40px,7vh,80px) 0 clamp(80px,12vh,130px)}
+.eqv5-outro .equation-caption{margin:0 auto}
+.eqv5-outro .quiet-note{font-size:16px;color:#e0eaf8;margin-top:24px}
+
+/* Pinned story: the stage stays on screen while four step blocks, one viewport each, scroll past. Block k crosses the
+   middle of the screen exactly when the section has scrolled k viewports, so step 1 lights as the stage pins.
+   The same media query is in scripts/equation.js. */
+@media (scripting:enabled) and (prefers-reduced-motion:no-preference) and (min-height:561px){
+  html:not(.motion-off) .eqv5-stage{position:sticky;top:0;height:100vh;height:100svh;padding:74px 0 20px;overflow:hidden}
+  html:not(.motion-off) .eqv5-steps{margin-top:-100vh;margin-top:-100svh;padding-top:50vh;padding-top:50svh}
+  html:not(.motion-off) .eqv5-step{height:100vh;height:100svh}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell,html.eqv5-ready:not(.motion-off) .eqv5-comma{transition:opacity .6s var(--ease)}
+  html.eqv5-ready:not(.motion-off) .eqv5-figure{transition:transform .9s var(--ease)}
+  html.eqv5-ready:not(.motion-off) .eqv5-word{transition:transform .7s var(--ease)}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell:not(.is-on),html.eqv5-ready:not(.motion-off) .eqv5-comma:not(.is-on){opacity:0}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell:not(.is-on) .eqv5-figure{transform:translateY(28px) scale(.88) rotate(-6deg)}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell:not(.is-on) .eqv5-word{transform:translateY(20px)}
+}
+
+/* Phones: two by two, read left to right, top to bottom. */
+@media (max-width:700px){
+  .eqv5-stage{padding:96px 0 28px}
+  .eqv5 .eqv5-eyebrow{font-size:15px;letter-spacing:.1em}
+  .eqv5-grid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px}
+  .eqv5-figure{max-width:220px;max-height:17vh}
+  .eqv5-ink,.eqv5-comma{font-size:clamp(28px,8.6vw,40px)}
+  .eqv5-outro .quiet-note{max-width:330px;margin-inline:auto}
+}
+@media (max-width:700px) and (scripting:enabled) and (prefers-reduced-motion:no-preference) and (min-height:561px){
+  html:not(.motion-off) .eqv5-stage{padding:72px 0 16px}
+}
+
+@media (forced-colors:active){
+  .eqv5 .eqv5-eyebrow,.eqv5-ink,.eqv5-comma{color:CanvasText!important;background:none!important}
+}

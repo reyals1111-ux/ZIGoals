@@ -134,114 +134,83 @@ test("landing declares a loadable local icon and a real favicon file", async ({ 
   );
 });
 
-test("the equation reveals its four steps in scroll order", async ({ page }, info) => {
-  test.skip(info.project.name !== "desktop", "The stepped reveal runs above 700px; phones get the settled state below");
-  await page.setViewportSize({ width: 1440, height: 900 });
+// Landing V5 (Session N, owner-directed): the four steps of "Goals, Habits & Health = Wealth" appear one word per
+// step, on desktop and on phones, each word already in its final nebula look. V4's grey-to-nebula reveal (desktop
+// only, "dim" parts in #6a7c9c) is gone: a word is either not there yet or there in its final colours.
+test("the equation adds one word per step, each already in its final nebula look", async ({ page }, info) => {
+  await page.setViewportSize(info.project.name === "desktop" ? { width: 1440, height: 900 } : { width: 390, height: 844 });
   await page.goto(landingUrl);
+  await page.waitForLoadState("load");
 
-  const section = await page.evaluate(() => {
-    const rect = document.querySelector("#equation")!.getBoundingClientRect();
-    return { top: rect.top + scrollY, height: rect.height };
-  });
+  // Every word paints its own segment of the spectrum, through transparent text, before and after it appears.
+  const look = () => page.evaluate(() => [...document.querySelectorAll("#equation .eqv5-ink, #equation .eqv5-comma")].map(el => {
+    const style = getComputedStyle(el);
+    return { color: style.color, clip: style.backgroundClip, gradient: style.backgroundImage.startsWith("linear-gradient(") };
+  }));
+  const finalLook = Array(5).fill({ color: "rgba(0, 0, 0, 0)", clip: "text", gradient: true });
+  expect(await look()).toEqual(finalLook);
 
-  // A lit part is transparent, so the one continuous spectrum painted by its
-  // parent shows through. A dim part carries its own quiet colour instead, which
-  // is what makes the reveal visible rather than merely stateful.
-  const LIT = "rgba(0, 0, 0, 0)";
-  const DIM = "rgb(106, 124, 156)";
-
-  const stateAt = async (progress: number) => {
-    await page.evaluate(
-      ({ top, height, at }) => window.scrollTo(0, Math.round(top + (height - innerHeight) * at)),
-      { ...section, at: progress },
-    );
-    // Longer than the 0.55s colour transition, so a reading is a settled state.
-    await page.waitForTimeout(900);
+  const stateAt = async (viewports: number) => {
+    await page.evaluate(at => {
+      const top = document.querySelector("#equation")!.getBoundingClientRect().top + scrollY;
+      document.documentElement.style.scrollBehavior = "auto";
+      window.scrollTo(0, Math.round(top + innerHeight * at));
+    }, viewports);
+    // Longer than the 0.6s fade, so a reading is a settled state.
+    await page.waitForTimeout(1100);
     return page.evaluate(() => ({
-      active: [...document.querySelectorAll("[data-equation]")].map(el => el.classList.contains("active")),
-      ticks: [...document.querySelectorAll(".equation-track span")].map(el => el.classList.contains("active")),
-      inputs: [...document.querySelectorAll(".equation-inputs [data-equation]")].map(el => getComputedStyle(el).color),
-      plus: [...document.querySelectorAll(".equation-inputs i")].map(el => getComputedStyle(el).color),
-      wealth: [...document.querySelectorAll(".equation-result i, .equation-result .gradient-text")]
-        .map(el => getComputedStyle(el).color),
+      words: [...document.querySelectorAll("#equation [data-equation]")].map(el => Number(getComputedStyle(el).opacity)),
+      ticks: [...document.querySelectorAll("#equation .equation-track span")].map(el => el.classList.contains("active")),
     }));
   };
+  // Goals — then , Habits — then & Health — then = Wealth: one word and one progress tick per step.
+  expect(await stateAt(0.05)).toEqual({ words: [1, 0, 0, 0], ticks: [true, false, false, false] });
+  expect(await stateAt(1.05)).toEqual({ words: [1, 1, 0, 0], ticks: [true, true, false, false] });
+  expect(await stateAt(2.05)).toEqual({ words: [1, 1, 1, 0], ticks: [true, true, true, false] });
+  expect(await stateAt(3.05)).toEqual({ words: [1, 1, 1, 1], ticks: [true, true, true, true] });
+  // The look never changed on the way.
+  expect(await look()).toEqual(finalLook);
 
-  // Goals — then + Habits — then + Health — then = Wealth. Each step lights its
-  // own word, the operator that introduces it, and its progress tick.
-  expect(await stateAt(0.02)).toEqual({
-    active: [true, false, false, false],
-    ticks: [true, false, false, false],
-    inputs: [LIT, DIM, DIM],
-    plus: [DIM, DIM],
-    wealth: [DIM, DIM],
-  });
-  expect(await stateAt(0.25)).toEqual({
-    active: [true, true, false, false],
-    ticks: [true, true, false, false],
-    inputs: [LIT, LIT, DIM],
-    plus: [LIT, DIM],
-    wealth: [DIM, DIM],
-  });
-  expect(await stateAt(0.5)).toEqual({
-    active: [true, true, true, false],
-    ticks: [true, true, true, false],
-    inputs: [LIT, LIT, LIT],
-    plus: [LIT, LIT],
-    wealth: [DIM, DIM],
-  });
-  // Fully revealed: every part is transparent again, so the equation is exactly
-  // the approved continuous spectrum with nothing of this reveal left in it.
-  expect(await stateAt(0.75)).toEqual({
-    active: [true, true, true, true],
-    ticks: [true, true, true, true],
-    inputs: [LIT, LIT, LIT],
-    plus: [LIT, LIT],
-    wealth: [LIT, LIT],
-  });
-
-  // A dim part must stay legible rather than disappear: this is a quiet
-  // near-white on the near-black section, not a near-invisible ghost.
-  const contrast = await page.evaluate(dim => {
+  // Every colour of every word's spectrum stands out from the page background (at least 4.5:1, which is more than
+  // large text needs). This replaces V4's check that its grey "dim" state stayed legible.
+  const contrasts = await page.evaluate(() => {
     const channel = (value: number) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
     const luminance = (colour: string) => {
-      const [r, g, b] = colour.match(/\d+/g)!.slice(0, 3).map(part => channel(Number(part) / 255));
+      const [r, g, b] = colour.match(/[\d.]+/g)!.slice(0, 3).map(part => channel(Number(part) / 255));
       return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
     };
     const background = luminance(getComputedStyle(document.body).backgroundColor);
-    return (luminance(dim) + 0.05) / (background + 0.05);
-  }, DIM);
-  expect(contrast).toBeGreaterThan(3);
+    return [...document.querySelectorAll("#equation .eqv5-ink, #equation .eqv5-comma")].flatMap(el =>
+      (getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) ?? []).map(stop => (luminance(stop) + 0.05) / (background + 0.05)));
+  });
+  expect(contrasts.length).toBeGreaterThanOrEqual(12);
+  for (const ratio of contrasts) expect(ratio).toBeGreaterThanOrEqual(4.5);
 
-  // Scrolling back up steps the reveal back down: deterministic, not a one-way
-  // entrance.
-  const back = await stateAt(0.5);
-  expect(back.inputs).toEqual([LIT, LIT, LIT]);
-  expect(back.wealth).toEqual([DIM, DIM]);
+  // Scrolling back up steps the story back down: deterministic, not a one-way entrance.
+  expect((await stateAt(2.05)).words).toEqual([1, 1, 1, 0]);
 });
 
 test("reduced motion settles the equation on all four steps without scrolling", async ({ page }, info) => {
-  test.skip(info.project.name !== "desktop", "Paired with the desktop reveal above");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize(info.project.name === "desktop" ? { width: 1440, height: 900 } : { width: 390, height: 844 });
   await page.goto(landingUrl);
   await page.waitForTimeout(300);
 
-  // Nothing dim, nothing mid-transition: the settled, fully lit spectrum.
+  // Nothing hidden, nothing pinned, nothing mid-transition: the settled, fully lit spectrum.
   expect(await page.evaluate(() => ({
-    enabled: document.documentElement.classList.contains("equation-enabled"),
-    words: [...document.querySelectorAll("[data-equation]")].map(el => el.classList.contains("active")),
-    ticks: [...document.querySelectorAll(".equation-track span")].map(el => el.classList.contains("active")),
-    opacities: [...document.querySelectorAll("[data-equation]")].map(el => getComputedStyle(el).opacity),
-    colours: [...document.querySelectorAll(
-      ".equation-inputs [data-equation], .equation-inputs i, .equation-result i, .equation-result .gradient-text",
-    )].map(el => getComputedStyle(el).color),
+    enabled: document.documentElement.classList.contains("eqv5-ready"),
+    words: [...document.querySelectorAll("#equation [data-equation]")].map(el => el.classList.contains("is-on")),
+    ticks: [...document.querySelectorAll("#equation .equation-track span")].map(el => el.classList.contains("active")),
+    opacities: [...document.querySelectorAll("#equation [data-equation]")].map(el => getComputedStyle(el).opacity),
+    colours: [...document.querySelectorAll("#equation .eqv5-ink, #equation .eqv5-comma")].map(el => getComputedStyle(el).color),
+    stage: getComputedStyle(document.querySelector("#equation .eqv5-stage")!).position,
   }))).toEqual({
     enabled: false,
     words: [true, true, true, true],
     ticks: [true, true, true, true],
     opacities: ["1", "1", "1", "1"],
-    colours: Array(7).fill("rgba(0, 0, 0, 0)"),
+    colours: Array(5).fill("rgba(0, 0, 0, 0)"),
+    stage: "relative",
   });
 });
 
