@@ -1,0 +1,28 @@
+/*
+ * Help (Session L). The shared page header (white to nebula title), glass panels and buttons; one readable column.
+ * Body 16px, labels and fine print at least 14px, every link and button at least 44px tall.
+ */
+.help-page { display: grid; gap: 22px; min-width: 0; max-width: 980px; }
+.help-page > * { min-width: 0; }
+.help-page .page-header { margin-bottom: 4px; }
+.help-page p, .help-page li, .help-page dd { font-size: 16px; line-height: 1.6; color: var(--text-secondary, #dde7f7); }
+.help-page .fine { font-size: 15px; color: var(--text-meta, #c2d0e5); }
+.help-page h2 { font-size: clamp(1.4rem, 2.8vw, 1.8rem); line-height: 1.3; margin: 0 0 12px; }
+.help-page h3 { font-size: 18px; line-height: 1.4; margin: 20px 0 6px; color: var(--text-strong, #f4f8ff); }
+.help-page strong { color: var(--text-strong, #f4f8ff); }
+.help-page .text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 15px; }
+.help-page :is(a, button, summary):focus-visible, .help-page [tabindex="-1"]:focus-visible { outline: 2px solid #accffa; outline-offset: 4px; border-radius: 6px; }
+.help-back { margin: -8px 0 0; }
+/* The phone shell orders every nav last (nav { order: 3 }); the topic list stays where it is in the page. */
+.help-page > nav.help-topics { order: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.help-topics a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #95b2f332; background: #809bf214; color: #e5edfc; font-size: 15px; font-weight: 600; }
+.help-section { scroll-margin-top: 80px; }
+.help-section > .eyebrow { margin-bottom: 8px; }
+.help-steps { margin: 12px 0 16px; padding-left: 24px; display: grid; gap: 8px; }
+.help-status { min-height: 1.6em; font-weight: 600; color: var(--accent-cyan, #9ee8f8) !important; }
+.help-page .keep-data { margin-top: 4px; }
+.help-page .keep-data .primary { margin: 6px 0 4px; font-size: 15px; }
+@media (max-width: 600px) {
+  .help-page { gap: 18px; }
+  .help-page .keep-data .primary { width: 100%; white-space: normal; }
+}
