@@ -1,3 +1,205 @@
+# Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141.0.7390.37 standing in for `chrome`. It cannot play H.264, so the two brand-film specs fail here and pass in CI.
+- **Miniflare:** the real Workers in local workerd, with fixture sign-in. No provider was contacted and no real email was sent.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** an official page read on 2026-10-02 (iPhone findings). **UNVERIFIED** means the only official source was blocked here.
+- None of this is a hosted or real-device claim.
+
+No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** main `c189313` (Alpha deploy #21 source). This ran in parallel with Session K (`quality/session-k-2026-10-02`). `main` did not move during this session, so no merge was needed. If Session K merges first, the only expected overlap is `docs/STATUS.md`: keep both entries.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 1 | **Stage 8 coverage map,** [STAGE8_COVERAGE.md](run11/STAGE8_COVERAGE.md). Each of the 31 rows (A1–E2) lists:<ul><li>its tests, by file, line and name;</li><li>the kind of evidence and the CI job;</li><li>what tests cannot prove;</li><li>a verdict</li></ul> | `3bafc13` |
+| 2 | **Rehearsal tests for every PARTIAL row** (`scripts/run11/stage8-rehearsal/`):<ul><li>wrong, expired and reused codes, and the send cooldown, also across a reload (A1–A4);</li><li>lock, and switching accounts (A7);</li><li>no Health at the Worker before consent (B3);</li><li>exactly-once replay after a held or dropped write (B6);</li><li>camera refused and cancelled (C1, C2);</li><li>reconcile mode refuses every account route (D3 logic)</li></ul> | `11a5a7f` |
+| 3 | **[Tier 3] The encrypted-sync offer** right after sign-in (see below) | `248cbd6` |
+| 4 | **Owner run-sheet,** [STAGE8_OWNER_RUNSHEET.md](run11/STAGE8_OWNER_RUNSHEET.md): 25 numbered human-only steps in 8 parts, about 4½ h | `a650b43` |
+| 5 | **iPhone and Safari storage research,** [IOS_STORAGE.md](friends-alpha/IOS_STORAGE.md) | `66b80e1` |
+| 6 | **Install guide and "Keep my data on this device"** on a first `/app/help`. `persist()` runs only on that tap; viewing only reads `persisted()` (L3) | `2c31dcf` |
+| 7 | **[Tier 3] Installable app.**<ul><li>A manifest: name "ZIGoals", id and start `/app`, scope `/`, standalone, `#020918`.</li><li>Icons at 192, 512 and maskable 1024, plus a new 180 px Home Screen icon. All are made from the brand Z on deep navy.</li><li>The Home Screen title "ZIGoals" (L6).</li><li>No service worker, caching or CSP change</li></ul> | `1e626ee` |
+| 8 | **Help at `/app/help`:** seven sections, and one link from Settings (L2) | `ef1f54d` |
+| 9 | **Friends documents:**<ul><li>[FRIENDS_GUIDE.md](friends-alpha/FRIENDS_GUIDE.md);</li><li>[PRIVACY_NOTICE_DRAFT.md](legal/PRIVACY_NOTICE_DRAFT.md): DRAFT, for lawyer review, not legal advice, and not shown in the app (L4)</li></ul> | `93cacaa` |
+| 10 | Full gate, freeze check, screenshots and this entry. Run-sheet step 9 also asks the owner to note the status bar (`appleWebApp`, see below) | `eee9103`, this commit |
+
+## [Tier 3] commits and risk
+- **`248cbd6` (account UI: the sync offer):**
+  - **Risk:** UI only. On a new account, the card's "Turn on" calls the same handler as "Create encrypted account vault". On a new device, it only moves focus to the existing unlock field. The sync engine, vault cryptography, journal formats, sign-in and sessions are unchanged. It writes one device flag, and only on "Not now". Accounts are not configured on today's Alpha, so nothing shows there.
+  - **Rollback:** revert. Older builds ignore the flag.
+- **`1e626ee` (PWA manifest):**
+  - **Risk:** browsers that support it can install ZIGoals as an app that opens `/app` in its own window (scope `/`). There is no service worker and no caching. The CSP, middleware, `_headers`, data and storage are unchanged.
+  - **Correction to its commit message:** Next's `appleWebApp` also renders `apple-mobile-web-app-status-bar-style="default"`. That is Apple's default, the same as having no tag. Only the title meta changes anything.
+  - **Rollback:** revert. The previous 180 px icon returns.
+- **Not touched:**
+  - the sync engine, encryption, vault cryptography, journal formats, auth and session handling;
+  - Workers, wrangler config, wallet, contracts, signing and keys;
+  - `.github`, Session K's files, AGENTS.md and CLAUDE.md.
+
+  No new dependency.
+- **Existing files edited, all authorized:**
+  - `components/vault-sync-controls.tsx`: one import and one JSX line;
+  - `app/app/settings/page.tsx`: the Help link;
+  - `app/layout.tsx`: one metadata property (L6);
+  - `public/apple-touch-icon.png`: regenerated.
+
+## New device key
+| Key | Where | Written | Rollback |
+|---|---|---|---|
+| `zigoals:sync-offer:v1` = `{"version":1,"later":true}` | `localStorage`, for the whole device, with no account id | only by "Not now" on the sync offer, never on view. It is zod-validated; an unreadable value counts as answered and is never rewritten | ignored by older builds |
+
+## The encrypted-sync offer (Part 3)
+- **Visible only once accounts are activated (Stage 7/8).** Today's Alpha answers 503 for accounts, so nothing changes until then.
+- **Where and when:** in Settings → Account & sync, under the email sign-in panel, right after sign-in, while sync is off on this device:
+  - (a) a new account: "Keep your devices in sync automatically";
+  - (b) a device new to an existing vault: "Bring this device up to date".
+
+  It never shows in Showcase, while the vault is open, or on a device that already holds the account's records.
+- **"Turn on encrypted sync (recommended)":**
+  - on a new account, it does what "Create encrypted account vault" does, with "I saved" unticked, and shows the next step;
+  - on a new device, it moves focus to the recovery-secret field.
+- **"Not now":** leaves one reminder line, with "Turn on encrypted sync", in the same place.
+- **Health:** its own unticked checkbox, bound to the existing consent.
+- **Proof:**
+  - `tests/sync-offer-card.spec.ts` (route fixtures, CI shards);
+  - `stage8-rehearsal/sync-offer-browser.test.mjs` (the real Worker in Miniflare). Device A turns sync on from the card. Goals, Habits and Today reach device B, which unlocks from its own card. Health arrives only after each device's own consent.
+
+## Stage 8
+- **Verdicts** ([STAGE8_COVERAGE.md](run11/STAGE8_COVERAGE.md), 31 rows):
+  - before Part 2: 11 PROVEN-LOCAL, 9 PARTIAL, 11 HUMAN-ONLY;
+  - now: **20 PROVEN-LOCAL, 0 PARTIAL, 11 HUMAN-ONLY** (C3, C4, D0–D6, E1, E2).
+- **Run-sheet:** [STAGE8_OWNER_RUNSHEET.md](run11/STAGE8_OWNER_RUNSHEET.md), 25 steps, about 4½ h. The Stage 7 recovery rehearsal (D0) comes first.
+- **Bugs found:** none, and no `test.fails` was added.
+  - An ADR-006 probe (an edit after a dropped first-write acknowledgement) did not reproduce: 3 of 3 runs were clean.
+  - That bug needs the head write's acknowledgement to be lost, which X1–X4 already cover.
+- **Findings.** These are behaviour by design; the copy reflects them.
+  - **F1:** the recovery secret is asked after every reload, every new tab and 15 minutes idle, because keys stay in memory. The copy says so and suggests a password manager.
+  - **F2:** the iPhone Home Screen app has its own storage (below).
+  - **F3:** consenting to Health on a device that holds its own unsynced Health entry stops sync with "Unlinked local and cloud records differ. Export both before choosing what to keep." It does not merge silently; `sync-offer-browser` asserts this.
+  - **F4:** two existing account flows require a download:
+    - "Copy local records to account" needs "Download protected local copy" first;
+    - account deletion needs a deletion recovery copy.
+
+    Whether this fits "never have to download anything" is an owner decision. It is not changed here, because it is account code.
+
+## iPhone storage ([IOS_STORAGE.md](friends-alpha/IOS_STORAGE.md), sources read 2026-10-02)
+- **Separate storage (VERIFIED).**
+  - A Home Screen web app has "separate cookies and storage from the browser" (Apple, WWDC23 session 10120).
+  - Safari 17.2 copies only cookies when a site is saved to the Home Screen (Safari 17.2 release notes).
+  - So install first, then use the icon.
+- **Deletion after 7 days without use (VERIFIED).**
+  - Safari deletes script-written data for a site that had no user interaction in the last seven days of browser use (MDN "Storage quotas and eviction criteria", read from `mdn/content`).
+  - Whether a Home Screen app counts its own days: **UNVERIFIED** (webkit.org is blocked here).
+- **`persist()` (support VERIFIED).**
+  - Supported since Safari 15.2 (`persist()`, `persisted()`) and 17 (`estimate()`), per MDN browser-compat-data and the Safari 17 notes.
+  - It protects against eviction when storage is short.
+  - Whether it also protects against the 7-day rule, and Safari's rules for granting it: **UNVERIFIED**. The app claims neither.
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs` run unchanged)
+- **Against base `c189313`:** **12 of 130 captures differ, all of them Settings** (6 sizes × Showcase and empty). The other 118, including every other page, are identical (local).
+- **Accessibility tree:** each Settings snapshot is the base snapshot plus 3 inserted lines and nothing else: a paragraph containing the link "Help: install on iPhone, keep your data safe, send feedback →" (`/url: /app/help`).
+- **Pixels:** each Settings page is 64 px taller. The script skips pixel comparison when the size changes, so I compared rows directly:
+  - Above the link (y = 401–847 px, depending on size and state), only the page-height background shifts, by at most 11/255.
+  - Below the link, after the 64 px shift, the only clear differences are in decoration that does not scroll with the content:
+    - the fixed desktop sidebar (x < 240 px);
+    - a few small star highlights in the background art (for example 25 × 50 px at 1440×900, and 4 × 4 px dots at 820×1180).
+- **Authorized item:** the one Settings link (L2).
+- **Not covered:** `/app/help` is new and not in the script's page list (follow-up for Session K).
+
+## Numbers (local unless stated)
+- **`account-browser` timing** (production builds, one file at a time, 4 alternating runs per build):
+
+  | Build | a-first: median (range) | b-first: median (range) |
+  |---|---|---|
+  | main `c189313` | 65.2 s (64.9–67.1) | 65.0 s (63.4–68.7) |
+  | this branch (`93cacaa` code) | 66.4 s (65.2–69.8) | 65.6 s (64.8–67.6) |
+
+  - The ranges overlap, and every run is well under the test's 90 s limit.
+  - Overall, the branch median is about 1 s higher (66.1 s against 65.0 s).
+  - The card appears only briefly in this flow: after sign-in, until the test uses the existing create or unlock controls.
+
+## Tests
+Totals are per run and never added together.
+- **Unit (local, `93cacaa`):** 244 files passed and 14 skipped; 2,167 tests passed, 4 expected to fail (existing) and 20 skipped.
+- **Browser, full suite (local, `93cacaa`, 2 workers):** **881 passed, 47 skipped, 4 failed, 0 flaky** (36.8 min).
+  - The 4 failures are the two brand-film specs, in both projects. See "Known local-only failures" below.
+  - The 47 skips are existing project skips.
+  - The new specs all passed: `help-page` 16, `help-settings-link` 2, `install-guide` 18, `install-manifest` 8 and `sync-offer-card` 18.
+- **Integration (local, one file at a time, `RUN10_BROWSER=1`):**
+  - **The 8 CI files:** 10 passed and 1 skipped (the packaged artifact test, gated as in CI). In `account-browser`, a-first took 65.2 s and b-first 67.6 s.
+  - **One failure, a known CI intermittent:** `sync-inflight-edit-browser` "an edit during an in-flight upload syncs automatically without pausing" showed "Sync was not confirmed" (docs/STATUS.md, "Known CI intermittents").
+    - The Worker answered the held write with 200, but the app route returned 400 `REQUEST_FAILED` after 847 ms.
+    - Its one re-run passed 2 of 2, and the file passed in CI on `93cacaa` and `eee9103`.
+    - This PR changes no route, Worker or sync code.
+  - **The rehearsal folder (`scripts/run11/stage8-rehearsal`):** 10 passed in 8 files (70 s).
+- **CI (no re-run was used):**
+  - **`eee9103`** (all the code, plus the run-sheet note): **all green.** Web checks, browser shards 1–3, web integration, contract and the canonical compare ([run 37009661626](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37009661626), [run 37009661804](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37009661804)).
+  - **Green on every part:**
+    - **`3bafc13`:** [run 37000183929](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37000183929) and [run 37000183941](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37000183941).
+    - **`11a5a7f`:** [run 37001888037](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37001888037) and [run 37001888074](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37001888074).
+    - **`248cbd6`:** [run 37004077634](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37004077634) and [run 37004077650](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37004077650).
+    - **`1e626ee`**, which carries Parts 4–7: [run 37005962487](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37005962487) and [run 37005962413](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37005962413).
+  - **Cancelled by my own next push (no test failed):**
+    - **`ef1f54d`:** every Milestone quality job was cancelled; Canonical reproducibility passed.
+    - **`93cacaa`:** web checks, integration, contract and the canonical compare passed, then the browser shards were cancelled.
+    - In both runs the summary check "web" is red only for that reason.
+- **New tests.** No existing test was changed.
+  - Unit: `lib/sync-offer/offer.test.ts` (8) and `lib/install/install.test.ts` (5).
+  - In `pnpm test`: `stage8-rehearsal/sign-in-codes.test.mjs` and `reconcile-mode.test.mjs` (Miniflare).
+  - Playwright:
+    - `sync-offer-card` (9 × 2 projects);
+    - `install-guide` (9 × 2);
+    - `install-manifest` (4 × 2);
+    - `help-page` (8 × 2);
+    - `help-settings-link` (1 × 2).
+  - Gated browser rehearsals (`RUN10_BROWSER=1`, **not in CI yet**): `sign-in-codes-browser`, `lock-switch-browser`, `health-consent-cloud-browser`, `replay-browser`, `camera-browser` and `sync-offer-browser`.
+- **Known local-only failures:** `logo-quickadd-goals-header.spec.ts:53` and `:79` in both projects. The brand film's `play()` needs H.264.
+
+## Decisions made without the owner
+- **L1–L5:** no answers came with the approval, so the plan's recommendations apply:
+  - **L1:** feedback by email to contact@zigoals.app; security reports stay at hello@zigoals.app.
+  - **L2:** install guidance on Help only, reached by the one Settings link.
+  - **L3:** `persist()` only on a tap.
+  - **L4:** the privacy notice as a docs draft only.
+  - **L5:** the offer's moments, wording, and "Not now" behaviour.
+- **L6:** `appleWebApp.title` "ZIGoals".
+- **Help's answers about prices and barcode lookup are written to hold whether or not those providers are switched on.** Stage 8 switches them on (C3, C4), so "not connected yet" would have gone stale on activation day.
+
+## Follow-ups (other lanes or owner decisions; not done here)
+- **`ci.yml` (Session K):** add the six gated rehearsal files to the "Independent browser account and market integration" list. They go after `scripts/run11/packaged-runtime.test.mjs`, in this order:
+
+  `scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs scripts/run11/stage8-rehearsal/lock-switch-browser.test.mjs scripts/run11/stage8-rehearsal/health-consent-cloud-browser.test.mjs scripts/run11/stage8-rehearsal/replay-browser.test.mjs scripts/run11/stage8-rehearsal/camera-browser.test.mjs scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs`
+
+  They read `RUN11_REVIEW_ORIGIN` like the others. Locally the six gated files took about 64 s of test time (8 tests).
+- **`docs/testing/SKIPPED_TESTS.md` (Session K):** add the 8 gated tests in these 6 files.
+- **`phone/phone-chrome.tsx` `phoneRoute` (Session K):** give `/app/help` the title "Help" and a back link to Settings.
+- **The global phone rule `nav { order: 3 }` (Session K):** it moves every nav to the end on phones. Help overrides it for its topic list.
+- **`scripts/desktop-freeze-check.mjs` (Session K):** add `/app/help` to the page list.
+- **`lib/onboarding.ts`:** add `zigoals:sync-offer:v1` to `NON_PERSONAL_KEYS`, so that flag alone doesn't count as existing data for the first-run welcome.
+- **`components/storage-health.tsx`:** its "Keep a separate backup" wording should present a backup as optional.
+- **Owner decisions:**
+  - **F1:** a "remember this device" unlock (vault cryptography).
+  - **F4:** the two downloads that the account flows require.
+  - **Privacy notice:** lawyer review, then where it is published.
+- **Re-check when webkit.org is reachable:** the UNVERIFIED iPhone points above.
+- **On the owner's iPhone (run-sheet step 9):** the icon, the name, the standalone window and how the status bar looks.
+
+## How the owner can review
+- **Screenshots:** the branch `review/session-l-screenshots`, linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/59#issuecomment-5954224553).
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`, then `git checkout alpha/session-l-2026-10-02`.
+  2. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  3. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  4. Open <http://127.0.0.1:3101/app/help>.
+
+  The sync offer needs accounts, so in the preview it is seen only in the screenshots.
+
 # Session I — logo fold, page marks, liquid-glass progress, Ecosystem cards, reminders, phone pages, QA decisions, Portfolio (2026-10-01/02, [PR #57](https://github.com/reyals1111-ux/ZIGoals/pull/57), not merged or deployed)
 
 The owner calls this "Session A".
