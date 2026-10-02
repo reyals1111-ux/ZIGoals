@@ -98,6 +98,7 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   - the name is "ZIGoals";
   - the icon is the origami Z on deep navy;
   - opening it from the Home Screen shows no Safari toolbar.
+- **Also note:** how the status bar at the very top looks. The app uses Apple's default style; say if it clashes with the navy background.
 - **Record:** the iOS version, and pass or fail per item.
 
 **10. The installed app has its own storage (iOS fact check).**
