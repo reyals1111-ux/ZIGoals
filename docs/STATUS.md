@@ -1,4 +1,4 @@
-# Session K — quality, reliability and follow-ups: the account-browser race, freeze check, CI budget, QA sweep 2, one storage read, sidebar marks, landing contrast, business research (2026-10-02, [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58), not merged or deployed)
+# Session K — quality, reliability and follow-ups: the account-browser race, freeze check, CI budget, QA sweep 2, one storage read (reverted by the owner), sidebar marks, landing contrast, business research (2026-10-02, [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58), not merged or deployed)
 
 **Evidence labels**
 - **local:** this cloud session's sandbox: Ubuntu, 4 cores; Node 24.19.0 (official tarball, SHA256-checked) and pnpm 11.19.0; production builds `PUBLIC_ALPHA_UNDEPLOYED`; Playwright 1.63.0 with at most 2 workers; Chromium 141.0.7390.37 standing in for `chrome`.
@@ -10,6 +10,7 @@
 No account, secret, wallet, Cloudflare login or deploy was used. Nothing under `workers/**` or any wrangler config changed; no dependency or lockfile changed; `apps/web/AGENTS.md` and `CLAUDE.md` are untouched.
 - **Base:** main `c189313` (#57, Alpha deploy #21).
 - **Owner decisions at plan approval:** D1 yes (Part 5), D3 no (no phone marks), D4 yes (Part 3); Part 6 uses separate word-only WebP crops (1x and @2x).
+- **Owner decision after review (2026-10-02):** revert Part 5, since it brought no measurable speed-up. Done by the revert commit `d654157`; `lib/private-storage.ts` is byte-identical to main again.
 
 ## Parts
 | Part | Result | Commits |
@@ -19,11 +20,11 @@ No account, secret, wallet, Cloudflare login or deploy was used. Nothing under `
 | 2 | The freeze check captures Staking (`/app/staking`) and Portfolio (142 captures); new baseline from `c189313` (below); SKIPPED_TESTS follows #57; "The Goal Layer for ZIGChain" leaves two current docs | `83a949f` |
 | 3 | **[Tier 3] (workflow)** browser shards `timeout-minutes` 18 → 22 (D4) | `ec0c5cf` |
 | 4 | **QA sweep 2** of #57: [QA_SWEEP_2026-10-02.md](qa/QA_SWEEP_2026-10-02.md), 8 findings, no blocker or major. **QA2-01 fixed:** a quick second tap on a habit check-in, while the first saved, was ignored | `154e4af` (fix), `0301ff8` (report) |
-| 5 | **[Tier 3] (private storage)** a save reads and parses the stored module once (D1). Equivalent by test; no change measurable in the Habits tap | `af2f9e8` |
+| 5 | **Reverted by owner decision.** **[Tier 3] (private storage)** a save read and parsed the stored module once (D1). Equivalent by test, but no change measurable in the Habits tap, so the owner had it reverted: `lib/private-storage.ts` is main's again | `af2f9e8`, reverted by `d654157` |
 | 6 | **Sidebar (≥ 901 px):** the swan on the six other pages; every mark's words larger on the planet; the figures pixel-identical in place | `54e9d98` |
 | 7 | **Landing:** `prefers-contrast: more`, colour only, only what was dim | `b748bec` |
 | 8 | [COST_MODEL.md](business/COST_MODEL.md) and [LEGAL_CHECKLIST.md](business/LEGAL_CHECKLIST.md) (research only) | `f33d6cb` |
-| 9 | Full gate (below); screenshots on `review/session-k-screenshots`; SKIPPED_TESTS corrected to 47 skips; this entry | `f94e13a`, (this commit) |
+| 9 | Full gate (below); screenshots on `review/session-k-screenshots`; SKIPPED_TESTS corrected to 47 skips; this entry, then its update for the revert | `f94e13a`, `affbe30`, (this commit) |
 
 ## [Tier 3] commits and risk
 - **`436536e` (sync UI).**
@@ -32,9 +33,12 @@ No account, secret, wallet, Cloudflare login or deploy was used. Nothing under `
 - **`ec0c5cf` (workflow).**
   - **Risk:** a browser shard that truly hangs runs up to 4 more minutes before GitHub cancels it.
   - **Safety:** only that value changed: same jobs, steps, shards, workers, runner pin and branch protection.
-- **`af2f9e8` (private storage).**
+- **`af2f9e8` (private storage).** **Reverted by `d654157` (owner decision),** so its risk no longer applies; kept here as the record.
   - **Risk:** a save could keep a recovery copy when it should not (or skip one), or return a different value or error.
   - **Safety:** the stored bytes cannot change (serialized once, validated as before). `lib/private-storage-equivalence.test.ts` runs the previous implementation, kept verbatim, against this one and requires identical stored bytes, recovery copies, versions, returned values and errors (28 tests). Three deliberate mutations each fail it (3, 3 and 16 tests). One file to revert.
+- **`d654157` (private storage, the revert of `af2f9e8`).**
+  - **Risk:** none new. Saves run exactly the code that main and Alpha deploy #21 run (`git diff c189313 -- apps/web/lib/private-storage.ts` is empty).
+  - **Safety:** Part 5 was proven not to change stored bytes, versions or errors, so nothing saved while it was on this branch reads differently. The equivalence test leaves with it: it compared Part 5's code with a copy of this code.
 
 ## account-browser (Part 1): evidence and conclusion
 **Conclusion:** the b-first failures were a real race in the sync panel, not a slow runner. A person's press that landed in the moment an automatic sync started was dropped without a word, and an automatic sync scheduled just before a review could still run during it. Both are fixed in `436536e` [Tier 3]. The test was right to fail.
@@ -74,7 +78,7 @@ No account, secret, wallet, Cloudflare login or deploy was used. Nothing under `
   - QA2-08: Wealth with 200 positions is about 5% slower than on #54 (1,468 against 1,400 ms).
 - **Held up:** no sideways scroll, unnamed control, duplicate id, missing `alt`, text under 14 px or page error on any audited page; focus always visible; nothing animates under reduced motion or Motion Off; nothing loops.
 
-## Part 5 measurements (local, production builds, #54's method)
+## Part 5 measurements (local, production builds, #54's method; the change is reverted)
 Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Complete":
 
 | | Before (`154e4af`), two runs | After (`af2f9e8`), two runs |
@@ -83,7 +87,7 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
 | Tap → check-in shown, median | 12 ms, 12 ms | 12 ms, 12 ms |
 | Tap → next paint, median | 32 ms, 40 ms | 40 ms, 40 ms |
 
-**No change is measurable in the browser.** The read and parse it removes cost 4.4 ms for Habits in Node (3.7 ms for Health), inside the spread of the save's long task (which also holds React's re-render). Step 3 of the plan (validating in memory instead of the parse-back) was dropped by the plan's benchmark gate: an exact walk costs 5.1 ms against the 4.4 ms parse it would replace. The change stays because it is equivalent by test and removes redundant work; one file to revert if the owner prefers.
+**No change is measurable in the browser.** The read and parse it removes cost 4.4 ms for Habits in Node (3.7 ms for Health), inside the spread of the save's long task (which also holds React's re-render). Step 3 of the plan (validating in memory instead of the parse-back) was dropped by the plan's benchmark gate: an exact walk costs 5.1 ms against the 4.4 ms parse it would replace. I first kept the change because it is equivalent by test and removes redundant work. **The owner had it reverted (`d654157`)** because it gains nothing measurable. Session I's follow-up (f) was thus tried and measured here; these numbers are the record if it comes up again.
 
 ## Part 6 verification (local, production build)
 - **The figures did not move:** sidebar close-ups before (`c189313`) and after, at device scale 2, are identical pixel for pixel above the planet for all five marks at 1440×900, 1024×768 and 1280×720. A first version clipped all four edges and shifted a one-pixel column at a figure's edge (6–22 pixels); the clip now reaches past the top and sides, and the difference is 0.
@@ -101,7 +105,7 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
 
 ## Desktop and tablet differences (freeze check against the #21 baseline)
 - **Baseline:** production build of `c189313` with Part 2's page list: 142 captures, Chromium 141.0.7390.37, 0 page errors, manifest sha256 `a18f3a0134e3339222f32641837375ed70645843d0bc668393fb0ab9f012d234` (kept locally; baselines are never committed). The first capture attempt stopped making progress after 28 captures, on `1280x800__showcase__wealth`, for over 10 minutes (the tool's own comment records a similar 30-minute hang); it was stopped and re-run, and the second took 6.4 min. The cause was not investigated (follow-up below).
-- **Candidate:** production build of `f33d6cb` (all code of this PR): 142 captures, 0 page errors.
+- **Candidate:** production build of `f33d6cb` (all code of this PR before the Part 5 revert, which changes nothing visible): 142 captures, 0 page errors.
 - **Result:**
   - **94 identical.**
   - **48 differ only in the accessibility snapshot, with identical pixels.** Each is exactly one line removed, the sidebar's "ZIGoals" text: the six pages without a mark of their own, at the four sizes with the sidebar, Showcase and empty. This is Part 6's authorized change.
@@ -111,13 +115,15 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
 
 ## Tests (totals per run, never added together)
 - **Unit, full `pnpm test` on `f33d6cb` (local):** 242 files passed, 8 skipped; 2,185 tests passed, 4 expected failures (the ADR-006 `test.fails` reproductions), 14 skipped.
+- **Unit, full `pnpm test` after the revert (local):** 241 files passed, 8 skipped; 2,157 tests passed, 4 expected failures, 14 skipped. The difference from `f33d6cb` is exactly the equivalence file and its 28 tests.
 - **Playwright, full suite on the build of `f33d6cb`, 2 workers (local, 38.9 min):** 825 passed, 47 skipped, 4 failed.
   - The 4 failures are `logo-quickadd-goals-header.spec.ts:53` and `:79` on both projects, the intro-film specs that this sandbox's Chromium cannot play (CLAUDE.md). They passed in CI on `f33d6cb`.
   - The 47 skips match the corrected inventory (below).
 - **Focused runs** (local, production builds), each reported in its commit:
   - Part 1: account-browser loops (above); `sync-inflight-edit-browser` 4/4; unit 15/15.
   - Part 4: habit specs, 54 passed.
-  - Part 5: equivalence 28, the related unit files 81, browser 86.
+  - Part 5 (before the revert): equivalence 28, the related unit files 81, browser 86.
+  - The revert: lint and typecheck clean; Part 5's browser set (storage-errors, habit-paint-first, habits, platform-habits, the two run11 recovery specs, local-simulation-backup, run10-private-vault, health and wealth), 86 passed.
   - Part 6: sidebar specs 81 passed and 13 skipped, then 20 and 2 after the clip change; phone and logo 55 passed, 3 skipped.
   - Part 7: landing 8 passed, 2 skipped.
 - **New or changed tests:**
@@ -125,7 +131,7 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
   - account-browser diagnostics, test-only;
   - `scripts/desktop-freeze-check.test.mjs` (+1);
   - `tests/habit-paint-first.spec.ts` (+2, helper parameterised);
-  - `lib/private-storage-equivalence.test.ts` (28);
+  - `lib/private-storage-equivalence.test.ts` (28), removed again by the revert;
   - `tests/page-marks.spec.ts` (the swan on the six pages, words and figure, 8 sizes);
   - `tests/brand-nav-polish.spec.ts` (a locator names the figure);
   - `tests/landing.spec.ts` (+1).
@@ -138,13 +144,14 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
   - Not this PR's: no market, Worker or Chrome-launch code changed, and the same file passed on `436536e`.
   - [Standing-down comment](https://github.com/reyals1111-ux/ZIGoals/pull/58#issuecomment-5952323127), then the one re-run of the failed job (attempt 2), which passed: run all green.
 - **`0301ff8`, `af2f9e8`, `54e9d98` and `b748bec`:** runs cancelled by my own newer pushes, as the workflow's concurrency rule does.
-- **`f33d6cb` (all code of this PR):** all green on attempt 1 ([run 37012160707](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37012160707): web checks, web integration, browser shards 15.3, 16.4 and 16.2 min, contract, `web`; reproducibility [run 37012160705](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37012160705)).
-- **This commit (docs only):** reported on the PR.
+- **`f33d6cb` (all code of this PR before the revert):** all green on attempt 1 ([run 37012160707](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37012160707): web checks, web integration, browser shards 15.3, 16.4 and 16.2 min, contract, `web`; reproducibility [run 37012160705](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37012160705)).
+- **`affbe30` (docs only):** all green on attempt 1 ([run 37018544900](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37018544900): browser shards 11.5, 13.3 and 16.9 min; reproducibility [run 37018545214](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37018545214)).
+- **The revert (`d654157`) and this commit, pushed together:** reported on the PR.
 
 ## Known CI intermittents (table below updated)
 - **`account-browser` b-first:** explained and fixed by `436536e` (a press dropped during an automatic sync; a paused automatic sync that still ran).
 - **`market-disconnect.test.mjs`:** Chrome's launch in `beforeAll` exceeded the 45 s hook once (`ec0c5cf`). The one re-run passed.
-- **Browser shard budget:** raised to 22 min by `ec0c5cf`; this PR's shards took 14.7–16.3 min.
+- **Browser shard budget:** raised to 22 min by `ec0c5cf`; this PR's shards took 11.5–16.9 min in the four runs that finished (`436536e`, `ec0c5cf`, `f33d6cb`, `affbe30`).
 
 ## Decisions made without the owner, and deviations
 - **Helper agents:** during planning, 3 read-only explore agents ran at once, one over the brief's limit of 2. None ran after the plan.
@@ -152,7 +159,7 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
 - **QA2-01's fix:** a tap whose change would be refused while another check-in saves still waits its turn and reports why, as a first tap does. A refused save drops the taps still waiting. A second tap on "✓ Done" during the save now undoes it, as the button says.
 - **Part 5:**
   - step 3 dropped by the benchmark gate;
-  - the change kept although it gains nothing measurable in the browser.
+  - the change first kept although it gained nothing measurable in the browser; the owner then decided to revert it (`d654157`).
 - **Part 6:**
   - the clip extended past the top and sides (see above);
   - the words' contrast left as the artwork has it.
@@ -160,7 +167,7 @@ Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Comp
 - **QA severities and the Wealth timing note** (QA2-08) are my reading; the owner may rate them differently.
 
 ## Follow-ups
-- **Owner decisions:** QA2-02 to QA2-08 ([the QA sweep](qa/QA_SWEEP_2026-10-02.md#for-the-owner-visual-product-or-wording-nothing-changed)); whether to brighten the sidebar words; whether to keep Part 5.
+- **Owner decisions:** QA2-02 to QA2-08 ([the QA sweep](qa/QA_SWEEP_2026-10-02.md#for-the-owner-visual-product-or-wording-nothing-changed)); whether to brighten the sidebar words.
 - **The live landing headers:** check them on zigoals.app (this sandbox could not reach it).
 - **`scripts/desktop-freeze-check.mjs`:**
   - its captures do not show the sidebar's planet at desktop heights, so a sidebar change passes it unseen; consider a capture of the sidebar's end;
@@ -1825,7 +1832,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed. **Once more in Session K** (#58, `ec0c5cf`, run 37004534168): that `beforeAll` launch exceeded the hook's 45 s; the one re-run passed. Monitor |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
-| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 14.4–16.3 min measured |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 11.5–16.9 min measured on main and #58 |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
