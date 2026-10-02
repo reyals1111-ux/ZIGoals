@@ -1,0 +1,129 @@
+# ZIGoals privacy notice: DRAFT, for lawyer review, not legal advice
+
+> **Status.** DRAFT, for lawyer review, not legal advice. Written by Session L on 2026-10-02 from [docs/PRIVACY.md](../PRIVACY.md) and the code (sources at the end). It is **not published in the app** (owner decision L4): the app keeps today's wording until a lawyer has reviewed this. Text in **[square brackets]** is for the owner or the lawyer to fill in or decide. Nothing here may promise more than the product does: no encryption on the device, no anonymity, and no "permanent erasure everywhere".
+>
+> Two states are described. **Today** is the public Alpha: no accounts, and everything stays on the device. **Once accounts open** describes email sign-in and encrypted sync, available only after the owner activates them (Stages 7 and 8 in [docs/run11/ACTIVATION.md](../run11/ACTIVATION.md)). Optional providers (prices, barcode lookup) apply only while the owner has switched them on.
+
+---
+
+## Who we are
+
+ZIGoals is run by **[owner: legal name, address and, if required, representative]**. Privacy questions and requests: **hello@zigoals.app**. General feedback: contact@zigoals.app.
+
+## The short version
+
+- Everything you enter is kept **on your device**, in your browser. It is **not encrypted there**, so keep your device locked.
+- We have **no ads, no trackers and no app analytics**.
+- **Once accounts open,** encrypted sync is **off until you turn it on**. When it's on, your data is **encrypted on your device before it leaves**. Our server stores that encrypted data plus the details it needs to deliver it. We **cannot read** your plans, habits or health entries.
+- **Health** syncs only if you separately agree.
+- Your **recovery secret** never leaves your device. We cannot recover your data without it, and signing in by email does not recover it.
+- A few optional features ask outside services for **public information only**: a price for a public asset, or a product for a barcode.
+
+## 1. On your device (today and later)
+
+ZIGoals stores your Goals, Wealth positions and plans, Habits, Health records (foods, meals, weight, activity, targets), Today preferences and a local testnet history in your browser's storage on your device.
+
+- **Not encrypted at rest.** Anyone who can use this browser profile, a malicious browser extension, or compromised code on our site could read or change it. Locking the app does not change this.
+- **Each website address and each installed app keeps its own copy.** On iPhone, the Home Screen app has storage separate from Safari.
+- **Clearing this site's data in your browser deletes it from this device.** It does not remove anything already sent to a public blockchain.
+- **Showcase** (demo data) lives in the current tab only and is separate from your records.
+- **Exports** you download are files you control. Readable exports are **not encrypted** and contain personal data. Encrypted backups are protected by their own separate secret.
+
+## 2. Accounts and encrypted sync (once accounts open)
+
+**Signing in.** You sign in with a one-time code sent to your email.
+- **Supabase** (authentication provider) receives your email address. It creates and checks the code and keeps your sign-in identity.
+- **Resend** (email delivery) delivers the code email, so it receives your address and that message. [Owner: confirm open and click tracking are off, as ACTIVATION recommends.]
+- To slow down abuse, our admission service keeps short-lived counters. They are keyed by a keyed hash (HMAC) of your email address and of your network address group, and their windows last up to 24 hours.
+- Your session is held in secure, HttpOnly cookies. Our server keeps:
+  - a hash of each session token;
+  - its creation time;
+  - the device name you choose (default "This browser"),
+
+  so you can see your sessions and revoke them. Revoking a session blocks future access. It does not remove data already downloaded to that device.
+
+**Encrypted sync** is never on by default. You turn it on yourself; it's offered right after you sign in.
+- **Encryption.** Your device encrypts your records before sending them. Only your recovery secret, which never leaves your device, can unlock them. We cannot read their content.
+- **What our server (Cloudflare) stores and sees:**
+  - the encrypted data;
+  - your account and vault identifiers, and record identifiers;
+  - sizes and times;
+  - which part of the app a record belongs to: Goals and Wealth, Habits, Health or settings.
+
+  This is **not metadata anonymity**.
+- **Health is synced only after a separate opt-in.** Turning Health sync off later does **not** delete encrypted Health copies already stored. [Lawyer: the "which part of the app" detail can show that someone keeps Health records, though not what they say. Health data may be special-category data.]
+- **Recovery.** If you lose your recovery secret and every device, your synced data cannot be recovered by anyone, including us. Access to your email does not recover it.
+
+## 3. Optional services that receive public information only
+
+These run only while we have switched them on, and only when you use the feature. Requests go through our server, so the provider sees our server rather than your device.
+
+- **CoinGecko (prices).** Receives the public asset you picked, the quote currency and, for charts, the time range. **Never** your amounts, allocations, Goal names or IDs, wallet address, Habits or Health records. Combinations and timing of public asset choices can still hint at interests.
+- **Open Food Facts (barcode lookup).** Receives **only the barcode number** you confirmed. The camera picture stays on your device. Our server keeps the product answer for up to 24 hours, keyed only by the barcode.
+
+**Wallets and the test network.** If you connect a wallet such as Keplr, the app sees the public account you approve. Public ZIGChain services you query can see your IP address and the public account, contract or transaction you ask about. Anything confirmed on a blockchain is public and generally cannot be erased.
+
+## 4. Hosting
+
+Our host, **Cloudflare**, receives ordinary web requests. That includes your IP address, browser details and the page addresses you visit; a goal page's address contains that goal's identifier, but not its name or amounts. Cloudflare keeps infrastructure logs and aggregate statistics under its own terms. Cloudflare may add network error-reporting headers, which are separate from ZIGoals. We add no tracker. [Lawyer: Cloudflare's role and terms.]
+
+## 5. Keeping and deleting
+
+- **On your device:** until you delete it or clear this site's data.
+- **Cloud records (once accounts open):** Settings → Account deletion ("Delete cloud records").
+  - It removes the active encrypted records from our server and stops your other devices from re-creating them.
+  - You can also choose to delete your email sign-in identity at the provider.
+  - It does **not** erase copies already on your devices, or files you exported.
+  - Infrastructure backups at our providers follow their own retention.
+- **Deleting one synced part:** you can delete a single part, such as Health, from the cloud. Your local records stay on your device.
+- **Fixed retention periods** for sign-in records, session records and abuse counters are **not yet set**. [Owner and lawyer: set them; ACTIVATION.md has the operating limits.]
+
+## 6. Security
+
+We use HTTPS and a strict content security policy. Synced data is end-to-end encrypted, with keys that stay on your device. No system is perfectly secure, and these measures do not protect data on a device someone else can use, or from a hostile browser extension. Please report problems privately to **hello@zigoals.app**. Never include codes, your recovery secret, or personal money or health details.
+
+## 7. Your rights
+
+[Lawyer: rights under the applicable law (for example access, correction, deletion, portability and objection), how to exercise them, and the right to complain to a supervisory authority.]
+
+Note for the lawyer: we cannot read synced content, so many requests are best served by the in-app tools: exports, section deletion and account deletion.
+
+## 8. Children
+
+[Lawyer: minimum age and wording.]
+
+## 9. Changes
+
+[Lawyer: how changes are announced, and the date of this version.]
+
+---
+
+## Questions for the lawyer and the owner
+
+1. **Who is the controller?** Name, address, and whether a representative is needed. Which law applies (for example GDPR or UK GDPR)?
+2. **Legal bases** for each purpose: the device-only app; sign-in; sync; abuse counters; optional providers; hosting logs.
+3. **Processor agreements and international transfers:**
+   - **Processors:** Supabase, Resend and Cloudflare (sync storage and hosting).
+   - **CoinGecko and Open Food Facts:** they receive only public identifiers, through our server. What is their role?
+   - **Regions:** each provider's region (ACTIVATION.md asks the owner to choose them).
+4. **Health data.** Health content is end-to-end encrypted and opt-in, but metadata can show that Health records exist. Is explicit consent wording needed, and is the current separate tick enough?
+5. **Retention periods:** for sign-in identities, session records (hash, time, device name), abuse counters and provider logs.
+6. **Device storage and consent.** Storage on the device is used only to run the app. Does it need a consent banner under the applicable ePrivacy rules? (The app has no trackers or analytics.)
+7. **Age limit** for the Alpha.
+8. **Publication:** where the final notice is shown in the app (for example Help or Settings) and how friends are told before accounts open.
+
+## Sources in the repository (2026-10-02)
+
+| Statement | Where it comes from |
+|---|---|
+| Device storage, not encrypted at rest; per-origin copies; exports; Showcase; hosting and wallet notes | [docs/PRIVACY.md](../PRIVACY.md) |
+| Ciphertext plus account, vault, record identifiers, sizes, timing and domain metadata; Health opt-in; Health copies kept after opt-out; keys in memory | [docs/PRIVACY.md](../PRIVACY.md) (Run #10 addendum); `apps/web/lib/vault/` |
+| Encrypted on the device; the recovery secret wraps a random vault key and is never sent to the backend; email cannot recover it | [docs/run10/SYNC_SECURITY_AND_RECOVERY.md](../run10/SYNC_SECURITY_AND_RECOVERY.md) |
+| Supabase email code, Resend delivery, tracking off recommendation | [docs/run10/OWNER_ACTIVATION.md](../run10/OWNER_ACTIVATION.md); [docs/run11/ACTIVATION.md](../run11/ACTIVATION.md) |
+| Abuse counters: HMAC of email and IP group, windows up to 24 h | `workers/auth-abuse/worker.mjs` (RULES, hash) |
+| HttpOnly session cookies; session records with token hash, device name and time | `apps/web/lib/server/private-account.ts`; `workers/private-sync/sessions.mjs` |
+| CoinGecko request contents | [docs/PRIVACY.md](../PRIVACY.md); `apps/web/lib/market-assets.ts` |
+| Open Food Facts: barcode only, product answer cached up to 24 h by barcode | `apps/web/app/api/food-lookup/route.ts`; `workers/food-lookup/worker.mjs` |
+| Account deletion, provider identity option, what it does not erase | `apps/web/components/account-deletion.tsx` |
+| Section deletion keeps local records | `apps/web/components/vault-sync-controls.tsx` (message "Cloud section deleted. Local records were kept.") |
+| Separate Home Screen storage on iPhone | [docs/friends-alpha/IOS_STORAGE.md](../friends-alpha/IOS_STORAGE.md) |
