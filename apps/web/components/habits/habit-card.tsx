@@ -9,10 +9,10 @@ import {HabitTimer} from "./habit-timer";
 import { GlassBar } from "../progress/glass-progress";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { visualTone } from "../visual-tone";
-import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
+import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitData, type HabitGoalLink } from "../../lib/habits";
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
-import type { HabitCardStore } from "./use-habits";
+import { habitCheckIn, type HabitCardStore } from "./use-habits";
 import { formatDate, formatDateTime, formatPlainDecimal } from "../../lib/visual-format";
 import { unitFor } from "../../lib/plural";
 import { checkInFailureMessage, storageMessageOr } from "../../lib/storage-error-copy";
@@ -29,10 +29,29 @@ function targetCopy(habit: Habit,today:string) {
   return `${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} per ${period}`;
 }
 
+/** Runs once the next frame has painted; a hidden tab paints no frames, so a short timer stands in. */
+function afterPaint(run: () => void) {
+  let done = false; const once = () => { if (!done) { done = true; run(); } };
+  requestAnimationFrame(() => setTimeout(once, 0)); setTimeout(once, 100);
+}
 export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitCardStore; compact?: boolean }) {
-  const day = habitDay(habit, store.today, store.today); const rule = habitRuleOn(habit,store.today)??habit.rules[0]!; const unit = measurementUnit(rule);
+  // Paint first, then save (Session I, Part 9): a tap shows its result on the next frame, and the save runs after that
+  // frame. If the save fails, the card returns to what is saved and says why (Part 5's coded message), so a check-in is
+  // never left showing as saved when it was not.
+  const [pending, setPending] = useState<Habit | null>(null);
+  const shown = pending ?? habit;
+  const day = habitDay(shown, store.today, store.today); const rule = habitRuleOn(shown,store.today)??shown.rules[0]!; const unit = measurementUnit(rule);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(() => formNumberText(day.count));
   async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch (error) { setError(checkInFailureMessage(error)); } finally { setBusy(false); } }
+  function checkIn(change: (data: HabitData) => HabitData) {
+    if (busy) return;
+    let preview: Habit | undefined;
+    // The change applied to this habit alone (only the changed habit is validated again, lib/habits.ts); if it is
+    // refused, nothing is painted early and the save reports why.
+    try { preview = change({ schemaVersion: 2, kind: "zigoals-habits", habits: [habit], ...(store.data.timeZone ? { timeZone: store.data.timeZone } : {}) }).habits[0]; } catch { preview = undefined; }
+    setBusy(true); setError(""); setPending(preview ?? null);
+    afterPaint(() => void store.update(change).catch((error: unknown) => setError(checkInFailureMessage(error))).finally(() => { setPending(null); setBusy(false); }));
+  }
   // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
   function typed() { try { return readFormNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(e instanceof Error ? e.message : "Enter a number."); return null; } }
   async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => store.setValue(habit.id, store.today, value)); }
@@ -42,9 +61,9 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   return <div className={`habit-completion ${compact ? "habit-completion-compact" : ""}`}>
     <div><div className="habit-count"><strong>{plain(day.count)}</strong><span> / {plain(day.target)}{unit ? ` ${unitFor(day.target, unit)}` : ""}{compact ? "" : ` per ${habitTargetPeriod(rule)}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
     <div className="habit-check-actions">
-      {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={busy || day.count === 0} onClick={() => void run(() => store.adjustCount(habit.id, store.today, -1))}>−</button>}
-      {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={busy} onClick={() => void run(() => store.addValue(habit.id, store.today, 1))}>+</button>}
-      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={busy} onClick={() => void run(() => day.status === "complete" && rule.type === "build" ? store.setValue(habit.id, store.today, 0) : store.smartDone(habit.id, store.today))}>{busy ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
+      {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={!pending && busy || day.count === 0} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.adjustCount(habit.id, store.today, -1))}>−</button>}
+      {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.addValue(habit.id, store.today, 1))}>+</button>}
+      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(day.status === "complete" && rule.type === "build" ? habitCheckIn.setValue(habit.id, store.today, 0) : habitCheckIn.smartDone(habit.id, store.today))}>{busy && !pending ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
     </div>
     {!compact && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div></form></details>}
     {error && <p className="habit-inline-error" role="alert">{error}</p>}

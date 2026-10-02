@@ -14,6 +14,29 @@ function useSharedHabitData(next: HabitData): HabitData {
   return shared;
 }
 
+type Mood = "energized" | "good" | "neutral" | "difficult" | "calm";
+/**
+ * The pure changes behind a check-in. A card applies one to its own habit to paint the result first (Session I,
+ * Part 9), then saves the same change through the store; the store's validation and write are unchanged.
+ */
+export const habitCheckIn = {
+  setValue: (id: string, date: string, value: number, note?: string, mood?: Mood) => (data: HabitData) => logHabitValue(data, id, date, value, { note, mood }),
+  addValue: (id: string, date: string, value: number) => (data: HabitData) => logHabitValue(data, id, date, value, { mode: "add" }),
+  adjustCount: (id: string, date: string, delta: number) => (data: HabitData) => {
+    const habit = data.habits.find((item) => item.id === id);
+    if (!habit) throw new Error("Habit unavailable.");
+    const day = habitDay(habit, date,habitCalendarDay(data));
+    return logHabitValue(data, id, date, Math.min(1_000_000_000, Math.max(0, day.count + delta)), { note: day.note });
+  },
+  smartDone: (id: string, date: string) => (data: HabitData) => {
+    const habit = data.habits.find((item) => item.id === id);
+    if (!habit) throw new Error("Habit unavailable.");
+    const rule = habitRuleOn(habit, date);
+    if (!rule) throw new Error("Habit is not active on this date.");
+    return logHabitValue(data, id, date, smartDoneValue(rule));
+  },
+};
+
 export function useHabits() {
   const store = usePrivateStore(HABITS_KEY, habitDataSchema, emptyHabitData);
   const data = useSharedHabitData(store.data);
@@ -33,22 +56,11 @@ export function useHabits() {
     edit: (id: string, input: HabitInput, from?:string, expected?:string) => update((data) => scheduleHabitEdit(data, id, input, from??earliestHabitChange(data.habits.find(h=>h.id===id)!,habitCalendarDay(data)),new Date(),expected)),
     setState: (id: string, state: HabitState,from?:string,expected?:string) => update((data) => scheduleHabitState(data, id, state,from??earliestHabitChange(data.habits.find(h=>h.id===id)!,habitCalendarDay(data)),new Date(),expected)),
     setCount: (id: string, date: string, count: number, note: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => update((data) => logHabitValue(data, id, date, count, { note, mood })),
-    setValue: (id: string, date: string, value: number, note?: string, mood?: "energized" | "good" | "neutral" | "difficult" | "calm") => update((data) => logHabitValue(data, id, date, value, { note, mood })),
-    addValue: (id: string, date: string, value: number) => update((data) => logHabitValue(data, id, date, value, { mode: "add" })),
+    setValue: (id: string, date: string, value: number, note?: string, mood?: Mood) => update(habitCheckIn.setValue(id, date, value, note, mood)),
+    addValue: (id: string, date: string, value: number) => update(habitCheckIn.addValue(id, date, value)),
     markDay: (id: string, date: string, status: "skipped" | "failed", note = "") => update((data) => setHabitEntryStatus(data, id, date, status, note)),
-    adjustCount: (id: string, date: string, delta: number) => update((data) => {
-      const habit = data.habits.find((item) => item.id === id);
-      if (!habit) throw new Error("Habit unavailable.");
-      const day = habitDay(habit, date,habitCalendarDay(data));
-      return logHabitValue(data, id, date, Math.min(1_000_000_000, Math.max(0, day.count + delta)), { note: day.note });
-    }),
-    smartDone: (id: string, date: string) => update((data) => {
-      const habit = data.habits.find((item) => item.id === id);
-      if (!habit) throw new Error("Habit unavailable.");
-      const rule = habitRuleOn(habit, date);
-      if (!rule) throw new Error("Habit is not active on this date.");
-      return logHabitValue(data, id, date, smartDoneValue(rule));
-    }),
+    adjustCount: (id: string, date: string, delta: number) => update(habitCheckIn.adjustCount(id, date, delta)),
+    smartDone: (id: string, date: string) => update(habitCheckIn.smartDone(id, date)),
     toggle: (id: string, date: string) => update((data) => {
       const habit = data.habits.find((item) => item.id === id);
       if (!habit) throw new Error("Habit unavailable.");
