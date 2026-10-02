@@ -13,7 +13,6 @@ import {rotateVault} from '../lib/vault/rotation';
 import {rotationTransport} from '../lib/vault/rotation-transport';
 import {LocalAccountAttach} from './local-account-attach';
 import {planLocalAttach,assertAttachSourceUnchanged,type AttachPlan} from '../lib/vault/local-attach';
-import {encryptBackup} from '../lib/vault/backup';
 import {encryptPendingRecovery} from '../lib/vault/pending-recovery';
 import {AccountDevices} from './account-devices';
 import {AccountAccess} from './account-access';
@@ -34,7 +33,7 @@ import {SyncOffer} from './account-sync-offer/sync-offer';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean;device:DeviceBinding|null};
 type Sealed={key:CryptoKey;sealed:SealedRoot;deviceKey:CryptoKey;forgets:number|null};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
-type AttachPreview={plan:AttachPlan;file:string;recovery:string;generation:number};
+type AttachPreview={plan:AttachPlan;generation:number};
 type RotationKeys=Awaited<ReturnType<typeof createVault>>;
 type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:()=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:()=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string};
 const Context=createContext<Controls|null>(null);
@@ -188,8 +187,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    const journal=await new SyncJournal(selected.account).read();if(journal.pending)throw Error('Resolve pending account sync before copying local records.');
    const remote=await cloudSnapshot(accountTransport(selected.account,fence),selected.key,selected.manifest,journal.revision,domains,journal.headRevision,journal.headDigest);
    const source=await captureData(window.localStorage,domains),accountData=await captureData(getAppStorage(),domains);fence();
-   const plan=planLocalAttach(source,accountData,remote.data,domains,selected.health),backup=await encryptBackup(plan.data);fence();
-   setAttachPreview({plan,...backup,generation:selected.generation});setMessage('Review your local copy and save its encrypted backup. Automatic sync is paused during review.');
+   // Session M (owner decision M2): the copy happens in place; the originals stay on this device, so no backup file is made.
+   const plan=planLocalAttach(source,accountData,remote.data,domains,selected.health);fence();
+   setAttachPreview({plan,generation:selected.generation});setMessage('Review the records to copy. Automatic sync is paused during review.');
   });
  });}
  async function confirmAttach(){let copied=false;await guarded(async()=>{
@@ -201,7 +201,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    const source=await captureData(window.localStorage,domains);assertAttachSourceUnchanged(preview.plan,source);
    const before=await captureData(getAppStorage(),domains),remote=await cloudSnapshot(accountTransport(selected.account,fence),selected.key,selected.manifest,journal.revision,domains,journal.headRevision,journal.headDigest);
    const plan=planLocalAttach(source,before,remote.data,domains,selected.health);fence();
-   try{await applyData(getAppStorage(),before,plan.data,fence);}catch{fence();setAttachPreview(null);throw Error('Copy interrupted. Original local records and the encrypted backup are unchanged. No partial set of copied account sections was committed. Review the account before retrying.');}
+   try{await applyData(getAppStorage(),before,plan.data,fence);}catch{fence();setAttachPreview(null);throw Error('Copy interrupted. Original local records are unchanged. No partial set of copied account sections was committed. Review the account before retrying.');}
    fence();setAttachPreview(null);copied=true;setMessage('Selected records copied to this account on this browser. Original local records were kept. Preparing encrypted sync…');
   });
  });if(copied)await sync();}
