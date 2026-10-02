@@ -55,6 +55,44 @@
   html:not(.motion-off) .eqv5-stage{padding:72px 0 16px}
 }
 
+/* ---------- Fold interludes, between sections ---------- */
+/* The settled figure is the static form: what reduced motion, ?motion=off, short screens and no script show. */
+.fold{position:relative;background:#030916}
+/* The stage paints its own navy, so the frames' black screens away inside its isolated group. */
+.fold-stage{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,#2a1f4a33,transparent 62%),linear-gradient(#030916,#020713 55%,#030916);display:grid;place-items:center;padding:clamp(40px,7vh,80px) 0 clamp(70px,11vh,120px)}
+.fold-space{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.fold-stars{position:absolute;inset:-15% 0;background-repeat:repeat}
+.fold-stars-far{opacity:.5;background-image:radial-gradient(1px 1px at 22px 34px,#cfe6ff 50%,transparent 51%),radial-gradient(1px 1px at 141px 92px,#e8dcff 50%,transparent 51%),radial-gradient(1px 1px at 262px 214px,#d7f6ff 50%,transparent 51%),radial-gradient(1px 1px at 88px 180px,#f0f4ff 50%,transparent 51%);background-size:300px 260px}
+.fold-stars-near{opacity:.8;background-image:radial-gradient(1.5px 1.5px at 60px 160px,#fff 50%,transparent 51%),radial-gradient(2px 2px at 380px 62px,#f4dcff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 232px 318px,#dcf7ff 50%,transparent 51%);background-size:460px 380px}
+.fold-planet{position:absolute;left:50%;bottom:-7%;width:max(1500px,132vw);max-width:none;height:auto;transform:translate3d(-50%,0,0);opacity:.8;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 38%);mask-image:linear-gradient(to bottom,transparent,#000 38%)}
+.fold-figure{position:relative;width:min(84vw,920px);aspect-ratio:1024/648;mix-blend-mode:screen;transform-origin:50% 62%}
+.fold-figure>img,.fold-figure>canvas{position:absolute;inset:0;width:100%;height:100%}
+.fold-figure>canvas{opacity:0}
+.fold-figure.is-drawn>canvas{opacity:1}
+.fold-figure.is-drawn>img{visibility:hidden}
+.fold-slogan{position:absolute;left:0;right:0;bottom:clamp(34px,8vh,96px);margin:0;text-align:center;font-size:clamp(48px,7vw,116px);font-weight:600;letter-spacing:-.055em;line-height:1.04;padding-bottom:.08em;background:var(--gradient);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fold[data-fold="swan"] .fold-slogan{background-image:linear-gradient(105deg,#f3f6ff,#b6f6ff 35%,#86b7ff 70%,#bda5ff)}
+.fold[data-fold="lotus"] .fold-slogan{background-image:linear-gradient(108deg,#83eaf1,#86b7ff 48%,#bda5ff)}
+.fold[data-fold="butterfly"] .fold-slogan{background-image:linear-gradient(110deg,#93b8ff,#c7a7f2 52%,#eab4eb)}
+.fold[data-fold="heart"] .fold-slogan{background-image:linear-gradient(105deg,#91ede0,#83d6f1 48%,#a4bbff)}
+.fold[data-fold="bull"] .fold-slogan{background-image:linear-gradient(105deg,#b3a6fa,#dfa1ed 48%,#ffc0d1)}
+/* Pinned: a runway 1.7 screens tall, with the stage held for its last 0.7 screen. Same media query as
+   scripts/fold-stage.mjs; the moving states start only once that script runs (html.fold-ready), and Save-Data
+   (html.fold-static) keeps the stages unpinned. */
+@media (scripting:enabled) and (prefers-reduced-motion:no-preference) and (min-height:561px){
+  html:not(.motion-off):not(.fold-static) .fold{height:170vh;height:170svh}
+  html:not(.motion-off):not(.fold-static) .fold-stage{position:sticky;top:0;height:100vh;height:100svh;padding:64px 0 0}
+  html.fold-ready:not(.motion-off) .fold-figure{opacity:0}
+  html.fold-ready:not(.motion-off) .fold-slogan{opacity:0}
+  html.fold-ready:not(.motion-off) .fold.is-near .fold-figure,html.fold-ready:not(.motion-off) .fold.is-near .fold-stars,html.fold-ready:not(.motion-off) .fold.is-near .fold-planet,html.fold-ready:not(.motion-off) .fold.is-near .fold-slogan{will-change:transform,opacity}
+}
+@media (max-width:700px){
+  .fold-figure{width:min(134vw,640px);margin-inline:calc((100% - min(134vw,640px)) / 2)}
+  .fold-slogan{font-size:clamp(44px,13vw,68px)}
+  .fold-planet{width:max(1100px,240vw);bottom:-4%}
+}
+
 @media (forced-colors:active){
-  .eqv5 .eqv5-eyebrow,.eqv5-ink,.eqv5-comma{color:CanvasText!important;background:none!important}
+  .eqv5 .eqv5-eyebrow,.eqv5-ink,.eqv5-comma,.fold-slogan{color:CanvasText!important;background:none!important}
+  .fold-space,.fold-figure>canvas{display:none}
 }

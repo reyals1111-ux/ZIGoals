@@ -93,6 +93,8 @@
     status.textContent = message;
   };
   const play = async ({ audible = false, restart = false } = {}) => {
+    // The hidden film's poster is set only when it first plays: as an attribute it was fetched with the first view.
+    if (!video.getAttribute('poster')) video.setAttribute('poster', video.dataset.poster);
     if (!video.getAttribute('src')) video.src = window.matchMedia('(max-width: 700px)').matches ? video.dataset.mobileSrc : video.dataset.src;
     if (restart || completed) video.currentTime = 0;
     completed = false; video.muted = !audible;
