@@ -45,6 +45,7 @@ export default function Settings() {
           <p className="page-lede">
             Goal plans stay on this device. Your wallet controls onchain funds.
           </p>
+          <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help: install on iPhone, keep your data safe, send feedback →</Link></p>
         </div>
       </div>
       <PhoneSettingsList/>

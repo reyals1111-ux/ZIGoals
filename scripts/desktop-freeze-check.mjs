@@ -48,6 +48,7 @@ export const PAGES = [
   { name: "ecosystem", path: "/app/ecosystem" },
   { name: "activity", path: "/app/activity" },
   { name: "settings", path: "/app/settings" },
+  { name: "help", path: "/app/help" },
   { name: "dialog-quick-add", path: "/app", showcaseOnly: true, dialog: "quick-add", sizes: ["1024x768", "820x1180-touch"] },
   { name: "dialog-add-asset", path: "/app/wealth?add=asset", showcaseOnly: true, dialog: "sheet", sizes: ["1024x768", "820x1180-touch"] },
 ];

@@ -1,3 +1,281 @@
+# Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs; then main #58 merged in and the owner's follow-ups (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141.0.7390.37 standing in for `chrome`. It cannot play H.264, so the two brand-film specs fail here and pass in CI.
+- **Miniflare:** the real Workers in local workerd, with fixture sign-in. No provider was contacted and no real email was sent.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** an official page read on 2026-10-02 (iPhone findings). **UNVERIFIED** means the only official source was blocked here.
+- None of this is a hosted or real-device claim.
+
+No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** main `c189313` (Alpha deploy #21 source). This ran in parallel with Session K (`quality/session-k-2026-10-02`).
+
+**Merged with main after Session K (#58):** `aecafde` merges `f3220e1`, now Alpha deploy #22.
+- `vault-sync-controls.tsx` merged without a conflict. K's fix is kept as it is: a person's action waits for a running automatic sync instead of being dropped, and a paused sync stays paused. The offer card's import and JSX line are unchanged. Its "Turn on" now goes through K's `guarded()` too.
+- `docs/STATUS.md` keeps both entries, this one first.
+
+**Owner follow-up (2026-10-02 afternoon):**
+- L1–L6 are confirmed as implemented.
+- Session K's lane was free, so follow-ups (a)–(e) below were done here.
+- Alpha deploy #22 is recorded (its record follows this entry, and Release identity is updated).
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 1 | **Stage 8 coverage map,** [STAGE8_COVERAGE.md](run11/STAGE8_COVERAGE.md). Each of the 31 rows (A1–E2) lists:<ul><li>its tests, by file, line and name;</li><li>the kind of evidence and the CI job;</li><li>what tests cannot prove;</li><li>a verdict</li></ul> | `3bafc13` |
+| 2 | **Rehearsal tests for every PARTIAL row** (`scripts/run11/stage8-rehearsal/`):<ul><li>wrong, expired and reused codes, and the send cooldown, also across a reload (A1–A4);</li><li>lock, and switching accounts (A7);</li><li>no Health at the Worker before consent (B3);</li><li>exactly-once replay after a held or dropped write (B6);</li><li>camera refused and cancelled (C1, C2);</li><li>reconcile mode refuses every account route (D3 logic)</li></ul> | `11a5a7f` |
+| 3 | **[Tier 3] The encrypted-sync offer** right after sign-in (see below) | `248cbd6` |
+| 4 | **Owner run-sheet,** [STAGE8_OWNER_RUNSHEET.md](run11/STAGE8_OWNER_RUNSHEET.md): 25 numbered human-only steps in 8 parts, about 4½ h | `a650b43` |
+| 5 | **iPhone and Safari storage research,** [IOS_STORAGE.md](friends-alpha/IOS_STORAGE.md) | `66b80e1` |
+| 6 | **Install guide and "Keep my data on this device"** on a first `/app/help`. `persist()` runs only on that tap; viewing only reads `persisted()` (L3) | `2c31dcf` |
+| 7 | **[Tier 3] Installable app.**<ul><li>A manifest: name "ZIGoals", id and start `/app`, scope `/`, standalone, `#020918`.</li><li>Icons at 192, 512 and maskable 1024, plus a new 180 px Home Screen icon. All are made from the brand Z on deep navy.</li><li>The Home Screen title "ZIGoals" (L6).</li><li>No service worker, caching or CSP change</li></ul> | `1e626ee` |
+| 8 | **Help at `/app/help`:** seven sections, and one link from Settings (L2) | `ef1f54d` |
+| 9 | **Friends documents:**<ul><li>[FRIENDS_GUIDE.md](friends-alpha/FRIENDS_GUIDE.md);</li><li>[PRIVACY_NOTICE_DRAFT.md](legal/PRIVACY_NOTICE_DRAFT.md): DRAFT, for lawyer review, not legal advice, and not shown in the app (L4)</li></ul> | `93cacaa` |
+| M | **Merge `main` (#58)** [Tier 3] (account UI): K's sync fix kept, offer card re-placed, both STATUS entries kept | `aecafde` |
+| D | **Alpha deploy #22** recorded (verified through the Actions API); Release identity now shows #22 live and #21 as the previous | `ddce645` |
+| F-a | **[Tier 3] (workflow)** CI's integration step runs the six gated rehearsal browser files (only that line in `ci.yml`) | `66aea3d` |
+| F-b | **`SKIPPED_TESTS.md`:** L1–L8, plus the two #58 sync-race browser tests that were not listed. Plain `pnpm test` reports 22 skipped | `36bb61d` |
+| F-c | **Phones:** Help's top bar says "Help" and steps back to Settings | `c777608` |
+| F-d | **Freeze check** covers `/app/help` (154 captures; unit test updated) | `9c27b0d` |
+| F-e | **Storage health:** a backup is an optional extra; with an account, encrypted sync is the main protection | `5b2480d` |
+| 10 | Full gate, freeze check, screenshots and this entry. Run-sheet step 9 also asks the owner to note the status bar (`appleWebApp`, see below) | `eee9103`, `814f15a`, this commit |
+
+## [Tier 3] commits and risk
+- **`248cbd6` (account UI: the sync offer):**
+  - **Risk:** UI only. On a new account, the card's "Turn on" calls the same handler as "Create encrypted account vault". On a new device, it only moves focus to the existing unlock field. The sync engine, vault cryptography, journal formats, sign-in and sessions are unchanged. It writes one device flag, and only on "Not now". Accounts are not configured on today's Alpha, so nothing shows there.
+  - **Rollback:** revert. Older builds ignore the flag.
+- **`1e626ee` (PWA manifest):**
+  - **Risk:** browsers that support it can install ZIGoals as an app that opens `/app` in its own window (scope `/`). There is no service worker and no caching. The CSP, middleware, `_headers`, data and storage are unchanged.
+  - **Correction to its commit message:** Next's `appleWebApp` also renders `apple-mobile-web-app-status-bar-style="default"`. That is Apple's default, the same as having no tag. Only the title meta changes anything.
+  - **Rollback:** revert. The previous 180 px icon returns.
+- **`aecafde` (merge of `main` #58, account UI):**
+  - **Risk:** none new. Session K's `guarded()` fix is unchanged, and the card's one import and JSX line are unchanged. The only interaction is that the card's create path now goes through K's `guarded()`.
+  - **Checks:** the account and offer specs pass (56), and the CI integration files pass locally.
+  - **Rollback:** reverting Session L's own commits removes the card. The merge itself only brings `main` in.
+- **`66aea3d` (workflow, `ci.yml`):**
+  - **Risk:** CI only. The integration step lists six more gated browser files.
+  - **Measured:** that job took 8.4 min in CI with them (run 37034640434), against its 15 min limit.
+  - **Rollback:** revert.
+- **Not touched:**
+  - the sync engine, encryption, vault cryptography, journal formats, auth and session handling;
+  - Workers, wrangler config, wallet, contracts, signing and keys;
+  - AGENTS.md and CLAUDE.md.
+
+  No new dependency.
+- **Existing files edited, all authorized:**
+  - `components/vault-sync-controls.tsx`: one import and one JSX line;
+  - `app/app/settings/page.tsx`: the Help link;
+  - `app/layout.tsx`: one metadata property (L6);
+  - `public/apple-touch-icon.png`: regenerated.
+  - **After Session K finished (owner follow-up):**
+    - `.github/workflows/ci.yml`: one line;
+    - `docs/testing/SKIPPED_TESTS.md`;
+    - `components/phone/phone-chrome.tsx`: one line;
+    - `scripts/desktop-freeze-check.mjs` and its unit test;
+    - `components/storage-health.tsx`: wording only.
+
+## New device key
+| Key | Where | Written | Rollback |
+|---|---|---|---|
+| `zigoals:sync-offer:v1` = `{"version":1,"later":true}` | `localStorage`, for the whole device, with no account id | only by "Not now" on the sync offer, never on view. It is zod-validated; an unreadable value counts as answered and is never rewritten | ignored by older builds |
+
+## The encrypted-sync offer (Part 3)
+- **Visible only once accounts are activated (Stage 7/8).** Today's Alpha answers 503 for accounts, so nothing changes until then.
+- **Where and when:** in Settings → Account & sync, under the email sign-in panel, right after sign-in, while sync is off on this device:
+  - (a) a new account: "Keep your devices in sync automatically";
+  - (b) a device new to an existing vault: "Bring this device up to date".
+
+  It never shows in Showcase, while the vault is open, or on a device that already holds the account's records.
+- **"Turn on encrypted sync (recommended)":**
+  - on a new account, it does what "Create encrypted account vault" does, with "I saved" unticked, and shows the next step;
+  - on a new device, it moves focus to the recovery-secret field.
+- **"Not now":** leaves one reminder line, with "Turn on encrypted sync", in the same place.
+- **Health:** its own unticked checkbox, bound to the existing consent.
+- **Proof:**
+  - `tests/sync-offer-card.spec.ts` (route fixtures, CI shards);
+  - `stage8-rehearsal/sync-offer-browser.test.mjs` (the real Worker in Miniflare). Device A turns sync on from the card. Goals, Habits and Today reach device B, which unlocks from its own card. Health arrives only after each device's own consent.
+
+## Stage 8
+- **Verdicts** ([STAGE8_COVERAGE.md](run11/STAGE8_COVERAGE.md), 31 rows):
+  - before Part 2: 11 PROVEN-LOCAL, 9 PARTIAL, 11 HUMAN-ONLY;
+  - now: **20 PROVEN-LOCAL, 0 PARTIAL, 11 HUMAN-ONLY** (C3, C4, D0–D6, E1, E2).
+- **Run-sheet:** [STAGE8_OWNER_RUNSHEET.md](run11/STAGE8_OWNER_RUNSHEET.md), 25 steps, about 4½ h. The Stage 7 recovery rehearsal (D0) comes first.
+- **Bugs found:** none, and no `test.fails` was added.
+  - An ADR-006 probe (an edit after a dropped first-write acknowledgement) did not reproduce: 3 of 3 runs were clean.
+  - That bug needs the head write's acknowledgement to be lost, which X1–X4 already cover.
+- **Findings.** These are behaviour by design; the copy reflects them.
+  - **F1:** the recovery secret is asked after every reload, every new tab and 15 minutes idle, because keys stay in memory. The copy says so and suggests a password manager.
+  - **F2:** the iPhone Home Screen app has its own storage (below).
+  - **F3:** consenting to Health on a device that holds its own unsynced Health entry stops sync with "Unlinked local and cloud records differ. Export both before choosing what to keep." It does not merge silently; `sync-offer-browser` asserts this.
+  - **F4:** two existing account flows require a download:
+    - "Copy local records to account" needs "Download protected local copy" first;
+    - account deletion needs a deletion recovery copy.
+
+    Whether this fits "never have to download anything" is an owner decision. It is not changed here, because it is account code.
+
+## iPhone storage ([IOS_STORAGE.md](friends-alpha/IOS_STORAGE.md), sources read 2026-10-02)
+- **Separate storage (VERIFIED).**
+  - A Home Screen web app has "separate cookies and storage from the browser" (Apple, WWDC23 session 10120).
+  - Safari 17.2 copies only cookies when a site is saved to the Home Screen (Safari 17.2 release notes).
+  - So install first, then use the icon.
+- **Deletion after 7 days without use (VERIFIED).**
+  - Safari deletes script-written data for a site that had no user interaction in the last seven days of browser use (MDN "Storage quotas and eviction criteria", read from `mdn/content`).
+  - Whether a Home Screen app counts its own days: **UNVERIFIED** (webkit.org is blocked here).
+- **`persist()` (support VERIFIED).**
+  - Supported since Safari 15.2 (`persist()`, `persisted()`) and 17 (`estimate()`), per MDN browser-compat-data and the Safari 17 notes.
+  - It protects against eviction when storage is short.
+  - Whether it also protects against the 7-day rule, and Safari's rules for granting it: **UNVERIFIED**. The app claims neither.
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs`)
+**Against the new base `f3220e1` (main with #58), at the final code (`5b2480d`).** Follow-up (d) adds Help, so the matrix has 154 captures (local):
+- **130 identical,** including every page Session K changed.
+- **12 differ, all Settings** (6 sizes × Showcase and empty):
+  - **Accessibility tree:** each snapshot is the base snapshot plus exactly 3 inserted lines (a paragraph with the link "Help: install on iPhone, keep your data safe, send feedback →", `/url: /app/help`). Nothing is removed.
+  - **Pixels:** each page is 64 px taller, and the script skips pixel comparison when the size changes, so I compared rows directly:
+    - Above the link (y = 401–847 px, depending on size and state), only the page-height background shifts, by at most 11/255.
+    - Below the link, after the 64 px shift, the only clear differences are in decoration that does not scroll with the content: the fixed desktop sidebar (x < 240 px) and a few small star highlights in the background art.
+  - **Storage health wording (e):** it sits in a closed disclosure, so no capture shows it. Its spec covers it.
+- **12 Help captures have no baseline.** `main` has no `/app/help` yet, so both sides were captured with `--only '^(?!.*__help$)'`, and compare lists Help as "missing". Help was captured on the branch alone: 12 of 12, with no page errors. It joins the baseline once this PR merges.
+- **Phone title (c):** it applies below 768 px only, so no desktop or tablet capture changed.
+- **Before the merge, against `c189313`:** 12 of 130 differed: the same Settings captures, for the same reason.
+- **Authorized item:** the one Settings link (L2).
+- **For future runs against a base without `/app/help`:** `capture` waits for a page heading, and a 404 page never shows one. Use `--only '^(?!.*__help$)'` on both sides, as here.
+
+## Numbers (local unless stated)
+- **`account-browser` timing** (production builds, one file at a time):
+
+  | Build | Runs | a-first: median (range) | b-first: median (range) |
+  |---|---|---|---|
+  | main `c189313` | 4 alternating | 65.2 s (64.9–67.1) | 65.0 s (63.4–68.7) |
+  | this branch before the merge (`93cacaa` code) | 4 alternating | 66.4 s (65.2–69.8) | 65.6 s (64.8–67.6) |
+  | this branch after merging #58 (inside the CI integration command) | 1 | 67.2 s | 67.3 s |
+
+  - Every run is well under the test's 90 s limit, and the ranges overlap.
+  - The card appears only briefly in this flow: after sign-in, until the test uses the existing create or unlock controls.
+
+## Tests
+Totals are per run and never added together. Current evidence is on the final code (`5b2480d`, after the merge and follow-ups); the pre-merge results are kept underneath.
+- **Unit (local, `5b2480d`):** 245 files passed and 14 skipped; 2,172 tests passed, 4 expected to fail (existing X1–X4) and 22 skipped. That includes K's `lib/vault-sync-user-actions.test.ts`. The 22 skips are listed in `SKIPPED_TESTS.md`.
+- **Browser, full suite (local, `5b2480d`, 2 workers):** **890 passed, 47 skipped, 5 failed, 0 flaky** (39.3 min).
+  - 4 failures are the two brand-film specs, in both projects (see "Known local-only failures" below).
+  - 1 is the known intermittent `brand-nav-polish.spec.ts:51`, whose `data-gliding` window was missed. It passed on its one re-run.
+  - The 47 skips are the existing project skips; Session L adds none.
+  - Session L's specs all passed:
+    - `help-page` 18;
+    - `help-settings-link` 2;
+    - `install-guide` 18;
+    - `install-manifest` 8;
+    - `storage-health-wording` 2;
+    - `sync-offer-card` 18.
+- **Integration (local, the CI step's exact command from the new `ci.yml`, on the merge build):** 14 files passed; 21 tests passed and 1 skipped (the gated packaged test); 292 s. It includes:
+  - `account-browser` in both orders;
+  - K's sync-race browser tests (all 4 in `sync-inflight-edit-browser`);
+  - the 8 Session L rehearsals, including `sync-offer-browser`.
+- **CI on the final code `5b2480d`: all green after one re-run of failed jobs** (Milestone quality [run 37034640434](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37034640434) attempt 2; Canonical [run 37034640466](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37034640466)).
+  - **Attempt 1, passed:**
+    - web integration, the first CI run with the six rehearsal files (8.4 min);
+    - shards 2–3;
+    - contract;
+    - canonical.
+  - **Attempt 1, failed:**
+    - web checks, in `market-fanout.test.mjs:24` (see Follow-ups; not this PR's code);
+    - shard 1, which died before any test ran: the apt/dpkg lock was held more than 240 s ("Chrome-install lock", a known intermittent).
+  - **Attempt 2:** both passed. The failures and the single re-run are explained in [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/59#issuecomment-5956872267).
+  - **`ddce645` and `36bb61d`:** cancelled by my own next pushes, so their summary check "web" is red only for that reason. Before the cancellation, web checks and contract passed on both, and on `ddce645` the integration step (the 8 earlier files on the merged code) passed too.
+- **Before the merge** (pre-merge evidence, kept):
+  - **Unit (`93cacaa`):** 2,167 passed, 4 expected to fail and 20 skipped.
+  - **Full browser suite (`93cacaa`):** 881 passed, 47 skipped and 4 failed (brand film only).
+  - **Integration:** the 8 CI files passed (the known `sync-inflight-edit-browser` intermittent passed on its one re-run), and the rehearsal folder passed 10 of 10.
+  - **CI green:**
+    - `3bafc13`: [run 37000183929](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37000183929);
+    - `11a5a7f`: [run 37001888037](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37001888037);
+    - `248cbd6`: [run 37004077634](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37004077634);
+    - `1e626ee`, which carries Parts 4–7: [run 37005962487](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37005962487);
+    - `eee9103`: [run 37009661626](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37009661626);
+    - `814f15a`: [run 37017673065](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37017673065).
+
+    Each had its canonical compare green.
+- **New tests.** No existing assertion was weakened.
+  - **Unit:** `lib/sync-offer/offer.test.ts` (8) and `lib/install/install.test.ts` (5).
+  - **In `pnpm test`:** `stage8-rehearsal/sign-in-codes.test.mjs` and `reconcile-mode.test.mjs` (Miniflare).
+  - **Playwright:**
+    - `sync-offer-card` (9 × 2 projects);
+    - `install-guide` (9 × 2);
+    - `install-manifest` (4 × 2);
+    - `help-page` (9 × 2, with the phone title test);
+    - `help-settings-link` (1 × 2);
+    - `storage-health-wording` (1 × 2).
+  - **Gated browser rehearsals, now in CI integration:** `sign-in-codes-browser`, `lock-switch-browser`, `health-consent-cloud-browser`, `replay-browser`, `camera-browser` and `sync-offer-browser`.
+  - **Changed for the follow-up (d):** `scripts/desktop-freeze-check.test.mjs` now expects Help and 154 captures.
+- **Known local-only failures:** `logo-quickadd-goals-header.spec.ts:53` and `:79` in both projects. The brand film's `play()` needs H.264.
+
+## Owner decisions
+**Confirmed by the owner as implemented (2026-10-02 afternoon).** Before that, the plan's recommendations applied, because no answers came with the approval:
+- **L1:** feedback by email to contact@zigoals.app; security reports stay at hello@zigoals.app.
+- **L2:** install guidance on Help only, reached by the one Settings link.
+- **L3:** `persist()` only on a tap.
+- **L4:** the privacy notice as a docs draft only.
+- **L5:** the offer's moments, wording, and "Not now" behaviour.
+- **L6:** `appleWebApp.title` "ZIGoals".
+
+**Made without the owner:** Help's answers about prices and barcode lookup are written to hold whether or not those providers are switched on. Stage 8 switches them on (C3, C4), so "not connected yet" would have gone stale on activation day.
+
+## Follow-ups (not done here)
+- **Done in the owner follow-up:** (a) `ci.yml`, (b) `SKIPPED_TESTS.md`, (c) Help's phone title, (d) the freeze check page list, and (e) the storage health wording. See the Parts table.
+- **Noted by the owner for a later session:**
+  - **F1:** a "remember this device" unlock (vault cryptography).
+  - **F4:** the two downloads that the account flows require.
+- **`scripts/run11/market-fanout.test.mjs` (CI race, not this PR's code):** it failed once in CI web checks on `5b2480d`, then passed on the one re-run. A follower may wait at most 1 s (`market-follow-work.ts`). The test holds the shared provider call open while it polls for all 14 followers, and on a busy runner one follower can expire, giving a degraded result. Two options (details in [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/59#issuecomment-5956872267)):
+  - run that file in its own serial CI step, with its assertions unchanged;
+  - or have the test report "runner too slow" when it released the provider call later than the follower lifetime.
+- **`lib/onboarding.ts`:** add `zigoals:sync-offer:v1` to `NON_PERSONAL_KEYS`, so that flag alone doesn't count as existing data for the first-run welcome.
+- **The global phone rule `nav { order: 3 }`:** it moves every nav to the end on phones. Help overrides it for its topic list.
+- **Privacy notice:** lawyer review, then decide where it is published.
+- **Re-check when webkit.org is reachable:** the UNVERIFIED iPhone points above.
+- **On the owner's iPhone (run-sheet step 9):** the icon, the name, the standalone window and how the status bar looks.
+
+## How the owner can review
+- **Screenshots:** the branch `review/session-l-screenshots`, linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/59#issuecomment-5954224553). They predate the merge and the follow-ups, so Help's phone top bar title (c) and the storage health note (e) are not in them. Their specs cover both.
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`, then `git checkout alpha/session-l-2026-10-02`.
+  2. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  3. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  4. Open <http://127.0.0.1:3101/app/help>.
+
+  The sync offer needs accounts, so in the preview it is seen only in the screenshots.
+
+# Alpha deploy — 2026-10-02 afternoon, `f3220e1` live
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session L cloud session on 2026-10-02. It covers the steps "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and "Report version IDs even after failure", and the run summary.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in a Session L follow-up message, 2026-10-02.
+
+- **Run:** Manual Alpha deployment #22, [run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305), 2026-10-02 16:01–16:08 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after #58. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `8848babc-8168-4c07-a5e4-0712cc6d4a54`. The last observed live version is the same. (CI log)
+- **Rollback:** `2a8015bd-d161-460e-9d37-59c0cc439578`, the version deploy #21 published, so the chain holds. (CI log)
+- **CI on `f3220e1`:** Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)): success on attempt 1. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37031082305-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result. No manual check is reported with this record. (Owner, 2026-10-02)
+
+**Merged since the last record** (git, first-parent history of `main`): [#58](https://github.com/reyals1111-ux/ZIGoals/pull/58) (`f3220e1`), Session K, quality, reliability and follow-ups. It includes:
+- a press during an automatic sync now waits instead of being dropped, and a paused automatic sync stays paused;
+- account-browser diagnostics;
+- QA sweep 2 and a habit double-tap fix;
+- the sidebar marks;
+- stronger landing contrast;
+- business docs.
+
+The owner reverted its private-storage change. See the Session K entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Session K — quality, reliability and follow-ups: the account-browser race, freeze check, CI budget, QA sweep 2, one storage read (reverted by the owner), sidebar marks, landing contrast, business research (2026-10-02, [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58), not merged or deployed)
 
 **Evidence labels**
@@ -1964,7 +2242,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 morning for the [Alpha deploy #21](#alpha-deploy--2026-10-02-morning-c189313-live) above (recorded by Session K).
+Updated 2026-10-02 afternoon for the [Alpha deploy #22](#alpha-deploy--2026-10-02-afternoon-f3220e1-live) above (recorded by Session L).
+- Deployed source `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58). Verified: Actions API.
+- CI: Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)) on `f3220e1`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #22 ([run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305)), exact source `f3220e1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `8848babc-8168-4c07-a5e4-0712cc6d4a54`; rollback `2a8015bd-d161-460e-9d37-59c0cc439578` (the run #21 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #57, 2026-10-02 morning, recorded by Session K):
 - Deployed source `c18931350bc9622769085588481abeda172ad1d6`, `main` after [PR #57](https://github.com/reyals1111-ux/ZIGoals/pull/57) (which follows [PR #56](https://github.com/reyals1111-ux/ZIGoals/pull/56)). Verified: Actions API.
 - CI: Milestone quality #334 ([run 36983085143](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36983085143)) on `c189313`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #21 ([run 36985497999](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36985497999)), exact source `c189313`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
