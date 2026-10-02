@@ -55,3 +55,18 @@ html.motion-off #origami-scroll{display:none!important}html.motion-off .origami-
 .site-footer{z-index:2}
 
 .origami-static img:not([src]){visibility:hidden}
+
+/* More contrast, when the visitor's system asks for it (prefers-contrast: more). Colour only: no size, spacing, weight
+   or layout changes, so nothing moves, and nothing gets darker. The page's text is already at least 13:1 on its
+   near-black; what it keeps dim on purpose (the "/" separators, the footer's small print, the FAQ markers, the menu
+   hints and the equation steps the scroll reveal has not reached yet) becomes a light grey of at least 7:1. The text,
+   muted, quiet and line tokens move up a step, and card edges become clearly visible. Gradient text keeps its colours. */
+@media (prefers-contrast: more){
+  :root{--text:#ffffff;--muted:#e2e8f2;--quiet:#cfd8e7;--line:rgba(214,226,246,.55)}
+  .separator,.toolbar-divider,.footer-bottom,.faq-list summary span,.footer-spark,.mobile-menu a span{color:#cfd8e7}
+  .dimension{border-color:rgba(199,214,242,.65)}
+  html.equation-enabled:not(.motion-off) .equation-inputs [data-equation]:not(.active),
+  html.equation-enabled:not(.motion-off) .equation-inputs i:has(+ [data-equation]:not(.active)),
+  html.equation-enabled:not(.motion-off) .equation-result:not(.active) i,
+  html.equation-enabled:not(.motion-off) .equation-result:not(.active) .gradient-text{color:#b8c3d6!important}
+}

@@ -1,6 +1,6 @@
 # Phase1 product requirements
 
-ZIGoals is the independent Goal Layer for ZIGChain: “Your goals. Onchain.” A goal, its progress and the required contribution come before protocols or returns.
+ZIGoals is independent. “Goals, Habits & Health = Wealth.” “Your goals. Onchain.” A goal, its progress and the required contribution come before protocols or returns.
 
 Milestone1 delivers one-owner idle goals: connect Keplr testnet, view address/balance; create a private plan and empty financial record; deposit/add funds, withdraw, close empty goal; read progress, remaining amount, planned/required contributions, deadline, projected completion, Funding Health, activity and advanced verification. Local browser simulation supports these flows without funding/whitelist and is explicitly labelled. It is not a deployed chain.
 

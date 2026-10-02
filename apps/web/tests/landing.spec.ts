@@ -244,3 +244,44 @@ test("reduced motion settles the equation on all four steps without scrolling", 
     colours: Array(7).fill("rgba(0, 0, 0, 0)"),
   });
 });
+
+// Session K, Part 7: a visitor whose system asks for more contrast gets stronger quiet text and edges, and nothing
+// moves: the media block changes colours only.
+test("prefers-contrast: more strengthens quiet text and edges without moving anything", async ({ page }, info) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize(info.project.name === "desktop" ? { width: 1440, height: 900 } : { width: 390, height: 844 });
+  await page.goto(landingUrl);
+  await page.waitForTimeout(300);
+  // What the page keeps dim on purpose (everything else is already at least 13:1).
+  const QUIET = [".separator", ".toolbar-divider", ".footer-bottom", ".faq-list summary span", ".footer-spark", ".mobile-menu a span"];
+  const sample = () => page.evaluate(selectors => {
+    const channel = (value: number) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+    const luminance = (colour: string) => { const [r, g, b] = colour.match(/[\d.]+/g)!.slice(0, 3).map(part => channel(Number(part) / 255)); return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!; };
+    const background = luminance(getComputedStyle(document.body).backgroundColor);
+    const ratio = (colour: string) => { const l = luminance(colour); return (Math.max(l, background) + 0.05) / (Math.min(l, background) + 0.05); };
+    const text = Object.fromEntries(selectors.map(selector => { const element = document.querySelector(selector); return [selector, element ? ratio(getComputedStyle(element).color) : null]; }));
+    const layout = [...document.querySelectorAll("body *")].map(element => { const r = element.getBoundingClientRect(); return `${Math.round(r.x * 10)},${Math.round(r.y * 10)},${Math.round(r.width * 10)},${Math.round(r.height * 10)}`; });
+    const edge = document.querySelector(".dimension") ? ratio(getComputedStyle(document.querySelector(".dimension")!).borderTopColor) : null;
+    // Every element that holds text directly, in document order: its contrast on the page background.
+    const all = [...document.querySelectorAll("body *")].filter(element => [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent!.trim())).map(element => ratio(getComputedStyle(element).color));
+    return { text, layout, edge, all };
+  }, QUIET);
+  const normal = await sample();
+  await page.emulateMedia({ reducedMotion: "reduce", contrast: "more" });
+  await page.waitForTimeout(100);
+  const more = await sample();
+  // Colours only: every element keeps its exact box.
+  expect(more.layout).toEqual(normal.layout);
+  // Every sampled quiet line reaches at least 7:1 on the page background, and is stronger than before.
+  const measured = Object.entries(more.text).filter(([, ratio]) => ratio !== null);
+  expect(measured.length).toBeGreaterThanOrEqual(4);
+  for (const [selector, ratio] of measured) {
+    expect(ratio!, selector).toBeGreaterThanOrEqual(7);
+    expect(ratio!, selector).toBeGreaterThan(normal.text[selector]!);
+  }
+  if (more.edge !== null && normal.edge !== null) expect(more.edge).toBeGreaterThan(normal.edge);
+  // And no text anywhere on the page gets darker.
+  expect(more.all.length).toBe(normal.all.length);
+  const darker = more.all.map((ratio, i) => ratio < normal.all[i]! - 0.001 ? i : -1).filter(i => i >= 0);
+  expect(darker, "elements whose text lost contrast").toEqual([]);
+});

@@ -33,7 +33,7 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   const nav=(await page.getByRole('navigation',{name:'Main navigation'}).boundingBox())!;
   // Session I: above the planet, Today's own mark (the swan, which carries "Shape & Fold / Your Own Future" in its artwork)
   // takes the wordmark's place; the separate tagline is gone. tests/page-marks.spec.ts covers every page.
-  const destination=page.locator('.sidebar-destination'),box=destination.locator('.sidebar-mark'),art=box.locator('img');
+  const destination=page.locator('.sidebar-destination'),box=destination.locator('.sidebar-mark'),art=box.locator('.sidebar-mark-figure img');
   await expect(box).toHaveAttribute('data-mark','today-swan');await expect(destination).not.toContainText('Your Financial Orbit');
   await expect.poll(()=>art.evaluate(i=>(i as HTMLImageElement).complete?(i as HTMLImageElement).currentSrc:'')).toMatch(/\/brand\/marks\/today-swan(@2x)?\.webp$/);
   await expect(art).toHaveAttribute('alt','');await expect(art).toHaveAttribute('aria-hidden','true');
