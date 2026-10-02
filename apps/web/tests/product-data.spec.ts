@@ -83,7 +83,8 @@ test("damaged private exports retain exact bytes and explicit restore quarantine
   await page.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: HEALTH_STORAGE_KEY, raw: future });
   await page.reload();
   await restore(page, "Health", JSON.stringify(createEmptyHealth()));
-  await expect(panel.getByRole("alert")).toContainText("A newer stored version cannot be replaced");
+  await expect(panel.getByRole("alert")).toContainText("This browser holds a newer version of this module than this app can replace, so nothing was changed.");
+  await expect(panel.getByRole("alert")).toContainText("(NEWER_VERSION)");
   expect(await page.evaluate(key => localStorage.getItem(key), HEALTH_STORAGE_KEY)).toBe(future);
 });
 test("private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls", async ({ page }) => {

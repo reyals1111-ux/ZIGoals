@@ -26,6 +26,6 @@ it('shows pending removal until the locked save commits, then a new page reads t
 });
 it('keeps the favourite and exact saved bytes after a failed save, then enables retry',async()=>{
  const original=localStorage.getItem(PLATFORM_KEY);await act(async()=>remove().click());expect(remove().disabled).toBe(true);
- const set=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw Error('quota');});await act(async()=>release());expect(localStorage.getItem(PLATFORM_KEY)).toBe(original);expect(remove().disabled).toBe(false);expect(element.querySelector('[role="alert"]')?.textContent).toContain('Could not save');expect(element.querySelector('[role="status"]')).toBeNull();
+ const set=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw Error('quota');});await act(async()=>release());expect(localStorage.getItem(PLATFORM_KEY)).toBe(original);expect(remove().disabled).toBe(false);expect(element.querySelector('[role="alert"]')?.textContent).toContain('This could not be saved, so nothing was changed.');expect(element.querySelector('[role="alert"]')?.textContent).toMatch(/\(SAVE_FAILED\)$/);expect(element.querySelector('[role="status"]')).toBeNull();
  set.mockRestore();await act(async()=>remove().click());await act(async()=>release());expect(remove()).toBeNull();
 });

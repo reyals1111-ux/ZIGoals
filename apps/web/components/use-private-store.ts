@@ -6,6 +6,7 @@ import type { z } from "zod";
 import { importPrivateStore, readPrivateStore, updatePrivateStore } from "../lib/private-storage";
 import {isDurableMarker,readDurableStore,updateDurableStore,restoreDurableStore,exportDurableStore} from "../lib/vault/local";
 import {beginFirstRead,endFirstRead,PRIVATE_READ_RETRY} from "./private-read-delay";
+import {blockedReadMessage,restoreFailureMessage,saveFailureMessage} from "../lib/storage-error-copy";
 const EVENT = "zigoals:private-change";
 /**
  * The latest parse of each legacy store's exact text, per storage view (Session G, Part 2). Several instances on one
@@ -40,12 +41,13 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
       heldRaw.current=durable?null:raw;
       setData(next);
       setError("");
-    } catch {
+    } catch (error) {
       if(current!==generation.current)return;
       heldRaw.current=null;
       setData(createEmpty());
       let locked=false;try{locked=!!getAccountScope()&&isAccountLocked();}catch{}
-      setError(locked?"Account records are locked. Verify your account and unlock the vault in Settings.":"Private data could not be read. It has not been changed. Export the original from Settings before restoring a backup.");
+      // Storage the browser denies (private browsing, blocked site data) is not damage (QA-18).
+      setError(locked?"Account records are locked. Verify your account and unlock the vault in Settings.":blockedReadMessage(error)??"Private data could not be read. It has not been changed. Export the original from Settings before restoring a backup.");
     }
     markLoaded();
   }, [key, schema, createEmpty, markLoaded]);
@@ -76,25 +78,26 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   }, [key, markLoaded]);
   const update = useCallback(async (updater: (latest: T) => T) => {
     if (!loaded) throw Error("Private data is still loading.");
-    let draftError:unknown;const apply=(latest:T)=>{try{return updater(latest);}catch(error){draftError=error;throw error;}};
-    try { const storage=getAppStorage(),durable=isDurableMarker(storage.getItem(key)); const next=await (durable ? updateDurableStore(storage,key,schema,apply) : updatePrivateStore(storage,key,schema,createEmpty,apply)); if(storage===getAppStorage()){heldRaw.current=durable?null:storage.getItem(key);if(heldRaw.current!==null)sharedParse(storage,key,schema).set(heldRaw.current,next);publish(next);} }
-    catch {
+    let draftError:unknown,durable=false;const apply=(latest:T)=>{try{return updater(latest);}catch(error){draftError=error;throw error;}};
+    try { const storage=getAppStorage();durable=isDurableMarker(storage.getItem(key)); const next=await (durable ? updateDurableStore(storage,key,schema,apply) : updatePrivateStore(storage,key,schema,createEmpty,apply)); if(storage===getAppStorage()){heldRaw.current=durable?null:storage.getItem(key);if(heldRaw.current!==null)sharedParse(storage,key,schema).set(heldRaw.current,next);publish(next);} }
+    catch (error) {
       // A rejected draft or full storage is not a corrupt store. Preserve forms
       // when the original record still reads; block only an actual read failure.
       refresh();
       if(draftError instanceof Error)throw draftError;
-      const message = "Could not save private data. Nothing was applied. Check storage access or restore a valid backup in Settings.";
-      throw Error(message);
+      // The coded reason (storage-error-copy.ts) is the message; the original error stays as the cause for callers that
+      // say it their own way (a check-in, a restore).
+      throw Error(saveFailureMessage(error,{durable}),{cause:error});
     }
   }, [loaded, publish, key, schema, createEmpty, refresh]);
   const importData = useCallback(async (raw: string) => {
     // Like update: never replace a store before its current contents were read.
     if (!loaded) throw Error("Private data is still loading.");
-    try { const storage=getAppStorage(),durable=isDurableMarker(storage.getItem(key)); const next=await (durable ? restoreDurableStore(storage,key,schema,raw) : importPrivateStore(storage,key,schema,raw)); if(storage===getAppStorage()){heldRaw.current=durable?null:storage.getItem(key);publish(next);} }
-    catch {
+    let durable=false;
+    try { const storage=getAppStorage();durable=isDurableMarker(storage.getItem(key)); const next=await (durable ? restoreDurableStore(storage,key,schema,raw) : importPrivateStore(storage,key,schema,raw)); if(storage===getAppStorage()){heldRaw.current=durable?null:storage.getItem(key);publish(next);} }
+    catch (error) {
       refresh();
-      const message = "Backup could not be imported. Check its module, version and size. Existing private data was preserved.";
-      throw Error(message);
+      throw Error(restoreFailureMessage(error,{durable}),{cause:error});
     }
   }, [loaded, key, schema, publish, refresh]);
   const exportData = useCallback(async () => { const storage=getAppStorage();return isDurableMarker(storage.getItem(key))?await exportDurableStore(storage,key):storage.getItem(key)??JSON.stringify(createEmpty()); }, [key, createEmpty]);

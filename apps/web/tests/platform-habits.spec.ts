@@ -46,7 +46,7 @@ test('a failed second-store creation reserves one ID and retries without duplica
  await page.goto('/app/goals/tracked/88#supporting-habits');
  await page.evaluate(()=>{const write=Storage.prototype.setItem;let fail=true;Storage.prototype.setItem=function(key,value){if(key==='zigoals:habits:v1'&&fail){fail=false;throw new DOMException('Test quota failure','QuotaExceededError');}return write.call(this,key,value);};});
  await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
- await expect(page.getByRole('alert').filter({hasText:'Could not save private data'})).toBeVisible();
+ await expect(page.getByRole('alert').filter({hasText:'Your browser storage is full'})).toContainText('(STORAGE_FULL)');
  const reserved=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!).goals[0].plan.habitId);expect(reserved).toBeTruthy();
  await page.getByRole('button',{name:'Create supporting Habit →',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Contribute 10 ZIG monthly',exact:true})).toBeVisible();

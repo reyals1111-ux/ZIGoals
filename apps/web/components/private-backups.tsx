@@ -10,6 +10,9 @@ import { localDate } from "../lib/local-date";
 import { plural } from "../lib/plural";
 const count = (n: number, one: string, many?: string) => `${n} ${plural(n, one, many)}`;
 import { exportFileName, isShowcaseBackup, type ShowcaseModule } from "../lib/showcase-detect";
+import { backupRefusal, backupRefusalMessage, blockedReadMessage } from "../lib/storage-error-copy";
+/** The newest schemaVersion this app reads, per module: a newer backup is refused as such (QA-22). */
+const NEWEST: Record<ShowcaseModule, number> = { platform: 3, habits: 2, health: 1 };
 
 import { useHabits } from "./habits/use-habits";
 import { useHealth } from "./health/use-health";
@@ -34,20 +37,27 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
       anchor.href = url; anchor.download = exportFileName(`zigoals-${name.toLowerCase().replace(/\s+/g, "-")}-backup-${localDate()}.json`, isShowcase());
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage("Backup download started. Keep this file private."); setError("");
-    } catch { setError("The original data could not be read. Check browser storage access."); }
+    } catch (error) { setError(blockedReadMessage(error) ?? "The original data could not be read. Check browser storage access."); }
   }
   async function selectFile(file?: File) {
     const current = ++selection.current;
     setRaw(""); setSummary(""); setConfirmed(false); setDemo(false); setDemoConfirmed(false); setError(""); setMessage("");
     if (!file) return;
+    let text = "";
     try {
       if (file.size > store.importLimit) throw Error();
-      const text = await file.text();
+      text = await file.text();
       if(new TextEncoder().encode(text).length>store.importLimit)throw Error();
       const data = schema.parse(JSON.parse(text));
       if (current !== selection.current) return;
       setRaw(text); setSummary(describe(data)); setDemo(!isShowcase() && isShowcaseBackup(module, data));
-    } catch { if (current === selection.current) setError(`Choose a valid supported backup for this module, under ${store.importLimit/1_000_000} MB. Existing data was not changed.`); }
+    } catch {
+      if (current !== selection.current) return;
+      // Each refusal says what is wrong with the file (QA-22): too large, not a backup, another module, newer, or damaged.
+      const refusal = file.size > store.importLimit ? "TOO_LARGE" : backupRefusal(text, { module, newest: NEWEST[module], limit: store.importLimit });
+      let kind: unknown; try { kind = (JSON.parse(text) as { kind?: unknown })?.kind; } catch { /* not JSON */ }
+      setError(backupRefusalMessage(refusal, { module, kind, limit: store.importLimit }));
+    }
   }
   async function restore() {
     if (!confirmed || !raw || busy || demo && !demoConfirmed) return;
@@ -56,7 +66,7 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
       await store.importData(raw);
       setRaw(""); setSummary(""); setConfirmed(false); setDemo(false); setDemoConfirmed(false);
       setMessage(`${name} restored. Previous stored bytes were preserved in a local recovery record.`);
-    } catch { setError("Restore failed. Existing data was preserved. A newer stored version cannot be replaced by this app."); }
+    } catch (error) { setError(error instanceof Error ? error.message : "Restore failed. Existing data was preserved."); }
     finally { setBusy(false); }
   }
   return <section className="panel module-backup" aria-label={`${name} backup`}>
