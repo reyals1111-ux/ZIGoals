@@ -12,6 +12,7 @@ const paths: Record<string, string> = {
   arrow: "M5 12h14m-5-5 5 5-5 5",
   wallet: "M19 8V5H5a2 2 0 0 0 0 4h16v11H5a2 2 0 0 1-2-2V7m18 6h-6v4h6m-3-2h.01",
   play: "m9 6 9 6-9 6z",
+  portfolio: "M11 3.05A9 9 0 1 0 20.95 13H11zM14 3.5A8 8 0 0 1 20.5 10H14z",
   future: "m12 2 10 6v10l-10 5-10-5V8zm0 10 10-4M12 12 2 8m10 4v11m-5-9 5 3 5-3",
   chain: "m10 14 4-4M8 16l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m0 12a4 4 0 0 0 6 0l5-5a4 4 0 0 0-6-6l-1 1",
   chevron: "m6 9 6 6 6-6",

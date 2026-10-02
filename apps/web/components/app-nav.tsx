@@ -20,6 +20,7 @@ export const NAV_GROUPS = [
   [
     ["/app/markets", "Markets", "activity"],
     ["/app/staking", "Staking", "future"],
+    ["/app/portfolio", "Portfolio", "portfolio"],
   ],
   [
     ["/app/ecosystem", "Ecosystem", "ecosystem"],

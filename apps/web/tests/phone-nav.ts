@@ -6,7 +6,7 @@ export const isPhone=(page:Page)=>page.evaluate(query=>matchMedia(query).matches
 export const mainNav=(page:Page)=>page.getByRole('navigation',{name:'Main navigation'});
 
 /**
- * Opens the phone's More sheet (Wealth, Markets, Staking, Ecosystem, Activity, Settings). The tab bar is
+ * Opens the phone's More sheet (Wealth, Markets, Staking, Portfolio, Ecosystem, Activity, Settings). The tab bar is
  * server-rendered, so a tap that lands before hydration is simply repeated.
  */
 export async function openMore(page:Page){

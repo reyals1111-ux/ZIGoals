@@ -34,6 +34,7 @@ const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
   "/app/markets": "Prices you follow · watch-only",
   "/app/staking": "Public ZIG staking and positions · read-only",
+  "/app/portfolio": "Coins you hold or plan · this device only",
   "/app/ecosystem": "ZIGChain projects · research only",
   "/app/activity": "Your recent steps, in order",
   "/app/settings": "Backups, privacy, motion and Showcase",
