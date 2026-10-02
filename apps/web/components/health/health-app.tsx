@@ -76,8 +76,8 @@ export function HealthApp() {
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
   const router = useRouter(), phone = usePhoneActive();
-  // A Quick Add for a meal opens the Log a meal sheet on a phone (Session I, Part 9).
-  const [logRequest, setLogRequest] = useState(0);
+  // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
+  const [logging, setLogging] = useState(false);
   const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
   const addIntent = searchParams.get("add") === "entry";
   const [handledIntent, setHandledIntent] = useState(false);
@@ -93,7 +93,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     const entryControl = entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"] select')
       ?? entry?.querySelector<HTMLElement>("select, input, button");
     entryControl?.focus({ preventScroll: true });
-    if (window.matchMedia(PHONE_QUERY).matches) setLogRequest(n => n + 1);
+    if (window.matchMedia(PHONE_QUERY).matches) setLogging(true);
     router.replace("/app/health", { scroll: false });
   }, [addIntent, router]);
   const today = useHealthToday(dailyData(data).preferences.timezone);
@@ -136,10 +136,10 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}
     </div>
-    <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && <p className="health-error" role="alert">{error}</p>}
+    <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && !(phone && logging) && <p className="health-error" role="alert">{error}</p>}
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logRequest={logRequest} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details></>}
+      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
@@ -173,11 +173,8 @@ function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs 
   </section>;
 }
 
-function DiaryView({ data, date, choice, perform, invalid, onLibrary, phone, error, logRequest }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void; phone: boolean; error: string; logRequest: number }) {
+function DiaryView({ data, date, choice, perform, invalid, onLibrary, phone, error, logging, setLogging }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void; phone: boolean; error: string; logging: boolean; setLogging: (open: boolean) => void }) {
   const [editing, setEditing] = useState<string | null>(null);
-  // On a phone, Log a meal is a bottom sheet opened from its button (Session I, Part 9); elsewhere the form stays in the page.
-  const [logging, setLogging] = useState(false);
-  useEffect(() => { if (logRequest) setLogging(true); }, [logRequest]);
   const [source, setSource] = useState("");
   const [servings, setServings] = useState("1");
   const [meal, setMeal] = useState<HealthDiaryEntry["meal"]>("Breakfast");
