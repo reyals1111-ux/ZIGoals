@@ -78,3 +78,48 @@ test.runIf(process.env.RUN10_BROWSER==='1')('another device finance edit still p
   await a.region().getByText('Needs attention. Automatic sync paused.').waitFor();
  }finally{resume.open();await rt.close();}
 },90000);
+
+// Session K (account-browser b-first): the sync panel's actions and its automatic sync share one "running" flag. An
+// automatic sync sets it the moment its 1 s debounce fires, but the panel only shows itself busy on React's next
+// render, so the buttons still look enabled for a moment. These two cases pin that moment deterministically: the
+// automatic sync's debounce timer is captured in the page, so the test decides exactly when it fires.
+const captureDebounce=page=>page.evaluate(()=>{const real=window.setTimeout;window.setTimeout=function(fn,ms,...rest){if(ms===1000&&typeof fn==='function'){window.setTimeout=real;window.__fireAutoSync=()=>fn(...rest);return real(()=>{},2_000_000);}return real(fn,ms,...rest);};window.dispatchEvent(new Event('focus'));});
+
+// A click that lands right after an automatic sync started (the button still enabled on screen) must not vanish:
+// the review opens as soon as that sync ends.
+test.runIf(process.env.RUN10_BROWSER==='1')('a review asked for just as an automatic sync starts opens when that sync ends',async()=>{
+ const rt=await runtime(),a=await rt.device();const held=gate(),resume=gate();
+ try{
+  await a.enroll();await a.settled();
+  await a.page.getByText('Cloud copies by section',{exact:true}).click();
+  const review=a.page.getByRole('button',{name:'Review section deletion',exact:true});await expect.poll(()=>review.isEnabled()).toBe(true);
+  // Hold the automatic sync's first cloud read, so it is still running when the click arrives.
+  let armed=true;a.hooks.before=async method=>{if(armed&&method==='GET'){armed=false;held.open();await resume.opened;}};
+  await captureDebounce(a.page);
+  // The automatic sync starts and, in the same task, before React renders the busy state, the person's click arrives.
+  await a.page.evaluate(()=>{window.__fireAutoSync();[...document.querySelectorAll('button')].find(b=>b.textContent==='Review section deletion').click();});
+  await held.opened;resume.open();
+  await a.page.getByLabel('Section recovery secret',{exact:true}).waitFor({timeout:15000});
+  expect(await a.region().getByRole('alert').count()).toBe(0);
+ }finally{resume.open();await rt.close();}
+},90000);
+
+// "Automatic sync pauses during review": an automatic sync that was already scheduled when a review began must not
+// run while the review is open.
+test.runIf(process.env.RUN10_BROWSER==='1')('an automatic sync scheduled before a review began does not run during the review',async()=>{
+ const rt=await runtime(),a=await rt.device();
+ try{
+  await a.enroll();await a.settled();
+  await a.page.getByText('Cloud copies by section',{exact:true}).click();
+  await captureDebounce(a.page);
+  await a.page.getByRole('button',{name:'Review section deletion',exact:true}).click();
+  await a.page.getByLabel('Section recovery secret',{exact:true}).waitFor();
+  let requests=0;a.hooks.before=async()=>{requests++;};
+  // The debounce armed before the review fires now, while the review is open.
+  await a.page.evaluate(()=>window.__fireAutoSync());
+  await a.page.waitForTimeout(1500);
+  expect(requests).toBe(0);
+  await expect.poll(()=>a.page.getByLabel('Section recovery secret',{exact:true}).isVisible()).toBe(true);
+  expect(await a.region().getByRole('alert').count()).toBe(0);
+ }finally{await rt.close();}
+},90000);

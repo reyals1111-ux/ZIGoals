@@ -45,10 +45,21 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  const session=useRef<Session|null>(null),running=useRef<symbol|null>(null),auto=useRef(false),idle=useRef(0),syncRef=useRef<()=>Promise<void>>(async()=>{});
  // A local edit during a running sync is not in that sync's snapshot: remember it and schedule one follow-up sync when the sync finishes.
  const syncing=useRef(false),followUp=useRef(false),scheduleRef=useRef<()=>void>(()=>{});
+ // The automatic sync that is running now (if any), and whether a person's action is waiting for it to end.
+ const automaticRun=useRef<Promise<void>|null>(null),waiting=useRef(false);
  function forget(){running.current=null;followUp.current=false;setBusy(false);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setError('');}
  function selectionFence(id:string,generation:number){if(isShowcase()||getAccountScope()!==id||getAccountGeneration()!==generation)throw Error('Account selection changed. No result was applied.');}
  // Account changes invalidate operation ownership; an obsolete request cannot block or update its successor.
- async function guarded(work:()=>Promise<void>,pauseOnError=true){if(running.current)return;const operation=Symbol('vault operation');running.current=operation;setBusy(true);setError('');try{await work();}catch(e){if(running.current!==operation)return;if(pauseOnError)auto.current=false;setError(e instanceof Error?e.message:'Sync was not confirmed. Local records were preserved.');setMessage(pauseOnError?'Needs attention. Automatic sync paused.':'Recovery copy was not prepared. The sync queue was unchanged.');}finally{if(running.current===operation){running.current=null;setBusy(false);}}}
+ // One operation at a time. An automatic sync never starts while another operation runs. A person's action that
+ // arrives while an automatic sync runs (the sync starts a moment before the panel shows itself busy, so the button
+ // still looked enabled) waits for that sync and then runs once, instead of vanishing. Two of the person's own actions
+ // still never overlap: a second one while the first runs is ignored, as before.
+ async function guarded(work:()=>Promise<void>,pauseOnError=true,automatic=false){
+  if(running.current){const pending=automaticRun.current;if(automatic||!pending||waiting.current)return;waiting.current=true;const selected=session.current;try{await pending;}finally{waiting.current=false;}if(running.current||session.current!==selected)return;}
+  const operation=Symbol('vault operation');running.current=operation;setBusy(true);setError('');
+  let ended=()=>{};const run=automatic?new Promise<void>(resolve=>{ended=resolve;}):null;if(run)automaticRun.current=run;
+  try{await work();}catch(e){if(running.current!==operation)return;if(pauseOnError)auto.current=false;setError(e instanceof Error?e.message:'Sync was not confirmed. Local records were preserved.');setMessage(pauseOnError?'Needs attention. Automatic sync paused.':'Recovery copy was not prepared. The sync queue was unchanged.');}finally{if(running.current===operation){running.current=null;setBusy(false);}if(run){if(automaticRun.current===run)automaticRun.current=null;ended();}}
+ }
  async function authenticated(id:string){
   if(session.current?.account===id&&!isAccountLocked())return;
   await guarded(async()=>{const generation=getAccountGeneration(),fence=()=>selectionFence(id,generation);fence();const page=z.object({manifest:manifestSchema.nullable()}).parse(await accountTransport(id,fence).read(null));fence();setAccount(id);setManifest(page.manifest);setMessage(page.manifest?'Enter the recovery secret saved when this vault was created.':'Create a separate encrypted account vault. Local Demo records are not imported.');});
@@ -57,7 +68,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  async function prepare(){await guarded(async()=>{if(!account||manifest!==null)throw Error('Verify an account without an existing vault first.');const generation=getAccountGeneration(),result=await createVault();selectionFence(account,generation);setGenerated({...result,operation:crypto.randomUUID()});});}
  async function enroll(){await guarded(async()=>{if(!account||!generated||manifest!==null)throw Error('Prepare and save the recovery secret first.');const generation=getAccountGeneration(),fence=()=>selectionFence(account,generation);await accountTransport(account,fence).write({protocol:1,vault:generated.manifest.vault,operation:generated.operation,base:0,changes:[],manifest:generated.manifest});fence();open(account,generated.key,generated.manifest);});if(session.current)await sync();}
  async function unlock(secret:string){await guarded(async()=>{if(!account||!manifest)throw Error('Verify your account first.');const generation=getAccountGeneration(),key=await unlockVault(manifest,secret);selectionFence(account,generation);open(account,key,manifest);});if(session.current)await sync();}
- async function sync(){await guarded(async()=>{
+ async function sync(automatic=false){await guarded(async()=>{
   const selected=session.current;if(!selected)throw Error('Unlock your vault before syncing.');const healthPermission=selected.health;
   syncing.current=true;followUp.current=false;try{
   const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Vault locked. Sync result was not applied.');if(selected.health!==healthPermission)throw Error('Health permission changed. Sync paused; local records were preserved.');};
@@ -72,7 +83,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(formatTime(new Date()));setMessage('Account records synced and acknowledged.');auto.current=true;
   });
   }finally{syncing.current=false;}
- });if(followUp.current){followUp.current=false;scheduleRef.current();}}
+ },true,automatic);if(followUp.current){followUp.current=false;scheduleRef.current();}}
  async function prepareConflict(){await guarded(async()=>{const {selected,fence:accountFence}=rotationSession(),consent=selected.health,fence=()=>{accountFence();if(selected.health!==consent)throw Error('Health consent changed. Review paused.');};auto.current=false;await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{const domains:Domain[]=['finance','habits','settings',...(selected.health?['health' as const]:[])],local=await captureData(getAppStorage(),domains);fence();const review=await prepareConflictReview(selected.account,local,accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,fence,domains);fence();setConflictReview(review);});});}
  async function confirmConflict(choices:Choices){let resolved=false;await guarded(async()=>{const {selected,fence:accountFence}=rotationSession(),consent=selected.health,fence=()=>{accountFence();if(selected.health!==consent)throw Error('Health consent changed. Resolution paused.');},review=conflictReview;if(!review||review.account!==selected.account)throw Error('Prepare a review for this account.');await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{const local=await captureData(getAppStorage(),review.domains);fence();await confirmConflictReview(review,choices,local,accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,data=>applyData(getAppStorage(),local,data,fence),fence);fence();setConflictReview(null);setMessage('Resolution validated. Original journal archived; preparing sync…');resolved=true;});});if(resolved)await sync();}
  function cancelConflict(){setConflictReview(null);auto.current=false;setMessage('Conflict review closed. Both versions remain preserved.');}
@@ -129,11 +140,11 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  });if(copied)await sync();}
  function cancelAttach(){setAttachPreview(null);auto.current=!!session.current;setMessage('Local copy review closed. Original local records were not changed.');}
  async function setHealth(value:boolean){setConflictReview(null);setForwardReview(null);setDomainReview(null);setAttachPreview(null);if(!value){auto.current=false;setHealthState(false);if(session.current)session.current.health=false;return;}const selected=session.current;if(selected){try{const state=await new SyncJournal(selected.account).read();if(session.current!==selected)return;if(state.heldDomains?.includes('health')){setError(HEALTH_HELD_REFUSAL);return;}}catch{setError(HEALTH_UNVERIFIED_REFUSAL);return;}}setHealthState(true);if(selected)selected.health=true;}
- useEffect(()=>{syncRef.current=sync;});
+ useEffect(()=>{syncRef.current=()=>sync(true);});
  useEffect(()=>{
   let debounce:ReturnType<typeof setTimeout>|undefined;
   const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){running.current=null;setBusy(false);session.current=null;auto.current=false;setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError(accessChanged?'Account access changed. Sign in and unlock again.':'');setLast('');setMessage('Account sync is locked.');}};
-  const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden)void syncRef.current();},1000);};
+  const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
   const edited=()=>{if(syncing.current&&!isSyncedChangeEvent()){followUp.current=true;return;}schedule();};
   const activity=()=>{idle.current=Date.now();};
