@@ -1,0 +1,65 @@
+/*
+ * Liquid-glass progress (glass-progress.tsx, Session I). A track is glass: a faint tint, a light rim and a highlight
+ * along its top edge. Its fill is liquid: the nebula (or the indicator's own colour, --glass-ink), a soft sheen, and a
+ * glow at the leading edge. Sizes, corners and margins stay with each indicator's own class.
+ *
+ * Bars move only by transform: the fill slides in from the start (translate) while its colour is held to the filled part
+ * (scale of its ::before), so the colour never smears and the round end never squashes. Rings move only by
+ * stroke-dashoffset. The first view fills once from empty (useEntrance's data-entrance=once); a new value glides there.
+ */
+:root { --glass-fill-duration:760ms;--glass-glide-duration:460ms; }
+
+.glass-track { position:relative;border-radius:999px;background:linear-gradient(180deg,#e2eeff14,#e2eeff05 60%),#0b182cb3;box-shadow:inset 0 0 0 1px #c9ddff1f,inset 0 1px 0 #ffffff1f,inset 0 -1px 1px #01061366; }
+.glass-fill-clip { position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none; }
+.glass-fill { position:absolute;inset:0;border-radius:inherit;transform:translateX(calc((var(--glass-value) - 1) * 100%)); }
+.glass-fill::before { content:'';position:absolute;inset:0;transform-origin:right;transform:scaleX(var(--glass-value));
+  background:linear-gradient(180deg,#ffffff4d,#ffffff0d 48%,#00000014),var(--glass-ink,var(--nebula-flow,linear-gradient(110deg,#18d9ef,#4299f6 27%,#9574ff 52%,#e26bee 77%,#ff97ac))); }
+/* The glow: a point of light at the leading edge, drawn as a shadow so it never widens the page. */
+.glass-fill-glow { position:absolute;inset:0;pointer-events:none;transform:translateX(calc((var(--glass-value) - 1) * 100%)); }
+.glass-fill-glow::after { content:'';position:absolute;right:1px;top:50%;width:2px;height:2px;margin-top:-1px;border-radius:50%;background:var(--glass-glow,#f2a6ff);box-shadow:0 0 9px 3px var(--glass-glow,#d48bffa6),0 0 2px 1px #fff8; }
+.glass-track[data-empty] .glass-fill-glow { display:none; }
+/* Vertical: the liquid rises from the bottom. */
+.glass-track[data-axis=y] .glass-fill { transform:translateY(calc((1 - var(--glass-value)) * 100%)); }
+.glass-track[data-axis=y] .glass-fill::before { transform-origin:top;transform:scaleY(var(--glass-value));background:linear-gradient(90deg,#ffffff38,#ffffff0a 45%,#0000000f),var(--glass-ink,linear-gradient(0deg,#18d9ef,#4299f6 40%,#9574ff 75%,#e26bee)); }
+.glass-track[data-axis=y] .glass-fill-glow { transform:translateY(calc((1 - var(--glass-value)) * 100%)); }
+.glass-track[data-axis=y] .glass-fill-glow::after { right:auto;left:50%;top:1px;margin:0 0 0 -1px; }
+/* Segments: each sits at its own start and width (both transforms); dividers are thin shadows at each boundary. */
+.glass-segment { position:absolute;inset:0;transform-origin:left;transform:translateX(calc(var(--glass-start) * 100%)) scaleX(var(--glass-size));background:linear-gradient(180deg,#ffffff40,#ffffff08 50%,#00000012),var(--glass-ink,#7fa7f5); }
+.glass-divider { position:absolute;inset:0;transform:translateX(calc((var(--glass-at) - 1) * 100%)); }
+.glass-divider::after { content:'';position:absolute;right:-1px;top:0;bottom:0;width:2px;background:#050d1c99; }
+
+/* Rings: the SVG is turned a quarter so arcs start at the top and run clockwise. Thickness: --ring-width. */
+.glass-ring { position:relative; }
+.glass-ring-art { position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg);pointer-events:none; }
+.glass-ring-art circle { fill:none;cx:50%;cy:50%;r:calc(50% - var(--ring-inset,0px) - var(--ring-width,10px) / 2);stroke-width:var(--ring-width,10px); }
+.glass-ring-track { stroke:#12233dcc; }
+.glass-ring-arc { stroke-dasharray:100 100; }
+.glass-ring-art .glass-ring-rim { r:calc(50% - var(--ring-inset,0px) - .5px);stroke-width:1px;stroke:#cfe0ff2e; }
+.glass-ring-art .glass-ring-rim-inner { r:calc(50% - var(--ring-inset,0px) - var(--ring-width,10px) + .5px);stroke:#cfe0ff1a; }
+
+/* Motion: one fill on first view, then a glide to each new value. */
+@keyframes glass-fill-x { from { transform:translateX(-100%); } }
+@keyframes glass-ink-x { from { transform:scaleX(0); } }
+@keyframes glass-fill-y { from { transform:translateY(100%); } }
+@keyframes glass-ink-y { from { transform:scaleY(0); } }
+@keyframes glass-segment-in { from { transform:translateX(0) scaleX(0); } }
+@keyframes glass-ring-draw { from { stroke-dashoffset:100px; } }
+.glass-track[data-entrance=once] :is(.glass-fill,.glass-fill-glow,.glass-divider) { animation:glass-fill-x var(--glass-fill-duration) var(--motion-glide,cubic-bezier(.22,1,.36,1)) backwards; }
+.glass-track[data-entrance=once] .glass-fill::before { animation:glass-ink-x var(--glass-fill-duration) var(--motion-glide,cubic-bezier(.22,1,.36,1)) backwards; }
+.glass-track[data-axis=y][data-entrance=once] :is(.glass-fill,.glass-fill-glow) { animation-name:glass-fill-y; }
+.glass-track[data-axis=y][data-entrance=once] .glass-fill::before { animation-name:glass-ink-y; }
+.glass-track[data-entrance=once] .glass-segment { animation:glass-segment-in var(--glass-fill-duration) var(--motion-glide,cubic-bezier(.22,1,.36,1)) backwards; }
+.glass-ring[data-entrance=once] .glass-ring-arc { animation:glass-ring-draw var(--glass-fill-duration) var(--motion-glide,cubic-bezier(.22,1,.36,1)) backwards; }
+:is(.glass-fill,.glass-fill-glow,.glass-segment,.glass-divider),.glass-fill::before { transition:transform var(--glass-glide-duration) var(--motion-glide,cubic-bezier(.22,1,.36,1)); }
+.glass-ring-arc { transition:stroke-dashoffset var(--glass-glide-duration) var(--motion-glide,cubic-bezier(.22,1,.36,1)); }
+@media (prefers-reduced-motion:reduce) {
+  :is(.glass-fill,.glass-fill-glow,.glass-segment,.glass-divider,.glass-ring-arc),.glass-fill::before { animation:none!important;transition:none!important; }
+}
+:root[data-app-motion=off] :is(.glass-fill,.glass-fill-glow,.glass-segment,.glass-divider,.glass-ring-arc),:root[data-app-motion=off] .glass-fill::before { animation:none!important;transition:none!important; }
+@media (forced-colors:active) {
+  .glass-track { border:1px solid CanvasText; }
+  .glass-fill::before,.glass-segment { background:Highlight; }
+  .glass-fill-glow,.glass-divider { display:none; }
+  .glass-ring-arc { stroke:Highlight; }
+  .glass-ring-track { stroke:GrayText; }
+}
