@@ -1,3 +1,187 @@
+# Session K — quality, reliability and follow-ups: the account-browser race, freeze check, CI budget, QA sweep 2, one storage read, sidebar marks, landing contrast, business research (2026-10-02, [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox: Ubuntu, 4 cores; Node 24.19.0 (official tarball, SHA256-checked) and pnpm 11.19.0; production builds `PUBLIC_ALPHA_UNDEPLOYED`; Playwright 1.63.0 with at most 2 workers; Chromium 141.0.7390.37 standing in for `chrome`.
+- **Miniflare:** local workerd, with no Cloudflare account.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **Actions API** / **CI log:** read through the GitHub API.
+- **owner-reported:** as the owner reported it (the iPhone check of deploy #21).
+
+No account, secret, wallet, Cloudflare login or deploy was used. Nothing under `workers/**` or any wrangler config changed; no dependency or lockfile changed; `apps/web/AGENTS.md` and `CLAUDE.md` are untouched.
+- **Base:** main `c189313` (#57, Alpha deploy #21).
+- **Owner decisions at plan approval:** D1 yes (Part 5), D3 no (no phone marks), D4 yes (Part 3); Part 6 uses separate word-only WebP crops (1x and @2x).
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 0 | **Alpha deploy #21** recorded ([its record](#alpha-deploy--2026-10-02-morning-c189313-live), below), with the owner's iPhone check; release identity updated | `b5f992e` |
+| 1 | **account-browser b-first explained and fixed:** a real race in the sync panel, reproduced deterministically, fixed **[Tier 3]**; diagnostics on every failure (below) | `a0657a7`, `436536e` |
+| 2 | The freeze check captures Staking (`/app/staking`) and Portfolio (142 captures); new baseline from `c189313` (below); SKIPPED_TESTS follows #57; "The Goal Layer for ZIGChain" leaves two current docs | `83a949f` |
+| 3 | **[Tier 3] (workflow)** browser shards `timeout-minutes` 18 → 22 (D4) | `ec0c5cf` |
+| 4 | **QA sweep 2** of #57: [QA_SWEEP_2026-10-02.md](qa/QA_SWEEP_2026-10-02.md), 8 findings, no blocker or major. **QA2-01 fixed:** a quick second tap on a habit check-in, while the first saved, was ignored | `154e4af` (fix), `0301ff8` (report) |
+| 5 | **[Tier 3] (private storage)** a save reads and parses the stored module once (D1). Equivalent by test; no change measurable in the Habits tap | `af2f9e8` |
+| 6 | **Sidebar (≥ 901 px):** the swan on the six other pages; every mark's words larger on the planet; the figures pixel-identical in place | `54e9d98` |
+| 7 | **Landing:** `prefers-contrast: more`, colour only, only what was dim | `b748bec` |
+| 8 | [COST_MODEL.md](business/COST_MODEL.md) and [LEGAL_CHECKLIST.md](business/LEGAL_CHECKLIST.md) (research only) | `f33d6cb` |
+| 9 | Full gate (below); screenshots on `review/session-k-screenshots`; SKIPPED_TESTS corrected to 47 skips; this entry | `f94e13a`, (this commit) |
+
+## [Tier 3] commits and risk
+- **`436536e` (sync UI).**
+  - **Risk:** a press could take effect a moment later than before (after a background sync ends), or an automatic sync could be skipped when it should have run; it then runs at the next trigger, at most 30 s later.
+  - **Safety:** no data format, encryption, protocol, journal or Worker change; local records are never overwritten by it. Two of the person's own actions still never overlap, and an automatic sync still never starts while another operation runs.
+- **`ec0c5cf` (workflow).**
+  - **Risk:** a browser shard that truly hangs runs up to 4 more minutes before GitHub cancels it.
+  - **Safety:** only that value changed: same jobs, steps, shards, workers, runner pin and branch protection.
+- **`af2f9e8` (private storage).**
+  - **Risk:** a save could keep a recovery copy when it should not (or skip one), or return a different value or error.
+  - **Safety:** the stored bytes cannot change (serialized once, validated as before). `lib/private-storage-equivalence.test.ts` runs the previous implementation, kept verbatim, against this one and requires identical stored bytes, recovery copies, versions, returned values and errors (28 tests). Three deliberate mutations each fail it (3, 3 and 16 tests). One file to revert.
+
+## account-browser (Part 1): evidence and conclusion
+**Conclusion:** the b-first failures were a real race in the sync panel, not a slow runner. A person's press that landed in the moment an automatic sync started was dropped without a word, and an automatic sync scheduled just before a review could still run during it. Both are fixed in `436536e` [Tier 3]. The test was right to fail.
+
+- **Diagnostics (`a0657a7`, test-only).** account-browser now names and times 76 steps. On any failure it prints, for every page:
+  - the sync panel's status and alerts, with a timeline of their changes;
+  - "Sync now" and the disabled buttons;
+  - the journal summary (revision, pending, held sections: names and versions only);
+  - localStorage key names and lengths;
+  - every vault request (time, action, status, duration) and the ones still in flight;
+  - console and page errors.
+  Everything is redacted with `scripts/run11/sync-diagnostics.mjs`. The line numbers of the test are unchanged.
+- **What the two CI failures were:**
+  - line 112, "locator.inputValue: Timeout 30000ms exceeded" ([run 36935232780](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36935232780)): "Review section deletion" was pressed while A's automatic sync had just started. The press did nothing and showed nothing.
+  - line 90, "page.waitForFunction: Timeout 10000ms exceeded" ([run 36970726468](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36970726468)): on B, an automatic sync scheduled before the review ran during it, hit the same conflict again ("Needs attention"), and the confirm vanished.
+- **Reproduced on the old code, deterministically (local):**
+  - two scratch copies of account-browser that pin the moment at line 111 and before line 90 fail exactly like CI, with the same messages;
+  - two new cases in `scripts/run11/sync-inflight-edit-browser.test.mjs` (real private-sync Worker in Miniflare) capture the automatic sync's debounce timer in the page and fire it at the chosen moment: both fail on the old app, both pass with the fix;
+  - `lib/vault-sync-user-actions.test.ts` (jsdom, 4 tests): the review and paused-sync cases fail on the old code (prepareDomain called 0 times; synchronize called 2 times).
+- **Why CI and not here** (an estimate from the step timings): each page's automatic sync ticks every 30 s from line 74. At CI's pace (b-first about 57 s) that tick can land near lines 90 and 111; at this sandbox's pace (about 64 s) it lands about 10 s away. That is why b-first passed 30 of 30 here before the fix.
+- **Pass rates (local, production build, one run at a time, machine otherwise idle):**
+  - before the fix (`a0657a7`): b-first **30/30** (62.0–69.3 s, median 64.4 s). Five more runs failed only because the sandbox stopped the server (ERR_CONNECTION_REFUSED, shown by the new diagnostics); they were re-run and are not counted. a-first was not looped before the fix: the investigation had already reproduced the race.
+  - after the fix (`436536e`): b-first **30/30** (61.2–68.6 s, median 65.3 s) and a-first **30/30** (61.7–67.1 s, median 64.3 s), 10:54–12:02 UTC.
+- **CI after the fix:** on `436536e` Milestone quality [run 36998107109](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36998107109) was all green on attempt 1, including web integration (account-browser in both orders and the 4 cases of sync-inflight-edit-browser), and the three browser shards took 14.7, 16.3 and 16.0 min. Canonical reproducibility [run 36998107113](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36998107113) passed. (Actions API)
+- **CI since:** account-browser passed in both orders in every web integration job of this PR that ran to the end (`436536e`, `ec0c5cf`, `0301ff8`, `f33d6cb` and the final head; CI below). It is in the Known CI intermittents table below as fixed; one re-run stays the rule if it ever shows again.
+
+## QA sweep 2 (Part 4)
+[QA_SWEEP_2026-10-02.md](qa/QA_SWEEP_2026-10-02.md): the 14 areas #57 shipped, on the production build of `436536e`, at 1440, 1024, 768 (touch), 390 and 360 px; en-US, nl-BE and ja-JP; reduced motion, Motion Off and motion on; Showcase, empty and power-user data. 213 page audits, 44 keyboard passes (1,314 Tab stops), 44 feature checks, and timing against #54 on the same machine.
+- **Fixed:** QA2-01 (minor), `154e4af`, failing first in `tests/habit-paint-first.spec.ts` on desktop and mobile ("Expected 2, Received 1").
+- **For the owner (nothing changed):**
+  - QA2-02: Health and the reminder cards do not use the coded storage messages;
+  - QA2-03: a loss is cut toward zero (−$12.349 shows −$12.34);
+  - QA2-04: a reminder's time follows the device clock, its day the journal's zone;
+  - QA2-05: the landing FAQ still says "the Goal Layer for ZIGChain";
+  - QA2-06: the Goal workspace tabs on Staking;
+  - QA2-07: phone targets under 44 px, all already on #54;
+  - QA2-08: Wealth with 200 positions is about 5% slower than on #54 (1,468 against 1,400 ms).
+- **Held up:** no sideways scroll, unnamed control, duplicate id, missing `alt`, text under 14 px or page error on any audited page; focus always visible; nothing animates under reduced motion or Motion Off; nothing loops.
+
+## Part 5 measurements (local, production builds, #54's method)
+Power-user data restored through Settings, 1440×900, 3 runs × 10 taps on "Complete":
+
+| | Before (`154e4af`), two runs | After (`af2f9e8`), two runs |
+|---|---|---|
+| The save's long task, median | 93 ms, 94 ms (p90 106, 126) | 94 ms, 89 ms (p90 119, 107) |
+| Tap → check-in shown, median | 12 ms, 12 ms | 12 ms, 12 ms |
+| Tap → next paint, median | 32 ms, 40 ms | 40 ms, 40 ms |
+
+**No change is measurable in the browser.** The read and parse it removes cost 4.4 ms for Habits in Node (3.7 ms for Health), inside the spread of the save's long task (which also holds React's re-render). Step 3 of the plan (validating in memory instead of the parse-back) was dropped by the plan's benchmark gate: an exact walk costs 5.1 ms against the 4.4 ms parse it would replace. The change stays because it is equivalent by test and removes redundant work; one file to revert if the owner prefers.
+
+## Part 6 verification (local, production build)
+- **The figures did not move:** sidebar close-ups before (`c189313`) and after, at device scale 2, are identical pixel for pixel above the planet for all five marks at 1440×900, 1024×768 and 1280×720. A first version clipped all four edges and shifted a one-pixel column at a figure's edge (6–22 pixels); the clip now reaches past the top and sides, and the difference is 0.
+- **The six other pages show exactly Today's sidebar** (0 differing pixels below their own active navigation item).
+- **Geometry** (`tests/page-marks.spec.ts`, 8 sizes from 1024×600 to 1920×1080): words at least 48 px below the planet's top, clear of the star and its glow, inside the destination, centred; the planet never moves.
+- **Readability:** the words keep the artwork's colours, 1.6× larger. Stroke contrast against the planet behind them (WCAG ratio, median of the stroke cores): 3.7–4.7 on 1x screens, 4.7–5.7 on 2x. These are images of large text, where 3:1 applies, and every median meets it. More would need the artwork recoloured: listed for the owner.
+- **Phones and the tablet header unchanged:** phone-shell, phone-pages and logo-fold pass; phones request no mark and no words.
+
+## Part 7 (landing)
+- **Before:** only two kinds of text on the landing are dim by default, the "/" separators (2.8 and 3.5:1). The footer's small print, the FAQ markers, the footer spark and the menu hints are 4.4–6.7:1. Everything else is already at least 13:1.
+- **With the block:** those become 13.9:1, the not-yet-revealed equation steps lighten, the colour tokens move up a step and card edges strengthen.
+- **The test** requires that nothing moves and that no text anywhere gets darker. It caught a first draft that set already-lighter captions to the same grey.
+- **Checks:** `pnpm check:landing` and `pnpm check:deploy-configs` pass.
+- **Live headers not checked:** `curl -sSI https://zigoals.app/` was refused by this sandbox's network policy (proxy 403). The owner should check the six headers on the live site.
+
+## Desktop and tablet differences (freeze check against the #21 baseline)
+- **Baseline:** production build of `c189313` with Part 2's page list: 142 captures, Chromium 141.0.7390.37, 0 page errors, manifest sha256 `a18f3a0134e3339222f32641837375ed70645843d0bc668393fb0ab9f012d234` (kept locally; baselines are never committed). The first capture attempt stopped making progress after 28 captures, on `1280x800__showcase__wealth`, for over 10 minutes (the tool's own comment records a similar 30-minute hang); it was stopped and re-run, and the second took 6.4 min. The cause was not investigated (follow-up below).
+- **Candidate:** production build of `f33d6cb` (all code of this PR): 142 captures, 0 page errors.
+- **Result:**
+  - **94 identical.**
+  - **48 differ only in the accessibility snapshot, with identical pixels.** Each is exactly one line removed, the sidebar's "ZIGoals" text: the six pages without a mark of their own, at the four sizes with the sidebar, Showcase and empty. This is Part 6's authorized change.
+  - **The tablet header sizes (820×1180) are identical.**
+  - **No bug fix of this PR changes a desktop or tablet pixel:** QA2-01 changes behaviour only, and Part 5 changes nothing visible.
+  - **Why the pixels match:** the captures show the top of the sidebar. At these heights the sidebar scrolls and its planet is below the fold, so Part 6's pixel change is outside them. The close-ups above cover it.
+
+## Tests (totals per run, never added together)
+- **Unit, full `pnpm test` on `f33d6cb` (local):** 242 files passed, 8 skipped; 2,185 tests passed, 4 expected failures (the ADR-006 `test.fails` reproductions), 14 skipped.
+- **Playwright, full suite on the build of `f33d6cb`, 2 workers (local, 38.9 min):** 825 passed, 47 skipped, 4 failed.
+  - The 4 failures are `logo-quickadd-goals-header.spec.ts:53` and `:79` on both projects, the intro-film specs that this sandbox's Chromium cannot play (CLAUDE.md). They passed in CI on `f33d6cb`.
+  - The 47 skips match the corrected inventory (below).
+- **Focused runs** (local, production builds), each reported in its commit:
+  - Part 1: account-browser loops (above); `sync-inflight-edit-browser` 4/4; unit 15/15.
+  - Part 4: habit specs, 54 passed.
+  - Part 5: equivalence 28, the related unit files 81, browser 86.
+  - Part 6: sidebar specs 81 passed and 13 skipped, then 20 and 2 after the clip change; phone and logo 55 passed, 3 skipped.
+  - Part 7: landing 8 passed, 2 skipped.
+- **New or changed tests:**
+  - `lib/vault-sync-user-actions.test.ts` (4) and 2 cases in `scripts/run11/sync-inflight-edit-browser.test.mjs`;
+  - account-browser diagnostics, test-only;
+  - `scripts/desktop-freeze-check.test.mjs` (+1);
+  - `tests/habit-paint-first.spec.ts` (+2, helper parameterised);
+  - `lib/private-storage-equivalence.test.ts` (28);
+  - `tests/page-marks.spec.ts` (the swan on the six pages, words and figure, 8 sizes);
+  - `tests/brand-nav-polish.spec.ts` (a locator names the figure);
+  - `tests/landing.spec.ts` (+1).
+- **No assertion was weakened.** The page-marks expectation for the six pages changed from the wordmark to the swan, by owner decision.
+- **Skips:** the inventory in [SKIPPED_TESTS](testing/SKIPPED_TESTS.md) is updated for #57 (the Session K section). The expected totals are desktop 19, mobile 28 and both 47, unchanged by this PR's code. Part 2 first listed mobile 27; the full run counted 47, which showed that `ui-evidence.spec.ts:30` skips two tests (its loop), and `f94e13a` corrected the inventory.
+
+## CI on this PR
+- **`436536e`:** all green ([run 36998107109](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36998107109); reproducibility [run 36998107113](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36998107113)).
+- **`ec0c5cf`:** web checks failed on one file, `scripts/run11/market-disconnect.test.mjs`. Chrome's launch in its `beforeAll` exceeded the hook's 45 s ([run 37004534168](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37004534168)).
+  - Not this PR's: no market, Worker or Chrome-launch code changed, and the same file passed on `436536e`.
+  - [Standing-down comment](https://github.com/reyals1111-ux/ZIGoals/pull/58#issuecomment-5952323127), then the one re-run of the failed job (attempt 2), which passed: run all green.
+- **`0301ff8`, `af2f9e8`, `54e9d98` and `b748bec`:** runs cancelled by my own newer pushes, as the workflow's concurrency rule does.
+- **`f33d6cb` (all code of this PR):** all green on attempt 1 ([run 37012160707](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37012160707): web checks, web integration, browser shards 15.3, 16.4 and 16.2 min, contract, `web`; reproducibility [run 37012160705](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37012160705)).
+- **This commit (docs only):** reported on the PR.
+
+## Known CI intermittents (table below updated)
+- **`account-browser` b-first:** explained and fixed by `436536e` (a press dropped during an automatic sync; a paused automatic sync that still ran).
+- **`market-disconnect.test.mjs`:** Chrome's launch in `beforeAll` exceeded the 45 s hook once (`ec0c5cf`). The one re-run passed.
+- **Browser shard budget:** raised to 22 min by `ec0c5cf`; this PR's shards took 14.7–16.3 min.
+
+## Decisions made without the owner, and deviations
+- **Helper agents:** during planning, 3 read-only explore agents ran at once, one over the brief's limit of 2. None ran after the plan.
+- **The pre-fix loop:** a-first was not looped before the fix; the race was already reproduced deterministically. Five b-first runs that failed because the sandbox stopped the server were re-run and not counted.
+- **QA2-01's fix:** a tap whose change would be refused while another check-in saves still waits its turn and reports why, as a first tap does. A refused save drops the taps still waiting. A second tap on "✓ Done" during the save now undoes it, as the button says.
+- **Part 5:**
+  - step 3 dropped by the benchmark gate;
+  - the change kept although it gains nothing measurable in the browser.
+- **Part 6:**
+  - the clip extended past the top and sides (see above);
+  - the words' contrast left as the artwork has it.
+- **Part 7:** only the dim selectors are changed (the first draft's longer list lowered some captions); the stylesheets' `?v=` tag is not bumped.
+- **QA severities and the Wealth timing note** (QA2-08) are my reading; the owner may rate them differently.
+
+## Follow-ups
+- **Owner decisions:** QA2-02 to QA2-08 ([the QA sweep](qa/QA_SWEEP_2026-10-02.md#for-the-owner-visual-product-or-wording-nothing-changed)); whether to brighten the sidebar words; whether to keep Part 5.
+- **The live landing headers:** check them on zigoals.app (this sandbox could not reach it).
+- **`scripts/desktop-freeze-check.mjs`:**
+  - its captures do not show the sidebar's planet at desktop heights, so a sidebar change passes it unseen; consider a capture of the sidebar's end;
+  - one capture hung for over 10 minutes (not investigated).
+- **`market-disconnect.test.mjs`:** if Chrome's launch exceeds the 45 s hook again, give `beforeAll` its own launch retry or a longer budget.
+- **Wealth with 200 positions:** profile before the next performance pass (QA2-08).
+- **Network:** the official pricing and legal pages, and zigoals.app, are refused by this environment's network policy; the cost model therefore uses dated in-repo figures (see its header).
+
+## How the owner can review
+- **Screenshots:** the branch `review/session-k-screenshots` (never merged), linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/58#issuecomment-5954418655). It holds the sidebar close-ups of all 11 pages, before and after, and the landing contrast pairs.
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`.
+  2. Run `git checkout quality/session-k-2026-10-02`.
+  3. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  4. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  5. Open http://127.0.0.1:3101/app, then Settings → Load Showcase Demo.
+- **What to look at:**
+  1. The sidebar on Today, Goals, Habits, Health and Wealth: the words are larger, on the planet.
+  2. The sidebar on Markets: the swan.
+  3. On Habits, tap "+" twice quickly: it counts 2.
+
 # Alpha deploy — 2026-10-02 morning, `c189313` live
 
 Evidence labels:
@@ -1634,13 +1818,14 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 |---|---|---|---|
 | Browser click hang | ≈1 in 400 tests | Browser-level; see closed draft #38 | Monitor |
 | `account-browser` (a-first reconnect) 90 s vitest timeout | 3× on main-based runs (#41, #42, #44) | web integration job | **Fixed in #46** (`8ca0e03`): CPU contention from running the 7 browser files in parallel; they now run one at a time. See the Session B entry above |
+| `account-browser` b-first: line 112 "locator.inputValue: Timeout 30000ms exceeded" or line 90 "page.waitForFunction: Timeout 10000ms exceeded" | CI: on #57 (run 36935232780, run 36970726468); 0 of 30 locally | web integration job | **Fixed in Session K** (`436536e`, #58): a press that landed as an automatic sync started was dropped, and an automatic sync scheduled before a review ran during it. Reproduced deterministically first; 30/30 b-first and 30/30 a-first locally after the fix |
 | `run10-motion.spec.ts:5` (desktop) hero mid-entrance sample equals its end; `brand-nav-polish.spec.ts:51` (mobile) navigation glide | CI: once each on #54 (`15ad75c`, run 36865907188); passed on every later run and in both local full suites | web browser suite | Monitor (motion timing) |
 | `run11-recovery-failures.spec.ts:22` (mobile) 45 s timeout at `page.reload` (`net::ERR_ABORTED`) | CI: once on #54 (`9bd1dee`, run 36868939969, shard 3); passed on every later run, 30/30 locally | web browser suite | Monitor |
 | `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
-| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed |
+| `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed. **Once more in Session K** (#58, `ec0c5cf`, run 37004534168): that `beforeAll` launch exceeded the hook's 45 s; the one re-run passed. Monitor |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
-| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::` |
+| Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 14.4–16.3 min measured |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
