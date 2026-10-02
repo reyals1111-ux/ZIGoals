@@ -2,7 +2,7 @@
 
 Authoritative complete scope: [Run #8 master prompt](../RUN_8_ASTRA_MASTER_PROMPT.md). Every numbered section and requirement in that document remains part of this roadmap. Delivery status is tracked individually in [Beta backlog](../RUN_8_BETA_BACKLOG.md).
 
-The Goal Layer for ZIGChain. Your goals. Onchain. Goals, Habits & Health = Wealth. Goals connect wealth already held elsewhere and supporting behavior to life outcomes. Goal → Position → Allocation → Policy → optional Execution Adapter. Goals never require custody. Habits represent behavior; Positions represent actual financial state.
+Your goals. Onchain. Goals, Habits & Health = Wealth. Goals connect wealth already held elsewhere and supporting behavior to life outcomes. Goal → Position → Allocation → Policy → optional Execution Adapter. Goals never require custody. Habits represent behavior; Positions represent actual financial state.
 
 Run #8 preserves the deployed V2.1 visual system and all Health V1 behavior. Implement exact financial accounting, independent read-only mainnet tracking, native staking, allocations, Goal Engine V2, Goals/Detail/Positions, contribution plans, Habits Beta and Today integration. Keep observed facts, manual facts, plans and projections separate. Public address tracking establishes no ownership. No staking transactions, mainnet signing, upload, merge or production deployment.
 

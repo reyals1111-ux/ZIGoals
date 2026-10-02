@@ -1,6 +1,6 @@
 "use client";
 import type { LayoutAttrs } from "../layout-edit";
-import { memo, useState, type FormEvent } from "react";
+import { memo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
 import {LinkedGoalReview} from './linked-goal-review';
@@ -42,16 +42,37 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   const shown = pending ?? habit;
   const day = habitDay(shown, store.today, store.today); const rule = habitRuleOn(shown,store.today)??shown.rules[0]!; const unit = measurementUnit(rule);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(() => formNumberText(day.count));
+  // Taps while a check-in saves (Session K, QA sweep 2). Paint-first keeps the buttons enabled during that save, and
+  // such a tap used to be ignored without a word. Now it shows at once on top of what is shown and is saved right after
+  // the save before it, in order. A refused save shows what is saved, says why, and drops the taps still waiting.
+  const checkIns = useRef<{ saving: boolean; shown: Habit | null; waiting: ((data: HabitData) => HabitData)[] }>({ saving: false, shown: null, waiting: [] });
   async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch (error) { setError(checkInFailureMessage(error)); } finally { setBusy(false); } }
-  function checkIn(change: (data: HabitData) => HabitData) {
-    if (busy) return;
-    let preview: Habit | undefined;
-    // The change applied to this habit alone (only the changed habit is validated again, lib/habits.ts); if it is
-    // refused, nothing is painted early and the save reports why.
-    try { preview = change({ schemaVersion: 2, kind: "zigoals-habits", habits: [habit], ...(store.data.timeZone ? { timeZone: store.data.timeZone } : {}) }).habits[0]; } catch { preview = undefined; }
-    setBusy(true); setError(""); setPending(preview ?? null);
-    afterPaint(() => void store.update(change).catch((error: unknown) => setError(checkInFailureMessage(error))).finally(() => { setPending(null); setBusy(false); }));
+  // The change applied to this habit alone (only the changed habit is validated again, lib/habits.ts), or undefined if
+  // it is refused: then nothing is painted early and the save reports why.
+  function preview(change: (data: HabitData) => HabitData, base: Habit): Habit | undefined {
+    try { return change({ schemaVersion: 2, kind: "zigoals-habits", habits: [base], ...(store.data.timeZone ? { timeZone: store.data.timeZone } : {}) }).habits[0]; } catch { return undefined; }
   }
+  function checkIn(change: (data: HabitData) => HabitData) {
+    const queue = checkIns.current;
+    if (queue.saving) {
+      const next = queue.shown ? preview(change, queue.shown) : undefined;
+      queue.waiting.push(change);
+      if (next) { queue.shown = next; setPending(next); }
+      return;
+    }
+    if (busy) return;
+    const next = preview(change, habit);
+    queue.saving = true; queue.shown = next ?? null;
+    setBusy(true); setError(""); setPending(next ?? null);
+    afterPaint(() => void save(change));
+  }
+  async function save(change: (data: HabitData) => HabitData) {
+    const queue = checkIns.current;
+    try { await store.update(change); } catch (error) { queue.waiting = []; settled(); setError(checkInFailureMessage(error)); return; }
+    const next = queue.waiting.shift();
+    if (next) void save(next); else settled();
+  }
+  function settled() { const queue = checkIns.current; queue.saving = false; queue.shown = null; setPending(null); setBusy(false); }
   // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
   function typed() { try { return readFormNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(e instanceof Error ? e.message : "Enter a number."); return null; } }
   async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => store.setValue(habit.id, store.today, value)); }

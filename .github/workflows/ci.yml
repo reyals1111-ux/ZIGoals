@@ -46,7 +46,7 @@ jobs:
     # each) the shards measured 7.6-8.4 min including about 1.5 min of setup
     # and build (run 36489960661). About 2x headroom for suite growth and
     # slower runners.
-    timeout-minutes: 18
+    timeout-minutes: 22
     strategy:
       fail-fast: false
       matrix:
