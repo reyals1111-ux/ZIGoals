@@ -27,13 +27,13 @@ test('after Quick add navigates away from Today, focus lands on the new page, no
  expect(await page.evaluate(()=>!!document.getElementById('main')?.contains(document.activeElement))).toBe(true);
 });
 
-test('the intro video has an accessible name and says it is music only',async({page})=>{
+test('the brand film has an accessible name and a one-line summary that says it has no speech',async({page})=>{
  await showcase(page);
  await page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}).click();
- const dialog=page.getByRole('dialog',{name:'ZIGoals intro',exact:true});
- await expect(dialog.getByText('Music only, no narration.',{exact:false})).toBeVisible();
- await expect(dialog.locator('video')).toHaveAccessibleName('ZIGoals intro video (music only, no narration)');
- await expect(dialog).toHaveAccessibleDescription(/Music only, no narration\./);
+ const dialog=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true});
+ await expect(dialog.getByText('Music and on-screen words, no speech.',{exact:false})).toBeVisible();
+ await expect(dialog.locator('video')).toHaveAccessibleName('ZIGoals brand film (music and on-screen words, no speech)');
+ await expect(dialog).toHaveAccessibleDescription(/^A 16-second film: the Z folds into a swan, lotus, butterfly, heart and bull, then becomes the ZIGoals logo — Goals, Habits & Health = Wealth\. Music and on-screen words, no speech\.$/);
 });
 
 test('forced colors: the navigation arrival sweep and pop are off',async({page,isMobile})=>{

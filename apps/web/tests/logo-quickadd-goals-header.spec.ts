@@ -49,22 +49,25 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
 });
 
-test('"See how it works" opens the intro video dialog, which loads nothing until opened and returns focus',async({page})=>{
- // The logo fold intro is separate (/brand/logo-fold/, tests/logo-fold.spec.ts); the hero's intro video must wait to be opened.
- const media:string[]=[];page.on('request',r=>{if(r.url().includes('/media/'))media.push(r.url());});
+test('"See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus',async({page})=>{
+ // The logo fold intro is separate (/brand/logo-fold/, tests/logo-fold.spec.ts); the hero's brand film must wait to be opened.
+ const media:string[]=[];page.on('request',r=>{if(/\/media\/|\/brand\/how-it-works\//.test(r.url()))media.push(r.url());});
  await showcase(page);
  const trigger=page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true});
  await expect(trigger).toBeVisible();await expect(page.getByRole('region',{name:'How it works',exact:true})).toBeAttached();
  await page.waitForLoadState('networkidle');expect(media).toEqual([]);
  await trigger.click();
- const dialog=page.getByRole('dialog',{name:'ZIGoals intro',exact:true}),video=dialog.locator('video'),close=dialog.getByRole('button',{name:'Close intro video',exact:true});
- await expect(dialog).toBeVisible();await expect(dialog).toContainText('Full walkthrough video coming soon.');await expect(close).toBeFocused();
+ const dialog=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true}),video=dialog.locator('video'),close=dialog.getByRole('button',{name:'Close brand film',exact:true});
+ await expect(dialog).toBeVisible();await expect(dialog).toContainText('A 16-second film: the Z folds into a swan, lotus, butterfly, heart and bull');await expect(close).toBeFocused();
  const c=(await close.boundingBox())!;expect(c.width).toBeGreaterThanOrEqual(44);expect(c.height).toBeGreaterThanOrEqual(44);
- await expect(video).toHaveAttribute('preload','none');await expect(video).toHaveAttribute('playsinline','');await expect(video).toHaveAttribute('controls','');
- await expect(video).toHaveAttribute('poster','/media/zigoals-intro-poster.jpg');await expect(video).toHaveAttribute('src','/media/zigoals-intro.mp4');
- await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
+ await expect(video).toHaveAttribute('preload','metadata');await expect(video).toHaveAttribute('playsinline','');await expect(video).toHaveAttribute('controls','');
+ // 720p unless the window is wide on a high-density screen (these test screens are not).
+ await expect(video).toHaveAttribute('poster','/brand/how-it-works/how-it-works-poster.webp');await expect(video).toHaveAttribute('src','/brand/how-it-works/how-it-works-720p.mp4');
+ await page.waitForTimeout(600);expect(await video.evaluate(v=>(v as HTMLVideoElement).paused)).toBe(true);
  const box=(await video.boundingBox())!,viewport=page.viewportSize()!;
- expect(box.height).toBeLessThanOrEqual(viewport.height*.86);expect(box.width).toBeLessThanOrEqual(viewport.width);expect(Math.abs(box.width/box.height-784/1168)).toBeLessThan(.02);
+ expect(box.height).toBeLessThanOrEqual(viewport.height*.86);expect(box.width).toBeLessThanOrEqual(viewport.width);expect(Math.abs(box.width/box.height-1280/720)).toBeLessThan(.02);
+ // The viewer starts it.
+ await video.evaluate(v=>(v as HTMLVideoElement).play());await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
  // A closed dialog has no role, so read the element directly. The close event (pause + rewind) follows the dialog closing, so poll.
  await expect.poll(()=>page.locator('dialog.intro-video-dialog video').evaluate(v=>({paused:(v as HTMLVideoElement).paused,time:(v as HTMLVideoElement).currentTime}))).toEqual({paused:true,time:0});
@@ -72,13 +75,15 @@ test('"See how it works" opens the intro video dialog, which loads nothing until
  await trigger.click();await expect(dialog).toBeVisible();await page.mouse.click(4,4);await expect(page.getByRole('dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
 });
 
-test('reduced motion and the Off preference never autoplay the intro; the poster and play control stay',async({page})=>{
+test('with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});
  await showcase(page);
- const trigger=page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}),video=page.getByRole('dialog',{name:'ZIGoals intro',exact:true}).locator('video');
- await trigger.click();await expect(video).toBeVisible();await expect(video).toHaveAttribute('poster','/media/zigoals-intro-poster.jpg');await expect(video).toHaveAttribute('controls','');
+ const trigger=page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}),video=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true}).locator('video');
+ await trigger.click();await expect(video).toBeVisible();await expect(video).toHaveAttribute('poster','/brand/how-it-works/how-it-works-poster.webp');await expect(video).toHaveAttribute('controls','');
  await page.waitForTimeout(500);expect(await video.evaluate(v=>(v as HTMLVideoElement).paused)).toBe(true);
  await page.keyboard.press('Escape');await expect(trigger).toBeFocused();
  await page.emulateMedia({reducedMotion:'no-preference'});await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();
  await trigger.click();await expect(video).toBeVisible();await page.waitForTimeout(500);expect(await video.evaluate(v=>(v as HTMLVideoElement).paused)).toBe(true);
+ // Motion Off does not stop the viewer from playing it.
+ await video.evaluate(v=>(v as HTMLVideoElement).play());await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
 });
