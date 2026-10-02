@@ -200,6 +200,33 @@ Totals are per run and never added together.
 
   The sync offer needs accounts, so in the preview it is seen only in the screenshots.
 
+# Alpha deploy — 2026-10-02 afternoon, `f3220e1` live
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session L cloud session on 2026-10-02. It covers the steps "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and "Report version IDs even after failure", and the run summary.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in a Session L follow-up message, 2026-10-02.
+
+- **Run:** Manual Alpha deployment #22, [run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305), 2026-10-02 16:01–16:08 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after #58. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `8848babc-8168-4c07-a5e4-0712cc6d4a54`. The last observed live version is the same. (CI log)
+- **Rollback:** `2a8015bd-d161-460e-9d37-59c0cc439578`, the version deploy #21 published, so the chain holds. (CI log)
+- **CI on `f3220e1`:** Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)): success on attempt 1. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37031082305-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result. No manual check is reported with this record. (Owner, 2026-10-02)
+
+**Merged since the last record** (git, first-parent history of `main`): [#58](https://github.com/reyals1111-ux/ZIGoals/pull/58) (`f3220e1`), Session K, quality, reliability and follow-ups. It includes:
+- a press during an automatic sync now waits instead of being dropped, and a paused automatic sync stays paused;
+- account-browser diagnostics;
+- QA sweep 2 and a habit double-tap fix;
+- the sidebar marks;
+- stronger landing contrast;
+- business docs.
+
+The owner reverted its private-storage change. See the Session K entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Session K — quality, reliability and follow-ups: the account-browser race, freeze check, CI budget, QA sweep 2, one storage read (reverted by the owner), sidebar marks, landing contrast, business research (2026-10-02, [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58), not merged or deployed)
 
 **Evidence labels**
@@ -2166,7 +2193,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 morning for the [Alpha deploy #21](#alpha-deploy--2026-10-02-morning-c189313-live) above (recorded by Session K).
+Updated 2026-10-02 afternoon for the [Alpha deploy #22](#alpha-deploy--2026-10-02-afternoon-f3220e1-live) above (recorded by Session L).
+- Deployed source `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58). Verified: Actions API.
+- CI: Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)) on `f3220e1`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #22 ([run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305)), exact source `f3220e1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `8848babc-8168-4c07-a5e4-0712cc6d4a54`; rollback `2a8015bd-d161-460e-9d37-59c0cc439578` (the run #21 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+
+Previous release identity (PR #57, 2026-10-02 morning, recorded by Session K):
 - Deployed source `c18931350bc9622769085588481abeda172ad1d6`, `main` after [PR #57](https://github.com/reyals1111-ux/ZIGoals/pull/57) (which follows [PR #56](https://github.com/reyals1111-ux/ZIGoals/pull/56)). Verified: Actions API.
 - CI: Milestone quality #334 ([run 36983085143](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36983085143)) on `c189313`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #21 ([run 36985497999](https://github.com/reyals1111-ux/ZIGoals/actions/runs/36985497999)), exact source `c189313`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
