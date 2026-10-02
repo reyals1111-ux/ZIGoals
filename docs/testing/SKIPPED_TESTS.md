@@ -9,12 +9,12 @@ Categories: **platform** (the behaviour does not exist on that project/viewport)
 ## Playwright (`apps/web/tests`, projects `desktop` and `mobile`)
 | # | Test (file:line) | Condition | Reason | Category | Action |
 |---|---|---|---|---|---|
-| 1 | `primary actions catch one sweep of light on hover, give on press and keep their focus ring` (motion-polish.spec.ts:91) | project `mobile` | The hover sweep exists only for hover-capable pointers | platform | Keep. Desktop runs it. |
-| 2–3 | `the static logo stays when the intro clip fails` / `… is not ready in time` (motion-arrival.spec.ts:89) | `isMobile` | The logo intro is desktop only | platform | Keep. Desktop runs both. |
+| 1 | `primary actions catch one sweep of light on hover, give on press and keep their focus ring` (motion-polish.spec.ts:105; was :91) | project `mobile` | The hover sweep exists only for hover-capable pointers | platform | Keep. Desktop runs it. |
+| 2–3 | ~~`the static logo stays when the intro clip fails` / `… is not ready in time` (motion-arrival.spec.ts:89)~~ | — | **Removed by #57 (`c1c0eca`).** The logo intro is no longer desktop only: `logo-fold.spec.ts` covers the sidebar, the narrow-tablet header and the phone top bar, and its failure cases run on both projects with no skip | — | Nothing to keep. |
 | 4 | `forced colors: the navigation arrival sweep and pop are off` (a11y-motion-dialogs.spec.ts:40) | `isMobile` | The sidebar navigation is the desktop layout | platform | Keep. Desktop runs it. |
-| 5 | `keyboard focus on the logo link is never covered by the intro clip` (a11y-motion-dialogs.spec.ts:57) | `isMobile` | The logo intro is desktop only | platform | Keep. Desktop runs it. |
+| 5 | `keyboard focus on the logo link is never covered by the intro clip` (a11y-motion-dialogs.spec.ts:57) | `isMobile` | Phones have no sidebar logo (reason updated by #57); `logo-fold.spec.ts:119` covers focus on the phone top bar Z | platform | Keep. Desktop runs it; mobile runs the top-bar case. |
 | 6–13 | `visual product audit 1440 / 1024 / 390 / 320` (run9-1-visual.spec.ts:12), both projects | file-level, `RUN91_CAPTURE!=='1'` | Opt-in evidence capture with isolated fixtures; writes screenshots | opt-in evidence | Keep. It is a manual evidence tool, not a gate. |
-| 14–21 | `final Showcase visuals 1440 / 1024 / 390 / 320` (run9-2-visual.spec.ts:5, plus a `project!=='desktop'` skip at :10), both projects | file-level, `RUN92_CAPTURE!=='1'` | Uses real public provider responses and writes into `docs/verification/run9-2` | opt-in evidence, real provider | **Never un-skip in CI.** |
+| 14–21 | `final Showcase visuals 1440 / 1024 / 390 / 320` (run9-2-visual.spec.ts:5, plus a `project!=='desktop'` skip at :12, was :10), both projects | file-level, `RUN92_CAPTURE!=='1'` | Uses real public provider responses and writes into `docs/verification/run9-2` | opt-in evidence, real provider | **Never un-skip in CI.** |
 
 **Playwright total: 21 skipped** = 5 platform + 16 opt-in captures. The 4 new platform skips since the 17-skip inventory (rows 2–5) came with the logo intro tests (#29, `db6aa5c`) and the accessibility specs (#40, `b27d705`).
 
@@ -80,3 +80,39 @@ These are not skips. Each test states the behaviour a planned fix must produce, 
 A `test.fails` whose setup broke would "pass" for the wrong reason; the precondition guards fail instead.
 
 **Flip proof (local, never committed):** a throwaway option-A prototype in `cloud-sync.ts` turned X1–X4 red with "Expect test to fail". All 6 guards and the 19 tests in `apps/web/lib/vault/cloud-sync.test.ts` stayed green. The file was then restored.
+
+## Session K update (2026-10-02, branch `quality/session-k-2026-10-02`)
+Rows 1–5 and 14–21 above are corrected for #57: the logo intro is no longer desktop-only (rows 2–3 removed, row 5's reason updated), and two line numbers moved. #57 added the platform skips below; the older ones under them were never listed. Every one skips a test on the project whose layout does not have the behaviour; the other project runs it. Line numbers are on this branch before Session K's own changes.
+
+### Added by #57 (Session I)
+| # | Test (file:line) | Condition | Reason | Category | Action |
+|---|---|---|---|---|---|
+| K1–K2 | `the fold plays once per browser session over the static Z (<layout>) and settles exactly on it` (logo-fold.spec.ts:66, one per layout in its loop) | runtime: the browser decodes neither fold format | The failure tests in the same file cover the static fallback | platform (runtime) | Keep. CI Chrome and this sandbox's Chromium both decode a format, so it runs. |
+| K3 | `keyboard focus on the phone top bar Z is never covered by the fold` (logo-fold.spec.ts:119) | `!isMobile` | The top bar Z exists on phones; the sidebar case is row 5 | platform | Keep. Mobile runs it. |
+| K4–K5 | `changing pages crossfades the marks once…`; `the mark never overlaps the navigation or the planet…` (page-marks.spec.ts:53, :76) | `isMobile` | The sidebar planet and its marks are the desktop sidebar | platform | Keep. Desktop runs both. |
+| K6–K7 | `phone: Today folds its secondary modules…`; `phone: Wealth folds its secondary modules…` (phone-folds.spec.ts:16, :40) | `!isMobile` | Phone layout only | platform | Keep. Mobile runs both. |
+| K8 | `desktop: no module is folded and every one shows as before` (phone-folds.spec.ts:56) | `isMobile` | Desktop layout only | platform | Keep. Desktop runs it. |
+| K9–K11 | `phone: the habit editor is a bottom sheet…`; `phone: Log a meal opens… as a sheet…`; `phone: Staking opens the wallet reader and the reward scenario as sheets` (phone-form-sheets.spec.ts:23, :50, :64) | `!isMobile` | Phone sheets only | platform | Keep. Mobile runs all three. |
+| K12 | `desktop: the forms stay in the page, no sheet opens` (phone-form-sheets.spec.ts:83) | `isMobile` | Desktop layout only | platform | Keep. Desktop runs it. |
+| K13 | `phone: fields are 16 px and every control is at least 44 px tall` (portfolio.spec.ts:95) | `!isMobile` | Phone layout only | platform | Keep. Mobile runs it. |
+
+### Older, never listed until now
+| # | Test (file:line) | Condition | Reason | Category | From |
+|---|---|---|---|---|---|
+| K14 | `the sidebar shows the page mark above the planet, and no longer a Shape & Fold tagline` (ui-design-pass.spec.ts:66) | `isMobile` | The mobile header hides the sidebar planet | platform | Session A (#47), title updated by #57 |
+| K15 | `dragging a Goal card with the mouse reorders the collection` (ui-design-pass.spec.ts:208) | `isMobile` | Mouse drag | platform | Session A |
+| K16 | `touch: a long-press on the handle picks a card up and moves it` (ui-design-pass.spec.ts:235) | `!isMobile` | Touch only | platform | Session A |
+| K17–K18 | `hovering lifts a Goal card and a habit calendar tile…`; `list rows get a rounded glass pill…` (ui-design-pass.spec.ts:264, :283) | `isMobile` | Hover needs a fine pointer | platform | Session A |
+| K19 | `keyboard focus gives the same lift with the focus ring` (ui-design-pass.spec.ts:303) | `isMobile` | Keyboard check on desktop | platform | Session A |
+| K20–K21 | `<setting>: hover never moves anything; a static highlight only` (ui-design-pass.spec.ts:314, one per setting in its loop) | `isMobile` | Hover needs a fine pointer | platform | Session A |
+| K22 | `touch gets press feedback only, never a hover lift` (ui-design-pass.spec.ts:324) | `!isMobile` | Touch only | platform | Session A |
+| K23–K24 | `hover intent: a pointer that presses straight away never lifts the tile…`; `long sections and typing stay still; the sidebar star is a plain layer` (ui-design-pass.spec.ts:332, :344) | `isMobile` | Hover needs a fine pointer | platform | Session A |
+| K25 | `hover and a mouse drag move nothing on their own…` (ui-evidence.spec.ts:30) | `isMobile` | Hover and mouse drag need a fine pointer; its keyboard flow covers phones | platform | Session A |
+| K26–K27 | `the equation reveals its four steps in scroll order`; `reduced motion settles the equation on all four steps without scrolling` (landing.spec.ts:138, :224) | project not `desktop` | The stepped reveal runs above 700 px; phones get the settled state | platform | Landing V4 (#55) |
+
+**Expected totals from the source** (a full local run measures them; see the Session K entry in [STATUS](../STATUS.md)):
+- **desktop project:** 19 skipped;
+- **mobile project:** 27 skipped;
+- **both projects:** 46, including the 16 opt-in captures (rows 6–21).
+
+The runtime row K1–K2 is not counted, because both browsers decode a fold format. No skip is a known bug, obsolete or unknown, and there is still no `test.fixme`, `test.todo` or `.only`.

@@ -41,7 +41,10 @@ export const PAGES = [
   { name: "health", path: "/app/health" },
   { name: "wealth", path: "/app/wealth" },
   { name: "markets", path: "/app/markets" },
-  { name: "positions", path: "/app/goals/positions" },
+  // Staking (#57) replaced "Stake / Positions"; the old address /app/goals/positions still redirects to it (307), which
+  // tests/page-marks.spec.ts covers. Portfolio (#57) is new.
+  { name: "staking", path: "/app/staking" },
+  { name: "portfolio", path: "/app/portfolio" },
   { name: "ecosystem", path: "/app/ecosystem" },
   { name: "activity", path: "/app/activity" },
   { name: "settings", path: "/app/settings" },
