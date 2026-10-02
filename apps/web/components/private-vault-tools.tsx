@@ -15,6 +15,7 @@ import {enableDurableStore,isDurableMarker} from '../lib/vault/local';
 import {encryptBackup,decryptBackup} from '../lib/vault/backup';
 import {summarizeBackupModules,type BackupModuleSummary} from '../lib/vault/backup-preview';
 import {LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY,exportLocalSimulation,isOmittedLocalSimulation,restoreLocalSimulation} from '../lib/vault/local-simulation-backup';
+import {futureEntriesMessage} from './legacy-restore-clock';
 import {storageLockKey} from '../lib/showcase-storage';
 import { formatNumber } from '../lib/visual-format';
 type Domain='finance'|'habits'|'health'|'settings';
@@ -56,7 +57,7 @@ export function PrivateVaultTools(){
  function restorable(sections:Partial<Record<Section,string>>){return (Object.keys(sections) as Section[]).filter(d=>d!=='simulation'||!isOmittedLocalSimulation(sections.simulation!));}
  async function restoreSelected(raw:string){
   if(domain!=='simulation'){await stores[domain].importData(raw);return;}
-  const storage=getAppStorage();try{await restoreLocalSimulation(storage,raw);}catch{throw Error('Backup could not be imported. Check its module, version and size. Existing private data was preserved.');}
+  const storage=getAppStorage();try{await restoreLocalSimulation(storage,raw);}catch{throw Error(futureEntriesMessage(raw)??'Backup could not be imported. Check its module, version and size. Existing private data was preserved.');}
   for(const key of [LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY])window.dispatchEvent(new StorageEvent('storage',{key:storageLockKey(storage,key)}));
  }
  return <section className="panel" id="private-vault"><p className="eyebrow">PRIVATE RECOVERY</p><h2>Keep a protected copy.</h2>

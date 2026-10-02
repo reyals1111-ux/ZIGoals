@@ -150,8 +150,9 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
             </div>
             {plan.currency !== "ZIG" && (
               <p className="notice">
-                Demo valuation: 1 simulated ZIG = 1 {plan.currency}. Testnet
-                assets have no monetary value.
+                Value in {plan.currency}: unknown — simulated ZIG has no price, so
+                this Goal shows the ZIG it holds, not a {plan.currency} value or
+                progress. Testnet assets have no monetary value.
               </p>
             )}
           </>

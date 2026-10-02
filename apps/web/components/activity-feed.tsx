@@ -13,6 +13,7 @@ import { useShowcase } from "./showcase-controls";
 import {shownAmount} from "./platform/common";
 import "./activity-product.css";
 import { formatTime } from "../lib/visual-format";
+import { activityKeys } from "./activity-keys";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
@@ -25,7 +26,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
     ...getHabitActivities(habits.data), ...getHealthActivities(health.data),
   ].filter(event => category === "ALL" || event.category === category).sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
-  const entries = allEntries.slice(0, limit);
+  const entries = allEntries.slice(0, limit), keys = activityKeys(entries);
   return <div className="unified-activity">
     {(habits.error || health.error) && <p className="fine">Some private history needs attention in Settings; stored data has been preserved.</p>}
     {showcase && <p className="activity-history-source">Showcase example history · fictional records</p>}
@@ -33,7 +34,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
       const presentation = activityPresentation(event);
       const heading = activityDateHeading(event.at);
       const startsDay = index === 0 || heading !== activityDateHeading(entries[index - 1]!.at);
-      return <li className="activity-event-group" key={`${event.category}-${event.id}`}>
+      return <li className="activity-event-group" key={keys[index]}>
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>

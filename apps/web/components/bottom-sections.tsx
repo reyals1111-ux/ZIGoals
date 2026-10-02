@@ -41,11 +41,13 @@ export function TodayWeek({today,habits,health,platform,financial,...layout}:Lay
  </Shell>;
 }
 
+/** "45% funded"; a lower bound or an unknown value says so (QA-37/38, Session I, Part 10). */
+const fundedPill=(pct:string,bound?:GoalSummary['progressBound'])=>bound==='unavailable'?'Progress unavailable':`${bound==='at-least'?'At least ':''}${formatNumber(Number(pct), {maximumFractionDigits:1})}% funded`;
 /** Goals: saved target dates on one timeline. */
 export function GoalMilestones({goals,today,...layout}:LayoutAttrs&{goals:readonly GoalSummary[];today:string}){
  const t=goalTimeline(goals,today);
  return <Shell layout={layout} id="bottom-goal-milestones" eyebrow="YOUR TIMELINE" title={<>Milestones ahead.</>} lede="Target dates saved in your active Goals, soonest first.">
-  {t.dated.length?<ol className="bottom-timeline">{t.dated.map(g=><li key={g.key} data-past={g.past||undefined}><time dateTime={g.targetDate}>{g.targetDate}</time><span className="bottom-timeline-dot" aria-hidden="true"/><Link href={g.href} className="bottom-timeline-name">{g.name}</Link><span className="bottom-pill">{formatNumber(Number(g.progressPct), {maximumFractionDigits:1})}% funded</span>{g.past&&<span className="bottom-pill bottom-pill-muted">Target date passed</span>}</li>)}</ol>
+  {t.dated.length?<ol className="bottom-timeline">{t.dated.map(g=><li key={g.key} data-past={g.past||undefined}><time dateTime={g.targetDate}>{g.targetDate}</time><span className="bottom-timeline-dot" aria-hidden="true"/><Link href={g.href} className="bottom-timeline-name">{g.name}</Link><span className="bottom-pill">{fundedPill(g.progressPct,goals.find(x=>x.key===g.key)?.progressBound)}</span>{g.past&&<span className="bottom-pill bottom-pill-muted">Target date passed</span>}</li>)}</ol>
   :<p className="bottom-empty">No active Goal has a target date yet. Add one in a Goal’s plan to see it here.</p>}
   {t.undated>0&&<p className="bottom-note">{t.undated} active Goal{t.undated===1?' has':'s have'} no target date.</p>}
  </Shell>;
