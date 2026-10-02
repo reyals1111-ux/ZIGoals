@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {wealthOverview} from '../../lib/wealth';
 import {fundingHealth} from '../../lib/goal-intelligence';
 import {goalProgress} from '../../lib/positions';
-import {formatGoalAmount,valuationBound} from '../../lib/goal-summary';
+import {formatSignedGoalAmount,valuationBound} from '../../lib/goal-summary';
 import {amount,shownAmount} from './common';
 import {ProgressRing} from './financial-ui';
 import {GlassBar} from '../progress/glass-progress';
@@ -25,7 +25,7 @@ export function TodayIntelligence({sources,habitsReady,healthReady,module='all'}
  const today=sources.habits.timeZone?habitCalendarDay(sources.habits,new Date(now)):sources.today;
  const wealth=wealthOverview(platform,now,quotes);
  const goal=[...platform.goals].filter(g=>g.status!=='closed'&&g.type!=='PROJECT').sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||Number(a.status==='completed')-Number(b.status==='completed'))[0];
- const pulse=goal?fundingHealth(platform,goal.id,now,quotes):undefined,bound=goal?valuationBound(goalProgress(platform,goal.id,now,quotes)).bound:undefined,money=(n:string)=>goal?`${n.startsWith('-')?'-':''}${formatGoalAmount(amount(n.replace(/^-/,'')||'0',goal.decimals),goal.asset)}`:'';
+ const pulse=goal?fundingHealth(platform,goal.id,now,quotes):undefined,bound=goal?valuationBound(goalProgress(platform,goal.id,now,quotes)).bound:undefined,money=(n:string)=>goal?formatSignedGoalAmount(n.startsWith('-'),amount(n.replace(/^-/,'')||'0',goal.decimals),goal.asset):'';
  const due=habitsReady?sources.habits.habits.filter(h=>habitDay(h,today,today).scheduled):[];
  const done=due.filter(h=>habitDay(h,today,today).status==='complete').length;
  // Empty and finished days get words, not "0 more chances" (QA-31).

@@ -6,7 +6,7 @@ import {useShowcase} from '../showcase-controls';
 import {reverseContribution,contributionTotals,fundingHealth,goalTimeline,contributionEvidenceSeries} from '../../lib/goal-intelligence';
 import type {Platform,PrivateGoal} from '../../lib/positions';
 import type {MarketQuote} from '../../lib/market-quotes';
-import {formatGoalAmount,valuationBound} from '../../lib/goal-summary';
+import {formatSignedGoalAmount,valuationBound} from '../../lib/goal-summary';
 import {amount,shownAmount} from './common';
 import {EvidenceChart,type EvidenceSeries} from './evidence-chart';
 import {GlassBar} from '../progress/glass-progress';
@@ -17,7 +17,7 @@ import {effectiveContributionPlan} from '../../lib/plan-revisions';
 import {goalProgress} from '../../lib/positions';
 import { formatDate } from '../../lib/visual-format';
 import { localDate } from '../../lib/local-date';
-const display=(value:string,goal:PrivateGoal)=>`${value.startsWith('-')?'-':''}${formatGoalAmount(amount(value.replace(/^-/,''),goal.decimals),goal.asset)}`;
+const display=(value:string,goal:PrivateGoal)=>formatSignedGoalAmount(value.startsWith('-'),amount(value.replace(/^-/,''),goal.decimals),goal.asset);
 export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{data:Platform;goal:PrivateGoal;quotes:readonly MarketQuote[];now:number;update:(fn:(s:Platform)=>Platform)=>Promise<void>;disabled?:boolean}){
  const showcase=useShowcase();
  const [entry,setEntry]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');

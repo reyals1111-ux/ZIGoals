@@ -95,7 +95,21 @@ describe("money", () => {
   });
   it("writes the code instead of the symbol when asked, and never shows -0", () => {
     expect(formatMoney("1500", "GBP", "en-US", { display: "code" })).toBe("1,500.00 GBP");
-    expect(formatMoney("-0.004", "USD", "en-US")).toBe("$0.00");
+    // Session M (QA2-03, owner decision M3): a loss is cut away from zero, so -0.004 is a loss of at least one cent
+    // ("$0.00" before). A zero with a minus sign still shows no sign.
+    expect(formatMoney("-0.004", "USD", "en-US")).toBe("-$0.01");
+    for (const zero of ["-0", "-0.000", "-0.00"]) expect(formatMoney(zero, "USD", "en-US")).toBe("$0.00");
+    expect(formatMoney("-0", "JPY", "en-US", { display: "code" })).toBe("0 JPY");
+  });
+  it("QA2-03: never reads a loss smaller than it is, in en-US, nl-BE, de-DE and ja-JP; gains are still cut toward zero", () => {
+    const cases = [
+      ["en-US", "-12.349", "USD", "-$12.35"], ["en-US", "12.349", "USD", "$12.34"], ["en-US", "-47900.5", "USD", "-$47,900.50"],
+      ["nl-BE", "-1234.561", "EUR", `€${NBSP}-1.234,57`], ["nl-BE", "1234.569", "EUR", `€${NBSP}1.234,56`],
+      ["de-DE", "-0.001", "EUR", `-0,01${NBSP}€`], ["de-DE", "0.009", "EUR", `0,00${NBSP}€`],
+      ["ja-JP", "-1234.5", "JPY", "-￥1,235"], ["ja-JP", "1234.5", "JPY", "￥1,234"], ["ja-JP", "-1.001", "USD", "-$1.01"],
+      ["en-US", "-1.2341", "KWD", `-KWD${NBSP}1.235`],
+    ] as const;
+    for (const [locale, value, currency, expected] of cases) expect(formatMoney(value, currency, locale), `${locale} ${value} ${currency}`).toBe(expected);
   });
   it("is unavailable for anything that is not an amount of money", () => {
     for (const [value, currency] of [["12e3", "USD"], ["", "USD"], ["abc", "EUR"], ["100", "ZIG"], ["100", "BTC"]] as const) expect(formatMoney(value, currency, "en-US")).toBe("Unavailable");

@@ -49,8 +49,9 @@ export function formatExactNumber(value:string,locale=displayLocale(),currency?:
 }
 /**
  * Money (Session I, Part 5): one formatter, so every amount of money shows its currency's minor digits (2 for USD and
- * EUR, 0 for JPY, 3 for KWD), written in the display locale. Digits beyond them are cut, never rounded up: a balance
- * never reads higher than it is. Quantities (ZIG, BTC…) and chain amounts are not money and keep their own formatting.
+ * EUR, 0 for JPY, 3 for KWD), written in the display locale. Digits beyond them are cut toward −∞ (Session M, QA2-03):
+ * a balance never reads higher than it is, and a loss never reads smaller (−12.349 shows −12.35). Quantities (ZIG,
+ * BTC…) and chain amounts are not money and keep their own formatting.
  */
 let isoCurrencies: Set<string> | undefined;
 /** True for an ISO 4217 currency this runtime knows, except the X codes (metals, test and accounting units). */
@@ -72,8 +73,24 @@ export function formatMoney(value:string,currency:string,locale=displayLocale(),
  const digits=currencyDigits(currency);
  if(digits===null||!DECIMAL.test(value))return 'Unavailable';
  const amount=new Decimal(value);if(!amount.isFinite())return 'Unavailable';
- const fixed=amount.toDecimalPlaces(digits,Decimal.ROUND_DOWN).toFixed(digits),signed=fixed.startsWith('-')&&/^-0(?:\.0*)?$/.test(fixed)?fixed.slice(1):fixed;
+ const fixed=amount.toDecimalPlaces(digits,Decimal.ROUND_FLOOR).toFixed(digits),signed=fixed.startsWith('-')&&/^-0(?:\.0*)?$/.test(fixed)?fixed.slice(1):fixed;
  return display==='code'?`${formatExactNumber(signed,locale)} ${currency}`:formatExactNumber(signed,locale,currency);
+}
+/**
+ * The size of a signed money amount, for interfaces that write the sign themselves (QA2-03): the unsigned decimal at the
+ * currency's minor digits, a loss cut away from zero so that it never reads smaller than it is, a gain cut toward zero
+ * as formatMoney does. Not money (ZIG, BTC…), or not a decimal: the value without its sign, unchanged.
+ */
+export function moneyMagnitude(value:string,currency:string){
+ const digits=currencyDigits(currency),unsigned=value.replace(/^[+-]/,'');
+ if(digits===null||!DECIMAL.test(value))return unsigned;
+ const amount=new Decimal(value);if(!amount.isFinite())return unsigned;
+ return amount.toDecimalPlaces(digits,Decimal.ROUND_FLOOR).abs().toFixed(digits);
+}
+/** A signed amount of money with its sign written first ("−$12.35", "+$8.00"), as Portfolio writes a result. */
+export function formatSignedMoney(value:string,currency:string,locale=displayLocale(),{plus='+',minus='−'}:{plus?:string;minus?:string}={}){
+ const negative=value.startsWith('-');
+ return `${negative?minus:plus}${formatMoney(moneyMagnitude(value,currency),currency,locale)}`;
 }
 /**
  * A market price: at least the currency's minor digits, and below one unit enough further digits for four significant
