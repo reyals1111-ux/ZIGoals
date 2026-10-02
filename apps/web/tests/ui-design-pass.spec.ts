@@ -1,5 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
-import {isPhone} from './phone-nav';
+import {isPhone,openFold} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 
 async function showcase(page:Page){
@@ -440,7 +440,7 @@ test.describe('Part 5: Wealth headline',()=>{
 test.describe('Part 6: journey banner',()=>{
  test('describes ZIGoals in three orbit steps and keeps the Alpha truths visible',async({page})=>{
   await showcase(page);
-  const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
+  await openFold(page,'How it works');const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
   await expect(page.getByRole('region',{name:'How it works'})).toBeVisible();
   await expect(banner.getByRole('heading',{level:2})).toHaveText('Your goals, habits and health, in one orbit.');
   await expect(banner.locator('.journey-steps strong')).toHaveText(['Choose your orbit','Take a small step','Keep it yours']);

@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {openFold} from './phone-nav';
 
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
@@ -54,7 +55,7 @@ test('"See how it works" opens the brand film, which loads nothing until opened,
  const media:string[]=[];page.on('request',r=>{if(/\/media\/|\/brand\/how-it-works\//.test(r.url()))media.push(r.url());});
  await showcase(page);
  const trigger=page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true});
- await expect(trigger).toBeVisible();await expect(page.getByRole('region',{name:'How it works',exact:true})).toBeAttached();
+ await expect(trigger).toBeVisible();await openFold(page,'How it works');await expect(page.getByRole('region',{name:'How it works',exact:true})).toBeAttached();
  await page.waitForLoadState('networkidle');expect(media).toEqual([]);
  await trigger.click();
  const dialog=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true}),video=dialog.locator('video'),close=dialog.getByRole('button',{name:'Close brand film',exact:true});

@@ -28,7 +28,8 @@ import { bodyWeightGrams, dailyData, servingsFromMeasure } from "../../lib/healt
 import { EvidenceChart } from "../platform/evidence-chart";
 import {healthDateSchema} from "../../lib/health";
 import {PinToToday} from "../pin-to-today";
-import { usePhoneActive } from "../phone/use-phone-layout";
+import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
+import { PhoneFormSheet } from "../phone/phone-form-sheet";
 import { formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
 
@@ -75,6 +76,8 @@ export function HealthApp() {
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
   const router = useRouter(), phone = usePhoneActive();
+  // A Quick Add for a meal opens the Log a meal sheet on a phone (Session I, Part 9).
+  const [logRequest, setLogRequest] = useState(0);
   const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
   const addIntent = searchParams.get("add") === "entry";
   const [handledIntent, setHandledIntent] = useState(false);
@@ -90,6 +93,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     const entryControl = entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"] select')
       ?? entry?.querySelector<HTMLElement>("select, input, button");
     entryControl?.focus({ preventScroll: true });
+    if (window.matchMedia(PHONE_QUERY).matches) setLogRequest(n => n + 1);
     router.replace("/app/health", { scroll: false });
   }, [addIntent, router]);
   const today = useHealthToday(dailyData(data).preferences.timezone);
@@ -135,7 +139,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && <p className="health-error" role="alert">{error}</p>}
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details></>}
+      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logRequest={logRequest} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
@@ -169,8 +173,11 @@ function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs 
   </section>;
 }
 
-function DiaryView({ data, date, choice, perform, invalid, onLibrary }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void }) {
+function DiaryView({ data, date, choice, perform, invalid, onLibrary, phone, error, logRequest }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void; phone: boolean; error: string; logRequest: number }) {
   const [editing, setEditing] = useState<string | null>(null);
+  // On a phone, Log a meal is a bottom sheet opened from its button (Session I, Part 9); elsewhere the form stays in the page.
+  const [logging, setLogging] = useState(false);
+  useEffect(() => { if (logRequest) setLogging(true); }, [logRequest]);
   const [source, setSource] = useState("");
   const [servings, setServings] = useState("1");
   const [meal, setMeal] = useState<HealthDiaryEntry["meal"]>("Breakfast");
@@ -187,9 +194,15 @@ function DiaryView({ data, date, choice, perform, invalid, onLibrary }: { data: 
       const quantityMilli = entryUnit !== "servings" ? servingsFromMeasure(servings, "ingredients" in selected ? recipeSnapshot(selected) : selected,entryUnit==="grams"?"g":"ml") : parseHealthNumber(servings, 1000, 1, 1_000_000);
       logOperation.current ??= newHealthId();
       const draft = { id: logOperation.current, sourceId: selected.id, sourceKind: "ingredients" in selected ? "recipe" as const : "food" as const, date, meal, quantityMilli };
-      void perform(latest => logHealthItem(latest, draft, new Date().toISOString()), "Meal logged.", () => { setServings(entryUnit !== "servings" ? "" : "1"); logOperation.current = null; });
+      void perform(latest => logHealthItem(latest, draft, new Date().toISOString()), "Meal logged.", () => { setServings(entryUnit !== "servings" ? "" : "1"); logOperation.current = null; setLogging(false); });
     } catch (cause) { invalid(cause); }
   };
+  const quickPicks = sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); logOperation.current = null; }} />;
+  const mealForm = <>{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
+    <label className="field"><span>Food or recipe</span><select data-sheet-focus required value={source} onChange={e => setSource(e.target.value)}><option value="">Choose from your library</option>{sourceItems.map(s => <option value={s.id} key={s.id}>{s.name} · {s.kind}</option>)}</select></label>
+    <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><label className="field"><span>Quantity unit</span><select aria-label="Quantity unit" value={entryUnit} onChange={e => { setEntryUnit(e.target.value); setServings(""); logOperation.current = null; }}><option value="servings">Servings</option><option value="grams">Grams</option><option value="millilitres">Millilitres</option></select></label><NumberField label={entryUnit === "grams" ? "Food weight (g)" : entryUnit==="millilitres"?"Food volume (mL)":"Servings"} value={servings} onChange={v => { setServings(v); logOperation.current = null; }} step="0.001" /></div>{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {date}. Measured entries use the saved serving unit, rounded to 0.001 serving. Weight and volume never convert without density evidence.</p>
+  </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}</>;
+  const logForm = <>{quickPicks}{mealForm}</>;
   return <div className="health-diary-layout"><div className="health-meals">{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const mealSummary=dailyHealthSummary({...data,diary:entries},date);
@@ -197,10 +210,7 @@ function DiaryView({ data, date, choice, perform, invalid, onLibrary }: { data: 
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)}{` ${plural(entry.quantityMilli / 1000, "serving")} · `}{formatServingMeasure(entry.snapshot,entry.quantityMilli)}{entry.snapshot.recipeVersion?` · Recipe version ${entry.snapshot.recipeVersion}`:""}</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
     </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}</section>;
-  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); logOperation.current = null; }} />}{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
-    <label className="field"><span>Food or recipe</span><select required value={source} onChange={e => setSource(e.target.value)}><option value="">Choose from your library</option>{sourceItems.map(s => <option value={s.id} key={s.id}>{s.name} · {s.kind}</option>)}</select></label>
-    <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><label className="field"><span>Quantity unit</span><select aria-label="Quantity unit" value={entryUnit} onChange={e => { setEntryUnit(e.target.value); setServings(""); logOperation.current = null; }}><option value="servings">Servings</option><option value="grams">Grams</option><option value="millilitres">Millilitres</option></select></label><NumberField label={entryUnit === "grams" ? "Food weight (g)" : entryUnit==="millilitres"?"Food volume (mL)":"Servings"} value={servings} onChange={v => { setServings(v); logOperation.current = null; }} step="0.001" /></div>{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {date}. Measured entries use the saved serving unit, rounded to 0.001 serving. Weight and volume never convert without density evidence.</p>
-  </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
+  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone && sourceItems.length > 0 ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
 }
 
 function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEntry; perform: Perform; invalid: (cause?: unknown) => void; close: () => void }) {

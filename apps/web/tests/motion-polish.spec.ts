@@ -1,4 +1,5 @@
 import {expect,test,type Locator,type Page} from '@playwright/test';
+import {openFold} from './phone-nav';
 
 type Sample={name:string;start:string;mid?:string;end?:string;final?:string};
 /** The computed property to sample, optionally only for targets inside `within` (several indicators share one animation). */
@@ -54,6 +55,7 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  // Each arc draws from empty (dashoffset 100 of 100) and settles exactly on its own share.
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat(sweep.final!),3);
  await donut.screenshot({path:info.outputPath('donut-settled.png')});
+ await openFold(page,'Your wealth over time');
  const history=page.locator('.wealth-history .evidence-chart').first();await history.scrollIntoViewIfNeeded();
  const marks=await settled(page,'motion-mark-in');expect(Number(marks.start)).toBeLessThan(Number(marks.mid));expect(marks.end).toBe('1');
  await expect(history.locator('.evidence-line').first()).toHaveCSS('stroke-dasharray','none');

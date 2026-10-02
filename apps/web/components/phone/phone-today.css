@@ -148,3 +148,12 @@
   :root .bottom-row li { min-width: 0; padding: 6px 2px; text-align: center; }
   :root .bottom-row li small { display: block; inline-size: min-content; margin-inline: auto; font-size: 14px; line-height: 1.2; white-space: normal; }
 }
+
+/* Session I, Part 9: a shorter Today on a phone. Secondary modules fold to rows (phone-fold.tsx); the glance strip's
+   cards keep their own height instead of the tallest one's; a compact widget's title wraps between words, never inside
+   one, with its decorative icon set aside to make room. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .today-page .dashboard-summary .dashboard-summary-grid { align-items: flex-start; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading > svg { display: none; }
+  :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading h3 { overflow-wrap: break-word; }
+}

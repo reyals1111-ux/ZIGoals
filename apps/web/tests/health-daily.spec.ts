@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import {closeFormSheet,openMealLog} from "./phone-nav";
 
 test("saved meal, preview copy, water, planner and export work with fictional private records", async ({ page }) => {
   await page.goto("/app/health");
@@ -9,12 +10,16 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   await food.getByRole("button", { name: "Save food", exact: true }).click();
   await page.getByRole("button", { name: "Diary", exact: true }).click();
   await page.getByLabel("Journal date").fill("2026-09-23");
+  await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal", exact: true });
   await log.getByLabel("Food or recipe").selectOption({ label: "Fictional breakfast oats · food" });
   await log.getByRole("button", { name: "Log to diary" }).click();
+  // On a phone the quick picks sit with the form in the Log a meal sheet (Session I, Part 9).
+  await openMealLog(page);
   await page.getByRole("button", { name: "Favorite Fictional breakfast oats", exact: true }).click();
   await page.getByRole("button", { name: "Favorites", exact: true }).click();
   await expect(page.getByRole("button", { name: /^Choose Fictional breakfast oats/ })).toBeVisible();
+  await closeFormSheet(page);
   await page.getByRole("button", { name: "Add 250 mL", exact: true }).click();
   await expect(page.getByRole("region", { name: "Water journal" })).toContainText("250 mL recorded");
   await page.getByRole("button", { name: "Meals & planning", exact: true }).click();
@@ -59,6 +64,7 @@ test("label basis, gram entry, water corrections and preferred weight units pres
   await food.getByLabel("Nutrition label basis").selectOption("100g");
   await food.getByRole("button", { name: "Save food", exact: true }).click();
   await page.getByRole("button", { name: "Diary", exact: true }).click();
+  await openMealLog(page);
   const log = page.getByRole("form", { name: "Log a meal", exact: true });
   await log.getByLabel("Food or recipe").selectOption({ label: "Fictional hundred-gram label · food" });
   await log.getByLabel("Quantity unit", { exact: true }).selectOption("grams");

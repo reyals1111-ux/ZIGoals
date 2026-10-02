@@ -33,3 +33,26 @@ export async function closeMore(page:Page){
  const sheet=mainNav(page).getByRole('dialog',{name:'More'});
  if(await sheet.isVisible()){await page.keyboard.press('Escape');await expect(sheet).toBeHidden();}
 }
+
+/**
+ * On a phone, opens a secondary module that Today or Wealth folds to one row (Session I, Part 9) and returns once its
+ * content shows; elsewhere nothing is folded and this does nothing.
+ */
+export async function openFold(page:Page,label:string){
+ if(!await isPhone(page))return;
+ const toggle=page.locator('.phone-fold-toggle').filter({hasText:label}).first();
+ await expect(async()=>{if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true',{timeout:1500});}).toPass({timeout:15000});
+}
+/** On a phone, opens the Log a meal sheet from its button (Session I, Part 9); elsewhere the form is already in the page. */
+export async function openMealLog(page:Page){
+ if(!await isPhone(page))return;
+ const sheet=page.getByRole('dialog',{name:'Log a meal'});
+ await expect(async()=>{if(!await sheet.isVisible())await page.getByRole('button',{name:'Log a meal',exact:true}).click();await expect(sheet).toBeVisible({timeout:1500});}).toPass({timeout:15000});
+ return sheet;
+}
+/** On a phone, closes an open form sheet with Escape, as a reader would; elsewhere there is none and this does nothing. */
+export async function closeFormSheet(page:Page){
+ if(!await isPhone(page))return;
+ const sheet=page.locator('dialog.phone-form-sheet[open]');
+ if(await sheet.count()){await page.keyboard.press('Escape');await expect(sheet).toHaveCount(0);}
+}

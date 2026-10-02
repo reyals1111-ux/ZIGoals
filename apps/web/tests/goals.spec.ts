@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { navLink } from "./phone-nav";
+import { navLink, openFold } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 const ledgerKey = "zigoals:local-ledger:v1";
@@ -227,6 +227,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
     page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth" }),
   ).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
+  await openFold(page, "Plan a new destination");
   await page.getByRole("link", { name: "Plan my first goal" }).click();
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("radio", {name:"Travel",exact:true}).check();

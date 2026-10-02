@@ -12,7 +12,10 @@
   :root .wealth-product .wealth-actions > * { min-width: 0; min-height: 44px; padding-inline: 10px; font-size: 15px; }
   :root .wealth-product .wealth-actions > .primary { grid-column: 1 / -1; }
   :root .wealth-product .wealth-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 0; }
-  :root .wealth-product .wealth-split dd { font-size: 20px; overflow-wrap: anywhere; }
+  /* Each amount stays whole on its own line ("$437,700.00"), never split inside the number (Session I, Part 9). */
+  :root .wealth-product .wealth-split > div { display: grid; align-content: start; gap: 6px; min-width: 0; }
+  :root .wealth-product .wealth-split dd { display: grid; gap: 2px; margin: 0; font-size: clamp(16px, 4.8vw, 20px); font-variant-numeric: tabular-nums; overflow-wrap: normal; }
+  :root .wealth-product .wealth-split dd > span { white-space: nowrap; }
 
   /* Holdings: one scrolling row of filters, compact rows (icon and name, value and quantity, one line each for the
      reference price, allocation and source). The whole row stays the link it already is. */
@@ -67,4 +70,11 @@
   :root .wealth-product .class-summary :is(small, .class-summary-caption) { font-size: 15px; }
   :root .wealth-product .portfolio-pulse { padding: 14px 16px; }
   :root .wealth-product .portfolio-pulse :is(span, a) { font-size: 15px; }
+}
+
+/* Session I, Part 9: the composition ring's centre keeps its known total whole ("$501,800.00"), never split inside the number. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .wealth-product .composition-donut { width: 180px; height: 180px; }
+  :root .wealth-product .composition-donut > span { inset: 22px; width: auto; height: auto; gap: 4px; }
+  :root .wealth-product .composition-donut strong { font-size: 18px; letter-spacing: -.02em; white-space: nowrap; overflow-wrap: normal; }
 }

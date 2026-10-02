@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Request } from "@playwright/test";
+import {openMealLog} from "./phone-nav";
 import { readFile } from "node:fs/promises";
 import { createHabit, emptyHabitData, HABITS_KEY } from "../lib/habits";
 import { createEmptyHealth, HEALTH_STORAGE_KEY, saveFood } from "../lib/health";
@@ -105,6 +106,7 @@ test("private Habit and Health sentinel values stay outside requests, headers, l
   await page.getByRole("button", { name: `Complete ${sentinel}_habit`, exact: true }).click();
   await expect(page.getByRole("button", { name: `Undo completion for ${sentinel}_habit` })).toBeVisible();
   await page.goto("/app/health");
+  await openMealLog(page);
   await page.getByRole("combobox", { name: "Food or recipe", exact: true }).selectOption(healthData.foods[0]!.id);
   await page.getByRole("button", { name: "Log to diary", exact: true }).click();
   await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText(`${sentinel}_food`);

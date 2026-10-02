@@ -9,7 +9,7 @@ import { entranceAllowed } from "../use-entrance";
  * it open, so a sheet that guards its close (the transaction review while busy) still does. Under reduced motion or
  * Motion Off the sheet does not follow the finger; a completed drag still closes it, without animation.
  */
-const SHEETS = "dialog[open]:is(.quick-add-dialog, .dashboard-dialog, .wealth-sheet, .dialog, .phone-sheet)";
+const SHEETS = "dialog[open]:is(.quick-add-dialog, .dashboard-dialog, .wealth-sheet, .dialog, .phone-sheet, .phone-form-sheet)";
 /** Every sheet's grabber sits 8 px below its top edge (phone-sheets.css, and .phone-grabber in More); this strip is the handle. */
 const GRAB_HEIGHT = 32, GRAB_HALF_WIDTH = 64;
 
