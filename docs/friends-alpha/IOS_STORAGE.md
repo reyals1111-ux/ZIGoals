@@ -76,7 +76,7 @@ Session L research, 2026-10-02. It answers four questions for the friends Alpha.
   1. signs in with an email code;
   2. unlocks with the recovery secret;
   3. sync brings everything back.
-- Login cookies are set by the server, so the 7-day rule spares them (section 1). The recovery secret is still needed to unlock, because the vault key is kept in memory only.
+- Login cookies are set by the server, so the 7-day rule spares them (section 1). Without "Remember on this device" the recovery secret is needed to unlock, because the vault key is kept in memory only. With it (ticked by default in the installed app, Session M), the device's key is kept in the app's IndexedDB: the 7-day rule or a full phone can remove it together with the rest of the site's data, and then the secret is needed once ([ADR-008](../architecture/ADR-008-remember-this-device.md), T6).
 - **The one thing to keep safe is the recovery secret, ideally in a password manager.** Without it and without any device copy, the data cannot be recovered by anyone.
 
 ## 5. Recommended guidance (owner principle)

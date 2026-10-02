@@ -97,7 +97,7 @@ Status: **Accepted.** Option 1 below, with the owner's decision M1 (2026-10-02, 
   1. Read the record.
   2. Confirm the server identity with the existing status call (the refresh path runs as today).
   3. Confirm the current session id matches.
-  4. Adopt the account in this tab without locking the other tabs. Today only a sign-in locks them.
+  4. Adopt the account in this tab without locking the other tabs. A sign-in still locks them, and so does Settings' own account check in a new tab, as before (`account-browser` L72–L74); a remembered tab locked that way opens again, without the secret, as soon as it is focused or shown.
   5. Read the manifest. It must match the record's binding.
   6. Unwrap the root and open.
   7. Apply the remembered Health choice, with the same "Health held" check as the checkbox.
