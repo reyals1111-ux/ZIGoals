@@ -47,6 +47,7 @@ export function phoneRoute(path: string): PhoneRoute {
   if (/^\/app\/goals\/(tracked\/)?[^/]+$/.test(path) && ![LEGACY_STAKING_PATH, "/app/goals/tracked"].includes(path)) return { title: "Goal", back: { href: "/app/goals", label: "Goals" } };
   if (path.startsWith("/app/wealth/asset/")) return { title: "Asset", back: { href: "/app/wealth", label: "Wealth" } };
   if (path === "/app/welcome") return { title: "Welcome" };
+  if (path === "/app/help") return { title: "Help", back: { href: "/app/settings", label: "Settings" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : "ZIGoals" };
 }

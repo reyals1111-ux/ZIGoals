@@ -95,3 +95,14 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
     .map(el => el.textContent?.trim()));
   expect(small).toEqual([]);
 });
+
+test('at phone width the top bar names Help and steps back to Settings', async ({page}) => {
+  // Any window narrower than 768 px gets the phone layout, so both projects run this.
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(page.locator('.phone-title')).toHaveText('Help');
+  const back = page.getByRole('link', {name: 'Back to Settings', exact: true});
+  await expect(back).toBeVisible();
+  await back.click();
+  await expect(page).toHaveURL(/\/app\/settings$/);
+});
