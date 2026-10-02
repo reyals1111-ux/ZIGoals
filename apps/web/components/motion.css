@@ -9,7 +9,7 @@
 .motion-preview-sample{display:inline-block;width:30px;height:30px;flex:none;border-radius:50%;background:linear-gradient(120deg,#33dbed,#8b88fa,#e778d0);box-shadow:0 0 20px #7b9be777;animation:motion-sample-arrive 650ms ease-out both}
 @keyframes motion-sample-arrive{from{opacity:.3;transform:translateX(-25px) scale(.8)}to{opacity:1;transform:translateX(0) scale(1)}}
 :root[data-app-motion=off] .motion-preview-sample{animation:none}
-:root[data-app-motion=off] :is(.slogan-entrance,.flow-ring-fill,.evidence-line,.price-chart-line,.nutrition-month-bars i,.composition-allocation-bar>span,.top-holding-bar>span) { animation:none!important;transition:none!important; }
+:root[data-app-motion=off] :is(.slogan-entrance,.evidence-line,.price-chart-line,.nutrition-month-bars i) { animation:none!important;transition:none!important; }
 @media(prefers-reduced-motion:reduce) { .slogan-entrance[data-entrance=once],.motion-preview-sample { animation:none; } }
 /* Slogan: the second line trails the first by a breath, then one sweep of light travels from today's Habits & Health to tomorrow's Wealth and rests. The words are readable at every frame. */
 .slogan-entrance[data-entrance=once] .slogan-line+.slogan-line { animation:slogan-line-trail calc(var(--entrance-duration) + 150ms) var(--motion-glide) 70ms backwards; }
@@ -20,11 +20,9 @@
 :root[data-app-motion=off] :is(.slogan-line,.slogan-gradient) { animation:none!important; }
 
 /* Charts: once the line or sweep has drawn, its marks settle in behind it. Values, labels and tables are final from first render; only paint moves. --at is a mark's 0–1 horizontal position, --i its order. */
-@property --ring-reveal { syntax:'<percentage>';inherits:false;initial-value:100%; }
 @keyframes motion-fade-in { from { opacity:0; } }
 @keyframes motion-mark-in { from { opacity:0;transform:scale(.25); } }
 @keyframes motion-line-draw { from { stroke-dasharray:1;stroke-dashoffset:1; } 99% { stroke-dasharray:1; } to { stroke-dasharray:none;stroke-dashoffset:0; } }
-@keyframes motion-sweep { from { --ring-reveal:0%; } to { --ring-reveal:100%; } }
 @keyframes motion-rise { from { transform:scaleY(.04); } to { transform:scaleY(1); } }
 @keyframes motion-cell-in { from { opacity:.15;transform:scale(.72); } }
 :is(.evidence-chart,.price-chart)[data-entrance=once] svg>line { animation:motion-fade-in 520ms ease-out backwards; }
@@ -32,12 +30,10 @@
 .price-chart[data-entrance=once] .price-chart-plot polygon { animation:motion-fade-in 600ms ease-out 400ms backwards; }
 .price-chart-plot circle[data-observation] { transition:r 180ms var(--motion-glide),fill 180ms ease; }
 .market-movement figure[data-entrance=once] .market-movement-line { animation:motion-line-draw 900ms var(--entrance-easing) both; }
-/* Oversized, unclipped mask: the settled donut, outer glow included, paints exactly as before. */
-.portfolio-composition[data-entrance=once] .composition-donut { mask:conic-gradient(#000 var(--ring-reveal),transparent var(--ring-reveal)) center/200% 200% no-repeat,radial-gradient(circle closest-side,#000 calc(50% - 20px),transparent calc(50% - 20px)) center/200% 200% no-repeat;mask-clip:no-clip;animation:motion-sweep var(--entrance-duration) var(--entrance-easing) both; }
 .nutrition-trend[data-entrance=once] .nutrition-month-bars>div>i { animation-delay:calc(var(--i,0) * 14ms); }
 .habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) backwards;animation-delay:calc(var(--i,0) * 55ms); }
 .habit-consistency-month[data-entrance=once] .habit-month-grid>span { animation:motion-cell-in 480ms var(--motion-glide) backwards;animation-delay:calc(var(--i,0) * 16ms); }
-:root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.composition-donut,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }
+:root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }
 
 /* Buttons: hover, selection and focus glide; a press gives slightly; a primary action catches one sweep of light on hover, never a loop. Controls are usable at every frame. */
 :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:transform var(--motion-hover) var(--motion-glide),box-shadow var(--motion-hover) var(--motion-glide),filter var(--motion-hover) ease,background-color var(--motion-hover) ease,border-color var(--motion-hover) ease,color var(--motion-hover) ease,outline-offset 160ms var(--motion-glide); }
@@ -51,18 +47,7 @@
 :root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):is(:hover,:active) { transform:none!important; }
 :root[data-app-motion=off] .primary::after { content:none; }
 
-/* Progress: fills grow from their start the first time a track is seen, like the portfolio bars, then glide to new values instead of jumping. Widths, roles and ARIA values are final from first render. */
-@keyframes motion-grow-x { from { transform:scaleX(.02); } to { transform:scaleX(1); } }
-@keyframes motion-gauge-sweep { from { stroke-dasharray:0 100; } }
-:is(.pace-track,.today-pace-track,.holding-allocation-track,.habit-overview-track,.health-today-meter,.health-meter)[data-entrance=once]>*,.habit-trends[data-entrance=once] i>span,.nutrition-distribution-track[data-entrance=once] { transform-origin:left;animation:motion-grow-x var(--motion-fill) var(--motion-glide) backwards; }
-.nutrition-gauge[data-entrance=once]>span { transform-origin:bottom;animation:motion-rise var(--motion-fill) var(--motion-glide) backwards; }
-.health-gauge[data-entrance=once] .health-gauge-fill { animation:motion-gauge-sweep calc(var(--motion-fill) + 200ms) var(--motion-glide) backwards; }
-.pace-track[data-entrance=once]>.pace-fill.planned,.habit-trends[data-entrance=once]>:nth-child(2) i>span,.health-macro-carbsMg .health-meter[data-entrance=once]>i { animation-delay:80ms; }
-.habit-trends[data-entrance=once]>:nth-child(3) i>span,.health-macro-fatMg .health-meter[data-entrance=once]>i { animation-delay:160ms; }
-:is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track>span) { transition:width var(--motion-fill) var(--motion-glide); }
-.nutrition-gauge>span { transition:height var(--motion-fill) var(--motion-glide); }
-.health-gauge-fill { transition:stroke-dasharray var(--motion-fill) var(--motion-glide); }
-:root[data-app-motion=off] :is(.pace-fill,.today-pace-track>span,.holding-allocation-track>span,.habit-overview-track>span,.health-today-meter>span,.health-meter>i,.habit-trends i>span,.nutrition-distribution-track,.nutrition-distribution-track>span,.nutrition-gauge>span,.health-gauge-fill) { animation:none!important;transition:none!important; }
+/* Progress bars and rings: components/progress/glass-progress.css (Session I). */
 
 /* Navigation: the active highlight glides from the previous item to the new one, items give on press, and page content settles in softly. aria-current and focus move immediately. */
 .app-nav { position:relative; }

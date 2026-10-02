@@ -432,8 +432,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
 .today-page .habit-completion-compact .habit-count strong { font-size: 14px; }
 .today-page .habit-completion-compact .primary, .today-page .habit-completion-compact .secondary { padding-inline: 10px; font-size: 14px; }
 .today-page .habit-today-list strong { font-size: 14px; }.today-page .habit-today-list small { font-size: 14px; line-height: 1.4; }
-.health-today-meter { height: 5px; border-radius: 5px; overflow: hidden; background: var(--edge-soft); margin: 12px 0 4px; }
-.health-today-meter span { display: block; height: 100%; border-radius: inherit; background: var(--brand-cyan); transition: width 250ms ease; }
+.health-today-meter { height: 5px; border-radius: 5px; margin: 12px 0 4px; }
+.health-today-meter { --glass-ink: var(--brand-cyan); }
 @media (min-width: 1280px) {
   .habit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   .habit-grid .habit-card { padding: 22px; }.habit-grid .habit-card-heading h2 { font-size: 19px; }

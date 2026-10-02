@@ -10,7 +10,7 @@ import { HabitConsistency } from "./habit-consistency";
 import { HabitCard, type HabitStackNext } from "./habit-card";
 import { habitStackSuggestions } from "../../lib/habit-linked-policy";
 import type { HabitData } from "../../lib/habits";
-import { MotionTrack } from "../motion-track";
+import { GlassBar } from "../progress/glass-progress";
 import { LayoutLockButton, LayoutPage, LayoutRegion } from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
 import { HabitEditor } from "./habit-editor";
@@ -100,7 +100,7 @@ export function HabitsWorkspace() {
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <LayoutRegion region="body" items={phoneOrder(phone, [
-        {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><MotionTrack identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)}><span style={{ width: `${due.length ? completed.length / due.length * 100 : 0}%` }} /></MotionTrack><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
+        {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
         store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">
           {editor && <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); setMessage(editingHabit ? "Habit saved." : "Habit created."); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} />}

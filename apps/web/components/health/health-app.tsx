@@ -7,7 +7,7 @@ import { NebulaFlow } from "../nebula-flow";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useId, useEffect, useRef, type FormEvent, type ReactNode } from "react";
+import { useState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
 import {
   HEALTH_MEALS,foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
   logHealthItem, newHealthId, parseHealthNumber, recipeNutrition,
@@ -16,7 +16,7 @@ import {
   type HealthFood, type HealthRecipe, type HealthTargets, type Nutrition, type RecipeDraft,
 } from "../../lib/health";
 import { addLocalDays } from "../../lib/local-date";
-import { MotionTrack } from "../motion-track";
+import { GlassBar, GlassRing } from "../progress/glass-progress";
 import { useHealth } from "./use-health";
 import { BarcodeFoodLookup } from "./barcode-food-lookup";
 import {AdditionalNutrition} from "./additional-nutrition";
@@ -153,7 +153,6 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
 }
 
 function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs & { data: HealthData; date: string; today: string; onTargets: () => void }) {
-  const gradientId = useId();
   const summary = dailyHealthSummary(data, date);
   const kcal = summary.nutrients.kcal;
   const target = data.targets.kcal;
@@ -161,11 +160,11 @@ function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs 
   return <section {...layout} className="panel health-summary" aria-label="Daily nutrition summary">
     <PinToToday label="Daily nutrition" choices={[{kind:'health',metric:'kcal',label:'Meals today'},{kind:'health',metric:'macros',label:'Macros today'}]}/>
     <div className="health-aurora" aria-hidden="true"><i /><i /><i /></div>
-    <MotionTrack identity="health-gauge" className="health-gauge"><svg viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#62deed"/><stop offset=".3" stopColor="#7298ff"/><stop offset=".6" stopColor="#b197ff"/><stop offset=".8" stopColor="#e894dd"/><stop offset="1" stopColor="#f7a4b2"/></linearGradient></defs><circle cx="80" cy="80" r="68" className="health-gauge-track" /><circle cx="80" cy="80" r="68" pathLength="100" className="health-gauge-fill" style={{ stroke: `url(#${gradientId})` }} strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 80 80)" /></svg><div><strong>{formatNutrient(kcal)}</strong><span>kcal logged</span></div></MotionTrack>
+    <GlassRing identity="health-gauge" className="health-gauge" arcs={[{ key: "kcal", end: progress * 100 }]}><div><strong>{formatNutrient(kcal)}</strong><span>kcal logged</span></div></GlassRing>
     <div className="health-summary-main"><p className="eyebrow">{date === today ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? <NebulaFlow identity="health-summary-title">Every entry adds perspective.</NebulaFlow> : "Start with one small entry."}</h2><p>{target ? `${formatNumber(target)} kcal target` : "No calorie target set"}</p>{target && kcal!==null ? <p className="fine">{kcal <= target ? `${formatNumber((target - kcal))} kcal remaining to your target` : `${formatNumber((kcal - target))} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}{kcal===null&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}. Total and target comparison unavailable.</p>}<p className="health-daily-facts">{groupsOn(data, date)}{` ${plural(groupsOn(data, date), "meal group")} · `}{summary.entries}{` ${plural(summary.entries, "entry", "entries")}`}{summary.steps > 0 ? ` · ${formatNumber(summary.steps)} steps logged` : ""}{summary.minutes > 0 ? ` · ${summary.minutes} min movement` : ""}</p><button className="quiet" onClick={onTargets}>Edit personal targets</button></div>
     <div className="health-macro-grid">{([ ["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"] ] as const).map(([label, key]) => {
       const personalTarget = data.targets[key];
-      return <div className={`health-macro health-macro-${key}`} key={key}><span>{label}</span><strong>{nutritionSummaryText(summary,key,"g",1000)}</strong><MotionTrack identity={`health-macro:${key}`} className="health-meter" aria-hidden="true"><i style={{ width: `${personalTarget && summary.nutrients[key]!==null ? Math.min(100, summary.nutrients[key]! / personalTarget * 100) : 0}%` }} /></MotionTrack><small>{personalTarget ? `${formatHealthGrams(personalTarget)} g target` : "Target not set"}</small></div>;
+      return <div className={`health-macro health-macro-${key}`} key={key}><span>{label}</span><strong>{nutritionSummaryText(summary,key,"g",1000)}</strong><GlassBar identity={`health-macro:${key}`} className="health-meter" aria-hidden="true" value={personalTarget && summary.nutrients[key]!==null ? summary.nutrients[key]! / personalTarget : 0} /><small>{personalTarget ? `${formatHealthGrams(personalTarget)} g target` : "Target not set"}</small></div>;
     })}</div><AdditionalNutrition entries={data.diary.filter(e=>e.date===date)} label="Daily nutrient details"/>
   </section>;
 }

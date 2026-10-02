@@ -19,7 +19,6 @@
   :root .unified-goal-card:not(.compact-goal) h2 { margin: 0 0 4px; font-size: 22px; }
   :root .unified-goal-card:not(.compact-goal) .goal-value { min-height: 0; margin-bottom: 10px; font-size: 26px; }
   :root .unified-goal-card:not(.compact-goal) .goal-progress { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 8px; }
-  :root .unified-goal-card:not(.compact-goal) .goal-progress-ring svg { width: 72px; height: 72px; }
   :root .unified-goal-card:not(.compact-goal) .goal-mix-legend { margin: 4px 0; }
   :root .unified-goal-card:not(.compact-goal) .card-bottom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-bottom: 8px; }
   :root .unified-goal-card:not(.compact-goal) .card-footer { padding-top: 8px; }

@@ -8,9 +8,9 @@ test('visible hero and Goal ring move once per visit and settle on real values',
   Object.assign(window,{run10MotionSamples:samples});
   document.addEventListener('animationstart',event=>{
    const target=event.target;if(!(target instanceof Element))return;
-   const kind=target.classList.contains('slogan-entrance')?'hero':target.classList.contains('flow-ring-fill')?'ring':'';
+   const kind=target.classList.contains('slogan-entrance')?'hero':target.classList.contains('glass-ring-arc')&&target.closest('.flow-ring')?'ring':'';
    if(!kind)return;
-   const value=()=>kind==='hero'?`${getComputedStyle(target).opacity}|${getComputedStyle(target).transform}`:getComputedStyle(target).getPropertyValue('--ring-reveal').trim();
+   const value=()=>kind==='hero'?`${getComputedStyle(target).opacity}|${getComputedStyle(target).transform}`:getComputedStyle(target).getPropertyValue('stroke-dashoffset').trim();
    const sample:Sample={kind,start:value()};samples.push(sample);
    setTimeout(()=>{sample.mid=value();},200);
    target.addEventListener('animationend',()=>{sample.end=value();},{once:true});
@@ -65,7 +65,7 @@ test('Wealth and Health bars grow only when visible with real saved values',asyn
   const samples:Sample[]=[];Object.assign(window,{run10BarSamples:samples});
   document.addEventListener('animationstart',event=>{
    const target=event.target;if(!(target instanceof Element))return;
-   const kind=event.animationName==='composition-bar-grow'?'wealth':event.animationName==='nutrition-bars-rise'?'health':'';
+   const kind=event.animationName==='glass-fill-x'&&target.closest('.portfolio-composition')?'wealth':event.animationName==='nutrition-bars-rise'?'health':'';
    if(!kind||samples.some(sample=>sample.kind===kind))return;
    const sample:Sample={kind,start:getComputedStyle(target).transform};samples.push(sample);
    setTimeout(()=>{sample.mid=getComputedStyle(target).transform;},200);

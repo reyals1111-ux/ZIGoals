@@ -51,8 +51,10 @@ export type GlassSegment = {key: string; share: number; className?: string; colo
  */
 export function GlassSegments({identity, segments, ready = true, className, style, children, ...props}: TrackProps & {segments: GlassSegment[]}) {
   const ref = useEntrance<HTMLDivElement>(identity, ready);
-  let at = 0;
-  const placed = segments.map(segment => { const start = at, size = Math.min(glassShare(segment.share), 1 - start); at = start + size; return {...segment, start, size}; });
+  const placed = segments.reduce<(GlassSegment & {start: number; size: number})[]>((list, segment) => {
+    const last = list[list.length - 1], start = last ? last.start + last.size : 0;
+    return [...list, {...segment, start, size: Math.min(glassShare(segment.share), 1 - start)}];
+  }, []);
   return <div ref={ref} {...props} className={join('glass-track', 'glass-segmented', className)} style={style}>
     <span className="glass-fill-clip" aria-hidden="true">
       {placed.map(segment => <span key={segment.key} className={join('glass-segment', segment.className)} style={{'--glass-start': segment.start, '--glass-size': segment.size, ...(segment.color ? {'--glass-ink': segment.color} : {})} as CSSProperties} />)}

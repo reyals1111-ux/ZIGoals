@@ -11,12 +11,12 @@
 
 .glass-track { position:relative;border-radius:999px;background:linear-gradient(180deg,#e2eeff14,#e2eeff05 60%),#0b182cb3;box-shadow:inset 0 0 0 1px #c9ddff1f,inset 0 1px 0 #ffffff1f,inset 0 -1px 1px #01061366; }
 .glass-fill-clip { position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none; }
-.glass-fill { position:absolute;inset:0;border-radius:inherit;transform:translateX(calc((var(--glass-value) - 1) * 100%)); }
+.glass-fill { position:absolute;inset:0;overflow:hidden;border-radius:inherit;transform:translateX(calc((var(--glass-value) - 1) * 100%)); }
 .glass-fill::before { content:'';position:absolute;inset:0;transform-origin:right;transform:scaleX(var(--glass-value));
   background:linear-gradient(180deg,#ffffff4d,#ffffff0d 48%,#00000014),var(--glass-ink,var(--nebula-flow,linear-gradient(110deg,#18d9ef,#4299f6 27%,#9574ff 52%,#e26bee 77%,#ff97ac))); }
 /* The glow: a point of light at the leading edge, drawn as a shadow so it never widens the page. */
 .glass-fill-glow { position:absolute;inset:0;pointer-events:none;transform:translateX(calc((var(--glass-value) - 1) * 100%)); }
-.glass-fill-glow::after { content:'';position:absolute;right:1px;top:50%;width:2px;height:2px;margin-top:-1px;border-radius:50%;background:var(--glass-glow,#f2a6ff);box-shadow:0 0 9px 3px var(--glass-glow,#d48bffa6),0 0 2px 1px #fff8; }
+.glass-fill-glow::after { content:'';position:absolute;right:2px;top:50%;width:2px;height:2px;margin-top:-1px;border-radius:50%;background:transparent;box-shadow:0 0 8px 2px var(--glass-glow,#d48bff8c); }
 .glass-track[data-empty] .glass-fill-glow { display:none; }
 /* Vertical: the liquid rises from the bottom. */
 .glass-track[data-axis=y] .glass-fill { transform:translateY(calc((1 - var(--glass-value)) * 100%)); }
@@ -24,7 +24,7 @@
 .glass-track[data-axis=y] .glass-fill-glow { transform:translateY(calc((1 - var(--glass-value)) * 100%)); }
 .glass-track[data-axis=y] .glass-fill-glow::after { right:auto;left:50%;top:1px;margin:0 0 0 -1px; }
 /* Segments: each sits at its own start and width (both transforms); dividers are thin shadows at each boundary. */
-.glass-segment { position:absolute;inset:0;transform-origin:left;transform:translateX(calc(var(--glass-start) * 100%)) scaleX(var(--glass-size));background:linear-gradient(180deg,#ffffff40,#ffffff08 50%,#00000012),var(--glass-ink,#7fa7f5); }
+.glass-track .glass-segment { position:absolute;inset:0;transform-origin:left;transform:translateX(calc(var(--glass-start) * 100%)) scaleX(var(--glass-size));background:linear-gradient(180deg,#ffffff40,#ffffff08 50%,#00000012),var(--glass-ink,#7fa7f5); }
 .glass-divider { position:absolute;inset:0;transform:translateX(calc((var(--glass-at) - 1) * 100%)); }
 .glass-divider::after { content:'';position:absolute;right:-1px;top:0;bottom:0;width:2px;background:#050d1c99; }
 

@@ -36,7 +36,6 @@
   :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading { padding-right: 40px; gap: 6px; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading h3 { font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-metric-value { display: grid; justify-items: start; gap: 8px; }
-  :root .today-page .placed-module[data-size="compact"] .dashboard-metric-value svg { width: 64px; height: 64px; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-metric-value strong { font-size: 20px; overflow-wrap: anywhere; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-metric-facts { grid-template-columns: 1fr; gap: 6px; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-widget :is(p, dd, dt, li) { overflow-wrap: anywhere; }
@@ -68,7 +67,6 @@
   :root .today-page .today-intelligence .intelligence-heading h2 { font-size: 22px; margin: 4px 0 2px; }
   :root .today-page .today-intelligence .intelligence-heading p { margin: 0; font-size: 15px; }
   :root .today-page .today-goal-pulse { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; align-items: center; margin-top: 12px; }
-  :root .today-page .today-goal-pulse svg { width: 84px; height: 84px; }
   :root .today-page .today-goal-pulse strong { font-size: 22px; }
   :root .today-page .today-goal-pulse strong > span { display: inline; font-size: 15px; }
   :root .today-page .today-goal-pulse p { margin: 4px 0; font-size: 15px; line-height: 1.4; }
