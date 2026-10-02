@@ -4,6 +4,8 @@
 
 **Owner decision (2026-10-01):** funding days stay UTC for now. Timezone work comes later. This page makes sure nothing is forgotten.
 
+**Design (2026-10-01, Session J):** [TIMEZONE_DESIGN.md](TIMEZONE_DESIGN.md) covers proposed stored formats, versioning and rollback, sync implications, the QA-04 path and UI needs. Pure helpers are in `packages/goal-engine/src/time/`, not wired into the app.
+
 **Sources:**
 - Session F's QA sweep, [docs/qa/QA_SWEEP_2026-09-30.md](../qa/QA_SWEEP_2026-09-30.md), with personas in Brussels, Amsterdam and New York and 49 simulated days across the end of summer time;
 - the code at `main` `61035dc`.
