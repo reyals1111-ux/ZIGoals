@@ -134,3 +134,11 @@ The Stage 8 rehearsals in `scripts/run11/stage8-rehearsal/` drive real Chrome ag
 - `an automatic sync scheduled before a review began does not run during the review` (:109).
 
 **Vitest total in plain `pnpm test`: 22 skipped.** That is rows 1–12 (12 tests), the 2 #58 tests above, and L1–L8. Measured on Session L's branch after merging `main` `f3220e1`: 2,172 passed, 4 expected to fail (X1–X4) and 22 skipped. Every one runs in a CI step that sets its flag. The Playwright totals above are unchanged: Session L adds no Playwright skip.
+
+## Session M additions, PR A (2026-10-02, [PR #60](https://github.com/reyals1111-ux/ZIGoals/pull/60))
+
+| # | Test (file:line) | Condition | Reason | Category | Where it runs |
+|---|---|---|---|---|---|
+| MA1–MA2 | `QA2-07: every standalone tap target on the main phone pages is at least 44 × 44 px` (apps/web/tests/phone-touch-targets.spec.ts:40); `QA2-07: the title links reach 44 px without moving anything` (:52) | `viewport.width > 767` (file-level `test.skip`) | Phone-only CSS: on the `desktop` project the layout is the desktop one, which the freeze check covers instead | project-scoped | Playwright `mobile` project (CI browser shards) |
+
+**Playwright:** the `desktop` project skips these 2 tests; the `mobile` project runs them. No Vitest skip was added.
