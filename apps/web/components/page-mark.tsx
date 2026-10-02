@@ -30,11 +30,12 @@ function MarkLayer({ name, phase }: { name: MarkName | "wordmark"; phase?: "in" 
   const mark = PAGE_MARKS.find(m => m.name === name);
   if (!mark) return <span className="sidebar-mark-layer" data-mark="wordmark" data-phase={phase}><Wordmark /></span>;
   const height = Math.round(MARK_WIDTH * mark.height / mark.width), src = `/brand/marks/${mark.name}`;
-  // Decorative: the page title names the page. The marks only download where the desktop sidebar shows its planet.
+  // Decorative: the page title names the page. The marks only download where the desktop sidebar shows its planet. They
+  // decode with the page (no async decoding): a mark half-way into view otherwise paints a frame later, unpredictably.
   return <span className="sidebar-mark-layer" data-mark={mark.name} data-phase={phase}>
     <picture>
       <source media="(min-width: 901px)" srcSet={`${src}.webp 1x, ${src}@2x.webp 2x`} width={MARK_WIDTH} height={height} />
-      <img src={NOTHING} width={MARK_WIDTH} height={height} alt="" aria-hidden="true" decoding="async" />
+      <img src={NOTHING} width={MARK_WIDTH} height={height} alt="" aria-hidden="true" />
     </picture>
   </span>;
 }
