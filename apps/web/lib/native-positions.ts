@@ -10,6 +10,17 @@ const delegation=z.object({delegation:z.object({delegator_address:publicZigAddre
 const unbonding=z.object({delegator_address:publicZigAddress,validator_address:validatorAddress,entries:z.array(z.object({creation_height:units,completion_time:z.iso.datetime({offset:true}),balance:units})).max(100)});
 const reward=z.object({validator_address:validatorAddress,reward:z.array(z.object({denom:z.string(),amount:z.string().regex(/^\d{1,78}(\.\d{1,18})?$/)})).max(100)});
 const page=z.object({pagination:z.object({next_key:z.string().max(2000).nullable().optional()}).nullable().optional()});
+const denomMetadataSchema=z.object({metadata:z.object({base:z.string(),display:z.string(),denom_units:z.array(z.object({denom:z.string(),exponent:z.number()}))})});
+export type DenomMetadata=z.infer<typeof denomMetadataSchema>['metadata'];
+/**
+ * The chain's own evidence must name the configured unit before anything is read: the node's network, the staking
+ * bond denom, and the bank metadata's base denom with the display unit at the configured exponent. A reader configured
+ * for a unit the chain no longer uses (mainnet uzig/6 after the v5 redenomination) therefore fails closed and stores
+ * nothing (ADR-004).
+ */
+export function denominationEvidenceMatches(network:{chainId:string;denom:string;decimals:number},nodeNetwork:string,bondDenom:string,m:DenomMetadata):boolean{
+ return nodeNetwork===network.chainId&&bondDenom===network.denom&&m.base===network.denom&&m.denom_units.some(d=>d.denom===m.display&&d.exponent===network.decimals);
+}
 export async function readNativePositions(mode:ReadMode,account:string,fetcher:typeof fetch=fetch):Promise<Position[]>{
  publicZigAddress.parse(account);const network=READ_NETWORKS[mode];if(!network)throw Error('Unsupported read-only network.');
  const deadline=AbortSignal.timeout(45000);
@@ -27,8 +38,8 @@ export async function readNativePositions(mode:ReadMode,account:string,fetcher:t
  const observedAt=new Date(latest.time).toISOString(),provenance=`${network.rest} · block ${height}`;
  const [node,params,metadata]=await Promise.all([read('/cosmos/base/tendermint/v1beta1/node_info'),read('/cosmos/staking/v1beta1/params'),read(`/cosmos/bank/v1beta1/denoms_metadata/${network.denom}`)]);
  const n=z.object({default_node_info:z.object({network:z.string()})}).parse(node);
- const m=z.object({metadata:z.object({base:z.string(),display:z.string(),denom_units:z.array(z.object({denom:z.string(),exponent:z.number()}))})}).parse(metadata).metadata;
- if(n.default_node_info.network!==network.chainId||z.object({params:z.object({bond_denom:z.string()})}).parse(params).params.bond_denom!==network.denom||m.base!==network.denom||!m.denom_units.some(d=>d.denom===m.display&&d.exponent===network.decimals))throw Error('Public network or denomination evidence does not match.');
+ const m=denomMetadataSchema.parse(metadata).metadata;
+ if(!denominationEvidenceMatches(network,n.default_node_info.network,z.object({params:z.object({bond_denom:z.string()})}).parse(params).params.bond_denom,m))throw Error('Public network or denomination evidence does not match.');
  async function pages<T>(path:string,key:string,schema:z.ZodType<T>):Promise<T[]>{
   const all:T[]=[];let cursor='';const seen=new Set<string>();
   for(let i=0;i<20;i++){

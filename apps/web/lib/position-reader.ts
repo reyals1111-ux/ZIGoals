@@ -1,8 +1,15 @@
 import {fromBech32} from '@cosmjs/encoding';
 import {z} from 'zod';
 import {positionSchema,type Position} from './positions';
+/**
+ * Both networks use azig with 18 decimals since the v5 redenomination (testnet 2026-09-08 at height 7669200, mainnet
+ * 2026-09-30 at height 12549000): the official LCD's bank metadata names azig as the 18-decimal base denom and uzig as
+ * "Legacy 6-decimal ZIGChain base denom, retained only as IBC escrow backing" (read 2026-10-03, docs/earn/EVIDENCE_2026-10.md
+ * F03). A record saved from a read before the upgrade still carries uzig/6; lib/positions.ts keeps it valid and rescales
+ * it on its next observation.
+ */
 export const READ_NETWORKS = Object.freeze({
- MAINNET_READ_ONLY:{chainId:'zigchain-1',rest:'https://api.zigchain.com',denom:'uzig',decimals:6},
+ MAINNET_READ_ONLY:{chainId:'zigchain-1',rest:'https://api.zigchain.com',denom:'azig',decimals:18},
  TESTNET_READ_ONLY:{chainId:'zig-test-2',rest:'https://testnet-api.zigchain.com',denom:'azig',decimals:18},
 });
 export type ReadMode=keyof typeof READ_NETWORKS;

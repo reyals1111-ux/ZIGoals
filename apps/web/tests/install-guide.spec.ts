@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
 
 // Help → "Install ZIGoals on your iPhone" and "Keep my data on this device" (Session L). Detection uses features only:
 // the mobile project emulates an iPhone with Chrome, which has no navigator.standalone, so it must not be told it is in
@@ -47,11 +48,17 @@ function storageStub(page: Page, answer: 'yes' | 'no' | 'throws' | 'missing') {
 const calls = (page: Page) => page.evaluate(() => (window as unknown as {keepCalls: {persist: number; persisted: number}}).keepCalls);
 
 test('viewing Help only reads the state: nothing is asked and nothing is written', async ({page}) => {
-  // Reduced motion keeps the shell's once-per-session logo intro (and its sessionStorage flag) out of the comparison.
+  // The shell's once-per-session logo intro is the one writer here that is not Help's, and it is kept out of the
+  // comparison twice (Session P): reduced motion declines it, and its session flag is set up front, so a media
+  // emulation the browser applies late still finds it played (seen once in CI, run 37070729686: under reduced motion
+  // the intro wrote its flag on the mobile project, between the two snapshots). The intro decides after hydration, so
+  // each snapshot waits for that decision (data-logo-intro on <html>, logo-intro.tsx) instead of trusting the load event.
   await page.emulateMedia({reducedMotion: 'reduce'});
+  await page.addInitScript(key => { try { sessionStorage.setItem(key, 'played'); } catch { /* storage denied */ } }, LOGO_INTRO_KEY);
   await storageStub(page, 'yes');
-  await page.goto('/app/settings');const before = await storageSnapshot(page);
-  await open(page);
+  const decided = () => expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
+  await page.goto('/app/settings');await decided();const before = await storageSnapshot(page);
+  await open(page);await decided();
   await expect(keepStatus(page)).toHaveText('Your browser hasn’t promised this yet.');
   expect(await calls(page)).toEqual({persist: 0, persisted: 1});
   expect(await storageSnapshot(page)).toEqual(before);

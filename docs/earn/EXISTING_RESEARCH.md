@@ -29,6 +29,8 @@ This survey collects what the committed repository already says about earning an
 
 ## Code assumptions
 
+**Fixed in Session P, PR 1 (2026-10-03):** `position-reader.ts` now reads mainnet as azig/18, `market-quotes.ts` names the ZIG price identity azig/18 and keeps uzig/6 as the legacy unit of stored records, and `positions.ts` accepts both evidenced units and rescales a record's allocations and history on its first azig observation ([ADR-004 addendum](../architecture/ADR-004-network-denomination.md)). The lines below describe `main` before that fix.
+
 All read only; nothing was run. "Matches" and "does not match" compare with [[A-zig-azig-metadata](evidence/a-native-staking.md#a-zig-azig-metadata), [A-zig-v5-upgrade-heights](evidence/a-native-staking.md#a-zig-v5-upgrade-heights)].
 
 - `apps/web/lib/position-reader.ts:5`: `MAINNET_READ_ONLY` is `zigchain-1`, `https://api.zigchain.com`, denom `uzig`, 6 decimals. **Does not match**: mainnet has used azig/18 since 2026-09-30.

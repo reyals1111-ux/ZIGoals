@@ -35,7 +35,7 @@
    figure (Today's swan, Goals' lotus, Habits' butterfly, Health's heart, Wealth's bull; every other page shows the swan),
    bottom-aligned. The box never changes size, so the planet and its star never move between pages. Each figure keeps
    its Session I size and place: its words, baked into the mark file, are clipped off in the middle of the fully
-   transparent gap between figure and words (measured on the @2x files; the clip reaches 2 px past the other three
+   transparent gap between figure and words (measured on the -2x files; the clip reaches 2 px past the other three
    edges, so only the bottom is cut and the figure's own pixels are untouched), and the same words, cut out on their own
    (public/brand/words), sit larger on the planet below. A bright star rests on the rim in the header star's style.
    No blend mode and no filled animation: the sidebar stays one cheap layer. */
