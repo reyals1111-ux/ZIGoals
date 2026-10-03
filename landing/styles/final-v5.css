@@ -92,6 +92,22 @@
   .fold-planet{width:max(1100px,240vw);bottom:-4%}
 }
 
+/* ---------- Invite, Install and What's coming (Part 1.4), in the privacy rows' language ---------- */
+.invite-note{margin-top:18px;max-width:520px;font-size:15px;line-height:1.6;color:#c9d6ea}
+.invite-note a{display:inline-block;padding-block:11px;margin-block:-11px;color:#a6eaf7;text-decoration:underline;text-decoration-color:#a6eaf766;text-underline-offset:3px}
+.final-cta .invite-note{margin-inline:auto;text-align:center}
+.install-section,.coming-section{background:#030916}
+.install-steps,.coming-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.install-steps>li,.coming-list>li{padding:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,#0b1730cc,#060d1fcc)}
+.coming-list>li{border-style:dashed;border-color:#5d6f92;background:none}
+.install-device,.availability.planned{display:block;margin-bottom:14px;font-size:15px;font-weight:600;letter-spacing:.04em;line-height:1.5;color:#c1e7e7}
+.availability.planned{color:#d6c8e6}
+.install-steps h3,.coming-list h3{font-size:24px;margin-bottom:12px}
+.install-steps p,.coming-list p{font-size:16px;line-height:1.75;color:#dce7f7}
+.install-steps a{color:#a6eaf7;text-decoration:underline;text-decoration-color:#a6eaf766;text-underline-offset:3px}
+.coming-legal{font-size:16px;color:#e1ebfa}
+@media (max-width:950px){.install-steps,.coming-list{grid-template-columns:1fr}}
+
 @media (forced-colors:active){
   .eqv5 .eqv5-eyebrow,.eqv5-ink,.eqv5-comma,.fold-slogan{color:CanvasText!important;background:none!important}
   .fold-space,.fold-figure>canvas{display:none}
