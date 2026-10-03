@@ -1,3 +1,168 @@
+# Session M (PR B) [Tier 3] — "never a chore" accounts: remember this device, copy in place, deletion without a download (2026-10-02, [PR #63](https://github.com/reyals1111-ux/ZIGoals/pull/63), not merged or deployed)
+
+> **This changes how unlocking works, so Stage 8's account rows must be run on a build that includes it.** A remembered device opens the vault without the recovery secret; the copy of earlier records and cloud deletion no longer need a download. STAGE8_ACCEPTANCE.md has a new section F. In the owner runsheet, steps 8, 12 and 13 changed and step 13b is new.
+
+**Evidence labels:** **local** (this cloud session: Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for `chrome`); **Miniflare** (the real private-sync, lifecycle and admission Workers in local workerd, fixture sign-in: no provider, no real email); **CI**; **source** (an official page, read 2026-10-02). Nothing here is a hosted or real-device claim. No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** `main` `57275a6` (Alpha deploy #23). PR A ([#60](https://github.com/reyals1111-ux/ZIGoals/pull/60)) should merge first. A test merge of both branches merges Help, FRIENDS_GUIDE, IOS_STORAGE and `ci.yml` cleanly. When `main` with #60 is merged into this branch, two conflicts follow, and the resolution is to keep both blocks, PR A's first:
+- `docs/STATUS.md`: each PR adds its entry at the top;
+- `docs/testing/SKIPPED_TESTS.md`: each PR appends a section.
+
+**Owner principle:** people never back up, re-sync, download or upload to stay up to date. Encrypted sync is the protection; backups are optional extras; the one thing to keep safe is the recovery secret.
+
+## Parts
+| Part | What | Commit |
+|---|---|---|
+| B1 | [ADR-008](architecture/ADR-008-remember-this-device.md): the chore, the vault rules, threat model T1–T7, three options compared with dated official sources (a WebCrypto device key now; a passkey with PRF later, after a test on a real iPhone; longer sessions rejected), owner decision M1, the design | `eac4ba1` |
+| B2a [Tier 3] (vault keys) | A non-extractable AES-GCM device key seals the vault root once, while the recovery secret opens it; later the root is unwrapped straight into a non-extractable HKDF key. Bound by AAD to the verified account and the live manifest. The local record lives in IndexedDB `zigoals-device-unlock-v1` | `a19826a` |
+| B2b [Tier 3] (account and vault UI) | "Remember on this device — don't use on shared computers" at unlock and at vault creation, ticked by default only in the installed app; reopening after a reload, in a new tab, after idle and after a token expiry; Lock now = lock and forget; Forget this device; every invalidation; the Health choice | `8b82249` |
+| B2c [Tier 3] (workflow) | CI integration runs `remember-device-browser.test.mjs` | `cd78f91` |
+| B3 [Tier 3] (account UI) | The copy of earlier records happens in place with one explicit approval and no file; cloud deletion needs only its typed confirmation, with "Download a copy first (optional)" | `b2b2ae7` |
+| B4 | Stage 8 acceptance (section F), coverage (25 of 36 rows proven locally) and runsheet; Help; friends guide; PRIVACY; privacy notice draft; threat model; iPhone storage §4; ADR wording; SKIPPED_TESTS (appended) | `9e2c2a1` |
+| B5 | The freeze check found Settings 40–98 px off at three sizes; the sync panel's paragraph is one text node again (see the freeze check) | `c9d5ad2` [Tier 3] (account UI) |
+| B5 | The remember-device spec's comment names its rehearsal's real path | `c3b8804` |
+| B5 | This entry | this commit |
+
+## [Tier 3] commits and risk, in plain words
+- **`a19826a`:** adds the cryptography and the local store; nothing uses them until `8b82249`. If they were wrong, a remembered device could fail to reopen (the secret is then asked for, as today), or at worst a record could open a vault it should not; the unit tests check every binding that prevents that.
+- **`8b82249`:** the accepted trade-off of owner decision M1: on a device where the person ticks "Remember on this device", anyone who can use that browser profile can open the account records there without the recovery secret, until it is locked or forgotten. The choice is explicit and always shown with that warning. A device where nobody ticks it behaves exactly as before. Sign-in, sync and the server are unchanged.
+- **`cd78f91`:** the integration step runs one more file (about 16 s locally).
+- **`c9d5ad2`:** no change in behaviour. The same words show in the same place; the paragraph is one string again, so a device that is not remembered renders exactly as on `main`.
+- **`b2b2ae7`:** copying earlier records no longer makes a backup file first, and cloud deletion no longer requires a download. The copy keeps the originals on the device, and deletion still needs its typed confirmation.
+
+## What "remember" protects, and what it doesn't
+- **Protects:**
+  - the recovery secret: it is never stored;
+  - the root's bytes: they never reach script after the one seal at unlock, and the device key cannot decrypt, only unwrap;
+  - other accounts, vaults and epochs: the additional data names the verified account and the exact live manifest, so a record cannot open them;
+  - after a key rotation: old material can never open the newer epoch (new random root, new manifest);
+  - after a new sign-in or a revoked session: the record is bound to the server session id, so it is useless;
+  - the server: nothing new is sent to it.
+- **Doesn't protect:**
+  - against anyone who can use this browser profile: they can open the account records here (the warning says so);
+  - against script running in the page (XSS, an extension): it can use the key while it runs, though never export it;
+  - against stolen profile files: depending on the browser, they may expose the stored key ("non-extractable" is not disk encryption; WebKit wraps stored keys with a Keychain key, other engines document no such wrapping);
+  - against eviction: the 7-day rule or a full phone can remove it, and then the secret is needed once.
+- **Invalidation:**
+  - **Deleted by:** sign-out; another account's sign-in on this browser; a new sign-in; key rotation here; a manifest change or "Account or vault changed" from rotation elsewhere; a cloud section or the account deleted on another device; a revoked session or ACCOUNT_CHANGED; section or account deletion here; revoking this session; Lock now; Forget this device; a record that fails validation.
+  - **Kept by:** a routine token expiry. The tab reopens at once instead.
+- **Lost the secret?** A remembered device can still open the vault and rotate to a new secret. Without the secret and without any remembered or unlocked device, the data is gone; nobody can recover it.
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs`)
+**Against `57275a6` (main, deploy #23), at `c9d5ad2`, all 154 captures (local):**
+- **142 are identical.** That includes Settings: its encrypted-sync panel shows while signed out, and it renders exactly as on `main`.
+- **12 differ: Help only** (6 sizes × Showcase and empty), the authorized B4 text.
+  - **Accessibility tree:** 7 changed lines per capture, and nothing else.
+    - The "Signing in is not recovery" paragraph says what "Remember on this device" does.
+    - The recovery-secret list ("The one thing to keep safe") gains "Lost the secret, but a device still opens your account?".
+    - The feedback link names the build's commit.
+  - **Pixels:** the pages are 110–162 px taller, so I compared rows. Above the change point, the page-height background differs by at most 39/255, and one 7 × 7 px decorative spot at the sidebar's edge by more.
+- **The first capture, at `9e2c2a1`, found 6 more differences:** Settings at 1440×900, 1280×800 and 1180×820 (touch).
+  - The accessibility tree was the same, with 40–98 differing pixels.
+  - Cause: B2b had split the panel's last sentence into its own text node, and Chrome drew one glyph at that boundary differently.
+  - `c9d5ad2` makes the paragraph one string again, and the capture above is clean.
+- **The plan had expected every account panel to stay hidden under the 503 fixture.** The sync panel itself shows while signed out, which is how the check caught this. The remember choice, the remembered notice, the copy panel and the deletion panel appear only when signed in, so the screenshots show them.
+
+## Tests (totals per run, never added together)
+- **Unit and jsdom (local, `pnpm test` at `9e2c2a1`):** **2,209 passed, 4 expected to fail (X1–X4), 24 skipped** (2,237 tests, 162 s). At `c9d5ad2`, the 34 files around the sync panel and the vault (170 tests) passed locally, and CI's web checks ran the full `pnpm test`.
+  - The 2 new skips are this PR's rehearsal tests, MB1 and MB2. They run only with `RUN10_BROWSER=1`, as CI's integration step sets it (SKIPPED_TESTS.md, appended).
+  - **New, 37 tests:**
+    - `crypto-device.test.ts` (7): seal and open; the account, vault, epoch and manifest binding; old material never opens a newer epoch; non-extractable; no decrypt usage; exact lengths.
+    - `device-unlock.test.ts` (7): never created on read; one record at most; a forget wins over a remember in flight; compare-and-delete; anything invalid is deleted.
+    - `vault-remember.test.ts` (18): the choice in a tab and in the installed app; reopen after a reload, in a new tab and on other pages; idle; Health; Lock now; Forget; every invalidation; a sign-out during unlock; Showcase.
+    - `local-attach-in-place.test.ts` (2) and `account-deletion-optional-copy.test.ts` (3): B3, failing first.
+    - Plus the new schema in `zod-jitless.test.ts`.
+- **Browser, full suite (local, production build of `c9d5ad2`, 2 workers):** **896 passed, 47 skipped, 5 failed** (39.7 min, 948 tests). The 47 skips are the existing project skips; this PR adds no Playwright skip.
+  - **4 of the failures** are the two brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) in both projects. This sandbox's Chromium cannot play the film (CLAUDE.md); they pass in CI.
+  - **The 5th**, `[mobile] logo-fold.spec.ts:107` "the static Z stays when the fold fails to load (this project's own size)", is a local timing race, not this PR's code:
+    - The clip leaves on the video's `error` event, or after a 1.5 s fallback. The test allows 1.4 s for the routed 404 to arrive; under the suite's load, the fallback won.
+    - Alone on the same build it passed 40 of 40 (`--repeat-each=10`, its 4 variants).
+    - It passed in CI on `c9d5ad2`, in this PR's first full run and in PR A's full run.
+    - This PR changes no logo or fold file.
+  - **The first full run, on the `9e2c2a1` build, was cut off at 924 of 948 by a sandbox restart.** It had only the 4 brand-film failures; the run above replaces it.
+  - **New:** `remember-device.spec.ts`, 3 tests in both projects.
+    - Unticked in a browser tab, with its warning.
+    - Ticked in the installed app.
+    - Reopened after a reload and in a new tab, then Forget, then Lock now = lock and forget.
+- **CI's integration command (local, real Workers in Miniflare, production build of `9e2c2a1`, one file at a time):** **15 files: 23 passed, 1 skipped** (315 s). The B5 commits change no behaviour, and CI ran the same command on `c9d5ad2`.
+  - The skipped test is the packaged-runtime one, which runs in CI's later package step (`RUN11_PACKAGED=1`).
+  - The two remember-device rehearsals took 8.3 and 8.0 s.
+  - Every existing account and sync rehearsal passed, `account-browser` in both orders included.
+- **Changed by this PR, with the reason** (owner decision M2 removes the file the copy used to require):
+  - **`scripts/run10/account-browser.test.mjs` L41–L46:** the copy of earlier records now asks for the review and one approval instead of a backup secret and a download.
+  - **HA-38 in `scripts/run11/health-consent-a11y-browser.test.mjs`:** the same change.
+  - Every other account and sync test runs unchanged, among them `account-browser` L72–L74 and L124–L127, K's sync races, L's sync offer and the Stage 8 rehearsals.
+
+## CI on this PR
+- **`eac4ba1`** (B1, docs): green ([run 37067227696](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067227696); reproducibility [run 37067227694](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067227694)).
+- **`9e2c2a1`** (B2a–B4, pushed together): green on attempt 1 ([run 37069599791](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37069599791); reproducibility [run 37069599789](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37069599789)).
+- **`c9d5ad2`** (the B5 fixes): green on attempt 1 ([run 37081898349](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37081898349); reproducibility [run 37081898337](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37081898337)):
+  - web checks;
+  - web integration, with the 15 files;
+  - browser shards 15.7, 11.8 and 13.9 min;
+  - contract;
+  - `web`.
+- **This commit:** reported on the PR.
+
+## Owner decisions
+- **Applied:**
+  - **M1:**
+    - (a) an explicit choice at unlock and at creation;
+    - (b) **changed by the owner:** ticked by default in the installed app (display-mode standalone), unticked in a browser tab, always shown with its warning. Both cases are tested in jsdom and Playwright; the rehearsal checks the browser-tab case;
+    - (c) a remembered device does not ask for the secret after idle;
+    - (d) Lock now locks and forgets;
+    - (e) the Health choice is remembered with the device;
+    - (f) Forget keeps the tab open.
+  - **M2:** the copy happens in place, with no file. Deletion needs no download, with the optional "Download a copy first".
+  - **SKIPPED_TESTS:** one section appended; nothing was restructured.
+- **Needed:** none to merge. Later:
+  1. A passkey (PRF) to protect a remembered device, after a test on the owner's iPhone.
+  2. Whether remembering should end after a fixed time, even while the session lasts.
+
+## Decisions made without the owner, and deviations
+- **`lib/account-session.ts` gained `adoptAccount`** (the plan said it would stay unchanged). A remembered tab takes the server-verified account without broadcasting "lock" to the other tabs. A sign-in still locks them.
+- **Settings' own account check in a new tab still locks the other tabs, as before** (`account-browser` L72–L74, unchanged). A remembered tab locked that way opens again, without the secret, as soon as it is focused or shown. Changing that would have meant changing `AccountAccess` and that test.
+- **A routine token expiry (401 `SIGN_IN_REQUIRED`) on a remembered device** reopens at once. The session id stays the same, so the record stays valid.
+- **A key rotation on this device forgets this device too.** The new secret is then needed once here, as on every other device. There is no re-seal under the new root.
+- **A section deleted here or on another device forgets the device,** as the brief's invalidation list asks. The tab keeps today's error message.
+- **"Revoke this session" for the current session** (`account-devices.tsx`) is a sign-out, so it forgets the device too.
+- **Wording:**
+  - the sync offer's sentence (`sync-offer.tsx`) and the rotation panel (`vault-rotation-controls.tsx`) mention remembered devices;
+  - the copy's "source changed" message no longer says "protected copy".
+- **The rehearsal file** sits with the other Stage 8 rehearsals and their harness, in `scripts/run11/stage8-rehearsal/`, not in `scripts/run11/`.
+- **Pushes:** B2a–B4 were committed part by part, but pushed together in one push (`9e2c2a1`), not after each part.
+  - Before that push, these ran on the combined code: lint, typecheck, the unit and jsdom tests, `remember-device.spec.ts` and the new rehearsal.
+  - The full integration command had one failure, a new-tab race in the new rehearsal itself. It was fixed and passed 3 of 3 alone before the push; the full command passes now (above).
+  - Checked afterwards in a temporary worktree: each of `a19826a`, `8b82249`, `cd78f91` and `b2b2ae7` passes typecheck and lint on its own. Its related unit and jsdom tests pass too: 147, 165 and 170 tests (`cd78f91` changes only the workflow). So every commit is safe to bisect through.
+- **Browsers:** only Chrome (Chromium here) was tested. How Safari and Firefox keep a non-extractable key in IndexedDB is from their documentation and source, not a device test.
+
+## Follow-ups (not done here)
+- **A passkey (PRF)** to protect a remembered device (ADR-008 option 2), after a device test on the owner's iPhone. Apple's Safari 18 notes and MDN's data disagree on PRF `get()`.
+- **A time limit on remembering** that does not depend on the session.
+- **Stage 8 on a build with this PR:** section F of STAGE8_ACCEPTANCE, and steps 8, 12, 13 and 13b of the owner runsheet.
+- **On real devices:** the iPhone Home Screen app (ticked by default), Safari and Firefox.
+- **`logo-fold.spec.ts:107`, "fails to load":** the test allows 1.4 s, and the clip's own fallback is 1.5 s, so under heavy local load the fallback can win (see Tests). It has not been seen in CI. If it is, widen the test's window; the app is right either way.
+
+## How the owner can review
+- **Screenshots:** the folder `pr-b/` on the branch `review/session-m-screenshots` (never merged), linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/63#issuecomment-5963584091). They use the Stage 8 rehearsal harness: the real private-sync Worker in Miniflare, fixture sign-in and fictional accounts.
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`.
+  2. Run `git checkout accounts/session-m-2026-10-02`.
+  3. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  4. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  5. Open http://127.0.0.1:3101/app/help.
+
+  The local preview has no account service (as in Session L's preview), so it shows only Help's new lines. The account screens are in the screenshots, or in the Stage 8 rehearsal (`RUN10_BROWSER=1`).
+- **What to look at:**
+  - **In the screenshots:**
+    1. The unlock form: the "Remember on this device" box, unticked, with its warning.
+    2. The remembered notice and "Forget this device".
+    3. The reopened vault after a reload.
+    4. The copy panel: no file or backup secret.
+    5. The deletion panel: no download needed.
+    6. The installed app: the box ticked.
+  - **In Help:** "Signing in is not recovery" and "The one thing to keep safe".
+
 # Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs; then main #58 merged in and the owner's follow-ups (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
 
 **Evidence labels**
