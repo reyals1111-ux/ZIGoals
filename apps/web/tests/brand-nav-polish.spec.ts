@@ -35,7 +35,7 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   // takes the wordmark's place; the separate tagline is gone. tests/page-marks.spec.ts covers every page.
   const destination=page.locator('.sidebar-destination'),box=destination.locator('.sidebar-mark'),art=box.locator('.sidebar-mark-figure img');
   await expect(box).toHaveAttribute('data-mark','today-swan');await expect(destination).not.toContainText('Your Financial Orbit');
-  await expect.poll(()=>art.evaluate(i=>(i as HTMLImageElement).complete?(i as HTMLImageElement).currentSrc:'')).toMatch(/\/brand\/marks\/today-swan(@2x)?\.webp$/);
+  await expect.poll(()=>art.evaluate(i=>(i as HTMLImageElement).complete?(i as HTMLImageElement).currentSrc:'')).toMatch(/\/brand\/marks\/today-swan(-2x)?\.webp$/);
   await expect(art).toHaveAttribute('alt','');await expect(art).toHaveAttribute('aria-hidden','true');
   const settings=(await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).boundingBox())!,m=(await box.boundingBox())!,planet=(await destination.locator('.sidebar-horizon').boundingBox())!;
   expect(nav.y).toBeGreaterThanOrEqual(mark.y+mark.height);

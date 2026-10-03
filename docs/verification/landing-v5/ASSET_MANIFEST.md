@@ -9,7 +9,7 @@ Bytes are file bytes; 1 KB = 1,000 bytes.
 The four equation figures are the owner's transparent figure set (`docs/brand/ASSETS_2026-10-01.md`, "figures/"),
 copied from `apps/web/public/brand/figures/`. The planet rim behind the fold stages is the V21 artwork's footer
 crop (`docs/design/V21_ARTWORK.md`, `horizon.webp`), copied from `apps/web/public/art/v21/`. Each copy hashes the
-same as its source. The source's `@2x` files are named `-1280.webp` here, after their `1280w` descriptor: Workers
+same as its source. The source's high-density files (`-2x.webp` since Session P, 2026-10-03; `@2x.webp` before) are named `-1280.webp` here, after their `1280w` descriptor: Workers
 Assets answers a path with `@` in it with a 307 redirect to its `%40` spelling (seen 2026-10-03 in `wrangler dev` and
 on the live Alpha), an extra round trip for every screen that picks the larger file.
 
