@@ -76,7 +76,10 @@ test('the day\'s row budget stops new cold work for every address while cached p
 },60000);
 
 test('load: concurrent clients, cold and cached, stay within a bounded cost per HTTP request',async()=>{
- const r=await runtime();try{
+ // Enough dispatch slots for the wave's five reads: with two, they queue behind 250 ms admission polls and a busy CI
+ // runner pushed the shared reads past the followers' 1 s lifetime (10 of 16 answers). Admission waits have their
+ // own tests; this one measures cost per request.
+ const r=await runtime({overrides:{policy:{...policy,concurrent:8}}});try{
   const clients=['192.0.2.21','192.0.2.22','192.0.2.23','198.51.100.4'];
   // Every client asks for the same 12 pairs and for 4 pairs of its own, at the same time, twice. (Sized within the
   // account's 128 followers in all: 16 shared and 8 own pairs would need 144, and the last waiters were refused.)

@@ -22,7 +22,7 @@ function account(overrides:Record<string,unknown>={}){
  const storage=new CountingStorage(),start=Date.now();
  const authority=new DurableMarketAccount(storage,()=>Date.now(),JSON.stringify({policy,month:{id:'cost-fixture',start:start-1000,end:start+3600000},quoteCost:3,operationCosts:{history:4,insights:5,token:6,rwa:7},leaseMs:20000,maxAttempts:128,maxWorks:64,...overrides}));
  /** One caller's view: each call is what QuoteService sends as one Durable Object request. */
- const caller=()=>{const actions:string[]=[];return {actions,command:async(c:unknown)=>{actions.push(String((c as {action?:unknown}).action));return authority.apply(JSON.parse(JSON.stringify(c)));}};};
+ const caller=()=>{const actions:string[]=[],done:string[]=[];return {actions,done,command:async(c:unknown)=>{const action=String((c as {action?:unknown}).action);actions.push(action);const result=await authority.apply(JSON.parse(JSON.stringify(c)));done.push(action);return result;}};};
  return {storage,authority,caller};
 }
 function provider(hold?:()=>Promise<void>){
@@ -73,8 +73,9 @@ test('a follower polls at most every 250 ms, and its waiting writes nothing',asy
  const a=account(),gate=deferred(),p=provider(()=>gate.promise),two=pairs.slice(0,2).map(pair=>coin(pair.marketRef.id));
  const owner=durableInsights(two,{command:a.caller().command,key:'fixture-key',fetcher:p.fetcher});await until(()=>p.calls.length===1);
  const follower=a.caller(),following=durableInsights(two,{command:follower.command,key:'fixture-key',fetcher:p.fetcher});
- await until(()=>follower.actions.length>0);await sleep(100);const writes=a.storage.writes;
- await sleep(750);const waitingWrites=a.storage.writes-writes;gate.resolve();
+ await until(()=>follower.actions.length>0);await sleep(50);const writes=a.storage.writes;
+ // Its first poll (about 250 ms after registration) only waits; the owner then publishes well inside the 1 s lifetime.
+ await until(()=>follower.done.includes('poll-many'));const waitingWrites=a.storage.writes-writes;gate.resolve();
  const [owned,followed]=await Promise.all([owner,following]);
  expect(owned.entries).toHaveLength(2);expect(followed.entries).toHaveLength(2);expect(p.calls).toHaveLength(1);
  expect(follower.actions.filter(action=>action.startsWith('poll')).length,follower.actions.join()).toBeLessThanOrEqual(4);expect(waitingWrites).toBe(0);
@@ -84,8 +85,9 @@ test('a queued attempt polls for dispatch at most every 250 ms, and its waiting 
  const a=account({policy:{...policy,concurrent:1}}),gate=deferred(),p=provider(()=>gate.promise);
  const first=durableHistory({...coin('bitcoin'),range:'1d'},{command:a.caller().command,key:'fixture-key',fetcher:p.fetcher});await until(()=>p.calls.length===1);
  const queued=a.caller(),second=durableHistory({...coin('ethereum'),range:'1d'},{command:queued.command,key:'fixture-key',fetcher:p.fetcher});
- await until(()=>queued.actions.length>0);await sleep(100);const writes=a.storage.writes;
- await sleep(1000);const waitingWrites=a.storage.writes-writes;gate.resolve();
+ await until(()=>queued.actions.length>0);await sleep(50);const writes=a.storage.writes;
+ // Two admit polls (about 250 and 500 ms in) only wait; the slot then frees well inside the 2 s admission wait.
+ await until(()=>queued.done.filter(action=>action==='admit').length>=2);const waitingWrites=a.storage.writes-writes;gate.resolve();
  const [one,two]=await Promise.all([first,second]);
  expect(one.history).not.toBeNull();expect(two.history).not.toBeNull();
  expect(queued.actions.filter(action=>['own','admit'].includes(action)).length,queued.actions.join()).toBeLessThanOrEqual(6);expect(waitingWrites).toBe(0);
