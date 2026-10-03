@@ -56,6 +56,9 @@ test.describe("files", () => {
     const shipped = walk(landingRoot).filter(file => !control.has(file));
     const allowed = (file: string) => file === "index.html" || file === "favicon.ico" || /^styles\/[^/]+\.css$/.test(file) || /^scripts\/[^/]+\.m?js$/.test(file) || file.startsWith("assets/");
     expect(shipped.filter(file => !allowed(file)), "files outside the upload allowlist").toEqual([]);
+    // Workers Assets answers a path it would spell differently (an "@", for one) with a 307 to the percent-encoded
+    // spelling, an extra round trip per file (seen in wrangler dev and on the live Alpha): every name is already plain.
+    expect(shipped.filter(file => file.split("/").some(part => encodeURIComponent(part) !== part)), "file names Workers Assets would redirect").toEqual([]);
     expect(shipped.filter(file => !referenced.has(file)), "files that ship but nothing refers to").toEqual([]);
   });
 });

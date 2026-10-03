@@ -9,18 +9,20 @@ Bytes are file bytes; 1 KB = 1,000 bytes.
 The four equation figures are the owner's transparent figure set (`docs/brand/ASSETS_2026-10-01.md`, "figures/"),
 copied from `apps/web/public/brand/figures/`. The planet rim behind the fold stages is the V21 artwork's footer
 crop (`docs/design/V21_ARTWORK.md`, `horizon.webp`), copied from `apps/web/public/art/v21/`. Each copy hashes the
-same as its source.
+same as its source. The source's `@2x` files are named `-1280.webp` here, after their `1280w` descriptor: Workers
+Assets answers a path with `@` in it with a 307 redirect to its `%40` spelling (seen 2026-10-03 in `wrangler dev` and
+on the live Alpha), an extra round trip for every screen that picks the larger file.
 
 | file | bytes | SHA-256 |
 | --- | ---: | --- |
 | `assets/brand/figures/goals-lotus.webp` | 69,416 | `f7c386fca7e7bad2628bcdc269cd3bbacb7516435bc7baec04ae87cbd3d2893c` |
-| `assets/brand/figures/goals-lotus@2x.webp` | 175,606 | `88a4c391e4ef6b9d8fc64a5ea8d4e244919cb1452da0407e8bcf5c065769f6b3` |
+| `assets/brand/figures/goals-lotus-1280.webp` | 175,606 | `88a4c391e4ef6b9d8fc64a5ea8d4e244919cb1452da0407e8bcf5c065769f6b3` |
 | `assets/brand/figures/habits-butterfly.webp` | 55,076 | `d13959194f8548fce5cab5e79d890412e3a4ed3a693e791bbc67ae90acdeada2` |
-| `assets/brand/figures/habits-butterfly@2x.webp` | 133,276 | `993b6c860ac69f2bc2c70352a4eacd9f7ce861f820085aeebec0392a8e85b93b` |
+| `assets/brand/figures/habits-butterfly-1280.webp` | 133,276 | `993b6c860ac69f2bc2c70352a4eacd9f7ce861f820085aeebec0392a8e85b93b` |
 | `assets/brand/figures/health-heart.webp` | 53,810 | `7ad51e2a4093023df2370c8d56a9cbe38addf28e8e372ed0e1a97ea53efed2c1` |
-| `assets/brand/figures/health-heart@2x.webp` | 142,178 | `34aabbdf8bd34d72f4427e18c6762f9d8c62a5a9a66cbb14bdde4307232a2ba6` |
+| `assets/brand/figures/health-heart-1280.webp` | 142,178 | `34aabbdf8bd34d72f4427e18c6762f9d8c62a5a9a66cbb14bdde4307232a2ba6` |
 | `assets/brand/figures/wealth-bull.webp` | 59,842 | `177c9112fbea979488a16fe4d9a9b8d380cbf740c20d5f08fb34971a04332079` |
-| `assets/brand/figures/wealth-bull@2x.webp` | 138,096 | `e6f0b308faad8f46cc3583551bef34b37b2cf2f18b3c0e92918c3759bb48b841` |
+| `assets/brand/figures/wealth-bull-1280.webp` | 138,096 | `e6f0b308faad8f46cc3583551bef34b37b2cf2f18b3c0e92918c3759bb48b841` |
 | `assets/art/horizon.webp` | 30,246 | `b230e5c547bdb0eace288358516efbb1ae2985c7ef7b05a9db3eae66a10abd97` |
 
 ## Fold stages: frames

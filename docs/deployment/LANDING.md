@@ -13,7 +13,7 @@ WRANGLER_SEND_METRICS=false pnpm check:landing
 
 `check:deploy-configs` reads both repository configs without network access and fails on a target, path, route, binding, or static-asset isolation mismatch. It also enforces the apex upload allowlist: `landing/.assetsignore` must deny everything with `*` and may re-include only the public runtime (`index.html`, `favicon.ico`, `styles/*.css`, `scripts/*.js`, `scripts/*.mjs`, `assets/**`); the type denials that follow it must stay; and the real `landing/` tree must contain no non-public file — no `.wrangler/`, `node_modules/`, `docs/`, `review/`, `tools/`, `backups/` or `source/` directory, and no `.md`, `.json`, `.jsonc`, `.py`, `.sh`, `.test.*` or `.env*` file.
 
-`check:landing` is the canonical apex dry run. It compiles and inspects the static upload without contacting the deployment API or changing Cloudflare. Wrangler reports every entry in `landing/` before ignore filtering — currently 225, which is 204 files plus 21 directories — and then ignores `.assetsignore`, `wrangler.jsonc` and `_headers`. For a local audit of those decisions, set `WRANGLER_LOG=debug` and direct `WRANGLER_LOG_PATH` to a scratch file outside `landing/`; the log prints an `Ignoring asset:` line per excluded file.
+`check:landing` is the canonical apex dry run. It compiles and inspects the static upload without contacting the deployment API or changing Cloudflare. Wrangler reports every entry in `landing/` before ignore filtering — currently 274, which is 251 files plus 23 directories (Landing V5; V4 had 225) — and then ignores `.assetsignore`, `wrangler.jsonc` and `_headers`. For a local audit of those decisions, set `WRANGLER_LOG=debug` and direct `WRANGLER_LOG_PATH` to a scratch file outside `landing/`; the log prints an `Ignoring asset:` line per excluded file.
 
 `landing/_headers` is excluded from the upload on purpose. Wrangler still parses it into the Worker's response headers — it logs `✨ Parsed 1 valid header rule.` — so the security policy applies while the file itself is not fetchable. Keep it denied in `.assetsignore`.
 
@@ -22,10 +22,10 @@ WRANGLER_SEND_METRICS=false pnpm check:landing
 To exercise the deployable bytes through the real Workers-Assets runtime, including `_headers`:
 
 ```sh
-pnpm --filter @zigoals/web exec wrangler dev --config ../../landing/wrangler.jsonc --name zigoals --port 8788 --ip 127.0.0.1
+pnpm --filter @zigoals/web exec wrangler dev --config ../../landing/wrangler.jsonc --name zigoals --port 8788 --ip 127.0.0.1 --persist-to .wrangler/landing-state
 ```
 
-This writes Miniflare state to `landing/.wrangler/`. Delete that directory afterwards; `check:deploy-configs` fails while it is present, because nothing but the public site may sit in the deployable tree.
+`--persist-to` keeps Miniflare's state in `apps/web/.wrangler/landing-state/` (ignored by git), outside the deployable tree; delete it afterwards. Without it, Wrangler 4.144 writes its state to `landing/.wrangler/`, inside the assets directory it watches, and reloads in a loop without answering a request (seen on `main` and on Landing V5, 2026-10-03). If `landing/.wrangler/` exists, delete it: `check:deploy-configs` fails while it is present, because nothing but the public site may sit in the deployable tree.
 
 ## Owner-only deployment
 
