@@ -76,7 +76,7 @@ export function SyncOffer({account, manifest, opened, preparing, busy, health, o
     <p>Your data is end-to-end encrypted on this device before it leaves; nobody else can read it.</p>
     <p className="sync-offer-secret">{device
       ? 'Your password manager can fill in the recovery secret. Your email code signs you in, but it cannot unlock your data.'
-      : 'You’ll get a recovery secret. Keep it safe; a password manager is ideal. Your email code signs you in, but only the recovery secret unlocks your data, and ZIGoals asks for it each time you open your account on a device.'}</p>
+      : 'You’ll get a recovery secret. Keep it safe; a password manager is ideal. Your email code signs you in, but only the recovery secret unlocks your data. ZIGoals asks for it when you open your account on a device, unless you choose to remember that device.'}</p>
     <div className="sync-offer-health">
       <label className="checkbox" htmlFor={id + 'health'}><input id={id + 'health'} type="checkbox" checked={health} aria-describedby={id + 'health-note'} onChange={e => onHealth(e.target.checked)}/>Also sync my Health records (optional)</label>
       <p className="fine" id={id + 'health-note'}>Health stays on this device unless you tick this.</p>

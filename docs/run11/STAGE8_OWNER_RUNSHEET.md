@@ -5,9 +5,9 @@ Everything here needs something only you have:
 - your desktop and your physical iPhone;
 - your Cloudflare, Supabase, Resend and CoinGecko accounts.
 
-Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.md](STAGE8_COVERAGE.md) lists which test proves which row: 20 of 31 rows are proven locally, and you don't need to repeat them. Fill their rows in the acceptance sheet as the last step.
+Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.md](STAGE8_COVERAGE.md) lists which test proves which row: 25 of 36 rows are proven locally, and you don't need to repeat them. Fill their rows in the acceptance sheet as the last step.
 
-**Total time:** about 4½ hours. It can be split over several days; each part says when it can be done.
+**Total time:** about 4¾ hours. It can be split over several days; each part says when it can be done.
 
 ## Before you start
 - **Stages 1–7 are done** on the isolated acceptance services. Never use the live Alpha.
@@ -83,7 +83,7 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Do:**
   1. Leave Health unticked for now and choose "Turn on encrypted sync (recommended)".
   2. Copy the recovery secret shown below straight into a new Bitwarden item.
-  3. Tick "I saved this vault recovery secret separately." and choose "Confirm and create vault".
+  3. Tick "I saved this vault recovery secret separately." Leave "Remember on this device — don’t use on shared computers" as it is: in a desktop browser tab it is **not** ticked (F1). Choose "Confirm and create vault".
 - **Pass:** "Account records synced and acknowledged", and the card is gone.
 - **Record:** pass. Never the secret.
 - **Then:** create a fictional Goal, a Habit and one Today widget, and add 250 mL of water in Health.
@@ -118,9 +118,10 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   1. In the Home Screen app, sign in with Inbox 1. The card "Bring this device up to date" appears.
   2. Tick "Also sync my Health records (optional)".
   3. Choose "Turn on encrypted sync (recommended)". The recovery-secret field gets focus.
-  4. Fill it from Bitwarden with AutoFill, and choose "Unlock account vault".
+  4. Fill it from Bitwarden with AutoFill. Below it, "Remember on this device — don’t use on shared computers" is **ticked** in the Home Screen app, with its warning (F1). Leave it ticked and choose "Unlock account vault".
 - **Pass:**
   - the Goal, Habit and Today widget from step 8 appear;
+  - Settings says "This device is remembered";
   - the 250 mL does **not** appear (Desktop A has not consented to Health).
 - **Then:**
   1. Add 500 mL on the phone.
@@ -128,13 +129,28 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Expected:** Desktop A shows "Unlinked local and cloud records differ…". It holds its own Health entries made before consent, so sync stops for your review instead of merging silently. That is by design.
 - **Record:** pass or fail for each line.
 
-**13. Unlock again (expected behaviour today).**
-- **Do:** close the Home Screen app from the app switcher, then open it again.
+**13. Open again without the secret (F2, F3; changed by Session M).**
+- **Do:**
+  1. Close the Home Screen app from the app switcher, then open it again.
+  2. In Settings choose "Lock account vault", close the app and open it again.
+  3. Unlock with the secret, ticking "Remember on this device" again.
 - **Pass:**
-  - Settings asks for the recovery secret again;
-  - AutoFill fills it;
-  - the records come back.
-- **Record:** pass, and how easy AutoFill was. Today the secret is needed after every restart; see the STATUS follow-up.
+  - after step 1 the records are there and Settings asks for nothing;
+  - after step 2 Settings asks for the recovery secret (locking also forgets this device), and AutoFill fills it.
+- **Record:** pass or fail per line. If step 1 asks for the secret, record that: it would mean iOS did not keep the remembered device, and IOS_STORAGE.md needs a note.
+
+**13b. Remembered device on Desktop A, then a key rotation (F2, F3, F4).**
+- **Do:**
+  1. On Desktop A: "Lock account vault", then unlock with the secret and tick "Remember on this device".
+  2. Reload the page, then open the app in a second tab.
+  3. Choose "Forget this device", then reload.
+  4. Unlock once more, then open "Rotate vault encryption", save the new secret in Bitwarden and activate it.
+  5. On the phone, close and reopen the Home Screen app.
+- **Pass:**
+  - step 2 asks for no secret, in either tab;
+  - step 3 keeps the tab open until the reload, which asks for the secret;
+  - after step 5 the phone asks for the secret: the old one is refused ("Unlock or integrity check failed"), and the new one works.
+- **Record:** pass or fail per line. Never either secret.
 
 **14. Camera (C1, C2, C3).**
 - **Do:** Health → "Scan or look up a food barcode" → "Scan barcode".

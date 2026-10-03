@@ -32,6 +32,7 @@ import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
 import { formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
+import { updateRefusalMessage } from "../../lib/storage-error-copy";
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
@@ -115,7 +116,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     if (saving.current) return;
     saving.current = true; setBusy(true); setError(""); setMessage("");
     try { await update(updater); setMessage(success); after?.(); }
-    catch { setError("Could not save this change. Check your entries and available browser storage, then try again."); }
+    catch (error) { setError(updateRefusalMessage(error, "Could not save this change. Check your entries and available browser storage, then try again.")); }
     finally { saving.current = false; setBusy(false); }
   };
   // A name with nothing visible gets its own message (QA-32); every other refusal keeps the fields message.

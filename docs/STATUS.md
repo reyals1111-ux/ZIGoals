@@ -98,6 +98,369 @@ Micro: `planDay` takes 254 ns against 533 ns for the earlier slice, and a plan-d
   - `use-valuation-history.ts`;
   - `components/platform/goal-intelligence.tsx:28`.
 
+# Session M (PR B) [Tier 3] — "never a chore" accounts: remember this device, copy in place, deletion without a download (2026-10-02, [PR #63](https://github.com/reyals1111-ux/ZIGoals/pull/63), not merged or deployed)
+
+> **This changes how unlocking works, so Stage 8's account rows must be run on a build that includes it.** A remembered device opens the vault without the recovery secret; the copy of earlier records and cloud deletion no longer need a download. STAGE8_ACCEPTANCE.md has a new section F. In the owner runsheet, steps 8, 12 and 13 changed and step 13b is new.
+
+**Evidence labels:** **local** (this cloud session: Node 24.19.0, pnpm 11.19.0, production build `PUBLIC_ALPHA_UNDEPLOYED`, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for `chrome`); **Miniflare** (the real private-sync, lifecycle and admission Workers in local workerd, fixture sign-in: no provider, no real email); **CI**; **source** (an official page, read 2026-10-02). Nothing here is a hosted or real-device claim. No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** `main` `57275a6` (Alpha deploy #23). PR A ([#60](https://github.com/reyals1111-ux/ZIGoals/pull/60)) should merge first. A test merge of both branches merges Help, FRIENDS_GUIDE, IOS_STORAGE and `ci.yml` cleanly. When `main` with #60 is merged into this branch, two conflicts follow, and the resolution is to keep both blocks, PR A's first:
+- `docs/STATUS.md`: each PR adds its entry at the top;
+- `docs/testing/SKIPPED_TESTS.md`: each PR appends a section.
+
+**Owner principle:** people never back up, re-sync, download or upload to stay up to date. Encrypted sync is the protection; backups are optional extras; the one thing to keep safe is the recovery secret.
+
+## Parts
+| Part | What | Commit |
+|---|---|---|
+| B1 | [ADR-008](architecture/ADR-008-remember-this-device.md): the chore, the vault rules, threat model T1–T7, three options compared with dated official sources (a WebCrypto device key now; a passkey with PRF later, after a test on a real iPhone; longer sessions rejected), owner decision M1, the design | `eac4ba1` |
+| B2a [Tier 3] (vault keys) | A non-extractable AES-GCM device key seals the vault root once, while the recovery secret opens it; later the root is unwrapped straight into a non-extractable HKDF key. Bound by AAD to the verified account and the live manifest. The local record lives in IndexedDB `zigoals-device-unlock-v1` | `a19826a` |
+| B2b [Tier 3] (account and vault UI) | "Remember on this device — don't use on shared computers" at unlock and at vault creation, ticked by default only in the installed app; reopening after a reload, in a new tab, after idle and after a token expiry; Lock now = lock and forget; Forget this device; every invalidation; the Health choice | `8b82249` |
+| B2c [Tier 3] (workflow) | CI integration runs `remember-device-browser.test.mjs` | `cd78f91` |
+| B3 [Tier 3] (account UI) | The copy of earlier records happens in place with one explicit approval and no file; cloud deletion needs only its typed confirmation, with "Download a copy first (optional)" | `b2b2ae7` |
+| B4 | Stage 8 acceptance (section F), coverage (25 of 36 rows proven locally) and runsheet; Help; friends guide; PRIVACY; privacy notice draft; threat model; iPhone storage §4; ADR wording; SKIPPED_TESTS (appended) | `9e2c2a1` |
+| B5 | The freeze check found Settings 40–98 px off at three sizes; the sync panel's paragraph is one text node again (see the freeze check) | `c9d5ad2` [Tier 3] (account UI) |
+| B5 | The remember-device spec's comment names its rehearsal's real path | `c3b8804` |
+| B5 | This entry | this commit |
+
+## [Tier 3] commits and risk, in plain words
+- **`a19826a`:** adds the cryptography and the local store; nothing uses them until `8b82249`. If they were wrong, a remembered device could fail to reopen (the secret is then asked for, as today), or at worst a record could open a vault it should not; the unit tests check every binding that prevents that.
+- **`8b82249`:** the accepted trade-off of owner decision M1: on a device where the person ticks "Remember on this device", anyone who can use that browser profile can open the account records there without the recovery secret, until it is locked or forgotten. The choice is explicit and always shown with that warning. A device where nobody ticks it behaves exactly as before. Sign-in, sync and the server are unchanged.
+- **`cd78f91`:** the integration step runs one more file (about 16 s locally).
+- **`c9d5ad2`:** no change in behaviour. The same words show in the same place; the paragraph is one string again, so a device that is not remembered renders exactly as on `main`.
+- **`b2b2ae7`:** copying earlier records no longer makes a backup file first, and cloud deletion no longer requires a download. The copy keeps the originals on the device, and deletion still needs its typed confirmation.
+
+## What "remember" protects, and what it doesn't
+- **Protects:**
+  - the recovery secret: it is never stored;
+  - the root's bytes: they never reach script after the one seal at unlock, and the device key cannot decrypt, only unwrap;
+  - other accounts, vaults and epochs: the additional data names the verified account and the exact live manifest, so a record cannot open them;
+  - after a key rotation: old material can never open the newer epoch (new random root, new manifest);
+  - after a new sign-in or a revoked session: the record is bound to the server session id, so it is useless;
+  - the server: nothing new is sent to it.
+- **Doesn't protect:**
+  - against anyone who can use this browser profile: they can open the account records here (the warning says so);
+  - against script running in the page (XSS, an extension): it can use the key while it runs, though never export it;
+  - against stolen profile files: depending on the browser, they may expose the stored key ("non-extractable" is not disk encryption; WebKit wraps stored keys with a Keychain key, other engines document no such wrapping);
+  - against eviction: the 7-day rule or a full phone can remove it, and then the secret is needed once.
+- **Invalidation:**
+  - **Deleted by:** sign-out; another account's sign-in on this browser; a new sign-in; key rotation here; a manifest change or "Account or vault changed" from rotation elsewhere; a cloud section or the account deleted on another device; a revoked session or ACCOUNT_CHANGED; section or account deletion here; revoking this session; Lock now; Forget this device; a record that fails validation.
+  - **Kept by:** a routine token expiry. The tab reopens at once instead.
+- **Lost the secret?** A remembered device can still open the vault and rotate to a new secret. Without the secret and without any remembered or unlocked device, the data is gone; nobody can recover it.
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs`)
+**Against `57275a6` (main, deploy #23), at `c9d5ad2`, all 154 captures (local):**
+- **142 are identical.** That includes Settings: its encrypted-sync panel shows while signed out, and it renders exactly as on `main`.
+- **12 differ: Help only** (6 sizes × Showcase and empty), the authorized B4 text.
+  - **Accessibility tree:** 7 changed lines per capture, and nothing else.
+    - The "Signing in is not recovery" paragraph says what "Remember on this device" does.
+    - The recovery-secret list ("The one thing to keep safe") gains "Lost the secret, but a device still opens your account?".
+    - The feedback link names the build's commit.
+  - **Pixels:** the pages are 110–162 px taller, so I compared rows. Above the change point, the page-height background differs by at most 39/255, and one 7 × 7 px decorative spot at the sidebar's edge by more.
+- **The first capture, at `9e2c2a1`, found 6 more differences:** Settings at 1440×900, 1280×800 and 1180×820 (touch).
+  - The accessibility tree was the same, with 40–98 differing pixels.
+  - Cause: B2b had split the panel's last sentence into its own text node, and Chrome drew one glyph at that boundary differently.
+  - `c9d5ad2` makes the paragraph one string again, and the capture above is clean.
+- **The plan had expected every account panel to stay hidden under the 503 fixture.** The sync panel itself shows while signed out, which is how the check caught this. The remember choice, the remembered notice, the copy panel and the deletion panel appear only when signed in, so the screenshots show them.
+
+## Tests (totals per run, never added together)
+- **Unit and jsdom (local, `pnpm test` at `9e2c2a1`):** **2,209 passed, 4 expected to fail (X1–X4), 24 skipped** (2,237 tests, 162 s). At `c9d5ad2`, the 34 files around the sync panel and the vault (170 tests) passed locally, and CI's web checks ran the full `pnpm test`.
+  - The 2 new skips are this PR's rehearsal tests, MB1 and MB2. They run only with `RUN10_BROWSER=1`, as CI's integration step sets it (SKIPPED_TESTS.md, appended).
+  - **New, 37 tests:**
+    - `crypto-device.test.ts` (7): seal and open; the account, vault, epoch and manifest binding; old material never opens a newer epoch; non-extractable; no decrypt usage; exact lengths.
+    - `device-unlock.test.ts` (7): never created on read; one record at most; a forget wins over a remember in flight; compare-and-delete; anything invalid is deleted.
+    - `vault-remember.test.ts` (18): the choice in a tab and in the installed app; reopen after a reload, in a new tab and on other pages; idle; Health; Lock now; Forget; every invalidation; a sign-out during unlock; Showcase.
+    - `local-attach-in-place.test.ts` (2) and `account-deletion-optional-copy.test.ts` (3): B3, failing first.
+    - Plus the new schema in `zod-jitless.test.ts`.
+- **Browser, full suite (local, production build of `c9d5ad2`, 2 workers):** **896 passed, 47 skipped, 5 failed** (39.7 min, 948 tests). The 47 skips are the existing project skips; this PR adds no Playwright skip.
+  - **4 of the failures** are the two brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) in both projects. This sandbox's Chromium cannot play the film (CLAUDE.md); they pass in CI.
+  - **The 5th**, `[mobile] logo-fold.spec.ts:107` "the static Z stays when the fold fails to load (this project's own size)", is a local timing race, not this PR's code:
+    - The clip leaves on the video's `error` event, or after a 1.5 s fallback. The test allows 1.4 s for the routed 404 to arrive; under the suite's load, the fallback won.
+    - Alone on the same build it passed 40 of 40 (`--repeat-each=10`, its 4 variants).
+    - It passed in CI on `c9d5ad2`, in this PR's first full run and in PR A's full run.
+    - This PR changes no logo or fold file.
+  - **The first full run, on the `9e2c2a1` build, was cut off at 924 of 948 by a sandbox restart.** It had only the 4 brand-film failures; the run above replaces it.
+  - **New:** `remember-device.spec.ts`, 3 tests in both projects.
+    - Unticked in a browser tab, with its warning.
+    - Ticked in the installed app.
+    - Reopened after a reload and in a new tab, then Forget, then Lock now = lock and forget.
+- **CI's integration command (local, real Workers in Miniflare, production build of `9e2c2a1`, one file at a time):** **15 files: 23 passed, 1 skipped** (315 s). The B5 commits change no behaviour, and CI ran the same command on `c9d5ad2`.
+  - The skipped test is the packaged-runtime one, which runs in CI's later package step (`RUN11_PACKAGED=1`).
+  - The two remember-device rehearsals took 8.3 and 8.0 s.
+  - Every existing account and sync rehearsal passed, `account-browser` in both orders included.
+- **Changed by this PR, with the reason** (owner decision M2 removes the file the copy used to require):
+  - **`scripts/run10/account-browser.test.mjs` L41–L46:** the copy of earlier records now asks for the review and one approval instead of a backup secret and a download.
+  - **HA-38 in `scripts/run11/health-consent-a11y-browser.test.mjs`:** the same change.
+  - Every other account and sync test runs unchanged, among them `account-browser` L72–L74 and L124–L127, K's sync races, L's sync offer and the Stage 8 rehearsals.
+
+## CI on this PR
+- **`eac4ba1`** (B1, docs): green ([run 37067227696](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067227696); reproducibility [run 37067227694](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067227694)).
+- **`9e2c2a1`** (B2a–B4, pushed together): green on attempt 1 ([run 37069599791](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37069599791); reproducibility [run 37069599789](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37069599789)).
+- **`c9d5ad2`** (the B5 fixes): green on attempt 1 ([run 37081898349](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37081898349); reproducibility [run 37081898337](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37081898337)):
+  - web checks;
+  - web integration, with the 15 files;
+  - browser shards 15.7, 11.8 and 13.9 min;
+  - contract;
+  - `web`.
+- **This commit:** reported on the PR.
+
+## After #60 merged (2026-10-03)
+- **Merge:** `main` `4d151c7` (#60, PR A) is merged into this branch as `55fb25c`, a merge commit with no rebase.
+  - Only two docs files conflicted, `docs/STATUS.md` and `docs/testing/SKIPPED_TESTS.md`. Both blocks were kept in each, PR A's first, as the owner asked.
+  - Help, FRIENDS_GUIDE, IOS_STORAGE and `ci.yml` merged cleanly and keep both PRs' changes.
+- **Re-run on the merged code (local):**
+  - lint and typecheck: clean;
+  - `pnpm test`: **2,222 passed, 4 expected to fail, 24 skipped**, which is `main`'s earlier total plus PR A's 13 and PR B's 37 new tests;
+  - the account and Help browser specs (8 files, production build of `55fb25c`, both projects): **76 passed**;
+  - CI's integration command: **15 files, 23 passed, 1 skipped** (the gated packaged-runtime test).
+- **Owner decisions the same day:**
+  - keep the Wealth speed fix `0e83d56` (QA2-08);
+  - caching the Chrome-install packages stays a later follow-up.
+
+  Both are recorded in PR A's entry too.
+- **CI on the merged head:** reported on the PR.
+
+## Owner decisions
+- **Applied:**
+  - **M1:**
+    - (a) an explicit choice at unlock and at creation;
+    - (b) **changed by the owner:** ticked by default in the installed app (display-mode standalone), unticked in a browser tab, always shown with its warning. Both cases are tested in jsdom and Playwright; the rehearsal checks the browser-tab case;
+    - (c) a remembered device does not ask for the secret after idle;
+    - (d) Lock now locks and forgets;
+    - (e) the Health choice is remembered with the device;
+    - (f) Forget keeps the tab open.
+  - **M2:** the copy happens in place, with no file. Deletion needs no download, with the optional "Download a copy first".
+  - **SKIPPED_TESTS:** one section appended; nothing was restructured.
+- **Needed:** none to merge. Later:
+  1. A passkey (PRF) to protect a remembered device, after a test on the owner's iPhone.
+  2. Whether remembering should end after a fixed time, even while the session lasts.
+
+## Decisions made without the owner, and deviations
+- **`lib/account-session.ts` gained `adoptAccount`** (the plan said it would stay unchanged). A remembered tab takes the server-verified account without broadcasting "lock" to the other tabs. A sign-in still locks them.
+- **Settings' own account check in a new tab still locks the other tabs, as before** (`account-browser` L72–L74, unchanged). A remembered tab locked that way opens again, without the secret, as soon as it is focused or shown. Changing that would have meant changing `AccountAccess` and that test.
+- **A routine token expiry (401 `SIGN_IN_REQUIRED`) on a remembered device** reopens at once. The session id stays the same, so the record stays valid.
+- **A key rotation on this device forgets this device too.** The new secret is then needed once here, as on every other device. There is no re-seal under the new root.
+- **A section deleted here or on another device forgets the device,** as the brief's invalidation list asks. The tab keeps today's error message.
+- **"Revoke this session" for the current session** (`account-devices.tsx`) is a sign-out, so it forgets the device too.
+- **Wording:**
+  - the sync offer's sentence (`sync-offer.tsx`) and the rotation panel (`vault-rotation-controls.tsx`) mention remembered devices;
+  - the copy's "source changed" message no longer says "protected copy".
+- **The rehearsal file** sits with the other Stage 8 rehearsals and their harness, in `scripts/run11/stage8-rehearsal/`, not in `scripts/run11/`.
+- **Pushes:** B2a–B4 were committed part by part, but pushed together in one push (`9e2c2a1`), not after each part.
+  - Before that push, these ran on the combined code: lint, typecheck, the unit and jsdom tests, `remember-device.spec.ts` and the new rehearsal.
+  - The full integration command had one failure, a new-tab race in the new rehearsal itself. It was fixed and passed 3 of 3 alone before the push; the full command passes now (above).
+  - Checked afterwards in a temporary worktree: each of `a19826a`, `8b82249`, `cd78f91` and `b2b2ae7` passes typecheck and lint on its own. Its related unit and jsdom tests pass too: 147, 165 and 170 tests (`cd78f91` changes only the workflow). So every commit is safe to bisect through.
+- **Browsers:** only Chrome (Chromium here) was tested. How Safari and Firefox keep a non-extractable key in IndexedDB is from their documentation and source, not a device test.
+
+## Follow-ups (not done here)
+- **A passkey (PRF)** to protect a remembered device (ADR-008 option 2), after a device test on the owner's iPhone. Apple's Safari 18 notes and MDN's data disagree on PRF `get()`.
+- **A time limit on remembering** that does not depend on the session.
+- **Stage 8 on a build with this PR:** section F of STAGE8_ACCEPTANCE, and steps 8, 12, 13 and 13b of the owner runsheet.
+- **On real devices:** the iPhone Home Screen app (ticked by default), Safari and Firefox.
+- **`logo-fold.spec.ts:107`, "fails to load":** the test allows 1.4 s, and the clip's own fallback is 1.5 s, so under heavy local load the fallback can win (see Tests). It has not been seen in CI. If it is, widen the test's window; the app is right either way.
+
+## How the owner can review
+- **Screenshots:** the folder `pr-b/` on the branch `review/session-m-screenshots` (never merged), linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/63#issuecomment-5963584091). They use the Stage 8 rehearsal harness: the real private-sync Worker in Miniflare, fixture sign-in and fictional accounts.
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`.
+  2. Run `git checkout accounts/session-m-2026-10-02`.
+  3. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  4. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  5. Open http://127.0.0.1:3101/app/help.
+
+  The local preview has no account service (as in Session L's preview), so it shows only Help's new lines. The account screens are in the screenshots, or in the Stage 8 rehearsal (`RUN10_BROWSER=1`).
+- **What to look at:**
+  - **In the screenshots:**
+    1. The unlock form: the "Remember on this device" box, unticked, with its warning.
+    2. The remembered notice and "Forget this device".
+    3. The reopened vault after a reload.
+    4. The copy panel: no file or backup secret.
+    5. The deletion panel: no download needed.
+    6. The installed app: the box ticked.
+  - **In Help:** "Signing in is not recovery" and "The one thing to keep safe".
+
+# Session M (PR A) — polish and reliability: deploy #23 record, QA2 fixes (storage messages, losses, Staking tabs, phone targets, Wealth timing), two CI intermittents, friends-guide line (2026-10-02, [PR #60](https://github.com/reyals1111-ux/ZIGoals/pull/60), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141 standing in for `chrome`. It cannot play the brand film, so those specs fail here and pass in CI (CLAUDE.md).
+- **Miniflare:** the real Workers in local workerd.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** an official page read on 2026-10-02. **UNVERIFIED** means no official page could be found or read here.
+
+No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** `main` `57275a6` (Alpha deploy #23). Session M's PR B ([#63](https://github.com/reyals1111-ux/ZIGoals/pull/63), "never a chore" accounts) is separate. **Merge this PR first.** Session N worked in parallel on its own lane; this PR touches none of N's files.
+
+## Parts
+| Part | What | Commit |
+|---|---|---|
+| A0 | Alpha deploy #23 recorded (`57275a6`, VERIFIED, versions and rollback); Release identity updated; the owner's activation report (Stage 6 complete, Stage 7 preflight READY at `57275a6`) | `7ee88ad` |
+| A1 (QA2-02) | Health quick counters, Health saves, the reminder cards, the water reminder and the habit reminder time use the coded storage messages. Follow-up: an older test expected the old generic message (see Tests) | `0f8fa55`, `19152a4` |
+| A2 (QA2-03, M3) | Money never reads a loss smaller than it is: negative amounts are cut away from zero at the currency's digits, positive amounts are still truncated, quantities (ZIG, BTC) are unchanged. Portfolio results, Wealth, a Goal's intelligence and Today. Two existing assertions changed because M3 requires it (named in the commit) | `903e05b` |
+| A3 (QA2-06) | Staking no longer shows the Goal workspace tabs. Goals' "Positions" still lands on Staking's Positions; a Goal's page keeps its tabs | `45e84af` |
+| A4 (QA2-07) | Every standalone tap target on a phone is at least 44 × 44 px, through phone-only CSS (`phone-targets.css`); desktop and tablet are unchanged | `c543009` |
+| A4 (QA2-08) | Wealth with 200 positions profiled against #54; the money formatter now does its locale work once per currency (identical output) | `0e83d56` |
+| A5a | `market-fanout.test.mjs` repeats a cold wave that a slow runner made expire, at most 3 times, without relaxing any assertion (test only) | `33010a5` |
+| A5b [Tier 3] (workflow) | The Chrome-install apt/dpkg lock wait may use what the 12-min step leaves after one full attempt (325–335 s instead of 240 s) | `ecac6c6` |
+| A6 | Help and FRIENDS_GUIDE: "Turn on encrypted sync on your first device before you start using a second one." IOS_STORAGE re-checked: the Home Screen 7-day exemption stays **UNVERIFIED** (sources listed). QA2-05 (the landing FAQ) is left to Session N | `67edab1` |
+| A7 | This entry, the Known CI intermittents table, SKIPPED_TESTS (appended) | this commit |
+
+## [Tier 3] commits and risk
+- **`ecac6c6` (workflow):** a CI shard whose first Chrome install timed out with apt-get still holding the dpkg lock may wait 85–95 s longer before it retries or fails with the same clear error. The step still ends within its 12-min limit. Only that bound changed. In this PR's own CI the longer wait was not enough once (see CI below): the mirror was slower still.
+
+## QA2-08: Wealth with 200 positions (local, #54's method)
+Production builds on this machine, one browser at a time, power-user data (45 habits / 12,915 check-ins, 3 years of Health, 200 positions) restored through Settings, 1440×900, `/api/**` answered by a 503 fixture. "Ready" is navigation start to the first frame with the page's `h1` and its holdings shown and nothing busy; long tasks are those reported while the page loads and settles (1.5 s after ready). 11 interleaved rounds per build (after one warm-up round), medians, interquartile range in brackets:
+
+| Build | Ready | Longest task | All long tasks |
+|---|---|---|---|
+| #54 `fc906e8` | 808 ms (800–883) | 335 ms (323–383) | 1,122 ms (1,031–1,198) |
+| this branch before the fix (`c543009`) | 875 ms (838–920) | 353 ms (338–381) | 1,198 ms (1,150–1,338) |
+| this branch after the fix (`0e83d56`) | 867 ms (846–896) | 381 ms (364–408) | 1,159 ms (1,135–1,346) |
+
+- **Cause found:** style, layout and paint are unchanged since #54 (timeline trace); the extra time is script. A CPU profile of the load puts about 195 ms of self time in `lib/visual-format.ts`: `formatMoney` (Session I, Part 5, after #54) asked Intl for the currency's digits (`resolvedOptions`) and for the sign and symbol layout (`formatToParts`) for every amount.
+- **Fix:** both are cached, per currency and per locale, currency and sign; outputs are identical (new test against a fresh Intl computation in six locales and currencies). Self time in that code during the load: **195 → 101 ms** (CPU profile, 3 runs per build).
+- **End to end:** the before/after differences in ready time and long tasks are within the run-to-run spread (the ranges overlap). The remaining gap to #54 is date formatting (about 42 ms of self time) and rendering the glass progress bars; both are follow-ups. In an earlier 7-round session the branch and #54 were 856 and 850 ms ready, so a share of the gap is noise between sessions too.
+- Drivers are scratch scripts and are not committed, as in the QA sweep.
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs`)
+**Against `57275a6` (main, deploy #23), at `19152a4`, all 154 captures (6 desktop and tablet sizes × Showcase and empty) (local):**
+- **130 are identical.** That includes Today, Goals, a Goal's page, Habits, Health, Wealth, Portfolio and Activity, which A1, A2 and A4 touch.
+- **24 differ: exactly Staking (12) and Help (12)**, the two authorized differences (A3 and A6). No page errors on either side.
+  - **Staking, accessibility tree:** the only change is that the "Goal workspace" navigation and its two links (Goals, Positions) are gone. Each page is 82 px shorter.
+  - **Help, accessibility tree:** the "Once accounts open" paragraph gains the A6 sentence. The feedback link's mail body names the build's commit (`57275a6` → `19152a4`), as on every build.
+    - At 1024×768 and 820×1180 (touch or not), the sentence fits on the paragraph's last line. The page keeps its size, and every pixel that differs by more than 40/255 is on that line (one band of 15 rows).
+    - At the other sizes, the page is 25–26 px taller.
+  - **Pixels:** the script skips pixel comparison when the page size changes, so for those captures I compared rows directly.
+    - Above the change point, nearly every differing pixel differs by 1–4/255. That is the body's background gradient, which is sized to the page's height.
+    - A few small decorative spots differ by at most 34/255.
+    - Below the change point, after the height shift, the flagged areas show the same content in crops: text offset by a sub-pixel, gradient headings, and the fixed sidebar.
+- **A2:** Portfolio, Wealth, Today and a Goal's page are identical in the freeze data. No amount shown there has more digits than its currency, which is the only case that changes; `lib/money-loss.test.ts` covers that case.
+- **A4 (phone targets):** phone-only CSS. No desktop or tablet capture changed.
+
+## Tests (totals per run, never added together)
+- **Unit (local, `pnpm test` at `19152a4`):** **2,185 passed, 4 expected to fail (X1–X4), 22 skipped** (2,211 tests, 157 s). These are the same skips as before (SKIPPED_TESTS.md).
+  - **A first run** had 1 failure, because three production servers were still running on this machine: `scripts/worker-types.test.mjs` took 7.9 s against its 5 s limit.
+  - That file passes alone (2.6 s), in the second run and in CI's web checks. This PR changes no Worker file.
+- **Browser, full suite (local, production build of `19152a4`, 2 workers):** **911 passed, 49 skipped, 4 failed, 0 flaky** (44.0 min).
+  - **The 4 failures:** the two brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) in both projects. This sandbox's Chromium cannot play the film (CLAUDE.md); they pass in CI.
+  - **The 49 skips:** the 47 existing project skips, plus this PR's 2 (`phone-touch-targets.spec.ts` on the desktop project; SKIPPED_TESTS.md, appended).
+  - **New specs:**
+    - `storage-errors-health`: 6 tests;
+    - `staking-tabs`: 3 tests;
+    - `phone-touch-targets`: 2 tests.
+
+    The first two run in both projects. `phone-touch-targets` runs in the mobile project only.
+- **A4 regression before its push (local):** 54 specs that touch the changed pages: 415 passed, 43 skipped, 0 failed.
+- **Changed by this PR, with the reason:**
+  - **`visual-format.test.ts` and `run10-visuals.test.ts` (A2), commit `903e05b`:** owner decision M3 requires it. A negative amount with more digits than its currency now reads one minor unit larger: "-0.004" USD was "$0.00" and is now "-$0.01". "−0" is still never shown.
+  - **`run11-recovery-failures.spec.ts` (A1), commit `19152a4`:** QA2-02 requires it. The spec expected Health's old generic "Could not save this change", which QA2-02 replaces with the coded STORAGE_FULL message. The assertion is now exact. CI on `45e84af` and `c543009` had failed on it.
+- **Scripts:**
+  - `install-chrome.test.mjs`: 12 passed (2 new).
+  - `market-fanout.test.mjs`: passed. A scratch copy also exercised its retry and its "runner too slow" failure.
+
+## CI on this PR
+- **`19152a4`** ([run 37067175807](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067175807)):
+  - **Attempt 1:** one job failed. "web browser suite (shard 3/3)" failed in "Install Chrome for Playwright", before any test ran.
+    - The first attempt timed out, and its apt-get still held the dpkg lock when the new wait reached its full bound (335 s; 337 s were waited). The Ubuntu mirror was delivering Playwright's 21.1 MB of fonts at about 38 KB/s: 19.7 MB after 8.7 min.
+    - This is the listed Chrome-install intermittent. [Standing-down comment](https://github.com/reyals1111-ux/ZIGoals/pull/60#issuecomment-5962147978).
+  - **Attempt 2:** the one re-run of the failed jobs. All green:
+    - web checks;
+    - web integration;
+    - browser shards 15.3, 12.4 and 11.8 min;
+    - contract;
+    - `web`.
+  - **Reproducibility:** green ([run 37067175721](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067175721)).
+- **`45e84af`** ([run 37059221799](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37059221799)) **and `c543009`** ([run 37064115568](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37064115568)): failed in `run11-recovery-failures.spec.ts` (desktop and mobile). It was this PR's failure; see Tests. `19152a4` fixes it.
+- **`7ee88ad`, `0f8fa55`, `903e05b`, `0e83d56`, `ecac6c6` and `67edab1`:** Milestone quality runs cancelled by my own newer pushes, as the workflow's concurrency rule does. Reproducibility was green on each.
+- **This commit:** reported on the PR.
+
+## Known CI intermittents (table below updated)
+- **Chrome-install apt/dpkg lock:** a new row. It is mitigated again by A5b, and it still fails when the mirror is slower than about 40 KB/s (see CI above).
+- **`market-fanout.test.mjs`:** a new row, fixed by A5a (test only).
+
+## Owner decisions
+- **Applied:**
+  - **M3:** losses round away from zero (A2).
+  - **M4:** the sidebar words are kept as they are; nothing was changed.
+  - **Lane update:** QA2-05 is left to Session N. This PR touches none of N's files.
+  - **SKIPPED_TESTS:** one section appended; nothing was restructured.
+- **Needed:**
+  1. **QA2-08, keep or revert `0e83d56`.** **Owner, 2026-10-03: keep.**
+     - The formatter's own CPU time on Wealth's load halves (195 → 101 ms), and every output is identical.
+     - Page-level ready time and long tasks moved within the run-to-run spread, so the gain is not measurable end to end.
+     - Session K's Part 5 was reverted for a similar reason. I kept this one because the profile shows the saving directly.
+     - It is a self-contained commit, so a revert is clean.
+  2. **Chrome install, the mirror dependency.** Install fewer fonts, or cache the packages (a workflow change), or keep re-running when it happens. **Owner, 2026-10-03: caching stays a later follow-up.**
+  3. **iPhone:** a device test of the Home Screen 7-day exemption (UNVERIFIED).
+
+## Decisions made without the owner, and deviations
+- **A1:** two small helpers in `lib/storage-error-copy.ts`, with tests: `updateRefusalMessage` and `deviceSettingFailureMessage`.
+  - The reminder surfaces use the transactional wording, without "move this module", because that advice does not apply to them.
+- **A4:**
+  - The phone targets live in one new stylesheet, `components/phone/phone-targets.css`, imported by `phone-chrome.tsx`. The plan had expected edits to the existing phone stylesheets.
+  - The audit applies WCAG 2.5.8's exception for links inside sentences.
+- **QA2-08:** the cause was the money formatter, not the GlassBar observers the plan suspected. So `use-entrance.ts` is unchanged, and the fix is in `lib/visual-format.ts`.
+- **A6:** the friends-guide line adds why it matters: the second device then starts from the synced records.
+
+## Follow-ups (not done here)
+- **QA2-08, the rest:**
+  - date formatting in `written()` (about 42 ms of self time on Wealth's load) could reuse its results;
+  - the holdings list could render its glass bars lazily.
+
+  Neither was clear and safe enough for this PR.
+- **QA2-05** (the landing FAQ line): Session N rebuilds the landing.
+- **Chrome install:** a mirror slower than about 40 KB/s still fails the 12-min step (see CI above). Shortening the font list Playwright installs, or caching the packages, would remove the dependency on the mirror. Both need an owner decision on workflow scope.
+- **iPhone:** the Home Screen 7-day exemption stays UNVERIFIED until a device test or a reachable webkit.org.
+
+## How the owner can review
+- **Screenshots:** the folder `pr-a/` on the branch `review/session-m-screenshots` (never merged), linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/60#issuecomment-5962836000).
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`.
+  2. Run `git checkout polish/session-m-2026-10-02`.
+  3. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  4. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  5. Open http://127.0.0.1:3101/app, then Settings → Load Showcase Demo.
+- **What to look at:**
+  1. **Staking:** no "Goals · Positions" tabs under the title.
+  2. **Portfolio:** Ethereum's loss.
+  3. **At phone width** (browser dev tools, 390 px): the Goals tabs and the Activity event titles are easier to tap.
+  4. **Help, "Where your data lives":** the new sentence.
+
+# Alpha deploy — 2026-10-02 evening, `57275a6` live
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session M cloud session on 2026-10-02. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in the Session M brief, 2026-10-02.
+
+- **Run:** Manual Alpha deployment #23, [run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899), 2026-10-02 18:35–18:42 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after #59. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `02a62cef-e67f-48db-afcd-dfb8c784b031`. The last observed live version is the same. (CI log)
+- **Rollback:** `8848babc-8168-4c07-a5e4-0712cc6d4a54`, the version deploy #22 published, so the chain holds. (CI log)
+- **CI on `57275a6`:** Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)): success on attempt 2. (Actions API)
+  - Attempt 1 failed in one job, "web browser suite (shard 3/3)": `[mobile] tests/run9-2-product.spec.ts:10` timed out at 120 s in `locator.click`, after Playwright logged "performing click action" on the Activity "Wealth" filter. That is the known "Browser click hang" (Known CI intermittents table). Every other job passed. (CI log)
+  - Attempt 2 re-ran the failed jobs, and they passed. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37048456899-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result. No manual check is reported with this record. (Owner, 2026-10-02)
+- **Activation (owner-reported, 2026-10-02):** Stage 6 (public-data policy) is complete. The Stage 7 preflight (`node scripts/run11/stage7-preflight.mjs`) reports READY at `57275a6`. Stages 7 and 8 themselves remain the owner's ([ACTIVATION.md](run11/ACTIVATION.md)). (Owner)
+
+**Merged since the last record** (git, first-parent history of `main`): [#59](https://github.com/reyals1111-ux/ZIGoals/pull/59) (`57275a6`), Session L, friends-Alpha readiness. It includes:
+- the Stage 8 coverage map and rehearsal tests;
+- the encrypted-sync offer;
+- Help at `/app/help`;
+- the install guide and "Keep my data on this device";
+- the installable app manifest;
+- the iPhone storage research;
+- the friends and privacy drafts.
+
+See the Session L entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs; then main #58 merged in and the owner's follow-ups (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
 
 **Evidence labels**
@@ -2211,6 +2574,8 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 11.5–16.9 min measured on main and #58 |
+| Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) is an owner decision |
+| `market-fanout.test.mjs` "synthetic concurrent cold, warm and restarted callers share one physical batch…": a degraded cold wave | CI: once in web checks on #59 (`5b2480d`), passed on its re-run | web checks (unit) | **Fixed in Session M** (`33010a5`, test only): a cold wave whose measured publication time passed the followers' 1,000 ms lifetime is repeated in a fresh runtime, at most 3 attempts; if all are that slow the test fails with "runner too slow". No assertion was relaxed |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
@@ -2342,7 +2707,14 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 afternoon for the [Alpha deploy #22](#alpha-deploy--2026-10-02-afternoon-f3220e1-live) above (recorded by Session L).
+Updated 2026-10-02 evening for the [Alpha deploy #23](#alpha-deploy--2026-10-02-evening-57275a6-live) above (recorded by Session M).
+- Deployed source `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59). Verified: Actions API.
+- CI: Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)) on `57275a6`: success (attempt 2; attempt 1 hit the known browser click hang in one test). Verified: Actions API, CI log.
+- Deployment: Manual Alpha deployment #23 ([run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899)), exact source `57275a6`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `02a62cef-e67f-48db-afcd-dfb8c784b031`; rollback `8848babc-8168-4c07-a5e4-0712cc6d4a54` (the run #22 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+- Activation: Stage 6 complete, and the Stage 7 preflight READY at `57275a6`. Owner-reported, 2026-10-02.
+
+Previous release identity (PR #58, 2026-10-02 afternoon, recorded by Session L):
 - Deployed source `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58). Verified: Actions API.
 - CI: Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)) on `f3220e1`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #22 ([run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305)), exact source `f3220e1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
@@ -2450,7 +2822,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 | 1 | OPEN | |
 | 2 | PARTLY | `CLAUDE.md` done |
 | 3 | PARTLY | Run11 final evidence (`414aa52b56bf2de049561dbbd248584d1c29c91b`, docs only) is backed up on branch `backup/run11-final-evidence` and not yet merged |
-| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)) |
+| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 6 is complete and the Stage 7 preflight is READY at `57275a6` (owner-reported, 2026-10-02) |
 | 5 | OPEN | |
 | 6 | OPEN | |
 | 7 | PARTLY | Real-iPhone check remains |

@@ -39,6 +39,18 @@ export function activateAccount(id:string):void{
  window.sessionStorage.setItem(ACCOUNT_SELECTOR,raw);
  sessions.set(window,{raw,scope:id.toLowerCase(),locked:true,generation:(prior?.generation??0)+1});announce();lockOtherTabs();
 }
+/**
+ * A locked tab takes the server-verified account without locking other tabs (remember this device, ADR-008). Other tabs
+ * already use this account, or are locked: a sign-in as another account locks them, and the server fences any stale
+ * request. A tab that has an account open never changes it here.
+ */
+export function adoptAccount(id:string):void{
+ if(!uuid.test(id))throw Error('Invalid verified account identity.');
+ const current=session(),scope=id.toLowerCase();if(current.scope===scope)return;
+ if(!current.locked)throw Error('Lock this tab before selecting another account.');
+ const raw=JSON.stringify({version:1,accountId:scope});window.sessionStorage.setItem(ACCOUNT_SELECTOR,raw);
+ sessions.set(window,{raw,scope,locked:true,generation:current.generation+1});announce();
+}
 export function lockAccount(reason?:AccountLockReason):void{const current=session();current.locked=true;current.generation++;announce(reason?{reason,account:current.scope,generation:current.generation}:undefined);}
 /** Call only after server identity matches selection and the account vault key is unlocked. */
 export function unlockAccount():void{const current=session();if(!current.scope)throw Error('Select a verified account before unlocking.');current.locked=false;current.generation++;announce();}
