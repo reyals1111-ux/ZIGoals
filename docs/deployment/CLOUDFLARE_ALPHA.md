@@ -12,11 +12,12 @@ Use Node **24.19.0**, pnpm **11.19.0** and the frozen workspace lock. The adapte
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm check:deploy-configs
 pnpm --filter @zigoals/web build:alpha
+pnpm --filter @zigoals/web check:alpha-artifact
 WRANGLER_SEND_METRICS=false pnpm --filter @zigoals/web check:alpha
 pnpm --filter @zigoals/web preview:alpha
 ```
 
-`build:alpha` forces `PUBLIC_ALPHA_UNDEPLOYED` and records full source commit, package version and dirty status in `apps/web/.open-next/alpha-build.json`. Rebuild from the clean reviewed commit before publication; never publish a dirty build or use `--skipNextBuild`. The dry run does not upload. Preview binds loopback 8788 and uses actual workerd. No R2, database, Images, application analytics or paid resource provisioning is configured. ASSETS and a self-reference to `zigoals-alpha` are the only bindings. Config validation rejects target/path/route drift; it does not inspect private account configuration.
+`build:alpha` forces `PUBLIC_ALPHA_UNDEPLOYED` and records full source commit, package version and dirty status in `apps/web/.open-next/alpha-build.json`. Rebuild from the clean reviewed commit before publication; never publish a dirty build or use `--skipNextBuild`. The build is hermetic: it refuses to run while any `.env*` file other than `.env.example` is in `apps/web` or the repository root, and it fails (deleting its output) when the artifact holds compiled configuration, an env file copy or a secret marker; `check:alpha-artifact` repeats that check, and with `--values-from <private env file>` also names any of that file's values found in the artifact (Session R1). The dry run does not upload. Preview binds loopback 8788 and uses actual workerd. No R2, database, Images, application analytics or paid resource provisioning is configured. ASSETS and a self-reference to `zigoals-alpha` are the only bindings. Config validation rejects target/path/route drift; it does not inspect private account configuration.
 
 ## Security and reload behavior
 

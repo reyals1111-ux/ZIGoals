@@ -8,6 +8,13 @@ it('public insights reject private fields, oversized lists and query URLs before
  for(const body of [{requests:[request],quantity:'private'},{requests:[{...request,notes:'private'}]},{requests:[{...request,marketRef:{...request.marketRef,wallet:'private'}}]},{requests:Array(501).fill(request)}])expect((await POST(new Request('https://local/api/market-insights',{headers:{"Content-Type":"application/json"},method:'POST',body:JSON.stringify(body)}))).status).toBe(400);
  expect((await POST(new Request('https://local/api/market-insights?url=https://evil',{headers:{"Content-Type":"application/json"},method:'POST',body:JSON.stringify({requests:[request]})}))).status).toBe(400);expect(fetcher).not.toHaveBeenCalled();
 });
+it('one request names at most 64 pairs (Session R1, Q-WRK-01): 65 distinct pairs are a 400 before any market work',async()=>{
+ vi.stubEnv('COINGECKO_DEMO_API_KEY','fixture-key');const fetcher=vi.fn(async()=>Response.json([]));vi.stubGlobal('fetch',fetcher);const {POST}=await import('../app/api/market-insights/route');
+ const pairs=(n:number)=>Array.from({length:n},(_,i)=>({...request,marketRef:{...request.marketRef,id:`asset-${i}`}}));
+ const send=(n:number)=>POST(new Request('https://local/api/market-insights',{headers:{"Content-Type":"application/json"},method:'POST',body:JSON.stringify({requests:pairs(n)})}));
+ expect((await send(65)).status).toBe(400);expect(fetcher).not.toHaveBeenCalled();
+ expect((await send(64)).status).not.toBe(400);expect(fetcher).toHaveBeenCalled();
+});
 it('missing key returns a truthful per-identity unavailable result with no anonymous upstream calls',async()=>{
  vi.stubEnv('COINGECKO_DEMO_API_KEY','');const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const {POST}=await import('../app/api/market-insights/route');const result=await POST(new Request('https://local/api/market-insights',{headers:{"Content-Type":"application/json"},method:'POST',body:JSON.stringify({requests:[request]})}));expect(result.status).toBe(503);const body=await result.json();expect(body.results['coingecko:coin:bitcoin:USD']).toMatchObject({insight:null,stale:true,error:expect.stringMatching(/unavailable/)});expect(fetcher).not.toHaveBeenCalled();
 });

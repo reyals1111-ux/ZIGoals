@@ -6,6 +6,8 @@ export const INSIGHTS_FRESH_MS=15*60*1000;
 export const LOGO_FRESH_MS=24*60*60*1000;
 export const MAX_SPARKLINE_PRICES=200;
 export const INSIGHTS_UNAVAILABLE='Market insights are unavailable. Last verified evidence is retained.';
+/** The most pairs one insights request may name (Session R1, Q-WRK-01): the route refuses more with a 400. */
+export const MAX_INSIGHT_PAIRS=64;
 /** Only public CoinGecko raster assets, no arbitrary redirects/hosts, userinfo, ports or query parameters. */
 export function validatedLogoUrl(raw:unknown):string|null{
  if(typeof raw!=='string'||raw.length>1024||!/^https:\/\/(?:coin-images|assets)\.coingecko\.com\/coins\/images\/[0-9]+\/(?:thumb|small|large)\/[A-Za-z0-9_.()-]+\.(?:png|jpg|jpeg|webp|gif)(?:\?[0-9]{1,20})?$/.test(raw))return null;

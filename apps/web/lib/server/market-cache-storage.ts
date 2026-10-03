@@ -9,9 +9,12 @@ export async function loadCacheValue(storage:AtomicMarketStorage,value:unknown):
  if(new TextEncoder().encode(text).length!==value.bytes)throw Error('Incomplete retained evidence.');return JSON.parse(text);
 }
 export async function removeCacheValue(storage:AtomicMarketStorage,value:unknown){if(pointer(value))for(let i=0;i<value.marketChunks;i++)await storage.delete(value.prefix+i);}
-export async function storeCacheValue(storage:AtomicMarketStorage,key:string,generation:number,value:unknown):Promise<CachePointer>{
+/** Values up to 16k UTF-16 code units stay inline in their work row (one row instead of two); larger ones are chunked. */
+export const INLINE_CACHE_VALUE=16000;
+export async function storeCacheValue(storage:AtomicMarketStorage,key:string,generation:number,value:unknown):Promise<CachePointer|unknown>{
  const text=JSON.stringify(value),bytes=new TextEncoder().encode(text).length;
  if(bytes>16*1024*1024)throw Error('Public evidence capacity.');
+ if(text.length<=INLINE_CACHE_VALUE)return value;
  // At most 24k UTF-16 code units (<96 KiB UTF-8) per SQLite-backed storage value.
  const prefix=`cache:${key}:${generation}:`,marketChunks=Math.ceil(text.length/24000);
  for(let i=0;i<marketChunks;i++)await storage.put(prefix+i,text.slice(i*24000,(i+1)*24000));return {prefix,marketChunks,bytes};
@@ -25,4 +28,16 @@ export async function evictMarketWork(storage:AtomicMarketStorage,index:string[]
  while((bytes+bytesNeeded>maxBytes||!keys.includes(except)&&keys.length>=maxWorks)&&candidates.length){const oldest=candidates.shift()!;if(oldest.state?.evidence){bytes-=cacheValueBytes(oldest.state.evidence.value);await removeCacheValue(storage,oldest.state.evidence.value);}await storage.delete(`work:${oldest.key}`);await storage.delete(`owner:${oldest.key}`);keys=keys.filter(key=>key!==oldest.key);}
  if(keys.length!==index.length)await storage.put('work-index',keys);
  return {ok:bytes+bytesNeeded<=maxBytes&&(keys.includes(except)||keys.length<maxWorks),index:keys};
+}
+/** One pass for many new keys: evicts least recently written, unleased works until `fresh` new keys fit. Returns how
+ * many of them fit, so a batch never loads every work row once per key. */
+export async function evictMarketWorks(storage:AtomicMarketStorage,index:string[],now:number,fresh:string[],maxWorks:number){
+ const known=new Set(index),wanted=fresh.filter(key=>!known.has(key));if(index.length+wanted.length<=maxWorks)return {fit:fresh.length,index};
+ const rows=await Promise.all(index.map(async key=>({key,state:await storage.get<WorkState<unknown>>(`work:${key}`)})));
+ const candidates=rows.filter(r=>!fresh.includes(r.key)&&(!r.state?.lease||now>=Math.min(r.state.lease.deadline,r.state.lease.expiresAt))).sort((a,b)=>(a.state?.lastTime??0)-(b.state?.lastTime??0));
+ let keys=[...index];
+ while(keys.length+wanted.length>maxWorks&&candidates.length){const oldest=candidates.shift()!;if(oldest.state?.evidence)await removeCacheValue(storage,oldest.state.evidence.value);await storage.delete(`work:${oldest.key}`);await storage.delete(`owner:${oldest.key}`);keys=keys.filter(key=>key!==oldest.key);}
+ const room=Math.max(0,maxWorks-keys.length);
+ if(keys.length!==index.length)await storage.put('work-index',keys);
+ return {fit:fresh.filter(key=>known.has(key)).length+Math.min(room,wanted.length),index:keys};
 }

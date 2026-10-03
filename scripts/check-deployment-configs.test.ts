@@ -46,6 +46,29 @@ test("swapped Worker names cannot cross the apex and Alpha targets", () => {
   ]);
 });
 
+test("the repository apex config keeps workers.dev and Preview URLs off", () => {
+  const { landing } = pair();
+
+  expect([landing.workers_dev, landing.preview_urls]).toEqual([false, false]);
+});
+
+test.each([
+  ["workers_dev", undefined],
+  ["workers_dev", true],
+  ["workers_dev", "false"],
+  ["preview_urls", undefined],
+  ["preview_urls", true],
+  ["preview_urls", "false"],
+] as const)("the apex refuses %s set to %s: only false is accepted", (field, value) => {
+  const configs = pair();
+  if (value === undefined) delete configs.landing[field];
+  else configs.landing[field] = value;
+
+  expect(validateDeploymentConfigs({ ...configs, root: repositoryRoot })).toContain(
+    `landing ${field} must be false`,
+  );
+});
+
 test("the obsolete config-relative landing asset path is rejected", () => {
   const configs = pair();
   configs.landing.assets.directory = "./landing";

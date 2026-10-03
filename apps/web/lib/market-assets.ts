@@ -8,6 +8,9 @@ export type MarketAssetRef=z.infer<typeof marketAssetRefSchema>;
 export const marketRequestSchema=z.object({marketRef:marketAssetRefSchema,currency:z.enum(['USD','EUR'])}).strict();
 export type MarketQuoteRequest=z.infer<typeof marketRequestSchema>;
 export const marketRequestsSchema=z.array(marketRequestSchema).max(500);
+/** Pairs per browser market request (Session R1). One client may hold half of the coordinator's 64 works at a
+ * time, so a larger portfolio is a few sequential requests rather than one refused request. */
+export const MARKET_REQUEST_CHUNK=32;
 export const nativeZigMarketRef:MarketAssetRef={provider:'coingecko',kind:'coin',id:'zignaly'};
 export const nativeZigRequest:MarketQuoteRequest={marketRef:nativeZigMarketRef,currency:'USD'};
 export type MarketCatalogAsset={ref:MarketAssetRef;name:string;symbol:string;platforms?:Record<string,string>};

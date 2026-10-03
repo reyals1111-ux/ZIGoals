@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {"lib": ["ES2022"], "types": [], "allowJs": true, "checkJs": true},
-  "include": ["workers/worker-runtime.d.ts", "workers/runtime-overrides.d.ts", "workers/checkjs.d.ts", "workers/market-coordinator/**/*.ts", "workers/*/*.mjs", "scripts/run11/market-fault-fixture.ts"],
-  "//": "Only node_modules: the root config's exclude would drop scripts/run11/market-fault-fixture.ts.",
+  "include": ["workers/worker-runtime.d.ts", "workers/runtime-overrides.d.ts", "workers/checkjs.d.ts", "workers/market-coordinator/**/*.ts", "workers/*/*.mjs", "scripts/run11/market-fault-fixture.ts", "scripts/run11/market-count-fixture.ts"],
+  "//": "Only node_modules: the root config's exclude would drop the scripts/run11 market fixtures.",
   "exclude": ["node_modules"]
 }

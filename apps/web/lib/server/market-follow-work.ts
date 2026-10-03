@@ -1,18 +1,33 @@
 import type {PublicMarketWork} from './market-coordinator';
 import type {MarketCommand} from './market-charged-read';
-/** The follower owns only its registration. Its deadline/cancellation cannot cancel
- * a shared provider attempt or extend the owner's publication lease. */
-export async function followMarketWork(work:PublicMarketWork,initial:Record<string,unknown>,{command,signal,cancelToken,waitMs=1000}:{command:MarketCommand;signal?:AbortSignal;cancelToken?:string;waitMs?:number}){
- if(initial.status!=='WAITING'||signal?.aborted)return initial;
- let id:string|undefined,last=initial;const deadline=Date.now()+Math.min(1000,Math.max(0,waitMs));
+import {MARKET_POLL_MS,marketPause} from './market-dispatch-wait';
+/** A request's followers, polled together with one `poll-many` at most every 250 ms until each is answered or
+ * `waitMs` (at most 1 s from `start`) has passed. The last poll lands at the deadline, so a publication made just
+ * before it is not reported as a timeout. Abort forgets the registrations still open. A follower owns only its
+ * registration: it never cancels a shared provider attempt or extends the owner's publication lease. */
+export async function followMarketWorks(items:{id:string;work:PublicMarketWork}[],{command,signal,cancelToken,waitMs=1000,start=Date.now()}:{command:MarketCommand;signal?:AbortSignal;cancelToken?:string;waitMs?:number;start?:number}){
+ const results:(Record<string,unknown>|undefined)[]=items.map(()=>undefined),deadline=start+Math.min(1000,Math.max(0,waitMs));
+ const open=()=>items.flatMap((item,index)=>results[index]?[]:[{...item,index}]);
+ // Bounded by count as well as by time (at most 4 polls), so a stopped clock cannot make it poll forever.
+ const polls=Math.max(1,Math.ceil((deadline-Date.now())/MARKET_POLL_MS));
  try{
-  if(Date.now()>=deadline)return initial;
-  const registered=await command({action:'follow',work,...(cancelToken?{cancelToken}:{}),waitMs:Math.max(1,Math.floor(deadline-Date.now()))});last={...last,...registered};if(registered.status!=='WAITING'||typeof registered.id!=='string')return last;id=registered.id;
-  while(!signal?.aborted&&Date.now()<deadline){
-   await new Promise<void>(resolve=>{const done=()=>{clearTimeout(timer);signal?.removeEventListener('abort',done);resolve();};const timer=setTimeout(done,Math.min(50,Math.max(0,deadline-Date.now())));signal?.addEventListener('abort',done,{once:true});if(signal?.aborted)done();});
-   if(signal?.aborted||Date.now()>=deadline)break;
-   const current=await command({action:'poll',id});last={...last,...current};if(current.ok!==true||current.status!=='WAITING')return last;
+  for(let poll=1;poll<=polls&&open().length&&!signal?.aborted;poll++){
+   await marketPause(Math.min(MARKET_POLL_MS,deadline-Date.now()),signal);if(signal?.aborted)break;
+   const pending=open(),last=poll===polls||Date.now()>=deadline;
+   const polled=await command({action:'poll-many',followers:pending.map(({id,work})=>({id,work})),...(cancelToken?{cancelToken}:{})});
+   const rows=Array.isArray(polled.followers)?polled.followers as Record<string,unknown>[]:[];
+   for(const [n,{index}] of pending.entries()){
+    const row=rows[n];
+    if(polled.ok!==true||!row)results[index]={ok:false,reason:typeof polled.reason==='string'?polled.reason:'UNKNOWN'};
+    else if(row.ok!==true||row.status!=='WAITING')results[index]=row;
+    // The account may not have reached the registration's deadline yet; the registration lapses there by itself.
+    else if(last)results[index]={...row,ok:false,reason:'FOLLOWER_EXPIRED'};
+   }
+   if(last)break;
   }
-  return {...last,ok:false,reason:signal?.aborted?'WAITER_CANCELLED':'FOLLOWER_EXPIRED',status:'WAITING'};
- }finally{if(id)await command({action:'forget',id}).catch(()=>{});}
+ }finally{
+  const left=open();
+  if(left.length&&signal?.aborted)await command({action:'forget-many',ids:left.map(({id})=>id)}).catch(()=>{});
+ }
+ return items.map((_,index)=>results[index]??{ok:false,reason:signal?.aborted?'WAITER_CANCELLED':'FOLLOWER_EXPIRED',status:'WAITING'});
 }

@@ -82,9 +82,9 @@ The rehearsal checks all of this.
    ```
    Expected: `Exported … Receipts: 0`, because the rehearsal authority is empty. A refusal or a start failure here means the named-entrypoint remote binding did not work. Stop and go to **Fallback**.
 5. **Nothing else can reach it.**
-   - In a second terminal, start the admin Worker by hand without a session token. It then refuses every request itself:
+   - In a second terminal, start the admin Worker by hand without a session token. It then refuses every request itself. The empty, private dev registry keeps it apart from any other local wrangler session (the pinned Wrangler 4.144.0 has no `--disable-dev-registry` flag; updated 2026-10-03, Session R1):
      ```sh
-     pnpm --filter @zigoals/web exec wrangler dev --config "$PWD/workers/recovery-admin/wrangler.acctest.owner.jsonc" --ip 127.0.0.1 --port 8799 --disable-dev-registry
+     WRANGLER_REGISTRY_PATH="$(mktemp -d)" pnpm --filter @zigoals/web exec wrangler dev --config "$PWD/workers/recovery-admin/wrangler.acctest.owner.jsonc" --ip 127.0.0.1 --port 8799
      ```
    - While it runs, use another device on another network (for example a phone on mobile data, not signed in to Cloudflare). Open `https://<admin Worker name>.<workers.dev subdomain>.workers.dev/` and `/admin/export` there.
    - Expected: no JSON from ZIGoals, only a Cloudflare error page or nothing.
@@ -185,5 +185,5 @@ Option B is the alternative: a deployed admin Worker behind Cloudflare Access, w
 ## Why this is safe by default
 - No runtime config can bind the recovery entrypoint. `activation-check` scans every Worker config in the checkout, including your ignored copies.
 - The admin config is refused if it gains a route, `workers_dev`, preview URLs, triggers, vars, an account id or any second binding.
-- The admin Worker listens on 127.0.0.1 only, for one command. The dev registry is off. Each request must carry a random per-run session token, so other local programs and web pages cannot use the port.
+- The admin Worker listens on 127.0.0.1 only, for one command. Its dev registry is a fresh, private folder inside the run's temporary directory (`WRANGLER_REGISTRY_PATH`), deleted afterwards, so no other local wrangler session can see or bind it. Each request must carry a random per-run session token, so other local programs and web pages cannot use the port.
 - Reconcile needs reconcile mode and the Worker's own anchor, and both typed confirmations. It is followed by a re-export check.
