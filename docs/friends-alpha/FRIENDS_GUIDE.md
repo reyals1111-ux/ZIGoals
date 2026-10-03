@@ -29,11 +29,14 @@ Thank you for trying ZIGoals with us! ZIGoals is one calm place for your Goals, 
 
 ## 3. The one thing to keep safe: your recovery secret
 
-When you turn on sync, ZIGoals shows you a long **recovery secret**, once. Save it in a **password manager**. ZIGoals asks for it each time you open your account on a device, and your password manager can fill it in.
+When you turn on sync, ZIGoals shows you a long **recovery secret**, once. Save it in a **password manager**. ZIGoals asks for it when you open your account on a device, and your password manager can fill it in.
+
+**Remember on this device.** On your own phone or computer, tick "Remember on this device" when you unlock: ZIGoals then opens your account there without asking again, even after a restart. It is ticked for you in the app installed on your Home Screen, and unticked in a normal browser tab. Anyone who can use that device can then open your account records too, so don't use it on a shared computer. **Lock account vault** or **Forget this device** in Settings makes it ask again.
 
 - **Signing in is not recovery.** Your email code proves it's you. Only the recovery secret unlocks your data.
 - **Lost a device?** Sign in on another one and unlock it with the secret. Sync brings everything back.
-- **Lost the secret and every device?** Then the data can't be recovered by anyone, including us.
+- **Lost the secret, but a device still opens your account?** On that device, use Rotate vault encryption in Settings to get a new secret, and save it.
+- **Lost the secret and every device that opens your account?** Then the data can't be recovered by anyone, including us.
 - **Never share it.** Keep it out of screenshots, chats and emails. We will never ask for it.
 
 ## 4. Backups are optional

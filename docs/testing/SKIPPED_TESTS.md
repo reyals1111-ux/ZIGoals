@@ -142,3 +142,12 @@ The Stage 8 rehearsals in `scripts/run11/stage8-rehearsal/` drive real Chrome ag
 | MA1–MA2 | `QA2-07: every standalone tap target on the main phone pages is at least 44 × 44 px` (apps/web/tests/phone-touch-targets.spec.ts:40); `QA2-07: the title links reach 44 px without moving anything` (:52) | `viewport.width > 767` (file-level `test.skip`) | Phone-only CSS: on the `desktop` project the layout is the desktop one, which the freeze check covers instead | project-scoped | Playwright `mobile` project (CI browser shards) |
 
 **Playwright:** the `desktop` project skips these 2 tests; the `mobile` project runs them. No Vitest skip was added.
+
+## Session M additions, PR B (2026-10-02, [PR #63](https://github.com/reyals1111-ux/ZIGoals/pull/63))
+
+| # | Test (file:line) | Condition | Reason | Category | Where it runs |
+|---|---|---|---|---|---|
+| MB1 | `a remembered device reopens after a reload, in a new tab and after 15 idle minutes, until Forget or Lock now` (scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs:34) | `RUN10_BROWSER!=='1'` | Needs a running production server, Chrome and the private-sync Worker in Miniflare, like the other rehearsal files | env-gated | CI web integration ("Independent browser account and market integration") |
+| MB2 | `rotation on another device, sign-out and another account invalidate it; old material never opens the newer epoch` (remember-device-browser.test.mjs:69) | `RUN10_BROWSER` | same | env-gated | same step |
+
+**Vitest total in plain `pnpm test` on this branch: 24 skipped**, the 22 listed above plus MB1 and MB2. Measured after merging `main` `4d151c7` (#60): 2,222 passed, 4 expected to fail. No Playwright skip was added: `tests/remember-device.spec.ts` runs on both projects.

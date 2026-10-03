@@ -39,11 +39,11 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
   const attach=pa.getByRole('region',{name:'Copy local records to account',exact:true});
   diag.step('L40 A: review local copy');await attach.getByRole('checkbox',{name:'Habits',exact:true}).check();await attach.getByRole('button',{name:'Review selected local records',exact:true}).click();await attach.getByText(/habits: 1/).waitFor();
   expect(await attach.getByRole('button',{name:'Copy selected records and sync'}).isDisabled()).toBe(true);
-  const copySecret=await attach.getByLabel('Local copy backup secret',{exact:true}).inputValue();expect(copySecret.length).toBeGreaterThan(20);
-  await attach.getByLabel('I saved this local-copy backup secret separately.').check();
-  diag.step('L44 A: download protected local copy');const downloadEvent=pa.waitForEvent('download');await attach.getByRole('button',{name:'Download protected local copy'}).click();const download=await downloadEvent;
-  const reader=await download.createReadStream();let protectedFile='';for await(const chunk of reader)protectedFile+=chunk.toString();expect(protectedFile).not.toContain('Fictional local before sign-in');expect(JSON.parse(protectedFile).format).toBe('zigoals-encrypted-backup');expect((await decryptBackup(protectedFile,copySecret)).habits).toContain('Fictional local before sign-in');
-  diag.step('L46 A: copy local records and sync');await attach.getByLabel('I saved the backup file and want these selected records copied into this account.').check();const fresh2=await arm(pa);await attach.getByRole('button',{name:'Copy selected records and sync'}).click();await synced(pa,fresh2);
+  // Session M (owner decision M2): the copy happens in place, with no file and no backup secret; one explicit approval.
+  expect(await attach.getByLabel('Local copy backup secret',{exact:true}).count()).toBe(0);expect(await attach.getByRole('button',{name:'Download protected local copy'}).count()).toBe(0);
+  const approve=attach.getByLabel('Copy these records into this account. The originals stay on this device.',{exact:true});
+  expect(await approve.isDisabled()).toBe(false);expect(await approve.isChecked()).toBe(false);
+  diag.step('L46 A: copy local records and sync');await approve.check();const fresh2=await arm(pa);await attach.getByRole('button',{name:'Copy selected records and sync'}).click();await synced(pa,fresh2);
   // Originals remain a separate local source; populated account sections refuse a repeated import.
   diag.step('L48 A: repeated import refused');await attach.getByRole('button',{name:'Review selected local records',exact:true}).click();await pa.getByRole('region',{name:'Encrypted account sync',exact:true}).getByRole('alert').filter({hasText:'already contains'}).waitFor();
   diag.step('L49 A: Sync now');const fresh3=await arm(pa);await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa,fresh3);

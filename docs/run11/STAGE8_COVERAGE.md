@@ -3,6 +3,7 @@
 For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the automated tests that prove it locally or in CI, what they cannot prove, and a verdict. The owner's human-only steps are in [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md).
 
 - **Written:** 2026-10-02 (Session L), at source `c189313` (`main`, Alpha deploy #21). **Updated after Session L Part 2** and after the owner follow-up, in which the browser rehearsals joined CI **integ** (`66aea3d`), which added rehearsal tests for every PARTIAL row (`scripts/run11/stage8-rehearsal/`, "L-" IDs below).
+- **Updated by Session M (PR B, 2026-10-02):** row B1 (the copy now happens in place, with no file) and a new section F for remembered devices, the in-place copy and deletion without a download ([ADR-008](../architecture/ADR-008-remember-this-device.md)). Unlocking changed, so the account rows must run on a build that includes PR B.
 - **Checked:** every test below was found by file, line and name in that source.
 - **Not a hosted claim:** nothing here touched a provider, a real inbox, a physical phone or a Cloudflare account.
 
@@ -22,7 +23,7 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 |---|---|
 | **checks** | `pnpm lint && pnpm typecheck && pnpm test && pnpm build`: every ungated Unit and MF file |
 | **shards** | `playwright test --shard=n/3`: every PW spec |
-| **integ** | "Independent browser account and market integration": the 14 listed BR/PKG files, one at a time, with `RUN10_BROWSER=1` (8 before Session L's six rehearsal files were added in `66aea3d`) |
+| **integ** | "Independent browser account and market integration": the 15 listed BR/PKG files, one at a time, with `RUN10_BROWSER=1` (8 before Session L's six rehearsal files were added in `66aea3d`; Session M added `remember-device-browser.test.mjs`) |
 | **pkg** | `RUN11_PACKAGED=1` run of `packaged-runtime.test.mjs` against the generated bundle |
 | **local** | None any more. The Session L browser rehearsals were local-only until `66aea3d` added them to **integ** (owner follow-up, 2026-10-02) |
 
@@ -52,7 +53,7 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 ## B. Private data and sync
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
 |---|---|---|---|---|
-| B1 | Local attachment | AB (lines 35–48: local records stay separate through sign-in; copy only after explicit protected review; a populated section refuses a repeat, BR); HA-38 (BR); LA-11, LA-17, LA-21, LA-26 (unit); CS-37 (unit); EI-16 (MF) | Physical devices | **PROVEN-LOCAL** |
+| B1 | Local attachment | AB (lines 35–48: local records stay separate through sign-in; the copy happens in place after one explicit approval, with no file or secret (Session M); a populated section refuses a repeat, BR); HA-38 (BR); LIP-35, LIP-50 (unit); LA-11, LA-17, LA-21, LA-26 (unit); CS-37 (unit); EI-16 (MF) | Physical devices | **PROVEN-LOCAL** |
 | B2 | Four-domain sync | AB (lines 50–68: Habits, Health, a project Goal and a Today widget between desktop and a mobile context, BR); PKG (funded Goal, cash position, presets) | A real phone, Safari | **PROVEN-LOCAL** |
 | B3 | Explicit Health consent | **L-HEALTH** (a vault without consent: the Worker holds Habits but no Health record; the second device gets the Habit, not Health; after consent on the first device the Worker holds Health; the second device receives it only after its own consent, integ); HV (BR); HA-27 (BR); CL-32, CL-39, CL-54 (PW); CS-40, CS-44 (unit) | Physical devices | **PROVEN-LOCAL** (was PARTIAL) |
 | B4 | Offline edits | AB (lines 75–82: both devices offline; water 250 + 500 = 750 mL; preferences and Habits merge; both reconnect orders, BR); CS-60, CS-67, CS-105 (unit) | Real network loss; the ADR-006 false conflict (X1–X4 below) | **PROVEN-LOCAL** |
@@ -63,6 +64,15 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | B9 | Section deletion | AB (lines 110–114, BR); DD-5 (persists across restart, fences old writes, keeps other domains, MF); DR-9, DR-22, DR-31 (MF) | The browser does not re-check the other sections on the second device | **PROVEN-LOCAL** |
 | B10 | Stale-device denial | AB (lines 115–119, BR); DD-5 (409 `DOMAIN_GENERATION_CHANGED`), DD-31 (MF); IS-17 (MF); SYN (410, MF); SDR (Worker class, unit) | Physical devices | **PROVEN-LOCAL** |
 | B11 | Encrypted backup restoration | PKG (`protectAndRestorePackagedRecords`: a fresh browser context, four domains); ER-11, RF-12 (wrong secret, damaged ciphertext, future schema, PW); BK-10 (unit) | Files on a real phone | **PROVEN-LOCAL** |
+
+## F. Remembered devices and downloads (Session M)
+| Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
+|---|---|---|---|---|
+| F1 | The choice | RD-34, RD-47 (unticked in a tab, ticked by default with `display-mode: standalone`, the warning as its description, PW); VR-65, VR-73, VR-80 (unit) | A real installed app: the tests emulate standalone display mode; the physical iPhone Home Screen app | **PROVEN-LOCAL** |
+| F2 | Opening without the secret | **L-REMEMBER** (reload, a new tab on Today then Settings, 16 idle minutes with the browser clock, BR); RD-59 (reload, new tab, PW); VR-88, VR-100 (unit); CRY-DEV-11 (the remembered root opens the same records, unit) | Safari/WebKit keeping a non-extractable key in IndexedDB; closing and reopening the Home Screen app | **PROVEN-LOCAL** |
+| F3 | Lock now and Forget | **L-REMEMBER** (Forget keeps the tab open and the idle lock applies again; Lock now forgets, and a reload asks, BR); RD-59 (PW); VR-125, VR-131 (unit) | Physical devices | **PROVEN-LOCAL** |
+| F4 | Invalidation | **L-REMEMBER-INVALID** (rotation on the other device: the old record is deleted, the old secret is refused, the new one works once; sign-out; another account's sign-in, BR); VR-137 to VR-174 (a new sign-in, a revoked session, a stale device, a token expiry that keeps it, unit); CRY-DEV-20, CRY-DEV-33 (old material never opens a newer epoch, unit); DU-22 to DU-68 (unit) | Revoking the session from a real second device; WebKit | **PROVEN-LOCAL** |
+| F5 | Deletion without a download | ADO-20, ADO-29, ADO-38 (unit); AB (lines 124–127: the optional copy is prepared, downloaded and decrypted, then deletion, BR) | Files on a real phone | **PROVEN-LOCAL** |
 
 ## C. Device and providers
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
@@ -89,12 +99,14 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | E1 | Account-wide quotas re-checked | None. `market-policy.test.mjs` only validates the figures the owner types in | Provider dashboards | **HUMAN-ONLY** |
 | E2 | Spend controls | None | Provider billing settings | **HUMAN-ONLY** |
 
-## Counts (31 rows)
+## Counts (36 rows)
 | Verdict | At `c189313` (before Part 2) | After Session L Part 2 |
 |---|---|---|
 | PROVEN-LOCAL | 11: A5, A6, B1, B2, B4, B5, B7, B8, B9, B10, B11 | **20**: the 11, plus A1, A2, A3, A4, A7, B3, B6, C1, C2 |
 | PARTIAL | 9: A1, A2, A3, A4, A7, B3, B6, C1, C2 | **0** |
 | HUMAN-ONLY | 11: C3, C4, D0, D1, D2, D3, D4, D5, D6, E1, E2 | **11** (unchanged; D3's logic is now fully covered) |
+
+**Session M (PR B)** adds section F: 5 rows, all **PROVEN-LOCAL** (25 of 36 in all). Each still needs its check on the physical iPhone (STAGE8_OWNER_RUNSHEET.md, steps 12–13b).
 
 A3 was counted PARTIAL, not HUMAN-ONLY: reuse is the provider's rule, but how the app handles that refusal can be rehearsed with a stricter fixture, exactly like A1.
 
@@ -119,6 +131,18 @@ These four `test.fails` tests document a known sync bug: the cloud applies the f
 | L-CAM-C2 | `camera-browser.test.mjs:47` "C2: cancelling a scan stops the camera and leaves the saved Health log unchanged" | Chrome against the app / integ |
 | L-RECONCILE | `reconcile-mode.test.mjs:14` "reconcile mode refuses reads, writes, registration, section deletion, rotation and account deletion, then serving resumes unchanged" | MF / checks |
 
+**Session M** (remembered devices, [ADR-008](../architecture/ADR-008-remember-this-device.md); the copy in place; deletion without a download)
+| ID | Test | Kind / CI |
+|---|---|---|
+| L-REMEMBER | `stage8-rehearsal/remember-device-browser.test.mjs:34` "a remembered device reopens after a reload, in a new tab and after 15 idle minutes, until Forget or Lock now" | BR / integ |
+| L-REMEMBER-INVALID | `stage8-rehearsal/remember-device-browser.test.mjs:66` "rotation on another device, sign-out and another account invalidate it; old material never opens the newer epoch" | BR (two contexts) / integ |
+| RD-34, RD-47, RD-59 | `apps/web/tests/remember-device.spec.ts:34`, `:47`, `:59` (the choice in a tab and in the installed app; reload, new tab, Forget, Lock now) | PW / shards |
+| VR-65 … VR-184 | `apps/web/lib/vault-remember.test.ts:65` to `:184` (the provider: choice, reopen, idle, Health, Lock now, Forget, sign-out, rotation, new sign-in, another account, token expiry, revoked session, stale device, sign-out during unlock, Showcase) | Unit (jsdom, fake-indexeddb, real WebCrypto) / checks |
+| CRY-DEV-11 … CRY-DEV-66 | `apps/web/lib/vault/crypto-device.test.ts:11`, `:20`, `:33`, `:43`, `:52`, `:62`, `:66` (seal and open, bindings, epochs, non-extractable keys, lengths) | Unit / checks |
+| DU-22 … DU-68 | `apps/web/lib/vault/device-unlock.test.ts:22`, `:27`, `:33`, `:41`, `:49`, `:56`, `:68` (no database created on read, one record, forget wins, exact deletes, invalid records deleted) | Unit (fake-indexeddb) / checks |
+| LIP-35, LIP-50 | `apps/web/lib/local-attach-in-place.test.ts:35` "reviews what will be copied, asks for one explicit approval, and offers no file or secret"; `:50` "preparing the copy builds no encrypted backup file" | Unit (jsdom) / checks |
+| ADO-20, ADO-29, ADO-38 | `apps/web/lib/account-deletion-optional-copy.test.ts:20`, `:29`, `:38` (the typed confirmation alone deletes; the identity phrase; the optional copy and its wording) | Unit (jsdom) / checks |
+
 **BR and PKG** (CI: integ, unless noted)
 | ID | Test |
 |---|---|
@@ -129,7 +153,7 @@ These four `test.fails` tests document a known sync bug: the cloud applies the f
 | SC | `scripts/run11/sync-self-conflict-browser.test.mjs:14` "own held upload plus a concurrent local finance write syncs normally on Sync now" |
 | HV | `scripts/run11/health-consent-verification-browser.test.mjs:13` "Health consent ticked during email verification is kept or not yet offered" |
 | HA-27 | `scripts/run11/health-consent-a11y-browser.test.mjs:27` "a refused Health consent is described by its refusal message" |
-| HA-38 | `scripts/run11/health-consent-a11y-browser.test.mjs:38` "local-copy choices are labelled and say why they are unavailable" |
+| HA-38 | `scripts/run11/health-consent-a11y-browser.test.mjs:38` "local-copy choices are labelled and say why they are unavailable" (since Session M the copy approval has nothing to wait for: no file) |
 | MB | `scripts/run11/market-browser.test.mjs:14` "wealth browser consumes actual mixed-pair route evidence and retains Bitcoin through failed ZIG refresh" (`RUN11_MARKET_BROWSER=1`) |
 | PKG | `scripts/run11/packaged-runtime.test.mjs:22` "full generated OpenNext artifact uses local named account, market and food services across restart" (CI: pkg), driving `packaged-consumer-journey.mjs` and `packaged-goal-journey.mjs` |
 
