@@ -1,3 +1,363 @@
+# Session R1 — market abuse fix (Q-WRK-01/02), hermetic owner builds, landing workers.dev off, recovery-admin launch, camera finding (2026-10-03, [PR #69](https://github.com/reyals1111-ux/ZIGoals/pull/69), not merged or deployed)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`, wrangler 4.144.0, Playwright's Chromium 141 standing in for Chrome (CLAUDE.md). Nothing was deployed, logged into or sent to Cloudflare, CoinGecko or any provider; every provider in a test is a local fake.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** Cloudflare's Durable Objects and Workers pricing pages (read at planning, 2026-10-03); MDN's `Permissions-Policy` page and browser-compat-data, and the W3C Permissions Policy draft (read 2026-10-03).
+
+**Base:** main `760a751` (#67). Main did not move during the session, so no merge was needed.
+
+**Session P's lane:** its branches were read only: `fix/session-p-2026-10-03` at `c47b688`, `sync/session-p-2026-10-03` at `5b91f72`, `review/session-p-screenshots` at `a91a4d2`. No middleware, security header, CSP, chain config, brand asset, CI workflow or CI script changed. Shared files: `docs/STATUS.md` (both prepend; keep every entry) and `apps/web/lib/market-multi.test.ts` (P edits the uzig/azig case; this PR changes only the quotes chunk test).
+
+## Parts
+| Part | What | Tier | Commits |
+|---|---|---|---|
+| 0 | Records: Landing V5 apex deploy, Stage 7 progress, owner hardening (group A), Stage 7 recovery rehearsal | — | `dff0e76` |
+| 1a | Failing-first counting tests (`test.fails`) | — | `70d38d8` |
+| 1b | Batched account commands, writes only on change, daily row budget, per-client shares, client-data retention | `[TIER 3] (market storage)` | `2ef74d4` |
+| 1c | QuoteService on the batched protocol, 250 ms polls, edge-only client header, 64-pair cap, 32-pair client requests, isolate cache | — | `cc28997`, `c2d747a` |
+| 1d | Coordinator README, ACTIVATION capacity paragraph, privacy sentences | — | `e1eece2` |
+| 2 | Hermetic owner builds, artifact check, private env file outside the checkout | `[TIER 3] (deploy/build tooling)` | `346fb16` |
+| 3 | Apex keeps workers.dev and Preview URLs off | `[TIER 3] (deploy config)` | `3142b68` |
+| 3b | recovery-admin starts `wrangler dev` without the rejected flag | `[TIER 3] (recovery tooling)` | `2a04927` |
+| 4 | Camera policy investigation (finding below; no code change) | — | this entry |
+| 5 | This entry, full gate, PR ready | — | this commit |
+
+## Part 1 — Q-WRK-01/02 (market requests)
+**Measured** (local, in-process authority, `apps/web/lib/server/market-request-cost.test.ts`; base `760a751` in brackets):
+| Request | Account commands | Rows written |
+|---|---|---|
+| 64 insight pairs, cold (two provider reads) | 3 (138) | 146 (753) |
+| the same, cached | 1 (64: one per pair) | 0 (256) |
+| 32 quotes, cold | 2 | 76 |
+| one history range, cold | 2 | 14 |
+| a follower waiting 1 s | 1 + at most 4 polls (34 polls) | 0 while waiting |
+| a read queued behind a busy slot | 1 + at most 8 admits + 1 (44 polls) | 0 while waiting |
+
+In workerd with the real app routes (`scripts/run11/market-request-cost.test.mjs`): a 64-pair route request is two coordinator requests (`acquire-many` ×2, `complete` ×4) and 163 rows (bound 192); cached, at most one read-only command per coordinator request (none when the isolate holds the evidence) and no row; 65 pairs, 400 and no command. A load wave (4 addresses × 2 concurrent requests, then 40 cached) stays within 6 commands per request on average, with no row written by the cached ones. One address's 40 cold pairs are refused (`CLIENT_LIMIT`) with no row and no provider call while another address is served; at the daily row budget every address's cold work is refused with no row while cached prices keep serving.
+
+**What changed:**
+- **One command per phase:** `acquire-many` (hits, leases, followers and the first provider read's admission), then one `complete` per provider read (settle, publish, and admit the next read or the ZIG token fallback). A wait polls `admit` (≤ 8, ≥ 250 ms apart); followers poll `poll-many` (≤ 4, ≥ 250 ms apart, the last at the deadline). Both loops are bounded by count, so a stopped test clock cannot spin them. An unconfirmed `complete` never starts a second attempt for the same leases.
+- **Writes only on change:** commands run in a read-your-writes buffer and commit only a lease, an attempt transition, a publication or a follower registered or retired. Cache hits, waits and refusals write nothing.
+- **64-pair cap:** `/api/market-insights` answers 400 above 64; QuoteService refuses more than 64 without a command; the browser sends 32 pairs per request (one client may hold 32 of the 64 works).
+- **Daily row budget:** rows written per UTC day are counted; new cold work stops with `DAILY_LIMIT` at `MARKET_POLICY.dailyRowBudget` (default 20,000; 1,000–10,000,000).
+- **Per-client shares** (`CLIENT_LIMIT` → `LOCAL_BUDGET`), derived from the policy: ⌊operating.minute/4⌋ attempts per minute, ⌊queueLimit/4⌋ in flight, ⌊maxWorks/2⌋ works held, 32 followers, ⌊operating.monthly/31⌋ credits and ⌊dailyRowBudget/16⌋ new works per UTC day (7, 4, 32, 32, 161 and 1,250 with the proposed profile).
+- **Client identity and retention (owner additions 1–2):** the app sets `x-market-client` only from `cf-connecting-ip` (IPv4, or IPv6 by /48) and never forwards one it received; QuoteService accepts only that format. The account object stores a 12-bit HMAC-SHA256 bucket under a random key replaced every UTC day (stricter than the monthly minimum), never the address or group; day rows older than the previous UTC day are deleted (≤ 4 per committing command, so about 48 h); nothing logs a client value. Tests: a storage scan finds no address or group, old day rows are pruned and the key changes; a caller's `x-market-client` is ignored on all four market routes (mutation-checked).
+- **Isolate cache:** a QuoteService isolate answers a request whose works are all fresh in its memory (≤ 8 MB, the account's freshness rule) with no command, and keeps the last complete catalog text for 24 h; both are off under the fixture clock.
+- **Existing rows:** every v1 row is read in place; no class, binding, migration tag or config file changed. New rows and fields are additive. Rolling the coordinator back to v1 is safe once `dailyRowBudget` is removed from `MARKET_POLICY`.
+
+**Tests added (Part 1):** 9 batched-account, 3 isolate-cache, 1 header-trust, 1 insights-cap, 5 in-process counting (Part 1a, now running as tests), 4 workerd counting (2 from Part 1a, plus the per-address share and the daily budget), 1 generated-artifact case (`RUN11_PACKAGED`, CI).
+
+**Adapted tests, intent kept:**
+- `durable-market-account.test.ts` "shared key capacity and storage failure": a refusal no longer writes, so the failing-storage case now needs a lapsed lease; no ownership on a failed write, rows unchanged.
+- `durable-market-account.test.ts` "cancelling one follower": registers with `acquire-many`, polls with `poll-many`, forgets with `forget-many`; the owner's charge stays.
+- `market-dispatch-wait.test.ts` (2): one `admit` of the original attempt instead of reserve/own/dispatch; deadline and abort still never dispatch.
+- `durable-quote-dispatch.test.ts` "unconfirmed dispatch/settlement": the boundaries are `acquire-many` and `complete`; no send without a confirmed dispatch, no publication without a confirmed settlement.
+- `market-insights-client.test.ts` and `market-multi.test.ts`: chunks of 32 instead of 500.
+- `market-transaction-faults.test.mjs`, the 8 dispatcher cases: re-armed on `acquire-many`, `admit` (a new case with a busy slot) and `complete` (budget and work) × after-write/after-commit; the fault fixture claims a plan only when it hits.
+- The workerd counting tests written in Part 1a: the 64-pair case now expects two coordinator requests; the load wave is sized within the 128-follower cap (the first version needed 144) and given 8 dispatch slots, with rows bounded per request.
+
+**CI fix inside the PR:** on `e1eece2` the web checks failed one new test: the load wave's five reads queued behind two slots and 250 ms polls, and under the full parallel suite the shared reads finished after the followers' 1 s lifetime (10 of 16 answers). Fixed in `c2d747a` (8 slots; earlier provider release in two in-process timing tests); not a known intermittent.
+
+## Part 2 — hermetic owner builds
+- `build:alpha` refuses to start while any `.env*` other than `.env.example` is in `apps/web` or the monorepo root (found as OpenNext finds it); the message names the files, never their contents.
+- After the sanitizer it scans `.open-next`: `next-env.mjs` must hold three empty objects; no env file copies; no `sb_secret_` or `service_role`; no `ZIGOALS_`/`AUTH_`/`SUPABASE_`/`RESEND_`/`COINGECKO_`/`CLOUDFLARE_` name given a value. A failing artifact is deleted.
+- `pnpm --filter @zigoals/web check:alpha-artifact [--values-from <private env file>]` repeats the scan and names any key whose value is inside the artifact; values are never printed.
+- **Evidence (local):** a real `build:alpha` passes (0 findings; the scan takes about 245 ms over the 58 MB artifact), then `check:alpha-artifact`, `check:alpha`, `activation-check --dry-run` and both `RUN11_PACKAGED` cases. A deliberate build with a synthetic `apps/web/.env.local` (refusal bypassed) still carried `ZIGOALS_`/`SUPABASE_` names and values after the old sanitizer; the scan reported them by name only.
+- **Tests:** `scripts/alpha-hermetic.test.mjs` (6).
+- **Changed `.env.local` references (owner addition 3):** `scripts/pre-run11-email.mjs` (usage line); `docs/run11/ACTIVATION.md` (Stage 7 text and command block, now `--env-file="$ZIGOALS_PRIVATE_ENV"`); `docs/run10/PRE_RUN11_PREPARATION.md` and `docs/run10/PRE_RUN11_EMAIL_TEMPLATE.md` (owner commands, dated note); `.env.example`, `docs/RUN_9_MARKET_DATA.md` and `docs/run11/MARKET_KEY_CUSTODY.md` (local development stays valid; move the file out before `build:alpha`); `docs/deployment/CLOUDFLARE_ALPHA.md` and `MANUAL_ALPHA_WORKFLOW.md` (the new check). Left as they are: historical evidence (`docs/verification/*`, `docs/RUN_9_PREP.md`, `docs/run10/MARKET_EVIDENCE.md`, older STATUS entries) and test comments. `CLAUDE.md` and `apps/web/AGENTS.md` do not name the file.
+
+## Part 3 — apex workers.dev and Preview URLs
+`landing/wrangler.jsonc` sets `"workers_dev": false` and `"preview_urls": false`; `check:deploy-configs` refuses any other value (7 new tests). `check:deploy-configs` passes and `check:landing` still reads 274 entries. [LANDING.md](deployment/LANDING.md) says why, and that Wrangler then prints "No targets deployed for zigoals" while the dashboard's custom domain keeps serving.
+
+## Part 3b — recovery-admin launch
+`scripts/run11/recovery-admin.mjs` no longer passes `--disable-dev-registry`, which wrangler 4.144.0 rejects. The child env sets `WRANGLER_REGISTRY_PATH` to a fresh 0700 folder in the per-run temporary directory (the pinned wrangler's `dev` uses that registry unless its internal `disableDevRegistry` is set); `stop()` deletes it. The arguments and env come from exported builders. `scripts/wrangler-cli-surface.test.mjs` checks offline, with `wrangler dev --help`, that every flag the tool passes is listed (mutation-checked). [OWNER_RECOVERY_ADMIN.md](run11/OWNER_RECOVERY_ADMIN.md) step 5 and ADR-007 updated.
+**Evidence (local):** the old flags reproduce "Unknown arguments: disable-dev-registry"; the tool's own `launchWrangler` started `wrangler dev` offline (a trivial local Worker in place of the admin config) on 127.0.0.1 in about 2 s, answered 200 with the run token and 401 without, and `stop()` removed the run directory.
+
+## Part 4 — camera policy (finding; fix proposed for after Session P's PR 4)
+**The scanner is not blocked everywhere, but in Chrome and Edge it is blocked whenever Health is reached from inside the app.**
+- The scanner uses the live camera: `getUserMedia` (`apps/web/components/health/barcode-food-lookup.tsx:24`), then BarcodeDetector or zxing.
+- `apps/web/next.config.ts:51` sends `camera=()` on every path; `:55` sends `camera=(self)` on `/app/health` (local `preview:alpha`: `/app` and `/app/goals` `camera=()`, `/app/health` `camera=(self)`). `apps/web/public/_headers:5` covers static assets only.
+- A document's policy comes from the response that created it and never changes (W3C Permissions Policy §9.6 "Create a Permissions Policy for a navigable from response", §10.1). The navigation uses `next/link` (`apps/web/components/app-nav.tsx:2,17`; also `health/health-today.tsx:26`, `help/help-page.tsx:43`), which keeps the `/app` document.
+- **Measured (local, production build in workerd, Chromium 141, camera allowed with a fake device):** `/app`: `featurePolicy.allowsFeature('camera')` false, `getUserMedia` `NotAllowedError`. After clicking Health (same document): false, `NotAllowedError`. A full load of `/app/health`: true, stream granted.
+- MDN browser-compat-data: the header is supported by Chrome 85+ (camera 88+) and Edge; Firefox and Safari, including iOS, ignore it, so there the scanner works after the system prompt.
+- The code detects the block with Chromium's `document.featurePolicy` (`barcode-food-lookup.tsx:18`) and offers "Reload Health for camera access" (`:42`), a full load, so a Chrome user needs one extra tap.
+- The deploy smoke `scripts/lib/alpha-smoke.mjs:24` also accepts `camera=()` on `/app/health`, so it would not catch Health losing `camera=(self)`.
+
+**Proposed fix, after P PR 4 (it edits headers and middleware):**
+1. Make every entry to Health a full document load (a plain `<a>` for `/app/health` in the navigation, Today and Help links), keeping `camera=()` everywhere else.
+2. Make the smoke require exactly `camera=(self)` on `/app/health`.
+3. Add a Chrome test: from `/app`, open Health and start the camera with no reload link.
+4. Optional: a still-photo fallback (`<input type="file" accept="image/*" capture="environment">`) decoded on the device.
+
+## Decisions (no owner question after approval)
+1. Orchestration stays in QuoteService; a cold request costs one command plus one per provider read, not literally one (the account object would otherwise wait on CoinGecko and be billed for that time).
+2. A measured daily row budget beyond Q's list.
+3. Per-client fairness by keyed-hash buckets, all limits derived from the policy.
+4. Catalog validation, a 404 negative cache and a history pool (rest of FIX_PLAN C2) not done; follow-ups below.
+5. Design adjustments during the work: provider reads run one after another, each with its own `complete` (avoids a self-deadlock at `concurrent: 1` and keeps the ZIG fallback order); the HMAC key rotates daily; the browser sends 32 pairs per request because one client may hold 32 works; `poll-many` still retires answered followers (frees capacity; the fanout test requires it); the plan's "virtual breaker permits" and a negative isolate cache were dropped as unnecessary; Part 2 refuses rather than excludes env files.
+
+## Gate (local, final head)
+- `pnpm lint`, `pnpm typecheck`: clean.
+- `pnpm test` (all files in parallel) on `2a04927`: 262 files passed, 15 skipped; 2,395 tests passed, 21 expected-fail (all from earlier sessions), 25 skipped.
+- `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, `next start`, then Playwright at 2 workers in three sequential shards (one 1,064-test run would outlast this sandbox's job limit): 984 passed, 76 skipped, 4 failed. The 4 are the intro-film tests (`logo-quickadd-goals-header.spec.ts:53` and `:79`, desktop and mobile) that CLAUDE.md lists as failing locally, because this Chromium cannot play the film ("The element has no supported sources"); CI ran them green.
+- No UI changed, so no freeze check was needed.
+
+**CI:** green on `2a04927`, the last code commit: Milestone quality (run 37155757926: web checks, web browser suite 1–3, web integration with the hermetic `build:alpha` and both generated-artifact cases, contract, web) and Canonical reproducibility (run 37155758006: canonical-build-a and -b, compare). The run on this documentation commit is on the PR.
+
+## Owner actions
+1. **Market rollout, in this order:** redeploy market-coordinator from the merged source; rebuild the acceptance app with `build:alpha` (no env file in the checkout) and run `check:alpha-artifact --values-from <private env file>`; redeploy the app; re-attach the route. In the mixed state (old app, new coordinator) every coordinator-side protection holds; per-client limits do not, and the old app's insights requests above 64 pairs come back degraded.
+2. On Workers Paid, optionally raise `MARKET_POLICY.dailyRowBudget`.
+3. Keep the private env file outside the checkout for good (`~/.config/zigoals/<name>.env`, mode 600).
+4. Re-run the Stage 7 recovery rehearsal with the merged tool and record it in STAGE8_ACCEPTANCE.md.
+5. Deploy the apex once with the new config (expect "No targets deployed for zigoals"), then confirm workers.dev stays off.
+6. Apply the camera fix after Session P's PR 4.
+
+## Follow-ups
+- Cold market work only for signed-in sessions (Q-WRK-01's suggestion; Session R2, because it touches auth).
+- FIX_PLAN C2 remainder: validate IDs against the server-held catalog before charging, cache 404s briefly, a separate history pool.
+- A rate limit in front of `/api/market-*` (Workers Rate Limiting or WAF) as a second layer.
+- The camera fix above.
+- `stage7-preflight.mjs` could also report env files in the build's reach.
+- FIX_PLAN C1's acceptance line ("1 DO request") predates decision 1; a review note could align it.
+
+# Stage 7 recovery rehearsal — 2026-10-03 evening (owner)
+
+Recorded by Session R1 at the owner's request: the "Stage 7 rehearsal" of [OWNER_RECOVERY_ADMIN.md](run11/OWNER_RECOVERY_ADMIN.md).
+
+Evidence label: **Owner:** reported by the owner, 2026-10-03. This session ran nothing against Cloudflare. No account names, emails or URLs are recorded.
+
+- **Setup:** a separate rehearsal checkout at `d439dc9`. The recovery-admin launch was patched locally exactly as Session R1 Part 3b specifies:
+  - no `--disable-dev-registry`. The pinned wrangler 4.144.0 rejects it ("Unknown arguments: disable-dev-registry"), so the unpatched tool cannot start `wrangler dev`;
+  - `WRANGLER_REGISTRY_PATH` set to a fresh directory inside the per-run temporary folder. (Owner)
+- **Results, by runbook step** (Owner):
+  - **3, fixture:** `verify` MATCH.
+  - **4, remote binding:** `export` succeeded, Receipts 0.
+  - **5, nothing else can reach it:**
+    - from another network, only Cloudflare error pages;
+    - no new or temporary Worker appeared;
+    - a local request without the session token returned `ADMIN_SESSION_UNCONFIGURED`.
+  - **6, dry run and reconcile:** DRY RUN OK, then RECONCILED (re-export digest matches), then ALREADY RECONCILED. `export` then showed Receipts 1.
+  - **7, wrong anchor:** refused before sending.
+  - **8–9, dashboard comparison and teardown:** the owner is completing them the same evening.
+- **Still to do:**
+  - re-run with the merged tool once Part 3b lands;
+  - record the receipt in [STAGE8_ACCEPTANCE.md](run11/STAGE8_ACCEPTANCE.md), as step 10 asks.
+- **For the review:** step 5 is the owner's evidence on `Q-OPS-05` (whether the temporary remote proxy is reachable).
+
+# Owner hardening (Session Q checklist, group A) — 2026-10-03
+
+Recorded by Session R1 at the owner's request: the group A steps of [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md), with values only where they are not secret.
+
+Evidence label: **Owner:** reported by the owner, 2026-10-03. Nothing here was checked by this session.
+
+| Step | Owner's result |
+|---|---|
+| A1, invite-only at Supabase | "Allow new users to sign up" is off. The test that an uninvited address receives no email runs at Stage 8. |
+| A2, market service | The acceptance route was removed at 18:54 UTC (522). It stays removed until Session R1's market fix is deployed. |
+| A3, Supabase rate limits | Token refreshes 600 per 5 min. Token verifications 150 per 5 min. Sign-ups and sign-ins 150 per 5 min. Emails 30 per hour (unchanged). |
+| A4, codes and changes | Email codes have 8 digits and are valid for 900 s. "Secure email change" is on. "Secure password change" is on. |
+| A5, scoped login | Wrangler was logged out after each step; no token file is left. |
+| A6, private configs | `activation-check --private` and `--admin` PASS. The seven configs are mode 600 and ignored by git. `LifecycleRecoveryAdmin` appears only in the recovery-admin config. |
+| A7, routes and secret names | Each Worker's secret names are as designed. workers.dev and Preview URLs are off on all six Workers. |
+| A8, Workers plan | Workers Paid, with a $10 Cloudflare budget alert. |
+
+On Workers Paid, the market abuse in `Q-WRK-01` turns into cost rather than stopping sync and sign-in. Session R1's daily write budget bounds it on either plan.
+
+# Activation Stage 7 progress — 2026-10-03 evening (owner)
+
+Recorded by Session R1 at the owner's request.
+
+Evidence label: **Owner:** reported by the owner in the Session R1 brief, 2026-10-03. This session contacted no provider and no Cloudflare account. Account emails, the workers.dev subdomain and the acceptance hostname are deliberately left out.
+
+- **Where:** the ops checkout at `d439dc9`, wrangler 4.144.0. (Owner)
+- **Deployed:** the six isolated acceptance Workers, 17:55–18:24 UTC.
+  - Each deploy reported "No targets deployed".
+  - Secrets were set interactively. (Owner)
+- **Live versions by role** (Owner):
+
+  | Role | Version |
+  |---|---|
+  | lifecycle (`RECOVERY_MODE=reconcile`) | `a5ecb321-1fbf-49da-a141-89330abb6385` |
+  | private sync | `1344fe32-941a-45a6-a80a-73780cc41280` |
+  | market coordinator | `7bc0f566-3518-4630-aa38-039b46acebaf` |
+  | food lookup | `0bff7eb3-89b1-44e7-8a6c-e2c15f87c893` |
+  | auth abuse (admission) | `400b7921-d781-4b55-a51b-bc0dbe9e88e4` |
+  | app | `d21d81c0-03cc-4031-b804-aa866f0cf9fd` |
+- **The app was built twice.**
+  - The first build baked the owner's local settings from `apps/web/.env.local` into `.open-next/cloudflare/next-env.mjs`.
+  - The owner moved `.env.local` aside and rebuilt. The deployed app is the second build.
+  - Session R1 Part 2 makes `build:alpha` refuse to run while such a file exists. (Owner)
+- **Hostname:**
+  - the dashboard's "Add Domain" refused the subdomain ("No zones match");
+  - the owner attached it with a proxied AAAA `100::` record plus a zone route;
+  - the route was removed at 18:54 UTC (the hostname answers 522) until the `Q-WRK-01` fix (Session R1 Part 1) is deployed. (Owner)
+- **Group A hardening and the recovery rehearsal:** their own entries above.
+
+# Apex landing deploy — 2026-10-03 afternoon, Landing V5 (`d439dc9`) live on zigoals.app
+
+A separate record from the Alpha deploy numbering. The apex Worker `zigoals` is published by hand with wrangler, not by the Manual Alpha workflow, so there is no Actions run. Recorded by Session R1 at the owner's request.
+
+Evidence labels:
+- **Owner:** reported by the owner in the Session R1 brief, 2026-10-03. This session did not contact the site or Cloudflare.
+- **git** / **STATUS:** read by the same session.
+
+- **Deploy:** run locally by the owner per [LANDING.md](deployment/LANDING.md) ("Owner-only deployment"), 2026-10-03 at 16:14 UTC. (Owner)
+- **Source:** `landing/` at `d439dc92091e6a271f3ce3fe95cac66467341678`, `main` after [#65](https://github.com/reyals1111-ux/ZIGoals/pull/65). There, `landing/` is Landing V5 as merged with [#61](https://github.com/reyals1111-ux/ZIGoals/pull/61); #65 did not touch it. (Owner, git)
+- **Live apex:** Worker `zigoals` (zigoals.app), new version `6b6dad3f-9ac2-4e40-bb9c-d020abb2d560`. (Owner)
+- **Rollback:** `4d96d9c9-38a9-425e-9679-515508c17754`, Landing V4. The 2026-10-01 record below lists it as live, so the chain holds. (Owner, STATUS)
+- **Owner checks:**
+  - all six security headers present: `content-security-policy`, `x-frame-options`, `x-content-type-options`, `referrer-policy`, `permissions-policy` and `cross-origin-opener-policy`;
+  - `/_headers` answers 404. (Owner)
+- **workers.dev and Preview URLs:**
+  - the deploy re-enabled the Worker's workers.dev URL. `landing/wrangler.jsonc` sets neither `workers_dev` nor `preview_urls`, and wrangler 4.144.0 turns workers.dev on for a config without routes;
+  - the owner switched workers.dev and Preview URLs off in the dashboard afterwards;
+  - Session R1 Part 3 sets both to `false` in the config. (Owner; wrangler 4.144.0 source)
+
+# Session Q — pre-Alpha security and privacy review: threat model refresh, data flows, 54 findings, owner checklist, incident runbook, fix plan (2026-10-03, [PR #67](https://github.com/reyals1111-ux/ZIGoals/pull/67), documents only, not merged)
+
+**This is an internal review by an AI (Claude), not a professional security audit.** Every document says so at the top.
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox, Node 22.22.0, dependencies from `pnpm install --frozen-lockfile --ignore-scripts`. Reproduction scripts stayed in the session scratchpad and are not committed.
+- **live (passive):** one plain GET of each public page for its headers, and DNS over HTTPS, on 2026-10-03 around 17:24 UTC. Nothing was logged into, scanned, fuzzed or probed. `accounts-test.zigoals.app` did not resolve yet.
+- **source:** an official page read on 2026-10-03 (UTC), cited with its URL in the document that uses it. **UNVERIFIED** where it could not be confirmed.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+
+**What changed:**
+- Seven new files under `docs/security/review-2026-10/`, plus this entry.
+- No code, test, config, workflow or other document changed.
+- Session P's branches were read only: `fix/session-p-2026-10-03` at `67fa146`, then at `ef6b81a`, and `review/session-p-screenshots` at `a91a4d2`.
+
+**Base:** main `d439dc9` (#65). Main did not move during the session, so no merge was needed.
+
+## Parts
+| Part | Document | Commit |
+|---|---|---|
+| 1 | [THREAT_MODEL_REFRESH.md](security/review-2026-10/THREAT_MODEL_REFRESH.md):<ul><li>assets and attackers for the friends Alpha;</li><li>trust boundaries;</li><li>what is new since THREAT_MODEL.md;</li><li>out-of-date rows and proposed rows</li></ul> | `9ca1d65` |
+| 2 | [DATA_FLOWS.md](security/review-2026-10/DATA_FLOWS.md):<ul><li>live headers and DNS;</li><li>what Cloudflare (edge, NEL, Durable Objects), Supabase, Resend, CoinGecko, Open Food Facts, ZIGChain REST, GitHub, the operator and Claude sessions can see;</li><li>the sync server's view, field by field;</li><li>the public wording compared with the code</li></ul> | `d11aaf6` |
+| 3 | [FINDINGS.md](security/review-2026-10/FINDINGS.md), every finding with:<ul><li>severity and confidence;</li><li>file:line evidence;</li><li>a safe reproduction and the fix;</li><li>effort, an Alpha deadline and the owner</li></ul>Then `Q-OPS-06` added, making 54 | `2f7c90a`, `c47a80c` |
+| 4 | [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md): numbered owner steps (why, how, verify) for:<ul><li>now, during Stage 7;</li><li>before Stage 8;</li><li>before inviting friends;</li><li>during the Alpha</li></ul>It includes the private-config check by key names only | `93c23cb` |
+| 5 | [INCIDENT_RUNBOOK.md](security/review-2026-10/INCIDENT_RUNBOOK.md), a draft for:<ul><li>a leaked key;</li><li>an account takeover;</li><li>a deletion request;</li><li>a provider outage;</li><li>a bad deploy;</li><li>a suspected exposure (GDPR points as lawyer questions);</li><li>an AI session gone wrong</li></ul> | `369a755` |
+| 6 | [FIX_PLAN.md](security/review-2026-10/FIX_PLAN.md): ordered parts with Tier labels and acceptance tests, plus **"To review when Session P merges"** | `e8bd73e` |
+| 6a | Finding cross-references in documents 1 and 2 | `fe271c2` |
+| 7 | [README.md](security/review-2026-10/README.md):<ul><li>scope and method;</li><li>the severity scale;</li><li>a one-page summary;</li><li>the top 10 actions;</li><li>the friends-Alpha lens</li></ul> | `8f4525e` |
+| 6b | **FIX_PLAN:** Session P re-read at `ef6b81a`. Check 8 adds `7ccbfac`, a Playwright ffmpeg download in CI with no secret in reach | `b1e4f2b` |
+| 8 | This entry | this commit |
+
+## Results
+- **Counts:** 54 findings: Critical **0**, High **1**, Medium **9**, Low **23**, Info **21**.
+- **Confidence:** 9 confirmed by reproduction, 33 by code reading, 9 likely, 3 hypotheses.
+- **No secret was found:**
+  - in the tree (`node scripts/check-secrets.mjs`);
+  - in the history of all 41 refs: a pattern scan of 3,364 text blobs with the repository's patterns plus AWS, Slack, Stripe, Google, npm and model-API key shapes, with 0 hits;
+  - no private config or `.env` file was ever committed.
+
+  About 1,000 binary files (screenshots) were not scanned. One public review screenshot shows a throwaway fixture's recovery secret (`Q-SC-05`, Info).
+- **The High:** `Q-WRK-01`, if the market binding is switched on (the acctest template has it).
+  - One anonymous client can exhaust the account's free daily Durable Object allowance in a few hundred requests to the market routes. Sync and sign-in then stop until 00:00 UTC; on Workers Paid, the same traffic becomes a bill.
+  - Confirmed by code reading; that the quota is account-wide is Likely.
+- **The Mediums:**
+  - invite-only rests on one Supabase switch (`Q-AUTH-01`);
+  - "revoke" in ZIGoals does not end the Supabase session (`Q-AUTH-02`);
+  - a brief inbox compromise can stick (`Q-AUTH-03`);
+  - destructive actions have no step-up (`Q-AUTH-04`);
+  - all users share one Supabase rate-limit budget (`Q-AUTH-05`);
+  - script on a remembered device can export the vault root, reproduced in Node 22.22.0 and Chromium 141 (`Q-SYNC-01`);
+  - the market budget can be drained (`Q-WRK-02`);
+  - the documented deploy token reaches every Worker (`Q-SC-01`);
+  - AI sessions act as the owner on GitHub (`Q-AI-01`).
+- **What holds:**
+  - the record encryption (per-record HKDF and AES-GCM, with the full context in the AAD);
+  - tenant isolation;
+  - cookies, CSRF and the CSP (confirmed live);
+  - SHA-pinned Actions and a credential-free build job;
+  - no public route on any private Worker.
+
+  Details under "What holds" in FINDINGS.
+
+## Alpha blockers (plain words)
+1. **Before Stage 7 completes:** switch Supabase sign-ups **off** and create the friends' users yourself. Otherwise anyone who finds the acctest app can make an account (`Q-AUTH-01`).
+2. **Before Stage 7 completes, if the market binding is on:** keep market dispatch off for the friends deployment, or first put a rate limit in front of `/api/market-*` and settle the Workers plan (`Q-WRK-01`).
+3. **Before Stage 8, if markets ship with the Alpha:** the market fan-out fix in code (FIX_PLAN Part C1).
+
+The rest is listed in the README's "top 10 actions" and "friends-Alpha lens".
+
+**Early warnings given to the owner during the session** (progress messages, no trigger details):
+- the Supabase settings in blocker 1, plus the per-IP rate limits and secure email change;
+- the High in blocker 2.
+
+## Reproductions and checks (local unless stated)
+- **The sign-in route with fake upstreams** (`privateAccountRequest`, Vitest 5.0.2), 4 of 4 passing:
+  - code requests send `create_user:true`;
+  - a Supabase `422 otp_disabled` gives `400` while an accepted address gives `200`;
+  - "revoke others" contacts only the sync registry, and sign-out uses `logout?scope=local`;
+  - a plain-HTTP origin gets cookies without `Secure`;
+  - only `apikey` and `content-type` headers reach Supabase.
+- **The remembered device:**
+  - a device key with `encrypt`+`unwrapKey` refuses export;
+  - an extractable unwrap of the sealed root returns the exact 32 root bytes, in Node 22.22.0 and in Chromium 141 with an IndexedDB round trip (synthetic keys).
+- **`pnpm audit`:** production dependencies have no known vulnerabilities. All dependencies: 1 high, `braces <=3.0.3` in lint tooling (`Q-SC-02`).
+- **Live, passive (2026-10-03):**
+  - landing and Alpha headers as documented, plus Cloudflare NEL;
+  - plain HTTP answered `200` (browsers are protected by the `.app` HSTS preload);
+  - DMARC `p=none`, no CAA, no DNSSEC.
+- **CI identity:** the runs for this session's own pushes show `actor` and `triggering_actor` as `reyals1111-ux` (Milestone quality run 37140990719). That is the evidence for `Q-AI-01`; nothing was dispatched.
+- **Before every push:** `node scripts/check-secrets.mjs` passed, and every relative link and anchor in the seven documents resolves (0 problems).
+- **This entry:** `pnpm exec vitest run scripts/status-snapshot.test.mjs` passes, and `recordedLiveWorker()` still returns `aeae3829-ccc1-4190-909e-77539604c3f5` (#24); this entry adds no "Release identity" section.
+
+## Sources and UNVERIFIED items
+- **Sources:** official pages from Cloudflare, Supabase, GitHub, Resend, CoinGecko, Open Food Facts, Bitwarden, Apple, Google Registry, OWASP, MDN, pnpm, the EDPB and the Belgian APD. Each is listed with its URL in the document that uses it, accessed 2026-10-03.
+- **UNVERIFIED:**
+  - the live provider settings: Supabase sign-ups, code length and expiry, rate limits; Resend tracking; Cloudflare members, tokens and plan; GitHub rulesets and environments;
+  - the git-ignored private configs;
+  - whether Cloudflare's daily Durable Object limits are account-wide;
+  - how Supabase keys its rate limits for the Worker's calls;
+  - some dashboard labels (marked in OWNER_CHECKLIST);
+  - the reachability of the recovery-admin remote proxy (until the Stage 7 rehearsal);
+  - the APD's two-part form deadline;
+  - Trusted Types support in Next 16.3.6.
+
+## Helper agents
+- **Three, launched once, together, after the plan's approval:**
+  - **H1:** sign-in, sessions and the account Workers;
+  - **H2:** vault and sync cryptography, the malicious-server model and the privacy claims;
+  - **H3:** the web app, the landing and the public-data endpoints.
+- **How they worked:**
+  - they read the code and wrote notes to the session scratchpad only;
+  - none edited the repository, ran tests or touched a live system;
+  - one follow-up went to H1 by message (Supabase's shared per-IP budget and the IPv6 grouping), so the total stayed at 3.
+- **The lead re-read every cited line before accepting a finding,** ran the reproductions, and changed severities where the evidence called for it:
+  - H1's two proposed Highs (`Q-AUTH-02`, `Q-AUTH-03`) became Medium, because the sync boundary holds and a lasting takeover needs the inbox again;
+  - H3's market fan-out stayed High (conditional);
+  - two H3 items were merged into `Q-AUTH-09` and `Q-PRIV-03`;
+  - H2's "v1 envelopes" moved to "what holds".
+
+## Decisions made without the owner
+- **Branch:** the brief's `security/session-q-2026-10-03`, not this cloud session's default branch name.
+- **Two documents beyond the brief's list:** THREAT_MODEL_REFRESH (item 1) and DATA_FLOWS (item 7). They keep the README to one page.
+- **Publication rule** (the repository is public):
+  - no exploit code;
+  - no step-by-step recipe against a live system;
+  - every reproduction is local.
+- **Severity of `Q-WRK-01`:** High, because one anonymous actor can stop sign-in and sync for every friend, daily, at no cost to themselves. The brief's severity examples did not list availability.
+- **Session P's ADR-010 (push) and ADR-011 (coach) were not on any branch.** The FIX_PLAN checks for them follow the brief's description, plus H3's service-worker guard rails.
+- **Q-OPS-06 added after FINDINGS was first pushed** (no owner erase tool), found while drafting the incident runbook.
+
+## Follow-ups (not done here)
+- **The owner:** [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md), steps A1–A8 now, B before Stage 8, C before inviting friends.
+- **The next sessions:** [FIX_PLAN.md](security/review-2026-10/FIX_PLAN.md):
+  - **R** = market fan-out, sign-in and the remembered device (Tier 3);
+  - **S** = copy, documents and CLAUDE.md rules;
+  - **T** = the rest.
+- **When Session P merges:** run the FIX_PLAN checks. Its invite-only message (`72df238`) makes account enumeration explicit (`Q-AUTH-06`).
+- **THREAT_MODEL.md, PRIVACY.md, ADR-008 and LEGAL_CHECKLIST** need updates from this review (FIX_PLAN Part E). They are other documents, so they are not edited here.
+
+## How the owner can review
+1. **Start at [docs/security/review-2026-10/README.md](security/review-2026-10/README.md):** the one-page summary, the blockers and the top 10.
+2. **Then [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md),** group A, while Stage 7 is running.
+3. **Locally:** `git fetch origin`, then `git checkout security/session-q-2026-10-03`. Nothing needs to be installed to read it.
+
 # Session O — Beta brainstorm pack: market, product and growth research; then main (#60–#64) merged in and Alpha deploy #24 recorded (2026-10-03, [PR #65](https://github.com/reyals1111-ux/ZIGoals/pull/65), documents only, not merged)
 
 **Evidence labels**
@@ -3311,6 +3671,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 
 | Date (UTC) | Source | Version | Rollback | Evidence |
 |---|---|---|---|---|
+| 2026-10-03, 16:14 | `d439dc9` (`main` after #65; Landing V5 from #61) | `6b6dad3f-9ac2-4e40-bb9c-d020abb2d560` | `4d96d9c9-38a9-425e-9679-515508c17754` (Landing V4) | Owner report; [record](#apex-landing-deploy--2026-10-03-afternoon-landing-v5-d439dc9-live-on-zigoalsapp) |
 | 2026-10-01, about 18:40 | `1e676ba` (`main` after #55, Landing V4) | `4d96d9c9-38a9-425e-9679-515508c17754` | `de83a26a-d2ce-4f19-8067-09fa46a49fff` (previous landing, 2026-09-13) | Owner Terminal output; [record](#apex-landing-deploy--2026-10-01-evening-1e676ba-live-on-zigoalsapp) |
 
 ## PR #22 changes
@@ -3330,7 +3691,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 | 1 | OPEN | |
 | 2 | PARTLY | `CLAUDE.md` done |
 | 3 | PARTLY | Run11 final evidence (`414aa52b56bf2de049561dbbd248584d1c29c91b`, docs only) is backed up on branch `backup/run11-final-evidence` and not yet merged |
-| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 6 is complete and the Stage 7 preflight is READY at `57275a6` (owner-reported, 2026-10-02) |
+| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 7 in progress: the six acceptance Workers deployed from `d439dc9`, the acceptance route removed until the market fix is deployed, and the recovery rehearsal run with a locally patched launch, to be repeated with the merged tool (owner-reported, 2026-10-03; records at the top of this file). Earlier: Stage 6 complete and the Stage 7 preflight READY at `57275a6` (owner-reported, 2026-10-02) |
 | 5 | OPEN | |
 | 6 | OPEN | |
 | 7 | PARTLY | Real-iPhone check remains |

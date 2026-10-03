@@ -48,16 +48,28 @@ for(const [action,target] of boundaries)for(const point of ['after-write','after
   expect(f.calls()).toBe(0);await f.receipt({action,target,point,chargedCredits:charged?3:0,providerCalls:0,rollback:!committed});
  }finally{await f.dispose();}
 },30000);
-for(const action of ['reserve','dispatch','settle','publish'])for(const point of ['after-write','after-commit'])test(`actual quote dispatch ${action}/${point}: send count, charge and publication remain consistent`,async()=>{
+// Session R1: the dispatcher's commits are acquire-many (reserve, own and dispatch in one transaction), admit (the
+// same steps for an attempt that waited for a slot) and complete (settle and publish in one transaction).
+const dispatcherBoundaries=[['acquire-many','budget'],['admit','budget'],['complete','budget'],['complete','work']];
+for(const [action,target] of dispatcherBoundaries)for(const point of ['after-write','after-commit'])test(`actual quote dispatch ${action}/${target}/${point}: send count, charge and publication remain consistent`,async()=>{
  const f=await fixture();try{
-  await f.arm({action,point,target:action==='publish'?'work':'budget'});const response=await f.load(),report=await f.report();expect(report).toMatchObject({action,point,hit:true});
-  const sent=['settle','publish'].includes(action),charged=sent||action==='dispatch'&&point==='after-commit',published=action==='publish'&&point==='after-commit';
+  let blocker;
+  if(action==='admit'){
+   // An owned, undispatched attempt holds the only slot, so the request's attempt waits and polls with admit.
+   const other={operation:'quote',pair:{...pair,marketRef:{...pair.marketRef,id:'ethereum'}}},lease=(await f.call({action:'acquire',work:other})).lease;
+   blocker=(await f.call({action:'enqueue',priority:'interactive',kind:'request',associations:[{work:other,lease}]})).id;
+   for(const step of ['reserve','own'])expect(await f.call({action:step,id:blocker})).toMatchObject({ok:true});
+  }
+  await f.arm({action,point,target});const loading=f.load();
+  if(blocker){for(let i=0;i<200&&(await f.call({action:'inspect'})).attempts<2;i++)await new Promise(resolve=>setTimeout(resolve,5));expect(await f.call({action:'cancel',id:blocker})).toMatchObject({ok:true});}
+  const response=await loading,report=await f.report();expect(report).toMatchObject({action,target,point,hit:true});
+  const sent=action==='complete',charged=sent||point==='after-commit',published=sent&&point==='after-commit';
   expect(f.calls()).toBe(sent?1:0);expect(response.complete).toBe(false);
   await f.restart(now);expect(await f.call({action:'inspect'})).toMatchObject({chargedCredits:charged?3:0});
   if(charged){expect(await f.call({action:'cancel',id:report.id})).toMatchObject({ok:false});expect(await f.call({action:'dispatch',id:report.id})).toMatchObject({ok:false});}
   if(published){const cached=await f.load();expect(cached.complete).toBe(true);expect(cached.quotes).toHaveLength(1);expect(f.calls()).toBe(1);}
   await f.restart(now+10000);expect(await f.call({action:'inspect'})).toMatchObject({chargedCredits:charged?3:0,dispatched:0,currentPeriodCredits:0});
   if(!published)expect(await f.call({action:'publish',id:report.id,work,quote})).toMatchObject({ok:false});
-  await f.receipt({action,point,providerCalls:f.calls(),chargedCredits:charged?3:0,published,transport:'real named Worker service binding, production dispatcher and actual durable transactions'});
+  await f.receipt({action,target,point,providerCalls:f.calls(),chargedCredits:charged?3:0,published,transport:'real named Worker service binding, production dispatcher and actual durable transactions'});
  }finally{await f.dispose();}
 },30000);

@@ -8,7 +8,8 @@
     "start": "next start --hostname 127.0.0.1 --port 3100",
     "build:alpha": "node scripts/build-alpha.mjs",
     "preview:alpha": "wrangler dev --config wrangler.alpha.jsonc --env-file ../../scripts/run11/fixtures/no-local-secrets.env --ip 127.0.0.1 --port 8788",
-    "check:alpha": "wrangler deploy --config wrangler.alpha.jsonc --dry-run"
+    "check:alpha": "wrangler deploy --config wrangler.alpha.jsonc --dry-run",
+    "check:alpha-artifact": "node scripts/check-alpha-artifact.mjs"
   },
   "dependencies": {
     "@cosmjs/cosmwasm-stargate": "0.38.1",

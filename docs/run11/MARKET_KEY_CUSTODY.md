@@ -11,10 +11,10 @@ Status: **documentation only. No workflow, script or app change was made.** Fact
 | `scripts/lib/alpha-deployment.mjs` | 29 | `alphaDeploymentEnvironment` deletes the key from the OpenNext child's environment (defence in depth). |
 | `apps/web/scripts/sanitize-alpha-env.mjs` | 14–16 | Removes any key that OpenNext compiled from `.env` files and fails if the value remains in any artifact. |
 | `apps/web/lib/server/market-service.ts` | 6 | Passes the key to the provider **only** when `directMarketDevelopment()` is true: `NODE_ENV=development` and `ZIGOALS_MARKET_LOCAL_MODE=direct`. Never in production. |
-| `apps/web/app/api/market-quotes/route.ts` | 31, 35 | **The only production read.** Its presence selects the error: GET returns 502 "Verified market valuation unavailable…" with the key, 503 "Market pricing is not configured…" without it; POST returns the provider error text with the key, the setup text without it. |
-| `workers/market-coordinator/worker.ts` | 22, 40 | Target consumer: the coordinator's `QuoteService` passes it to the provider, gated by `MARKET_QUOTE_DISPATCH` and `MARKET_ACCOUNT_ID`. |
+| `apps/web/app/api/market-quotes/route.ts` | 32, 36 | **The only production read.** Its presence selects the error: GET returns 502 "Verified market valuation unavailable…" with the key, 503 "Market pricing is not configured…" without it; POST returns the provider error text with the key, the setup text without it. |
+| `workers/market-coordinator/worker.ts` | 30, 59 | Target consumer: the coordinator's `QuoteService` passes it to the provider, gated by `MARKET_QUOTE_DISPATCH` and `MARKET_ACCOUNT_ID`. |
 | `workers/market-coordinator/README.md` | 6 | States that the key is coordinator-only in the Run11 topology. |
-| `.env.example` | 9 | Empty placeholder for local direct development (`apps/web/.env.local`, gitignored). |
+| `.env.example` | 11 | Empty placeholder for local direct development (`apps/web/.env.local`, gitignored). Since Session R1, `build:alpha` refuses to run while such a file exists; owner builds keep it outside the repository. |
 | Tests | `scripts/alpha-deployment.test.mjs` 35–68 (line 66 asserts the workflow passes the key exactly once); `scripts/alpha-env.test.mjs`; `apps/web/lib/market-{quotes,history,insights}-route.test.ts`; `apps/web/lib/server/market-runtime.test.ts`; `scripts/run10/market-dispatch.test.mjs`; `scripts/run11/market-*.test.mjs`, `packaged-runtime.test.mjs`, `make-private-configs.test.mjs` | Fixture values only (`fixture-key`, `must-not-use`, `not-a-real-key`). |
 | Docs | `ACTIVATION.md`, `ALPHA_BINDING_SPEC.md`, `docs/run10/MARKET_EVIDENCE.md`, `docs/RUN_9_MARKET_DATA.md`, `docs/RUN_9_PREP.md` | Descriptions; the Run9 documents are historical. |
 

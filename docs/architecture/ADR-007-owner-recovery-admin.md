@@ -124,7 +124,7 @@ Option A is implemented as decided. Where the code needed it, the design above w
 - **Files:**
   - the admin Worker is `workers/recovery-admin/worker.mjs`, with the template `workers/recovery-admin/wrangler.local.jsonc`. It lives under `workers/`, not `scripts/run11/recovery-admin/`, so the Workers type-check covers it;
   - the private copy follows the Stage 4 convention, `workers/recovery-admin/wrangler.acctest.owner.jsonc` (ignored, 0600), not `<prefix>.recovery-admin.owner.jsonc`.
-- **The CLI owns the wrangler lifetime.** `scripts/run11/recovery-admin.mjs` starts `wrangler dev` on exactly the checked config, then stops it after one command. It runs on 127.0.0.1 with the dev registry off and the inspector on loopback.
+- **The CLI owns the wrangler lifetime.** `scripts/run11/recovery-admin.mjs` starts `wrangler dev` on exactly the checked config, then stops it after one command. It runs on 127.0.0.1 with a private dev registry and the inspector on loopback (Session R1: the pinned Wrangler has no `--disable-dev-registry`, so the CLI points `WRANGLER_REGISTRY_PATH` at an empty folder inside its run directory).
   - A random per-run session token, passed in a 0600 temporary env file, is required on every request to the admin Worker. This covers other local processes and DNS rebinding.
   - wrangler's output is never printed (it can include the login email).
 - **The checker:**

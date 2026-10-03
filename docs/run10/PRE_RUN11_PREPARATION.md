@@ -11,11 +11,11 @@ Source branch: `codex/pre-run11-preparation`, based on verified `origin/main` `9
 
 Recovery: `.superpowers/pre-run11-recovery/source-901e2a6.tar.gz` is a source-only archive of deployed main. No preview or owner browser data was touched. No real email or physical sync was tested.
 
-Offline setup checker: privately fill ignored `apps/web/.env.local` with `ZIGOALS_AUTH_ORIGIN`, `ZIGOALS_AUTH_PUBLIC_KEY`, `ZIGOALS_SYNC_ORIGIN`, `AUTH_PUBLIC_KEY`, and `ZIGOALS_OWNER_WORKER_CONFIG=workers/private-sync/wrangler.preview.owner.jsonc`. The owner Worker file must be ignored, mode 0600, and include an isolated name, HTTPS `vars.AUTH_ORIGIN`/`vars.APP_ORIGIN`, and the VAULTS SQLite binding/migration. No key goes in that Worker file. For email-only setup, add `ZIGOALS_ALLOWED_AUTH_ORIGIN` and `ZIGOALS_TEST_RECIPIENTS` to the private environment file and run `node --env-file=apps/web/.env.local scripts/pre-run11-setup.mjs --auth-only`; it does not require the sync Worker. For full local consistency, run:
+Offline setup checker: privately fill a mode-0600 env file **outside the checkout** (updated 2026-10-03, Session R1: `build:alpha` now refuses to run while `apps/web/.env.local` or any other `.env*` file is in the build's reach; for example `~/.config/zigoals/acctest.env`) with `ZIGOALS_AUTH_ORIGIN`, `ZIGOALS_AUTH_PUBLIC_KEY`, `ZIGOALS_SYNC_ORIGIN`, `AUTH_PUBLIC_KEY`, and `ZIGOALS_OWNER_WORKER_CONFIG=workers/private-sync/wrangler.preview.owner.jsonc`. The owner Worker file must be ignored, mode 0600, and include an isolated name, HTTPS `vars.AUTH_ORIGIN`/`vars.APP_ORIGIN`, and the VAULTS SQLite binding/migration. No key goes in that Worker file. For email-only setup, add `ZIGOALS_ALLOWED_AUTH_ORIGIN` and `ZIGOALS_TEST_RECIPIENTS` to the private environment file and run `node --env-file=<private env file> scripts/pre-run11-setup.mjs --auth-only`; it does not require the sync Worker. For full local consistency, run:
 
 ```sh
-chmod 600 apps/web/.env.local workers/private-sync/wrangler.preview.owner.jsonc
-node --env-file=apps/web/.env.local scripts/pre-run11-setup.mjs
+chmod 600 ~/.config/zigoals/acctest.env workers/private-sync/wrangler.preview.owner.jsonc
+node --env-file="$HOME/.config/zigoals/acctest.env" scripts/pre-run11-setup.mjs
 ```
 
 This command only checks local shape and relationships. It never contacts providers, verifies packaged runtime exposure or establishes real email/physical encrypted sync. Missing services are expected today. Focused current test: `fnm exec --using 24.19.0 pnpm exec vitest run scripts/pre-run11-setup.test.mjs scripts/pre-run11-email.test.mjs` (22/22).

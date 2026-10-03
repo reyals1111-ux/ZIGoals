@@ -123,6 +123,14 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
   if (landing?.assets?.directory !== ".") {
     errors.push('landing assets.directory must be "."');
   }
+  // The apex is served only through its custom domain: a config that says nothing lets a deploy turn workers.dev back
+  // on, as the Landing V5 deploy did on 2026-10-03.
+  if (landing?.workers_dev !== false) {
+    errors.push("landing workers_dev must be false");
+  }
+  if (landing?.preview_urls !== false) {
+    errors.push("landing preview_urls must be false");
+  }
   if (alpha?.main !== ".open-next/worker.js") {
     errors.push('Alpha main must be ".open-next/worker.js"');
   }
