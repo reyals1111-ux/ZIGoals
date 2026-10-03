@@ -27,3 +27,4 @@ videos. All are taken at 1440 and 390 px from the PR's `landing/` folder, served
 |---|---|
 | `freeze-compare.json` | 154 desktop and tablet captures of `de61e33` against `main` `57275a6`. 142 are identical. The other 12 are the Help page, whose feedback link carries the build's commit; their pixels are identical |
 | `playwright-summary.json` | The full local browser run on `de61e33`: 889 passed, 47 skipped, 6 failed. Four are the intro-video specs this Chromium cannot play. Two hit timing limits under load and passed when re-run alone |
+| `habit-paint-first-repeat.txt` | The test that failed once in this PR's CI (`habit-paint-first.spec.ts:36`, mobile), run 20 times on `main`'s app code, then in both projects of a full run: 22 passes, not reproduced locally |

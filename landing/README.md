@@ -10,4 +10,5 @@ shows its poster.
 | `motion-1440-*.png`, `motion-390-*.png` (13 each; the 390 px ones at 2×) | Motion on, at: the hero (01); each equation step (02–05); one fold stage, swan → lotus with "Shape", at its start, middle and settled (06–08); privacy (09); install (10); what's coming (11); FAQ (12); the final call (13) |
 | `scroll-1440.webm` (29.6 s), `scroll-390.webm` (35.6 s) | One scroll-through with the mouse wheel, motion on, top to bottom, recorded at the viewport size. A headless recording: it shows the order and the steps, not the smoothness a device shows |
 | `perf-runs.txt` | The raw LCP, long-task, weight and layout-shift lines for V5 and for V4 (`main` `57275a6`), from `landing-v5-perf.spec.ts` |
+| `playwright-summary.json` | The full local browser run on a production build of `2d0df63`: 958 passed, 74 skipped (desktop 31, mobile 43), 4 failed. All four are the intro-video specs this Chromium cannot play |
 | `workers-assets-check.json` | V5 served by `wrangler dev` (the Workers Assets runtime, with `_headers`): the six security headers, every file's status, and a full scroll at 1440 and 390 px with no CSP violation and no request to another origin |

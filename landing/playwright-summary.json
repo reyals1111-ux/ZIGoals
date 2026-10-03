@@ -1,0 +1,33 @@
+{
+ "commit": "2d0df63",
+ "build": "PUBLIC_ALPHA_UNDEPLOYED",
+ "workers": 2,
+ "stats": {
+  "startTime": "2026-10-03T01:23:05.226Z",
+  "duration": 2048718.136,
+  "expected": 958,
+  "skipped": 74,
+  "unexpected": 4,
+  "flaky": 0
+ },
+ "byProject": {
+  "desktop": {
+   "expected": 485,
+   "skipped": 31,
+   "unexpected": 2,
+   "flaky": 0
+  },
+  "mobile": {
+   "expected": 473,
+   "skipped": 43,
+   "unexpected": 2,
+   "flaky": 0
+  }
+ },
+ "unexpected": [
+  "logo-quickadd-goals-header.spec.ts:53 [desktop] unexpected",
+  "logo-quickadd-goals-header.spec.ts:79 [desktop] unexpected",
+  "logo-quickadd-goals-header.spec.ts:53 [mobile] unexpected",
+  "logo-quickadd-goals-header.spec.ts:79 [mobile] unexpected"
+ ]
+}

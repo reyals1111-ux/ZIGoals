@@ -1,0 +1,11 @@
+# habit-paint-first.spec.ts:36 on main's app code, 2026-10-03 (local, Chromium 141, production build PUBLIC_ALPHA_UNDEPLOYED)
+# The build is landing/session-n-2026-10-02 at 2d0df63, whose app files are identical to main 57275a6 (that PR changes only landing/, docs and landing specs).
+# PR #62's CI saw this test fail once on fbc55ab (mobile, shard 2/3): ["pressed:false", "pressed:true", "write"]. Its one re-run passed.
+
+## 20 repeats, mobile project, 2 workers
+  20 passed (35.2s)
+
+## In the full browser run of the same build (both projects)
+habit-paint-first.spec.ts:36, :49, :78, :90: passed in desktop and mobile (8 of 8)
+
+Not reproduced locally: :36 itself passed 22 times (20 repeats, plus desktop and mobile in the full run), and the file's other three tests passed in both projects.

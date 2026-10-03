@@ -32,3 +32,6 @@ landing-perf {"project":"mobile","lcpMs":2604,"lcpElement":"img.hero-mark","long
 V4:
 landing-weight desktop {"firstView":222830,"firstViewFiles":14,"beforeScroll":294168,"beforeScrollFiles":15,"fullScroll":5240234,"files":142,"cls":0.00012564581725823046}
 landing-weight mobile {"firstView":222830,"firstViewFiles":14,"beforeScroll":294168,"beforeScrollFiles":15,"fullScroll":773064,"files":57,"cls":0}
+V5 (2d0df63, from the full browser run):
+landing-weight desktop {"firstView":251126,"firstViewFiles":16,"beforeScroll":351738,"beforeScrollFiles":18,"fullScroll":5710120,"files":155,"cls":0.00012564581725823046}
+landing-weight mobile {"firstView":251126,"firstViewFiles":16,"beforeScroll":351738,"beforeScrollFiles":18,"fullScroll":1582666,"files":106,"cls":0}
