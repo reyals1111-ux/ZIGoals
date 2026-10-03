@@ -35,12 +35,12 @@ Money and `progressPct` are plain decimal strings without exponent notation or t
 
 From the repository root: `pnpm exec vitest run packages/goal-engine`. Tests use literal known answers for returns, funding states, calendar boundaries, precision, invalid inputs, and completion limits. Package strict typecheck: `node node_modules/typescript/bin/tsc --noEmit --strict --noUncheckedIndexedAccess --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler packages/goal-engine/src/index.ts packages/goal-engine/src/index.test.ts`.
 
-## Time helpers (`src/time/`, not wired)
+## Time helpers (`src/time/`, exported as `@zigoals/goal-engine/time`)
 
-`src/time/calendar-date.ts` and `src/time/zoned-day.ts` are pure calendar-day helpers for the future timezone project:
+`src/time/calendar-date.ts` and `src/time/zoned-day.ts` are pure calendar-day helpers for the timezone project:
 - `YYYY-MM-DD` validation and day arithmetic;
 - the calendar day an instant falls on in a named zone;
 - day bounds across DST gaps and overlaps;
 - `planDays(now, zone='UTC')`.
 
-They use `Intl` only, take the instant and the zone as arguments, and read no clock or host time zone. `src/index.ts` does not export them, and nothing in the app imports them, so behaviour is unchanged: Goal funding days stay UTC (QA-04). Design: [TIMEZONE_DESIGN.md](../../docs/product/TIMEZONE_DESIGN.md). Tests: `pnpm exec vitest run packages/goal-engine/src/time`.
+They use `Intl` only, take the instant and the zone as arguments, and read no clock or host time zone. Since Session N (timezone phase 2), the app's Goal funding and plan days come from them with zone `"UTC"`, so behaviour is unchanged: funding days stay UTC (QA-04). The parity proof is `apps/web/lib/funding-day-parity.test.ts`. Design: [TIMEZONE_DESIGN.md](../../docs/product/TIMEZONE_DESIGN.md). Tests: `pnpm exec vitest run packages/goal-engine/src/time`.

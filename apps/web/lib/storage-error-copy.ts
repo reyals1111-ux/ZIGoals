@@ -33,6 +33,22 @@ export function saveFailureMessage(error: unknown, {durable = false}: {durable?:
 export function storageMessageOr(error: unknown, fallback: string, options?: {durable?: boolean}): string {
   return storageUiCode(error) === 'SAVE_FAILED' ? fallback : saveFailureMessage(error, options);
 }
+/**
+ * A save refused through usePrivateStore's `update` (Session M, QA2-02: Health). That hook already words the coded
+ * reason for the module's own storage (browser or transactional), so a storage refusal keeps that message as it is; any
+ * other failure (a rejected entry, an unknown error) gets the surface's own text.
+ */
+export function updateRefusalMessage(error: unknown, fallback: string): string {
+  if (storageUiCode(error) === 'SAVE_FAILED') return fallback;
+  return error instanceof Error && /\([A-Z_]+\)$/.test(error.message) ? error.message : saveFailureMessage(error);
+}
+/**
+ * A choice kept on this device only, outside the modules (a reminder time, a reminder dismissed for today; QA2-02): what
+ * happened, what to do and the code, without the advice to move a module to transactional storage, which does not apply.
+ */
+export function deviceSettingFailureMessage(error: unknown): string {
+  return saveFailureMessage(error, {durable: true});
+}
 /** A check-in that could not be kept (QA-03): it is shown as not done again, with the reason. */
 export function checkInFailureMessage(error: unknown, options?: {durable?: boolean}): string {
   return `The check-in was not saved and is shown as before. ${saveFailureMessage(error, options)}`;

@@ -134,3 +134,60 @@ The Stage 8 rehearsals in `scripts/run11/stage8-rehearsal/` drive real Chrome ag
 - `an automatic sync scheduled before a review began does not run during the review` (:109).
 
 **Vitest total in plain `pnpm test`: 22 skipped.** That is rows 1–12 (12 tests), the 2 #58 tests above, and L1–L8. Measured on Session L's branch after merging `main` `f3220e1`: 2,172 passed, 4 expected to fail (X1–X4) and 22 skipped. Every one runs in a CI step that sets its flag. The Playwright totals above are unchanged: Session L adds no Playwright skip.
+
+## Session N additions: timezone phase 1 (2026-10-02, branch `time/session-n-2026-10-02`)
+### Expected failures (`test.fails`, the decided timezone behaviour)
+These are not bugs in today's code. Each states behaviour the owner decided (TIMEZONE_DESIGN.md: T1–T4) that later phases deliver. Funding and plan days follow the plan's own zone, and today they are UTC (QA-04, unchanged by owner decision). They count as "expected fail", like X1–X4. When a phase delivers the behaviour, the run turns red with "Expect test to fail". That phase converts its rows to plain tests and updates the matching guard. Never re-add `.fails` to silence one.
+
+| # | Test (file) | Today's failure (checked by converting to `test`) | Flips in | Flip PR action |
+|---|---|---|---|---|
+| Z1 | `Z1 America/New_York, 21:30 on the due day` (apps/web/lib/goal-intelligence.timezone.test.ts) | "expected 'REVIEW' not to be 'REVIEW'": today's strict `contributionSchema` refuses `timeZone`, so funding health falls back to review | phase 3 (R1 reads `plan.timeZone`) | Convert Z1–Z13 to `test`, and update guard G1 |
+| Z2 | `Z2 Pacific/Kiritimati (UTC+14), 00:05 on the due day` (same file) | same | phase 3 | same |
+| Z3 | `Z3 Etc/GMT+12 (UTC-12), 23:55 on the due day` | same | phase 3 | same |
+| Z4 | `Z4 Europe/Brussels, 00:30 on the spring-forward day` (DST gap, 2026-03-29) | same | phase 3 | same |
+| Z5 | `Z5 Europe/Brussels, 00:30 on the fall-back day` (DST overlap, 2026-10-25) | same | phase 3 | same |
+| Z6 | `Z6 America/Santiago, 23:59:59 just before the skipped midnight` (2026-09-06) | same | phase 3 | same |
+| Z7 | `Z7 America/Santiago, 23:30 on the 23-hour day` | same | phase 3 | same |
+| Z8 | `Z8 Asia/Kolkata (UTC+5:30)` | same | phase 3 | same |
+| Z9 | `Z9 Asia/Kathmandu (UTC+5:45)` | same | phase 3 | same |
+| Z10 | `Z10 Pacific/Chatham (UTC+13:45 in summer)` | same | phase 3 | same |
+| Z11 | `Z11 Australia/Lord_Howe (UTC+11, 30-minute DST)` | same | phase 3 | same |
+| Z12 | `Z12 Australia/Adelaide (UTC+10:30 in summer)` | same | phase 3 | same |
+| Z13 | `Z13 travel: a Brussels plan keeps Brussels days on a <device> device`, two devices (America/Los_Angeles, Asia/Tokyo) | same | phase 3 | same |
+| Z14 | `Z14 the earliest change is the next day in the plan's zone` (apps/web/lib/plan-revisions.timezone.test.ts) | "expected '2026-10-17' to be '2026-10-16'": today's earliest change is the next UTC day | phase 3 | Convert to `test`, and update guard G2 |
+| Z15 | `Z15 a zone change starts the next day in the old zone and keeps earlier instalments` (same file) | `ZodError` (unrecognized key `timeZone`): today's `reviseGoalPlan` refuses a zone | phase 3 | Convert to `test`, and update guard G3 |
+| Z16 | `Z16 a new plan defaults to the journal zone, else UTC` (same file) | "expected undefined to be 'Europe/Brussels'": no default exists yet (T1) | phase 4 (R2 adds the default and the UI) | Convert to `test`, and update guard G4 |
+
+**Guards:** plain tests in the same two files that pass today and pin each failure's reason. Like the X-row guards, they make sure a broken fixture can never let an expected failure "pass" for the wrong reason:
+- **G1:** `contributionSchema` refuses `timeZone`, and a zoned plan's funding health is `REVIEW` with "Plan requires a compatible price assumption.". The zone-less twin of every Z1–Z13 instant shows today's UTC answer.
+- **G2:** the earliest change for a zoned plan is the next UTC day.
+- **G3:** `reviseGoalPlan` throws on a plan carrying `timeZone`.
+- **G4:** `plan-revisions` exports no `defaultPlanTimeZone`.
+
+**Regression locks (plain tests, green today and after phase 2):**
+- 3 + 3 tests per device zone, under 11 device zones (66 runs).
+- The zones: UTC, Brussels, New York, Kiritimati, Etc/GMT+12, Kolkata, Kathmandu, Adelaide, Chatham, Lord Howe and Santiago.
+- What they lock: funding health around a UTC midnight and at QA-04's 21:30 New York; one capture per UTC day; scenario horizons and scheduled dates; plan effective days; the earliest change; instalment dates across DST ends and Santiago's skipped midnight.
+
+**Flip proof (local, never committed).** A throwaway prototype read the plan's zone (`timeZone` allowed in `contributionSchema`, and `fundingHealth`'s today taken from `zonedDate(now, plan.timeZone ?? "UTC")`).
+- Z1–Z13 all turned red with "Expect test to fail". Guard G1 failed as intended, and all 33 locks and the zone-less twin stayed green.
+- Both files were then restored (`git checkout`).
+
+**Counts:** plain `pnpm test` gains 17 expected failures (Z1–Z12, Z13 twice, Z14–Z16): 4 + 17 = 21 expected to fail. The skip totals are unchanged. Measured after merging `main` `307a71b` (#60, #63): 2,303 passed, 21 expected to fail, 24 skipped (#63's MB1 and MB2 below included).
+
+## Session M additions, PR B (2026-10-02, [PR #63](https://github.com/reyals1111-ux/ZIGoals/pull/63))
+
+| # | Test (file:line) | Condition | Reason | Category | Where it runs |
+|---|---|---|---|---|---|
+| MB1 | `a remembered device reopens after a reload, in a new tab and after 15 idle minutes, until Forget or Lock now` (scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs:34) | `RUN10_BROWSER!=='1'` | Needs a running production server, Chrome and the private-sync Worker in Miniflare, like the other rehearsal files | env-gated | CI web integration ("Independent browser account and market integration") |
+| MB2 | `rotation on another device, sign-out and another account invalidate it; old material never opens the newer epoch` (remember-device-browser.test.mjs:69) | `RUN10_BROWSER` | same | env-gated | same step |
+
+**Vitest total in plain `pnpm test` on this branch: 24 skipped**, the 22 listed above plus MB1 and MB2. Measured after merging `main` `4d151c7` (#60): 2,222 passed, 4 expected to fail. No Playwright skip was added: `tests/remember-device.spec.ts` runs on both projects.
+
+## Session M additions, PR A (2026-10-02, [PR #60](https://github.com/reyals1111-ux/ZIGoals/pull/60))
+
+| # | Test (file:line) | Condition | Reason | Category | Where it runs |
+|---|---|---|---|---|---|
+| MA1–MA2 | `QA2-07: every standalone tap target on the main phone pages is at least 44 × 44 px` (apps/web/tests/phone-touch-targets.spec.ts:40); `QA2-07: the title links reach 44 px without moving anything` (:52) | `viewport.width > 767` (file-level `test.skip`) | Phone-only CSS: on the `desktop` project the layout is the desktop one, which the freeze check covers instead | project-scoped | Playwright `mobile` project (CI browser shards) |
+
+**Playwright:** the `desktop` project skips these 2 tests; the `mobile` project runs them. No Vitest skip was added.

@@ -8,6 +8,7 @@ import {dailyData,healthDay} from '../../lib/health-daily';
 import {EXERCISE_ICONS,EXERCISE_ICON_LABELS,MAX_COUNTERS,addCounter,changeCount,countOn,deleteCounter,editCounter,exerciseData,type ExerciseCounter,type ExerciseIcon} from '../../lib/health-counters';
 import type {HealthData} from '../../lib/health';
 import './exercise-counters.css';
+import {updateRefusalMessage} from '../../lib/storage-error-copy';
 
 type Update=(updater:(h:HealthData)=>HealthData)=>Promise<void>;
 const PATHS:Record<ExerciseIcon,ReactNode>={
@@ -49,7 +50,7 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
  function run(updater:(h:HealthData)=>HealthData,done?:string){
   const step=queue.current.then(()=>update(updater)).then(()=>{setError('');if(done)setStatus(done);});
   queue.current=step.catch(()=>{});
-  return step.catch(e=>{setError(e instanceof Error&&e.message.length<160?e.message:'Could not save this count. Check available browser storage, then try again.');throw e;});
+  return step.catch(e=>{setError(updateRefusalMessage(e,e instanceof Error&&e.message.length<160?e.message:'Could not save this count. Check available browser storage, then try again.'));throw e;});
  }
  const tap=(c:ExerciseCounter,delta:number)=>{void run(h=>changeCount(h,c.id,today,delta)).catch(()=>{});};
  const card=(c:ExerciseCounter)=>{

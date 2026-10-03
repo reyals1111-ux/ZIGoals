@@ -69,8 +69,8 @@ jobs:
       # Chrome comes from dl.google.com, which intermittently resets the
       # download (curl HTTP/2 INTERNAL_ERROR) or hangs. Up to 3 attempts of
       # at most 3 min each (normally about 30 s), 15 s then 45 s apart. Before
-      # each retry the script waits, at most 4 min, for any apt/dpkg lock that
-      # a timed-out attempt left held.
+      # each retry the script waits for any apt/dpkg lock that a timed-out
+      # attempt left held, as long as the 12-min step still fits one attempt.
       - name: Install Chrome for Playwright (up to 3 attempts)
         run: bash scripts/ci/install-chrome.sh pnpm --filter @zigoals/web exec playwright install --with-deps chrome
       - run: pnpm build
@@ -142,7 +142,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs scripts/run11/packaged-runtime.test.mjs scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs scripts/run11/stage8-rehearsal/lock-switch-browser.test.mjs scripts/run11/stage8-rehearsal/health-consent-cloud-browser.test.mjs scripts/run11/stage8-rehearsal/replay-browser.test.mjs scripts/run11/stage8-rehearsal/camera-browser.test.mjs scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs --no-file-parallelism --reporter=verbose
+          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs scripts/run11/packaged-runtime.test.mjs scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs scripts/run11/stage8-rehearsal/lock-switch-browser.test.mjs scripts/run11/stage8-rehearsal/health-consent-cloud-browser.test.mjs scripts/run11/stage8-rehearsal/replay-browser.test.mjs scripts/run11/stage8-rehearsal/camera-browser.test.mjs scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs --no-file-parallelism --reporter=verbose
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
       - name: Full generated Run11 package and local service topology

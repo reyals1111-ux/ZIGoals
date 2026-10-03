@@ -7,6 +7,7 @@ import {dueReminders, type DueReminder} from '../../lib/reminders/due';
 import {dismissForToday} from '../../lib/reminders/store';
 import {useReminders} from './use-reminders';
 import './reminders.css';
+import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 
 /**
  * Reminder cards on Today (Session I, Part 8): in-app only (no notification, no permission), from the times set on
@@ -25,7 +26,7 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   if (!due.length && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
-    catch { setError('This reminder could not be dismissed on this device. Check that this browser allows site data.'); }
+    catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
   };
   return <section className="reminder-cards" aria-label="Reminders on this device">
     {due.map(reminder => <article key={reminder.id} className="panel reminder-card" aria-label={`Reminder: ${reminder.title}`}>
