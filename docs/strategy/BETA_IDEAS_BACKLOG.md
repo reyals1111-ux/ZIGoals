@@ -315,7 +315,7 @@ Each option is a coherent 13-week shape. They can be mixed (for example A's firs
   - L4 (localized store pages);
   - TestFlight and Play testing tracks.
 - **What it teaches:**
-  - **Store discovery:** Apple says almost 65% of App Store downloads follow a search ([Apple Ads](https://ads.apple.com/app-store)).
+  - **Store discovery:** Apple says almost 65% of App Store downloads follow a search (its footnote dates this to 2022; [Apple Ads](https://ads.apple.com/app-store)).
   - **Privacy-safe store analytics:** App Store Connect's retention and peer benchmarks come from opted-in users with differential privacy ([peer group benchmarks](https://developer.apple.com/help/app-store-connect-analytics/benchmarks/peer-group-benchmarks/)).
 - **Approvals:**
   - new dependencies;

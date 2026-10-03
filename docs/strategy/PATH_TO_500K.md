@@ -21,7 +21,7 @@
 - **The strongest levers, in order:**
   1. **Conversion:** doubling it halves the people needed.
   2. **Steady growth in new people:** 2% a month instead of flat cuts the starting volume needed by about half.
-  3. **Store presence:** about 65% of App Store downloads follow a search.
+  3. **Store presence:** about 65% of App Store downloads follow a search (Apple's 2022 figure).
   4. **Retention,** which feeds referrals.
   5. **Languages.**
 
@@ -141,7 +141,7 @@
   - the four-app switch story ([MONETIZATION_OPTIONS](MONETIZATION_OPTIONS.md)).
   - Pricing decides much of c, and it is not decided.
 - **Growth (g):**
-  - store presence and search (about 65% of App Store downloads follow a search);
+  - store presence and search (about 65% of App Store downloads follow a search, in Apple's 2022 figure);
   - languages;
   - featuring;
   - content.

@@ -73,7 +73,7 @@ That is **235,97–273,97 €** ([MyFitnessPal BE](https://apps.apple.com/be/app
 | **EU terms** (Belgium included) | <ul><li>**In-app purchase:** 26%; 15% for small developers and for subscriptions after year one.</li><li>**Another payment processor inside the app:** 20% (10%).</li><li>**An out-of-app offer with a link:** 15% (10%) on sales within 7 days of the tap.</li><li>**A Core Technology Commission** of 5% for apps distributed outside the App Store.</li><li>The chosen options must be kept for 12 months ([apps in the EU](https://developer.apple.com/support/apps-in-the-eu/); [news](https://developer.apple.com/news/?id=gmws0jgp))</li></ul> | Effective **2026-10-01** |
 | US links to web purchases | <ul><li>On the **US storefront**, buttons and links to the web need no entitlement ([guidelines](https://developer.apple.com/app-store/review/guidelines/), updated 2026-06-08; [news](https://developer.apple.com/news/?id=9txfddzf)).</li><li>No Apple page states a commission on those sales.</li><li>The Ninth Circuit (*Epic Games v. Apple*, No. 25-2935, 2025-12-11) held that Apple may charge only a fee based on genuinely necessary costs, and none until the district court approves one ([opinion](https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf)).</li><li>Whether a fee has been approved since: **UNVERIFIED**</li></ul> | — |
 | 3.1.1 In-app purchase | <ul><li>Features, subscriptions and full unlocks use in-app purchase.</li><li>No license keys, QR codes or crypto as unlocks.</li><li>A free trial for a non-subscription app is a USD 0 item named as a trial</li></ul> | Guidelines 2026-06-08 |
-| 3.1.2 Subscriptions | <ul><li>At least 7 days long.</li><li>Must work on all of the person's devices.</li><li>**Moving to subscriptions must not remove functionality existing buyers paid for**</li></ul> | — |
+| 3.1.2 Subscriptions | <ul><li>At least 7 days long.</li><li>Must work on all of the person's devices.</li><li>**3.1.2(a): a move to subscriptions should not take away the primary functionality existing buyers paid for** (the guideline says *should*, not *must*)</li></ul> | — |
 | 3.1.3(b) Multiplatform | A purchase made elsewhere (for example on the web) may be unlocked in the app **if the same item is also offered as an in-app purchase** | — |
 | 3.1.5 Crypto | <ul><li>Wallets only from developers enrolled as organizations.</li><li>Exchanges only with licensing.</li><li>The November 2025 update lists crypto exchanges among highly regulated fields (5.1.1(ix)) ([news](https://developer.apple.com/news/?id=ey6d8onl))</li></ul> | 2025-11-13 |
 | 4.2 Minimum functionality | More than a repackaged website (relevant to wrapping the web app) | — |
@@ -86,11 +86,11 @@ That is **235,97–273,97 €** ([MyFitnessPal BE](https://apps.apple.com/be/app
 | Rule | What Google's page says | Effective |
 |---|---|---|
 | Markets on the old model | 15% on the first USD 1M a year, then 30%; subscriptions 15% ([service fees](https://support.google.com/googleplay/android-developer/answer/112622?hl=en)) | Until each region moves |
-| **New fee model** | <ul><li>**Subscriptions:** 10%, plus a 5% billing fee if Google Play Billing is used.</li><li>**The first USD 1M of earnings:** 10% + 5%.</li><li>**Other items:** new installs 20% (15% in Google's programs); existing installs 25% in-app or 20% through a web link.</li><li>A fee applies whether the sale uses Play's billing, alternative billing or an external link ([new model](https://support.google.com/googleplay/android-developer/answer/16954621?hl=en))</li></ul> | **EEA, UK, US 2026-06-30**; Australia and Japan 2026-09-30; Korea 2026-12-31; the rest of the world 2027-09-30 |
+| **New fee model** | <ul><li>**Recurring transactions (subscriptions):** 10%, plus a 5% billing fee if Google Play Billing is used.</li><li>**The first USD 1M of earnings:** 10% + 5%.</li><li>**Other items:** new installs 20% (15% in Google's programs); existing installs 25% in-app or 20% through a web link.</li><li>A fee applies whether the sale uses Play's billing, alternative billing or an external link ([new model](https://support.google.com/googleplay/android-developer/answer/16954621?hl=en))</li></ul> | **EEA, UK, US 2026-06-30**; Australia and Japan 2026-09-30; Korea 2026-12-31; the rest of the world 2027-09-30 |
 | EEA external offers | <ul><li>Ongoing 10% on subscriptions and 20% on other items bought within 24 h of the link.</li><li>**€1.20 per app install** ([external offers](https://support.google.com/googleplay/android-developer/answer/14372887?hl=en); [alternative billing](https://support.google.com/googleplay/android-developer/answer/12348241?hl=en))</li></ul> | Updated fees 2026-06-04 |
 | US links and alternative billing | <ul><li>Since 2025-10-29 Google may not prohibit links or other payment methods in the US.</li><li>**External content links:** 10% on subscriptions bought within 24 h; USD 2.85 per app install.</li><li>**US alternative billing:** 10% on subscriptions ([external content links](https://support.google.com/googleplay/android-developer/answer/16470497?hl=en), [US programs](https://support.google.com/googleplay/android-developer/answer/15582165?hl=en))</li></ul> | Reporting and payment from **2026-10-01** |
 | Payments policy | <ul><li>In-app features and services use Google Play Billing unless an exception or an enrolled program applies.</li><li>Its examples of cloud software that must use it include "financial management software" ([Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en))</li></ul> | — |
-| Family Library | **In-app purchases and subscriptions cannot be shared**; only eligible paid apps can ([help](https://support.google.com/googleplay/answer/7007852?hl=en)) | — |
+| Family Library | <ul><li>**In-app purchases cannot be shared** (nor free apps); only eligible paid apps can ([help](https://support.google.com/googleplay/answer/7007852?hl=en)).</li><li>The page does not mention subscriptions; whether a Play subscription can be shared with family: **UNVERIFIED**</li></ul> | — |
 | Prices by region | <ul><li>Play converts the default price and applies local price patterns.</li><li>Pricing templates were discontinued on 2025-10-27.</li><li>The maximum is USD 10,000 on request ([set prices](https://support.google.com/googleplay/android-developer/answer/6334373?hl=en))</li></ul> | — |
 
 ### 2.3 Web checkout (official pricing pages)
@@ -138,7 +138,7 @@ The flags use the pack's labels ([README](README.md#labels)). Options can be com
 **Cons:**
 - revenue arrives once while sync, email and market-data costs recur for as long as the person stays active (§6);
 - updates must be funded by new buyers;
-- **Apple 3.1.2:** a later move to subscriptions must not remove what buyers paid for.
+- **Apple 3.1.2(a):** a later move to subscriptions should not take away the primary functionality buyers paid for.
 
 **Fit with the four-app story:**
 - strong and simple ("one payment instead of four subscriptions");
@@ -240,7 +240,7 @@ The flags use the pack's labels ([README](README.md#labels)). Options can be com
 **Cons:**
 - sync cost rises with each person who syncs;
 - needs sharing features and, if children join, child-privacy rules;
-- **Google Play's Family Library cannot share in-app purchases or subscriptions;**
+- **Google Play's Family Library cannot share in-app purchases** (its help page does not mention subscriptions: UNVERIFIED);
 - **Apple's Family Sharing cannot be turned off once enabled.**
 
 **Fit with the four-app story:** "one app instead of four, for the whole household".
@@ -359,7 +359,7 @@ This is where ZIGoals' main running cost sits (COST_MODEL), so the examples matt
 ## 4. The options at a glance
 | Option | Revenue vs running cost | Fit with "replaces four paid apps" | Store complexity | Principle notes | Examples (§3) |
 |---|---|---|---|---|---|
-| One-time or lifetime | Paid once; cost recurs while the person syncs | Strong and simple | <ul><li>Low.</li><li>A later move to subscriptions must keep what buyers paid for (Apple 3.1.2).</li><li>Family Sharing cannot be withdrawn</li></ul> | ✓ | Streaks, Things 3; lifetime at Habitify, Structured, Flighty |
+| One-time or lifetime | Paid once; cost recurs while the person syncs | Strong and simple | <ul><li>Low.</li><li>A later move to subscriptions should keep the primary functionality buyers paid for (Apple 3.1.2(a)).</li><li>Family Sharing cannot be withdrawn</li></ul> | ✓ | Streaks, Things 3; lifetime at Habitify, Structured, Flighty |
 | Subscription | Recurring on both sides | "One subscription instead of four" | <ul><li>Renewals.</li><li>EU withdrawal function; UK rules (spring 2027)</li></ul> | ✓ | YNAB, Monarch, Copilot, MacroFactor |
 | Freemium tiers | Only payers pay; free users cost money if they sync | Try one pillar before all four | Tier design | ⚠ **no-chore** if sync is the paid part; ⚠ **private** if ads fund the free tier | Cronometer, Habitify, Finary, Emma |
 | Family or household | Cost rises per syncing member | "For the whole household" | <ul><li>Apple: opt-in per product.</li><li>Google Play: in-app purchases cannot be shared</li></ul> | ⚠ **private** (sharing); LC-new (children) | 1Password Families, YNAB, Habitify Family |
