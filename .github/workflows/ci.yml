@@ -66,13 +66,17 @@ jobs:
           package-manager-cache: false
       - run: npm install --global pnpm@11.19.0
       - run: pnpm install --frozen-lockfile
-      # Chrome comes from dl.google.com, which intermittently resets the
-      # download (curl HTTP/2 INTERNAL_ERROR) or hangs. Up to 3 attempts of
-      # at most 3 min each (normally about 30 s), 15 s then 45 s apart. Before
-      # each retry the script waits for any apt/dpkg lock that a timed-out
-      # attempt left held, as long as the 12-min step still fits one attempt.
+      # The runner image ships Google Chrome stable at Playwright's chrome
+      # channel path; chrome-deps.sh keeps it, installs the channel only when
+      # it is missing, and asks apt only for Chrome packages dpkg reports
+      # missing (Session P, 1.6: no 21 MB of fonts from the slow mirror). When
+      # Chrome must come from dl.google.com, which intermittently resets the
+      # download (curl HTTP/2 INTERNAL_ERROR) or hangs: up to 3 attempts of
+      # at most 3 min each, 15 s then 45 s apart. Before each retry the script
+      # waits for any apt/dpkg lock that a timed-out attempt left held, as long
+      # as the 12-min step still fits one attempt.
       - name: Install Chrome for Playwright (up to 3 attempts)
-        run: bash scripts/ci/install-chrome.sh pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+        run: bash scripts/ci/install-chrome.sh bash scripts/ci/chrome-deps.sh
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - env:
@@ -118,9 +122,9 @@ jobs:
           package-manager-cache: false
       - run: npm install --global pnpm@11.19.0
       - run: pnpm install --frozen-lockfile
-      # Same retry as the browser shards; see there.
+      # Same script and retry as the browser shards; see there.
       - name: Install Chrome for Playwright (up to 3 attempts)
-        run: bash scripts/ci/install-chrome.sh pnpm --filter @zigoals/web exec playwright install --with-deps chrome
+        run: bash scripts/ci/install-chrome.sh bash scripts/ci/chrome-deps.sh
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       # One file at a time: each file drives real Chrome and a local workerd,
