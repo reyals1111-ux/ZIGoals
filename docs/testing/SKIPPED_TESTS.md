@@ -160,6 +160,8 @@ Before `main` was merged in, the full local run on `2d0df63` counted 74 (desktop
 
 ## Session N additions: timezone phase 1 (2026-10-02, branch `time/session-n-2026-10-02`)
 ### Expected failures (`test.fails`, the decided timezone behaviour)
+**Session P (PR 2, 2026-10-03): Z1–Z15 flipped.** Timezone phase 3 (R1) landed: `contributionSchema` reads `timeZone`, funding and plan days follow the plan's zone, and `reviseGoalPlan` accepts a zone (the record becomes finance v4). Rows Z1–Z15 are plain tests now (Z13 on both devices); Z16 stays an expected failure until phase 4 (R2 adds the journal-zone default). Guards G1–G3 were updated in the same PR (see "Guards since Session P" below); G4 is unchanged. The table is kept as the record of what the rows stated. Plain `pnpm test` now has **1 expected failure** (Z16): 21 → 1.
+
 These are not bugs in today's code. Each states behaviour the owner decided (TIMEZONE_DESIGN.md: T1–T4) that later phases deliver. Funding and plan days follow the plan's own zone, and today they are UTC (QA-04, unchanged by owner decision). They count as "expected fail", like X1–X4. When a phase delivers the behaviour, the run turns red with "Expect test to fail". That phase converts its rows to plain tests and updates the matching guard. Never re-add `.fails` to silence one.
 
 | # | Test (file) | Today's failure (checked by converting to `test`) | Flips in | Flip PR action |
@@ -186,6 +188,12 @@ These are not bugs in today's code. Each states behaviour the owner decided (TIM
 - **G2:** the earliest change for a zoned plan is the next UTC day.
 - **G3:** `reviseGoalPlan` throws on a plan carrying `timeZone`.
 - **G4:** `plan-revisions` exports no `defaultPlanTimeZone`.
+
+**Guards since Session P (PR 2):**
+- **G1:** `contributionSchema` accepts an IANA zone and refuses a fixed offset ("+05:30"); a v3 record carrying a zone is refused (a zoned record is finance v4); a zoned plan's funding health is no longer `REVIEW`. The zone-less twin of every Z1–Z13 instant still shows the UTC answer (nothing writes a zone until phase 4).
+- **G2:** a zone-less plan's earliest change is still the next UTC day.
+- **G3:** `reviseGoalPlan` refuses a fixed-offset zone; a zone-less edit keeps the record at v3; a revision carrying an IANA zone makes it v4.
+- **G4:** unchanged.
 
 **Regression locks (plain tests, green today and after phase 2):**
 - 3 + 3 tests per device zone, under 11 device zones (66 runs).

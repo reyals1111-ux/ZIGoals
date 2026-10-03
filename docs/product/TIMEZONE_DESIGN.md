@@ -68,13 +68,13 @@ Body measurements (`lib/body-measurement-schema.ts:3`), Habit timers (`lib/habit
   - The data is not lost: the recovery copy exists.
   - Exports from the newer build still restore once the newer build returns.
   - **So never roll back past R1 once any R2 build has been live.** The Manual Alpha rollback should be to a version at or after R1.
-- **Restore across versions:** importing a v4 export into an older build fails with `NEWER_VERSION` (`lib/vault/storage-errors.ts:10`, `private-storage.ts:52`). That is the existing, safe behaviour.
+- **Restore across versions:** importing a v4 export into an older build is refused before anything is touched, with the same "unsupported version" message (`parsePrivateData` runs before the lock, `private-storage.ts`); `NEWER_VERSION` (`lib/vault/storage-errors.ts`) is the reverse case, a newer build refusing to replace its v4 record with an older backup. Both fail closed (proved in `apps/web/lib/vault/read-support.test.ts`, Session P). This corrects the earlier wording, which named `NEWER_VERSION` for the first case.
 - **Lazy write limits the blast radius** to users who actually chose a zone.
 
 ## Sync implications
 - **Validation happens before any upload.** `synchronize` validates the merged data before anything is published (`lib/vault/cloud-sync.ts:93`, with `validateData` from `lib/vault/account-data.ts:23`). An older-build device that pulls a v4 finance or v2 settings section therefore fails validation.
   - Nothing is uploaded or overwritten, and local data stays as it was.
-  - Today that surfaces as a **generic Zod error**. R1 must map it to a plain message: "This section was saved by a newer ZIGoals. Update the app on this device to keep syncing."
+  - Before R1 that surfaced as a **generic Zod error**. R1 maps it to a plain message: "This section was saved by a newer ZIGoals. Update the app on this device to keep syncing." (`NEWER_SECTION_MESSAGE` and `CURRENT_VERSIONS` in `lib/vault/account-data.ts`, Session P: a section whose `schemaVersion` is above this build's is refused with that message before its schema runs; nothing is uploaded and local records stay as they were.)
   - That is the one UI piece R1 needs.
 - **Finance merges as one opaque string** (`cloud-sync.ts:82`). Setting a plan zone on two devices at once is a "Conflicting financial changes" review like any other concurrent finance edit. Nothing merges silently.
 - **Settings merge field by field** (`mergeValue`). The same `journalTimeZone` chosen on two devices merges; two different choices become a field conflict for review.
@@ -144,9 +144,10 @@ These were the four open decisions of this design. The answers follow the design
 
 ### What this means for the phases
 - **Phases 1–2 (Session N)** change no stored format, so they don't wait for Stage 8.
-- **Phase 3 (R1, read support):** STATUS ("Recommended order after Stage 8", Session J) puts it after Stage 8 and ADR-006 option A, because its format change syncs.
-  - **In R1:** finance v4 and settings v2 in the Zod unions, absent zone = UTC, and the version-specific sync message. Funding reads `plan.timeZone ?? "UTC"`.
-  - **What flips:** the phase 1 expected failures that carry a plan zone.
+- **Phase 3 (R1, read support): delivered in Session P, PR 2 (2026-10-03),** after ADR-006 option A2 in the same PR; STATUS ("Recommended order after Stage 8", Session J) put it after Stage 8 and ADR-006, and the Stage 8 sync rows run on a build that includes it.
+  - **In R1:** finance v4 and settings v2 in the Zod unions (`platformSchema`, `dashboardSettingsSchema`), absent zone = UTC, `timeZoneSchema` (IANA names only, fixed offsets refused, `lib/time-zone-schema.ts`), and the version-specific sync message. Funding, plan and revision days read `plan.timeZone ?? "UTC"` (`planZone`, `planDay(now, zone)`, `lib/plan-revisions.ts`). A record becomes v4 only when a plan carries a zone (`financeVersion`): nothing writes one, so every stored record stays v3 and every funding day stays UTC in practice. Also in R1, by owner decision: read-only support for the synced homes of PR 3's device-only records (habits v3, health v2, and `healthGoals` in finance v4, `weeklyReview` in settings v2), see SYNC_HOMES.md.
+  - **What flipped:** Z1–Z15 (docs/testing/SKIPPED_TESTS.md); Z16 waits for R2.
+  - **The T4 clock starts at the Alpha deploy that includes PR 2.** Phase 4 preconditions: that deploy live, at least one further Alpha deploy and at least seven days after it, Stage 8 sync rows run on an R1 build, no "newer ZIGoals" refusals reported, and the Manual Alpha rollback target at or after R1.
 - **Phase 4 (R2, writes and UI):** at least one Alpha deploy **and** one week after R1 (T4).
   - **Defaults in R2:** a plan's zone defaults to the journal zone (T1). A journal-zone setting with per-module overrides (T2).
   - **What flips:** the remaining expected failures.

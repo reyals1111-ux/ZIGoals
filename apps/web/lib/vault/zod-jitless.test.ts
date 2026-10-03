@@ -45,7 +45,7 @@ const trimmed=(value:unknown):unknown=>Array.isArray(value)?value.slice(0,3).map
 test('JIT-compiled and jitless parsers agree on every stored-data schema: acceptance, output and issues',async()=>{
  const jit=await load();
  z.config({jitless:true});vi.resetModules();const jitless=await load();z.config({jitless:false});
- const {buildShowcase}=await import('../showcase-data'),{createVault,sealRecord,createDeviceKey,unlockVaultForDevice,manifestDigest}=await import('./crypto'),{modules}=await import('./account-data');
+ const {buildShowcase}=await import('../showcase-data'),{financeV4,habitsV3,healthV2,settingsV2}=await import('./format-fixtures'),{createVault,sealRecord,createDeviceKey,unlockVaultForDevice,manifestDigest}=await import('./crypto'),{modules}=await import('./account-data');
  const showcase=buildShowcase('2026-10-01').records,power=powerUserRecords().records,vault=await createVault(crypto.randomUUID());
  const context={vault:vault.manifest.vault,domain:'habits' as const,object:crypto.randomUUID(),revision:1,epoch:1};
  // Session M (ADR-008): the remembered-device record, without its CryptoKey (checked separately).
@@ -53,10 +53,11 @@ test('JIT-compiled and jitless parsers agree on every stored-data schema: accept
  const device={version:1,account,vault:vault.manifest.vault,epoch:1,manifest:await manifestDigest(vault.manifest),session:crypto.randomUUID(),health:true,createdAt:'2026-10-02T20:00:00.000Z',sealed};
  const plans={schemaVersion:1,chainId:'local-simulation',walletAddress:'local-demo-user',goals:{'1':{name:'Trip',category:'Travel',targetValue:'1200',currency:'ZIG',targetDate:'2027-09-15',startingAmount:'0',monthlyContribution:'50',riskPreference:'Conservative',liquidityPreference:'Anytime',deadlineFlexible:false,notes:''}}};
  const seeds:Record<string,unknown[]>={
-  finance:[modules.finance.empty(),JSON.parse(showcase['zigoals:platform:v1']!),JSON.parse(power['zigoals:platform:v1']!)],
-  habits:[modules.habits.empty(),JSON.parse(showcase['zigoals:habits:v1']!),JSON.parse(power['zigoals:habits:v1']!)],
-  health:[modules.health.empty(),JSON.parse(showcase['zigoals:health:v1']!),JSON.parse(power['zigoals:health:v1']!)],
-  settings:[modules.settings.empty()],
+  // Session P: the fourth seed of each module is the version read ahead of its writer (finance v4, habits v3, health v2, settings v2).
+  finance:[modules.finance.empty(),JSON.parse(showcase['zigoals:platform:v1']!),JSON.parse(power['zigoals:platform:v1']!),financeV4()],
+  habits:[modules.habits.empty(),JSON.parse(showcase['zigoals:habits:v1']!),JSON.parse(power['zigoals:habits:v1']!),habitsV3()],
+  health:[modules.health.empty(),JSON.parse(showcase['zigoals:health:v1']!),JSON.parse(power['zigoals:health:v1']!),healthV2()],
+  settings:[modules.settings.empty(),settingsV2()],
   localSimulation:[{schemaVersion:1,kind:'zigoals-local-simulation',ledger:null,plans:JSON.stringify(plans)},{schemaVersion:1,kind:'zigoals-local-simulation',omitted:'damaged'}],
   manifest:[vault.manifest],envelope:[await sealRecord(vault.key,context,{fixture:'jitless'}),vault.manifest.wrapped],recordContext:[context],
   syncState:[{version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null}],
