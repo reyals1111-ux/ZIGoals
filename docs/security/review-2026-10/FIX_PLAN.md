@@ -109,7 +109,11 @@ The changes:
 
 ## To review when Session P merges
 Session P's branches were read **read-only** on 2026-10-03:
-- `fix/session-p-2026-10-03` at `67fa146`;
+- `fix/session-p-2026-10-03` at `67fa146`, then again at `ef6b81a` before the final commit. The three newer commits are:
+  - a landing hero preload with `fetchpriority="high"` and a lighter image;
+  - food-queue test timing;
+  - `7ccbfac`, a CI change (check 8);
+- `review/session-p-screenshots` at `a91a4d2`: the PR 1 review screenshots. They show fixture data only (`friend@example.com`) and the public contact address;
 - no `sync/`, `features/` or `push-coach/session-p-2026-10-03` branch existed yet;
 - **ADR-010 (push) and ADR-011 (coach) were not on any branch yet.**
 
@@ -202,6 +206,12 @@ The push and coach checks below are therefore written from the brief's descripti
 ### 8. Session P's CI change (`c4aac31`, `TIER 3 (workflow)`)
 - It uses the runner image's Chrome (not pinned; it changes with the image) and installs only missing packages with apt.
 - Check that it runs only in jobs without secrets (true for `ci.yml`), that the Chrome version is printed in the log, and that no new action or download source was added.
+- `7ccbfac` (`TIER 3 (workflow)`) adds `playwright install ffmpeg`: about 2.5 MB from Playwright's CDN.
+  - The source is not new: `--with-deps` fetched the same file before.
+  - The revision is fixed by the locked `playwright-core` (1.63.0 names ffmpeg revision `1011`).
+  - It runs in `ci.yml` and nowhere else; release-candidate calls `ci.yml` without passing secrets.
+  - `ci.yml` has `contents: read` and references no secret.
+  - Keep the download out of any job that has a secret.
 
 ### 9. Mainnet reads (`40f6eb4`, `TIER 3 (chain reads)`)
 - Ties to Q-WRK-04: decide whether the public Alpha should read mainnet at all, and add the cache and rate limit (C4) before any announcement.
