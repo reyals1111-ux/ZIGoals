@@ -2,8 +2,9 @@ import {expect, test, type Page} from '@playwright/test';
 import {createVault} from '../lib/vault/crypto';
 
 // Session M, Part B2 (ADR-008, owner decision M1): "Remember on this device" in Settings → Account & sync. Account
-// requests are answered by fixtures, as in sync-offer-card.spec.ts; scripts/run11/remember-device-browser.test.mjs
-// drives the same flows against the real private-sync Worker. A real browser keeps the remembered record in IndexedDB.
+// requests are answered by fixtures, as in sync-offer-card.spec.ts; the Stage 8 rehearsal
+// scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs drives the same flows against the real private-sync
+// Worker. A real browser keeps the remembered record in IndexedDB.
 const account = '10000000-0000-4000-8000-000000000001', session = '20000000-0000-4000-8000-000000000002';
 const REMEMBER = 'Remember on this device — don’t use on shared computers';
 const panel = (page: Page) => page.getByRole('region', {name: 'Encrypted account sync', exact: true});
