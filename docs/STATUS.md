@@ -1,3 +1,96 @@
+# Stage 7 recovery rehearsal — 2026-10-03 evening (owner)
+
+Recorded by Session R1 at the owner's request: the "Stage 7 rehearsal" of [OWNER_RECOVERY_ADMIN.md](run11/OWNER_RECOVERY_ADMIN.md).
+
+Evidence label: **Owner:** reported by the owner, 2026-10-03. This session ran nothing against Cloudflare. No account names, emails or URLs are recorded.
+
+- **Setup:** a separate rehearsal checkout at `d439dc9`. The recovery-admin launch was patched locally exactly as Session R1 Part 3b specifies:
+  - no `--disable-dev-registry`. The pinned wrangler 4.144.0 rejects it ("Unknown arguments: disable-dev-registry"), so the unpatched tool cannot start `wrangler dev`;
+  - `WRANGLER_REGISTRY_PATH` set to a fresh directory inside the per-run temporary folder. (Owner)
+- **Results, by runbook step** (Owner):
+  - **3, fixture:** `verify` MATCH.
+  - **4, remote binding:** `export` succeeded, Receipts 0.
+  - **5, nothing else can reach it:**
+    - from another network, only Cloudflare error pages;
+    - no new or temporary Worker appeared;
+    - a local request without the session token returned `ADMIN_SESSION_UNCONFIGURED`.
+  - **6, dry run and reconcile:** DRY RUN OK, then RECONCILED (re-export digest matches), then ALREADY RECONCILED. `export` then showed Receipts 1.
+  - **7, wrong anchor:** refused before sending.
+  - **8–9, dashboard comparison and teardown:** the owner is completing them the same evening.
+- **Still to do:**
+  - re-run with the merged tool once Part 3b lands;
+  - record the receipt in [STAGE8_ACCEPTANCE.md](run11/STAGE8_ACCEPTANCE.md), as step 10 asks.
+- **For the review:** step 5 is the owner's evidence on `Q-OPS-05` (whether the temporary remote proxy is reachable).
+
+# Owner hardening (Session Q checklist, group A) — 2026-10-03
+
+Recorded by Session R1 at the owner's request: the group A steps of [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md), with values only where they are not secret.
+
+Evidence label: **Owner:** reported by the owner, 2026-10-03. Nothing here was checked by this session.
+
+| Step | Owner's result |
+|---|---|
+| A1, invite-only at Supabase | "Allow new users to sign up" is off. The test that an uninvited address receives no email runs at Stage 8. |
+| A2, market service | The acceptance route was removed at 18:54 UTC (522). It stays removed until Session R1's market fix is deployed. |
+| A3, Supabase rate limits | Token refreshes 600 per 5 min. Token verifications 150 per 5 min. Sign-ups and sign-ins 150 per 5 min. Emails 30 per hour (unchanged). |
+| A4, codes and changes | Email codes have 8 digits and are valid for 900 s. "Secure email change" is on. "Secure password change" is on. |
+| A5, scoped login | Wrangler was logged out after each step; no token file is left. |
+| A6, private configs | `activation-check --private` and `--admin` PASS. The seven configs are mode 600 and ignored by git. `LifecycleRecoveryAdmin` appears only in the recovery-admin config. |
+| A7, routes and secret names | Each Worker's secret names are as designed. workers.dev and Preview URLs are off on all six Workers. |
+| A8, Workers plan | Workers Paid, with a $10 Cloudflare budget alert. |
+
+On Workers Paid, the market abuse in `Q-WRK-01` turns into cost rather than stopping sync and sign-in. Session R1's daily write budget bounds it on either plan.
+
+# Activation Stage 7 progress — 2026-10-03 evening (owner)
+
+Recorded by Session R1 at the owner's request.
+
+Evidence label: **Owner:** reported by the owner in the Session R1 brief, 2026-10-03. This session contacted no provider and no Cloudflare account. Account emails, the workers.dev subdomain and the acceptance hostname are deliberately left out.
+
+- **Where:** the ops checkout at `d439dc9`, wrangler 4.144.0. (Owner)
+- **Deployed:** the six isolated acceptance Workers, 17:55–18:24 UTC.
+  - Each deploy reported "No targets deployed".
+  - Secrets were set interactively. (Owner)
+- **Live versions by role** (Owner):
+
+  | Role | Version |
+  |---|---|
+  | lifecycle (`RECOVERY_MODE=reconcile`) | `a5ecb321-1fbf-49da-a141-89330abb6385` |
+  | private sync | `1344fe32-941a-45a6-a80a-73780cc41280` |
+  | market coordinator | `7bc0f566-3518-4630-aa38-039b46acebaf` |
+  | food lookup | `0bff7eb3-89b1-44e7-8a6c-e2c15f87c893` |
+  | auth abuse (admission) | `400b7921-d781-4b55-a51b-bc0dbe9e88e4` |
+  | app | `d21d81c0-03cc-4031-b804-aa866f0cf9fd` |
+- **The app was built twice.**
+  - The first build baked the owner's local settings from `apps/web/.env.local` into `.open-next/cloudflare/next-env.mjs`.
+  - The owner moved `.env.local` aside and rebuilt. The deployed app is the second build.
+  - Session R1 Part 2 makes `build:alpha` refuse to run while such a file exists. (Owner)
+- **Hostname:**
+  - the dashboard's "Add Domain" refused the subdomain ("No zones match");
+  - the owner attached it with a proxied AAAA `100::` record plus a zone route;
+  - the route was removed at 18:54 UTC (the hostname answers 522) until the `Q-WRK-01` fix (Session R1 Part 1) is deployed. (Owner)
+- **Group A hardening and the recovery rehearsal:** their own entries above.
+
+# Apex landing deploy — 2026-10-03 afternoon, Landing V5 (`d439dc9`) live on zigoals.app
+
+A separate record from the Alpha deploy numbering. The apex Worker `zigoals` is published by hand with wrangler, not by the Manual Alpha workflow, so there is no Actions run. Recorded by Session R1 at the owner's request.
+
+Evidence labels:
+- **Owner:** reported by the owner in the Session R1 brief, 2026-10-03. This session did not contact the site or Cloudflare.
+- **git** / **STATUS:** read by the same session.
+
+- **Deploy:** run locally by the owner per [LANDING.md](deployment/LANDING.md) ("Owner-only deployment"), 2026-10-03 at 16:14 UTC. (Owner)
+- **Source:** `landing/` at `d439dc92091e6a271f3ce3fe95cac66467341678`, `main` after [#65](https://github.com/reyals1111-ux/ZIGoals/pull/65). There, `landing/` is Landing V5 as merged with [#61](https://github.com/reyals1111-ux/ZIGoals/pull/61); #65 did not touch it. (Owner, git)
+- **Live apex:** Worker `zigoals` (zigoals.app), new version `6b6dad3f-9ac2-4e40-bb9c-d020abb2d560`. (Owner)
+- **Rollback:** `4d96d9c9-38a9-425e-9679-515508c17754`, Landing V4. The 2026-10-01 record below lists it as live, so the chain holds. (Owner, STATUS)
+- **Owner checks:**
+  - all six security headers present: `content-security-policy`, `x-frame-options`, `x-content-type-options`, `referrer-policy`, `permissions-policy` and `cross-origin-opener-policy`;
+  - `/_headers` answers 404. (Owner)
+- **workers.dev and Preview URLs:**
+  - the deploy re-enabled the Worker's workers.dev URL. `landing/wrangler.jsonc` sets neither `workers_dev` nor `preview_urls`, and wrangler 4.144.0 turns workers.dev on for a config without routes;
+  - the owner switched workers.dev and Preview URLs off in the dashboard afterwards;
+  - Session R1 Part 3 sets both to `false` in the config. (Owner; wrangler 4.144.0 source)
+
 # Session Q — pre-Alpha security and privacy review: threat model refresh, data flows, 54 findings, owner checklist, incident runbook, fix plan (2026-10-03, [PR #67](https://github.com/reyals1111-ux/ZIGoals/pull/67), documents only, not merged)
 
 **This is an internal review by an AI (Claude), not a professional security audit.** Every document says so at the top.
@@ -3455,6 +3548,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 
 | Date (UTC) | Source | Version | Rollback | Evidence |
 |---|---|---|---|---|
+| 2026-10-03, 16:14 | `d439dc9` (`main` after #65; Landing V5 from #61) | `6b6dad3f-9ac2-4e40-bb9c-d020abb2d560` | `4d96d9c9-38a9-425e-9679-515508c17754` (Landing V4) | Owner report; [record](#apex-landing-deploy--2026-10-03-afternoon-landing-v5-d439dc9-live-on-zigoalsapp) |
 | 2026-10-01, about 18:40 | `1e676ba` (`main` after #55, Landing V4) | `4d96d9c9-38a9-425e-9679-515508c17754` | `de83a26a-d2ce-4f19-8067-09fa46a49fff` (previous landing, 2026-09-13) | Owner Terminal output; [record](#apex-landing-deploy--2026-10-01-evening-1e676ba-live-on-zigoalsapp) |
 
 ## PR #22 changes
@@ -3474,7 +3568,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 | 1 | OPEN | |
 | 2 | PARTLY | `CLAUDE.md` done |
 | 3 | PARTLY | Run11 final evidence (`414aa52b56bf2de049561dbbd248584d1c29c91b`, docs only) is backed up on branch `backup/run11-final-evidence` and not yet merged |
-| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 6 is complete and the Stage 7 preflight is READY at `57275a6` (owner-reported, 2026-10-02) |
+| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 7 in progress: the six acceptance Workers deployed from `d439dc9`, the acceptance route removed until the market fix is deployed, and the recovery rehearsal run with a locally patched launch, to be repeated with the merged tool (owner-reported, 2026-10-03; records at the top of this file). Earlier: Stage 6 complete and the Stage 7 preflight READY at `57275a6` (owner-reported, 2026-10-02) |
 | 5 | OPEN | |
 | 6 | OPEN | |
 | 7 | PARTLY | Real-iPhone check remains |
