@@ -53,9 +53,10 @@ export async function registerFollowers(tx:AtomicMarketStorage,items:{index:numb
  }
  await tx.put('followers',next);return out;
 }
-/** Polls many followers at once. A waiting follower changes nothing; a terminal one (published, fenced, expired or
- * cancelled) is retired. Published evidence wins over an elapsed registration, so a publication just before a
- * follower's last poll is never reported as a timeout. */
+/** Polls many followers at once. A waiting follower changes nothing, so a poll that only waits writes no row; a
+ * terminal one (published, fenced, expired or cancelled) is retired, which frees its place at once. Published
+ * evidence wins over an elapsed registration, so a publication just before a follower's last poll is never
+ * reported as a timeout. */
 export async function pollFollowers(tx:AtomicMarketStorage,items:{id:string;work:PublicMarketWork}[],now:number,cancelToken?:string){
  const stored=await tx.get<Follower[]>('followers')??[],retired=new Set<string>();
  const cancelled=cancelToken&&(await tx.get<Cancellation[]>('follower-cancellations')??[]).some(row=>row.token===cancelToken&&now<row.deadline);
@@ -71,7 +72,9 @@ export async function pollFollowers(tx:AtomicMarketStorage,items:{id:string;work
   else if(!row||now>=row.deadline||!state?.lease||now>=Math.min(state.lease.deadline,state.lease.expiresAt))terminal({ok:false,reason:'FOLLOWER_EXPIRED'});
   else results.push({ok:true,status:'WAITING',id,...value});
  }
- await tx.put('followers',stored.filter(row=>!retired.has(row.id)&&now<row.deadline));
+ // Unchanged when nothing was retired, so the command buffer drops the write. Lapsed registrations are pruned by
+ // the next registration or forget.
+ if(retired.size)await tx.put('followers',stored.filter(row=>!retired.has(row.id)));
  return results;
 }
 export async function forgetFollowers(tx:AtomicMarketStorage,ids:string[],now:number){

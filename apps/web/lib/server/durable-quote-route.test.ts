@@ -31,6 +31,25 @@ test('actual app route uses enabled binding and never its process-local provider
  expect((await POST(request({requests:pairs,account:'private'}))).status).toBe(400);expect(env.MARKET_QUOTES.fetch).toHaveBeenCalledTimes(1);
  vi.mocked(getCloudflareContext).mockReturnValue({env:{ZIGOALS_MARKET_QUOTES_MODE:'durable-v1'}} as never);expect((await POST(request({requests:pairs}))).status).toBe(503);expect(upstream).not.toHaveBeenCalled();
 });
+test('the coordinator hears a client only from the edge address: an x-market-client the caller sent is never forwarded',async()=>{
+ // Session R1 (header trust): per-client limits count against the address group of cf-connecting-ip, which
+ // Cloudflare's edge sets; a caller-supplied x-market-client is dropped on every market route.
+ const seen:{path:string;client:string|null}[]=[];
+ const env={ZIGOALS_MARKET_QUOTES_MODE:'durable-v1',MARKET_QUOTES:{fetch:vi.fn(async(request:Request)=>{seen.push({path:new URL(request.url).pathname,client:request.headers.get('x-market-client')});return new Response(null,{status:503});})}};
+ vi.mocked(getCloudflareContext).mockReturnValue({env} as never);
+ const upstream=vi.spyOn(globalThis,'fetch').mockRejectedValue(Error('Live provider forbidden'));
+ const quotes=await import('../../app/api/market-quotes/route'),insights=await import('../../app/api/market-insights/route'),history=await import('../../app/api/market-history/route'),assets=await import('../../app/api/market-assets/route');
+ const post=(route:{POST:(request:Request)=>Promise<Response>},path:string,body:unknown,headers:Record<string,string>)=>route.POST(new Request(`https://app${path}`,{method:'POST',headers:{'content-type':'application/json',...headers},body:JSON.stringify(body)}));
+ const spoofed={'x-market-client':'v4:198.51.100.1'};
+ for(const headers of [{...spoofed,'cf-connecting-ip':'203.0.113.9'},spoofed,{'cf-connecting-ip':'2001:db8:1:2::9'},{...spoofed,'cf-connecting-ip':'127.0.0.1'}]){
+  await post(quotes,'/api/market-quotes',{requests:pairs},headers);await quotes.GET(new Request('https://app/api/market-quotes',{headers}));
+  await post(insights,'/api/market-insights',{requests:pairs},headers);await post(history,'/api/market-history',{request:{...pairs[0]!,range:'1d'}},headers);
+  await assets.GET(new Request('https://app/api/market-assets',{headers}));
+ }
+ const expected=['v4:203.0.113.9',null,'v6:2001:0db8:0001::/48',null];
+ expect(seen.map(row=>row.client)).toEqual(expected.flatMap(client=>Array(5).fill(client)));
+ expect(new Set(seen.map(row=>row.path))).toEqual(new Set(['/quotes','/insights','/history','/catalog']));expect(upstream).not.toHaveBeenCalled();
+});
 test('pair error precedence is deterministic and unexpected failure identities reject',()=>{
  const failures=[{request:pairs[0]!,category:'UNKNOWN' as const},{request:pairs[0]!,category:'THROTTLED' as const}];
  expect(marketPairEnvelope([pairs[0]!],[],failures,Date.now())).toEqual(marketPairEnvelope([pairs[0]!],[],[...failures].reverse(),Date.now()));

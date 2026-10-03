@@ -27,6 +27,8 @@ export class CountingAccount {
   if(path==='/test/counts'){const counts=this.counts;this.counts=empty();return Response.json(counts);}
   // Every stored row, for scans that prove what is never stored. Values only leave through this test route.
   if(path==='/test/rows')return Response.json(Object.fromEntries(await this.state.storage.list?.()??new Map()));
+  // Sets today's count of rows written, so the daily row budget can be reached without thousands of requests.
+  if(path==='/test/day'){const {rows}=await request.json() as {rows:number},key=`market-day:${new Date().toISOString().slice(0,10)}`,day=await this.state.storage.get<{rows:number}>(key);await this.state.storage.put(key,{buckets:{},...day,rows});return Response.json({ok:true});}
   this.counts.requests++;
   try{const action=String((await request.clone().json() as {action?:unknown}).action);this.counts.actions[action]=(this.counts.actions[action]??0)+1;}catch{/* counted as a request only */}
   return this.account.fetch(request);

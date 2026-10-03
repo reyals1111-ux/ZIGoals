@@ -226,10 +226,12 @@ test('durable followers are independently bounded, cancellable, restart-safe and
 });
 
 test('cancelling one follower removes only its registration and leaves the charged owner running',async()=>{
- const {followMarketWork}=await import('./market-follow-work');const {account}=setup({leaseMs:10000});const owner=await attempt(account);for(const action of ['reserve','own','dispatch'])await account.apply({action,id:owner.id});
- const abort=new AbortController(),initial=await account.apply({action:'acquire',work:work('bitcoin')}),follower=followMarketWork(work('bitcoin') as Parameters<typeof followMarketWork>[0],initial,{command:row=>account.apply(row),signal:abort.signal});
- for(let i=0;i<20;i++){if((await account.apply({action:'inspect'})).followers===1)break;await Promise.resolve();}
- expect(await account.apply({action:'inspect'})).toMatchObject({followers:1,dispatched:1,chargedCredits:3});abort.abort();expect(await follower).toMatchObject({reason:'WAITER_CANCELLED'});expect(await account.apply({action:'inspect'})).toMatchObject({followers:0,dispatched:1,chargedCredits:3});
+ const {followMarketWorks}=await import('./market-follow-work');const {account}=setup({leaseMs:10000});const owner=await attempt(account);for(const action of ['reserve','own','dispatch'])await account.apply({action,id:owner.id});
+ // Session R1: the follower registers with acquire-many and is polled with poll-many; abort forgets it with forget-many.
+ const registered=await account.apply({action:'acquire-many',works:[work('bitcoin')],follow:{waitMs:1000}}) as {results:{follower?:string}[]};
+ expect(await account.apply({action:'inspect'})).toMatchObject({followers:1,dispatched:1,chargedCredits:3});
+ const abort=new AbortController(),follower=followMarketWorks([{id:registered.results[0]!.follower!,work:work('bitcoin') as Parameters<typeof followMarketWorks>[0][number]['work']}],{command:row=>account.apply(row),signal:abort.signal});
+ abort.abort();expect(await follower).toMatchObject([{reason:'WAITER_CANCELLED'}]);expect(await account.apply({action:'inspect'})).toMatchObject({followers:0,dispatched:1,chargedCredits:3});
 });
 test('aggregate follower capacity is bounded across work keys and timeout restores slots',async()=>{
  const {account,advance}=setup({leaseMs:10000,maxWorks:32});for(let key=0;key<17;key++){await account.apply({action:'acquire',work:work('key-'+key)});if(key===16)break;for(let i=0;i<8;i++)expect(await account.apply({action:'follow',work:work('key-'+key),waitMs:500})).toMatchObject({ok:true});}

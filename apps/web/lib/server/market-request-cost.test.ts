@@ -38,11 +38,12 @@ function provider(hold?:()=>Promise<void>){
 }
 const pairs=Array.from({length:64},(_,i)=>coin(`coin-${i}`,i%2?'EUR':'USD'));
 
-test.fails('one 64-pair insights request: cold it costs two Durable Object requests and bounded rows, cached one request and no write',async()=>{
+test('one 64-pair insights request: cold it costs one Durable Object request plus one per provider read and bounded rows, cached one request and no write',async()=>{
  const a=account(),p=provider(),cold=a.caller();let writes=a.storage.writes;
  const first=await durableInsights(pairs,{command:cold.command,key:'fixture-key',fetcher:p.fetcher});
+ // Two provider reads (USD and EUR): acquire-many, then one complete per read, which also starts the next read.
  expect(first.entries).toHaveLength(64);expect(p.calls).toHaveLength(2);
- expect(cold.actions.length,cold.actions.join()).toBeLessThanOrEqual(2);
+ expect(cold.actions,cold.actions.join()).toEqual(['acquire-many','complete','complete']);
  // About two rows per pair (its lease, then its evidence) plus a fixed overhead; Session Q counted about 800 before.
  expect(a.storage.writes-writes).toBeLessThanOrEqual(64*2+32);
  const warm=a.caller();writes=a.storage.writes;
@@ -51,13 +52,13 @@ test.fails('one 64-pair insights request: cold it costs two Durable Object reque
  expect(warm.actions.length,warm.actions.join()).toBeLessThanOrEqual(1);expect(a.storage.writes-writes).toBe(0);
 },20000);
 
-test.fails('more than 64 insight pairs are refused before any Durable Object request',async()=>{
+test('more than 64 insight pairs are refused before any Durable Object request',async()=>{
  const a=account(),p=provider(),c=a.caller(),many=Array.from({length:65},(_,i)=>coin(`many-${i}`));
  const result=await durableInsights(many,{command:c.command,key:'fixture-key',fetcher:p.fetcher});
  expect(c.actions).toEqual([]);expect(p.calls).toEqual([]);expect(result.entries).toEqual([]);expect(result.error).toBeTruthy();
 });
 
-test.fails('cached quotes, history and a single cached acquire write nothing',async()=>{
+test('cached quotes, history and a single cached acquire write nothing',async()=>{
  const a=account(),p=provider(),quotes=pairs.slice(0,32).map(pair=>coin(pair.marketRef.id)),history={...coin('bitcoin'),range:'1d' as const};
  await dispatchDurableQuotes(quotes,{command:a.caller().command,key:'fixture-key',fetcher:p.fetcher});
  await durableHistory(history,{command:a.caller().command,key:'fixture-key',fetcher:p.fetcher});
@@ -68,7 +69,7 @@ test.fails('cached quotes, history and a single cached acquire write nothing',as
  expect(p.calls).toHaveLength(calls);expect(warm.actions.length,warm.actions.join()).toBeLessThanOrEqual(3);expect(a.storage.writes-writes).toBe(0);
 },20000);
 
-test.fails('a follower polls at most every 250 ms, and its waiting writes nothing',async()=>{
+test('a follower polls at most every 250 ms, and its waiting writes nothing',async()=>{
  const a=account(),gate=deferred(),p=provider(()=>gate.promise),two=pairs.slice(0,2).map(pair=>coin(pair.marketRef.id));
  const owner=durableInsights(two,{command:a.caller().command,key:'fixture-key',fetcher:p.fetcher});await until(()=>p.calls.length===1);
  const follower=a.caller(),following=durableInsights(two,{command:follower.command,key:'fixture-key',fetcher:p.fetcher});
@@ -79,7 +80,7 @@ test.fails('a follower polls at most every 250 ms, and its waiting writes nothin
  expect(follower.actions.filter(action=>action.startsWith('poll')).length,follower.actions.join()).toBeLessThanOrEqual(4);expect(waitingWrites).toBe(0);
 },20000);
 
-test.fails('a queued attempt polls for dispatch at most every 250 ms, and its waiting writes nothing',async()=>{
+test('a queued attempt polls for dispatch at most every 250 ms, and its waiting writes nothing',async()=>{
  const a=account({policy:{...policy,concurrent:1}}),gate=deferred(),p=provider(()=>gate.promise);
  const first=durableHistory({...coin('bitcoin'),range:'1d'},{command:a.caller().command,key:'fixture-key',fetcher:p.fetcher});await until(()=>p.calls.length===1);
  const queued=a.caller(),second=durableHistory({...coin('ethereum'),range:'1d'},{command:queued.command,key:'fixture-key',fetcher:p.fetcher});

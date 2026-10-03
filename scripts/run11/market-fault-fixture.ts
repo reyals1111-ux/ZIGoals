@@ -21,15 +21,21 @@ export class FaultAccount {
    const {id}=await request.json() as {id:string};
    return Response.json({budget:await storage.get('budget'),receipt:await storage.get(`attempt:${id}`),works:await Promise.all(((await storage.get<string[]>('work-index'))??[]).map(async key=>[key,await storage.get(`work:${key}`)]))});
   }
-  const command=await request.clone().json() as {action:string;id:string};
+  const command=await request.clone().json() as {action:string;id?:string};
   const plan=await storage.get<Plan>('test-plan');
   if(!plan||plan.action!==command.action)return new MarketAccount(this.state,this.env).fetch(request);
-  await storage.delete('test-plan'); // Claim once outside the transaction being interrupted.
-  let hit=false;
+  let hit=false,id=command.id;
+  // The batched commands (Session R1) reach these states in one transaction: acquire-many and admit end in
+  // DISPATCHED, complete in SETTLED. acquire-many names no attempt, so the dispatched one is reported.
   const matches=(key:string,value:unknown)=>{
-   const status=({reserve:'RESERVED',own:'OWNED',dispatch:'DISPATCHED',settle:'SETTLED'} as Record<string,string>)[command.action];
-   return plan.target==='budget'?key==='budget'&&(value as {reservations:Record<string,{status:string}>}).reservations[command.id]?.status===status:
-    plan.target==='receipt'?key===`attempt:${command.id}`&&(value as {outcome?:string}).outcome!==undefined:key.startsWith('work:')&&(value as {evidence?:unknown}).evidence!==undefined;
+   const status=({reserve:'RESERVED',own:'OWNED',dispatch:'DISPATCHED',settle:'SETTLED','acquire-many':'DISPATCHED',admit:'DISPATCHED',complete:'SETTLED'} as Record<string,string>)[command.action];
+   if(plan.target==='budget'){
+    if(key!=='budget')return false;
+    const rows=Object.entries((value as {reservations:Record<string,{status:string}>}).reservations),row=command.id?rows.find(([rowId])=>rowId===command.id):rows.find(([,entry])=>entry.status===status);
+    if(!row||row[1].status!==status)return false;
+    id=row[0];return true;
+   }
+   return plan.target==='receipt'?key===`attempt:${command.id}`&&(value as {outcome?:string}).outcome!==undefined:key.startsWith('work:')&&(value as {evidence?:unknown}).evidence!==undefined;
   };
   const wrapped:AtomicMarketStorage={
    get:key=>storage.get(key),put:(key,value)=>storage.put(key,value),delete:key=>storage.delete(key),
@@ -39,7 +45,9 @@ export class FaultAccount {
    }})).then(result=>{if(hit&&plan.point==='after-commit')throw Error('Synthetic acknowledgement loss after transaction commit');return result;}),
   };
   const response=await new MarketAccount({storage:wrapped},this.env).fetch(request);
-  await storage.put('test-report',{...plan,hit,action:command.action,id:command.id});
+  // Claimed once, outside the interrupted transaction, by the first command that reaches the boundary: an admit
+  // poll that only waits writes nothing and leaves the plan armed.
+  if(hit){await storage.delete('test-plan');await storage.put('test-report',{...plan,hit,action:command.action,id});}
   return response;
  }
 }

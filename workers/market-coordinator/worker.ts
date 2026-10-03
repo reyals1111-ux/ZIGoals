@@ -2,7 +2,12 @@ import {DurableMarketAccount,type AtomicMarketStorage} from '../../apps/web/lib/
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {durableCatalog,durableHistory,durableInsights,parseDurableMarketBody} from '../../apps/web/lib/server/market-durable-data';
 import {boundedQuoteText} from '../../apps/web/lib/market-quotes';
+import {CATALOG_FRESH_MS} from '../../apps/web/lib/market-assets';
 import {dispatchDurableQuotes} from '../../apps/web/lib/server/durable-quote-dispatch';
+import {MARKET_CLIENT_GROUP} from '../../apps/web/lib/server/market-client-address';
+import {MarketIsolateCache} from '../../apps/web/lib/server/market-isolate-cache';
+/** Commands that carry provider evidence (up to 16 MB); every other command body is at most 64 KB. */
+const evidenceCommands=['publish-data','complete'];
 /** Internal durable account; the default Worker endpoint does not expose commands. */
 export class MarketAccount {
  private account:DurableMarketAccount;
@@ -14,7 +19,7 @@ export class MarketAccount {
   const reader=request.body?.getReader();if(!reader)return new Response(null,{status:400});const chunks:Uint8Array[]=[];let total=0;const limit=request.headers.get('x-market-payload')==='evidence'?16*1024*1024:65536;
   for(;;){const chunk=await reader.read();if(chunk.done)break;total+=chunk.value.byteLength;if(total>limit){void reader.cancel().catch(()=>{});return new Response(null,{status:413});}chunks.push(chunk.value);}
   const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
-  try{const body=new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(bytes),command=JSON.parse(body);if(total>65536&&command?.action!=='publish-data')return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
+  try{const body=new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(bytes),command=JSON.parse(body);if(total>65536&&!evidenceCommands.includes(command?.action))return new Response(null,{status:413});return Response.json(await this.account.apply(command),{headers:{'cache-control':'no-store'}});}catch{return Response.json({ok:false,reason:'MALFORMED'},{status:400});}
  }
 }
 const worker={fetch(){return new Response('Not found',{status:404,headers:{'cache-control':'no-store'}});}};
@@ -22,7 +27,11 @@ const worker={fetch(){return new Response('Not found',{status:404,headers:{'cach
 // parseDurableMarketBody validates these payloads with zod, but its inferred return type
 // collapses to {version:1} (subtype reduction of its conditional), so name them here.
 type HistoryRequest=Parameters<typeof durableHistory>[0];type QuoteRequests=Parameters<typeof dispatchDurableQuotes>[0];
-type QuoteEnv={MARKET_QUOTE_DISPATCH?:string;MARKET_ACCOUNT_ID?:string;COINGECKO_DEMO_API_KEY?:string;MARKETS:{idFromName:(name:string)=>unknown;get:(id:unknown)=>{fetch:(request:Request)=>Promise<Response>}}};
+type QuoteEnv={MARKET_QUOTE_DISPATCH?:string;MARKET_ACCOUNT_ID?:string;COINGECKO_DEMO_API_KEY?:string;ISOLATED_FIXTURE?:string;MARKETS:{idFromName:(name:string)=>unknown;get:(id:unknown)=>{fetch:(request:Request)=>Promise<Response>}}};
+/** This isolate's fresh evidence and last complete catalog (Session R1). Off under the fixture clock, whose evidence
+ * times are not the isolate's. */
+const isolateCache=new MarketIsolateCache();
+let catalogText:{text:string;fetchedAt:number}|undefined;
 /** Available only through an explicitly configured named service binding. The default
  * public endpoint above cannot reach provider dispatch or coordinator commands. */
 export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
@@ -38,10 +47,18 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   }
   const cancelToken=request.headers.get('x-market-cancel-token')??undefined;
   if(cancelToken&&!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cancelToken))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
+  // The app's address group for per-client limits. It is passed to the account, which stores only a keyed hash
+  // bucket; it is never logged or returned.
+  const client=request.headers.get('x-market-client')??undefined;
+  if(client!==undefined&&!MARKET_CLIENT_GROUP.test(client))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
   let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
-  const command=async(command:unknown)=>{const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:(command as {action?:string}).action==='publish-data'?{'x-market-payload':'evidence'}:{},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll'].includes(String((command as {action?:string}).action))?17*1024*1024:1024*1024)) as Record<string,unknown>;};
-  const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken};
+  const cached=this.env.ISOLATED_FIXTURE!=='true';
+  if(path==='/catalog'&&cached&&catalogText&&Date.now()-catalogText.fetchedAt<CATALOG_FRESH_MS)return new Response(catalogText.text,{headers});
+  const send=async(command:unknown)=>{const action=String((command as {action?:string}).action);const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:evidenceCommands.includes(action)?{'x-market-payload':'evidence'}:{},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll','acquire-many','poll-many'].includes(action)?17*1024*1024:1024*1024)) as Record<string,unknown>;};
+  const command=cached?isolateCache.wrap(send):send;
+  const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken,client};
   const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request as HistoryRequest,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests as QuoteRequests,context):await durableInsights(body.requests as QuoteRequests,context):null;
+  if(path==='/catalog'&&cached&&result&&'assets' in result&&!result.error&&result.fetchedAt){const text=JSON.stringify(result);if(text.length<=16*1024*1024)catalogText={text,fetchedAt:Date.parse(result.fetchedAt)};return new Response(text,{headers});}
   return Response.json(result,{headers});
  }
 }
