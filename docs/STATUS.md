@@ -1,3 +1,185 @@
+# Session M (PR A) — polish and reliability: deploy #23 record, QA2 fixes (storage messages, losses, Staking tabs, phone targets, Wealth timing), two CI intermittents, friends-guide line (2026-10-02, [PR #60](https://github.com/reyals1111-ux/ZIGoals/pull/60), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141 standing in for `chrome`. It cannot play the brand film, so those specs fail here and pass in CI (CLAUDE.md).
+- **Miniflare:** the real Workers in local workerd.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** an official page read on 2026-10-02. **UNVERIFIED** means no official page could be found or read here.
+
+No account, secret, wallet, Cloudflare or provider login, or deploy was used.
+
+**Base:** `main` `57275a6` (Alpha deploy #23). Session M's PR B ([#63](https://github.com/reyals1111-ux/ZIGoals/pull/63), "never a chore" accounts) is separate. **Merge this PR first.** Session N worked in parallel on its own lane; this PR touches none of N's files.
+
+## Parts
+| Part | What | Commit |
+|---|---|---|
+| A0 | Alpha deploy #23 recorded (`57275a6`, VERIFIED, versions and rollback); Release identity updated; the owner's activation report (Stage 6 complete, Stage 7 preflight READY at `57275a6`) | `7ee88ad` |
+| A1 (QA2-02) | Health quick counters, Health saves, the reminder cards, the water reminder and the habit reminder time use the coded storage messages. Follow-up: an older test expected the old generic message (see Tests) | `0f8fa55`, `19152a4` |
+| A2 (QA2-03, M3) | Money never reads a loss smaller than it is: negative amounts are cut away from zero at the currency's digits, positive amounts are still truncated, quantities (ZIG, BTC) are unchanged. Portfolio results, Wealth, a Goal's intelligence and Today. Two existing assertions changed because M3 requires it (named in the commit) | `903e05b` |
+| A3 (QA2-06) | Staking no longer shows the Goal workspace tabs. Goals' "Positions" still lands on Staking's Positions; a Goal's page keeps its tabs | `45e84af` |
+| A4 (QA2-07) | Every standalone tap target on a phone is at least 44 × 44 px, through phone-only CSS (`phone-targets.css`); desktop and tablet are unchanged | `c543009` |
+| A4 (QA2-08) | Wealth with 200 positions profiled against #54; the money formatter now does its locale work once per currency (identical output) | `0e83d56` |
+| A5a | `market-fanout.test.mjs` repeats a cold wave that a slow runner made expire, at most 3 times, without relaxing any assertion (test only) | `33010a5` |
+| A5b [Tier 3] (workflow) | The Chrome-install apt/dpkg lock wait may use what the 12-min step leaves after one full attempt (325–335 s instead of 240 s) | `ecac6c6` |
+| A6 | Help and FRIENDS_GUIDE: "Turn on encrypted sync on your first device before you start using a second one." IOS_STORAGE re-checked: the Home Screen 7-day exemption stays **UNVERIFIED** (sources listed). QA2-05 (the landing FAQ) is left to Session N | `67edab1` |
+| A7 | This entry, the Known CI intermittents table, SKIPPED_TESTS (appended) | this commit |
+
+## [Tier 3] commits and risk
+- **`ecac6c6` (workflow):** a CI shard whose first Chrome install timed out with apt-get still holding the dpkg lock may wait 85–95 s longer before it retries or fails with the same clear error. The step still ends within its 12-min limit. Only that bound changed. In this PR's own CI the longer wait was not enough once (see CI below): the mirror was slower still.
+
+## QA2-08: Wealth with 200 positions (local, #54's method)
+Production builds on this machine, one browser at a time, power-user data (45 habits / 12,915 check-ins, 3 years of Health, 200 positions) restored through Settings, 1440×900, `/api/**` answered by a 503 fixture. "Ready" is navigation start to the first frame with the page's `h1` and its holdings shown and nothing busy; long tasks are those reported while the page loads and settles (1.5 s after ready). 11 interleaved rounds per build (after one warm-up round), medians, interquartile range in brackets:
+
+| Build | Ready | Longest task | All long tasks |
+|---|---|---|---|
+| #54 `fc906e8` | 808 ms (800–883) | 335 ms (323–383) | 1,122 ms (1,031–1,198) |
+| this branch before the fix (`c543009`) | 875 ms (838–920) | 353 ms (338–381) | 1,198 ms (1,150–1,338) |
+| this branch after the fix (`0e83d56`) | 867 ms (846–896) | 381 ms (364–408) | 1,159 ms (1,135–1,346) |
+
+- **Cause found:** style, layout and paint are unchanged since #54 (timeline trace); the extra time is script. A CPU profile of the load puts about 195 ms of self time in `lib/visual-format.ts`: `formatMoney` (Session I, Part 5, after #54) asked Intl for the currency's digits (`resolvedOptions`) and for the sign and symbol layout (`formatToParts`) for every amount.
+- **Fix:** both are cached, per currency and per locale, currency and sign; outputs are identical (new test against a fresh Intl computation in six locales and currencies). Self time in that code during the load: **195 → 101 ms** (CPU profile, 3 runs per build).
+- **End to end:** the before/after differences in ready time and long tasks are within the run-to-run spread (the ranges overlap). The remaining gap to #54 is date formatting (about 42 ms of self time) and rendering the glass progress bars; both are follow-ups. In an earlier 7-round session the branch and #54 were 856 and 850 ms ready, so a share of the gap is noise between sessions too.
+- Drivers are scratch scripts and are not committed, as in the QA sweep.
+
+## Desktop and tablet differences (freeze check, `scripts/desktop-freeze-check.mjs`)
+**Against `57275a6` (main, deploy #23), at `19152a4`, all 154 captures (6 desktop and tablet sizes × Showcase and empty) (local):**
+- **130 are identical.** That includes Today, Goals, a Goal's page, Habits, Health, Wealth, Portfolio and Activity, which A1, A2 and A4 touch.
+- **24 differ: exactly Staking (12) and Help (12)**, the two authorized differences (A3 and A6). No page errors on either side.
+  - **Staking, accessibility tree:** the only change is that the "Goal workspace" navigation and its two links (Goals, Positions) are gone. Each page is 82 px shorter.
+  - **Help, accessibility tree:** the "Once accounts open" paragraph gains the A6 sentence. The feedback link's mail body names the build's commit (`57275a6` → `19152a4`), as on every build.
+    - At 1024×768 and 820×1180 (touch or not), the sentence fits on the paragraph's last line. The page keeps its size, and every pixel that differs by more than 40/255 is on that line (one band of 15 rows).
+    - At the other sizes, the page is 25–26 px taller.
+  - **Pixels:** the script skips pixel comparison when the page size changes, so for those captures I compared rows directly.
+    - Above the change point, nearly every differing pixel differs by 1–4/255. That is the body's background gradient, which is sized to the page's height.
+    - A few small decorative spots differ by at most 34/255.
+    - Below the change point, after the height shift, the flagged areas show the same content in crops: text offset by a sub-pixel, gradient headings, and the fixed sidebar.
+- **A2:** Portfolio, Wealth, Today and a Goal's page are identical in the freeze data. No amount shown there has more digits than its currency, which is the only case that changes; `lib/money-loss.test.ts` covers that case.
+- **A4 (phone targets):** phone-only CSS. No desktop or tablet capture changed.
+
+## Tests (totals per run, never added together)
+- **Unit (local, `pnpm test` at `19152a4`):** **2,185 passed, 4 expected to fail (X1–X4), 22 skipped** (2,211 tests, 157 s). These are the same skips as before (SKIPPED_TESTS.md).
+  - **A first run** had 1 failure, because three production servers were still running on this machine: `scripts/worker-types.test.mjs` took 7.9 s against its 5 s limit.
+  - That file passes alone (2.6 s), in the second run and in CI's web checks. This PR changes no Worker file.
+- **Browser, full suite (local, production build of `19152a4`, 2 workers):** **911 passed, 49 skipped, 4 failed, 0 flaky** (44.0 min).
+  - **The 4 failures:** the two brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) in both projects. This sandbox's Chromium cannot play the film (CLAUDE.md); they pass in CI.
+  - **The 49 skips:** the 47 existing project skips, plus this PR's 2 (`phone-touch-targets.spec.ts` on the desktop project; SKIPPED_TESTS.md, appended).
+  - **New specs:**
+    - `storage-errors-health`: 6 tests;
+    - `staking-tabs`: 3 tests;
+    - `phone-touch-targets`: 2 tests.
+
+    The first two run in both projects. `phone-touch-targets` runs in the mobile project only.
+- **A4 regression before its push (local):** 54 specs that touch the changed pages: 415 passed, 43 skipped, 0 failed.
+- **Changed by this PR, with the reason:**
+  - **`visual-format.test.ts` and `run10-visuals.test.ts` (A2), commit `903e05b`:** owner decision M3 requires it. A negative amount with more digits than its currency now reads one minor unit larger: "-0.004" USD was "$0.00" and is now "-$0.01". "−0" is still never shown.
+  - **`run11-recovery-failures.spec.ts` (A1), commit `19152a4`:** QA2-02 requires it. The spec expected Health's old generic "Could not save this change", which QA2-02 replaces with the coded STORAGE_FULL message. The assertion is now exact. CI on `45e84af` and `c543009` had failed on it.
+- **Scripts:**
+  - `install-chrome.test.mjs`: 12 passed (2 new).
+  - `market-fanout.test.mjs`: passed. A scratch copy also exercised its retry and its "runner too slow" failure.
+
+## CI on this PR
+- **`19152a4`** ([run 37067175807](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067175807)):
+  - **Attempt 1:** one job failed. "web browser suite (shard 3/3)" failed in "Install Chrome for Playwright", before any test ran.
+    - The first attempt timed out, and its apt-get still held the dpkg lock when the new wait reached its full bound (335 s; 337 s were waited). The Ubuntu mirror was delivering Playwright's 21.1 MB of fonts at about 38 KB/s: 19.7 MB after 8.7 min.
+    - This is the listed Chrome-install intermittent. [Standing-down comment](https://github.com/reyals1111-ux/ZIGoals/pull/60#issuecomment-5962147978).
+  - **Attempt 2:** the one re-run of the failed jobs. All green:
+    - web checks;
+    - web integration;
+    - browser shards 15.3, 12.4 and 11.8 min;
+    - contract;
+    - `web`.
+  - **Reproducibility:** green ([run 37067175721](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37067175721)).
+- **`45e84af`** ([run 37059221799](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37059221799)) **and `c543009`** ([run 37064115568](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37064115568)): failed in `run11-recovery-failures.spec.ts` (desktop and mobile). It was this PR's failure; see Tests. `19152a4` fixes it.
+- **`7ee88ad`, `0f8fa55`, `903e05b`, `0e83d56`, `ecac6c6` and `67edab1`:** Milestone quality runs cancelled by my own newer pushes, as the workflow's concurrency rule does. Reproducibility was green on each.
+- **This commit:** reported on the PR.
+
+## Known CI intermittents (table below updated)
+- **Chrome-install apt/dpkg lock:** a new row. It is mitigated again by A5b, and it still fails when the mirror is slower than about 40 KB/s (see CI above).
+- **`market-fanout.test.mjs`:** a new row, fixed by A5a (test only).
+
+## Owner decisions
+- **Applied:**
+  - **M3:** losses round away from zero (A2).
+  - **M4:** the sidebar words are kept as they are; nothing was changed.
+  - **Lane update:** QA2-05 is left to Session N. This PR touches none of N's files.
+  - **SKIPPED_TESTS:** one section appended; nothing was restructured.
+- **Needed:**
+  1. **QA2-08, keep or revert `0e83d56`.**
+     - The formatter's own CPU time on Wealth's load halves (195 → 101 ms), and every output is identical.
+     - Page-level ready time and long tasks moved within the run-to-run spread, so the gain is not measurable end to end.
+     - Session K's Part 5 was reverted for a similar reason. I kept this one because the profile shows the saving directly.
+     - It is a self-contained commit, so a revert is clean.
+  2. **Chrome install, the mirror dependency.** Install fewer fonts, or cache the packages (a workflow change), or keep re-running when it happens.
+  3. **iPhone:** a device test of the Home Screen 7-day exemption (UNVERIFIED).
+
+## Decisions made without the owner, and deviations
+- **A1:** two small helpers in `lib/storage-error-copy.ts`, with tests: `updateRefusalMessage` and `deviceSettingFailureMessage`.
+  - The reminder surfaces use the transactional wording, without "move this module", because that advice does not apply to them.
+- **A4:**
+  - The phone targets live in one new stylesheet, `components/phone/phone-targets.css`, imported by `phone-chrome.tsx`. The plan had expected edits to the existing phone stylesheets.
+  - The audit applies WCAG 2.5.8's exception for links inside sentences.
+- **QA2-08:** the cause was the money formatter, not the GlassBar observers the plan suspected. So `use-entrance.ts` is unchanged, and the fix is in `lib/visual-format.ts`.
+- **A6:** the friends-guide line adds why it matters: the second device then starts from the synced records.
+
+## Follow-ups (not done here)
+- **QA2-08, the rest:**
+  - date formatting in `written()` (about 42 ms of self time on Wealth's load) could reuse its results;
+  - the holdings list could render its glass bars lazily.
+
+  Neither was clear and safe enough for this PR.
+- **QA2-05** (the landing FAQ line): Session N rebuilds the landing.
+- **Chrome install:** a mirror slower than about 40 KB/s still fails the 12-min step (see CI above). Shortening the font list Playwright installs, or caching the packages, would remove the dependency on the mirror. Both need an owner decision on workflow scope.
+- **iPhone:** the Home Screen 7-day exemption stays UNVERIFIED until a device test or a reachable webkit.org.
+
+## How the owner can review
+- **Screenshots:** the folder `pr-a/` on the branch `review/session-m-screenshots` (never merged), linked from [the PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/60#issuecomment-5962836000).
+- **Local preview:**
+  1. In `~/Documents/ZIGoals-Claude`, run `git fetch origin`.
+  2. Run `git checkout polish/session-m-2026-10-02`.
+  3. Run `pnpm install --frozen-lockfile --ignore-scripts`.
+  4. Run `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101`.
+  5. Open http://127.0.0.1:3101/app, then Settings → Load Showcase Demo.
+- **What to look at:**
+  1. **Staking:** no "Goals · Positions" tabs under the title.
+  2. **Portfolio:** Ethereum's loss.
+  3. **At phone width** (browser dev tools, 390 px): the Goals tabs and the Activity event titles are easier to tap.
+  4. **Help, "Where your data lives":** the new sentence.
+
+# Alpha deploy — 2026-10-02 evening, `57275a6` live
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session M cloud session on 2026-10-02. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in the Session M brief, 2026-10-02.
+
+- **Run:** Manual Alpha deployment #23, [run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899), 2026-10-02 18:35–18:42 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after #59. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `02a62cef-e67f-48db-afcd-dfb8c784b031`. The last observed live version is the same. (CI log)
+- **Rollback:** `8848babc-8168-4c07-a5e4-0712cc6d4a54`, the version deploy #22 published, so the chain holds. (CI log)
+- **CI on `57275a6`:** Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)): success on attempt 2. (Actions API)
+  - Attempt 1 failed in one job, "web browser suite (shard 3/3)": `[mobile] tests/run9-2-product.spec.ts:10` timed out at 120 s in `locator.click`, after Playwright logged "performing click action" on the Activity "Wealth" filter. That is the known "Browser click hang" (Known CI intermittents table). Every other job passed. (CI log)
+  - Attempt 2 re-ran the failed jobs, and they passed. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37048456899-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result. No manual check is reported with this record. (Owner, 2026-10-02)
+- **Activation (owner-reported, 2026-10-02):** Stage 6 (public-data policy) is complete. The Stage 7 preflight (`node scripts/run11/stage7-preflight.mjs`) reports READY at `57275a6`. Stages 7 and 8 themselves remain the owner's ([ACTIVATION.md](run11/ACTIVATION.md)). (Owner)
+
+**Merged since the last record** (git, first-parent history of `main`): [#59](https://github.com/reyals1111-ux/ZIGoals/pull/59) (`57275a6`), Session L, friends-Alpha readiness. It includes:
+- the Stage 8 coverage map and rehearsal tests;
+- the encrypted-sync offer;
+- Help at `/app/help`;
+- the install guide and "Keep my data on this device";
+- the installable app manifest;
+- the iPhone storage research;
+- the friends and privacy drafts.
+
+See the Session L entry below.
+
+This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoals` was not part of it.
+
 # Session L — friends-Alpha readiness: Stage 8 rehearsal, the encrypted-sync offer, Help, install and iPhone storage, friends and privacy docs; then main #58 merged in and the owner's follow-ups (2026-10-02, [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59), not merged or deployed)
 
 **Evidence labels**
@@ -2111,6 +2293,8 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 11.5–16.9 min measured on main and #58 |
+| Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) is an owner decision |
+| `market-fanout.test.mjs` "synthetic concurrent cold, warm and restarted callers share one physical batch…": a degraded cold wave | CI: once in web checks on #59 (`5b2480d`), passed on its re-run | web checks (unit) | **Fixed in Session M** (`33010a5`, test only): a cold wave whose measured publication time passed the followers' 1,000 ms lifetime is repeated in a fresh runtime, at most 3 attempts; if all are that slow the test fails with "runner too slow". No assertion was relaxed |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
@@ -2242,7 +2426,14 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 afternoon for the [Alpha deploy #22](#alpha-deploy--2026-10-02-afternoon-f3220e1-live) above (recorded by Session L).
+Updated 2026-10-02 evening for the [Alpha deploy #23](#alpha-deploy--2026-10-02-evening-57275a6-live) above (recorded by Session M).
+- Deployed source `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59). Verified: Actions API.
+- CI: Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)) on `57275a6`: success (attempt 2; attempt 1 hit the known browser click hang in one test). Verified: Actions API, CI log.
+- Deployment: Manual Alpha deployment #23 ([run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899)), exact source `57275a6`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `02a62cef-e67f-48db-afcd-dfb8c784b031`; rollback `8848babc-8168-4c07-a5e4-0712cc6d4a54` (the run #22 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: not reported with this record.
+- Activation: Stage 6 complete, and the Stage 7 preflight READY at `57275a6`. Owner-reported, 2026-10-02.
+
+Previous release identity (PR #58, 2026-10-02 afternoon, recorded by Session L):
 - Deployed source `f3220e1d0cd7ade54e64c9ebcfdc04f34caa3aef`, `main` after [PR #58](https://github.com/reyals1111-ux/ZIGoals/pull/58). Verified: Actions API.
 - CI: Milestone quality #352 ([run 37029107848](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37029107848)) on `f3220e1`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #22 ([run 37031082305](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37031082305)), exact source `f3220e1`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
@@ -2350,7 +2541,7 @@ The apex Worker `zigoals` (zigoals.app) is published by hand per [LANDING.md](de
 | 1 | OPEN | |
 | 2 | PARTLY | `CLAUDE.md` done |
 | 3 | PARTLY | Run11 final evidence (`414aa52b56bf2de049561dbbd248584d1c29c91b`, docs only) is backed up on branch `backup/run11-final-evidence` and not yet merged |
-| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)) |
+| 4 | OPEN | Next: Supabase/Resend/Cloudflare activation ([activation stages](run11/ACTIVATION.md)). Stage 6 is complete and the Stage 7 preflight is READY at `57275a6` (owner-reported, 2026-10-02) |
 | 5 | OPEN | |
 | 6 | OPEN | |
 | 7 | PARTLY | Real-iPhone check remains |

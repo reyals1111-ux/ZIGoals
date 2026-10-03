@@ -1,9 +1,9 @@
 'use client';
 import {NebulaFlow} from '../nebula-flow';
-import {formatGoalAmount} from '../../lib/goal-summary';
+import {formatSignedGoalAmount} from '../../lib/goal-summary';
 import {amount} from './common';
 import {splitWealthTotals,type CurrencyTotal} from '../../lib/wealth-total';
-const money=(value:bigint,currency:string)=>`${value<0n?'-':''}${formatGoalAmount(amount((value<0n?-value:value).toString(),2),currency)}`;
+const money=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amount((value<0n?-value:value).toString(),2),currency);
 /** One large headline total in one currency; other currencies on a smaller line, never converted. */
 export function WealthTotal({subtotals,identity,empty}:{subtotals:readonly CurrencyTotal[];identity:string;empty:string}){
  const {primary,others}=splitWealthTotals(subtotals);
