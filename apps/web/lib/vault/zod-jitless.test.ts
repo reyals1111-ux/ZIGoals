@@ -9,8 +9,8 @@ import {powerUserRecords} from './power-user-fixture';
 // using two separately built copies of every stored-data schema, like Session C's version comparison.
 type Schemas=Record<string,z.ZodType>;
 async function load():Promise<Schemas>{
- const [{modules},{localSimulationSchema},crypto,{syncStateSchema,rowSchema},shared,{financialEventSchema},{deviceRecordSchema}]=await Promise.all([import('./account-data'),import('./local-simulation-backup'),import('./crypto'),import('./cloud-sync'),import('@zigoals/shared-types'),import('../financial-events'),import('./device-unlock')]);
- return {finance:modules.finance.schema,habits:modules.habits.schema,health:modules.health.schema,settings:modules.settings.schema,localSimulation:localSimulationSchema,manifest:crypto.manifestSchema,envelope:crypto.envelopeSchema,recordContext:crypto.recordContextSchema,syncState:syncStateSchema,syncRow:rowSchema,goalBackup:shared.backupSchema,goalMetadata:shared.metadataSchema,financialEvent:financialEventSchema,deviceRecord:deviceRecordSchema,sealedRoot:crypto.sealedRootSchema};
+ const [{modules},{localSimulationSchema},crypto,{syncStateSchema,rowSchema,confirmationSchema},shared,{financialEventSchema},{deviceRecordSchema}]=await Promise.all([import('./account-data'),import('./local-simulation-backup'),import('./crypto'),import('./cloud-sync'),import('@zigoals/shared-types'),import('../financial-events'),import('./device-unlock')]);
+ return {finance:modules.finance.schema,habits:modules.habits.schema,health:modules.health.schema,settings:modules.settings.schema,localSimulation:localSimulationSchema,manifest:crypto.manifestSchema,envelope:crypto.envelopeSchema,recordContext:crypto.recordContextSchema,syncState:syncStateSchema,syncRow:rowSchema,syncConfirmation:confirmationSchema,goalBackup:shared.backupSchema,goalMetadata:shared.metadataSchema,financialEvent:financialEventSchema,deviceRecord:deviceRecordSchema,sealedRoot:crypto.sealedRootSchema};
 }
 const realFunction=globalThis.Function;let compiled=0;
 const counting=new Proxy(realFunction,{construct(target,args,newTarget){compiled++;return Reflect.construct(target,args,newTarget);}});
@@ -45,7 +45,7 @@ const trimmed=(value:unknown):unknown=>Array.isArray(value)?value.slice(0,3).map
 test('JIT-compiled and jitless parsers agree on every stored-data schema: acceptance, output and issues',async()=>{
  const jit=await load();
  z.config({jitless:true});vi.resetModules();const jitless=await load();z.config({jitless:false});
- const {buildShowcase}=await import('../showcase-data'),{createVault,sealRecord,createDeviceKey,unlockVaultForDevice,manifestDigest}=await import('./crypto'),{modules}=await import('./account-data');
+ const {buildShowcase}=await import('../showcase-data'),{financeV4,habitsV3,healthV2,settingsV2}=await import('./format-fixtures'),{createVault,sealRecord,createDeviceKey,unlockVaultForDevice,manifestDigest}=await import('./crypto'),{modules}=await import('./account-data');
  const showcase=buildShowcase('2026-10-01').records,power=powerUserRecords().records,vault=await createVault(crypto.randomUUID());
  const context={vault:vault.manifest.vault,domain:'habits' as const,object:crypto.randomUUID(),revision:1,epoch:1};
  // Session M (ADR-008): the remembered-device record, without its CryptoKey (checked separately).
@@ -53,14 +53,16 @@ test('JIT-compiled and jitless parsers agree on every stored-data schema: accept
  const device={version:1,account,vault:vault.manifest.vault,epoch:1,manifest:await manifestDigest(vault.manifest),session:crypto.randomUUID(),health:true,createdAt:'2026-10-02T20:00:00.000Z',sealed};
  const plans={schemaVersion:1,chainId:'local-simulation',walletAddress:'local-demo-user',goals:{'1':{name:'Trip',category:'Travel',targetValue:'1200',currency:'ZIG',targetDate:'2027-09-15',startingAmount:'0',monthlyContribution:'50',riskPreference:'Conservative',liquidityPreference:'Anytime',deadlineFlexible:false,notes:''}}};
  const seeds:Record<string,unknown[]>={
-  finance:[modules.finance.empty(),JSON.parse(showcase['zigoals:platform:v1']!),JSON.parse(power['zigoals:platform:v1']!)],
-  habits:[modules.habits.empty(),JSON.parse(showcase['zigoals:habits:v1']!),JSON.parse(power['zigoals:habits:v1']!)],
-  health:[modules.health.empty(),JSON.parse(showcase['zigoals:health:v1']!),JSON.parse(power['zigoals:health:v1']!)],
-  settings:[modules.settings.empty()],
+  // Session P: the fourth seed of each module is the version read ahead of its writer (finance v4, habits v3, health v2, settings v2).
+  finance:[modules.finance.empty(),JSON.parse(showcase['zigoals:platform:v1']!),JSON.parse(power['zigoals:platform:v1']!),financeV4()],
+  habits:[modules.habits.empty(),JSON.parse(showcase['zigoals:habits:v1']!),JSON.parse(power['zigoals:habits:v1']!),habitsV3()],
+  health:[modules.health.empty(),JSON.parse(showcase['zigoals:health:v1']!),JSON.parse(power['zigoals:health:v1']!),healthV2()],
+  settings:[modules.settings.empty(),settingsV2()],
   localSimulation:[{schemaVersion:1,kind:'zigoals-local-simulation',ledger:null,plans:JSON.stringify(plans)},{schemaVersion:1,kind:'zigoals-local-simulation',omitted:'damaged'}],
   manifest:[vault.manifest],envelope:[await sealRecord(vault.key,context,{fixture:'jitless'}),vault.manifest.wrapped],recordContext:[context],
   syncState:[{version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null}],
   syncRow:[{id:crypto.randomUUID(),domain:'habits',revision:1,epoch:1,envelope:vault.manifest.wrapped,deleted:false}],
+  syncConfirmation:[{version:1,operation:crypto.randomUUID(),headRevision:1,headDigest:'a'.repeat(64),base:{finance:'b'.repeat(64),settings:'c'.repeat(64)}}],
   goalBackup:[plans],goalMetadata:[plans.goals['1']],
   financialEvent:[{id:'valuation',portfolioId:'statement',occurredAt:'2026-01-01T00:00:00Z',recordedAt:'2026-09-23T10:00:00Z',source:'MANUAL',sourceLabel:'Fictional complete statement',note:'',kind:'valuation',amount:{value:'10000',decimals:2,currency:'USD'},role:'boundary'},
    {id:'deposit',portfolioId:'statement',occurredAt:'2026-02-01T00:00:00Z',recordedAt:'2026-09-23T10:00:00Z',source:'MANUAL',sourceLabel:'Fictional complete statement',note:'',kind:'external_flow',direction:'IN',amount:{value:'5000',decimals:2,currency:'USD'}}],

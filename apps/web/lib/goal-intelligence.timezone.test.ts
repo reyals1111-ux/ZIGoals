@@ -1,14 +1,15 @@
 import {afterEach,describe,expect,test} from 'vitest';
-import {contributionSchema,emptyPlatform,planScenario,positionSchema,privateGoalSchema,scenarioHorizon,type ContributionPlan,type Platform} from './positions';
+import {contributionSchema,emptyPlatform,planScenario,platformSchema,positionSchema,privateGoalSchema,scenarioHorizon,type ContributionPlan,type Platform} from './positions';
 import {captureValuations,fundingHealth,recordGoalChanges} from './goal-intelligence';
 
 // Timezone project, phase 1 (Session N; docs/product/TIMEZONE_DESIGN.md, "The QA-04 path").
 // Part 1 locks today's behaviour: Goal funding, plan and capture days are UTC, whatever the device zone. These
 // tests pass now and must stay green through phase 2 (the helpers wired with "UTC").
-// Part 2 states the decided future behaviour as expected failures (`test.fails`, registered in
-// docs/testing/SKIPPED_TESTS.md, rows Z1-Z13): funding and plan days follow the plan's own zone. They flip in
-// phase 3, when R1 reads `plan.timeZone`. Their guards pin today's exact failure reason, so a broken fixture can
-// never make an expected failure "pass" for the wrong reason.
+// Part 2 stated the decided future behaviour as expected failures (rows Z1-Z13 in docs/testing/SKIPPED_TESTS.md):
+// funding and plan days follow the plan's own zone. Phase 3 (R1, Session P, PR 2) reads `plan.timeZone`, so they are
+// plain tests now. Nothing writes a zone until phase 4 (R2), so every stored plan is still UTC in practice: Part 1
+// keeps locking that. The guards pin what a zoned record is (finance v4, IANA names only) and that the zone-less
+// twins keep today's UTC answers, so a broken fixture can never make a row pass for the wrong reason.
 
 const deviceZone=process.env.TZ;
 afterEach(()=>{process.env.TZ=deviceZone;});
@@ -23,9 +24,9 @@ function planned(plan:ContributionPlan=MONTHLY,created='2026-09-20T12:00:00Z'):P
  return recordGoalChanges(emptyPlatform(),{...emptyPlatform(),goals:[goal]},Date.parse(created));
 }
 /** The decided format (TIMEZONE_DESIGN.md, "Plan zone"): the plan and every revision's terms carry `timeZone`.
- * Today's schemas are `.strict()` and refuse the key, so the object is built without parsing it. */
+ * Since phase 3 the schemas read it, and a record that carries a zone is finance v4, validated like any other. */
 function zoned(s:Platform,timeZone:string):Platform {
- return {...s,goals:s.goals.map(g=>({...g,plan:g.plan&&{...g.plan,timeZone},planRevisions:g.planRevisions?.map(r=>({...r,terms:r.terms&&{...r.terms,timeZone}}))}))} as unknown as Platform;
+ return platformSchema.parse({...s,schemaVersion:4,goals:s.goals.map(g=>({...g,plan:g.plan&&{...g.plan,timeZone},planRevisions:g.planRevisions?.map(r=>({...r,terms:r.terms&&{...r.terms,timeZone}}))}))});
 }
 const funding=(s:Platform,now:number)=>{const h=fundingHealth(s,'1',now);return {plannedThroughToday:h.plannedThroughToday,nextDate:h.nextDate,overdue:h.overdue,status:h.status};};
 
@@ -67,15 +68,18 @@ describe.each(HOST_ZONES)('today, on a %s device: funding, plan and capture days
  });
 });
 
-describe('guards for the expected failures below (plain tests that pass today)',()=>{
- test('today a plan that carries timeZone is refused, so funding health falls back to review',()=>{
-  // Z1-Z13 fail for this reason until R1 accepts the field. R1 updates this guard in the same PR.
-  expect(contributionSchema.safeParse({...MONTHLY,timeZone:'America/New_York'}).success).toBe(false);
+describe('guards for the rows below (plain tests; G1 updated in phase 3, Session P)',()=>{
+ test('G1 since phase 3 a plan may carry an IANA zone, never a fixed offset, and a zoned record is finance v4',()=>{
+  // Until Session P this guard pinned the opposite: `timeZone` refused, funding health REVIEW. R2 adds the writers.
+  expect(contributionSchema.safeParse({...MONTHLY,timeZone:'America/New_York'}).success).toBe(true);
+  expect(contributionSchema.safeParse({...MONTHLY,timeZone:'+05:30'}).success).toBe(false);
+  expect(platformSchema.safeParse({...zoned(planned(),'America/New_York'),schemaVersion:3}).success).toBe(false);
+  expect(zoned(planned(),'America/New_York').schemaVersion).toBe(4);
   const h=fundingHealth(zoned(planned(),'America/New_York'),'1',Date.parse('2026-10-16T01:30:00.000Z'));
-  expect({status:h.status,nextDate:h.nextDate,plannedThroughToday:h.plannedThroughToday}).toEqual({status:'REVIEW',nextDate:null,plannedThroughToday:'0'});
-  expect(h.warnings).toContain('Plan requires a compatible price assumption.');
+  expect(h.status).not.toBe('REVIEW');
+  expect(h.warnings).not.toContain('Plan requires a compatible price assumption.');
  });
- test('each expected failure\'s zone-less twin shows today\'s UTC answer',()=>{
+ test('each row\'s zone-less twin shows today\'s UTC answer (nothing writes a zone until phase 4)',()=>{
   // The same instants as Z1-Z13, without a plan zone: the UTC day decides.
   expect(funding(planned(),Date.parse('2026-10-16T01:30:00.000Z')).nextDate).toBe('2026-11-15');
   expect(funding(planned(),Date.parse('2026-10-14T10:05:00.000Z')).plannedThroughToday).toBe('0');
@@ -87,10 +91,10 @@ describe('guards for the expected failures below (plain tests that pass today)',
 });
 
 // Decided behaviour (T1-T4, TIMEZONE_DESIGN.md): a plan's days are calendar dates in the plan's own zone.
-// Each row: plan zone, the instant, what the plan's zone says, and the field that shows it.
-describe('decided: funding days follow the plan\'s zone (expected to fail until phase 3)',()=>{
+// Each row: plan zone, the instant, what the plan's zone says, and the field that shows it. Plain tests since phase 3.
+describe('decided: funding days follow the plan\'s zone (phase 3, R1)',()=>{
  const due15={plan:MONTHLY,created:'2026-09-20T12:00:00Z'};
- test.fails.each([
+ test.each([
   // Z1 QA-04: 21:30 in New York on the due day. The instalment is due today, not last month's.
   ['Z1 America/New_York, 21:30 on the due day',due15,'America/New_York','2026-10-16T01:30:00.000Z',{nextDate:'2026-10-15'}],
   // Z2 UTC+14: five past midnight on the due day, which UTC still calls the 14th.
@@ -118,7 +122,7 @@ describe('decided: funding days follow the plan\'s zone (expected to fail until 
 
  // Z13 travel: the plan stays in Brussels while the device moves. At 22:30 UTC on 15 October it is already the 16th
  // in Brussels (the 15th's instalment is past, the next one is November's), still the 15th in Los Angeles and UTC.
- test.fails.each(['America/Los_Angeles','Asia/Tokyo'])('Z13 travel: a Brussels plan keeps Brussels days on a %s device',device=>{
+ test.each(['America/Los_Angeles','Asia/Tokyo'])('Z13 travel: a Brussels plan keeps Brussels days on a %s device',device=>{
   process.env.TZ=device;
   const h=fundingHealth(zoned(planned(),'Europe/Brussels'),'1',Date.parse('2026-10-15T22:30:00.000Z'));
   expect(h.status).not.toBe('REVIEW');

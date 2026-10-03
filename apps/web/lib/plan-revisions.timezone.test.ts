@@ -1,13 +1,13 @@
 import {afterEach,describe,expect,test} from 'vitest';
-import {emptyPlatform,privateGoalSchema,type ContributionPlan,type Platform} from './positions';
+import {emptyPlatform,platformSchema,privateGoalSchema,type ContributionPlan,type Platform} from './positions';
 import {recordGoalChanges} from './goal-intelligence';
 import * as revisions from './plan-revisions';
 import {earliestPlanChange,planFingerprint,reviseGoalPlan,revisionInstallments} from './plan-revisions';
 
 // Timezone project, phase 1 (Session N). Part 1 locks today's plan-revision days, which are UTC on every device.
 // Part 2 states the decided future (TIMEZONE_DESIGN.md: T1 and "A zone change is a new plan revision, effective
-// from the next day in the old zone") as expected failures Z14-Z16, registered in docs/testing/SKIPPED_TESTS.md.
-// Z14-Z15 flip in phase 3 (R1 reads `timeZone`); Z16 flips in phase 4 (R2 adds the default).
+// from the next day in the old zone"), registered in docs/testing/SKIPPED_TESTS.md as Z14-Z16. Z14-Z15 flipped in
+// phase 3 (R1 reads `timeZone`; Session P, PR 2) and are plain tests; Z16 flips in phase 4 (R2 adds the default).
 
 const deviceZone=process.env.TZ;
 afterEach(()=>{process.env.TZ=deviceZone;});
@@ -19,9 +19,9 @@ function planned(plan:ContributionPlan=MONTHLY,created='2026-09-20T12:00:00Z'):P
  const goal=privateGoalSchema.parse({id:'1',name:'Holiday',type:'VALUE',status:'active',asset:'EUR',denom:'EUR',decimals:2,target:'600000',notes:'',createdAt:created,milestones:[],plan});
  return recordGoalChanges(emptyPlatform(),{...emptyPlatform(),goals:[goal]},Date.parse(created));
 }
-/** The decided format: the plan and every revision's terms carry `timeZone` (refused by today's strict schemas). */
+/** The decided format: the plan and every revision's terms carry `timeZone`; such a record is finance v4 (phase 3). */
 function zoned(s:Platform,timeZone:string):Platform {
- return {...s,goals:s.goals.map(g=>({...g,plan:g.plan&&{...g.plan,timeZone},planRevisions:g.planRevisions?.map(r=>({...r,terms:r.terms&&{...r.terms,timeZone}}))}))} as unknown as Platform;
+ return platformSchema.parse({...s,schemaVersion:4,goals:s.goals.map(g=>({...g,plan:g.plan&&{...g.plan,timeZone},planRevisions:g.planRevisions?.map(r=>({...r,terms:r.terms&&{...r.terms,timeZone}}))}))});
 }
 
 describe.each(HOST_ZONES)('today, on a %s device: plan-revision days are UTC',zone=>{
@@ -52,16 +52,19 @@ describe.each(HOST_ZONES)('today, on a %s device: plan-revision days are UTC',zo
  });
 });
 
-describe('guards for the expected failures below (plain tests that pass today)',()=>{
+describe('guards for the rows below (plain tests; G2 and G3 updated in phase 3, Session P)',()=>{
  const now=Date.parse('2026-10-16T01:30:00.000Z');
- test('today a plan that carries timeZone is refused when it is revised',()=>{
-  // Z15 fails for this reason until R1 accepts the field. R1 updates this guard in the same PR.
+ test('G3 since phase 3 a revision may carry an IANA zone (the record becomes v4); a fixed offset is refused; a zone-less edit stays v3',()=>{
+  // Until Session P this guard pinned the opposite: `reviseGoalPlan` threw on `timeZone`.
   const s=zoned(planned(),'America/New_York');
-  expect(()=>reviseGoalPlan(s,'1',{...MONTHLY,timeZone:'Asia/Tokyo'} as ContributionPlan,'2026-10-16',now,planFingerprint(s.goals[0]!))).toThrow(/timeZone/);
+  expect(()=>reviseGoalPlan(s,'1',{...MONTHLY,timeZone:'+05:30'},'2026-10-16',now,planFingerprint(s.goals[0]!))).toThrow(/IANA time zone/);
+  const plain=planned();
+  expect(reviseGoalPlan(plain,'1',{...MONTHLY,amount:'60000'},'2026-12-01',now,planFingerprint(plain.goals[0]!)).schemaVersion).toBe(3);
+  expect(reviseGoalPlan(plain,'1',{...MONTHLY,timeZone:'Asia/Tokyo'},'2026-12-01',now,planFingerprint(plain.goals[0]!)).schemaVersion).toBe(4);
  });
- test('today the earliest change ignores a plan zone: it is the next UTC day',()=>{
+ test('G2 a zone-less plan\'s earliest change is still the next UTC day (nothing writes a zone until phase 4)',()=>{
   // Z14's twin.
-  expect(earliestPlanChange(zoned(planned(),'America/New_York').goals[0]!,now)).toBe('2026-10-17');
+  expect(earliestPlanChange(planned().goals[0]!,now)).toBe('2026-10-17');
  });
  test('no default plan zone exists yet',()=>{
   // Z16 fails for this reason until R2 adds the journal-zone default. R2 updates this guard in the same PR.
@@ -69,21 +72,22 @@ describe('guards for the expected failures below (plain tests that pass today)',
  });
 });
 
-describe('decided: plan-revision days follow the plan\'s zone',()=>{
+describe('decided: plan-revision days follow the plan\'s zone (Z14-Z15 plain since phase 3; Z16 expected to fail until phase 4)',()=>{
  const now=Date.parse('2026-10-16T01:30:00.000Z');
  // Z14 At 21:30 on 15 October in New York, the next day in the plan's zone is the 16th.
- test.fails('Z14 the earliest change is the next day in the plan\'s zone',()=>{
+ test('Z14 the earliest change is the next day in the plan\'s zone',()=>{
   expect(earliestPlanChange(zoned(planned(),'America/New_York').goals[0]!,now)).toBe('2026-10-16');
  });
  // Z15 A zone change is a new revision that takes effect from the next day in the old zone; earlier instalments keep
  // their dates and ids.
- test.fails('Z15 a zone change starts the next day in the old zone and keeps earlier instalments',()=>{
+ test('Z15 a zone change starts the next day in the old zone and keeps earlier instalments',()=>{
   const s=zoned(planned(),'America/New_York');
   const before=revisionInstallments(s.goals[0]!,'2026-09-20','2026-10-15');
-  const next=reviseGoalPlan(s,'1',{...MONTHLY,timeZone:'Asia/Tokyo'} as ContributionPlan,'2026-10-16',now,planFingerprint(s.goals[0]!));
+  const next=reviseGoalPlan(s,'1',{...MONTHLY,timeZone:'Asia/Tokyo'},'2026-10-16',now,planFingerprint(s.goals[0]!));
   const latest=next.goals[0]!.planRevisions!.at(-1)!;
   expect(latest.effectiveFrom).toBe('2026-10-16');
-  expect((latest.terms as {timeZone?:string}|null)?.timeZone).toBe('Asia/Tokyo');
+  expect(latest.terms?.timeZone).toBe('Asia/Tokyo');
+  expect(next.schemaVersion).toBe(4);
   expect(revisionInstallments(next.goals[0]!,'2026-09-20','2026-10-15')).toEqual(before);
  });
  // Z16 (T1) A new plan's zone defaults to the journal zone, else UTC.
