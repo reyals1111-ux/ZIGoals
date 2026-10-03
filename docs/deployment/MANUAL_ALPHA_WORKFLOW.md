@@ -67,8 +67,11 @@ pnpm typecheck
 pnpm test
 pnpm check:deploy-configs
 pnpm --filter @zigoals/web build:alpha
+pnpm --filter @zigoals/web check:alpha-artifact
 pnpm --filter @zigoals/web check:alpha
 ```
+
+`build:alpha` refuses to run while any `.env*` file other than `.env.example` is in `apps/web` or the repository root, and checks its artifact for compiled configuration (Session R1). The workflow's clean checkout has no such file, so it builds unchanged.
 
 Use `actionlint .github/workflows/deploy-alpha.yml` to validate Actions syntax. The optional `node scripts/alpha-deploy.mjs smoke` performs only the public HTTP checks. It does not validate a new deployment's source unless called by the publication coordinator with the expected SHA. The coordinator's tests inject the external upload/read boundary; no test deploys, rolls back, contacts a wallet or changes Cloudflare.
 

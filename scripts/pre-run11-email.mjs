@@ -57,7 +57,7 @@ function readPrivate(prompt){
  });
 }
 async function main(){
- const mode=process.argv[2];if(!['request','verify'].includes(mode)||process.argv.length!==3){console.error('Usage: node --env-file=apps/web/.env.local scripts/pre-run11-email.mjs request|verify');process.exitCode=2;return;}
+ const mode=process.argv[2];if(!['request','verify'].includes(mode)||process.argv.length!==3){console.error('Usage: node --env-file=<private env file outside the repository> scripts/pre-run11-email.mjs request|verify');process.exitCode=2;return;}
  const config={origin:process.env.ZIGOALS_AUTH_ORIGIN,allowedOrigin:process.env.ZIGOALS_ALLOWED_AUTH_ORIGIN,key:process.env.ZIGOALS_AUTH_PUBLIC_KEY,recipients:(process.env.ZIGOALS_TEST_RECIPIENTS||'').split(',').map(v=>v.trim()).filter(Boolean)};
  try{const email=await readPrivate('Approved test recipient (input hidden): ');const code=mode==='verify'?await readPrivate('Email code (input hidden): '):null;
   const result=await emailCodeOperation(mode,config,email,code);console.log(result);if(!['CODE_REQUEST_ACCEPTED','CODE_VERIFIED'].includes(result))process.exitCode=1;
