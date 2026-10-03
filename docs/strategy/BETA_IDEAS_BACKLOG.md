@@ -14,7 +14,7 @@
 | **Effort** | <ul><li>**S:** fits inside one focused session part.</li><li>**M:** a dedicated session, or about two.</li><li>**L:** several sessions, a new platform or provider, a new dependency (which needs owner approval), or a legal review first</li></ul> |
 | **Depends on** | Other ideas, owner approvals (new dependencies, Tier 3 areas), activation stages, or Sessions M and N in flight |
 | **Principle fit** | <ul><li>✓ fits all six principles.</li><li>⚠ bends one (named, with the reason).</li><li>✗ conflicts: listed for completeness, never proposed or ranked.</li><li>"✓ …; ⚠ if …" means the idea fits only in the design that is named first</li></ul> |
-| **Legal flag** | <ul><li>LC§1–LC§5: sections of [LEGAL_CHECKLIST.md](../business/LEGAL_CHECKLIST.md).</li><li>LC§6: Session N's proposed earn section.</li><li>LC-new: a question to add.</li><li>"—" means none found</li></ul> |
+| **Legal flag** | <ul><li>LC§1–LC§5: sections of [LEGAL_CHECKLIST.md](../business/LEGAL_CHECKLIST.md).</li><li>LC§6: LEGAL_CHECKLIST.md §6, the earn section Session N wrote (on `main` since #64).</li><li>LC-new: a question to add.</li><li>"—" means none found</li></ul> |
 | **Score** | **2 × value + evidence + effort + fit + unlock**, out of 13. <ul><li>**Value** (1–3): to paying users.</li><li>**Evidence** (0–2): 2 = leaders charge for it or it is a repeated complaint; 1 = common among leaders; 0 = none.</li><li>**Effort:** S = 3, M = 2, L = 1.</li><li>**Fit:** ✓ = 1, ⚠ = 0.</li><li>**Unlock:** 1 if it enables several other ideas.</li></ul> The value judgements are ours: change them and the ranking changes. The rule is shown so it can be challenged |
 
 **In numbers:**

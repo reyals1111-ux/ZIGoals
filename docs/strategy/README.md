@@ -64,7 +64,7 @@ It reflects the product as it is on `main` after Session L ([STATUS](../STATUS.m
 | **assumption** | A modelling input chosen for a scenario (PATH_TO_500K only), with its reason. Never a forecast |
 | ✓ / ⚠ / ✗ | Principle fit: fits / bends a principle (the principle and the reason are named) / conflicts (listed for completeness, never proposed) |
 | **LC§1–LC§5** | Legal flag pointing to [LEGAL_CHECKLIST.md](../business/LEGAL_CHECKLIST.md): §1 Open Food Facts and the ODbL · §2 GDPR and health data · §3 MiCA, staking and stablecoins · §4 advice-like features, AI and medical-device rules · §5 app stores, payments and consumer law |
-| **LC§6** | Earn and staking questions that Session N proposes on its branch (`earn/session-n-2026-10-02`), not yet on `main` |
+| **LC§6** | [LEGAL_CHECKLIST.md](../business/LEGAL_CHECKLIST.md) §6: earn, on-ramps, stablecoins, staking promotion, copy trading, referrals, KYC/AML and disclosures. Session N wrote it; it reached `main` with #64, after this pack was researched |
 | **LC-new** | A question not yet in the checklist (for example children, or a non-EU regional rule), to add after the brainstorm |
 
 A legal flag means "ask a lawyer before building or saying this". It never means a conclusion either way.
