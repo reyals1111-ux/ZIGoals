@@ -20,12 +20,12 @@
       {
         "chainId": "zigchain-1",
         "status": "LIVE_READ_VERIFIED",
-        "note": "Published addresses; staker and a vault returned live LCD contract metadata."
+        "note": "Published addresses; staker and a vault returned live LCD contract metadata. Read again 2026-10-02: the staker runs code 179 (stzig-staker 1.1.0) after a migration on 2026-09-30."
       },
       {
         "chainId": "zig-test-2",
         "status": "LIVE_READ_VERIFIED",
-        "note": "Published staker/token addresses; staker returned live LCD contract metadata."
+        "note": "Published staker/token addresses; staker returned live LCD contract metadata. Read again 2026-10-02: the staker runs code 2532 (stzig-staker 1.1.0) after a migration on 2026-09-17; the code is the same as on mainnet."
       }
     ],
     "contracts": [
@@ -134,12 +134,14 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-16",
+    "lastVerified": "2026-10-02",
     "risks": [
       "No public canonical message schema or deployed checksum-to-source mapping was found.",
       "Normal liquid-staking redemption is delayed and includes a later claim step.",
-      "Public OAK Security CosmWasm audit reports exist for Valdora and the Valdora Vault Contract, but current deployed checksum-to-audited-source mapping remains unverified.",
-      "Vault roles must not collapse curator, originator, custodian, servicer, and distributor responsibilities."
+      "OAK Security has published three Valdora reports (the contracts, the vault contract and the 18-decimal update), but no published source maps the deployed code to an audited commit.",
+      "Vault roles must not collapse curator, originator, custodian, servicer, and distributor responsibilities.",
+      "The staker's admin is a single key, not a multisig, and it can replace the contract code; it did so on mainnet on 2026-09-30 and on testnet on 2026-09-17.",
+      "Valdora's own pages disagree on whether unstaking has a fee, and the units of its price queries are not documented."
     ],
     "audits": [
       {
@@ -151,6 +153,11 @@
         "url": "https://github.com/oak-security/audit-reports/blob/main/Valdora/2026-04-17%20Audit%20Report%20-%20Valdora%20Vault%20Contract.pdf",
         "title": "OAK Security Valdora Vault Contract Audit",
         "supports": "Public OAK Security CosmWasm audit report for the Valdora Vault Contract; current deployed vault checksum-to-audited-source mapping has not been established."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/oak-security/audit-reports/main/Valdora/2026-09-21%20Audit%20Report%20-%20Valdora%2018%20Decimals%20Update%20v1.0.pdf",
+        "title": "OAK Security Valdora 18 Decimals Update Audit",
+        "supports": "Public OAK Security review of the 18-decimal update (pull request #18 only), dated 2026-09-21; current deployed checksum-to-audited-source mapping has not been established."
       }
     ],
     "eligibility": {
@@ -158,7 +165,7 @@
       "jurisdiction": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation.",
       "note": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation."
     },
-    "notes": "ZIG Markets curator attribution is explicit for named Valdora vaults, but no shared-vault or broader responsibility is inferred. Integration surface: Non-executable liquid-staking and vault descriptors. Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter. API/contracts: addresses available; canonical message schemas and public API not found in reviewed sources",
+    "notes": "ZIG Markets curator attribution is explicit for named Valdora vaults, but no shared-vault or broader responsibility is inferred. Integration surface: Non-executable liquid-staking and vault descriptors. Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter. API/contracts: addresses available; canonical message schemas and public API not found in reviewed sources Read 2026-10-02: both stakers report stzig-staker 1.1.0 and run identical code; no message schema is published.",
     "sources": [
       {
         "url": "https://docs.valdora.finance/smart-contracts",
@@ -188,12 +195,12 @@
       {
         "url": "https://public-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55",
         "title": "ZIGChain mainnet contract record: Valdora staker",
-        "supports": "Live contract record and code ID."
+        "supports": "Live contract record and code ID (code 179 when read on 2026-10-02)."
       },
       {
         "url": "https://testnet-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69",
         "title": "ZIGChain testnet contract record: Valdora staker",
-        "supports": "Live contract record and code ID."
+        "supports": "Live contract record and code ID (code 2532 when read on 2026-10-02)."
       },
       {
         "url": "https://docs.valdora.finance/vaults/core-income-vault",
@@ -203,7 +210,27 @@
       {
         "url": "https://github.com/oak-security/audit-reports/blob/main/_tech_stacks/cosmwasm.md",
         "title": "OAK Security CosmWasm Audit Index",
-        "supports": "Public audit index listing Valdora and Valdora Vault Contract CosmWasm reports."
+        "supports": "Public audit index listing three Valdora CosmWasm reports (read 2026-10-02)."
+      },
+      {
+        "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/history",
+        "title": "ZIGChain mainnet contract history: Valdora staker",
+        "supports": "Read 2026-10-02: three migrations by the admin, the last to code 179 on 2026-09-30."
+      },
+      {
+        "url": "https://api.zigchain.com/cosmos/auth/v1beta1/accounts/zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+        "title": "ZIGChain mainnet account: Valdora staker admin",
+        "supports": "Read 2026-10-02: a single secp256k1 key, not a multisig key."
+      },
+      {
+        "url": "https://docs.valdora.finance/faqs",
+        "title": "Valdora FAQ",
+        "supports": "Provider minimums, exit timing and an unstake-fee statement that the economics page contradicts (read 2026-10-02)."
+      },
+      {
+        "url": "https://docs.valdora.finance/economics-and-incentives",
+        "title": "Valdora Economics and Incentives",
+        "supports": "Provider fee statements (read 2026-10-02)."
       }
     ],
     "phase": "FUTURE_GATED"
@@ -284,13 +311,15 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-10-02",
     "risks": [
       "Current deployed checksum-to-source mapping was not established.",
       "Exact fee, decimals, rounding, price impact, quote freshness, and simulation response semantics require pinning.",
       "The audited snapshot predates current repository/deployment state.",
       "A documented CW20 response-data caveat affects receipt interpretation.",
-      "Mainnet deployment-manifest chain metadata conflicts with current official ZIGChain chain ID."
+      "Mainnet deployment-manifest chain metadata conflicts with current official ZIGChain chain ID.",
+      "OroSwap's docs give a single default swap fee, but on chain each pool type sets its own, and part of every swap fee goes to OroSwap's fee address (read 2026-10-02).",
+      "The deployed factory reports version 1.2.0 while the public source says 1.1.0, so the running code is not the published main branch (read 2026-10-02)."
     ],
     "audits": [
       {
@@ -304,7 +333,7 @@
       "jurisdiction": "OroSwap says the protocol is non-custodial and does not require KYC, with access restricted in OFAC-sanctioned regions; implementation must still apply application policy and jurisdiction review.",
       "note": "OroSwap says the protocol is non-custodial and does not require KYC, with access restricted in OFAC-sanctioned regions; implementation must still apply application policy and jurisdiction review."
     },
-    "notes": "Do not reimplement generic AMM quote math; Halborn documents an acknowledged formula difference. Future execution needs asset/pair allowlists, minimum receive, max spread, quote freshness, failure classification, and receipt verification. Integration surface: Read-only route discovery and router simulation design. No trading UX and no fund-moving execution. API/contracts: public CosmWasm router source, execute/query surface, and deployments available",
+    "notes": "Do not reimplement generic AMM quote math; Halborn documents an acknowledged formula difference. Future execution needs asset/pair allowlists, minimum receive, max spread, quote freshness, failure classification, and receipt verification. Integration surface: Read-only route discovery and router simulation design. No trading UX and no fund-moving execution. API/contracts: public CosmWasm router source, execute/query surface, and deployments available Read 2026-10-02: every mainnet pool type is closed to new pools (existing pools are not paused), and the factory's pair listing returned 31 of 165 mainnet pairs, so pairs are looked up by asset.",
     "sources": [
       {
         "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
@@ -324,7 +353,7 @@
       {
         "url": "https://docs.oroswap.org/docs/getting-started/swap/",
         "title": "OroSwap Swap Guide",
-        "supports": "Provider UI slippage and price-impact description."
+        "supports": "Provider UI slippage, price-impact and default-fee description (read 2026-10-02)."
       },
       {
         "url": "https://docs.oroswap.org/docs/oroswap_faq/",
@@ -345,6 +374,11 @@
         "url": "https://testnet-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig1g00t6pxg3xn7vk0vt29zu9vztm3wsq5t5wegutlg94uddju0yr5sye3r3a",
         "title": "ZIGChain testnet contract record: OroSwap router",
         "supports": "Live router contract metadata."
+      },
+      {
+        "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJjb25maWciOnt9fQ==",
+        "title": "ZIGChain mainnet: OroSwap factory configuration",
+        "supports": "Read 2026-10-02: a fee per pool type, a maker share of each fee, and new pools disabled for every type."
       }
     ],
     "phase": "FUTURE_GATED"
@@ -662,7 +696,7 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-10-02",
     "risks": [
       "Legal references to APIs do not establish a usable public integration surface.",
       "Current live regulator status, exact activity scope, and crypto-asset authorization were not independently confirmed.",
@@ -672,9 +706,9 @@
     "eligibility": {
       "kyc": "PRODUCT_DEPENDENT",
       "jurisdiction": "Terms target a restricted/sophisticated audience and permit KYC/AML, sanctions screening, local eligibility controls, and geoblocking; regulated services may be supplied by licensed partners/entities.",
-      "note": "Terms target a restricted/sophisticated audience and permit KYC/AML, sanctions screening, local eligibility controls, and geoblocking; regulated services may be supplied by licensed partners/entities."
+      "note": "No retail product terms, eligibility rules or country list were found on zig.finance; its Terms say each product's own terms decide (read 2026-10-02)."
     },
-    "notes": "The provider claims Merritt Administrators Pty Ltd holds South African FSP 46517 Category II. An FSCA notice verifies the entity/number and a 2022 lifting of suspension, but it is not a current full-scope license-register check. Do not infer ORIGINATOR, CUSTODY, SERVICING, or shared-vault responsibility. Integration surface: Product-level curator and distributor attribution where a primary source identifies ZIG Markets. No executable API. API/contracts: legal terms mention APIs and vault interfaces; no public API documentation or contract schema found",
+    "notes": "The provider claims Merritt Administrators Pty Ltd holds South African FSP 46517 Category II. An FSCA notice verifies the entity/number and a 2022 lifting of suspension, but it is not a current full-scope license-register check. Do not infer ORIGINATOR, CUSTODY, SERVICING, or shared-vault responsibility. Integration surface: Product-level curator and distributor attribution where a primary source identifies ZIG Markets. No executable API. API/contracts: legal terms mention APIs and vault interfaces; no public API documentation or contract schema found Read 2026-10-02: ZIG Markets says it works through Merritt Administrators (FSP 46517) and Starbuy (FSP category I and CASP); the FSCA's December 2024 CASP list includes STARBUY PTY LTD as FSP 53740.",
     "sources": [
       {
         "url": "https://zigmarkets.com/",
@@ -684,7 +718,7 @@
       {
         "url": "https://zigmarkets.com/legal/terms-and-conditions",
         "title": "ZIG Markets Terms and Conditions",
-        "supports": "Service scope, audience, access controls, and licensed-partner boundaries."
+        "supports": "Service scope, audience, access controls, and licensed-partner boundaries. When read on 2026-10-02, this address redirected to zig.finance/markets."
       },
       {
         "url": "https://www.fsca.co.za/Notices/FSCA%20FAIS%20Notice%2093%20of%202022.pdf",
@@ -700,6 +734,11 @@
         "url": "https://docs.zigchain.com/about-zigchain/glossary",
         "title": "ZIGChain Glossary",
         "supports": "Ecosystem description of ZIG Markets and WME."
+      },
+      {
+        "url": "https://www2.fsca.co.za/Regulatory%20Frameworks/Documents/Published%20list%20of%20Authorised%20CASPs_18%20December%202024.pdf",
+        "title": "FSCA list of authorised CASPs (December 2024)",
+        "supports": "Lists STARBUY PTY LTD as FSP 53740, category I (read 2026-10-02); the list is dated December 2024."
       }
     ],
     "phase": "FUTURE_GATED"
@@ -735,18 +774,20 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-10-02",
     "risks": [
       "No stable public Z-Index/strategy metadata API schema or identifiers were verified.",
       "No WME or ZIGChain deployment relationship was established.",
       "Hosted custody, withdrawal, liquidity, KYC, and regional restrictions apply.",
-      "A stable provider URL for 2026 incident notices was not recovered, so no incident conclusion is used."
+      "A stable provider URL for 2026 incident notices was not recovered, so no incident conclusion is used.",
+      "Since 2026-08-31 the marketplace takes no new trading services; existing services keep running.",
+      "Funds in pooled services are held off-chain in Binance accounts under Zignaly's broker arrangement, not in an account the investor controls."
     ],
     "audits": [],
     "eligibility": {
       "kyc": "REQUIRED",
-      "jurisdiction": "KYC is mandatory to deposit and invest. The current restricted-residence list includes Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela, and named occupied regions.",
-      "note": "KYC is mandatory to deposit and invest. The current restricted-residence list includes Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela, and named occupied regions."
+      "jurisdiction": "14 places are excluded, including Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela and named occupied regions (help center, read 2026-10-02).",
+      "note": "KYC through Sumsub is mandatory for every user before depositing or investing (help center, read 2026-10-02)."
     },
     "notes": "Zignaly is modeled as a distribution provider. The API license agreement proves legal API terms exist, not that a suitable public integration API is available. Integration surface: Human-readable product and strategy-composition metadata only. Exchange API keys are outside the ZIGoals integration boundary. API/contracts: public human-readable product metadata; legal API agreement exists; no suitable documented product API or ZIGChain contract found",
     "sources": [
@@ -778,12 +819,22 @@
       {
         "url": "https://help.zignaly.com/en/articles/9044409-kyc-how-to-verify-your-account",
         "title": "Zignaly KYC Guide",
-        "supports": "Mandatory KYC and restricted-residence list."
+        "supports": "Mandatory KYC through Sumsub and a 14-place restricted list (read 2026-10-02 on the help center's Intercom host)."
       },
       {
         "url": "https://zignaly.com/legal",
         "title": "Zignaly Legal",
         "supports": "Provider entity and regulatory statements."
+      },
+      {
+        "url": "https://help.zignaly.com/en/articles/6894830-what-is-profit-sharing",
+        "title": "What is Profit Sharing",
+        "supports": "2026-08-31 update: trading services removed from the marketplace; existing services keep running (read 2026-10-02 on the help center's Intercom host)."
+      },
+      {
+        "url": "https://help.zignaly.com/en/articles/6164601-security-of-zignaly",
+        "title": "Security of Zignaly",
+        "supports": "Funds held in Binance; Fireblocks covers account wallets only (read 2026-10-02 on the help center's Intercom host)."
       }
     ],
     "phase": "FUTURE_GATED"
@@ -1047,7 +1098,7 @@
       {
         "chainId": "zigchain-1",
         "status": "ANNOUNCED",
-        "note": "Ondo Stocks docs list Ethereum, BNB Chain and Solana. ZIGChain announces integration; direct ZIG deployment and testnet are unconfirmed."
+        "note": "Ondo Stocks docs list Ethereum, BNB Chain and Solana. ZIGChain announces integration; direct ZIG deployment and testnet are unconfirmed. Read 2026-10-02: Ondo's address list shows USDY on Noble, not on ZIGChain, and ZIGChain carries no USDY denomination."
       }
     ],
     "contracts": [],
@@ -1056,7 +1107,7 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-10-02",
     "risks": [
       "Underlying market risk, custody, issuer rights and trading/redemption windows are product-specific. Do not treat stock exposure as cash yield."
     ],
@@ -1081,7 +1132,7 @@
       {
         "url": "https://docs.ondo.finance/addresses",
         "title": "Ondo smart contract addresses",
-        "supports": "Canonical address directory; no ZIG entry identified in the inspected directory."
+        "supports": "Canonical address directory; no ZIG entry identified in the inspected directory. Read again 2026-10-02: USDY is listed on Noble only."
       },
       {
         "url": "https://docs.ondo.finance/ondo-stocks/eligibility",
@@ -1235,7 +1286,7 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-10-02",
     "risks": [
       "New Circle Mint minting ends 2026-10-13. Noble USDC/CCTP pause is scheduled for 2027-01-12; Noble receives no CCTP V2.",
       "Relayers, client freshness, issuer controls and destination receipt remain unverified."
@@ -1246,7 +1297,7 @@
       "jurisdiction": "Circle Mint and APIs support native Noble USDC, not arbitrary IBC vouchers. Product onboarding and compliance still apply.",
       "note": "Circle Mint and APIs support native Noble USDC, not arbitrary IBC vouchers. Product onboarding and compliance still apply."
     },
-    "notes": "Do not present the historical native-USDC support page as assurance of continuing availability after the issuer sunset. Testnet asset mapping was not verified. Integration surface: Funding-route research only; exclude from an enabled new USDC route until sunset/replacement design is resolved. API/contracts: IBC channel query works. Official registry identifies Noble USDC; denomination-trace RPC verification was unavailable (HTTP 501).",
+    "notes": "Do not present the historical native-USDC support page as assurance of continuing availability after the issuer sunset. Testnet asset mapping was not verified. Integration surface: Funding-route research only; exclude from an enabled new USDC route until sunset/replacement design is resolved. API/contracts: IBC channel query works. Official registry identifies Noble USDC; denomination-trace RPC verification was unavailable (HTTP 501). Read 2026-10-02: Circle's help article KB0010590 still lists Noble as supported and does not mention the wind-down.",
     "sources": [
       {
         "url": "https://help.circle.com/support/en/a-closer-look-at-usdc-on-noble-and-the-ibc-protocol?id=kb_article_view&sysparm_article=KB0010582",
@@ -1256,7 +1307,7 @@
       {
         "url": "https://www.circle.com/blog/circle-is-discontinuing-support-for-usdc-and-cctp-v1-on-noble",
         "title": "Circle discontinues Noble USDC and CCTP V1",
-        "supports": "September 10, 2026 issuer sunset notice and deadlines."
+        "supports": "September 10, 2026 issuer sunset notice and deadlines (read again 2026-10-02)."
       },
       {
         "url": "https://developers.circle.com/circle-mint/supported-chains-and-currencies",
@@ -1292,6 +1343,11 @@
         "url": "https://public-zigchain-testnet-lcd.numia.xyz/ibc/core/channel/v1/channels/channel-44/ports/transfer",
         "title": "ZIG-side live IBC channel state",
         "supports": "Observed OPEN channel, counterparty channel, ICS20 version and response height."
+      },
+      {
+        "url": "https://api.noble.xyz/cosmos/bank/v1beta1/balances/noble1e4quceq0nhvfalpkct2yecpu56ss3erltz8yku/by_denom?denom=uusdc",
+        "title": "Noble: USDC held in escrow for ZIGChain's channel",
+        "supports": "Read 2026-10-02: equal to the Noble USDC supply on ZIGChain."
       }
     ],
     "phase": "FUTURE_GATED"
@@ -1327,10 +1383,10 @@
     ],
     "status": "RESEARCHED",
     "verification": "PRIMARY_SOURCES_REVIEWED",
-    "lastVerified": "2026-09-13",
+    "lastVerified": "2026-10-02",
     "risks": [
       "Axelar documents validator security and gateway rate limits; current deployed route security and receipt handling remain unverified.",
-      "18-decimal ZIG.axl is not interchangeable with native gas denomination without a verified conversion."
+      "ZIG.axl is a different denomination from native ZIG, even though native ZIG has also used 18 decimals since v5; they are not interchangeable without a verified conversion."
     ],
     "audits": [],
     "eligibility": {
@@ -1373,7 +1429,7 @@
       {
         "url": "https://axelar-mainnet.s3.us-east-2.amazonaws.com/configs/mainnet-config-1.x.json",
         "title": "Axelar mainnet configuration",
-        "supports": "Current ZIG chain, channel and unit-zig asset mapping."
+        "supports": "Current ZIG chain, channel and unit-zig asset mapping. Read again 2026-10-02 (config 1.0.313): no USDC route to ZIGChain."
       },
       {
         "url": "https://axelar-testnet.s3.us-east-2.amazonaws.com/configs/testnet-config-1.x.json",

@@ -258,3 +258,65 @@ describe("public evidence attribution", () => {
     },
   );
 });
+
+describe("no rates of return and no referral or tracking links", () => {
+  // Session N (2026-10-02). Records describe providers; they never state a rate of return as a fact, and no link
+  // carries a referral, affiliate or tracking parameter. A provider's fee may be described, never a yield.
+  const rate =
+    /\b(?:APR|APY|TVL)\b|\bper\s+(?:year|annum)\b|\bp\.a\.|\bannual(?:i[sz]ed)?\s+(?:return|rate|yield)|\d+(?:\.\d+)?\s*%\s*(?:APR|APY|yield|returns?|interest|a\s+year|per\s+(?:year|annum|month))\b|(?<!\b(?:not|never|no)\s)\b(?:guaranteed?|risk[- ]free)\b/i;
+  const trackingKey =
+    /^(?:ref|refid|ref_id|referral|referrer|affiliate|aff|aff_id|affid|invite|promo|promocode|campaign|partner|click_?id|gclid|fbclid|utm_\w+)$/i;
+  const tracked = (url: string) => {
+    const parsed = new URL(url);
+    return (
+      [...parsed.searchParams.keys()].some((key) => trackingKey.test(key)) ||
+      /\/(?:ref|referral|affiliate|aff)\//i.test(parsed.pathname)
+    );
+  };
+  const strings = (value: unknown): string[] =>
+    typeof value === "string"
+      ? [value]
+      : Array.isArray(value)
+        ? value.flatMap(strings)
+        : value && typeof value === "object"
+          ? Object.values(value).flatMap(strings)
+          : [];
+
+  it("the patterns catch what they are meant to", () => {
+    for (const text of [
+      "Up to 12% APY",
+      "Earn 5 % a year",
+      "8% per year on deposits",
+      "Guaranteed income",
+      "Risk-free staking",
+      "TVL $3M",
+    ])
+      expect(text).toMatch(rate);
+    for (const text of [
+      "a 10% performance fee on rewards",
+      "Do not treat stock exposure as cash yield.",
+      "Stablecoin Yield Vault",
+      "0% performance fee and redemption up to 120 days",
+      "transfer/sale of financing is not guaranteed.",
+    ])
+      expect(text).not.toMatch(rate);
+    for (const url of [
+      "https://example.org/?ref=abc",
+      "https://example.org/buy?utm_source=x",
+      "https://example.org/r?affiliate=1",
+      "https://example.org/ref/abc",
+    ])
+      expect(tracked(url)).toBe(true);
+    expect(tracked("https://example.org/docs?denom=uusdc")).toBe(false);
+  });
+
+  it("holds for every registry record and every directory entry", async () => {
+    const { ecosystemProviders, directoryEntries } = await import("./providers");
+    const all = strings([ecosystemProviders, directoryEntries]);
+    const urls = all.filter((value) => /^https:\/\//.test(value));
+    const texts = all.filter((value) => !/^https:\/\//.test(value));
+    expect(urls.length).toBeGreaterThan(100);
+    expect(texts.filter((text) => rate.test(text))).toEqual([]);
+    expect(urls.filter(tracked)).toEqual([]);
+  });
+});

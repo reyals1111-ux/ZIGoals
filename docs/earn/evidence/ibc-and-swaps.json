@@ -1,0 +1,2800 @@
+{
+ "title": "Stablecoin routes over IBC (ZIGChain, Noble, Injective) and the OroSwap factory",
+ "readOn": "2026-10-02",
+ "note": "Read-only GET responses from official chain APIs, as read. sha256 is the SHA-256 of JSON.stringify(body) (compact JSON); for a record with \"trimmed\" it is of the full body before trimming. height is the x-cosmos-block-height response header (for api.noble.xyz, grpc-metadata-x-cosmos-block-height). Index: docs/earn/EVIDENCE_2026-10.md.",
+ "records": [
+  {
+   "name": "verify/v1/f09_main_denom",
+   "retrievedAt": "2026-10-02T22:52:46Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denoms/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12612795",
+   "sha256": "3cbd650d4444aa1dd2936f9a39191568e79832c8b3d7d98fcca5c2156aa12cff",
+   "body": {
+    "denom": {
+     "base": "uusdc",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-3"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_main_channel3",
+   "retrievedAt": "2026-10-02T22:52:48Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-3/ports/transfer",
+   "httpStatus": 200,
+   "height": "12612795",
+   "sha256": "ca18d7ee12b6c71d7997860a8f738f3bdc3688121bc87579e1a405eb9c52a85f",
+   "body": {
+    "channel": {
+     "state": "STATE_OPEN",
+     "ordering": "ORDER_UNORDERED",
+     "counterparty": {
+      "port_id": "transfer",
+      "channel_id": "channel-175"
+     },
+     "connection_hops": [
+      "connection-3"
+     ],
+     "version": "ics20-1"
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12612795"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_main_channel3_client_state",
+   "retrievedAt": "2026-10-02T22:52:48Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-3/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12612796",
+   "sha256": "b9d1ec60822df223b7325ebadbb3386a131a7e30ce9250c41e2129458875c5c0",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-3",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "noble-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "60657897"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12612796"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_noble_escrow_addr",
+   "retrievedAt": "2026-10-02T22:53:17Z",
+   "url": "https://api.noble.xyz/ibc/apps/transfer/v1/channels/channel-175/ports/transfer/escrow_address",
+   "httpStatus": 200,
+   "height": "60661840",
+   "sha256": "88c2ff32e5d13ab09ba87cc6950575c568b3d3ac40e87800b2324a60a2566781",
+   "body": {
+    "escrow_address": "noble1e4quceq0nhvfalpkct2yecpu56ss3erltz8yku"
+   }
+  },
+  {
+   "name": "verify/v1/f09_noble_channel175",
+   "retrievedAt": "2026-10-02T22:53:18Z",
+   "url": "https://api.noble.xyz/ibc/core/channel/v1/channels/channel-175/ports/transfer",
+   "httpStatus": 200,
+   "height": "60661840",
+   "sha256": "c7d063ce6e6694a9713b60f677e502e72ddb48572fb8bf45ed8e5f7048dda0cd",
+   "body": {
+    "channel": {
+     "state": "STATE_OPEN",
+     "ordering": "ORDER_UNORDERED",
+     "counterparty": {
+      "port_id": "transfer",
+      "channel_id": "channel-3"
+     },
+     "connection_hops": [
+      "connection-179"
+     ],
+     "version": "ics20-1",
+     "upgrade_sequence": "0"
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "60661840"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_noble_channel175_client_state",
+   "retrievedAt": "2026-10-02T22:53:18Z",
+   "url": "https://api.noble.xyz/ibc/core/channel/v1/channels/channel-175/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "60661841",
+   "sha256": "0571b53cc44599295e2570e1b424e485d5bd4fbc0c155191d0d37a5d1d4701fd",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-184",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "zigchain-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "12611425"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "60661841"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_r1_zig_supply",
+   "retrievedAt": "2026-10-02T22:53:42Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc%2F6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12612813",
+   "sha256": "2ddc055a07aa48ed4d11af95bef8acb63f8503cf4c55ba8b031af38de25c1f99",
+   "body": {
+    "amount": {
+     "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+     "amount": "259314404300"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_r1_noble_escrow_balance",
+   "retrievedAt": "2026-10-02T22:53:43Z",
+   "url": "https://api.noble.xyz/cosmos/bank/v1beta1/balances/noble1e4quceq0nhvfalpkct2yecpu56ss3erltz8yku/by_denom?denom=uusdc",
+   "httpStatus": 200,
+   "height": "60661863",
+   "sha256": "09d0da63a010db7947d7fd8f391ef1945e32c5d4764010581dd949439e063db5",
+   "body": {
+    "balance": {
+     "denom": "uusdc",
+     "amount": "259314404300"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_r2_zig_supply",
+   "retrievedAt": "2026-10-02T22:53:44Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc%2F6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12612813",
+   "sha256": "2ddc055a07aa48ed4d11af95bef8acb63f8503cf4c55ba8b031af38de25c1f99",
+   "body": {
+    "amount": {
+     "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+     "amount": "259314404300"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f09_r2_noble_escrow_balance",
+   "retrievedAt": "2026-10-02T22:53:44Z",
+   "url": "https://api.noble.xyz/cosmos/bank/v1beta1/balances/noble1e4quceq0nhvfalpkct2yecpu56ss3erltz8yku/by_denom?denom=uusdc",
+   "httpStatus": 200,
+   "height": "60661864",
+   "sha256": "09d0da63a010db7947d7fd8f391ef1945e32c5d4764010581dd949439e063db5",
+   "body": {
+    "balance": {
+     "denom": "uusdc",
+     "amount": "259314404300"
+    }
+   }
+  },
+  {
+   "name": "verify/v2/factory_config_api.zigchain.com",
+   "retrievedAt": "2026-10-02T22:57:01Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJjb25maWciOnt9fQ==",
+   "httpStatus": 200,
+   "height": "12612875",
+   "sha256": "a7241f497fc255b21f62a141294c0da5f889cfd20d1a049a350a1546552566ff",
+   "body": {
+    "data": {
+     "owner": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "pair_configs": [
+      {
+       "code_id": 174,
+       "pair_type": {
+        "custom": "concentrated"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_10"
+       },
+       "total_fee_bps": 10,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_100"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_200"
+       },
+       "total_fee_bps": 200,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_25"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_97"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_98"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_99"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "xyk": {}
+       },
+       "total_fee_bps": 1,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      }
+     ],
+     "token_code_id": 22,
+     "fee_address": "zig1hyja4uyjktpeh0fxzuw2fmjudr85rk2qu98fa6nuh6d4qru9l0ss0j233h",
+     "generator_address": "zig10v0hrjvwwlqwvk2yhwagm9m9h385spxa4s54f4aekhap0lxyekysf2ekwz",
+     "whitelist_code_id": 0,
+     "coin_registry_address": "zig1lstuws59hjswletwmskefdajhq76pz9tlfq84perndemrzztda0qqmjlc0"
+    }
+   }
+  },
+  {
+   "name": "verify/v2/factory_config_public-zigchain-lcd.numia.xyz",
+   "retrievedAt": "2026-10-02T22:57:01Z",
+   "url": "https://public-zigchain-lcd.numia.xyz/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJjb25maWciOnt9fQ==",
+   "httpStatus": 200,
+   "height": "12612875",
+   "sha256": "a7241f497fc255b21f62a141294c0da5f889cfd20d1a049a350a1546552566ff",
+   "body": {
+    "data": {
+     "owner": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "pair_configs": [
+      {
+       "code_id": 174,
+       "pair_type": {
+        "custom": "concentrated"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_10"
+       },
+       "total_fee_bps": 10,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_100"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_200"
+       },
+       "total_fee_bps": 200,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_25"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_97"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_98"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_99"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "xyk": {}
+       },
+       "total_fee_bps": 1,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      }
+     ],
+     "token_code_id": 22,
+     "fee_address": "zig1hyja4uyjktpeh0fxzuw2fmjudr85rk2qu98fa6nuh6d4qru9l0ss0j233h",
+     "generator_address": "zig10v0hrjvwwlqwvk2yhwagm9m9h385spxa4s54f4aekhap0lxyekysf2ekwz",
+     "whitelist_code_id": 0,
+     "coin_registry_address": "zig1lstuws59hjswletwmskefdajhq76pz9tlfq84perndemrzztda0qqmjlc0"
+    }
+   }
+  },
+  {
+   "name": "verify/v2/factory_cw2",
+   "retrievedAt": "2026-10-02T22:58:00Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/raw/Y29udHJhY3RfaW5mbw==",
+   "httpStatus": 200,
+   "height": "12612894",
+   "sha256": "3e32ed13266be35c5b8259fd8bb4b7e42ec640c1d3ae77377aea722ccc26f702",
+   "body": {
+    "data": "eyJjb250cmFjdCI6Im9yb3N3YXAtZmFjdG9yeSIsInZlcnNpb24iOiIxLjIuMCJ9"
+   }
+  },
+  {
+   "name": "verify/v2/factory_paused_pairs_count",
+   "retrievedAt": "2026-10-02T22:58:14Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYXVzZWRfcGFpcnNfY291bnQiOnt9fQ==",
+   "httpStatus": 200,
+   "height": "12612898",
+   "sha256": "1f76e91028fbb6d3dcccb3be7352576f5c4c6f0476562381c25117ec046bf360",
+   "body": {
+    "data": 0
+   }
+  },
+  {
+   "name": "research/a/ibc/mainnet_channel-3_client_state",
+   "retrievedAt": "2026-10-02T20:51:38Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-3/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12610511",
+   "sha256": "8fd2483aac70fdc1b357e2c025dfcdf7892aa6b7233e3bf449fcca346e667a33",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-3",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "noble-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "60652344"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12610511"
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/testnet_channel-35_client_state",
+   "retrievedAt": "2026-10-02T20:51:37Z",
+   "url": "https://testnet-api.zigchain.com/ibc/core/channel/v1/channels/channel-35/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "8045444",
+   "sha256": "cfbf32a4c8e64c879135f78bc1964cf64f07d5c294f74832627eec231ba26fa1",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-72",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "grand-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "39305548"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "2",
+     "revision_height": "8045444"
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/testnet_channel-44_client_state",
+   "retrievedAt": "2026-10-02T20:51:37Z",
+   "url": "https://testnet-api.zigchain.com/ibc/core/channel/v1/channels/channel-44/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "8045444",
+   "sha256": "beebaf141ed4a9d81dabc696fb1bade97d7c40cb59efef155bf4c4003038de22",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-84",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "grand-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "67312928"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "2",
+     "revision_height": "8045444"
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/mainnet_denoms_6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "retrievedAt": "2026-10-02T20:46:11Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denoms/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12610409",
+   "sha256": "3cbd650d4444aa1dd2936f9a39191568e79832c8b3d7d98fcca5c2156aa12cff",
+   "body": {
+    "denom": {
+     "base": "uusdc",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-3"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/mainnet_denom_hash_channel-3_uusdc",
+   "retrievedAt": "2026-10-02T20:47:33Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denom_hashes/transfer%2Fchannel-3%2Fuusdc",
+   "httpStatus": 200,
+   "height": "12610435",
+   "sha256": "6b8fb3e9207ed3e4af920cd198d2e20bec35fc562e9f702eaaa39b414660fbfb",
+   "body": {
+    "hash": "6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+   }
+  },
+  {
+   "name": "research/a/ibc/testnet_denoms_5260516290F7883EC893AADA09A6B8CEC790F2EEF3196F440037908749785BE8",
+   "retrievedAt": "2026-10-02T20:51:21Z",
+   "url": "https://testnet-api.zigchain.com/ibc/apps/transfer/v1/denoms/5260516290F7883EC893AADA09A6B8CEC790F2EEF3196F440037908749785BE8",
+   "httpStatus": 200,
+   "height": "8045441",
+   "sha256": "8c4a2a4c15a346ae5acc3c75472a47f2c8f7af24cc6a09aa23582c3c3d4ed957",
+   "body": {
+    "denom": {
+     "base": "uusdc",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-44"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/testnet_denoms_8E452E728A6598EEF051E63FFE49AF19004F5D2AA3F690413C2985660AAFD38F",
+   "retrievedAt": "2026-10-02T20:51:23Z",
+   "url": "https://testnet-api.zigchain.com/ibc/apps/transfer/v1/denoms/8E452E728A6598EEF051E63FFE49AF19004F5D2AA3F690413C2985660AAFD38F",
+   "httpStatus": 200,
+   "height": "8045441",
+   "sha256": "c538d4608c1b78449dfd737f7f4941b6eae13a616a2172a473173db3194dd93e",
+   "body": {
+    "denom": {
+     "base": "uusdc",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-35"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/mainnet_factory_history",
+   "retrievedAt": "2026-10-02T20:41:00Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/history",
+   "httpStatus": 200,
+   "height": "12610311",
+   "sha256": "6ba84c3cc2c116946d55e407b5e2b98ca69c78971a9d19e35fad828e90983138",
+   "body": {
+    "entries": [
+     {
+      "operation": "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT",
+      "code_id": "13",
+      "updated": {
+       "block_height": "2472838",
+       "tx_index": "0"
+      },
+      "msg": {
+       "owner": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+       "token_code_id": 22,
+       "whitelist_code_id": 0,
+       "coin_registry_address": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+       "pair_configs": [
+        {
+         "code_id": 20,
+         "pair_type": {
+          "custom": "concentrated"
+         },
+         "permissioned": false,
+         "total_fee_bps": 100,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "100000000"
+        },
+        {
+         "code_id": 19,
+         "pair_type": {
+          "xyk": {}
+         },
+         "permissioned": false,
+         "total_fee_bps": 1,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "100000000"
+        },
+        {
+         "code_id": 19,
+         "pair_type": {
+          "custom": "xyk_10"
+         },
+         "permissioned": false,
+         "total_fee_bps": 10,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "100000000"
+        },
+        {
+         "code_id": 19,
+         "pair_type": {
+          "custom": "xyk_25"
+         },
+         "permissioned": false,
+         "total_fee_bps": 25,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "100000000"
+        },
+        {
+         "code_id": 19,
+         "pair_type": {
+          "custom": "xyk_100"
+         },
+         "permissioned": false,
+         "total_fee_bps": 100,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "100000000"
+        },
+        {
+         "code_id": 19,
+         "pair_type": {
+          "custom": "xyk_200"
+         },
+         "permissioned": false,
+         "total_fee_bps": 200,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "100000000"
+        }
+       ],
+       "fee_address": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+       "generator_address": null,
+       "tracker_config": null
+      }
+     },
+     {
+      "operation": "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE",
+      "code_id": "172",
+      "updated": {
+       "block_height": "12549363",
+       "tx_index": "0"
+      },
+      "msg": {
+       "redenom": {
+        "from": "uzig",
+        "to": "azig"
+       },
+       "tracker_config": null
+      }
+     }
+    ],
+    "pagination": {
+     "next_key": null,
+     "total": "0"
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/mainnet_router_contract",
+   "retrievedAt": "2026-10-02T20:41:02Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy",
+   "httpStatus": 200,
+   "height": "12610311",
+   "sha256": "887789234c62e2e2c4ace25fe6122abe77f32101e7106fd71a6dd5fdfba124d2",
+   "body": {
+    "address": "zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy",
+    "contract_info": {
+     "code_id": "14",
+     "creator": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "admin": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "label": "oroswap-router-mainnet",
+     "created": {
+      "block_height": "2489189",
+      "tx_index": "0"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/mainnet_code_14_codeinfo",
+   "retrievedAt": "2026-10-02T20:41:03Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/code-info/14",
+   "httpStatus": 200,
+   "height": "12610312",
+   "sha256": "0866398f40fbe2c9a0fff59ef7af6c4ba5659fa44b4bfadcb17f939940f1fbbb",
+   "body": {
+    "code_id": "14",
+    "creator": "zig1c7kzlxmmrl0zthrxnnlc25epzyrf9acgus0pnr",
+    "checksum": "BC17F0DD2EFCD7D8BEBB082352CD41BD621C07A388D575138719602A413DC410",
+    "instantiate_permission": {
+     "permission": "Everybody",
+     "addresses": []
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/testnet_factory_history",
+   "retrievedAt": "2026-10-02T20:41:24Z",
+   "url": "https://testnet-api.zigchain.com/cosmwasm/wasm/v1/contract/zig17a7mlm84taqmd3enrpcxhrwzclj9pga8efz83vrswnnywr8tv26s7mpq30/history",
+   "httpStatus": 200,
+   "height": "8045335",
+   "sha256": "0312a3b8fdb1b229317ae5056b7d928fb7ae711eb44cb78d2940ccddedb4d5da",
+   "body": {
+    "entries": [
+     {
+      "operation": "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT",
+      "code_id": "37",
+      "updated": {
+       "block_height": "60008",
+       "tx_index": "0"
+      },
+      "msg": {
+       "owner": "zig13cu9679ax3vxkq2n6aqeunfzzknmkjd0fnu5he",
+       "token_code_id": 4,
+       "whitelist_code_id": 0,
+       "coin_registry_address": "zig13cu9679ax3vxkq2n6aqeunfzzknmkjd0fnu5he",
+       "pair_configs": [
+        {
+         "code_id": 38,
+         "pair_type": {
+          "xyk": {}
+         },
+         "permissioned": false,
+         "total_fee_bps": 10,
+         "maker_fee_bps": 2000,
+         "is_disabled": false,
+         "is_generator_disabled": false,
+         "pool_creation_fee": "1000000"
+        }
+       ],
+       "fee_address": "zig1rzad9u9py87mzpgvryypdgdnw6yr22eer6dyzn",
+       "generator_address": null,
+       "tracker_config": null
+      }
+     },
+     {
+      "operation": "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE",
+      "code_id": "335",
+      "updated": {
+       "block_height": "630370",
+       "tx_index": "10232701"
+      },
+      "msg": {}
+     },
+     {
+      "operation": "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE",
+      "code_id": "558",
+      "updated": {
+       "block_height": "1817471",
+       "tx_index": "22761729"
+      },
+      "msg": {}
+     },
+     {
+      "operation": "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE",
+      "code_id": "2535",
+      "updated": {
+       "block_height": "7901528",
+       "tx_index": "0"
+      },
+      "msg": {
+       "redenom": {
+        "from": "uzig",
+        "to": "azig"
+       },
+       "tracker_config": null
+      }
+     }
+    ],
+    "pagination": {
+     "next_key": null,
+     "total": "0"
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/testnet_code_562_codeinfo",
+   "retrievedAt": "2026-10-02T20:41:27Z",
+   "url": "https://testnet-api.zigchain.com/cosmwasm/wasm/v1/code-info/562",
+   "httpStatus": 200,
+   "height": "8045335",
+   "sha256": "90a4194faf206abf76694b6412f2db07c3a37496ddab65856be2b300767f67b9",
+   "body": {
+    "code_id": "562",
+    "creator": "zig13cu9679ax3vxkq2n6aqeunfzzknmkjd0fnu5he",
+    "checksum": "48DA3C70F107E6A0B42A04194544BA56C09C1948C2B9D0C6175A4C8271571B30",
+    "instantiate_permission": {
+     "permission": "Everybody",
+     "addresses": []
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/mainnet_factory_config",
+   "retrievedAt": "2026-10-02T20:41:51Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJjb25maWciOnt9fQ==",
+   "httpStatus": 200,
+   "height": "12610327",
+   "sha256": "a7241f497fc255b21f62a141294c0da5f889cfd20d1a049a350a1546552566ff",
+   "body": {
+    "data": {
+     "owner": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "pair_configs": [
+      {
+       "code_id": 174,
+       "pair_type": {
+        "custom": "concentrated"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_10"
+       },
+       "total_fee_bps": 10,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_100"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_200"
+       },
+       "total_fee_bps": 200,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_25"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_97"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_98"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "custom": "xyk_99"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      },
+      {
+       "code_id": 173,
+       "pair_type": {
+        "xyk": {}
+       },
+       "total_fee_bps": 1,
+       "maker_fee_bps": 2000,
+       "is_disabled": true,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "100000000000000000000"
+      }
+     ],
+     "token_code_id": 22,
+     "fee_address": "zig1hyja4uyjktpeh0fxzuw2fmjudr85rk2qu98fa6nuh6d4qru9l0ss0j233h",
+     "generator_address": "zig10v0hrjvwwlqwvk2yhwagm9m9h385spxa4s54f4aekhap0lxyekysf2ekwz",
+     "whitelist_code_id": 0,
+     "coin_registry_address": "zig1lstuws59hjswletwmskefdajhq76pz9tlfq84perndemrzztda0qqmjlc0"
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/mainnet_router_zz_unknown",
+   "retrievedAt": "2026-10-02T20:41:41Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy/smart/eyJ6el91bmtub3duIjp7fX0=",
+   "httpStatus": 500,
+   "height": null,
+   "sha256": "303db8d462b43fad0d90701b6f2c8a8a9dd07c9a4aeff632b7195c5da0d06e41",
+   "body": {
+    "code": 2,
+    "message": "Error parsing into type oroswap_core::router::QueryMsg: unknown variant `zz_unknown`, expected one of `config`, `simulate_swap_operations`, `reverse_simulate_swap_operations`: query wasm contract failed",
+    "details": []
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/mainnet_factory_zz_unknown",
+   "retrievedAt": "2026-10-02T20:41:41Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJ6el91bmtub3duIjp7fX0=",
+   "httpStatus": 500,
+   "height": null,
+   "sha256": "5c86a212fd920e3e671add31441b971dd53ae85d33194e31320cb40894530bda",
+   "body": {
+    "code": 2,
+    "message": "Error parsing into type oroswap_core::factory::QueryMsg: unknown variant `zz_unknown`, expected one of `config`, `pair`, `pairs`, `fee_info`, `blacklisted_pair_types`, `tracker_config`, `pairs_by_assets`, `is_pair_paused`, `pause_authorities`, `paused_pairs_count`: query wasm contract failed",
+    "details": []
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/mainnet_factory_paused_pairs_count",
+   "retrievedAt": "2026-10-02T20:43:09Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYXVzZWRfcGFpcnNfY291bnQiOnt9fQ==",
+   "httpStatus": 200,
+   "height": "12610352",
+   "sha256": "1f76e91028fbb6d3dcccb3be7352576f5c4c6f0476562381c25117ec046bf360",
+   "body": {
+    "data": 0
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/testnet_factory_config",
+   "retrievedAt": "2026-10-02T20:41:52Z",
+   "url": "https://testnet-api.zigchain.com/cosmwasm/wasm/v1/contract/zig17a7mlm84taqmd3enrpcxhrwzclj9pga8efz83vrswnnywr8tv26s7mpq30/smart/eyJjb25maWciOnt9fQ==",
+   "httpStatus": 200,
+   "height": "8045340",
+   "sha256": "38dd3797cfdbbff3220dd66c04d447fd75316e86a6e3c61580e563c7981a147a",
+   "body": {
+    "data": {
+     "owner": "zig13cu9679ax3vxkq2n6aqeunfzzknmkjd0fnu5he",
+     "pair_configs": [
+      {
+       "code_id": 2537,
+       "pair_type": {
+        "custom": "concentrated"
+       },
+       "total_fee_bps": 10,
+       "maker_fee_bps": 2000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      },
+      {
+       "code_id": 2536,
+       "pair_type": {
+        "custom": "xyk_10"
+       },
+       "total_fee_bps": 10,
+       "maker_fee_bps": 2000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      },
+      {
+       "code_id": 2536,
+       "pair_type": {
+        "custom": "xyk_100"
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 2000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      },
+      {
+       "code_id": 2536,
+       "pair_type": {
+        "custom": "xyk_200"
+       },
+       "total_fee_bps": 200,
+       "maker_fee_bps": 2000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      },
+      {
+       "code_id": 2536,
+       "pair_type": {
+        "custom": "xyk_25"
+       },
+       "total_fee_bps": 25,
+       "maker_fee_bps": 2000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      },
+      {
+       "code_id": 2538,
+       "pair_type": {
+        "stable": {}
+       },
+       "total_fee_bps": 100,
+       "maker_fee_bps": 1000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      },
+      {
+       "code_id": 2536,
+       "pair_type": {
+        "xyk": {}
+       },
+       "total_fee_bps": 1,
+       "maker_fee_bps": 2000,
+       "is_disabled": false,
+       "is_generator_disabled": false,
+       "permissioned": false,
+       "pool_creation_fee": "1000000000000000000"
+      }
+     ],
+     "token_code_id": 4,
+     "fee_address": "zig1qvg5ju7tlg4ujdytqx9vy3wkqr8e00j302a33jl7uw6rs8w2fvaqvjf399",
+     "generator_address": "zig1sq7mu45and7htxdjwe9htl0q3y33qlnt6cded6z299303pya5d0qda8sg7",
+     "whitelist_code_id": 0,
+     "coin_registry_address": "zig1knyre4stvestyn032u9edf9w0fxhgv4szlwdvy2f69jludmunknswaxdsr"
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/mainnet_factory_pairs_by_assets_azig_usdc",
+   "retrievedAt": "2026-10-02T20:43:08Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYWlyc19ieV9hc3NldHMiOnsiYXNzZXRfaW5mb3MiOlt7Im5hdGl2ZV90b2tlbiI6eyJkZW5vbSI6ImF6aWcifX0seyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJpYmMvNjQ5MEE3RUFCNjEwNTlCRkMxQ0RERUIwNTkxN0RENzBCREYzQTYxMTY1NDE2MkExQTQ3REI5MzBENDBEOEFGNCJ9fV19fQ==",
+   "httpStatus": 200,
+   "height": "12610351",
+   "sha256": "abd7b45bbed09b755e8c6ab80dc0078afa6c40c2b61b89183db762b4216b5dbb",
+   "body": {
+    "data": {
+     "pairs": [
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "uzig"
+         }
+        }
+       ],
+       "contract_addr": "zig1jusndv49thn5flmz6ejmmal5ch0j2fdvs5474m974zlsvn55lfjq923aul",
+       "liquidity_token": "coin.zig1jusndv49thn5flmz6ejmmal5ch0j2fdvs5474m974zlsvn55lfjq923aul.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_10"
+       }
+      },
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "uzig"
+         }
+        }
+       ],
+       "contract_addr": "zig1y9m8ftqnjdf9ttvlfmz8kzey8d9hyn7acahq2ajepr74fft3duyqhzpwxe",
+       "liquidity_token": "coin.zig1y9m8ftqnjdf9ttvlfmz8kzey8d9hyn7acahq2ajepr74fft3duyqhzpwxe.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_100"
+       }
+      },
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        }
+       ],
+       "contract_addr": "zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h",
+       "liquidity_token": "coin.zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_25"
+       }
+      },
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "uzig"
+         }
+        }
+       ],
+       "contract_addr": "zig1kt33w2ztud5duv0e6sc05y2xk046dtv4n8tfg38h4x2ryj5td9kq804928",
+       "liquidity_token": "coin.zig1kt33w2ztud5duv0e6sc05y2xk046dtv4n8tfg38h4x2ryj5td9kq804928.oroswaplptoken",
+       "pair_type": {
+        "xyk": {}
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/pairs/mainnet_zig_usdc_xyk_contract",
+   "retrievedAt": "2026-10-02T20:47:12Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1kt33w2ztud5duv0e6sc05y2xk046dtv4n8tfg38h4x2ryj5td9kq804928",
+   "httpStatus": 200,
+   "height": "12610428",
+   "sha256": "b773244a46ca3015e207deb559e4b2a383b774429a7e03ffe60cbfebab6de77c",
+   "body": {
+    "address": "zig1kt33w2ztud5duv0e6sc05y2xk046dtv4n8tfg38h4x2ryj5td9kq804928",
+    "contract_info": {
+     "code_id": "19",
+     "creator": "zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85",
+     "admin": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "label": "Oroswap pair xyk",
+     "created": {
+      "block_height": "2610561",
+      "tx_index": "0"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/pairs/mainnet_stzig_zig_xyk_contract",
+   "retrievedAt": "2026-10-02T20:47:19Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq",
+   "httpStatus": 200,
+   "height": "12610430",
+   "sha256": "0231d5fc5202cb3e8d9b36bdf66dac85d98a8d7b0dad849ebe69d3d65a8e2632",
+   "body": {
+    "address": "zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq",
+    "contract_info": {
+     "code_id": "173",
+     "creator": "zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85",
+     "admin": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+     "label": "Oroswap pair xyk",
+     "created": {
+      "block_height": "2626173",
+      "tx_index": "0"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/mainnet_denoms_630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+   "retrievedAt": "2026-10-02T20:46:16Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denoms/630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+   "httpStatus": 200,
+   "height": "12610410",
+   "sha256": "fb7cfadf47e1a2a6c7fff57587389b0b534d3f4de4d5a1750878313c76de3100",
+   "body": {
+    "denom": {
+     "base": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-4"
+      },
+      {
+       "port_id": "transfer",
+       "channel_id": "08-wasm-1369"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/pairinfo/testnet_pairinfo_zig18eep456306l3n6s8x72gvmu0m5fqw8u759e9w3tmzjp86fw5wfjs7705r5",
+   "retrievedAt": "2026-10-02T20:50:07Z",
+   "url": "https://testnet-api.zigchain.com/cosmwasm/wasm/v1/contract/zig18eep456306l3n6s8x72gvmu0m5fqw8u759e9w3tmzjp86fw5wfjs7705r5/smart/eyJwYWlyIjp7fX0=",
+   "httpStatus": 200,
+   "height": "8045428",
+   "sha256": "6aebd45733a305f9b10c6c6a327c17d5cfa37a0929a1e9367afaef219178f5fa",
+   "body": {
+    "data": {
+     "asset_infos": [
+      {
+       "native_token": {
+        "denom": "uzig"
+       }
+      },
+      {
+       "native_token": {
+        "denom": "ibc/5260516290F7883EC893AADA09A6B8CEC790F2EEF3196F440037908749785BE8"
+       }
+      }
+     ],
+     "contract_addr": "zig18eep456306l3n6s8x72gvmu0m5fqw8u759e9w3tmzjp86fw5wfjs7705r5",
+     "liquidity_token": "coin.zig18eep456306l3n6s8x72gvmu0m5fqw8u759e9w3tmzjp86fw5wfjs7705r5.oroswaplptoken",
+     "pair_type": {
+      "custom": "xyk_200"
+     }
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_lcd/pairs/testnet_zig_usdc35_xyk_contract",
+   "retrievedAt": "2026-10-02T20:51:56Z",
+   "url": "https://testnet-api.zigchain.com/cosmwasm/wasm/v1/contract/zig16p8fxfncdyxssntfra6tn6lvun20dnhxrw6vq5u560m002utapmq8seu3p",
+   "httpStatus": 200,
+   "height": "8045447",
+   "sha256": "aafbfa48768ed223a46bb0290ddf26a24b94d5a7f408f64ec85f9ccf898b57d9",
+   "body": {
+    "address": "zig16p8fxfncdyxssntfra6tn6lvun20dnhxrw6vq5u560m002utapmq8seu3p",
+    "contract_info": {
+     "code_id": "560",
+     "creator": "zig17a7mlm84taqmd3enrpcxhrwzclj9pga8efz83vrswnnywr8tv26s7mpq30",
+     "admin": "zig13cu9679ax3vxkq2n6aqeunfzzknmkjd0fnu5he",
+     "label": "Oroswap pair xyk",
+     "created": {
+      "block_height": "2622596",
+      "tx_index": "245019"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "name": "research/a/oroswap_q/mainnet_router_simulate_zig_to_usdc_xyk25",
+   "retrievedAt": "2026-10-02T20:52:16Z",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig10jc4vr9vfq0ykkmfvfgz430w8z6hwdlqhmjdy9jypts8wfrrwnnqvp8sgy/smart/eyJzaW11bGF0ZV9zd2FwX29wZXJhdGlvbnMiOnsib2ZmZXJfYW1vdW50IjoiMTAwMDAwMDAwMDAwMDAwMDAwMCIsIm9wZXJhdGlvbnMiOlt7Im9yb19zd2FwIjp7Im9mZmVyX2Fzc2V0X2luZm8iOnsibmF0aXZlX3Rva2VuIjp7ImRlbm9tIjoiYXppZyJ9fSwiYXNrX2Fzc2V0X2luZm8iOnsibmF0aXZlX3Rva2VuIjp7ImRlbm9tIjoiaWJjLzY0OTBBN0VBQjYxMDU5QkZDMUNEREVCMDU5MTdERDcwQkRGM0E2MTE2NTQxNjJBMUE0N0RCOTMwRDQwRDhBRjQifX0sInBhaXJfdHlwZSI6eyJjdXN0b20iOiJ4eWtfMjUifX19XX19",
+   "httpStatus": 200,
+   "height": "12610524",
+   "sha256": "8d1f747e2428de6c8cad2789d28c8e0a6958fa179d8034b3cf7148101ca0105b",
+   "body": {
+    "data": {
+     "amount": "55438",
+     "router_stages": [
+      {
+       "stage": 0,
+       "pair_address": "zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h",
+       "offer_asset": {
+        "native_token": {
+         "denom": "azig"
+        }
+       },
+       "ask_asset": {
+        "native_token": {
+         "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+        }
+       },
+       "return_amount": "55438",
+       "commission_amount": "138",
+       "spread_amount": "0"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/a/ibc/mainnet_bankmeta_630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+   "retrievedAt": "2026-10-02T20:46:16Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata_by_query_string?denom=ibc%2F630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+   "httpStatus": 200,
+   "height": "12610411",
+   "sha256": "676b43537fb783425b90d14aa0ee984ab9d9af0b364deaa6316c7affa7571c42",
+   "body": {
+    "metadata": {
+     "description": "IBC token from transfer/channel-4/transfer/08-wasm-1369/0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "denom_units": [
+      {
+       "denom": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+       "exponent": 0,
+       "aliases": []
+      }
+     ],
+     "base": "ibc/630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+     "display": "transfer/channel-4/transfer/08-wasm-1369/0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "name": "transfer/channel-4/transfer/08-wasm-1369/0xdac17f958d2ee523a2206206994597c13d831ec7 IBC token",
+     "symbol": "0XDAC17F958D2EE523A2206206994597C13D831EC7",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "research/b/lcd_ibc_denoms_usdc",
+   "retrievedAt": "2026-10-02T20:47:19Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denoms/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12610430",
+   "sha256": "3cbd650d4444aa1dd2936f9a39191568e79832c8b3d7d98fcca5c2156aa12cff",
+   "body": {
+    "denom": {
+     "base": "uusdc",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-3"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/b/lcd_channel3",
+   "retrievedAt": "2026-10-02T20:47:20Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-3/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12610431",
+   "sha256": "13950321531bcd3c2fe1b05cf4691b1d5de46a609750b71a6c245e08462f3237",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-3",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "noble-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "60652344"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12610431"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_denom_hash_ch3_uusdc",
+   "retrievedAt": "2026-10-02T21:11:30Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denom_hashes/transfer%2Fchannel-3%2Fuusdc",
+   "httpStatus": 200,
+   "height": "12610885",
+   "sha256": "6b8fb3e9207ed3e4af920cd198d2e20bec35fc562e9f702eaaa39b414660fbfb",
+   "body": {
+    "hash": "6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+   }
+  },
+  {
+   "name": "research/c/main_clientstate_channel-3",
+   "retrievedAt": "2026-10-02T21:10:11Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-3/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12610861",
+   "sha256": "658b648255f09e46dbd14ed341cce2628319a8764e9bb382f918377572e0f17e",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-3",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "noble-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "60652344"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12610861"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_clientstatus_07-tendermint-3",
+   "retrievedAt": "2026-10-02T21:10:45Z",
+   "url": "https://api.zigchain.com/ibc/core/client/v1/client_status/07-tendermint-3",
+   "httpStatus": 200,
+   "height": "12610871",
+   "sha256": "e17bac1fe20436881c472e2313b8d5a80874145dd21c62a907448178783ecc78",
+   "body": {
+    "status": "Active"
+   }
+  },
+  {
+   "name": "research/c/main_supply_by_denom_6490A7EA",
+   "retrievedAt": "2026-10-02T21:11:08Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12610879",
+   "sha256": "4537e70f91480448641798608f3fd3e4fc2c6e7f0c3f2dff56124e7dbac4518a",
+   "body": {
+    "amount": {
+     "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+     "amount": "259465404300"
+    }
+   }
+  },
+  {
+   "name": "research/c/noble_channel-175",
+   "retrievedAt": "2026-10-02T21:17:39Z",
+   "url": "https://api.noble.xyz/ibc/core/channel/v1/channels/channel-175/ports/transfer",
+   "httpStatus": 200,
+   "height": null,
+   "sha256": "eaee1cc616ee2ac316358ea7f55c49dc47214ff267655177597629d3e4c99898",
+   "body": {
+    "channel": {
+     "state": "STATE_OPEN",
+     "ordering": "ORDER_UNORDERED",
+     "counterparty": {
+      "port_id": "transfer",
+      "channel_id": "channel-3"
+     },
+     "connection_hops": [
+      "connection-179"
+     ],
+     "version": "ics20-1",
+     "upgrade_sequence": "0"
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "60656672"
+    }
+   }
+  },
+  {
+   "name": "research/c/noble_clientstate_channel-175",
+   "retrievedAt": "2026-10-02T21:17:38Z",
+   "url": "https://api.noble.xyz/ibc/core/channel/v1/channels/channel-175/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": null,
+   "sha256": "10543dbb10a6e64364201262bb924f43037419fd42d190f6668d8509cf712966",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-184",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "zigchain-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "12609493"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "60656671"
+    }
+   }
+  },
+  {
+   "name": "research/c/noble_escrow_balance_uusdc",
+   "retrievedAt": "2026-10-02T21:17:53Z",
+   "url": "https://api.noble.xyz/cosmos/bank/v1beta1/balances/noble1e4quceq0nhvfalpkct2yecpu56ss3erltz8yku/by_denom?denom=uusdc",
+   "httpStatus": 200,
+   "height": null,
+   "sha256": "09740709a1aa15148fb9b39d30b6ff46f5171b41ffc11279be2afec3a9610ecb",
+   "body": {
+    "balance": {
+     "denom": "uusdc",
+     "amount": "259465404300"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_supply_by_denom_6490A7EA_recheck",
+   "retrievedAt": "2026-10-02T21:17:54Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+   "httpStatus": 200,
+   "height": "12611006",
+   "sha256": "4537e70f91480448641798608f3fd3e4fc2c6e7f0c3f2dff56124e7dbac4518a",
+   "body": {
+    "amount": {
+     "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+     "amount": "259465404300"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_denom_hash_ch4_usdt",
+   "retrievedAt": "2026-10-02T21:11:31Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denom_hashes/transfer%2Fchannel-4%2Ftransfer%2F08-wasm-1369%2F0xdac17f958d2ee523a2206206994597c13d831ec7",
+   "httpStatus": 200,
+   "height": "12610886",
+   "sha256": "e5f0b7b0319c712c4fee0d1a5e7a68a957bb971ac0613cee8c4aea051043be5e",
+   "body": {
+    "hash": "630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9"
+   }
+  },
+  {
+   "name": "research/c/main_clientstate_channel-4",
+   "retrievedAt": "2026-10-02T21:10:12Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-4/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12610861",
+   "sha256": "a0a77054bdbdffdb72729368e59cb0d04257ee0ed00b212a0e501c3786402064",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-4",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "cosmoshub-4",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "4",
+       "revision_height": "33225665"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12610861"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_supply_by_denom_630F2841",
+   "retrievedAt": "2026-10-02T21:11:09Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+   "httpStatus": 200,
+   "height": "12610879",
+   "sha256": "5b1e428bb6195a1d10bc71c357829b309eead8cbed1ed5509ef1b65aceff2017",
+   "body": {
+    "amount": {
+     "denom": "ibc/630F28419AFD118B9EA8B96AE9D280CFDA4EB9FAB3108F1CA9E7DC00F396B4F9",
+     "amount": "29107467433"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_denom_CC5268",
+   "retrievedAt": "2026-10-02T21:11:31Z",
+   "url": "https://api.zigchain.com/ibc/apps/transfer/v1/denoms/CC5268F89C752A4BDCBDAA574AF0A381786FCC839104E077DA9A9145176BF8ED",
+   "httpStatus": 200,
+   "height": "12610886",
+   "sha256": "d76c5d55c3d09a597c6ddc61938987ca91f9c55efc9e9c3401a888fb17a99e7a",
+   "body": {
+    "denom": {
+     "base": "0x1abaea1f7c830bd89acc67ec4af516284b1bc33c",
+     "trace": [
+      {
+       "port_id": "transfer",
+       "channel_id": "channel-4"
+      },
+      {
+       "port_id": "transfer",
+       "channel_id": "08-wasm-1369"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "research/c/main_supply_by_denom_CC5268F8",
+   "retrievedAt": "2026-10-02T21:11:09Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/CC5268F89C752A4BDCBDAA574AF0A381786FCC839104E077DA9A9145176BF8ED",
+   "httpStatus": 200,
+   "height": "12610879",
+   "sha256": "b8f8eb5d982364d7abe248248cc24ddee5a0eac1116e1c18d32720d3a9ab924d",
+   "body": {
+    "amount": {
+     "denom": "ibc/CC5268F89C752A4BDCBDAA574AF0A381786FCC839104E077DA9A9145176BF8ED",
+     "amount": "2753330"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_clientstate_channel-12",
+   "retrievedAt": "2026-10-02T21:10:12Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-12/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12610861",
+   "sha256": "f8e3f124f1a98fad8ab48f45429621814a2cd94d98f850bfa39cd8ca27cedb82",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-5",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "injective-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "185549528"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12610861"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_supply_by_denom_6C6F5A01",
+   "retrievedAt": "2026-10-02T21:35:11Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B",
+   "httpStatus": 200,
+   "height": "12611332",
+   "sha256": "c3711699d5213b5eec0bde251771d14feccbd2086cab4f96cb56d2e27b5c6ff5",
+   "body": {
+    "amount": {
+     "denom": "ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B",
+     "amount": "513039339"
+    }
+   }
+  },
+  {
+   "name": "research/c/inj_denom_metadata_usdc_erc20",
+   "retrievedAt": "2026-10-02T21:35:25Z",
+   "url": "https://sentry.lcd.injective.network:443/cosmos/bank/v1beta1/denoms_metadata/erc20%3A0xa00C59fF5a080D2b954d0c75e46E22a0c371235a",
+   "httpStatus": 200,
+   "height": null,
+   "sha256": "de812851385e31b6328b2c2ebe1b0bada9a8a8f45c844237900b2c5a218ec511",
+   "body": {
+    "metadata": {
+     "description": "",
+     "denom_units": [
+      {
+       "denom": "erc20:0xa00C59fF5a080D2b954d0c75e46E22a0c371235a",
+       "exponent": 0,
+       "aliases": []
+      },
+      {
+       "denom": "USDC",
+       "exponent": 6,
+       "aliases": [
+        "USDC"
+       ]
+      }
+     ],
+     "base": "erc20:0xa00C59fF5a080D2b954d0c75e46E22a0c371235a",
+     "display": "USDC",
+     "name": "USDC",
+     "symbol": "USDC",
+     "uri": "",
+     "uri_hash": "",
+     "decimals": 6
+    }
+   }
+  },
+  {
+   "name": "research/c/inj_clientstate_channel-456",
+   "retrievedAt": "2026-10-02T21:35:23Z",
+   "url": "https://sentry.lcd.injective.network:443/ibc/core/channel/v1/channels/channel-456/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": null,
+   "sha256": "47273849d532ace42ca688545bcdecccda3ec78803b5209268e3319af69e0520",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-330",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "zigchain-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "34s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "12610746"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "185582432"
+    }
+   }
+  },
+  {
+   "name": "research/c/inj_escrow_balance_usdc",
+   "retrievedAt": "2026-10-02T21:35:38Z",
+   "url": "https://sentry.lcd.injective.network:443/cosmos/bank/v1beta1/balances/inj1h88uztevss8ys8k9pqq73s590d27xunxntsggk/by_denom?denom=erc20%3A0xa00C59fF5a080D2b954d0c75e46E22a0c371235a",
+   "httpStatus": 200,
+   "height": null,
+   "sha256": "7fe5a9f8134f11cb21c0b8cb8ec249c7e0cf673b713e9b2145909ffd57ee28cd",
+   "body": {
+    "balance": {
+     "denom": "erc20:0xa00C59fF5a080D2b954d0c75e46E22a0c371235a",
+     "amount": "513039339"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_supply_by_denom_29471927",
+   "retrievedAt": "2026-10-02T21:11:10Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/294719272CB20610F3C0173B0E14DD65F9D7F515548AB3F8373CC91F36357234",
+   "httpStatus": 200,
+   "height": "12610879",
+   "sha256": "3f5fb61d746fd53d7dc45db0c7caafb5d5c0defa0b653c31d413cc8d50e1e9e9",
+   "body": {
+    "amount": {
+     "denom": "ibc/294719272CB20610F3C0173B0E14DD65F9D7F515548AB3F8373CC91F36357234",
+     "amount": "0"
+    }
+   }
+  },
+  {
+   "name": "research/c/main_clientstatus_07-tendermint-0",
+   "retrievedAt": "2026-10-02T21:10:43Z",
+   "url": "https://api.zigchain.com/ibc/core/client/v1/client_status/07-tendermint-0",
+   "httpStatus": 200,
+   "height": "12610871",
+   "sha256": "d329473afe5fac0b90405462b8f7be46186869f1ee3a4761e515e78e76cdd6e6",
+   "body": {
+    "status": "Expired"
+   }
+  },
+  {
+   "name": "research/c/test_clientstate_channel-44",
+   "retrievedAt": "2026-10-02T21:10:20Z",
+   "url": "https://testnet-api.zigchain.com/ibc/core/channel/v1/channels/channel-44/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "8045644",
+   "sha256": "721752c9767314cd5c4f020d38e79bb7dadded35dd6bd5915e8afbe115fdea0e",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-84",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "grand-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "1209600s",
+      "unbonding_period": "1814400s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "67312928"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "2",
+     "revision_height": "8045644"
+    }
+   }
+  },
+  {
+   "name": "research/c/test_clientstatus_07-tendermint-84",
+   "retrievedAt": "2026-10-02T21:10:51Z",
+   "url": "https://testnet-api.zigchain.com/ibc/core/client/v1/client_status/07-tendermint-84",
+   "httpStatus": 200,
+   "height": "8045650",
+   "sha256": "d329473afe5fac0b90405462b8f7be46186869f1ee3a4761e515e78e76cdd6e6",
+   "body": {
+    "status": "Expired"
+   }
+  },
+  {
+   "name": "research/c/test_supply_by_denom_52605162",
+   "retrievedAt": "2026-10-02T21:11:11Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/5260516290F7883EC893AADA09A6B8CEC790F2EEF3196F440037908749785BE8",
+   "httpStatus": 200,
+   "height": "8045653",
+   "sha256": "6e5dc60722202ce38ad1aa907fda20833448db03472fcbf4b023efc597906c3a",
+   "body": {
+    "amount": {
+     "denom": "ibc/5260516290F7883EC893AADA09A6B8CEC790F2EEF3196F440037908749785BE8",
+     "amount": "280899262"
+    }
+   }
+  },
+  {
+   "name": "research/c/test_supply_by_denom_5BDD47E9",
+   "retrievedAt": "2026-10-02T21:11:12Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=ibc/5BDD47E9E73BF91C14497E254F0A751F1A7D3A6084343F66EA7CEE834A384651",
+   "httpStatus": 200,
+   "height": "8045654",
+   "sha256": "1431708217702bdc95b685c42f42395e41cfda8289c775d4749086733cecffbf",
+   "body": {
+    "amount": {
+     "denom": "ibc/5BDD47E9E73BF91C14497E254F0A751F1A7D3A6084343F66EA7CEE834A384651",
+     "amount": "10"
+    }
+   }
+  },
+  {
+   "name": "research/c/test_supply_by_denom_usdt",
+   "retrievedAt": "2026-10-02T21:11:13Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=usdt",
+   "httpStatus": 200,
+   "height": "8045654",
+   "sha256": "16752447773485caf871463ce395e3dfde1df6fbd7456a834f941029d545eaa7",
+   "body": {
+    "amount": {
+     "denom": "usdt",
+     "amount": "200000000000000000000"
+    }
+   }
+  },
+  {
+   "name": "research/c/test_denom_metadata_usdt",
+   "retrievedAt": "2026-10-02T21:11:29Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/usdt",
+   "httpStatus": 404,
+   "height": null,
+   "sha256": "7bd542a21b4ba9b3807e097a63f6aaefb320c6cf60c8e323e986a3c0af25c36e",
+   "body": {
+    "code": 5,
+    "message": "client metadata for denom usdt",
+    "details": []
+   }
+  },
+  {
+   "name": "research/c/main_clientstate_channel-1",
+   "retrievedAt": "2026-10-02T21:10:10Z",
+   "url": "https://api.zigchain.com/ibc/core/channel/v1/channels/channel-1/ports/transfer/client_state",
+   "httpStatus": 200,
+   "height": "12610861",
+   "sha256": "bc1cf81910a56ea616981dc004f821124d2b91cc455aca9badad68637b71b91a",
+   "body": {
+    "identified_client_state": {
+     "client_id": "07-tendermint-1",
+     "client_state": {
+      "@type": "/ibc.lightclients.tendermint.v1.ClientState",
+      "chain_id": "axelar-dojo-1",
+      "trust_level": {
+       "numerator": "2",
+       "denominator": "3"
+      },
+      "trusting_period": "403200s",
+      "unbonding_period": "604800s",
+      "max_clock_drift": "40s",
+      "frozen_height": {
+       "revision_number": "0",
+       "revision_height": "0"
+      },
+      "latest_height": {
+       "revision_number": "1",
+       "revision_height": "35625773"
+      },
+      "proof_specs": [
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 33,
+         "min_prefix_length": 4,
+         "max_prefix_length": 12,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       },
+       {
+        "leaf_spec": {
+         "hash": "SHA256",
+         "prehash_key": "NO_HASH",
+         "prehash_value": "SHA256",
+         "length": "VAR_PROTO",
+         "prefix": "AA=="
+        },
+        "inner_spec": {
+         "child_order": [
+          0,
+          1
+         ],
+         "child_size": 32,
+         "min_prefix_length": 1,
+         "max_prefix_length": 1,
+         "empty_child": null,
+         "hash": "SHA256"
+        },
+        "max_depth": 0,
+        "min_depth": 0,
+        "prehash_key_before_comparison": false
+       }
+      ],
+      "upgrade_path": [
+       "upgrade",
+       "upgradedIBCState"
+      ],
+      "allow_update_after_expiry": true,
+      "allow_update_after_misbehaviour": true
+     }
+    },
+    "proof": null,
+    "proof_height": {
+     "revision_number": "1",
+     "revision_height": "12610861"
+    }
+   }
+  }
+ ]
+}

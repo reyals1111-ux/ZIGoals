@@ -20,6 +20,13 @@
 # finish in time, and the lock wait shrinks to fit. Without lock waits the
 # worst case is 630 s, as before. The ZIGOALS_CHROME_* settings exist for
 # install-chrome.test.mjs; CI sets none of them.
+#
+# The lock wait has no fixed ceiling of its own (Session M): it may use all the
+# time the 12-min step still has after keeping room for one full attempt, about
+# 325 s after a first attempt that ran out of time. It used to stop at 240 s,
+# and in run 37034640434 a timed-out attempt's apt-get was still downloading
+# fonts from a slow mirror at 241 s. ZIGOALS_CHROME_LOCK_WAIT_SECONDS can still
+# set a ceiling for the tests.
 set -uo pipefail
 
 if [ "$#" -eq 0 ]; then
@@ -31,7 +38,7 @@ attempts=${ZIGOALS_CHROME_ATTEMPTS:-3}
 attempt_seconds=${ZIGOALS_CHROME_ATTEMPT_SECONDS:-180}
 kill_after=${ZIGOALS_CHROME_KILL_AFTER_SECONDS:-10}
 read -r -a backoffs <<< "${ZIGOALS_CHROME_BACKOFF_SECONDS:-15 45}"
-lock_wait=${ZIGOALS_CHROME_LOCK_WAIT_SECONDS:-240}
+lock_wait=${ZIGOALS_CHROME_LOCK_WAIT_SECONDS:-}
 poll=${ZIGOALS_CHROME_LOCK_POLL_SECONDS:-5}
 report_every=${ZIGOALS_CHROME_LOCK_REPORT_SECONDS:-15}
 step_limit=${ZIGOALS_CHROME_STEP_SECONDS:-720}
@@ -96,7 +103,7 @@ for ((attempt = 1; attempt <= attempts; attempt++)); do
     sleep "${backoffs[attempt - 2]:-0}"
     # Leave room for one full attempt after the wait.
     bound=$((deadline - SECONDS - attempt_seconds - kill_after))
-    if [ "$bound" -gt "$lock_wait" ]; then bound=$lock_wait; fi
+    if [ -n "$lock_wait" ] && [ "$bound" -gt "$lock_wait" ]; then bound=$lock_wait; fi
     if [ "$bound" -lt 0 ]; then bound=0; fi
     wait_for_locks "$bound" || exit 1
   fi

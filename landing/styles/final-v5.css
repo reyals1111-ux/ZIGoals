@@ -1,0 +1,121 @@
+/* Landing V5 (Session N). Loaded last. V4's language and tokens are kept; this layer owns the equation story,
+   the fold stages and the V5 sections. Motion only ever changes transform and opacity, nothing loops, and every
+   motion state has a complete static form: reduced motion, ?motion=off (html.motion-off), no script, short screens. */
+
+/* ---------- The equation: Goals, Habits & Health = Wealth ---------- */
+.eqv5{position:relative;background:radial-gradient(ellipse at 50% 38%,#49356326,transparent 58%),linear-gradient(#040a18,#030917)}
+.eqv5-stage{position:relative;display:flex;align-items:center;padding:120px 0 40px}
+.eqv5-stage:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;background:radial-gradient(1px 1px at 12% 22%,#d9ecff 50%,transparent 51%),radial-gradient(1px 1px at 82% 14%,#c9d8ff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 66% 72%,#f2d8ff 50%,transparent 51%),radial-gradient(1px 1px at 28% 84%,#bfefff 50%,transparent 51%),radial-gradient(1px 1px at 92% 58%,#e2e9ff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 6% 62%,#d6f6ff 50%,transparent 51%)}
+.eqv5-inner{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center}
+.eqv5 .eqv5-eyebrow{justify-content:center;font-size:16px;letter-spacing:.14em;font-weight:700;background:linear-gradient(100deg,#abf3ff,#70c0ff 45%,#bb9fff);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:clamp(18px,4vh,44px)}
+.eqv5-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:clamp(12px,2.4vw,40px);row-gap:clamp(14px,3vh,30px);width:100%;max-width:1280px;align-items:end}
+.eqv5-cell{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.6vh,18px);min-width:0}
+.eqv5-figure{width:100%;max-width:320px;max-height:30vh;aspect-ratio:640/440;height:auto;object-fit:contain;filter:drop-shadow(0 18px 38px #6d5cff2e)}
+.eqv5-word{display:inline-flex;align-items:baseline;white-space:nowrap}
+/* Each word paints its own segment of V4's spectrum, so a word can appear on its own and the four together still
+   read as one continuous nebula. Words only ever change opacity and position; their colours never change. */
+.eqv5-ink,.eqv5-comma{display:inline-block;font-size:clamp(36px,4.5vw,76px);font-weight:600;letter-spacing:-.045em;line-height:1.12;padding:0 .03em .1em;-webkit-background-clip:text;background-clip:text;color:transparent}
+.eqv5-ink i{font-style:normal;font-weight:400}
+.eqv5-comma{padding-left:0;background-image:linear-gradient(100deg,#36b6f5,#3fa8f6)}
+.eqv5-cell[data-equation="0"] .eqv5-ink{background-image:linear-gradient(100deg,#f3f6ff 0%,#b6f6ff 16%,#1cd9ee 60%,#36b6f5 100%)}
+.eqv5-cell[data-equation="1"] .eqv5-ink{background-image:linear-gradient(100deg,#3fa8f6 0%,#459df7 30%,#7b7cfb 100%)}
+.eqv5-cell[data-equation="2"] .eqv5-ink{background-image:linear-gradient(100deg,#7b7cfb 0%,#936eff 34%,#c968f2 100%)}
+.eqv5-cell[data-equation="3"] .eqv5-ink{background-image:linear-gradient(100deg,#c968f2 0%,#e665e9 42%,#ffa59e 100%);font-weight:650}
+.eqv5 .equation-track{justify-content:center;margin:clamp(18px,3.4vh,34px) 0 0}
+.eqv5-steps{list-style:none;margin:0;padding:0}
+.eqv5-outro{position:relative;text-align:center;padding:clamp(40px,7vh,80px) 0 clamp(80px,12vh,130px)}
+.eqv5-outro .equation-caption{margin:0 auto}
+.eqv5-outro .quiet-note{font-size:16px;color:#e0eaf8;margin-top:24px}
+
+/* Pinned story: the stage stays on screen while four step blocks, one viewport each, scroll past. Block k crosses the
+   middle of the screen exactly when the section has scrolled k viewports, so step 1 lights as the stage pins.
+   The same media query is in scripts/equation.js. */
+@media (scripting:enabled) and (prefers-reduced-motion:no-preference) and (min-height:561px){
+  html:not(.motion-off) .eqv5-stage{position:sticky;top:0;height:100vh;height:100svh;padding:74px 0 20px;overflow:hidden}
+  html:not(.motion-off) .eqv5-steps{margin-top:-100vh;margin-top:-100svh;padding-top:50vh;padding-top:50svh}
+  html:not(.motion-off) .eqv5-step{height:100vh;height:100svh}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell,html.eqv5-ready:not(.motion-off) .eqv5-comma{transition:opacity .6s var(--ease)}
+  html.eqv5-ready:not(.motion-off) .eqv5-figure{transition:transform .9s var(--ease)}
+  html.eqv5-ready:not(.motion-off) .eqv5-word{transition:transform .7s var(--ease)}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell:not(.is-on),html.eqv5-ready:not(.motion-off) .eqv5-comma:not(.is-on){opacity:0}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell:not(.is-on) .eqv5-figure{transform:translateY(28px) scale(.88) rotate(-6deg)}
+  html.eqv5-ready:not(.motion-off) .eqv5-cell:not(.is-on) .eqv5-word{transform:translateY(20px)}
+}
+
+/* Phones: two by two, read left to right, top to bottom. */
+@media (max-width:700px){
+  .eqv5-stage{padding:96px 0 28px}
+  .eqv5 .eqv5-eyebrow{font-size:15px;letter-spacing:.1em}
+  .eqv5-grid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px}
+  .eqv5-figure{max-width:220px;max-height:17vh}
+  .eqv5-ink,.eqv5-comma{font-size:clamp(28px,8.6vw,40px)}
+  .eqv5-outro .quiet-note{max-width:330px;margin-inline:auto}
+}
+@media (max-width:700px) and (scripting:enabled) and (prefers-reduced-motion:no-preference) and (min-height:561px){
+  html:not(.motion-off) .eqv5-stage{padding:72px 0 16px}
+}
+
+/* ---------- Fold interludes, between sections ---------- */
+/* The settled figure is the static form: what reduced motion, ?motion=off, short screens and no script show. */
+.fold{position:relative;background:#030916}
+/* The stage paints its own navy, so the frames' black screens away inside its isolated group. */
+.fold-stage{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,#2a1f4a33,transparent 62%),linear-gradient(#030916,#020713 55%,#030916);display:grid;place-items:center;padding:clamp(40px,7vh,80px) 0 clamp(70px,11vh,120px)}
+.fold-space{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.fold-stars{position:absolute;inset:-15% 0;background-repeat:repeat}
+.fold-stars-far{opacity:.5;background-image:radial-gradient(1px 1px at 22px 34px,#cfe6ff 50%,transparent 51%),radial-gradient(1px 1px at 141px 92px,#e8dcff 50%,transparent 51%),radial-gradient(1px 1px at 262px 214px,#d7f6ff 50%,transparent 51%),radial-gradient(1px 1px at 88px 180px,#f0f4ff 50%,transparent 51%);background-size:300px 260px}
+.fold-stars-near{opacity:.8;background-image:radial-gradient(1.5px 1.5px at 60px 160px,#fff 50%,transparent 51%),radial-gradient(2px 2px at 380px 62px,#f4dcff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 232px 318px,#dcf7ff 50%,transparent 51%);background-size:460px 380px}
+.fold-planet{position:absolute;left:50%;bottom:-7%;width:max(1500px,132vw);max-width:none;height:auto;transform:translate3d(-50%,0,0);opacity:.8;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 38%);mask-image:linear-gradient(to bottom,transparent,#000 38%)}
+.fold-figure{position:relative;width:min(84vw,920px);aspect-ratio:1024/648;mix-blend-mode:screen;transform-origin:50% 62%}
+.fold-figure>img,.fold-figure>canvas{position:absolute;inset:0;width:100%;height:100%}
+.fold-figure>canvas{opacity:0}
+.fold-figure.is-drawn>canvas{opacity:1}
+.fold-figure.is-drawn>img{visibility:hidden}
+.fold-slogan{position:absolute;left:0;right:0;bottom:clamp(34px,8vh,96px);margin:0;text-align:center;font-size:clamp(48px,7vw,116px);font-weight:600;letter-spacing:-.055em;line-height:1.04;padding-bottom:.08em;background:var(--gradient);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fold[data-fold="swan"] .fold-slogan{background-image:linear-gradient(105deg,#f3f6ff,#b6f6ff 35%,#86b7ff 70%,#bda5ff)}
+.fold[data-fold="lotus"] .fold-slogan{background-image:linear-gradient(108deg,#83eaf1,#86b7ff 48%,#bda5ff)}
+.fold[data-fold="butterfly"] .fold-slogan{background-image:linear-gradient(110deg,#93b8ff,#c7a7f2 52%,#eab4eb)}
+.fold[data-fold="heart"] .fold-slogan{background-image:linear-gradient(105deg,#91ede0,#83d6f1 48%,#a4bbff)}
+.fold[data-fold="bull"] .fold-slogan{background-image:linear-gradient(105deg,#b3a6fa,#dfa1ed 48%,#ffc0d1)}
+/* Pinned: a runway 1.7 screens tall, with the stage held for its last 0.7 screen. Same media query as
+   scripts/fold-stage.mjs; the moving states start only once that script runs (html.fold-ready), and Save-Data
+   (html.fold-static) keeps the stages unpinned. */
+@media (scripting:enabled) and (prefers-reduced-motion:no-preference) and (min-height:561px){
+  html:not(.motion-off):not(.fold-static) .fold{height:170vh;height:170svh}
+  html:not(.motion-off):not(.fold-static) .fold-stage{position:sticky;top:0;height:100vh;height:100svh;padding:64px 0 0}
+  html.fold-ready:not(.motion-off) .fold-figure{opacity:0}
+  html.fold-ready:not(.motion-off) .fold-slogan{opacity:0}
+  html.fold-ready:not(.motion-off) .fold.is-near .fold-figure,html.fold-ready:not(.motion-off) .fold.is-near .fold-stars,html.fold-ready:not(.motion-off) .fold.is-near .fold-planet,html.fold-ready:not(.motion-off) .fold.is-near .fold-slogan{will-change:transform,opacity}
+}
+@media (max-width:700px){
+  .fold-figure{width:min(134vw,640px);margin-inline:calc((100% - min(134vw,640px)) / 2)}
+  .fold-slogan{font-size:clamp(44px,13vw,68px)}
+  .fold-planet{width:max(1100px,240vw);bottom:-4%}
+}
+
+/* ---------- Invite, Install and What's coming (Part 1.4), in the privacy rows' language ---------- */
+.invite-note{margin-top:18px;max-width:520px;font-size:15px;line-height:1.6;color:#c9d6ea}
+.invite-note a{display:inline-block;padding-block:11px;margin-block:-11px;color:#a6eaf7;text-decoration:underline;text-decoration-color:#a6eaf766;text-underline-offset:3px}
+.final-cta .invite-note{margin-inline:auto;text-align:center}
+.install-section,.coming-section{background:#030916}
+.install-steps,.coming-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.install-steps>li,.coming-list>li{padding:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,#0b1730cc,#060d1fcc)}
+.coming-list>li{border-style:dashed;border-color:#5d6f92;background:none}
+.install-device,.availability.planned{display:block;margin-bottom:14px;font-size:15px;font-weight:600;letter-spacing:.04em;line-height:1.5;color:#c1e7e7}
+.availability.planned{color:#d6c8e6}
+.install-steps h3,.coming-list h3{font-size:24px;margin-bottom:12px}
+.install-steps p,.coming-list p{font-size:16px;line-height:1.75;color:#dce7f7}
+.install-steps a{color:#a6eaf7;text-decoration:underline;text-decoration-color:#a6eaf766;text-underline-offset:3px}
+.coming-legal{font-size:16px;color:#e1ebfa}
+@media (max-width:950px){.install-steps,.coming-list{grid-template-columns:1fr}}
+
+@media (forced-colors:active){
+  .eqv5 .eqv5-eyebrow,.eqv5-ink,.eqv5-comma,.fold-slogan{color:CanvasText!important;background:none!important}
+  .fold-space,.fold-figure>canvas{display:none}
+}
+
+/* Owner decision N9: every link and button is at least 44 px in both directions. The logo link was 31-38 px tall, the
+   shortest nav and footer words 42-43 px wide, and the phone menu button shrank to 43 px in the 320 px header. Each
+   keeps its look; only the hit area grows. */
+.brand{min-height:44px}
+.desktop-nav a,.footer-column a{min-width:44px;justify-content:center}
+.menu-toggle{flex-shrink:0;min-width:44px}

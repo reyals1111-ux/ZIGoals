@@ -39,6 +39,37 @@ export async function unlockVault(input:unknown,recovery:string):Promise<CryptoK
  const manifest=manifestSchema.parse(input);const raw=await decrypt(await wrappingKey(recovery),manifest.wrapped,`zigoals:root:v1:${manifest.vault}:epoch${manifest.epoch}`);
  try{if(raw.length!==32)throw Error('Invalid vault key.');return await rootKey(raw);}finally{raw.fill(0);}
 }
+// Remember this device (ADR-008). A non-extractable device key seals the 32 root bytes once, while a recovery secret
+// is opening the vault; a later open unwraps them straight into a non-extractable HKDF key, so they never reach script
+// again. The device key cannot decrypt, only wrap. Bound by additional data to the verified account and the exact live
+// manifest (vault, epoch and wrapped root), so a record cannot open another account, another vault or a newer epoch.
+export const sealedRootSchema=z.object({iv:base64.length(16),ciphertext:base64.length(64)}).strict();
+export type SealedRoot=z.infer<typeof sealedRootSchema>;
+/** The SHA-256 of the manifest's fields, in a fixed order: what a remembered device is bound to. */
+export async function manifestDigest(input:unknown):Promise<string>{
+ const m=manifestSchema.parse(input);
+ return encode(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes(JSON.stringify([m.version,m.vault,m.epoch,m.wrapped.version,m.wrapped.nonce,m.wrapped.ciphertext])))));
+}
+async function deviceContext(account:string,manifest:unknown){uuid.parse(account);return bytes(JSON.stringify(['zigoals-device-root',1,account.toLowerCase(),await manifestDigest(manifest)]));}
+export function createDeviceKey():Promise<CryptoKey>{return crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','unwrapKey']);}
+/** unlockVault, and before the root bytes are wiped, one seal of them under the device key. */
+export async function unlockVaultForDevice(input:unknown,recovery:string,account:string,deviceKey:CryptoKey):Promise<{key:CryptoKey;sealed:SealedRoot}>{
+ const manifest=manifestSchema.parse(input),aad=await deviceContext(account,manifest);
+ const raw=await decrypt(await wrappingKey(recovery),manifest.wrapped,`zigoals:root:v1:${manifest.vault}:epoch${manifest.epoch}`);
+ try{
+  if(raw.length!==32)throw Error('Invalid vault key.');
+  const iv=crypto.getRandomValues(new Uint8Array(12)),ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},deviceKey,raw));
+  return {key:await rootKey(raw),sealed:{iv:encode(iv),ciphertext:encode(ciphertext)}};
+ }finally{raw.fill(0);}
+}
+/** Opens a remembered root for exactly this account and manifest; the bytes go from ciphertext into a key, never to script. */
+export async function openDeviceRoot(deviceKey:CryptoKey,input:unknown,account:string,manifest:unknown):Promise<CryptoKey>{
+ const sealed=sealedRootSchema.parse(input),iv=decode(sealed.iv),ciphertext=decode(sealed.ciphertext),aad=await deviceContext(account,manifest);
+ // unwrapKey would import a short or empty payload as a valid HKDF key: only a sealed 32-byte root is accepted.
+ if(iv.byteLength!==12||ciphertext.byteLength!==48)throw Error('This device could not open the vault.');
+ try{return await crypto.subtle.unwrapKey('raw',ciphertext,deviceKey,{name:'AES-GCM',iv,additionalData:aad,tagLength:128},'HKDF',false,['deriveKey']);}
+ catch{throw Error('This device could not open the vault.');}
+}
 function contextText(input:RecordContext,version:1|2){const c=recordContextSchema.parse(input);return JSON.stringify(['zigoals-record',version,c.vault,c.domain,c.object,c.revision,c.epoch]);}
 // Each seal derives one nonextractable AES key, encrypts once, then drops it.
 // Salt + the full authenticated context separate concurrent devices and retries.

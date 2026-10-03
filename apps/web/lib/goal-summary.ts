@@ -1,7 +1,7 @@
 /** One presentation contract; private and legacy financial records remain separate. */
 import {goalAssetMix,type AssetMix} from './wealth';
 import Decimal from 'decimal.js';
-import {displayLocale,formatExactNumber,formatMoney,formatPlainDecimal,isMoneyCurrency} from './visual-format';
+import {displayLocale,formatExactNumber,formatMoney,formatPlainDecimal,isMoneyCurrency,moneyMagnitude} from './visual-format';
 import {formatUnits} from '@zigoals/chain-config';
 import {evaluateGoal} from '@zigoals/goal-engine';
 import type {GoalMetadata} from '@zigoals/shared-types';
@@ -26,6 +26,13 @@ export function formatGoalAmount(value:string,currency:string,locale=displayLoca
  if(isMoneyCurrency(currency))return formatMoney(value,currency,locale,{display:currency==='USD'||currency==='EUR'?'symbol':'code'});
  const n=decimal.toDecimalPlaces(currency==='ZIG'?6:2,Decimal.ROUND_DOWN).toFixed();
  return `${formatExactNumber(n,locale)} ${currency}`;
+}
+/**
+ * A signed Goal or Wealth amount, written as "-" and its size (QA2-03). `exact` is the unsigned decimal: base units are
+ * converted before the sign is added. A loss in money is cut away from zero, so it never reads smaller than it is.
+ */
+export function formatSignedGoalAmount(negative:boolean,exact:string,currency:string,locale=displayLocale()){
+ return `${negative?'-':''}${formatGoalAmount(negative?moneyMagnitude('-'+exact,currency):exact,currency,locale)}`;
 }
 /** QA-38: Goal progress with sources that have no value yet is a lower bound; with no source valued, it is unavailable. */
 export function valuationBound(p:{breakdown:readonly {valuation?:{state:string}}[]}):{bound?:ProgressBound;unvalued:number}{

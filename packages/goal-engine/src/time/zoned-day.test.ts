@@ -181,6 +181,32 @@ describe("properties", () => {
   });
 });
 
+describe("UTC fast path", () => {
+  // "UTC" from 1900 to 9999 skips Intl (Session N, timezone phase 2: funding and plan days call it on every render).
+  // "Etc/UTC" is the same zone under another name, so it still goes through Intl: the two must agree everywhere.
+  test("equals the Intl path on 20,000 instants from 1900 to 9999 and at both edges", () => {
+    const next = random(1900), first = at("1900-01-01T00:00:00.000Z"), end = at("+010000-01-01T00:00:00.000Z");
+    const instants = [first, first + 1, end - 1, at("1970-01-01T00:00:00.000Z"), at("2026-10-15T23:59:59.999Z"), at("2028-02-29T12:00:00.000Z")];
+    for (let i = 0; i < 20_000; i++) instants.push(first + Math.floor(next() * (end - first)));
+    for (const t of instants) {
+      const fast = zonedDateTime(t, "UTC"), intl = zonedDateTime(t, "Etc/UTC");
+      if (fast.date !== intl.date || fast.time !== intl.time || fast.offsetMinutes !== intl.offsetMinutes || zonedDate(t, "UTC") !== intl.date) {
+        throw new Error(`differs at ${new Date(t).toISOString()}: ${JSON.stringify(fast)} vs ${JSON.stringify(intl)}`);
+      }
+    }
+    expect(instants).toHaveLength(20_006);
+  });
+  test("outside 1900-9999, and for every other zone, Intl decides as before", () => {
+    for (const iso of ["1899-12-31T23:59:59.999Z", "+010000-01-01T00:00:00.000Z", "0500-06-15T12:00:00.000Z"]) {
+      expect(zonedDateTime(at(iso), "UTC")).toEqual(zonedDateTime(at(iso), "Etc/UTC"));
+    }
+    expect(offsetMinutes(at("2026-10-15T12:00:00Z"), "UTC")).toBe(0);
+    expect(() => zonedDate(Number.NaN, "UTC")).toThrow(RangeError);
+    expect(() => zonedDate(8.64e15 + 1, "UTC")).toThrow(RangeError);
+    expect(zonedDate(at("2026-10-16T01:30:00Z"), "America/New_York")).toBe("2026-10-15");
+  });
+});
+
 describe("inputs", () => {
   test("only zones Intl knows are accepted", () => {
     for (const zone of ["UTC", "Europe/Brussels", "Pacific/Kiritimati", "Etc/GMT+12", "Asia/Kathmandu"]) expect(isTimeZone(zone), zone).toBe(true);

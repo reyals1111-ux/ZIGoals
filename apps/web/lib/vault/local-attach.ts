@@ -18,4 +18,4 @@ export function planLocalAttach(source:PrivateData,account:PrivateData,remote:Pr
  if(!inventory.length)throw Error('No saved local records exist in those sections. Keep using your account or choose another section.');
  return {data,domains:inventory.map(v=>v.domain),inventory};
 }
-export function assertAttachSourceUnchanged(plan:AttachPlan,current:PrivateData){for(const domain of plan.domains)if(current[domain]!==plan.data[domain])throw Error('Local records changed after review. Prepare a new protected copy; nothing was replaced.');}
+export function assertAttachSourceUnchanged(plan:AttachPlan,current:PrivateData){for(const domain of plan.domains)if(current[domain]!==plan.data[domain])throw Error('Local records changed after review. Review them again; nothing was replaced.');}

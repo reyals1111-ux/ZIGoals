@@ -42,16 +42,15 @@ test.runIf(process.env.RUN10_BROWSER==='1')('local-copy choices are labelled and
  expect(await health.isDisabled(),'Health needs its sync permission first').toBe(true);
  expect(await described(health)).toBe('Health requires its separate sync permission above. Keep referenced Goals or assets together with their Today widgets where needed.');
  await attach.getByRole('checkbox',{name:'Habits',exact:true}).check();await attach.getByRole('button',{name:'Review selected local records',exact:true}).click();
- const approve=attach.getByRole('checkbox',{name:'I saved the backup file and want these selected records copied into this account.',exact:true});
+ // Session M (owner decision M2): the copy happens in place, with no file to download first, so the approval has
+ // nothing to wait for; it is still explicit and never ticked on the user's behalf.
+ const approve=attach.getByRole('checkbox',{name:'Copy these records into this account. The originals stay on this device.',exact:true});
  await approve.waitFor();
  expect(await approve.evaluate(input=>!!input.id&&[...input.labels].some(label=>label.htmlFor===input.id)),'the copy approval has an explicit label').toBe(true);
- expect(await approve.isDisabled()).toBe(true);
- expect(await described(approve)).toBe('Available after you download the protected local copy.');
- await attach.getByLabel('I saved this local-copy backup secret separately.',{exact:true}).check();
- const download=page.waitForEvent('download');await attach.getByRole('button',{name:'Download protected local copy',exact:true}).click();await download;
- await expect.poll(()=>approve.isEnabled()).toBe(true);
+ expect(await approve.isEnabled(),'nothing to download first').toBe(true);
  expect(await described(approve),'nothing left to wait for').toBe('');
  expect(await approve.isChecked(),'nothing is approved on the user\'s behalf').toBe(false);
+ expect(await attach.getByRole('button',{name:'Copy selected records and sync',exact:true}).isDisabled(),'the copy waits for the approval').toBe(true);
 },async(page,origin)=>{
  // A local Habit, so there is something to copy.
  await page.goto(origin+'/app/habits');await page.getByRole('button',{name:'+ New habit',exact:true}).click();await page.getByLabel('Start from template').selectOption('read');await page.getByLabel('Habit title',{exact:true}).fill('Fictional local before sign-in');await page.getByRole('button',{name:'Create habit',exact:true}).click();await page.getByText('Fictional local before sign-in',{exact:true}).first().waitFor();
