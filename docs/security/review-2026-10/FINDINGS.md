@@ -26,7 +26,7 @@
 - **Helpers:** H1 (sign-in and account Workers), H2 (vault and privacy) and H3 (web and public endpoints) proposed candidates. The lead re-read every cited line and changed some severities; each change is noted under "False positives considered".
 
 ## Summary
-**53 findings:** Critical **0** · High **1** · Medium **9** · Low **23** · Info **20**. Nothing Critical, and no secret in the tree or the history. The one High applies only if the market binding is switched on (it is in the acctest template).
+**54 findings:** Critical **0** · High **1** · Medium **9** · Low **23** · Info **21**. Nothing Critical, and no secret in the tree or the history. The one High applies only if the market binding is switched on (it is in the acctest template).
 
 | ID | Finding | Severity | Confidence | Blocks the friends Alpha | Fix by |
 |---|---|---|---|---|---|
@@ -83,6 +83,7 @@
 | [Q-OPS-03](#q-ops-03--supabases-legacy-keys-are-deprecated-by-the-end-of-2026) | Supabase's legacy keys are deprecated by the end of 2026 | Low | Likely | No | owner + session |
 | [Q-OPS-04](#q-ops-04--provider-settings-and-the-private-configs-cannot-be-verified-from-the-repository) | Provider settings and the private configs cannot be verified from the repository | Info | Confirmed by code reading | No | — |
 | [Q-OPS-05](#q-ops-05--whether-the-recovery-admin-tools-temporary-remote-proxy-is-reachable-is-unverified-until-the-stage-7-rehearsal) | Whether the recovery-admin tool's temporary remote proxy is reachable is UNVERIFIED until the Stage 7 rehearsal | Info | Hypothesis | No | — |
+| [Q-OPS-06](#q-ops-06--there-is-no-owner-side-tool-to-erase-a-friends-cloud-vault-when-the-friend-cannot-sign-in) | There is no owner-side tool to erase a friend's cloud vault when the friend cannot sign in | Info | Confirmed by code reading | No | owner + session |
 
 ## Alpha blockers, by deadline
 Only two findings block the friends Alpha. Both are dashboard switches for the owner, and both apply now.
@@ -151,7 +152,7 @@ Only two findings block the friends Alpha. Both are dashboard switches for the o
   - Update the panel text afterwards.
 - **Fix (owner, now):**
   - Turn on "Secure password change".
-  - Know how to sign a user out everywhere from the Supabase dashboard ([INCIDENT_RUNBOOK.md](INCIDENT_RUNBOOK.md#2-account-takeover-a-friends-inbox-or-device-was-compromised)).
+  - Know how to sign a user out everywhere from the Supabase dashboard ([INCIDENT_RUNBOOK.md](INCIDENT_RUNBOOK.md#2a-a-friends-inbox-or-device-was-compromised)).
 - **Blocks the friends Alpha:** No. The data stays protected, and the owner can act at Supabase. Fix before any wider launch.
 - **Who fixes:** session, `TIER 3 (auth/sync)`; owner, Supabase settings.
 - **False positives considered:** H1 rated this High. Lowered to Medium because:
@@ -1136,3 +1137,21 @@ There is no service worker and no Cache Storage today (`apps/web/app/manifest.ts
 - **What it means:** while an owner command runs, Wrangler uploads a temporary edge-preview proxy Worker on the account's `workers.dev` subdomain. If that proxy were reachable without the owner's credentials, the lifecycle export could leak, for that window only.
 - **Fix:** run rehearsal step 5 (probe from another network) and step 8 (no new Worker, route or subdomain remains) exactly as written. Do not rely on hosted recovery before it passes.
 - **Blocks the friends Alpha:** No. Hosted recovery is simply not relied on until then.
+
+### Q-OPS-06 · There is no owner-side tool to erase a friend's cloud vault when the friend cannot sign in
+- **Severity:** Info.
+- **Confidence:** Confirmed by code reading.
+- **Area:** deletion requests.
+- **Effort:** M.
+- **Evidence:**
+  - Deletion of cloud data runs only through a signed-in session (`workers/private-sync/worker.mjs:37-55`).
+  - The owner's recovery tool offers only `status`, `export`, `verify`, `dry-run` and `reconcile` (`scripts/run11/recovery-admin.mjs:28`).
+  - The admin entrypoint serves only `/admin/export`, `/admin/dry-run` and `/admin/reconcile` (`workers/private-sync/lifecycle.mjs:76`).
+- **What it means:** if a friend asks for deletion but has lost access to their email or every device, the owner can delete their Supabase user, which ends sign-in. The encrypted vault then stays stored (unreadable) with no tool to remove it. That matters for erasure requests (LEGAL_CHECKLIST §2, question 7).
+- **Fix:** a session adds an owner-only "erase account" command, following ADR-007's pattern:
+  - local tool, remote binding;
+  - it drives the existing lifecycle deletion;
+  - an export first, and a typed confirmation.
+
+  Until then, record such requests and handle them per [INCIDENT_RUNBOOK.md](INCIDENT_RUNBOOK.md#3-a-friend-asks-for-deletion) section 3.
+- **Blocks the friends Alpha:** No (4–5 friends who can sign in). **Who fixes:** session `TIER 3 (auth/sync)`; owner (interim handling).
