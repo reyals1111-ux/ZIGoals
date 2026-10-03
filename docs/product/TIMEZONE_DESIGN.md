@@ -140,6 +140,7 @@ These were the four open decisions of this design. The answers follow the design
 | T3 | Should valuation capture days move with the plan zone, or stay UTC (backlog item 6)? | **They stay UTC.** `captureValuations` and the history date filters keep UTC days. |
 | T4 | The R1 → R2 gap? | **At least one Alpha deploy *and* at least one week** between the read-support release (R1, phase 3) and the write release (R2, phase 4). |
 | T5 | Scope of the first implementation session | **Phases 1–2 only** (Session N): failing-first suites and the UTC wiring. No stored-format change and no read-support release. |
+| T6 | The due-day rule: an instalment due today already counts as "planned through today", so the QA-04 case ("must not be behind −€500") cannot flip from the zone alone | **It stays as it is until phase 4** (owner decision 2026-10-03). |
 
 ### What this means for the phases
 - **Phases 1–2 (Session N)** change no stored format, so they don't wait for Stage 8.

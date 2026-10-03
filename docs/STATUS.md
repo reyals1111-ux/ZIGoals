@@ -87,7 +87,7 @@ Micro: `planDay` takes 254 ns against 533 ns for the earlier slice, and a plan-d
   - New plans default to the journal zone (T1); Z16 flips and guard G4 is updated.
   - Re-run Session F's 49-day DST sweep, and Stage 8 rows B2, B4 and B5 on two devices in different zones.
 - **Phase 5:** valuation capture days stay UTC (T3). Health "today" on the Today card (QA-24) remains a separate decision.
-- **Recorded, not decided:** a due-today instalment already counts as "planned through today", so "must not be behind −€500" cannot flip from the zone alone. The due-day rule is a separate owner decision.
+- **The due-day rule (owner decision 2026-10-03):** a due-today instalment already counts as "planned through today", so "must not be behind −€500" cannot flip from the zone alone. The rule stays as it is until phase 4 ([TIMEZONE_DESIGN.md](product/TIMEZONE_DESIGN.md), T6).
 
 ## Follow-ups (not done here)
 - **Session M's lane, after both PRs merge:** `goal-summary.ts:54` reads its applicable-plan day through `planDay` (N12). The output digest already covers that path and will prove parity.
@@ -97,6 +97,16 @@ Micro: `planDay` takes 254 ns against 533 ns for the earlier slice, and a plan-d
   - `contribution-flow.tsx`;
   - `use-valuation-history.ts`;
   - `components/platform/goal-intelligence.tsx:28`.
+
+## `main` merged in (2026-10-03)
+- `1e75d01` merges `main` `307a71b`: Session M's #60 (polish) and #63 (accounts).
+  - Only `docs/STATUS.md` and `docs/testing/SKIPPED_TESTS.md` conflicted. Every entry was kept, newest first: this entry, then #63, #60 and the Alpha deploy #23 record.
+  - `main` changed no file this PR changes.
+- **Re-run on the merge (local):**
+  - lint and typecheck pass;
+  - this PR's six suites (timezone, plan-day, zoned-day, parity, edges) and `main`'s `visual-format.test.ts`: 119 passed, 17 expected failures. Both committed digests are unchanged, although `main` changed `goal-summary.ts` and `visual-format.ts` (money formatting);
+  - `pnpm test`: 271 files (256 passed, 15 skipped); 2,303 tests passed, 21 expected failures (4 + this PR's 17), 24 skipped (22 + #63's MB1 and MB2).
+- **CI:** on the PR.
 
 # Session M (PR B) [Tier 3] — "never a chore" accounts: remember this device, copy in place, deletion without a download (2026-10-02, [PR #63](https://github.com/reyals1111-ux/ZIGoals/pull/63), not merged or deployed)
 

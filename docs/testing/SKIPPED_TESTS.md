@@ -173,7 +173,7 @@ These are not bugs in today's code. Each states behaviour the owner decided (TIM
 - Z1–Z13 all turned red with "Expect test to fail". Guard G1 failed as intended, and all 33 locks and the zone-less twin stayed green.
 - Both files were then restored (`git checkout`).
 
-**Counts:** plain `pnpm test` gains 17 expected failures (Z1–Z12, Z13 twice, Z14–Z16): 4 + 17 = 21 expected to fail. The skip totals are unchanged.
+**Counts:** plain `pnpm test` gains 17 expected failures (Z1–Z12, Z13 twice, Z14–Z16): 4 + 17 = 21 expected to fail. The skip totals are unchanged. Measured after merging `main` `307a71b` (#60, #63): 2,303 passed, 21 expected to fail, 24 skipped (#63's MB1 and MB2 below included).
 
 ## Session M additions, PR B (2026-10-02, [PR #63](https://github.com/reyals1111-ux/ZIGoals/pull/63))
 
