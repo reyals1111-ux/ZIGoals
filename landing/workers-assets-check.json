@@ -1,0 +1,60 @@
+{
+  "what": "Landing V5 (landing/session-n-2026-10-02, tree of 2d0df63) served by `wrangler dev` 4.144.0 (Workers Assets with landing/_headers), 2026-10-03, local Chromium 141",
+  "command": "pnpm --filter @zigoals/web exec wrangler dev --config ../../landing/wrangler.jsonc --name zigoals --port 8788 --ip 127.0.0.1 --persist-to <outside landing/>",
+  "rootResponseSecurityHeaders": [
+    "content-security-policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; media-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests",
+    "cross-origin-opener-policy: same-origin",
+    "permissions-policy: accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()",
+    "referrer-policy: strict-origin-when-cross-origin",
+    "x-content-type-options: nosniff",
+    "x-frame-options: DENY"
+  ],
+  "everyFileInLanding": {
+    "counts": {
+      "200": 247,
+      "307": 1,
+      "404": 3
+    },
+    "notOk": [
+      {
+        "code": 404,
+        "file": ".assetsignore"
+      },
+      {
+        "code": 404,
+        "file": "_headers"
+      },
+      {
+        "code": 307,
+        "file": "index.html"
+      },
+      {
+        "code": 404,
+        "file": "wrangler.jsonc"
+      }
+    ],
+    "note": "index.html answers 307 and the page is served at / (200, text/html); the three Wrangler control files are not served (404)"
+  },
+  "fullScroll": {
+    "desktop": {
+      "status": 200,
+      "csp": [],
+      "outside": [],
+      "failed": [
+        "http://127.0.0.1:8788/assets/video/zigoals-origami-web.mp4 net::ERR_ABORTED"
+      ],
+      "errorStatuses": {},
+      "requests": 155
+    },
+    "phone": {
+      "status": 200,
+      "csp": [],
+      "outside": [],
+      "failed": [],
+      "errorStatuses": {},
+      "requests": 106
+    }
+  },
+  "fullScrollNote": "The one failed desktop request is the H.264 film, which this Chromium cannot play (it plays in CI Chrome).",
+  "atSignRedirect": "Before the rename, the four <name>@2x.webp figures answered 307 to <name>%402x.webp; the live Alpha does the same for /brand/marks/today-swan@2x.webp (HEAD, 2026-10-03)."
+}

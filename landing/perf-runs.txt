@@ -1,0 +1,34 @@
+# LCP and long-task runs (LANDING_PERF=1, apps/web/tests/landing-v5-perf.spec.ts), 2026-10-03, local Chromium 141.0.7390.37
+# V5 = landing/session-n-2026-10-02 at 2d0df63; V4 = main 57275a6. Local static server (HTTP/1.1, no compression).
+# Phone = 390x844 with Lighthouse's mobile preset applied through CDP: 562.5 ms RTT, 1,474.56 Kbps down, 675 Kbps up, 4x CPU.
+
+## V5: 3 runs per project, then 5 more phone runs
+landing-perf {"project":"desktop","lcpMs":224,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"desktop","lcpMs":224,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"desktop","lcpMs":224,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2344,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2572,"lcpElement":"img.hero-mark","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2372,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2564,"lcpElement":"img.hero-mark","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2360,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2316,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2320,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2364,"lcpElement":"a.brand","longTasks":[]}
+
+## V4: 3 runs per project, then 5 more phone runs
+landing-perf {"project":"desktop","lcpMs":232,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"desktop","lcpMs":244,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"desktop","lcpMs":252,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2260,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2276,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2276,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2268,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2284,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2264,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2272,"lcpElement":"a.brand","longTasks":[]}
+landing-perf {"project":"mobile","lcpMs":2604,"lcpElement":"img.hero-mark","longTasks":[]}
+
+## Weight and layout shift (same spec, no opt-in). File bytes; the film counts at its file size on desktop.
+V4:
+landing-weight desktop {"firstView":222830,"firstViewFiles":14,"beforeScroll":294168,"beforeScrollFiles":15,"fullScroll":5240234,"files":142,"cls":0.00012564581725823046}
+landing-weight mobile {"firstView":222830,"firstViewFiles":14,"beforeScroll":294168,"beforeScrollFiles":15,"fullScroll":773064,"files":57,"cls":0}
