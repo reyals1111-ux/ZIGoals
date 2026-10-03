@@ -108,12 +108,12 @@ Production builds on this machine, one browser at a time, power-user data (45 ha
   - **Lane update:** QA2-05 is left to Session N. This PR touches none of N's files.
   - **SKIPPED_TESTS:** one section appended; nothing was restructured.
 - **Needed:**
-  1. **QA2-08, keep or revert `0e83d56`.**
+  1. **QA2-08, keep or revert `0e83d56`.** **Owner, 2026-10-03: keep.**
      - The formatter's own CPU time on Wealth's load halves (195 → 101 ms), and every output is identical.
      - Page-level ready time and long tasks moved within the run-to-run spread, so the gain is not measurable end to end.
      - Session K's Part 5 was reverted for a similar reason. I kept this one because the profile shows the saving directly.
      - It is a self-contained commit, so a revert is clean.
-  2. **Chrome install, the mirror dependency.** Install fewer fonts, or cache the packages (a workflow change), or keep re-running when it happens.
+  2. **Chrome install, the mirror dependency.** Install fewer fonts, or cache the packages (a workflow change), or keep re-running when it happens. **Owner, 2026-10-03: caching stays a later follow-up.**
   3. **iPhone:** a device test of the Home Screen 7-day exemption (UNVERIFIED).
 
 ## Decisions made without the owner, and deviations
@@ -285,6 +285,22 @@ This run publishes the Alpha Worker `zigoals-alpha` only. The apex Worker `zigoa
   - contract;
   - `web`.
 - **This commit:** reported on the PR.
+
+## After #60 merged (2026-10-03)
+- **Merge:** `main` `4d151c7` (#60, PR A) is merged into this branch as `55fb25c`, a merge commit with no rebase.
+  - Only two docs files conflicted, `docs/STATUS.md` and `docs/testing/SKIPPED_TESTS.md`. Both blocks were kept in each, PR A's first, as the owner asked.
+  - Help, FRIENDS_GUIDE, IOS_STORAGE and `ci.yml` merged cleanly and keep both PRs' changes.
+- **Re-run on the merged code (local):**
+  - lint and typecheck: clean;
+  - `pnpm test`: **2,222 passed, 4 expected to fail, 24 skipped**, which is `main`'s earlier total plus PR A's 13 and PR B's 37 new tests;
+  - the account and Help browser specs (8 files, production build of `55fb25c`, both projects): **76 passed**;
+  - CI's integration command: **15 files, 23 passed, 1 skipped** (the gated packaged-runtime test).
+- **Owner decisions the same day:**
+  - keep the Wealth speed fix `0e83d56` (QA2-08);
+  - caching the Chrome-install packages stays a later follow-up.
+
+  Both are recorded in PR A's entry too.
+- **CI on the merged head:** reported on the PR.
 
 ## Owner decisions
 - **Applied:**

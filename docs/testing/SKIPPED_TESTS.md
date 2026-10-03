@@ -148,6 +148,6 @@ The Stage 8 rehearsals in `scripts/run11/stage8-rehearsal/` drive real Chrome ag
 | # | Test (file:line) | Condition | Reason | Category | Where it runs |
 |---|---|---|---|---|---|
 | MB1 | `a remembered device reopens after a reload, in a new tab and after 15 idle minutes, until Forget or Lock now` (scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs:34) | `RUN10_BROWSER!=='1'` | Needs a running production server, Chrome and the private-sync Worker in Miniflare, like the other rehearsal files | env-gated | CI web integration ("Independent browser account and market integration") |
-| MB2 | `rotation on another device, sign-out and another account invalidate it; old material never opens the newer epoch` (remember-device-browser.test.mjs:66) | `RUN10_BROWSER` | same | env-gated | same step |
+| MB2 | `rotation on another device, sign-out and another account invalidate it; old material never opens the newer epoch` (remember-device-browser.test.mjs:69) | `RUN10_BROWSER` | same | env-gated | same step |
 
-**Vitest total in plain `pnpm test` on this branch: 24 skipped**, the 22 listed above plus MB1 and MB2 (2,204 passed, 4 expected to fail). No Playwright skip was added: `tests/remember-device.spec.ts` runs on both projects.
+**Vitest total in plain `pnpm test` on this branch: 24 skipped**, the 22 listed above plus MB1 and MB2. Measured after merging `main` `4d151c7` (#60): 2,222 passed, 4 expected to fail. No Playwright skip was added: `tests/remember-device.spec.ts` runs on both projects.
