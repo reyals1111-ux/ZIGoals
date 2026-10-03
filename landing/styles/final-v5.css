@@ -112,3 +112,10 @@
   .eqv5 .eqv5-eyebrow,.eqv5-ink,.eqv5-comma,.fold-slogan{color:CanvasText!important;background:none!important}
   .fold-space,.fold-figure>canvas{display:none}
 }
+
+/* Owner decision N9: every link and button is at least 44 px in both directions. The logo link was 31-38 px tall, the
+   shortest nav and footer words 42-43 px wide, and the phone menu button shrank to 43 px in the 320 px header. Each
+   keeps its look; only the hit area grows. */
+.brand{min-height:44px}
+.desktop-nav a,.footer-column a{min-width:44px;justify-content:center}
+.menu-toggle{flex-shrink:0;min-width:44px}
