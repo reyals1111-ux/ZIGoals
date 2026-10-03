@@ -1,0 +1,97 @@
+{
+ "baseline": "main 57275a6",
+ "candidate": "earn/session-n-2026-10-02 5cb9295",
+ "compared": 154,
+ "same": 142,
+ "intended": 0,
+ "different": [
+  {
+   "name": "1440x900__showcase__help",
+   "aria": [
+    "line 192: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1440x900__empty__help",
+   "aria": [
+    "line 188: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1280x800__showcase__help",
+   "aria": [
+    "line 192: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1280x800__empty__help",
+   "aria": [
+    "line 188: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1024x768__showcase__help",
+   "aria": [
+    "line 192: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1024x768__empty__help",
+   "aria": [
+    "line 188: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "820x1180__showcase__help",
+   "aria": [
+    "line 194: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "820x1180__empty__help",
+   "aria": [
+    "line 190: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "820x1180-touch__showcase__help",
+   "aria": [
+    "line 194: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "820x1180-touch__empty__help",
+   "aria": [
+    "line 190: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1180x820-touch__showcase__help",
+   "aria": [
+    "line 192: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  },
+  {
+   "name": "1180x820-touch__empty__help",
+   "aria": [
+    "line 188: -         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%2057275a6%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.) | +         - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20version%3A%200.1.0%20%C2%B7%205cb9295%0A%0A(Please%20leave%20out%20codes%2C%20your%20recovery%20secret%2C%20and%20personal%20money%20or%20health%20details.)"
+   ],
+   "pixels": null
+  }
+ ],
+ "pageErrors": {
+  "baseline": [],
+  "candidate": []
+ }
+}

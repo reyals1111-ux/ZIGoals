@@ -1,0 +1,19 @@
+{
+ "commit": "5cb9295",
+ "build": "PUBLIC_ALPHA_UNDEPLOYED",
+ "workers": 2,
+ "stats": {
+  "startTime": "2026-10-03T00:00:44.307Z",
+  "duration": 1952460.4070000001,
+  "expected": 891,
+  "skipped": 47,
+  "unexpected": 4,
+  "flaky": 0
+ },
+ "unexpected": [
+  "logo-quickadd-goals-header.spec.ts:53 [desktop] unexpected",
+  "logo-quickadd-goals-header.spec.ts:79 [desktop] unexpected",
+  "logo-quickadd-goals-header.spec.ts:53 [mobile] unexpected",
+  "logo-quickadd-goals-header.spec.ts:79 [mobile] unexpected"
+ ]
+}

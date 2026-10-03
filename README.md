@@ -19,7 +19,8 @@ videos. All are taken at 1440 and 390 px from the PR's `landing/` folder, served
 | `a-ways-to-let-it-work.png`, `b-option-explained.png`, `c-user-signed-step.png` | The three design mockups in `docs/earn/mockups/`, rendered by Chromium. Design only: nothing is built or available |
 | `app-native-reader-check.jsonl` | The app's own native reader, unchanged from `main`, run read-only against the official LCDs on 2026-10-02T23:39Z. Mainnet (configured `uzig`/6) is refused: "Public network or denomination evidence does not match." Testnet (`azig`/18) reads |
 | `valdora-testnet-reader-live.json` | The new Valdora testnet reader, run once read-only against the official testnet LCD: an ok reading at block 8047366, 12 GETs, all pinned to that height |
-| `freeze-compare.json`, `playwright-summary.json` | The PR's freeze check against `main` and its full local browser run (added when they finish) |
+| `freeze-compare.json` | 154 captures of `5cb9295` against `main` `57275a6`. 142 are identical; the other 12 are the Help page, whose feedback link carries the build's commit. The Ecosystem captures show the cards closed, so they are identical too |
+| `playwright-summary.json` | The full local browser run on `5cb9295`: 891 passed, 47 skipped, 4 failed. All four are the intro-video specs this Chromium cannot play |
 
 ## `time/` — [PR #62](https://github.com/reyals1111-ux/ZIGoals/pull/62), Timezone phases 1–2
 | File | Shows |
