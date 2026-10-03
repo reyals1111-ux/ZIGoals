@@ -15,7 +15,8 @@ export async function maintainMarketAccount(tx:AtomicMarketStorage,input:BudgetS
  if(input.archived?.month===month.id)archived.credits={...input.archived.credits};
  for(const [id,row] of Object.entries(state.reservations)){
   let result;
-  const receipt=await tx.get<RetainedAttempt>(`attempt:${id}`);
+  // Only waiting reservations need their receipt (lease expiry); finished and dispatched rows are judged by time.
+  const receipt=['QUEUED','RESERVED','OWNED'].includes(row.status)?await tx.get<RetainedAttempt>(`attempt:${id}`):undefined;
   // A lease and the hard HTTP deadline have both elapsed. A crashed sender is
   // settled conservatively as failure; charged credits are never refunded.
   if(row.status==='DISPATCHED'&&now-row.dispatchedAt!>=Math.max(leaseMs,10000))result=settle(state,id,'failure',now);

@@ -1,9 +1,10 @@
 import type {AtomicMarketStorage} from './durable-market-account';
 import {publicMarketWorkKey,type PublicMarketWork} from './market-coordinator';
-import type {WorkState} from './market-work-fence';
+import type {WorkState,WorkLease} from './market-work-fence';
 import {loadCacheValue} from './market-cache-storage';
-import {validateWorkEvidence} from './market-evidence';
-type Follower={id:string;work:PublicMarketWork;owner:string;deadline:number;cancelToken?:string};
+import {validateWorkEvidence,workEvidenceStale} from './market-evidence';
+/** `client` is a hashed client bucket (market-client-limits.ts), never an address. */
+type Follower={id:string;work:PublicMarketWork;owner:string;deadline:number;cancelToken?:string;client?:string};
 export async function liveFollowers(tx:AtomicMarketStorage,now:number){
  const old=await tx.get<Follower[]>('followers')??[],live=old.filter(row=>now<row.deadline);if(live.length!==old.length)await tx.put('followers',live);return live;
 }
@@ -35,4 +36,44 @@ export async function followerCommand(tx:AtomicMarketStorage,command:{action:'fo
  if(command.action!=='follow')return {ok:false,reason:'FOLLOWER_EXPIRED'};
  const follower={id:crypto.randomUUID(),work,...(command.cancelToken?{cancelToken:command.cancelToken}:{}),owner:state.lease.token,deadline:Math.min(now+command.waitMs,state.lease.deadline,state.lease.expiresAt)};
  await tx.put('followers',[...rows,follower]);return {ok:true,status:'WAITING',id:follower.id,...value};
+}
+type Cancellation={token:string;deadline:number};
+/** Registers followers of waiting works in the caller's transaction, with `follow`'s checks: the cancellation fence,
+ * 128 followers in all, 8 per work, and a client bucket's share. */
+export async function registerFollowers(tx:AtomicMarketStorage,items:{index:number;work:PublicMarketWork;lease:WorkLease}[],now:number,{waitMs,cancelToken,client,clientShare}:{waitMs:number;cancelToken?:string;client?:string;clientShare:number}){
+ const rows=await liveFollowers(tx,now),out:Record<number,{id?:string;reason?:string}>={};
+ const cancelled=(await tx.get<Cancellation[]>('follower-cancellations')??[]).filter(row=>now<row.deadline);
+ const next=[...rows];
+ for(const {index,work,lease} of items){
+  if(cancelToken&&cancelled.some(row=>row.token===cancelToken)){out[index]={reason:'WAITER_CANCELLED'};continue;}
+  const key=publicMarketWorkKey(work);
+  if(next.length>=128||next.filter(row=>publicMarketWorkKey(row.work)===key).length>=8||client&&next.filter(row=>row.client===client).length>=clientShare){out[index]={reason:'FOLLOWER_LIMIT'};continue;}
+  const follower:Follower={id:crypto.randomUUID(),work,...(cancelToken?{cancelToken}:{}),...(client?{client}:{}),owner:lease.token,deadline:Math.min(now+waitMs,lease.deadline,lease.expiresAt)};
+  next.push(follower);out[index]={id:follower.id};
+ }
+ await tx.put('followers',next);return out;
+}
+/** Polls many followers at once. A waiting follower changes nothing; a terminal one (published, fenced, expired or
+ * cancelled) is retired. Published evidence wins over an elapsed registration, so a publication just before a
+ * follower's last poll is never reported as a timeout. */
+export async function pollFollowers(tx:AtomicMarketStorage,items:{id:string;work:PublicMarketWork}[],now:number,cancelToken?:string){
+ const stored=await tx.get<Follower[]>('followers')??[],retired=new Set<string>();
+ const cancelled=cancelToken&&(await tx.get<Cancellation[]>('follower-cancellations')??[]).some(row=>row.token===cancelToken&&now<row.deadline);
+ const results=[];
+ for(const {id,work} of items){
+  const row=stored.find(entry=>entry.id===id),state=await tx.get<WorkState<unknown>>(`work:${publicMarketWorkKey(work)}`);
+  const evidence=state?.evidence?validateWorkEvidence(work,await loadCacheValue(tx,state.evidence.value),now):null;
+  const value=work.operation==='quote'?{quote:evidence}:{value:evidence},terminal=(result:Record<string,unknown>)=>{retired.add(id);results.push({...result,...value});};
+  const published=!!state?.evidence?.complete&&state.evidence.generation===state.lease?.generation;
+  if(row&&state?.lease?.token!==row.owner)terminal({ok:false,reason:'FENCED'});
+  else if(published&&(row||!workEvidenceStale(work,evidence,now)))terminal({ok:true,status:'CACHE_HIT'});
+  else if(cancelled)terminal({ok:false,reason:'WAITER_CANCELLED'});
+  else if(!row||now>=row.deadline||!state?.lease||now>=Math.min(state.lease.deadline,state.lease.expiresAt))terminal({ok:false,reason:'FOLLOWER_EXPIRED'});
+  else results.push({ok:true,status:'WAITING',id,...value});
+ }
+ await tx.put('followers',stored.filter(row=>!retired.has(row.id)&&now<row.deadline));
+ return results;
+}
+export async function forgetFollowers(tx:AtomicMarketStorage,ids:string[],now:number){
+ const rows=await liveFollowers(tx,now);await tx.put('followers',rows.filter(row=>!ids.includes(row.id)));return {ok:true};
 }
