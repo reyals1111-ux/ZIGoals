@@ -16,14 +16,20 @@ function budget(upstream){
  return {mf,calls,lookup};
 }
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+/** Polls until `ready()` holds (at most 10 s): the provider call is the one observable sign that a lookup holds the slot. */
+async function until(ready){for(let i=0;i<1_000&&!ready();i++)await pause(10);expect(ready()).toBe(true);}
+// Session P (PR 1): the lookups used to be sent 100 ms apart and relied on arriving in that order. On a busy runner the
+// Worker's cold start outlasts the pause, the first requests arrive together and workerd may serve them in another
+// order, so a lookup meant to wait was refused and the one meant to be refused waited (CI run 37141593543, unit job).
+// Each case now sends the next lookup only once the slot is observably taken, and the one case where two lookups race
+// for the single waiting place asserts the pair: exactly one waits and one is refused, whichever arrives first.
 
 describe.concurrent('food lookup queue',()=>{
  test('two new barcodes within 12 s both succeed: the second waits for the next shared slot',async()=>{
   const {mf,calls,lookup}=budget(code=>product(code));
   try{
-   const first=lookup('0034000470693');await pause(100);const second=lookup('11111111');
-   expect((await first).status).toBe(200);
-   const waited=await second;
+   const first=await lookup('0034000470693');expect(first.status).toBe(200);
+   const waited=await lookup('11111111');
    expect(waited.status).toBe(200);expect(waited.body.product.code).toBe('11111111');
    expect(waited.ms).toBeGreaterThan(10_000);
    // The provider still saw at most one request per 12 s.
@@ -34,13 +40,15 @@ describe.concurrent('food lookup queue',()=>{
  test('while one lookup waits, another new barcode is refused at once and honestly, without a provider call',async()=>{
   const {mf,calls,lookup}=budget(code=>product(code));
   try{
-   const first=lookup('0034000470693');await pause(100);const queued=lookup('11111111');await pause(100);
-   const refused=await lookup('22222222');
-   expect(refused.status).toBe(429);expect(refused.body.error).toBe('TRY_LATER');
+   expect((await lookup('0034000470693')).status).toBe(200);
+   // Two new barcodes while the slot is taken: one may wait, the other is refused at once, in arrival order.
+   const [b,c]=await Promise.all([lookup('11111111'),(async()=>{await pause(100);return lookup('22222222');})()]);
+   const refused=[b,c].find(r=>r.status===429),waited=[b,c].find(r=>r.status===200);
+   expect([b,c].map(r=>r.status).sort()).toEqual([200,429]);
+   expect(refused.body.error).toBe('TRY_LATER');
    expect(refused.body.retryAfter).toBeGreaterThanOrEqual(1);expect(refused.body.retryAfter).toBeLessThanOrEqual(24);
-   expect(refused.ms).toBeLessThan(5_000);
-   expect((await first).status).toBe(200);expect((await queued).status).toBe(200);
-   expect(calls.map(c=>c.code)).toEqual(['0034000470693','11111111']);
+   expect(refused.ms).toBeLessThan(5_000);expect(waited.ms).toBeGreaterThan(10_000);
+   expect(calls.map(c=>c.code)).toEqual(['0034000470693',waited.body.product.code]);
   }finally{await mf.dispose();}
  },40_000);
 
@@ -48,7 +56,7 @@ describe.concurrent('food lookup queue',()=>{
   // The first provider answer is slow and then says 429, so the second lookup is already waiting when the backoff starts.
   const {mf,calls,lookup}=budget(async()=>{await pause(1_000);return new Response('busy',{status:429});});
   try{
-   const first=lookup('0034000470693');await pause(100);const queued=lookup('11111111');
+   const first=lookup('0034000470693');await until(()=>calls.length===1);const queued=lookup('11111111');
    expect(await first).toMatchObject({status:429,body:{error:'PROVIDER_THROTTLED',retryAfter:60}});
    const waited=await queued;
    expect(waited.status).toBe(429);expect(waited.body.error).toBe('PROVIDER_THROTTLED');expect(waited.body.retryAfter).toBeGreaterThan(40);
@@ -61,7 +69,7 @@ describe.concurrent('food lookup queue',()=>{
  test('a waiting lookup for a product another request fetched meanwhile is served from the cache',async()=>{
   const {mf,calls,lookup}=budget(async code=>{await pause(1_000);return product(code);});
   try{
-   const first=lookup('0034000470693');await pause(100);const same=lookup('0034000470693');
+   const first=lookup('0034000470693');await until(()=>calls.length===1);const same=lookup('0034000470693');
    expect((await first).status).toBe(200);
    const waited=await same;
    expect(waited.status).toBe(200);expect(waited.body.product.code).toBe('0034000470693');
