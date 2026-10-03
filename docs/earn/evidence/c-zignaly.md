@@ -7,7 +7,7 @@ Part of [EVIDENCE_2026-10.md](../EVIDENCE_2026-10.md), which explains the labels
 
 zignaly.com, help.zignaly.com and app.zignaly.com return HTTP 403 with 'cf-mitigated: challenge' (Cloudflare managed challenge) to curl and HTTP 403 to WebFetch; the Zignaly help-center articles are readable at https://intercom.help/zignaly/en/... where each page declares &lt;link rel="canonical" href="https://help.zignaly.com/en/...">.
 
-*How:* Headers saved for zignaly.com and help.zignaly.com (403, cf-mitigated: challenge). intercom.help/zignaly pages returned 200 with canonical links to help.zignaly.com. All Zignaly help-center items below were read through this Intercom host (an alternate host of the official help center, not an archive). The owner should decide whether this host is acceptable.
+*How:* Headers saved for zignaly.com and help.zignaly.com (403, cf-mitigated: challenge). intercom.help/zignaly pages returned 200 with canonical links to help.zignaly.com. All Zignaly help-center items below were read through this Intercom host (an alternate host of the official help center, not an archive). The owner accepted this host as the official help center on 2026-10-03.
 
 > Second check (F20): help.zignaly.com was tried once more at 2026-10-02T23:01:42Z: HTTP 403, cf-mitigated: challenge. The relative "Updated over …" labels on intercom.help do not match the pages' ISO lastUpdatedDate values, so the ISO dates are the ones to use.
 

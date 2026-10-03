@@ -1,6 +1,7 @@
 # ADR-009 — Earn architecture: read-only adapters first, user-signed builders later
 
-Proposed (Session N, 2026-10-02). Builds on [ADR-003](ADR-003-strategy-adapters.md) (idle first, verified adapters
+Accepted by the owner on 2026-10-03 (proposed in Session N, 2026-10-02). Step E1 (testnet stZIG in Staking) waits for
+Valdora's answers ([EARN_DESIGN.md](../earn/EARN_DESIGN.md), roadmap). Builds on [ADR-003](ADR-003-strategy-adapters.md) (idle first, verified adapters
 later) and [ADR-004](ADR-004-network-denomination.md) (network-aware integer accounting). Design:
 [docs/earn/EARN_DESIGN.md](../earn/EARN_DESIGN.md); evidence: [docs/earn/EVIDENCE_2026-10.md](../earn/EVIDENCE_2026-10.md).
 ADR-008 stays free.

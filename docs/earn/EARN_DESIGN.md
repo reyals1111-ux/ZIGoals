@@ -133,7 +133,7 @@ verified it independently.
 | Phase | What | Preconditions |
 |---|---|---|
 | E0 (this PR) | Evidence, this design, ADR-009, sourced registry data, a read-only Valdora testnet reader that no page uses | none |
-| E1 | Show a public address's stZIG on testnet in Staking, read-only, as stZIG | Owner decision; E0 merged |
+| E1 | Show a public address's stZIG on testnet in Staking, read-only, as stZIG | Valdora's answers to the owner's questions (owner decision 2026-10-03); E0 merged |
 | E2 | "Learn more" hand-off to providers' own apps, no execution, no tracking parameters | Legal review of promotion rules |
 | E3 | User-signed steps on testnet (native staking first, then stZIG) | Published schema, checksum ↔ audit mapping, testnet receipts, ADR-009 accepted |
 | E4 | Mainnet | Legal sign-off, a reviewed release, explicit owner approval; never before |

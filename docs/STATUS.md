@@ -116,11 +116,14 @@ The full table, with URLs and times, is in [EVIDENCE, "Pages that could not be r
 Review evidence: [`review/session-n-screenshots/earn`](https://github.com/reyals1111-ux/ZIGoals/tree/review/session-n-screenshots/earn) (never merged). It holds the mockups, the app-reader check, the live reader run, the freeze comparison and the browser-run summary.
 
 ## Owner decisions
-1. **Accept `intercom.help` as the official host of Zignaly's help center?** Otherwise the Zignaly facts become UNVERIFIED until someone saves the pages from a browser.
-2. **Mainnet denomination** (Session M's lane, urgent): mainnet watch-only staking reads have failed closed since 2026-09-30. The lines are listed below.
-3. **Ask Valdora** for its message schema, the units of its price queries, the current unstake-fee rule, how the deployed checksums map to audited commits, and how its admin key is controlled.
-4. **ADR-009:** accept, amend or reject. **E1** (testnet stZIG in Staking, read-only, shown as stZIG) needs a separate decision.
-5. **On-ramps:** keep "no provider secrets on a server" ([ONRAMPS_AND_ZIGNALY.md](earn/ONRAMPS_AND_ZIGNALY.md), decision 1).
+**Decided by the owner on 2026-10-03:**
+- **`intercom.help`:** accepted as the official host of Zignaly's help center, so the Zignaly help-center facts read there stand as read ([c-zignaly.md](earn/evidence/c-zignaly.md)).
+- **ADR-009:** accepted; its status line says so. **E1** (testnet stZIG in Staking, read-only, shown as stZIG) waits for Valdora's answers to the questions below ([EARN_DESIGN.md](earn/EARN_DESIGN.md), roadmap).
+- **On-ramps:** "no provider secrets on a server" stays a rule ([ONRAMPS_AND_ZIGNALY.md](earn/ONRAMPS_AND_ZIGNALY.md), decision 1).
+
+**Still open:**
+1. **Mainnet denomination** (Session M's lane, urgent): mainnet watch-only staking reads have failed closed since 2026-09-30. The lines are listed below.
+2. **Valdora's answers:** its message schema, the units of its price queries, the current unstake-fee rule, how the deployed checksums map to audited commits, and how its admin key is controlled. E1 waits for them.
 
 ## Follow-ups (not done here)
 - **Session M's lane:**
@@ -136,6 +139,17 @@ Review evidence: [`review/session-n-screenshots/earn`](https://github.com/reyals
   - re-read Valdora's stakers if they migrate (the reader will refuse until new pins land);
   - the owner's answers to the decisions above;
   - the pages above, if the owner supplies them.
+
+## `main` merged in (2026-10-03)
+- `c86fb1a` merges `main` `16b39dc`: Session M's #60 and #63, and Timezone phases 1–2 (#62).
+  - Only `docs/STATUS.md` conflicted. Every entry was kept, newest first: this entry on top, then `main`'s file unchanged.
+  - `docs/testing/SKIPPED_TESTS.md` did not conflict, because this PR never changed it.
+- **Re-run on the merge (local):**
+  - lint and typecheck pass;
+  - the registry package (38 registry and 4 directory tests) and the Valdora reader (53): 95 passed;
+  - `pnpm test`: 272 files (257 passed, 15 skipped); 2,358 tests passed, 21 expected failures, 24 skipped;
+  - on a production build of the merge, the Ecosystem and Staking browser specs pass: `ecosystem-cards`, `ecosystem`, `run10-ecosystem`, `staking-page` and `main`'s new `staking-tabs`, 28 passed.
+- **CI:** on the PR.
 
 # Session N (PR 3) — Timezone phases 1–2: the owner's decisions, failing-first suites, and funding and plan days through the time helpers with zone "UTC" (2026-10-02, [PR #62](https://github.com/reyals1111-ux/ZIGoals/pull/62), not merged or deployed)
 

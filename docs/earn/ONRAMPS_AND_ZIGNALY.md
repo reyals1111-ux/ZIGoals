@@ -64,7 +64,7 @@ registry still lists native ZIG as `uzig`/6, and a factory token named "ZIG" exi
   remain information only.
 
 ## Decisions for the owner (later, not needed for this PR)
-1. **Keep "no provider secrets on a server" as a rule?** Recommended: yes. It rules out the hand-offs that need a
+1. **Keep "no provider secrets on a server" as a rule?** **Decided by the owner on 2026-10-03: yes, it stays a rule.** It rules out the hand-offs that need a
    signed link or a session created on a server. Still possible, after a business agreement and legal review:
    - a hosted page that takes the address in the link (Banxa, Ramp) or through a public key (Simplex);
    - a plain link to a provider's own page, where the person enters their address themselves.
