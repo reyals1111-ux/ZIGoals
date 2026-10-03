@@ -11,7 +11,7 @@ pnpm check:deploy-configs
 WRANGLER_SEND_METRICS=false pnpm check:landing
 ```
 
-`check:deploy-configs` reads both repository configs without network access and fails on a target, path, route, binding, or static-asset isolation mismatch. It also enforces the apex upload allowlist: `landing/.assetsignore` must deny everything with `*` and may re-include only the public runtime (`index.html`, `favicon.ico`, `styles/*.css`, `scripts/*.js`, `scripts/*.mjs`, `assets/**`); the type denials that follow it must stay; and the real `landing/` tree must contain no non-public file — no `.wrangler/`, `node_modules/`, `docs/`, `review/`, `tools/`, `backups/` or `source/` directory, and no `.md`, `.json`, `.jsonc`, `.py`, `.sh`, `.test.*` or `.env*` file.
+`check:deploy-configs` reads both repository configs without network access and fails on a target, path, route, binding, or static-asset isolation mismatch. It also enforces the apex upload allowlist: `landing/.assetsignore` must deny everything with `*` and may re-include only the public runtime (`index.html`, `favicon.ico`, `styles/*.css`, `scripts/*.js`, `scripts/*.mjs`, `assets/**`); the type denials that follow it must stay; and the real `landing/` tree must contain no non-public file — no `.wrangler/`, `node_modules/`, `docs/`, `review/`, `tools/`, `backups/` or `source/` directory, and no `.md`, `.json`, `.jsonc`, `.py`, `.sh`, `.test.*` or `.env*` file. It also requires `"workers_dev": false` and `"preview_urls": false` in `landing/wrangler.jsonc` (see below).
 
 `check:landing` is the canonical apex dry run. It compiles and inspects the static upload without contacting the deployment API or changing Cloudflare. Wrangler reports every entry in `landing/` before ignore filtering — currently 274, which is 251 files plus 23 directories (Landing V5; V4 had 225) — and then ignores `.assetsignore`, `wrangler.jsonc` and `_headers`. For a local audit of those decisions, set `WRANGLER_LOG=debug` and direct `WRANGLER_LOG_PATH` to a scratch file outside `landing/`; the log prints an `Ignoring asset:` line per excluded file.
 
@@ -44,6 +44,8 @@ Stop if the account, Worker name, current version, or existing apex assignment i
 pnpm --filter @zigoals/web exec wrangler deploy --config ../../landing/wrangler.jsonc --name zigoals --strict
 pnpm --filter @zigoals/web exec wrangler deployments list --config ../../landing/wrangler.jsonc --name zigoals
 ```
+
+The config keeps workers.dev and Preview URLs off (`"workers_dev": false`, `"preview_urls": false`; Session R1), and `check:deploy-configs` refuses any other value. A config that says nothing lets a deploy turn workers.dev back on: the Landing V5 deploy did on 2026-10-03, and the owner switched it off in the dashboard afterwards. With both off and no route in the config, Wrangler ends the deploy with "No targets deployed for zigoals". That is expected: the version is uploaded and deployed, and the `zigoals.app` custom domain, attached in the dashboard, keeps serving the Worker.
 
 Verify `https://zigoals.app/` and the CTA links after publication, and confirm the security policy survived the upload:
 

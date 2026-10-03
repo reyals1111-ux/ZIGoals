@@ -7,7 +7,7 @@
 // per-run session token, and stop it. Nothing is deployed. Output names digests, counts and paths only:
 // never checkpoint contents, the account UUID or wrangler's own output (it can include the login email).
 import {createHash,randomBytes} from 'node:crypto';
-import {chmodSync,existsSync,lstatSync,mkdtempSync,readFileSync,realpathSync,rmSync,statSync,unlinkSync,writeFileSync} from 'node:fs';
+import {chmodSync,existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,realpathSync,rmSync,statSync,unlinkSync,writeFileSync} from 'node:fs';
 import {createServer} from 'node:net';
 import {request as httpRequest} from 'node:http';
 import {tmpdir} from 'node:os';
@@ -99,13 +99,25 @@ export function adminCall(url,token,path,{account,body}={}){
   if(body!==undefined)req.write(body);req.end();
  });
 }
+/** The `wrangler dev` arguments for one run: the checked admin config, 127.0.0.1 only, this run's own state.
+ * Every flag must be one the pinned Wrangler lists (scripts/wrangler-cli-surface.test.mjs checks them offline):
+ * 4.144.0 rejected the former `--disable-dev-registry` and the tool could not start (Stage 7 rehearsal). */
+export function wranglerDevArgs({adminConfig,port,inspector,envFile,dir}){
+ return ['dev','--config',adminConfig,'--ip','127.0.0.1','--port',String(port),'--inspector-ip','127.0.0.1','--inspector-port',String(inspector),'--env-file',envFile,'--show-interactive-dev-session=false','--persist-to',join(dir,'state'),'--log-level','error'];
+}
+/** The child's environment. Wrangler's dev registry lives at WRANGLER_REGISTRY_PATH (default: its global config
+ * folder); a fresh, private folder inside this run's directory, deleted by stop(), keeps the admin Worker
+ * from seeing or being seen by any other local wrangler session, as the dropped flag did. */
+export function wranglerDevEnv({dir,base=process.env}){
+ return {...base,WRANGLER_SEND_METRICS:'false',WRANGLER_SEND_ERROR_REPORTS:'false',CLOUDFLARE_INCLUDE_PROCESS_ENV:'false',WRANGLER_REGISTRY_PATH:join(dir,'registry')};
+}
 /** Starts `wrangler dev` on exactly the checked admin config, on 127.0.0.1 only, and waits until it answers. */
 export async function launchWrangler({root,adminConfig,token}){
  const dir=mkdtempSync(join(tmpdir(),'zigoals-recovery-admin-')),envFile=join(dir,'admin.env');
- writeFileSync(envFile,`ADMIN_SESSION_TOKEN=${token}\n`,{flag:'wx',mode:0o600});
+ writeFileSync(envFile,`ADMIN_SESSION_TOKEN=${token}\n`,{flag:'wx',mode:0o600});mkdirSync(join(dir,'registry'),{mode:0o700});
  const port=await freePort(),inspector=await freePort(),url=`http://127.0.0.1:${port}`;
- const child=spawn(resolve(root,'apps/web/node_modules/.bin/wrangler'),['dev','--config',adminConfig,'--ip','127.0.0.1','--port',String(port),'--inspector-ip','127.0.0.1','--inspector-port',String(inspector),'--env-file',envFile,'--disable-dev-registry','--show-interactive-dev-session=false','--persist-to',join(dir,'state'),'--log-level','error'],
-  {cwd:root,stdio:['ignore','pipe','pipe'],env:{...process.env,WRANGLER_SEND_METRICS:'false',WRANGLER_SEND_ERROR_REPORTS:'false',CLOUDFLARE_INCLUDE_PROCESS_ENV:'false'}});
+ const child=spawn(resolve(root,'apps/web/node_modules/.bin/wrangler'),wranglerDevArgs({adminConfig,port,inspector,envFile,dir}),
+  {cwd:root,stdio:['ignore','pipe','pipe'],env:wranglerDevEnv({dir})});
  // Drained, never printed.
  child.stdout.resume();child.stderr.resume();let exited=false;child.on('exit',()=>{exited=true;});
  const stop=async()=>{if(!exited){child.kill('SIGTERM');await Promise.race([new Promise(done=>child.once('exit',done)),new Promise(done=>setTimeout(done,10000))]);if(!exited)child.kill('SIGKILL');}rmSync(dir,{recursive:true,force:true});};

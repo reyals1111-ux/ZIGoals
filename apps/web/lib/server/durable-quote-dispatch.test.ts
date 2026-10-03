@@ -19,6 +19,11 @@ test('missing credential, denial and unsupported RWA never dispatch provider I/O
 });
 test('unconfirmed dispatch write must not send; unconfirmed settlement must not publish',async()=>{
  const fetcher=vi.fn(async()=>new Response('{"bitcoin":{"usd":1,"last_updated_at":'+now/1000+'}}',{headers:{'content-type':'application/json'}}));
- for(const failed of ['dispatch','settle']){const {command}=setup(),calls:unknown[]=[];const result=await dispatchDurableQuotes([pair('bitcoin')],{command:async c=>{calls.push(c);if((c as {action:string}).action===failed)throw Error('storage disconnected');return command(c);},key:'fixture',fetcher,clock:()=>now});expect(result.quotes).toEqual([]);expect(calls.some(c=>(c as {action:string}).action==='publish')).toBe(false);}
+ // Session R1: acquire-many commits the dispatch; complete commits settlement and publication together.
+ for(const failed of ['acquire-many','complete']){
+  const {command}=setup(),calls:string[]=[];const result=await dispatchDurableQuotes([pair('bitcoin')],{command:async c=>{calls.push((c as {action:string}).action);if((c as {action:string}).action===failed)throw Error('storage disconnected');return command(c);},key:'fixture',fetcher,clock:()=>now});
+  expect(result.quotes).toEqual([]);expect(calls).toEqual(failed==='complete'?['acquire-many','complete']:['acquire-many']);
+  expect((await command({action:'acquire-many',works:[{operation:'quote',pair:pair('bitcoin')}]}) as {results:{status?:string}[]}).results[0]?.status).not.toBe('CACHE_HIT');
+ }
  expect(fetcher).toHaveBeenCalledTimes(1);
 });

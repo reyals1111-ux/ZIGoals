@@ -91,10 +91,11 @@ it('globally bounds new-ID provider attempts during a minute without losing last
  let calls=0,time=now;const fetcher:typeof fetch=async()=>{calls++;return new Response('{}', {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>time});
  for(let i=0;i<20;i++)await provider.quotes([coin(`absent-${i}`)]).catch(()=>undefined);expect(calls).toBe(12);time+=60001;await provider.quotes([coin('fresh-minute')]).catch(()=>undefined);expect(calls).toBe(13);
 });
-it('transports 1000 public assets as two bounded app requests and retains all verified quotes',async()=>{
+it('transports 1000 public assets as bounded app requests of 32 and retains all verified quotes',async()=>{
  const {fetchPublicMarketQuotes}=await import('./market-quote-client');const requests=Array.from({length:1000},(_,i)=>coin(`asset-${i}`));const sizes:number[]=[];
  const fetcher:typeof fetch=async(_url,init)=>{const body=JSON.parse(String(init?.body));sizes.push(body.requests.length);const data=Object.fromEntries(body.requests.map((r:MarketQuoteRequest)=>[r.marketRef.id,{usd:1,last_updated_at:Math.floor(Date.now()/1000)}]));return Response.json({quotes:parseCoinQuotes(JSON.stringify(data),body.requests),error:null});};
- const cache=createMarketQuoteCache((r,force)=>fetchPublicMarketQuotes(r,force,fetcher));await cache.refresh(requests);expect(sizes).toEqual([500,500]);expect(cache.getSnapshot().quotes).toHaveLength(1000);await cache.refresh(requests);expect(sizes).toEqual([500,500]);
+ const cache=createMarketQuoteCache((r,force)=>fetchPublicMarketQuotes(r,force,fetcher));// Session R1: 32 pairs per request, a client's share of the coordinator's works.
+ const chunks=[...Array<number>(31).fill(32),8];await cache.refresh(requests);expect(sizes).toEqual(chunks);expect(cache.getSnapshot().quotes).toHaveLength(1000);await cache.refresh(requests);expect(sizes).toEqual(chunks);
 });
 it('limits concurrent provider requests while allowing queued public identities',async()=>{
  let active=0,peak=0;const fetcher:typeof fetch=async()=>{active++;peak=Math.max(peak,active);await Promise.resolve();active--;return new Response('{}', {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});await Promise.all(Array.from({length:8},(_,i)=>provider.quotes([coin(`asset-${i}`)]).catch(()=>undefined)));expect(peak).toBe(2);
