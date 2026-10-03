@@ -149,10 +149,12 @@ Row K27–K28 above is struck: both equation tests in `landing.spec.ts` now run 
 | N7 | `LCP and long tasks on a mid-range phone and on desktop (LANDING_PERF=1)` (landing-v5-perf.spec.ts:113) | `LANDING_PERF` unset | Machine-dependent; the measured numbers are in `docs/verification/landing-v5/README.md` | opt-in | Keep. Run with `LANDING_PERF=1`. |
 | N8 | `refresh the landing's product captures from the Showcase` (landing-v5-captures.spec.ts:140) | `LANDING_CAPTURE!=='1'`; project not `desktop` | Evidence capture against a production build of `main`, run once | opt-in | Keep. Run with `LANDING_CAPTURE=1`. |
 
-**Expected totals from the source, with Session N** (the full local run is in the Session N (PR 1) entry in [STATUS](../STATUS.md)):
-- **desktop project:** 31 skipped: the 19 above, plus N1 3, N3 5, N4 2, N7 1 and N8 1;
+**Expected totals from the source, with this PR and `main` up to #64:**
+- **desktop project:** 33 skipped: the 19 above, MA1–MA2 (#60's section below), plus N1 3, N3 5, N4 2, N7 1 and N8 1;
 - **mobile project:** 43 skipped: the 28 above, minus K27–K28, plus N1 1, N2 4, N3 5, N4 2, N5 1, N6 2, N7 1 and N8 1;
-- **both projects:** 74. There is still no `test.fixme`, `test.todo` or `.only`.
+- **both projects:** 76. There is still no `test.fixme`, `test.todo` or `.only`.
+
+Before `main` was merged in, the full local run on `2d0df63` counted 74 (desktop 31, mobile 43), as the Session N (PR 1) entry in [STATUS](../STATUS.md) records. #62, #63 and #64 add no Playwright skip.
 
 ## Session N additions: timezone phase 1 (2026-10-02, branch `time/session-n-2026-10-02`)
 ### Expected failures (`test.fails`, the decided timezone behaviour)

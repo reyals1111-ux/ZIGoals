@@ -101,8 +101,8 @@ None:
   - **CI intermittent:** `install-guide.spec.ts:49` failed once on this PR's `578c3b0` (a sessionStorage race around the logo intro). It passed in both later Milestone quality runs that finished (`3712c1c`, `2d0df63`). It is not in the known-intermittents list.
 
 ## Owner decisions
-1. **The visual verdict:** V5 against V4, from the videos and captures. The owner's eye outranks every test here. The equation and the fold stages each live in their own files, so either can be reverted alone.
-2. **Phone LCP:** accept the numbers above, or ask a later session for a faster first paint on slow phones. That work would touch the hero (V4's, unchanged) and the order the stylesheets load in.
+- **Decided on 2026-10-03:** the owner approves Landing V5's visuals.
+- **Still open, phone LCP:** accept the numbers above, or ask a later session for a faster first paint on slow phones. That work would touch the hero (V4's, unchanged) and the order the stylesheets load in.
 
 ## Merge note
 Merge commits only.
@@ -113,6 +113,18 @@ Merge commits only.
 - On an iPhone (Safari) and an Android phone: the equation's four steps, one fold stage, the invite email, and Reduce Motion.
 - The film plays (H.264).
 - Deploy order and steps: `docs/deployment/LANDING.md`.
+
+## `main` merged in (2026-10-03)
+- `330634b` merges `main` `4d59e63`: Session M's #60 and #63, Timezone (#62) and Earn (#64).
+  - Only `docs/STATUS.md` and `docs/testing/SKIPPED_TESTS.md` conflicted. Every entry was kept, newest first: this entry on top of `main`'s file, and this PR's skip section ahead of #62's, #63's and #60's.
+  - `main` changed nothing under `landing/` and no other file this PR changes.
+- **Re-run on the merge (local):**
+  - lint and typecheck pass;
+  - `check:deploy-configs` passes, and so does `check:landing` (274 entries);
+  - `node --check` passes on the five landing scripts;
+  - every landing spec: 75 passed, 29 skipped (rows N1–N8), with the weight unchanged (first view 251,126 B, phone 1,582,666 B, desktop 5,710,120 B).
+- **Skip totals:** #60's two desktop-only skips (MA1–MA2) make the expected Playwright total 76 (desktop 33, mobile 43). `SKIPPED_TESTS.md` says so.
+- **CI:** on the PR.
 
 # Session N (PR 2) — Earn & staking foundations: evidence from official sources, a consumer design, ADR-009, sourced registry facts and a read-only Valdora testnet reader (2026-10-02/03, [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64), not merged or deployed)
 
