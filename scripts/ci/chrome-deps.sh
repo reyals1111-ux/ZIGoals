@@ -14,10 +14,11 @@
 # package depends on.
 #
 # So this script: (1) keeps the runner's Chrome when it starts, else installs
-# the `chrome` channel without --with-deps; (2) asks dpkg which of Chromium's
-# runtime libraries (Playwright's own Ubuntu 24.04 list) and fonts-liberation
-# are missing, and installs only those, with no recommends. In the usual case
-# nothing is missing and apt is never called. The specs assert DOM text and
+# the `chrome` channel without --with-deps; (2) installs Playwright's ffmpeg
+# (video recording; a small download from Playwright's CDN); (3) asks dpkg
+# which of Chromium's runtime libraries (Playwright's own Ubuntu 24.04 list)
+# and fonts-liberation are missing, and installs only those, with no
+# recommends. In the usual case nothing is missing and apt is never called. The specs assert DOM text and
 # geometry, not glyphs, so the extra fonts are left out; fonts-liberation is
 # what Chrome's package itself depends on. install-chrome.sh wraps this with
 # its retries and lock waits, unchanged.
@@ -27,6 +28,9 @@ set -euo pipefail
 
 chrome=${ZIGOALS_CHROME_BINARY:-/opt/google/chrome/chrome}
 install=${ZIGOALS_CHROME_INSTALL:-pnpm --filter @zigoals/web exec playwright install chrome}
+# Playwright's own ffmpeg build (about 2.5 MB from Playwright's CDN, not the Ubuntu mirror): the video-recording spec
+# (tests/run11-motion-recording.spec.ts) needs it, and `playwright install --with-deps chrome` used to bring it along.
+ffmpeg=${ZIGOALS_CHROME_FFMPEG:-pnpm --filter @zigoals/web exec playwright install ffmpeg}
 dpkg_query=${ZIGOALS_CHROME_DPKG:-dpkg -s}
 apt=${ZIGOALS_CHROME_APT:-sudo apt-get}
 dry=${ZIGOALS_CHROME_DRY_RUN:-}
@@ -43,6 +47,10 @@ else
   # shellcheck disable=SC2086
   run $install
 fi
+
+echo "Installing Playwright's ffmpeg for video recording."
+# shellcheck disable=SC2086
+run $ffmpeg
 
 missing=()
 for package in "${packages[@]}"; do
