@@ -1,0 +1,2 @@
+{"mode":"MAINNET_READ_ONLY","at":"2026-10-02T23:39:22.380Z","config":{"chainId":"zigchain-1","rest":"https://api.zigchain.com","denom":"uzig","decimals":6},"ok":false,"error":"Public network or denomination evidence does not match."}
+{"mode":"TESTNET_READ_ONLY","at":"2026-10-02T23:39:23.750Z","config":{"chainId":"zig-test-2","rest":"https://testnet-api.zigchain.com","denom":"azig","decimals":18},"ok":true,"positions":1,"kinds":["zig-test-2"]}

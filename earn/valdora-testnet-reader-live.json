@@ -1,0 +1,25 @@
+{
+ "at": "2026-10-02T23:51:21.995Z",
+ "result": {
+  "ok": true,
+  "value": {
+   "stZig": {
+    "amount": "10511520227",
+    "denom": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+    "decimals": 6
+   },
+   "contractAnswer": {
+    "stZigBalance": "10511520227",
+    "totalSupply": "18633318795402",
+    "priceForOneStZigUnitsUnverified": {
+     "stzig_amount": "1129883713421761571",
+     "uzig_amount": "1000000"
+    }
+   },
+   "observedAt": "2026-10-02T23:51:08.765Z",
+   "block": "8047366",
+   "source": "https://testnet-api.zigchain.com · block 8047366"
+  }
+ },
+ "calls": 12
+}

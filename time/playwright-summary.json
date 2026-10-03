@@ -1,0 +1,63 @@
+{
+ "commit": "de61e33",
+ "build": "PUBLIC_ALPHA_UNDEPLOYED",
+ "workers": 2,
+ "stats": {
+  "startTime": "2026-10-02T22:48:40.528Z",
+  "duration": 2606839.429,
+  "expected": 889,
+  "skipped": 47,
+  "unexpected": 6,
+  "flaky": 0
+ },
+ "unexpected": [
+  {
+   "file": "counters-compact.spec.ts",
+   "line": 42,
+   "project": "mobile",
+   "title": "360 px: six counters with ~20-character names keep every number and button whole, with 44 px targets",
+   "status": "unexpected",
+   "error": "Test timeout of 45000ms exceeded."
+  },
+  {
+   "file": "logo-fold.spec.ts",
+   "line": 107,
+   "project": "mobile",
+   "title": "the static Z stays when the fold fails to load (this project's own size)",
+   "status": "unexpected",
+   "error": "Error: expect(locator).toHaveCount(expected) failed\n\nLocator:  locator('video.logo-intro')\nExpected: 0\nReceived: 1\nTimeout:  1400ms\n\nCall log:\n  - Expect \"toHaveCount\" locator('video.logo-intro') with timeout 1400ms\n  - waiting for locator('video.logo-intro')\n    14 \u00d7 locator resolved to 1 element\n       - unexpected value \"1\"\n"
+  },
+  {
+   "file": "logo-quickadd-goals-header.spec.ts",
+   "line": 53,
+   "project": "desktop",
+   "title": "\"See how it works\" opens the brand film, which loads nothing until opened, never plays by itself and returns focus",
+   "status": "unexpected",
+   "error": "Error: locator.evaluate: NotSupportedError: The element has no supported sources."
+  },
+  {
+   "file": "logo-quickadd-goals-header.spec.ts",
+   "line": 79,
+   "project": "desktop",
+   "title": "with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay",
+   "status": "unexpected",
+   "error": "Error: locator.evaluate: NotSupportedError: The element has no supported sources."
+  },
+  {
+   "file": "logo-quickadd-goals-header.spec.ts",
+   "line": 53,
+   "project": "mobile",
+   "title": "\"See how it works\" opens the brand film, which loads nothing until opened, never plays by itself and returns focus",
+   "status": "unexpected",
+   "error": "Error: locator.evaluate: NotSupportedError: The element has no supported sources."
+  },
+  {
+   "file": "logo-quickadd-goals-header.spec.ts",
+   "line": 79,
+   "project": "mobile",
+   "title": "with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay",
+   "status": "unexpected",
+   "error": "Error: locator.evaluate: NotSupportedError: The element has no supported sources."
+  }
+ ]
+}
