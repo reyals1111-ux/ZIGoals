@@ -70,6 +70,150 @@ No desktop difference is authorized for this PR and none exists. Outside `apps/w
 - Note the deploy date: it starts the T4 clock for timezone phase 4 and the sync-home write switches.
 - Nothing to activate: no new Worker, secret or variable.
 
+# Session Q — pre-Alpha security and privacy review: threat model refresh, data flows, 54 findings, owner checklist, incident runbook, fix plan (2026-10-03, [PR #67](https://github.com/reyals1111-ux/ZIGoals/pull/67), documents only, not merged)
+
+**This is an internal review by an AI (Claude), not a professional security audit.** Every document says so at the top.
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox, Node 22.22.0, dependencies from `pnpm install --frozen-lockfile --ignore-scripts`. Reproduction scripts stayed in the session scratchpad and are not committed.
+- **live (passive):** one plain GET of each public page for its headers, and DNS over HTTPS, on 2026-10-03 around 17:24 UTC. Nothing was logged into, scanned, fuzzed or probed. `accounts-test.zigoals.app` did not resolve yet.
+- **source:** an official page read on 2026-10-03 (UTC), cited with its URL in the document that uses it. **UNVERIFIED** where it could not be confirmed.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+
+**What changed:**
+- Seven new files under `docs/security/review-2026-10/`, plus this entry.
+- No code, test, config, workflow or other document changed.
+- Session P's branches were read only: `fix/session-p-2026-10-03` at `67fa146`, then at `ef6b81a`, and `review/session-p-screenshots` at `a91a4d2`.
+
+**Base:** main `d439dc9` (#65). Main did not move during the session, so no merge was needed.
+
+## Parts
+| Part | Document | Commit |
+|---|---|---|
+| 1 | [THREAT_MODEL_REFRESH.md](security/review-2026-10/THREAT_MODEL_REFRESH.md):<ul><li>assets and attackers for the friends Alpha;</li><li>trust boundaries;</li><li>what is new since THREAT_MODEL.md;</li><li>out-of-date rows and proposed rows</li></ul> | `9ca1d65` |
+| 2 | [DATA_FLOWS.md](security/review-2026-10/DATA_FLOWS.md):<ul><li>live headers and DNS;</li><li>what Cloudflare (edge, NEL, Durable Objects), Supabase, Resend, CoinGecko, Open Food Facts, ZIGChain REST, GitHub, the operator and Claude sessions can see;</li><li>the sync server's view, field by field;</li><li>the public wording compared with the code</li></ul> | `d11aaf6` |
+| 3 | [FINDINGS.md](security/review-2026-10/FINDINGS.md), every finding with:<ul><li>severity and confidence;</li><li>file:line evidence;</li><li>a safe reproduction and the fix;</li><li>effort, an Alpha deadline and the owner</li></ul>Then `Q-OPS-06` added, making 54 | `2f7c90a`, `c47a80c` |
+| 4 | [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md): numbered owner steps (why, how, verify) for:<ul><li>now, during Stage 7;</li><li>before Stage 8;</li><li>before inviting friends;</li><li>during the Alpha</li></ul>It includes the private-config check by key names only | `93c23cb` |
+| 5 | [INCIDENT_RUNBOOK.md](security/review-2026-10/INCIDENT_RUNBOOK.md), a draft for:<ul><li>a leaked key;</li><li>an account takeover;</li><li>a deletion request;</li><li>a provider outage;</li><li>a bad deploy;</li><li>a suspected exposure (GDPR points as lawyer questions);</li><li>an AI session gone wrong</li></ul> | `369a755` |
+| 6 | [FIX_PLAN.md](security/review-2026-10/FIX_PLAN.md): ordered parts with Tier labels and acceptance tests, plus **"To review when Session P merges"** | `e8bd73e` |
+| 6a | Finding cross-references in documents 1 and 2 | `fe271c2` |
+| 7 | [README.md](security/review-2026-10/README.md):<ul><li>scope and method;</li><li>the severity scale;</li><li>a one-page summary;</li><li>the top 10 actions;</li><li>the friends-Alpha lens</li></ul> | `8f4525e` |
+| 6b | **FIX_PLAN:** Session P re-read at `ef6b81a`. Check 8 adds `7ccbfac`, a Playwright ffmpeg download in CI with no secret in reach | `b1e4f2b` |
+| 8 | This entry | this commit |
+
+## Results
+- **Counts:** 54 findings: Critical **0**, High **1**, Medium **9**, Low **23**, Info **21**.
+- **Confidence:** 9 confirmed by reproduction, 33 by code reading, 9 likely, 3 hypotheses.
+- **No secret was found:**
+  - in the tree (`node scripts/check-secrets.mjs`);
+  - in the history of all 41 refs: a pattern scan of 3,364 text blobs with the repository's patterns plus AWS, Slack, Stripe, Google, npm and model-API key shapes, with 0 hits;
+  - no private config or `.env` file was ever committed.
+
+  About 1,000 binary files (screenshots) were not scanned. One public review screenshot shows a throwaway fixture's recovery secret (`Q-SC-05`, Info).
+- **The High:** `Q-WRK-01`, if the market binding is switched on (the acctest template has it).
+  - One anonymous client can exhaust the account's free daily Durable Object allowance in a few hundred requests to the market routes. Sync and sign-in then stop until 00:00 UTC; on Workers Paid, the same traffic becomes a bill.
+  - Confirmed by code reading; that the quota is account-wide is Likely.
+- **The Mediums:**
+  - invite-only rests on one Supabase switch (`Q-AUTH-01`);
+  - "revoke" in ZIGoals does not end the Supabase session (`Q-AUTH-02`);
+  - a brief inbox compromise can stick (`Q-AUTH-03`);
+  - destructive actions have no step-up (`Q-AUTH-04`);
+  - all users share one Supabase rate-limit budget (`Q-AUTH-05`);
+  - script on a remembered device can export the vault root, reproduced in Node 22.22.0 and Chromium 141 (`Q-SYNC-01`);
+  - the market budget can be drained (`Q-WRK-02`);
+  - the documented deploy token reaches every Worker (`Q-SC-01`);
+  - AI sessions act as the owner on GitHub (`Q-AI-01`).
+- **What holds:**
+  - the record encryption (per-record HKDF and AES-GCM, with the full context in the AAD);
+  - tenant isolation;
+  - cookies, CSRF and the CSP (confirmed live);
+  - SHA-pinned Actions and a credential-free build job;
+  - no public route on any private Worker.
+
+  Details under "What holds" in FINDINGS.
+
+## Alpha blockers (plain words)
+1. **Before Stage 7 completes:** switch Supabase sign-ups **off** and create the friends' users yourself. Otherwise anyone who finds the acctest app can make an account (`Q-AUTH-01`).
+2. **Before Stage 7 completes, if the market binding is on:** keep market dispatch off for the friends deployment, or first put a rate limit in front of `/api/market-*` and settle the Workers plan (`Q-WRK-01`).
+3. **Before Stage 8, if markets ship with the Alpha:** the market fan-out fix in code (FIX_PLAN Part C1).
+
+The rest is listed in the README's "top 10 actions" and "friends-Alpha lens".
+
+**Early warnings given to the owner during the session** (progress messages, no trigger details):
+- the Supabase settings in blocker 1, plus the per-IP rate limits and secure email change;
+- the High in blocker 2.
+
+## Reproductions and checks (local unless stated)
+- **The sign-in route with fake upstreams** (`privateAccountRequest`, Vitest 5.0.2), 4 of 4 passing:
+  - code requests send `create_user:true`;
+  - a Supabase `422 otp_disabled` gives `400` while an accepted address gives `200`;
+  - "revoke others" contacts only the sync registry, and sign-out uses `logout?scope=local`;
+  - a plain-HTTP origin gets cookies without `Secure`;
+  - only `apikey` and `content-type` headers reach Supabase.
+- **The remembered device:**
+  - a device key with `encrypt`+`unwrapKey` refuses export;
+  - an extractable unwrap of the sealed root returns the exact 32 root bytes, in Node 22.22.0 and in Chromium 141 with an IndexedDB round trip (synthetic keys).
+- **`pnpm audit`:** production dependencies have no known vulnerabilities. All dependencies: 1 high, `braces <=3.0.3` in lint tooling (`Q-SC-02`).
+- **Live, passive (2026-10-03):**
+  - landing and Alpha headers as documented, plus Cloudflare NEL;
+  - plain HTTP answered `200` (browsers are protected by the `.app` HSTS preload);
+  - DMARC `p=none`, no CAA, no DNSSEC.
+- **CI identity:** the runs for this session's own pushes show `actor` and `triggering_actor` as `reyals1111-ux` (Milestone quality run 37140990719). That is the evidence for `Q-AI-01`; nothing was dispatched.
+- **Before every push:** `node scripts/check-secrets.mjs` passed, and every relative link and anchor in the seven documents resolves (0 problems).
+- **This entry:** `pnpm exec vitest run scripts/status-snapshot.test.mjs` passes, and `recordedLiveWorker()` still returns `aeae3829-ccc1-4190-909e-77539604c3f5` (#24); this entry adds no "Release identity" section.
+
+## Sources and UNVERIFIED items
+- **Sources:** official pages from Cloudflare, Supabase, GitHub, Resend, CoinGecko, Open Food Facts, Bitwarden, Apple, Google Registry, OWASP, MDN, pnpm, the EDPB and the Belgian APD. Each is listed with its URL in the document that uses it, accessed 2026-10-03.
+- **UNVERIFIED:**
+  - the live provider settings: Supabase sign-ups, code length and expiry, rate limits; Resend tracking; Cloudflare members, tokens and plan; GitHub rulesets and environments;
+  - the git-ignored private configs;
+  - whether Cloudflare's daily Durable Object limits are account-wide;
+  - how Supabase keys its rate limits for the Worker's calls;
+  - some dashboard labels (marked in OWNER_CHECKLIST);
+  - the reachability of the recovery-admin remote proxy (until the Stage 7 rehearsal);
+  - the APD's two-part form deadline;
+  - Trusted Types support in Next 16.3.6.
+
+## Helper agents
+- **Three, launched once, together, after the plan's approval:**
+  - **H1:** sign-in, sessions and the account Workers;
+  - **H2:** vault and sync cryptography, the malicious-server model and the privacy claims;
+  - **H3:** the web app, the landing and the public-data endpoints.
+- **How they worked:**
+  - they read the code and wrote notes to the session scratchpad only;
+  - none edited the repository, ran tests or touched a live system;
+  - one follow-up went to H1 by message (Supabase's shared per-IP budget and the IPv6 grouping), so the total stayed at 3.
+- **The lead re-read every cited line before accepting a finding,** ran the reproductions, and changed severities where the evidence called for it:
+  - H1's two proposed Highs (`Q-AUTH-02`, `Q-AUTH-03`) became Medium, because the sync boundary holds and a lasting takeover needs the inbox again;
+  - H3's market fan-out stayed High (conditional);
+  - two H3 items were merged into `Q-AUTH-09` and `Q-PRIV-03`;
+  - H2's "v1 envelopes" moved to "what holds".
+
+## Decisions made without the owner
+- **Branch:** the brief's `security/session-q-2026-10-03`, not this cloud session's default branch name.
+- **Two documents beyond the brief's list:** THREAT_MODEL_REFRESH (item 1) and DATA_FLOWS (item 7). They keep the README to one page.
+- **Publication rule** (the repository is public):
+  - no exploit code;
+  - no step-by-step recipe against a live system;
+  - every reproduction is local.
+- **Severity of `Q-WRK-01`:** High, because one anonymous actor can stop sign-in and sync for every friend, daily, at no cost to themselves. The brief's severity examples did not list availability.
+- **Session P's ADR-010 (push) and ADR-011 (coach) were not on any branch.** The FIX_PLAN checks for them follow the brief's description, plus H3's service-worker guard rails.
+- **Q-OPS-06 added after FINDINGS was first pushed** (no owner erase tool), found while drafting the incident runbook.
+
+## Follow-ups (not done here)
+- **The owner:** [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md), steps A1–A8 now, B before Stage 8, C before inviting friends.
+- **The next sessions:** [FIX_PLAN.md](security/review-2026-10/FIX_PLAN.md):
+  - **R** = market fan-out, sign-in and the remembered device (Tier 3);
+  - **S** = copy, documents and CLAUDE.md rules;
+  - **T** = the rest.
+- **When Session P merges:** run the FIX_PLAN checks. Its invite-only message (`72df238`) makes account enumeration explicit (`Q-AUTH-06`).
+- **THREAT_MODEL.md, PRIVACY.md, ADR-008 and LEGAL_CHECKLIST** need updates from this review (FIX_PLAN Part E). They are other documents, so they are not edited here.
+
+## How the owner can review
+1. **Start at [docs/security/review-2026-10/README.md](security/review-2026-10/README.md):** the one-page summary, the blockers and the top 10.
+2. **Then [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md),** group A, while Stage 7 is running.
+3. **Locally:** `git fetch origin`, then `git checkout security/session-q-2026-10-03`. Nothing needs to be installed to read it.
+
 # Session O — Beta brainstorm pack: market, product and growth research; then main (#60–#64) merged in and Alpha deploy #24 recorded (2026-10-03, [PR #65](https://github.com/reyals1111-ux/ZIGoals/pull/65), documents only, not merged)
 
 **Evidence labels**
