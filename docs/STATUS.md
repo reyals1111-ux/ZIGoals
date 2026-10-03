@@ -1,3 +1,156 @@
+# Session N (PR 2) — Earn & staking foundations: evidence from official sources, a consumer design, ADR-009, sourced registry facts and a read-only Valdora testnet reader (2026-10-02/03, [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64), not merged or deployed)
+
+**Evidence labels**
+- **source:** an official page or API, read on 2026-10-02 (UTC). Each one has its URL, access time and a verbatim quote in [docs/earn/EVIDENCE_2026-10.md](earn/EVIDENCE_2026-10.md).
+  - **VERIFIED** means read there.
+  - **UNVERIFIED** means it could not be read or confirmed, and nothing is built on it.
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED`.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141.0.7390.37 standing in for `chrome`. It cannot play the intro video, so the two intro-video specs fail here and pass in CI.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+
+Only GET requests were made. No account, key, wallet, provider login, signature or deploy was used.
+
+**Base:** main `57275a6` (Alpha deploy #23 source).
+- Session N ran three PRs from it: Landing V5 ([#61](https://github.com/reyals1111-ux/ZIGoals/pull/61)), this one, and Timezone phases 1–2 ([#62](https://github.com/reyals1111-ux/ZIGoals/pull/62)).
+- This PR touches none of Session M's files. `apps/web/lib/earn/**` is new; `packages/ecosystem-registry/**` and the docs are in Session N's lane.
+
+**Behaviour:** one visible change. The Ecosystem cards of seven providers (Valdora, Zignaly, OroSwap, Noble, Axelar, Ondo, ZIG Markets) show the registry facts read on 2026-10-02, with "last reviewed 2026-10-02". The new reader is imported by no page, route or worker.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 2.1 | [EXISTING_RESEARCH.md](earn/EXISTING_RESEARCH.md): what the repository already knew, file by file, and what is now outdated (mainnet `uzig`/6, the Valdora code IDs, the "multisig" claim, the two-report OAK listing). The old records stay unedited; this file is the superseding note | `97ed662` |
+| 2.2 | [EVIDENCE_2026-10.md](earn/EVIDENCE_2026-10.md):<ul><li>196 items (177 verified, 19 unverified) in seven registers;</li><li>the 24 facts that matter most, re-read independently: 22 confirmed, 2 partly, each with what differs;</li><li>the pages that could not be read;</li><li>171 chain responses kept as read in `docs/earn/evidence/*.json`;</li><li>generated from the session's records, so every row keeps its exact URL, time and quote</li></ul> | `622fe2d` |
+| 2.3 | [EARN_DESIGN.md](earn/EARN_DESIGN.md): the journey, the options side by side (facts only; provider claims labelled), three mockups, consent and signing, the gates, roadmap E0–E4. Design only | `a61ec2c` |
+| 2.4 | [ADR-009](architecture/ADR-009-earn-architecture.md) (Proposed): read-only adapters first, pins checked on every read, units only from a definition, no rate field, preconditions for any execution authority | `8a77423` |
+| 2.5 | **[Tier 3] (registry)** existing fields of seven existing records, each new line sourced and dated; a test against rate wording and referral or tracking links | `5cb9295` |
+| 2.6 | **[Tier 3] (earn logic)** `apps/web/lib/earn/valdora/testnet.ts`: read-only, zig-test-2 only, pinned (below) | `5ab886f` |
+| 2.7 | [ONRAMPS_AND_ZIGNALY.md](earn/ONRAMPS_AND_ZIGNALY.md): no on-ramp delivers ZIG on ZIGChain, and Zignaly has no public API, so the options are written down and no code is added | `c114c13`, `ee4450e` |
+| 2.8 | [LEGAL_CHECKLIST.md](business/LEGAL_CHECKLIST.md) §6: questions for counsel on on-ramps, stablecoins, staking promotion, copy trading, referrals, KYC/AML and disclosures, each with its official text. No conclusions; §1–5 unchanged | `abbfec9` |
+| 2.9 | Full gate and this entry | this commit |
+
+## The facts that matter most (all in EVIDENCE with sources)
+1. **Both ZIGChain networks use `azig` with 18 decimals** since v5 (mainnet 2026-09-30, height 12549000; testnet 2026-09-08). **The app still configures mainnet as `uzig`/6:** its own reader, unchanged, now refuses every mainnet watch-only read ("Public network or denomination evidence does not match.", checked against the live chain at 23:39Z). The fix is in Session M's lane (below).
+2. **Native staking:**
+   - 21-day unbonding, 14 validators, 2% community tax.
+   - Slashing is 0.05% for double-signing and 0.01% for downtime. The docs' "5%" for double-signing does not match the chain.
+3. **Valdora's stakers were migrated after v5**: mainnet to code 179, testnet from 1062 to 2532. Both run identical code (`stzig-staker 1.1.0`).
+4. **One key controls Valdora's mainnet staker** (admin, internal admin and treasury), although its security page says multi-signature.
+5. **Valdora's own pages disagree** on the unstake fee. On the unstake minimum they say 50 stZIG (FAQ) and 50 ZIG (how-to guide), while the chain has 49 stZIG.
+6. **No Valdora message schema is published anywhere read**, the price queries' units are undocumented, and no source maps the deployed code to the three OAK audits.
+7. **USDC from Noble is live on ZIGChain but being wound down:** new minting stops 2026-10-13 and Noble USDC pauses on 2027-01-12. Circle's help article still lists Noble without mentioning this.
+8. **No on-ramp read delivers ZIG or any stablecoin on ZIGChain.** Guardarian sells ZIG only as the Ethereum ERC-20.
+9. **Zignaly is off-chain and custodial,** with KYC for everyone and the United States and Canada among the excluded places. Its marketplace has taken no new services since 2026-08-31, and no public API was found.
+10. **ZIG began as Zignaly's token,** per the MiCAR white paper linked from zigchain.com (issuer named: Comet Technologies Ltd.).
+
+## Official pages that could not be read (owner Addition 2)
+The full table, with URLs and times, is in [EVIDENCE, "Pages that could not be read"](earn/EVIDENCE_2026-10.md#pages-that-could-not-be-read). In short:
+- **Zignaly:**
+  - `zignaly.com` (including `/legal`, `/legal/api-agreement/`, `/legal/risks/`, `/z-indexes`), `help.zignaly.com`, `app.zignaly.com` (including its terms) and `api.zignaly.com`: Cloudflare challenge.
+  - `docs.zignaly.com`: DNS.
+  - `identity.zignaly.com`: proxy 502.
+  - `gitbook.zignaly.com/white-paper`, the white paper ESMA's register points to: 403.
+  - Wayback copies: unreachable.
+- **EUR-Lex** (`eur-lex.europa.eu/eli/reg/2023/1114/oj/eng`, and `data.europa.eu`, which redirects there): AWS WAF challenge. The texts were read from the EU Publications Office instead.
+- **ZIGChain:**
+  - `docs.zigchain.com` and `zigchain.com`: read only through WebFetch, so quotes may be shortened.
+  - `hub.zigchain.com` and `/bridge`: a JS app.
+- **On-ramp lists:**
+  - Onramper and Alchemy Pay (Notion): client-rendered.
+  - Kado (`docs.kado.money`, `app.kado.money`): TLS error, then a JS shell.
+  - Mercuryo docs and help: 502 and 403.
+- **Regulators:**
+  - FSMA's `/en/crypto` page: no static content. A linked 2022 FSMA PDF returns 404.
+  - ESMA's Q&A search: JS-rendered.
+  - The FSCA FSP lookup is a form, so ZIG Markets' FSP 46517 was not checked.
+- **Valdora:**
+  - `valdora.finance/stake`: client-rendered.
+  - The audited repositories `Liquid-Zig/new-stzig-contracts` and `vault-contracts-audit`: not public.
+
+## [Tier 3] commits and risk
+- **`5ab886f` (earn logic):**
+  - **What:** a read-only reader for one holder's stZIG on zig-test-2.
+  - **Pins:** every read happens at one block height and must answer at that height. It is pinned to the staker's address, code 2532, checksum `2E68EC99…5F1C`, `stzig-staker 1.1.0`, the stZIG denom and its 6 decimals.
+  - **Fails closed** on any difference, a pause flag, an unknown field, an oversized body or a timeout.
+  - **Price answer:** returned as the contract states it, never as a ZIG value.
+  - **Risk:** none for users today. Nothing imports it (a test enforces this), it sends GETs to the official testnet API only, and it builds no transaction.
+  - **Rollback:** revert.
+- **`5cb9295` (registry):**
+  - **What:** new lines in existing fields of seven records, each naming its source and the date read; `lastVerified` moves to 2026-10-02 for those seven only.
+  - **No change to:** ids, logos, categories, `reviewedAt` or the directory.
+  - **Risk:** this text reaches the Ecosystem cards on the next Alpha deploy; a wrong fact would mislead without moving money. The card specs ran in the full browser gate (below).
+  - **Rollback:** revert.
+- **Not touched:**
+  - wallet, signing, contracts, keys, sync, vault, auth and workers;
+  - `AGENTS.md`, `CLAUDE.md`, `.github/**`, `docs/friends-alpha/**`;
+  - no dependency or lockfile change.
+
+## Decisions made without the owner, and deviations
+- **The registry test:** the plan said it would ban `%` and "yield" anywhere in the registry. That would fail on existing records: URL encoding (`%20`), Valdora's "Stablecoin Yield Vault", a sourced "0% performance fee" and Ondo's warning "Do not treat stock exposure as cash yield". The test bans rate-of-return wording (APR, APY, TVL, "per year", a percentage with yield, return or interest, an un-negated "guaranteed") and referral, affiliate and tracking parameters in every URL. It proves both directions on examples.
+- **Zignaly's help center** was read on Intercom's host (`intercom.help/zignaly`), whose pages declare `help.zignaly.com` as canonical. The registry cites the canonical URLs.
+- **The third OAK report** links to `raw.githubusercontent.com`, the file that was read and hashed. `github.com` returned 403 in this sandbox, so the blob URL the other two reports use could not be checked.
+- **Helpers:**
+  - one workflow of 3 read-only research helpers;
+  - one workflow of 3 read-only checkers;
+  - one read-only survey helper for 2.1. I spot-checked its line references against the files and corrected a wrong path, a line number shifted by this PR, and several evidence ids.
+
+  Never more than 3 at once, and none built or tested anything.
+- **Not done:** no new registry records (owner decision N6). A Circle record would need Session M's directory text.
+
+## Gate
+| Check | Where | Result |
+|---|---|---|
+| Secret patterns (`scripts/secret-patterns.mjs`) | local, the 23 new and changed files | no findings |
+| Word gate (no project called a partner or integrated, no referral wording, no rate wording) | local: `docs/earn/**`, ADR-009, LEGAL_CHECKLIST §6 | every remaining hit is a negation ("no affiliate or referral links") or the subject of a legal question; reviewed by hand |
+| `pnpm lint`, `pnpm typecheck` | local, `5cb9295` | pass |
+| `pnpm test` | local, `5cb9295` | 260 files (246 passed, 14 skipped); 2,227 tests passed, 4 expected failures (as on `main`), 22 skipped |
+| Reader tests | local | 53 pass. Mutation check (not committed): removing the height check fails 2 tests, and removing the checksum comparison fails 1. One live read-only run on zig-test-2 read OK at block 8047366 |
+| Registry tests | local | 42 pass, including the new rate and referral test |
+| Full Playwright, production build, 2 workers | local, `5cb9295` | 891 passed, 47 skipped, 4 failed. The 4 are the intro-video specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this Chromium cannot play. All 22 Ecosystem, Staking and run10-ecosystem tests pass with the new registry text |
+| Freeze check (`scripts/desktop-freeze-check.mjs`, 154 captures) | local, against main `57275a6` | 142 identical. The other 12 are the Help page at every size and state, whose feedback link carries the build's commit (`57275a6` → `5cb9295`); their pixels are identical. The Ecosystem captures are identical because they show the cards closed; the card specs above check the new registry text |
+| CI on `5cb9295` | [Milestone quality](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37079811166), [Canonical reproducibility](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37079811082) | all 10 checks green; the final head's run is on the PR |
+
+Review evidence: [`review/session-n-screenshots/earn`](https://github.com/reyals1111-ux/ZIGoals/tree/review/session-n-screenshots/earn) (never merged). It holds the mockups, the app-reader check, the live reader run, the freeze comparison and the browser-run summary.
+
+## Owner decisions
+**Decided by the owner on 2026-10-03:**
+- **`intercom.help`:** accepted as the official host of Zignaly's help center, so the Zignaly help-center facts read there stand as read ([c-zignaly.md](earn/evidence/c-zignaly.md)).
+- **ADR-009:** accepted; its status line says so. **E1** (testnet stZIG in Staking, read-only, shown as stZIG) waits for Valdora's answers to the questions below ([EARN_DESIGN.md](earn/EARN_DESIGN.md), roadmap).
+- **On-ramps:** "no provider secrets on a server" stays a rule ([ONRAMPS_AND_ZIGNALY.md](earn/ONRAMPS_AND_ZIGNALY.md), decision 1).
+
+**Still open:**
+1. **Mainnet denomination** (Session M's lane, urgent): mainnet watch-only staking reads have failed closed since 2026-09-30. The lines are listed below.
+2. **Valdora's answers:** its message schema, the units of its price queries, the current unstake-fee rule, how the deployed checksums map to audited commits, and how its admin key is controlled. E1 waits for them.
+
+## Follow-ups (not done here)
+- **Session M's lane:**
+  - `apps/web/lib/position-reader.ts:5` (mainnet `uzig`/6 → `azig`/18);
+  - `positions.ts:225` and `:296`;
+  - `market-quotes.ts:7`;
+  - the tests that encode mainnet `uzig`/6 (`native-positions.test.ts:39`, `positions.test.ts:54`, `market-multi.test.ts:76`);
+  - the default in `components/platform/positions-view.tsx:43`.
+
+  `positions.ts:137-139` keeps saved `uzig` records valid ([EXISTING_RESEARCH.md](earn/EXISTING_RESEARCH.md), "Code assumptions").
+- **Next earn session:**
+  - re-read Noble and Circle after 2026-10-13;
+  - re-read Valdora's stakers if they migrate (the reader will refuse until new pins land);
+  - the owner's answers to the decisions above;
+  - the pages above, if the owner supplies them.
+
+## `main` merged in (2026-10-03)
+- `c86fb1a` merges `main` `16b39dc`: Session M's #60 and #63, and Timezone phases 1–2 (#62).
+  - Only `docs/STATUS.md` conflicted. Every entry was kept, newest first: this entry on top, then `main`'s file unchanged.
+  - `docs/testing/SKIPPED_TESTS.md` did not conflict, because this PR never changed it.
+- **Re-run on the merge (local):**
+  - lint and typecheck pass;
+  - the registry package (38 registry and 4 directory tests) and the Valdora reader (53): 95 passed;
+  - `pnpm test`: 272 files (257 passed, 15 skipped); 2,358 tests passed, 21 expected failures, 24 skipped;
+  - on a production build of the merge, the Ecosystem and Staking browser specs pass: `ecosystem-cards`, `ecosystem`, `run10-ecosystem`, `staking-page` and `main`'s new `staking-tabs`, 28 passed.
+- **CI:** on the PR.
+
 # Session N (PR 3) — Timezone phases 1–2: the owner's decisions, failing-first suites, and funding and plan days through the time helpers with zone "UTC" (2026-10-02, [PR #62](https://github.com/reyals1111-ux/ZIGoals/pull/62), not merged or deployed)
 
 **Evidence labels**
