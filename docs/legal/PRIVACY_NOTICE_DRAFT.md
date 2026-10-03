@@ -59,7 +59,7 @@ ZIGoals stores your Goals, Wealth positions and plans, Habits, Health records (f
 
 These run only while we have switched them on, and only when you use the feature. Requests go through our server, so the provider sees our server rather than your device.
 
-- **CoinGecko (prices).** Receives the public asset you picked, the quote currency and, for charts, the time range. **Never** your amounts, allocations, Goal names or IDs, wallet address, Habits or Health records. Combinations and timing of public asset choices can still hint at interests.
+- **CoinGecko (prices).** Receives the public asset you picked, the quote currency and, for charts, the time range. **Never** your amounts, allocations, Goal names or IDs, wallet address, Habits or Health records. Combinations and timing of public asset choices can still hint at interests. To share price capacity fairly, our price service counts requests per network address group under a pseudonym: it keeps only a keyed hash (HMAC) bucket for each day, under a key it replaces daily, never your address, deletes it after about 48 hours and uses it only for abuse limits.
 - **Open Food Facts (barcode lookup).** Receives **only the barcode number** you confirmed. The camera picture stays on your device. Our server keeps the product answer for up to 24 hours, keyed only by the barcode.
 
 **Wallets and the test network.** If you connect a wallet such as Keplr, the app sees the public account you approve. Public ZIGChain services you query can see your IP address and the public account, contract or transaction you ask about. Anything confirmed on a blockchain is public and generally cannot be erased.
