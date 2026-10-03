@@ -1,3 +1,131 @@
+# Session N (PR 1) — Landing V5: the equation as a scroll story, fold interludes from the brand film, an invite to the friends Alpha, honest privacy and sync, install, what's coming, refreshed captures (2026-10-02/03, [PR #61](https://github.com/reyals1111-ux/ZIGoals/pull/61), not merged or deployed)
+
+**Evidence labels**
+- **local:** this cloud session's sandbox.
+  - Node 24.19.0, pnpm 11.19.0.
+  - Production build `PUBLIC_ALPHA_UNDEPLOYED` for the app suite.
+  - The landing is served as static files: by the test harness, by `wrangler dev` (the local Workers Assets runtime) or by Wrangler's dry run.
+  - Playwright 1.63 with at most 2 workers.
+  - Chromium 141.0.7390.37 standing in for `chrome`. It cannot play H.264, so the brand film does not play here and the two intro-video specs fail in both projects; they pass in CI.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **not device-tested:** true per its source, but not tried on that device in this session.
+
+No account, secret, provider login or deploy was used. The landing was not deployed.
+
+**Base:** main `57275a6` (Alpha deploy #23 source; Landing V4).
+- Session N ran three PRs from it: this one, Earn & staking foundations ([#64](https://github.com/reyals1111-ux/ZIGoals/pull/64)) and Timezone phases 1–2 ([#62](https://github.com/reyals1111-ux/ZIGoals/pull/62)).
+- **Files outside `landing/**`:**
+  - the landing specs and their static server (`apps/web/tests/landing*.spec.ts`, `landing-server.ts`);
+  - `docs/verification/landing-v5/**` and `docs/deployment/LANDING.md`;
+  - `docs/testing/SKIPPED_TESTS.md` (the new skips, registered as the repo requires);
+  - this entry.
+
+  No app file changed.
+
+## Parts
+| Part | Result | Commits |
+|---|---|---|
+| 1.1 | [INVENTORY.md](verification/landing-v5/INVENTORY.md):<ul><li>V4's files, headers, tests, and why its equation never stepped on phones;</li><li>the scroll-snap spike: snap was dropped, because proximity with `snap-stop` does not stop a fling in Chromium and mandatory pulls the page in from outside;</li><li>the CSP spike and the V4 baseline.</li></ul>The equation test is committed failing on V4 (`test.fail()`) | `c5637b6` |
+| 1.2 | The equation builds one word per viewport of scrolling, on desktop and phones, each word in its final nebula look with its figure. Static under reduced motion, `?motion=off`, no script and short screens | `b93e8a7` |
+| 1.3 | Six fold stages refold the film's paper between the chapters (Z → swan → lotus → butterfly → heart → bull → Z), with the slogan fragments. 12-frame phone sets (N16). V4's fixed background canvas is removed | `578c3b0` |
+| 1.4 | <ul><li>The invite to the friends Alpha (N1).</li><li>Privacy and sync as they are today.</li><li>Install (N10: the Chrome, Edge and Android line ships, because Chromium reported no installability errors for a production build of `main`).</li><li>What's coming (N2).</li><li>The FAQ, with QA2-05 fixed.</li><li>[CLAIMS.md](verification/landing-v5/CLAIMS.md).</li></ul> | `5c4ab85` |
+| 1.5 | The 19 product captures refreshed from `main`'s Showcase by an opt-in capture spec | `3712c1c` |
+| 1.6 | Layout, accessibility and security specs; every target at least 44 px (N9); `SKIPPED_TESTS.md` rows N1–N8 | `caa2eed` |
+| 1.7 | <ul><li>Checked on the Workers runtime: plain figure names, because Workers Assets redirects `@`.</li><li>LANDING.md's local preview fixed, and its entry count updated.</li><li>The verification README, the review evidence and this entry.</li></ul> | `2d0df63`, `f01d0f0`, this commit |
+
+## Numbers, before and after
+Measured back to back on 2026-10-03 with the same spec (`landing-v5-perf.spec.ts`), local. The method, the phone
+breakdown and every check are in the [verification README](verification/landing-v5/README.md).
+
+| Measure | V4 (`main`) | V5 | Budget |
+|---|---|---|---|
+| First view | 222,830 B | 251,126 B | ≤ 260,000 B |
+| Phone, full scroll | 773,064 B | 1,582,666 B | ≤ 1,800,000 B (N16) |
+| Desktop, full scroll (the film counted) | 5,240,234 B | 5,710,120 B | ≤ 6,000,000 B |
+| Layout shift, desktop / phone | 0.00013 / 0 | 0.00013 / 0 | < 0.01 |
+| LCP, desktop | 232–252 ms (3 runs) | 224 ms (3 runs) | ≤ 1,200 ms |
+| LCP, phone with Lighthouse's mobile throttling | median 2,274 ms (8 runs) | median 2,362 ms (8 runs) | ≤ 2,500 ms |
+
+- **Phone weight:** most of it is the fold stages' 12-frame phone sets, the four equation figures, the settled stills and the planet rim. The refreshed captures are lighter.
+- **Hero mark as LCP:** in 2 of 8 V5 runs and 1 of 8 V4 runs it became the LCP element, at 2,564–2,604 ms, over the opt-in budget. The hero is unchanged from V4.
+- **Videos and full-page captures:** [`review/session-n-screenshots/landing`](https://github.com/reyals1111-ux/ZIGoals/tree/review/session-n-screenshots/landing), linked from [one PR comment](https://github.com/reyals1111-ux/ZIGoals/pull/61#issuecomment-5964101173).
+
+## Tier 3
+None:
+- `_headers` and `.assetsignore` are byte-identical to V4 (`landing-v5-security` checks their SHA-256);
+- no new origin, font or tracker;
+- the renamed figures stay inside the allowlisted `assets/**`.
+
+## Where the two addresses appear (owner Addition 1)
+- **`hello@zigoals.app`** (security and privacy; unchanged, still working):
+  - `SECURITY.md`;
+  - `.github/ISSUE_TEMPLATE/config.yml` and `bug_report.yml`;
+  - `CONTRIBUTING.md`;
+  - the app's Help (`help-page.tsx:9`, the security address) and the app footer's private security contact (`shell.tsx:230`);
+  - `docs/PRIVACY.md`, `docs/friends-alpha/FRIENDS_GUIDE.md`, `docs/legal/PRIVACY_NOTICE_DRAFT.md`, `docs/security/SECURITY_CHECKLIST.md` and `THREAT_MODEL.md`, `docs/testing/ALPHA_DISCLAIMER.md` and `ALPHA_TESTER_GUIDE.md`;
+  - `docs/RUN_3_REPORT.md`, `docs/RUN_4_REPORT.md`, `docs/architecture/M3_DESIGN.md` and STATUS (Session L, L1);
+  - `help-page.spec.ts` checks the app's link.
+- **`contact@zigoals.app`** (feedback, and now the invite):
+  - the app's Help feedback link (`help-page.tsx:8–9`, checked by `help-page.spec.ts`);
+  - `docs/friends-alpha/FRIENDS_GUIDE.md`, `docs/legal/PRIVACY_NOTICE_DRAFT.md`, STATUS (Session L, L1);
+  - **new:** the landing's invite, as a button and the visible address in the hero and the final call, and in the FAQ. That is 5 links, all `mailto:contact@zigoals.app?subject=Friends%20Alpha%20invite`, and `landing-v5-security.spec.ts` counts them.
+- V4's landing had neither address.
+
+## Decisions made without the owner, and deviations
+- **N16 phone frames:** the 12-frame phone sets were cut from the 1024 px wide frames rather than re-extracted from the film. The film's crop of the paper could not be matched (error 9–29 grey levels), and the wide frames are the approved artwork. Recorded in ASSET_MANIFEST.
+- **Capture font:** the captures use Inter (OFL), served to the capture browser only, because the app's font stack names Inter first and the sandbox has no Inter. The file, its source and SHA-256 are in ASSET_MANIFEST. No font ships with the landing.
+- **Capture sizes:** desktop captures were taken at 1440 px and phone captures at 430 px, so several are larger than V4's (sizes in ASSET_MANIFEST). Total weight went down (822,276 B against 971,356 B).
+- **Snap dropped (N8):** one step per viewport everywhere, without scroll-snap.
+- **Found in a capture (Session M's lane, not changed):** on phones from 320 to 600 px the Goal card's progress ring overlaps its text by 4 px (clear by 18 px at 768).
+- **Figure file names:** the four large equation figures ship as `<name>-1280.webp`, not under their source names `<name>@2x.webp`. Workers Assets answers a path with `@` in it with a 307 to its `%40` spelling. That was seen in `wrangler dev` and on the live Alpha (one HEAD request, 2026-10-03), and it would cost an extra round trip. Same bytes; `landing-v5-security` now fails on any shipped name Workers Assets would re-spell.
+- **LANDING.md's local preview:** the documented `wrangler dev` command never answered with Wrangler 4.144, on `main` as on this branch. Wrangler writes its state into `landing/.wrangler/`, inside the folder it watches, and reloads in a loop. The command now adds `--persist-to .wrangler/landing-state`, which lands in the git-ignored `apps/web/.wrangler/`. The deploy steps are unchanged.
+- **Phone LCP budget (2.5 s, opt-in):** V5's median of 8 runs is 2,362 ms. In 2 of 8 V5 runs and 1 of 8 V4 runs, the hero mark became the LCP element at 2,564–2,604 ms. The hero is V4's, unchanged. Numbers, not a fix: the README has them.
+
+## Gate
+| Check | Where | Result |
+|---|---|---|
+| `pnpm lint`, `pnpm typecheck` | local, `2d0df63` | pass |
+| `pnpm test` | local, `2d0df63` | 259 files (245 passed, 14 skipped); 2,172 tests passed, 4 expected failures (as on `main`), 22 skipped |
+| `node --check` (5 landing scripts), `check:deploy-configs`, `check:landing` | local | pass; 274 entries (V4 225) |
+| Landing specs, one file at a time | local | <ul><li>`landing.spec.ts`: 10 passed.</li><li>Equation: 12 passed, 4 skipped.</li><li>Fold: 18 passed, 4 skipped.</li><li>Layout: 16 passed, 14 skipped.</li><li>A11y: 9 passed, 1 skipped.</li><li>Security: 6 passed, 2 skipped.</li><li>Perf: 4 passed, 2 skipped (LCP is opt-in).</li></ul> |
+| `wrangler dev` (Workers Assets with `_headers`) | local | <ul><li>The six security headers.</li><li>The control files answer 404; the other 247 files answer 200.</li><li>A full scroll at 1440 and 390 px: no CSP violation, no request to another origin.</li></ul> |
+| Full Playwright, production build, 2 workers | local, `2d0df63` | 958 passed, 74 skipped (desktop 31, mobile 43, as `SKIPPED_TESTS.md` expects), 4 failed. The 4 are the intro-video specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this Chromium cannot play |
+| Freeze check | not run | This PR changes no app file, only `landing/`, docs and landing specs, so the app's captures cannot change |
+| CI on `2d0df63` | [Milestone quality](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37084891924), [Canonical reproducibility](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37084891778) | both green; the final head's run is on the PR |
+
+## Follow-ups (not done here)
+- **Session M's lane:**
+  - `scripts/wrangler-cli-surface.test.mjs`: add `--persist-to` to its `dev` row. The pinned Wrangler accepts it (`wrangler dev --help`), and LANDING.md now uses it.
+  - The app's own `@2x` brand files (for example `/brand/marks/today-swan@2x.webp`) get the same 307 on the live Alpha: one extra round trip on high-density screens. Renaming them is a design-system decision.
+  - The Goal card's progress ring overlaps its text by 4 px on phones (above).
+  - **CI intermittent:** `install-guide.spec.ts:49` failed once on this PR's `578c3b0` (a sessionStorage race around the logo intro). It passed in both later Milestone quality runs that finished (`3712c1c`, `2d0df63`). It is not in the known-intermittents list.
+
+## Owner decisions
+- **Decided on 2026-10-03:** the owner approves Landing V5's visuals.
+- **Still open, phone LCP:** accept the numbers above, or ask a later session for a faster first paint on slow phones. That work would touch the hero (V4's, unchanged) and the order the stylesheets load in.
+
+## Merge note
+Merge commits only.
+- **`docs/STATUS.md`:** all three Session N PRs and Session M prepend to it. Keep both entries.
+- **`docs/testing/SKIPPED_TESTS.md`:** this PR and Timezone ([#62](https://github.com/reyals1111-ux/ZIGoals/pull/62)) each append a Session N section at its end. Keep both; the totals do not interact, because #62's rows are Vitest expected failures and this PR's are Playwright skips.
+
+## Owner checks before deploy
+- On an iPhone (Safari) and an Android phone: the equation's four steps, one fold stage, the invite email, and Reduce Motion.
+- The film plays (H.264).
+- Deploy order and steps: `docs/deployment/LANDING.md`.
+
+## `main` merged in (2026-10-03)
+- `330634b` merges `main` `4d59e63`: Session M's #60 and #63, Timezone (#62) and Earn (#64).
+  - Only `docs/STATUS.md` and `docs/testing/SKIPPED_TESTS.md` conflicted. Every entry was kept, newest first: this entry on top of `main`'s file, and this PR's skip section ahead of #62's, #63's and #60's.
+  - `main` changed nothing under `landing/` and no other file this PR changes.
+- **Re-run on the merge (local):**
+  - lint and typecheck pass;
+  - `check:deploy-configs` passes, and so does `check:landing` (274 entries);
+  - `node --check` passes on the five landing scripts;
+  - every landing spec: 75 passed, 29 skipped (rows N1–N8), with the weight unchanged (first view 251,126 B, phone 1,582,666 B, desktop 5,710,120 B).
+- **Skip totals:** #60's two desktop-only skips (MA1–MA2) make the expected Playwright total 76 (desktop 33, mobile 43). `SKIPPED_TESTS.md` says so.
+- **CI:** on the PR.
+
 # Session N (PR 2) — Earn & staking foundations: evidence from official sources, a consumer design, ADR-009, sourced registry facts and a read-only Valdora testnet reader (2026-10-02/03, [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64), not merged or deployed)
 
 **Evidence labels**

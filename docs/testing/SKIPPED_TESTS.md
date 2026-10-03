@@ -108,7 +108,7 @@ Rows 1–5 and 14–21 above are corrected for #57: the logo intro is no longer 
 | K22 | `touch gets press feedback only, never a hover lift` (ui-design-pass.spec.ts:324) | `!isMobile` | Touch only | platform | Session A |
 | K23–K24 | `hover intent: a pointer that presses straight away never lifts the tile…`; `long sections and typing stay still; the sidebar star is a plain layer` (ui-design-pass.spec.ts:332, :344) | `isMobile` | Hover needs a fine pointer | platform | Session A |
 | K25–K26 | `<setting>: hover and a mouse drag move nothing on their own…` (ui-evidence.spec.ts:30, one per setting in its loop: reduced motion and Motion Off) | `isMobile` | Hover and mouse drag need a fine pointer; its keyboard flow covers phones | platform | Session A |
-| K27–K28 | `the equation reveals its four steps in scroll order`; `reduced motion settles the equation on all four steps without scrolling` (landing.spec.ts:138, :224) | project not `desktop` | The stepped reveal runs above 700 px; phones get the settled state | platform | Landing V4 (#55) |
+| K27–K28 | ~~`the equation reveals its four steps in scroll order`; `reduced motion settles the equation on all four steps without scrolling` (landing.spec.ts:138, :224)~~ | — | **Removed by Landing V5 (Session N, [#61](https://github.com/reyals1111-ux/ZIGoals/pull/61)).** The equation now steps one word per viewport on phones too, so both tests (now `landing.spec.ts:140`, `:193`) run in both projects with no skip | — | Session A; struck by Session N |
 
 **Expected totals from the source** (a full local run measures them; see the Session K entry in [STATUS](../STATUS.md)):
 - **desktop project:** 19 skipped;
@@ -134,6 +134,27 @@ The Stage 8 rehearsals in `scripts/run11/stage8-rehearsal/` drive real Chrome ag
 - `an automatic sync scheduled before a review began does not run during the review` (:109).
 
 **Vitest total in plain `pnpm test`: 22 skipped.** That is rows 1–12 (12 tests), the 2 #58 tests above, and L1–L8. Measured on Session L's branch after merging `main` `f3220e1`: 2,172 passed, 4 expected to fail (X1–X4) and 22 skipped. Every one runs in a CI step that sets its flag. The Playwright totals above are unchanged: Session L adds no Playwright skip.
+
+## Session N additions (2026-10-02/03, Landing V5, [PR #61](https://github.com/reyals1111-ux/ZIGoals/pull/61))
+Row K27–K28 above is struck: both equation tests in `landing.spec.ts` now run on phones as well. The new landing specs skip only where a check belongs to one project or needs an opt-in:
+
+| # | Test (file:line) | Condition | Reason | Category | Action |
+|---|---|---|---|---|---|
+| N1 | `each viewport of scrolling adds exactly one equation word at <size>` (landing-v5-equation.spec.ts:42, one per size in its loop) | project not the size's project | Each viewport size runs in the project that matches it (1440 px desktop; 390, 375 and 320 px mobile) | platform | Keep. Every size runs once. |
+| N2 | the four tests in `the fold maths and frame files` (landing-v5-fold.spec.ts:39, :67, :90, :113) | project not `desktop` | Pure maths and file reads give the same answer in both projects | platform | Keep. Desktop runs them. |
+| N3 | `no horizontal overflow at <width> px, moving and static` (landing-v5-layout.spec.ts:38, one per width in its loop) | project not the width's project | Widths under 700 px run in `mobile`, the rest in `desktop` | platform | Keep. Every width runs once. |
+| N4 | `text is at least 14 px (15 px for body copy) and targets at least 44 px at <width> px` (landing-v5-layout.spec.ts:78, one per width in its loop) | project not the width's project | Same split as N3 | platform | Keep. Every width runs once. |
+| N5 | `Tab reaches the invite first after the header, and every focused control shows a visible focus ring` (landing-v5-a11y.spec.ts:36) | project not `desktop` | Phones open the menu instead; the outline and contrast tests run in both projects | platform | Keep. Desktop runs it. |
+| N6 | the two tests in `files` (landing-v5-security.spec.ts:22, :27) | project not `desktop` | File reads give the same answer in both projects | platform | Keep. Desktop runs them. |
+| N7 | `LCP and long tasks on a mid-range phone and on desktop (LANDING_PERF=1)` (landing-v5-perf.spec.ts:113) | `LANDING_PERF` unset | Machine-dependent; the measured numbers are in `docs/verification/landing-v5/README.md` | opt-in | Keep. Run with `LANDING_PERF=1`. |
+| N8 | `refresh the landing's product captures from the Showcase` (landing-v5-captures.spec.ts:140) | `LANDING_CAPTURE!=='1'`; project not `desktop` | Evidence capture against a production build of `main`, run once | opt-in | Keep. Run with `LANDING_CAPTURE=1`. |
+
+**Expected totals from the source, with this PR and `main` up to #64:**
+- **desktop project:** 33 skipped: the 19 above, MA1–MA2 (#60's section below), plus N1 3, N3 5, N4 2, N7 1 and N8 1;
+- **mobile project:** 43 skipped: the 28 above, minus K27–K28, plus N1 1, N2 4, N3 5, N4 2, N5 1, N6 2, N7 1 and N8 1;
+- **both projects:** 76. There is still no `test.fixme`, `test.todo` or `.only`.
+
+Before `main` was merged in, the full local run on `2d0df63` counted 74 (desktop 31, mobile 43), as the Session N (PR 1) entry in [STATUS](../STATUS.md) records. #62, #63 and #64 add no Playwright skip.
 
 ## Session N additions: timezone phase 1 (2026-10-02, branch `time/session-n-2026-10-02`)
 ### Expected failures (`test.fails`, the decided timezone behaviour)
