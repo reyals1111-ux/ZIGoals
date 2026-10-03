@@ -95,6 +95,17 @@ describe.skipIf(process.platform!=='linux').concurrent('CI Chrome install retrie
   const r=await install('orphan:30,ok',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'240',ZIGOALS_CHROME_ATTEMPT_SECONDS:'2',ZIGOALS_CHROME_STEP_SECONDS:'7'});
   expect(r.code).toBe(1);expect(r.attempts).toBe(1);expect(r.out).toContain('::error::An apt/dpkg lock is still held after');expect(r.out).toMatch(/of at most [1-4] s\./);expect(r.seconds).toBeLessThan(7);
  },20_000);
+ // Session M: CI sets no ceiling, so the wait may use what the step limit leaves after one full attempt. In run 37034640434
+ // a timed-out attempt's apt-get still held the lock at 241 s, just past the old fixed 240 s.
+ test('with no fixed ceiling, a lock held past the old one is waited for while one full attempt still fits',async()=>{
+  const r=await install('orphan:9,apt',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'',ZIGOALS_CHROME_STEP_SECONDS:'40'});
+  expect(r.code).toBe(0);expect(r.attempts).toBe(2);
+  expect(r.out).toMatch(/of at most 3[0-4] s\./);expect(r.out).toMatch(/apt\/dpkg locks released after ([7-9]|1[0-9]) s\./);expect(r.out).not.toContain('Could not get lock');
+ },30_000);
+ test('with no fixed ceiling, the step limit still ends the wait in time',async()=>{
+  const r=await install('orphan:30,ok',{ZIGOALS_CHROME_LOCK_WAIT_SECONDS:'',ZIGOALS_CHROME_STEP_SECONDS:'12'});
+  expect(r.code).toBe(1);expect(r.attempts).toBe(1);expect(r.out).toMatch(/of at most [4-6] s\./);expect(r.out).toContain('::error::An apt/dpkg lock is still held after');expect(r.seconds).toBeLessThan(12);
+ },30_000);
  test('a missing install command is a usage error',async()=>{
   const r=await install('ok',{},[]);expect(r.code).toBe(2);expect(r.out).toContain('usage:');expect(r.attempts).toBe(0);
  },20_000);

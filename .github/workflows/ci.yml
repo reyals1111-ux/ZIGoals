@@ -69,8 +69,8 @@ jobs:
       # Chrome comes from dl.google.com, which intermittently resets the
       # download (curl HTTP/2 INTERNAL_ERROR) or hangs. Up to 3 attempts of
       # at most 3 min each (normally about 30 s), 15 s then 45 s apart. Before
-      # each retry the script waits, at most 4 min, for any apt/dpkg lock that
-      # a timed-out attempt left held.
+      # each retry the script waits for any apt/dpkg lock that a timed-out
+      # attempt left held, as long as the 12-min step still fits one attempt.
       - name: Install Chrome for Playwright (up to 3 attempts)
         run: bash scripts/ci/install-chrome.sh pnpm --filter @zigoals/web exec playwright install --with-deps chrome
       - run: pnpm build

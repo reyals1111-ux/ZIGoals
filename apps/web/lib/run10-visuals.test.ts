@@ -23,7 +23,9 @@ describe('grouped numeric presentation',()=>{
  it('groups without passing exact large values through Number',()=>{expect(formatGoalAmount('123456789123456789.12','USD')).toBe('$123,456,789,123,456,789.12');});
  it('supports decimal-comma locales without changing the value',()=>{expect(formatGoalAmount('1234567.89','EUR','de-DE')).toBe('1.234.567,89 €');});
  it('retains a below-target exact string that Number would round to 100',()=>{expect(renderToStaticMarkup(createElement(ProgressRing,{percent:'99.999999999999999999999'}))).toContain('>99<small>%</small>');});
- it('preserves signed corrections and token precision',()=>{expect(formatGoalAmount('-12345.126','USD')).toBe('-$12,345.12');expect(formatGoalAmount('0.000001','ZIG')).toBe('0.000001 ZIG');});
+ // Session M (QA2-03, owner decision M3): a negative amount is cut away from zero, so a correction never reads smaller
+ // than it is (-12,345.126 was shown as -$12,345.12 before); positive amounts keep being cut toward zero.
+ it('preserves signed corrections and token precision',()=>{expect(formatGoalAmount('-12345.126','USD')).toBe('-$12,345.13');expect(formatGoalAmount('12345.126','USD')).toBe('$12,345.12');expect(formatGoalAmount('0.000001','ZIG')).toBe('0.000001 ZIG');});
 });
 const point=(day:number,value:string)=>({at:`2026-09-${String(day).padStart(2,'0')}T12:00:00Z`,value});
 describe('evidence-aware history',()=>{

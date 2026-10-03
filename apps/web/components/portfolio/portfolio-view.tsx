@@ -9,7 +9,7 @@ import {CoinPicker} from './coin-picker';
 import {marketRequestKey} from '../../lib/market-assets';
 import {quoteIsStale} from '../../lib/market-quotes';
 import {referenceQuote} from '../../lib/product-insights';
-import {formatDate, formatDateTime, formatExactNumber, formatMoney, formatNumber, formatPrice} from '../../lib/visual-format';
+import {formatDate, formatDateTime, formatExactNumber, formatMoney, formatNumber, formatPrice, formatSignedMoney} from '../../lib/visual-format';
 import {localDate} from '../../lib/local-date';
 import {exportFileName} from '../../lib/showcase-detect';
 import {storageMessageOr} from '../../lib/storage-error-copy';
@@ -27,7 +27,7 @@ function failure(error: unknown, fallback: string) {
   if (error instanceof HoldingsBelowZero || error instanceof PortfolioUnreadable) return error.message;
   return storageMessageOr(error, fallback);
 }
-const signed = (value: string, currency: string) => `${value.startsWith('-') ? '−' : '+'}${formatMoney(value.replace(/^-/, ''), currency)}`;
+const signed = (value: string, currency: string) => formatSignedMoney(value, currency);
 const percent = (value: string) => `${value.startsWith('-') ? '−' : '+'}${formatNumber(Math.abs(Number(value)), {maximumFractionDigits: 2})}%`;
 
 /**

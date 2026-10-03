@@ -49,7 +49,7 @@ export function HelpPage() {
       <h3>Before accounts open</h3>
       <p>Your Goals, Habits, Health and Wealth live only on this device, in this browser. Browser storage is not encrypted: anyone who can use this browser profile could read it, so keep your phone and computer locked.</p>
       <h3>Once accounts open</h3>
-      <p>You sign in with a code sent to your email, and turn on encrypted sync once: it&rsquo;s offered right after you sign in. From then on, every device you unlock stays up to date automatically. No backups or transfers by hand.</p>
+      <p>You sign in with a code sent to your email, and turn on encrypted sync once: it&rsquo;s offered right after you sign in. From then on, every device you unlock stays up to date automatically. No backups or transfers by hand. Turn on encrypted sync on your first device before you start using a second one.</p>
       <p>Your data is end-to-end encrypted on your device before it leaves; nobody else can read it. The server stores that encrypted data plus what it needs to deliver it: your account, record identifiers, sizes, times, and which part of the app a record belongs to. It cannot read your plans, habits or health entries. Health syncs only if you turn it on, separately.</p>
       <h3>Signing in is not recovery</h3>
       <p>Your email code proves it&rsquo;s you. It cannot unlock your data: only your recovery secret can. ZIGoals asks for it when you open your account on a device; a password manager can fill it in. On your own phone or computer you can tick &ldquo;Remember on this device&rdquo;: ZIGoals then opens your account there without asking again, until you lock it or choose Forget this device in Settings. Don&rsquo;t use it on a shared computer.</p>

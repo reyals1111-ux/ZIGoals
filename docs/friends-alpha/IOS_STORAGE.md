@@ -1,6 +1,6 @@
 # iPhone and Safari: how long data stays, and what ZIGoals does about it
 
-Session L research, 2026-10-02. It answers four questions for the friends Alpha. Every finding names its official source and the date it was read.
+Session L research, 2026-10-02, re-checked by Session M the same evening (marked "Session M" below). It answers four questions for the friends Alpha. Every finding names its official source and the date it was read.
 
 - **VERIFIED:** read today in the official source quoted.
 - **UNVERIFIED:** the only official source is blocked from this session's network, so it was not read. Do not rely on it.
@@ -9,6 +9,7 @@ Session L research, 2026-10-02. It answers four questions for the friends Alpha.
 - MDN pages were read from MDN's official source repository, `github.com/mdn/content`, and its compatibility data, `github.com/mdn/browser-compat-data`.
 - The Storage Standard was read from its official source, `github.com/whatwg/storage`.
 - Apple's pages were read on developer.apple.com, which is reachable.
+- **Session M re-check:** webkit.org, developer.mozilla.org and w3.org still answer HTTP 403 from the proxy; developer.apple.com and raw.githubusercontent.com (MDN's sources) are reachable.
 
 ## 1. Can Safari delete a site's data after a while without use?
 **Yes. VERIFIED.**
@@ -19,6 +20,12 @@ Session L research, 2026-10-02. It answers four questions for the friends Alpha.
 - The rule counts **days of browser use**, not calendar days.
 - The same MDN page also lists eviction when the device is low on storage (least recently used origin first). That kind skips origins with persistent storage granted (see section 3).
 - **UNVERIFIED:** the exact original wording and the list of storage types, from WebKit's 2020 post "Full Third-Party Cookie Blocking and More" (webkit.org/blog/10218; blocked).
+- **Apple, Safari 17.4 release notes** (developer.apple.com, read 2026-10-02, Session M): "Fixed cases where website data is unexpectedly evicted." Earlier Safari versions could also lose site data by mistake. VERIFIED.
+- **IndexedDB, where ZIGoals keeps its larger records** (Apple release notes, read 2026-10-02, Session M):
+  - Safari 26.4: "Fixed an issue where IndexedDB databases might have mismatched metadata version and database name encoding format."
+  - Safari 26.5: "Fixed an issue where IndexedDB connections could become permanently broken until the page was reloaded."
+
+  So on an older iPhone, a reload can be the fix when private records stop loading. VERIFIED.
 
 ## 2. Are Home Screen web apps different, and is their storage separate from Safari's?
 **Their storage is separate. VERIFIED.**
@@ -29,10 +36,15 @@ Session L research, 2026-10-02. It answers four questions for the friends Alpha.
 - **Apple, Safari 26 release notes:** "Added support for any website to become a web app on iOS or iPadOS."
 - **Apple, Safari 16.4 release notes:** "Added support for third-party browsers to offer Add to Home Screen from the Share menu."
 
-**Whether they are exempt from the 7-day rule: UNVERIFIED.**
+**Whether they are exempt from the 7-day rule: UNVERIFIED** (re-checked by Session M, 2026-10-02).
 - WebKit's 2020 post (blocked here) is widely quoted as saying that Home Screen web apps are not part of Safari and count their own days of use. If so, a Home Screen app that is used is not cleared.
 - MDN's page does not say this, and no Apple page read today says it.
-- Treat it as likely but unconfirmed.
+- **Session M looked again, from every official source this network can reach:**
+  - all of Apple's Safari release notes from 12 to 27.2 beta on developer.apple.com;
+  - the transcripts of WWDC20 "What's new for web developers" (10663), WWDC22 "What's new in Safari and WebKit" (10048) and WWDC23 "What's new in web apps" (10120).
+
+  None of them mentions the seven-day rule or an exemption for Home Screen web apps. The only page that would settle it is still WebKit's post, which stays blocked.
+- Treat it as likely but unconfirmed. ZIGoals' guidance does not depend on it: install, use the icon, and, once accounts open, turn on encrypted sync.
 
 ## 3. What do `navigator.storage.persist()` and `estimate()` do in current Safari?
 **Support. VERIFIED.**
@@ -83,7 +95,7 @@ Session L research, 2026-10-02. It answers four questions for the friends Alpha.
 **For friends** (Help page, and the [friends guide](FRIENDS_GUIDE.md)):
 1. **Install ZIGoals on your Home Screen before you start, and open it from there.** In Safari tap Share, then "Add to Home Screen". The app keeps its own copy of your data.
 2. **In Help, tap "Keep my data on this device" once.** Your iPhone may then keep ZIGoals' data even when space runs low.
-3. **When accounts open, turn on encrypted sync once.** It's offered right after you sign in. From then on every device you unlock stays up to date automatically: no backups, no transfers.
+3. **When accounts open, turn on encrypted sync once,** on your first device before you start using a second one. It's offered right after you sign in. From then on every device you unlock stays up to date automatically: no backups, no transfers.
 4. **Keep your recovery secret in a password manager.** Your email code signs you in, but only the recovery secret unlocks your data.
 5. **Backups are an optional extra safety net,** and the one-time way to move records you already made in Safari into the installed app.
 
@@ -108,5 +120,7 @@ Session L research, 2026-10-02. It answers four questions for the friends Alpha.
 | Apple, WWDC23 "What's new in web apps" (transcript) | developer.apple.com/videos/play/wwdc2023/10120/ | VERIFIED |
 | Apple, Safari 16.4, 17, 17.2 and 26 release notes | developer.apple.com/documentation/safari-release-notes | VERIFIED |
 | Apple, "Configuring Web Applications" (Home Screen title defaults to `<title>`; `apple-mobile-web-app-title`) | developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html (archived) | VERIFIED (archived doc) |
+| Apple, Safari 12–27.2 release notes, re-read by Session M for the 7-day rule and storage fixes (17.4, 26.4, 26.5 quoted) | developer.apple.com/documentation/safari-release-notes | VERIFIED (read); no statement on the 7-day exemption |
+| Apple, WWDC20 10663, WWDC22 10048 and WWDC23 10120 transcripts (Session M) | developer.apple.com/videos | VERIFIED (read); no statement on the 7-day exemption |
 | WebKit, "Full Third-Party Cookie Blocking and More" (2020) | webkit.org/blog/10218 | UNVERIFIED: blocked |
 | WebKit, "Updates to Storage Policy" (2023) | webkit.org/blog/14403 | UNVERIFIED: blocked |

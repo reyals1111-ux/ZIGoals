@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {backupRefusal, backupRefusalMessage, blockedReadMessage, checkInFailureMessage, isStorageBlocked, restoreFailureMessage, saveFailureMessage, storageMessageOr, storageUiCode} from './storage-error-copy';
+import {backupRefusal, backupRefusalMessage, blockedReadMessage, checkInFailureMessage, deviceSettingFailureMessage, isStorageBlocked, restoreFailureMessage, saveFailureMessage, storageMessageOr, storageUiCode, updateRefusalMessage} from './storage-error-copy';
 import {PrivateStorageError} from './vault/storage-errors';
 
 // Session I, Part 5: coded storage messages in the interface (QA-03, QA-18, QA-22).
@@ -66,5 +66,32 @@ describe('QA-22: backup refusals are told apart', () => {
     for (const message of messages) expect(message).toMatch(/Existing data was not changed\. \((TOO_LARGE|NOT_A_BACKUP|WRONG_MODULE|NEWER_BACKUP|DAMAGED)\)$/);
     expect(messages[0]).toContain('2 MB');
     expect(messages[2]).toBe('This is a Health backup. Restore it under Health. Existing data was not changed. (WRONG_MODULE)');
+  });
+});
+
+// Session M, Part A1 (QA2-02): Health and the reminders use the same coded messages.
+describe('Health and reminders', () => {
+  const asUpdate = (cause: unknown, durable = false) => new Error(saveFailureMessage(cause, {durable}), {cause});
+  it('a refusal from update() keeps its coded message, worded for the module\'s own storage', () => {
+    expect(updateRefusalMessage(asUpdate(quota()), 'fallback')).toBe(saveFailureMessage(quota()));
+    expect(updateRefusalMessage(asUpdate(quota(), true), 'fallback')).toBe(saveFailureMessage(quota(), {durable: true}));
+    expect(updateRefusalMessage(asUpdate(quota(), true), 'fallback')).toContain('free up space on this device');
+    expect(updateRefusalMessage(asUpdate(blocked()), 'fallback')).toMatch(/\(STORAGE_BLOCKED\)$/);
+    expect(updateRefusalMessage(asUpdate(new PrivateStorageError('CONFLICT')), 'fallback')).toMatch(/\(CONFLICT\)$/);
+  });
+  it('anything that is not a storage refusal keeps the surface\'s own words', () => {
+    expect(updateRefusalMessage(new Error('Enter a whole number of millilitres.'), 'fallback')).toBe('fallback');
+    expect(updateRefusalMessage(asUpdate(new Error('unknown')), 'fallback')).toBe('fallback');
+    expect(updateRefusalMessage(undefined, 'fallback')).toBe('fallback');
+  });
+  it('a storage code reached without a coded message is worded here', () => {
+    expect(updateRefusalMessage(wrapped(quota()), 'fallback')).toBe(saveFailureMessage(wrapped(quota())));
+  });
+  it('a device-only setting gives the code without the module-storage advice', () => {
+    const full = deviceSettingFailureMessage(quota());
+    expect(full).toContain('Your browser storage is full');expect(full).toMatch(/\(STORAGE_FULL\)$/);
+    expect(full).not.toContain('transactional storage');
+    expect(deviceSettingFailureMessage(blocked())).toMatch(/^This browser is not letting ZIGoals keep data on this device.*\(STORAGE_BLOCKED\)$/);
+    expect(deviceSettingFailureMessage(new Error('anything else'))).toMatch(/\(SAVE_FAILED\)$/);
   });
 });
