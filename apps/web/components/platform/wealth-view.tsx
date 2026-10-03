@@ -33,7 +33,7 @@ import {useEvidenceNow} from './use-evidence-now';
 import {EvidenceChart} from './evidence-chart';
 import {amount,shownAmount} from './common';
 import {wealthMarketRequests,wealthOverview,ASSET_COLORS} from '../../lib/wealth';
-import {formatGoalAmount} from '../../lib/goal-summary';
+import {formatSignedGoalAmount} from '../../lib/goal-summary';
 import {SceneArt} from '../scene-art';
 import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';
 import {ManualSourceCards} from './manual-source-cards';
@@ -43,7 +43,7 @@ import {restoreAsset} from '../../lib/asset-management';
 import {PinToToday} from '../pin-to-today';
 import {NebulaFlow} from '../nebula-flow';
 import { formatDateTime } from '../../lib/visual-format';
-export const wealthMoney=(n:bigint,currency:string)=>`${n<0n?'-':''}${formatGoalAmount(amount((n<0n?-n:n).toString(),2),currency)}`;
+export const wealthMoney=(n:bigint,currency:string)=>formatSignedGoalAmount(n<0n,amount((n<0n?-n:n).toString(),2),currency);
 export function WealthView(){
  const store=usePlatform(),[adding,setAdding]=useState(false),[filter,setFilter]=useState('All assets'),[error,setError]=useState('');const requests=uniqueMarketRequests([...wealthMarketRequests(store.data),...store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt&&(p.marketRef.kind!=='rwa'||(p.quoteCurrency??'USD')==='USD')?[{marketRef:p.marketRef,currency:p.quoteCurrency??'USD' as const}]:[])]),market=useMarketQuotes(requests);useValuationHistory(store,market);
  const insights=useMarketInsights(store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt?[p.marketRef]:[])),showcase=useShowcase(),phone=usePhoneActive(),holdings=usePhoneShowAll(4),classes=usePhoneShowAll(4);

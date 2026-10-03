@@ -1,0 +1,41 @@
+/* Phone touch targets (Session M, QA2-07): every link or control a person taps on a phone is at least 44 px tall (and
+   wide). Desktop and tablet are untouched: everything here sits inside the phone query, like the other phone sheets.
+   Two ways, chosen per target:
+   - A title link that stands alone (a card title, an event title, a market name) gets a taller hit area that takes no
+     room: padding of (44 px − one line) / 2 above and below, given back by an equal negative margin, so the text and
+     everything around it stay exactly where they were. Its neighbours there are plain text, never another target.
+   - Rows of links stacked one under another, tabs and small buttons get a real 44 px minimum, because hit areas that
+     reach into each other would make a tap land on the wrong row. That makes those rows a little taller, on phones only. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  /* Taller hit areas that take no room. */
+  :root .goal-card h2.nebula-number > a,
+  :root .intelligence-heading h2 > a,
+  :root .funding-agenda h3 > a,
+  :root .market-product-card > header h2 > a,
+  :root .nutrition-meal-timeline > li > div > a,
+  :root .activity-page .unified-activity .activity-event-content > a {
+    display: inline-block;
+    min-width: 44px;
+    /* Half a pixel more, so rounding never leaves the box at 43.9 px; the margin takes the same back. */
+    padding-block: max(0px, calc((44px - 1lh) / 2 + 0.5px));
+    margin-block: min(0px, calc((1lh - 44px) / 2 - 0.5px));
+  }
+  /* Real 44 px rows, tabs and buttons. */
+  :root .dashboard-goal-links > li > a,
+  :root .bottom-timeline > li > a.bottom-timeline-name,
+  :root .composition-top-holdings > ol > li > a,
+  :root .wealth-workspace details.panel > ol > li > a,
+  :root .ecosystem-coverage > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  :root .composition-top-holdings > ol > li > a { display: flex; }
+  :root nav.tab-row.platform-nav > a,
+  :root nav.intelligence-actions > button,
+  :root .price-chart-refresh,
+  :root form.platform-form label.checkbox { min-height: 44px; }
+  :root nav.tab-row.platform-nav > a { display: flex; align-items: center; justify-content: center; }
+  /* Help's step links: a short word ("Goals") still gets a 44 px wide target. */
+  :root .help-steps > li > a.text-link { min-width: 44px; justify-content: center; }
+}

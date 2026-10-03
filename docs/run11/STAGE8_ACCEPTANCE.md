@@ -2,6 +2,8 @@
 
 A fillable copy of every check in [ACTIVATION.md](ACTIVATION.md) Stage 8, plus the Stage 7 recovery-admin rehearsal.
 
+**Session M changed how unlocking works** ([ADR-008](../architecture/ADR-008-remember-this-device.md), "remember this device"), and the local copy and account deletion no longer need a download. Run the account rows (A5–A7, B1, B7–B10 and section F) on a build that includes PR B of Session M.
+
 **How to use it:**
 - Make a copy outside the repository for each run, for example in Bitwarden or a local folder, and fill it in there.
 - Commit only a **sanitized** summary: pass or fail per row and the receipt IDs. Leave out everything listed under "Never record" below.
@@ -41,7 +43,7 @@ A fillable copy of every check in [ACTIVATION.md](ACTIVATION.md) Stage 8, plus t
 ## B. Private data and sync (fictional data only)
 | # | Check | Expected | Result | Receipt |
 |---|---|---|---|---|
-| B1 | Local attachment | Existing local records attach to the account after explicit review; nothing is silently merged | | |
+| B1 | Local attachment | Existing local records attach to the account after explicit review, in place with no file to save; the originals stay on the device; nothing is silently merged | | |
 | B2 | Four-domain sync | Goals/positions, Habits, Health and settings each sync desktop ↔ phone | | |
 | B3 | Explicit Health consent | Health stays local until consent is given; it syncs only after that | | |
 | B4 | Offline edits | Edits made offline on both devices upload on reconnect | | |
@@ -79,6 +81,15 @@ Run the procedures in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md).
 |---|---|---|---|---|
 | E1 | Account-wide quotas re-checked | Cloudflare, Supabase, Resend and CoinGecko usage are within the free tiers, with headroom (ACTIVATION.md "Capacity and cost") | | |
 | E2 | Spend controls | No paid upgrade or automatic reload is enabled | | |
+
+## F. Remembered devices and downloads (Session M, ADR-008)
+| # | Check | Expected | Result | Receipt |
+|---|---|---|---|---|
+| F1 | The choice | "Remember on this device — don’t use on shared computers" is unticked in a desktop browser tab and ticked in the iPhone Home Screen app; its warning is shown in both | | |
+| F2 | Opening without the secret | A remembered device opens the vault without the recovery secret after a reload, in a new tab, after 15 idle minutes, and after closing and reopening the Home Screen app | | |
+| F3 | Lock now and Forget | "Lock account vault" locks and forgets: the next open asks for the secret. "Forget this device" keeps the tab open, and the next open asks | | |
+| F4 | Invalidation | Each of these makes the device ask for the secret again: sign-out; another account on the same browser; a new sign-in; key rotation on the other device (the old secret is refused, the new one works); revoking this device's session from the other device; deleting a cloud section or the account | | |
+| F5 | Deletion without a download | Cloud deletion works with the typed confirmation alone. "Download a copy first (optional)" still downloads a copy that restores with its own secret | | |
 
 ## Receipt template (sanitized)
 One receipt per FAIL, and per PASS that needs evidence:

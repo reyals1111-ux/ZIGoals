@@ -52,7 +52,8 @@ ZIGoals stores your Goals, Wealth positions and plans, Habits, Health records (f
 
   This is **not metadata anonymity**.
 - **Health is synced only after a separate opt-in.** Turning Health sync off later does **not** delete encrypted Health copies already stored. [Lawyer: the "which part of the app" detail can show that someone keeps Health records, though not what they say. Health data may be special-category data.]
-- **Recovery.** If you lose your recovery secret and every device, your synced data cannot be recovered by anyone, including us. Access to your email does not recover it.
+- **Remember on this device (optional).** When you tick it while unlocking, your browser stores a key on this device so your account opens here without the recovery secret, until you lock it or choose Forget this device. That key stays on your device and is never sent to us. Anyone who can use that device can then open your account records too. It is ticked for you only in the app installed on your Home Screen. [Lawyer: describe this as local storage of a device-bound key under the device-storage section too.]
+- **Recovery.** If you lose your recovery secret and every device that can open your account, your synced data cannot be recovered by anyone, including us. Access to your email does not recover it.
 
 ## 3. Optional services that receive public information only
 
