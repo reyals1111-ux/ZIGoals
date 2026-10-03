@@ -1,3 +1,214 @@
+# Session O — Beta brainstorm pack: market, product and growth research; then main (#60–#64) merged in and Alpha deploy #24 recorded (2026-10-03, [PR #65](https://github.com/reyals1111-ux/ZIGoals/pull/65), documents only, not merged)
+
+**Evidence labels**
+- **source:** an official or reputable page read on 2026-10-03 (UTC), linked with its access date in the document that uses it.
+- **UNVERIFIED:** no official or reputable source could confirm it that day.
+- **local:** this cloud session's sandbox: Node 22.22.0 for the document checks, with no install, build or browser run.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No code, test, config, landing, package or other document changed. The only edits are the seven new files under `docs/strategy/`, this entry and, at the owner's request, the Release identity block for deploy #24.
+
+**Base:** main `57275a6` (#59). This ran in parallel with Session M (`polish/` and `accounts/session-m-2026-10-02`) and Session N (`landing/`, `earn/` and `time/session-n-2026-10-02`). Their work is referenced, never duplicated. For example, LC§6 in the pack is N's earn section, which reached `main` with #64 (`619b7da` updates the pack's labels).
+
+**Merged with main (2026-10-03, owner request):** `70b4f5d` merges `3f116e9` (#60, #63, #62, #64 and #61).
+- Only `docs/STATUS.md` conflicted, at the top. Every entry is kept, newest first, with this one on top; main's entries are unchanged.
+- Against `main`, the PR still changes only the eight documentation files.
+
+**Pricing is NOT decided.** 4.99 was only an early idea noted in COST_MODEL.md, not a working or chosen price. The pack recommends no price and no model (owner tweak 1 at plan approval). The regional price samples include the Belgian App Store (owner tweak 2).
+
+## Parts
+| Part | Document | Commit |
+|---|---|---|
+| 1 | [README.md](strategy/README.md) covers:<ul><li>the index and how to use the pack;</li><li>the rules and labels;</li><li>a 2 h 55 min Beta brainstorm agenda with decision prompts;</li><li>a decision log</li></ul> | `115e480` |
+| 2 | [MARKET_LANDSCAPE.md](strategy/MARKET_LANDSCAPE.md) covers:<ul><li>38 leading apps: nutrition 9, habits 8, goals and planning 8, wealth and crypto 13;</li><li>all-in-one and life-OS apps, AI coaches and social features;</li><li>the paywall map;</li><li>health platforms and wearables;</li><li>the four-app stack</li></ul> | `1879fb0` |
+| 3 | [FEATURE_GAP_MATRIX.md](strategy/FEATURE_GAP_MATRIX.md) covers:<ul><li>ZIGoals today against the leaders, per pillar and platform;</li><li>where it is unique and where it is behind;</li><li>the 10 gaps that matter most for paying users</li></ul> | `c2dc810` |
+| 4 | [BETA_IDEAS_BACKLOG.md](strategy/BETA_IDEAS_BACKLOG.md) covers:<ul><li>100 ideas in 17 groups, each with value, effort, dependencies, principle fit and legal flag;</li><li>a ranked top 20;</li><li>three "first 90 days after Alpha" options</li></ul> | `9c177a6` |
+| 5 | [MONETIZATION_OPTIONS.md](strategy/MONETIZATION_OPTIONS.md): options and evidence only, with:<ul><li>Apple and Google fee and policy facts;</li><li>web checkout;</li><li>the interaction with COST_MODEL;</li><li>12 questions for the pricing brainstorm</li></ul> | `1016622` |
+| 6 | [GLOBAL_READINESS.md](strategy/GLOBAL_READINESS.md) covers:<ul><li>languages and regions, Belgium first;</li><li>formats;</li><li>store rules;</li><li>regional legal flags;</li><li>three localization options</li></ul> | `46bf654` |
+| 7 | [PATH_TO_500K.md](strategy/PATH_TO_500K.md) covers:<ul><li>a definition of "sale";</li><li>the funnel maths;</li><li>three scenarios for 3 and 5 years from 2027-02-18;</li><li>sensitivity;</li><li>what would have to be true</li></ul> | `f809844` |
+| 8a | **Second-check and link-check fixes** in MONETIZATION_OPTIONS, MARKET_LANDSCAPE, BETA_IDEAS_BACKLOG and PATH_TO_500K | `b9c7d1c` |
+| 8b | **README:** the key insights, the open questions, the sources, the link check and the blocked list | `3de9d20` |
+| 8c | **Every blocked or unreachable source listed by URL**, in MARKET_LANDSCAPE and the README | `a2cd576` |
+| 8d | This entry | `bfd6c16` |
+| M | **Merge `main`** (#60, #63, #62, #64, #61): STATUS keeps every entry, this one on top | `70b4f5d` |
+| F | **LC§6** points to LEGAL_CHECKLIST §6, now on `main` (#64); the flags are unchanged | `619b7da` |
+| D | **Alpha deploy #24** recorded (verified through the Actions API); Release identity now shows #24 live and #23 as the previous | this commit |
+
+## Alpha deploy #24 — 2026-10-03 afternoon, `4d59e63` live
+Recorded at the owner's request (2026-10-03).
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by this cloud session on 2026-10-03. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner with the request to merge `main`, 2026-10-03.
+
+- **Run:** Manual Alpha deployment #24, [run 37132128477](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132128477), 2026-10-03 15:07–15:12 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `4d59e6318d45baf4d699f10b794eedba30cd03db`, `main` after #64. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `aeae3829-ccc1-4190-909e-77539604c3f5`. The last observed live version is the same. (CI log)
+- **Rollback:** `02a62cef-e67f-48db-afcd-dfb8c784b031`, the version deploy #23 published, so the chain holds. (CI log)
+- **CI on `4d59e63`:** Milestone quality #410 ([run 37130862674](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37130862674)): success on attempt 1. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37132128477-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result, and checked the live Alpha on desktop and phone. (Owner, 2026-10-03)
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#60](https://github.com/reyals1111-ux/ZIGoals/pull/60) (`4d151c7`), Session M PR A: polish and reliability;
+- [#63](https://github.com/reyals1111-ux/ZIGoals/pull/63) (`307a71b`), Session M PR B: remember this device, copy in place, deletion without a download;
+- [#62](https://github.com/reyals1111-ux/ZIGoals/pull/62) (`16b39dc`), Session N: timezone phases 1–2;
+- [#64](https://github.com/reyals1111-ux/ZIGoals/pull/64) (`4d59e63`), Session N: earn and staking foundations.
+
+[#61](https://github.com/reyals1111-ux/ZIGoals/pull/61) (Landing V5, `3f116e9`) merged after this source, so it is not in this deploy. This run publishes the Alpha Worker `zigoals-alpha` only; the apex Worker `zigoals` was not part of it. (CI log, git)
+
+## Sources, UNVERIFIED items and blocked sources
+- **Sources:**
+  - 460 distinct external URLs, read or tried on 2026-10-03 (UTC).
+  - Each document ends with its own "Sources and access dates" list, and MARKET_LANDSCAPE adds the store pages and review feeds behind its tables.
+  - Prices always carry the amount, currency, storefront and date.
+  - Company figures are labelled as company claims.
+  - Review themes are aggregated without names or quotes.
+- **UNVERIFIED, marker counts:**
+  - MARKET_LANDSCAPE 26;
+  - GLOBAL_READINESS 12;
+  - FEATURE_GAP_MATRIX 4;
+  - MONETIZATION_OPTIONS 4;
+  - BETA_IDEAS_BACKLOG 3;
+  - PATH_TO_500K 1.
+
+  **The main ones:**
+  - **MyFitnessPal:** whether export is Premium-only.
+  - **Lose It!:** its privacy policy and export.
+  - **Apple:** any court-approved Apple fee on US web link-outs since 2025-12-11.
+  - **Google Play:** whether a subscription can be shared through Family Library.
+  - **EU withdrawal function:** whether it covers all distance contracts.
+  - **EHDS:** the date of the wellness label.
+  - **Belgium:** the age of digital consent.
+  - **AI coaches:** where WHOOP, MyFitnessPal and Cal AI run their AI.
+  - **WHOOP:** its prices.
+  - **Installs:** organic vs paid shares by category.
+- **Blocked or unreachable** (tried once on 2026-10-03; no bot wall, login or form was bypassed):
+  - **Cloudflare challenge or 403:**
+    - MyFitnessPal: <https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs>, <https://support.myfitnesspal.com/hc/en-us/articles/34889191368077-The-difference-between-Free-Premium-and-Premium>, <https://blog.myfitnesspal.com/take-fitness-info-beyond-app-new-feature/>, <https://blog.myfitnesspal.com/voice-logging-myfitnesspal/>
+    - Cronometer: <https://support.cronometer.com/hc/en-us/articles/360018760151-Account-Settings>
+    - Yazio: <https://help.yazio.com/hc/articles/203444951>
+    - FatSecret: <https://www.fatsecret.com/premium>
+    - Finch: <https://help.finchcare.com>, <https://help.finchcare.com/hc/en-us/articles/37943772406413-Accountability-Buddies>
+    - WHOOP: <https://www.whoop.com/us/en/membership/>, <https://join.whoop.com/>, <https://www.whoop.com/us/en/peak/>, <https://www.whoop.com/us/en/thelocker/whoop-unveils-the-new-whoop-coach-powered-by-openai/>
+    - stickK: <https://www.stickk.com/>, <https://www.stickk.com/faq>
+    - Monarch: <https://help.monarch.com/hc/en-us>, <https://help.monarchmoney.com/hc/en-us/articles/7583213629204-Tips-for-Importing-a-Large-Mint-CSV-File>, <https://help.monarch.com/hc/en-us/articles/37526856682260-AI-in-Monarch>
+    - Delta: <https://delta.app/en>, <https://delta.app/en/pricing>, <https://delta.app/en/privacy>, <https://support.delta.app/>
+    - Empower: <https://support-personalwealth.empower.com/>, <https://support-personalwealth.empower.com/hc/en-us/articles/201169580-Can-anyone-at-Empower-Personal-Dashboard-access-my-credentials>
+    - Rocket Money: <https://www.rocketmoney.com/privacy> (redirects to rocketaccount.com)
+    - known bot walls: <https://www.coingecko.com/>, <https://www.sec.gov/>, <https://www.trustpilot.com/>, <https://www.data.ai/>
+    - Belgium's federal portal (a CAPTCHA): <https://www.belgium.be/en/about_belgium/country/languages>
+    - ISO 4217: <https://www.iso.org/iso-4217-currency-codes.html>
+    - EUR-Lex, the HTML text of Directive (EU) 2023/2673 and its summary (an AWS WAF challenge): <https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32023L2673>
+    - India's MeitY: <https://www.meity.gov.in/data-protection-framework>
+  - **Script-only or rate-limited:**
+    - WHOOP support (only a script shell came back): <https://support.whoop.com/s/article/Membership-Pricing?language=en_US>, <https://support.whoop.com/s/article/How-to-Use-the-AI-Powered-WHOOP-Coach?language=en_US>
+    - Adjust's blog (429, then a security checkpoint): <https://www.adjust.com/blog/what-makes-a-good-retention-rate/>, <https://www.adjust.com/blog/finance-app-insights/>
+  - **Login or sign-up:**
+    - <https://ticktick.com/refer>
+    - the AppsFlyer interactive benchmark tool (custom filters need a sign-up; only the public benchmark pages were used)
+  - **Forms not filled:**
+    - RevenueCat's full report PDF (its public page was read)
+    - Adapty's interactive report: <https://adapty.io/state-of-in-app-subscriptions/>
+    - FastSpring's quote form (its pricing page, with no public rate, was read)
+  - **Not reachable from this session:**
+    - <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm>
+    - <https://www.fsc.go.kr/eng/>
+    - <https://www.consumeraffairs.nic.in/>
+    - <https://www.incometaxindia.gov.in/>
+    - <https://fiuindia.gov.in/>
+    - loseit.com's help, pricing and privacy pages (one research tool reported the site owner's crawler opt-out, so none was fetched)
+    - Loop's GitHub issues (the session's network allows only configured repositories; the URL is left out because it contains a person's username)
+
+## Helper agents
+- **Three, research only:**
+  - **R1:** nutrition, habits, health platforms and wearables.
+  - **R2:** planning, life OS, AI coaches, social and acquisition benchmarks.
+  - **R3:** wealth, crypto, store fees and rules, web checkout, monetization examples and regional prices.
+- **How they ran:**
+  - They were launched once, together, after the plan's approval.
+  - Follow-ups went to the same three by message, so the total stayed at 3.
+  - They wrote nothing to the repository. Their notes stayed in the session scratchpad.
+  - GLOBAL_READINESS and PATH_TO_500K were researched directly.
+- **Second check:** each helper re-read the official pages behind another helper's most decision-critical facts.
+  - **R3 checked 11 of R1's and R2's facts, and all were confirmed:**
+    - the MyFitnessPal, Habitify and Todoist prices;
+    - RevenueCat's conversion and retention medians;
+    - AppsFlyer's Health & Fitness retention, cost per install and organic share;
+    - Apple Ads' search share;
+    - the Fitbit Web API dates;
+    - the Streaks and Things 3 prices and chart badges;
+    - Kubera having no end-to-end encryption.
+  - **R1 checked 11 of R3's facts:** Apple's EU terms, Google's new fees, Apple's Small Business and subscription rates, the App Review guidelines, Family Library, Stripe, Paddle, YNAB, the Belgian App Store prices and Google's Payments policy.
+    - 10 were confirmed. One of them had a wording difference: Apple 3.1.2(a) says "should not".
+    - One partly differed: the Family Library page names only in-app purchases.
+    - Both are fixed in `b9c7d1c`.
+
+## Checks and CI
+- **local, before every push:**
+  - `node scripts/check-secrets.mjs` ran after staging and passed every time.
+  - The link check of all seven documents passed: every relative link and anchor resolves.
+- **local, external links** (2026-10-03, 460 URLs):
+  - 403 load for a plain script.
+  - 5 are Belgian or UK App Store pages that return *not found*. That is the evidence that those apps are not on those storefronts.
+  - 8 were read during the research but now challenge a plain script:
+    - EUR-Lex's EHDS Regulation page;
+    - three FTC rule pages;
+    - Noom's privacy policy;
+    - two Habitica source files on GitHub;
+    - zigchain.com.
+  - 44 are the blocked sources above. Six of them now answer a plain script, but during the research they were a login, a form, a script-only page or a bot wall.
+  - The check found two broken links in MARKET_LANDSCAPE's store list, a template URL and Empower's old Android package. It also found links grouped under the wrong app. All are fixed in `b9c7d1c`. `a2cd576` lists every blocked page by URL.
+- **local, after the merge** (2026-10-03, Node 22.22.0):
+  - `node scripts/check-secrets.mjs` passed.
+  - Every relative link and anchor in the pack resolves.
+  - `pnpm exec vitest run scripts/status-snapshot.test.mjs` passes (2 tests), with dependencies from `pnpm install --frozen-lockfile --ignore-scripts`.
+  - `recordedLiveWorker()` returned `8848babc-…` (#22) on the PR's first base and `02a62cef-…` (#23) right after the merge. With this commit it returns `aeae3829-ccc1-4190-909e-77539604c3f5` (#24), before "Previous release identity".
+- **CI:**
+  - **`115e480`:** all green ([Milestone quality run 37082624319](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37082624319); [Canonical reproducibility run 37082624338](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37082624338)).
+  - **`1879fb0` to `3de9d20`:** Canonical reproducibility was green on each pushed head (`b9c7d1c` and `3de9d20` went up together). My own newer pushes cancelled the Milestone quality runs, as the workflow's concurrency rule does.
+  - **`a2cd576`:** cancelled by the next push.
+  - **`bfd6c16`:** all green on attempt 1 ([Milestone quality run 37087330700](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37087330700); [Canonical reproducibility run 37087330670](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37087330670)).
+  - **After the merge** (`70b4f5d`, `619b7da` and this commit, pushed together): reported on the PR. The final head is the gate.
+
+## Decisions made without the owner
+- **Branch:** the brief's `strategy/session-o-2026-10-02`, not this cloud session's default branch name.
+- **Reference storefront:** US prices and ratings, read 2026-10-03 UTC. Regional samples (BE, GB, DE, IN, BR, JP) are used where they matter.
+- **"Sale":** the first paid purchase by a unique person. A renewal is not a new sale. PATH_TO_500K names the other readings.
+- **Complaint themes:**
+  - **Sources:** Apple's public review feed (the 50 most recent reviews per app, US storefront) and the reviews Google Play shows.
+  - **Handling:** aggregated and never quoted. The star split is given as the small-sample caveat.
+- **Backlog ranking rule:**
+  - Score = 2 × value + evidence + effort (S 3, M 2, L 1) + fit (✓ 1, ⚠ 0) + unlock.
+  - Ideas that conflict with a principle (✗) are listed, never ranked.
+  - 100 ideas, the top of the brief's 60–100 range.
+- **Legal flag labels:** these are questions, not conclusions.
+  - LC§1–LC§5 point to LEGAL_CHECKLIST.md.
+  - LC§6 is N's proposed earn section.
+  - LC-new is a question that is not yet in the checklist.
+- **No evidence folder:** the documents carry their own citations.
+- **LC§6 labels:** after the merge brought §6 to `main`, `619b7da` updates the two label tables. The flags themselves are unchanged.
+- **Local checks on the sandbox's Node 22.22.0,** documents only. CI runs the full gate on 24.19.0.
+
+## Follow-ups (not done here)
+- **For a lawyer (the LC-new flags):**
+  - the in-app "Buy ZIG" habit template, and any crypto creator content, against Belgium's FSMA advertising rules and MiCA;
+  - the EU withdrawal function (Directive 2023/2673, applying since 2026-06-19) for any paid plan;
+  - the AI Act's obligations from 2026-08-02 for an AI coach;
+  - health-data rules for any health sync or import;
+  - the Belgian age of digital consent for family features.
+- **LEGAL_CHECKLIST.md:** add the LC-new questions. That is another document, so it is not edited here.
+- **Before the pricing brainstorm:** re-read the prices. They are dated 2026-10-03 and change.
+- **Fitbit:** the Fitbit Web API turns off on 2026-10-30. Any Fitbit link must use the Google Health API, which is not taking new projects for now.
+- **After the brainstorm:** fill in the README's decision log.
+
+## How the owner can review
+- **Start at [docs/strategy/README.md](strategy/README.md):** the index, the key insights, the open questions and the agenda. Each document opens with a short summary.
+- **Locally:**
+  1. Run `git fetch origin`, then `git checkout strategy/session-o-2026-10-02`.
+  2. Open `docs/strategy/`. Nothing needs to be installed.
+
 # Session N (PR 1) — Landing V5: the equation as a scroll story, fold interludes from the brand film, an invite to the friends Alpha, honest privacy and sync, install, what's coming, refreshed captures (2026-10-02/03, [PR #61](https://github.com/reyals1111-ux/ZIGoals/pull/61), not merged or deployed)
 
 **Evidence labels**
@@ -2998,7 +3209,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 evening for the [Alpha deploy #23](#alpha-deploy--2026-10-02-evening-57275a6-live) above (recorded by Session M).
+Updated 2026-10-03 afternoon for the [Alpha deploy #24](#alpha-deploy-24--2026-10-03-afternoon-4d59e63-live) in the Session O entry above (recorded by Session O at the owner's request).
+- Deployed source `4d59e6318d45baf4d699f10b794eedba30cd03db`, `main` after [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64). Verified: Actions API.
+- CI: Milestone quality #410 ([run 37130862674](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37130862674)) on `4d59e63`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #24 ([run 37132128477](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132128477)), exact source `4d59e63`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `aeae3829-ccc1-4190-909e-77539604c3f5`; rollback `02a62cef-e67f-48db-afcd-dfb8c784b031` (the run #23 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: owner-reported, checked on desktop and phone (2026-10-03).
+
+Previous release identity (PR #59, 2026-10-02 evening, recorded by Session M):
 - Deployed source `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59). Verified: Actions API.
 - CI: Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)) on `57275a6`: success (attempt 2; attempt 1 hit the known browser click hang in one test). Verified: Actions API, CI log.
 - Deployment: Manual Alpha deployment #23 ([run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899)), exact source `57275a6`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
