@@ -86,6 +86,26 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
  }finally{await browser?.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await mf?.dispose();}
 },240000);
 
+// Session R1 (Q-WRK-01) on the generated package: the app sends a coordinator at most 32 pairs at a time, so 64
+// insight pairs are two coordinator requests with one provider read each, and 65 pairs are a 400 before any market
+// work. Only the market service is attached; nothing leaves the process.
+test.runIf(process.env.RUN11_PACKAGED==='1')('generated artifact: 64 insight pairs are two bounded coordinator requests and 65 are refused before any market work',async()=>{
+ const persist=await mkdtemp(join(tmpdir(),'run11-package-market-')),bundlePath=process.env.RUN11_PACKAGE_BUNDLE??'/tmp/zigoals-run11-package-bundle/worker.js';
+ const script=await readFile(bundlePath,'utf8'),market=(await build({entryPoints:[resolve(root,'workers/market-coordinator/worker.ts')],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;
+ const calls=[],now=Date.now(),app=hermeticWorkerOptions(unstable_getMiniflareWorkerOptions,resolve(root,'apps/web/wrangler.run11.local.jsonc')).workerOptions;
+ const cfg={policy:{providerMinuteLimit:100,providerMonthlyLimit:1000,operating:{minute:90,monthly:900},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:3,monthly:30},optionalCeiling:{minute:80,monthly:800},concurrent:2,queueLimit:16,reservationMs:20000,ownershipMs:10000},calendar:{timeZone:'UTC',confirmed:true},quoteCost:3,operationCosts:{insights:5},leaseMs:20000,maxAttempts:128,maxWorks:64};
+ const mf=new Miniflare({...convertV4MiniflareOptions({workers:[
+  {compatibilityDate:app.compatibilityDate,compatibilityFlags:app.compatibilityFlags,assets:app.assets,name:'zigoals-run11-local',modules:true,script,bindings:app.bindings,serviceBindings:{WORKER_SELF_REFERENCE:{name:'zigoals-run11-local'},MARKET_QUOTES:{name:'zigoals-market-coordinator-local',entrypoint:'QuoteService'}},outboundService:request=>{throw Error('Outbound fixture refused '+new URL(request.url).origin);}},
+  {name:'zigoals-market-coordinator-local',modules:true,script:market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'fixture-account',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(cfg),COINGECKO_DEMO_API_KEY:'fixture-key'},outboundService:async request=>{const url=new URL(request.url),ids=(url.searchParams.get('ids')??'').split(',').filter(Boolean);calls.push(url.pathname+':'+ids.length);if(url.origin==='https://api.coingecko.com'&&url.pathname.endsWith('/coins/markets'))return Response.json(ids.map(id=>({id,last_updated:new Date(now).toISOString(),price_change_percentage_24h:2})));throw Error('Outbound fixture refused '+url.origin+url.pathname);}},
+ ]}),resourcePersistencePath:persist});
+ try{
+  const requests=Array.from({length:65},(_,i)=>pair(`asset-${i}`)),insights=body=>mf.dispatchFetch('https://zigoals.test/api/market-insights',{method:'POST',headers:{host:'zigoals.test',origin:'https://zigoals.test','content-type':'application/json','cf-connecting-ip':'192.0.2.1'},body:JSON.stringify(body)});
+  const answered=await insights({requests:requests.slice(0,64)});expect(answered.status).toBe(200);expect((await answered.json()).entries).toHaveLength(64);
+  expect(calls).toEqual(['/api/v3/coins/markets:32','/api/v3/coins/markets:32']);
+  expect((await insights({requests})).status).toBe(400);expect(calls).toHaveLength(2);
+ }finally{await mf.dispose();}
+},120000);
+
 // Deliberate pre-build check; has no authentication or second-client claim.
 test.runIf(process.env.RUN11_GOAL_SOURCE==='1')('all supported Goal controls work in the source preview before package generation',async()=>{
  const evidence=await mkdtemp(join(tmpdir(),'run11-goal-source-'));const browser=await chromium.launch({channel:'chrome',headless:true});

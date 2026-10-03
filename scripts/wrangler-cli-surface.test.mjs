@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
+import { wranglerDevArgs, wranglerDevEnv } from "./run11/recovery-admin.mjs";
 
 // Every wrangler command and flag that our scripts, workflows and owner docs use must still be accepted by the
 // pinned wrangler (scripts/alpha-deploy.mjs, activation-check, package.json, MANUAL_ALPHA_WORKFLOW.md,
@@ -21,11 +22,32 @@ const surface = [
   ["secret delete", ["--config", "--name"]],
   ["whoami", []],
 ];
-test.each(surface)("wrangler %s accepts the flags we use", (command, flags) => {
+const help = (command) => {
   const result = spawnSync(wrangler, [...command.split(" "), "--help"], {
     cwd: root, encoding: "utf8", timeout: 60000,
     env: { ...process.env, WRANGLER_SEND_METRICS: "false", WRANGLER_WRITE_LOGS: "false" },
   });
   expect(result.status, result.stdout + result.stderr).toBe(0);
-  for (const flag of flags) expect(result.stdout, `${command} ${flag}`).toMatch(new RegExp(`(^|[\\s,])${flag}(?=[\\s,])`, "m"));
+  return result.stdout;
+};
+const lists = (text, flag) => new RegExp(`(^|[\\s,])${flag}(?=[\\s,])`, "m").test(text);
+test.each(surface)("wrangler %s accepts the flags we use", (command, flags) => {
+  const text = help(command);
+  for (const flag of flags) expect(lists(text, flag), `${command} ${flag}`).toBe(true);
+});
+// Session R1 Part 3b: the recovery-admin tool's own launch (scripts/run11/recovery-admin.mjs), built by the same
+// function the tool runs. 4.144.0 rejected its former --disable-dev-registry, so every Cloudflare-contacting
+// command failed with "wrangler dev did not start".
+test("the recovery-admin launch passes only flags the pinned wrangler dev lists, and keeps a private dev registry", () => {
+  const dir = "/tmp/zigoals-recovery-admin-fixture";
+  const args = wranglerDevArgs({ adminConfig: "admin.local.jsonc", port: 8801, inspector: 9229, envFile: `${dir}/admin.env`, dir });
+  expect(args[0]).toBe("dev");
+  const flags = args.filter((arg) => arg.startsWith("--")).map((arg) => arg.split("=")[0]);
+  expect(flags).not.toContain("--disable-dev-registry");
+  const text = help("dev");
+  for (const flag of flags) expect(lists(text, flag), `dev ${flag}`).toBe(true);
+  expect(lists(text, "--disable-dev-registry")).toBe(false);
+  const env = wranglerDevEnv({ dir, base: { PATH: "/usr/bin" } });
+  expect(relative(dir, env.WRANGLER_REGISTRY_PATH)).toBe("registry");
+  expect(env).toMatchObject({ PATH: "/usr/bin", WRANGLER_SEND_METRICS: "false", CLOUDFLARE_INCLUDE_PROCESS_ENV: "false" });
 });

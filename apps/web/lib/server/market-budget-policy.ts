@@ -7,7 +7,8 @@ type Capacity={minute:number;monthly:number};
 export type BudgetPolicy={providerMinuteLimit:number;providerMonthlyLimit:number;operating:Capacity;monitoringReserve:Capacity;monitoringMaximum:Capacity;optionalCeiling:Capacity;concurrent:number;queueLimit:number;reservationMs:number;ownershipMs:number};
 export type BudgetPeriod={id:string;start:number;end:number};
 export type BudgetPeriods={month:BudgetPeriod};
-export type ReservationRequest={id:string;cost:number;kind:'request'|'retry'|'fallback';priority:MarketPriority};
+/** `client` is a hashed client bucket and `works` the number of work keys held, for per-client shares only. */
+export type ReservationRequest={id:string;cost:number;kind:'request'|'retry'|'fallback';priority:MarketPriority;client?:string;works?:number};
 export type Reservation=ReservationRequest & {status:'QUEUED'|'RESERVED'|'OWNED'|'DISPATCHED'|'SETTLED'|'CANCELLED';reservedAt:number;dispatchedAt?:number;ownershipUntil?:number;periods?:BudgetPeriods;policyKey?:string;outcome?:'success'|'failure'};
 export type BudgetState={lastTime:number;periods?:BudgetPeriods;archived?:{month:string;credits:Record<MarketPriority,number>;attempts:number;lifetimeCredits?:number};reservations:Readonly<Record<string,Reservation>>};
 export type BudgetReason='POLICY_UNAVAILABLE'|'POLICY_CHANGED'|'INVALID_REQUEST'|'CLOCK_OR_PERIOD'|'DUPLICATE_OPERATION'|'INVALID_TRANSITION'|'RESERVATION_EXPIRED'|'OWNERSHIP_EXPIRED'|'MINUTE_LIMIT'|'CONCURRENT_LIMIT'|'MONTHLY_LIMIT'|'MONITORING_LIMIT'|'OPTIONAL_LIMIT'|'QUEUE_LIMIT'|'QUEUE_WAIT';
@@ -66,7 +67,8 @@ export function reserve(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPer
  const old=rowAt(s,r.id);
  if(old&&(old.status!=='QUEUED'||old.cost!==r.cost||old.priority!==r.priority||old.kind!==r.kind))return deny(s,'DUPLICATE_OPERATION');
  const reason=admit(s,p,periods,r,now);if(reason)return deny(s,reason);
- return put(s,{id:r.id,cost:r.cost,kind:r.kind,priority:r.priority,status:'RESERVED',reservedAt:now,periods:{month:{...periods.month}},policyKey:policyKey(p)},now,periods);
+ const client=old?.client??r.client,works=old?.works??r.works;
+ return put(s,{id:r.id,cost:r.cost,kind:r.kind,priority:r.priority,...(client?{client}:{}),...(works?{works}:{}),status:'RESERVED',reservedAt:now,periods:{month:{...periods.month}},policyKey:policyKey(p)},now,periods);
 }
 function eligible(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPeriods,id:string,now:number,status:Reservation['status']):BudgetReason|undefined {
  if(!validPolicy(p))return 'POLICY_UNAVAILABLE';
