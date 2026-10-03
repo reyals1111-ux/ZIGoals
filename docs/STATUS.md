@@ -1,4 +1,4 @@
-# Session O — Beta brainstorm pack: market, product and growth research (2026-10-03, [PR #65](https://github.com/reyals1111-ux/ZIGoals/pull/65), documents only, not merged)
+# Session O — Beta brainstorm pack: market, product and growth research; then main (#60–#64) merged in and Alpha deploy #24 recorded (2026-10-03, [PR #65](https://github.com/reyals1111-ux/ZIGoals/pull/65), documents only, not merged)
 
 **Evidence labels**
 - **source:** an official or reputable page read on 2026-10-03 (UTC), linked with its access date in the document that uses it.
@@ -6,9 +6,13 @@
 - **local:** this cloud session's sandbox: Node 22.22.0 for the document checks, with no install, build or browser run.
 - **CI:** Milestone quality and Canonical reproducibility on the PR.
 
-No account, login, secret, wallet, deploy or provider dashboard was used. No code, test, config, landing, package or other document changed. The only edits are the seven new files under `docs/strategy/` and this entry.
+No account, login, secret, wallet, deploy or provider dashboard was used. No code, test, config, landing, package or other document changed. The only edits are the seven new files under `docs/strategy/`, this entry and, at the owner's request, the Release identity block for deploy #24.
 
-**Base:** main `57275a6` (#59). This ran in parallel with Session M (`polish/` and `accounts/session-m-2026-10-02`) and Session N (`landing/`, `earn/` and `time/session-n-2026-10-02`). Their work is referenced, never duplicated. For example, LC§6 in the pack is N's proposed earn section, still on N's branch.
+**Base:** main `57275a6` (#59). This ran in parallel with Session M (`polish/` and `accounts/session-m-2026-10-02`) and Session N (`landing/`, `earn/` and `time/session-n-2026-10-02`). Their work is referenced, never duplicated. For example, LC§6 in the pack is N's earn section, which reached `main` with #64 (`619b7da` updates the pack's labels).
+
+**Merged with main (2026-10-03, owner request):** `70b4f5d` merges `3f116e9` (#60, #63, #62, #64 and #61).
+- Only `docs/STATUS.md` conflicted, at the top. Every entry is kept, newest first, with this one on top; main's entries are unchanged.
+- Against `main`, the PR still changes only the eight documentation files.
 
 **Pricing is NOT decided.** 4.99 was only an early idea noted in COST_MODEL.md, not a working or chosen price. The pack recommends no price and no model (owner tweak 1 at plan approval). The regional price samples include the Belgian App Store (owner tweak 2).
 
@@ -25,7 +29,34 @@ No account, login, secret, wallet, deploy or provider dashboard was used. No cod
 | 8a | **Second-check and link-check fixes** in MONETIZATION_OPTIONS, MARKET_LANDSCAPE, BETA_IDEAS_BACKLOG and PATH_TO_500K | `b9c7d1c` |
 | 8b | **README:** the key insights, the open questions, the sources, the link check and the blocked list | `3de9d20` |
 | 8c | **Every blocked or unreachable source listed by URL**, in MARKET_LANDSCAPE and the README | `a2cd576` |
-| 8d | This entry | this commit |
+| 8d | This entry | `bfd6c16` |
+| M | **Merge `main`** (#60, #63, #62, #64, #61): STATUS keeps every entry, this one on top | `70b4f5d` |
+| F | **LC§6** points to LEGAL_CHECKLIST §6, now on `main` (#64); the flags are unchanged | `619b7da` |
+| D | **Alpha deploy #24** recorded (verified through the Actions API); Release identity now shows #24 live and #23 as the previous | this commit |
+
+## Alpha deploy #24 — 2026-10-03 afternoon, `4d59e63` live
+Recorded at the owner's request (2026-10-03).
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by this cloud session on 2026-10-03. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner with the request to merge `main`, 2026-10-03.
+
+- **Run:** Manual Alpha deployment #24, [run 37132128477](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132128477), 2026-10-03 15:07–15:12 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `4d59e6318d45baf4d699f10b794eedba30cd03db`, `main` after #64. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `aeae3829-ccc1-4190-909e-77539604c3f5`. The last observed live version is the same. (CI log)
+- **Rollback:** `02a62cef-e67f-48db-afcd-dfb8c784b031`, the version deploy #23 published, so the chain holds. (CI log)
+- **CI on `4d59e63`:** Milestone quality #410 ([run 37130862674](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37130862674)): success on attempt 1. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37132128477-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result, and checked the live Alpha on desktop and phone. (Owner, 2026-10-03)
+
+**Merged since the last record** (git, first-parent history of `main`):
+- [#60](https://github.com/reyals1111-ux/ZIGoals/pull/60) (`4d151c7`), Session M PR A: polish and reliability;
+- [#63](https://github.com/reyals1111-ux/ZIGoals/pull/63) (`307a71b`), Session M PR B: remember this device, copy in place, deletion without a download;
+- [#62](https://github.com/reyals1111-ux/ZIGoals/pull/62) (`16b39dc`), Session N: timezone phases 1–2;
+- [#64](https://github.com/reyals1111-ux/ZIGoals/pull/64) (`4d59e63`), Session N: earn and staking foundations.
+
+[#61](https://github.com/reyals1111-ux/ZIGoals/pull/61) (Landing V5, `3f116e9`) merged after this source, so it is not in this deploy. This run publishes the Alpha Worker `zigoals-alpha` only; the apex Worker `zigoals` was not part of it. (CI log, git)
 
 ## Sources, UNVERIFIED items and blocked sources
 - **Sources:**
@@ -129,11 +160,17 @@ No account, login, secret, wallet, deploy or provider dashboard was used. No cod
     - zigchain.com.
   - 44 are the blocked sources above. Six of them now answer a plain script, but during the research they were a login, a form, a script-only page or a bot wall.
   - The check found two broken links in MARKET_LANDSCAPE's store list, a template URL and Empower's old Android package. It also found links grouped under the wrong app. All are fixed in `b9c7d1c`. `a2cd576` lists every blocked page by URL.
-- **local, this entry:** `recordedLiveWorker()` still returns the live version under "Release identity", `8848babc-8168-4c07-a5e4-0712cc6d4a54`, before "Previous release identity".
+- **local, after the merge** (2026-10-03, Node 22.22.0):
+  - `node scripts/check-secrets.mjs` passed.
+  - Every relative link and anchor in the pack resolves.
+  - `pnpm exec vitest run scripts/status-snapshot.test.mjs` passes (2 tests), with dependencies from `pnpm install --frozen-lockfile --ignore-scripts`.
+  - `recordedLiveWorker()` returned `8848babc-…` (#22) on the PR's first base and `02a62cef-…` (#23) right after the merge. With this commit it returns `aeae3829-ccc1-4190-909e-77539604c3f5` (#24), before "Previous release identity".
 - **CI:**
   - **`115e480`:** all green ([Milestone quality run 37082624319](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37082624319); [Canonical reproducibility run 37082624338](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37082624338)).
   - **`1879fb0` to `3de9d20`:** Canonical reproducibility was green on each pushed head (`b9c7d1c` and `3de9d20` went up together). My own newer pushes cancelled the Milestone quality runs, as the workflow's concurrency rule does.
-  - **`a2cd576` and this commit:** reported on the PR. The final head is the gate.
+  - **`a2cd576`:** cancelled by the next push.
+  - **`bfd6c16`:** all green on attempt 1 ([Milestone quality run 37087330700](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37087330700); [Canonical reproducibility run 37087330670](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37087330670)).
+  - **After the merge** (`70b4f5d`, `619b7da` and this commit, pushed together): reported on the PR. The final head is the gate.
 
 ## Decisions made without the owner
 - **Branch:** the brief's `strategy/session-o-2026-10-02`, not this cloud session's default branch name.
@@ -151,6 +188,7 @@ No account, login, secret, wallet, deploy or provider dashboard was used. No cod
   - LC§6 is N's proposed earn section.
   - LC-new is a question that is not yet in the checklist.
 - **No evidence folder:** the documents carry their own citations.
+- **LC§6 labels:** after the merge brought §6 to `main`, `619b7da` updates the two label tables. The flags themselves are unchanged.
 - **Local checks on the sandbox's Node 22.22.0,** documents only. CI runs the full gate on 24.19.0.
 
 ## Follow-ups (not done here)
@@ -3171,7 +3209,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-02 evening for the [Alpha deploy #23](#alpha-deploy--2026-10-02-evening-57275a6-live) above (recorded by Session M).
+Updated 2026-10-03 afternoon for the [Alpha deploy #24](#alpha-deploy-24--2026-10-03-afternoon-4d59e63-live) in the Session O entry above (recorded by Session O at the owner's request).
+- Deployed source `4d59e6318d45baf4d699f10b794eedba30cd03db`, `main` after [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64). Verified: Actions API.
+- CI: Milestone quality #410 ([run 37130862674](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37130862674)) on `4d59e63`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #24 ([run 37132128477](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132128477)), exact source `4d59e63`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `aeae3829-ccc1-4190-909e-77539604c3f5`; rollback `02a62cef-e67f-48db-afcd-dfb8c784b031` (the run #23 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: owner-reported, checked on desktop and phone (2026-10-03).
+
+Previous release identity (PR #59, 2026-10-02 evening, recorded by Session M):
 - Deployed source `57275a674b9e1e439128df5104dcd404324e26d8`, `main` after [PR #59](https://github.com/reyals1111-ux/ZIGoals/pull/59). Verified: Actions API.
 - CI: Milestone quality #357 ([run 37043826515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37043826515)) on `57275a6`: success (attempt 2; attempt 1 hit the known browser click hang in one test). Verified: Actions API, CI log.
 - Deployment: Manual Alpha deployment #23 ([run 37048456899](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37048456899)), exact source `57275a6`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
