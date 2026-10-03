@@ -1232,31 +1232,33 @@ These are not known from official sources.
 ## Blocked sources and UNVERIFIED items (market research)
 **Bot walls, logins and forms that stopped a read** (none was bypassed; each was tried once):
 - **Cloudflare challenge or 403:**
-  - support.myfitnesspal.com (the export FAQ, Free vs Premium);
-  - support.cronometer.com;
-  - help.yazio.com;
-  - fatsecret.com/premium;
-  - help.finchcare.com;
-  - whoop.com (membership pages, the Coach announcement);
-  - stickk.com;
-  - delta.app and support.delta.app;
-  - help.monarch.com;
-  - Empower's support site;
-  - rocketmoney.com/privacy (through rocketaccount.com).
-- **Other 403s:** blog.myfitnesspal.com; coingecko.com, sec.gov, trustpilot.com and data.ai (known bot walls, not attempted).
+  - MyFitnessPal support: <https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs>, <https://support.myfitnesspal.com/hc/en-us/articles/34889191368077-The-difference-between-Free-Premium-and-Premium>;
+  - Cronometer support: <https://support.cronometer.com/hc/en-us/articles/360018760151-Account-Settings>;
+  - Yazio help: <https://help.yazio.com/hc/articles/203444951>;
+  - FatSecret: <https://www.fatsecret.com/premium>;
+  - Finch help: <https://help.finchcare.com>, <https://help.finchcare.com/hc/en-us/articles/37943772406413-Accountability-Buddies>;
+  - WHOOP: <https://www.whoop.com/us/en/membership/>, <https://join.whoop.com/>, <https://www.whoop.com/us/en/peak/>, <https://www.whoop.com/us/en/thelocker/whoop-unveils-the-new-whoop-coach-powered-by-openai/>;
+  - stickK: <https://www.stickk.com/>, <https://www.stickk.com/faq>;
+  - Delta: <https://delta.app/en>, <https://delta.app/en/pricing>, <https://delta.app/en/privacy>, <https://support.delta.app/>;
+  - Monarch help: <https://help.monarchmoney.com/hc/en-us/articles/7583213629204-Tips-for-Importing-a-Large-Mint-CSV-File> (redirects to help.monarch.com), <https://help.monarch.com/hc/en-us/articles/37526856682260-AI-in-Monarch>;
+  - Empower support: <https://support-personalwealth.empower.com/hc/en-us/articles/201169580-Can-anyone-at-Empower-Personal-Dashboard-access-my-credentials>;
+  - Rocket Money: <https://www.rocketmoney.com/privacy> (redirects to rocketaccount.com).
+- **Other 403s:**
+  - MyFitnessPal blog: <https://blog.myfitnesspal.com/take-fitness-info-beyond-app-new-feature/>, <https://blog.myfitnesspal.com/voice-logging-myfitnesspal/>;
+  - known bot walls, tried once while planning: <https://www.coingecko.com/>, <https://www.sec.gov/>, <https://www.trustpilot.com/>, <https://www.data.ai/>.
 - **Unreadable or rate-limited:**
-  - support.whoop.com (script only);
-  - adjust.com blog (429, then a security checkpoint).
+  - WHOOP support, which returned only a script shell: <https://support.whoop.com/s/article/Membership-Pricing?language=en_US>, <https://support.whoop.com/s/article/How-to-Use-the-AI-Powered-WHOOP-Coach?language=en_US>;
+  - Adjust's blog (429, then a security checkpoint): <https://www.adjust.com/blog/what-makes-a-good-retention-rate/>, <https://www.adjust.com/blog/finance-app-insights/>.
 - **Login or sign-up walls:**
-  - ticktick.com/refer;
-  - the AppsFlyer interactive benchmark tool.
+  - <https://ticktick.com/refer>;
+  - the AppsFlyer interactive benchmark tool (custom filters need a sign-up; only the public benchmark pages were used).
 - **Forms (not filled):**
-  - RevenueCat's full report PDF;
-  - Adapty's interactive report;
-  - FastSpring's quote.
+  - RevenueCat's full report PDF, behind a download form (its public State of Subscription Apps page was read);
+  - Adapty's interactive report: <https://adapty.io/state-of-in-app-subscriptions/>;
+  - FastSpring's quote form (its pricing page, which shows no public rate, was read).
 - **Not reachable from this session:**
-  - the loseit.com help, pricing and privacy pages;
-  - the project's GitHub issue pages for Loop (the session's network allows only configured repositories).
+  - loseit.com's help, pricing and privacy pages: one research tool reported the site owner's crawler opt-out, so none was fetched and nothing from them is used;
+  - the GitHub issue pages for Loop (the session's network allows only configured repositories; the URL is left out because it contains a person's username).
 
 **UNVERIFIED (main items):**
 - **Nutrition:**
@@ -1299,7 +1301,7 @@ These are not known from official sources.
 - **Benchmarks:** organic vs paid install shares by category; current category CPIs from Liftoff (none public).
 
 ## Sources and access dates
-All 183 external sources linked above, in order of first use. "Read" is the access date (UTC).
+All 216 external sources linked above, in order of first use. "Read" is the access date (UTC); blocked sources show when they were tried.
 
 1. itunes.apple.com (example feed): <https://itunes.apple.com/us/rss/customerreviews/page=1/id=341232718/sortby=mostrecent/json> (read 2026-10-03)
 2. myfitnesspal.com (premium page): <https://www.myfitnesspal.com/premium> (read 2026-10-03)
@@ -1484,6 +1486,39 @@ All 183 external sources linked above, in order of first use. "Read" is the acce
 181. support.google.com (Play Console Help): <https://support.google.com/googleplay/android-developer/answer/14738291?hl=en> (read 2026-10-03)
 182. support.google.com (Health Content and Services): <https://support.google.com/googleplay/android-developer/answer/16679511?hl=en> (read 2026-10-03)
 183. support.google.com (Health Connect policy): <https://support.google.com/googleplay/android-developer/answer/16558241?hl=en> (read 2026-10-03)
+184. support.myfitnesspal.com: <https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs> (tried 2026-10-03; blocked or unreachable)
+185. support.myfitnesspal.com: <https://support.myfitnesspal.com/hc/en-us/articles/34889191368077-The-difference-between-Free-Premium-and-Premium> (tried 2026-10-03; blocked or unreachable)
+186. support.cronometer.com: <https://support.cronometer.com/hc/en-us/articles/360018760151-Account-Settings> (tried 2026-10-03; blocked or unreachable)
+187. help.yazio.com: <https://help.yazio.com/hc/articles/203444951> (tried 2026-10-03; blocked or unreachable)
+188. fatsecret.com: <https://www.fatsecret.com/premium> (tried 2026-10-03; blocked or unreachable)
+189. help.finchcare.com: <https://help.finchcare.com> (tried 2026-10-03; blocked or unreachable)
+190. help.finchcare.com: <https://help.finchcare.com/hc/en-us/articles/37943772406413-Accountability-Buddies> (tried 2026-10-03; blocked or unreachable)
+191. whoop.com: <https://www.whoop.com/us/en/membership/> (tried 2026-10-03; blocked or unreachable)
+192. join.whoop.com: <https://join.whoop.com/> (tried 2026-10-03; blocked or unreachable)
+193. whoop.com: <https://www.whoop.com/us/en/peak/> (tried 2026-10-03; blocked or unreachable)
+194. whoop.com: <https://www.whoop.com/us/en/thelocker/whoop-unveils-the-new-whoop-coach-powered-by-openai/> (tried 2026-10-03; blocked or unreachable)
+195. stickk.com: <https://www.stickk.com/> (tried 2026-10-03; blocked or unreachable)
+196. stickk.com: <https://www.stickk.com/faq> (tried 2026-10-03; blocked or unreachable)
+197. delta.app: <https://delta.app/en> (tried 2026-10-03; blocked or unreachable)
+198. delta.app: <https://delta.app/en/pricing> (tried 2026-10-03; blocked or unreachable)
+199. delta.app: <https://delta.app/en/privacy> (tried 2026-10-03; blocked or unreachable)
+200. support.delta.app: <https://support.delta.app/> (tried 2026-10-03; blocked or unreachable)
+201. help.monarchmoney.com: <https://help.monarchmoney.com/hc/en-us/articles/7583213629204-Tips-for-Importing-a-Large-Mint-CSV-File> (tried 2026-10-03; blocked or unreachable)
+202. help.monarch.com: <https://help.monarch.com/hc/en-us/articles/37526856682260-AI-in-Monarch> (tried 2026-10-03; blocked or unreachable)
+203. support-personalwealth.empower.com: <https://support-personalwealth.empower.com/hc/en-us/articles/201169580-Can-anyone-at-Empower-Personal-Dashboard-access-my-credentials> (tried 2026-10-03; blocked or unreachable)
+204. rocketmoney.com: <https://www.rocketmoney.com/privacy> (tried 2026-10-03; blocked or unreachable)
+205. blog.myfitnesspal.com: <https://blog.myfitnesspal.com/take-fitness-info-beyond-app-new-feature/> (tried 2026-10-03; blocked or unreachable)
+206. blog.myfitnesspal.com: <https://blog.myfitnesspal.com/voice-logging-myfitnesspal/> (tried 2026-10-03; blocked or unreachable)
+207. coingecko.com: <https://www.coingecko.com/> (tried 2026-10-03; blocked or unreachable)
+208. sec.gov: <https://www.sec.gov/> (tried 2026-10-03; blocked or unreachable)
+209. trustpilot.com: <https://www.trustpilot.com/> (tried 2026-10-03; blocked or unreachable)
+210. data.ai: <https://www.data.ai/> (tried 2026-10-03; blocked or unreachable)
+211. support.whoop.com: <https://support.whoop.com/s/article/Membership-Pricing?language=en_US> (tried 2026-10-03; blocked or unreachable)
+212. support.whoop.com: <https://support.whoop.com/s/article/How-to-Use-the-AI-Powered-WHOOP-Coach?language=en_US> (tried 2026-10-03; blocked or unreachable)
+213. adjust.com: <https://www.adjust.com/blog/what-makes-a-good-retention-rate/> (tried 2026-10-03; blocked or unreachable)
+214. adjust.com: <https://www.adjust.com/blog/finance-app-insights/> (tried 2026-10-03; blocked or unreachable)
+215. ticktick.com: <https://ticktick.com/refer> (tried 2026-10-03; blocked or unreachable)
+216. adapty.io: <https://adapty.io/state-of-in-app-subscriptions/> (tried 2026-10-03; blocked or unreachable)
 
 ### Store pages behind the tables (ratings, installs, prices, privacy labels, review samples)
 Each app's App Store listing (US unless marked), other storefronts where the text uses them, the public review feed and review page used for its complaint themes, and its Google Play listing and Data safety page. All read 2026-10-03. A storefront page marked *not found* returned 404, which is the evidence that the app is not on that storefront.

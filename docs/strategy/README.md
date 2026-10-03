@@ -149,15 +149,15 @@ This is a proposal: reorder or drop items freely. Each topic ends with a decisio
 
 ## Sources, UNVERIFIED items and blocked sources
 - **Sources:**
-  - 449 distinct external URLs across the pack, read on 2026-10-03 (UTC);
+  - 460 distinct external URLs across the pack, read or tried on 2026-10-03 (UTC);
   - each document ends with its own list and access dates;
   - [MARKET_LANDSCAPE.md](MARKET_LANDSCAPE.md) also lists, per app, the store pages and review feeds behind its tables.
 - **Link check (2026-10-03, after the pack was written):**
   - every relative link and anchor resolves;
-  - 407 of the 449 external URLs load for a plain script;
+  - of the 460 external URLs, 403 load for a plain script;
   - 5 are App Store pages for the Belgian or UK storefront that return *not found*, which is the evidence that those apps are not sold there;
   - 8 were read during the research but now challenge a plain script: EUR-Lex's EHDS Regulation page, three FTC rule pages, Noom's privacy policy, two Habitica source files on GitHub and zigchain.com;
-  - the other 29 are the blocked or unreachable sources listed below.
+  - the other 44 are the blocked or unreachable sources listed below. Six of them now answer a plain script, but during the research they were a login, a form, a script-only page or a bot wall.
 - **Research helpers:** three, as the brief allows.
   - **R1:** nutrition, habits and health platforms.
   - **R2:** planning, life OS, AI, social and benchmarks.
@@ -175,50 +175,42 @@ This is a proposal: reorder or drop items freely. Each topic ends with a decisio
   - **Belgium:** the age of digital consent (13, per law-firm summaries).
   - **AI coaches:** where WHOOP, MyFitnessPal and Cal AI run their AI; WHOOP's prices.
   - **Benchmarks:** organic vs paid install shares by category.
-- **Blocked or unreachable** (tried once; no bot wall, login or form was bypassed):
+- **Blocked or unreachable** (tried once on 2026-10-03; no bot wall, login or form was bypassed):
   - **Cloudflare challenge or 403:**
-    - <https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs>
-    - <https://support.myfitnesspal.com/hc/en-us/articles/34889191368077-The-difference-between-Free-Premium-and-Premium>
-    - <https://blog.myfitnesspal.com/take-fitness-info-beyond-app-new-feature/>
-    - <https://blog.myfitnesspal.com/voice-logging-myfitnesspal/>
-    - <https://support.cronometer.com/hc/en-us/articles/360018760151-Account-Settings>
-    - <https://help.yazio.com/hc/articles/203444951>
-    - <https://www.fatsecret.com/premium>
-    - <https://help.finchcare.com> (and its Accountability Buddies article)
-    - <https://www.whoop.com/us/en/membership/>
-    - <https://join.whoop.com/>
-    - <https://www.whoop.com/us/en/peak/>
-    - the WHOOP Coach announcement page
-    - <https://www.stickk.com/>
-    - <https://help.monarch.com/hc/en-us>
-    - <https://delta.app/en> (and its pricing and privacy pages, and <https://support.delta.app/>)
-    - Empower's support centre (<https://support-personalwealth.empower.com/>)
-    - <https://www.rocketmoney.com/privacy> (redirects to rocketaccount.com)
-    - <https://www.coingecko.com/>
-    - <https://www.sec.gov/>
-    - <https://www.trustpilot.com/>
-    - <https://www.data.ai/>
-    - <https://www.belgium.be/en/about_belgium/country/languages> (a CAPTCHA)
-    - <https://www.iso.org/iso-4217-currency-codes.html>
-    - EUR-Lex HTML text and summaries (an AWS WAF challenge)
-    - <https://www.meity.gov.in/data-protection-framework>
-  - **Rate-limited, script-only or login:**
-    - <https://www.adjust.com/blog/what-makes-a-good-retention-rate/> (429, then a security checkpoint)
-    - support.whoop.com (script only)
-    - <https://ticktick.com/refer> (login)
+    - MyFitnessPal: <https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs>, <https://support.myfitnesspal.com/hc/en-us/articles/34889191368077-The-difference-between-Free-Premium-and-Premium>, <https://blog.myfitnesspal.com/take-fitness-info-beyond-app-new-feature/>, <https://blog.myfitnesspal.com/voice-logging-myfitnesspal/>
+    - Cronometer: <https://support.cronometer.com/hc/en-us/articles/360018760151-Account-Settings>
+    - Yazio: <https://help.yazio.com/hc/articles/203444951>
+    - FatSecret: <https://www.fatsecret.com/premium>
+    - Finch: <https://help.finchcare.com>, <https://help.finchcare.com/hc/en-us/articles/37943772406413-Accountability-Buddies>
+    - WHOOP: <https://www.whoop.com/us/en/membership/>, <https://join.whoop.com/>, <https://www.whoop.com/us/en/peak/>, <https://www.whoop.com/us/en/thelocker/whoop-unveils-the-new-whoop-coach-powered-by-openai/>
+    - stickK: <https://www.stickk.com/>, <https://www.stickk.com/faq>
+    - Monarch: <https://help.monarch.com/hc/en-us>, <https://help.monarchmoney.com/hc/en-us/articles/7583213629204-Tips-for-Importing-a-Large-Mint-CSV-File>, <https://help.monarch.com/hc/en-us/articles/37526856682260-AI-in-Monarch>
+    - Delta: <https://delta.app/en>, <https://delta.app/en/pricing>, <https://delta.app/en/privacy>, <https://support.delta.app/>
+    - Empower: <https://support-personalwealth.empower.com/>, <https://support-personalwealth.empower.com/hc/en-us/articles/201169580-Can-anyone-at-Empower-Personal-Dashboard-access-my-credentials>
+    - Rocket Money: <https://www.rocketmoney.com/privacy> (redirects to rocketaccount.com)
+    - known bot walls: <https://www.coingecko.com/>, <https://www.sec.gov/>, <https://www.trustpilot.com/>, <https://www.data.ai/>
+    - Belgium's federal portal (a CAPTCHA): <https://www.belgium.be/en/about_belgium/country/languages>
+    - ISO 4217: <https://www.iso.org/iso-4217-currency-codes.html>
+    - EUR-Lex, the HTML text of Directive (EU) 2023/2673 and its summary (an AWS WAF challenge): <https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32023L2673>
+    - India's MeitY: <https://www.meity.gov.in/data-protection-framework>
+  - **Script-only or rate-limited:**
+    - WHOOP support (only a script shell came back): <https://support.whoop.com/s/article/Membership-Pricing?language=en_US>, <https://support.whoop.com/s/article/How-to-Use-the-AI-Powered-WHOOP-Coach?language=en_US>
+    - Adjust's blog (429, then a security checkpoint): <https://www.adjust.com/blog/what-makes-a-good-retention-rate/>, <https://www.adjust.com/blog/finance-app-insights/>
+  - **Login or sign-up:**
+    - <https://ticktick.com/refer>
+    - the AppsFlyer interactive benchmark tool (custom filters need a sign-up; only the public benchmark pages were used)
   - **Forms not filled:**
-    - RevenueCat's full report PDF
-    - Adapty's interactive report (<https://adapty.io/state-of-in-app-subscriptions/>)
-    - FastSpring's quote (<https://fastspring.com/pricing/>)
-    - the AppsFlyer interactive tool (sign-up)
+    - RevenueCat's full report PDF (its public page was read)
+    - Adapty's interactive report: <https://adapty.io/state-of-in-app-subscriptions/>
+    - FastSpring's quote form (its pricing page, with no public rate, was read)
   - **Not reachable from this session:**
-    - the loseit.com help, pricing and privacy pages (refused by the research tool)
-    - Loop's GitHub issues (the network allows only configured repositories)
     - <https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm>
     - <https://www.fsc.go.kr/eng/>
     - <https://www.consumeraffairs.nic.in/>
     - <https://www.incometaxindia.gov.in/>
     - <https://fiuindia.gov.in/>
+    - loseit.com's help, pricing and privacy pages (one research tool reported the site owner's crawler opt-out, so none was fetched)
+    - Loop's GitHub issues (the session's network allows only configured repositories; the URL is left out because it contains a person's username)
 
 **Context read for this pack** (in this repository):
 - [STATUS.md](../STATUS.md), Sessions I–L;
