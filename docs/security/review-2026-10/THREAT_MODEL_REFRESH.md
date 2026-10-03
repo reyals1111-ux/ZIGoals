@@ -159,22 +159,22 @@ Every arrow that leaves the browser carries only:
 | PRIVACY.md, Run #10 addendum, `docs/PRIVACY.md:9` | "Cryptographic key rotation and account deletion remain incomplete." | Both are implemented and are part of Stage 8 acceptance; keep the sentence about data already downloaded |
 
 ## Proposed new rows for THREAT_MODEL.md
-The finding IDs are in [FINDINGS.md](FINDINGS.md); FIX_PLAN Part E has the editing task.
+The last column points to [FINDINGS.md](FINDINGS.md); [FIX_PLAN.md](FIX_PLAN.md) Part E has the editing task.
 
-| Threat | Control today | Remaining exposure |
-|---|---|---|
-| **Inbox takeover or a stolen session cookie** | A code is single-use and short-lived; sessions are revocable; the server never sees the recovery secret, so no decryption | The holder can sign in, see metadata, revoke other sessions and delete cloud data, a section or the account. A ZIGoals revocation does not end the Supabase session |
-| **Code guessing and sign-in flooding** | Admission: per-email, per-IP-group and distinct-email caps; a daily failed-code cap. Supabase's own limits | All users share the Worker's Supabase IP budget; IPv6 /64 grouping; no global cap on code sends |
-| **Account enumeration and the invite-only boundary** | Generic "check your inbox" text on success | Invite-only rests on a Supabase setting, not on code. Error mapping can reveal whether an address is invited |
-| **A malicious or rolled-back sync server** | AES-GCM with AAD binding the vault, section, object, revision and epoch; an authenticated catalog; a monotonic watermark | Withholding and availability attacks cannot be prevented. Metadata outside the AAD is listed in FINDINGS |
-| **Same-origin script (XSS, extension, dependency)** | Nonce CSP with `strict-dynamic`; no HTML sinks; non-extractable keys | Script can use keys and read plaintext. Trusted Types are not yet used |
-| **A shared computer or stolen unlocked phone** | Idle lock (unremembered only); Lock forgets; Forget this device | A remembered device opens the vault without the secret until it is forgotten or invalidated |
-| **Deletion that is not final** | Lifecycle fences; physical removal; provider identity deletion | Cloudflare keeps 30 days of point-in-time recovery; provider backups; copies on devices and exports |
-| **Recovery-admin exposure** | Entrypoint unbound; public `fetch` 404; the checker; local-only config | The remote proxy's reachability is UNVERIFIED until the Stage 7 rehearsal |
-| **Provider credential compromise** | Secrets per Worker; GitHub environment approval | The documented Alpha deploy token has account-wide Workers Scripts edit rights, so it can change every Worker in the account, including those holding the Supabase admin key |
-| **AI agent manipulated by injected text** | Written rules (CLAUDE.md); the human approval on `alpha` | The agent's GitHub identity is the owner's, with admin rights, merge and workflow-dispatch tools |
-| **Denial of wallet** | `FOOD_BUDGET`, `MARKET_POLICY`, admission | Free-plan limits fail closed (outage, not cost) until a paid plan; Resend and Supabase quotas are shared by everyone |
-| **Phishing of the friends** | HTTPS everywhere (the `.app` TLD is HSTS-preloaded) | DMARC is `p=none`, so look-alike or spoofed "ZIGoals" emails are not rejected |
+| Threat | Control today | Remaining exposure | Findings |
+|---|---|---|---|
+| **Inbox takeover or a stolen session cookie** | A code is single-use and short-lived; sessions are revocable; the server never sees the recovery secret, so no decryption | The holder can sign in, see metadata, revoke other sessions and delete cloud data, a section or the account. A ZIGoals revocation does not end the Supabase session | Q-AUTH-02, Q-AUTH-03, Q-AUTH-04 |
+| **Code guessing and sign-in flooding** | Admission: per-email, per-IP-group and distinct-email caps; a daily failed-code cap. Supabase's own limits | All users share the Worker's Supabase IP budget; IPv6 /64 grouping; no global cap on code sends | Q-AUTH-05, Q-AUTH-07, Q-AUTH-08, Q-AUTH-10 |
+| **Account enumeration and the invite-only boundary** | Generic "check your inbox" text on success | Invite-only rests on a Supabase setting, not on code. Error mapping can reveal whether an address is invited | Q-AUTH-01, Q-AUTH-06 |
+| **A malicious or rolled-back sync server** | AES-GCM with AAD binding the vault, section, object, revision and epoch; an authenticated catalog; a monotonic watermark | Withholding and availability attacks cannot be prevented. Metadata outside the AAD is listed in FINDINGS | Q-SYNC-03, Q-SYNC-07, Q-SYNC-08, Q-SYNC-12 |
+| **Same-origin script (XSS, extension, dependency)** | Nonce CSP with `strict-dynamic`; no HTML sinks; non-extractable keys | Script can use keys and read plaintext. Trusted Types are not yet used | Q-SYNC-01, Q-WEB-01, Q-WEB-03, Q-WEB-04 |
+| **A shared computer or stolen unlocked phone** | Idle lock (unremembered only); Lock forgets; Forget this device | A remembered device opens the vault without the secret until it is forgotten or invalidated | Q-SYNC-01, Q-SYNC-02, Q-SYNC-05, Q-AUTH-04 |
+| **Deletion that is not final** | Lifecycle fences; physical removal; provider identity deletion | Cloudflare keeps 30 days of point-in-time recovery; provider backups; copies on devices and exports | Q-PRIV-01, Q-PRIV-03, Q-OPS-06 |
+| **Recovery-admin exposure** | Entrypoint unbound; public `fetch` 404; the checker; local-only config | The remote proxy's reachability is UNVERIFIED until the Stage 7 rehearsal | Q-OPS-05 |
+| **Provider credential compromise** | Secrets per Worker; GitHub environment approval | The documented Alpha deploy token has account-wide Workers Scripts edit rights, so it can change every Worker in the account, including those holding the Supabase admin key | Q-SC-01, Q-OPS-02, Q-WRK-05 |
+| **AI agent manipulated by injected text** | Written rules (CLAUDE.md); the human approval on `alpha` | The agent's GitHub identity is the owner's, with admin rights, merge and workflow-dispatch tools | Q-AI-01, Q-AI-02 |
+| **Denial of wallet** | `FOOD_BUDGET`, `MARKET_POLICY`, admission | Free-plan limits fail closed (outage, not cost) until a paid plan; Resend and Supabase quotas are shared by everyone | Q-WRK-01, Q-WRK-02, Q-WRK-03, Q-WRK-04, Q-WRK-07 |
+| **Phishing of the friends** | HTTPS everywhere (the `.app` TLD is HSTS-preloaded) | DMARC is `p=none`, so look-alike or spoofed "ZIGoals" emails are not rejected | Q-OPS-01, Q-AUTH-09 |
 
 ## Limits of this refresh
 - **UNVERIFIED (no dashboard access, by design):**

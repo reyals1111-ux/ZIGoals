@@ -38,7 +38,7 @@ Read with `curl` around 17:24 UTC, user agent `ZIGoals-internal-review-passive-h
 | `x-content-type-options` | `nosniff` | `nosniff` |
 | `referrer-policy` | `strict-origin-when-cross-origin` | `no-referrer` |
 | `permissions-policy` | Accelerometer, camera, display capture, geolocation, gyroscope, magnetometer, microphone, payment and USB all denied, plus `interest-cohort=()` | camera, microphone and geolocation denied (`/app/health` allows camera for itself: `next.config.ts`) |
-| `cross-origin-opener-policy` | `same-origin` | absent (see FINDINGS `Q-WEB-*`) |
+| `cross-origin-opener-policy` | `same-origin` | absent (FINDINGS `Q-WEB-01`) |
 | `cache-control` | `public, max-age=0, must-revalidate` | `private, no-store, max-age=0` |
 | `report-to` / `nel` | `cf-nel` group to `https://a.nel.cloudflare.com/report/v4?...`, `success_fraction 0.0`, `max_age 604800` | same |
 | `x-robots-tag` | absent | `noindex, nofollow, noarchive` |
