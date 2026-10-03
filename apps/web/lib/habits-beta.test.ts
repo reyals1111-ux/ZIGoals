@@ -67,7 +67,7 @@ describe("Habits V2 migration and prospective rules", () => {
   });
 
   it("fails closed on malformed and future-version data", () => {
-    expect(habitDataSchema.safeParse({ schemaVersion: 3, kind: "zigoals-habits", habits: [] }).success).toBe(false);
+    expect(habitDataSchema.safeParse({ schemaVersion: 4, kind: "zigoals-habits", habits: [] }).success).toBe(false); // v3 is read since Session P (lib/vault/read-support.test.ts)
     expect(habitDataSchema.safeParse({ schemaVersion: 1, kind: "zigoals-habits", habits: [{ nope: true }] }).success).toBe(false);
   });
 
