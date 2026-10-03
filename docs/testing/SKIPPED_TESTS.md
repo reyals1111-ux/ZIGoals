@@ -61,6 +61,8 @@ The full local Playwright run on `main` before Session E reported 34 skipped (Se
 | J1–J10 | `CI Chrome install retries` (install-chrome.test.mjs:58) | not Linux | `/proc/locks` exists only on Linux | platform | Keep. CI (`ubuntu-24.04`, web checks) and every Linux checkout run all 10; on Linux, plain `pnpm test` gains 10 passed and no skip. |
 
 ### Expected failures (`test.fails`, known bugs)
+**Session P (PR 2, 2026-10-03): X1–X4 flipped.** ADR-006 option A2 landed, so the four rows below are plain tests now (`scripts/run11/sync-lost-ack.test.ts`, `sync-lost-ack-runtime.test.mjs`); the guards stay. The table is kept as the record of what they stated.
+
 These are not skips. Each test states the behaviour a planned fix must produce, and it fails today. Vitest runs each one and counts it on its own, as "N expected fail", next to "passed" and "skipped". So `pnpm test` stays green, and the skip totals above do not change. When the fix lands, the test passes, Vitest reports "Expect test to fail" and the run turns red. The fix PR then converts it to a plain `test`, which is the flip. Never re-add `.fails` to silence one.
 
 | # | Test (file:line) | Today's failure (checked by converting to `test`) | Known bug | Fix PR action |
