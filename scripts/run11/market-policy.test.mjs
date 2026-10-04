@@ -158,3 +158,13 @@ test('partition: absent by default; {publicPercent} reaches the coordinator; any
   expect(errors).toEqual(['coordinator.partition must be {"publicPercent": 10 to 90}, or absent for no partition (docs/run11/ALPHA_PRICES_ROLLOUT.md, "Two apps, one budget").']);
  }
 });
+
+// Session U Part 2f: the public callers' new works per day; absent means an eighth of the daily row budget.
+test('publicColdWorks: absent by default (an eighth of the rows); a whole number reaches the coordinator',async()=>{
+ expect(template.coordinator.publicColdWorks).toBeUndefined();
+ expect(await (await coordinatorAccepts(validateOwnerPolicy(filled(),{now}).policy)).apply({action:'inspect'})).toMatchObject({publicWorkCap:2500});
+ const set=validateOwnerPolicy(filled(o=>{o.coordinator.publicColdWorks=400;}),{now});
+ expect(set.errors).toEqual([]);expect(set.policy.publicColdWorks).toBe(400);
+ expect(await (await coordinatorAccepts(set.policy)).apply({action:'inspect'})).toMatchObject({publicWorkCap:400});
+ for(const value of [0,-1,1.5,'400',10000001,null])expect(validateOwnerPolicy(filled(o=>{o.coordinator.publicColdWorks=value;}),{now}).errors).toEqual(['coordinator.publicColdWorks must be 1 to 10000000 new works a day, or absent for an eighth of the daily row budget (docs/run11/ALPHA_PRICES_ROLLOUT.md, "Two apps, one budget").']);
+});

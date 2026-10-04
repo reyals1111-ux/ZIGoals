@@ -25,7 +25,7 @@ export function newClientKey(){return [...crypto.getRandomValues(new Uint8Array(
 export const utcDay=(now:number)=>new Date(now).toISOString().slice(0,10);
 /** Per UTC day: the rows this object wrote, and each client bucket's [credits, new works]. `cancels` (Session S, additive)
  * counts new cancellation fences: in all, and per client bucket. */
-export type MarketDay={rows:number;buckets:Record<string,[number,number]>;cancels?:{n:number;buckets:Record<string,number>};publicRows?:number};
+export type MarketDay={rows:number;buckets:Record<string,[number,number]>;cancels?:{n:number;buckets:Record<string,number>};publicRows?:number;publicWorks?:number};
 /** Session U Part 2e: the calling app. 'friends' is the acceptance app (it has the private sync binding), 'public' the
  * public Alpha; an unlabelled caller is public. With `MARKET_POLICY.partition`, the public caller's commits are counted
  * in `publicRows` and stop admitting new work at `publicPercent` of the day's rows, so the public Alpha can never spend

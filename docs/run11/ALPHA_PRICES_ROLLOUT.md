@@ -163,6 +163,7 @@ Session U Part 2e. Off until you set it; nothing changes without it.
   2. the acceptance app's final redeploy (22–24 October, [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md)): before it, the Stage 7 build sends no label and counts as public;
   3. only then a policy with `partition`: add `"partition": {"publicPercent": 50}` to the owner file's `coordinator` block and regenerate (`market-policy.mjs`, or the next period with `next-market-policy.mjs`), then `make-private-configs.mjs --set-market-policy` and the coordinator `deploy`.
 - **Suggested value:** 50 (an owner decision; 10 to 90 are accepted). `inspect` on the account object reports `publicRowsToday` and `publicRowBudget` when it is set.
+- **Public cold work (Part 2f, on by default):** all public callers together may start at most an eighth of `dailyRowBudget` new works per UTC day (2,500 with 20,000), on top of each client's share. Cached prices and waiting for a fetch in flight never count; the acceptance app is not capped by it. A refused request answers `LOCAL_BUDGET` until the next UTC day. Set `"publicColdWorks": N` in the owner file's `coordinator` block to change it (1 to 10,000,000). Unknown assets are refused once an authoritative catalog index exists (Session S; the first catalog load writes it).
 - **Rollback:** a policy without `partition` (regenerate without it), or roll the coordinator back; the label is ignored by older coordinators.
 
 ## Next policy period

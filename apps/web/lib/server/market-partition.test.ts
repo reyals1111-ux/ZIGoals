@@ -44,7 +44,7 @@ test('with a partition, the public caller stops at its share while the acceptanc
  expect((await account.apply(request(['coin-e'],'v4:192.0.2.5'),{caller:'friends'}) as Reply).results).toEqual([{ok:false,reason:'DAILY_LIMIT',quote:null}]);
 });
 
-test('without a partition the label changes nothing: the same commands leave byte-identical storage',async()=>{
+test('without a partition the label changes nothing but the public cold-work count (Part 2f): otherwise byte-identical storage',async()=>{
  const run=async(caller:'public'|'friends'|undefined)=>{
   let n=0;vi.spyOn(crypto,'randomUUID').mockImplementation(()=>`00000000-0000-4000-8000-${String(++n).padStart(12,'0')}` as `${string}-${string}-${string}-${string}-${string}`);
   vi.spyOn(crypto,'getRandomValues').mockImplementation(((array:Uint8Array)=>{array.fill(7);return array;}) as unknown as typeof crypto.getRandomValues);
@@ -56,7 +56,12 @@ test('without a partition the label changes nothing: the same commands leave byt
   return {replies,rows:[...storage.rows.entries()].sort(([a],[b])=>a.localeCompare(b))};
  };
  const unlabelled=await run(undefined),pub=await run('public'),friends=await run('friends');
- expect(pub).toEqual(unlabelled);expect(friends).toEqual(unlabelled);
+ expect(pub).toEqual(unlabelled);
+ // Session U Part 2f: public callers' new works are counted (the cold-work cap); nothing else differs.
+ const day=(r:typeof unlabelled)=>r.rows.find(([key])=>key.startsWith('market-day:'))![1] as Record<string,unknown>;
+ expect(day(unlabelled).publicWorks).toBe(3);expect(day(friends)).not.toHaveProperty('publicWorks');
+ const withoutCount=(r:typeof unlabelled)=>JSON.parse(JSON.stringify(r,(key,value)=>key==='publicWorks'||key==='publicWorksToday'?undefined:value));
+ expect(withoutCount(friends)).toEqual(withoutCount(unlabelled));
  expect(JSON.stringify(unlabelled.rows)).not.toContain('publicRows');
  expect(unlabelled.replies.at(-1)).not.toHaveProperty('publicRowsToday');
 });

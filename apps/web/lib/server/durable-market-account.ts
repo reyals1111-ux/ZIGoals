@@ -19,7 +19,7 @@ const uint=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),positive=
 const capacity=z.object({minute:uint,monthly:uint}).strict();
 const category=z.enum(['THROTTLED','UPSTREAM_5XX','TIMEOUT','NETWORK','AUTHENTICATION','ENTITLEMENT','MALFORMED','UNSUPPORTED','LOCAL_BUDGET','LOCAL_QUEUE','UNKNOWN']);
 const chargedOperation=z.enum(['catalog','history','insights','token','rwa']);
-const configSchema=z.object({telemetry:marketTelemetryPolicy.optional(),policy:z.object({providerMinuteLimit:positive,providerMonthlyLimit:positive,operating:capacity,monitoringReserve:capacity,monitoringMaximum:capacity,optionalCeiling:capacity,concurrent:positive,queueLimit:positive,reservationMs:positive,ownershipMs:positive}).strict(),month:z.object({id:z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),start:uint,end:uint}).strict().optional(),calendar:z.object({timeZone:z.literal('UTC'),confirmed:z.literal(true)}).strict().optional(),operationCosts:z.partialRecord(chargedOperation,positive).optional(),quoteCost:positive,leaseMs:positive.max(60000),maxAttempts:positive.max(128),maxWorks:positive.max(64),maxCacheBytes:positive.max(32*1024*1024).optional(),retryRetentionMs:positive.min(60000).max(86400000).optional(),dailyRowBudget:positive.min(1000).max(10000000).optional(),partition:z.object({publicPercent:positive.min(10).max(90)}).strict().optional(),accountThrottle:z.object({distinctEndpoints:positive.min(2).max(8),windowMs:positive.max(60000)}).strict().optional(),breaker:z.object({threshold:positive.max(100),windowMs:positive.max(3600000),cooldownMs:positive,maxCooldownMs:positive,halfOpenProbes:positive.max(8)}).strict().refine(p=>p.maxCooldownMs>=p.cooldownMs).optional()}).strict().refine(c=>Boolean(c.month)!==Boolean(c.calendar),'Exactly one confirmed accounting period source is required.').refine(c=>!c.accountThrottle||!!c.breaker,'Throttle correlation requires a breaker policy.');
+const configSchema=z.object({telemetry:marketTelemetryPolicy.optional(),policy:z.object({providerMinuteLimit:positive,providerMonthlyLimit:positive,operating:capacity,monitoringReserve:capacity,monitoringMaximum:capacity,optionalCeiling:capacity,concurrent:positive,queueLimit:positive,reservationMs:positive,ownershipMs:positive}).strict(),month:z.object({id:z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),start:uint,end:uint}).strict().optional(),calendar:z.object({timeZone:z.literal('UTC'),confirmed:z.literal(true)}).strict().optional(),operationCosts:z.partialRecord(chargedOperation,positive).optional(),quoteCost:positive,leaseMs:positive.max(60000),maxAttempts:positive.max(128),maxWorks:positive.max(64),maxCacheBytes:positive.max(32*1024*1024).optional(),retryRetentionMs:positive.min(60000).max(86400000).optional(),dailyRowBudget:positive.min(1000).max(10000000).optional(),partition:z.object({publicPercent:positive.min(10).max(90)}).strict().optional(),publicColdWorks:positive.max(10000000).optional(),accountThrottle:z.object({distinctEndpoints:positive.min(2).max(8),windowMs:positive.max(60000)}).strict().optional(),breaker:z.object({threshold:positive.max(100),windowMs:positive.max(3600000),cooldownMs:positive,maxCooldownMs:positive,halfOpenProbes:positive.max(8)}).strict().refine(p=>p.maxCooldownMs>=p.cooldownMs).optional()}).strict().refine(c=>Boolean(c.month)!==Boolean(c.calendar),'Exactly one confirmed accounting period source is required.').refine(c=>!c.accountThrottle||!!c.breaker,'Throttle correlation requires a breaker policy.');
 const work=publicMarketWorkSchema;
 const lease=z.object({token:z.string().min(1).max(100),generation:positive,fence:positive,acquiredAt:uint,deadline:uint,expiresAt:uint}).strict();
 const id=z.string().uuid();
@@ -81,6 +81,9 @@ class Run {
  async day():Promise<MarketDay>{return readDay(this.tx,utcDay(this.now));}
  /** The day's row budget is spent for this caller: all of it, or (Session U Part 2e) the public share when the policy
   * partitions it. Without `partition` the caller changes nothing. */
+ /** Session U Part 2f: new works the public callers may start per UTC day, all of them together (on top of each
+  * client's share): MARKET_POLICY.publicColdWorks, by default an eighth of the daily row budget. */
+ get publicWorkCap(){return this.config.publicColdWorks??Math.floor(this.rowBudget/8);}
  rowsSpent(day:MarketDay){return day.rows>=this.rowBudget||!!this.config.partition&&this.caller==='public'&&(day.publicRows??0)>=publicRowCap(this.rowBudget,this.config.partition.publicPercent);}
  /** Why this cold work is refused before any lease or charge (market-catalog-guard.ts), or undefined. */
  assetRefusal(work:PublicMarketWork){return assetRefusal(this.tx,work,this.now,this.catalogIds);}
@@ -163,7 +166,7 @@ async function execute(run:Run,command:Command):Promise<Outcome>{
  if(command.action==='acquire-many')return acquireMany(run,command);
  if(command.action==='inspect'){
   const budget=await run.budget(),followers=await liveFollowers(tx,now),index=await tx.get<string[]>('work-index')??[],rows=Object.values(budget.reservations),day=await run.day();
-  return {result:{ok:true,followers:followers.length,attempts:rows.length,archivedAttempts:budget.archived?.attempts??0,workKeys:index.length,queued:rows.filter(r=>r.status==='QUEUED').length,dispatched:rows.filter(r=>r.status==='DISPATCHED').length,currentPeriodCredits:Object.values(budget.archived?.credits??{}).reduce((sum,n)=>sum+n,0)+rows.filter(r=>(r.status==='DISPATCHED'||r.status==='SETTLED')&&r.periods?.month.id===run.month.id).reduce((sum,r)=>sum+r.cost,0),chargedCredits:(budget.archived?.lifetimeCredits??0)+rows.filter(r=>r.status==='DISPATCHED'||r.status==='SETTLED').reduce((sum,r)=>sum+r.cost,0),rowsToday:day.rows,dailyRowBudget:run.rowBudget,...(run.config.partition?{publicRowsToday:day.publicRows??0,publicRowBudget:publicRowCap(run.rowBudget,run.config.partition.publicPercent)}:{})},commit:false};
+  return {result:{ok:true,followers:followers.length,attempts:rows.length,archivedAttempts:budget.archived?.attempts??0,workKeys:index.length,queued:rows.filter(r=>r.status==='QUEUED').length,dispatched:rows.filter(r=>r.status==='DISPATCHED').length,currentPeriodCredits:Object.values(budget.archived?.credits??{}).reduce((sum,n)=>sum+n,0)+rows.filter(r=>(r.status==='DISPATCHED'||r.status==='SETTLED')&&r.periods?.month.id===run.month.id).reduce((sum,r)=>sum+r.cost,0),chargedCredits:(budget.archived?.lifetimeCredits??0)+rows.filter(r=>r.status==='DISPATCHED'||r.status==='SETTLED').reduce((sum,r)=>sum+r.cost,0),rowsToday:day.rows,dailyRowBudget:run.rowBudget,...(run.config.partition?{publicRowsToday:day.publicRows??0,publicRowBudget:publicRowCap(run.rowBudget,run.config.partition.publicPercent)}:{}),publicWorksToday:day.publicWorks??0,publicWorkCap:run.publicWorkCap},commit:false};
  }
  if(command.action==='admit'){const result=await admitAttempt(run,command.id);return {result,commit:'auto'};}
  if(command.action==='admit-group'){const result=await admitGroup(run,{charge:command.charge,associations:command.associations,bucket:run.bucket,checkFence:true});return {result,commit:'auto'};}
@@ -246,7 +249,7 @@ async function acquireMany(run:Run,command:Extract<Command,{action:'acquire-many
    }
    if(leased.length){
     changed=true;await tx.put('work-index',next);
-    if(run.bucket){const day=await run.day(),usage=day.buckets[run.bucket]??[0,0];await tx.put(dayRow(utcDay(now)),{...day,buckets:{...day.buckets,[run.bucket]:[usage[0],usage[1]+leased.length]}});}
+    if(run.bucket||run.caller==='public'){const day=await run.day(),usage:[number,number]=run.bucket?day.buckets[run.bucket]??[0,0]:[0,0];await tx.put(dayRow(utcDay(now)),{...day,...(run.bucket?{buckets:{...day.buckets,[run.bucket]:[usage[0],usage[1]+leased.length]}}:{}),...(run.caller==='public'?{publicWorks:(day.publicWorks??0)+leased.length}:{})});}
     const members=first<0?[]:groups[first]!.members.filter(m=>leased.includes(m));
     if(members.length){
      const admitted=await admitGroup(run,{charge:groups[first]!.charge,associations:members.map(m=>({work:works[m]!,lease:(results[m] as {lease:WorkLease}).lease})),bucket:run.bucket,checkFence:false});
@@ -277,6 +280,8 @@ function chargeOf(config:Config,name:z.infer<typeof charge>|'token',items:Public
 async function admissionRefusal(run:Run,firstGroup:{charge:z.infer<typeof charge>;works:PublicMarketWork[]}|undefined,newWorks:number){
  const {config,now}=run,day=await run.day();
  if(run.rowsSpent(day))return 'DAILY_LIMIT';
+ // Session U Part 2f: the public callers' new works today, all together; cache hits and followers never count.
+ if(run.caller==='public'&&(day.publicWorks??0)+newWorks>run.publicWorkCap)return 'DAILY_LIMIT';
  if(run.bucket){
   const usage=clientUsage(await run.budget(),run.bucket,now),today=day.buckets[run.bucket]??[0,0];
   if(usage.held+newWorks>run.limits.held||today[1]+newWorks>run.limits.works)return 'CLIENT_LIMIT';
