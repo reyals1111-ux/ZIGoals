@@ -28,7 +28,7 @@
 ## Honesty
 - **Prices** come only from the shared public quote cache (`useMarketQuotes`), batched, with its 60 s per-pair gate and
   server budgets. Nothing polls in the background.
-- **On Alpha** the page says "Live prices aren't connected yet" and values stay unknown.
+- **Without a live price** (none returned for the portfolio's coins, for example while the coordinator is unavailable) the page says "No live price is available right now" and values stay unknown. On the public Alpha, prices come through the market coordinator (Session S); Session U fixed the provider refusal that kept them UNAVAILABLE after deploy #28.
 - **A stale price** says "Needs refresh" with its time, and the totals say they include prices that need a refresh.
 - **CoinGecko attribution** appears where prices show.
 - **Showcase** shows a clearly fictional portfolio with fixture prices labelled "Showcase fixture prices, not market data".

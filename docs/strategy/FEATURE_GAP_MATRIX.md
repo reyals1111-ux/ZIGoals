@@ -112,7 +112,7 @@ Compared with YNAB, Monarch, Copilot, Empower, Kubera, Rocket Money, Emma and Fi
 | Crypto portfolio with cost basis | ✓ average cost, real or hypothetical portfolios, USD or EUR | CoinStats, Delta, CoinTracker, Kubera |
 | Read-only tracking by public address | ◐ ZIGChain only, through a read-only Keplr connection | Zerion (watch-only, 50+ networks), Kubera, CoinStats, CoinTracker |
 | Exchange API keys | ✗ **excluded by the repo's rules:** "No exchange trading keys" ([PRODUCT_PLATFORM_BETA_MASTER_PLAN.md](../roadmap/PRODUCT_PLATFORM_BETA_MASTER_PLAN.md)); no external financial integrations ([CONTRIBUTING](../../CONTRIBUTING.md)) | CoinStats, Delta, CoinTracker, Kubera (read-only keys) |
-| Live prices and markets | ◐ CoinGecko; not connected on the Alpha ("Live prices aren't connected yet") | Everyone |
+| Live prices and markets | ◐ CoinGecko through the shared market coordinator; on the Alpha since deploy #28, verified after Session U's coordinator fix is deployed | Everyone |
 | Staking view | ◐ read-only native ZIGChain staking | Wallets and DeFi trackers (Zerion, CoinStats) |
 | Let it work (staking, earn), user-signed | ✗ design only, in Session N's lane (testnet first) | <ul><li>Finary Invest (MiCA-licensed, with custody through a partner).</li><li>Zerion swaps for a fee.</li><li>Different custody models</li></ul> |
 | Price alerts | ✗ | CoinStats, Delta |
