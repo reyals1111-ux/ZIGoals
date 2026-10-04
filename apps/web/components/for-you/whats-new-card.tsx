@@ -15,6 +15,7 @@ export const WHATS_NEW_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-quick-add', label: 'Type a line into Quick add'},
   {href: '/app/help#help-push-reminders', label: 'Reminders when ZIGoals is closed'},
   {href: '/app/help#help-guide', label: 'The Guide, on this device'},
+  {href: '/app/help#help-your-ai-what', label: 'ZIGi · your AI (Premium, free during Alpha)'},
 ];
 /** The one-time "What's new" card (Session P): links to the Help entries of the new features; "Got it" writes the device flag. */
 export function WhatsNewCard({links = WHATS_NEW_LINKS, onDismiss}: {links?: WhatsNewLink[]; onDismiss: () => boolean}) {

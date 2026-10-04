@@ -17,6 +17,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties
 import { createPortal } from "react-dom";
 import { AppIcon } from "../app-icon";
 import { LEGACY_STAKING_PATH, NAV_GROUP_START, NAV_ITEMS, isNavActive } from "../app-nav";
+import { AiMoreRow } from "../ai/ai-more-row";
 import { LogoMark, Wordmark } from "../brand-mark";
 import { LogoIntro } from "../logo-intro";
 import { QuickAdd } from "../quick-add";
@@ -198,6 +199,7 @@ export function PhoneTabBar() {
               <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
             </Link></li>;
           })}
+          <AiMoreRow onNavigate={() => setOpen(false)} />
         </ul>
         <div className="phone-more-signature">
           <p className="phone-more-descriptor">Your Financial Orbit</p>
