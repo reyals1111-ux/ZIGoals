@@ -1,5 +1,9 @@
 # CoinGecko key custody: current flow, target flow, owner steps
 
+> **Session S (2026-10-04): steps 2 and 3 are done in source** (PR [#71](https://github.com/reyals1111-ux/ZIGoals/pull/71)). The Alpha binds the coordinator, and the workflow, deploy script and app route no longer read the key. The scrubbing stays. Steps 4–5, and deploying it, are owner actions in [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md) steps 6–7.
+>
+> **Correction:** the table's market-quotes row is wrong about production. In a deployed app, `configuredDurableQuotes` answers every request, so that key check ran only in direct local development. It is now `directMarketKeyConfigured()` in `market-service.ts`. The line numbers below are those of `5dd2ee7`.
+
 Status: **documentation only. No workflow, script or app change was made.** Facts were read from the source at `5dd2ee7` (main, 2026-09-29). The key's name appears below; its value never belongs in Git, logs, issues or reports.
 
 ## Every reference to `COINGECKO_DEMO_API_KEY`
