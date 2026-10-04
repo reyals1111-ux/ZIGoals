@@ -7,7 +7,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
  * Today stays short on phones (Session P, owner addition 2): the screen count of Today at 390×844, measured as
  * scrollHeight / 844 with every network call answered 503 and motion off. Measured on the build before PR 3 (`main`
  * `8bcf0b7` with PR 1, 2026-10-04): Showcase 10.13 screens, a seeded Local Demo (the Showcase records, onboarded)
- * 4.33. With PR 3 (one "For you" card open on a phone): Showcase 11.00, seeded Local Demo 5.02 with the one-time
+ * 4.33. With PR 3 (one "For you" card open on a phone): Showcase 11.02, seeded Local Demo 5.04 with the one-time
  * "What's new" card and 4.74 once it is dismissed. The ceilings below hold those numbers with a small margin, so a
  * later change that makes Today meaningfully longer on a phone fails here instead of going unnoticed.
  */

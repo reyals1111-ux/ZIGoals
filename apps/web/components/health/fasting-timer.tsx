@@ -11,11 +11,12 @@ import {GlassBar} from '../progress/glass-progress';
 import {useHabits} from '../habits/use-habits';
 import type {FastingStore} from './use-fasting';
 import './fasting.css';
+import type {LayoutAttrs} from '../layout-edit';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
 const clock = (iso: string, zone: string) => { try { return new Date(iso).toLocaleTimeString('en-US', {timeZone: zone, hour: 'numeric', minute: '2-digit'}); } catch { return new Date(iso).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}); } };
 /** The Health page module "Fasting timer" (HE6): a clock against a chosen target, a short history, no praise. */
-export function FastingTimer({fasting, health}: {fasting: FastingStore; health: HealthData}) {
+export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fasting: FastingStore; health: HealthData}) {
   const habits = useHabits();
   const [preset, setPreset] = useState<number | 'custom'>(16); const [custom, setCustom] = useState('18'); const [habitId, setHabitId] = useState('');
   const [result, setResult] = useState(''); const [error, setError] = useState(''); const [confirming, setConfirming] = useState(false);
@@ -44,7 +45,8 @@ export function FastingTimer({fasting, health}: {fasting: FastingStore; health: 
     } catch (e) { setError(saveFailureMessage(e)); }
   }
   const history = fastingHistory(fasting.data);
-  return <section className="panel fasting-timer" id="fasting" aria-labelledby="fasting-title">
+  // As a layout item inside PhoneFold the region's attributes arrive here on desktop (components/phone/phone-fold.tsx).
+  return <section {...layout} className="panel fasting-timer" id="fasting" aria-labelledby="fasting-title">
     <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div></div>
     <p className="fasting-safety" role="note">{FASTING_SAFETY_NOTE}</p>
     <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice.</p>

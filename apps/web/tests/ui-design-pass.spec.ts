@@ -228,7 +228,7 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('[data-layout-region="health:body"]').first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   await page.getByRole('button',{name:'Move Today’s nourishment down',exact:true}).click();
-  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:roadmap','health:trends']);
+  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:roadmap','health:fasting','health:trends']);
   expect(await page.evaluate(()=>[...document.querySelectorAll('[data-layout-item]')].flatMap(e=>e.getAnimations()).length)).toBe(0);
  });
  test('touch: a long-press on the handle picks a card up and moves it',async({page,isMobile})=>{
