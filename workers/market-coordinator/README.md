@@ -49,6 +49,8 @@ Session R1 bounded what one client can spend. Session S also refuses work that c
 
   A history read waiting for its slot is passed over in the dispatch order, so it never holds back a quote behind it. A refusal is `HISTORY_LIMIT` (reported as `LOCAL_BUDGET`) and writes nothing.
 
+**Idle retention (Session S, FIX_PLAN C7):** commits prune client day rows, but an object that went quiet kept its last ones and the client key. `MarketAccount` now keeps an alarm armed (one `getAlarm` read per object instance). At most every 6 hours it deletes day rows older than yesterday and an earlier day's client key (`sweepClientRows` in `market-client-limits.ts`), and it re-arms only while some remain.
+
 **Existing rows** are still read in place. The new rows (`market-catalog-ids:*`, `market-not-found`) and fields (`pool`, `archived.historyCredits`, `notFound` on `complete`) are additive. Session R1's code ignores them, so rolling the coordinator back to R1 stays safe; it then simply stops refusing.
 
 ## Optional aggregate telemetry

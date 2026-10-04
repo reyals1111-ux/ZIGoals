@@ -1,4 +1,4 @@
-/** @typedef {{FOOD_BUDGET:DurableObjectNamespace,FOOD_USER_AGENT?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string}} Env */
+/** @typedef {{FOOD_BUDGET:DurableObjectNamespace,FOOD_USER_AGENT?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string}} Env */
 /** @typedef {{body:unknown,status:number,until:number}} Cached */
 /** @typedef {{buckets:Record<string,{n:number,recent:number[]}>}} FoodDay */
 /** @param {unknown} body @param {number} [status] */
@@ -13,6 +13,9 @@ const FOUND_MS=86400000,NOT_FOUND_MS=3600000,MAX_CACHED=256;
 // Per client (Session S): at most 3 provider lookups in any rolling minute and 120 per UTC day, inside the global slot
 // spacing above. A person scanning several products in a row succeeds while nobody else scans. Cache hits never count.
 const CLIENT_MINUTE=3,CLIENT_DAY=120;
+// Retention (Session S, FIX_PLAN C7): an expired answer is deleted when it is read, and while anything is stored an
+// alarm deletes expired answers, day rows older than yesterday and an earlier day's client key at least hourly.
+const SWEEP_MS=3600000;
 // The app's address group (market-client-address.ts): an IPv4 address, or an IPv6 /48. Anything else is refused.
 const CLIENT_GROUP=/^(?:v4:(?:\d{1,3}\.){3}\d{1,3}|v6:[0-9a-f]{4}:[0-9a-f]{4}:[0-9a-f]{4}::\/48)$/;
 const KEY_ROW='food-client-key',DAY_INDEX='food-days',dayRow=/** @param {string} day */day=>'food-day:'+day;
@@ -41,7 +44,11 @@ export class FoodBudget{
   const code=new URL(request.url).searchParams.get('code');if(!barcode.test(code??''))return reply({error:'INVALID_BARCODE'},400);
   if(!/^ZIGoals\/[^\r\n]{1,160}$/.test(this.env.FOOD_USER_AGENT??''))return reply({error:'PROVIDER_SETUP_REQUIRED'},503);
   const group=request.headers.get('x-food-client');if(group!==null&&!CLIENT_GROUP.test(group))return reply({error:'INVALID_CLIENT'},400);
-  const cached=async()=>{const cache=/** @type {Cached|undefined} */(await this.state.storage.get('cache:'+code));return cache&&cache.until>this.now()?reply(cache.body,cache.status):null;};
+  const cached=async()=>{
+   const cache=/** @type {Cached|undefined} */(await this.state.storage.get('cache:'+code));if(!cache)return null;
+   if(cache.until>this.now())return reply(cache.body,cache.status);
+   await this.state.storage.delete('cache:'+code);return null;
+  };
   const hit=await cached();if(hit)return hit;
   const now=this.now(),day=utcDay(now);
   // Reserve the next free slot: now, or a later one if at most MAX_QUEUED lookups wait and the wait is at most MAX_WAIT.
@@ -75,6 +82,7 @@ export class FoodBudget{
    return {at};
   });
   if(slot.refuse!==undefined)return later(slot.refuse);
+  await this.armSweep();
   // Reservation survives worker death; failures still consume the shared attempt allowance.
   if(slot.at>this.now()){
    await new Promise(resolve=>setTimeout(resolve,slot.at-this.now()));
@@ -93,6 +101,23 @@ export class FoodBudget{
    await this.remember(code,body,200,FOUND_MS);
    return reply(body);
   }catch{return reply({error:'PROVIDER_UNAVAILABLE'},502);}
+ }
+ /** Alarm spacing on the real clock; only an isolated test may shorten it. */
+ sweepMs(){const local=Number(this.env.LOCAL_SWEEP_MS);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?local:SWEEP_MS;}
+ async armSweep(){if(await this.state.storage.getAlarm()===null)await this.state.storage.setAlarm(Date.now()+this.sweepMs());}
+ /** Deletes what has outlived its use, and re-arms while anything that can expire is still stored. */
+ async alarm(){
+  const now=this.now(),today=utcDay(now),yesterday=utcDay(now-86400000);
+  const left=await this.state.storage.transaction(async s=>{
+   const rows=/** @type {Map<string,Cached>} */(await s.list({prefix:'cache:'})),expired=[...rows].filter(([,row])=>!(row.until>now)).map(([key])=>key);
+   if(expired.length)await s.delete(expired);
+   const days=/** @type {string[]} */((await s.get(DAY_INDEX))??[]),old=days.filter(d=>d<yesterday);
+   for(const d of old)await s.delete(dayRow(d));
+   if(old.length)await s.put(DAY_INDEX,days.filter(d=>!old.includes(d)));
+   const key=/** @type {{day:string}|undefined} */(await s.get(KEY_ROW));if(key&&key.day<today)await s.delete(KEY_ROW);
+   return rows.size-expired.length+days.length-old.length;
+  });
+  if(left>0)await this.state.storage.setAlarm(Date.now()+this.sweepMs());
  }
  /** Caches an answer (found or not found); keeps at most MAX_CACHED, dropping the soonest to expire.
   * @param {string|null} code @param {unknown} body @param {number} status @param {number} ms */

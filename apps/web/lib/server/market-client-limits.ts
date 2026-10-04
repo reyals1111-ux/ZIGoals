@@ -37,6 +37,18 @@ export async function pruneDays(tx:AtomicMarketStorage,now:number,limit=4){
  const next=[...new Set([...index.filter(day=>!old.includes(day)),today])].sort();
  await tx.put(dayIndex,next);
 }
+/** Idle retention (Session S, FIX_PLAN C7): pruneDays runs only with a commit, so an object that goes quiet would keep its
+ * last day rows and client key. The account's alarm calls this: day rows older than yesterday and an earlier day's key
+ * are deleted. Returns how many retained rows remain, so the alarm re-arms only while there are some. */
+export async function sweepClientRows(storage:AtomicMarketStorage,now:number):Promise<number>{
+ return storage.transaction(async tx=>{
+  const today=utcDay(now),yesterday=utcDay(now-86400000),index=await tx.get<string[]>(dayIndex)??[],old=index.filter(day=>day<yesterday);
+  for(const day of old)await tx.delete(dayRow(day));
+  if(old.length)await tx.put(dayIndex,index.filter(day=>!old.includes(day)));
+  const key=await tx.get<ClientKey>(clientKeyRow);if(key&&key.day<today)await tx.delete(clientKeyRow);
+  return index.length-old.length+(key&&key.day>=today?1:0);
+ });
+}
 /** Budget rows of this bucket: attempts in the rolling minute, attempts not yet finished, and the works they hold. */
 export function clientUsage(budget:BudgetState,bucket:string,now:number){
  const rows=Object.values(budget.reservations).filter(row=>row.client===bucket);

@@ -6,15 +6,27 @@ import {CATALOG_FRESH_MS} from '../../apps/web/lib/market-assets';
 import {dispatchDurableQuotes} from '../../apps/web/lib/server/durable-quote-dispatch';
 import {MARKET_CLIENT_GROUP} from '../../apps/web/lib/server/market-client-address';
 import {MarketIsolateCache} from '../../apps/web/lib/server/market-isolate-cache';
+import {sweepClientRows} from '../../apps/web/lib/server/market-client-limits';
 /** Commands that carry provider evidence (up to 16 MB); every other command body is at most 64 KB. */
 const evidenceCommands=['publish-data','complete'];
 /** Internal durable account; the default Worker endpoint does not expose commands. */
+/** The real storage has alarms; test wrappers around it may not, and then no sweep is armed. */
+type AccountStorage=AtomicMarketStorage&{getAlarm?():Promise<number|null>;setAlarm?(time:number):Promise<void>};
+/** Idle retention (Session S): at most every 6 hours on the real clock while client rows remain. */
+const SWEEP_MS=6*3600000;
 export class MarketAccount {
- private account:DurableMarketAccount;
- constructor(state:{storage:AtomicMarketStorage},env:{MARKET_POLICY?:string;LOCAL_TEST_NOW?:string;ISOLATED_FIXTURE?:string}){
-  this.account=new DurableMarketAccount(state.storage,()=>env.ISOLATED_FIXTURE==='true'?Number(env.LOCAL_TEST_NOW):Date.now(),env.MARKET_POLICY);
+ private account:DurableMarketAccount;private storage:AccountStorage;private clock:()=>number;private sweepMs:number;private armed=false;
+ constructor(state:{storage:AccountStorage},env:{MARKET_POLICY?:string;LOCAL_TEST_NOW?:string;ISOLATED_FIXTURE?:string;LOCAL_SWEEP_MS?:string}){
+  this.storage=state.storage;this.clock=()=>env.ISOLATED_FIXTURE==='true'?Number(env.LOCAL_TEST_NOW):Date.now();
+  const local=Number(env.LOCAL_SWEEP_MS);this.sweepMs=env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?local:SWEEP_MS;
+  this.account=new DurableMarketAccount(state.storage,this.clock,env.MARKET_POLICY);
  }
+ /** Day rows and the client key are pruned by commits; this alarm also removes them when the object goes quiet. */
+ async alarm(){if(await sweepClientRows(this.storage,this.clock())>0)await this.storage.setAlarm?.(Date.now()+this.sweepMs);}
+ /** One storage read per object instance: an alarm is pending whenever the object may hold client rows. */
+ private async armSweep(){if(this.armed||!this.storage.getAlarm||!this.storage.setAlarm)return;this.armed=true;if(await this.storage.getAlarm()===null)await this.storage.setAlarm(Date.now()+this.sweepMs);}
  async fetch(request:Request){
+  await this.armSweep().catch(()=>{this.armed=false;});
   if(request.method!=='POST')return new Response(null,{status:405});
   const reader=request.body?.getReader();if(!reader)return new Response(null,{status:400});const chunks:Uint8Array[]=[];let total=0;const limit=request.headers.get('x-market-payload')==='evidence'?16*1024*1024:65536;
   for(;;){const chunk=await reader.read();if(chunk.done)break;total+=chunk.value.byteLength;if(total>limit){void reader.cancel().catch(()=>{});return new Response(null,{status:413});}chunks.push(chunk.value);}
