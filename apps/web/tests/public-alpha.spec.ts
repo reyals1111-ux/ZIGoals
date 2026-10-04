@@ -1,4 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { navLink } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
@@ -52,6 +54,21 @@ test("egress capture detects a sentinel carried only in an HttpOnly cookie", asy
   await page.waitForLoadState("networkidle");
   expect(await page.evaluate(() => document.cookie)).not.toContain(sentinel);
   expect(await capture()).toContain(`alpha_capture_probe=${sentinel}`);
+});
+// Permissions-Policy per route (Session T, ADR-012): read from the one data file next.config.ts reads, so the spec
+// proves the effective headers of the running build (next start, and the OpenNext artifact in the integration job).
+const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as {permissionsPolicy: {global: string; app: string; health: string}; chainOrigins: string[]; aiProviderOrigins: Record<string, string>; localModelSources: string[]};
+test("the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere", async ({request}) => {
+  for (const [path, expected] of [["/app", egress.permissionsPolicy.app], ["/app/habits", egress.permissionsPolicy.app], ["/app/health", egress.permissionsPolicy.health]] as const) {
+    const response = await request.get(path);
+    expect(response.headers()["permissions-policy"], path).toBe(expected);
+  }
+  expect(egress.permissionsPolicy.app).toContain("microphone=(self)"); expect(egress.permissionsPolicy.app).toContain("camera=()");
+  expect(egress.permissionsPolicy.health).toContain("camera=(self)"); expect(egress.permissionsPolicy.health).toContain("microphone=(self)");
+  const root = await request.get("/");
+  expect(root.headers()["permissions-policy"]).toBe(egress.permissionsPolicy.global);
+  const app = await request.get("/app");
+  expect(app.headers()["content-security-policy"]).toContain(`connect-src 'self' ${[...egress.chainOrigins, ...Object.values(egress.aiProviderOrigins), ...egress.localModelSources].join(" ")}`);
 });
 test("strict production headers, fresh nonce, navigation and script rejection", async ({page,request}) => {
   const errors:string[]=[]; page.on("pageerror",e=>errors.push(e.message));

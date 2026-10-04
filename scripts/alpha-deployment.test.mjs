@@ -6,6 +6,8 @@ import {
   currentDeployment, deployedVersion, performDeployment,
 } from "./lib/alpha-deployment.mjs";
 import { assertHtml, smokeAlpha } from "./lib/alpha-smoke.mjs";
+import { securityPolicy } from "../apps/web/lib/security-policy.ts";
+import egress from "../apps/web/lib/egress-policy.json";
 
 const sha = "a".repeat(40);
 const oldVersion = "af45987b-f792-4755-a9e6-f58bb49f0cfe";
@@ -257,13 +259,16 @@ test("a different live version cannot be reported as this run's deployment", asy
   await expect(performDeployment(rollback(), r.io)).rejects.toThrow(/version/);
 });
 
+// The fixture's CSP is the app's own policy (security-policy.ts) with this fixture's fixed nonce, and its
+// Permissions-Policy the reviewed value for the route (egress-policy.json): the smoke is checked against the source,
+// never against a copy of it that could drift (Session T).
 function htmlResponse(nonce = "A".repeat(43) + "=",path="/app") {
   return new Response(`<html>YOUR FINANCIAL ORBIT Local Demo PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
     "content-type": "text/html", "cache-control": "private, no-store, max-age=0",
-    "content-security-policy": `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests`,
+    "content-security-policy": securityPolicy(false, true).csp.replace(/'nonce-[^']+'/, `'nonce-${nonce}'`),
     "strict-transport-security": "max-age=31536000, max-age=31536000",
     "x-frame-options": "DENY", "x-content-type-options": "nosniff", "x-robots-tag": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
-    "referrer-policy": "no-referrer", "permissions-policy": `${path==='/app/health'?'camera=(self)':'camera=()'}, microphone=(), geolocation=()`,
+    "referrer-policy": "no-referrer", "permissions-policy": path==='/app/health'?egress.permissionsPolicy.health:egress.permissionsPolicy.app,
   } });
 }
 test("smoke accepts strong nonce security and existing duplicate HSTS/robots values", async () => {
@@ -378,10 +383,24 @@ test("a malformed market answer is reported for owner review once, never retried
   expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
 });
 
-test('camera permission is confined to the Health document',async()=>{
- const response=htmlResponse();response.headers.set('permissions-policy','camera=(self), microphone=(), geolocation=()');const html=await response.text();
+test('Permissions-Policy per route: the camera only on Health, the microphone only on app pages (Session T), nothing wider',async()=>{
+ const response=htmlResponse();const html=await response.text();
+ response.headers.set('permissions-policy',egress.permissionsPolicy.health);
  expect(()=>assertHtml(response,html,'/app/health')).not.toThrow();expect(()=>assertHtml(response,html,'/app')).toThrow(/permission/);
- response.headers.set('permissions-policy','camera=*, microphone=(), geolocation=()');expect(()=>assertHtml(response,html,'/app/health')).toThrow(/permission/);
+ response.headers.set('permissions-policy',egress.permissionsPolicy.app);
+ expect(()=>assertHtml(response,html,'/app')).not.toThrow();expect(()=>assertHtml(response,html,'/app/habits')).not.toThrow();expect(()=>assertHtml(response,html,'/app/health')).toThrow(/permission/);
+ // The pre-Session-T values are no longer accepted anywhere: a page without the microphone is a drift, not a stricter policy.
+ response.headers.set('permissions-policy','camera=(self), microphone=(), geolocation=()');expect(()=>assertHtml(response,html,'/app/health')).toThrow(/permission/);
+ response.headers.set('permissions-policy','camera=*, microphone=(self), geolocation=()');expect(()=>assertHtml(response,html,'/app/health')).toThrow(/permission/);
+ response.headers.set('permissions-policy','camera=(), microphone=*, geolocation=()');expect(()=>assertHtml(response,html,'/app')).toThrow(/permission/);
+});
+test('the CSP connect-src the smoke requires is the one the app sends: self, the Testnet endpoints, the AI providers, the loopback names',async()=>{
+ const response=htmlResponse();const html=await response.text();
+ expect(()=>assertHtml(response,html)).not.toThrow();
+ const widened=response.headers.get('content-security-policy').replace('connect-src ','connect-src https://attacker.invalid ');
+ response.headers.set('content-security-policy',widened);expect(()=>assertHtml(response,html)).toThrow(/connect-src/);
+ const narrowed=response.headers.get('content-security-policy').replace(' https://attacker.invalid','').replace(' http://localhost:*','');
+ response.headers.set('content-security-policy',narrowed);expect(()=>assertHtml(response,html)).toThrow(/connect-src/);
 });
 
 // Real output of the pinned wrangler, captured offline (scripts/fixtures/wrangler-output/README.md).
