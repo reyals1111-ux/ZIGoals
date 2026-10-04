@@ -1,3 +1,89 @@
+# Owner records — 2026-10-04 evening: the app-side market key is deleted
+
+Recorded by Session U at the owner's request.
+
+Evidence label: **Owner:** reported by the owner in the Session U brief, 2026-10-04. Nothing here was checked against Cloudflare or GitHub by this session.
+
+- **App-side Worker secret:** after Alpha deploy #28 the owner deleted `COINGECKO_DEMO_API_KEY` from `zigoals-alpha` ([ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md) step 6). (Owner)
+- **The extra version:** deleting a secret creates a new Worker version with the same code. Its ID was not recorded; `pnpm --filter @zigoals/web exec wrangler deployments list --name zigoals-alpha` shows it. (Owner)
+  - The next Manual Alpha deployment captures that version as its rollback target. Its code is #28's (`e336227`). (Owner; `scripts/alpha-deploy.mjs` capture step, read by Session U)
+- **GitHub `alpha` environment secret `COINGECKO_DEMO_API_KEY`:** deletion still to be confirmed by the owner. No workflow reads it since #71. (Owner; `.github/workflows/deploy-alpha.yml`, read by Session U)
+
+# Alpha deploy #28 — 2026-10-04 evening, `e336227` live
+
+Recorded by Session U at the owner's request. The owner numbers Alpha deploys by successful publication; the workflow's run number for this one is 30 (runs 28 and 29 published nothing, below).
+
+Evidence labels:
+- **Actions API:** read by the Session U cloud session on 2026-10-04.
+- **CI log:** the deploy job's log and the run summary, read through the Actions API.
+- **Evidence artifact:** `alpha-deployment-37228865289-1` (`deployment.json`, `rollback.json`, `alpha-build.json`), downloaded and read by Session U.
+- **Owner:** reported in the Session U brief.
+
+- **Run:** Manual Alpha deployment, [run 37228865289](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37228865289) (run number 30), 2026-10-04 19:35–19:42 UTC, one attempt. Result **success**, summary `Result: VERIFIED`. (Actions API, CI log)
+- **Source:** `e336227bd6aa80769642f4761971da46fcdd705b`, `main` after [#71](https://github.com/reyals1111-ux/ZIGoals/pull/71). It carries [#70](https://github.com/reyals1111-ux/ZIGoals/pull/70) (`1bf6490`) and [#72](https://github.com/reyals1111-ux/ZIGoals/pull/72) (`d9b0807`) too. (Actions API, git)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `cd3552bd-9ec2-4570-8b04-a22b31e0032c`; the last observed live version is the same. (CI log, evidence artifact)
+- **Rollback:** `98755815-f27e-439d-86ad-c3f8ddb50a7c`, the version deploy #27 published, so the chain holds. (CI log, evidence artifact)
+- **Bindings in the upload log:** `WORKER_SELF_REFERENCE`, `MARKET_QUOTES` (`zigoals-acctest-market-coordinator#QuoteService`), `ASSETS` and the variable `ZIGOALS_MARKET_QUOTES_MODE` (`"durable-v1"`), as Session S Part 8 intended. (CI log)
+- **Smoke:** the eleven page checks answered 200 with every security check passing. The price probe got `/api/market-quotes` → 503, `UNAVAILABLE`, pair `PROVIDER_UNAVAILABLE`, failure `UNKNOWN`; the summary line reads "Live prices (information only, never a failure): **UNAVAILABLE** (UNKNOWN)". (Evidence artifact, CI log)
+  - It still reproduced later: Session U's owner-authorised probes at 22:19:55 and 22:19:57 UTC got the same answer for BTC/USD and BTC/EUR. Session U Part 2 investigates. (Session U, live request)
+- **CI on `e336227`:** Milestone quality #477 ([run 37227294438](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37227294438)): success on attempt 1. (Actions API)
+- **Earlier attempts at `d9b0807` (the merge of #72), none of which uploaded anything:**
+  - [Run 37223014303](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37223014303) (run number 28), attempt 1: the deploy job stopped in "Capture current rollback version and validate live Alpha". The live Alpha's CSP did not have `worker-src`, which the new build's exact directive set required. Summary `NOT_DEPLOYED`. (Actions API, CI log)
+  - The same run, attempt 2 (a re-run): refused at "Verify exact main after owner approval". Re-runs are rejected by design. (Actions API)
+  - [Run 37223701579](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37223701579) (run number 29): the same capture failure. #71 Part 11 fixed the check. (Actions API, STATUS)
+  - The owner describes these as "an approval-gate glitch, a refused re-run (by design), and the pre-upload CSP baseline bug". The Actions API shows the capture failure for both runs' first attempts and no failed approval step. (Owner, Actions API)
+- **CI on `1bf6490` (#70's merge):** Milestone quality #472 ([run 37217545365](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37217545365)) failed once in browser shard 1/3, `[desktop] tests/help-page.spec.ts:66` ("questions open and close from the keyboard"). It was not re-run; the next merge's CI (#474, [run 37221318884](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37221318884), `d9b0807`) was green. Session U Part 4 investigates. (Actions API, CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result, and "live prices UNAVAILABLE (UNKNOWN)". (Owner)
+
+# Market coordinator redeploy — 2026-10-04, from `e336227`
+
+Recorded by Session U at the owner's request. The coordinator is published by hand with wrangler (ALPHA_PRICES_ROLLOUT step 2), so there is no Actions run.
+
+Evidence label: **Owner:** reported in the Session U brief, 2026-10-04. This session did not contact Cloudflare.
+
+- **Worker:** `zigoals-acctest-market-coordinator`, redeployed from `e336227` (Sessions R1 and S market code). (Owner)
+- **New version:** `4754e86f-42c2-4ea3-8373-3c0a7031036b`. **Rollback:** `7bc0f566-3518-4630-aa38-039b46acebaf`. (Owner)
+- **Role:** it holds the only CoinGecko key. It serves both the public Alpha (`MARKET_QUOTES` → `QuoteService`, durable mode `durable-v1`) and the acceptance app, with one shared budget. (Owner)
+- **Policy:** the `MARKET_POLICY` window ends **2026-10-31 16:00 UTC**; `dailyRowBudget` is the default 20,000. (Owner)
+
+# Alpha deploy #27 — 2026-10-04 afternoon, `f642452` live
+
+Recorded by Session U at the owner's request.
+
+Evidence labels: as for deploy #28 above (Actions API, CI log, evidence artifact `alpha-deployment-37206888209-1`, Owner).
+
+- **Run:** Manual Alpha deployment #27, [run 37206888209](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37206888209), 2026-10-04 13:47–13:55 UTC, one attempt. Result **success**, `VERIFIED`. (Actions API, evidence artifact)
+- **Source:** `f642452c3d18bcec9b837de8ddec1ded5990a40d`, `main` after [#68](https://github.com/reyals1111-ux/ZIGoals/pull/68) (Session P PR 2: ADR-006 option A2, timezone phase 3 read support, the read-only sync homes). (Actions API, git)
+- **Live Alpha:** new version `98755815-f27e-439d-86ad-c3f8ddb50a7c`; the last observed live version is the same. **Rollback:** `67e75540-62d6-4b93-8dd8-39cb7910c69c` (deploy #26). (Evidence artifact)
+- **CI on `f642452`:** Milestone quality #469 ([run 37205780199](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37205780199)): success on attempt 1. (Actions API)
+- **The T4 clock started here (2026-10-04):** timezone R1 read support is live. **Never roll back past R1 once a timezone-R2 build has been live** ([TIMEZONE_DESIGN.md](product/TIMEZONE_DESIGN.md), T4). (Owner, TIMEZONE_DESIGN)
+
+# Apex landing deploy — 2026-10-04 afternoon, Landing V5.1 (`da6b52d`) live on zigoals.app
+
+A separate record from the Alpha deploy numbering: the apex Worker `zigoals` is published by hand. Recorded by Session U at the owner's request.
+
+Evidence labels:
+- **Owner:** reported in the Session U brief, 2026-10-04.
+- **Session U header read:** one unauthenticated `curl -sSI https://zigoals.app/` (a HEAD request) on 2026-10-04 at 21:29 UTC.
+- **git:** read by Session U.
+
+- **Deploy:** by the owner per [LANDING.md](deployment/LANDING.md), live 2026-10-04 at 13:37 UTC. (Owner)
+- **Source:** `landing/` at `da6b52d` (`main` after #66). Against V5 (`d439dc9`) it adds a lighter hero mark image with a preload, and `workers_dev`/`preview_urls` set to `false` (Session R1 Part 3). `landing/` is unchanged from `da6b52d` to `e336227`. (Owner, git)
+- **Live apex:** Worker `zigoals`, version `a37cf208-058e-4a4d-aa37-dfb849d7b48d`. **Rollback:** `6b6dad3f-9ac2-4e40-bb9c-d020abb2d560` (V5), so the chain holds. (Owner, STATUS)
+- **Owner checks:** 200 with all headers; `/_headers` answers 404; no HSTS (Session Q, Low). (Owner)
+- **Session U header read:** 200 with `content-security-policy`, `cross-origin-opener-policy`, `permissions-policy`, `referrer-policy`, `x-content-type-options` and `x-frame-options`; no `strict-transport-security`. (Session U header read)
+
+# Alpha deploy #26 — 2026-10-04 afternoon, `da6b52d` live
+
+Recorded by Session U at the owner's request.
+
+Evidence labels: as for deploy #28 above (Actions API, CI log, evidence artifact `alpha-deployment-37205142810-1`, Owner).
+
+- **Run:** Manual Alpha deployment #26, [run 37205142810](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37205142810), 2026-10-04 13:18–13:24 UTC, one attempt. Result **success**, `VERIFIED`. (Actions API, evidence artifact)
+- **Source:** `da6b52db2cdfd52082c66a13dbf5c5107eb35e83`, `main` after [#66](https://github.com/reyals1111-ux/ZIGoals/pull/66). Since deploy #25's source it carries [#69](https://github.com/reyals1111-ux/ZIGoals/pull/69) (`8bcf0b7`, Session R1) and the documents-only [#65](https://github.com/reyals1111-ux/ZIGoals/pull/65) and [#67](https://github.com/reyals1111-ux/ZIGoals/pull/67). (Actions API, git)
+- **Live Alpha:** new version `67e75540-62d6-4b93-8dd8-39cb7910c69c`; the last observed live version is the same. **Rollback:** `aa6119b7-52c9-4992-9761-2cd795cc2431` (deploy #25), so the chain holds. (Evidence artifact)
+- **CI on `da6b52d`:** Milestone quality #467 ([run 37201230870](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37201230870)): attempt 1 failed only in browser shard 2/3, `[desktop] tests/unified-goals.spec.ts:66` ("failed Habit write retries without duplicating Goal or re-allocating reserved units"); the one re-run (attempt 2) was green. Session U Part 4 investigates the test. (Actions API, CI log, Owner)
+
 # Session S — Stage 8 readiness and live prices on the public Alpha (2026-10-04, [PR #71](https://github.com/reyals1111-ux/ZIGoals/pull/71), not merged or deployed)
 
 **Evidence labels:**
@@ -4118,7 +4204,25 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-03 afternoon for the [Alpha deploy #25](#alpha-deploy-25--2026-10-03-afternoon-3f116e9-live) record at the top of this file (recorded by Session P at the owner's request).
+Updated 2026-10-04 evening for the [Alpha deploy #28](#alpha-deploy-28--2026-10-04-evening-e336227-live) record at the top of this file (recorded by Session U at the owner's request).
+- Deployed source `e336227bd6aa80769642f4761971da46fcdd705b`, `main` after [PR #71](https://github.com/reyals1111-ux/ZIGoals/pull/71) (with #70 and #72). Verified: Actions API.
+- CI: Milestone quality #477 ([run 37227294438](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37227294438)) on `e336227`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 30 ([run 37228865289](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37228865289)), exact source `e336227`: success, `VERIFIED`. Verified: CI log (Actions API), evidence artifact.
+- Alpha Worker `zigoals-alpha`: live version `cd3552bd-9ec2-4570-8b04-a22b31e0032c`; rollback `98755815-f27e-439d-86ad-c3f8ddb50a7c` (deploy #27). Verified: CI log, evidence artifact; the owner's reported values are the same. Afterwards the owner deleted the app-side secret `COINGECKO_DEMO_API_KEY`, which made a secret-change version with the same code; its ID was not recorded (owner-reported). Live prices: UNAVAILABLE (UNKNOWN) in the deploy summary.
+
+Previous release identity (PR #68, 2026-10-04 afternoon, recorded by Session U):
+- Deployed source `f642452c3d18bcec9b837de8ddec1ded5990a40d`, `main` after [PR #68](https://github.com/reyals1111-ux/ZIGoals/pull/68). Verified: Actions API.
+- CI: Milestone quality #469 ([run 37205780199](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37205780199)) on `f642452`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #27 ([run 37206888209](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37206888209)), exact source `f642452`: success, `VERIFIED`. Verified: evidence artifact, Actions API.
+- Alpha Worker `zigoals-alpha`: version `98755815-f27e-439d-86ad-c3f8ddb50a7c`; rollback `67e75540-62d6-4b93-8dd8-39cb7910c69c` (deploy #26). Verified: evidence artifact. Timezone R1 read support went live with it (the T4 clock).
+
+Previous release identity (PR #66, 2026-10-04 afternoon, recorded by Session U):
+- Deployed source `da6b52db2cdfd52082c66a13dbf5c5107eb35e83`, `main` after [PR #66](https://github.com/reyals1111-ux/ZIGoals/pull/66) (with #69, #65 and #67). Verified: Actions API.
+- CI: Milestone quality #467 ([run 37201230870](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37201230870)) on `da6b52d`: success (attempt 2; attempt 1 failed once in `unified-goals.spec.ts:66`). Verified: Actions API, CI log.
+- Deployment: Manual Alpha deployment #26 ([run 37205142810](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37205142810)), exact source `da6b52d`: success, `VERIFIED`. Verified: evidence artifact, Actions API.
+- Alpha Worker `zigoals-alpha`: version `67e75540-62d6-4b93-8dd8-39cb7910c69c`; rollback `aa6119b7-52c9-4992-9761-2cd795cc2431` (deploy #25). Verified: evidence artifact.
+
+Previous release identity (PR #61, 2026-10-03 afternoon, recorded by Session P):
 - Deployed source `3f116e90a7b69c35ecb04031ca27b76f8c9d2d01`, `main` after [PR #61](https://github.com/reyals1111-ux/ZIGoals/pull/61). Verified: Actions API.
 - CI: Milestone quality #412 ([run 37132668348](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132668348)) on `3f116e9`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #25 ([run 37133884824](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37133884824)), exact source `3f116e9`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
