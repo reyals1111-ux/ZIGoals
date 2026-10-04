@@ -14,6 +14,9 @@ import {privateFileProblems} from './activation-check.mjs';
 export const OWNER_SCHEMA='zigoals-market-policy-owner/1';
 const OPERATIONS=['catalog','history','insights','token','rwa'];
 const DAY=86400000;
+/** The coordinator's default when the policy names no dailyRowBudget (DEFAULT_DAILY_ROW_BUDGET in
+ * apps/web/lib/server/market-client-limits.ts; market-policy.test.mjs keeps them equal). */
+export const DEFAULT_DAILY_ROWS=20000;
 // Provider limit pairs used only by repository test fixtures; a real plan never matches them exactly.
 export const FIXTURE_LIMITS=[[10,100],[20,100],[100,1000],[3,80]];
 const FIXTURE_KEYS=/^(LOCAL_TEST_NOW|ISOLATED_FIXTURE|status|unresolved_do_not_default|activation_prerequisites|proposed_policy)$/;
@@ -77,9 +80,11 @@ export function validateOwnerPolicy(owner,{now=Date.now()}={}){
  need(isInt(b.threshold)&&b.threshold<=100&&isInt(b.windowMs)&&b.windowMs<=3600000&&isInt(b.cooldownMs)&&isInt(b.maxCooldownMs)&&b.maxCooldownMs>=b.cooldownMs&&isInt(b.halfOpenProbes)&&b.halfOpenProbes<=8&&Object.keys(b).length===5,'coordinator.breaker must hold threshold (≤100), windowMs (≤3600000), cooldownMs, maxCooldownMs (≥cooldownMs) and halfOpenProbes (≤8).');
  const t=c.accountThrottle??{};
  need(isInt(t.distinctEndpoints,2)&&t.distinctEndpoints<=8&&isInt(t.windowMs)&&t.windowMs<=60000&&Object.keys(t).length===2,'coordinator.accountThrottle must hold distinctEndpoints (2 to 8) and windowMs (≤60000).');
+ // Session U Part 2d: rows the account object may write per UTC day. Optional: absent keeps the coordinator's default.
+ if(c.dailyRowBudget!==undefined)need(isInt(c.dailyRowBudget)&&c.dailyRowBudget>=1000&&c.dailyRowBudget<=10000000,`coordinator.dailyRowBudget must be 1000 to 10000000 rows a day, or absent for the default ${DEFAULT_DAILY_ROWS} (docs/run11/ALPHA_PRICES_ROLLOUT.md, dailyRowBudget advice).`);
  if(errors.length)return {errors};
  const pick=(n)=>({minute:o[n].minute,monthly:o[n].monthly});
- const policy={policy:{providerMinuteLimit:p.perMinuteLimit,providerMonthlyLimit:p.monthlyCredits,operating:pick('operating'),monitoringReserve:pick('monitoringReserve'),monitoringMaximum:pick('monitoringMaximum'),optionalCeiling:pick('optionalCeiling'),concurrent:o.concurrent,queueLimit:o.queueLimit,reservationMs:o.reservationMs,ownershipMs:o.ownershipMs},...period,quoteCost:costs.quote,...(Object.keys(operationCosts).length?{operationCosts}:{}),leaseMs:c.leaseMs,maxAttempts:c.maxAttempts,maxWorks:c.maxWorks,maxCacheBytes:c.maxCacheBytes,retryRetentionMs:c.retryRetentionMs,breaker:{threshold:b.threshold,windowMs:b.windowMs,cooldownMs:b.cooldownMs,maxCooldownMs:b.maxCooldownMs,halfOpenProbes:b.halfOpenProbes},accountThrottle:{distinctEndpoints:t.distinctEndpoints,windowMs:t.windowMs}};
+ const policy={policy:{providerMinuteLimit:p.perMinuteLimit,providerMonthlyLimit:p.monthlyCredits,operating:pick('operating'),monitoringReserve:pick('monitoringReserve'),monitoringMaximum:pick('monitoringMaximum'),optionalCeiling:pick('optionalCeiling'),concurrent:o.concurrent,queueLimit:o.queueLimit,reservationMs:o.reservationMs,ownershipMs:o.ownershipMs},...period,quoteCost:costs.quote,...(Object.keys(operationCosts).length?{operationCosts}:{}),leaseMs:c.leaseMs,maxAttempts:c.maxAttempts,maxWorks:c.maxWorks,maxCacheBytes:c.maxCacheBytes,retryRetentionMs:c.retryRetentionMs,breaker:{threshold:b.threshold,windowMs:b.windowMs,cooldownMs:b.cooldownMs,maxCooldownMs:b.maxCooldownMs,halfOpenProbes:b.halfOpenProbes},accountThrottle:{distinctEndpoints:t.distinctEndpoints,windowMs:t.windowMs},...(c.dailyRowBudget!==undefined?{dailyRowBudget:c.dailyRowBudget}:{})};
  return {errors:[],policy,enabled,disabled};
 }
 

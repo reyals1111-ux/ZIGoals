@@ -3,7 +3,8 @@ import {mkdtemp,copyFile,readFile,writeFile,stat,chmod} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {execFileSync,spawnSync} from 'node:child_process';
-import {validateOwnerPolicy,writeMarketPolicy,parseArgs,FIXTURE_LIMITS} from './market-policy.mjs';
+import {validateOwnerPolicy,writeMarketPolicy,parseArgs,FIXTURE_LIMITS,DEFAULT_DAILY_ROWS} from './market-policy.mjs';
+import {DEFAULT_DAILY_ROW_BUDGET} from '../../apps/web/lib/server/market-client-limits.ts';
 import {DurableMarketAccount} from '../../apps/web/lib/server/durable-market-account.ts';
 
 // Every figure here is fictional. Runs in a throwaway git repository with this checkout's .gitignore,
@@ -125,4 +126,22 @@ test('the CLI takes exactly two flags and fails without printing values',()=>{
  for(const argv of [[],['--owner-file','a'],['--owner-file','a','--out','b','--now','1'],['--out','b','--out','c']])expect(()=>parseArgs(argv)).toThrow('Usage');
  const run=spawnSync(process.execPath,['scripts/run11/market-policy.mjs','--owner-file','missing.market-policy.owner.json','--out','missing.market-policy.private.json'],{cwd:repo,encoding:'utf8'});
  expect(run.status).toBe(1);expect(run.stderr).toContain('missing');expect(run.stdout).toBe('');
+});
+
+// Session U Part 2d: the daily row budget (rows the account object writes per UTC day) is an owner choice.
+test('dailyRowBudget: the template keeps the default, 100000 reaches the coordinator, absent means the default',async()=>{
+ expect(DEFAULT_DAILY_ROWS).toBe(DEFAULT_DAILY_ROW_BUDGET);
+ expect(template.coordinator.dailyRowBudget).toBe(DEFAULT_DAILY_ROWS);
+ expect(validateOwnerPolicy(filled(),{now}).policy.dailyRowBudget).toBe(20000);
+ const raised=validateOwnerPolicy(filled(o=>{o.coordinator.dailyRowBudget=100000;}),{now});
+ expect(raised.errors).toEqual([]);expect(raised.policy.dailyRowBudget).toBe(100000);
+ const account=await coordinatorAccepts(raised.policy);
+ expect(await account.apply({action:'inspect'})).toMatchObject({ok:true,dailyRowBudget:100000});
+ const absent=validateOwnerPolicy(filled(o=>{delete o.coordinator.dailyRowBudget;}),{now});
+ expect(absent.errors).toEqual([]);expect('dailyRowBudget' in absent.policy).toBe(false);
+ expect(await (await coordinatorAccepts(absent.policy)).apply({action:'inspect'})).toMatchObject({dailyRowBudget:20000});
+});
+test.each([999,10000001,1.5,'100000',null,-1])('dailyRowBudget %s is refused by name, without the figure',value=>{
+ const {errors}=validateOwnerPolicy(filled(o=>{o.coordinator.dailyRowBudget=value;}),{now});
+ expect(errors).toHaveLength(1);expect(errors[0]).toMatch(/^coordinator\.dailyRowBudget must be 1000 to 10000000 rows a day, or absent for the default 20000/);
 });
