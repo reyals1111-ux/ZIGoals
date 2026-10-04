@@ -155,3 +155,32 @@ test('an older scan cannot attach its stopped stream after a newer scan starts',
  await page.evaluate(()=>(window as unknown as {barcodeTestState:{release:()=>void}}).barcodeTestState.release());
  await expect.poll(()=>page.evaluate(()=>{const state=(window as unknown as {barcodeTestState:{current:MediaStream}}).barcodeTestState;return document.querySelector<HTMLVideoElement>('video[aria-label="Barcode camera preview"]')?.srcObject===state.current;})).toBe(true);
 });
+// Session U Part 3: a 429 waits exactly the food Worker's retryAfter; nothing retries by itself.
+test('a lookup answered 429 is disabled for its retryAfter with a plain countdown, then announced as available',async({page})=>{
+ let calls=0;await page.route('**/api/food-lookup?*',route=>{calls++;return route.fulfill({status:429,headers:{'Retry-After':'3'},json:{error:'TRY_LATER',retryAfter:3}});});
+ await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
+ await area.getByLabel('Product barcode',{exact:true}).fill('00001234');const button=area.getByRole('button',{name:'Look up barcode',exact:true});await button.click();
+ await expect(area.getByRole('status')).toHaveText('Lookup is cooling down. You can look up again in 3 s. Your private food library still works.');
+ await expect(button).toBeDisabled();await expect(area.getByText(/^Available again in [1-3] s$/)).toBeVisible();
+ await expect(button).toBeEnabled({timeout:7000});await expect(area.getByRole('status')).toHaveText('Lookup is available again.');
+ expect(calls).toBe(1);
+});
+// Session U Part 3: a blocked or refused live camera offers one photo of the label instead, decoded on the device.
+test('a refused camera offers a photo of the barcode, decoded on the device; nothing is sent until Look up',async({page})=>{
+ await page.addInitScript(()=>{
+  class Detector{static async getSupportedFormats(){return ['ean_13','ean_8','upc_a'];}async detect(source:unknown){return source instanceof ImageBitmap?[{rawValue:'0034000470693'}]:[];}}
+  Object.defineProperty(window,'BarcodeDetector',{value:Detector,configurable:true});
+  Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{throw new DOMException('Permission denied','NotAllowedError');}});
+ });
+ let calls=0;await page.route('**/api/food-lookup?*',route=>{calls++;return route.fulfill({status:404,json:{error:'NOT_FOUND'}});});
+ await page.goto('/app/health');await page.getByText('Scan or look up a food barcode',{exact:true}).click();const area=page.getByRole('region',{name:'Barcode food lookup'});
+ await expect(area.getByLabel('Or take a photo of the barcode')).toHaveCount(0);
+ await area.getByRole('button',{name:'Scan barcode',exact:true}).click();await expect(area).toContainText('Camera permission was denied');
+ const input=area.getByLabel('Or take a photo of the barcode');await expect(input).toHaveAttribute('capture','environment');await expect(input).toHaveAttribute('accept','image/*');
+ // A 1×1 PNG stands in for the photo; the stand-in decoder reads a barcode from any image.
+ await input.setInputFiles({name:'label.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==','base64')});
+ await expect(area.getByRole('status')).toHaveText('Barcode read from the photo on this device. Select Look up barcode to send only the code.');
+ await expect(area.getByLabel('Product barcode',{exact:true})).not.toHaveValue('');expect(calls).toBe(0);
+ await input.setInputFiles({name:'notes.txt',mimeType:'text/plain',buffer:Buffer.from('not an image')});
+ await expect(area.getByRole('status')).toHaveText('No barcode could be read from this photo. Try a closer, sharper photo, or type the code below.');expect(calls).toBe(0);
+});
