@@ -88,7 +88,7 @@ test('erase refuses a wrong typed account or digest, a missing terminal, and a c
  const deleted=async()=>{const h=launcher(persist),admin=await h.launch({token:'x'.repeat(43)});try{return (await (await lifecycle(h.state.mf)).fetch('https://internal/account')).json();}finally{await admin.stop();}};
  const attempt=async answers=>{const file=join(await outside(),'e.json'),h=launcher(persist),c=cli(root,h.launch,typeof answers==='function'?answers(file,h):answers);await expect(c.run(['erase','--account',account,'--out',file])).rejects.toThrow(/Nothing was erased/);c.assertPrivate();return file;};
  await attempt(['dddddddd-dddd-4ddd-8ddd-dddddddddddd','0'.repeat(64)]);
- await attempt(file=>[account,async()=>'1'.repeat(64)]);
+ await attempt([account,async()=>'1'.repeat(64)]);
  await attempt([undefined,undefined]);
  // Between the export and the erase, another section deletion lands: the export is no longer the latest state.
  await attempt((file,h)=>[account,async()=>{const res=await (await lifecycle(h.state.mf)).fetch('https://internal/account',{method:'POST',headers:{'x-verified-account':account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:'finance',generation:0,operation:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'})});expect(res.status).toBe(200);return JSON.parse(await readFile(file,'utf8')).digest;}]);
