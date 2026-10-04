@@ -10,7 +10,7 @@ import {WeeklyReviewDialog} from './weekly-review-dialog';
 import './weekly-review.css';
 
 /** Today's "Your week" card (G1): due or a draft; it opens the review, or skips the week with one tap. */
-export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial, formatWealth, onDone}: {store: WeeklyReviewStore; weekStart: string; weekEnd: string; summary: () => WeekSummary; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string; onDone?: (status: string) => void}) {
+export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial, formatWealth, onDone, guideNote}: {store: WeeklyReviewStore; weekStart: string; weekEnd: string; summary: () => WeekSummary; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string; onDone?: (status: string) => void; guideNote?: string}) {
   const [open, setOpen] = useState(false); const [error, setError] = useState('');
   const state = reviewState(store.data, weekStart);
   if (state === 'done' || state === 'skipped') return null;
@@ -24,7 +24,7 @@ export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial,
       <div className="actions"><button type="button" className="primary" onClick={() => setOpen(true)}>{state === 'draft' ? 'Continue' : 'Start review'}</button><button type="button" className="quiet" onClick={() => act(current => skipReview(current, weekStart), 'Skipped this week.')}>Skip this week</button></div>
       {error && <p role="alert">{error}</p>}
     </section>
-    {open && <WeeklyReviewDialog weekStart={weekStart} weekEnd={weekEnd} summary={summary()} review={reviewFor(store.data, weekStart)} financial={financial} formatWealth={formatWealth}
+    {open && <WeeklyReviewDialog weekStart={weekStart} weekEnd={weekEnd} summary={summary()} review={reviewFor(store.data, weekStart)} financial={financial} formatWealth={formatWealth} guideNote={guideNote}
       onSaveNotes={(notes: Partial<Record<ReviewNoteField, string>>) => { store.update(current => saveReviewNotes(current, weekStart, notes)); }}
       onFinish={notes => { store.update(current => finishReview(saveReviewNotes(current, weekStart, notes), weekStart)); setStatus('Review saved on this device.'); }}
       onClose={() => setOpen(false)} />}

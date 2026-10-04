@@ -175,6 +175,23 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Pass:** the phone shows the automatic check-in as an ordinary check-in (the "Done automatically" badge appears only on the desktop, where the rule lives), the planned skip (◌ on that day), the Gold holding ("Needs valuation") and the imported meal. The phone offers none of the desktop's health goals, weekly review, fasting session or insight cards: those stay on each device for now.
 - **Record:** pass or fail per record kind. Never the file contents.
 
+**15b. Push reminder with the app closed (C5; only after [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–5) · about 10 min.**
+- **Before:** do it outside the quiet hours (22:00–07:00 on the phone, by default), signed in on the Home Screen app.
+- **Do:**
+  1. In the Home Screen app, open Settings → "Reminders when closed". The panel "Reminders on this phone, even when ZIGoals is closed." says "Off." Choose "Turn on on this device" and allow notifications when iOS asks.
+  2. Read: "Reminders while ZIGoals is closed are on for this device." and the state line "On · reminder times checked today."
+  3. In Health → Water, set "Reminder time — on this device" to two minutes from now and choose "Save reminder time" ("Water reminder set for HH:MM on this device."). The app sends the new time to the server by itself.
+  4. Close the app fully from the app switcher and wait for the time.
+  5. The notification arrives: "ZIGoals", "A reminder from ZIGoals", nothing else. Tap it.
+  6. Afterwards: Settings → "Reminders when closed" → "Turn off and delete from the server".
+- **Pass:**
+  - one notification, at the set minute (the Worker sends up to 10 minutes late, never later);
+  - tapping it opens the app on Today, where the usual water reminder card is;
+  - no second notification for the same reminder;
+  - after step 6: "Turned off. Nothing about this device is kept on the server." and the state line "Off."
+- **Record:** pass or fail per line; the iOS version; how many minutes after the set time it arrived; and, if the app happened to be open at a reminder time, whether iOS showed the banner then (ADR-010 lists this as not verified). Never the push address, the Worker's host name or the account.
+- **If nothing arrives:** the troubleshooting table in [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) (quiet hours, the 10-minute rule, the 30-day prune, the keys comparison). Don't retry more than once before reading it.
+
 ## Part 5: providers (Desktop A) · about 15 min
 **15. One real market refresh (C4).**
 - **Do:**

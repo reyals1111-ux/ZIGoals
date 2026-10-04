@@ -113,6 +113,63 @@ export function checkAdmin(root,{required=true}={}){
  if(errors.length)throw Error(errors.join('\n'));
  return 'PASS: the recovery admin copy is an ignored 0600 local-only config (no routes, workers.dev, preview URLs or triggers) with one remote ADMIN binding to the private lifecycle Worker; no other config binds the entrypoint. Values not printed.';
 }
+// ADR-010 (Session P, PR 4): the push reminders Worker lives outside the six-Worker topology above. Its template and
+// private copy are checked only by `--push`; CONFIGS, `--private`, `--admin` and `--source` are untouched by it.
+export const PUSH_CONFIG='workers/push-reminders/wrangler.local.jsonc';
+const PUSH_BINDING=['PUSH_ACCOUNTS','PushAccount'],PUSH_VARS=['AUTH_ORIGIN','APP_ORIGIN','VAPID_SUBJECT'],PUSH_OPTIONAL_VARS=['PUSH_ALLOWED_HOSTS'];
+const PUSH_HOST=/^(\*\.)?[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?)+$/;
+/** What the push template and its private copy must both satisfy. Messages name fields, never values. */
+function pushProblems(c,kind){
+ const errors=[],vars=c?.vars??{};
+ if(c?.main!=='worker.mjs')errors.push(kind+': main must be worker.mjs.');
+ if(c?.compatibility_date!=='2026-09-13')errors.push(kind+': reviewed compatibility date required.');
+ if(!c?.durable_objects?.bindings?.some(b=>b.name===PUSH_BINDING[0]&&b.class_name===PUSH_BINDING[1])||!c?.migrations?.some(m=>m.new_sqlite_classes?.includes(PUSH_BINDING[1])))errors.push(kind+': SQLite binding/migration missing.');
+ if(c?.services||c?.queues||c?.kv_namespaces||c?.r2_buckets||c?.d1_databases||c?.triggers||c?.tail_consumers)errors.push(kind+': only the PushAccount object; no other binding or trigger.');
+ if(c?.observability?.enabled!==false)errors.push(kind+': request logging must stay disabled.');
+ if(c?.preview_urls!==false)errors.push(kind+': preview URLs must stay disabled.');
+ if(c?.account_id)errors.push(kind+': no account id in a config.');
+ if(Object.keys(vars).some(k=>/key|secret|token|password/i.test(k)))errors.push(kind+': credential values do not belong in configs (use wrangler secret put).');
+ if('ISOLATED_FIXTURE' in vars)errors.push(kind+': the test clock var must never be configured.');
+ for(const name of PUSH_VARS)if(typeof vars[name]!=='string'||!vars[name])errors.push(kind+': '+name+' is required.');
+ for(const name of Object.keys(vars))if(!PUSH_VARS.includes(name)&&!PUSH_OPTIONAL_VARS.includes(name)&&!/key|secret|token|password/i.test(name))errors.push(kind+': unexpected var '+name+'.');
+ if(typeof vars.VAPID_SUBJECT==='string'&&!/^(mailto:[^\s@]+@[^\s@]+|https:\/\/[^\s/]+)$/.test(vars.VAPID_SUBJECT))errors.push(kind+': VAPID_SUBJECT must be a mailto: address or an https origin.');
+ if(vars.PUSH_ALLOWED_HOSTS!==undefined&&(typeof vars.PUSH_ALLOWED_HOSTS!=='string'||vars.PUSH_ALLOWED_HOSTS.split(',').map(v=>v.trim().toLowerCase()).filter(Boolean).some(h=>!PUSH_HOST.test(h))))errors.push(kind+': PUSH_ALLOWED_HOSTS must list exact hosts or *.suffix patterns.');
+ if(JSON.stringify(c??{}).includes('LifecycleRecoveryAdmin'))errors.push(kind+': must not bind the recovery admin entrypoint.');
+ return errors;
+}
+/** The committed push template: an isolated, nonpublic target with placeholder origins. */
+export function validatePushTemplate(c){
+ const errors=pushProblems(c,'push template');
+ if(c?.name!=='zigoals-push-reminders-local')errors.push('push template: isolated nonpublic name required.');
+ if(c?.workers_dev!==false||c?.routes||c?.route)errors.push('push template: isolated nonpublic target required.');
+ return errors;
+}
+/** The owner's private push copy against the template and, when present, the private app and sync copies of Stage 4. */
+export function validatePushPrivateCopy(copy,template,{app,sync}={}){
+ const errors=pushProblems(copy,'push'),vars=copy?.vars??{};
+ if(!/^[a-z][a-z0-9-]{2,62}$/.test(copy?.name??'')||/-local$/.test(copy.name)||copy.name==='zigoals-alpha'||!copy.name.endsWith('-push-reminders'))errors.push('push: the name must end in -push-reminders and be neither a template nor the Alpha name.');
+ if(app){const prefix=String(app.name??'').replace(/-run11$/,'');if(!prefix||copy?.name!==prefix+'-push-reminders')errors.push('push: the name must share the reviewed prefix of the app Worker.');}
+ else errors.push('push: the private app copy is missing (Stage 4 first).');
+ for(const field of ['main','compatibility_date','compatibility_flags','durable_objects','migrations','preview_urls','observability','limits'])if(!same(copy?.[field],template?.[field]))errors.push('push: '+field+' differs from the reviewed template.');
+ for(const [name,value]of Object.entries(vars))if(typeof value!=='string'||PLACEHOLDER.test(value))errors.push('push: '+name+' is still a placeholder.');
+ for(const name of ['AUTH_ORIGIN','APP_ORIGIN'])if(!exactHttps(vars[name]))errors.push('push: '+name+' must be an exact https origin.');
+ if(sync){if(vars.AUTH_ORIGIN!==sync.vars?.AUTH_ORIGIN)errors.push('push: AUTH_ORIGIN must match private sync.');if(vars.APP_ORIGIN!==sync.vars?.APP_ORIGIN)errors.push('push: APP_ORIGIN must match private sync.');}
+ else errors.push('push: the private sync copy is missing (Stage 4 first).');
+ const routes=Array.isArray(copy?.routes)?copy.routes:copy?.route?[copy.route]:[];
+ const named=routes.length>0&&routes.every(r=>r&&typeof r==='object'&&typeof r.pattern==='string'&&/^[a-z0-9.-]+(\/.*)?$/.test(r.pattern)&&(r.custom_domain===true||typeof r.zone_name==='string'));
+ if(!(copy?.workers_dev===true?routes.length===0:copy?.workers_dev===false&&named))errors.push('push: exactly one public address: a route on your zone (custom_domain or zone_name, no wildcard) with workers_dev false, or workers_dev true without routes.');
+ return errors;
+}
+/** `--push`: the template, the ignored 0600 private copy inside the checkout, and its consistency with Stage 4's copies. */
+export function checkPush(root){
+ const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8'));
+ const templateErrors=validatePushTemplate(read(PUSH_CONFIG));if(templateErrors.length)throw Error(templateErrors.join('\n'));
+ const path=privatePath(PUSH_CONFIG),problems=privateFileProblems(root,path).map(x=>path+': '+x);if(problems.length)throw Error(problems.join('\n'));
+ const present=p=>existsSync(resolve(root,privatePath(p)))?read(privatePath(p)):undefined;
+ const errors=[...validatePushPrivateCopy(read(path),read(PUSH_CONFIG),{app:present(CONFIGS.app),sync:present(CONFIGS.private)}),...strayAdminBindings(root)];
+ if(errors.length)throw Error(errors.join('\n'));
+ return 'PASS: the push template is isolated; the private push copy is an ignored 0600 file with the app Worker\'s prefix, exact https origins matching private sync, no placeholders, no credentials, no test clock, the reviewed object class and date, and exactly one public address. Values not printed.';
+}
 function checkPrivate(root){
  const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),problems=[];
  for(const path of Object.values(CONFIGS))for(const problem of privateFileProblems(root,privatePath(path)))problems.push(privatePath(path)+': '+problem);
@@ -123,10 +180,11 @@ function checkPrivate(root){
  console.log(checkAdmin(root,{required:false}));
 }
 function main(){
+ if(process.argv.length===3&&process.argv[2]==='--push'){console.log(checkPush(resolve(dirname(fileURLToPath(import.meta.url)),'../..')));return;}
  if(process.argv.length===3&&process.argv[2]==='--private'){checkPrivate(resolve(dirname(fileURLToPath(import.meta.url)),'../..'));return;}
  if(process.argv.length===3&&process.argv[2]==='--admin'){console.log(checkAdmin(resolve(dirname(fileURLToPath(import.meta.url)),'../..')));return;}
  const args=process.argv.slice(2),dry=args.includes('--dry-run'),index=args.indexOf('--source'),source=index>=0?args[index+1]:undefined;
- if(!source||!/^[a-f0-9]{40}$/.test(source)||args.some((a,i)=>a!=='--dry-run'&&a!=='--source'&&i!==index+1)){console.error('Usage: node scripts/run11/activation-check.mjs --source <exact-commit> [--dry-run] | --private | --admin');process.exitCode=2;return;}
+ if(!source||!/^[a-f0-9]{40}$/.test(source)||args.some((a,i)=>a!=='--dry-run'&&a!=='--source'&&i!==index+1)){console.error('Usage: node scripts/run11/activation-check.mjs --source <exact-commit> [--dry-run] | --private | --admin | --push');process.exitCode=2;return;}
  const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
  if(head!==source||spawnSync('git',['merge-base','--is-ancestor','3ca2f42303724ef1317aded6982c9fdd6fd8775d',head],{cwd:root}).status!==0)throw Error('Source must match HEAD and retain the verified preparation ancestor.');
  const configs=Object.fromEntries(Object.entries(CONFIGS).map(([k,p])=>[k,JSON5.parse(readFileSync(resolve(root,p),'utf8'))])),errors=[...validateTopology(configs),...validateAdminConfig(JSON5.parse(readFileSync(resolve(root,ADMIN_CONFIG),'utf8')),JSON5.parse(readFileSync(resolve(root,ADMIN_CONFIG),'utf8')),configs.lifecycle.name),...strayAdminBindings(root)];

@@ -14,6 +14,14 @@ test("production policy has per-request unpredictable nonces and exact connectio
   expect(a.csp).not.toMatch(/https:;|ws:|\*/);
   expect(a.csp).toContain("connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com");
   expect(a.csp).toContain("frame-ancestors 'none'");
+  expect(a.csp).toContain("worker-src 'self'");
+});
+test("the push service worker is push-only: no fetch handler, no cache, no storage, no imported scripts", () => {
+  const worker = readFileSync(new URL("../public/push-sw.js", import.meta.url), "utf8");
+  expect(worker).toContain("addEventListener('push'");
+  expect(worker).toContain("addEventListener('notificationclick'");
+  expect(worker).not.toMatch(/addEventListener\(\s*['"]fetch['"]|importScripts|caches\b|indexedDB|localStorage|XMLHttpRequest|\bfetch\(/);
+  expect(worker).toContain("'A reminder from ZIGoals'");
 });
 test("safe diagnostics whitelist enums and identities, ignoring adversarial and private values", () => {
   const text = diagnosticSummary({ environment: "PUBLIC_ALPHA_UNDEPLOYED", version:"0.1.0", commit:"a".repeat(40), scope:"local", rpc:"healthy", rest:"unavailable", checkedAt:"2026-09-13T12:00:00.000Z", owner:"PRIVATE_ACCOUNT", error:"RAW_ERROR", metadata:"PRIVATE_PLAN" } as Parameters<typeof diagnosticSummary>[0]);

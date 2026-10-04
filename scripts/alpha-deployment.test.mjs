@@ -255,7 +255,7 @@ test("a different live version cannot be reported as this run's deployment", asy
 function htmlResponse(nonce = "A".repeat(43) + "=",path="/app") {
   return new Response(`<html>YOUR FINANCIAL ORBIT Local Demo PUBLIC_ALPHA_UNDEPLOYED ${sha}<script nonce="${nonce}">x()</script></html>`, { headers: {
     "content-type": "text/html", "cache-control": "private, no-store, max-age=0",
-    "content-security-policy": `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests`,
+    "content-security-policy": `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests`,
     "strict-transport-security": "max-age=31536000, max-age=31536000",
     "x-frame-options": "DENY", "x-content-type-options": "nosniff", "x-robots-tag": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
     "referrer-policy": "no-referrer", "permissions-policy": `${path==='/app/health'?'camera=(self)':'camera=()'}, microphone=(), geolocation=()`,

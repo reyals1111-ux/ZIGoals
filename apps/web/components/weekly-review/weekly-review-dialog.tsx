@@ -4,6 +4,8 @@ import type {WeekSummary} from '../../lib/weekly-review/engine';
 import {REVIEW_NOTE_FIELDS, type Review, type ReviewNoteField} from '../../lib/weekly-review/schema';
 import {formatNumber} from '../../lib/visual-format';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
+import {GUIDE_LABEL} from '../../lib/coach/copy';
+import '../coach/guide.css';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import './weekly-review.css';
 
@@ -26,9 +28,9 @@ export function reviewSteps(summary: WeekSummary, financial: boolean, formatWeal
  * The weekly review (G1): a sheet on phones, a dialog elsewhere. Every field is optional; the typed words are saved
  * on each "Next" and on "Close" (a draft); "Finish review" completes the week.
  */
-export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financial, formatWealth, onSaveNotes, onFinish, onClose}: {
+export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financial, formatWealth, onSaveNotes, onFinish, onClose, guideNote}: {
   weekStart: string; weekEnd: string; summary: WeekSummary; review: Review | undefined; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string;
-  onSaveNotes: (notes: Partial<Record<ReviewNoteField, string>>) => void; onFinish: (notes: Partial<Record<ReviewNoteField, string>>) => void; onClose: () => void;
+  onSaveNotes: (notes: Partial<Record<ReviewNoteField, string>>) => void; onFinish: (notes: Partial<Record<ReviewNoteField, string>>) => void; onClose: () => void; /** The Guide's paragraph for the last step (ADR-011), only while the Guide is on. */ guideNote?: string;
 }) {
   const phone = usePhoneActive(), steps = reviewSteps(summary, financial, formatWealth);
   const [index, setIndex] = useState(0); const [error, setError] = useState('');
@@ -42,6 +44,7 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
     <p className="weekly-review-step">Step {index + 1} of {steps.length}</p>
     <h3 ref={heading} tabIndex={-1}>{step.title}</h3>
     <div className="weekly-review-summary">{step.lines.map((line, i) => <p key={i}>{line}</p>)}{step.fine && <p className="fine">{step.fine}</p>}</div>
+    {index === steps.length - 1 && guideNote && <div className="weekly-review-guide" role="note" aria-label="Guide"><p className="eyebrow">{GUIDE_LABEL}</p><p>{guideNote}</p></div>}
     <label className="field">Your words, if you like<textarea rows={3} maxLength={2000} value={notes[step.field] ?? ''} placeholder={step.placeholder ?? 'Your words, if you like'} onChange={event => setNotes({...notes, [step.field]: event.target.value})} /></label>
     {error && <p role="alert">{error}</p>}
     <div className="actions weekly-review-actions">

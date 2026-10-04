@@ -1,3 +1,86 @@
+# Session P (PR 4) — [Tier 3] push reminders (ADR-010) and the Guide, phase 1 (ADR-011) (2026-10-04, [PR #72](https://github.com/reyals1111-ux/ZIGoals/pull/72))
+
+**Evidence labels**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the four brand-film specs fail here and pass in CI, as in every session since L), Miniflare for the push Worker, WebCrypto for the RFC vectors.
+- **CI:** Milestone quality and Canonical reproducibility on the PR, read through the Actions API.
+- **source:** rfc-editor.org (RFC 8030, 8188, 8291 with its Appendix A vectors, 8292 with its §2.4 example; read 2026-10-03 and 2026-10-04), Apple's "Sending web push notifications in web apps and browsers" and the Safari 16.4 notes, the Chromium source (push_messaging_constants.cc), Microsoft Learn (the Edge policy ForceBuiltInPushMessagingClient and the WNS overview), Mozilla's autopush documentation, the AI Act text on EUR-Lex (all read 2026-10-03 or 2026-10-04; URLs in the ADRs).
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added (WebCrypto and `fetch` only). The six activation Workers' runtime, the sync wire protocol, stored synced formats, wallet and contract code are untouched. **Nothing in this PR is active in any build until the owner follows docs/run11/PUSH_ACTIVATION.md: every build answers 503 at `/api/push` and the Settings panel says "Not available in this build."; the Guide is off until a person turns it on.**
+
+**Base:** PR 3's branch `features/session-p-2026-10-03` (this PR's Guide card lives in PR 3's "For you" area), which carries `main` at `8bcf0b7` (#69). The PR's base on GitHub is PR 3's branch until #70 merges, then `main`. Branch `push-coach/session-p-2026-10-03`, the fourth of Session P's four PRs (merge order 1 → 2 → 3 → 4).
+
+## Parts
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 4.1 | ADR-010 (push) and ADR-011 (the Guide), with their implementation addenda | `dd91ca1` | docs/architecture |
+| 4.2a **[Tier 3] (new Worker)** | `workers/push-reminders` (worker, verify, hosts, clock, webpush, limits, the wrangler template), `scripts/push/make-vapid-keys.mjs`, the Miniflare fixture, the RFC and runtime tests | `45c0ae6` | local: push-webpush (7), push-clock (6 + 14 zones), push-runtime (9, Miniflare), make-vapid-keys (4) |
+| 4.2b **[Tier 3] (activation tooling)** | `activation-check.mjs --push` | `28d2ecc` | local: `activation-check-push.test.mjs` (35); `activation-check.test.mjs` and `activation-entries` unchanged and passing |
+| 4.2c **[Tier 3] (CSP)** | `worker-src 'self'`, `public/push-sw.js`, the pins (public-safety, public-alpha, the hosted smoke check and its test) | `f46b3eb` | local: public-safety.test.ts, alpha-deployment.test.mjs; CI |
+| 4.2d | `/api/push`, `lib/server/push-route.ts`, the shared session-cookie reader, `lib/push`, the Settings panel, the offer line, the reminder cards' refresh, the daily refresh, the device key | `7d8a3cb` | local: push-route (5), session-cookie (12, parity with the account route), `schedule.test.ts` (7), `support.test.ts` (4), `client.test.ts` (5); `tests/push-reminders.spec.ts` (4 tests, both projects: the build without push, signed out and Showcase, turn on → schedule → quiet hours → turn off, the iPhone tab and the locked account) |
+| 4.2e **[Tier 3] (auth/sync hooks)** | push data leaves with sign-out (this device), "Revoke other sessions" and deletion (the account) | `30c156b` | local: the account and sync unit suites unchanged in the full run below; CI's integration job on the PR |
+| 4.3 | The Guide: `lib/coach`, `components/coach`, Today's card, the review's paragraph, the Showcase | `50c02a4` | local: `guide.test.ts` (9, with the 14-day Showcase sequence), `copy.test.ts` (3), `store.test.ts` (3), `summary.test.ts` (2); `tests/guide.spec.ts` (5 tests, both projects: off by default, one note and "Not today", nothing written on view, the review's paragraph, the Showcase) |
+| 4.3b, 4.3c | Help, What's new, PUSH_ACTIVATION.md, the privacy, legal, cost and Stage 8 documents; the phone Settings list pin | `0c35122`, `50021a7` | |
+| merge | PR 3's gate fixes brought in | `1c32163` | |
+| 4.4 | Full gate, freeze check, CI, this entry | this commit | below |
+
+## Tier 3, in plain words
+1. **A new Worker** (`workers/push-reminders`), deployed separately by the owner, outside the six-Worker topology: it holds, per signed-in account, at most five devices' push addresses and keys, at most twenty reminder times with a zone and weekdays, quiet hours and counters; its alarm sends the one fixed encrypted message. Nothing runs until the owner activates it; rollback is deleting the Worker and its secrets.
+2. **Activation tooling:** `--push` checks the push template and the owner's private copy; `CONFIGS`, `--private`, `--admin` and `--source` are untouched and their tests pass unchanged.
+3. **The CSP** gains `worker-src 'self'` (a worker URL carries no nonce under `strict-dynamic`); the push-only service worker has no fetch handler, no cache and no storage, pinned by a test.
+4. **Auth/sync hooks:** one best-effort call ahead of sign-out, "Revoke other sessions" and deletion, made only on a device that holds a push record; the flows themselves are unchanged.
+
+## What the server never holds
+Times of day, an IANA zone, weekday masks, quiet hours, the browser's push address and its two keys, send marks and counters. Never a title, a count, a habit name or anything a person records. The payload is always the encrypted `{"v":1}`; the notification is always "A reminder from ZIGoals".
+
+## Today stays short on phones (owner addition 2)
+Measured at 390×844 as in PR 3 (`tests/today-screens.spec.ts`, printed by the spec on this branch's build):
+
+| Today | before PR 3 | with PR 3 | with PR 4 |
+|---|---|---|---|
+| Showcase (the Guide is on in the demo, its card is the one open "For you" card) | 10.13 screens | 11.02 | 11.07 |
+| seeded Local Demo with the "What's new" card (the Guide is off by default: no card) | 4.33 | 5.04 | 5.09 |
+| the same once "What's new" was dismissed | — | 4.74 | 4.74 |
+
+The Guide adds no card unless it is turned on; the one-time "What's new" card is two links longer (0.05 screens). The ceilings in the spec are unchanged (11.3 / 5.3 / 5.0).
+
+## Full gate (local, head `60c5128`)
+- `pnpm typecheck` (the app and the Workers config) and `pnpm lint`: clean.
+- `pnpm test` (root): 292 files passed, 15 skipped; 2,758 tests passed, 21 expected failures (PR 2's flips), 25 skipped. PR 4's share: 14 files, 125 tests (`push-webpush` 7, `push-clock` 20, `push-runtime` 9 in Miniflare, `activation-check-push` 35, `make-vapid-keys` 4, `session-cookie` 12, `push-route` 5, `schedule` 7, `support` 4, `client` 5, `guide` 9, `copy` 3, `store` 3, `summary` 2).
+- The branch's own specs on the production build, both projects: `push-reminders` and `guide` 18 passed; with `help-page`, `whats-new`, `phone-pages`, `today-screens`, `for-you`, `weekly-review` and `public-alpha`: 79 passed, 1 skipped, 80 tests in the nine files (after the three phone findings of `d314e26`; an earlier draft of this line said 92, which double-counted the re-run of the two fixed specs). On the tree merged with `main` after #70 (`a7b6078`): the same 79 passed and 1 skipped, unit 2,870 passed with the one expected failure (Z16), typecheck, lint and the build clean.
+- Full Playwright against the production build (`PUBLIC_ALPHA_UNDEPLOYED`, 2 workers, 42 min): 1,062 passed, 76 skipped, 6 failed: the four brand-film specs (H.264 is missing in this sandbox's Chromium; they pass in CI) and two 45 s timeouts under the full load, `run11-recovery-failures.spec.ts:22` (desktop, at the article after `page.reload`; the mobile twin is in the intermittents table) and `run9-2-product.spec.ts:30` (mobile, waiting for the contribution amount field in Quick add): alone, 6 of 6 (both tests on that line, three repeats) and 3 of 3 passed. Neither touches this PR's code; both passed on CI's run of this head.
+- CI's integration files that cover sign-out, account switching, lock, remember-device and the sync offer (the hooks of 4.2e), one at a time: with CI's environment and the production build on this branch: `account-browser` 2 passed, `account-switch-browser` 1, `stage8-rehearsal/lock-switch-browser` 1, `remember-device-browser` 2, `sync-offer-browser` 1 (every file alone; the full list runs in CI's integration job).
+- Today's screens: the table above.
+
+## CI
+- `60c5128`: Milestone quality [run 37173669889](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37173669889) green (checks, the three browser shards and the integration job, which runs the six-Worker activation checks and the Alpha package topology unchanged); Canonical reproducibility [run 37173669876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37173669876) green.
+- This commit: linked from the PR once green.
+
+## Freeze check (desktop and tablet, PR 3's build `54f0968` vs this branch at `60c5128`)
+154 captures (the same seven viewports, states and pages as PR 3's check), 0 page errors: 122 identical, 32 different, every one of them authorized: Settings in both states (the "Reminders when closed" and "Guide" chips, the panel and the Guide section), Help in both states (the two questions), Today in Showcase (the Guide card; the "What's new" card's two new links) and, at two viewports, the Quick add dialog capture only because the Today page behind the dialog carries those two links (the dialog itself is unchanged). The offer line under a reminder time appears only with a configured push route, so no freeze capture (every one answers 503) shows it; the browser spec covers it.
+
+## Authorized desktop and tablet differences (every one listed)
+- Settings: the chips "Reminders when closed" and "Guide"; the panel "Reminders on this phone, even when ZIGoals is closed." (its state line, the explanation of what the server gets, the quiet-hours form and the two buttons when available); the section "Guide on this device." with its switch.
+- Today (Showcase): the Guide's card in "For you"; the "What's new" card lists two more Help entries.
+- Health, Habits and Goals: the one-line offer under a reminder time field, only when the build has push and the device supports it.
+- The weekly review's last step: the Guide's paragraph while the Guide is on.
+- Help: the two questions "Can a reminder reach me when ZIGoals is closed?" and "What is the Guide, and what does it read?".
+
+## Open owner decisions
+- **Rule 5 ("push when closed, in-app when open"), ADR-010's reading:** the platforms do not allow a silent push (Safari revokes the permission; Edge shows a generic notification), so when the app is open the notification still shows and the app refreshes its reminder cards; never a second card or a second notification. Accept, or tell me what you prefer.
+- **Push-service hosts:** the four built-in hosts are verified on first-party pages; Chrome's non-Stable channels use `jmt17.google.com`, which is not built in (add it through `PUSH_ALLOWED_HOSTS` if a friend runs Chrome Beta).
+- **A service binding** from the app Worker to the push Worker (instead of its public address) would need an additive change to `make-private-configs.mjs`; a later owner decision.
+- **The Guide, phase 2:** the six questions at the end of ADR-011 ("Phase 2").
+- **This PR's base:** stacked on PR 3; after #70 merges I switch the base to `main` (nothing else to do for you).
+
+## What the owner must do
+- Merge order 1 → 2 → 3 → 4; after #70 merges I retarget this PR to `main`.
+- To activate push (optional, any time after this PR is live): docs/run11/PUSH_ACTIVATION.md, then Stage 8 row C5 (the iPhone), runsheet step 15b.
+- Nothing for the Guide: it is off until a person turns it on.
+
+## How the owner can review
+- Screenshots: branch `review/session-p-screenshots`, folder `pr4/` at `03824b6` (never merged), desktop 1280 px and iPhone 390 px: Today's Guide card (Showcase), Settings with the two new sections, the panel signed out / locked / off / on (a fixture account and a fixture push route, as in the spec), the offer line under a reminder time, Help's two questions.
+- Preview: `~/Documents/ZIGoals-Claude` → `git fetch origin` → `git checkout push-coach/session-p-2026-10-03` → `pnpm install --frozen-lockfile --ignore-scripts` → `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101` → http://127.0.0.1:3101/app → Settings → Load Showcase Demo (the Guide's card on Today; Settings → "Guide on this device" and "Reminders when closed", which says "Not available in this build" until push is activated).
+
 # Session P (PR 3) — friends-Alpha features: automatic check-ins, health goals, streak protection, the weekly review, a fasting timer, insight cards, CSV imports, export everything, the Quick-add line, "For you" and "What's new" (2026-10-04, [PR #70](https://github.com/reyals1111-ux/ZIGoals/pull/70))
 
 **Evidence labels**

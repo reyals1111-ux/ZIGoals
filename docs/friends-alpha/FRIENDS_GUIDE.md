@@ -53,7 +53,7 @@ You don't need backups to stay up to date. If you'd like an extra safety net, **
 
 ## 6. What's new (October 2026)
 
-Nine small things arrived together. All optional, all on your device, and none of them estimates, suggests or grades anything:
+Eleven small things arrived together. All optional, all on your device, and none of them estimates, suggests or grades anything:
 
 - **Habits that tick themselves off** from your Health journal (edit a habit → "Done automatically from Health").
 - **Health goals**: steps, water, an exercise counter, active minutes or your weight trend, counted from your own entries.
@@ -64,6 +64,8 @@ Nine small things arrived together. All optional, all on your device, and none o
 - **CSV imports** for transactions, holdings and meals, read on your device, with one-tap undo.
 - **Export everything**: one readable ZIP of all your records, any time, never needed.
 - **The Quick-add line**: type "drank 2 glasses of water", see exactly what will be saved, then Save.
+- **Reminders when ZIGoals is closed** (once accounts open, and only when we have switched it on): optional and per device, in Settings → Reminders when closed. On an iPhone it works only in the app on your Home Screen. The notification is always the same one sentence, "A reminder from ZIGoals", nothing more, and it is off until you turn it on. It is the only one of these that uses our server, which gets your reminder times and never what they are for.
+- **The Guide**: optional, in Settings → Guide on this device. Calm notes from your own records, made on this device with no AI service behind them, and never advice. "Not today" or "Turn off the Guide" is one tap.
 
 Each one has a Help entry under "What's new". Today shows a one-time "What's new" card once per device; dismiss it whenever you like.
 
