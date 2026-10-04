@@ -13,7 +13,8 @@ import {loadCacheValue,storeCacheValue,removeCacheValue,evictMarketWork,evictMar
 import {admitBreaker,emptyBreaker,type BreakerState} from './market-breaker';
 import {BufferedMarketStorage} from './market-storage-buffer';
 import {MARKET_CLIENT_GROUP} from './market-client-address';
-import {DEFAULT_DAILY_ROW_BUDGET,clientLimits,clientBucket,newClientKey,clientKeyRow,utcDay,dayRow,readDay,pruneDays,clientUsage,type ClientKey,type ClientLimits,type MarketDay} from './market-client-limits';
+import {assetRefusal,catalogIndexed,recordNotFound,writeCatalogIndex,type CatalogIds,type CatalogKind} from './market-catalog-guard';
+import {DEFAULT_DAILY_ROW_BUDGET,cancelQuota,clientLimits,clientBucket,newClientKey,clientKeyRow,utcDay,dayRow,readDay,pruneDays,clientUsage,type ClientKey,type ClientLimits,type MarketDay} from './market-client-limits';
 const uint=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),positive=uint.positive();
 const capacity=z.object({minute:uint,monthly:uint}).strict();
 const category=z.enum(['THROTTLED','UPSTREAM_5XX','TIMEOUT','NETWORK','AUTHENTICATION','ENTITLEMENT','MALFORMED','UNSUPPORTED','LOCAL_BUDGET','LOCAL_QUEUE','UNKNOWN']);
@@ -30,7 +31,7 @@ const member=z.number().int().min(0).max(63);
 const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('acquire'),work}).strict(),
  z.object({action:z.literal('follow'),work,waitMs:positive.max(1000),cancelToken:id.optional()}).strict(),
- z.object({action:z.literal('cancel-followers'),cancelToken:id}).strict(),
+ z.object({action:z.literal('cancel-followers'),cancelToken:id,client:client.optional()}).strict(),
  ...(['poll','forget'] as const).map(action=>z.object({action:z.literal(action),id}).strict()),
  z.object({action:z.literal('enqueue-read'),operation:chargedOperation,parentId:id.optional(),associations:z.array(association).min(1).max(64).optional()}).strict(),
  z.object({action:z.literal('enqueue'),priority:z.enum(['interactive','refresh','optional','monitoring']),kind:z.enum(['request','retry','fallback']),associations:z.array(association).min(1).max(64)}).strict(),
@@ -44,7 +45,7 @@ const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('acquire-many'),works:z.array(work).min(1).max(64),groups:z.array(z.object({charge,members:z.array(member).min(1).max(64)}).strict()).max(64).optional(),follow:z.object({waitMs:positive.max(1000),cancelToken:id.optional()}).strict().optional(),client:client.optional()}).strict(),
  z.object({action:z.literal('admit'),id}).strict(),
  z.object({action:z.literal('admit-group'),charge,associations:z.array(association).min(1).max(64),client:client.optional()}).strict(),
- z.object({action:z.literal('complete'),id,outcome:z.enum(['success','failure']),category:category.optional(),pairFailures:z.array(work).max(64).optional(),publish:z.array(z.object({work,value:z.unknown()}).strict()).max(64),fallback:z.literal(true).optional(),next:z.object({charge,associations:z.array(association).min(1).max(64)}).strict().optional()}).strict(),
+ z.object({action:z.literal('complete'),id,outcome:z.enum(['success','failure']),category:category.optional(),pairFailures:z.array(work).max(64).optional(),publish:z.array(z.object({work,value:z.unknown()}).strict()).max(64),fallback:z.literal(true).optional(),notFound:z.literal(true).optional(),next:z.object({charge,associations:z.array(association).min(1).max(64)}).strict().optional()}).strict(),
  z.object({action:z.literal('poll-many'),followers:z.array(z.object({id,work}).strict()).min(1).max(64),cancelToken:id.optional()}).strict(),
  z.object({action:z.literal('forget-many'),ids:z.array(id).min(1).max(64)}).strict(),
 ]);
@@ -61,7 +62,7 @@ class Run {
  private maintainedBudget?:BudgetState;
  readonly observations:Observation[]=[];
  readonly periods:{month:BudgetPeriod};readonly limits:ClientLimits;readonly rowBudget:number;
- constructor(readonly tx:BufferedMarketStorage,readonly config:Config,readonly now:number,readonly month:BudgetPeriod,private original:BudgetState,readonly bucket:string|undefined){
+ constructor(readonly tx:BufferedMarketStorage,readonly config:Config,readonly now:number,readonly month:BudgetPeriod,private original:BudgetState,readonly bucket:string|undefined,readonly catalogIds:Map<CatalogKind,CatalogIds>){
   this.periods={month};this.rowBudget=config.dailyRowBudget??DEFAULT_DAILY_ROW_BUDGET;this.limits=clientLimits(config,this.rowBudget);
  }
  /** Maintenance runs in the buffer for every command that reads budget state; it persists only with a commit. */
@@ -69,6 +70,8 @@ class Run {
  setBudget(state:BudgetState){this.maintainedBudget=state;}
  observe(row:Observation){this.observations.push(row);}
  async day():Promise<MarketDay>{return readDay(this.tx,utcDay(this.now));}
+ /** Why this cold work is refused before any lease or charge (market-catalog-guard.ts), or undefined. */
+ assetRefusal(work:PublicMarketWork){return assetRefusal(this.tx,work,this.now,this.catalogIds);}
 }
 /** Account authority shared by quote publication and all supported endpoint reads. Each
  * operation commits its budget/lease mutation before returning permission. There is
@@ -79,6 +82,8 @@ class Run {
 export class DurableMarketAccount {
  private telemetry:{row:Observation;at:number}[]=[];
  private key?:Promise<ClientKey&{stored:boolean}>;
+ /** Parsed catalog ID indexes, by their stored version (market-catalog-guard.ts). */
+ private catalogIds=new Map<CatalogKind,CatalogIds>();
  constructor(private storage:AtomicMarketStorage,private clock:()=>number,private rawConfig:string|undefined){}
  /** The day's client key, created in memory when absent and stored with the first commit that uses it. */
  private async clientKey(now:number):Promise<ClientKey&{stored:boolean}>{
@@ -101,7 +106,7 @@ export class DurableMarketAccount {
     const date=new Date(now),month=config.month??{id:date.toISOString().slice(0,7),start:Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1),end:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1)};
     if(!validTime(original,{month},now))return {ok:false,reason:'CLOCK_OR_PERIOD'};
     if(key&&key.day!==utcDay(now))return {ok:false,reason:'CLOCK_OR_PERIOD'};
-    const run=new Run(tx,config,now,month,original,bucket);
+    const run=new Run(tx,config,now,month,original,bucket,this.catalogIds);
     if(command.action==='inspect-metrics'){
      for(const entry of buffered)if(config.telemetry)await recordMarketTelemetry(tx,config.telemetry,entry.row,entry.at);
      const metrics=await readMarketTelemetry(tx,config.telemetry,now);
@@ -127,9 +132,17 @@ export class DurableMarketAccount {
   }catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}
  }
 }
+/** Session S: a new cancellation fence is a committed row, so it is bounded like other public work. It is refused with no
+ * write once the day's row budget is spent, or the day's fence quota, in all or for this client bucket (cancelQuota). */
+async function admitTombstone(run:Run):Promise<string|undefined>{
+ const day=await run.day();if(day.rows>=run.rowBudget)return 'DAILY_LIMIT';
+ const quota=cancelQuota(run.rowBudget),cancels=day.cancels??{n:0,buckets:{}},used=run.bucket?cancels.buckets[run.bucket]??0:0;
+ if(cancels.n>=quota.total||run.bucket&&used>=quota.client)return 'FOLLOWER_LIMIT';
+ await run.tx.put(dayRow(utcDay(run.now)),{...day,cancels:{n:cancels.n+1,buckets:run.bucket?{...cancels.buckets,[run.bucket]:used+1}:cancels.buckets}});
+}
 async function execute(run:Run,command:Command):Promise<Outcome>{
  const {tx,now}=run;
- if(command.action==='follow'||command.action==='poll'||command.action==='forget'||command.action==='cancel-followers'){const result=await followerCommand(tx,command,now);run.observe(observation(command,result));return {result,commit:'auto'};}
+ if(command.action==='follow'||command.action==='poll'||command.action==='forget'||command.action==='cancel-followers'){const result=await followerCommand(tx,command,now,command.action==='cancel-followers'?()=>admitTombstone(run):undefined);run.observe(observation(command,result));return {result,commit:'auto'};}
  if(command.action==='poll-many'){const followers=await pollFollowers(tx,command.followers,now,command.cancelToken);return {result:{ok:true,followers},commit:'auto'};}
  if(command.action==='forget-many')return {result:await forgetFollowers(tx,command.ids,now),commit:'auto'};
  if(command.action==='acquire')return acquireOne(run,command.work);
@@ -156,11 +169,12 @@ async function acquireOne(run:Run,item:PublicMarketWork):Promise<Outcome>{
  const {tx,now,config}=run,key=publicMarketWorkKey(item);let current=await tx.get<WorkState<unknown>>(`work:${key}`)??emptyWorkState<unknown>();
  let value=await storedEvidence(run,item,current);
  const done=(result:Record<string,unknown>,commit=false):Outcome=>{run.observe(observation({action:'acquire',work:item},result));return {result,commit};};
- if(current.evidence?.complete&&!workEvidenceStale(item,value,now))return done({ok:true,status:'CACHE_HIT',...evidenceOf(item,value)});
+ if(current.evidence?.complete&&!workEvidenceStale(item,value,now)&&await catalogIndexed(tx,item,current))return done({ok:true,status:'CACHE_HIT',...evidenceOf(item,value)});
  // Not a hit: maintenance may release an abandoned owner's lease, exactly as before.
  await run.budget();current=await tx.get<WorkState<unknown>>(`work:${key}`)??emptyWorkState<unknown>();value=await storedEvidence(run,item,current);
  const evidence=evidenceOf(item,value);
  if(await pairBlocked(tx,config.breaker,item,now))return done({ok:false,reason:'PAIR_BREAKER_OPEN',...evidence});
+ const refused=await run.assetRefusal(item);if(refused)return done({ok:false,reason:refused,...evidence});
  const index=await tx.get<string[]>('work-index')??[];
  const capacity=await evictMarketWork(tx,index,now,key,0,config.maxCacheBytes??16*1024*1024,config.maxWorks);if(!capacity.ok)return done({ok:false,reason:'CACHE_CAPACITY'});
  const next=acquireWork(current,crypto.randomUUID(),now,now+config.leaseMs,now+config.leaseMs);
@@ -177,7 +191,7 @@ async function acquireMany(run:Run,command:Extract<Command,{action:'acquire-many
  if(new Set(keys).size!==keys.length||groups.some(entry=>!chargeFits(entry.charge,entry.members.map(m=>works[m]!))))return {result:{ok:false,reason:'MALFORMED'},commit:false};
  const results:Record<string,unknown>[]=works.map(()=>({}));const pending:number[]=[];
  const states=await Promise.all(keys.map(async key=>await tx.get<WorkState<unknown>>(`work:${key}`)??emptyWorkState<unknown>()));
- for(const [i,item] of works.entries()){const value=await storedEvidence(run,item,states[i]!);if(states[i]!.evidence?.complete&&!workEvidenceStale(item,value,now))results[i]={ok:true,status:'CACHE_HIT',...evidenceOf(item,value)};else pending.push(i);}
+ for(const [i,item] of works.entries()){const value=await storedEvidence(run,item,states[i]!);if(states[i]!.evidence?.complete&&!workEvidenceStale(item,value,now)&&await catalogIndexed(tx,item,states[i]!))results[i]={ok:true,status:'CACHE_HIT',...evidenceOf(item,value)};else pending.push(i);}
  const done=(commit:boolean,extra:Record<string,unknown>={}):Outcome=>{for(const [i,item] of works.entries())run.observe(observation({action:'acquire',work:item},results[i]!));return {result:{ok:true,results,...extra},commit};};
  if(!pending.length)return done(false);
  await run.budget();
@@ -185,6 +199,8 @@ async function acquireMany(run:Run,command:Extract<Command,{action:'acquire-many
  for(const i of pending){
   const item=works[i]!,state=await tx.get<WorkState<unknown>>(`work:${keys[i]}`)??emptyWorkState<unknown>();states[i]=state;
   const value=await storedEvidence(run,item,state),evidence=evidenceOf(item,value);
+  // Before following a live owner too: a coin whose history just answered 404 has nothing to wait for.
+  const refused=await run.assetRefusal(item);if(refused){results[i]={ok:false,reason:refused,...evidence};continue;}
   if(await pairBlocked(tx,config.breaker,item,now)){results[i]={ok:false,reason:'PAIR_BREAKER_OPEN',...evidence};continue;}
   if(live(state.lease,now)){
    // The current owner already published, but stale: the follower's answer at once, as `follow` gives it.
@@ -237,10 +253,10 @@ function chargeFits(name:z.infer<typeof charge>,items:PublicMarketWork[]){
  if(name==='quote')return items.every(item=>item.operation==='quote')&&new Set(items.map(item=>item.operation==='quote'?item.pair.marketRef.kind:'')).size===1;
  return items.every(item=>item.operation===name)&&(name!=='history'||items.length===1)&&(name!=='catalog'||items.length===1);
 }
-type Charge={cost:number|undefined;priority:MarketPriority;kind:'request'|'fallback';endpoint:string;operation:string};
+type Charge={cost:number|undefined;priority:MarketPriority;kind:'request'|'fallback';endpoint:string;operation:string;pool?:'history'};
 function chargeOf(config:Config,name:z.infer<typeof charge>|'token',items:PublicMarketWork[]):Charge{
  if(name==='quote'){const rwa=items[0]?.operation==='quote'&&items[0].pair.marketRef.kind==='rwa';return {cost:rwa?config.operationCosts?.rwa:config.quoteCost,priority:'interactive',kind:'request',endpoint:rwa?'quote:rwa':'quote:coin',operation:'quote'};}
- return {cost:config.operationCosts?.[name],priority:name==='catalog'?'refresh':name==='insights'?'optional':'interactive',kind:name==='token'?'fallback':'request',endpoint:`${name}:${items[0]?.operation==='catalog'?items[0].kind:'shared'}`,operation:name};
+ return {cost:config.operationCosts?.[name],priority:name==='catalog'?'refresh':name==='insights'?'optional':'interactive',kind:name==='token'?'fallback':'request',endpoint:`${name}:${items[0]?.operation==='catalog'?items[0].kind:'shared'}`,operation:name,...(name==='history'?{pool:'history' as const}:{})};
 }
 /** Read-only admission checks, in order: the day's row budget, the client's fair share, then the first group's own
  * cost, retention, queue, budget and breakers. Returns the reason to refuse, or undefined. */
@@ -255,7 +271,7 @@ async function admissionRefusal(run:Run,firstGroup:{charge:z.infer<typeof charge
  if(!firstGroup)return undefined;
  const spec=chargeOf(config,firstGroup.charge,firstGroup.works);if(!spec.cost)return 'POLICY_UNAVAILABLE';
  const budget=await run.budget();if(Object.keys(budget.reservations).length>=config.maxAttempts)return 'RETENTION_CAPACITY';
- const probe={id:'admission-probe',cost:spec.cost,priority:spec.priority,kind:spec.kind},queued=enqueue(budget,config.policy,probe,now);if(!queued.ok)return queued.reason;
+ const probe={id:'admission-probe',cost:spec.cost,priority:spec.priority,kind:spec.kind,...(spec.pool?{pool:spec.pool}:{})},queued=enqueue(budget,config.policy,probe,now);if(!queued.ok)return queued.reason;
  const reserved=reserve(queued.state,config.policy,run.periods,probe,now);if(!reserved.ok)return reserved.reason;
  return await breakersRefuse(run,spec.endpoint,firstGroup.works)?'BREAKER_OPEN':undefined;
 }
@@ -288,7 +304,7 @@ async function admitGroup(run:Run,{charge:name,associations,bucket,checkFence,pa
  if(bucket){const usage=clientUsage(budget,bucket,now),today=day.buckets[bucket]??[0,0];if(usage.active+1>run.limits.active||usage.minute+1>run.limits.minute||usage.held+items.length>run.limits.held||today[0]+spec.cost>run.limits.credits)return deny('CLIENT_LIMIT');}
  if(Object.keys(budget.reservations).length>=config.maxAttempts)return deny('RETENTION_CAPACITY');
  if(await breakersRefuse(run,spec.endpoint,items))return deny('BREAKER_OPEN');
- const attempt:ProviderAttempt=createProviderAttempt({id:crypto.randomUUID(),cost:spec.cost,priority:spec.priority,kind:spec.kind,...(bucket?{client:bucket}:{}),works:items.length},associations);
+ const attempt:ProviderAttempt=createProviderAttempt({id:crypto.randomUUID(),cost:spec.cost,priority:spec.priority,kind:spec.kind,...(bucket?{client:bucket}:{}),works:items.length,...(spec.pool?{pool:spec.pool}:{})},associations);
  const queued=enqueue(budget,config.policy,attempt.reservation,now);if(!queued.ok)return deny(queued.reason);
  const reserved=reserve(queued.state,config.policy,run.periods,attempt.reservation,now);if(!reserved.ok)return deny(reserved.reason);
  budget=reserved.state;run.setBudget(budget);await tx.put('budget',budget);
@@ -336,6 +352,9 @@ async function complete(run:Run,command:Extract<Command,{action:'complete'}>):Pr
  const {tx}=run,settled=await legacy(run,{action:'settle',id:command.id,outcome:command.outcome,...(command.category?{category:command.category}:{}),...(command.pairFailures?{pairFailures:command.pairFailures}:{})});
  const attempt=await tx.get<RetainedAttempt>(`attempt:${command.id}`),budget=await run.budget(),row=budget.reservations[command.id];
  run.observe({action:'settle',workClass:attempt?.endpoint?.split(':')[0],priority:attempt?.reservation.priority,ok:settled.ok===true,replay:settled.replay===true,reason:typeof settled.reason==='string'?settled.reason:undefined,cost:attempt?.reservation.cost,outcome:command.outcome,category:command.category,durationMs:row?.dispatchedAt===undefined?undefined:run.now-row.dispatchedAt});
+ // A history 404 (Session S): the coin is refused for 15 minutes, so a repeated unknown ID costs one read.
+ const history=attempt?.associations[0]?.work;
+ if(command.notFound&&command.outcome==='failure'&&settled.ok===true&&settled.replay!==true&&attempt?.endpoint==='history:shared'&&history?.operation==='history'&&history.pair.marketRef.kind==='coin')await recordNotFound(tx,history.pair.marketRef.id,run.now);
  const published=[];
  for(const item of command.publish)published.push(await legacy(run,item.work.operation==='quote'?{action:'publish',id:command.id,work:item.work,quote:item.value}:{action:'publish-data',id:command.id,work:item.work,value:item.value}));
  let next:Record<string,unknown>|undefined;
@@ -372,7 +391,7 @@ async function legacy(run:Run,command:Exclude<Command,{action:'acquire'|'acquire
   // The day's row budget also bounds the old path, including the ZIG fallback (its parent's client share applies).
   if((await run.day()).rows>=run.rowBudget)return {ok:false,reason:'DAILY_LIMIT'};
   const client=command.parentId?budget.reservations[command.parentId]?.client:undefined;
-  const attempt:ProviderAttempt={id:crypto.randomUUID(),reservation:{id:'',cost,priority:command.operation==='catalog'?'refresh':command.operation==='insights'?'optional':'interactive',kind:command.operation==='token'?'fallback':'request',...(client?{client}:{})},associations:command.associations??[]};attempt.reservation.id=attempt.id;
+  const attempt:ProviderAttempt={id:crypto.randomUUID(),reservation:{id:'',cost,priority:command.operation==='catalog'?'refresh':command.operation==='insights'?'optional':'interactive',kind:command.operation==='token'?'fallback':'request',...(client?{client}:{}),...(command.operation==='history'?{pool:'history' as const}:{})},associations:command.associations??[]};attempt.reservation.id=attempt.id;
   if(client){const usage=clientUsage(budget,client,now),today=(await run.day()).buckets[client]??[0,0];if(usage.active+1>run.limits.active||usage.minute+1>run.limits.minute||today[0]+cost>run.limits.credits)return {ok:false,reason:'CLIENT_LIMIT'};}
   const result=enqueue(budget,config.policy,attempt.reservation,now);if(!result.ok)return {ok:false,reason:result.reason};
   await tx.put('budget',result.state);run.setBudget(result.state);await rememberAttempt(tx,attempt,now,`${command.operation}:${command.associations?.[0]?.work.operation==='catalog'?command.associations[0].work.kind:'shared'}`);if(command.parentId)await tx.put(`fallback:${command.parentId}`,attempt.id);else for(const a of attempt.associations)await tx.put(`owner:${publicMarketWorkKey(a.work)}`,{token:a.lease.token,id:attempt.id});
@@ -402,6 +421,8 @@ async function legacy(run:Run,command:Exclude<Command,{action:'acquire'|'acquire
   const capacity=await evictMarketWork(tx,index,now,workKey,bytes,config.maxCacheBytes??16*1024*1024,config.maxWorks);if(!capacity.ok)return {ok:false,reason:'CACHE_CAPACITY'};
   if(state.evidence)await removeCacheValue(tx,state.evidence.value);
   if(command.work.operation!=='quote')result.state.evidence!.value=await storeCacheValue(tx,workKey,result.state.lease!.generation,value);
+  // The catalog's ID index travels with its evidence (market-catalog-guard.ts).
+  if(command.work.operation==='catalog')await writeCatalogIndex(tx,command.work.kind,(value as {assets:{ref:{id:string}}[]}).assets.map(asset=>asset.ref.id),result.state.lease!.generation);
   await tx.put(key,result.state);return {ok:true};
  }
  if(command.action==='own'||command.action==='dispatch'){for(const association of attempt.associations){const current=await tx.get<WorkState<MarketQuote>>(`work:${publicMarketWorkKey(association.work)}`);if(!current?.lease||current.lease.token!==association.lease.token||current.lease.fence!==association.lease.fence||now>=Math.min(current.lease.deadline,current.lease.expiresAt))return {ok:false,reason:'FENCED'};}}

@@ -133,9 +133,18 @@ Option A is implemented as decided. Where the code needed it, the design above w
   - `--source` checks the template;
   - a scan of every Worker config in the checkout, including ignored owner copies, allows only the admin template and its copy to name the entrypoint.
   - The deploy workflow is unchanged: it deploys a fixed config path, so the admin config cannot reach it.
-- **What wrangler 4.144 does with `remote: true`** (read from its code, not observed):
+- **What wrangler 4.144 does with `remote: true`** (read from its code, not observed; Session S, 2026-10-04: the pin is now 4.147.0, whose schema and changelogs since 4.144.0 show no change here):
   - it opens a remote proxy session;
   - it uploads a temporary edge-preview proxy Worker, named after the admin Worker, with `workers_dev` on for that preview. That proxy holds the binding;
   - it creates a `workers.dev` subdomain if the account has none.
   This makes the "is the remote proxy session reachable" question in test plan step 4 concrete. The Stage 7 rehearsal in [OWNER_RECOVERY_ADMIN.md](../run11/OWNER_RECOVERY_ADMIN.md) checks it before anything relies on it. Until it passes, the remote binding stays **UNVERIFIED**.
 - The lifecycle Worker, its endpoints and the checkpoint format are unchanged.
+
+## Addition (2026-10-04, Session S): owner erase
+- `recovery-admin.mjs erase` (FIX_PLAN H1, `Q-OPS-06`) adds one path, `/admin/erase`, to the **existing** `LifecycleRecoveryAdmin` entrypoint, and to the local admin Worker's route list. There is no new entrypoint, binding, config or public surface. `LifecycleService` still answers 404 for every `/admin*` path.
+- **Why a path was needed:** the deletion actions are reachable only through `LifecycleService`, that is private sync with a signed-in user. Reconcile with a hand-built checkpoint would pause sync for every account in `RECOVERY_MODE=reconcile`, and it needs two anchored lifecycle deploys.
+- **What it applies:**
+  - the app's own transitions (`delete` plus `request-provider-delete`), with a fixed owner-erase family marker;
+  - only while the account's checkpoint digest equals the digest of the export the CLI wrote into custody, which the owner typed back (compare-and-swap).
+- **What it cannot do:** remove the vault's ciphertext rows in the private-sync Worker. They stay unreachable. See [OWNER_RECOVERY_ADMIN.md](../run11/OWNER_RECOVERY_ADMIN.md), "Erase an account".
+

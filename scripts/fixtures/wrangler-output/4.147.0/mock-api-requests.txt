@@ -1,0 +1,6 @@
+GET /accounts/00000000000000000000000000000000/workers/services/zigoals-alpha 0
+GET /accounts/00000000000000000000000000000000/workers/scripts/zigoals-alpha/deployments 0
+GET /accounts/00000000000000000000000000000000/workers/scripts/zigoals-alpha/settings 0
+PUT /accounts/00000000000000000000000000000000/workers/scripts/zigoals-alpha?excludeScript=true&bindings_inherit=strict 737
+GET /accounts/00000000000000000000000000000000/workers/workers/zigoals-alpha 0
+POST /accounts/00000000000000000000000000000000/workers/scripts/zigoals-alpha/subdomain 42

@@ -4,6 +4,18 @@ import {WorkerEntrypoint} from 'cloudflare:workers';
 const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const lifecycleWorker={fetch(){return reply({error:'NOT_FOUND'},404);}};
+/** Headers for Supabase's Auth admin API (Session S, Q-OPS-03), or null when the key's format is not one it accepts.
+ * - A secret key (`sb_secret_…`) is not a JWT. Supabase accepts one in `Authorization` "only if the value in the header
+ *   exactly matches the value in the `apikey` header" (github.com/orgs/supabase/discussions/29260, read 2026-10-04), so
+ *   both headers carry the identical value, as before. That `apikey` alone suffices is UNVERIFIED for the hosted
+ *   gateway; the Stage 8 deletion row proves the call.
+ * - A legacy `service_role` key is a JWT (three base64url segments): both headers, as before.
+ * - Anything else (a publishable key, a pasted fragment) is never sent: the deletion stays pending and the alarm retries.
+ * @param {string} key */
+function adminKeyHeaders(key){
+ if(/^sb_secret_[A-Za-z0-9_-]{1,4096}$/.test(key)||/^[A-Za-z0-9_-]{2,4096}\.[A-Za-z0-9_-]{2,8192}\.[A-Za-z0-9_-]{2,4096}$/.test(key))return {authorization:'Bearer '+key,apikey:key};
+ return null;
+}
 export default lifecycleWorker;
 /** Only the private-sync service binding can reach this interface. No public authority endpoint. */
 /** @extends {WorkerEntrypoint<LifecycleEnv>} */
@@ -23,9 +35,10 @@ export class LifecycleAuthority{
   const current=await this.state.storage.get('lifecycle');if(!current?.deleted||current.provider!=='pending')return;
   // Durable intent and alarm precede the irreversible upstream request.
   await this.state.storage.setAlarm(Date.now()+60000);
-  if(this.env.RECOVERY_MODE!=='serve'||!this.env.AUTH_ADMIN_KEY||!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(this.env.AUTH_ORIGIN??''))return;
+  const headers=adminKeyHeaders(this.env.AUTH_ADMIN_KEY??'');
+  if(this.env.RECOVERY_MODE!=='serve'||!headers||!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(this.env.AUTH_ORIGIN??''))return;
   try{
-   const response=await fetch(`${this.env.AUTH_ORIGIN}/auth/v1/admin/users/${current.account}`,{method:'DELETE',headers:{authorization:'Bearer '+this.env.AUTH_ADMIN_KEY,apikey:this.env.AUTH_ADMIN_KEY},redirect:'manual',signal:AbortSignal.timeout(8000)});
+   const response=await fetch(`${this.env.AUTH_ORIGIN}/auth/v1/admin/users/${current.account}`,{method:'DELETE',headers,redirect:'manual',signal:AbortSignal.timeout(8000)});
    const deleted=response.ok||response.status===404;await response.body?.cancel();if(!deleted)return;
    await this.state.storage.transaction(async store=>{const latest=await store.get('lifecycle');if(latest?.generation===current.generation&&latest.provider==='pending')await store.put('lifecycle',{...latest,provider:'deleted'});});await this.state.storage.deleteAlarm();
   }catch{/* Alarm retries without needing credentials for the deleted identity. */}
@@ -73,13 +86,16 @@ export class LifecycleRecoveryAdmin extends WorkerEntrypoint{
  async fetch(request){
   const account=request.headers.get('x-verified-account'),url=new URL(request.url);
   if(!UUID.test(account??''))return reply({error:'IDENTITY_REQUIRED'},403);
-  if(url.search||!['/admin/export','/admin/reconcile','/admin/dry-run'].includes(url.pathname))return reply({error:'NOT_FOUND'},404);
+  if(url.search||!['/admin/export','/admin/reconcile','/admin/dry-run','/admin/erase'].includes(url.pathname))return reply({error:'NOT_FOUND'},404);
   if(!['serve','reconcile'].includes(/** @type {string} */(this.env.RECOVERY_MODE)))return reply({error:'RECOVERY_DISABLED'},503);
   const headers=new Headers(request.headers);headers.set('x-lifecycle-recovery-admin','1');
   return this.env.LIFECYCLES.get(this.env.LIFECYCLES.idFromName(/** @type {string} UUID-checked above */(account))).fetch(new Request(request,{headers}));
  }
 }
 const domains=['finance','habits','health','settings'];
+/** The session family recorded for a deletion made by the owner's erase command (Session S, FIX_PLAN H1). Supabase issues
+ * random session IDs, so no session family can equal it by chance. */
+const OWNER_ERASE_FAMILY='00000000-0000-4000-8000-0000000000ad';
 /** @param {any} value @param {string[]} keys */
 const exact=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(key=>keys.includes(key));
 /** @param {any} value */
@@ -150,6 +166,7 @@ async function recoveryRequest(storage,env,request){
  if(path==='/admin/export'&&request.method==='GET'){
   try{return await storage.transaction(async store=>{const checkpoint=await checkpointFromStore(store,/** @type {string} UUID-checked above */(account));return reply({checkpoint,digest:await digest(checkpoint)});});}catch{return reply({error:'INCOMPLETE_CHECKPOINT'},409);}
  }
+ if(path==='/admin/erase'&&request.method==='POST')return eraseRequest(storage,/** @type {string} UUID-checked above */(account),request);
  if(!['/admin/reconcile','/admin/dry-run'].includes(path)||request.method!=='POST')return reply({error:'NOT_FOUND'},404);
  if(env.RECOVERY_MODE!=='reconcile'||env.RECOVERY_ACCOUNT_ID!==account||! /^[0-9a-f]{64}$/.test(env.RECOVERY_CHECKPOINT_SHA256??''))return reply({error:'EXTERNAL_CHECKPOINT_REQUIRED'},503);
  let incoming,hash;try{incoming=validateCheckpoint(await boundedCheckpoint(request),account);hash=await digest(incoming);}catch{return reply({error:'INVALID_CHECKPOINT'},409);}
@@ -165,4 +182,26 @@ async function recoveryRequest(storage,env,request){
   if(merged.lifecycle.provider==='pending')await store.setAlarm(Date.now()+60000);
   return reply(receipt);
  });}catch(error){return reply({error:['CHECKPOINT_CONFLICT','RECOVERY_CAPACITY','INCOMPLETE_CHECKPOINT'].includes(/** @type {Error} */(error).message)?/** @type {Error} */(error).message:'INVALID_CHECKPOINT'},409);}
+}
+/** Owner erase (Session S, FIX_PLAN H1, Q-OPS-06): for a person who asked for deletion but can no longer sign in. Reached
+ * only through LifecycleRecoveryAdmin, which the owner's local recovery-admin tool binds while one command runs. It
+ * applies the same transitions as the app's "delete account": the deletion decision (`delete`) and the identity
+ * deletion request (`request-provider-delete`), recorded with OWNER_ERASE_FAMILY. From then on private sync refuses
+ * the account (410), no device can re-enrol, and the alarm deletes the provider identity once the Worker serves.
+ * Compare-and-swap: it applies only while the account's current checkpoint digest equals the digest of the export the
+ * owner just took into custody and typed back. The vault's ciphertext lives in the private-sync Worker, which this
+ * Worker cannot reach: it stays stored but unreachable until removed there (a follow-up).
+ * @param {RecordStorage} storage @param {string} account @param {Request} request */
+async function eraseRequest(storage,account,request){
+ /** @type {any} */
+ let body;try{const text=await request.text();if(text.length>512)throw Error();body=JSON.parse(text);}catch{return reply({error:'INVALID_ERASE'},400);}
+ if(!exact(body,['confirm','expectedDigest'])||body.confirm!=='ERASE ACCOUNT'||!/^[0-9a-f]{64}$/.test(body.expectedDigest??''))return reply({error:'INVALID_ERASE'},400);
+ try{return await storage.transaction(async store=>{
+  const before=await digest(await checkpointFromStore(store,account));
+  if(before!==body.expectedDigest)return reply({error:'CHECKPOINT_CHANGED'},409);
+  const current=await store.get('lifecycle')??{generation:1,deleted:false,provider:'retained'};
+  const next=current.deleted?{...current,provider:current.provider==='deleted'?'deleted':'pending'}:{generation:current.generation+1,deleted:true,provider:'pending',authorizedFamily:OWNER_ERASE_FAMILY,account,deletedAt:new Date().toISOString()};
+  await store.put('lifecycle',next);if(next.provider==='pending')await store.setAlarm(Date.now()+60000);
+  return reply({erased:true,alreadyDeleted:current.deleted===true,provider:next.provider,generation:next.generation});
+ });}catch(error){return reply({error:['RECOVERY_CAPACITY','INCOMPLETE_CHECKPOINT'].includes(/** @type {Error} */(error).message)?/** @type {Error} */(error).message:'INVALID_CHECKPOINT'},409);}
 }

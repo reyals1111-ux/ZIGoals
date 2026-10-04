@@ -1,5 +1,7 @@
 # First Manual Alpha deploy on wrangler 4.144.0: owner checklist
 
+> **Session S (2026-10-04): the pin is now 4.147.0.** The same checks apply to the first Manual Alpha deploy after that PR: the build log shows `⛅️ wrangler 4.147.0`; the deploy output and upload requests are unchanged from 4.144.0 (`scripts/fixtures/wrangler-output/4.147.0/`, captured offline); the Alpha bundle is byte-identical. Since 4.145.0 `wrangler login` asks for extra K2 scopes. In the ops checkout, `wrangler --version` must print 4.147.0.
+
 Use this for the **first** Manual Alpha deployment after [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50) merges (wrangler 4.131.1 → 4.144.0). Everything else follows [MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md) as usual. Nothing in the workflow file changed; only the pinned wrangler did.
 
 ## Before you dispatch

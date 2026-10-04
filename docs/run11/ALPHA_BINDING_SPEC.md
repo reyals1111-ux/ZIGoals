@@ -2,6 +2,10 @@
 
 **Status: specification only. Nothing here has been applied.** `apps/web/wrangler.alpha.jsonc`, the deploy workflow and the checkers are unchanged. Apply this only after Stages 1–7 of [ACTIVATION.md](ACTIVATION.md) are complete and the owner approves it as a separate, reviewed PR followed by a Manual Alpha deployment.
 
+> **Session S (2026-10-04): the market part is applied in source, not yet deployed.** `wrangler.alpha.jsonc` binds `MARKET_QUOTES` (the existing coordinator's `QuoteService`) with `ZIGOALS_MARKET_QUOTES_MODE: "durable-v1"`. The checkers allow exactly that, and the deploy workflow no longer passes `COINGECKO_DEMO_API_KEY`. The owner order is [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Private account, sign-in and food bindings stay unapplied.
+>
+> **Correction:** §1's last bullet and §3.4 overstated the key's role. In a deployed app, `configuredDurableQuotes` answers every market-quotes request (503 with the sanitized envelope when unbound), so the 502/503 key check ran only in direct local development. The key never changed a production status. Session S moved that development check into `market-service.ts`.
+
 Facts below were read from the source at `7fdea68` (main, 2026-09-28).
 
 ## 1. Today

@@ -3,20 +3,13 @@ import assert from "node:assert/strict";
 export const REPOSITORY = "reyals1111-ux/ZIGoals";
 export const OWNER = "reyals1111-ux";
 export const WORKER = "zigoals-alpha";
+export const MARKET_COORDINATOR = "zigoals-acctest-market-coordinator";
 const SHA = /^[a-f0-9]{40}$/;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const HOSTED_SOURCE_MISMATCH = "Hosted build commit differs from reviewed source";
 const DEFAULT_PROPAGATION_ATTEMPTS = 12;
 const DEFAULT_PROPAGATION_DELAY_MS = 5_000;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-export function alphaRuntimeSecrets(coinGeckoKey) {
-  assert(
-    typeof coinGeckoKey === "string" && coinGeckoKey.length > 0,
-    "CoinGecko Alpha runtime secret missing",
-  );
-  return { COINGECKO_DEMO_API_KEY: coinGeckoKey };
-}
 
 export function alphaDeploymentEnvironment(source, outputPath) {
   const result = {
@@ -30,18 +23,14 @@ export function alphaDeploymentEnvironment(source, outputPath) {
   return result;
 }
 
-export function alphaDeployArgs(secretPath) {
-  assert(
-    typeof secretPath === "string" && secretPath.length > 0,
-    "Alpha runtime secrets file required",
-  );
+// Session S: the Alpha gets prices through the MARKET_QUOTES binding, so the publication carries no runtime secret and
+// no --secrets-file. A provider key in the parent environment is still removed from the child (above).
+export function alphaDeployArgs() {
   return [
     "--filter", "@zigoals/web",
     "exec", "opennextjs-cloudflare", "deploy",
     "--config", "wrangler.alpha.jsonc",
     "--name", WORKER,
-    "--",
-    "--secrets-file", secretPath,
   ];
 }
 
@@ -92,7 +81,12 @@ export function assertAlphaConfig(config) {
     compatibility_flags: ["nodejs_compat", "global_fetch_strictly_public"],
     workers_dev: true, preview_urls: false,
     assets: { directory: ".open-next/assets", binding: "ASSETS", run_worker_first: false },
-    services: [{ binding: "WORKER_SELF_REFERENCE", service: WORKER }],
+    services: [
+      { binding: "WORKER_SELF_REFERENCE", service: WORKER },
+      // Session S: live prices through the shared market coordinator's named entrypoint, never a provider key.
+      { binding: "MARKET_QUOTES", service: MARKET_COORDINATOR, entrypoint: "QuoteService" },
+    ],
+    vars: { ZIGOALS_MARKET_QUOTES_MODE: "durable-v1" },
     limits: { cpu_ms: 2000 }, observability: { enabled: false },
   };
   // Avoid including arbitrary config values in a failure report.

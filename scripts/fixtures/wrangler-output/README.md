@@ -14,6 +14,12 @@ and `scripts/wrangler-cli-surface.test.mjs` read them.
 
 Captured 2026-09-30 with wrangler 4.131.1 (before) and 4.144.0 (after), Node 24.19.0. Paths and timestamps are left as written.
 
+`4.147.0/` was captured on 2026-10-04 (Session S) the same way.
+- `mock-api-requests-workers-dev.txt` came from a scratch copy of `capture/` with `workers_dev: true` and the mock reporting workers.dev enabled.
+- `upload-metadata-no-secrets-file.json` is the same deploy without `--secrets-file`, which is how the Alpha deploys since Session S. It shows that Wrangler still sends `keep_bindings: ["secret_text", "secret_key"]`, so a Worker's existing secrets are kept.
+- The Alpha dry run is the Session S config (`MARKET_QUOTES` and its var).
+- **Compared with 4.144.0:** the deploy entry, the API requests and the upload metadata keys are the same, and the Alpha `worker.js` from the same build is byte-identical.
+
 **No Cloudflare account is involved.** `capture/capture.sh` runs only inside `unshare -rn`: a network namespace whose only
 interface is loopback, so nothing can leave the machine. It points `CLOUDFLARE_API_BASE_URL` at the local mock, uses a
 dummy token and account ID, removes proxy variables, and refuses to run if `api.cloudflare.com` resolves.

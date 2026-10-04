@@ -159,13 +159,29 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
     errors.push("alpha routes may target only alpha.zigoals.app");
   }
 
+  // Exactly the reviewed service bindings: the self-reference, and (Session S) the market coordinator's QuoteService
+  // entrypoint for live prices. Any other binding, service, entrypoint or field is refused.
   const alphaServices = Array.isArray(alpha?.services) ? alpha.services : [];
-  if (
-    alphaServices.length !== 1 ||
-    alphaServices[0]?.binding !== "WORKER_SELF_REFERENCE" ||
-    alphaServices[0]?.service !== "zigoals-alpha"
-  ) {
+  const reviewedServices = [
+    { binding: "WORKER_SELF_REFERENCE", service: "zigoals-alpha" },
+    { binding: "MARKET_QUOTES", service: "zigoals-acctest-market-coordinator", entrypoint: "QuoteService" },
+  ];
+  const sameService = (actual, reviewed) =>
+    actual !== null && typeof actual === "object" && !Array.isArray(actual) &&
+    Object.keys(actual).length === Object.keys(reviewed).length &&
+    Object.entries(reviewed).every(([key, value]) => actual[key] === value);
+  if (!Array.isArray(alpha?.services) || alphaServices.length !== 2 || !sameService(alphaServices[0], reviewedServices[0])) {
     errors.push("Alpha WORKER_SELF_REFERENCE must target zigoals-alpha");
+  }
+  if (!Array.isArray(alpha?.services) || alphaServices.length !== 2 || !sameService(alphaServices[1], reviewedServices[1])) {
+    errors.push("Alpha MARKET_QUOTES must target zigoals-acctest-market-coordinator's QuoteService, and no other binding is allowed");
+  }
+  const alphaVars = alpha?.vars;
+  if (
+    alphaVars === null || typeof alphaVars !== "object" || Array.isArray(alphaVars) ||
+    Object.keys(alphaVars).length !== 1 || alphaVars.ZIGOALS_MARKET_QUOTES_MODE !== "durable-v1"
+  ) {
+    errors.push('Alpha vars must be exactly ZIGOALS_MARKET_QUOTES_MODE "durable-v1"');
   }
 
   for (const field of Object.keys(landing ?? {})) {
