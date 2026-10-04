@@ -152,3 +152,14 @@
 .ai-history-rename input{flex:1;min-width:140px;font-size:16px;min-height:40px;padding:6px 10px;border-radius:10px;border:1px solid var(--line,#2a325a);background:transparent;color:inherit}
 .ai-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);margin:-1px;white-space:nowrap}
 @media (max-width:767.98px){.ai-chat-expanded{transform:none}}
+
+/* ---- Voice ---- */
+.ai-composer-wrap{display:grid;gap:6px;padding:8px 14px calc(12px + var(--keyboard-inset,0px));border-top:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
+.ai-chat-phone .ai-composer-wrap{padding-bottom:calc(12px + max(var(--safe-bottom,0px),var(--keyboard-inset,0px)))}
+.ai-composer-wrap .ai-composer{padding:0;border:0;background:none}
+.ai-mic{min-width:44px;padding:0 10px;font-size:18px;line-height:1}
+.ai-mic-on{border-color:var(--pink,#ff7ac8);box-shadow:0 0 0 3px color-mix(in srgb,var(--pink,#ff7ac8) 30%,transparent);animation:ai-mic-pulse 1.4s ease-in-out infinite}
+@keyframes ai-mic-pulse{0%,100%{box-shadow:0 0 0 3px color-mix(in srgb,var(--pink,#ff7ac8) 30%,transparent)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--pink,#ff7ac8) 12%,transparent)}}
+@media (prefers-reduced-motion:reduce){.ai-mic-on{animation:none}}
+:root[data-app-motion=off] .ai-mic-on{animation:none}
+.ai-voice-interim{font-style:italic}

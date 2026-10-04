@@ -27,7 +27,9 @@ export function AiLauncher() {
   const button = useRef<HTMLButtonElement>(null), timer = useRef<number | null>(null);
   useEffect(() => { setMounted(true); }, []);
   useAccountCleanup(useCallback(() => setOpen(false), []));
-  const toggle = useCallback(() => setOpen(current => { const next = !current; if (next) { setLoaded(true); zigiEvents.emit('open'); } return next; }), []);
+  const toggle = useCallback(() => setOpen(current => !current), []);
+  // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
+  useEffect(() => { if (open) { setLoaded(true); zigiEvents.emit('open'); } }, [open]);
   const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => button.current?.focus({preventScroll: true})); }, []);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

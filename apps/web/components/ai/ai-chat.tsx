@@ -21,8 +21,11 @@ import {ProposalList} from './proposal-list';
 import {SafeText} from './safe-text';
 import {useAiContext} from './use-ai-context';
 import type {AiSettingsStore} from './use-ai-settings';
+import type {AiSettings} from '../../lib/ai/settings';
 import {useChatSession, type ChatSession} from './use-chat-session';
 import {useProposals} from './use-proposals';
+import {useReadAloud, useVoice} from './use-voice';
+import {speechLanguage} from '../../lib/ai/voice';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -40,6 +43,7 @@ export default function AiChat({open, onClose, settings, scope, sensitive, phone
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context}), runner = useProposals(), zigi = useZigiState();
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history'>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
+  const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
   useVisualViewportInsets(phone && open);
   useEffect(() => {
     const d = dialog.current; if (!d) return;
@@ -49,7 +53,11 @@ export default function AiChat({open, onClose, settings, scope, sensitive, phone
   // Announced once per reply: when the wait starts, and when the reply has arrived.
   const replies = session.chat.turns.filter(t => t.role === 'assistant').length, lastStatus = useRef(session.status), lastReplies = useRef(replies);
   useEffect(() => { if (session.status === 'pending' && lastStatus.current === 'idle') setNote('Waiting for your AI to reply…'); lastStatus.current = session.status; }, [session.status]);
-  useEffect(() => { if (replies > lastReplies.current) setNote('Your AI replied.'); lastReplies.current = replies; }, [replies]);
+  useEffect(() => {
+    if (replies > lastReplies.current) { setNote('Your AI replied.'); if (data.voice.readAloud && open) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); } }
+    lastReplies.current = replies;
+  }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed]);
+  useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
   useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight; }, [session.chat.turns.length, session.draft]);
   const trapTab = useCallback((event: ReactKeyboardEvent<HTMLDialogElement>) => {
     if (event.key === 'Escape' && !phone) { event.preventDefault(); onClose(); return; }
@@ -82,7 +90,7 @@ export default function AiChat({open, onClose, settings, scope, sensitive, phone
         {!data.enabled && <NotConnected onClose={onClose}/>}
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive}/>}
         {connected && session.chat.turns.length === 0 && !busy && <Greeting area={area} onChip={chip => void session.send(chip, {withContext: attach})}/>}
-        {connected && session.chat.turns.map(turn => <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose}/>)}
+        {connected && session.chat.turns.map(turn => <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader}/>)}
         {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">Waiting for {providerName}…</span></div>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
         {session.confirmation && <div className="ai-confirm" role="group" aria-label="This page's data is larger than your budget">
@@ -93,7 +101,7 @@ export default function AiChat({open, onClose, settings, scope, sensitive, phone
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive}/>}
-      {connected && <Composer ref={composer} session={session} attach={attach} phone={phone} placeholder={`Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
+      {connected && <Composer ref={composer} session={session} attach={attach} phone={phone} settings={data} scope={scope} placeholder={`Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </dialog>;
@@ -104,7 +112,7 @@ function Greeting({area, onChip}: {area: keyof typeof SPECIALISTS; onChip: (chip
 function NotConnected({onClose}: {onClose: () => void}) {
   return <div className="ai-greeting ai-not-connected"><ZigiAvatar state="attention" size={72} decorative/><div><p className="ai-greeting-text">Connect your own AI to start: an API key, a local model on this computer, or the subscription bridge. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them.</p><Link className="primary" href={SETTINGS_HREF} onClick={onClose}>Set up in Settings</Link></div></div>;
 }
-function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void}) {
+function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>}) {
   const [copied, setCopied] = useState(false);
   if (turn.role === 'user') return <article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p></div></article>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
@@ -118,7 +126,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
         <span className="ai-turn-label">{ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName)}</span>
         {usage && <span className="ai-turn-usage">{usage}{usageUrl && <> · <a href={usageUrl} target="_blank" rel="noopener noreferrer">usage at {providerName} ↗</a></>}</span>}
         {turn.stopped && <span className="ai-turn-stopped">{turn.stopped}</span>}
-        <span className="ai-turn-actions"><button type="button" className="text-link" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>{isLast && <button type="button" className="text-link" onClick={() => void session.regenerate()}>Regenerate</button>}</span>
+        <span className="ai-turn-actions"><button type="button" className="text-link" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>{reader.supported && (reader.speaking ? <button type="button" className="text-link" onClick={reader.stop}>Stop reading</button> : <button type="button" className="text-link" onClick={() => reader.speak(plainText(parseBlocks(parsed.text)))}>Read aloud</button>)}{isLast && <button type="button" className="text-link" onClick={() => void session.regenerate()}>Regenerate</button>}</span>
       </footer>
     </div>
   </article>;
@@ -135,13 +143,25 @@ function ContextBar({context, attach, onAttach, sensitive}: {context: ReturnType
   </div>;
 }
 import {forwardRef} from 'react';
-const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; placeholder: string}>(function Composer({session, attach, phone, placeholder}, ref) {
-  const [text, setText] = useState('');
-  const busy = session.status !== 'idle';
+const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string}>(function Composer({session, attach, phone, settings, scope, placeholder}, ref) {
+  const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false);
+  const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
+  const busy = session.status !== 'idle', talking = voice.state !== 'idle';
   const submit = (event?: FormEvent) => { event?.preventDefault(); const value = text.trim(); if (!value || busy) return; setText(''); void session.send(value, {withContext: attach}); };
-  return <form className="ai-composer" onSubmit={submit}>
-    <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={20_000} placeholder={placeholder} aria-label="Message to your AI" autoComplete="off" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); } }}/>
-    {busy ? <button type="button" className="secondary" onClick={session.stop}>Stop</button> : <button type="submit" className="primary" disabled={!text.trim()}>Send</button>}
+  const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
+  const toggleMic = () => { setDisclosed(true); if (talking) voice.stop(); else void voice.start(); };
+  return <form className="ai-composer-wrap" onSubmit={submit}>
+    {voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
+    {(voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
+    {voice.error && <p className="ai-card-error" role="alert">{voice.error}</p>}
+    <div className="ai-composer">
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={20_000} placeholder={placeholder} aria-label="Message to your AI" autoComplete="off" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); } }}/>
+      {voice.mode !== 'off' && <button type="button" className={`secondary ai-mic${talking ? ' ai-mic-on' : ''}`} aria-label={micLabel} title={micLabel} aria-pressed={talking} disabled={!voice.available || voice.state === 'transcribing'} onClick={!phone ? toggleMic : undefined}
+        onPointerDown={phone ? () => { setDisclosed(true); if (!talking) void voice.start(); } : undefined} onPointerUp={phone ? () => { if (talking) voice.stop(); } : undefined} onPointerCancel={phone ? () => voice.cancel() : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
+        <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}
+      {busy ? <button type="button" className="secondary" onClick={session.stop}>Stop</button> : <button type="submit" className="primary" disabled={!text.trim()}>Send</button>}
+    </div>
+    {phone && voice.mode !== 'off' && voice.available && <p className="ai-note">Hold the microphone to talk; release to stop.</p>}
   </form>;
 });
 function BridgeView({settings, context, attach, sensitive}: {settings: AiSettingsStore; context: ReturnType<typeof useAiContext>; attach: boolean; sensitive: boolean}) {
