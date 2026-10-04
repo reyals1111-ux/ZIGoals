@@ -10,7 +10,7 @@ const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Contro
 // Lowercase only, as the auth provider issues it: the lifecycle authority keys its Durable Object by the exact string.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 /** @type {Record<string,'GET'|'POST'>} */
-const ROUTES={'/status':'GET','/admin/export':'GET','/admin/dry-run':'POST','/admin/reconcile':'POST'};
+const ROUTES={'/status':'GET','/admin/export':'GET','/admin/dry-run':'POST','/admin/reconcile':'POST','/admin/erase':'POST'};
 // The lifecycle authority refuses checkpoints above 16 MiB itself; this only bounds what is buffered here.
 const MAX_BODY=16*1024*1024;
 /** Compares without returning early on the first differing byte. @param {string} a @param {string} b */

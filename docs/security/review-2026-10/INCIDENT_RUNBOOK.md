@@ -58,7 +58,7 @@ Details in [DATA_FLOWS.md](DATA_FLOWS.md).
 1. **The friend** (from a trusted device), or you on a call with them:
    - sign in and open Settings → Devices and sessions;
    - **revoke every session they do not recognise** (or "revoke others").
-2. **You, in Supabase:** sign that user out everywhere (OWNER_CHECKLIST C7). Then open the user's record:
+2. **You, in Supabase:** sign that user out everywhere ([OWNER_SIGN_OUT_EVERYWHERE.md](../../run11/OWNER_SIGN_OUT_EVERYWHERE.md), OWNER_CHECKLIST C7). Then open the user's record:
    - **email address**: changed?
    - **password**: set? (it cannot be seen, but "last sign-in method" may tell);
    - **last sign-ins.**
@@ -100,8 +100,8 @@ Details in [DATA_FLOWS.md](DATA_FLOWS.md).
    - a minimal deletion record (account ID, dates, which sections) kept for good, so the data cannot come back (`Q-PRIV-01`);
    - provider logs (Supabase sign-ins, Resend code emails) under their retention.
 5. **If they cannot sign in any more** (lost email access, or no device):
-   - there is **no owner-side tool to erase a cloud vault** today (`Q-OPS-06`);
-   - what you can do: delete their Supabase user, which ends sign-in for good. The ciphertext then stays unreadable but stored until a future tool removes it;
+   - since Session S, use `recovery-admin.mjs erase` ([OWNER_RECOVERY_ADMIN.md](../../run11/OWNER_RECOVERY_ADMIN.md), "Erase an account"). It exports first, records the deletion so no device can sync the account again, and deletes the sign-in identity once the lifecycle Worker serves (`Q-OPS-06`);
+   - the encrypted rows still stay stored, unreadable and unreachable, until a private-sync change removes them;
    - tell them so, and log it as an open request.
 6. **Legal flags (for the lawyer):**
    - the response time for erasure requests;

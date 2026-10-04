@@ -24,8 +24,9 @@ export const USAGE=`Usage: node scripts/run11/recovery-admin.mjs <command>
   export    --account <uuid> --out <new file outside this checkout>
   verify    --file <checkpoint file> --digest <sha256>
   dry-run   --account <uuid> --file <checkpoint file> --digest <sha256>
-  reconcile --account <uuid> --file <checkpoint file> --digest <sha256>`;
-const COMMANDS={status:[],export:['--account','--out'],verify:['--file','--digest'],'dry-run':['--account','--file','--digest'],reconcile:['--account','--file','--digest']};
+  reconcile --account <uuid> --file <checkpoint file> --digest <sha256>
+  erase     --account <uuid> --out <new file outside this checkout>`;
+const COMMANDS={status:[],export:['--account','--out'],verify:['--file','--digest'],'dry-run':['--account','--file','--digest'],reconcile:['--account','--file','--digest'],erase:['--account','--out']};
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,DIGEST=/^[0-9a-f]{64}$/;
 // The lifecycle authority's own import limit.
 const MAX_CHECKPOINT=16*1024*1024;
@@ -142,6 +143,8 @@ const REFUSALS={
  INCOMPLETE_CHECKPOINT:'Refused by the lifecycle Worker: a receipt history is incomplete. Nothing was changed.',
  RECOVERY_CAPACITY:'Refused by the lifecycle Worker: recovery capacity reached (16 MiB, 50,000 receipts or 128 reconciliations). Nothing was changed.',
  ADMIN_SESSION_REQUIRED:'Refused: the local admin Worker did not accept this session.',
+ CHECKPOINT_CHANGED:'Refused by the lifecycle Worker: the account changed after the export, so the export in custody is not its latest state. Nothing was erased; run erase again.',
+ INVALID_ERASE:'Refused by the lifecycle Worker: the erase request is invalid. Nothing was erased.',
 };
 const refusal=response=>Error(REFUSALS[response.json?.error]??`Refused: the admin Worker answered HTTP ${response.status}. Nothing is known to have changed; run status and the runbook checks.`);
 async function exportEnvelope(admin,token,account){
@@ -161,6 +164,21 @@ function checkedFile(input){
  return file;
 }
 
+/** Owner erase (Session S, FIX_PLAN H1; runbook "Erase an account"): export into custody first, then the account UUID
+ * and that export's digest typed at the terminal, then the lifecycle Worker's /admin/erase, which applies only while the
+ * account's checkpoint still has that digest. A second export (beside the first, "-after-erase") goes into custody too. */
+async function erase(admin,token,input,root,{prompt,print}){
+ const before=await exportEnvelope(admin,token,input.account),text=JSON.stringify(before,null,1)+'\n',path=writeCheckpointFile(root,input.out,text);
+ print([`Exported the current state to ${path} (mode 0600).`,`SHA-256 digest: ${before.digest}`,before.checkpoint.lifecycle.deleted?'The account is already deleted; erase only requests the sign-in identity deletion if it is still retained.':'The account is not deleted yet.','Erasing records the deletion: sync refuses the account for good and its sign-in identity is deleted once the lifecycle Worker serves. The encrypted vault rows stay stored, unreachable (docs/run11/OWNER_RECOVERY_ADMIN.md, "Erase an account").'].join('\n'));
+ const typedAccount=(await prompt('Type the account UUID to confirm erase: '))?.trim(),typedDigest=(await prompt('Type the digest of the export just written: '))?.trim();
+ if(!typedAccount||!typedDigest)throw Error('Refused: erase needs both confirmations typed in an interactive terminal. Nothing was erased; the export stays in custody.');
+ if(typedAccount!==input.account||typedDigest!==before.digest)throw Error('Refused: the typed confirmation does not match --account and the export digest. Nothing was erased.');
+ const response=await adminCall(admin.url,token,'/admin/erase',{account:input.account,body:JSON.stringify({confirm:'ERASE ACCOUNT',expectedDigest:before.digest})});
+ if(response.status!==200||response.json?.erased!==true)throw refusal(response);
+ const after=await exportEnvelope(admin,token,input.account),afterText=JSON.stringify(after,null,1)+'\n',afterPath=writeCheckpointFile(root,input.out.replace(/(\.json)?$/,'-after-erase.json'),afterText);
+ if(after.checkpoint.lifecycle.deleted!==true)throw Error(`The re-export (${afterPath}) does not show the account deleted. Keep both files and follow the runbook's failure steps.`);
+ print([`${response.json.alreadyDeleted?'ALREADY DELETED':'ERASED'}: identity deletion ${response.json.provider==='deleted'?'already done':'pending (runs when the lifecycle Worker serves)'}.`,`Re-exported to ${afterPath} (mode 0600).`,`SHA-256 digest: ${after.digest}`,'Put both files and their digests into custody as separate items.'].join('\n'));
+}
 /** Runs one command. Returns nothing; throws an Error whose message is safe to print. */
 export async function run(argv,{root=ROOT,launch=launchWrangler,prompt=ttyPrompt,print=console.log}={}){
  const input=parseArgs(argv);
@@ -174,16 +192,17 @@ export async function run(argv,{root=ROOT,launch=launchWrangler,prompt=ttyPrompt
   let wrangler='not installed';try{wrangler=JSON.parse(readFileSync(resolve(root,'apps/web/node_modules/wrangler/package.json'),'utf8')).version;}catch{}
   print(['PASS: the ignored owner configs name one private lifecycle Worker; the recovery admin config is local only.',`Target lifecycle Worker: ${target.lifecycleName}`,`RECOVERY_MODE in the private lifecycle config: ${target.mode??'missing'}`,`Recovery anchor in the private lifecycle config: ${target.anchorAccount||target.anchorDigest?'set':'not set'} (values not printed)`,`wrangler: ${wrangler}`,'Nothing was contacted.'].join('\n'));return;
  }
- if(input.command==='export'){
+ if(input.command==='export'||input.command==='erase'){
   checkOutPath(root,input.out); // before anything starts; checked again when writing
  }
- let file;if(input.command!=='export'){file=checkedFile(input);requireReconcile(target,input.account,input.digest);}
+ let file;if(!['export','erase'].includes(input.command)){file=checkedFile(input);requireReconcile(target,input.account,input.digest);}
  const token=randomBytes(32).toString('base64url'),admin=await launch({root,adminConfig:target.adminConfig,token});
  try{
   if(input.command==='export'){
    const envelope=await exportEnvelope(admin,token,input.account),text=JSON.stringify(envelope,null,1)+'\n',path=writeCheckpointFile(root,input.out,text);
    print([`Exported to ${path} (mode 0600).`,`SHA-256 digest: ${envelope.digest}`,`Receipts: ${envelope.checkpoint.receipts.length} · bytes: ${Buffer.byteLength(text)}`,'Store the file and the digest as separate Bitwarden items, then the offline copy (docs/run11/OWNER_RECOVERY_ADMIN.md).'].join('\n'));return;
   }
+  if(input.command==='erase'){await erase(admin,token,input,root,{prompt,print});return;}
   const dry=await dryRun(admin,token,input.account,file.checkpoint);
   if(dry.replay){print(`ALREADY RECONCILED: this checkpoint was applied before (result digest ${dry.resultDigest}). Nothing was changed.`);return;}
   print(`DRY RUN OK: the Worker would apply this checkpoint. Result digest: ${dry.resultDigest}. Nothing was changed.`);

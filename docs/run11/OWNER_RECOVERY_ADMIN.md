@@ -20,6 +20,7 @@ Do not rely on hosted recovery before then.
 | `verify --file <file> --digest <sha256>` | no | Checks a custody copy against its separately kept digest. Works anywhere, without configs |
 | `dry-run --account <uuid> --file <file> --digest <sha256>` | yes | Asks the Worker whether the checkpoint would apply; changes nothing |
 | `reconcile --account <uuid> --file <file> --digest <sha256>` | yes | Dry run, then you **type** the account UUID and the digest, then reconcile, re-export and compare digests |
+| `erase --account <uuid> --out <file>` | yes | Exports first, then you **type** the account UUID and that export's digest, then the deletion is recorded and re-exported (Session S; see "Erase an account") |
 
 ## One-time setup (after Stage 4, about 15 minutes)
 1. In the ops checkout, on the reviewed commit: `node scripts/doctor.mjs`.
@@ -181,6 +182,45 @@ Use this when the lifecycle authority lost history (a point-in-time restore, a r
 If the rehearsal fails, Stage 5 stays manual and paused. The lifecycle Worker stays in `reconcile` and nothing binds the entrypoint. Hosted recovery is not relied on.
 
 Option B is the alternative: a deployed admin Worker behind Cloudflare Access, which also checks the Access JWT in code. See [ADR-007](../architecture/ADR-007-owner-recovery-admin.md). It needs its own approved PR and setup.
+
+## Erase an account (Session S, FIX_PLAN H1)
+**When to use it:** a friend asks for deletion but can no longer sign in, because they lost their email or every device. If they can sign in, the in-app "Delete cloud records" path is better: it also removes the encrypted rows at once (INCIDENT_RUNBOOK §3).
+
+**What it does:**
+1. Checks the configs, like every command.
+2. **Exports** the account's current state into a **new 0600 file outside the checkout**, and prints its digest.
+3. Asks you to **type** the account UUID, then the digest it just printed.
+4. Asks the lifecycle Worker to record the deletion. The Worker applies it only if the account's current state still has exactly that digest; otherwise you see "the account changed after the export" and nothing happens.
+5. **Re-exports** to `<file>-after-erase.json` and prints the new digest. Put both files and both digests into custody as separate items ("Custody" above).
+
+**What the deletion is:** the same as the app's "delete account":
+- the deletion decision, recorded with a fixed owner marker instead of a session;
+- a request to delete the sign-in identity.
+
+From then on, private sync refuses that account (410) and no device can enrol it again. The lifecycle alarm deletes the Supabase user once the Worker is in `RECOVERY_MODE=serve`. In `reconcile` it stays "pending" until then.
+
+**What it does not do:** the account's **encrypted vault rows stay stored** in the private-sync Worker. They are unreadable without the friend's recovery secret, and nothing can reach them any more. Removing them needs a private-sync change: a follow-up recorded in STATUS. Tell the friend, as INCIDENT_RUNBOOK §3 says.
+
+**Running it:**
+```sh
+node scripts/run11/recovery-admin.mjs erase --account <uuid> --out ~/zigoals-custody/<label>-erase-<date>.json
+```
+- Expected: `ERASED: identity deletion pending…` (or `already done`), then the re-export path and digest.
+- `ALREADY DELETED` means the account was deleted before; the command then only asks for the identity deletion if it was still retained.
+
+**Rehearsal on the final acceptance redeploy day** (fictional account, after the recovery rehearsal steps 4 and 6; [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md)):
+1. Use a fictional account that already exists in the acceptance services. Note its UUID in your private notes only.
+2. Run `erase` for it.
+   - Expected: two prompts, `ERASED: identity deletion pending`, and two files at 0600.
+3. Run `verify` on both files against their printed digests.
+   - Expected: `MATCH` twice.
+4. Run `export` again to a third file.
+   - Expected: the same digest as the `-after-erase` file, which means nothing changed in between.
+5. The lifecycle Worker stays in `RECOVERY_MODE=reconcile` until the Stage 8 row that switches it to `serve`, so the identity deletion waits.
+   - After that switch, the fictional Supabase user disappears within about a minute (Authentication → Users).
+   - Signing in again with that inbox is refused.
+   - This also proves Session S Part 1's header form.
+6. Record pass or fail in your STAGE8_ACCEPTANCE copy, recovery section, with no UUID, email or digest.
 
 ## Why this is safe by default
 - No runtime config can bind the recovery entrypoint. `activation-check` scans every Worker config in the checkout, including your ignored copies.
