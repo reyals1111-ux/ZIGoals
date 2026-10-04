@@ -1,3 +1,54 @@
+# Owner decisions — 2026-10-03/04
+
+Recorded by Session S at the owner's request.
+
+Evidence label: **Owner:** decisions given in the Session S brief, 2026-10-04. Nothing here was checked against a live system. The acceptance hostname is left out, as in the Stage 7 records below.
+
+**(a) One final redeploy of the acceptance app, not one per update.**
+- **Until then:** the acceptance app is not redeployed per update. All work of the coming 2–3 weeks goes to `alpha.zigoals.app` first.
+- **Then, once:** a final acceptance redeploy, in this order:
+  1. a hermetic app rebuild with `check:alpha-artifact`;
+  2. the app deploy;
+  3. re-attach the route;
+  4. re-run the recovery rehearsal with the merged tool.
+- **Then:** Stage 8, target 22–24 October; the friends Alpha starts 26 October.
+- **Today:**
+  - the acceptance route is removed, so the hostname answers 522;
+  - the proxied DNS record (AAAA `100::`) stays.
+- **The run sheet:** [FINAL_ACCTEST_REDEPLOY.md](run11/FINAL_ACCTEST_REDEPLOY.md), from Session S Part 6.
+
+**(b) Live prices on the public Alpha now.**
+- They go through the existing market-coordinator Worker (Session S Part 8). The CoinGecko key stays on the coordinator only.
+- **Order:** the coordinator is redeployed once with the merged Session R1 and Session S market code, **before** the first Alpha deploy that binds it.
+- **The owner's steps:** [ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md), from Session S Part 8.
+
+# Owner hardening group B, GitHub — 2026-10-03
+
+Recorded by Session S at the owner's request: the GitHub steps of group B in [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md) (B3–B5), and what the owner deferred.
+
+Evidence label: **Owner:** reported by the owner in the Session S brief, 2026-10-04. Nothing here was checked by this session.
+
+| Step | Owner's result |
+|---|---|
+| B3, two-factor authentication | Verified. The account signs in with Google |
+| B3, tokens | No personal access tokens |
+| B3, Claude GitHub App | Limited to the ZIGoals repository |
+| B4, ruleset | `protect-main` confirmed: restrict deletions, block force pushes, require a pull request, require status checks |
+| B4, Actions | GitHub-made actions only; full-SHA pinning required; the workflow token is read-only; Actions may not create or approve pull requests; approval required for all external contributors |
+| B4, code security | Dependabot alerts, secret scanning, push protection and private vulnerability reporting are on |
+| B5, environment `alpha` | Owner only; administrator bypass off; `main` only |
+
+**Deferred by the owner to before Stage 8:**
+- **Cloudflare (B1–B2):**
+  - two-factor authentication is inactive. The account signs in with Google, so a Cloudflare password reset is needed first;
+  - passkey, members, API tokens, audit log.
+- **Supabase, Resend and CoinGecko (B6):** MFA.
+- **Bitwarden and the Mac (B7):** Bitwarden two-step login; FileVault.
+
+**Also:**
+- the Cloudflare $10 budget alert is set (as recorded in group A, A8);
+- the Bitwarden offline encrypted export is deferred to the friends-Alpha launch.
+
 # Session R1 — market abuse fix (Q-WRK-01/02), hermetic owner builds, landing workers.dev off, recovery-admin launch, camera finding (2026-10-03, [PR #69](https://github.com/reyals1111-ux/ZIGoals/pull/69), not merged or deployed)
 
 **Evidence labels:**
