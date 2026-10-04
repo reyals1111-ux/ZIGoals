@@ -38,7 +38,7 @@ async function seed(persist,{deleteAccount=false}={}){
 function launcher(persist,{mode='serve'}={}){
  const state={};
  const launch=async({token})=>{
-  const mf=await miniflare(persist,[{name:'recovery-admin',modules:true,script:adminScript,compatibilityDate,bindings:{ADMIN_SESSION_TOKEN:token},serviceBindings:{ADMIN:{name:'lifecycle',entrypoint:'LifecycleRecoveryAdmin'}},outboundService:noOutbound},await lifecycleWorker(mode)]);
+  const mf=await miniflare(persist,[{name:'recovery-admin',modules:true,script:adminScript,compatibilityDate,bindings:{ADMIN_SESSION_TOKEN:token},serviceBindings:{ADMIN:{name:'lifecycle',entrypoint:'LifecycleRecoveryAdmin'}},outboundService:noOutbound},await lifecycleWorker(mode),probeWorker]);
   state.mf=mf;return {url:String(await mf.ready).replace(/\/$/,''),stop:()=>mf.dispose()};
  };
  return {launch,state};
@@ -58,7 +58,11 @@ function cli(root,launch,answers=[]){
  const lines=[],asked=[],values=[...answers];
  return {lines,asked,run:argv=>run(argv,{root,launch,prompt:async question=>{asked.push(question);return typeof values[0]==='function'?await values.shift()():values.shift();},print:line=>lines.push(line)}),assertPrivate(){const text=lines.join('\n');for(const value of PERSONAL)expect(text,value).not.toContain(value);}};
 }
-const lifecycle=async mf=>{const ns=await mf.getDurableObjectNamespace('LIFECYCLES','lifecycle');return ns.get(ns.idFromName(account));};
+// The test reads and changes the lifecycle object through this probe on its own loopback socket, not through Miniflare's
+// object proxies: those free remote stubs from a FinalizationRegistry with a request whose response is never read, and a
+// dispose() that overlaps it raised an unhandled "terminated" (an intermittent failure under load, Session S Part 10).
+const probeWorker={name:'probe',modules:true,compatibilityDate,script:"export default {fetch(r,e){return e.LIFECYCLES.get(e.LIFECYCLES.idFromName(r.headers.get('x-probe-account'))).fetch(r)}}",durableObjects:{LIFECYCLES:{className:'LifecycleAuthority',scriptName:'lifecycle'}},unsafeDirectSockets:[{host:'127.0.0.1',port:0}]};
+const lifecycle=async mf=>{const base=await mf.unsafeGetDirectURL('probe');return {fetch:(url,init={})=>fetch(new URL(new URL(url).pathname,base),{...init,headers:{...init.headers,'x-probe-account':account}})};};
 
 test('erase: export into custody, typed account and export digest, deletion recorded, identity deletion pending, re-export',async()=>{
  const root=await checkout(),persist=await mkdtemp(join(tmpdir(),'erase-persist-'));await seed(persist);
