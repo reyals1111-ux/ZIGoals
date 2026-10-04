@@ -4,6 +4,18 @@ import {WorkerEntrypoint} from 'cloudflare:workers';
 const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const lifecycleWorker={fetch(){return reply({error:'NOT_FOUND'},404);}};
+/** Headers for Supabase's Auth admin API (Session S, Q-OPS-03), or null when the key's format is not one it accepts.
+ * - A secret key (`sb_secret_…`) is not a JWT. Supabase accepts one in `Authorization` "only if the value in the header
+ *   exactly matches the value in the `apikey` header" (github.com/orgs/supabase/discussions/29260, read 2026-10-04), so
+ *   both headers carry the identical value, as before. That `apikey` alone suffices is UNVERIFIED for the hosted
+ *   gateway; the Stage 8 deletion row proves the call.
+ * - A legacy `service_role` key is a JWT (three base64url segments): both headers, as before.
+ * - Anything else (a publishable key, a pasted fragment) is never sent: the deletion stays pending and the alarm retries.
+ * @param {string} key */
+function adminKeyHeaders(key){
+ if(/^sb_secret_[A-Za-z0-9_-]{1,4096}$/.test(key)||/^[A-Za-z0-9_-]{2,4096}\.[A-Za-z0-9_-]{2,8192}\.[A-Za-z0-9_-]{2,4096}$/.test(key))return {authorization:'Bearer '+key,apikey:key};
+ return null;
+}
 export default lifecycleWorker;
 /** Only the private-sync service binding can reach this interface. No public authority endpoint. */
 /** @extends {WorkerEntrypoint<LifecycleEnv>} */
@@ -23,9 +35,10 @@ export class LifecycleAuthority{
   const current=await this.state.storage.get('lifecycle');if(!current?.deleted||current.provider!=='pending')return;
   // Durable intent and alarm precede the irreversible upstream request.
   await this.state.storage.setAlarm(Date.now()+60000);
-  if(this.env.RECOVERY_MODE!=='serve'||!this.env.AUTH_ADMIN_KEY||!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(this.env.AUTH_ORIGIN??''))return;
+  const headers=adminKeyHeaders(this.env.AUTH_ADMIN_KEY??'');
+  if(this.env.RECOVERY_MODE!=='serve'||!headers||!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(this.env.AUTH_ORIGIN??''))return;
   try{
-   const response=await fetch(`${this.env.AUTH_ORIGIN}/auth/v1/admin/users/${current.account}`,{method:'DELETE',headers:{authorization:'Bearer '+this.env.AUTH_ADMIN_KEY,apikey:this.env.AUTH_ADMIN_KEY},redirect:'manual',signal:AbortSignal.timeout(8000)});
+   const response=await fetch(`${this.env.AUTH_ORIGIN}/auth/v1/admin/users/${current.account}`,{method:'DELETE',headers,redirect:'manual',signal:AbortSignal.timeout(8000)});
    const deleted=response.ok||response.status===404;await response.body?.cancel();if(!deleted)return;
    await this.state.storage.transaction(async store=>{const latest=await store.get('lifecycle');if(latest?.generation===current.generation&&latest.provider==='pending')await store.put('lifecycle',{...latest,provider:'deleted'});});await this.state.storage.deleteAlarm();
   }catch{/* Alarm retries without needing credentials for the deleted identity. */}

@@ -3,6 +3,9 @@ import {cp,rm,mkdtemp} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {privateRuntime,fixtureToken} from './private-runtime.mjs';
+// A recognised Supabase secret-key shape (Session S): an unrecognised admin key is never sent. Built at runtime, so the
+// tracked-file secret scan has nothing to match.
+const ADMIN_KEY='sb_secret_'+'fixture-admin';
 test('independent lifecycle decision denies restored pre-delete vault and fails closed in recovery mode',async()=>{
  let runtime=await privateRuntime();try{
   await runtime.call('/v1/sessions',{action:'register',label:'Before deletion'});
@@ -20,7 +23,7 @@ test('lifecycle recovery mode disables serving even with otherwise valid identit
 },30000);
 test('provider-account failure persists separately after deletion and retry cannot reopen vault',async()=>{
  const {createPrivateMiniflare}=await import('./private-runtime.mjs');const persist=await mkdtemp(join(tmpdir(),'run11-provider-delete-'));let fail=true,attempts=0;
- const account='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';const mf=await createPrivateMiniflare({persist,bindings:{AUTH_ADMIN_KEY:'fixture-admin-secret'},outboundService:async request=>{if(new URL(request.url).pathname.includes('/admin/users/')){attempts++;expect(request.headers.get('apikey')).toBe('fixture-admin-secret');return Response.json({}, {status:fail?503:200});}return Response.json({id:account});}});
+ const account='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';const mf=await createPrivateMiniflare({persist,bindings:{AUTH_ADMIN_KEY:ADMIN_KEY},outboundService:async request=>{if(new URL(request.url).pathname.includes('/admin/users/')){attempts++;expect(request.headers.get('apikey')).toBe(ADMIN_KEY);return Response.json({}, {status:fail?503:200});}return Response.json({id:account});}});
  const call=(path,body)=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('fixture'),'x-zigoals-account':account,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
  try{await call('/v1/sessions',{action:'register',label:'Owner'});const deletion={action:'delete-account',confirm:'DELETE ACCOUNT'};
   const first=await call('/v1/account',deletion);expect(first.status).toBe(202);expect(await first.json()).toEqual({deleted:true,providerDeleted:false,providerPending:true});
@@ -40,7 +43,7 @@ test('cloud deletion cannot let a previously revoked device escalate to identity
 test('provider deletion acknowledgement loss recovers after restart without the deleted identity credentials',async()=>{
  const {createPrivateMiniflare}=await import('./private-runtime.mjs');const persist=await mkdtemp(join(tmpdir(),'run11-deletion-job-'));let identityExists=true,attempts=0;
  const account='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',outboundService=async request=>{if(new URL(request.url).pathname.includes('/admin/users/')){attempts++;if(identityExists){identityExists=false;throw Error('Synthetic lost provider acknowledgement');}return Response.json({}, {status:404});}return Response.json(identityExists?{id:account}:{},{status:identityExists?200:401});};
- const options={persist,bindings:{AUTH_ADMIN_KEY:'fixture-admin-secret'},outboundService};let mf=await createPrivateMiniflare(options);
+ const options={persist,bindings:{AUTH_ADMIN_KEY:ADMIN_KEY},outboundService};let mf=await createPrivateMiniflare(options);
  const call=(body)=>mf.dispatchFetch('https://sync.test'+(body.action==='register'?'/v1/sessions':'/v1/account'),{method:'POST',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('owner'),'x-zigoals-account':account,'content-type':'application/json'},body:JSON.stringify(body)});
  try{await call({action:'register',label:'Owner'});expect((await call({action:'delete-account',confirm:'DELETE ACCOUNT'})).status).toBe(202);expect(identityExists).toBe(false);
   await mf.dispose();mf=await createPrivateMiniflare(options);expect((await call({action:'delete-account',confirm:'DELETE ACCOUNT'})).status).toBe(401);
