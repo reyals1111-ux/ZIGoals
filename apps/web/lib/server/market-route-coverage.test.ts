@@ -5,6 +5,7 @@ import * as cancel from '../../app/api/market-quotes/cancel/route';
 import * as assets from '../../app/api/market-assets/route';
 import * as history from '../../app/api/market-history/route';
 import * as insights from '../../app/api/market-insights/route';
+import * as status from '../../app/api/market-status/route';
 vi.mock('@opennextjs/cloudflare',()=>({getCloudflareContext:vi.fn()}));
 afterEach(()=>{vi.unstubAllEnvs();vi.restoreAllMocks();});
 // Session S Part 8 (public Alpha): every public market route that reaches the shared coordinator names the client only from
@@ -27,6 +28,7 @@ const routes:[string,()=>Promise<Response>][]=[
  ['GET /api/market-assets',()=>assets.GET(new Request('https://alpha.test/api/market-assets',{headers}))],
  ['POST /api/market-history',()=>history.POST(post('/api/market-history',{request:{...btc,range:'7d'}}))],
  ['POST /api/market-insights',()=>insights.POST(post('/api/market-insights',{requests:[btc]}))],
+ ['GET /api/market-status',()=>status.GET(new Request('https://alpha.test/api/market-status',{headers}))],
 ];
 test.each(routes)('%s sends the edge client group, never the caller\'s header',async(_label,call)=>{
  const seen=bound();const response=await call();await response.text();
