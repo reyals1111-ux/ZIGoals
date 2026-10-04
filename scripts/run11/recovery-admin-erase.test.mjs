@@ -91,7 +91,7 @@ test('erase refuses a wrong typed account or digest, a missing terminal, and a c
  await attempt([account,async()=>'1'.repeat(64)]);
  await attempt([undefined,undefined]);
  // Between the export and the erase, another section deletion lands: the export is no longer the latest state.
- await attempt((file,h)=>[account,async()=>{const res=await (await lifecycle(h.state.mf)).fetch('https://internal/account',{method:'POST',headers:{'x-verified-account':account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:'finance',generation:0,operation:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'})});expect(res.status).toBe(200);return JSON.parse(await readFile(file,'utf8')).digest;}]);
+ await attempt((file,h)=>[account,async()=>{const res=await (await lifecycle(h.state.mf)).fetch('https://internal/account',{method:'POST',headers:{'x-verified-account':account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:'finance',generation:0,operation:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'})});expect(res.status).toBe(200);await res.text();return JSON.parse(await readFile(file,'utf8')).digest;}]);
  expect(await deleted()).toMatchObject({deleted:false});
 },90000);
 
