@@ -88,6 +88,16 @@ export function validateOwnerPolicy(owner,{now=Date.now()}={}){
  return {errors:[],policy,enabled,disabled};
 }
 
+/** Writes a validated policy to a new file inside the checkout, ignored by git and mode 0600; never overwrites. Shared
+ * with next-market-policy.mjs (Session U). */
+export function writePolicyFile(root,out,policy){
+ const target=resolve(root,out);
+ if(existsSync(target))throw Error(`Refusing to overwrite ${out}.`);
+ if(!target.startsWith(resolve(root)+'/')||spawnSync('git',['check-ignore','-q',target],{cwd:root}).status!==0)throw Error(`${out} must be inside the checkout and ignored by git (name it *.market-policy.private.json); nothing written.`);
+ writeFileSync(target,JSON.stringify(policy)+'\n',{flag:'wx',mode:0o600});chmodSync(target,0o600);
+ const problems=privateFileProblems(root,out);
+ if(problems.length){unlinkSync(target);throw Error(`${out}: ${problems.join(', ')}; removed.`);}
+}
 /** Validates the owner file and writes the policy. Returns summary lines without figures. */
 export function writeMarketPolicy(root,{ownerFile,out},{now=Date.now()}={}){
  const ownerProblems=privateFileProblems(root,ownerFile);
@@ -95,12 +105,7 @@ export function writeMarketPolicy(root,{ownerFile,out},{now=Date.now()}={}){
  let owner;try{owner=JSON.parse(readFileSync(resolve(root,ownerFile),'utf8'));}catch{throw Error(`${ownerFile} is not valid JSON.`);}
  const result=validateOwnerPolicy(owner,{now});
  if(result.errors.length)throw Error(['Owner policy rejected; nothing written:',...result.errors.map(e=>'- '+e)].join('\n'));
- const target=resolve(root,out);
- if(existsSync(target))throw Error(`Refusing to overwrite ${out}.`);
- if(!target.startsWith(resolve(root)+'/')||spawnSync('git',['check-ignore','-q',target],{cwd:root}).status!==0)throw Error(`${out} must be inside the checkout and ignored by git (name it *.market-policy.private.json); nothing written.`);
- writeFileSync(target,JSON.stringify(result.policy)+'\n',{flag:'wx',mode:0o600});chmodSync(target,0o600);
- const problems=privateFileProblems(root,out);
- if(problems.length){unlinkSync(target);throw Error(`${out}: ${problems.join(', ')}; removed.`);}
+ writePolicyFile(root,out,result.policy);
  return [`Wrote MARKET_POLICY to ${out} (0600, ignored by git; values not printed).`,`Accounting period: ${result.policy.calendar?'confirmed UTC calendar month':'exact window '+result.policy.month.id+' (generate a new policy before it ends; the coordinator fails closed after it)'}.`,`Enabled operations: ${result.enabled.join(', ')}.`,...(result.disabled.length?[`Disabled, fail closed: ${result.disabled.join(', ')}.`]:[]),`Next: node scripts/run11/make-private-configs.mjs … --market-policy-file ${out}`];
 }
 function main(){

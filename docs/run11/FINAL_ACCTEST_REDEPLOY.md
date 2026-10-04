@@ -15,7 +15,7 @@ Written by Session S (2026-10-04) from the Stage 7 lessons. Nothing here was run
 ## 0. Before you start (read only)
 1. **The release SHA:** the full SHA of `main` that you deploy. Main's CI is green on it.
 2. **The Alpha prices rollout is done:** [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Note the SHA the market coordinator was deployed from there.
-3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Regenerate it around **28 October** (ACTIVATION Stage 6 steps 1–3), or the coordinator fails closed.
+3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Prepare the next period around **28 October** and switch at or after 16:00 UTC on 31 October ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)); the coordinator refuses a period before it starts and every price after the old one ends.
 
 ## 1. Ops checkout at the release SHA
 ```sh
@@ -170,4 +170,4 @@ Session P edits [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md), so these r
 | Erase rehearsal | Part 1, after the recovery rehearsal | OWNER_RECOVERY_ADMIN "Erase an account" steps 1–4, then step 5 at the serve switch |
 | Supabase key proof | the delete-account row | "The fictional Supabase user disappears within about a minute (Session S Part 1)" |
 | Sign out everywhere | Part 2 (sessions) | [OWNER_SIGN_OUT_EVERYWHERE.md](OWNER_SIGN_OUT_EVERYWHERE.md) once with your own test user |
-| Market policy window | before Stage 8 | Regenerate `MARKET_POLICY` around 28 October (window ends 2026-10-31 16:00 UTC) |
+| Market policy window | before Stage 8 | Dry run of `next-market-policy.mjs` around 28 October; switch at or after 2026-10-31 16:00 UTC ([Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)) |

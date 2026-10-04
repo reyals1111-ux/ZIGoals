@@ -38,7 +38,7 @@ Written by Session S (2026-10-04). **Nothing here was run by a session.** The se
   A busy or abusive day on the public Alpha can therefore leave the acceptance app without new prices until the next UTC day (rows) or month (credits), and the other way round.
 - **Cached prices keep serving**, and manual valuation always works. Nothing fails open.
 - **Per-client limits** apply to every public market route (`apps/web/lib/server/market-route-coverage.test.ts`): one address group (an IPv4 address or an IPv6 /48) gets at most a quarter of the per-minute and in-flight limits, a 31st of the monthly credits per day, and a 16th of the day's new works. Cancellation fences are limited too: a 64th of the row budget per day, and an eighth of that per client.
-- **The policy window** ends **2026-10-31 16:00 UTC**. Regenerate `MARKET_POLICY` around 28 October (ACTIVATION Stage 6), or the coordinator fails closed **for both apps**.
+- **The policy window** ends **2026-10-31 16:00 UTC**. After it the coordinator refuses every price, cached ones too, **for both apps**, until the next period's policy is deployed. See [Next policy period](#next-policy-period) below: prepare around 28 October, switch right after the boundary.
 
 ## Steps
 ### 1. Ops checkout at the merged main, hermetic, then log in
@@ -154,6 +154,24 @@ UNAVAILABLE is a safe state: cached prices and manual valuation keep working, an
 2. Probe once: `node scripts/verify-hosted-alpha.mjs <new dir>` (it requires VERIFIED), or the Markets page.
 3. **VERIFIED:** done; record it. **Still `UNKNOWN`:** roll back only if something else broke (`wrangler rollback 4754e86f-42c2-4ea3-8373-3c0a7031036b --config "$PWD/workers/market-coordinator/wrangler.acctest.owner.jsonc"`), keep the evidence and report it: the cause is then on CoinGecko's side for the key, and the CoinGecko dashboard is the next read-only check.
 
+## Next policy period
+The coordinator's `MARKET_POLICY` covers one CoinGecko billing period (exact window). **It cannot take the next period early:** the coordinator refuses a period that has not started, and the old one refuses everything once it has ended (Session U found this; the earlier advice to "regenerate around 28 October" could not work). So:
+
+- **Around 28 October (read only): prepare.** In the ops checkout, with the current filled owner file:
+  ```sh
+  node scripts/run11/next-market-policy.mjs --owner-file <name>.market-policy.owner.json --window-end <next reset from the CoinGecko dashboard, UTC, e.g. 2026-11-30T16:00:00Z> --credits-used 0 [--daily-row-budget 100000]
+  ```
+  - A dry run: it checks the next period's figures as of its start, prints the period and every step below, and writes nothing.
+  - `--daily-row-budget 100000` is the [advice below](#advice-dailyrowbudget-on-workers-paid-no-change-made) for Workers Paid; leave it out to keep 20,000.
+- **On 31 October, at or after 16:00 UTC: switch.** Run the command the dry run printed (with `--credits-used` from the dashboard for the new period, `--write --out <name>.market-policy.private.json`), then:
+  1. `node scripts/run11/make-private-configs.mjs --set-market-policy <name>.market-policy.private.json`
+  2. `wrangler login`, `deployments list` on the coordinator (read only: your rollback), then `deploy` (step 2 above, the same commands).
+  3. `node scripts/verify-hosted-alpha.mjs <new dir>` prints "Market policy period ends 2026-11-30T16:00:00.000Z" (or your new end). Then `wrangler logout`.
+  4. Set the owner file's `provider.reset` to the new period, as the tool printed, for the period after.
+- **Between 16:00 UTC and step 2 every price is refused** (LOCAL_BUDGET), on both apps. Manual valuation keeps working. Keep the gap short; nothing else is affected.
+- `--write` refuses before 16:00 UTC; it writes only the policy file (inside the checkout, ignored by git, 0600, never overwritten) and runs no command.
+- **Where you see the end:** the Manual Alpha workflow summary ("Market policy period ends …", with a **Warning** below 7 days) and `verify-hosted-alpha.mjs`. Both read `GET /api/market-status`; "not reported" means the coordinator predates Session U.
+
 ## Advice: `dailyRowBudget` on Workers Paid (no change made)
 **Facts** (Cloudflare Durable Objects pricing, read 2026-10-04: https://developers.cloudflare.com/durable-objects/platform/pricing/):
 - **Rows written:** Workers Free allows 100,000 a day. Workers Paid includes "First 50 million / month", then $1.00 per million.
@@ -163,11 +181,11 @@ UNAVAILABLE is a safe state: cached prices and manual valuation keep working, an
 - a cold 64-pair request writes about 146 rows, roughly 2.3 rows per new pair;
 - cached requests write none.
 
-**Recommendation: `dailyRowBudget: 100000`** in the private `MARKET_POLICY`, set when you next regenerate it (around 28 October).
+**Recommendation: `dailyRowBudget: 100000`** in the private `MARKET_POLICY`, set with the next period's policy (`--daily-row-budget 100000`, [Next policy period](#next-policy-period)).
 - **Volume:** 100,000 a day is at most about 3.1 million rows a month, about 6% of the included 50 million. That leaves plenty for private sync, food, sign-in admission and the acceptance app, which share the account's allowance.
 - **Capacity:** it covers about 40,000 new pairs a day, far more than the CoinGecko Demo credits allow. On a normal day the provider budget, not rows, is what stops new work. The row budget stays as the abuse ceiling.
 - **Worst case if fully spent every day:** inside the included amount, $0. If the rest of the account had already used it all, about $3 a month.
 - **Side effects:** the per-client daily share of new works becomes ⌊100,000/16⌋ = 6,250, and the cancellation fences 1,562 a day (195 per client).
 - **Keep the default (20,000)** while the account is on Workers Free: 100,000 there is the whole free daily allowance.
 
-Raising it is a policy value, not code. Regenerate the policy with `scripts/run11/market-policy.mjs`, set it as the coordinator's `MARKET_POLICY`, and record the change in your private checklist.
+Raising it is a policy value, not code: `coordinator.dailyRowBudget` in the owner file (Session U; absent means 20,000), or `--daily-row-budget` below. Record the change in your private checklist.

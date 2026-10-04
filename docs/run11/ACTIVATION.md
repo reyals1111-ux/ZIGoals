@@ -32,7 +32,7 @@ Origins/account labels are configuration, not credentials. The templates are del
       - It refuses a policy file that is not inside the checkout, mode 0600 and ignored, or not a JSON object, and a config that is missing, readable by others or not ignored.
       - It writes atomically, keeps mode 0600, prints field names only and then reports `activation-check --private`.
       - First-time Stage 4 creation still takes the same file as `--market-policy-file`.
-      - With an `exact-window` reset, repeat steps 1–3 before the window ends, because the coordinator fails closed after it.
+      - With an `exact-window` reset, the coordinator fails closed when the window ends and refuses a window before it starts. Prepare the next period in the days before with `scripts/run11/next-market-policy.mjs` (a dry run), and switch at or after the boundary: [ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period) (Session U).
    4. Food: set the `FOOD_USER_AGENT` template from [FOOD_READINESS.md](FOOD_READINESS.md) with `node scripts/run11/make-private-configs.mjs --set-food-user-agent "ZIGoals/<version> (<owner contact email>)"`.
       - It sets only that var in the existing private food config (adding it if absent) and keeps every other byte.
       - It refuses anything but printable ASCII in that form, and template or example values.
