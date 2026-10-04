@@ -39,7 +39,9 @@ Nothing was deployed, logged into or sent to Cloudflare, Supabase, CoinGecko or 
 | 8b | Alpha binds `MARKET_QUOTES` → coordinator `QuoteService`, durable mode; the key is off the deploy path; probe in the post-deploy smoke (information only); `verify-hosted-alpha` requires VERIFIED | `[TIER 3] (deploy config + workflow)` | `79e1f59` | 17 net in `alpha-deployment.test.mjs` (98 → 115), 15 in `check-deployment-configs.test.ts` (66 → 81) | local |
 | 8c | ALPHA_PRICES_ROLLOUT.md; MANUAL_ALPHA_WORKFLOW, ALPHA_BINDING_SPEC, MARKET_KEY_CUSTODY, INCIDENT_RUNBOOK | — | `f1adaca` | — | source |
 | 9 | wrangler 4.144.0 → 4.147.0 (exact); fixtures captured offline; runtime types regenerated | `[TIER 3] (dependency)` | `27d858c` | 6 in `alpha-deployment.test.mjs` (115 → 121): no-secrets-file metadata, Alpha dry-run bindings, four fixture loops extended to 4.147.0 | local |
-| 10 | Erase test without Miniflare object proxies (flake root cause, below); this entry; PR ready | — | `5149f89`, this commit | — | local |
+| 10 | Erase test without Miniflare object proxies (flake root cause, below); this entry; PR ready | — | `5149f89`, `e03ba78` | — | local |
+| — | Merge of main `d9b0807` (#66, #68, #70, #72): every STATUS entry kept, Session S on top; both sides kept in `alpha-smoke.mjs`, `alpha-deployment.test.mjs`, PRIVACY and LEGAL_CHECKLIST | — | `a36d226` | — | local, CI |
+| 11 | The rollback capture validates the live Alpha against a fixed security floor instead of the new build's exact CSP (the #72 deploy failed there); the post-upload check stays exact | `[TIER 3] (deploy workflow)` | `e7ea2b1` | 24 (`alpha-deployment.test.mjs`, 121 → 145) | local |
 
 ## Part 8: live prices on the public Alpha (owner rollout: [ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md))
 - **Config:** `wrangler.alpha.jsonc` adds `MARKET_QUOTES` (`zigoals-acctest-market-coordinator`, entrypoint `QuoteService`) and `ZIGOALS_MARKET_QUOTES_MODE: "durable-v1"`; nothing else changed.
@@ -86,6 +88,18 @@ Nothing was deployed, logged into or sent to Cloudflare, Supabase, CoinGecko or 
   - The test now uses a probe Worker on its own loopback socket: 0/15 failures. The other new Miniflare tests were 0/8 each.
   - Fifteen older run11 tests use the same proxy API; they are left unchanged and noted here as a possible intermittent.
 
+## Part 11: the pre-upload check after #72
+- **The failure:** the Manual Alpha deployment of main `d9b0807` stopped in "Capture current rollback version and validate live Alpha". The capture compared the live Alpha (the previous build) with the new build's exact CSP directive set, and `worker-src` (#72) is not live yet.
+- **Before upload:** the capture now requires a fixed floor and accepts extra or newer directives:
+  - `default-src 'self'`;
+  - a nonce `script-src` with no `unsafe-*`, wildcard or scheme sources (the same rule for any `script-src-elem`/`-attr`);
+  - `object-src`, `base-uri` and `frame-ancestors` `'none'`;
+  - `form-action 'self'`, `upgrade-insecure-requests`;
+  - no duplicate directives, and the HTML nonce matches;
+  - HSTS, nosniff, `DENY`, no-referrer, noindex, private no-store.
+- **After upload:** unchanged; the exact policy of the new build, permissions-policy included.
+- **Owner action:** after #71 merges, dispatch the Manual Alpha deployment again with the merged main SHA.
+
 ## Decisions made without the owner
 1. The branch name is the one the brief gave (`fix/session-s-2026-10-04`), not the harness default.
 2. Part 1: an unknown or publishable key fails closed (no request; the deletion stays pending). An existing test fixture was adapted to a recognised key format.
@@ -107,7 +121,7 @@ Nothing was deployed, logged into or sent to Cloudflare, Supabase, CoinGecko or 
 6. Part 9: 4.147.0 (the only 4.147.x).
 
 ## Owner actions, in order
-1. Review and merge PR #71.
+1. Review and merge PR #71. Then dispatch the Manual Alpha deployment of the merged main (Part 11 fixes the #72 capture failure); that deploy is also step 2 of the prices rollout below, so redeploy the coordinator first.
 2. **The Alpha prices rollout** ([ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md)):
    1. coordinator redeploy from merged main (no secret change), then verify;
    2. Manual Alpha deployment;
