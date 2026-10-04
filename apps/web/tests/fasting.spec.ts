@@ -1,6 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {FASTING_KEY} from '../lib/fasting/schema';
-import {isPhone, openFold} from './phone-nav';
+import {isPhone} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 
 // HE6 (Session P): the fasting timer is a clock with a plain safety note; no streaks, no praise; stopped at 24 hours.
@@ -16,9 +16,16 @@ test.beforeEach(async ({page}) => {
 const stored = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), FASTING_KEY)) ?? 'null') as {sessions: {endedAt: string | null; targetHours: number; stoppedBy: string}[]} | null;
 async function openTimer(page: Page) {
   await page.goto('/app/health');
-  if (await isPhone(page) && await page.getByRole('button', {name: /^Fasting timer/}).count()) await openFold(page, 'Fasting timer');
-  await expect(page.getByRole('region', {name: 'Fasting timer', exact: true})).toBeVisible();
-  return page.getByRole('region', {name: 'Fasting timer', exact: true});
+  const region = page.getByRole('region', {name: 'Fasting timer', exact: true});
+  // On a phone the module is folded until a fast runs; then it opens itself and shows no toggle (PhoneFold `expanded`).
+  if (await isPhone(page)) await expect(async () => {
+    if (await region.isVisible()) return;
+    const toggle = page.locator('.phone-fold-toggle').filter({hasText: 'Fasting timer'}).first();
+    if (await toggle.count()) await toggle.click();
+    await expect(region).toBeVisible({timeout: 1500});
+  }).toPass({timeout: 15000});
+  await expect(region).toBeVisible();
+  return region;
 }
 
 test('start, watch the clock, stop: the note is always visible, Today shows the line only while a fast runs', async ({page}) => {
