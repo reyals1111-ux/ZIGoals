@@ -8,6 +8,7 @@ import {FASTING_KEY,fastingSchema} from './fasting/schema';
 import {WEEKLY_REVIEW_KEY,weeklyReviewSchema} from './weekly-review/schema';
 import {reviewWindow} from './weekly-review/engine';
 import {IMPORT_UNDO_KEY,importUndoSchema} from './import/undo-schema';
+import {GUIDE_KEY,guideSchema} from './coach/schema';
 import {addLocalDays} from './local-date';
 import {createEmptyHealth,healthSchema,HEALTH_STORAGE_KEY,HEALTH_MEALS} from './health';
 import {DEFAULT_COUNTERS} from './health-counters';
@@ -77,6 +78,8 @@ export function buildShowcase(day:string){
  const reviewDay=reviewWindow(0,day).reviewDay;
  const weeklyReview=weeklyReviewSchema.parse({version:1,weekday:0,reviews:[{weekStart:addLocalDays(reviewDay,-13),completedAt:`${addLocalDays(reviewDay,-7)}T19:30:00.000Z`,notes:{wentWell:'SHOWCASE DATA · fictional reflection: three walks and a calm week',intention:'SHOWCASE DATA · fictional intention: one short walk after lunch'}}]});
  const importUndo=importUndoSchema.parse({version:1,imports:[{id:'92000000-0000-4000-8000-0000000000c1',kind:'nutrition',at:start,label:'SHOWCASE DATA · fictional example import',createdIds:['health_food-0009','health_import-showcase-0','health_import-showcase-1'],expiresAt:'2099-12-31T00:00:00.000Z'}]});
- const records:Record<string,string>={[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health)),[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview),[IMPORT_UNDO_KEY]:JSON.stringify(importUndo)};
+ // The Guide (ADR-011): on in the Showcase from its first day, so its card shows; its words come from the fictional records above.
+ const guide=guideSchema.parse({version:1,enabled:true,enabledOn:date(-29),dismissed:{}});
+ const records:Record<string,string>={[GUIDE_KEY]:JSON.stringify(guide),[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health)),[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview),[IMPORT_UNDO_KEY]:JSON.stringify(importUndo)};
  return {day,records};
 }
