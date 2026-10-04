@@ -33,11 +33,12 @@ export function assertHtml(response, html, route="/app") {
     assert(!directives.has(key), `CSP duplicate ${key}`);
     directives.set(key, values);
   }
-  assert.deepEqual([...directives.keys()].sort(), ["default-src", "script-src", "style-src", "img-src", "font-src", "connect-src", "object-src", "frame-src", "frame-ancestors", "base-uri", "form-action", "upgrade-insecure-requests"].sort(), "CSP directive set changed");
+  assert.deepEqual([...directives.keys()].sort(), ["default-src", "script-src", "worker-src", "style-src", "img-src", "font-src", "connect-src", "object-src", "frame-src", "frame-ancestors", "base-uri", "form-action", "upgrade-insecure-requests"].sort(), "CSP directive set changed");
   for (const key of ["object-src", "base-uri", "frame-ancestors", "frame-src"]) {
     assert.deepEqual(directives.get(key), ["'none'"], `CSP ${key} changed`);
   }
   assert.deepEqual(directives.get("default-src"), ["'self'"], "CSP default-src changed");
+  assert.deepEqual(directives.get("worker-src"), ["'self'"], "CSP worker-src changed");
   assert.deepEqual(directives.get("style-src"), ["'self'", "'unsafe-inline'"], "CSP style-src changed");
   assert.deepEqual(directives.get("img-src"), ["'self'", "data:", "blob:"], "CSP img-src changed");
   assert.deepEqual(directives.get("font-src"), ["'self'"], "CSP font-src changed");
