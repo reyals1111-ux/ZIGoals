@@ -82,6 +82,8 @@ export function assertHtml(response, html, route="/app", { baseline = false } = 
   return nonce;
 }
 
+// Session U Part 2d (kept apart from the imports above, which Session T also edits).
+import { readPolicyWindow, POLICY_STATUS_PATH } from "./market-policy-window.mjs";
 /**
  * `marketProbe` (Session S, the post-deploy smoke only): one BTC/USD probe of /api/market-quotes. The answer must be a
  * well-formed envelope; VERIFIED or UNAVAILABLE is recorded as information and never fails the smoke. The rollback capture
@@ -111,6 +113,9 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     checks.push({ route, status: response.status, security: "PASS" });
   }
   if (marketProbe) {
+    // Session U Part 2d: when the market policy period ends, read first and recorded as information only.
+    const policy = await readPolicyWindow({ origin: ALPHA_ORIGIN, fetcher });
+    checks.push({ route: POLICY_STATUS_PATH, status: policy.httpStatus, policyWindowEnd: policy.policyWindowEnd });
     const market = await probeAlphaMarket({ origin: ALPHA_ORIGIN, fetcher });
     assert(market.wellFormed, `Alpha market route did not answer a well-formed price envelope (${market.reason})`);
     checks.push({ route: "/api/market-quotes", status: market.httpStatus, market: market.result, pair: market.pair, failure: market.failure });

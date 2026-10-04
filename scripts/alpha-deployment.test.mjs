@@ -337,7 +337,9 @@ test.each([["verified", "VERIFIED", 200, "VERIFIED_FRESH", null], ["unavailable"
   "the post-deploy smoke records a %s market answer as information", async (market, result, status, pair, failure) => {
     const { calls, fetcher } = alphaFetcher(market);
     const checks = await smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true });
-    expect(checks).toHaveLength(12);
+    expect(checks).toHaveLength(13);
+    // Session U Part 2d: the policy period end is read first, as information (this fixture answers HTML: not reported).
+    expect(checks.at(-2)).toEqual({ route: "/api/market-status", status: 200, policyWindowEnd: null });
     expect(checks.at(-1)).toEqual({ route: "/api/market-quotes", status, market: result, pair, failure });
     const probe = calls.at(-1);
     expect(probe.url).toBe("https://alpha.zigoals.app/api/market-quotes");
@@ -349,6 +351,18 @@ test("the rollback capture smoke sends no market probe", async () => {
   const { calls, fetcher } = alphaFetcher("crashed");
   expect(await smokeAlpha({ fetcher })).toHaveLength(11);
   expect(calls.some(c => new URL(c.url).pathname.startsWith("/api/"))).toBe(false);
+});
+test("Session U: the post-deploy smoke reads the market policy period end first, as information only", async () => {
+  const reported = "2026-10-31T16:00:00.000Z";
+  for (const [answer, recorded] of [[() => Response.json({ version: 1, policyWindowEnd: reported }), { status: 200, policyWindowEnd: reported }], [() => { throw new TypeError("fetch failed"); }, { status: null, policyWindowEnd: null }]]) {
+    const { calls, fetcher } = alphaFetcher("unavailable");
+    const withStatus = async (url, options) => { if (new URL(url).pathname !== "/api/market-status") return fetcher(url, options); calls.push({ url, options }); return answer(); };
+    const checks = await smokeAlpha({ expectedCommit: sha, fetcher: withStatus, marketProbe: true });
+    expect(checks.at(-2)).toEqual({ route: "/api/market-status", ...recorded });
+    expect(checks.at(-1)).toMatchObject({ route: "/api/market-quotes", market: "UNAVAILABLE", failure: "LOCAL_BUDGET" });
+    expect(calls.map(c => new URL(c.url).pathname).slice(-2)).toEqual(["/api/market-status", "/api/market-quotes"]);
+    expect(calls.at(-2).options).toMatchObject({ method: "GET", redirect: "manual" });
+  }
 });
 test("a malformed market answer fails the post-deploy smoke without echoing the body", async () => {
   const { fetcher } = alphaFetcher("crashed");

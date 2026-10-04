@@ -8,6 +8,7 @@ import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { probeAlphaMarket } from './lib/alpha-market-probe.mjs';
 import { appNonceFindings, priceFinding, reviewReason, hostedStatus } from './lib/hosted-alpha-review.mjs';
+import { readPolicyWindow, policyWindowNote } from './lib/market-policy-window.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
@@ -40,6 +41,8 @@ try {
   report.marketProbe=await probeAlphaMarket({origin:alpha});
   const price=priceFinding(report.marketProbe); if (price) report.review.push(price);
   report.stages.push({name:'Live BTC/USD price through the market coordinator', status:price?'NEEDS_OWNER_REVIEW':'PASS'});
+  // Session U Part 2d: when the market policy period ends. Information only, never a review reason.
+  const policyRead=await readPolicyWindow({origin:alpha}); report.policyWindow={...policyRead,...policyWindowNote(policyRead.policyWindowEnd)};
   for (const [origin, path, count] of [[alpha,'/app',3],[fallback,'/app',2],[apex,'/',2]]) {
     for (let sample=1; sample<=count; sample++) {
       // Session U: a sample that cannot be fetched or checked is a review reason, not the end of the run.
@@ -143,4 +146,4 @@ try {
   if (report.status !== 'PASS') process.exitCode=report.status==='NEEDS_OWNER_REVIEW'?3:2;
 } catch(error) { report.status='FAIL'; report.failure=String(error); report.failureStack=error.stack; report.failurePage=await page.locator('body').innerText().catch(()=> 'unavailable'); await page.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{}); process.exitCode=1; }
 finally { report.completedAt=new Date().toISOString(); await writeFile(output+'/HOSTED_SMOKE.json',JSON.stringify(report,null,2)+'\n'); await context.close(); await browser.close(); }
-console.log(JSON.stringify({status:report.status, stages:report.stages, review:report.review, failure:report.failure, output}));
+console.log(JSON.stringify({status:report.status, stages:report.stages, review:report.review, policyWindow:report.policyWindow?.text, failure:report.failure, output}));

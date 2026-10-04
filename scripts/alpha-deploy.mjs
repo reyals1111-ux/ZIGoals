@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { validateRepositoryDeploymentConfigs, readDeploymentConfigs } from "./check-deployment-configs.mjs";
 import { REPOSITORY, WORKER, alphaDeploymentEnvironment, alphaDeployArgs, assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, currentDeployment, performDeployment } from "./lib/alpha-deployment.mjs";
 import { smokeAlpha } from "./lib/alpha-smoke.mjs";
+import { policyWindowNote } from "./lib/market-policy-window.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const env = process.env;
@@ -126,6 +127,7 @@ function summary() {
   const report = existsSync(path) ? read(path) : { status: "NOT_DEPLOYED", newVersionId: null };
   const rollback = report.rollbackVersionId ?? (existsSync(rollbackPath) ? read(rollbackPath).versionId : null);
   const market = Array.isArray(report.smoke) ? report.smoke.find(check => check.route === "/api/market-quotes") : undefined;
+  const policy = policyWindowNote(Array.isArray(report.smoke) ? report.smoke.find(check => check.route === "/api/market-status")?.policyWindowEnd ?? null : null);
   note([
     "## Manual Alpha deployment", "",
     `- Result: **${report.status}**`, `- Worker: \`${WORKER}\``,
@@ -134,6 +136,7 @@ function summary() {
     `- Rollback version ID: \`${rollback ?? "NOT_CAPTURED"}\``,
     `- Last observed live version: \`${report.observedLiveVersionId ?? "NOT_CHECKED"}\``,
     `- Live prices (information only, never a failure): **${market?.market ?? "NOT_CHECKED"}**${market?.failure ? ` (${market.failure})` : ""}. On UNAVAILABLE, follow docs/run11/ALPHA_PRICES_ROLLOUT.md; do not redeploy.`,
+    `- ${policy.warn ? "**Warning:** " : ""}${policy.text}`,
     "- Read deployment.json and rollback.json in the evidence artifact before taking recovery action.",
     "- A failed/interrupted upload may already be live. No automatic retry or rollback was performed.",
     "- Owner visual, real Keplr/reload/reconnect, Habit/Health persistence and mobile checks remain separate.",
