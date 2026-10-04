@@ -8,14 +8,15 @@ import type {ProviderFailureCategory} from './provider-failure';
  * failure starts the documented token fallback. */
 export type MarketGroup={charge:'quote'|'catalog'|'history'|'insights';members:number[];fallback?:boolean};
 /** What one provider read verified: the outcome to settle, and the values to publish by work index. */
-export type MarketRead={outcome:'success'|'failure';category?:ProviderFailureCategory;pairFailures?:number[];values:{index:number;value:unknown}[]};
+/** `notFound` marks a provider 404 of the read (Session S): the account then refuses that coin's history briefly. */
+export type MarketRead={outcome:'success'|'failure';category?:ProviderFailureCategory;pairFailures?:number[];notFound?:boolean;values:{index:number;value:unknown}[]};
 /** A work's answer: the newest usable evidence (fresh or degraded), and whether this request verified or found it. */
 export type MarketItem={work:PublicMarketWork;value:unknown;ok:boolean;fresh:boolean;category?:ProviderFailureCategory};
 type Context={command:MarketCommand;signal?:AbortSignal;cancelToken?:string;client?:string;clock?:()=>number};
 type Attempt={group:number;id:string;state:string};
 /** Account refusals as the sanitized failure vocabulary. */
 export function deniedCategory(reason:unknown):ProviderFailureCategory{
- return ['PAIR_BREAKER_OPEN','QUEUE_WAIT','QUEUE_WAIT_EXPIRED','WAITER_CANCELLED','BREAKER_OPEN','CONCURRENT_LIMIT','QUEUE_LIMIT','FENCED','RESERVATION_EXPIRED','OWNERSHIP_EXPIRED','FOLLOWER_LIMIT','FOLLOWER_EXPIRED'].includes(String(reason))?'LOCAL_QUEUE':['POLICY_UNAVAILABLE','POLICY_CHANGED','CLOCK_OR_PERIOD','MINUTE_LIMIT','MONTHLY_LIMIT','MONITORING_LIMIT','OPTIONAL_LIMIT','RETENTION_CAPACITY','CACHE_CAPACITY','CLIENT_LIMIT','DAILY_LIMIT'].includes(String(reason))?'LOCAL_BUDGET':'UNKNOWN';
+ return ['PAIR_BREAKER_OPEN','QUEUE_WAIT','QUEUE_WAIT_EXPIRED','WAITER_CANCELLED','BREAKER_OPEN','CONCURRENT_LIMIT','QUEUE_LIMIT','FENCED','RESERVATION_EXPIRED','OWNERSHIP_EXPIRED','FOLLOWER_LIMIT','FOLLOWER_EXPIRED'].includes(String(reason))?'LOCAL_QUEUE':['POLICY_UNAVAILABLE','POLICY_CHANGED','CLOCK_OR_PERIOD','MINUTE_LIMIT','MONTHLY_LIMIT','MONITORING_LIMIT','OPTIONAL_LIMIT','RETENTION_CAPACITY','CACHE_CAPACITY','CLIENT_LIMIT','DAILY_LIMIT','HISTORY_LIMIT'].includes(String(reason))?'LOCAL_BUDGET':['UNKNOWN_ASSET','NOT_FOUND_RECENTLY'].includes(String(reason))?'UNSUPPORTED':'UNKNOWN';
 }
 /** One HTTP request's market work in the batched protocol (Session R1). The account sees, at most:
  * - one `acquire-many`: cache hits, leases, followers and the first provider group's admission;
@@ -79,7 +80,7 @@ export async function runMarketBatch(works:PublicMarketWork[],groups:MarketGroup
    const later=groups.findIndex((entry,n)=>n>g&&!refused.has(n)&&owned(entry).length>0);
    const toFallback=!fallback&&!!group.fallback&&result.outcome==='failure'&&!['AUTHENTICATION','LOCAL_BUDGET','LOCAL_QUEUE'].includes(result.category??'UNKNOWN');
    const next=!toFallback&&later>=0&&!c.signal?.aborted?{charge:groups[later]!.charge,associations:associations(owned(groups[later]!))}:undefined;
-   const done=await c.command({action:'complete',id:attempt.id,outcome:result.outcome,...(result.category?{category:result.category}:{}),...(result.pairFailures?.length?{pairFailures:result.pairFailures.map(m=>works[m]!)}:{}),publish:result.values.map(({index,value})=>({work:works[index]!,value})),...(toFallback?{fallback:true}:{}),...(next?{next}:{})}).catch(()=>null);
+   const done=await c.command({action:'complete',id:attempt.id,outcome:result.outcome,...(result.category?{category:result.category}:{}),...(result.pairFailures?.length?{pairFailures:result.pairFailures.map(m=>works[m]!)}:{}),publish:result.values.map(({index,value})=>({work:works[index]!,value})),...(toFallback?{fallback:true}:{}),...(result.outcome==='failure'&&result.notFound?{notFound:true}:{}),...(next?{next}:{})}).catch(()=>null);
    // No settlement in the reply (lost, or STORAGE_UNAVAILABLE after a commit whose acknowledgement failed): the
    // transaction may have committed, the next read's admission included.
    if(!done||done.settled===undefined){lost=true;fail(owners,result.outcome==='failure'?result.category??'UNKNOWN':'UNKNOWN');break;}

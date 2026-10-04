@@ -6,7 +6,7 @@ type Bucket={hour:number;counts:Record<string,number>;saturated?:true};
 type State={version:1;build:string;buckets:Bucket[]};
 type Observation={action:string;workClass?:string;priority?:string;status?:string;reason?:string;ok?:boolean;replay?:boolean;cost?:number;outcome?:string;category?:string;waitMs?:number;durationMs?:number};
 const operations=new Set(['quote','catalog','history','insights','token','rwa']);
-const reasons=new Set(['POLICY_UNAVAILABLE','POLICY_CHANGED','INVALID_REQUEST','CLOCK_OR_PERIOD','DUPLICATE_OPERATION','INVALID_TRANSITION','RESERVATION_EXPIRED','OWNERSHIP_EXPIRED','MINUTE_LIMIT','CONCURRENT_LIMIT','MONTHLY_LIMIT','MONITORING_LIMIT','OPTIONAL_LIMIT','QUEUE_LIMIT','QUEUE_WAIT','PAIR_BREAKER_OPEN','BREAKER_OPEN','RETENTION_CAPACITY','CACHE_CAPACITY','FENCED','MALFORMED','STALE_EVIDENCE','CLIENT_LIMIT','DAILY_LIMIT']);
+const reasons=new Set(['HISTORY_LIMIT','UNKNOWN_ASSET','NOT_FOUND_RECENTLY','POLICY_UNAVAILABLE','POLICY_CHANGED','INVALID_REQUEST','CLOCK_OR_PERIOD','DUPLICATE_OPERATION','INVALID_TRANSITION','RESERVATION_EXPIRED','OWNERSHIP_EXPIRED','MINUTE_LIMIT','CONCURRENT_LIMIT','MONTHLY_LIMIT','MONITORING_LIMIT','OPTIONAL_LIMIT','QUEUE_LIMIT','QUEUE_WAIT','PAIR_BREAKER_OPEN','BREAKER_OPEN','RETENTION_CAPACITY','CACHE_CAPACITY','FENCED','MALFORMED','STALE_EVIDENCE','CLIENT_LIMIT','DAILY_LIMIT']);
 const outcomes=new Set(['THROTTLED','UPSTREAM_5XX','TIMEOUT','NETWORK','AUTHENTICATION','ENTITLEMENT','MALFORMED','UNSUPPORTED','LOCAL_BUDGET','LOCAL_QUEUE','UNKNOWN']);
 const duration=(ms:number)=>ms<100?'0-99ms':ms<1000?'100-999ms':ms<10000?'1-9s':'10s-plus';
 /** One current-build aggregate, at most seven days of hourly bounded-label buckets.

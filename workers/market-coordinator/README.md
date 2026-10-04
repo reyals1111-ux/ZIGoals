@@ -28,6 +28,29 @@ Session Q found that one anonymous client could spend the account object's free 
 
 In the mixed state (old app, new coordinator) every coordinator-side protection holds: one command per request phase, no writes on hits, 250 ms polling, the daily row budget and the 64-pair refusal. Per-client limits do not, because the old app sends no client; and the old app's insights requests of more than 64 pairs are refused (degraded) until the app is redeployed.
 
+## Catalog validation, 404 cache and the history pool (Session S, FIX_PLAN C2)
+Session R1 bounded what one client can spend. Session S also refuses work that can only waste the shared budget, before any lease or charge (`apps/web/lib/server/market-catalog-guard.ts`; tests in `market-catalog-guard.test.ts`).
+
+- **Unknown asset IDs:**
+  - When catalog evidence is published, the account also writes that partition's IDs as a compact index: a pointer row `market-catalog-ids:<kind>` plus chunks of whole IDs. The rows sit outside `work-index`, so evicting the catalog evidence never removes them.
+  - A cold quote, insights or history work whose ID is not in an **authoritative** index is refused with `UNKNOWN_ASSET` (reported as `UNSUPPORTED`): no lease, no row, no credit, no provider call.
+  - An index is authoritative with at least 1,000 coins or 10 RWAs, and when it is not under 90% of the index it replaced.
+  - The app's featured markets (`FEATURED_MARKET_IDS` in `market-assets.ts`) are always accepted.
+  - History IDs must also have the shape the provider path accepts (`[a-z0-9_-]+`).
+  - Without an authoritative index, the account behaves as before, within Session R1's limits.
+  - Catalog evidence published before Session S has no index. It is treated as cold once, so the first catalog request after the redeploy refetches it (two catalog credits) and writes the index.
+- **Provider 404s:**
+  - A history read that the provider answers with 404 is remembered for that coin for 15 minutes, in one row `market-not-found` of at most 128 entries.
+  - Later history requests for the coin, any currency or range, are refused with `NOT_FOUND_RECENTLY` (`UNSUPPORTED`) and cost nothing. A repeated unknown coin therefore uses one provider read.
+- **History's own share** (`historyLimits` in `market-budget-policy.ts`, derived from the policy, with no new field). History reservations carry `pool: "history"`, and history may hold at most:
+  - a quarter of `queueLimit`;
+  - half of `operating.minute` and half of `operating.monthly` (folded history credits are kept in `archived.historyCredits` through compaction);
+  - every dispatch slot but one.
+
+  A history read waiting for its slot is passed over in the dispatch order, so it never holds back a quote behind it. A refusal is `HISTORY_LIMIT` (reported as `LOCAL_BUDGET`) and writes nothing.
+
+**Existing rows** are still read in place. The new rows (`market-catalog-ids:*`, `market-not-found`) and fields (`pool`, `archived.historyCredits`, `notFound` on `complete`) are additive. Session R1's code ignores them, so rolling the coordinator back to R1 stays safe; it then simply stops refusing.
+
 ## Optional aggregate telemetry
 `MARKET_POLICY.telemetry` is absent by default. Separate activation approval can add `{ "enabled": true, "build": "<verified source or bundle identity>", "retentionHours": 24 }`. The strict schema allows one to168 hourly buckets for the current build. Build changes clear the prior aggregate; disabled mode clears it on next valid access. Expired buckets are excluded and deleted on access, not guaranteed physically erased while the object is idle. Retention concerns diagnostics only and never prunes charge/replay authority.
 Only the private Durable Object `inspect-metrics` command reads these counters; the public Worker still404s and named quote service has no diagnostic route. Access belongs to authorized operator tooling, not browser users. There is no console log, external sink or analytics activation. Fixed counters cover cache hits/misses/coalescing, admission reasons, work classes, reserved/dispatched attempts and configured credits, priority, sanitized outcome, queue-wait and dispatched-duration buckets. They contain no URLs, headers, bodies, tokens, request IDs, asset/pair lists, account IDs or private data. Duplicate settlement cannot increment outcomes again; denied dispatch never increments spend. Counter saturation is explicit. Automatically recovered unknown dispatches remain charge authority facts; aggregate telemetry is not a billing ledger.

@@ -11,8 +11,8 @@ const MINUTE=60000;
  * the entire minute window passed. UUIDs are never caller-selected or recreated. */
 export async function maintainMarketAccount(tx:AtomicMarketStorage,input:BudgetState,month:BudgetPeriod,now:number,leaseMs:number,reservationMs:number,retryMs:number,breaker?:BreakerPolicy):Promise<BudgetState>{
  let state=input;
- const archived={month:month.id,credits:{interactive:0,refresh:0,optional:0,monitoring:0},attempts:input.archived?.attempts??0,lifetimeCredits:input.archived?.lifetimeCredits??0};
- if(input.archived?.month===month.id)archived.credits={...input.archived.credits};
+ const archived:NonNullable<BudgetState['archived']>={month:month.id,credits:{interactive:0,refresh:0,optional:0,monitoring:0},attempts:input.archived?.attempts??0,lifetimeCredits:input.archived?.lifetimeCredits??0};
+ if(input.archived?.month===month.id){archived.credits={...input.archived.credits};if(input.archived.historyCredits)archived.historyCredits=input.archived.historyCredits;}
  for(const [id,row] of Object.entries(state.reservations)){
   let result;
   // Only waiting reservations need their receipt (lease expiry); finished and dispatched rows are judged by time.
@@ -26,7 +26,7 @@ export async function maintainMarketAccount(tx:AtomicMarketStorage,input:BudgetS
  const retained={...state.reservations};
  for(const [id,row] of Object.entries(retained)){
   if(!['SETTLED','CANCELLED'].includes(row.status)||now-(row.dispatchedAt??row.reservedAt)<MINUTE)continue;
-  if(row.status==='SETTLED'){if(row.periods?.month.id===month.id)archived.credits[row.priority]+=row.cost;archived.attempts++;archived.lifetimeCredits+=row.cost;}
+  if(row.status==='SETTLED'){if(row.periods?.month.id===month.id){archived.credits[row.priority]+=row.cost;if(row.pool==='history')archived.historyCredits=(archived.historyCredits??0)+row.cost;}archived.attempts++;archived.lifetimeCredits=(archived.lifetimeCredits??0)+row.cost;}
   delete retained[id];
  }
  state={...state,archived,reservations:retained};

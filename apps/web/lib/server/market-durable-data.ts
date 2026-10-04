@@ -17,7 +17,7 @@ function reader(url:(owners:number[])=>URL,operation:ChargedOperation,limit:numb
   try{
    const text=await providerText(url(owners),operation,typeof limit==='number'?limit:limit(owners),{key:c.key,fetcher:c.fetcher,signal:c.signal}),values=parseProviderEvidence(()=>parse(text,owners));
    return {outcome:'success',values,pairFailures:owners.filter(m=>works[m]!.operation!=='catalog'&&!values.some(v=>v.index===m))};
-  }catch(error){return {outcome:'failure',category:providerFailure(error,c.signal).category,values:[]};}
+  }catch(error){const failure=providerFailure(error,c.signal);return {outcome:'failure',category:failure.category,...(failure.notFound?{notFound:true}:{}),values:[]};}
  };
 }
 const keyed=(c:Context)=>!!c.key?.trim();
