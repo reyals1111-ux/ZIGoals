@@ -9,7 +9,7 @@ import type {LocalGoal} from './local-ledger';
 import {DemoPriceProvider} from './valuation';
 import {goalProgress,type Platform,type PrivateGoal} from './positions';
 import type {MarketQuote} from './market-quotes';
-import {effectiveContributionPlan,planDay} from './plan-revisions';
+import {effectiveContributionPlan,planDay,planZone} from './plan-revisions';
 import {fundingHealth} from './goal-intelligence';
 import {localDate} from './local-date';
 /**
@@ -58,8 +58,8 @@ export function legacyGoalSummary(goal:LocalGoal,plan?:GoalMetadata,source='Loca
 }
 export function privateGoalSummary(data:Platform,g:PrivateGoal,quotes:readonly MarketQuote[]=[],now=Date.now()):GoalSummary{
  const p=goalProgress(data,g.id,now,quotes);let funding='No plan',nextContributionDate:string|null=null;
- // The plan's day through the time helpers, zone UTC (Session P, 1.5): the same date as before, from one place.
- const applicablePlan=effectiveContributionPlan(g,planDay(now));
+ // The plan's day in the plan's own zone (timezone phase 3; UTC until R2 writes a zone), from one place.
+ const applicablePlan=effectiveContributionPlan(g,planDay(now,planZone(g)));
  try{if(g.type!=='PROJECT'){const pulse=fundingHealth(data,g.id,now,quotes);funding=pulse.status.replaceAll('_',' ');if(g.status!=='closed')nextContributionDate=pulse.nextDate;}}catch{funding='Review assumptions';}
  const currency=g.type==='PROJECT'?'milestones':g.asset,bound=valuationBound(p);
  return {progressBound:bound.bound,unvaluedSources:bound.unvalued||undefined,assetMix:goalAssetMix(data,g,now,quotes),key:`private:${g.id}`,id:g.id,href:`/app/goals/tracked/${g.id}`,name:g.name,type:`${g.type[0]}${g.type.slice(1).toLowerCase()} Goal`,source:g.type==='PROJECT'?'Project':p.breakdown.length?'Existing wealth':g.plan?'Future contributions':'Private allocation',status:g.status==='closed'?'closed':!p.requiresReview&&BigInt(p.current)>=BigInt(p.target)?'completed':'active',scene:g.category?sceneFor(g.category):g.type==='PROJECT'?'mountains':g.type==='VALUE'?'home':g.type==='REWARD'?'aurora':'horizon',current:formatUnits(p.current,g.decimals),target:formatUnits(p.target,g.decimals),currency,progressPct:p.progressPct,remaining:formatUnits(p.remaining,g.decimals),targetDate:g.targetDate,nextContributionDate,fundingHealth:funding,requiresReview:p.requiresReview,valuationLabel:p.missingValuation?'Valuation unavailable':p.staleValuation?'Last verified value · needs refresh':g.type==='VALUE'&&p.manual!=='0'?'Includes manual valuation':undefined,metadata:[{label:g.type==='PROJECT'?'Progress':'Wealth sources',value:g.type==='PROJECT'?`${g.milestones.filter(m=>m.done).length} milestones done`:`${p.breakdown.length} Positions`},{label:'Contribution plan',value:applicablePlan?`${formatGoalAmount(formatUnits(applicablePlan.amount,applicablePlan.decimals),applicablePlan.asset)} / ${applicablePlan.cadence}${applicablePlan.active?'':' · paused'}`:g.planRevisions?.length?'Scheduled for later':'Not set'}]};

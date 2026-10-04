@@ -69,9 +69,10 @@ export function useHabits() {
     }),
   }), [update]);
   // What a habit card needs, stable across check-ins on other habits (Session G, Part 2).
-  const card = useMemo(() => ({ today, update, data: { timeZone }, ...actions }), [today, update, timeZone, actions]);
+  const schemaVersion = data.schemaVersion;
+  const card = useMemo(() => ({ today, update, data: { timeZone, schemaVersion }, ...actions }), [today, update, timeZone, schemaVersion, actions]);
   return { ...store, data, today, ...actions, card };
 }
 export type HabitsStore = ReturnType<typeof useHabits>;
 /** The part of the Habits store a card and its children use. A full HabitsStore also satisfies it. */
-export type HabitCardStore = Pick<HabitsStore, "today" | "update" | "setValue" | "addValue" | "smartDone" | "adjustCount" | "setCount" | "markDay" | "setState"> & { data: Pick<HabitData, "timeZone"> };
+export type HabitCardStore = Pick<HabitsStore, "today" | "update" | "setValue" | "addValue" | "smartDone" | "adjustCount" | "setCount" | "markDay" | "setState"> & { data: Pick<HabitData, "timeZone"> & Partial<Pick<HabitData, "schemaVersion">> };

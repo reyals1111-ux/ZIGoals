@@ -1,8 +1,8 @@
 // ADR-006 against the real private sync Worker (Miniflare, local workerd): a head write
 // the Worker applies but whose response never reaches the browser. See
 // sync-lost-ack.test.ts for the in-memory cases and guards, and
-// docs/architecture/ADR-006-sync-lost-confirmation.md for the fix. The `test.fails`
-// case flips when option A lands; the precondition test must pass before and after.
+// docs/architecture/ADR-006-sync-lost-confirmation.md for the fix (option A2, Session P).
+// X4 was a `test.fails` until then; the precondition test passed before and after.
 import {test,expect} from 'vitest';
 import {privateRuntime} from './private-runtime.mjs';
 import {createVault} from '../../apps/web/lib/vault/crypto';
@@ -14,8 +14,10 @@ const HEAD_SUFFIX='000000000001',F0='{"fixture":"F0"}',F1='{"fixture":"F1"}',F2=
 async function device(r){
  await r.call('/v1/sessions',{action:'register',label:'Lost acknowledgement fixture'});const vault=await createVault();
  expect((await r.call('/v1/vault',{protocol:1,vault:vault.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:vault.manifest})).status).toBe(200);
- const d={vault,loseNextHeadAck:false,state:{version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null}};
- d.journal={read:async()=>structuredClone(d.state),write:async value=>{d.state=structuredClone(value);}};
+ const d={vault,loseNextHeadAck:false,state:{version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null},confirmation:null};
+ // The journal keeps the record and, as the app's SyncJournal does, the A2 confirmation beside it.
+ d.reopen=()=>{d.journal={read:async()=>structuredClone(d.state),write:async(value,confirmation)=>{d.state=structuredClone(value);if(confirmation!==undefined)d.confirmation=confirmation&&structuredClone(confirmation);},readConfirmation:async()=>d.confirmation&&structuredClone(d.confirmation)};};
+ d.reopen();
  d.transport={
   read:async cursor=>(await r.call('/v1/vault'+(cursor?'?cursor='+encodeURIComponent(cursor):''))).json(),
   readRows:async ids=>{const res=await r.call('/v1/vault?ids='+ids.join(','));expect(res.status).toBe(200);return res.json();},
@@ -40,10 +42,19 @@ test('precondition: the sync Worker applies the head and answers its replay idem
   expect(replay.status).toBe(200);expect((await replay.json()).revision).toBe(pending.base+1);expect((await d.transport.read(null)).revision).toBe(before.revision);
  }finally{await r.mf.dispose();}
 },60_000);
-test.fails('a finance edit after a lost acknowledgement syncs without a false conflict against the real sync Worker',async()=>{
+test('X4 a finance edit after a lost acknowledgement syncs without a false conflict against the real sync Worker',async()=>{
+ const r=await privateRuntime();try{
+  const d=await device(r);const pending=await publishWithLostAck(d);
+  expect(d.confirmation).toMatchObject({version:1,operation:pending.operation,headRevision:2});
+  const result=await d.sync({finance:F2});
+  expect(result.data.finance).toBe(F2);expect((await d.cloud()).finance).toBe(F2);expect(d.state).toMatchObject({base:{finance:F2},pending:null});expect(d.confirmation).toBeNull();
+ }finally{await r.mf.dispose();}
+},60_000);
+test('crash variant: a new journal instance over the persisted record and confirmation gets the same clean sync',async()=>{
  const r=await privateRuntime();try{
   const d=await device(r);await publishWithLostAck(d);
+  d.reopen();
   const result=await d.sync({finance:F2});
-  expect(result.data.finance).toBe(F2);expect((await d.cloud()).finance).toBe(F2);expect(d.state).toMatchObject({base:{finance:F2},pending:null});
+  expect(result.data.finance).toBe(F2);expect((await d.cloud()).finance).toBe(F2);expect(d.state).toMatchObject({base:{finance:F2},pending:null});expect(d.confirmation).toBeNull();
  }finally{await r.mf.dispose();}
 },60_000);

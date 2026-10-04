@@ -1,17 +1,20 @@
 /** Immutable intention and lifecycle facts; they never create wealth or contributions. */
 import {z} from 'zod';
-import {contributionSchema,goalProgress,planScenario,platformSchema,rescaleUnits,type ContributionPlan,type ContributionEvent,type PlanRevision,type PrivateGoal,type Platform,type GoalLifecycle} from './positions';
+import {contributionSchema,financeVersion,goalProgress,planScenario,platformSchema,rescaleUnits,type ContributionPlan,type ContributionEvent,type PlanRevision,type PrivateGoal,type Platform,type GoalLifecycle} from './positions';
 import type {MarketQuote} from './market-quotes';
 import {epochDay,fromEpochDay,isCalendarDate,zonedDate} from '@zigoals/goal-engine/time';
-// Plan days come from the time helpers (timezone phase 2) with zone "UTC": funding and plan days stay UTC (QA-04).
-// The helpers cover 1900-9999. Anything outside that range, which no device clock produces (or a stored date before
-// 1900), keeps the earlier expression, so every answer and every error is exactly what it was
-// (funding-day-parity.test.ts and funding-day-edges.test.ts). Phase 3 passes the plan's own zone here.
+// Plan days come from the time helpers (timezone phase 2) in the plan's own zone (phase 3, R1: `plan.timeZone`, absent
+// means UTC, which every plan is until R2 writes a zone, so funding and plan days stay UTC in practice; QA-04). The
+// helpers cover 1900-9999. Anything outside that range, which no device clock produces (or a stored date before 1900),
+// keeps the earlier expression, so every answer and every error is exactly what it was
+// (funding-day-parity.test.ts and funding-day-edges.test.ts).
 const FIRST_INSTANT=Date.UTC(1900,0,1),END_INSTANT=Date.UTC(10000,0,1),FIRST_DAY=epochDay('1900-01-01'),LAST_DAY=epochDay('9999-12-31');
 const earlierDay=(now:number)=>new Date(now).toISOString().slice(0,10);
 const earlierShift=(date:string,n:number)=>new Date(Date.parse(`${date}T00:00:00Z`)+n*86400000).toISOString().slice(0,10);
-/** The plan's day for an instant: the UTC calendar date until plans carry a zone. */
-export function planDay(now:number):string{return now>=FIRST_INSTANT&&now<END_INSTANT?zonedDate(now,'UTC'):earlierDay(now);}
+/** The plan's day for an instant: the calendar date in the plan's zone (UTC when the plan carries none). */
+export function planDay(now:number,zone='UTC'):string{return now>=FIRST_INSTANT&&now<END_INSTANT?zonedDate(now,zone):earlierDay(now);}
+/** The zone a Goal's plan days are counted in (TIMEZONE_DESIGN.md, "Plan zone"): the plan's own, else UTC. */
+export const planZone=(g:Pick<PrivateGoal,'plan'>|undefined)=>g?.plan?.timeZone??'UTC';
 /** A plan date moved by whole calendar days. */
 export function shiftPlanDay(date:string,n:number):string{
  // addDays(date,n) without validating the date twice more: this runs for every plan revision on every render.
@@ -21,7 +24,7 @@ export function shiftPlanDay(date:string,n:number):string{
 function terms(plan:ContributionPlan|undefined){if(!plan)return null;const {habitId,...rest}=plan;void habitId;return rest;}
 export function planFingerprint(g:PrivateGoal){return JSON.stringify([terms(g.plan),g.target,g.targetDate,g.planRevisions??[]]);}
 export function effectiveContributionPlan(g:PrivateGoal,date:string){return g.planRevisions?.length?g.planRevisions.filter(r=>r.effectiveFrom<=date).at(-1)?.terms??undefined:g.plan;}
-export function earliestPlanChange(g:PrivateGoal,now=Date.now()){return g.plan||g.planRevisions?.length?[shiftPlanDay(planDay(now),1),g.planRevisions?.at(-1)?.effectiveFrom??''].sort().at(-1)!:planDay(now);}
+export function earliestPlanChange(g:PrivateGoal,now=Date.now()){return g.plan||g.planRevisions?.length?[shiftPlanDay(planDay(now,planZone(g)),1),g.planRevisions?.at(-1)?.effectiveFrom??''].sort().at(-1)!:planDay(now,planZone(g));}
 function revision(g:PrivateGoal,effectiveFrom:string,now:number,_index:number,priorHistory:'known'|'unknown'):PlanRevision{return {version:1,id:`plan:${g.id}:${crypto.randomUUID()}`,effectiveFrom,recordedAt:new Date(now).toISOString(),terms:terms(g.plan),target:g.target,targetDate:g.targetDate,asset:g.asset,decimals:g.decimals,priorHistory};}
 /** Legacy terms are only evidenced from the day observed; their earlier history is unknown. */
 export function capturePlanChanges(before:Platform,after:Platform,now:number):Platform {
@@ -31,8 +34,8 @@ export function capturePlanChanges(before:Platform,after:Platform,now:number):Pl
   if(JSON.stringify(terms(old?.plan))===JSON.stringify(terms(g.plan))&&old?.target===g.target&&old?.targetDate===g.targetDate)return g;
   if(!g.plan&&!old?.plan&&!g.planRevisions?.length)return g;
   const revisions=[...(g.planRevisions??[])];
-  if(old&&!revisions.length)revisions.push(revision(old,planDay(now),now,0,'unknown'));
-  revisions.push(revision(g,old?earliestPlanChange(old,now):planDay(now),now,revisions.length,'known'));
+  if(old&&!revisions.length)revisions.push(revision(old,planDay(now,planZone(old)),now,0,'unknown'));
+  revisions.push(revision(g,old?earliestPlanChange(old,now):planDay(now,planZone(g)),now,revisions.length,'known'));
   changed=true;return {...g,planRevisions:revisions};
  });return changed?{...after,goals}:after;
 }
@@ -42,9 +45,11 @@ export function reviseGoalPlan(s:Platform,goalId:string,plan:ContributionPlan,ef
  z.iso.date().parse(effectiveFrom);const parsed=contributionSchema.parse(plan);
  if(effectiveFrom<earliestPlanChange(g,now))throw Error('Plan changes must start on a future day, after any retained revisions.');
  if(JSON.stringify(terms(parsed))===JSON.stringify(terms(g.plan)))return s;
- const revisions=[...(g.planRevisions??[])];if(g.plan&&!revisions.length)revisions.push(revision(g,planDay(now),now,0,'unknown'));
+ const revisions=[...(g.planRevisions??[])];if(g.plan&&!revisions.length)revisions.push(revision(g,planDay(now,planZone(g)),now,0,'unknown'));
  const next={...g,plan:parsed};revisions.push(revision(next,effectiveFrom,now,revisions.length,'known'));
- return platformSchema.parse({...s,goals:s.goals.map(x=>x.id===g.id?{...next,planRevisions:revisions}:x)});
+ // A zone change takes effect from the next day in the old zone (earliestPlanChange above); a record that now carries a zone is finance v4.
+ const goals=s.goals.map(x=>x.id===g.id?{...next,planRevisions:revisions}:x);
+ return platformSchema.parse({...s,schemaVersion:financeVersion({...s,goals}),goals});
 }
 export type PlanInstallment={id:string;revisionId:string;date:string;amount:string;credited:string;remaining:string};
 export function revisionInstallments(g:PrivateGoal,from:string,through:string,events:readonly ContributionEvent[]=[],now=Date.now()):PlanInstallment[]{

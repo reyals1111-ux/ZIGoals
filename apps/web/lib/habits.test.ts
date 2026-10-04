@@ -23,7 +23,7 @@ describe("habit lifecycle and private schema", () => {
   });
   it("rejects malformed, future-version, unknown-field, duplicate and invalid-date imports", () => {
     const data = make();
-    for (const raw of [null, { ...data, schemaVersion: 3 }, { ...data, kind: "zigoals-health" }, { ...data, secret: "unexpected" }, { ...data, habits: [...data.habits, ...data.habits] }, { ...data, habits: [{ ...data.habits[0]!, startDate: "2026-02-30" }] }]) {
+    for (const raw of [null, { ...data, schemaVersion: 4 } /* v3 is read since Session P, read-support.test.ts */, { ...data, kind: "zigoals-health" }, { ...data, secret: "unexpected" }, { ...data, habits: [...data.habits, ...data.habits] }, { ...data, habits: [{ ...data.habits[0]!, startDate: "2026-02-30" }] }]) {
       expect(habitDataSchema.safeParse(raw).success).toBe(false);
     }
   });
