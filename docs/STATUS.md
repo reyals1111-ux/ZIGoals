@@ -1,4 +1,4 @@
-# Owner records — 2026-10-04 evening: the app-side market key is deleted
+# Owner records — 2026-10-04 evening: the app-side market key and the GitHub `alpha` secret are deleted
 
 Recorded by Session U at the owner's request.
 
@@ -7,7 +7,7 @@ Evidence label: **Owner:** reported by the owner in the Session U brief, 2026-10
 - **App-side Worker secret:** after Alpha deploy #28 the owner deleted `COINGECKO_DEMO_API_KEY` from `zigoals-alpha` ([ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md) step 6). (Owner)
 - **The extra version:** deleting a secret creates a new Worker version with the same code. Its ID was not recorded; `pnpm --filter @zigoals/web exec wrangler deployments list --name zigoals-alpha` shows it. (Owner)
   - The next Manual Alpha deployment captures that version as its rollback target. Its code is #28's (`e336227`). (Owner; `scripts/alpha-deploy.mjs` capture step, read by Session U)
-- **GitHub `alpha` environment secret `COINGECKO_DEMO_API_KEY`:** deletion still to be confirmed by the owner. No workflow reads it since #71. (Owner; `.github/workflows/deploy-alpha.yml`, read by Session U)
+- **GitHub `alpha` environment secret `COINGECKO_DEMO_API_KEY`:** deleted by the owner 2026-10-04. No workflow reads it since #71. (Owner, confirmed during Session U; `.github/workflows/deploy-alpha.yml`, read by Session U)
 
 # Alpha deploy #28 — 2026-10-04 evening, `e336227` live
 
