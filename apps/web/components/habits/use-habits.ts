@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePrivateStore } from "../use-private-store";
-import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, type HabitData, type HabitInput, type HabitState } from "../../lib/habits";
+import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
 import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
 import { localDate } from "../../lib/local-date";
@@ -61,6 +61,11 @@ export function useHabits() {
     markDay: (id: string, date: string, status: "skipped" | "failed", note = "") => update((data) => setHabitEntryStatus(data, id, date, status, note)),
     adjustCount: (id: string, date: string, delta: number) => update(habitCheckIn.adjustCount(id, date, delta)),
     smartDone: (id: string, date: string) => update(habitCheckIn.smartDone(id, date)),
+    // H1: planned skips and vacation days (lib/habits.ts).
+    planSkip: (id: string, date: string, reason = "") => update((data) => planHabitSkip(data, id, date, reason)),
+    unplanSkip: (id: string, date: string) => update((data) => unplanHabitSkip(data, id, date)),
+    setVacation: (range: VacationRange) => update((data) => setHabitVacation(data, range)),
+    clearVacation: (range: VacationRange) => update((data) => clearHabitVacation(data, range)),
     toggle: (id: string, date: string) => update((data) => {
       const habit = data.habits.find((item) => item.id === id);
       if (!habit) throw new Error("Habit unavailable.");
@@ -74,4 +79,4 @@ export function useHabits() {
 }
 export type HabitsStore = ReturnType<typeof useHabits>;
 /** The part of the Habits store a card and its children use. A full HabitsStore also satisfies it. */
-export type HabitCardStore = Pick<HabitsStore, "today" | "update" | "setValue" | "addValue" | "smartDone" | "adjustCount" | "setCount" | "markDay" | "setState"> & { data: Pick<HabitData, "timeZone"> };
+export type HabitCardStore = Pick<HabitsStore, "today" | "update" | "setValue" | "addValue" | "smartDone" | "adjustCount" | "setCount" | "markDay" | "setState" | "planSkip" | "unplanSkip"> & { data: Pick<HabitData, "timeZone"> };

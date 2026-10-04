@@ -37,6 +37,11 @@ import {formatSignedGoalAmount} from '../../lib/goal-summary';
 import {SceneArt} from '../scene-art';
 import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';
 import {ManualSourceCards} from './manual-source-cards';
+import {useImportUndo} from '../import/use-import-undo';
+import {ImportBanner} from '../import/csv-import-steps';
+import {HoldingsImportPanel} from '../import/holdings-import';
+import {undoImport} from '../../lib/import/holdings';
+import type {ImportRecord} from '../../lib/import/undo-schema';
 import {Watchlist} from './watchlist';
 import {PhoneFold} from '../phone/phone-fold';
 import {restoreAsset} from '../../lib/asset-management';
@@ -45,7 +50,9 @@ import {NebulaFlow} from '../nebula-flow';
 import { formatDateTime } from '../../lib/visual-format';
 export const wealthMoney=(n:bigint,currency:string)=>formatSignedGoalAmount(n<0n,amount((n<0n?-n:n).toString(),2),currency);
 export function WealthView(){
- const store=usePlatform(),[adding,setAdding]=useState(false),[filter,setFilter]=useState('All assets'),[error,setError]=useState('');const requests=uniqueMarketRequests([...wealthMarketRequests(store.data),...store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt&&(p.marketRef.kind!=='rwa'||(p.quoteCurrency??'USD')==='USD')?[{marketRef:p.marketRef,currency:p.quoteCurrency??'USD' as const}]:[])]),market=useMarketQuotes(requests);useValuationHistory(store,market);
+ const store=usePlatform(),[adding,setAdding]=useState(false),[importing,setImporting]=useState(false),[filter,setFilter]=useState('All assets'),[error,setError]=useState('');
+ // W3: holdings from a CSV, with the undo ledger of this device.
+ const imports=useImportUndo();const undoRecord=async(record:ImportRecord)=>{await store.update(s=>undoImport(record,{platform:s}).platform!);imports.forget(record.id);};const requests=uniqueMarketRequests([...wealthMarketRequests(store.data),...store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt&&(p.marketRef.kind!=='rwa'||(p.quoteCurrency??'USD')==='USD')?[{marketRef:p.marketRef,currency:p.quoteCurrency??'USD' as const}]:[])]),market=useMarketQuotes(requests);useValuationHistory(store,market);
  const insights=useMarketInsights(store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt?[p.marketRef]:[])),showcase=useShowcase(),phone=usePhoneActive(),holdings=usePhoneShowAll(4),classes=usePhoneShowAll(4);
  const now=useEvidenceNow(store.data,market.now),overview=wealthOverview(store.data,now,market.quotes);
  if(!store.loaded)return <div className="dashboard"><h1>Your Wealth</h1><p>Loading your private wealth…</p></div>;
@@ -58,6 +65,7 @@ export function WealthView(){
  return <LayoutPage page="wealth"><div className="dashboard wealth-workspace wealth-product"><ActionIntent value="asset" onAction={()=>setAdding(true)}/>
  <section className="wealth-hero panel"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/><div className="wealth-hero-copy"><p className="eyebrow page-eyebrow"><NebulaFlow identity="wealth-eyebrow">YOUR FINANCIAL ORBIT</NebulaFlow></p><h1><NebulaFlow identity="wealth-title">Wealth, with every source in view.</NebulaFlow></h1>{phone&&total}<p className="wealth-intro page-lede">Everything you own. Everything you’re working toward. One clear view.</p><div className="wealth-actions"><button className="primary" onClick={()=>setAdding(true)}>+ Add asset</button><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>void market.refresh()} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button></div><p className="fine">Private tracking · no funds move.</p></div>{!phone&&total}<dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl></section>
  {market.error&&<p className="notice" role="status">Price refresh is unavailable. Last-good values stay visible with their timestamps.</p>}
+ <ImportBanner imports={imports} kind="wealth" onUndo={undoRecord}/>
  <LayoutRegion region="body" items={phoneOrder(phone,[
   {id:'wealth:composition',label:'The shape of your wealth',node:<PortfolioComposition overview={overview}/>},
   {id:'wealth:watchlist',label:'Markets that matter to you',node:<PhoneFold label="Your favourite markets"><Watchlist/></PhoneFold>},
@@ -70,6 +78,6 @@ export function WealthView(){
   store.data.positions.some(p=>p.archivedAt)&&{id:'wealth:archived',label:'Archived assets',node:<details className="panel"><summary>Archived assets</summary><p>Historical evidence is retained. Restoring an asset adds it back to current wealth without recreating allocations.</p>{store.data.positions.filter(p=>p.archivedAt).map(p=><div className="archived-row" key={p.id}><span>{p.providerId}</span><button className="secondary" onClick={()=>void store.update(s=>restoreAsset(s,p.id)).catch(e=>setError(String(e)))}>Restore {p.providerId}</button></div>)}</details>},
  {id:'wealth:allocation',label:'Allocation and coverage',node:<PhoneFold label="Allocation and coverage"><WealthAllocationSection overview={overview}/></PhoneFold>},
  ],PHONE_ORDER)}/>
-{error&&<p role="alert">{error}</p>}{adding&&<Sheet title="Add to your wealth" onClose={()=>setAdding(false)}><ManualSourceCards update={store.update} onSaved={()=>setAdding(false)}/></Sheet>}
+{error&&<p role="alert">{error}</p>}{adding&&<Sheet title={importing?'Import holdings':'Add to your wealth'} onClose={()=>{setAdding(false);setImporting(false);}}>{importing?<HoldingsImportPanel platform={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={()=>setImporting(false)}/>:<><ManualSourceCards update={store.update} onSaved={()=>setAdding(false)}/><section className="manual-source-selector import-entry" aria-label="Import from a file"><p>Have a spreadsheet of what you own? Read on this device only.</p><button type="button" className="secondary" onClick={()=>setImporting(true)}>Import from a CSV file</button></section></>}</Sheet>}
  </div></LayoutPage>;
 }

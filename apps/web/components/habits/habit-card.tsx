@@ -1,5 +1,9 @@
 "use client";
 import type { LayoutAttrs } from "../layout-edit";
+import { AutoCheckInBadge } from "./auto-checkin-badge";
+import { PlanSkip } from "./plan-skip";
+import { useHabitHealthLinks } from "./use-habit-health-links";
+import { appliedCheckIn, markAutoCheckInUndone } from "../../lib/habit-health-links/store";
 import { memo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
@@ -17,7 +21,7 @@ import { formatDate, formatDateTime, formatPlainDecimal } from "../../lib/visual
 import { unitFor } from "../../lib/plural";
 import { checkInFailureMessage, storageMessageOr } from "../../lib/storage-error-copy";
 
-const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "not-started": "Before you started" };
+const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
 const plain = (value: number) => formatPlainDecimal(String(value));
 function longDate(date: string) { return formatDate(`${date}T12:00:00`, { month: "long", day: "numeric", year: "numeric" }); }
@@ -35,6 +39,8 @@ function afterPaint(run: () => void) {
   requestAnimationFrame(() => setTimeout(once, 0)); setTimeout(once, 100);
 }
 export function HabitCompletion({ habit, store, compact = false }: { habit: Habit; store: HabitCardStore; compact?: boolean }) {
+  // H7: this device's automatic check-in for today, if any (lib/habit-health-links); read once per card, written only by Undo.
+  const links = useHabitHealthLinks(); const marker = links.loaded ? appliedCheckIn(links.data, habit.id, store.today) : undefined;
   // Paint first, then save (Session I, Part 9): a tap shows its result on the next frame, and the save runs after that
   // frame. If the save fails, the card returns to what is saved and says why (Part 5's coded message), so a check-in is
   // never left showing as saved when it was not.
@@ -84,9 +90,10 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
     <div className="habit-check-actions">
       {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={!pending && busy || day.count === 0} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.adjustCount(habit.id, store.today, -1))}>−</button>}
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.addValue(habit.id, store.today, 1))}>+</button>}
-      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(day.status === "complete" && rule.type === "build" ? habitCheckIn.setValue(habit.id, store.today, 0) : habitCheckIn.smartDone(habit.id, store.today))}>{busy && !pending ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
+      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => { if (day.status === "complete" && rule.type === "build" && marker && !marker.undone) { try { links.update(current => markAutoCheckInUndone(current, habit.id, store.today)); } catch { /* the undo itself still saves; the marker then keeps the day off through the entry */ } } checkIn(day.status === "complete" && rule.type === "build" ? habitCheckIn.setValue(habit.id, store.today, 0) : habitCheckIn.smartDone(habit.id, store.today)); }}>{busy && !pending ? "Saving…" : rule.type === "quit" ? "Stayed on track" : rule.type === "limit" ? "Within limit" : day.status === "complete" ? "✓ Done" : "Complete"}</button>
     </div>
     {!compact && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div></form></details>}
+    <AutoCheckInBadge habitId={habit.id} marker={marker} link={links.data.links[habit.id]} />
     {error && <p className="habit-inline-error" role="alert">{error}</p>}
   </div>;
 }
@@ -107,7 +114,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
       const date = addLocalDays(gridStart, index); const result = habitDay(habit, date, store.today); if (!date.startsWith(month)) return <span key={date} />;
       return <button key={date} type="button" className={`habit-calendar-day habit-day-${result.status}`} disabled={date > store.today || date < habit.startDate} aria-pressed={selectedDate === date} aria-label={`${longDate(date)}: ${statusLabel[result.status]}, ${plain(result.count)} of ${plain(result.target)}`} onClick={() => chooseDate(date)}><span>{Number(date.slice(-2))}</span>{result.status === "complete" && <span className="habit-calendar-check" aria-hidden="true">✓</span>}</button>;
     })}</div>
-    <p className="habit-calendar-legend"><span>● Complete</span><span>◐ Partial</span><span>× Failed</span><span>○ Skipped</span><span>— Not scheduled</span></p>
+    <p className="habit-calendar-legend"><span>● Complete</span><span>◐ Partial</span><span>× Failed</span><span>○ Skipped</span><span>◌ Planned skip</span><span>— Not scheduled</span></p>
     <form onSubmit={save} className="habit-day-editor" key={`${selectedDate}-${day.count}-${day.note}-${day.mood ?? ""}`}>
       <label className="field">Day to review<input type="date" required min={habit.startDate} max={store.today} value={selectedDate} onChange={(event) => chooseDate(event.target.value)} /></label>
       <p className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]} · Target {plain(day.target)} {unitFor(day.target, measurementUnit(rule))}</p>
@@ -118,6 +125,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
         <div className="habit-history-actions"><button className="secondary" type="submit">{busy ? "Saving…" : "Save day"}</button><button className="quiet" type="button" onClick={() => void mark("skipped")}>Skip day</button><button className="quiet" type="button" onClick={() => void mark("failed")}>Mark failed</button></div>
       </fieldset>{message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     </form>
+    <PlanSkip habit={habit} store={store} />
     <details className="habit-rule-history"><summary>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time>{item.from}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {plain(item.target)} {unitFor(item.target, measurementUnit(item))} per {habitTargetPeriod(item)}</li>)}</ul>{!!habit.ruleRevisions?.length&&<details><summary>Retained rule revisions ({habit.ruleRevisions.length})</summary><p className="fine">Original and scheduled terms are retained, including superseded future terms. Earlier same-day edits before this record were not retained.</p><ol>{habit.ruleRevisions.map(r=><li key={r.id}>Effective {r.rule.from} · {r.rule.state} · {plain(r.rule.target)} {unitFor(r.rule.target, measurementUnit(r.rule))} per {habitTargetPeriod(r.rule)} · {scheduleLabel(r.rule.schedule)}<p className="fine">Recorded {formatDateTime(r.recordedAt)} · {r.source==='retained'?'Existing rule captured':'Scheduled edit'}</p></li>)}</ol></details>}</details>
   </div>;
 }

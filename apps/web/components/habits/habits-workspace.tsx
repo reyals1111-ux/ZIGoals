@@ -19,10 +19,17 @@ import { NebulaFlow } from "../nebula-flow";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
+import { VacationPanel } from "./vacation-panel";
 import { useReminders } from "../reminders/use-reminders";
 import { reminderTime } from "../../lib/reminders/schema";
 import { setHabitReminder } from "../../lib/reminders/store";
 import { deviceSettingFailureMessage } from "../../lib/storage-error-copy";
+import { useHealth } from "../health/use-health";
+import { useAutoCheckIns } from "./use-auto-checkins";
+import { HealthLinkContext } from "./health-link-context";
+import { setHabitHealthLink } from "../../lib/habit-health-links/store";
+import { exerciseData } from "../../lib/health-counters";
+import { dailyData } from "../../lib/health-daily";
 
 /** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
 function useStackSuggestions(data: HabitData, today: string) {
@@ -44,12 +51,17 @@ type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening
 const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm"];
 export function HabitsWorkspace() {
   const store = useHabits();
+  // H7: the Health journal for the link choices, and the automatic check-ins applied on this page (the hook returns this device's links).
+  const health = useHealth();
+  const links = useAutoCheckIns({ habits: store, health });
+  const healthLinkContext = useMemo(() => ({ counters: exerciseData(health.data).counters, waterUnit: dailyData(health.data).preferences.waterUnit }), [health.data]);
   const phone = usePhoneActive();
   const goals = useGoals();
   const platform = usePlatform();
   const reminders = useReminders();
   const [filter, setFilter] = useState<Filter>("Today");
   const [editor, setEditor] = useState<string | null>(null);
+  const [vacation, setVacation] = useState(false);
   // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
   const [focusTarget, setFocusTarget] = useState<string | null>(null);
   const newHabitButton = useRef<HTMLButtonElement>(null);
@@ -95,24 +107,28 @@ export function HabitsWorkspace() {
   const viewStack = useCallback((id: string) => { setFilter("All"); requestAnimationFrame(() => { const card = document.getElementById(`habit-${id}`); card?.scrollIntoView({ block: "center" }); card?.focus(); }); }, []);
   // On a phone the editor opens as a sheet over the page, so the page keeps its place.
   const editHabit = useCallback((id: string) => { setEditor(id); setMessage(""); if (!phone) window.scrollTo({ top: 0, behavior: "instant" }); }, [phone]);
-  const habitEditor = editor ? <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}-${reminders.loaded}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} reminder={editingHabit ? reminders.data.habits[editingHabit.id]?.time ?? "" : ""} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected,reminder="") => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); let saved = editingHabit ? "Habit saved." : "Habit created.";
+  const habitEditor = editor ? <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}-${reminders.loaded}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} reminder={editingHabit ? reminders.data.habits[editingHabit.id]?.time ?? "" : ""} healthLink={editingHabit ? links.data.links[editingHabit.id] ?? null : null} counters={healthLinkContext.counters} waterUnit={healthLinkContext.waterUnit} healthLinksUnreadable={links.unreadable} onStartOverHealthLinks={() => { try { links.startOver(); setMessage("Your Health links on this device start over. The old bytes were kept as a recovery copy."); } catch (error) { setMessage(`Your Health links could not be replaced. ${deviceSettingFailureMessage(error)}`); } }} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected,reminder="",healthLink) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); let saved = editingHabit ? "Habit saved." : "Habit created.";
             // The reminder time is this device's own (lib/reminders), written only when it changed. The habit is already saved.
             const time = reminderTime(reminder);
             if ((reminders.data.habits[id]?.time ?? null) !== time) { try { reminders.update(store.today, current => setHabitReminder(current, id, time, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch (error) { saved += ` The reminder time was not saved on this device. ${deviceSettingFailureMessage(error)}`; } }
+            // The Health link is this device's own too (lib/habit-health-links), written only when its rule changed; `undefined` means the editor had none to say (unreadable links, or a quit or limit habit keeps none).
+            const linkFields = (link: typeof healthLink) => JSON.stringify(link ? { ...link, updatedAt: undefined } : null);
+            if (healthLink !== undefined && !links.unreadable && linkFields(links.data.links[id] ?? null) !== linkFields(healthLink)) { try { links.update(current => setHabitHealthLink(current, id, healthLink, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch (error) { saved += ` The Health link was not saved on this device. ${deviceSettingFailureMessage(error)}`; } }
             setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
-  return <LayoutPage page="habits"><div className="habits-workspace">
-    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
+  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="habits"><div className="habits-workspace">
+    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>{!phone && <button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button>}<Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <LayoutRegion region="body" items={phoneOrder(phone, [
-        {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p></section>},
+        {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p>{phone && <div className="actions habit-overview-actions"><button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></div>}</section>},
         store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">
           {editor && (phone
             // On a phone the editor is a bottom sheet (Session I, Part 9); elsewhere it stays in the page.
             ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
             : habitEditor)}
+          {vacation && (() => { const panel = <VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} />; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map((habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;
@@ -129,5 +145,5 @@ export function HabitsWorkspace() {
       <p className="fine habit-privacy">Private Habit records · No wallet required · Days use {store.data.timeZone??"this device’s timezone until you save a shared journal timezone"}.</p>
       {store.loaded&&!store.error&&<details className="panel habit-timezone"><summary>Habit journal timezone</summary><form onSubmit={async e=>{e.preventDefault();const zone=String(new FormData(e.currentTarget).get('timezone'));try{await store.update(data=>saveHabitTimezone(data,zone));setZoneMessage('Habit timezone saved. Existing date-only entries and saved timer timestamps remain unchanged.');}catch{setZoneMessage('Choose a valid IANA timezone, such as Europe/Brussels.');}}}><label className="field">Habit timezone<input name="timezone" required maxLength={100} defaultValue={store.data.timeZone??Intl.DateTimeFormat().resolvedOptions().timeZone}/></label><button className="secondary" type="submit">Save Habit timezone</button><p className="fine">This journal setting travels with your private data. Old dates stay as recorded. A timer started under another timezone requires explicit review.</p>{zoneMessage&&<p role="status">{zoneMessage}</p>}</form></details>}
     </section>
-  </div></LayoutPage>;
+  </div></LayoutPage></HealthLinkContext.Provider>;
 }

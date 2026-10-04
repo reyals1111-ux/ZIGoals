@@ -64,6 +64,7 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | B9 | Section deletion | AB (lines 110–114, BR); DD-5 (persists across restart, fences old writes, keeps other domains, MF); DR-9, DR-22, DR-31 (MF) | The browser does not re-check the other sections on the second device | **PROVEN-LOCAL** |
 | B10 | Stale-device denial | AB (lines 115–119, BR); DD-5 (409 `DOMAIN_GENERATION_CHANGED`), DD-31 (MF); IS-17 (MF); SYN (410, MF); SDR (Worker class, unit) | Physical devices | **PROVEN-LOCAL** |
 | B11 | Encrypted backup restoration | PKG (`protectAndRestorePackagedRecords`: a fresh browser context, four domains); ER-11, RF-12 (wrong secret, damaged ciphertext, future schema, PW); BK-10 (unit) | Files on a real phone | **PROVEN-LOCAL** |
+| B13 | What syncs from the Session P features | SP-SYNC (an automatic check-in, a planned skip, an imported Wealth holding and an imported meal reach a second device byte-identical through `synchronize`, unit); the H7, H1, W3 and I1 suites (unit and PW) | Two physical devices seeing the same records. By design the link rules, health goals, weekly reviews, fasting sessions, insight dismissals and the import undo note stay on their device until their write switch (docs/product/SYNC_HOMES.md) | **PROVEN-LOCAL** |
 
 ## F. Remembered devices and downloads (Session M)
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
@@ -223,6 +224,11 @@ These four `test.fails` tests document a known sync bug: the cloud applies the f
 | R9-45 | `apps/web/tests/run9.spec.ts:45` "confirmed Local Demo Add Funds records exactly once and never at preview" |
 | UG-66 | `apps/web/tests/unified-goals.spec.ts:66` "failed Habit write retries without duplicating Goal or re-allocating reserved units" |
 | TX-6 | `apps/web/tests/transactions.spec.ts:6` "restart preserves scoped journal and damaged rows without replay" |
+
+**Session P, PR 3** (`apps/web/lib/`, unit):
+| ID | Test |
+|---|---|
+| SP-SYNC | `apps/web/lib/import/sync-ordinary.test.ts` "an automatic check-in, a planned skip and imported records reach a second device as ordinary records" (fake-indexeddb journals and the in-memory cloud of `cloud-sync.test.ts`) |
 
 ## Run them locally
 ```sh

@@ -16,6 +16,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Backups & restore", "Encrypted download and module copies", "private-vault"],
     ["Privacy & storage", "What stays in this browser", "privacy"],
     ["Account & sync", "Email sign-in and encrypted vault", "encrypted-sync"],
+    ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"],
   ] },
   { title: "Try & display", rows: [
     ["Showcase tour", "Fictional demo data in separate storage", "showcase"],
@@ -30,6 +31,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   { title: "Sources & modules", rows: [
     ["Market data sources", "Price sources and freshness", "market-data"],
     ["Habit settings", "Schedules, targets and history", "habits-settings"],
+    ["Weekly review day", "The day Today offers your review", "habits-settings"],
     ["Health settings", "Your journal and targets", "health-settings"],
   ] },
   { title: "Help & diagnostics", rows: [

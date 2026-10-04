@@ -17,6 +17,13 @@ import {coinKey, type Portfolio, type PortfolioCoin, type PortfolioCurrency, typ
 import {HoldingsBelowZero, holdings, ordered, portfolioTotals, readDecimal, valueHolding} from '../../lib/portfolio/math';
 import {PortfolioUnreadable, addTransaction, createPortfolio, deletePortfolio, exportPortfolios, parsePortfolioImport, removeTransaction, renamePortfolio} from '../../lib/portfolio/store';
 import {SHOWCASE_PRICES} from '../../lib/portfolio/showcase';
+import {usePhoneActive} from '../phone/use-phone-layout';
+import {PhoneFormSheet} from '../phone/phone-form-sheet';
+import {useImportUndo} from '../import/use-import-undo';
+import {ImportBanner} from '../import/csv-import-steps';
+import {TransactionImportPanel} from '../import/transaction-import';
+import {UndoRefused, undoImport} from '../../lib/import/holdings';
+import type {ImportRecord} from '../../lib/import/undo-schema';
 import './portfolio.css';
 
 type Price = {value: string; source: string; at?: string; stale: boolean};
@@ -39,6 +46,8 @@ export function PortfolioView() {
   const store = usePortfolios();
   const [selectedId, setSelectedId] = useState<string | null>(null), [creating, setCreating] = useState(false);
   const [message, setMessage] = useState(''), [error, setError] = useState('');
+  // W3: transactions from a CSV (phone: a sheet; desktop: a panel below the files), with this device's undo ledger.
+  const [importing, setImporting] = useState(false), phone = usePhoneActive(), imports = useImportUndo();
   const selected = store.data.portfolios.find(p => p.id === selectedId) ?? store.data.portfolios[0];
   const live = !store.showcase && !!selected;
   const requests = useMemo(() => live && selected ? selected.coins.map(c => ({marketRef: c.ref, currency: selected.currency})) : [], [live, selected]);
@@ -53,6 +62,12 @@ export function PortfolioView() {
     setError(''); setMessage('');
     try { store.update(change, options); setMessage(done); return true; } catch (cause) { setError(failure(cause, fallback)); return false; }
   };
+  const undoRecord = async (record: ImportRecord) => {
+    setError(''); setMessage('');
+    try { store.update(data => undoImport(record, {portfolio: data}).portfolio!); } catch (cause) { throw Error(cause instanceof UndoRefused ? cause.message : failure(cause, 'The import was not undone.')); }
+    imports.forget(record.id); setMessage('Import undone.');
+  };
+  const importPanel = importing && <TransactionImportPanel data={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={() => setImporting(false)} />;
   const noPrices = live && requests.length > 0 && !market.loading && !market.quotes.some(q => selected!.coins.some(c => referenceQuote(c.ref, selected!.currency, [q], market.now)));
   return <div className="dashboard portfolio-page">
     <section className="portfolio-hero" aria-labelledby="portfolio-title">
@@ -64,6 +79,7 @@ export function PortfolioView() {
     </section>
     {message && <p role="status" className="portfolio-message">{message}</p>}
     {error && <p role="alert" className="notice">{error}</p>}
+    <ImportBanner imports={imports} kind="portfolio" onUndo={undoRecord} />
     {!store.loaded ? <p role="status">Loading your portfolios…</p>
       : store.unreadable ? <Unreadable onStartOver={() => run(() => ({version: 1, portfolios: []}), 'Started over. The unreadable portfolios were replaced.', 'Could not start over.', {replaceUnreadable: true})} />
       : <>
@@ -73,7 +89,8 @@ export function PortfolioView() {
         </nav>
         {(creating || !store.data.portfolios.length) && <CreatePortfolio onCreate={input => { const id = crypto.randomUUID(); if (run(data => createPortfolio(data, {...input, id, createdAt: new Date().toISOString()}), `${input.name.trim()} created.`, 'This portfolio was not created.')) { setSelectedId(id); setCreating(false); } }} />}
         {selected && <PortfolioPanel key={selected.id} portfolio={selected} priceOf={coin => priceOf(coin, selected.currency)} change24h={coin => insights.results[marketRequestKey({marketRef: coin.ref, currency: selected.currency})]?.insight?.change24h ?? null} attribution={!store.showcase && market.quotes.length > 0} run={run} showcase={store.showcase} />}
-        <PortfolioFiles data={store.data} showcase={store.showcase} onImport={data => run(() => data, 'Portfolios replaced from the file.', 'The file was not imported.')} />
+        <PortfolioFiles data={store.data} showcase={store.showcase} onImport={data => run(() => data, 'Portfolios replaced from the file.', 'The file was not imported.')} importing={importing} onImportCsv={() => setImporting(!importing)} />
+        {importPanel && (phone ? <PhoneFormSheet title="Import transactions" onClose={() => setImporting(false)}>{importPanel}</PhoneFormSheet> : importPanel)}
       </>}
     <p className="fine portfolio-privacy">Stored on this device only, never synced and not part of your private backups. Portfolio never changes your Wealth, Goals, Positions or Today.</p>
   </div>;
@@ -196,13 +213,14 @@ function TransactionForm({portfolio, run}: {portfolio: Portfolio; run: Run}) {
   </details>;
 }
 
-function PortfolioFiles({data, showcase, onImport}: {data: import('../../lib/portfolio/schema').PortfolioData; showcase: boolean; onImport: (data: import('../../lib/portfolio/schema').PortfolioData) => boolean}) {
+function PortfolioFiles({data, showcase, onImport, importing, onImportCsv}: {data: import('../../lib/portfolio/schema').PortfolioData; showcase: boolean; onImport: (data: import('../../lib/portfolio/schema').PortfolioData) => boolean; importing: boolean; onImportCsv: () => void}) {
   const [pending, setPending] = useState<import('../../lib/portfolio/schema').PortfolioData | null>(null), [problem, setProblem] = useState('');
   const download = () => { const url = URL.createObjectURL(new Blob([exportPortfolios(data)], {type: 'application/json'})); const link = document.createElement('a'); link.href = url; link.download = exportFileName(`zigoals-portfolio-${localDate()}.json`, showcase); link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
   return <section className="panel portfolio-files" aria-label="Portfolio file">
     <h2>Keep a copy</h2>
     <p>Export your portfolios as a file, or replace them from one. The file holds only Portfolio.</p>
     <div className="actions"><button type="button" className="secondary" disabled={!data.portfolios.length} onClick={download}>Export portfolios</button>
+      <button type="button" className="secondary" aria-expanded={importing} onClick={onImportCsv}>Import transactions from a CSV</button>
       <label className="secondary portfolio-file-input">Import from a file<input type="file" accept="application/json,.json" onChange={async event => { setProblem(''); setPending(null); const file = event.target.files?.[0]; event.target.value = ''; if (!file) return; try { setPending(parsePortfolioImport(await file.text())); } catch (error) { setProblem(error instanceof Error ? error.message : 'The file was not imported. Nothing was changed.'); } }} /></label></div>
     {problem && <p role="alert">{problem}</p>}
     {pending && <div className="portfolio-confirm" role="alertdialog" aria-label="Replace portfolios"><p>Replace all {data.portfolios.length} portfolios on this device with the {pending.portfolios.length} in this file?</p><div className="actions"><button type="button" className="secondary" onClick={() => { if (onImport(pending)) setPending(null); }}>Replace my portfolios</button><button type="button" className="quiet" onClick={() => setPending(null)}>Cancel</button></div></div>}
