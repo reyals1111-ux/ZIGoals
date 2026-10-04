@@ -2,6 +2,7 @@ import 'server-only';
 import {ProviderValidationError,ProviderTransportError} from '../provider-validation';
 import {isJsonMediaType} from '../json-media-type';
 import {ProviderFailure,providerHttpFailure,sanitizeProviderFailure,parseProviderEvidence} from './provider-failure';
+import {PROVIDER_USER_AGENT} from './provider-user-agent';
 import {marketPairEnvelope,type PairFailure} from './market-pair-result';
 import {beginPendingWork,ownPendingWork,waitForPendingWork,workIsPending,createRequestAdmission,type PendingWork} from '../pending-work';
 /** Server adapter. Only API route modules import this module; never import it from a client component. */
@@ -28,7 +29,7 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  // Workers supports manual redirects; every redirect is rejected before reading its body.
  try{
  let response:Response;
- try{response=await fetcher(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json','x-cg-demo-api-key':token},redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(10000)});}
+ try{response=await fetcher(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json','User-Agent':PROVIDER_USER_AGENT,'x-cg-demo-api-key':token},redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:AbortSignal.timeout(10000)});}
  catch(error){throw new ProviderFailure(error instanceof Error&&(error.name==='TimeoutError'||error.name==='AbortError')?'TIMEOUT':error instanceof Error&&error.name==='TypeError'?'NETWORK':'UNKNOWN');}
  const rejection=response.redirected?new ProviderFailure('UNKNOWN'):!response.ok?providerHttpFailure(response.status):!isJsonMediaType(response.headers.get('content-type'))?new ProviderFailure('MALFORMED'):null;
  if(rejection){await cleanupMarketBody(()=>response.body?.cancel()??Promise.resolve());throw rejection;}
