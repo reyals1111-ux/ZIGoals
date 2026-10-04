@@ -53,16 +53,16 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   const path=new URL(request.url).pathname;
   if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights','/cancel'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
   const stub=this.env.MARKETS.get(this.env.MARKETS.idFromName(this.env.MARKET_ACCOUNT_ID));
+  // The app's address group for per-client limits. It is passed to the account, which stores only a keyed hash
+  // bucket; it is never logged or returned. Checked before every path, cancellation included (Session S).
+  const client=request.headers.get('x-market-client')??undefined;
+  if(client!==undefined&&!MARKET_CLIENT_GROUP.test(client))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
   if(path==='/cancel'){
    let token;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),256));if(Object.keys(raw).length!==1||typeof raw.cancelToken!=='string'||!/^([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(raw.cancelToken))throw Error();token=raw.cancelToken;}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
-   return stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify({action:'cancel-followers',cancelToken:token})}));
+   return stub.fetch(new Request('https://coordinator.internal',{method:'POST',body:JSON.stringify({action:'cancel-followers',cancelToken:token,...(client?{client}:{})})}));
   }
   const cancelToken=request.headers.get('x-market-cancel-token')??undefined;
   if(cancelToken&&!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cancelToken))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
-  // The app's address group for per-client limits. It is passed to the account, which stores only a keyed hash
-  // bucket; it is never logged or returned.
-  const client=request.headers.get('x-market-client')??undefined;
-  if(client!==undefined&&!MARKET_CLIENT_GROUP.test(client))return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
   let body;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),128*1024));body=parseDurableMarketBody(path,raw);}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
   const cached=this.env.ISOLATED_FIXTURE!=='true';
   if(path==='/catalog'&&cached&&catalogText&&Date.now()-catalogText.fetchedAt<CATALOG_FRESH_MS)return new Response(catalogText.text,{headers});

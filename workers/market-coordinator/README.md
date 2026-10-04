@@ -51,6 +51,15 @@ Session R1 bounded what one client can spend. Session S also refuses work that c
 
 **Idle retention (Session S, FIX_PLAN C7):** commits prune client day rows, but an object that went quiet kept its last ones and the client key. `MarketAccount` now keeps an alarm armed (one `getAlarm` read per object instance). At most every 6 hours it deletes day rows older than yesterday and an earlier day's client key (`sweepClientRows` in `market-client-limits.ts`), and it re-arms only while some remain.
 
+**Cancellation fences (Session S, Part 8a):** a `cancel-followers` command whose token is new writes a 30-second fence row, so anonymous traffic could once spend the day's row budget with random tokens. Now:
+- `/api/market-quotes/cancel` sends the edge address group as `x-market-client`, built only from `cf-connecting-ip`. QuoteService checks that header before every path, `/cancel` included, and forwards it.
+- Removing matching live followers and answering a replayed token are never refused.
+- A new fence is refused with no write (`DAILY_LIMIT`, or `FOLLOWER_LIMIT`; the app answers 503) once the day's rows reach `dailyRowBudget`, or once the day's fences reach ⌊budget/64⌋ in all or an eighth of that for one client bucket (`cancelQuota` in `market-client-limits.ts`). With the default 20,000 rows: 312 a day, 39 per bucket.
+- The counts are an additive `cancels` field in the day row, deleted with it.
+- **Mixed state:** an app deployed before Session S sends cancels without a client. They still work and count only toward the day's total. Deploy the coordinator first, then the apps (ALPHA_PRICES_ROLLOUT.md, FINAL_ACCTEST_REDEPLOY.md).
+
+Tests: `apps/web/lib/server/market-cancel-quota.test.ts` and `scripts/run11/market-cancel-client.test.mjs` (workerd, including spoofed headers).
+
 **Existing rows** are still read in place. The new rows (`market-catalog-ids:*`, `market-not-found`) and fields (`pool`, `archived.historyCredits`, `notFound` on `complete`) are additive. Session R1's code ignores them, so rolling the coordinator back to R1 stays safe; it then simply stops refusing.
 
 ## Optional aggregate telemetry

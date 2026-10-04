@@ -14,7 +14,7 @@ import {admitBreaker,emptyBreaker,type BreakerState} from './market-breaker';
 import {BufferedMarketStorage} from './market-storage-buffer';
 import {MARKET_CLIENT_GROUP} from './market-client-address';
 import {assetRefusal,catalogIndexed,recordNotFound,writeCatalogIndex,type CatalogIds,type CatalogKind} from './market-catalog-guard';
-import {DEFAULT_DAILY_ROW_BUDGET,clientLimits,clientBucket,newClientKey,clientKeyRow,utcDay,dayRow,readDay,pruneDays,clientUsage,type ClientKey,type ClientLimits,type MarketDay} from './market-client-limits';
+import {DEFAULT_DAILY_ROW_BUDGET,cancelQuota,clientLimits,clientBucket,newClientKey,clientKeyRow,utcDay,dayRow,readDay,pruneDays,clientUsage,type ClientKey,type ClientLimits,type MarketDay} from './market-client-limits';
 const uint=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),positive=uint.positive();
 const capacity=z.object({minute:uint,monthly:uint}).strict();
 const category=z.enum(['THROTTLED','UPSTREAM_5XX','TIMEOUT','NETWORK','AUTHENTICATION','ENTITLEMENT','MALFORMED','UNSUPPORTED','LOCAL_BUDGET','LOCAL_QUEUE','UNKNOWN']);
@@ -31,7 +31,7 @@ const member=z.number().int().min(0).max(63);
 const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('acquire'),work}).strict(),
  z.object({action:z.literal('follow'),work,waitMs:positive.max(1000),cancelToken:id.optional()}).strict(),
- z.object({action:z.literal('cancel-followers'),cancelToken:id}).strict(),
+ z.object({action:z.literal('cancel-followers'),cancelToken:id,client:client.optional()}).strict(),
  ...(['poll','forget'] as const).map(action=>z.object({action:z.literal(action),id}).strict()),
  z.object({action:z.literal('enqueue-read'),operation:chargedOperation,parentId:id.optional(),associations:z.array(association).min(1).max(64).optional()}).strict(),
  z.object({action:z.literal('enqueue'),priority:z.enum(['interactive','refresh','optional','monitoring']),kind:z.enum(['request','retry','fallback']),associations:z.array(association).min(1).max(64)}).strict(),
@@ -132,9 +132,17 @@ export class DurableMarketAccount {
   }catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}
  }
 }
+/** Session S: a new cancellation fence is a committed row, so it is bounded like other public work. It is refused with no
+ * write once the day's row budget is spent, or the day's fence quota, in all or for this client bucket (cancelQuota). */
+async function admitTombstone(run:Run):Promise<string|undefined>{
+ const day=await run.day();if(day.rows>=run.rowBudget)return 'DAILY_LIMIT';
+ const quota=cancelQuota(run.rowBudget),cancels=day.cancels??{n:0,buckets:{}},used=run.bucket?cancels.buckets[run.bucket]??0:0;
+ if(cancels.n>=quota.total||run.bucket&&used>=quota.client)return 'FOLLOWER_LIMIT';
+ await run.tx.put(dayRow(utcDay(run.now)),{...day,cancels:{n:cancels.n+1,buckets:run.bucket?{...cancels.buckets,[run.bucket]:used+1}:cancels.buckets}});
+}
 async function execute(run:Run,command:Command):Promise<Outcome>{
  const {tx,now}=run;
- if(command.action==='follow'||command.action==='poll'||command.action==='forget'||command.action==='cancel-followers'){const result=await followerCommand(tx,command,now);run.observe(observation(command,result));return {result,commit:'auto'};}
+ if(command.action==='follow'||command.action==='poll'||command.action==='forget'||command.action==='cancel-followers'){const result=await followerCommand(tx,command,now,command.action==='cancel-followers'?()=>admitTombstone(run):undefined);run.observe(observation(command,result));return {result,commit:'auto'};}
  if(command.action==='poll-many'){const followers=await pollFollowers(tx,command.followers,now,command.cancelToken);return {result:{ok:true,followers},commit:'auto'};}
  if(command.action==='forget-many')return {result:await forgetFollowers(tx,command.ids,now),commit:'auto'};
  if(command.action==='acquire')return acquireOne(run,command.work);

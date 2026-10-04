@@ -23,8 +23,12 @@ export async function clientBucket(key:string,group:string):Promise<string>{
 }
 export function newClientKey(){return [...crypto.getRandomValues(new Uint8Array(32))].map(v=>v.toString(16).padStart(2,'0')).join('');}
 export const utcDay=(now:number)=>new Date(now).toISOString().slice(0,10);
-/** Per UTC day: the rows this object wrote, and each client bucket's [credits, new works]. */
-export type MarketDay={rows:number;buckets:Record<string,[number,number]>};
+/** Per UTC day: the rows this object wrote, and each client bucket's [credits, new works]. `cancels` (Session S, additive)
+ * counts new cancellation fences: in all, and per client bucket. */
+export type MarketDay={rows:number;buckets:Record<string,[number,number]>;cancels?:{n:number;buckets:Record<string,number>}};
+/** New cancellation fences per UTC day: a 64th of the row budget in all, and an eighth of that per client bucket. A cancel
+ * without a client (local runtimes, or an app older than Session S) counts only toward the total. */
+export function cancelQuota(rowBudget:number){const total=Math.max(1,Math.floor(rowBudget/64));return {total,client:Math.max(1,Math.floor(total/8))};}
 export const dayRow=(day:string)=>`market-day:${day}`;
 const dayIndex='market-days';
 export async function readDay(tx:AtomicMarketStorage,day:string):Promise<MarketDay>{return await tx.get<MarketDay>(dayRow(day))??{rows:0,buckets:{}};}

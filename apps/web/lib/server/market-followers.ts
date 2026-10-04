@@ -8,7 +8,9 @@ type Follower={id:string;work:PublicMarketWork;owner:string;deadline:number;canc
 export async function liveFollowers(tx:AtomicMarketStorage,now:number){
  const old=await tx.get<Follower[]>('followers')??[],live=old.filter(row=>now<row.deadline);if(live.length!==old.length)await tx.put('followers',live);return live;
 }
-export async function followerCommand(tx:AtomicMarketStorage,command:{action:'follow';work:PublicMarketWork;waitMs:number;cancelToken?:string}|{action:'cancel-followers';cancelToken:string}|{action:'poll'|'forget';id:string},now:number){
+/** `admitTombstone` (Session S) bounds new cancellation fences per day and client bucket; it runs only when a new fence
+ * would be written, after the matching followers are removed and a replay is answered. */
+export async function followerCommand(tx:AtomicMarketStorage,command:{action:'follow';work:PublicMarketWork;waitMs:number;cancelToken?:string}|{action:'cancel-followers';cancelToken:string}|{action:'poll'|'forget';id:string},now:number,admitTombstone?:()=>Promise<string|undefined>){
  const rows=await liveFollowers(tx,now);
  const cancelled=(await tx.get<{token:string;deadline:number}[]>('follower-cancellations')??[]).filter(row=>now<row.deadline);
  await tx.put('follower-cancellations',cancelled);
@@ -18,6 +20,7 @@ export async function followerCommand(tx:AtomicMarketStorage,command:{action:'fo
   await tx.put('followers',rows.filter(row=>row.cancelToken!==command.cancelToken));
   if(cancelled.some(row=>row.token===command.cancelToken))return {ok:true};
   if(cancelled.length>=128)return {ok:false,reason:'FOLLOWER_LIMIT'};
+  const refused=await admitTombstone?.();if(refused)return {ok:false,reason:refused};
   await tx.put('follower-cancellations',[...cancelled,{token:command.cancelToken,deadline:now+30000}]);return {ok:true};
  }
  if(command.action==='follow'&&command.cancelToken&&cancelled.some(row=>row.token===command.cancelToken))return {ok:false,reason:'WAITER_CANCELLED'};
