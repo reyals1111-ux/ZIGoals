@@ -67,7 +67,9 @@ test('questions open and close from the keyboard', async ({page}) => {
   await page.goto('/app/help');
   const answer = page.getByText('Automatic prices come from CoinGecko and are labelled with their source.', {exact: false});
   await expect(answer).toBeHidden();
-  await page.getByText('Where do prices come from?', {exact: true}).focus();
+  // Focus must have landed before Enter is pressed: CI once saw the key go nowhere (PR #70, 2026-10-04, phone project).
+  const question = page.getByText('Where do prices come from?', {exact: true});
+  await question.focus(); await expect(question).toBeFocused();
   await page.keyboard.press('Enter');await expect(answer).toBeVisible();
   await page.keyboard.press('Enter');await expect(answer).toBeHidden();
 });
