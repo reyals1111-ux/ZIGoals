@@ -113,3 +113,32 @@ Check on each:
 - one fold stage pinning and settling;
 - the invite button opening an email;
 - the page with Reduce Motion turned on.
+
+## Addendum 2026-10-03 (Session P, PR 1, part 1.7): the hero mark on phones
+
+The opt-in phone LCP check (Lighthouse's mobile throttling, `LANDING_PERF=1`, one worker, 8 runs per set, this
+sandbox's Chromium 141 standing in for Chrome) failed in 1 of 8 runs before this part, as it had in 2 of 8 V5 runs
+above: the hero mark (`img.hero-mark`, 65,538 B) arrived after the first paint and became the LCP element at
+2,584 ms. Two changes, both to the hero image only:
+
+- the preload carries `fetchpriority="high"` (the `<img>` already did), so the browser fetches the mark at high
+  priority from the moment it reads the head instead of after the stylesheets;
+- the file is re-encoded at WebP quality 85 with libwebp (sharp 0.35.4, the workspace's own copy, no new
+  dependency): 65,538 → 54,908 B (−16%), PSNR 39.2 dB against the previous file, same 422 × 480 px.
+
+No width variants: the master is 422 px wide, and every real phone (2× and 3× screens) needs more than that for the
+280 CSS px the mark is drawn at, so a smaller candidate would serve 1× screens only and cost them a second download
+next to the header logo, which shares the file. Measured in one sitting, back to back:
+
+| Set | Phone LCP, 8 runs (ms) | Element | Desktop LCP, 8 runs (ms) |
+|---|---|---|---|
+| Before (`main` `d439dc9`) | 2,376 2,376 2,388 2,400 2,408 2,428 2,460 **2,584** | the header logo; the hero mark in the 2,584 run | 240–308 |
+| Preload priority only | 2,384 2,384 2,388 2,400 2,416 2,444 2,472 2,496 | the hero mark in the two slowest runs | 220–292 |
+| Preload priority and the re-encoded file (shipped) | 2,348 2,348 2,356 2,364 2,364 2,368 2,372 2,432 | the header logo in all 8: the mark is painted with the first frame | 236–304 |
+
+All 8 phone runs are under the 2,500 ms budget with at least 68 ms to spare; the first view falls by 10,630 B (the weight
+spec now measures 240,517 B in 16 files).
+`_headers` and `.assetsignore` are untouched (`landing-v5-security` checks their hashes); the weight budget spec,
+`check:landing` and `check:deploy-configs` pass. The re-encoded file and a 3× crop of the previous and new encodings
+side by side are on `review/session-p-screenshots/pr1/` for the owner's eyes: the owner's visual judgement decides,
+and the previous file is one `git revert` away. The landing deploys only by hand (`docs/landing/LANDING.md`).

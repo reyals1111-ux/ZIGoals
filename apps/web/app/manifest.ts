@@ -4,7 +4,7 @@ import type {MetadataRoute} from 'next';
  * The installed ZIGoals app (Session L): Next serves this at /manifest.webmanifest and links it from every page. It
  * only describes the Home Screen or desktop app: name, icons, colours, start page and standalone display. No service
  * worker and no offline caching come with it; storage and data handling are unchanged. The icons are the origami Z on
- * the deep-navy app background (--cosmic-dark), generated from public/brand/figures/zigoals-z@2x.webp. Safari asks for
+ * the deep-navy app background (--cosmic-dark), generated from public/brand/figures/zigoals-z-2x.webp. Safari asks for
  * an opaque full-bleed maskable icon at 1024 px (Safari 17.2 release notes); the iPhone Home Screen uses
  * /apple-touch-icon.png from the root layout.
  */

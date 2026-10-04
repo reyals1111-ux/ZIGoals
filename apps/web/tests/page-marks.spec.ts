@@ -33,14 +33,14 @@ test('each life page shows its own mark, every other page the Today swan; figure
   await expect(page.locator('.sidebar-destination .brand-wordmark'),path).toHaveCount(0);
   for(const [part,dir] of [['figure','marks'],['words','words']] as const){
    const picture=mark.locator(`.sidebar-mark-${part}`),art=picture.locator('img'),source=picture.locator('source');
-   await expect(source,`${path} ${part}`).toHaveAttribute('srcset',`/brand/${dir}/${name}.webp 1x, /brand/${dir}/${name}@2x.webp 2x`);
+   await expect(source,`${path} ${part}`).toHaveAttribute('srcset',`/brand/${dir}/${name}.webp 1x, /brand/${dir}/${name}-2x.webp 2x`);
    await expect(art,`${path} ${part}`).toHaveAttribute('alt','');await expect(art,`${path} ${part}`).toHaveAttribute('aria-hidden','true');
-   await expect.poll(()=>art.evaluate(i=>(i as HTMLImageElement).complete?(i as HTMLImageElement).currentSrc:''),{message:`${path} ${part}`}).toMatch(new RegExp(`/brand/${dir}/${name}(@2x)?\\.webp$`));
+   await expect.poll(()=>art.evaluate(i=>(i as HTMLImageElement).complete?(i as HTMLImageElement).currentSrc:''),{message:`${path} ${part}`}).toMatch(new RegExp(`/brand/${dir}/${name}(-2x)?\\.webp$`));
   }
   const figure=mark.locator('.sidebar-mark-figure img'),words=mark.locator('.sidebar-mark-words img');
   await expect(figure,path).toHaveAttribute('width','160');expect(Number(await figure.getAttribute('height')),path).toBe(SIZE[name]!.figure);
   expect(await figure.evaluate(i=>(i as HTMLImageElement).naturalWidth),path).toBeGreaterThanOrEqual(720);
-  // The chosen words file (1x here; @2x on high-density screens) is at least as wide as the words are drawn, so they
+  // The chosen words file (1x here; -2x on high-density screens) is at least as wide as the words are drawn, so they
   // are never upscaled. naturalWidth is already corrected for the file's density.
   const [w,h]=SIZE[name]!.words;await expect(words,path).toHaveAttribute('width',String(w));await expect(words,path).toHaveAttribute('height',String(h));
   expect(await words.evaluate(i=>(i as HTMLImageElement).naturalWidth>=(i as HTMLImageElement).getBoundingClientRect().width-0.5),path).toBe(true);

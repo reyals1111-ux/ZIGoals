@@ -1,3 +1,9 @@
+# 2026-10-03 mainnet refresh (Session P)
+
+**Mainnet is azig/18.** The "Run #8 live refresh" below ("Mainnet live metadata is uzig/6") is historical: the v5 upgrade was applied on mainnet at height 12549000 on 2026-09-30 (testnet at 7669200 on 2026-09-08). Read on 2026-10-03 from the official LCD `https://api.zigchain.com` (chain `zigchain-1`, height 12632388): staking `bond_denom "azig"`; bank metadata `azig` = base `azig`, display `zig` at exponent 18, "The native staking and gas token of ZIGChain (18-decimal base denom azig)."; `uzig` = "Legacy 6-decimal ZIGChain base denom, retained only as IBC escrow backing after the v5 redenomination." The testnet LCD answers the same. Evidence with quotes and times: [docs/earn/EVIDENCE_2026-10.md](../earn/EVIDENCE_2026-10.md) (F03) and [docs/earn/evidence/a-native-staking.md](../earn/evidence/a-native-staking.md). The app's reader is configured accordingly ([ADR-004 addendum](../architecture/ADR-004-network-denomination.md)).
+
+---
+
 # Run #8 superseding direction — 2026-09-17
 
 Current implementation scope is [the complete master brief](../RUN_8_ASTRA_MASTER_PROMPT.md). V2.1 visuals and Health V1 are frozen. Goals, Positions, native staking read-only, allocations, projections, Habits Beta and Today are the active milestone. Prior references to Run #8 Health Beta/UI V3 are superseded.

@@ -108,13 +108,23 @@ export type SavedMeal = z.infer<typeof savedMealSchema>;
 export type MealItem = z.infer<typeof mealItemSchema>;
 export type WaterEntry = z.infer<typeof waterSchema>;
 
-export const healthSchema = z.strictObject({
-  schemaVersion: z.literal(1), kind: z.literal("zigoals-health"), measurements:z.array(bodyMeasurementSchema).max(20000).optional(), targets: targetsSchema, daily: healthDailySchema.optional(),
+const healthFields = {
+  kind: z.literal("zigoals-health"), measurements:z.array(bodyMeasurementSchema).max(20000).optional(), targets: targetsSchema, daily: healthDailySchema.optional(),
   foods: z.array(foodSchema).max(1000), recipes: z.array(recipeSchema).max(500),
   diary: z.array(diarySchema).max(10_000), weights: z.array(weightSchema).max(5000), activity: z.array(activitySchema).max(10_000),
   // Additive (UI design pass): quick exercise counters. Absent in older data; see lib/health-counters.ts.
   exercise: exerciseSchema.optional(),
-}).superRefine((data, ctx) => {
+};
+/**
+ * Health v2 (Session P, read support only): the synced home of fasting sessions. PR 3 keeps them in the device-only key
+ * `zigoals:fasting:v1`; once every device reads v2 they can move here unchanged. Hours and a target only: no streaks,
+ * no "longest fast", no calories (owner decision P5).
+ */
+export const fastingSessionSchema = z.strictObject({ id: z.string().min(1).max(100), startedAt: stamp, endedAt: stamp.nullable(), targetHours: integer(24, 1), timeZone: healthTimezoneSchema, habitId: z.uuid().optional(), note: z.string().max(500).optional(), stoppedBy: z.enum(["person", "limit"]).optional() })
+  .refine((s) => s.endedAt === null || s.endedAt >= s.startedAt, "A fast ends after it starts.");
+export const fastingSchema = z.strictObject({ version: z.literal(1), sessions: z.array(fastingSessionSchema).max(2000) }).refine((f) => new Set(f.sessions.map((s) => s.id)).size === f.sessions.length, "Duplicate fasting session.");
+type HealthFields = z.infer<z.ZodObject<typeof healthFields>>;
+const healthRules = (data: HealthFields, ctx: z.core.$RefinementCtx) => {
   const ids = new Set<string>();
   for (const list of [data.foods, data.recipes, data.diary, data.weights, data.activity, data.measurements??[], data.daily?.water ?? [], data.daily?.savedMeals ?? [], data.daily?.plans ?? [], data.exercise?.counters ?? [], data.exercise?.days ?? []]) {
     for (const item of list) {
@@ -137,7 +147,12 @@ export const healthSchema = z.strictObject({
       if (new Set(list).size !== list.length) throw Error("Duplicate operation.");
     }
   } catch { ctx.addIssue({ code: "custom", message: "Nutrition or serving totals exceed the supported range." }); }
-});
+};
+/** Health v1 as every build since Session C reads it; exported for the read-support proofs (old reads new). */
+export const healthV1Schema = z.strictObject({ schemaVersion: z.literal(1), ...healthFields }).superRefine(healthRules);
+/** Health v2: v1's fields plus the optional `fasting` group. Written only once PR 3's fasting sessions move here. */
+export const healthV2Schema = z.strictObject({ schemaVersion: z.literal(2), ...healthFields, fasting: fastingSchema.optional() }).superRefine(healthRules);
+export const healthSchema = z.union([healthV2Schema, healthV1Schema]);
 export type HealthData = z.infer<typeof healthSchema>;
 
 export function createEmptyHealth(): HealthData {

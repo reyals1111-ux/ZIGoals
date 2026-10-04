@@ -129,6 +129,16 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Expected:** Desktop A shows "Unlinked local and cloud records differ…". It holds its own Health entries made before consent, so sync stops for your review instead of merging silently. That is by design.
 - **Record:** pass or fail for each line.
 
+**12b. The final write loses its reply (B12; added in Session P).**
+- **Do:**
+  1. On the phone, with sync on: create a Goal, then straight away turn on airplane mode, so the upload's final reply is lost. The sync panel shows an error; that is expected.
+  2. Still offline, create a second Goal.
+  3. Turn airplane mode off, open Settings and choose "Sync now".
+- **Pass:**
+  - "Account records synced and acknowledged", with no "Unlinked…" or "Conflicting…" review;
+  - on Desktop A, after its own "Sync now", both Goals are there.
+- **Record:** pass or fail per line. If a review appears, record its first words and keep both copies (nothing is lost).
+
 **13. Open again without the secret (F2, F3; changed by Session M).**
 - **Do:**
   1. Close the Home Screen app from the app switcher, then open it again.

@@ -15,6 +15,16 @@ it('requires canonical identity and matching currency and never converts Quantit
  expect(goalProgress(state(),'1',now,[{...quote,currency:'EUR'}]).missingValuation).toBe(true);
  const s=state();Object.assign(s.goals[0]!,{type:'QUANTITY',asset:'ZIG',denom:'uzig',decimals:6});expect(goalProgress(s,'1',now,[quote]).current).toBe('263000000000');
 });
+it('values azig/18 and legacy uzig/6 mainnet positions alike with the one CoinGecko price per ZIG',()=>{
+ // 263,000 ZIG either way: 263000000000 uzig or 263000000000000000000000 azig. At $0.043 that is $11,309.00.
+ const azig=state();Object.assign(azig.positions[0]!,{denom:'azig',decimals:18,quantity:'263000000000000000000000'});azig.allocations=[{goalId:'1',positionId:'p',quantity:'263000000000000000000000'}];
+ expect(goalProgress(azig,'1',now,[quote])).toMatchObject({current:'1130900',missingValuation:false});
+ const mixed=state();mixed.positions.push(positionSchema.parse({...azig.positions[0]!,id:'q'}));mixed.allocations.push({goalId:'1',positionId:'q',quantity:'263000000000000000000000'});
+ expect(goalProgress(mixed,'1',now,[quote])).toMatchObject({current:'2261800'});
+ // A quote cached before the redenomination names uzig/6; it values both records the same.
+ const cached={...quote,base:{network:'zigchain-1',denom:'uzig',decimals:6}};expect(goalProgress(mixed,'1',now,[cached])).toMatchObject({current:'2261800'});
+ expect(quote.base).toEqual({network:'zigchain-1',denom:'azig',decimals:18});
+});
 it('retains stale valuation with evidence, distinguishes missing, and derives completion',()=>{
  const stale=now+16*60000;expect(quoteIsStale(quote,stale)).toBe(true);
  expect(goalProgress(state(),'1',stale,[quote])).toMatchObject({current:'1130900',requiresReview:true,staleValuation:true,breakdown:[{valuation:{state:'stale',source:'CoinGecko'}}]});

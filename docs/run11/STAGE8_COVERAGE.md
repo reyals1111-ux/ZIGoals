@@ -56,14 +56,15 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | B1 | Local attachment | AB (lines 35–48: local records stay separate through sign-in; the copy happens in place after one explicit approval, with no file or secret (Session M); a populated section refuses a repeat, BR); HA-38 (BR); LIP-35, LIP-50 (unit); LA-11, LA-17, LA-21, LA-26 (unit); CS-37 (unit); EI-16 (MF) | Physical devices | **PROVEN-LOCAL** |
 | B2 | Four-domain sync | AB (lines 50–68: Habits, Health, a project Goal and a Today widget between desktop and a mobile context, BR); PKG (funded Goal, cash position, presets) | A real phone, Safari | **PROVEN-LOCAL** |
 | B3 | Explicit Health consent | **L-HEALTH** (a vault without consent: the Worker holds Habits but no Health record; the second device gets the Habit, not Health; after consent on the first device the Worker holds Health; the second device receives it only after its own consent, integ); HV (BR); HA-27 (BR); CL-32, CL-39, CL-54 (PW); CS-40, CS-44 (unit) | Physical devices | **PROVEN-LOCAL** (was PARTIAL) |
-| B4 | Offline edits | AB (lines 75–82: both devices offline; water 250 + 500 = 750 mL; preferences and Habits merge; both reconnect orders, BR); CS-60, CS-67, CS-105 (unit) | Real network loss; the ADR-006 false conflict (X1–X4 below) | **PROVEN-LOCAL** |
-| B5 | Conflict review | AB (lines 84–91: a 77/78 cm conflict, both copies kept, explicit review, BR); IF-64 (BR); SC (BR); CR-12 (MF); HC (4 kinds, MF); CRV-7, CRV-12, CRV-18 (unit) | None beyond devices; ADR-006 false conflicts are a known bug | **PROVEN-LOCAL** |
-| B6 | Correction and funding replay | **L-REPLAY-HEAD** (a Goal funding and its reversal; the head write's acknowledgement is held and the page reloads; after unlock the upload replays; both devices show exactly one contribution and one reversal, the same entries, and no review prompt, integ); **L-REPLAY-RETRY** (the same with the first write's acknowledgement dropped and "Sync now" retried, integ); CR-28, SYN, OC (MF); CS-28, DB-12 (unit); PKG; R9-45, UG-66, TX-6 (PW) | Real network loss. An edit made *after* a lost acknowledgement is the known ADR-006 false conflict (X1–X4 below), deliberately not repeated | **PROVEN-LOCAL** (was PARTIAL) |
+| B4 | Offline edits | AB (lines 75–82: both devices offline; water 250 + 500 = 750 mL; preferences and Habits merge; both reconnect orders, BR); CS-60, CS-67, CS-105 (unit) | Real network loss (the ADR-006 false conflict is fixed: see B12) | **PROVEN-LOCAL** |
+| B5 | Conflict review | AB (lines 84–91: a 77/78 cm conflict, both copies kept, explicit review, BR); IF-64 (BR); SC (BR); CR-12 (MF); HC (4 kinds, MF); CRV-7, CRV-12, CRV-18 (unit) | None beyond devices (the ADR-006 false conflict is fixed: see B12) | **PROVEN-LOCAL** |
+| B6 | Correction and funding replay | **L-REPLAY-HEAD** (a Goal funding and its reversal; the head write's acknowledgement is held and the page reloads; after unlock the upload replays; both devices show exactly one contribution and one reversal, the same entries, and no review prompt, integ); **L-REPLAY-RETRY** (the same with the first write's acknowledgement dropped and "Sync now" retried, integ); CR-28, SYN, OC (MF); CS-28, DB-12 (unit); PKG; R9-45, UG-66, TX-6 (PW) | Real network loss. An edit made *after* a lost acknowledgement is row B12 (fixed in Session P) | **PROVEN-LOCAL** (was PARTIAL) |
 | B7 | Key rotation | AB (lines 101–105: the next recovery secret is shown and confirmed before "Activate new vault key", BR); RT-4, RT-31 (MF) | Minor: no test asserts the activate button stays disabled until the save box is ticked | **PROVEN-LOCAL** |
 | B8 | Old-key denial | AB (lines 106–108: the other device gets "Account or vault changed"; the old secret gives "Unlock or integrity check failed", BR); RT-4 (an old-epoch write gets 409, MF); CRY-11 (unit) | A device or backup restored to the old key, then synced, in a browser | **PROVEN-LOCAL** |
 | B9 | Section deletion | AB (lines 110–114, BR); DD-5 (persists across restart, fences old writes, keeps other domains, MF); DR-9, DR-22, DR-31 (MF) | The browser does not re-check the other sections on the second device | **PROVEN-LOCAL** |
 | B10 | Stale-device denial | AB (lines 115–119, BR); DD-5 (409 `DOMAIN_GENERATION_CHANGED`), DD-31 (MF); IS-17 (MF); SYN (410, MF); SDR (Worker class, unit) | Physical devices | **PROVEN-LOCAL** |
 | B11 | Encrypted backup restoration | PKG (`protectAndRestorePackagedRecords`: a fresh browser context, four domains); ER-11, RF-12 (wrong secret, damaged ciphertext, future schema, PW); BK-10 (unit) | Files on a real phone | **PROVEN-LOCAL** |
+| B12 | Lost acknowledgement of the final write | **L-LOSTACK-BR** (three variants: the edit in the same page, after a reload and unlock, after closing and reopening the page; a phone-sized second device sees every Goal, integ); LA-X1 … LA-X3, LA-A2 (unit); LA-X4 and its crash variant (MF) | Real network loss on the physical phone (airplane mode as the final write leaves) | **PROVEN-LOCAL** |
 | B13 | What syncs from the Session P features | SP-SYNC (an automatic check-in, a planned skip, an imported Wealth holding and an imported meal reach a second device byte-identical through `synchronize`, unit); the H7, H1, W3 and I1 suites (unit and PW) | Two physical devices seeing the same records. By design the link rules, health goals, weekly reviews, fasting sessions, insight dismissals and the import undo note stay on their device until their write switch (docs/product/SYNC_HOMES.md) | **PROVEN-LOCAL** |
 
 ## F. Remembered devices and downloads (Session M)
@@ -107,16 +108,16 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | PARTIAL | 9: A1, A2, A3, A4, A7, B3, B6, C1, C2 | **0** |
 | HUMAN-ONLY | 11: C3, C4, D0, D1, D2, D3, D4, D5, D6, E1, E2 | **11** (unchanged; D3's logic is now fully covered) |
 
-**Session M (PR B)** adds section F: 5 rows, all **PROVEN-LOCAL** (25 of 36 in all). Each still needs its check on the physical iPhone (STAGE8_OWNER_RUNSHEET.md, steps 12–13b).
+**Session M (PR B)** adds section F: 5 rows, all **PROVEN-LOCAL** (25 of 36 in all).
+
+**Session P (PR 2)** adds row B12, **PROVEN-LOCAL** (26 of 37 in all), and removes the ADR-006 caveat from B4, B5 and B6. Each still needs its check on the physical iPhone (STAGE8_OWNER_RUNSHEET.md, steps 12–13b).
 
 A3 was counted PARTIAL, not HUMAN-ONLY: reuse is the provider's rule, but how the app handles that refusal can be rehearsed with a stricter fixture, exactly like A1.
 
 **PROVEN-LOCAL is not Stage 8 done.** Every row still gets its real-world check from the owner (real inboxes, the physical iPhone, hosted services); the run-sheet lists only what automation cannot do.
 
-## Known expected failures (ADR-006)
-These four `test.fails` tests document a known sync bug: the cloud applies the final write but its acknowledgement is lost, so a later local edit reads as a false conflict. No data is lost; automatic sync pauses for review. They touch B4, B5 and B6.
-- X1–X3: `scripts/run11/sync-lost-ack.test.ts:50`, `:55`, `:60` (unit).
-- X4: `scripts/run11/sync-lost-ack-runtime.test.mjs:43` (MF).
+## ADR-006, fixed in Session P (PR 2)
+Until Session P four `test.fails` tests (X1–X4) documented a known sync bug: the cloud applied the final write but its acknowledgement was lost, so a later local edit read as a false conflict. Option A2 of [ADR-006](../architecture/ADR-006-sync-lost-confirmation.md) fixes it; X1–X4 are plain tests now, row B12 below covers the behaviour, and B4–B6 lose their caveat.
 
 ## Test index
 **Session L rehearsal** (`scripts/run11/stage8-rehearsal/`; shared helpers in `harness.mjs`: a stand-in code provider with one single-use code per send and an expiry clock, the real admission Worker in Miniflare, the same route adapter as the BR tests)
@@ -128,6 +129,9 @@ These four `test.fails` tests document a known sync bug: the cloud applies the f
 | L-HEALTH | `health-consent-cloud-browser.test.mjs:8` "Health is uploaded only after consent, and another device receives it only after its own consent" | BR (desktop and mobile contexts) / integ |
 | L-REPLAY-HEAD | `replay-browser.test.mjs:92` "a reload while the head write's acknowledgement is held replays the funding and its correction exactly once" | BR / integ |
 | L-REPLAY-RETRY | `replay-browser.test.mjs:93` "a dropped acknowledgement of the first write and a retry replay the funding and its correction exactly once" | BR / integ |
+| L-LOSTACK-BR | `scripts/run11/sync-lost-ack-browser.test.mjs` (Session P): "a lost acknowledgement of the final write, then an edit in the same page, syncs without a conflict review", "… a reload and unlock, then an edit …", "… the page closed and the profile reopened, then an edit …" | BR (the same harness) / integ |
+| LA-X1 … LA-X3, LA-A2 | `scripts/run11/sync-lost-ack.test.ts` (Session P): X1–X3 as plain tests, and the eight option-A2 cases (confirmation stored and cleared; a merged section never advances; a stale confirmation ignored; a moved head applies nothing; a rejected replay keeps no confirmation; crash and reopen; old reads new; recovery clears it); the six guards | unit / checks |
+| LA-X4 | `scripts/run11/sync-lost-ack-runtime.test.mjs` (Session P): X4 as a plain test against the real Worker, and the crash variant | MF / checks |
 | L-CAM-C1 | `camera-browser.test.mjs:22` "C1: a refused camera permission is explained and manual entry still logs a food" | Chrome against the app (stand-in camera and lookup) / integ |
 | L-CAM-C2 | `camera-browser.test.mjs:47` "C2: cancelling a scan stops the camera and leaves the saved Health log unchanged" | Chrome against the app / integ |
 | L-RECONCILE | `reconcile-mode.test.mjs:14` "reconcile mode refuses reads, writes, registration, section deletion, rotation and account deletion, then serving resumes unchanged" | MF / checks |

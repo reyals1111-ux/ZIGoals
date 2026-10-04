@@ -56,7 +56,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   // The change applied to this habit alone (only the changed habit is validated again, lib/habits.ts), or undefined if
   // it is refused: then nothing is painted early and the save reports why.
   function preview(change: (data: HabitData) => HabitData, base: Habit): Habit | undefined {
-    try { return change({ schemaVersion: 2, kind: "zigoals-habits", habits: [base], ...(store.data.timeZone ? { timeZone: store.data.timeZone } : {}) }).habits[0]; } catch { return undefined; }
+    try { return change({ schemaVersion: store.data.schemaVersion ?? 2, kind: "zigoals-habits", habits: [base], ...(store.data.timeZone ? { timeZone: store.data.timeZone } : {}) }).habits[0]; } catch { return undefined; }
   }
   function checkIn(change: (data: HabitData) => HabitData) {
     const queue = checkIns.current;

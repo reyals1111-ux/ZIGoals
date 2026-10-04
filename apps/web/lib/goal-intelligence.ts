@@ -2,7 +2,7 @@
 import {contributionEventSchema,platformSchema,localGoalLocked,confirmedLocalObservation,goalProgress,planScenario,rescaleUnits,scenarioHorizon,type ContributionEvent,type Platform,type PrivateGoal,type GoalHistory,type ValuationSnapshot} from './positions';
 import {marketQuoteSchema,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import type {z} from 'zod';
-import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan,planDay} from './plan-revisions';
+import {capturePlanChanges,captureGoalLifecycle,revisionInstallments,effectiveContributionPlan,planDay,planZone,shiftPlanDay} from './plan-revisions';
 export const MAX_VALUATION_SNAPSHOTS=50000;
 export const MAX_GOAL_HISTORY=50000;
 const max=(a:bigint,b:bigint)=>a>b?a:b;
@@ -56,11 +56,13 @@ export function scheduledFundingCredits(s:Platform,g:PrivateGoal,now:number):Map
 }
 export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:readonly MarketQuote[]=[]) {
  const g=s.goals.find(g=>g.id===goalId);if(!g)throw Error('Goal unavailable.');
- // Funding days come from the time helpers with zone "UTC" (timezone phase 2; QA-04 stays UTC). The instant check
- // comes first, as before. "Tomorrow" is the plan day of the next 24 hours, exactly the earlier value in UTC; phase 3
- // takes it as the day after today in the plan's own zone.
+ // Funding days come from the time helpers in the plan's own zone (timezone phase 3, R1: `plan.timeZone`, UTC when
+ // absent, which is every plan until R2 writes one; QA-04). The instant check comes first, as before. "Tomorrow" is
+ // the day after today in the plan's zone (calendar arithmetic, so a 25-hour day never repeats today). In UTC it stays
+ // the plan day of the next 24 hours, the phase 2 expression, so every answer and error at the edges of the
+ // representable range is exactly what it was (funding-day-edges.test.ts).
  timestamp(now);
- const today=planDay(now),tomorrow=planDay(now+86400000),horizon=scenarioHorizon(today,g.targetDate);
+ const zone=planZone(g),today=planDay(now,zone),tomorrow=zone==='UTC'?planDay(now+86400000):shiftPlanDay(today,1),horizon=scenarioHorizon(today,g.targetDate);
  const progress=goalProgress(s,goalId,now,quotes),totals=contributionTotals(s,goalId,now);
  let plannedThroughToday='0',plannedFuture='0',dates:string[]=[],nextDate:string|null=null,completionDate:string|null=BigInt(progress.current)>=BigInt(progress.target)&&!progress.requiresReview?today:null,planWarning=false;
  if(g.planRevisions?.length&&g.type!=='PROJECT')try {
