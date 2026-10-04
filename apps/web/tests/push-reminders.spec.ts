@@ -1,6 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
 import {PUSH_KEY} from '../lib/push/client';
-import {isPhone} from './phone-nav';
+import {navLink} from './phone-nav';
 
 // Push reminders (ADR-010): the Settings panel's states, turn on (one worker at /push-sw.js, no title or count sent),
 // a reminder-time change re-sends the schedule, turn off unsubscribes and unregisters, nothing on view, never in Showcase.
@@ -71,6 +71,11 @@ async function stubPushManager(page: Page) {
     PushManager.prototype.getSubscription = async function () { return state.sub as unknown as PushSubscription | null; };
   });
 }
+/** The mobile project is an iPhone, where push needs the Home Screen app: this makes the page count as installed. */
+const onMobile = () => test.info().project.name === 'mobile';
+const installed = (page: Page) => page.addInitScript(() => { Object.defineProperty(navigator, 'standalone', {value: true, configurable: true}); });
+/** Client-side navigation: a reload would lock the account vault again (the unlock lives in memory, as for sync). */
+async function go(page: Page, name: string, path: string) { await (await navLink(page, name)).click(); await page.waitForURL(`**${path}`); }
 async function signIn(page: Page) {
   await page.getByLabel('Email address', {exact: true}).fill('fixture@example.com');
   await page.getByRole('button', {name: 'Send email code', exact: true}).click();
@@ -105,6 +110,7 @@ test('without the fixture the panel says the build has no push, offers no button
 });
 
 test('signed out: off until an account is signed in; Showcase never offers it; nothing is written or sent on view', async ({page}) => {
+  if (onMobile()) await installed(page);
   await fixtureAccount(page);
   const calls = await fixturePush(page);
   await page.goto('/app/settings');
@@ -120,14 +126,12 @@ test('signed out: off until an account is signed in; Showcase never offers it; n
 });
 
 test('turn on: permission, one worker at /push-sw.js, a subscribe call with times only; a reminder change re-sends the schedule; turn off deletes everything', async ({page, context}) => {
-  const mobile = await isPhone(page);
   await context.grantPermissions(['notifications']);
   await stubPushManager(page);
-  if (mobile) await page.addInitScript(() => { Object.defineProperty(navigator, 'standalone', {value: true, configurable: true}); });
+  if (onMobile()) await installed(page);
   await fixtureAccount(page);
   const calls = await fixturePush(page);
   await signInAndUnlock(page);
-  await page.goto('/app/settings');
   await expect(state(page)).toHaveText('Off.');
   const on = panel(page).getByRole('button', {name: 'Turn on on this device', exact: true});
   expect((await on.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -145,7 +149,7 @@ test('turn on: permission, one worker at /push-sw.js, a subscribe call with time
   expect(await page.evaluate(() => (window as unknown as {__pushStub: {subscribes: {userVisibleOnly: boolean}[]}}).__pushStub.subscribes.map(s => s.userVisibleOnly))).toEqual([true]);
   expect(await record(page)).toMatchObject({version: 1, subscriptionId: SUBSCRIPTION_ID, quiet: {from: '22:00', to: '07:00'}});
   // A reminder time on this device re-sends the schedule: a time, the zone and the weekdays; still no title.
-  await page.goto('/app/health');
+  await go(page, 'Health', '/app/health');
   await expect(page.getByRole('link', {name: /Get this on your phone even when ZIGoals is closed/})).toHaveAttribute('href', '/app/settings#reminders');
   const form = page.getByRole('form', {name: 'Water reminder'});
   await form.getByLabel(/^Reminder time/).fill('20:15');
@@ -157,7 +161,7 @@ test('turn on: permission, one worker at /push-sw.js, a subscribe call with time
   expect(schedule.schedules).toEqual([{time: '20:15', zone: expect.stringMatching(/^[A-Za-z0-9_+\-/]+$/), weekdays: 127}]);
   expect(JSON.stringify(schedule)).not.toMatch(/title|count|habit|water|name/i);
   // Quiet hours are this device's choice and go with the next schedule call.
-  await page.goto('/app/settings');
+  await go(page, 'Settings', '/app/settings');
   await expect(state(page)).toHaveText('On · reminder times checked today.');
   await panel(page).getByLabel('Quiet from').fill('23:00');
   await panel(page).getByRole('button', {name: 'Save quiet hours', exact: true}).click();
@@ -176,7 +180,7 @@ test('turn on: permission, one worker at /push-sw.js, a subscribe call with time
 test('an iPhone browser tab is told to install first; a locked account is told to unlock', async ({page}) => {
   await fixtureAccount(page);
   await fixturePush(page);
-  if (await isPhone(page)) {
+  if (onMobile()) {
     await page.goto('/app/settings');
     await expect(state(page)).toContainText('Add ZIGoals to your Home Screen first.');
     await expect(state(page).getByRole('link', {name: 'How to install →', exact: true})).toHaveAttribute('href', '/app/help#install');

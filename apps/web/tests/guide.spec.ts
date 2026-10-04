@@ -106,7 +106,7 @@ test('the weekly review\'s last step shows the Guide\'s paragraph only while the
   };
   let dialog = await openReview();
   await expect(dialog.getByRole('note', {name: 'Guide', exact: true})).toHaveCount(0);
-  await dialog.getByRole('button', {name: 'Close the review', exact: true}).click();
+  await dialog.getByRole('button', {name: /^Close (the review|Your week)$/}).click(); // the desktop modal's button, or the phone sheet's ×
   await page.goto('/app/settings'); await toggle(page).click(); await expect(toggle(page)).toHaveAttribute('aria-checked', 'true');
   dialog = await openReview();
   const note = dialog.getByRole('note', {name: 'Guide', exact: true});
