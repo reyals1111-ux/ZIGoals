@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { probeAlphaMarket } from "./alpha-market-probe.mjs";
 
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";
 export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings"];
@@ -54,7 +55,12 @@ export function assertHtml(response, html, route="/app") {
   return nonce;
 }
 
-export async function smokeAlpha({ expectedCommit, fetcher = fetch } = {}) {
+/**
+ * `marketProbe` (Session S, the post-deploy smoke only): one BTC/USD probe of /api/market-quotes. The answer must be a
+ * well-formed envelope; VERIFIED or UNAVAILABLE is recorded as information and never fails the smoke. The rollback capture
+ * leaves it off, since the version it validates may predate the envelope.
+ */
+export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe = false } = {}) {
   const checks = []; let firstNonce;
   for (const route of [...ALPHA_ROUTES, "/app"]) {
     const response = await fetcher(`${ALPHA_ORIGIN}${route}`, {
@@ -74,6 +80,11 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch } = {}) {
     }
     if (checks.length === ALPHA_ROUTES.length) assert.notEqual(nonce, firstNonce, "Response nonce was reused");
     checks.push({ route, status: response.status, security: "PASS" });
+  }
+  if (marketProbe) {
+    const market = await probeAlphaMarket({ origin: ALPHA_ORIGIN, fetcher });
+    assert(market.wellFormed, `Alpha market route did not answer a well-formed price envelope (${market.reason})`);
+    checks.push({ route: "/api/market-quotes", status: market.httpStatus, market: market.result, pair: market.pair, failure: market.failure });
   }
   return checks;
 }

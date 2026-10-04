@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateRepositoryDeploymentConfigs, readDeploymentConfigs } from "./check-deployment-configs.mjs";
-import { REPOSITORY, WORKER, alphaRuntimeSecrets, alphaDeploymentEnvironment, alphaDeployArgs, assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, currentDeployment, performDeployment } from "./lib/alpha-deployment.mjs";
+import { REPOSITORY, WORKER, alphaDeploymentEnvironment, alphaDeployArgs, assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, currentDeployment, performDeployment } from "./lib/alpha-deployment.mjs";
 import { smokeAlpha } from "./lib/alpha-smoke.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -96,33 +96,18 @@ async function deploy() {
     checkSource: async () => { await checkSource(); checkBuild(); }, current,
     publish: async () => {
       // No interpolated shell commands, user-selected targets, environments or flags.
-      // The CoinGecko credential is supplied only as a Worker runtime secret in
-      // this same publication. It is never inherited by the OpenNext child process.
-      assert(env.RUNNER_TEMP, "GitHub runner temp directory required");
-      const runtimeSecretDirectory = mkdtempSync(
-        resolve(env.RUNNER_TEMP, "zigoals-alpha-runtime-secrets-"),
-      );
-      const runtimeSecretPath = resolve(runtimeSecretDirectory, "secrets.json");
-      try {
-        writeFileSync(
-          runtimeSecretPath,
-          JSON.stringify(alphaRuntimeSecrets(env.COINGECKO_DEMO_API_KEY)),
-          { encoding: "utf8", mode: 0o600 },
-        );
-        const deployEnv = alphaDeploymentEnvironment(env, outputPath);
-        const result = spawnSync("pnpm", alphaDeployArgs(runtimeSecretPath), {
-          cwd: root, stdio: "inherit", timeout: 300000,
-          env: deployEnv,
-        });
-        return {
-          code: result.status,
-          output: existsSync(outputPath) ? readFileSync(outputPath, "utf8") : "",
-        };
-      } finally {
-        rmSync(runtimeSecretDirectory, { recursive: true, force: true });
-      }
+      // No provider credential: prices come through the MARKET_QUOTES service binding
+      // (Session S), and any key in this environment is removed from the child.
+      const result = spawnSync("pnpm", alphaDeployArgs(), {
+        cwd: root, stdio: "inherit", timeout: 300000,
+        env: alphaDeploymentEnvironment(env, outputPath),
+      });
+      return {
+        code: result.status,
+        output: existsSync(outputPath) ? readFileSync(outputPath, "utf8") : "",
+      };
     },
-    smoke: () => smokeAlpha({ expectedCommit: env.EXPECTED_COMMIT }),
+    smoke: () => smokeAlpha({ expectedCommit: env.EXPECTED_COMMIT, marketProbe: true }),
     save: value => {
       save("deployment.json", { ...value, commit: env.EXPECTED_COMMIT, recordedAt: new Date().toISOString() });
       // Preserve outputs even if later rollout verification or smoke fails.
@@ -139,6 +124,7 @@ function summary() {
   const rollbackPath = evidenceFile("rollback.json");
   const report = existsSync(path) ? read(path) : { status: "NOT_DEPLOYED", newVersionId: null };
   const rollback = report.rollbackVersionId ?? (existsSync(rollbackPath) ? read(rollbackPath).versionId : null);
+  const market = Array.isArray(report.smoke) ? report.smoke.find(check => check.route === "/api/market-quotes") : undefined;
   note([
     "## Manual Alpha deployment", "",
     `- Result: **${report.status}**`, `- Worker: \`${WORKER}\``,
@@ -146,6 +132,7 @@ function summary() {
     `- New version ID: \`${report.newVersionId ?? "NOT_CONFIRMED"}\``,
     `- Rollback version ID: \`${rollback ?? "NOT_CAPTURED"}\``,
     `- Last observed live version: \`${report.observedLiveVersionId ?? "NOT_CHECKED"}\``,
+    `- Live prices (information only, never a failure): **${market?.market ?? "NOT_CHECKED"}**${market?.failure ? ` (${market.failure})` : ""}. On UNAVAILABLE, follow docs/run11/ALPHA_PRICES_ROLLOUT.md; do not redeploy.`,
     "- Read deployment.json and rollback.json in the evidence artifact before taking recovery action.",
     "- A failed/interrupted upload may already be live. No automatic retry or rollback was performed.",
     "- Owner visual, real Keplr/reload/reconnect, Habit/Health persistence and mobile checks remain separate.",

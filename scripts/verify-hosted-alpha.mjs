@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { probeAlphaMarket } from './lib/alpha-market-probe.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
@@ -52,6 +53,13 @@ try {
   }
   const nonces=report.responses.filter(r=>r.headers['content-security-policy']).map(r=>r.headers['content-security-policy'].match(/'nonce-([^']+)'/)[1]);
   assert.equal(new Set(nonces).size,nonces.length); report.freshNonceSamples=nonces.length;
+  // Session S: live prices. Unlike the Manual Alpha workflow's smoke, this owner check requires a fresh verified BTC/USD
+  // price. Only closed-vocabulary fields are recorded. On UNAVAILABLE, follow docs/run11/ALPHA_PRICES_ROLLOUT.md.
+  await stage('Live BTC/USD price through the market coordinator', async()=>{
+    report.marketProbe=await probeAlphaMarket({origin:alpha});
+    assert(report.marketProbe.wellFormed,`Market route answer is not a well-formed price envelope (${report.marketProbe.reason})`);
+    assert.equal(report.marketProbe.result,'VERIFIED',`Live prices are ${report.marketProbe.result} (${report.marketProbe.pair}, ${report.marketProbe.failure}); see docs/run11/ALPHA_PRICES_ROLLOUT.md`);
+  });
   await stage('Live Alpha identity, initial resources and navigation', async()=>{
     await page.goto(alpha+'/app'); await page.waitForLoadState('networkidle');
     await expect(page.locator('footer')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');

@@ -7,7 +7,11 @@
   "workers_dev": true,
   "preview_urls": false,
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS", "run_worker_first": false },
-  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "zigoals-alpha" }],
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "zigoals-alpha" },
+    { "binding": "MARKET_QUOTES", "service": "zigoals-acctest-market-coordinator", "entrypoint": "QuoteService" }
+  ],
+  "vars": { "ZIGOALS_MARKET_QUOTES_MODE": "durable-v1" },
   "limits": { "cpu_ms": 2000 },
   "observability": { "enabled": false }
 }
