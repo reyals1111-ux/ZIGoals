@@ -43,7 +43,7 @@ Use fictional data and a separate, non-production lifecycle Worker. This needs t
 
 Run every command from the checkout root. `pnpm --filter @zigoals/web exec` runs wrangler inside `apps/web`, so wrangler config paths are written as `"$PWD/…"`.
 
-**What wrangler 4.144 does, read from its code but not yet observed:**
+**What wrangler 4.144 does, read from its code but not yet observed** (Session S, 2026-10-04: 4.147.0's config schema still accepts `entrypoint` and `remote` on a service binding, and its changelogs since 4.144.0 name no change to remote bindings or `wrangler dev`; still UNVERIFIED until the rehearsal):
 - `remote: true` opens a "remote proxy session".
 - It uploads a temporary edge-preview proxy Worker, named after the admin Worker, to your `workers.dev` subdomain.
 - That proxy is what holds the real binding.
@@ -83,7 +83,7 @@ The rehearsal checks all of this.
    ```
    Expected: `Exported … Receipts: 0`, because the rehearsal authority is empty. A refusal or a start failure here means the named-entrypoint remote binding did not work. Stop and go to **Fallback**.
 5. **Nothing else can reach it.**
-   - In a second terminal, start the admin Worker by hand without a session token. It then refuses every request itself. The empty, private dev registry keeps it apart from any other local wrangler session (the pinned Wrangler 4.144.0 has no `--disable-dev-registry` flag; updated 2026-10-03, Session R1):
+   - In a second terminal, start the admin Worker by hand without a session token. It then refuses every request itself. The empty, private dev registry keeps it apart from any other local wrangler session (the pinned Wrangler has no `--disable-dev-registry` flag: 4.144.0, and 4.147.0 since Session S; `scripts/wrangler-cli-surface.test.mjs` checks it):
      ```sh
      WRANGLER_REGISTRY_PATH="$(mktemp -d)" pnpm --filter @zigoals/web exec wrangler dev --config "$PWD/workers/recovery-admin/wrangler.acctest.owner.jsonc" --ip 127.0.0.1 --port 8799
      ```

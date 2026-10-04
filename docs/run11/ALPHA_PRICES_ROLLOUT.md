@@ -91,7 +91,7 @@ pnpm --filter @zigoals/web exec wrangler secret list --name zigoals-alpha       
 pnpm --filter @zigoals/web exec wrangler secret delete COINGECKO_DEMO_API_KEY --name zigoals-alpha   # only if it is listed
 pnpm --filter @zigoals/web exec wrangler secret list --name zigoals-alpha            # read only: it is gone
 ```
-- A deploy without `--secrets-file` sends no "keep secrets" instruction (Wrangler 4.144.0 source). Whether Cloudflare then keeps or drops the old secret is **UNVERIFIED**, so check and delete it, or confirm it is gone.
+- **The old key is still there after the deploy.** A deploy without `--secrets-file` still asks Cloudflare to keep the Worker's existing secrets: Wrangler 4.147.0 sends `keep_bindings: ["secret_text", "secret_key"]`, captured offline (`scripts/fixtures/wrangler-output/4.147.0/upload-metadata-no-secrets-file.json`). Delete it here.
 - Deleting a secret creates a new Worker version with the same code. Check `deployments list` once more.
 - Then, in GitHub, **Settings → Environments → alpha**, delete the environment secret `COINGECKO_DEMO_API_KEY`. No workflow reads it now.
 

@@ -133,7 +133,7 @@ Option A is implemented as decided. Where the code needed it, the design above w
   - `--source` checks the template;
   - a scan of every Worker config in the checkout, including ignored owner copies, allows only the admin template and its copy to name the entrypoint.
   - The deploy workflow is unchanged: it deploys a fixed config path, so the admin config cannot reach it.
-- **What wrangler 4.144 does with `remote: true`** (read from its code, not observed):
+- **What wrangler 4.144 does with `remote: true`** (read from its code, not observed; Session S, 2026-10-04: the pin is now 4.147.0, whose schema and changelogs since 4.144.0 show no change here):
   - it opens a remote proxy session;
   - it uploads a temporary edge-preview proxy Worker, named after the admin Worker, with `workers_dev` on for that preview. That proxy holds the binding;
   - it creates a `workers.dev` subdomain if the account has none.
