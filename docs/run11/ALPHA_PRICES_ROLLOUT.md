@@ -126,17 +126,33 @@ UNAVAILABLE is a safe state: cached prices and manual valuation keep working, an
 
    | `failure` | Meaning | What to check (read only) |
    |---|---|---|
-   | `LOCAL_BUDGET` | A local budget refused it: the daily row budget, the monthly or per-minute credits, a client share, or the setup gate (unbound coordinator, or a `MARKET_POLICY` outside its window) | Cloudflare dashboard → Workers → `zigoals-acctest-market-coordinator` → Durable Objects metrics (rows written today, compared with `dailyRowBudget`); CoinGecko Developer Dashboard → usage this month; the policy window date |
-   | `LOCAL_QUEUE` | Too many reads waiting at once | Wait; it clears within seconds |
-   | `THROTTLED`, `UPSTREAM_5XX`, `TIMEOUT`, `NETWORK` | CoinGecko refused or failed, or a breaker is open after repeated failures | CoinGecko status page; wait for the cooldown |
-   | `AUTHENTICATION`, `ENTITLEMENT` | The key is wrong, revoked or out of plan | CoinGecko dashboard: the key and plan. Then `secret list` on the **coordinator** (names only) |
-   | `MALFORMED`, `UNSUPPORTED`, `UNKNOWN` | An unexpected answer | Keep the evidence and report it; do not retry in a loop |
+   | `LOCAL_BUDGET` | A local budget refused it: the daily row budget, the monthly or per-minute credits, a client share, or the setup gate (unbound coordinator, or a `MARKET_POLICY` outside its window). **After the window ends, cached prices are refused too**, until the policy is regenerated | Cloudflare dashboard → Workers → `zigoals-acctest-market-coordinator` → Durable Objects metrics (rows written today, compared with `dailyRowBudget`); CoinGecko Developer Dashboard → usage this month; the policy window date |
+   | `LOCAL_QUEUE` | Too many reads waiting at once, **or a breaker open after repeated provider failures** (an open breaker shows here, not as the provider's category) | Wait; a queue clears within seconds, a breaker after its cooldown (at most 5 minutes with the template policy) |
+   | `THROTTLED`, `UPSTREAM_5XX`, `TIMEOUT`, `NETWORK` | CoinGecko refused (429) or failed (5xx, timeout, connection) this read | CoinGecko status page; wait |
+   | `AUTHENTICATION` | The coordinator has no key, or CoinGecko answered 401 (the key is wrong or revoked) | CoinGecko dashboard: the key. Then `secret list` on the **coordinator** (names only) |
+   | `ENTITLEMENT` | In the vocabulary, but **nothing produces it today**: a plan refusal shows as `UNKNOWN` | — |
+   | `MALFORMED`, `UNSUPPORTED`, `UNKNOWN` | An unexpected answer. `UNKNOWN` includes **every CoinGecko 403** (a generic refusal proves neither key nor plan), a 404 or other status, and coordinator refusals outside this table | Keep the evidence and report it; do not retry in a loop. Before Session U's fix, `UNKNOWN` was the missing User-Agent (below) |
 
 3. **Only change something** when the read-only check names a cause:
    - a regenerated key (step 7);
    - a regenerated policy (ACTIVATION Stage 6);
    - a reviewed `dailyRowBudget` change (below).
-4. **If the probe answer is MALFORMED** (not a price envelope at all), the deployment summary says so and the run ends in NEEDS_OWNER_REVIEW. Inspect it like any failed smoke; roll back only by your decision.
+4. **If the probe answer is MALFORMED** (not a price envelope at all), the smoke fails and the run ends in NEEDS_OWNER_REVIEW. The summary's "Live prices" line then reads **NOT_CHECKED** (no market row was recorded); the reason is the smoke error in `deployment.json`. Inspect it like any failed smoke; roll back only by your decision.
+
+## Session U: why deploy #28 showed UNAVAILABLE (UNKNOWN), and the fix
+**Cause** (evidence labels in STATUS, Session U Part 2a):
+- CoinGecko refuses a request that has no User-Agent: `403`, "Please add a descriptive User-Agent to your request" (real provider, keyless, 2026-10-04 22:36 UTC, both `/simple/price` and `/simple/token_price`).
+- Workers' `fetch` sends no User-Agent, and the coordinator set none. A 403 is `UNKNOWN` by design.
+- ZIG kept working through its documented token-price fallback, which CoinGecko serves from a different backend (`x-data-source: 1.0`; `/simple/price` comes through CloudFront, `x-data-source: 2.0`). In production only that fallback got through.
+- `scripts/run11/market-user-agent.test.mjs` reproduces the live answer byte for byte in workerd (503, `PROVIDER_UNAVAILABLE`, `UNKNOWN`, the same error text) and passes with the fix.
+- **Not confirmed with the coordinator's own key** (no session uses it). Your probe after the redeploy below confirms it.
+
+**Fix:** every CoinGecko read sends `User-Agent: ZIGoals/1.0 (+https://zigoals.app)` (`apps/web/lib/server/provider-user-agent.ts`). It names the app and its public site only. CoinGecko answered 200 to that exact value (keyless, 2026-10-04 22:38 UTC).
+
+**Owner steps after the merge** (the coordinator does the provider reads, so it carries the fix; the Alpha needs no redeploy for prices):
+1. Steps 1–3 above at the merged main: ops checkout, `deployments list` (write down the live version: today `4754e86f-42c2-4ea3-8373-3c0a7031036b`, your rollback), `deploy`, verify.
+2. Probe once: `node scripts/verify-hosted-alpha.mjs <new dir>` (it requires VERIFIED), or the Markets page.
+3. **VERIFIED:** done; record it. **Still `UNKNOWN`:** roll back only if something else broke (`wrangler rollback 4754e86f-42c2-4ea3-8373-3c0a7031036b --config "$PWD/workers/market-coordinator/wrangler.acctest.owner.jsonc"`), keep the evidence and report it: the cause is then on CoinGecko's side for the key, and the CoinGecko dashboard is the next read-only check.
 
 ## Advice: `dailyRowBudget` on Workers Paid (no change made)
 **Facts** (Cloudflare Durable Objects pricing, read 2026-10-04: https://developers.cloudflare.com/durable-objects/platform/pricing/):
