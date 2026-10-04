@@ -51,10 +51,16 @@ describe('exact Position accounting', () => {
   expect(planScenario(g(),'0',{...plan,price:{value:'200',decimals:2,currency:'USD'}},'2026-03-31')).toMatchObject({contributions:'150',dates:['2026-01-31','2026-02-28','2026-03-31']});
  });
 });
-it('normalizes verified native uzig into a ZIG Goal without rounding away units',()=>{
+it('normalizes a legacy verified native uzig record (saved before the v5 redenomination) into a ZIG Goal without rounding away units',()=>{
  const s=state();s.positions[0]=positionSchema.parse({...p(),id:'mainnet',sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY',network:'zigchain-1',denom:'uzig',decimals:6,quantity:'1500000'});
  s.goals[0]={...g(),decimals:18,target:'2000000000000000000'};
  const next=allocate(s,'1','mainnet','1000000');expect(goalProgress(next,'1').current).toBe('1000000000000000000');
+});
+it('counts a verified native azig/18 mainnet record exactly, in the same ZIG Goal',()=>{
+ const s=state();s.positions[0]=positionSchema.parse({...p(),id:'mainnet',sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY',network:'zigchain-1',denom:'azig',decimals:18,quantity:'1500000000000000000'});
+ s.goals[0]={...g(),decimals:18,target:'2000000000000000000'};
+ const next=allocate(s,'1','mainnet','1000000000000000000');expect(goalProgress(next,'1').current).toBe('1000000000000000000');
+ expect(()=>allocate(next,'1','mainnet','1500000000000000001')).toThrow(/exceeds/);
 });
 it('never mixes testnet observations into a mainnet Goal',()=>{
  const s=state();s.positions[0]={...p(),network:'zig-test-2',sourceType:'WALLET_LIQUID',verification:'VERIFIED_READ_ONLY'};
@@ -106,6 +112,11 @@ it('staking scenarios exclude foreign-network and research-only evidence and pre
  allocated.positions[0]!.network='zig-test-2';expect(allocatedNativePrincipal(allocated,'1')).toBe('0');
  allocated.positions[0]!.network='zigchain-1';allocated.positions[0]!.verification='RESEARCH_ONLY';expect(allocatedNativePrincipal(allocated,'1')).toBe('0');
  allocated.positions[0]!.verification='VERIFIED_READ_ONLY';allocated.positions[0]!.quantity='40000000';expect(allocatedNativePrincipal(allocated,'1')).toBe('40000000000000000000');
+ // The same stake observed after the v5 redenomination: azig with 18 decimals, the same ZIG.
+ const azig=state();azig.goals[0]={...g(),decimals:18,target:'100000000000000000000'};
+ azig.positions[0]={...p(),network:'zigchain-1',sourceType:'NATIVE_STAKING',verification:'VERIFIED_READ_ONLY',denom:'azig',decimals:18,quantity:'100000000000000000000'};
+ expect(allocatedNativePrincipal(allocate(azig,'1','p','80000000000000000000'),'1')).toBe('80000000000000000000');
+ const mixedUnit={...azig,positions:[{...azig.positions[0]!,denom:'uzig',decimals:18}],allocations:[{goalId:'1',positionId:'p',quantity:'1'}]};expect(allocatedNativePrincipal(mixedUnit,'1')).toBe('0');
 });
 
 it('rejects validator commission above one without rounding decimal evidence',()=>{

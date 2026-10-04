@@ -70,6 +70,106 @@ No desktop difference is authorized for this PR and none exists. Outside `apps/w
 - Note the deploy date: it starts the T4 clock for timezone phase 4 and the sync-home write switches.
 - Nothing to activate: no new Worker, secret or variable.
 
+# Session P (PR 1) — fixes and reliability: deploy #25 recorded, mainnet azig/18, brand asset names, three intermittent tests, the invite-only message, CI without the slow mirror, the landing hero (2026-10-03, [PR #66](https://github.com/reyals1111-ux/ZIGoals/pull/66))
+
+**Evidence labels**
+- **source:** an official page read on 2026-10-03 (UTC), linked with its access date where it is used.
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the intro-video specs fail here and pass in CI, as in every session since L).
+- **CI:** Milestone quality on the PR, read through the Actions API.
+- **Actions API** / **git:** read the same day.
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added. The landing was changed (part 1.7) but not deployed: it deploys only by hand.
+
+**Base:** `main` `d439dc9` (#65, Alpha deploy #25 live from `3f116e9`). Branch `fix/session-p-2026-10-03`, the first of Session P's four PRs (merge order 1 → 2 → 3 → 4; the other three branches start from the same base and take `main` back in with a merge commit when this one is merged).
+
+## Parts
+
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 1.0 | Alpha deploy #25 recorded (its own entry below, newest-first); Release identity moved to #25 live, #24 previous. #24 stays as Session O wrote it. | `35c45fc` | Actions API: run 37133884824, source `3f116e9`, versions `aa6119b7-…` / rollback `aeae3829-…`, `VERIFIED`; CI #412 on the source |
+| 1.1 **[Tier 3] (chain reads)** | **Mainnet reads azig/18.** Both official LCDs answer the native unit as `azig` with 18 decimals since the v5 redenomination (mainnet height 12549000, 2026-09-30); the mainnet reader was still configured `uzig`/6, so every mainnet watch-only read failed closed on the denomination check. `READ_NETWORKS.MAINNET_READ_ONLY` is azig/18; the evidence check (chain id, bond denom, bank metadata base and display exponent) is a named function that runs before any balance request, so a refused read stores nothing; the ZIG price matches both evidenced mainnet units (azig/18 and the legacy uzig/6 of records saved before the upgrade), never a mixed unit and never the testnet; allocated native principal accepts both; the first azig observation of a record saved as uzig rescales that record's allocations and plain snapshots once (10¹², BigInt), so Goal progress keeps its ZIG amount. No schema version changes. | `40f6eb4` | source: `api.zigchain.com` bank metadata and staking params, `docs.zigchain.com` redenomination page, in `docs/earn/EVIDENCE_2026-10.md` (F03) and the ADR-004 addendum. local: `mainnet-denomination.test.ts` (both networks, staking, goal valuations, Wealth rows, quote matrix, refused read stores nothing, the one-time rescale), fixtures in six suites moved to azig/18, a regression test that the uzig/6 assumption fails closed against the live metadata without reading a balance; 129 unit tests in the nine touched files; 70 browser tests on the Positions, Staking, Wealth and Goals paths |
+| 1.2 | **Brand asset names.** The 17 `@2x.webp` marks, words and figures are `-2x.webp` (same bytes): Workers Assets answers a path with `@` with a 307 to its `%40` spelling, one extra round trip per high-density screen. Sidebar srcsets, comments and `docs/brand/ASSETS_2026-10-01.md` follow. | `37ca600` | local: `lib/brand-assets.test.ts` (no file under `public/brand` carries a character Workers Assets would re-spell; every 1x file has its -2x twin), `tests/brand-assets.spec.ts` (every mark, word and figure answers 200 `image/webp` at 1x and 2x with no redirect; the old names are gone), page-marks and brand-nav-polish: 21 passed |
+| 1.3 | **Three intermittent tests, root causes.** See "Intermittent tests" below. | `67fa146` | local: 280 of 280 repeat runs (details below); CI: the touched specs green on every later run |
+| 1.4 | **The invite-only message.** With sign-ups closed, Supabase Auth refuses a code for an address that is not on the invite list with 422 `otp_disabled` ("Signups not allowed for otp"). The relay answers 403 `INVITE_ONLY` with "ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app."; `signup_disabled` the same; `email_provider_disabled` a plain "Signing in by email isn't available right now. Try again later."; every other refusal and every rejected code keeps the usual answer. The panel shows exactly those two messages from the relay and never any other server text. Help gets the question "I asked for a code and ZIGoals said it's invite-only"; FRIENDS_GUIDE one line. | `72df238` | source: `github.com/supabase/auth`, `internal/api/otp.go` and `internal/api/apierrors` (read 2026-10-03): the header `x-sb-error-code` and the two body shapes (legacy `error_code`, which this relay receives because it sends no `X-Supabase-Api-Version`; `code` from API version 2024-01-01). local: the exact refusals as fixtures (both shapes, the header alone, `signup_disabled`, `email_provider_disabled`, six refusals that must stay `AUTH_FAILED`, the 429 path, a rejected code naming `otp_disabled`), the panel wording in `lib/account-access.test.ts`, `tests/invite-only.spec.ts` on desktop and phones |
+| 1.5 | **`goal-summary.ts`:** `privateGoalSummary` takes the plan's day from `planDay` (plan-revisions, zone UTC) instead of an ISO-string slice. | `7d7c009` | local: funding-day-parity and funding-day-edges digests unchanged (25 tests in the five related files) |
+| 1.6 **[Tier 3] (workflow)** | **CI without the slow mirror.** `scripts/ci/chrome-deps.sh` keeps the runner's Chrome (the ubuntu-24.04 image ships Google Chrome stable at Playwright's chrome channel path), installs the channel only without one, installs Playwright's ffmpeg (video recording), and asks apt only for the Chrome packages dpkg reports missing, without recommends; `install-chrome.sh` wraps it unchanged (retries, lock wait, the 12-min cap); step names and job limits unchanged. The 21 MB of fonts for scripts no spec renders are gone. | `c4aac31`, `7ccbfac` | local: `chrome-deps.test.mjs` with fakes (6 cases) and `install-chrome.test.mjs` unchanged. CI: the install step 27, 28, 34 and 31 s before (`main` `d439dc9`, run 37134414136) → 0–3 s after (run 37141271117: "Using the runner's Chrome at /opt/google/chrome/chrome: Google Chrome 154.0.8037.57 (no download)", "All 22 Chrome packages are installed; apt not needed"); the first run without ffmpeg failed the video-recording spec (run 37141593543), fixed in `7ccbfac` |
+| 1.6b | **`food-queue.test.mjs` ordering race** (seen once on this PR's CI, run 37141593543, unit job: "expected 200 to be 429"): the lookups were sent 100 ms apart and relied on arriving in that order; on a busy runner the Worker's cold start outlasts the pause. Each case now sends the next lookup only once the slot is observably taken, and the case where two lookups race for the single waiting place asserts the pair. Test only; the Worker is unchanged; no assertion relaxed. | `f2224dc` | local: 3 files, 22 tests green |
+| 1.7 | **Landing hero on phones.** The preload carries `fetchpriority="high"`; the hero file is re-encoded at WebP quality 85 (libwebp through sharp 0.35.4, the workspace's own copy): 65,538 → 54,908 B, PSNR 39.2 dB against the previous file, same 422 × 480 px. No width variants (the master is 422 px wide; every 2× or 3× phone needs more than that for the 280 CSS px the mark is drawn at, so a smaller candidate would serve 1× screens only and cost them a second download next to the header logo, which shares the file). `_headers` and `.assetsignore` untouched. | `ef6b81a` | local, `LANDING_PERF=1`, one worker, 8 phone runs each: before 2,376–2,584 ms (1 of 8 over the 2,500 ms budget, the mark as LCP); preload priority alone 2,384–2,496; both changes 2,348–2,432 with the mark painted in the first frame every time; desktop 236–304 ms. `landing-v5-security` (hashes), the weight budget (first view 240,517 B), `check:landing` (274 entries) and `check:deploy-configs` pass. `docs/verification/landing-v5/README.md` addendum; crops on the review branch |
+| 1.8 | This entry, the Known CI intermittents table, the gate below. | this commit | — |
+
+## Intermittent tests (part 1.3)
+
+- **`logo-fold.spec.ts:107` "fails to load":** the test allowed 1.4 s for the routed 404 while the clip's own fallback is 1.5 s, measured from a poll rather than from the clip, so under load the two windows no longer overlapped. The clip now records why it left (`data-intro-end` on the static Z: `ended`, `error`, `timeout`, `blocked`, `resize`, `motion`, `pagehide`, `detached`) and the tests assert that cause. Reading it showed a second thing: a Chromium without H.264 (the sandbox's) skips the MP4 source for its type without an error event, so the clip only ever left on the 1.5 s fallback here, while real Chrome got the MP4 404. The clip now ends at once when a source fails and the browser has no candidate left (`networkState === NETWORK_NO_SOURCE`), in both. When the test runner delivers the 404 only after the fallback (measured in page time), the scenario is repeated on a fresh page, at most three times, as `market-fanout` does; no assertion is relaxed. The "plays once" test also asserts the clip left because it ended, and the reduced-motion tests assert the shell's recorded reason. **160 of 160** repeat runs (4 variants × 2 projects × 20).
+- **`install-guide.spec.ts:49`** (once in CI, run 37070729686, mobile): the intro wrote its once-per-session flag between the two storage snapshots under reduced motion. The shell now records its decision (`data-logo-intro` on `<html>`: `playing`, or the reason it declined), both snapshots wait for that decision instead of trusting the load event, and the session flag is set up front so a media emulation the browser applies late still finds it played. `help-page.spec.ts:65` makes the same comparison and gets the same treatment. **40 of 40** each.
+- **`habit-paint-first.spec.ts:36`:** no CI record of a failure in the last 120 runs (Actions API, all failed runs' logs read) and 160 of 160 local runs green before any change. The observer is hardened anyway: it watches the document and finds the card's own completion button by its label on every mutation, so a re-rendered card or another `aria-pressed` button can neither hide the paint nor stand in for it. **40 of 40** after the change.
+
+## Tier 3 commits and risk (plain words)
+
+- `40f6eb4` (chain reads): mainnet watch-only reads work again. A wrong decimal would mis-scale a mainnet balance by 10¹², which the fixture tests on both networks rule out. Rollback: revert; nothing stored needs undoing.
+- `c4aac31` and `7ccbfac` (workflow): CI installs no Chrome and no fonts from the Ubuntu mirror. A runner image without Chrome falls back to the same download as before; a missing library would surface as a Chrome launch failure in the first spec, not as a silent skip. Rollback: revert both.
+
+Not touched: wallet, signing, contracts, keys, the six activation Workers, the sync wire protocol, `AGENTS.md`.
+
+## Known CI intermittents (table below updated)
+
+- **Chrome-install apt/dpkg lock:** the mirror is no longer used in the usual case (1.6); the row's state is updated.
+- **`install-guide.spec.ts:49`** and **`logo-fold.spec.ts:107`:** new rows, fixed (1.3).
+- **`food-queue.test.mjs:39`:** new row, fixed (1.6b).
+
+## Decisions made without the owner, and deviations
+
+- **1.1:** no migration and no rewrite of stored records (plan decision P1): legacy uzig/6 records stay valid and are rescaled once by the first azig observation; proven by tests.
+- **1.2:** the suffix is `-2x`.
+- **1.3:** two additive data attributes in the app (`data-intro-end` on the static Z, `data-logo-intro` on `<html>`) so tests assert causes; the clip also leaves at once when the browser skips its last source, which real Chrome never showed and the sandbox always did.
+- **1.6:** no `actions/cache` (a new Action needs the owner's approval; it is the alternative if the runner image ever stops shipping Chrome). Fonts beyond `fonts-liberation` are not installed: the specs assert DOM text and geometry, not glyphs, and the visual freeze check runs locally.
+- **1.7:** no width variants (see the part); the re-encoded file is a visual change the owner may reject (below).
+- **Scope:** `food-queue.test.mjs` was not in the brief; it failed once on this PR's CI and the rule is "anything else: investigate", so its ordering race is fixed as a test-only change.
+
+## Gate
+
+| Check | Where | Result |
+|---|---|---|
+| `pnpm lint`, `pnpm typecheck` | local, every part before its push | clean |
+| `pnpm test` (whole unit suite) | local, final head | 260 files, 2,383 passed, 21 expected failures and 24 skipped, as on `main` (the expected failures are Session N's timezone and ADR-006 suites) |
+| Production build + full Playwright, 2 workers | local, final head | 987 passed, 77 skipped, 4 failed: the intro-video specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this sandbox's Chromium cannot play and CI passes, as in every session since L |
+| Desktop freeze check, 154 captures, `main` `d439dc9` vs this branch | local | 142 of 154 captures identical, 0 page errors; the 12 Help captures (6 sizes × Showcase and empty) differ only by the new question: the accessibility diff shows the one added group and the page is 49 px taller. That is the one authorized desktop difference; the renamed brand assets changed no pixel |
+| `check:landing`, `check:deploy-configs`, `LANDING_PERF=1` ×8 | local | pass; numbers in part 1.7 |
+| CI on the final head | [Milestone quality run 37143019515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37143019515) on `ef6b81a`, every file of this PR but this entry; the run on the final head is linked from the PR | success on attempt 1 (the earlier runs: 35c45fc and 37ca600 green; 67fa146 red on the two CI follow-ups fixed in 7ccbfac and f2224dc; the others cancelled by the next push) |
+
+## Owner decisions
+
+1. **The hero file (1.7):** keep the quality-85 re-encode (16% lighter, all 8 phone runs under budget) or revert to the previous file (one revert of `ef6b81a`'s image, keeping the preload change). The crops are on the review branch.
+2. **`actions/cache`** stays a later follow-up (not needed now that the mirror is out of the usual path).
+
+## Follow-ups (not done here)
+
+- The landing deploy (1.7) is the owner's, by hand (`docs/deployment/LANDING.md`).
+- PR 2 (`sync/session-p-2026-10-03`), PR 3 (`features/…`) and PR 4 (`push-coach/…`) follow; each takes `main` back in with a merge commit when this PR is merged.
+
+## How the owner can review
+
+- Screenshots: branch `review/session-p-screenshots`, folder `pr1/` (never merged): Help's new question, the invite-only panel from the route fixture, the landing hero at 1440 and 390 px, the hero file before and after with a 3× crop.
+- Preview: `~/Documents/ZIGoals-Claude` → `git fetch origin` → `git checkout fix/session-p-2026-10-03` → `pnpm install --frozen-lockfile --ignore-scripts` → `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101` → http://127.0.0.1:3101/app → Settings → Load Showcase Demo. Help → "I asked for a code…"; Settings → the account panel (the real relay answers invite-only only with a closed sign-up list).
+
+# Alpha deploy #25 — 2026-10-03 afternoon, `3f116e9` live
+
+Recorded by Session P at the owner's request (2026-10-03).
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session P cloud session on 2026-10-03. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in the Session P brief, 2026-10-03.
+
+- **Run:** Manual Alpha deployment #25, [run 37133884824](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37133884824), 2026-10-03 15:37–15:44 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `3f116e90a7b69c35ecb04031ca27b76f8c9d2d01`, `main` after #61. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `aa6119b7-52c9-4992-9761-2cd795cc2431`. The last observed live version is the same. (CI log)
+- **Rollback:** `aeae3829-ccc1-4190-909e-77539604c3f5`, the version deploy #24 published, so the chain holds. (CI log)
+- **CI on `3f116e9`:** Milestone quality #412 ([run 37132668348](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132668348)): success on attempt 1. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37133884824-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result, and checked the live Alpha. (Owner, 2026-10-03)
+
+**Merged since the last record** (git, first-parent history of `main`): [#61](https://github.com/reyals1111-ux/ZIGoals/pull/61) (`3f116e9`), Session N (PR 1), Landing V5. The landing itself is the apex Worker `zigoals`, which the owner publishes by hand; this run publishes the Alpha Worker `zigoals-alpha` only, so the Alpha carries #61's non-landing files (the landing specs, docs and skip inventory). [#65](https://github.com/reyals1111-ux/ZIGoals/pull/65) (`d439dc9`, Session O, documents only) merged after this source, so it is not in this deploy.
+
 # Session R1 — market abuse fix (Q-WRK-01/02), hermetic owner builds, landing workers.dev off, recovery-admin launch, camera finding (2026-10-03, [PR #69](https://github.com/reyals1111-ux/ZIGoals/pull/69), not merged or deployed)
 
 **Evidence labels:**
@@ -2978,6 +3078,9 @@ No account, secret, wallet or deploy was used. No wrangler command reached Cloud
 | 2 | **wrangler 4.131.1 → 4.144.0.** Worker types regenerated. The deploy path's real output is pinned by tests. New [owner checklist for the first watched deploy](run11/WATCHED_DEPLOY_WRANGLER.md). | `2d11e22`, `f976340`, `bb5519a` |
 | 3 | eslint-config-next 16.3.5 → 16.3.6. Package contents are identical apart from the version; lint output is identical (0 problems). | `82af17d` |
 | 4 | `product-data.spec.ts:72`: the root cause is not a market request (below). Test-only fix, 40/40. | `0a11876` |
+| `install-guide.spec.ts:49` (mobile) "viewing Help only reads the state": the logo intro's session flag appears between the two storage snapshots under reduced motion | CI: once on #61 (`578c3b0`, run 37070729686) | web browser suite | **Fixed in Session P, PR 1** (`67fa146`): both snapshots wait for the shell's recorded intro decision (`data-logo-intro` on `<html>`) and the session flag is set up front; `help-page.spec.ts:65` the same. 40/40 locally each |
+| `logo-fold.spec.ts:107` "fails to load": the clip still on screen after the test's 1.4 s window while the app's own fallback is 1.5 s | Local full suites (Sessions N and O); not seen in CI | web browser suite | **Fixed in Session P, PR 1** (`67fa146`): the clip records why it left (`data-intro-end`) and leaves at once when the browser has no source left; the tests assert the cause and repeat the scenario on a fresh page when the runner delivers the 404 after the fallback (at most 3 times). 160/160 locally |
+| `food-queue.test.mjs:39` "while one lookup waits, another new barcode is refused at once": expected 429, received 200 | CI: once on #66 (`67fa146`, run 37141593543) | web checks (unit) | **Fixed in Session P, PR 1** (`f2224dc`, test only): the lookups were sent 100 ms apart and relied on arriving in that order, which a cold Worker on a busy runner does not keep; each case now waits for the slot to be observably taken, and the racing pair is asserted as a pair |
 | 5 | **Food lookup queue.** A second new barcode within 12 s now waits for the next slot instead of "cooling down". | `7d749ff` |
 | 6 | The 6 `.mjs` Workers are type-checked (checkJs + JSDoc), and the market fault fixture is really checked now. | `59ca984`, `7527e88` |
 | — | This entry | (this commit) |
@@ -3508,7 +3611,7 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 11.5–16.9 min measured on main and #58 |
-| Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) is an owner decision |
+| Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) was an owner decision. **Removed in Session P, PR 1** (`c4aac31`, `7ccbfac`): the runner's own Chrome is kept and apt is asked only for Chrome packages dpkg reports missing, so the mirror is out of the usual path; the step took 0–3 s on run 37141271117 (27–34 s before) |
 | `market-fanout.test.mjs` "synthetic concurrent cold, warm and restarted callers share one physical batch…": a degraded cold wave | CI: once in web checks on #59 (`5b2480d`), passed on its re-run | web checks (unit) | **Fixed in Session M** (`33010a5`, test only): a cold wave whose measured publication time passed the followers' 1,000 ms lifetime is repeated in a fresh runtime, at most 3 attempts; if all are that slow the test fails with "runner too slow". No assertion was relaxed |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 
@@ -3641,7 +3744,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-03 afternoon for the [Alpha deploy #24](#alpha-deploy-24--2026-10-03-afternoon-4d59e63-live) in the Session O entry above (recorded by Session O at the owner's request).
+Updated 2026-10-03 afternoon for the [Alpha deploy #25](#alpha-deploy-25--2026-10-03-afternoon-3f116e9-live) record at the top of this file (recorded by Session P at the owner's request).
+- Deployed source `3f116e90a7b69c35ecb04031ca27b76f8c9d2d01`, `main` after [PR #61](https://github.com/reyals1111-ux/ZIGoals/pull/61). Verified: Actions API.
+- CI: Milestone quality #412 ([run 37132668348](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132668348)) on `3f116e9`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #25 ([run 37133884824](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37133884824)), exact source `3f116e9`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `aa6119b7-52c9-4992-9761-2cd795cc2431`; rollback `aeae3829-ccc1-4190-909e-77539604c3f5` (the run #24 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: owner-reported, checked on the live Alpha (2026-10-03).
+
+Previous release identity (PR #64, 2026-10-03 afternoon, recorded by Session O):
 - Deployed source `4d59e6318d45baf4d699f10b794eedba30cd03db`, `main` after [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64). Verified: Actions API.
 - CI: Milestone quality #410 ([run 37130862674](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37130862674)) on `4d59e63`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #24 ([run 37132128477](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132128477)), exact source `4d59e63`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.

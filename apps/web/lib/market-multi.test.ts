@@ -73,7 +73,10 @@ it('preserves valid public cache across malformed refreshes and refuses private 
 it('rejects cached evidence with no timestamp and does not overwrite a newer provider observation',async()=>{
  const good=parseCoinQuotes(`{"bitcoin":{"usd":2,"last_updated_at":${now/1000}}}`,[coin('bitcoin')],now)[0]!;
  const {verifiedMarketQuote}=await import('./market-quotes');expect(()=>verifiedMarketQuote({...good,observedAt:undefined,fetchedAt:undefined},now)).toThrow();
- const legacy={base:{network:'zigchain-1',denom:'uzig',decimals:6},currency:'USD',price:'43',priceDecimals:3,source:'CoinGecko',providerAssetId:'zignaly',verification:'VERIFIED'};expect(()=>verifiedMarketQuote(legacy,now)).toThrow();
+ const undated={base:{network:'zigchain-1',denom:'azig',decimals:18},currency:'USD',price:'43',priceDecimals:3,source:'CoinGecko',providerAssetId:'zignaly',verification:'VERIFIED'};expect(()=>verifiedMarketQuote(undated,now)).toThrow();
+ // A native quote cached before the v5 redenomination carries the legacy uzig/6 identity; it stays valid evidence (the price is per ZIG).
+ const legacyUnit={...undated,base:{network:'zigchain-1',denom:'uzig',decimals:6},observedAt:new Date(now).toISOString()};expect(verifiedMarketQuote(legacyUnit,now)).toMatchObject({price:'43'});
+ expect(()=>verifiedMarketQuote({...legacyUnit,base:{network:'zigchain-1',denom:'uzig',decimals:18}},now)).toThrow();
  let time=now+900001;const cache=createMarketQuoteCache(async()=>[{...good,price:'1',observedAt:new Date(now-1000).toISOString(),fetchedAt:new Date(time).toISOString()}],()=>time);cache.hydrate({getItem:()=>JSON.stringify([good]),setItem:()=>undefined});await cache.refresh([coin('bitcoin')]);expect(cache.getSnapshot().quotes[0]!.price).toBe('2');time++;
 });
 it('adopts last-good server evidence while preserving its reported refresh error',async()=>{
