@@ -25,6 +25,7 @@ import { LiquidGlass } from "./liquid-glass";
 import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
+import { AiLauncher } from "./ai/ai-launcher";
 import { formatPlainDecimal } from "../lib/visual-format";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
@@ -220,7 +221,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </section>
         )}
         <OfflineNotice />
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass />
+        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><AiLauncher />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
