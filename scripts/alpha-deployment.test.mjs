@@ -428,3 +428,53 @@ test("the pinned wrangler's Alpha dry run lists exactly the reviewed bindings", 
     'env.ZIGOALS_MARKET_QUOTES_MODE ("durable-v1")',
   ]);
 });
+
+// Session S, after #72 (TIER 3, deploy workflow): the rollback capture checks the LIVE Alpha, which is the previous
+// build, against a fixed security floor; only the post-upload smoke compares with the new build's exact policy.
+const liveCsp = (response, edit) => { response.headers.set("content-security-policy", edit(response.headers.get("content-security-policy"))); return response; };
+const withoutWorkerSrc = csp => csp.replace(" worker-src 'self';", "");
+const liveFetcher = edit => { let count = 0; return async url => { const path = new URL(url).pathname; return liveCsp(htmlResponse((count++ === 0 ? "A" : "B").repeat(43) + "=", path), edit); }; };
+test("capture accepts a live Alpha without worker-src while the new build adds it; the post-upload check still requires it", async () => {
+  const checks = await smokeAlpha({ baseline: true, fetcher: liveFetcher(withoutWorkerSrc) });
+  expect(checks).toHaveLength(11);
+  const response = liveCsp(htmlResponse(), withoutWorkerSrc);
+  expect(() => assertHtml(response, `<script nonce="${"A".repeat(43)}=">x()</script>`)).toThrow(/CSP directive set changed/);
+  await expect(smokeAlpha({ expectedCommit: sha, fetcher: liveFetcher(withoutWorkerSrc) })).rejects.toThrow(/CSP directive set changed/);
+});
+test("capture accepts additional or newer directives on the live Alpha; the exact check refuses them", async () => {
+  const extra = csp => `${csp}; trusted-types default; require-trusted-types-for 'script'`;
+  expect(await smokeAlpha({ baseline: true, fetcher: liveFetcher(extra) })).toHaveLength(11);
+  await expect(smokeAlpha({ expectedCommit: sha, fetcher: liveFetcher(extra) })).rejects.toThrow(/CSP directive set changed/);
+});
+test.each([
+  ["default-src missing", csp => csp.replace("default-src 'self'; ", "")],
+  ["default-src widened", csp => csp.replace("default-src 'self'", "default-src *")],
+  ["object-src missing", csp => csp.replace(" object-src 'none';", "")],
+  ["base-uri missing", csp => csp.replace(" base-uri 'none';", "")],
+  ["base-uri widened", csp => csp.replace("base-uri 'none'", "base-uri 'self'")],
+  ["frame-ancestors missing", csp => csp.replace(" frame-ancestors 'none';", "")],
+  ["form-action missing", csp => csp.replace(" form-action 'self';", "")],
+  ["upgrade-insecure-requests missing", csp => csp.replace("; upgrade-insecure-requests", "")],
+  ["script-src unsafe-inline", csp => csp.replace("'strict-dynamic'", "'strict-dynamic' 'unsafe-inline'")],
+  ["script-src unsafe-eval", csp => csp.replace("'strict-dynamic'", "'strict-dynamic' 'unsafe-eval'")],
+  ["script-src wildcard", csp => csp.replace("'strict-dynamic'", "'strict-dynamic' https:")],
+  ["script-src-elem unsafe-inline", csp => `${csp}; script-src-elem 'self' 'unsafe-inline'`],
+  ["script-src-attr unsafe-inline", csp => `${csp}; script-src-attr 'unsafe-inline'`],
+  ["no nonce", csp => csp.replace(/'nonce-[^']+' /, "")],
+  ["a duplicate script-src", csp => `script-src * 'unsafe-inline'; ${csp}`],
+])("capture refuses a live Alpha with %s", async (_label, edit) => {
+  await expect(smokeAlpha({ baseline: true, fetcher: liveFetcher(edit) })).rejects.toThrow(/CSP baseline|script nonce missing|CSP duplicate/);
+});
+test.each([
+  ["strict-transport-security", "max-age=0"], ["x-content-type-options", ""], ["x-frame-options", "SAMEORIGIN"],
+  ["referrer-policy", "origin"], ["x-robots-tag", "nofollow"], ["cache-control", "public, max-age=60"],
+])("capture still refuses a live Alpha whose %s is weakened", async (header, value) => {
+  const response = htmlResponse(); response.headers.set(header, value);
+  expect(() => assertHtml(response, `<script nonce="${"A".repeat(43)}=">x()</script>`, "/app", { baseline: true })).toThrow();
+});
+test("only the rollback capture uses the floor; the post-upload smoke stays exact", () => {
+  const script = readFileSync(new URL("./alpha-deploy.mjs", import.meta.url), "utf8");
+  expect(script).toContain("const smoke = await smokeAlpha({ baseline: true });");
+  expect(script).toContain("smoke: () => smokeAlpha({ expectedCommit: env.EXPECTED_COMMIT, marketProbe: true }),");
+  expect(script.match(/baseline: true/g)).toHaveLength(1);
+});

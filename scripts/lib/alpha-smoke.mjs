@@ -4,7 +4,24 @@ import { probeAlphaMarket } from "./alpha-market-probe.mjs";
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";
 export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings"];
 
-export function assertHtml(response, html, route="/app") {
+/**
+ * Security floor for the LIVE Alpha before an upload (rollback capture). The live version is the previous build, so it
+ * cannot be held to the new build's exact policy: a release that adds a directive (worker-src, #72) would otherwise
+ * never deploy. It must still hold every essential protection; extra or newer directives are accepted, and any
+ * script-src-elem/attr must meet the same script rules. The post-upload check stays the exact match below.
+ */
+function assertBaselineCsp(directives) {
+  const required = { "default-src": ["'self'"], "object-src": ["'none'"], "base-uri": ["'none'"], "frame-ancestors": ["'none'"], "form-action": ["'self'"], "upgrade-insecure-requests": [] };
+  for (const [key, value] of Object.entries(required)) assert.deepEqual(directives.get(key), value, `CSP baseline ${key} missing or weakened`);
+  const unsafe = token => /^'unsafe-/i.test(token) || token === "*" || /^(https?|data|blob|filesystem):$/i.test(token) || token.includes("*");
+  for (const key of ["script-src", "script-src-elem", "script-src-attr"]) {
+    if (key !== "script-src" && !directives.has(key)) continue;
+    const tokens = directives.get(key) ?? [];
+    assert(!tokens.some(unsafe), `CSP baseline ${key} allows unsafe or wildcard sources`);
+  }
+}
+
+export function assertHtml(response, html, route="/app", { baseline = false } = {}) {
   assert.equal(response.status, 200, "Alpha route must return HTTP 200 without redirect");
   const h = response.headers;
   assert.match(h.get("content-type") ?? "", /^text\/html\b/i, "Expected HTML");
@@ -21,10 +38,6 @@ export function assertHtml(response, html, route="/app") {
   for (const token of ["noindex", "nofollow", "noarchive"]) {
     assert((h.get("x-robots-tag") ?? "").split(/\s*,\s*/).includes(token), `Robots ${token} missing`);
   }
-  const permissions=(h.get("permissions-policy")??"").split(/\s*,\s*/);
-  const camera=route==='/app/health'&&permissions.includes('camera=(self)')?'camera=(self)':'camera=()';
-  const expected=[camera,'microphone=()','geolocation=()'];
-  assert.deepEqual(permissions,expected,'Camera permission must be self-only on Health and denied everywhere else; other permissions remain denied');
   const directives = new Map();
   for (const directive of (h.get("content-security-policy") ?? "").split(";").filter(s => s.trim())) {
     const [rawKey, ...values] = directive.trim().split(/\s+/);
@@ -34,6 +47,19 @@ export function assertHtml(response, html, route="/app") {
     assert(!directives.has(key), `CSP duplicate ${key}`);
     directives.set(key, values);
   }
+  if (baseline) {
+    assertBaselineCsp(directives);
+    const nonce = (directives.get("script-src") ?? []).find(token => /^'nonce-[A-Za-z0-9+/]{43}='$/.test(token))?.slice(7, -1);
+    assert(nonce, "Fresh 32-byte script nonce missing");
+    const scriptTags = [...html.matchAll(/<script\b[^>]*>/gi)];
+    assert(scriptTags.length > 0, "Rendered application scripts missing");
+    assert(scriptTags.every(([tag]) => tag.includes(`nonce="${nonce}"`)), "HTML script nonce does not match CSP");
+    return nonce;
+  }
+  const permissions=(h.get("permissions-policy")??"").split(/\s*,\s*/);
+  const camera=route==='/app/health'&&permissions.includes('camera=(self)')?'camera=(self)':'camera=()';
+  const expected=[camera,'microphone=()','geolocation=()'];
+  assert.deepEqual(permissions,expected,'Camera permission must be self-only on Health and denied everywhere else; other permissions remain denied');
   assert.deepEqual([...directives.keys()].sort(), ["default-src", "script-src", "worker-src", "style-src", "img-src", "font-src", "connect-src", "object-src", "frame-src", "frame-ancestors", "base-uri", "form-action", "upgrade-insecure-requests"].sort(), "CSP directive set changed");
   for (const key of ["object-src", "base-uri", "frame-ancestors", "frame-src"]) {
     assert.deepEqual(directives.get(key), ["'none'"], `CSP ${key} changed`);
@@ -60,8 +86,10 @@ export function assertHtml(response, html, route="/app") {
  * `marketProbe` (Session S, the post-deploy smoke only): one BTC/USD probe of /api/market-quotes. The answer must be a
  * well-formed envelope; VERIFIED or UNAVAILABLE is recorded as information and never fails the smoke. The rollback capture
  * leaves it off, since the version it validates may predate the envelope.
+ * `baseline` (the rollback capture only): the live, previous build is checked against the fixed security floor
+ * (assertBaselineCsp) instead of the new build's exact policy. The post-upload smoke never sets it.
  */
-export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe = false } = {}) {
+export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe = false, baseline = false } = {}) {
   const checks = []; let firstNonce;
   for (const route of [...ALPHA_ROUTES, "/app"]) {
     const response = await fetcher(`${ALPHA_ORIGIN}${route}`, {
@@ -69,7 +97,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
       headers: { "Cache-Control": "no-cache", "User-Agent": "ZIGoals-Alpha-Smoke" },
     });
     const html = await response.text();
-    const nonce = assertHtml(response, html,route);
+    const nonce = assertHtml(response, html, route, { baseline });
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");

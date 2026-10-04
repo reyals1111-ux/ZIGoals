@@ -80,7 +80,8 @@ async function captureRollback() {
   const version = await cloudflare(`versions/${rollback.versionId}`);
   assert.equal(version.success, true, "Rollback version lookup failed");
   assert.equal(version.result?.id, rollback.versionId, "Rollback version detail mismatch");
-  const smoke = await smokeAlpha();
+  // The live Alpha is the previous build: hold it to the fixed security floor, not to this build's exact policy.
+  const smoke = await smokeAlpha({ baseline: true });
   assert.deepEqual(await current(), rollback, "Alpha changed during rollback validation");
   save("rollback.json", { ...rollback, capturedAt: new Date().toISOString(), validated: true, smoke });
 }
