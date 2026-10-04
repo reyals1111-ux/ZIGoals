@@ -85,6 +85,17 @@ export function assertHtml(response, html, route="/app", { baseline = false } = 
 // Session U Part 2d (kept apart from the imports above, which Session T also edits).
 import { readPolicyWindow, POLICY_STATUS_PATH } from "./market-policy-window.mjs";
 /**
+ * Session U Part 3: the Health document must grant its own camera (the barcode scanner) and never location. The
+ * microphone may be () or (self) (Session T's voice input). Only these three are required here, never the exact value:
+ * assertHtml keeps the exact per-route check. Post-upload smoke only; the rollback capture never fails on it.
+ */
+export function assertHealthCamera(header) {
+  const entries = new Map(String(header ?? "").split(/\s*,\s*/).filter(Boolean).map(entry => [entry.slice(0, entry.indexOf("=")), entry.slice(entry.indexOf("=") + 1)]));
+  assert.equal(entries.get("camera"), "(self)", "Health must allow its own camera (camera=(self)) for the barcode scanner");
+  assert.equal(entries.get("geolocation"), "()", "Health must not allow geolocation (geolocation=())");
+  assert(["()", "(self)"].includes(entries.get("microphone")), "Health microphone must be () or (self)");
+}
+/**
  * `marketProbe` (Session S, the post-deploy smoke only): one BTC/USD probe of /api/market-quotes. The answer must be a
  * well-formed envelope; VERIFIED or UNAVAILABLE is recorded as information and never fails the smoke. The rollback capture
  * leaves it off, since the version it validates may predate the envelope.
@@ -100,6 +111,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     });
     const html = await response.text();
     const nonce = assertHtml(response, html, route, { baseline });
+    if (route === "/app/health" && !baseline) assertHealthCamera(response.headers.get("permissions-policy"));
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");
