@@ -21,6 +21,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   { title: "Try & display", rows: [
     ["Showcase tour", "Fictional demo data in separate storage", "showcase"],
     ["Motion & display", "Follow device preference, or Off", "appearance"],
+    ["Guide on this device", "Calm notes from your own records", "guide"],
     ["Show the welcome again", "Set up a first goal and habit", "/app/welcome"],
   ] },
   { title: "Wallet & network", rows: [
@@ -33,6 +34,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Habit settings", "Schedules, targets and history", "habits-settings"],
     ["Weekly review day", "The day Today offers your review", "habits-settings"],
     ["Health settings", "Your journal and targets", "health-settings"],
+    ["Reminders when closed", "Push on this device, opt-in", "reminders"],
   ] },
   { title: "Help & diagnostics", rows: [
     ["Diagnostics & support", "Connection checks for this alpha", "diagnostics"],
