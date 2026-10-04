@@ -23,7 +23,7 @@ function foodRuntime(){
  const at=async(time,sweep)=>{
   persist??=await mkdtemp(join(tmpdir(),'run11-food-retention-'));
   const mf=new Miniflare({...convertV4MiniflareOptions({modules:true,script:foodCode,compatibilityDate:'2026-09-13',durableObjects:{FOOD_BUDGET:{className:'FoodBudget',useSQLite:true}},bindings:{FOOD_USER_AGENT:'ZIGoals/0.1.0 (alpha-contact@example.invalid)',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),...(sweep?{LOCAL_SWEEP_MS:String(sweep)}:{})},outboundService:async request=>{const code=new URL(request.url).pathname.split('/').at(-1);return provider==='down'?new Response('down',{status:500}):code==='00000000'?new Response('{}',{status:404}):Response.json({code,product:{product_name:'Fixture'}});}}),resourcePersistencePath:persist});
-  const lookup=(code,client)=>mf.dispatchFetch('https://food.test/lookup?code='+code,{headers:client?{'x-food-client':client}:{}}).then(r=>r.status);
+  const lookup=(code,client)=>mf.dispatchFetch('https://food.test/lookup?code='+code,{headers:client?{'x-food-client':client}:{}}).then(async r=>{await r.text();return r.status;});
   const rows=async()=>{const ns=await mf.getDurableObjectNamespace('FOOD_BUDGET');return (await ns.get(ns.idFromName('shared-provider-budget-v1')).fetch('https://internal/test/rows')).json();};
   return {mf,lookup,rows};
  };

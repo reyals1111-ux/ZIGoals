@@ -17,7 +17,7 @@ const shard=(dimension,value)=>`auth-admission-v2:${dimension}:${parseInt(create
 async function admission(){
  const persist=await mkdtemp(join(tmpdir(),'run11-admission-retention-'));let mf;
  const start=time=>{mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:'app',modules:true,script:'export default {fetch(r,e){return e.GATE.fetch(r)}}',serviceBindings:{GATE:{name:'gate',entrypoint:'AdmissionService'}}},{name:'gate',modules:true,script:code,compatibilityDate:'2026-09-13',durableObjects:{ADMISSION:{className:'AdmissionAuthority',useSQLite:true}},bindings:{AUTH_ADMISSION_KEY:KEY,ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),LOCAL_SWEEP_MS:'150'}}]}),resourcePersistencePath:persist});};
- const call=(action,email,ip='192.0.2.1')=>mf.dispatchFetch('https://gate.test/',{method:'POST',body:JSON.stringify({action,email,ip})}).then(r=>r.status);
+ const call=(action,email,ip='192.0.2.1')=>mf.dispatchFetch('https://gate.test/',{method:'POST',body:JSON.stringify({action,email,ip})}).then(async r=>{await r.text();return r.status;});
  const rows=async name=>{const ns=await mf.getDurableObjectNamespace('ADMISSION','gate');return (await ns.get(ns.idFromName(name)).fetch('https://internal/test/rows')).json();};
  const records=async names=>{const all=[];for(const name of names)all.push(...Object.keys(await rows(name)).filter(key=>/^[rxf]:/.test(key)));return all;};
  return {restart:async time=>{await mf?.dispose();start(time);},call,rows,records,close:()=>mf?.dispose()};

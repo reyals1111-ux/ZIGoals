@@ -20,7 +20,7 @@ async function deleteAccount(key,{providerStatus=()=>200}={}){
  }});
  const call=(path,body)=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('owner'),'x-zigoals-account':ACCOUNT,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
  const texts=[];const read=async response=>{const text=await response.text();texts.push(text);return {status:response.status,body:JSON.parse(text)};};
- await call('/v1/sessions',{action:'register',label:'Owner'});
+ await (await call('/v1/sessions',{action:'register',label:'Owner'})).text();
  return {mf,requests,texts,read,deletion:()=>call('/v1/account',{action:'delete-account',confirm:'DELETE ACCOUNT'}),state:()=>call('/v1/account')};
 }
 
