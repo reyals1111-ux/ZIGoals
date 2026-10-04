@@ -1,3 +1,4 @@
+import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
 import {expect, test} from '@playwright/test';
 
 // Help (Session L): structure, wording that follows the owner principle, keyboard, motion, phones, and no requests or
@@ -66,7 +67,9 @@ test('questions open and close from the keyboard', async ({page}) => {
   await page.goto('/app/help');
   const answer = page.getByText('Automatic prices come from CoinGecko and are labelled with their source.', {exact: false});
   await expect(answer).toBeHidden();
-  await page.getByText('Where do prices come from?', {exact: true}).focus();
+  // Focus must have landed before Enter is pressed: CI once saw the key go nowhere (PR #70, 2026-10-04, phone project).
+  const question = page.getByText('Where do prices come from?', {exact: true});
+  await question.focus(); await expect(question).toBeFocused();
   await page.keyboard.press('Enter');await expect(answer).toBeVisible();
   await page.keyboard.press('Enter');await expect(answer).toBeHidden();
 });
@@ -81,14 +84,18 @@ test('feedback opens an email to the Alpha address with a short template, and se
 });
 
 test('viewing Help asks no server and writes nothing', async ({page}) => {
-  // Reduced motion keeps the shell's once-per-session logo intro (and its sessionStorage flag) out of the comparison.
+  // Reduced motion keeps the shell's once-per-session logo intro (and its sessionStorage flag) out of the comparison,
+  // and so does its session flag, set up front (Session P, as in install-guide.spec.ts: a media emulation the browser
+  // applies late once let the intro write that flag under reduced motion in CI).
   // The baseline is a static same-origin file, so no other page's requests can land in the list.
   await page.emulateMedia({reducedMotion: 'reduce'});
+  await page.addInitScript(key => { try { sessionStorage.setItem(key, 'played'); } catch { /* storage denied */ } }, LOGO_INTRO_KEY);
   await page.goto('/robots.txt');
   const snapshot = () => page.evaluate(() => ({local: {...localStorage}, session: {...sessionStorage}}));
   const before = await snapshot(), requests: string[] = [];
   page.on('request', request => { const url = new URL(request.url()); if (url.pathname.startsWith('/api/')) requests.push(url.pathname); });
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
   for (const summary of await page.locator('.help-question > summary').all()) await summary.click();
   await page.waitForTimeout(500);
   expect(requests).toEqual([]);

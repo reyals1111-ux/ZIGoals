@@ -58,7 +58,7 @@ test('QA-22: each refused backup file says why, and nothing changes', async ({pa
   const files: [string, string, RegExp][] = [
     ['not-json.json', '{"kind":', /not a ZIGoals module backup.*\(NOT_A_BACKUP\)$/],
     ['health.json', JSON.stringify({schemaVersion: 1, kind: 'zigoals-health'}), /This is a Health backup\. Restore it under Health\..*\(WRONG_MODULE\)$/],
-    ['newer.json', JSON.stringify({schemaVersion: 3, kind: 'zigoals-habits', habits: []}), /made by a newer version of ZIGoals.*\(NEWER_BACKUP\)$/],
+    ['newer.json', JSON.stringify({schemaVersion: 4, kind: 'zigoals-habits', habits: []}), /made by a newer version of ZIGoals.*\(NEWER_BACKUP\)$/], // habits v3 is read since Session P; 4 is the next unknown version
     // This browser's own Habits, with the one habit twice: a repeated ID.
     ['damaged.json', (() => { const data = JSON.parse(before!); data.habits.push(data.habits[0]); return JSON.stringify(data); })(), /incomplete or damaged.*\(DAMAGED\)$/],
     ['large.json', `{"kind":"zigoals-habits","pad":"${'x'.repeat(2_000_100)}"}`, /larger than the 2 MB this module can restore.*\(TOO_LARGE\)$/],

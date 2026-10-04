@@ -4,7 +4,12 @@ import {marketAssetRefSchema,marketRequestSchema,nativeZigMarketRef,uniqueMarket
 import {exactMarketJson,decimalLexeme,JsonNumber} from './exact-market-json';
 /** Identity is chain/denom/precision, never a display ticker. Future providers add mappings here. */
 export const assetIdentitySchema=z.object({network:z.string().min(1).max(100),denom:z.string().min(1).max(250),decimals:z.number().int().min(0).max(18)}).strict();
-export const nativeZigIdentity={network:'zigchain-1',denom:'uzig',decimals:6} as const;
+/** Native ZIG on mainnet: azig/18 since the v5 redenomination (lib/position-reader.ts). New quotes carry this identity. */
+export const nativeZigIdentity={network:'zigchain-1',denom:'azig',decimals:18} as const;
+/** The unit records saved before 2026-09-30 carry. The same ZIG, 10^12 base units smaller; the CoinGecko price per ZIG applies to both. */
+export const legacyNativeZigIdentity={network:'zigchain-1',denom:'uzig',decimals:6} as const;
+/** Exactly one of the two evidenced mainnet units. A mix (uzig/18, azig/6) is not native ZIG. */
+export function isNativeZig(a:{network:string;denom:string;decimals:number}):boolean{return sameAsset(a,nativeZigIdentity)||sameAsset(a,legacyNativeZigIdentity);}
 export const marketQuoteSchema=z.object({base:assetIdentitySchema,currency:z.string().regex(/^[A-Z]{3,10}$/),price:z.string().regex(/^[1-9]\d{0,77}$/),priceDecimals:z.number().int().min(0).max(30),source:z.string().min(1).max(100),providerAssetId:z.string().min(1).max(100),observedAt:z.iso.datetime().optional(),fetchedAt:z.iso.datetime().optional(),marketRef:marketAssetRefSchema.optional(),verification:z.literal('VERIFIED')}).strict();
 export type MarketQuote=z.infer<typeof marketQuoteSchema>;
 export type ValuationEvidence={state:'fresh'|'stale'|'manual'|'missing';quote?:MarketQuote;observedAt?:string;source?:string};
@@ -57,7 +62,7 @@ export async function boundedQuoteText(response:Response,limit=8192):Promise<str
 }
 export function verifiedNativeQuote(raw:unknown,now=Date.now()):MarketQuote {
  const quote=marketQuoteSchema.parse(raw);
- if(!quote.observedAt||!sameAsset(quote.base,nativeZigIdentity)||quote.currency!=='USD'||quote.source!=='CoinGecko'||quote.providerAssetId!=='zignaly'||Date.parse(quote.observedAt??quote.fetchedAt??'')>now+60000)throw new ProviderValidationError('Unsupported market evidence.');
+ if(!quote.observedAt||!isNativeZig(quote.base)||quote.currency!=='USD'||quote.source!=='CoinGecko'||quote.providerAssetId!=='zignaly'||Date.parse(quote.observedAt??quote.fetchedAt??'')>now+60000)throw new ProviderValidationError('Unsupported market evidence.');
  return quote;
 }
 
@@ -65,8 +70,8 @@ export function verifiedNativeQuote(raw:unknown,now=Date.now()):MarketQuote {
 export function quoteMatchesPosition(position:{network:string;denom:string;decimals:number;marketRef?:MarketAssetRef;valuationMode?:'manual'|'automatic'},quote:MarketQuote):boolean{
  if(position.valuationMode==='manual')return false;
  if(quote.marketRef&&(quote.providerAssetId!==quote.marketRef.id||quote.source!==(quote.marketRef.kind==='coin'?'CoinGecko':'CoinGecko tokenized RWA reference')))return false;
- if(position.marketRef){const ref=position.marketRef,qref=quote.marketRef;if(!qref)return ref.kind==='coin'&&ref.id==='zignaly'&&sameAsset(position,nativeZigIdentity)&&sameAsset(quote.base,nativeZigIdentity)&&quote.providerAssetId==='zignaly'&&quote.source==='CoinGecko';return ref.provider===qref.provider&&ref.kind===qref.kind&&ref.id===qref.id&&(ref.kind!=='rwa'||(qref.kind==='rwa'&&ref.assetType===qref.assetType));}
- return sameAsset(position,nativeZigIdentity)&&sameAsset(quote.base,nativeZigIdentity)&&quote.providerAssetId==='zignaly'&&quote.source==='CoinGecko'&&(!quote.marketRef||(quote.marketRef.kind==='coin'&&quote.marketRef.id==='zignaly'));
+ if(position.marketRef){const ref=position.marketRef,qref=quote.marketRef;if(!qref)return ref.kind==='coin'&&ref.id==='zignaly'&&isNativeZig(position)&&isNativeZig(quote.base)&&quote.providerAssetId==='zignaly'&&quote.source==='CoinGecko';return ref.provider===qref.provider&&ref.kind===qref.kind&&ref.id===qref.id&&(ref.kind!=='rwa'||(qref.kind==='rwa'&&ref.assetType===qref.assetType));}
+ return isNativeZig(position)&&isNativeZig(quote.base)&&quote.providerAssetId==='zignaly'&&quote.source==='CoinGecko'&&(!quote.marketRef||(quote.marketRef.kind==='coin'&&quote.marketRef.id==='zignaly'));
 }
 export function verifiedMarketQuote(raw:unknown,now=Date.now()):MarketQuote{
  const quote=marketQuoteSchema.parse(raw);if(!quote.marketRef)return verifiedNativeQuote(raw,now);

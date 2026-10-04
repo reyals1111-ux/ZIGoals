@@ -15,9 +15,14 @@ async function oneHabit(page: Page, template = 'budget', title = 'Fictional revi
   await expect(card).toBeVisible();
   return card;
 }
-/** Records, in page time, each state the check-in button shows and each write of the Habits key (or its refusal). */
-async function watch(page: Page, refuse: boolean) {
-  await page.evaluate(({key, refuse}) => {
+/**
+ * Records, in page time, each state the check-in button shows and each write of the Habits key (or its refusal).
+ * Session P: the observer watches the document and finds the card's own completion button by its label on every
+ * mutation, so a card that is re-rendered as a new element, or a calendar day button that also carries aria-pressed,
+ * can neither hide the paint nor stand in for it.
+ */
+async function watch(page: Page, refuse: boolean, title = 'Fictional review') {
+  await page.evaluate(({key, refuse, title}) => {
     const log: [string, number][] = [];
     (window as unknown as {checkInLog: typeof log}).checkInLog = log;
     const write = Storage.prototype.setItem;
@@ -25,11 +30,11 @@ async function watch(page: Page, refuse: boolean) {
       if (k === key) { log.push([refuse ? 'refused' : 'write', performance.now()]); if (refuse) throw new DOMException('Fixture quota', 'QuotaExceededError'); }
       return write.call(this, k, v);
     };
-    const card = document.querySelector('article.habit-card')!;
-    const state = () => card.querySelector('button[aria-pressed]')?.getAttribute('aria-pressed') ?? 'none';
+    const button = () => document.querySelector(`article.habit-card .habit-check-actions button[aria-label="Complete ${title}"], article.habit-card .habit-check-actions button[aria-label="Undo completion for ${title}"]`);
+    const state = () => button()?.getAttribute('aria-pressed') ?? 'none';
     let last = state();
-    new MutationObserver(() => { const now = state(); if (now !== last) { last = now; log.push([`pressed:${now}`, performance.now()]); } }).observe(card, {subtree: true, attributes: true, childList: true});
-  }, {key: HABITS, refuse});
+    new MutationObserver(() => { const now = state(); if (now !== last) { last = now; log.push([`pressed:${now}`, performance.now()]); } }).observe(document.body, {subtree: true, attributes: true, childList: true});
+  }, {key: HABITS, refuse, title});
 }
 const events = (page: Page) => page.evaluate(() => (window as unknown as {checkInLog: [string, number][]}).checkInLog.map(([name]) => name));
 

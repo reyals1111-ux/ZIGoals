@@ -12,7 +12,11 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
  useEffect(()=>{callbacks.current={onAuthenticated,onSignout,onVerifying};},[onAuthenticated,onSignout,onVerifying]);
  useEffect(()=>{if(cooldown<=0)return;const timer=setTimeout(()=>setCooldown(value=>Math.max(0,value-1)),1000);return()=>clearTimeout(timer);},[cooldown]);
  const refreshSelection=useCallback(()=>{try{setLocked(isAccountLocked());setShowcase(isShowcase());}catch{setLocked(true);}},[]);
- async function response(res:Response){const text=await res.text();if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);if(res.status===503){setStatus('unavailable');throw Error('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');}if(!res.ok)throw Error(res.status===429?'Please wait before requesting another code.':res.status===401?'Your session expired. Sign in again to continue.':'Account access was not confirmed. Check the code and try again.');return data;}
+ async function response(res:Response){const text=await res.text();if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);if(res.status===503){setStatus('unavailable');throw Error('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');}if(!res.ok){
+   // Two refusals carry their own words from the relay (lib/server/private-account.ts: invite-only, email sign-in off); every other message is this panel's.
+   if(res.status===403&&data&&typeof data==='object'&&(data.error==='INVITE_ONLY'||data.error==='EMAIL_UNAVAILABLE')&&typeof data.message==='string'&&data.message.length<=300)throw Error(data.message);
+   throw Error(res.status===429?'Please wait before requesting another code.':res.status===401?'Your session expired. Sign in again to continue.':'Account access was not confirmed. Check the code and try again.');}
+  return data;}
  const checkSession=useCallback(async()=>{
   pending.current?.abort();const controller=new AbortController();pending.current=controller;setBusy(true);
   try{

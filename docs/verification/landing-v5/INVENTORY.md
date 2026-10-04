@@ -108,7 +108,7 @@ The spec is committed with `test.fail()`. Part 1.2 removes it.
   - `z/` is bull → Z.
 - The per-chapter `.fold-planes` are hidden (`final-v4.css:41`).
 - **Brand art available but not yet in `landing/`** (`apps/web/public/brand/`, `docs/brand/ASSETS_2026-10-01.md`):
-  - transparent `figures/` (640 px and @2x) and `marks/`;
+  - transparent `figures/` (640 px and -2x) and `marks/`;
   - lossless `words/`;
   - `logo-fold/` (588×432);
   - `how-it-works/`;
