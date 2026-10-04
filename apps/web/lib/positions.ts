@@ -133,6 +133,13 @@ export function allocationBalance(s:Platform,positionId:string){
  const observed=BigInt(p.quantity),allocated=activeAllocations(s,positionId).reduce((n,a)=>n+BigInt(a.quantity),0n);
  return {observed:observed.toString(),allocated:allocated.toString(),unallocated:max(0n,observed-allocated).toString(),deficit:max(0n,allocated-observed).toString()};
 }
+/**
+ * The evidenced native units per network: azig/18 on both since the v5 redenomination (mainnet 2026-09-30), plus the
+ * legacy mainnet uzig/6 that records saved before it still carry. A mix (uzig/18, azig/6) is never native ZIG.
+ */
+export function isNativeUnit(p:{network:string;denom:string;decimals:number}):boolean {
+ return (p.network==='zigchain-1'||p.network==='zig-test-2')&&p.denom==='azig'&&p.decimals===18||p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6;
+}
 /** Only native ZIG's evidenced redenominations are interchangeable; unrelated assets are not. */
 export function assetMatches(goal:PrivateGoal,p:Position):boolean {
  return goal.asset===p.asset && ((goal.denom===p.denom&&goal.decimals===p.decimals) ||
@@ -222,7 +229,7 @@ export function allocatedNativePrincipal(s:Platform,goalId:string):string {
  let total=0n;
  for(const a of s.allocations.filter(a=>a.goalId===goalId)){
   const p=s.positions.find(p=>p.id===a.positionId);if(!p||p.sourceType!=='NATIVE_STAKING'||p.asset!=='ZIG'||p.network!==goal.network||!['VERIFIED_READ_ONLY','EXECUTION_READY','EXECUTABLE'].includes(p.verification))continue;
-  if(!((p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6)||(p.network==='zig-test-2'&&p.denom==='azig'&&p.decimals===18)))continue;
+  if(!isNativeUnit(p))continue;
   if(goal.type!=='VALUE'&&!assetMatches(goal,p))continue;
   const allocated=BigInt(allocationBalance(s,p.id).allocated),observed=BigInt(p.quantity),requested=BigInt(a.quantity);
   const effective=allocated>observed?requested*observed/allocated:requested;
@@ -283,7 +290,15 @@ export function replaceObservation(s:Platform,network:string,account:string,inco
  const retained=s.positions.filter(p=>!previous.includes(p));
  const missing=previous.filter(p=>!incoming.some(n=>n.id===p.id)).map(p=>({...p,quantity:'0',principal:p.principal===undefined?undefined:'0',unclaimedRewards:p.unclaimedRewards===undefined?undefined:'0',observedAt,sync:'CURRENT' as const}));
  const positions=[...retained,...incoming,...missing];
- return platformSchema.parse({...s,positions,snapshots:[...s.snapshots,...[...incoming,...missing].map(p=>({positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}))].slice(-2000)});
+ // A redenomination (mainnet uzig/6 → azig/18 at the v5 upgrade): the same evidence id arrives in a new base unit. Its
+ // allocations and quantity history are kept in the position's own units, so they move to the new unit once, here,
+ // when the new observation arrives: the ZIG amounts, the Goal progress and the chart stay what they were. Nothing is
+ // rewritten on read, and a record that is never read again keeps its old unit, which every reader still accepts.
+ const rescaled=new Map<string,{from:number;to:number}>();
+ for(const n of incoming){const old=previous.find(p=>p.id===n.id);if(old&&old.asset===n.asset&&old.decimals!==n.decimals)rescaled.set(n.id,{from:old.decimals,to:n.decimals});}
+ const moved=<T extends {positionId:string;quantity:string}>(row:T):T=>{const r=rescaled.get(row.positionId);return r?{...row,quantity:rescaleUnits(row.quantity,r.from,r.to)}:row;};
+ const allocations=rescaled.size?s.allocations.map(moved):s.allocations,history=rescaled.size?s.snapshots.map(moved):s.snapshots;
+ return platformSchema.parse({...s,positions,allocations,snapshots:[...history,...[...incoming,...missing].map(p=>({positionId:p.id,quantity:p.quantity,observedAt:p.observedAt}))].slice(-2000)});
 }
 
 /** A failed refresh changes status only; it cannot manufacture new observation facts. */
@@ -293,7 +308,7 @@ export function markObservationError(s:Platform,network:string,account:string):P
 
 /** Fetch only when an allocated, open USD Value Goal can consume the supported public pair. */
 export function needsMarketQuotes(s:Platform):boolean {
- return s.goals.some(g=>g.type==='VALUE'&&g.status!=='closed'&&g.asset==='USD'&&s.allocations.some(a=>a.goalId===g.id&&BigInt(a.quantity)>0n&&s.positions.some(p=>p.id===a.positionId&&p.network===g.network&&p.network==='zigchain-1'&&p.denom==='uzig'&&p.decimals===6)));
+ return s.goals.some(g=>g.type==='VALUE'&&g.status!=='closed'&&g.asset==='USD'&&s.allocations.some(a=>a.goalId===g.id&&BigInt(a.quantity)>0n&&s.positions.some(p=>p.id===a.positionId&&p.network===g.network&&p.network==='zigchain-1'&&isNativeUnit(p))));
 }
 
 /** Confirmed Local Demo receipts are observations of facts already committed to the separate ledger. */

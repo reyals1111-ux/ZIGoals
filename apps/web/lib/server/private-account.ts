@@ -13,6 +13,21 @@ const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()])}).strict(),
  z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()])}).strict(),
 ]);
+/** Session P (PR 1, 1.4): what the person reads when the provider refuses an address that is not on the invite list. */
+export const INVITE_ONLY_MESSAGE='ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app.';
+export const EMAIL_UNAVAILABLE_MESSAGE='Signing in by email isn’t available right now. Try again later.';
+/**
+ * The provider's name for a refusal. Supabase Auth puts it in the `x-sb-error-code` header and in the body: `error_code`
+ * in the legacy shape this relay receives (it sends no X-Supabase-Api-Version), `code` from API version 2024-01-01.
+ * Verified 2026-10-03 from github.com/supabase/auth (internal/api/otp.go, internal/api/apierrors). The body is read
+ * within a small bound and never surfaced; anything unexpected reads as "no name".
+ */
+async function refusalCode(response:Response):Promise<string|null>{
+ const header=response.headers.get('x-sb-error-code');
+ const body=await readBounded(response,8192).catch(()=>null) as {error_code?:unknown;code?:unknown}|null;
+ const named=header??(typeof body?.error_code==='string'?body.error_code:typeof body?.code==='string'?body.code:null);
+ return named&&/^[a-z_]{1,64}$/.test(named)?named:null;
+}
 const reply=(data:unknown,status=200,headers:Record<string,string>={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 async function readBounded(response:Request|Response,max:number){
  const reader=response.body?.getReader();if(!reader)throw Error('Missing body');const chunks:Uint8Array[]=[];let total=0;
@@ -92,7 +107,14 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
   }
   if(admit){const admission=await admit(action.action,action.email);await admission.body?.cancel().catch(()=>{});if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
   const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:true}:{email:action.email,token:action.code,type:'email'})});
-  if(!remote.ok){await remote.body?.cancel().catch(()=>{});
+  if(!remote.ok){
+   // With sign-ups closed, the provider refuses a code for an address that is not on the invite list with 422
+   // `otp_disabled` ("Signups not allowed for otp"); `signup_disabled` is the same door; `email_provider_disabled` means
+   // email sign-in is switched off. Those three are named to the person; every other refusal keeps the usual answer.
+   const refusal=action.action==='send'&&remote.status!==429?await refusalCode(remote):null;
+   await remote.body?.cancel().catch(()=>{});
+   if(refusal==='otp_disabled'||refusal==='signup_disabled')return reply({error:'INVITE_ONLY',message:INVITE_ONLY_MESSAGE},403);
+   if(refusal==='email_provider_disabled')return reply({error:'EMAIL_UNAVAILABLE',message:EMAIL_UNAVAILABLE_MESSAGE},403);
    // A rejected code counts toward the per-email daily cap on failed verifications.
    if(action.action==='verify'&&remote.status!==429&&admit){const failed=await admit('verify-failed',action.email).catch(()=>null);await failed?.body?.cancel().catch(()=>{});}
    return reply({error:remote.status===429?'TRY_LATER':'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'},remote.status===429?429:400);}

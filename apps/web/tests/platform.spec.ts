@@ -51,7 +51,7 @@ test('mainnet watch-only displays exact six-decimal observations without wallet 
   const r=route.request();calls.push(r.method());expect(r.method()).toBe('GET');expect(r.postData()).toBeNull();expect(r.url()).not.toContain('PRIVATE');
   expect(new URL(r.url()).searchParams.get('address')).toBe(account);
   if(fail){await route.fulfill({status:502,json:{error:'Public evidence unavailable'}});return;}
-  await route.fulfill({json:{positions:[{id:`zigchain-1:${account}:liquid`,providerId:'native-zig',sourceType:'WALLET_LIQUID',network:'zigchain-1',account,asset:'ZIG',denom:'uzig',decimals:6,quantity:'123456789',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'LIQUID',provenance:'https://api.zigchain.com · block 123',executionAuthority:'NONE',notes:'',risk:''}]}});
+  await route.fulfill({json:{positions:[{id:`zigchain-1:${account}:liquid`,providerId:'native-zig',sourceType:'WALLET_LIQUID',network:'zigchain-1',account,asset:'ZIG',denom:'azig',decimals:18,quantity:'123456789000000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'LIQUID',provenance:'https://api.zigchain.com · block 123',executionAuthority:'NONE',notes:'',risk:''}]}});
  });
  await page.goto('/app/staking');await page.locator('.positions-wallet > summary').click();await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
  await expect(page.getByRole('status').filter({hasText:'Public snapshot saved'})).toBeVisible();
@@ -61,7 +61,7 @@ test('mainnet watch-only displays exact six-decimal observations without wallet 
  fail=true;await page.locator('.positions-wallet > summary').click();await page.getByLabel('Public ZIG address').fill(account);await page.getByRole('button',{name:'Read public positions',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'Could not verify public positions'})).toBeVisible();
  await expect(page.getByText('Refresh failed · previous snapshot',{exact:false})).toBeVisible();
- const cached=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(cached.positions[0]).toMatchObject({quantity:'123456789',sync:'ERROR'});
+ const cached=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));expect(cached.positions[0]).toMatchObject({quantity:'123456789000000000000',denom:'azig',decimals:18,sync:'ERROR'});
 });
 
 test('editing an imported manual Position preserves its asset identity, allocations and historical scale',async({page})=>{

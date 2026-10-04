@@ -5,11 +5,11 @@ import { isNavActive } from "./app-nav";
 import { entranceAllowed } from "./use-entrance";
 
 /**
- * The owner's fold marks (public/brand/marks, 720 px wide, @2x 1440 px) and, since Session K, their words cut out on
+ * The owner's fold marks (public/brand/marks, 720 px wide, -2x 1440 px) and, since Session K, their words cut out on
  * their own (public/brand/words). In the sidebar the figure stays the mark image, at the same size and place as before,
  * with its baked-in words hidden by a clip in the fully transparent gap between figure and words (navigation.css); the
  * words show larger on the planet below. `words` is their display size in CSS px: 1.6 times their size inside the
- * 160 px mark, and the word files are exactly that size (1x) and twice it (@2x).
+ * 160 px mark, and the word files are exactly that size (1x) and twice it (-2x).
  */
 export const PAGE_MARKS = [
   { href: "/app", name: "today-swan", width: 720, height: 666, words: { width: 188, height: 49 } },
@@ -39,11 +39,11 @@ function MarkLayer({ name, phase }: { name: MarkName; phase?: "in" | "out" }) {
   // decode with the page (no async decoding): a mark half-way into view otherwise paints a frame later, unpredictably.
   return <span className="sidebar-mark-layer" data-mark={mark.name} data-phase={phase}>
     <picture className="sidebar-mark-figure">
-      <source media="(min-width: 901px)" srcSet={`${figure}.webp 1x, ${figure}@2x.webp 2x`} width={MARK_WIDTH} height={height} />
+      <source media="(min-width: 901px)" srcSet={`${figure}.webp 1x, ${figure}-2x.webp 2x`} width={MARK_WIDTH} height={height} />
       <img src={NOTHING} width={MARK_WIDTH} height={height} alt="" aria-hidden="true" />
     </picture>
     <picture className="sidebar-mark-words">
-      <source media="(min-width: 901px)" srcSet={`${words}.webp 1x, ${words}@2x.webp 2x`} width={mark.words.width} height={mark.words.height} />
+      <source media="(min-width: 901px)" srcSet={`${words}.webp 1x, ${words}-2x.webp 2x`} width={mark.words.width} height={mark.words.height} />
       <img src={NOTHING} width={mark.words.width} height={mark.words.height} alt="" aria-hidden="true" />
     </picture>
   </span>;
