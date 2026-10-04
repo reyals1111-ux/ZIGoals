@@ -25,7 +25,13 @@ export function newClientKey(){return [...crypto.getRandomValues(new Uint8Array(
 export const utcDay=(now:number)=>new Date(now).toISOString().slice(0,10);
 /** Per UTC day: the rows this object wrote, and each client bucket's [credits, new works]. `cancels` (Session S, additive)
  * counts new cancellation fences: in all, and per client bucket. */
-export type MarketDay={rows:number;buckets:Record<string,[number,number]>;cancels?:{n:number;buckets:Record<string,number>}};
+export type MarketDay={rows:number;buckets:Record<string,[number,number]>;cancels?:{n:number;buckets:Record<string,number>};publicRows?:number};
+/** Session U Part 2e: the calling app. 'friends' is the acceptance app (it has the private sync binding), 'public' the
+ * public Alpha; an unlabelled caller is public. With `MARKET_POLICY.partition`, the public caller's commits are counted
+ * in `publicRows` and stop admitting new work at `publicPercent` of the day's rows, so the public Alpha can never spend
+ * the acceptance app's share. Without it the label changes nothing. */
+export type MarketCaller='public'|'friends';
+export const publicRowCap=(rowBudget:number,publicPercent:number)=>Math.floor(rowBudget*publicPercent/100);
 /** New cancellation fences per UTC day: a 64th of the row budget in all, and an eighth of that per client bucket. A cancel
  * without a client (local runtimes, or an app older than Session S) counts only toward the total. */
 export function cancelQuota(rowBudget:number){const total=Math.max(1,Math.floor(rowBudget/64));return {total,client:Math.max(1,Math.floor(total/8))};}

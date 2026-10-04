@@ -145,3 +145,16 @@ test.each([999,10000001,1.5,'100000',null,-1])('dailyRowBudget %s is refused by 
  const {errors}=validateOwnerPolicy(filled(o=>{o.coordinator.dailyRowBudget=value;}),{now});
  expect(errors).toHaveLength(1);expect(errors[0]).toMatch(/^coordinator\.dailyRowBudget must be 1000 to 10000000 rows a day, or absent for the default 20000/);
 });
+
+// Session U Part 2e: the public Alpha's share of the daily rows is an owner choice, off unless set.
+test('partition: absent by default; {publicPercent} reaches the coordinator; anything else is refused by name',async()=>{
+ expect(template.coordinator.partition).toBeUndefined();
+ expect('partition' in validateOwnerPolicy(filled(),{now}).policy).toBe(false);
+ const split=validateOwnerPolicy(filled(o=>{o.coordinator.partition={publicPercent:50};}),{now});
+ expect(split.errors).toEqual([]);expect(split.policy.partition).toEqual({publicPercent:50});
+ expect(await (await coordinatorAccepts(split.policy)).apply({action:'inspect'})).toMatchObject({ok:true,publicRowBudget:10000});
+ for(const partition of [{publicPercent:9},{publicPercent:91},{publicPercent:'50'},{publicPercent:50,friends:50},{},null,[50],50]){
+  const {errors}=validateOwnerPolicy(filled(o=>{o.coordinator.partition=partition;}),{now});
+  expect(errors).toEqual(['coordinator.partition must be {"publicPercent": 10 to 90}, or absent for no partition (docs/run11/ALPHA_PRICES_ROLLOUT.md, "Two apps, one budget").']);
+ }
+});

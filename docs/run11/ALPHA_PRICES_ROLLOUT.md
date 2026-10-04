@@ -36,6 +36,7 @@ Written by Session S (2026-10-04). **Nothing here was run by a session.** The se
   - the breakers.
 
   A busy or abusive day on the public Alpha can therefore leave the acceptance app without new prices until the next UTC day (rows) or month (credits), and the other way round.
+  Session U adds an optional partition of the daily rows: see [Two apps, one budget](#two-apps-one-budget).
 - **Cached prices keep serving**, and manual valuation always works. Nothing fails open.
 - **Per-client limits** apply to every public market route (`apps/web/lib/server/market-route-coverage.test.ts`): one address group (an IPv4 address or an IPv6 /48) gets at most a quarter of the per-minute and in-flight limits, a 31st of the monthly credits per day, and a 16th of the day's new works. Cancellation fences are limited too: a 64th of the row budget per day, and an eighth of that per client.
 - **The policy window** ends **2026-10-31 16:00 UTC**. After it the coordinator refuses every price, cached ones too, **for both apps**, until the next period's policy is deployed. See [Next policy period](#next-policy-period) below: prepare around 28 October, switch right after the boundary.
@@ -153,6 +154,16 @@ UNAVAILABLE is a safe state: cached prices and manual valuation keep working, an
 1. Steps 1–3 above at the merged main: ops checkout, `deployments list` (write down the live version: today `4754e86f-42c2-4ea3-8373-3c0a7031036b`, your rollback), `deploy`, verify.
 2. Probe once: `node scripts/verify-hosted-alpha.mjs <new dir>` (it requires VERIFIED), or the Markets page.
 3. **VERIFIED:** done; record it. **Still `UNKNOWN`:** roll back only if something else broke (`wrangler rollback 4754e86f-42c2-4ea3-8373-3c0a7031036b --config "$PWD/workers/market-coordinator/wrangler.acctest.owner.jsonc"`), keep the evidence and report it: the cause is then on CoinGecko's side for the key, and the CoinGecko dashboard is the next read-only check.
+
+## Two apps, one budget
+Session U Part 2e. Off until you set it; nothing changes without it.
+- **What it does:** each app labels its coordinator requests from its own bindings: the acceptance app (it has `PRIVATE_SYNC`) as `friends`, the public Alpha as `public`. A browser cannot change the label. With `"partition": {"publicPercent": N}` in `MARKET_POLICY`, the public Alpha stops starting new price work once its rows reach N% of `dailyRowBudget` that UTC day (it answers `LOCAL_BUDGET`; cached prices keep serving); the acceptance app keeps the rest.
+- **Order:**
+  1. the coordinator from a main that has Session U (it understands the label);
+  2. the acceptance app's final redeploy (22–24 October, [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md)): before it, the Stage 7 build sends no label and counts as public;
+  3. only then a policy with `partition`: add `"partition": {"publicPercent": 50}` to the owner file's `coordinator` block and regenerate (`market-policy.mjs`, or the next period with `next-market-policy.mjs`), then `make-private-configs.mjs --set-market-policy` and the coordinator `deploy`.
+- **Suggested value:** 50 (an owner decision; 10 to 90 are accepted). `inspect` on the account object reports `publicRowsToday` and `publicRowBudget` when it is set.
+- **Rollback:** a policy without `partition` (regenerate without it), or roll the coordinator back; the label is ignored by older coordinators.
 
 ## Next policy period
 The coordinator's `MARKET_POLICY` covers one CoinGecko billing period (exact window). **It cannot take the next period early:** the coordinator refuses a period that has not started, and the old one refuses everything once it has ended (Session U found this; the earlier advice to "regenerate around 28 October" could not work). So:
