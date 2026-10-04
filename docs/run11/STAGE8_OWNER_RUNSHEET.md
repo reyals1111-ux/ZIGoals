@@ -160,6 +160,11 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   - **C3:** scan a real product. You see the product or "not found". New barcodes are paced at no more than 5 lookups a minute; one asked for too soon waits or is refused with a plain message.
 - **Record:** pass or fail per row, and the product category only.
 
+**15. What syncs from the new features (B13).**
+- **Do:** on Desktop A: edit a habit and, under "Done automatically from Health", choose water with at least 1 glass; log a glass of water in Health; on another habit, plan a skip for tomorrow (its "History & reflection"); in Wealth → "+ Add asset" → "Import from a CSV file", choose a two-line file (`Name,Asset,Quantity,Kind of asset,Value,Currency` then `Gold,XAU,2,Precious metals,,EUR`); in Health → Diary → "Import a nutrition CSV", choose a one-line file (`Date,Meal,Food,Calories` then today's date, `Breakfast,Oats,380`). Sync now. On Phone B: open Today, Habits, Wealth and Health.
+- **Pass:** the phone shows the automatic check-in as an ordinary check-in (the "Done automatically" badge appears only on the desktop, where the rule lives), the planned skip (◌ on that day), the Gold holding ("Needs valuation") and the imported meal. The phone offers none of the desktop's health goals, weekly review, fasting session or insight cards: those stay on each device for now.
+- **Record:** pass or fail per record kind. Never the file contents.
+
 ## Part 5: providers (Desktop A) · about 15 min
 **15. One real market refresh (C4).**
 - **Do:**
