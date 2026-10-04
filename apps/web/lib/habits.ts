@@ -126,7 +126,7 @@ export type HabitData = Omit<z.infer<typeof habitDataV2Schema>, "schemaVersion">
 export type HabitGoalLink = z.infer<typeof habitGoalLinkSchema>;
 export type HabitRule = z.infer<typeof ruleSchema>;
 export type HabitState = HabitRule["state"];
-export type HabitDayStatus = "complete" | "partial" | "due" | "skipped" | "failed" | "not-scheduled" | "paused" | "archived" | "future" | "not-started";
+export type HabitDayStatus = "complete" | "partial" | "due" | "skipped" | "failed" | "not-scheduled" | "paused" | "archived" | "future" | "planned-skip" | "not-started";
 
 function migrateV1(data: z.infer<typeof habitDataV1Schema>): HabitData {
   return habitDataV2Schema.parse({ schemaVersion: 2, kind: data.kind, habits: data.habits.map((habit) => ({
@@ -281,7 +281,8 @@ function periodResult(habit: Habit, rule: HabitRule, date: string, today: string
 export function habitDay(habit: Habit, date: string, today = localDate()) { return memoized(habit, `day:${date}:${today}`, () => computeHabitDay(habit, date, today)); }
 function computeHabitDay(habit: Habit, date: string, today: string) {
   const rule = habitRuleOn(habit, date); const entry = entryOn(habit, date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
-  if (date > today) return { status: "future" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
+  // H1: a future day already marked skipped is a planned skip (a trip, a rest); every other future day is simply ahead.
+  if (date > today) return { status: entry?.disposition === "skipped" ? "planned-skip" as const : "future" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   if (!rule) return { status: "not-started" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   if (rule.state !== "active") return { status: rule.state, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   const scheduled = scheduledOn(habit, rule, date);
@@ -323,6 +324,78 @@ export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string
   });
 }
 
+const SKIP_HORIZON_DAYS = 366;
+const dayList = (from: string, to: string) => { const out: string[] = []; for (let date = from; date <= to; date = addLocalDays(date, 1)) out.push(date); return out; };
+const sorted = (entries: Habit["entries"]) => [...entries].sort((a, b) => a.date.localeCompare(b.date));
+/**
+ * H1 (Session P): a planned skip is a future scheduled day marked skipped ahead of time, up to a year out. It is an
+ * ordinary skipped entry, neutral for streaks and silent for reminders, with the reason in the note.
+ */
+export function planSkip(data: HabitData, id: string, rawDate: string, reason = "", now = new Date()): HabitData {
+  const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data, now);
+  if (date <= today || date > addLocalDays(today, SKIP_HORIZON_DAYS)) throw new Error("Choose a scheduled day within the next year.");
+  return replaceHabit(data, id, (habit) => {
+    const rule = habitRuleOn(habit, date); if (!scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled day within the next year.");
+    const period = aggregatePeriod(rule!); if (period) throw new Error(`This habit counts per ${period}; skip a day in its History instead.`);
+    const previous = habit.entries.find((item) => item.date === date); if (previous?.disposition === "logged" && previous.count > 0) throw new Error("A check-in is already saved for that day.");
+    const entry = entrySchema.parse({ date, count: 0, disposition: "skipped", note: `Planned skip${reason.trim() ? ` · ${reason.trim().slice(0, 100)}` : ""}`, updatedAt: now.toISOString() });
+    return { ...habit, updatedAt: now.toISOString(), entries: sorted([...habit.entries.filter((item) => item.date !== date), entry]) };
+  });
+}
+/** Removes a planned skip on a future day; today's or a past skip is corrected from the day editor. */
+export function unplanSkip(data: HabitData, id: string, rawDate: string, now = new Date()): HabitData {
+  const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data, now);
+  if (date <= today) throw new Error("Today and earlier days are changed from the day editor.");
+  return replaceHabit(data, id, (habit) => habit.entries.some((item) => item.date === date && item.disposition === "skipped") ? { ...habit, updatedAt: now.toISOString(), entries: habit.entries.filter((item) => item.date !== date) } : habit);
+}
+export const VACATION_NOTE = "Vacation";
+export type VacationRange = { from: string; to: string; habitIds?: readonly string[] };
+/** The habits a vacation applies to: the chosen ones, else every habit whose latest rule is active. */
+const vacationHabits = (data: HabitData, range: VacationRange) => new Set(range.habitIds ?? data.habits.filter((habit) => latestHabitRule(habit).state === "active").map((habit) => habit.id));
+function vacationDates(data: HabitData, range: VacationRange, now: Date) {
+  const from = dateSchema.parse(range.from), to = dateSchema.parse(range.to), today = habitCalendarDay(data, now);
+  if (from < today || to < from || to > addLocalDays(today, SKIP_HORIZON_DAYS)) throw new Error("Choose days from today up to a year ahead.");
+  return { from, to, today };
+}
+/**
+ * H1: marks every scheduled day in the range as skipped ("Vacation") for the chosen habits, today included, keeping
+ * check-ins already saved. Streaks do not break on skipped days and reminders stay quiet on them. All or nothing: a
+ * habit whose history would pass its limit refuses the whole change.
+ */
+export function setVacation(data: HabitData, range: VacationRange, now = new Date()): HabitData {
+  const { from, to } = vacationDates(data, range, now), ids = vacationHabits(data, range), days = dayList(from, to);
+  let next = data;
+  for (const habit of data.habits) {
+    if (!ids.has(habit.id)) continue;
+    const additions: Habit["entries"] = [];
+    for (const date of days) {
+      const rule = habitRuleOn(habit, date); if (!scheduledOn(habit, rule, date) || aggregatePeriod(rule!)) continue;
+      const previous = habit.entries.find((item) => item.date === date);
+      if ((previous?.disposition === "logged" && previous.count > 0) || (previous?.disposition === "skipped" && previous.note === VACATION_NOTE)) continue;
+      additions.push(entrySchema.parse({ date, count: previous?.count ?? 0, disposition: "skipped", note: VACATION_NOTE, mood: previous?.mood, updatedAt: now.toISOString() }));
+    }
+    if (!additions.length) continue;
+    const replaced = new Set(additions.map((entry) => entry.date));
+    next = replaceHabit(next, habit.id, (current) => {
+      const entries = sorted([...current.entries.filter((item) => !replaced.has(item.date)), ...additions]);
+      if (entries.length > 20000) throw new Error("This habit's history is full.");
+      return { ...current, updatedAt: now.toISOString(), entries };
+    });
+  }
+  return next;
+}
+/** Removes the vacation entries of the range on days from today on; anything the person wrote themselves stays. */
+export function clearVacation(data: HabitData, range: VacationRange, now = new Date()): HabitData {
+  const { from, to, today } = vacationDates(data, range, now), ids = vacationHabits(data, range);
+  let next = data;
+  for (const habit of data.habits) {
+    if (!ids.has(habit.id)) continue;
+    const kept = habit.entries.filter((item) => !(item.disposition === "skipped" && item.note === VACATION_NOTE && item.date >= today && item.date >= from && item.date <= to));
+    if (kept.length === habit.entries.length) continue;
+    next = replaceHabit(next, habit.id, (current) => ({ ...current, updatedAt: now.toISOString(), entries: kept }));
+  }
+  return next;
+}
 export function habitStats(habit: Habit, today = localDate()) { return memoized(habit, `stats:${today}`, () => computeHabitStats(habit, today)); }
 function computeHabitStats(habit: Habit, today: string) {
   type StreakUnit = "days" | "weeks" | "months" | "years";
@@ -346,7 +419,9 @@ function computeHabitStats(habit: Habit, today: string) {
     if (outcome.start <= weekEnd && outcome.end >= weekStart) { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
     const streak = streakBoard[outcome.unit]; if (previousUnit !== outcome.unit) streak.current = 0;
     if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); }
-    else if (outcome.status === "failed" || outcome.status === "skipped") { if (outcome.status === "failed") failCount++; else skipDecisions++; streak.current = 0; }
+    // H1 (Session P): a skipped day is neutral, it neither adds to a streak nor breaks it; only a failed day resets.
+    else if (outcome.status === "failed") { failCount++; streak.current = 0; }
+    else if (outcome.status === "skipped") skipDecisions++;
     previousUnit = outcome.unit;
   }
   const skipCount = habit.entries.filter((entry) => entry.disposition === "skipped" && entry.date <= today).length;

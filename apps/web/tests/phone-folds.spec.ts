@@ -56,7 +56,8 @@ test('desktop: no module is folded and every one shows as before', async ({page,
   test.skip(!!isMobile, 'Desktop layout only.');
   await showcase(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  await expect(page.locator('.phone-fold')).toHaveCount(0);
+  // Today's "For you" area folds its extra cards on every size (Session P, owner addition 2); no module is folded.
+  await expect(page.locator('.phone-fold:not(.for-you-fold)')).toHaveCount(0);
   await expect(page.getByRole('region', {name: 'How it works', exact: true})).toBeVisible();
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();

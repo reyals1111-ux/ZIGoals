@@ -12,9 +12,14 @@ import { useLocalToday } from "../../../components/use-local-today";
 import { LayoutLockButton, LayoutPage, LayoutRegion, useLayoutPage } from "../../../components/layout-edit";
 import { entityLayoutId } from "../../../lib/page-layout";
 import { NebulaFlow } from "../../../components/nebula-flow";
+import { useHealth } from "../../../components/health/use-health";
+import { useHealthGoals } from "../../../components/health-goals/use-health-goals";
+import { HealthGoalsSection } from "../../../components/health-goals/health-goals-section";
 export default function GoalsPage() {
   const collection = useUnifiedGoals();
   const today = useLocalToday();
+  // G3 (Session P): health goals read the Health journal and live in their own device key.
+  const health = useHealth(), healthGoals = useHealthGoals();
   const [filter, setFilter] = useState("Active");
   const [query,setQuery]=useState(''),[sort,setSort]=useState('pinned'),[page,setPage]=useState(0);
   const total=collection.goals.length,large=total>24;
@@ -31,6 +36,7 @@ export default function GoalsPage() {
       {id:"goals:collection",label:"Your Goals",node:total ? <section className="goal-grid" aria-label="Your goals">{large?displayed.map(g=><GoalSummaryCard key={g.key} summary={g}/>):<LayoutRegion region="cards" grid allIds={collection.goals.map(g=>entityLayoutId(g.key))} items={displayed.map(g=>({id:entityLayoutId(g.key),label:g.name,node:<GoalSummaryCard summary={g}/>}))}/>}</section> : <section className="destination-state"><OrbitalArt/><p className="eyebrow">Start with what matters</p><h2><NebulaFlow identity="goals-destination-title">A destination for your next chapter.</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for.<br/> Give your ZIG a purpose.</p><Link className="primary" href="/app/goals/new">Plan my first goal →</Link></section>},
       !!total && !count && {id:"goals:filter-empty",label:"No Goals in this view",node:<section className="panel empty-small"><h2>{query.trim()?"No matching goals.":`No ${filter.toLowerCase()} goals.`}</h2><p>{query.trim()?"Try a different name or clear your search.":"Your other destinations are under All. Closed Goals keep their history."}</p><button className="secondary" onClick={() => {setFilter("All");setQuery("");setPage(0);}}>View all goals</button></section>},
       {id:"goals:milestones",label:"Milestones ahead",node:<GoalMilestones goals={collection.goals} today={today}/>},
+      {id:"goals:health",label:"Health goals",node:<HealthGoalsSection goals={healthGoals} health={health.data} healthLoaded={health.loaded&&!health.error}/>},
     ]}/>}
     {large&&<LargeCollectionNote/>}
   </div></LayoutPage>;

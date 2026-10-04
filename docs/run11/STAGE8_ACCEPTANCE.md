@@ -55,6 +55,7 @@ A fillable copy of every check in [ACTIVATION.md](ACTIVATION.md) Stage 8, plus t
 | B10 | Stale-device denial | A device that missed a deletion cannot bring the deleted section back | | |
 | B11 | Encrypted backup restoration | An encrypted backup restores on a fresh profile with the recovery secret; a wrong secret is refused | | |
 | B12 | Lost acknowledgement of the final write | The connection drops (airplane mode) as a sync's final write leaves; an edit made afterwards syncs on reconnect with no conflict review, and the other device shows it (ADR-006, option A2; added in Session P) | | |
+| B13 | What syncs from the new features | An automatic check-in, a planned skip, an imported Wealth holding and an imported meal made on one device appear on the other as ordinary records; the link rules, health goals, reviews, fasting sessions and insight dismissals stay on their device | | |
 
 ## C. Device and providers
 | # | Check | Expected | Result | Receipt |

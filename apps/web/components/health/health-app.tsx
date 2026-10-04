@@ -18,7 +18,16 @@ import {
 import { addLocalDays } from "../../lib/local-date";
 import { GlassBar, GlassRing } from "../progress/glass-progress";
 import { useHealth } from "./use-health";
+import { useHabits } from "../habits/use-habits";
+import { useAutoCheckIns } from "../habits/use-auto-checkins";
+import { useFasting } from "./use-fasting";
+import { FastingTimer } from "./fasting-timer";
 import { BarcodeFoodLookup } from "./barcode-food-lookup";
+import { useImportUndo } from "../import/use-import-undo";
+import { ImportBanner } from "../import/csv-import-steps";
+import { NutritionImportPanel } from "../import/nutrition-import";
+import { undoNutritionImport } from "../../lib/import/nutrition";
+import type { ImportRecord } from "../../lib/import/undo-schema";
 import {AdditionalNutrition} from "./additional-nutrition";
 import {additionalNutrients} from "../../lib/health";
 import {BodyMeasurements} from "./body-measurements";
@@ -30,6 +39,7 @@ import {healthDateSchema} from "../../lib/health";
 import {PinToToday} from "../pin-to-today";
 import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
+import { PhoneFold } from "../phone/phone-fold";
 import { formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
 import { updateRefusalMessage } from "../../lib/storage-error-copy";
@@ -69,6 +79,9 @@ const formNumber = (form: FormData, key: string, scale: 1 | 1000, min: number, m
 
 export function HealthApp() {
   const store = useHealth();
+  // H7: linked habits tick themselves off from this journal while it is open.
+  const habits = useHabits();
+  useAutoCheckIns({ habits, health: store });
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
   return <HealthWorkspace data={store.data} update={store.update} />;
@@ -77,6 +90,11 @@ export function HealthApp() {
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
   const router = useRouter(), phone = usePhoneActive();
+  // HE6: the fasting timer, this device's own record.
+  const fasting = useFasting();
+  // I1: meals from a nutrition CSV (phone: a sheet; desktop: inside the Diary details), with this device's undo ledger.
+  const [importingCsv, setImportingCsv] = useState(false), imports = useImportUndo();
+  const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
   // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
   const [logging, setLogging] = useState(false);
   const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
@@ -138,9 +156,10 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {!phone && dateControl}
     </div>
     <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && !(phone && logging) && <p className="health-error" role="alert">{error}</p>}
+    <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details></>}
+      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
@@ -151,6 +170,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     </fieldset>
     </div>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
+    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} />},
     ]}/>
     <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>

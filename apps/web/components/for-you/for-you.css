@@ -1,0 +1,9 @@
+/* The "For you" area on Today (Session P). */
+.for-you { display: grid; gap: 12px; }.for-you-eyebrow { margin: 0; }.for-you-slot > .panel { margin: 0; }
+.for-you-card h2 { font-size: 1.25rem; margin: 4px 0 8px; }.for-you-card .fine { font-size: 15px; }
+.for-you-fold .phone-fold-body:not([hidden]) { display: grid; gap: 12px; }
+.whats-new-links { margin: 0 0 10px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 14px; font-size: 15px; }.whats-new-links li { display: flex; align-items: center; }.whats-new-links a { line-height: 1.3; display: flex; align-items: center; min-height: 44px; }.whats-new-card .primary { min-height: 44px; }
+.fasting-line-text { margin: 0 0 6px; font-size: 1.05rem; }
+
+/* Compact on every size: the area must not grow Today by more than a little (owner addition 2). */
+.for-you .for-you-card.panel { padding: 14px 16px; }.for-you-card .eyebrow { margin: 0 0 2px; }.for-you-card h2 { font-size: 1.15rem; margin: 2px 0 6px; }.for-you-card .actions { margin: 6px 0 0; gap: 8px; }

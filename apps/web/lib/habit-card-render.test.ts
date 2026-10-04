@@ -18,7 +18,7 @@ const input = (title: string): HabitInput => ({ title, category: "Personal", des
 const ids = Array.from({ length: 45 }, (_, i) => `59a35604-3696-4a78-b455-${String(i).padStart(12, "0")}`);
 const reparse = (data: HabitData) => habitDataSchema.parse(JSON.parse(JSON.stringify(data)));
 const noop = async () => {};
-const store: HabitCardStore = { today, update: noop, setValue: noop, addValue: noop, smartDone: noop, adjustCount: noop, setCount: noop, markDay: noop, setState: noop, data: {} };
+const store: HabitCardStore = { today, update: noop, setValue: noop, addValue: noop, smartDone: noop, adjustCount: noop, setCount: noop, markDay: noop, setState: noop, planSkip: noop, unplanSkip: noop, data: {} };
 const scope = { chainId: "private", owner: "local" }, onEdit = () => {}, onViewStack = () => {};
 function Cards({ data }: { data: HabitData }) {
   return createElement("div", null, data.habits.map((habit) => createElement(HabitCard, { key: habit.id, habit, store, scope, onEdit, onViewStack })));

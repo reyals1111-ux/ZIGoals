@@ -1,0 +1,7 @@
+/* T4: "Export everything" in Settings (Session P). */
+.export-everything { display: grid; gap: 12px; }
+.export-everything p { margin: 0; }
+.export-everything-agree { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.export-everything-agree input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; }
+.export-everything .actions { margin: 0; }
+.export-everything .actions button { min-height: 44px; }

@@ -6,11 +6,11 @@ import {expect, test} from '@playwright/test';
 const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
   ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['questions', 'Good to know about the Alpha'],
-  ['feedback', 'Tell us what you think'],
+  ['whats-new-alpha', 'New in this Alpha, in your own words'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'Questions', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'Questions', 'What\'s new', 'Send feedback'];
 
-test('Help has one title and seven topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and eight topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -24,6 +24,24 @@ test('Help has one title and seven topics, listed before them, each linking to i
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
   await topics.nth(5).click();
   await expect(page).toHaveURL(/#questions$/);
+});
+
+test("What's new (Session P): nine linkable questions; a hash opens its answer and writes nothing", async ({page}) => {
+  await page.goto('/app/help');
+  const section = page.getByRole('region', {name: 'New in this Alpha, in your own words', exact: true});
+  const questions = ['Can a habit tick itself off from my Health journal?', 'What is a health goal, and where does its progress come from?', 'I’m away for a week. Will my streak break?', 'What is the weekly review?', 'How does the fasting timer work, and is it right for me?', 'What are the “Something you might notice” cards?', 'Can I import a CSV from another app?', 'Can I get all my data out?', 'What can I type into Quick add?'];
+  for (const question of questions) await expect(section.getByText(question, {exact: true})).toBeVisible();
+  await expect(section.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  await page.goto('/app/help#help-imports');
+  const imports = page.locator('#help-imports');
+  await expect(imports).toHaveAttribute('open', '');
+  await expect(imports).toContainText('The file is read on this device and never uploaded');
+  await expect(section.locator('details[open]')).toHaveCount(1);
+  await page.evaluate(() => { window.location.hash = '#help-fasting'; });
+  await expect(page.locator('#help-fasting')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-fasting')).toContainText('talk to a doctor first');
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
 
 test('the wording follows the owner principle: sync once, backups optional, login is not recovery', async ({page}) => {
@@ -49,7 +67,9 @@ test('questions open and close from the keyboard', async ({page}) => {
   await page.goto('/app/help');
   const answer = page.getByText('Automatic prices come from CoinGecko and are labelled with their source.', {exact: false});
   await expect(answer).toBeHidden();
-  await page.getByText('Where do prices come from?', {exact: true}).focus();
+  // Focus must have landed before Enter is pressed: CI once saw the key go nowhere (PR #70, 2026-10-04, phone project).
+  const question = page.getByText('Where do prices come from?', {exact: true});
+  await question.focus(); await expect(question).toBeFocused();
   await page.keyboard.press('Enter');await expect(answer).toBeVisible();
   await page.keyboard.press('Enter');await expect(answer).toBeHidden();
 });

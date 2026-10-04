@@ -60,3 +60,16 @@
   :root dialog.phone-form-sheet[aria-label="Staking reward scenario"] .positions-utility-body > h2:first-child { display: none; }
   :root .phone-form-trigger { width: 100%; min-height: 48px; font-size: 16px; }
 }
+
+/* A2 (Session P): the Quick-add line above the actions, in the desktop dialog and the phone sheet alike. */
+.quick-add-line { display: grid; gap: 8px; margin: 0 0 14px; padding: 0 0 14px; border-bottom: 1px solid rgba(171, 144, 211, .18); }
+.quick-add-line .field > span { font-size: 15px; }
+.quick-add-line input { min-height: 44px; font-size: 16px; }
+.quick-add-line .actions { margin: 0; gap: 8px; flex-wrap: wrap; }
+.quick-add-line .actions button { min-height: 44px; }
+.quick-add-line-preview { display: grid; gap: 8px; }
+.quick-add-line-preview > p { margin: 0; }
+.quick-add-line-card { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid rgba(111, 220, 255, .35); border-radius: 14px; background: rgba(22, 35, 43, .8); }
+.quick-add-line-card p { margin: 0; }
+.quick-add-line-will { font-size: 16px; }
+.quick-add-line-hint, .quick-add-line-saved { font-size: 15px; }

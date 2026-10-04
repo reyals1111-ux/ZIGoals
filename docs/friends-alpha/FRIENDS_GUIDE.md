@@ -51,7 +51,23 @@ You don't need backups to stay up to date. If you'd like an extra safety net, **
 - **Barcodes:** when barcode lookup is available, only the barcode number is sent, to Open Food Facts. The camera picture stays on your device.
 - **"Needs attention" on sync?** Nothing was lost. ZIGoals kept both versions for you to choose from, in Settings → Account & sync.
 
-## 6. Tell us what you think
+## 6. What's new (October 2026)
+
+Nine small things arrived together. All optional, all on your device, and none of them estimates, suggests or grades anything:
+
+- **Habits that tick themselves off** from your Health journal (edit a habit → "Done automatically from Health").
+- **Health goals**: steps, water, an exercise counter, active minutes or your weight trend, counted from your own entries.
+- **Planned skips and vacation days**: a skipped day never breaks a streak.
+- **A weekly review** on the day you choose in Settings: six calm steps with your own numbers.
+- **A fasting timer**, with a plain safety note and no streaks or praise.
+- **"Something you might notice" cards** on Today: pairings in your own records, in counts, never a cause.
+- **CSV imports** for transactions, holdings and meals, read on your device, with one-tap undo.
+- **Export everything**: one readable ZIP of all your records, any time, never needed.
+- **The Quick-add line**: type "drank 2 glasses of water", see exactly what will be saved, then Save.
+
+Each one has a Help entry under "What's new". Today shows a one-time "What's new" card once per device; dismiss it whenever you like.
+
+## 7. Tell us what you think
 
 **Help → Send feedback** opens an email to **contact@zigoals.app** with a short template. Please leave out codes, your recovery secret, and personal money or health details.
 

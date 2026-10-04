@@ -1,3 +1,93 @@
+# Session P (PR 3) — friends-Alpha features: automatic check-ins, health goals, streak protection, the weekly review, a fasting timer, insight cards, CSV imports, export everything, the Quick-add line, "For you" and "What's new" (2026-10-04, [PR #70](https://github.com/reyals1111-ux/ZIGoals/pull/70))
+
+**Evidence labels**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the four brand-film specs fail here and pass in CI, as in every session since L).
+- **CI:** Milestone quality and Canonical reproducibility on the PR, read through the Actions API.
+- **git:** read the same day.
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added. Nothing here changes the sync wire protocol, a stored synced format, the six activation Workers, wallet or contract code.
+
+**Base:** `main` `d439dc9` (#65), then `main` merged twice with a merge commit (#67 at `760a751`, #69 at `8bcf0b7`). Branch `features/session-p-2026-10-03`, the third of Session P's four PRs (merge order 1 → 2 → 3 → 4); PR 4 (`push-coach/session-p-2026-10-03`) is stacked on this branch because its Guide card lives in the "For you" area below.
+
+## What the person gets (owner principles, as built)
+Ten features, each with its spec in `docs/product/features/<id>.md`, phone-first, in the design language, with unit tests and a Playwright spec on both projects; every new record is a versioned device key read by `getAppStorage()` (per account, the tab's session storage in Showcase), zod-validated, read-tolerant, written only by its own actions, listed as personal in `onboarding.ts`, exported by T4; its synced home exists read-only since PR 2 (SYNC_HOMES.md) and the write switch is a later, separate change.
+
+| Id | Feature | Where | Device key |
+|---|---|---|---|
+| H7 | Habits that tick themselves off from Health | the habit editor ("Done automatically from Health"), the card badge, Today/Habits/Health apply the rule once a day | `zigoals:habit-health-links:v1` |
+| G3 | Health goals | Goals page section "Health goals · on this device", Today's "For you" | `zigoals:health-goals:v1` |
+| H1 | Streak protection: planned skips, vacation, rest days | a habit's "History & reflection", "Vacation" on Habits; `skipped` days are neutral in `computeHabitStats` | (ordinary `skipped` entries, synced) |
+| G1 | Weekly review | Today's "For you" on the chosen day (Settings → "Weekly review day"); six steps, a sheet on phones | `zigoals:weekly-review:v1` |
+| HE6 | Fasting timer | Health page module (folded on phones), Today line while a fast runs; presets 12:12, 14:10, 16:8, custom ≤ 18 h, auto-stop at 24 h, the safety note always visible, no streaks or praise | `zigoals:fasting:v1` |
+| M3 | Insight cards | Today's "For you": pairings in counts, "How this is calculated", never causal | `zigoals:insights:v1` (dismissals) |
+| W3 | CSV import for transactions (Portfolio) and holdings (Wealth) | "Import transactions from a CSV", "+ Add asset → Import from a CSV file": mapping step, preview, confirm, one-tap undo | `zigoals:import-undo:v1` |
+| I1 | Nutrition CSV import | Health → "Import a nutrition CSV"; blank ≠ zero; no MyFitnessPal preset (its export page is UNVERIFIED: support.myfitnesspal.com answers 403 from this sandbox, 2026-10-03) | the same undo key |
+| T4 | Export everything | Settings → "Export everything": one stored ZIP (in-repo writer, CRC-32), `everything.json` plus nine CSVs | — |
+| A2 | The Quick-add line | the Quick add dialog on every page: "Type a line", a preview, nothing saved before Save; English grammar as a locale table | — |
+
+**Owner additions:** (2) Today's new cards share one "For you" area, one open on a phone and two elsewhere, the rest behind one "Show more" row; (3) clearly labelled fictional Showcase data for every feature (a Walk that ticks itself off, a health goal, a planned skip, a past review, a completed fast, two insight cards, an imported example meal with its undo note); (4) a one-time "What's new" card (device key `zigoals:whats-new:v1`, never during onboarding) linking the nine Help entries under Help → "What's new".
+
+## Parts
+| Part | What | Commits | Evidence (local unless stated) |
+|---|---|---|---|
+| merge | `main` #69 (Session R1) merged with a merge commit; `market-multi.test.ts` keeps both changes | `4b1a0f5` | the affected focused tests re-run |
+| 3.1 H7 | Habits that tick themselves off from Health: `lib/habit-health-links/` (schema, store, pure engine), the editor section, the card badge, one application per day on Today/Habits/Health, a manual tap always wins | `5991801` | `lib/habit-health-links/engine.test.ts`, `schema.test.ts`; `tests/auto-checkins.spec.ts` (desktop + phone) |
+| 3.3 H1 | Planned skips, vacation days, rest days: `skipped` days are neutral in `computeHabitStats` (an existing streak never breaks from the change), `planSkip`/`setVacation` mutators, calendar labels, no reminder on a skipped day | `f1c0fc7` | `lib/habit-skips.test.ts` (the eleven zones, Showcase and power-user fixtures), `lib/habit-card-render.test.ts`; `tests/habit-skips.spec.ts` |
+| 3.2 G3 | Health goals counted from the Health journal: weight trend (30-day method shown), steps, water days, exercise, active minutes; "No data yet" when unknown; no suggested targets | `f8315ef` | `lib/health-goals/progress.test.ts`, `schema.test.ts`; `tests/health-goals.spec.ts` |
+| 3.5 HE6 | The fasting timer: presets, custom ≤ 18 h, auto-stop at 24 h, history (last 20), optional linked duration habit, the safety note | `9c94cdf` | `lib/fasting/engine.test.ts` (clock edges, zones, auto-stop); `tests/fasting.spec.ts` |
+| 3.4 G1 | The weekly review: the chosen day, six steps with the week's own numbers, reflections device-only, one card, dismiss once per week | `deca1f1`, `d684f75` | `lib/weekly-review/engine.test.ts`; `tests/weekly-review.spec.ts` |
+| 3.6 M3 | Insight cards in counts: pairings over the last 60 days, minimum samples, "How this is calculated", dismiss per card | `65954f5` | `lib/insights/engine.test.ts` (thresholds, wording, no card below the minimum); `tests/insights.spec.ts` |
+| additions 2 + 4 | The "For you" area (at most two cards, one on a phone, "Show more") and the one-time "What's new" card; Today's phone screen count measured | `490ba0a` | `tests/for-you.spec.ts`, `tests/whats-new.spec.ts`, `tests/today-screens.spec.ts` |
+| 3.7 W3, 3.8 I1 | CSV imports: `lib/csv/` parser (RFC 4180 style, `,` `;` tab, quotes, BOM, 2 MB cap), holdings and transactions with a mapping step, preview, confirm and undo; nutrition rows with blank ≠ zero; nothing uploaded | `2fb01a4` | `lib/csv/csv.test.ts`, `lib/import/holdings.test.ts`, `nutrition.test.ts`, `sync-ordinary.test.ts`; `tests/holdings-import.spec.ts`, `tests/nutrition-import.spec.ts` (no request leaves the page) |
+| 3.9 T4 | Export everything: a stored ZIP written in-repo (CRC-32, no dependency), `everything.json` plus nine CSVs, optional | `f76be75` | `lib/export/zip.test.ts` (round trip through an independent reader), `everything.test.ts`; `tests/export-everything.spec.ts` |
+| 3.10 A2 | The Quick-add line: `lib/quick-add/` with the English grammar as a locale table, always a preview, nothing saved before Save | `1be9d57` | `lib/quick-add/parse.test.ts` (the phrase table, unknowns included), `save.test.ts`; `tests/quick-add-line.spec.ts` |
+| 3.11 | Help's nine entries and "What's new", the Showcase fixtures, the device keys in `onboarding.ts`, Stage 8 row B13, the friends guide, the feature specs' sync follow-ups | `67aae42` | `tests/help-page.spec.ts`; CI on `d684f75` (checks and integration green; the nine browser findings below) |
+| 3.12a | The full gate's nine findings, each at its cause (the commit message lists them) | `54f0968` | the full gate below; CI on `54f0968` |
+| 3.12b | This entry | this commit | CI on this commit is linked from the PR |
+
+## Today stays short on phones (owner addition 2)
+Measured at 390×844 (iPhone 13 descriptor, reduced motion, every network call answered 503), as scrollHeight / 844, `tests/today-screens.spec.ts`:
+
+| Today | before PR 3 (`main` with PR 1) | with PR 3 |
+|---|---|---|
+| Showcase | 10.13 screens | 11.02 |
+| seeded Local Demo (the Showcase records, onboarded), with the "What's new" card | 4.33 | 5.04 |
+| the same once "What's new" was dismissed | — | 4.74 |
+
+One "For you" card is open on a phone; the spec keeps ceilings of 11.3 / 5.3 / 5.0 so later growth fails there.
+
+## Full gate (local, head `54f0968` plus the one spec change in this commit)
+- `pnpm typecheck` and `pnpm lint`: clean.
+- `pnpm test` (root): 278 files passed, 15 skipped; 2,632 tests passed, 21 expected failures (the timezone and lost-ack flips belong to PR 2), 25 skipped.
+- Full Playwright against the production build (`PUBLIC_ALPHA_UNDEPLOYED`, 2 workers, 40 min): 1,045 passed, 76 skipped, 5 failed: the four brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects; H.264 is missing in this sandbox's Chromium, they pass in CI) and once `run10-widgets.spec.ts:20` (mobile): Playwright clicked the "Balanced" radio in "Choose your Today layout" and read it unchanged; alone it passed 9 of 9 runs (4 + 5). The dialog's code is unchanged in this PR; the one-off is recorded in the intermittents table below.
+- The touched specs after the nine fixes of `54f0968`: 166 passed (both projects).
+- Today's screens (owner addition 2): the table above.
+
+## CI
+- `d684f75`: Milestone quality [run 37164559919](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37164559919) failed the browser suite with the same nine findings the local gate found (checks and integration green); fixed in `54f0968`. Canonical reproducibility [run 37164559917](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37164559917) green.
+- `54f0968`: Canonical reproducibility [run 37169747353](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37169747353) green. Milestone quality [run 37169747347](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37169747347): checks and integration green; the browser suite (shard 2/3) failed one test, `run9-2-life.spec.ts:95` (desktop, "Life functional text stays readable at 320 pixels"): `locator('.habits-workspace')` resolved to two elements right after `page.goto('/app/habits')`, one hidden. The trace shows why: the Habits page is the one page whose Suspense boundary resolves after the shell on the server (`useSearchParams`), so its workspace streams as a hidden `S:0` chunk; React 19.2 reveals streamed boundaries in batches (`$RC` queues the reveal for a frame or up to 300 ms), and on the slow runner the client rendered the boundary first, so for that moment the visible root and the server's hidden copy coexisted; the reveal then removed the copy. The same chunk exists on `main` (checked on PR 1's build: 1,035 bytes there, 1,130 here), it never reproduced here (12 probes, 3 of 3 runs of the spec), and role-based locators are immune (a `hidden` subtree is outside the accessibility tree). This commit makes the spec wait for exactly one root before the visibility check (a stronger assertion, nothing weakened).
+- This commit: linked from the PR once green.
+
+## Freeze check (desktop and tablet, `main` `d439dc9` build vs this branch at `54f0968`)
+154 captures (1440×900, 1280×800, 1024×768, 820×1180 with and without touch, 1180×820 touch; Showcase and empty; Today, Goals, Habits, Health, Portfolio, Settings, Help and the two dialogs), 0 page errors: 72 identical, 82 different, every one of them on an authorized page (the list below): Today (Showcase only: "For you" and "What's new"), Goals, Habits, Health, Portfolio, Settings and Help in both states, the Add asset and Quick add dialogs. Nothing else changed; the Showcase Health figures moved from 1,964 to 1,976 kcal because of the fictional imported meals.
+
+## Authorized desktop and tablet differences (every one listed)
+- Today: the "For you" area (its fold row on every size), the "What's new" card.
+- Goals: the "Health goals · on this device" section.
+- Habits: the "Vacation" button; the editor's "Done automatically from Health" section and the skip controls in "History & reflection"; the "Done automatically" badge.
+- Health: the fasting module (a sixth layout item), "Import a nutrition CSV", the import banner.
+- Portfolio and Wealth: the import buttons and panels.
+- Settings: "Weekly review day", "Export everything".
+- The Quick add dialog: the "Type a line" form.
+- Help: the "What's new" topic and section; the install-help mailto carries this build's commit, as in every session.
+
+## Tier 3
+None in this PR. The sync wire protocol, stored synced formats, the six activation Workers, wallet and contract code are untouched.
+
+## What the owner must do
+- Merge PR 1 (#66), PR 2 (#68), then this PR, then PR 4; after each merge I bring `main` into the next branch with a merge commit.
+- Stage 8 row B13 (two devices) on a build that includes this PR; runsheet step 15.
+- Decide the write switches for the device-only records (SYNC_HOMES.md), a later session.
 # Session P (PR 2) — [Tier 3] sync: ADR-006 option A2, timezone phase 3 (R1) and the read-only sync homes (2026-10-03, [PR #68](https://github.com/reyals1111-ux/ZIGoals/pull/68))
 
 **Evidence labels**
@@ -3614,6 +3704,8 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) was an owner decision. **Removed in Session P, PR 1** (`c4aac31`, `7ccbfac`): the runner's own Chrome is kept and apt is asked only for Chrome packages dpkg reports missing, so the mirror is out of the usual path; the step took 0–3 s on run 37141271117 (27–34 s before) |
 | `market-fanout.test.mjs` "synthetic concurrent cold, warm and restarted callers share one physical batch…": a degraded cold wave | CI: once in web checks on #59 (`5b2480d`), passed on its re-run | web checks (unit) | **Fixed in Session M** (`33010a5`, test only): a cold wave whose measured publication time passed the followers' 1,000 ms lifetime is repeated in a fresh runtime, at most 3 attempts; if all are that slow the test fails with "runner too slow". No assertion was relaxed |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
+| `run9-2-life.spec.ts:95` (desktop) "strict mode violation: locator('.habits-workspace') resolved to 2 elements" right after `page.goto('/app/habits')` | CI: once on #70 (`54f0968`, run 37169747347, shard 2); 0 of 12 probes and 3 of 3 runs of the spec locally | web browser suite | **Fixed in #70** (test-only): the Habits workspace streams after the shell (its Suspense boundary resolves late on the server) and React 19.2 batches the reveal for a frame or up to 300 ms, so on a slow runner the client-rendered root and the server's hidden copy coexist for that moment; the spec now waits for exactly one root before the visibility check. Role-based locators are immune (the copy is `hidden`) |
+| `run10-widgets.spec.ts:20` (mobile) "locator.check: Clicking the checkbox did not change its state" on the "Balanced" preset radio | Local: once in a full run under load (2026-10-04, PR #70's gate); 9 of 9 alone | web browser suite | Monitor: the dialog's code is unchanged in #70; under load the click may land during the dialog's entrance motion |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
