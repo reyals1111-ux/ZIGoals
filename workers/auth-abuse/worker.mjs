@@ -1,5 +1,5 @@
 import {WorkerEntrypoint} from 'cloudflare:workers';
-/** @typedef {{ADMISSION:DurableObjectNamespace,AUTH_ADMISSION_KEY?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SHARD_CAPACITY?:string}} AdmissionEnv */
+/** @typedef {{ADMISSION:DurableObjectNamespace,AUTH_ADMISSION_KEY?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SHARD_CAPACITY?:string,LOCAL_SWEEP_MS?:string}} AdmissionEnv */
 /** @param {unknown} body @param {number} [status] */
 const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store',...(status===429?{'Retry-After':'60'}:{})}});
 const admissionWorker={fetch(){return reply({error:'NOT_FOUND'},404);}};
@@ -17,6 +17,9 @@ const SHARDS=32;
 // is its own Durable Object: no single global object serializes every sign-in.
 const SHARD_CAPACITY=4000;
 const PRUNE_BATCH=64;
+// Retention (Session S, FIX_PLAN C7): while a shard holds records, an alarm removes expired ones at least hourly
+// (at most SWEEP_BATCH per run, sooner while more remain), so a shard that is never used again still empties.
+const SWEEP_MS=3600000,SWEEP_BATCH=PRUNE_BATCH*4;
 
 /** IPv4 as is; IPv4-mapped IPv6 as IPv4; other IPv6 grouped by /64. Returns null when invalid. */
 /** @param {string} raw */
@@ -65,11 +68,30 @@ const pad=n=>String(n).padStart(16,'0');
 export class AdmissionAuthority{
  /** @param {RecordState} state @param {AdmissionEnv} env */
  constructor(state,env){this.state=state;this.env=env;}
+ now(){return this.env.ISOLATED_FIXTURE==='true'?Number(this.env.LOCAL_TEST_NOW):Date.now();}
+ /** Alarm spacing on the real clock; only an isolated test may shorten it. */
+ sweepMs(){const local=Number(this.env.LOCAL_SWEEP_MS);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?local:SWEEP_MS;}
+ /** Removes expired records through the expiry index, as a request does, and re-arms while records remain. */
+ async alarm(){
+  const observed=this.now();
+  const more=await this.state.storage.transaction(async store=>{
+   const last=await store.get('clock')??0;if(!Number.isSafeInteger(observed)||observed<last)return true;
+   let count=await store.get('count')??0;
+   const due=await store.list({prefix:'x:',end:'x:'+pad(observed+1),limit:SWEEP_BATCH});
+   for(const [indexKey,recordKey]of due){const until=Number(indexKey.slice(2,18)),record=await store.get(recordKey);await store.delete(indexKey);if(record&&record.until===until){await store.delete(recordKey);count--;}}
+   if(due.size)await store.put('count',Math.max(0,count));
+   if(due.size===SWEEP_BATCH)return 'soon';
+   return (await store.list({prefix:'x:',limit:1})).size>0;
+  });
+  if(more)await this.state.storage.setAlarm(Date.now()+(more==='soon'?1000:this.sweepMs()));
+ }
  /** @param {Request} request */
  async fetch(request){
   const body=await request.json();
   if(!['send','verify','verify-failed'].includes(body.action)||!['email','ip'].includes(body.dimension)||body.action==='verify-failed'&&body.dimension!=='email'||![body.key,body.email].every(v=>/^[a-f0-9]{64}$/.test(v??'')))return reply({error:'INVALID_ADMISSION'},400);
-  const observed=this.env.ISOLATED_FIXTURE==='true'?Number(this.env.LOCAL_TEST_NOW):Date.now();
+  const observed=this.now();
+  // A shard that holds records always has a sweep pending.
+  if(await this.state.storage.getAlarm()===null)await this.state.storage.setAlarm(Date.now()+this.sweepMs());
   return this.state.storage.transaction(async store=>{
    const last=await store.get('clock')??0;if(!Number.isSafeInteger(observed)||observed<last)return reply({error:'ADMISSION_CLOCK_UNAVAILABLE'},503);await store.put('clock',observed);
    let count=await store.get('count')??0;
@@ -86,7 +108,9 @@ export class AdmissionAuthority{
     if(current&&(current.count>=limit||current.next>observed))return reply({error:'TRY_LATER'},429);
     const tag=body.email.slice(0,16),emails=current?.emails??[];
     if(body.dimension==='ip'&&!emails.includes(tag)&&emails.length>=DISTINCT_EMAILS_PER_IP[/** @type {'send'|'verify'} */(body.action)])return reply({error:'TRY_LATER'},429);
-    if(body.dimension==='email'&&body.action==='verify'){const failed=await store.get('f:'+body.key);if(failed&&failed.until>observed&&failed.count>=DAILY_FAILED_VERIFICATIONS)return reply({error:'TRY_LATER'},429);}
+    if(body.dimension==='email'&&body.action==='verify'){const failed=await store.get('f:'+body.key);if(failed&&failed.until>observed&&failed.count>=DAILY_FAILED_VERIFICATIONS)return reply({error:'TRY_LATER'},429);
+     // An expired record is removed when it is read; its index entry goes with the next sweep.
+     if(failed&&failed.until<=observed){await store.delete('f:'+body.key);count--;await store.put('count',count);}}
     next={until:current?.until??observed+window,count:(current?.count??0)+1,next:observed+cooldown,...(body.dimension==='ip'?{emails:emails.includes(tag)?emails:[...emails,tag]}:{})};
    }
    const capacity=this.env.ISOLATED_FIXTURE==='true'&&this.env.LOCAL_SHARD_CAPACITY?Number(this.env.LOCAL_SHARD_CAPACITY):SHARD_CAPACITY;
