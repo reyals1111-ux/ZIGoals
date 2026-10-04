@@ -7,15 +7,22 @@ type Capacity={minute:number;monthly:number};
 export type BudgetPolicy={providerMinuteLimit:number;providerMonthlyLimit:number;operating:Capacity;monitoringReserve:Capacity;monitoringMaximum:Capacity;optionalCeiling:Capacity;concurrent:number;queueLimit:number;reservationMs:number;ownershipMs:number};
 export type BudgetPeriod={id:string;start:number;end:number};
 export type BudgetPeriods={month:BudgetPeriod};
-/** `client` is a hashed client bucket and `works` the number of work keys held, for per-client shares only. */
-export type ReservationRequest={id:string;cost:number;kind:'request'|'retry'|'fallback';priority:MarketPriority;client?:string;works?:number};
+/** `client` is a hashed client bucket and `works` the number of work keys held, for per-client shares only. `pool` marks
+ * a history read, which has its own share of the account (historyLimits). */
+export type ReservationRequest={id:string;cost:number;kind:'request'|'retry'|'fallback';priority:MarketPriority;client?:string;works?:number;pool?:'history'};
 export type Reservation=ReservationRequest & {status:'QUEUED'|'RESERVED'|'OWNED'|'DISPATCHED'|'SETTLED'|'CANCELLED';reservedAt:number;dispatchedAt?:number;ownershipUntil?:number;periods?:BudgetPeriods;policyKey?:string;outcome?:'success'|'failure'};
-export type BudgetState={lastTime:number;periods?:BudgetPeriods;archived?:{month:string;credits:Record<MarketPriority,number>;attempts:number;lifetimeCredits?:number};reservations:Readonly<Record<string,Reservation>>};
-export type BudgetReason='POLICY_UNAVAILABLE'|'POLICY_CHANGED'|'INVALID_REQUEST'|'CLOCK_OR_PERIOD'|'DUPLICATE_OPERATION'|'INVALID_TRANSITION'|'RESERVATION_EXPIRED'|'OWNERSHIP_EXPIRED'|'MINUTE_LIMIT'|'CONCURRENT_LIMIT'|'MONTHLY_LIMIT'|'MONITORING_LIMIT'|'OPTIONAL_LIMIT'|'QUEUE_LIMIT'|'QUEUE_WAIT';
+export type BudgetState={lastTime:number;periods?:BudgetPeriods;archived?:{month:string;credits:Record<MarketPriority,number>;attempts:number;lifetimeCredits?:number;historyCredits?:number};reservations:Readonly<Record<string,Reservation>>};
+export type BudgetReason='POLICY_UNAVAILABLE'|'POLICY_CHANGED'|'INVALID_REQUEST'|'CLOCK_OR_PERIOD'|'DUPLICATE_OPERATION'|'INVALID_TRANSITION'|'RESERVATION_EXPIRED'|'OWNERSHIP_EXPIRED'|'MINUTE_LIMIT'|'CONCURRENT_LIMIT'|'MONTHLY_LIMIT'|'MONITORING_LIMIT'|'OPTIONAL_LIMIT'|'QUEUE_LIMIT'|'QUEUE_WAIT'|'HISTORY_LIMIT';
 export type BudgetDecision={ok:true;state:BudgetState;reason?:never}|{ok:false;state:BudgetState;reason:BudgetReason};
 export const emptyBudgetState=():BudgetState=>({lastTime:0,reservations:{}});
 const integer=(n:number)=>Number.isSafeInteger(n)&&n>=0;
 const deny=(state:BudgetState,reason:BudgetReason):BudgetDecision=>({ok:false,state,reason});
+/** History's share of the account (Session S, FIX_PLAN C2), derived from the policy: history may hold at most a quarter
+ * of the queue, half of the minute and monthly operating capacity, and every dispatch slot but one. Quotes therefore
+ * keep a slot and half the capacity however much history is asked for. */
+export function historyLimits(p:BudgetPolicy){return {active:Math.max(1,Math.floor(p.queueLimit/4)),minute:Math.max(1,Math.floor(p.operating.minute/2)),monthly:Math.max(1,Math.floor(p.operating.monthly/2)),slots:Math.max(1,p.concurrent-1)};}
+const historyRows=(s:BudgetState)=>Object.values(s.reservations).filter(row=>row.pool==='history');
+const historySlotsFull=(s:BudgetState,p:BudgetPolicy)=>historyRows(s).filter(row=>row.status==='OWNED'||row.status==='DISPATCHED').length>=historyLimits(p).slots;
 const rowAt=(s:BudgetState,id:string)=>Object.hasOwn(s.reservations,id)?s.reservations[id]:undefined;
 function validPolicy(p:BudgetPolicy|undefined):p is BudgetPolicy {
  if(!p||![p.providerMinuteLimit,p.providerMonthlyLimit,p.concurrent,p.queueLimit,p.reservationMs,p.ownershipMs].every(n=>integer(n)&&n>0))return false;
@@ -51,6 +58,13 @@ function admit(s:BudgetState,p:BudgetPolicy,periods:BudgetPeriods,r:ReservationR
  }
  if(sum(rows)+n>p.operating[k])return limit;
  }
+ if(r.pool==='history'){
+  // Counted as admit counts: held reservations, plus dispatches in the minute or credits in the month.
+  const limits=historyLimits(p),held=(row:Reservation)=>row.status==='RESERVED'||row.status==='OWNED',history=historyRows(s).filter(row=>!['QUEUED','CANCELLED'].includes(row.status));
+  if(history.filter(row=>held(row)||row.dispatchedAt!>now-60000).length+1>limits.minute)return 'HISTORY_LIMIT';
+  const archived=s.archived?.month===periods.month.id?s.archived.historyCredits??0:0;
+  if(archived+history.filter(row=>held(row)||row.periods?.month.id===periods.month.id).reduce((n,row)=>n+row.cost,0)+r.cost>limits.monthly)return 'HISTORY_LIMIT';
+ }
 }
 export function enqueue(s:BudgetState,p:BudgetPolicy|undefined,r:ReservationRequest,now:number):BudgetDecision {
  if(!validPolicy(p))return deny(s,'POLICY_UNAVAILABLE');
@@ -58,6 +72,7 @@ export function enqueue(s:BudgetState,p:BudgetPolicy|undefined,r:ReservationRequ
  if(!validRequest(r))return deny(s,'INVALID_REQUEST');
  if(rowAt(s,r.id))return deny(s,'DUPLICATE_OPERATION');
  if(Object.values(s.reservations).filter(r=>r.status==='QUEUED'||r.status==='RESERVED').length>=p.queueLimit)return deny(s,'QUEUE_LIMIT');
+ if(r.pool==='history'&&historyRows(s).filter(row=>['QUEUED','RESERVED','OWNED','DISPATCHED'].includes(row.status)).length>=historyLimits(p).active)return deny(s,'HISTORY_LIMIT');
  return put(s,{...r,status:'QUEUED',reservedAt:now},now);
 }
 export function reserve(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPeriods,r:ReservationRequest,now:number):BudgetDecision {
@@ -67,8 +82,8 @@ export function reserve(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPer
  const old=rowAt(s,r.id);
  if(old&&(old.status!=='QUEUED'||old.cost!==r.cost||old.priority!==r.priority||old.kind!==r.kind))return deny(s,'DUPLICATE_OPERATION');
  const reason=admit(s,p,periods,r,now);if(reason)return deny(s,reason);
- const client=old?.client??r.client,works=old?.works??r.works;
- return put(s,{id:r.id,cost:r.cost,kind:r.kind,priority:r.priority,...(client?{client}:{}),...(works?{works}:{}),status:'RESERVED',reservedAt:now,periods:{month:{...periods.month}},policyKey:policyKey(p)},now,periods);
+ const client=old?.client??r.client,works=old?.works??r.works,pool=old?.pool??r.pool;
+ return put(s,{id:r.id,cost:r.cost,kind:r.kind,priority:r.priority,...(client?{client}:{}),...(works?{works}:{}),...(pool?{pool}:{}),status:'RESERVED',reservedAt:now,periods:{month:{...periods.month}},policyKey:policyKey(p)},now,periods);
 }
 function eligible(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPeriods,id:string,now:number,status:Reservation['status']):BudgetReason|undefined {
  if(!validPolicy(p))return 'POLICY_UNAVAILABLE';
@@ -81,6 +96,8 @@ export function ownDispatch(s:BudgetState,p:BudgetPolicy|undefined,periods:Budge
  const reason=eligible(s,p,periods,id,now,'RESERVED');if(reason)return deny(s,reason);
  // Never free DISPATCHED slots on a timer: uncertain I/O must settle before replacement.
  if(Object.values(s.reservations).filter(r=>r.status==='OWNED'||r.status==='DISPATCHED').length>=p!.concurrent)return deny(s,'CONCURRENT_LIMIT');
+ // A history read waits for history's own slot; QUEUE_WAIT keeps it polling (market-dispatch-wait.ts) without a charge.
+ if(rowAt(s,id)!.pool==='history'&&historySlotsFull(s,p!))return deny(s,'QUEUE_WAIT');
  return put(s,{...rowAt(s,id)!,status:'OWNED',ownershipUntil:now+p!.ownershipMs},now,periods);
 }
 /** Queue selection is separate from the reservation transition contract. */
@@ -89,7 +106,9 @@ export function nextReservedDispatch(s:BudgetState,p:BudgetPolicy,periods:Budget
  // therefore outranks every newly arriving interactive request after that bound.
  // Stable insertion order breaks equal-time ties; accepted costs remain reserved.
  const delay:Record<MarketPriority,number>={interactive:0,monitoring:125,refresh:375,optional:750};
- const next=Object.values(s.reservations).filter(row=>!eligible(s,p,periods,row.id,now,'RESERVED')).sort((a,b)=>(a.reservedAt+delay[a.priority])-(b.reservedAt+delay[b.priority]))[0];
+ // A history read that cannot take a slot now is passed over, so it never holds back a quote behind it.
+ const busy=historySlotsFull(s,p);
+ const next=Object.values(s.reservations).filter(row=>!eligible(s,p,periods,row.id,now,'RESERVED')&&!(busy&&row.pool==='history')).sort((a,b)=>(a.reservedAt+delay[a.priority])-(b.reservedAt+delay[b.priority]))[0];
  return next?.id;
 }
 export function markDispatched(s:BudgetState,p:BudgetPolicy|undefined,periods:BudgetPeriods,id:string,now:number):BudgetDecision {

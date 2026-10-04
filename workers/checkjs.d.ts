@@ -10,6 +10,7 @@ interface RecordTransaction {
   delete(key: string): Promise<boolean>;
   delete(keys: string[]): Promise<number>;
   list(options?: DurableObjectListOptions): Promise<Map<string, any>>;
+  getAlarm(): Promise<number | null>;
   setAlarm(scheduledTime: number | Date): Promise<void>;
   deleteAlarm(): Promise<void>;
 }

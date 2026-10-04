@@ -1,3 +1,188 @@
+# Session S — Stage 8 readiness and live prices on the public Alpha (2026-10-04, [PR #71](https://github.com/reyals1111-ux/ZIGoals/pull/71), not merged or deployed)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`, and Playwright's Chromium standing in for Chrome (CLAUDE.md).
+- **Miniflare:** the real Worker code in workerd, through Miniflare from the pinned wrangler, with local stubs for every provider.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** official documentation, read 2026-10-04:
+  - Supabase API keys and discussion #29260, Auth error codes, user sessions, managing user data, and `supabase/auth` `internal/api/api.go`;
+  - Cloudflare Durable Objects pricing;
+  - wrangler's CHANGELOG.
+
+Nothing was deployed, logged into or sent to Cloudflare, Supabase, CoinGecko or any provider.
+
+**Base:** main `8bcf0b7` (#67, #69). Main did not move during the session, so no merge was needed.
+
+**Session P's lanes:** read only. Before every push the changed files were compared with all four P branches (excluding this file); no overlap.
+
+| P branch | Head(s) checked |
+|---|---|
+| `fix/session-p-2026-10-03` | `f96b032`, all parts |
+| `sync/session-p-2026-10-03` | `90e8efb`, all parts |
+| `features/session-p-2026-10-03` | `d684f75` for Parts 0–8; `54f0968` (moved 02:00 UTC) for Parts 9–10 |
+| `push-coach/session-p-2026-10-03` | absent throughout |
+
+## Parts
+| Part | What | Tier | Commits | Tests added | Evidence |
+|---|---|---|---|---|---|
+| 0 | Records: owner decisions 2026-10-03/04, group B GitHub hardening | — | `0ff3480` | — | owner |
+| 1 | Supabase admin key: `sb_secret_` sends `apikey` and `Authorization: Bearer` with the identical value; legacy JWT as before; any other format sends nothing (identity deletion stays pending) | `[TIER 3] (auth: provider admin key)` | `3db1ac1` | 7 (`lifecycle-admin-key.test.mjs`) | Miniflare, source |
+| 2 | Market: unknown assets and recent 404s refused before any charge; history gets its own share of the budget | — | `2d74db7` (failing first), `dd07162` | 8 (`market-catalog-guard.test.ts`) | local |
+| 3 | Food: unknown barcodes cached for 1 h; per client, 3 lookups per rolling minute and 120 per UTC day; 429 with `retryAfter` and `Retry-After` | — | `0db9243` | 6 (`food-client-limits.test.mjs`), 2 (`food-lookup-route.test.ts`) | Miniflare, local |
+| 4a | Auth admission: expired records swept by an alarm and deleted when read | `[TIER 3] (auth admission retention)` | `a40f800` | 2 (`admission-retention.test.mjs`) | Miniflare |
+| 4b | Food and market: idle retention alarms | — | `c6dd3d9` | 3 (`retention-sweeps.test.mjs`) | Miniflare |
+| 5 | Owner `recovery-admin erase` (H1); the sign-out-everywhere doc (H3, no script) | `[TIER 3] (auth/sync owner tooling)` | `1f901b1`, `57b5f02`, `0db9991`, `d301ee1` | 4 (`recovery-admin-erase.test.mjs`) | Miniflare, source |
+| 6 | Docs: FINAL_ACCTEST_REDEPLOY, threat model, ADR-008, SYNC_SECURITY limits, LEGAL_CHECKLIST §7 | — | `6d5b140` | — | — |
+| 7 | CLAUDE.md "Agent safety" (four owner lines, verbatim) | `[TIER 3] (project rules)` | `c7875e3` | — | — |
+| 8a | Cancellation fences bounded per day and per client; `/cancel` validates and forwards the client | — | `d411f16` | 7 (`market-cancel-quota.test.ts`), 1 (`market-cancel-client.test.mjs`) | local, Miniflare |
+| 8b | Hosted market route reads no key; sanitized BTC/USD probe | — | `de68b36` | 27 (`market-alpha-probe.test.ts`), 7 (`market-route-coverage.test.ts`), 6 opt-in (`alpha-packaged-prices.test.mjs`, `ALPHA_PACKAGED=1`) | local, Miniflare |
+| 8b | Alpha binds `MARKET_QUOTES` → coordinator `QuoteService`, durable mode; the key is off the deploy path; probe in the post-deploy smoke (information only); `verify-hosted-alpha` requires VERIFIED | `[TIER 3] (deploy config + workflow)` | `79e1f59` | 17 net in `alpha-deployment.test.mjs` (98 → 115), 15 in `check-deployment-configs.test.ts` (66 → 81) | local |
+| 8c | ALPHA_PRICES_ROLLOUT.md; MANUAL_ALPHA_WORKFLOW, ALPHA_BINDING_SPEC, MARKET_KEY_CUSTODY, INCIDENT_RUNBOOK | — | `f1adaca` | — | source |
+| 9 | wrangler 4.144.0 → 4.147.0 (exact); fixtures captured offline; runtime types regenerated | `[TIER 3] (dependency)` | `27d858c` | 6 in `alpha-deployment.test.mjs` (115 → 121): no-secrets-file metadata, Alpha dry-run bindings, four fixture loops extended to 4.147.0 | local |
+| 10 | Erase test without Miniflare object proxies (flake root cause, below); this entry; PR ready | — | `5149f89`, this commit | — | local |
+
+## Part 8: live prices on the public Alpha (owner rollout: [ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md))
+- **Config:** `wrangler.alpha.jsonc` adds `MARKET_QUOTES` (`zigoals-acctest-market-coordinator`, entrypoint `QuoteService`) and `ZIGOALS_MARKET_QUOTES_MODE: "durable-v1"`; nothing else changed.
+  - `assertAlphaConfig` (deep equality) and `check-deployment-configs.mjs` allow exactly the self-reference, `MARKET_QUOTES` (exact fields) and that one var.
+  - The dry run lists exactly those bindings, and `check:alpha-artifact` finds no configured names in the artifact.
+- **The key leaves the app path:**
+  - `deploy-alpha.yml`, `alpha-deploy.mjs` and `alphaRuntimeSecrets` no longer use it, and there is no secrets file or `--secrets-file`; the child-environment scrubbing stays.
+  - Wrangler 4.147.0 still asks Cloudflare to keep existing secrets on such a deploy (fixture), so the old key stays on `zigoals-alpha` until the owner deletes it (rollout step 6).
+- **Deploy safety (owner rule):**
+  - the post-deploy smoke requires only a well-formed price envelope; VERIFIED or UNAVAILABLE goes into the summary and never fails, retries or rolls back the deployment;
+  - a malformed answer fails the smoke once (NEEDS_OWNER_REVIEW, no retry);
+  - the rollback capture sends no probe;
+  - only `scripts/verify-hosted-alpha.mjs` requires VERIFIED.
+- **Public routes:** every public market route sends the client only from `cf-connecting-ip`. Insights above 64 pairs never reach the coordinator, and QuoteService refuses quotes above 64 before any account command (R1 test).
+  - The gap found and fixed (8a): anonymous `cancel-followers` tombstones were bounded by no daily or client limit.
+- **Evidence (local):**
+  - `build:alpha`, `check:alpha-artifact`, `check:alpha`;
+  - the generated Alpha artifact with a stand-in QuoteService gives VERIFIED; unbound, throwing, 500 and setup-required give a well-formed UNAVAILABLE (6/6);
+  - `preview:alpha` with the binding not connected answers the 503 envelope; `public-alpha.spec.ts` and `diagnostics.spec.ts` pass 14/14.
+- **`dailyRowBudget` advice (no change):** 100,000 on Workers Paid (about 6% of the included 50 million rows a month); keep 20,000 on Workers Free. The reasoning is in the rollout doc.
+
+## Part 9: wrangler 4.147.0
+- **Changelog 4.145–4.147:** new bindings and commands we do not use; the `tail --header` fix (unused); `wrangler login` asks for extra K2 scopes.
+- **Lockfile:** wrangler, miniflare (5.20261001.0-alpha), workerd (1.20261001.1) and OpenNext's peer suffix only. The frozen install passes.
+- **Same as 4.144.0:**
+  - the CLI surface;
+  - the deploy entry, API requests and upload metadata keys (captured under `unshare -rn` with the local mock API);
+  - the Alpha `worker.js` from the same build, byte-identical.
+- **Evidence (local):**
+  - the recovery-admin flag test, `worker-types`, `stage7-preflight`, `build:alpha` in a clean tree (`dirty:false`), `check:alpha-artifact`;
+  - `activation-check --dry-run` (6 dry runs), `RUN11_PACKAGED` (2/2), `ALPHA_PACKAGED` (6/6);
+  - dry runs of all 9 tracked Worker configs.
+- **The remote-binding rehearsal** (OWNER_RECOVERY_ADMIN) stays UNVERIFIED as before; the 4.147.0 schema still accepts `entrypoint` and `remote`.
+
+## Part 10: full gate
+- **Local:**
+  - `pnpm lint`, `pnpm typecheck`;
+  - `pnpm test`: 273 files, 2,507 passed, 21 expected-fail, 31 skipped;
+  - `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`;
+  - Playwright at 2 workers against `next start`: 984 passed, 76 skipped, 4 failed. The 4 are the known local intro-film specs (`logo-quickadd-goals-header.spec.ts`, 2 per project), which this Chromium cannot play (CLAUDE.md).
+- **CI on `5149f89`** (the head before this entry): every check green, including the 3 browser shards, web integration with the Alpha gate, contract and canonical reproducibility. Earlier heads show `web` red only because newer pushes cancelled their browser shards.
+- **Flake root cause (fixed in `5149f89`):** the first full run failed once in the erase refusal test with an unhandled undici "terminated"; alone it reproduced about 1 run in 6.
+  - Miniflare's object proxy client (`getDurableObjectNamespace`) frees remote stubs from a FinalizationRegistry with a request whose response it never reads. A `dispose()` overlapping it raises the rejection, depending on GC timing.
+  - The test now uses a probe Worker on its own loopback socket: 0/15 failures. The other new Miniflare tests were 0/8 each.
+  - Fifteen older run11 tests use the same proxy API; they are left unchanged and noted here as a possible intermittent.
+
+## Decisions made without the owner
+1. The branch name is the one the brief gave (`fix/session-s-2026-10-04`), not the harness default.
+2. Part 1: an unknown or publishable key fails closed (no request; the deletion stays pending). An existing test fixture was adapted to a recognised key format.
+3. Part 2:
+   - the catalog index is written on publication only, with no lazy build (one catalog refetch after the redeploy);
+   - an index counts as authoritative at 1,000 coins or 10 RWAs, and not under 90% of the previous count;
+   - the 404 cache covers history only and lasts 15 minutes;
+   - the history shares derive from the policy.
+4. Part 5:
+   - one admin path on the existing `LifecycleRecoveryAdmin` entrypoint, with a fixed owner-erase family marker;
+   - the vault rows are fenced, not physically removed;
+   - H3 is a doc, not a script, because Supabase has no admin sign-out by user ID.
+5. Part 8:
+   - the cancellation-fence quota is ⌊budget/64⌋ a day, and an eighth of that per client;
+   - refusals reuse `DAILY_LIMIT` and `FOLLOWER_LIMIT`;
+   - the rollback capture smoke sends no probe;
+   - the packaged Alpha prices test is opt-in (`ci.yml` is P's lane);
+   - `dailyRowBudget` is advice only.
+6. Part 9: 4.147.0 (the only 4.147.x).
+
+## Owner actions, in order
+1. Review and merge PR #71.
+2. **The Alpha prices rollout** ([ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md)):
+   1. coordinator redeploy from merged main (no secret change), then verify;
+   2. Manual Alpha deployment;
+   3. price checks and `verify-hosted-alpha`;
+   4. delete the app-side key and the GitHub `alpha` secret;
+   5. optionally, regenerate the CoinGecko key (coordinator only);
+   6. logout.
+
+   Expect extra K2 scopes at `wrangler login`.
+3. **The final acceptance redeploy** ([FINAL_ACCTEST_REDEPLOY.md](run11/FINAL_ACCTEST_REDEPLOY.md)), when the planned updates are merged:
+   1. every changed Worker, services first (lifecycle, food, admission; the coordinator only if it changed since the rollout);
+   2. the hermetic app last;
+   3. the zone route;
+   4. the recovery and erase rehearsals.
+4. Around 28 October: regenerate `MARKET_POLICY` (window ends 2026-10-31 16:00 UTC). Consider `dailyRowBudget: 100000` on Workers Paid.
+5. After Session P merges: carry the proposed runsheet rows from FINAL_ACCTEST_REDEPLOY into STAGE8_OWNER_RUNSHEET.
+
+## Follow-ups (not done here)
+- **UI (P's lane):** `apps/web/components/health/barcode-food-lookup.tsx:32` shows a fixed "Wait a minute" and ignores the 429's `retryAfter`.
+- **Private sync:** owner erase fences the vault rows but does not physically remove them.
+- **Sync (B1):** a remembered device's root is extractable (ADR-008 T2 correction).
+- **H3:** the Supabase dashboard's per-user sign-out action is UNVERIFIED.
+- **CI (P's lane):** add `ALPHA_PACKAGED=1` (after `build:alpha` and the Alpha dry run with `--outdir`) to `ci.yml`.
+
+# Owner decisions — 2026-10-03/04
+
+Recorded by Session S at the owner's request.
+
+Evidence label: **Owner:** decisions given in the Session S brief, 2026-10-04. Nothing here was checked against a live system. The acceptance hostname is left out, as in the Stage 7 records below.
+
+**(a) One final redeploy of the acceptance app, not one per update.**
+- **Until then:** the acceptance app is not redeployed per update. All work of the coming 2–3 weeks goes to `alpha.zigoals.app` first.
+- **Then, once:** a final acceptance redeploy, in this order:
+  1. a hermetic app rebuild with `check:alpha-artifact`;
+  2. the app deploy;
+  3. re-attach the route;
+  4. re-run the recovery rehearsal with the merged tool.
+- **Then:** Stage 8, target 22–24 October; the friends Alpha starts 26 October.
+- **Today:**
+  - the acceptance route is removed, so the hostname answers 522;
+  - the proxied DNS record (AAAA `100::`) stays.
+- **The run sheet:** [FINAL_ACCTEST_REDEPLOY.md](run11/FINAL_ACCTEST_REDEPLOY.md), from Session S Part 6.
+
+**(b) Live prices on the public Alpha now.**
+- They go through the existing market-coordinator Worker (Session S Part 8). The CoinGecko key stays on the coordinator only.
+- **Order:** the coordinator is redeployed once with the merged Session R1 and Session S market code, **before** the first Alpha deploy that binds it.
+- **The owner's steps:** [ALPHA_PRICES_ROLLOUT.md](run11/ALPHA_PRICES_ROLLOUT.md), from Session S Part 8.
+
+# Owner hardening group B, GitHub — 2026-10-03
+
+Recorded by Session S at the owner's request: the GitHub steps of group B in [OWNER_CHECKLIST.md](security/review-2026-10/OWNER_CHECKLIST.md) (B3–B5), and what the owner deferred.
+
+Evidence label: **Owner:** reported by the owner in the Session S brief, 2026-10-04. Nothing here was checked by this session.
+
+| Step | Owner's result |
+|---|---|
+| B3, two-factor authentication | Verified. The account signs in with Google |
+| B3, tokens | No personal access tokens |
+| B3, Claude GitHub App | Limited to the ZIGoals repository |
+| B4, ruleset | `protect-main` confirmed: restrict deletions, block force pushes, require a pull request, require status checks |
+| B4, Actions | GitHub-made actions only; full-SHA pinning required; the workflow token is read-only; Actions may not create or approve pull requests; approval required for all external contributors |
+| B4, code security | Dependabot alerts, secret scanning, push protection and private vulnerability reporting are on |
+| B5, environment `alpha` | Owner only; administrator bypass off; `main` only |
+
+**Deferred by the owner to before Stage 8:**
+- **Cloudflare (B1–B2):**
+  - two-factor authentication is inactive. The account signs in with Google, so a Cloudflare password reset is needed first;
+  - passkey, members, API tokens, audit log.
+- **Supabase, Resend and CoinGecko (B6):** MFA.
+- **Bitwarden and the Mac (B7):** Bitwarden two-step login; FileVault.
+
+**Also:**
+- the Cloudflare $10 budget alert is set (as recorded in group A, A8);
+- the Bitwarden offline encrypted export is deferred to the friends-Alpha launch.
+
 # Session R1 — market abuse fix (Q-WRK-01/02), hermetic owner builds, landing workers.dev off, recovery-admin launch, camera finding (2026-10-03, [PR #69](https://github.com/reyals1111-ux/ZIGoals/pull/69), not merged or deployed)
 
 **Evidence labels:**

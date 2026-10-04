@@ -22,6 +22,15 @@ Evidence labels:
 
 ## 1. Wrangler 4.144.0 → 4.146.0 (after Stage 7)
 
+> **Done in Session S (2026-10-04): wrangler 4.147.0**, the only 4.147.x on npm, published 2026-10-02 11:30 UTC. Following the plan below:
+> - 4.147.0 adds only container and workflows-CLI changes, on top of 4.145–4.146 below; miniflare and workerd stay as in 4.146.0;
+> - the CLI surface is unchanged, and deploy output and upload requests match 4.144.0 (fixtures in `scripts/fixtures/wrangler-output/4.147.0/`);
+> - the Alpha `worker.js` is byte-identical;
+> - `worker-runtime.d.ts` was regenerated;
+> - the harnesses pass.
+>
+> Evidence is in STATUS (Session S, Part 9).
+
 ### What changed (changelog, npm)
 Two releases. There was no 4.144.x patch release.
 

@@ -2,12 +2,13 @@ import {ZodError} from 'zod';
 import {ProviderValidationError} from '../provider-validation';
 /** Closed, sanitized vocabulary. Never retain a cause, URL, headers or response body. */
 export type ProviderFailureCategory = 'THROTTLED'|'UPSTREAM_5XX'|'TIMEOUT'|'NETWORK'|'AUTHENTICATION'|'ENTITLEMENT'|'MALFORMED'|'UNSUPPORTED'|'LOCAL_BUDGET'|'LOCAL_QUEUE'|'UNKNOWN';
+/** `notFound` marks a provider 404 (still category UNKNOWN), which the market account remembers briefly (Session S). */
 export class ProviderFailure extends Error {
- constructor(readonly category:ProviderFailureCategory){super('CoinGecko market data unavailable.');this.name='ProviderFailure';}
+ constructor(readonly category:ProviderFailureCategory,readonly notFound=false){super('CoinGecko market data unavailable.');this.name='ProviderFailure';}
 }
 export function providerHttpFailure(status:number):ProviderFailure {
  // A generic 403 (including edge policy denial) proves neither credentials nor entitlement.
- return new ProviderFailure(status===429?'THROTTLED':status>=500&&status<=599?'UPSTREAM_5XX':status===401?'AUTHENTICATION':'UNKNOWN');
+ return new ProviderFailure(status===429?'THROTTLED':status>=500&&status<=599?'UPSTREAM_5XX':status===401?'AUTHENTICATION':'UNKNOWN',status===404);
 }
 export function sanitizeProviderFailure(error:unknown):ProviderFailure {
  return new ProviderFailure(error instanceof ProviderFailure?error.category:'UNKNOWN');

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import {
-  alphaRuntimeSecrets, alphaDeploymentEnvironment, alphaDeployArgs,
+  alphaDeploymentEnvironment, alphaDeployArgs,
   assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig,
   currentDeployment, deployedVersion, performDeployment,
 } from "./lib/alpha-deployment.mjs";
@@ -30,12 +30,9 @@ const deployment = (id = oldDeployment, version = oldVersion) => ({ id, strategy
 const envelope = (entries = [deployment()]) => ({ success: true, result: { deployments: entries } });
 const output = (version = newVersion) => JSON.stringify({ type: "deploy", version: 1, worker_name: "zigoals-alpha", version_id: version });
 
-test("Alpha market credential is runtime-only and the deployment command stays fixed", () => {
+// Session S Part 8: the Alpha gets prices through the MARKET_QUOTES binding, so the publication carries no provider key.
+test("the Alpha publication carries no market credential, scrubs any inherited one, and the command stays fixed", () => {
   const secret = "test-coingecko-key";
-  expect(alphaRuntimeSecrets(secret)).toEqual({ COINGECKO_DEMO_API_KEY: secret });
-  expect(() => alphaRuntimeSecrets("")).toThrow(/runtime secret missing/);
-  expect(() => alphaRuntimeSecrets(undefined)).toThrow(/runtime secret missing/);
-
   const parent = {
     GH_TOKEN: "github-token",
     COINGECKO_DEMO_API_KEY: secret,
@@ -48,25 +45,24 @@ test("Alpha market credential is runtime-only and the deployment command stays f
   expect(child.CLOUDFLARE_API_TOKEN).toBe("cloudflare-token");
   expect(parent.COINGECKO_DEMO_API_KEY).toBe(secret);
 
-  expect(alphaDeployArgs("/tmp/runtime-secrets.json")).toEqual([
+  expect(alphaDeployArgs()).toEqual([
     "--filter", "@zigoals/web",
     "exec", "opennextjs-cloudflare", "deploy",
     "--config", "wrangler.alpha.jsonc",
     "--name", "zigoals-alpha",
-    "--",
-    "--secrets-file", "/tmp/runtime-secrets.json",
   ]);
+  expect(alphaDeployArgs("/tmp/runtime-secrets.json")).not.toContain("--secrets-file");
 });
 
-test("manual Alpha workflow exposes CoinGecko only to the publication step", () => {
-  const workflow = readFileSync(
-    new URL("../.github/workflows/deploy-alpha.yml", import.meta.url),
-    "utf8",
-  );
-  expect(workflow.match(/COINGECKO_DEMO_API_KEY:/g)).toHaveLength(1);
-  expect(workflow).toContain(
-    "COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}",
-  );
+test("the manual Alpha workflow and deploy script never name or pass the market key", () => {
+  const workflow = readFileSync(new URL("../.github/workflows/deploy-alpha.yml", import.meta.url), "utf8");
+  expect(workflow).not.toContain("COINGECKO_DEMO_API_KEY");
+  expect(workflow).not.toMatch(/secrets\.COINGECKO/i);
+  const script = readFileSync(new URL("./alpha-deploy.mjs", import.meta.url), "utf8");
+  expect(script).not.toContain("COINGECKO_DEMO_API_KEY");
+  expect(script).not.toContain("secrets-file");
+  expect(script).not.toContain("secrets.json");
+  expect(script).toContain("marketProbe: true");
 });
 
 test("only a fresh explicit owner dispatch of the full main SHA is authorized", () => {
@@ -120,12 +116,21 @@ test.each([
 });
 const alphaConfig = () => JSON.parse(readFileSync(new URL("../apps/web/wrangler.alpha.jsonc", import.meta.url)));
 test("the reviewed Alpha configuration is accepted", () => assertAlphaConfig(alphaConfig()));
+test("the reviewed Alpha configuration binds the coordinator's QuoteService in durable mode", () => {
+  expect(alphaConfig().services[1]).toEqual({ binding: "MARKET_QUOTES", service: "zigoals-acctest-market-coordinator", entrypoint: "QuoteService" });
+  expect(alphaConfig().vars).toEqual({ ZIGOALS_MARKET_QUOTES_MODE: "durable-v1" });
+});
 test.each([
   c => { c.name = "zigoals"; }, c => { c.route = "alpha.zigoals.app/*"; },
   c => { c.routes = []; }, c => { c.env = { production: {} }; },
   c => { c.build = { command: "unexpected-command" }; }, c => { c.r2_buckets = []; },
   c => { c.vars = { NEXT_PUBLIC_APP_ENVIRONMENT: "TESTNET_DEPLOYED" }; },
   c => { c.services[0].service = "zigoals"; }, c => { c.limits.cpu_ms = 30000; },
+  c => { c.services[1].entrypoint = "default"; }, c => { c.services[1].service = "zigoals-acctest-private-sync"; },
+  c => { delete c.services[1].entrypoint; }, c => { c.services.push({ binding: "FOOD_LOOKUP", service: "zigoals-acctest-food-lookup" }); },
+  c => { c.services.pop(); }, c => { c.vars.ZIGOALS_MARKET_QUOTES_MODE = "direct"; },
+  c => { c.vars.COINGECKO_DEMO_API_KEY = "x"; }, c => { delete c.vars; },
+  c => { c.durable_objects = { bindings: [] }; }, c => { c.workers_dev = false; },
   c => { c.assets.run_worker_first = true; }, c => { c.observability.enabled = true; },
 ])("manual publishing rejects target, route, resource or policy drift %#", mutate => {
   const config = alphaConfig(); mutate(config);
@@ -310,6 +315,69 @@ test("smoke rejects stale deployed source and reused response nonces", async () 
   await expect(smokeAlpha({ expectedCommit: sha, fetcher: async url => htmlResponse(undefined,new URL(url).pathname) })).rejects.toThrow(/nonce/);
 });
 
+// Session S Part 8 (owner rule): the workflow's market probe needs only a well-formed envelope. UNAVAILABLE is recorded and
+// never fails, retries or rolls back the deployment; only a malformed answer fails the smoke, and it is never retried.
+const btc = { marketRef: { provider: "coingecko", kind: "coin", id: "bitcoin" }, currency: "USD" };
+const btcQuote = () => ({ base: { kind: "native", symbol: "BTC" }, currency: "USD", price: "6250012", priceDecimals: 2, source: "CoinGecko", providerAssetId: "bitcoin", observedAt: new Date().toISOString(), marketRef: btc.marketRef, verification: "VERIFIED" });
+const marketAnswers = {
+  verified: () => Response.json({ version: 1, results: [{ request: btc, status: "VERIFIED_FRESH", quote: btcQuote(), failure: null }], quotes: [btcQuote()], complete: true, degraded: false, error: null }, { headers: { "cache-control": "no-store" } }),
+  unavailable: () => Response.json({ version: 1, results: [{ request: btc, status: "NOT_ATTEMPTED_BUDGET", quote: null, failure: "LOCAL_BUDGET" }], quotes: [], complete: false, degraded: true, error: "CoinGecko market data unavailable." }, { status: 503, headers: { "cache-control": "no-store" } }),
+  crashed: () => new Response("<html>Internal error</html>", { status: 500, headers: { "content-type": "text/html" } }),
+};
+function alphaFetcher(market) {
+  const calls = []; let count = 0;
+  const fetcher = async (url, options) => {
+    calls.push({ url, options });
+    if (new URL(url).pathname === "/api/market-quotes") return marketAnswers[market]();
+    return htmlResponse((count++ === 0 ? "A" : "B").repeat(43) + "=", new URL(url).pathname);
+  };
+  return { calls, fetcher };
+}
+test.each([["verified", "VERIFIED", 200, "VERIFIED_FRESH", null], ["unavailable", "UNAVAILABLE", 503, "NOT_ATTEMPTED_BUDGET", "LOCAL_BUDGET"]])(
+  "the post-deploy smoke records a %s market answer as information", async (market, result, status, pair, failure) => {
+    const { calls, fetcher } = alphaFetcher(market);
+    const checks = await smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true });
+    expect(checks).toHaveLength(12);
+    expect(checks.at(-1)).toEqual({ route: "/api/market-quotes", status, market: result, pair, failure });
+    const probe = calls.at(-1);
+    expect(probe.url).toBe("https://alpha.zigoals.app/api/market-quotes");
+    expect(probe.options).toMatchObject({ method: "POST", redirect: "manual" });
+    expect(JSON.parse(probe.options.body)).toEqual({ requests: [btc] });
+    expect(new Headers(probe.options.headers).has("authorization")).toBe(false);
+  });
+test("the rollback capture smoke sends no market probe", async () => {
+  const { calls, fetcher } = alphaFetcher("crashed");
+  expect(await smokeAlpha({ fetcher })).toHaveLength(11);
+  expect(calls.some(c => new URL(c.url).pathname.startsWith("/api/"))).toBe(false);
+});
+test("a malformed market answer fails the post-deploy smoke without echoing the body", async () => {
+  const { fetcher } = alphaFetcher("crashed");
+  const error = await smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true }).catch(e => e);
+  expect(error.message).toBe("Alpha market route did not answer a well-formed price envelope (status)");
+  expect(error.message).not.toContain("Internal error");
+});
+test("UNAVAILABLE prices never fail, retry or roll back a deployment", async () => {
+  const r = runtime();
+  const { calls, fetcher } = alphaFetcher("unavailable");
+  r.io.smoke = async () => { r.calls.push("smoke"); return smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true }); };
+  const report = await performDeployment(rollback(), r.io);
+  expect(report.status).toBe("VERIFIED");
+  expect(report.smoke.at(-1)).toMatchObject({ market: "UNAVAILABLE", failure: "LOCAL_BUDGET" });
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(1);
+  expect(r.calls).not.toContain("sleep");
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+  expect(calls.filter(c => new URL(c.url).pathname === "/api/market-quotes")).toHaveLength(1);
+});
+test("a malformed market answer is reported for owner review once, never retried or rolled back", async () => {
+  const r = runtime();
+  const { fetcher } = alphaFetcher("crashed");
+  r.io.smoke = async () => { r.calls.push("smoke"); return smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true }); };
+  await expect(performDeployment(rollback(), r.io)).rejects.toThrow(/well-formed price envelope/);
+  expect(r.reports.at(-1)).toMatchObject({ status: "NEEDS_OWNER_REVIEW", newVersionId: newVersion });
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(1);
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+});
+
 test('camera permission is confined to the Health document',async()=>{
  const response=htmlResponse();response.headers.set('permissions-policy','camera=(self), microphone=(), geolocation=()');const html=await response.text();
  expect(()=>assertHtml(response,html,'/app/health')).not.toThrow();expect(()=>assertHtml(response,html,'/app')).toThrow(/permission/);
@@ -319,25 +387,44 @@ test('camera permission is confined to the Health document',async()=>{
 // Real output of the pinned wrangler, captured offline (scripts/fixtures/wrangler-output/README.md).
 const captured = (version, file) => readFileSync(new URL(`./fixtures/wrangler-output/${version}/${file}`, import.meta.url), "utf8");
 const deployEntry = jsonl => jsonl.trim().split("\n").map(line => JSON.parse(line)).find(entry => entry.type === "deploy");
-test.each(["4.131.1", "4.144.0"])("the real wrangler %s deploy output yields the new version ID", version => {
+test.each(["4.131.1", "4.144.0", "4.147.0"])("the real wrangler %s deploy output yields the new version ID", version => {
   expect(deployedVersion(captured(version, "deploy-mock-api.jsonl"))).toBe("5f2b7c1e-3a4d-4e6f-8a9b-0c1d2e3f4a5b");
 });
 test("the deploy entry keeps the same fields and types from wrangler 4.131.1 to the pinned version", () => {
   const shape = entry => Object.entries(entry).filter(([key]) => key !== "timestamp").map(([key, value]) => `${key}:${value === null ? "null" : Array.isArray(value) ? "array" : typeof value}`).sort();
-  expect(shape(deployEntry(captured("4.144.0", "deploy-mock-api.jsonl")))).toEqual(shape(deployEntry(captured("4.131.1", "deploy-mock-api.jsonl"))));
-  expect(deployEntry(captured("4.144.0", "deploy-mock-api.jsonl"))).toMatchObject({ type: "deploy", version: 1, worker_name: "zigoals-alpha" });
+  for (const version of ["4.144.0", "4.147.0"]) {
+    expect(shape(deployEntry(captured(version, "deploy-mock-api.jsonl")))).toEqual(shape(deployEntry(captured("4.131.1", "deploy-mock-api.jsonl"))));
+    expect(deployEntry(captured(version, "deploy-mock-api.jsonl"))).toMatchObject({ type: "deploy", version: 1, worker_name: "zigoals-alpha" });
+  }
 });
-test.each(["4.131.1", "4.144.0"])("a real wrangler %s dry run is never read as a deployment", version => {
+test.each(["4.131.1", "4.144.0", "4.147.0"])("a real wrangler %s dry run is never read as a deployment", version => {
   const dryRun = captured(version, "alpha-dry-run.jsonl");
   expect(deployEntry(dryRun)).toMatchObject({ type: "deploy", worker_name: "zigoals-alpha", version_id: null });
   expect(() => deployedVersion(dryRun)).toThrow("valid version ID");
 });
-test.each(["4.131.1", "4.144.0"])("the dry-run upload size line the docs quote keeps its format in wrangler %s", version => {
+test.each(["4.131.1", "4.144.0", "4.147.0"])("the dry-run upload size line the docs quote keeps its format in wrangler %s", version => {
   expect(captured(version, "alpha-dry-run.txt")).toMatch(/^Total Upload: \d+\.\d{2} KiB \/ gzip: \d+\.\d{2} KiB$/m);
   expect(captured(version, "alpha-dry-run.txt")).toContain("env.WORKER_SELF_REFERENCE (zigoals-alpha)");
 });
-test.each(["4.131.1", "4.144.0"])("--secrets-file still uploads secrets additively in wrangler %s", version => {
+test.each(["4.131.1", "4.144.0", "4.147.0"])("--secrets-file still uploads secrets additively in wrangler %s", version => {
   const metadata = JSON.parse(captured(version, "upload-metadata.json"));
   expect(metadata.bindings).toEqual([{ name: "FIXTURE_SECRET", type: "secret_text", text: "not-a-secret" }]);
   expect(metadata.keep_bindings).toEqual(["secret_text", "secret_key"]);
+});
+// Session S: the Alpha now deploys without --secrets-file. Wrangler 4.147.0 still asks Cloudflare to keep the Worker's
+// existing secrets, so the old app-side market key stays until the owner deletes it (ALPHA_PRICES_ROLLOUT step 6).
+test("a real wrangler 4.147.0 deploy without --secrets-file uploads no secret and keeps the existing ones", () => {
+  const metadata = JSON.parse(captured("4.147.0", "upload-metadata-no-secrets-file.json"));
+  expect(metadata.bindings).toEqual([]);
+  expect(metadata.keep_bindings).toEqual(["secret_text", "secret_key"]);
+});
+test("the pinned wrangler's Alpha dry run lists exactly the reviewed bindings", () => {
+  const text = captured("4.147.0", "alpha-dry-run.txt");
+  const bindings = text.split("\n").filter(line => line.startsWith("env.")).map(line => line.trim().split(/\s{2,}/)[0]);
+  expect(bindings).toEqual([
+    "env.WORKER_SELF_REFERENCE (zigoals-alpha)",
+    "env.MARKET_QUOTES (zigoals-acctest-market-coordinator#QuoteService)",
+    "env.ASSETS",
+    'env.ZIGOALS_MARKET_QUOTES_MODE ("durable-v1")',
+  ]);
 });

@@ -12,7 +12,7 @@ import {preflight,report,STAGE7_SECRETS} from './stage7-preflight.mjs';
 // with fictional values. Tool versions are injected; nothing runs wrangler or reaches a network.
 const repo=resolve(import.meta.dirname,'../..'),FILES=[...Object.values(CONFIGS),ADMIN_CONFIG,'.gitignore','.node-version','package.json','apps/web/package.json'];
 const git=(root,...args)=>execFileSync('git',['-c','user.name=fixture','-c','user.email=fixture@example.invalid',...args],{cwd:root,encoding:'utf8'}).trim();
-const tools=preparationCommit=>({node:()=>'24.19.0',pnpm:()=>'11.19.0',wrangler:()=>'4.144.0',preparationCommit});
+const tools=preparationCommit=>({node:()=>'24.19.0',pnpm:()=>'11.19.0',wrangler:()=>'4.147.0',preparationCommit});
 const values=['abcdefghijklmnopqrst','fictional-team','acctest.fictional-owner.net','fictional-account','resetTimeZone'];
 async function opsCheckout({policy={resetTimeZone:'UTC',monthlyCredits:10000}}={}){
  const root=await mkdtemp(join(tmpdir(),'stage7-preflight-'));git(root,'init','-q','-b','main');

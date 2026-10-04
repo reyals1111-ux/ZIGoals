@@ -168,6 +168,33 @@ Questions for the planned "earn and staking" features in [EARN_DESIGN.md](../ear
 - FSMA (Belgium) virtual-currency distribution rules: <https://www.fsma.be/en/news/new-rules-advertisements-virtual-currencies-enter-force>; the Regulation: <https://www.fsma.be/sites/default/files/media/files/2023-03/reglem_05-01-2023_en.pdf>; CASPs: <https://www.fsma.be/en/crypto-asset-service-provider-casp>.
 - FCA (UK, reference only): PS23/6 <https://www.fca.org.uk/publication/policy/ps23-6.pdf> and FG24/1 <https://www.fca.org.uk/publication/finalised-guidance/fg24-1.pdf>.
 
+## 7. Breaches, deletion records and data we hold but cannot read (added 2026-10-04, Session S, FIX_PLAN E5)
+From the pre-Alpha review: [INCIDENT_RUNBOOK.md](../security/review-2026-10/INCIDENT_RUNBOOK.md) §6, and `Q-PRIV-01` and `Q-PRIV-05` in [FINDINGS.md](../security/review-2026-10/FINDINGS.md). These are questions, not conclusions.
+
+**Questions:**
+1. **Breach notification.**
+   - Is an exposure of encrypted records plus readable metadata a "personal data breach" (Art. 4(12))?
+   - Would it be "unlikely to result in a risk", so that no notification to the authority is needed within 72 hours (Art. 33)? The metadata would show, for example, that someone keeps Health records.
+   - Can communication to the people concerned be omitted because the content was unintelligible (Art. 34(3)(a)), when the metadata was readable?
+   - Where does the Art. 33(5) breach record live, and what goes in it?
+   - Which notification channel does the Belgian authority require? Its portal is the documented route; email is not processed.
+2. **The deletion record.**
+   - After a deletion, a minimal record stays for good: account identifier, dates, which sections, and the authorising session family. It stops deleted data from coming back.
+   - Is that retention lawful and proportionate (Art. 5(1)(e), Art. 17(3))?
+   - Must it be stated in the notice, and for how long may it be kept?
+   - Cloudflare's 30-day point-in-time recovery also keeps "deleted" ciphertext restorable for 30 days. Must that be stated?
+3. **Held but not decryptable.**
+   - After an owner erase for someone who can no longer sign in (Session S), the encrypted vault rows stay stored, unreadable and unreachable, until a code change removes them.
+   - Encrypted records are unreadable to us without the person's recovery secret.
+   - Does storing them count as processing that needs a basis and a retention period? Does an erasure request oblige physical removal within a time limit?
+4. **Operator visibility of code emails.**
+   - The operator, or anyone with the operator's Supabase or Resend account, can see sign-in emails, including one-time codes in the sending log. So they could sign in as a user, without being able to decrypt anything.
+   - What must the notice say about this, and which access controls and log retention are expected?
+
+**Read first:**
+- EDPB Guidelines 9/2022 on personal data breach notification (version 2.0), <https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-92022-personal-data-breach-notification-under_en>
+- Belgian Data Protection Authority, data breaches, <https://www.autoriteprotectiondonnees.be/professionnel/actions/violation-de-donnees-personnelles>
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);

@@ -282,7 +282,7 @@
 
 ### C7. How to sign a friend out everywhere at Supabase
 - **Why:** ZIGoals' "revoke" blocks access to the vault, but not the Supabase session (`Q-AUTH-02`).
-- **How:** find the user in Authentication → Users and use the dashboard's sign-out or session action for that user. Labels are UNVERIFIED; if there is none, the admin API's sign-out is the fallback (a future session can script it). Try it once with your own test user in Stage 8.
+- **How (updated by Session S):** follow [OWNER_SIGN_OUT_EVERYWHERE.md](../../run11/OWNER_SIGN_OUT_EVERYWHERE.md). Supabase's Auth admin API has no sign-out by user ID, so there is no script; the page gives the dashboard steps. Try it once with your own test user in Stage 8.
 - **Verify:** after it, the test user's refresh fails and sign-in needs a new code.
 
 ### C8. One Cloudflare account, or two?

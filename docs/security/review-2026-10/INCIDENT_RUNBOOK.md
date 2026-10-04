@@ -38,7 +38,7 @@ Details in [DATA_FLOWS.md](DATA_FLOWS.md).
 |---|---|---|---|---|
 | `AUTH_ADMIN_KEY` (Supabase secret or `service_role`) | Lifecycle Worker secret; your Bitwarden copy | Supabase → API keys: create a new **secret** key. Put it on the lifecycle Worker: `pnpm --filter @zigoals/web exec wrangler secret put AUTH_ADMIN_KEY --config "$PWD/workers/private-sync/wrangler.lifecycle.acctest.owner.jsonc"` (interactive). Then delete the old key. Legacy `service_role`: ask a session first; rolling the JWT secret affects every session (`Q-OPS-03`) | Supabase → Users and auth logs: users created, deleted or changed; email changes | Pending identity deletions retry by alarm |
 | `AUTH_ADMISSION_KEY` | Admission Worker secret | Generate ≥32 random characters (for example `openssl rand -base64 48`), then `wrangler secret put AUTH_ADMISSION_KEY --config <admission private config>` | — | All rate-limit counters reset (harmless) |
-| `COINGECKO_DEMO_API_KEY` | Coordinator secret; still on `zigoals-alpha` and in the GitHub `alpha` environment until MARKET_KEY_CUSTODY steps 3–5 | CoinGecko Developer Dashboard: regenerate. Update the coordinator's secret (and the GitHub environment secret while the deploy still needs it) | Credit usage in the dashboard | Prices fail closed until the new key is in place |
+| `COINGECKO_DEMO_API_KEY` | Coordinator secret only. Since Session S no workflow or app path reads it; until [ALPHA_PRICES_ROLLOUT.md](../../run11/ALPHA_PRICES_ROLLOUT.md) step 6 is done, an unused copy may remain on `zigoals-alpha` and in the GitHub `alpha` environment: delete both | CoinGecko Developer Dashboard: regenerate. Update the coordinator's secret only (ALPHA_PRICES_ROLLOUT step 7) | Credit usage in the dashboard | Prices fail closed until the new key is in place |
 | `CLOUDFLARE_ALPHA_API_TOKEN` (deploy) | GitHub `alpha` environment secret | Cloudflare → My Profile → API Tokens (or Manage Account → Account API tokens): roll or delete, and create a new one with the documented scope and an expiry. Update the GitHub environment secret | Cloudflare audit log for its use; each Worker's versions (`wrangler versions list --name <worker>`) for deployments you did not make; Worker secrets and routes | The next Manual Alpha deploy uses the new token |
 | Wrangler login on the Mac | `~/.config/.wrangler/config/default.toml` or the keychain | `wrangler logout` (invalidates the token). If the Mac itself is suspect, also revoke from another device in Cloudflare's dashboard; the label for revoking OAuth apps is UNVERIFIED | Same as above | — |
 | Resend key (Supabase SMTP password) | Supabase SMTP settings; Bitwarden | Resend → API keys: create a new **sending-only** key for the auth domain, put it in Supabase SMTP, remove the old one | Resend logs: unusual volume or recipients | Codes keep flowing after the switch |
@@ -58,7 +58,7 @@ Details in [DATA_FLOWS.md](DATA_FLOWS.md).
 1. **The friend** (from a trusted device), or you on a call with them:
    - sign in and open Settings → Devices and sessions;
    - **revoke every session they do not recognise** (or "revoke others").
-2. **You, in Supabase:** sign that user out everywhere (OWNER_CHECKLIST C7). Then open the user's record:
+2. **You, in Supabase:** sign that user out everywhere ([OWNER_SIGN_OUT_EVERYWHERE.md](../../run11/OWNER_SIGN_OUT_EVERYWHERE.md), OWNER_CHECKLIST C7). Then open the user's record:
    - **email address**: changed?
    - **password**: set? (it cannot be seen, but "last sign-in method" may tell);
    - **last sign-ins.**
@@ -100,8 +100,8 @@ Details in [DATA_FLOWS.md](DATA_FLOWS.md).
    - a minimal deletion record (account ID, dates, which sections) kept for good, so the data cannot come back (`Q-PRIV-01`);
    - provider logs (Supabase sign-ins, Resend code emails) under their retention.
 5. **If they cannot sign in any more** (lost email access, or no device):
-   - there is **no owner-side tool to erase a cloud vault** today (`Q-OPS-06`);
-   - what you can do: delete their Supabase user, which ends sign-in for good. The ciphertext then stays unreadable but stored until a future tool removes it;
+   - since Session S, use `recovery-admin.mjs erase` ([OWNER_RECOVERY_ADMIN.md](../../run11/OWNER_RECOVERY_ADMIN.md), "Erase an account"). It exports first, records the deletion so no device can sync the account again, and deletes the sign-in identity once the lifecycle Worker serves (`Q-OPS-06`);
+   - the encrypted rows still stay stored, unreadable and unreachable, until a private-sync change removes them;
    - tell them so, and log it as an open request.
 6. **Legal flags (for the lawyer):**
    - the response time for erasure requests;

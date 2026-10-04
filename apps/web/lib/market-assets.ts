@@ -11,6 +11,9 @@ export const marketRequestsSchema=z.array(marketRequestSchema).max(500);
 /** Pairs per browser market request (Session R1). One client may hold half of the coordinator's 64 works at a
  * time, so a larger portfolio is a few sequential requests rather than one refused request. */
 export const MARKET_REQUEST_CHUNK=32;
+/** Provider IDs of the app's featured markets (FEATURED_MARKETS in product-insights.ts; a test pins them equal). The
+ * market coordinator accepts them even when its catalog does not list them (Session S, market-catalog-guard.ts). */
+export const FEATURED_MARKET_IDS={coin:['bitcoin','ethereum','zignaly','usd-coin','solana'],rwa:['apple','nvidia','gold','silver','vanguard-s-p-500-etf']} as const;
 export const nativeZigMarketRef:MarketAssetRef={provider:'coingecko',kind:'coin',id:'zignaly'};
 export const nativeZigRequest:MarketQuoteRequest={marketRef:nativeZigMarketRef,currency:'USD'};
 export type MarketCatalogAsset={ref:MarketAssetRef;name:string;symbol:string;platforms?:Record<string,string>};
