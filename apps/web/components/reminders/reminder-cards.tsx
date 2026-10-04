@@ -19,7 +19,11 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
     const tick = () => setNow(new Date());
     queueMicrotask(tick);
     const timer = window.setInterval(tick, 30_000);
-    return () => window.clearInterval(timer);
+    // The push-only service worker (ADR-010) posts this when a reminder arrives while the app is open.
+    const onMessage = (event: MessageEvent) => { if (event.data?.type === 'zigoals:push-reminder') tick(); };
+    const worker = typeof navigator !== 'undefined' ? navigator.serviceWorker : undefined;
+    worker?.addEventListener('message', onMessage);
+    return () => { window.clearInterval(timer); worker?.removeEventListener('message', onMessage); };
   }, []);
   if (!reminders.loaded || !now) return null;
   const due = dueReminders({reminders: reminders.data, habits, health, now});

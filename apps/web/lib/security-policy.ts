@@ -4,6 +4,9 @@ export function securityPolicy(development: boolean, https: boolean) {
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
+    // The push-only service worker (public/push-sw.js, ADR-010): under 'strict-dynamic' a worker URL carries no nonce,
+    // so workers need their own same-origin directive. Nothing else runs in a worker.
+    "worker-src 'self'",
     // React progress bars use style attributes. This exception never authorizes scripts.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:", "font-src 'self'",

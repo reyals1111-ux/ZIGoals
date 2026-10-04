@@ -1,4 +1,5 @@
 'use client';
+import {forgetPushOnThisDevice} from '../lib/push/device';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {z} from 'zod';
 import {ACCOUNT_CHANGE,activateAccount,clearAccountSession,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount} from '../lib/account-session';
@@ -43,6 +44,8 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
  }
  async function signout(){
   pending.current?.abort();setBusy(true);setCode('');setSentTo('');
+  // Push reminders (ADR-010): this device's subscription leaves the server while the session is still valid; no request without a record.
+  await forgetPushOnThisDevice({deleteAll:false});
   try{clearAccountSession();}catch{setMessage('Account selection could not be cleared. Close this tab to keep it locked.');}
   try{await callbacks.current.onSignout?.();}catch{/* Session access is already locked; key cleanup must not prevent server logout. */}
   setStatus('signed-out');
