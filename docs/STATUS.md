@@ -183,6 +183,351 @@ Evidence label: **Owner:** reported by the owner in the Session S brief, 2026-10
 - the Cloudflare $10 budget alert is set (as recorded in group A, A8);
 - the Bitwarden offline encrypted export is deferred to the friends-Alpha launch.
 
+# Session P (PR 4) — [Tier 3] push reminders (ADR-010) and the Guide, phase 1 (ADR-011) (2026-10-04, [PR #72](https://github.com/reyals1111-ux/ZIGoals/pull/72))
+
+**Evidence labels**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the four brand-film specs fail here and pass in CI, as in every session since L), Miniflare for the push Worker, WebCrypto for the RFC vectors.
+- **CI:** Milestone quality and Canonical reproducibility on the PR, read through the Actions API.
+- **source:** rfc-editor.org (RFC 8030, 8188, 8291 with its Appendix A vectors, 8292 with its §2.4 example; read 2026-10-03 and 2026-10-04), Apple's "Sending web push notifications in web apps and browsers" and the Safari 16.4 notes, the Chromium source (push_messaging_constants.cc), Microsoft Learn (the Edge policy ForceBuiltInPushMessagingClient and the WNS overview), Mozilla's autopush documentation, the AI Act text on EUR-Lex (all read 2026-10-03 or 2026-10-04; URLs in the ADRs).
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added (WebCrypto and `fetch` only). The six activation Workers' runtime, the sync wire protocol, stored synced formats, wallet and contract code are untouched. **Nothing in this PR is active in any build until the owner follows docs/run11/PUSH_ACTIVATION.md: every build answers 503 at `/api/push` and the Settings panel says "Not available in this build."; the Guide is off until a person turns it on.**
+
+**Base:** PR 3's branch `features/session-p-2026-10-03` (this PR's Guide card lives in PR 3's "For you" area), which carries `main` at `8bcf0b7` (#69). The PR's base on GitHub is PR 3's branch until #70 merges, then `main`. Branch `push-coach/session-p-2026-10-03`, the fourth of Session P's four PRs (merge order 1 → 2 → 3 → 4).
+
+## Parts
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 4.1 | ADR-010 (push) and ADR-011 (the Guide), with their implementation addenda | `dd91ca1` | docs/architecture |
+| 4.2a **[Tier 3] (new Worker)** | `workers/push-reminders` (worker, verify, hosts, clock, webpush, limits, the wrangler template), `scripts/push/make-vapid-keys.mjs`, the Miniflare fixture, the RFC and runtime tests | `45c0ae6` | local: push-webpush (7), push-clock (6 + 14 zones), push-runtime (9, Miniflare), make-vapid-keys (4) |
+| 4.2b **[Tier 3] (activation tooling)** | `activation-check.mjs --push` | `28d2ecc` | local: `activation-check-push.test.mjs` (35); `activation-check.test.mjs` and `activation-entries` unchanged and passing |
+| 4.2c **[Tier 3] (CSP)** | `worker-src 'self'`, `public/push-sw.js`, the pins (public-safety, public-alpha, the hosted smoke check and its test) | `f46b3eb` | local: public-safety.test.ts, alpha-deployment.test.mjs; CI |
+| 4.2d | `/api/push`, `lib/server/push-route.ts`, the shared session-cookie reader, `lib/push`, the Settings panel, the offer line, the reminder cards' refresh, the daily refresh, the device key | `7d8a3cb` | local: push-route (5), session-cookie (12, parity with the account route), `schedule.test.ts` (7), `support.test.ts` (4), `client.test.ts` (5); `tests/push-reminders.spec.ts` (4 tests, both projects: the build without push, signed out and Showcase, turn on → schedule → quiet hours → turn off, the iPhone tab and the locked account) |
+| 4.2e **[Tier 3] (auth/sync hooks)** | push data leaves with sign-out (this device), "Revoke other sessions" and deletion (the account) | `30c156b` | local: the account and sync unit suites unchanged in the full run below; CI's integration job on the PR |
+| 4.3 | The Guide: `lib/coach`, `components/coach`, Today's card, the review's paragraph, the Showcase | `50c02a4` | local: `guide.test.ts` (9, with the 14-day Showcase sequence), `copy.test.ts` (3), `store.test.ts` (3), `summary.test.ts` (2); `tests/guide.spec.ts` (5 tests, both projects: off by default, one note and "Not today", nothing written on view, the review's paragraph, the Showcase) |
+| 4.3b, 4.3c | Help, What's new, PUSH_ACTIVATION.md, the privacy, legal, cost and Stage 8 documents; the phone Settings list pin | `0c35122`, `50021a7` | |
+| merge | PR 3's gate fixes brought in | `1c32163` | |
+| 4.4 | Full gate, freeze check, CI, this entry | this commit | below |
+
+## Tier 3, in plain words
+1. **A new Worker** (`workers/push-reminders`), deployed separately by the owner, outside the six-Worker topology: it holds, per signed-in account, at most five devices' push addresses and keys, at most twenty reminder times with a zone and weekdays, quiet hours and counters; its alarm sends the one fixed encrypted message. Nothing runs until the owner activates it; rollback is deleting the Worker and its secrets.
+2. **Activation tooling:** `--push` checks the push template and the owner's private copy; `CONFIGS`, `--private`, `--admin` and `--source` are untouched and their tests pass unchanged.
+3. **The CSP** gains `worker-src 'self'` (a worker URL carries no nonce under `strict-dynamic`); the push-only service worker has no fetch handler, no cache and no storage, pinned by a test.
+4. **Auth/sync hooks:** one best-effort call ahead of sign-out, "Revoke other sessions" and deletion, made only on a device that holds a push record; the flows themselves are unchanged.
+
+## What the server never holds
+Times of day, an IANA zone, weekday masks, quiet hours, the browser's push address and its two keys, send marks and counters. Never a title, a count, a habit name or anything a person records. The payload is always the encrypted `{"v":1}`; the notification is always "A reminder from ZIGoals".
+
+## Today stays short on phones (owner addition 2)
+Measured at 390×844 as in PR 3 (`tests/today-screens.spec.ts`, printed by the spec on this branch's build):
+
+| Today | before PR 3 | with PR 3 | with PR 4 |
+|---|---|---|---|
+| Showcase (the Guide is on in the demo, its card is the one open "For you" card) | 10.13 screens | 11.02 | 11.07 |
+| seeded Local Demo with the "What's new" card (the Guide is off by default: no card) | 4.33 | 5.04 | 5.09 |
+| the same once "What's new" was dismissed | — | 4.74 | 4.74 |
+
+The Guide adds no card unless it is turned on; the one-time "What's new" card is two links longer (0.05 screens). The ceilings in the spec are unchanged (11.3 / 5.3 / 5.0).
+
+## Full gate (local, head `60c5128`)
+- `pnpm typecheck` (the app and the Workers config) and `pnpm lint`: clean.
+- `pnpm test` (root): 292 files passed, 15 skipped; 2,758 tests passed, 21 expected failures (PR 2's flips), 25 skipped. PR 4's share: 14 files, 125 tests (`push-webpush` 7, `push-clock` 20, `push-runtime` 9 in Miniflare, `activation-check-push` 35, `make-vapid-keys` 4, `session-cookie` 12, `push-route` 5, `schedule` 7, `support` 4, `client` 5, `guide` 9, `copy` 3, `store` 3, `summary` 2).
+- The branch's own specs on the production build, both projects: `push-reminders` and `guide` 18 passed; with `help-page`, `whats-new`, `phone-pages`, `today-screens`, `for-you`, `weekly-review` and `public-alpha`: 79 passed, 1 skipped, 80 tests in the nine files (after the three phone findings of `d314e26`; an earlier draft of this line said 92, which double-counted the re-run of the two fixed specs). On the tree merged with `main` after #70 (`a7b6078`): the same 79 passed and 1 skipped, unit 2,870 passed with the one expected failure (Z16), typecheck, lint and the build clean.
+- Full Playwright against the production build (`PUBLIC_ALPHA_UNDEPLOYED`, 2 workers, 42 min): 1,062 passed, 76 skipped, 6 failed: the four brand-film specs (H.264 is missing in this sandbox's Chromium; they pass in CI) and two 45 s timeouts under the full load, `run11-recovery-failures.spec.ts:22` (desktop, at the article after `page.reload`; the mobile twin is in the intermittents table) and `run9-2-product.spec.ts:30` (mobile, waiting for the contribution amount field in Quick add): alone, 6 of 6 (both tests on that line, three repeats) and 3 of 3 passed. Neither touches this PR's code; both passed on CI's run of this head.
+- CI's integration files that cover sign-out, account switching, lock, remember-device and the sync offer (the hooks of 4.2e), one at a time: with CI's environment and the production build on this branch: `account-browser` 2 passed, `account-switch-browser` 1, `stage8-rehearsal/lock-switch-browser` 1, `remember-device-browser` 2, `sync-offer-browser` 1 (every file alone; the full list runs in CI's integration job).
+- Today's screens: the table above.
+
+## CI
+- `60c5128`: Milestone quality [run 37173669889](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37173669889) green (checks, the three browser shards and the integration job, which runs the six-Worker activation checks and the Alpha package topology unchanged); Canonical reproducibility [run 37173669876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37173669876) green.
+- This commit: linked from the PR once green.
+
+## Freeze check (desktop and tablet, PR 3's build `54f0968` vs this branch at `60c5128`)
+154 captures (the same seven viewports, states and pages as PR 3's check), 0 page errors: 122 identical, 32 different, every one of them authorized: Settings in both states (the "Reminders when closed" and "Guide" chips, the panel and the Guide section), Help in both states (the two questions), Today in Showcase (the Guide card; the "What's new" card's two new links) and, at two viewports, the Quick add dialog capture only because the Today page behind the dialog carries those two links (the dialog itself is unchanged). The offer line under a reminder time appears only with a configured push route, so no freeze capture (every one answers 503) shows it; the browser spec covers it.
+
+## Authorized desktop and tablet differences (every one listed)
+- Settings: the chips "Reminders when closed" and "Guide"; the panel "Reminders on this phone, even when ZIGoals is closed." (its state line, the explanation of what the server gets, the quiet-hours form and the two buttons when available); the section "Guide on this device." with its switch.
+- Today (Showcase): the Guide's card in "For you"; the "What's new" card lists two more Help entries.
+- Health, Habits and Goals: the one-line offer under a reminder time field, only when the build has push and the device supports it.
+- The weekly review's last step: the Guide's paragraph while the Guide is on.
+- Help: the two questions "Can a reminder reach me when ZIGoals is closed?" and "What is the Guide, and what does it read?".
+
+## Open owner decisions
+- **Rule 5 ("push when closed, in-app when open"), ADR-010's reading:** the platforms do not allow a silent push (Safari revokes the permission; Edge shows a generic notification), so when the app is open the notification still shows and the app refreshes its reminder cards; never a second card or a second notification. Accept, or tell me what you prefer.
+- **Push-service hosts:** the four built-in hosts are verified on first-party pages; Chrome's non-Stable channels use `jmt17.google.com`, which is not built in (add it through `PUSH_ALLOWED_HOSTS` if a friend runs Chrome Beta).
+- **A service binding** from the app Worker to the push Worker (instead of its public address) would need an additive change to `make-private-configs.mjs`; a later owner decision.
+- **The Guide, phase 2:** the six questions at the end of ADR-011 ("Phase 2").
+- **This PR's base:** stacked on PR 3; after #70 merges I switch the base to `main` (nothing else to do for you).
+
+## What the owner must do
+- Merge order 1 → 2 → 3 → 4; after #70 merges I retarget this PR to `main`.
+- To activate push (optional, any time after this PR is live): docs/run11/PUSH_ACTIVATION.md, then Stage 8 row C5 (the iPhone), runsheet step 15b.
+- Nothing for the Guide: it is off until a person turns it on.
+
+## How the owner can review
+- Screenshots: branch `review/session-p-screenshots`, folder `pr4/` at `03824b6` (never merged), desktop 1280 px and iPhone 390 px: Today's Guide card (Showcase), Settings with the two new sections, the panel signed out / locked / off / on (a fixture account and a fixture push route, as in the spec), the offer line under a reminder time, Help's two questions.
+- Preview: `~/Documents/ZIGoals-Claude` → `git fetch origin` → `git checkout push-coach/session-p-2026-10-03` → `pnpm install --frozen-lockfile --ignore-scripts` → `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101` → http://127.0.0.1:3101/app → Settings → Load Showcase Demo (the Guide's card on Today; Settings → "Guide on this device" and "Reminders when closed", which says "Not available in this build" until push is activated).
+
+# Session P (PR 3) — friends-Alpha features: automatic check-ins, health goals, streak protection, the weekly review, a fasting timer, insight cards, CSV imports, export everything, the Quick-add line, "For you" and "What's new" (2026-10-04, [PR #70](https://github.com/reyals1111-ux/ZIGoals/pull/70))
+
+**Evidence labels**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the four brand-film specs fail here and pass in CI, as in every session since L).
+- **CI:** Milestone quality and Canonical reproducibility on the PR, read through the Actions API.
+- **git:** read the same day.
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added. Nothing here changes the sync wire protocol, a stored synced format, the six activation Workers, wallet or contract code.
+
+**Base:** `main` `d439dc9` (#65), then `main` merged twice with a merge commit (#67 at `760a751`, #69 at `8bcf0b7`). Branch `features/session-p-2026-10-03`, the third of Session P's four PRs (merge order 1 → 2 → 3 → 4); PR 4 (`push-coach/session-p-2026-10-03`) is stacked on this branch because its Guide card lives in the "For you" area below.
+
+## What the person gets (owner principles, as built)
+Ten features, each with its spec in `docs/product/features/<id>.md`, phone-first, in the design language, with unit tests and a Playwright spec on both projects; every new record is a versioned device key read by `getAppStorage()` (per account, the tab's session storage in Showcase), zod-validated, read-tolerant, written only by its own actions, listed as personal in `onboarding.ts`, exported by T4; its synced home exists read-only since PR 2 (SYNC_HOMES.md) and the write switch is a later, separate change.
+
+| Id | Feature | Where | Device key |
+|---|---|---|---|
+| H7 | Habits that tick themselves off from Health | the habit editor ("Done automatically from Health"), the card badge, Today/Habits/Health apply the rule once a day | `zigoals:habit-health-links:v1` |
+| G3 | Health goals | Goals page section "Health goals · on this device", Today's "For you" | `zigoals:health-goals:v1` |
+| H1 | Streak protection: planned skips, vacation, rest days | a habit's "History & reflection", "Vacation" on Habits; `skipped` days are neutral in `computeHabitStats` | (ordinary `skipped` entries, synced) |
+| G1 | Weekly review | Today's "For you" on the chosen day (Settings → "Weekly review day"); six steps, a sheet on phones | `zigoals:weekly-review:v1` |
+| HE6 | Fasting timer | Health page module (folded on phones), Today line while a fast runs; presets 12:12, 14:10, 16:8, custom ≤ 18 h, auto-stop at 24 h, the safety note always visible, no streaks or praise | `zigoals:fasting:v1` |
+| M3 | Insight cards | Today's "For you": pairings in counts, "How this is calculated", never causal | `zigoals:insights:v1` (dismissals) |
+| W3 | CSV import for transactions (Portfolio) and holdings (Wealth) | "Import transactions from a CSV", "+ Add asset → Import from a CSV file": mapping step, preview, confirm, one-tap undo | `zigoals:import-undo:v1` |
+| I1 | Nutrition CSV import | Health → "Import a nutrition CSV"; blank ≠ zero; no MyFitnessPal preset (its export page is UNVERIFIED: support.myfitnesspal.com answers 403 from this sandbox, 2026-10-03) | the same undo key |
+| T4 | Export everything | Settings → "Export everything": one stored ZIP (in-repo writer, CRC-32), `everything.json` plus nine CSVs | — |
+| A2 | The Quick-add line | the Quick add dialog on every page: "Type a line", a preview, nothing saved before Save; English grammar as a locale table | — |
+
+**Owner additions:** (2) Today's new cards share one "For you" area, one open on a phone and two elsewhere, the rest behind one "Show more" row; (3) clearly labelled fictional Showcase data for every feature (a Walk that ticks itself off, a health goal, a planned skip, a past review, a completed fast, two insight cards, an imported example meal with its undo note); (4) a one-time "What's new" card (device key `zigoals:whats-new:v1`, never during onboarding) linking the nine Help entries under Help → "What's new".
+
+## Parts
+| Part | What | Commits | Evidence (local unless stated) |
+|---|---|---|---|
+| merge | `main` #69 (Session R1) merged with a merge commit; `market-multi.test.ts` keeps both changes | `4b1a0f5` | the affected focused tests re-run |
+| 3.1 H7 | Habits that tick themselves off from Health: `lib/habit-health-links/` (schema, store, pure engine), the editor section, the card badge, one application per day on Today/Habits/Health, a manual tap always wins | `5991801` | `lib/habit-health-links/engine.test.ts`, `schema.test.ts`; `tests/auto-checkins.spec.ts` (desktop + phone) |
+| 3.3 H1 | Planned skips, vacation days, rest days: `skipped` days are neutral in `computeHabitStats` (an existing streak never breaks from the change), `planSkip`/`setVacation` mutators, calendar labels, no reminder on a skipped day | `f1c0fc7` | `lib/habit-skips.test.ts` (the eleven zones, Showcase and power-user fixtures), `lib/habit-card-render.test.ts`; `tests/habit-skips.spec.ts` |
+| 3.2 G3 | Health goals counted from the Health journal: weight trend (30-day method shown), steps, water days, exercise, active minutes; "No data yet" when unknown; no suggested targets | `f8315ef` | `lib/health-goals/progress.test.ts`, `schema.test.ts`; `tests/health-goals.spec.ts` |
+| 3.5 HE6 | The fasting timer: presets, custom ≤ 18 h, auto-stop at 24 h, history (last 20), optional linked duration habit, the safety note | `9c94cdf` | `lib/fasting/engine.test.ts` (clock edges, zones, auto-stop); `tests/fasting.spec.ts` |
+| 3.4 G1 | The weekly review: the chosen day, six steps with the week's own numbers, reflections device-only, one card, dismiss once per week | `deca1f1`, `d684f75` | `lib/weekly-review/engine.test.ts`; `tests/weekly-review.spec.ts` |
+| 3.6 M3 | Insight cards in counts: pairings over the last 60 days, minimum samples, "How this is calculated", dismiss per card | `65954f5` | `lib/insights/engine.test.ts` (thresholds, wording, no card below the minimum); `tests/insights.spec.ts` |
+| additions 2 + 4 | The "For you" area (at most two cards, one on a phone, "Show more") and the one-time "What's new" card; Today's phone screen count measured | `490ba0a` | `tests/for-you.spec.ts`, `tests/whats-new.spec.ts`, `tests/today-screens.spec.ts` |
+| 3.7 W3, 3.8 I1 | CSV imports: `lib/csv/` parser (RFC 4180 style, `,` `;` tab, quotes, BOM, 2 MB cap), holdings and transactions with a mapping step, preview, confirm and undo; nutrition rows with blank ≠ zero; nothing uploaded | `2fb01a4` | `lib/csv/csv.test.ts`, `lib/import/holdings.test.ts`, `nutrition.test.ts`, `sync-ordinary.test.ts`; `tests/holdings-import.spec.ts`, `tests/nutrition-import.spec.ts` (no request leaves the page) |
+| 3.9 T4 | Export everything: a stored ZIP written in-repo (CRC-32, no dependency), `everything.json` plus nine CSVs, optional | `f76be75` | `lib/export/zip.test.ts` (round trip through an independent reader), `everything.test.ts`; `tests/export-everything.spec.ts` |
+| 3.10 A2 | The Quick-add line: `lib/quick-add/` with the English grammar as a locale table, always a preview, nothing saved before Save | `1be9d57` | `lib/quick-add/parse.test.ts` (the phrase table, unknowns included), `save.test.ts`; `tests/quick-add-line.spec.ts` |
+| 3.11 | Help's nine entries and "What's new", the Showcase fixtures, the device keys in `onboarding.ts`, Stage 8 row B13, the friends guide, the feature specs' sync follow-ups | `67aae42` | `tests/help-page.spec.ts`; CI on `d684f75` (checks and integration green; the nine browser findings below) |
+| 3.12a | The full gate's nine findings, each at its cause (the commit message lists them) | `54f0968` | the full gate below; CI on `54f0968` |
+| 3.12b | This entry | this commit | CI on this commit is linked from the PR |
+
+## Today stays short on phones (owner addition 2)
+Measured at 390×844 (iPhone 13 descriptor, reduced motion, every network call answered 503), as scrollHeight / 844, `tests/today-screens.spec.ts`:
+
+| Today | before PR 3 (`main` with PR 1) | with PR 3 |
+|---|---|---|
+| Showcase | 10.13 screens | 11.02 |
+| seeded Local Demo (the Showcase records, onboarded), with the "What's new" card | 4.33 | 5.04 |
+| the same once "What's new" was dismissed | — | 4.74 |
+
+One "For you" card is open on a phone; the spec keeps ceilings of 11.3 / 5.3 / 5.0 so later growth fails there.
+
+## Full gate (local, head `54f0968` plus the one spec change in this commit)
+- `pnpm typecheck` and `pnpm lint`: clean.
+- `pnpm test` (root): 278 files passed, 15 skipped; 2,632 tests passed, 21 expected failures (the timezone and lost-ack flips belong to PR 2), 25 skipped.
+- Full Playwright against the production build (`PUBLIC_ALPHA_UNDEPLOYED`, 2 workers, 40 min): 1,045 passed, 76 skipped, 5 failed: the four brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects; H.264 is missing in this sandbox's Chromium, they pass in CI) and once `run10-widgets.spec.ts:20` (mobile): Playwright clicked the "Balanced" radio in "Choose your Today layout" and read it unchanged; alone it passed 9 of 9 runs (4 + 5). The dialog's code is unchanged in this PR; the one-off is recorded in the intermittents table below.
+- The touched specs after the nine fixes of `54f0968`: 166 passed (both projects).
+- Today's screens (owner addition 2): the table above.
+
+## CI
+- `d684f75`: Milestone quality [run 37164559919](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37164559919) failed the browser suite with the same nine findings the local gate found (checks and integration green); fixed in `54f0968`. Canonical reproducibility [run 37164559917](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37164559917) green.
+- `54f0968`: Canonical reproducibility [run 37169747353](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37169747353) green. Milestone quality [run 37169747347](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37169747347): checks and integration green; the browser suite (shard 2/3) failed one test, `run9-2-life.spec.ts:95` (desktop, "Life functional text stays readable at 320 pixels"): `locator('.habits-workspace')` resolved to two elements right after `page.goto('/app/habits')`, one hidden. The trace shows why: the Habits page is the one page whose Suspense boundary resolves after the shell on the server (`useSearchParams`), so its workspace streams as a hidden `S:0` chunk; React 19.2 reveals streamed boundaries in batches (`$RC` queues the reveal for a frame or up to 300 ms), and on the slow runner the client rendered the boundary first, so for that moment the visible root and the server's hidden copy coexisted; the reveal then removed the copy. The same chunk exists on `main` (checked on PR 1's build: 1,035 bytes there, 1,130 here), it never reproduced here (12 probes, 3 of 3 runs of the spec), and role-based locators are immune (a `hidden` subtree is outside the accessibility tree). This commit makes the spec wait for exactly one root before the visibility check (a stronger assertion, nothing weakened).
+- This commit: linked from the PR once green.
+
+## Freeze check (desktop and tablet, `main` `d439dc9` build vs this branch at `54f0968`)
+154 captures (1440×900, 1280×800, 1024×768, 820×1180 with and without touch, 1180×820 touch; Showcase and empty; Today, Goals, Habits, Health, Portfolio, Settings, Help and the two dialogs), 0 page errors: 72 identical, 82 different, every one of them on an authorized page (the list below): Today (Showcase only: "For you" and "What's new"), Goals, Habits, Health, Portfolio, Settings and Help in both states, the Add asset and Quick add dialogs. Nothing else changed; the Showcase Health figures moved from 1,964 to 1,976 kcal because of the fictional imported meals.
+
+## Authorized desktop and tablet differences (every one listed)
+- Today: the "For you" area (its fold row on every size), the "What's new" card.
+- Goals: the "Health goals · on this device" section.
+- Habits: the "Vacation" button; the editor's "Done automatically from Health" section and the skip controls in "History & reflection"; the "Done automatically" badge.
+- Health: the fasting module (a sixth layout item), "Import a nutrition CSV", the import banner.
+- Portfolio and Wealth: the import buttons and panels.
+- Settings: "Weekly review day", "Export everything".
+- The Quick add dialog: the "Type a line" form.
+- Help: the "What's new" topic and section; the install-help mailto carries this build's commit, as in every session.
+
+## Tier 3
+None in this PR. The sync wire protocol, stored synced formats, the six activation Workers, wallet and contract code are untouched.
+
+## What the owner must do
+- Merge PR 1 (#66), PR 2 (#68), then this PR, then PR 4; after each merge I bring `main` into the next branch with a merge commit.
+- Stage 8 row B13 (two devices) on a build that includes this PR; runsheet step 15.
+- Decide the write switches for the device-only records (SYNC_HOMES.md), a later session.
+# Session P (PR 2) — [Tier 3] sync: ADR-006 option A2, timezone phase 3 (R1) and the read-only sync homes (2026-10-03, [PR #68](https://github.com/reyals1111-ux/ZIGoals/pull/68))
+
+**Evidence labels**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the intro-video specs fail here and pass in CI, as in every session since L), Miniflare for the Workers.
+- **CI:** Milestone quality and Canonical reproducibility on the PR, read through the Actions API.
+- **git:** read the same day.
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added. The sync wire protocol and the private sync Worker are unchanged; the six activation Workers are untouched.
+
+**Base:** `main` `d439dc9` (#65, Alpha deploy #25 live from `3f116e9`). Branch `sync/session-p-2026-10-03`, the second of Session P's four PRs (merge order 1 → 2 → 3 → 4). It takes `main` back in with a merge commit once PR 1 (#66) is merged; the one overlap is `apps/web/lib/goal-summary.ts:61` (PR 1 moved the plan day to `planDay(now)`, this PR to `planDay(now, planZone(g))`; the merge keeps this PR's line).
+
+## Parts
+
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 2.1 **[Tier 3] (auth/sync)** | **ADR-006 option A2.** The head (catalog) write stores a companion confirmation record in the sync journal's own object store (key `<account>:confirm`, same IndexedDB transaction as the pending write; older builds read `get(account)` only and ignore it): the head it expects and the digests of the sections it publishes unchanged. When a lost acknowledgement is replayed and the cloud answers that it applied, the base advances to the bytes the cloud now holds, only when the cloud's head is the one the confirmation names and every listed section hashes to its recorded digest, in the one journal write that also clears pending. A section that merged another device's edits is never listed and never advances; anything else leaves the base as it was. A `RevisionConflict`, an acknowledged write and every recovery path clear the confirmation. | `e12c1f7` | local: `scripts/run11/sync-lost-ack.test.ts` (X1–X3 plain, 8 A2 cases: merged section never advances, stale confirmation ignored, head changed since, crash and reopen, old-reads-new, …, 5 guards unchanged), `sync-lost-ack-runtime.test.mjs` (X4 plain, crash variant), `cloud-sync.test.ts`, `zod-jitless.test.ts` with the schema: 45 tests in 6 files; the browser rehearsal below |
+| 2.1 **[Tier 3] (workflow)** | `scripts/run11/sync-lost-ack-browser.test.mjs` joins CI's integration list, after sync-self-conflict. | `5f7a863` | CI on `5f7a863`: Milestone quality [run 37147866055](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37147866055) and Canonical reproducibility [run 37147866025](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37147866025), both green (the integration job ran the new file) |
+| 2.2 **[Tier 3] (stored formats, read support)** | **Timezone phase 3 (R1) and the read-only sync homes.** See "Stored formats" below. | `5b91f72` | local: `read-support.test.ts` (31 tests), `time-zone-schema.test.ts` (23), Z1–Z15 flipped (goal-intelligence and plan-revisions timezone suites), the parity suites unchanged (`funding-day-parity`, `funding-day-edges` digests), the old build's proof (below); CI on `5b91f72`: Milestone quality [run 37154297782](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37154297782) failed on exactly the six fixtures that still named the now-readable versions (unit: habits-beta, run9-1; browser: honesty-banners on both projects, storage-errors on both), fixed by `357cf16`; Canonical reproducibility [run 37154297728](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37154297728) green |
+| 2.2 | Four test fixtures that stood for "a version this build does not know" move up one version (habits-beta, run9-1, honesty-banners, storage-errors); caught by CI on `5b91f72`. | `357cf16` | CI on `357cf16`: Milestone quality [run 37155969148](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37155969148) and Canonical reproducibility [run 37155969146](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37155969146), both green |
+| 2.3 | Full gate, freeze check, CI, this entry. | this commit | "Full gate" and "Freeze check" below; CI on this commit is linked from the PR |
+
+## The lost acknowledgement, in the browser
+`scripts/run11/sync-lost-ack-browser.test.mjs` (Miniflare private Worker, real Chrome profile): sign in, create a vault, a first Goal synced; a second Goal whose final (head) write the cloud applies while the page's response is dropped; a third Goal; then "Sync now" with no review prompt, and a second phone-sized device sees all three. Variants: the same page, a reload before the sync, closing and reopening the page in the same profile.
+- Sensitivity: on the build before this PR (PR 1's production build on port 3100, no A2) all three variants fail with "Conflicting financial changes"; on this branch's build all three pass (local).
+
+## Repeat runs (local, sequential, one suite at a time, against this branch's production build)
+| Suite | Runs | Result |
+|---|---|---|
+| sync-lost-ack-browser (3 variants per run) | 20 | **20 of 20** (3 variants each) |
+| account-browser, a-first | 30 | **30 of 30** |
+| account-browser, b-first | 30 | **30 of 30** |
+| sync-inflight-edit-browser | 30 | **28 of 30**: runs 17 and 23, the known "Sync was not confirmed" intermittent (below) |
+| sync-self-conflict-browser | 30 | **29 of 30**: run 21, the same intermittent seen from the other side (below) |
+| stage8-rehearsal/replay-browser (the lost-ack rehearsals) | 30 | **30 of 30** |
+
+**The three failures, investigated.** All three are one signature, the intermittents table's `sync-inflight-edit-browser` "Sync was not confirmed" row (seen twice in CI on #39's merge; "Monitor", with the #42 request log on `main`). This is the first time that log caught it: in both inflight failures (runs 17 and 23) the Miniflare Worker answered the held head write `POST /v1/vault` with 200 after the harness released it (874 and 903 ms), and the in-process relay (`privateAccountRequest`, running inside Vitest) answered the page 400 `REQUEST_FAILED` 2–6 ms later, so the page paused with "Sync was not confirmed. Local records were preserved." The self-conflict failure (run 21) is the same hold pattern seen from the page: neither the success text nor a conflict alert appeared within 30 s after the held upload, which is what that 400 produces there (its harness has no request log). What was done: 60 further runs of the inflight test with the relay's caught error logged (a throwaway patch, never committed): 30 on this branch's build and 30 on PR 1's build (no A2) as a control, all 60 passed and the relay never threw, so the exception could not be named; a 120-iteration probe that holds a Miniflare response unread for 0.3–2.5 s and then reads it as the relay does, which completed without a failed read (the console summary was swallowed by the Vitest reporter; the test's count assertion held). Conclusion: a low-rate intermittent of the test harness's hold-and-release path, present before this PR; not a sync-engine fault (the relay's failure happens after the Worker has applied the write, and the page's pause is the correct response to a 400). It stays a "Monitor" row with this evidence added; the next capture should log the relay's caught error, which the two patched runs here would have shown.
+
+## Stored formats (part 2.2)
+Read support ahead of the writers (TIMEZONE_DESIGN.md, "Versioning and migration"; SYNC_HOMES.md):
+- **finance v4:** a plan may carry its IANA zone (`plan.timeZone`; `timeZoneSchema` refuses fixed offsets) and `healthGoals`; funding, plan and revision days are counted in the plan's zone, UTC when absent, which is every plan until R2 writes one. **settings v2:** `journalTimeZone`, `weeklyReview`. **habits v3:** `habits[].healthLink`, `entries[].source`. **health v2:** `fasting.sessions`.
+- Nothing writes the new versions: every empty record and every edit keeps today's version (finance 3, habits 2, health 1, settings 1). A record carries only the fields its version knows (`financeVersion`, `needsHabitsV3`, strict v1 schemas), so an older build is refused by the version literal alone: locally "Private data is invalid or uses an unsupported version. Original data was preserved.", bytes kept; an import of a newer export refused before anything is touched; a sync that pulls a newer section fails validation before any upload, cloud and local unchanged. On this build that is the plain message "This section was saved by a newer ZIGoals. Update the app on this device to keep syncing."
+- Proofs (local): `apps/web/lib/vault/read-support.test.ts` (new reads old byte-identical through the module schemas, today's readers and `readPrivateStore`; new reads new; the version rule; old reads new through `readPrivateStore`, `importPrivateStore` and `synchronize` with an older validator; the sync message; mixed devices: an R1 device pulls a v4 section and never writes it back as v3, an older build refuses it with nothing uploaded, this build refuses a v5 section with the plain message). Old build's proof (local, throwaway test never committed): the eight records this build normalizes (`format-fixtures.ts`, written to files) were parsed by `main` `d439dc9`'s own schemas in the main worktree: the four records at today's versions parse byte-identical there, and the four at the next versions are refused by `readPrivateStore` with "Private data is invalid or uses an unsupported version. Original data was preserved." with the bytes kept (8 of 8).
+- **Timezone:** Z1–Z15 are plain tests (Z13 on both devices); guards G1–G3 updated; Z16 waits for phase 4. Expected failures in plain `pnpm test`: 21 → 1. Parity: `funding-day-parity` and `funding-day-edges` digests unchanged (UTC data).
+- **The T4 clock starts at the Alpha deploy that includes this PR.** Phase 4 (R2, the writers and the UI) preconditions: that deploy live; at least one further Alpha deploy **and** at least seven days after it; Stage 8 sync rows run on a build that includes this PR; no "newer ZIGoals" refusals reported; the Manual Alpha rollback target at or after this PR. The same gap covers the write switch of PR 3's device-only records to their synced homes (SYNC_HOMES.md, "The write switch").
+
+## Full gate (local) and CI
+All on this branch at `357cf16` (the tree this entry joins), local, one suite at a time, never two in parallel, 2026-10-03 21:41–22:44 UTC:
+
+| Check | Result |
+|---|---|
+| `pnpm lint`, `pnpm typecheck` | clean before every push (and on `357cf16`) |
+| `pnpm test` | 259 files passed, 16 skipped; **2,445 passed, 1 expected failure (Z16), 27 skipped** (SKIPPED_TESTS.md carries the measured counts) |
+| Production build, `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED` | built; served on port 3110 for everything below |
+| Full Playwright, both projects, `--workers=2` | **984 passed, 76 skipped, 4 failed in 38.1 min.** The 4 are `logo-quickadd-goals-header.spec.ts:53` and `:79` on both projects: the brand-film specs, which need H.264 that the Chromium stand-in cannot decode; they pass in CI, as in every session since L |
+| CI's integration command, one file at a time (`RUN10_BROWSER=1 RUN11_MARKET_BROWSER=1 RUN11_GOAL_SOURCE=1`, review and goal origins on the branch build) | **all 16 files passed:** account-browser 2, account-switch 1, sync-self-conflict 1, **sync-lost-ack 3** (the new file), sync-inflight-edit 4, health-consent-verification 1, health-consent-a11y 2, market 1, packaged-runtime 1 (+1 skipped, as always), sign-in-codes 1, lock-switch 1, health-consent-cloud 1, replay 2, camera 2, sync-offer 1, remember-device 2 |
+| CI on every pushed head | `e12c1f7`, `5f7a863`, `357cf16` green (links in the parts table); `5b91f72` red on the fixtures that `357cf16` fixed. The run on this entry's commit is linked from the PR |
+
+## Freeze check
+`scripts/desktop-freeze-check.mjs`, 154 captures of `main` `d439dc9` (its production build, port 3102) against this branch (port 3110), local: **141 identical.** 12 are the Help page at every size and state, whose feedback link carries the build's commit (`d439dc9` → `357cf16`); their pixels are identical (the same 12 captures as PR 1's check). The 13th, `1024x768__showcase__dialog-add-asset`, differed by 32 pixels in a 2 × 68 px strip on the left edge of the pressed "Crypto" tab's glass border; captured again on both builds (`--only`), it is identical, so it was a one-off rendering jitter of that border, not a change.
+
+No desktop difference is authorized for this PR and none exists. Outside `apps/web/lib/`, tests, scripts and docs, the branch touches three component files with no rendering in them: `use-habits.ts` keeps a record's own `schemaVersion` when it builds a one-habit draft (so a habits v3 record is never rewritten as v2 by an edit), `habit-card.tsx` passes that version through its store type, and `use-valuation-history.ts` treats finance v4 like v3 for the "persisted at v2 or later" check.
+
+## Tier 3, in plain words
+1. **(auth/sync)** the sync journal keeps a small companion note during the final upload so a lost acknowledgement no longer looks like a conflict (`e12c1f7`). Risk: the base advances only to bytes the cloud provably holds that this device published unchanged; older builds ignore the note. Rollback: revert; leftover notes are ignored.
+2. **(workflow)** one line in CI's integration list (`5f7a863`).
+3. **(stored formats, read support)** the app reads four newer record versions it does not yet write (`5b91f72`). Risk: a v3/v2/v1 record never changes bytes; a record at a new version (none exists yet) is unreadable on builds before this one, which fail closed and keep the bytes. Rollback: revert; never roll back past this build once any writer (R2) has been live.
+
+## What the owner must do
+- Merge PR 1, then this PR (merge commits only), then deploy from `main` through the Manual Alpha workflow. **The Stage 8 sync rows (B2, B4–B6, B12 and the lost-ack step 12b of the runsheet) must run on a build that includes this PR.**
+- Note the deploy date: it starts the T4 clock for timezone phase 4 and the sync-home write switches.
+- Nothing to activate: no new Worker, secret or variable.
+
+# Session P (PR 1) — fixes and reliability: deploy #25 recorded, mainnet azig/18, brand asset names, three intermittent tests, the invite-only message, CI without the slow mirror, the landing hero (2026-10-03, [PR #66](https://github.com/reyals1111-ux/ZIGoals/pull/66))
+
+**Evidence labels**
+- **source:** an official page read on 2026-10-03 (UTC), linked with its access date where it is used.
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, Playwright 1.63 with at most 2 workers, Chromium 141 standing in for Chrome (the intro-video specs fail here and pass in CI, as in every session since L).
+- **CI:** Milestone quality on the PR, read through the Actions API.
+- **Actions API** / **git:** read the same day.
+
+No account, login, secret, wallet, deploy or provider dashboard was used. No dependency was added. The landing was changed (part 1.7) but not deployed: it deploys only by hand.
+
+**Base:** `main` `d439dc9` (#65, Alpha deploy #25 live from `3f116e9`). Branch `fix/session-p-2026-10-03`, the first of Session P's four PRs (merge order 1 → 2 → 3 → 4; the other three branches start from the same base and take `main` back in with a merge commit when this one is merged).
+
+## Parts
+
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 1.0 | Alpha deploy #25 recorded (its own entry below, newest-first); Release identity moved to #25 live, #24 previous. #24 stays as Session O wrote it. | `35c45fc` | Actions API: run 37133884824, source `3f116e9`, versions `aa6119b7-…` / rollback `aeae3829-…`, `VERIFIED`; CI #412 on the source |
+| 1.1 **[Tier 3] (chain reads)** | **Mainnet reads azig/18.** Both official LCDs answer the native unit as `azig` with 18 decimals since the v5 redenomination (mainnet height 12549000, 2026-09-30); the mainnet reader was still configured `uzig`/6, so every mainnet watch-only read failed closed on the denomination check. `READ_NETWORKS.MAINNET_READ_ONLY` is azig/18; the evidence check (chain id, bond denom, bank metadata base and display exponent) is a named function that runs before any balance request, so a refused read stores nothing; the ZIG price matches both evidenced mainnet units (azig/18 and the legacy uzig/6 of records saved before the upgrade), never a mixed unit and never the testnet; allocated native principal accepts both; the first azig observation of a record saved as uzig rescales that record's allocations and plain snapshots once (10¹², BigInt), so Goal progress keeps its ZIG amount. No schema version changes. | `40f6eb4` | source: `api.zigchain.com` bank metadata and staking params, `docs.zigchain.com` redenomination page, in `docs/earn/EVIDENCE_2026-10.md` (F03) and the ADR-004 addendum. local: `mainnet-denomination.test.ts` (both networks, staking, goal valuations, Wealth rows, quote matrix, refused read stores nothing, the one-time rescale), fixtures in six suites moved to azig/18, a regression test that the uzig/6 assumption fails closed against the live metadata without reading a balance; 129 unit tests in the nine touched files; 70 browser tests on the Positions, Staking, Wealth and Goals paths |
+| 1.2 | **Brand asset names.** The 17 `@2x.webp` marks, words and figures are `-2x.webp` (same bytes): Workers Assets answers a path with `@` with a 307 to its `%40` spelling, one extra round trip per high-density screen. Sidebar srcsets, comments and `docs/brand/ASSETS_2026-10-01.md` follow. | `37ca600` | local: `lib/brand-assets.test.ts` (no file under `public/brand` carries a character Workers Assets would re-spell; every 1x file has its -2x twin), `tests/brand-assets.spec.ts` (every mark, word and figure answers 200 `image/webp` at 1x and 2x with no redirect; the old names are gone), page-marks and brand-nav-polish: 21 passed |
+| 1.3 | **Three intermittent tests, root causes.** See "Intermittent tests" below. | `67fa146` | local: 280 of 280 repeat runs (details below); CI: the touched specs green on every later run |
+| 1.4 | **The invite-only message.** With sign-ups closed, Supabase Auth refuses a code for an address that is not on the invite list with 422 `otp_disabled` ("Signups not allowed for otp"). The relay answers 403 `INVITE_ONLY` with "ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app."; `signup_disabled` the same; `email_provider_disabled` a plain "Signing in by email isn't available right now. Try again later."; every other refusal and every rejected code keeps the usual answer. The panel shows exactly those two messages from the relay and never any other server text. Help gets the question "I asked for a code and ZIGoals said it's invite-only"; FRIENDS_GUIDE one line. | `72df238` | source: `github.com/supabase/auth`, `internal/api/otp.go` and `internal/api/apierrors` (read 2026-10-03): the header `x-sb-error-code` and the two body shapes (legacy `error_code`, which this relay receives because it sends no `X-Supabase-Api-Version`; `code` from API version 2024-01-01). local: the exact refusals as fixtures (both shapes, the header alone, `signup_disabled`, `email_provider_disabled`, six refusals that must stay `AUTH_FAILED`, the 429 path, a rejected code naming `otp_disabled`), the panel wording in `lib/account-access.test.ts`, `tests/invite-only.spec.ts` on desktop and phones |
+| 1.5 | **`goal-summary.ts`:** `privateGoalSummary` takes the plan's day from `planDay` (plan-revisions, zone UTC) instead of an ISO-string slice. | `7d7c009` | local: funding-day-parity and funding-day-edges digests unchanged (25 tests in the five related files) |
+| 1.6 **[Tier 3] (workflow)** | **CI without the slow mirror.** `scripts/ci/chrome-deps.sh` keeps the runner's Chrome (the ubuntu-24.04 image ships Google Chrome stable at Playwright's chrome channel path), installs the channel only without one, installs Playwright's ffmpeg (video recording), and asks apt only for the Chrome packages dpkg reports missing, without recommends; `install-chrome.sh` wraps it unchanged (retries, lock wait, the 12-min cap); step names and job limits unchanged. The 21 MB of fonts for scripts no spec renders are gone. | `c4aac31`, `7ccbfac` | local: `chrome-deps.test.mjs` with fakes (6 cases) and `install-chrome.test.mjs` unchanged. CI: the install step 27, 28, 34 and 31 s before (`main` `d439dc9`, run 37134414136) → 0–3 s after (run 37141271117: "Using the runner's Chrome at /opt/google/chrome/chrome: Google Chrome 154.0.8037.57 (no download)", "All 22 Chrome packages are installed; apt not needed"); the first run without ffmpeg failed the video-recording spec (run 37141593543), fixed in `7ccbfac` |
+| 1.6b | **`food-queue.test.mjs` ordering race** (seen once on this PR's CI, run 37141593543, unit job: "expected 200 to be 429"): the lookups were sent 100 ms apart and relied on arriving in that order; on a busy runner the Worker's cold start outlasts the pause. Each case now sends the next lookup only once the slot is observably taken, and the case where two lookups race for the single waiting place asserts the pair. Test only; the Worker is unchanged; no assertion relaxed. | `f2224dc` | local: 3 files, 22 tests green |
+| 1.7 | **Landing hero on phones.** The preload carries `fetchpriority="high"`; the hero file is re-encoded at WebP quality 85 (libwebp through sharp 0.35.4, the workspace's own copy): 65,538 → 54,908 B, PSNR 39.2 dB against the previous file, same 422 × 480 px. No width variants (the master is 422 px wide; every 2× or 3× phone needs more than that for the 280 CSS px the mark is drawn at, so a smaller candidate would serve 1× screens only and cost them a second download next to the header logo, which shares the file). `_headers` and `.assetsignore` untouched. | `ef6b81a` | local, `LANDING_PERF=1`, one worker, 8 phone runs each: before 2,376–2,584 ms (1 of 8 over the 2,500 ms budget, the mark as LCP); preload priority alone 2,384–2,496; both changes 2,348–2,432 with the mark painted in the first frame every time; desktop 236–304 ms. `landing-v5-security` (hashes), the weight budget (first view 240,517 B), `check:landing` (274 entries) and `check:deploy-configs` pass. `docs/verification/landing-v5/README.md` addendum; crops on the review branch |
+| 1.8 | This entry, the Known CI intermittents table, the gate below. | this commit | — |
+
+## Intermittent tests (part 1.3)
+
+- **`logo-fold.spec.ts:107` "fails to load":** the test allowed 1.4 s for the routed 404 while the clip's own fallback is 1.5 s, measured from a poll rather than from the clip, so under load the two windows no longer overlapped. The clip now records why it left (`data-intro-end` on the static Z: `ended`, `error`, `timeout`, `blocked`, `resize`, `motion`, `pagehide`, `detached`) and the tests assert that cause. Reading it showed a second thing: a Chromium without H.264 (the sandbox's) skips the MP4 source for its type without an error event, so the clip only ever left on the 1.5 s fallback here, while real Chrome got the MP4 404. The clip now ends at once when a source fails and the browser has no candidate left (`networkState === NETWORK_NO_SOURCE`), in both. When the test runner delivers the 404 only after the fallback (measured in page time), the scenario is repeated on a fresh page, at most three times, as `market-fanout` does; no assertion is relaxed. The "plays once" test also asserts the clip left because it ended, and the reduced-motion tests assert the shell's recorded reason. **160 of 160** repeat runs (4 variants × 2 projects × 20).
+- **`install-guide.spec.ts:49`** (once in CI, run 37070729686, mobile): the intro wrote its once-per-session flag between the two storage snapshots under reduced motion. The shell now records its decision (`data-logo-intro` on `<html>`: `playing`, or the reason it declined), both snapshots wait for that decision instead of trusting the load event, and the session flag is set up front so a media emulation the browser applies late still finds it played. `help-page.spec.ts:65` makes the same comparison and gets the same treatment. **40 of 40** each.
+- **`habit-paint-first.spec.ts:36`:** no CI record of a failure in the last 120 runs (Actions API, all failed runs' logs read) and 160 of 160 local runs green before any change. The observer is hardened anyway: it watches the document and finds the card's own completion button by its label on every mutation, so a re-rendered card or another `aria-pressed` button can neither hide the paint nor stand in for it. **40 of 40** after the change.
+
+## Tier 3 commits and risk (plain words)
+
+- `40f6eb4` (chain reads): mainnet watch-only reads work again. A wrong decimal would mis-scale a mainnet balance by 10¹², which the fixture tests on both networks rule out. Rollback: revert; nothing stored needs undoing.
+- `c4aac31` and `7ccbfac` (workflow): CI installs no Chrome and no fonts from the Ubuntu mirror. A runner image without Chrome falls back to the same download as before; a missing library would surface as a Chrome launch failure in the first spec, not as a silent skip. Rollback: revert both.
+
+Not touched: wallet, signing, contracts, keys, the six activation Workers, the sync wire protocol, `AGENTS.md`.
+
+## Known CI intermittents (table below updated)
+
+- **Chrome-install apt/dpkg lock:** the mirror is no longer used in the usual case (1.6); the row's state is updated.
+- **`install-guide.spec.ts:49`** and **`logo-fold.spec.ts:107`:** new rows, fixed (1.3).
+- **`food-queue.test.mjs:39`:** new row, fixed (1.6b).
+
+## Decisions made without the owner, and deviations
+
+- **1.1:** no migration and no rewrite of stored records (plan decision P1): legacy uzig/6 records stay valid and are rescaled once by the first azig observation; proven by tests.
+- **1.2:** the suffix is `-2x`.
+- **1.3:** two additive data attributes in the app (`data-intro-end` on the static Z, `data-logo-intro` on `<html>`) so tests assert causes; the clip also leaves at once when the browser skips its last source, which real Chrome never showed and the sandbox always did.
+- **1.6:** no `actions/cache` (a new Action needs the owner's approval; it is the alternative if the runner image ever stops shipping Chrome). Fonts beyond `fonts-liberation` are not installed: the specs assert DOM text and geometry, not glyphs, and the visual freeze check runs locally.
+- **1.7:** no width variants (see the part); the re-encoded file is a visual change the owner may reject (below).
+- **Scope:** `food-queue.test.mjs` was not in the brief; it failed once on this PR's CI and the rule is "anything else: investigate", so its ordering race is fixed as a test-only change.
+
+## Gate
+
+| Check | Where | Result |
+|---|---|---|
+| `pnpm lint`, `pnpm typecheck` | local, every part before its push | clean |
+| `pnpm test` (whole unit suite) | local, final head | 260 files, 2,383 passed, 21 expected failures and 24 skipped, as on `main` (the expected failures are Session N's timezone and ADR-006 suites) |
+| Production build + full Playwright, 2 workers | local, final head | 987 passed, 77 skipped, 4 failed: the intro-video specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this sandbox's Chromium cannot play and CI passes, as in every session since L |
+| Desktop freeze check, 154 captures, `main` `d439dc9` vs this branch | local | 142 of 154 captures identical, 0 page errors; the 12 Help captures (6 sizes × Showcase and empty) differ only by the new question: the accessibility diff shows the one added group and the page is 49 px taller. That is the one authorized desktop difference; the renamed brand assets changed no pixel |
+| `check:landing`, `check:deploy-configs`, `LANDING_PERF=1` ×8 | local | pass; numbers in part 1.7 |
+| CI on the final head | [Milestone quality run 37143019515](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37143019515) on `ef6b81a`, every file of this PR but this entry; the run on the final head is linked from the PR | success on attempt 1 (the earlier runs: 35c45fc and 37ca600 green; 67fa146 red on the two CI follow-ups fixed in 7ccbfac and f2224dc; the others cancelled by the next push) |
+
+## Owner decisions
+
+1. **The hero file (1.7):** keep the quality-85 re-encode (16% lighter, all 8 phone runs under budget) or revert to the previous file (one revert of `ef6b81a`'s image, keeping the preload change). The crops are on the review branch.
+2. **`actions/cache`** stays a later follow-up (not needed now that the mirror is out of the usual path).
+
+## Follow-ups (not done here)
+
+- The landing deploy (1.7) is the owner's, by hand (`docs/deployment/LANDING.md`).
+- PR 2 (`sync/session-p-2026-10-03`), PR 3 (`features/…`) and PR 4 (`push-coach/…`) follow; each takes `main` back in with a merge commit when this PR is merged.
+
+## How the owner can review
+
+- Screenshots: branch `review/session-p-screenshots`, folder `pr1/` (never merged): Help's new question, the invite-only panel from the route fixture, the landing hero at 1440 and 390 px, the hero file before and after with a 3× crop.
+- Preview: `~/Documents/ZIGoals-Claude` → `git fetch origin` → `git checkout fix/session-p-2026-10-03` → `pnpm install --frozen-lockfile --ignore-scripts` → `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101` → http://127.0.0.1:3101/app → Settings → Load Showcase Demo. Help → "I asked for a code…"; Settings → the account panel (the real relay answers invite-only only with a closed sign-up list).
+
+# Alpha deploy #25 — 2026-10-03 afternoon, `3f116e9` live
+
+Recorded by Session P at the owner's request (2026-10-03).
+
+Evidence labels:
+- **CI log:** the deploy job of the run below, read through the Actions API by the Session P cloud session on 2026-10-03. It covers the step "Recheck main and rollback, deploy only Alpha, verify rollout and HTTP security" and the run summary written by `scripts/alpha-deploy.mjs summary`.
+- **Actions API** / **git:** read at the same time.
+- **Owner:** reported by the owner in the Session P brief, 2026-10-03.
+
+- **Run:** Manual Alpha deployment #25, [run 37133884824](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37133884824), 2026-10-03 15:37–15:44 UTC, one attempt. Result **success** (Actions API), `VERIFIED` (CI log).
+- **Source:** `3f116e90a7b69c35ecb04031ca27b76f8c9d2d01`, `main` after #61. (Actions API, CI log)
+- **Live Alpha:** Worker `zigoals-alpha`, new version `aa6119b7-52c9-4992-9761-2cd795cc2431`. The last observed live version is the same. (CI log)
+- **Rollback:** `aeae3829-ccc1-4190-909e-77539604c3f5`, the version deploy #24 published, so the chain holds. (CI log)
+- **CI on `3f116e9`:** Milestone quality #412 ([run 37132668348](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132668348)): success on attempt 1. (Actions API)
+- **Evidence:** the artifact `alpha-deployment-37133884824-1`, kept for 90 days. (CI log)
+- **Owner:** reported the same source, versions and `VERIFIED` result, and checked the live Alpha. (Owner, 2026-10-03)
+
+**Merged since the last record** (git, first-parent history of `main`): [#61](https://github.com/reyals1111-ux/ZIGoals/pull/61) (`3f116e9`), Session N (PR 1), Landing V5. The landing itself is the apex Worker `zigoals`, which the owner publishes by hand; this run publishes the Alpha Worker `zigoals-alpha` only, so the Alpha carries #61's non-landing files (the landing specs, docs and skip inventory). [#65](https://github.com/reyals1111-ux/ZIGoals/pull/65) (`d439dc9`, Session O, documents only) merged after this source, so it is not in this deploy.
+
 # Session R1 — market abuse fix (Q-WRK-01/02), hermetic owner builds, landing workers.dev off, recovery-admin launch, camera finding (2026-10-03, [PR #69](https://github.com/reyals1111-ux/ZIGoals/pull/69), not merged or deployed)
 
 **Evidence labels:**
@@ -3091,6 +3436,9 @@ No account, secret, wallet or deploy was used. No wrangler command reached Cloud
 | 2 | **wrangler 4.131.1 → 4.144.0.** Worker types regenerated. The deploy path's real output is pinned by tests. New [owner checklist for the first watched deploy](run11/WATCHED_DEPLOY_WRANGLER.md). | `2d11e22`, `f976340`, `bb5519a` |
 | 3 | eslint-config-next 16.3.5 → 16.3.6. Package contents are identical apart from the version; lint output is identical (0 problems). | `82af17d` |
 | 4 | `product-data.spec.ts:72`: the root cause is not a market request (below). Test-only fix, 40/40. | `0a11876` |
+| `install-guide.spec.ts:49` (mobile) "viewing Help only reads the state": the logo intro's session flag appears between the two storage snapshots under reduced motion | CI: once on #61 (`578c3b0`, run 37070729686) | web browser suite | **Fixed in Session P, PR 1** (`67fa146`): both snapshots wait for the shell's recorded intro decision (`data-logo-intro` on `<html>`) and the session flag is set up front; `help-page.spec.ts:65` the same. 40/40 locally each |
+| `logo-fold.spec.ts:107` "fails to load": the clip still on screen after the test's 1.4 s window while the app's own fallback is 1.5 s | Local full suites (Sessions N and O); not seen in CI | web browser suite | **Fixed in Session P, PR 1** (`67fa146`): the clip records why it left (`data-intro-end`) and leaves at once when the browser has no source left; the tests assert the cause and repeat the scenario on a fresh page when the runner delivers the 404 after the fallback (at most 3 times). 160/160 locally |
+| `food-queue.test.mjs:39` "while one lookup waits, another new barcode is refused at once": expected 429, received 200 | CI: once on #66 (`67fa146`, run 37141593543) | web checks (unit) | **Fixed in Session P, PR 1** (`f2224dc`, test only): the lookups were sent 100 ms apart and relied on arriving in that order, which a cold Worker on a busy runner does not keep; each case now waits for the slot to be observably taken, and the racing pair is asserted as a pair |
 | 5 | **Food lookup queue.** A second new barcode within 12 s now waits for the next slot instead of "cooling down". | `7d749ff` |
 | 6 | The 6 `.mjs` Workers are type-checked (checkJs + JSDoc), and the market fault fixture is really checked now. | `59ca984`, `7527e88` |
 | — | This entry | (this commit) |
@@ -3616,14 +3964,16 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `account-browser` b-first: line 112 "locator.inputValue: Timeout 30000ms exceeded" or line 90 "page.waitForFunction: Timeout 10000ms exceeded" | CI: on #57 (run 36935232780, run 36970726468); 0 of 30 locally | web integration job | **Fixed in Session K** (`436536e`, #58): a press that landed as an automatic sync started was dropped, and an automatic sync scheduled before a review ran during it. Reproduced deterministically first; 30/30 b-first and 30/30 a-first locally after the fix |
 | `run10-motion.spec.ts:5` (desktop) hero mid-entrance sample equals its end; `brand-nav-polish.spec.ts:51` (mobile) navigation glide | CI: once each on #54 (`15ad75c`, run 36865907188); passed on every later run and in both local full suites | web browser suite | Monitor (motion timing) |
 | `run11-recovery-failures.spec.ts:22` (mobile) 45 s timeout at `page.reload` (`net::ERR_ABORTED`) | CI: once on #54 (`9bd1dee`, run 36868939969, shard 3); passed on every later run, 30/30 locally | web browser suite | Monitor |
-| `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge | web integration job | Monitor. The #42 request logging is on `main` |
+| `sync-inflight-edit-browser` "Sync was not confirmed" | 2× on #39's earlier merge; local, Session P (PR 2): 2 of 30 inflight runs and 1 of 30 self-conflict runs, never in 60 diagnostic runs | web integration job | Monitor. The #42 request logging caught it for the first time in Session P (PR 2, "The three failures, investigated"): the Worker answered the held head write 200 after the harness released it, and the in-process relay answered the page 400 `REQUEST_FAILED` 2–6 ms later; the same on PR 1's build without A2, so not a sync fault. Next capture should log the relay's caught error |
 | `market-disconnect.test.mjs` "abort of an actual app request forgets its follower…" | CI: 30 s timeout once (#42 attempt 5), once on #52 (`212c61e`, run 36804922026; passed on the next run), and twice on #53 (`96bbdc6`, run 36863279127; `9dba9ac`, run 36864633479). Then once more on `11222cb` (run 36875302540): "Chrome launch did not finish within 10000 ms", under the 10 s step limit `aa7cdaa` had added. Local: one assertion miss under full `pnpm test` load | web checks (unit) | **Fixed in #46** (`b3a853e`): cancel-trace race, 30/30 passes. **Root cause found and fixed in #53**: Chrome's cold start on a busy runner ran inside the case's 30 s budget, and the cleanup that waited on the in-page follower hid it. `aa7cdaa` named the steps and bounded cleanup. `e73142c` starts Chrome once in `beforeAll`, outside each case's budget, with Playwright's 30 s launch timeout. No assertion changed. **Once more in Session K** (#58, `ec0c5cf`, run 37004534168): that `beforeAll` launch exceeded the hook's 45 s; the one re-run passed. Monitor |
 | `goal-provider.test.ts` "durable journal revisions stop signing even when the external event was missed" | Local: once in 6 full `pnpm test` runs (2026-09-30); the assertion ran while the UI still showed "Processing…" | web checks (unit) | **Fixed in #47** (`dd16ffd`): fixed 20–40 ms sleeps before assertions on async provider work; the tests now wait for the state. Deterministic proof: 30 ms lock/quote latency failed 4/29 before, 0/29 after |
 | `run10-widgets.spec.ts:20` (mobile) 45 s timeout | Local: 3 of 20 mobile runs on #47 (median 44.1 s); once in a local full suite | web browser suite | **Fixed in #47** (`1cd6840`): full-page 3× preset screenshots of a taller Today; now captured at CSS scale, 23/23 after (median 11.1 s) |
 | Chrome download in CI (dl.google.com HTTP/2 `INTERNAL_ERROR`, or a hanging `playwright install`) | Infrastructure (main `5dd2ee7` attempt 1; #40 attempt 1; #54 `6659073` shard 2, all 3 attempts, run 36884511291; main `75bf649` attempt 1, shard 2, run 36882221079, at the same time) | browser shards and integration | **Mitigated in #46** (`9edcc67`): up to 3 attempts of at most 3 min each, then a clear `::error::`. The browser shards' budget is 22 min since Session K (`ec0c5cf`, D4), against 11.5–16.9 min measured on main and #58 |
-| Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) is an owner decision |
+| Chrome-install apt/dpkg lock: a timed-out attempt's `apt-get` keeps the lock while a slow Ubuntu mirror downloads fonts | #59 (run 37034640434: still held at 241 s); #60 (run 37067175807, shard 3: still held at 337 s; the mirror delivered 19.7 of 21.1 MB in 8.7 min) | browser shards and integration | **Mitigated again in Session M** (`ecac6c6`): the wait may use what the 12-min step leaves after one full attempt (about 335 s; it was 240 s). A mirror slower than about 40 KB/s (21.1 MB in the roughly 530 s the step allows) still fails the step: one re-run, as for every row. Removing the mirror dependency (fewer fonts, or cached packages) was an owner decision. **Removed in Session P, PR 1** (`c4aac31`, `7ccbfac`): the runner's own Chrome is kept and apt is asked only for Chrome packages dpkg reports missing, so the mirror is out of the usual path; the step took 0–3 s on run 37141271117 (27–34 s before) |
 | `market-fanout.test.mjs` "synthetic concurrent cold, warm and restarted callers share one physical batch…": a degraded cold wave | CI: once in web checks on #59 (`5b2480d`), passed on its re-run | web checks (unit) | **Fixed in Session M** (`33010a5`, test only): a cold wave whose measured publication time passed the followers' 1,000 ms lifetime is repeated in a fresh runtime, at most 3 attempts; if all are that slow the test fails with "runner too slow". No assertion was relaxed |
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
+| `run9-2-life.spec.ts:95` (desktop) "strict mode violation: locator('.habits-workspace') resolved to 2 elements" right after `page.goto('/app/habits')` | CI: once on #70 (`54f0968`, run 37169747347, shard 2); 0 of 12 probes and 3 of 3 runs of the spec locally | web browser suite | **Fixed in #70** (test-only): the Habits workspace streams after the shell (its Suspense boundary resolves late on the server) and React 19.2 batches the reveal for a frame or up to 300 ms, so on a slow runner the client-rendered root and the server's hidden copy coexist for that moment; the spec now waits for exactly one root before the visibility check. Role-based locators are immune (the copy is `hidden`) |
+| `run10-widgets.spec.ts:20` (mobile) "locator.check: Clicking the checkbox did not change its state" on the "Balanced" preset radio | Local: once in a full run under load (2026-10-04, PR #70's gate); 9 of 9 alone | web browser suite | Monitor: the dialog's code is unchanged in #70; under load the click may land during the dialog's entrance motion |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
@@ -3754,7 +4104,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-03 afternoon for the [Alpha deploy #24](#alpha-deploy-24--2026-10-03-afternoon-4d59e63-live) in the Session O entry above (recorded by Session O at the owner's request).
+Updated 2026-10-03 afternoon for the [Alpha deploy #25](#alpha-deploy-25--2026-10-03-afternoon-3f116e9-live) record at the top of this file (recorded by Session P at the owner's request).
+- Deployed source `3f116e90a7b69c35ecb04031ca27b76f8c9d2d01`, `main` after [PR #61](https://github.com/reyals1111-ux/ZIGoals/pull/61). Verified: Actions API.
+- CI: Milestone quality #412 ([run 37132668348](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132668348)) on `3f116e9`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment #25 ([run 37133884824](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37133884824)), exact source `3f116e9`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.
+- Alpha Worker `zigoals-alpha`: live version `aa6119b7-52c9-4992-9761-2cd795cc2431`; rollback `aeae3829-ccc1-4190-909e-77539604c3f5` (the run #24 deployment). Verified: CI log; the owner's reported values are the same. Owner manual checks: owner-reported, checked on the live Alpha (2026-10-03).
+
+Previous release identity (PR #64, 2026-10-03 afternoon, recorded by Session O):
 - Deployed source `4d59e6318d45baf4d699f10b794eedba30cd03db`, `main` after [PR #64](https://github.com/reyals1111-ux/ZIGoals/pull/64). Verified: Actions API.
 - CI: Milestone quality #410 ([run 37130862674](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37130862674)) on `4d59e63`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment #24 ([run 37132128477](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37132128477)), exact source `4d59e63`: success, `VERIFIED`. Verified: CI log (Actions API), Actions API.

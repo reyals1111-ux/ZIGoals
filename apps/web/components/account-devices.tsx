@@ -1,4 +1,5 @@
 'use client';
+import {revokeOtherDevicesPush} from '../lib/push/device';
 import {useEffect,useState} from 'react';
 import {z} from 'zod';
 import {getAccountScope,getAccountGeneration,lockAccount} from '../lib/account-session';
@@ -11,7 +12,7 @@ export function AccountDevices({account,onCurrentRevoked}:{account:string;onCurr
  async function run(operation?:{action:'revoke';id:string}|{action:'revoke-others'}){
   if(busy)return;setBusy(true);setMessage('');const generation=getAccountGeneration(),fence=()=>{if(account!==getAccountScope()||generation!==getAccountGeneration())throw Error('Account changed. Session result discarded.');};
   try{fence();const res=await fetch('/api/private-account'+(operation?'':'?action=sessions'),{method:operation?'POST':'GET',headers:{'X-Zigoals-Account':account,...(operation?{'Content-Type':'application/json'}:{})},...(operation?{body:JSON.stringify({action:'session',operation})}:{}),cache:'no-store',signal:AbortSignal.timeout(15000)});const text=await res.text();fence();if(text.length>1_000_000)throw Error('Session response exceeds capacity.');if(!res.ok){if(res.status===401)lockAccount();throw Error('Session access was not confirmed. Sign in again if it expired.');}const data=JSON.parse(text);
-   if(operation){const answer=z.object({revoked:z.number().int().nonnegative(),currentRevoked:z.boolean()}).parse(data);setConfirm(null);setSessions([]);setMessage(`${answer.revoked} session(s) revoked. Refresh to inspect remaining access.`);if(answer.currentRevoked){onCurrentRevoked?.();lockAccount();}}
+   if(operation){const answer=z.object({revoked:z.number().int().nonnegative(),currentRevoked:z.boolean()}).parse(data);setConfirm(null);setSessions([]);setMessage(`${answer.revoked} session(s) revoked. Refresh to inspect remaining access.`);if(answer.currentRevoked){onCurrentRevoked?.();lockAccount();}else if(operation.action==='revoke-others')void revokeOtherDevicesPush(account);}
    else{setSessions(sessionsSchema.parse(data).sessions);setMessage('Only active sessions are listed. Already downloaded data cannot be erased remotely.');}
   }catch(e){setMessage(e instanceof Error?e.message:'Session management unavailable.');}finally{setBusy(false);}
  }

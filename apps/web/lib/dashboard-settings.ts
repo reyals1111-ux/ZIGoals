@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {timeZoneSchema} from './time-zone-schema';
 import {HEALTH_MEALS,diarySchema} from './health';
 export const DASHBOARD_SETTINGS_KEY='zigoals:settings:v1';
 export const PRESETS=[{id:'balanced',label:'Balanced',description:'Goals, daily rhythm, Health and Wealth.'},{id:'wealth',label:'Wealth',description:'Your assets and financial destinations.'},{id:'habits-health',label:'Habits + Health',description:'Daily routines and caring for yourself.'},{id:'health',label:'Health-only',description:'Meals, water, movement and measurements.'}] as const;
@@ -65,11 +66,30 @@ const placementSchema=z.object({version:z.literal(1),revision:z.number().int().m
  if(p.hiddenBuiltins.some(id=>!DASHBOARD_BUILTINS.find(b=>b.id===id)!.hideable))ctx.addIssue({code:'custom',message:'This essential dashboard card cannot be hidden.'});
 });
 export type DashboardPlacement=z.infer<typeof placementSchema>;
-export const dashboardSettingsSchema=z.object({schemaVersion:z.literal(1),kind:z.literal('zigoals-settings'),preset:z.enum(['balanced','wealth','habits-health','health']),onboarded:z.boolean(),widgets:z.array(widgetSchema).max(24),placement:placementSchema.optional()}).strict().superRefine((s,ctx)=>{
+const settingsFields={kind:z.literal('zigoals-settings'),preset:z.enum(['balanced','wealth','habits-health','health']),onboarded:z.boolean(),widgets:z.array(widgetSchema).max(24),placement:placementSchema.optional()};
+const settingsRules=(s:{widgets:DashboardWidget[];placement?:DashboardPlacement},ctx:z.core.$RefinementCtx)=>{
  if(new Set(s.widgets.map(w=>w.id)).size!==s.widgets.length)ctx.addIssue({code:'custom',message:'Widget IDs must be unique.'});
  if(new Set(s.widgets.map(binding)).size!==s.widgets.length)ctx.addIssue({code:'custom',message:'Each chosen metric can appear once.'});
  if(s.placement&&[...s.placement.main,...s.placement.rail].some(ref=>ref.kind==='widget'&&!s.widgets.some(w=>w.id===ref.id)))ctx.addIssue({code:'custom',message:'A dashboard placement refers to an unavailable widget.'});
-});
+};
+/** Settings v1 as every build since Session H reads it; exported for the read-support proofs (old reads new). */
+export const dashboardSettingsV1Schema=z.object({schemaVersion:z.literal(1),...settingsFields}).strict().superRefine(settingsRules);
+/**
+ * The weekly review's synced home (Session P, PR 3's G1; read support only here). PR 3 keeps reviews in the device-only
+ * key `zigoals:weekly-review:v1`; once every device reads settings v2 they can move here unchanged. Reflections are the
+ * person's own words, capped; the numbers of the week are never stored, they are recomputed from the records.
+ */
+const reviewNote=z.string().max(2000);
+export const weeklyReviewSchema=z.object({version:z.literal(1),weekday:z.number().int().min(0).max(6),
+ reviews:z.array(z.object({weekStart:z.iso.date(),completedAt:z.iso.datetime().optional(),skipped:z.boolean().optional(),notes:z.object({wentWell:reviewNote.optional(),goals:reviewNote.optional(),habits:reviewNote.optional(),health:reviewNote.optional(),wealth:reviewNote.optional(),intention:reviewNote.optional()}).strict().optional()}).strict()).max(520)}).strict()
+ .refine(r=>new Set(r.reviews.map(x=>x.weekStart)).size===r.reviews.length,'One review per week.');
+/**
+ * Settings v2 (timezone phase 3, R1; Session P): v1 plus the account-level journal zone (`journalTimeZone`,
+ * TIMEZONE_DESIGN.md: resolved after a module's own zone and before the device's) and `weeklyReview`. A record becomes
+ * v2 only when one of them is written (R2 and later); until then every record stays v1 and no bytes change.
+ */
+export const dashboardSettingsV2Schema=z.object({schemaVersion:z.literal(2),...settingsFields,journalTimeZone:timeZoneSchema.optional(),weeklyReview:weeklyReviewSchema.optional()}).strict().superRefine(settingsRules);
+export const dashboardSettingsSchema=z.union([dashboardSettingsV2Schema,dashboardSettingsV1Schema]);
 export type DashboardSettings=z.infer<typeof dashboardSettingsSchema>;
 const binding=(w:DashboardWidget)=>JSON.stringify([w.kind,w.entity??'',w.metric]);
 export function presetSettings(preset:DashboardPreset):DashboardSettings{

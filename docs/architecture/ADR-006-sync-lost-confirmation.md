@@ -1,6 +1,6 @@
 # ADR-006: lost confirmation of the final sync upload
 
-Status: **PROPOSAL, awaiting the owner's decision.** Nothing here is implemented. An [implementation plan for option A](#implementation-plan-option-a) and failing-first tests were added on 2026-10-01 (Session J); the plan corrects A's downgrade note. It would change sync-journal behaviour (options A and B also change its format), so it needs explicit owner approval and its own reviewed PR, labelled TIER 3 (auth/sync). Code references are to `main` at `5dd2ee7`.
+Status: **Accepted (option A2), implemented** in Session P, PR 2 (2026-10-03, branch `sync/session-p-2026-10-03`, labelled [Tier 3] (auth/sync)). The owner approved A2 at the Session P plan approval. The [implementation plan](#implementation-plan-option-a) below is the one built, with A2's companion record; the [implementation record](#implementation-record-session-p-2026-10-03) at the end says what landed and how it was proven. X1–X4 are plain tests now. The sections between were written as a proposal on 2026-10-01 (Session J) and are kept as the record of the decision; their code references are to `main` at `5dd2ee7`.
 
 ## Decision requested
 Choose one:
@@ -187,3 +187,19 @@ Added 2026-10-01 by Session J. It is a plan only: no sync, encryption or Worker 
   - the browser test and its 20-run stability check: about 0.5 day;
   - the Stage 8 rows and docs: 0.25–0.5 day.
 - **A1 alone** stays near 1.5–2 days, with the worse downgrade.
+
+## Implementation record (Session P, 2026-10-03)
+Built as planned, option **A2**, in `apps/web/lib/vault/cloud-sync.ts`:
+- **The confirmation record.** `confirmationSchema` (strict): `{version: 1, operation, headRevision, headDigest, base: {<own section>: sha256}}`. The head write stores it with `pending` in **one IndexedDB transaction** (`SyncJournal.write(state, confirmation)`), under the key `<account>:confirm` in the existing `state` store; the database version stays 2, the journal record keeps today's shape and `PENDING_POLICY` 2, and the pending-recovery file is unchanged. Every other journal write clears it (`write(state, null)`), as does `SyncJournal.recover` (forward recovery and conflict review) in its own transaction.
+- **The verified apply on replay** (`replay()` in `synchronize`). A pending write is replayed as before. When the cloud answers `base + 1` and the stored confirmation names exactly that operation and it carries the head: a fresh `cloudSnapshot`; only if its head revision and digest are the confirmation's, and every listed section's remote bytes hash to the recorded digest, the base advances to those bytes, with `headRevision`/`headDigest`, in the same journal write that clears `pending` and the confirmation. A section that merged another device's edits is not listed and never advances. Anything else (a stale or missing confirmation, a head that moved on, a digest that differs) leaves the base as it was: today's behaviour. Until that one write the replay stays pending and idempotent, so a crash in between changes nothing.
+- **Downgrade.** An older build reads the account's record only, so it ignores the companion record and replays as it always did; the only thing it keeps is the false conflict the fix removes. No new error. A `Journal` without `readConfirmation` (the test's `OlderJournal`) proves it.
+- **Unchanged:** the Workers, the sync protocol, the encrypted records, the catalog and the sync UI.
+
+**Tests.**
+- `scripts/run11/sync-lost-ack.test.ts`: X1–X3 flipped to plain tests; new: the head write stores the confirmation and an acknowledged write clears it; a merged section is not listed and never advances; a stale confirmation for another operation is ignored and cleared; a head that changed since applies nothing and the real conflict shows; a rejected replay never keeps a confirmation; crash and reopen (a new `SyncJournal` on fake-indexeddb between the lost acknowledgement and the replay, with the journal record still parsing under the strict schema); old reads new (`OlderJournal`); recovery clears the confirmation. The six guards are unchanged.
+- `scripts/run11/sync-lost-ack-runtime.test.mjs` (Miniflare, the real Worker): X4 flipped; a crash variant with a new journal instance.
+- `scripts/run11/sync-lost-ack-browser.test.mjs` (real Chrome, the production app, the real route handler and Worker, in CI's `web integration` list): the head write's reply is dropped after the Worker applied it, a Goal is created afterwards, and "Sync now" completes with no review; three variants (the same page; reload and unlock; close and reopen the profile); a phone-sized second device then sees every Goal.
+- `apps/web/lib/vault/zod-jitless.test.ts`: the schema is in the corpus.
+- Repeat runs and the Stage 8 rows (B4–B6 re-run on this build; the new row B12) are recorded in `docs/STATUS.md` (Session P, PR 2) and `docs/run11/STAGE8_COVERAGE.md`.
+
+**Rollback:** revert the PR. Leftover companion records are ignored by the reverted build; no user action is needed.

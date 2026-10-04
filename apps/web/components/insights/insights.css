@@ -1,0 +1,5 @@
+/* M3: insight cards (Session P). */
+.insights-card .insight { display: grid; gap: 4px; padding: 8px 0; border-top: 1px solid rgba(171, 144, 211, .17); }.insight-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }.insight-row .insight-detail { flex: 1 1 200px; }.insights-card .insight:first-of-type { border-top: 0; }
+.insight-sentence { margin: 0; font-size: 16px; line-height: 1.5; }
+.insight-detail summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }.insight-detail p { margin: 4px 0; font-size: 15px; color: #cfc6dd; }
+.insights-card .insight .quiet { min-height: 44px; padding-top: 0; padding-bottom: 0; }.insights-card > .fine { margin: 6px 0 0; }

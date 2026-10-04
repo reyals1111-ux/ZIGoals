@@ -54,6 +54,8 @@ A fillable copy of every check in [ACTIVATION.md](ACTIVATION.md) Stage 8, plus t
 | B9 | Section deletion | Deleting one cloud section removes it everywhere; the other sections stay | | |
 | B10 | Stale-device denial | A device that missed a deletion cannot bring the deleted section back | | |
 | B11 | Encrypted backup restoration | An encrypted backup restores on a fresh profile with the recovery secret; a wrong secret is refused | | |
+| B12 | Lost acknowledgement of the final write | The connection drops (airplane mode) as a sync's final write leaves; an edit made afterwards syncs on reconnect with no conflict review, and the other device shows it (ADR-006, option A2; added in Session P) | | |
+| B13 | What syncs from the new features | An automatic check-in, a planned skip, an imported Wealth holding and an imported meal made on one device appear on the other as ordinary records; the link rules, health goals, reviews, fasting sessions and insight dismissals stay on their device | | |
 
 ## C. Device and providers
 | # | Check | Expected | Result | Receipt |
@@ -62,6 +64,7 @@ A fillable copy of every check in [ACTIVATION.md](ACTIVATION.md) Stage 8, plus t
 | C2 | Camera cancel | Cancelling the scan leaves the food log unchanged | | |
 | C3 | Physical barcode | A real product barcode finds the product (or "not found"), at most 5 lookups a minute | | |
 | C4 | Bounded provider refresh | One real market refresh stays within the configured `MARKET_POLICY` budget; no extra dispatch | | |
+| C5 | Push reminder with the app closed (Session P, [ADR-010](../architecture/ADR-010-push-reminders.md); only after [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–5) | The iPhone Home Screen app receives one "A reminder from ZIGoals" notification at the set time with the app closed; tapping it opens Today; "Turn off and delete from the server" leaves nothing; what the server held meanwhile was nothing but the device's push address and keys, times, zone, weekdays and quiet hours | | |
 
 ## D. Hosted recovery (fictional accounts only)
 Run the procedures in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md).

@@ -57,7 +57,16 @@ export const ruleSchema = z.object({
 const entrySchema = z.object({
   date: dateSchema, count: valueSchema, disposition: z.enum(["logged", "skipped", "failed"]), note: z.string().max(2000),
   mood: z.enum(["energized", "good", "neutral", "difficult", "calm"]).optional(), updatedAt: timestampSchema,
+  // Habits v3 (Session P, read support only): an entry made automatically from the Health journal. A record that
+  // carries one is version 3; see habitHealthLinkSchema.
+  source: z.enum(["manual", "health"]).optional(),
 }).strict();
+/**
+ * Habits v3 (Session P, read support only): the synced home of a habit's "done automatically from Health" rule. PR 3
+ * keeps these rules in the device-only key `zigoals:habit-health-links:v1`; once every device reads v3 they can move
+ * here unchanged. `target` is in the measure's own unit (mL of water, steps, minutes, a reading, a count).
+ */
+export const habitHealthLinkSchema = z.object({ version: z.literal(1), measure: z.enum(["water", "steps", "activeMinutes", "weight", "exercise"]), rule: z.enum(["at-least", "recorded"]), target: z.number().min(0).max(1_000_000_000).optional(), exerciseId: z.string().max(100).optional(), updatedAt: timestampSchema }).strict();
 const timezoneSchema=z.string().min(1).max(100).refine(value=>{try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true;}catch{return false;}});
 const timerSchema=z.object({id:z.uuid(),startedAt:timestampSchema,date:dateSchema,timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),state:z.enum(['running','paused']),segmentStartedAt:timestampSchema,pausedAt:timestampSchema.optional(),elapsedMs:z.number().int().min(0).max(604800000)}).strict().refine(t=>Date.parse(t.segmentStartedAt)>=Date.parse(t.startedAt)&&(t.state==='paused'?!!t.pausedAt&&Date.parse(t.pausedAt)>=Date.parse(t.segmentStartedAt):!t.pausedAt),'Invalid saved timer timestamps or state.');
 const timerReceiptSchema=z.object({id:z.uuid(),timerId:z.uuid().optional(),date:dateSchema,startedAt:timestampSchema,endedAt:timestampSchema,elapsedMs:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),timeZone:timezoneSchema,ruleFingerprint:z.string().max(5000),unit:z.enum(['minutes','hours']),value:valueSchema,status:z.enum(['logged','discarded']),recordedAt:timestampSchema}).strict();
@@ -66,6 +75,7 @@ const habitSchema = z.object({
   timeOfDay: z.enum(["anytime", "morning", "afternoon", "evening"]), endCondition: endConditionSchema, stackAfterId: z.uuid().optional(), startDate: dateSchema,
   ruleRevisions:z.array(z.object({id:z.string().max(250),recordedAt:timestampSchema,source:z.enum(['retained','scheduled']),rule:ruleSchema}).strict()).max(4000).optional(),
   timer:timerSchema.optional(),timerReceipts:z.array(timerReceiptSchema).max(10000).optional(),
+  healthLink: habitHealthLinkSchema.optional(),
   createdAt: timestampSchema, updatedAt: timestampSchema, rules: z.array(ruleSchema).min(1).max(2000), entries: z.array(entrySchema).max(20000),
 }).strict().superRefine((habit, context) => {
   if(habit.ruleRevisions&&new Set(habit.ruleRevisions.map(r=>r.id)).size!==habit.ruleRevisions.length)context.addIssue({code:'custom',message:'Duplicate rule revision.'});
@@ -76,17 +86,26 @@ const habitSchema = z.object({
   if (habit.updatedAt < habit.createdAt) context.addIssue({ code: "custom", message: "Invalid habit timestamps." });
   if (JSON.stringify(habit.endCondition) !== JSON.stringify(habit.rules.at(-1)!.endCondition)) context.addIssue({ code: "custom", message: "The current end condition must match the latest historical rule." });
 });
-function checkHabitSet(data: { habits: readonly { id: string; stackAfterId?: string }[] }, context: z.core.$RefinementCtx) {
+/** True when a habit carries a v3-only field (a Health link, or an entry with a source). */
+export function needsHabitsV3(data: { habits: readonly { healthLink?: unknown; entries: readonly { source?: unknown }[] }[] }): boolean {
+  return data.habits.some((habit) => habit.healthLink !== undefined || habit.entries.some((entry) => entry.source !== undefined));
+}
+function checkHabitSet(data: { schemaVersion?: number; habits: readonly { id: string; stackAfterId?: string; healthLink?: unknown; entries: readonly { source?: unknown }[] }[] }, context: z.core.$RefinementCtx) {
   if (new Set(data.habits.map((habit) => habit.id)).size !== data.habits.length) context.addIssue({ code: "custom", message: "Habit identifiers must be unique." });
+  // The version says what a record may carry: a v2 record never holds v3 fields, so an older build is refused by the version alone.
+  if (data.schemaVersion === 2 && needsHabitsV3(data)) context.addIssue({ code: "custom", message: "Automatic check-ins from Health need habits version 3." });
   const ids = new Set(data.habits.map((habit) => habit.id));
   for (const habit of data.habits) {
     if (habit.stackAfterId === habit.id) context.addIssue({ code: "custom", message: "A habit cannot be stacked after itself." });
     if (habit.stackAfterId && !ids.has(habit.stackAfterId)) context.addIssue({ code: "custom", message: "A stacked habit must reference an available habit." });
   }
 }
-const habitDataV2Schema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(habitSchema).max(200) }).strict().superRefine(checkHabitSet);
+/** Habits v2 as every build since Session G reads it; exported for the read-support proofs (old reads new). */
+export const habitDataV2Schema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(habitSchema).max(200) }).strict().superRefine(checkHabitSet);
+/** Habits v3 (Session P, read support only): v2's fields, and a habit may carry `healthLink` and entries a `source`. Written only once PR 3's automatic check-ins move here. */
+export const habitDataV3Schema = z.object({ schemaVersion: z.literal(3), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(habitSchema).max(200) }).strict().superRefine(checkHabitSet);
 /** The same module rules for habits that are each already valid (see replaceHabit). */
-const habitSetSchema = z.object({ schemaVersion: z.literal(2), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(z.custom<Habit>()).max(200) }).strict().superRefine(checkHabitSet);
+const habitSetSchema = z.object({ schemaVersion: z.union([z.literal(2), z.literal(3)]), kind: z.literal("zigoals-habits"),timeZone:timezoneSchema.optional(), habits: z.array(z.custom<Habit>()).max(200) }).strict().superRefine(checkHabitSet);
 
 const v1ScheduleSchema = z.discriminatedUnion("kind", [z.object({ kind: z.literal("daily") }).strict(), z.object({ kind: z.literal("weekdays"), days: z.array(z.number().int().min(0).max(6)).min(1).max(7).refine((days) => new Set(days).size === days.length) }).strict()]);
 const v1RuleSchema = z.object({ from: dateSchema, schedule: v1ScheduleSchema, target: z.number().int().min(1).max(10000), state: z.enum(["active", "paused", "archived"]) }).strict();
@@ -103,11 +122,11 @@ const habitDataV1Schema = z.object({ schemaVersion: z.literal(1), kind: z.litera
 
 export type HabitInput = z.input<typeof habitInputSchema>;
 export type Habit = z.infer<typeof habitSchema>;
-export type HabitData = z.infer<typeof habitDataV2Schema>;
+export type HabitData = Omit<z.infer<typeof habitDataV2Schema>, "schemaVersion"> & { schemaVersion: 2 | 3 };
 export type HabitGoalLink = z.infer<typeof habitGoalLinkSchema>;
 export type HabitRule = z.infer<typeof ruleSchema>;
 export type HabitState = HabitRule["state"];
-export type HabitDayStatus = "complete" | "partial" | "due" | "skipped" | "failed" | "not-scheduled" | "paused" | "archived" | "future" | "not-started";
+export type HabitDayStatus = "complete" | "partial" | "due" | "skipped" | "failed" | "not-scheduled" | "paused" | "archived" | "future" | "planned-skip" | "not-started";
 
 function migrateV1(data: z.infer<typeof habitDataV1Schema>): HabitData {
   return habitDataV2Schema.parse({ schemaVersion: 2, kind: data.kind, habits: data.habits.map((habit) => ({
@@ -116,7 +135,7 @@ function migrateV1(data: z.infer<typeof habitDataV1Schema>): HabitData {
     entries: habit.entries.map((entry) => ({ ...entry, disposition: "logged" })),
   })) });
 }
-export const habitDataSchema: z.ZodType<HabitData> = z.union([habitDataV2Schema, habitDataV1Schema]).transform((data) => data.schemaVersion === 1 ? migrateV1(data) : data);
+export const habitDataSchema: z.ZodType<HabitData> = z.union([habitDataV3Schema, habitDataV2Schema, habitDataV1Schema]).transform((data) => data.schemaVersion === 1 ? migrateV1(data) : data);
 export function habitCalendarDay(data:Pick<HabitData,'timeZone'>,now=new Date()):string{
  if(!data.timeZone)return localDate(now);
  const parts=new Intl.DateTimeFormat('en',{timeZone:timezoneSchema.parse(data.timeZone),year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;
@@ -131,7 +150,7 @@ function replaceHabit(data: HabitData, id: string, transform: (habit: Habit) => 
   if (!data.habits.some((habit) => habit.id === id)) throw new Error("This habit is no longer available. Refresh and try again.");
   // Only the changed habit is parsed again (Session G, Part 2); the others come from a validated read, the module rules
   // are checked here, and the store validates the whole module once more before it writes anything.
-  if (data.schemaVersion !== 2) return habitDataSchema.parse({ ...data, habits: data.habits.map((habit) => habit.id === id ? transform(habit) : habit) });
+  if (data.schemaVersion !== 2 && data.schemaVersion !== 3) return habitDataSchema.parse({ ...data, habits: data.habits.map((habit) => habit.id === id ? transform(habit) : habit) });
   const habits = data.habits.map((habit) => habit.id === id ? habitSchema.parse(transform(habit)) : habit);
   return habitSetSchema.parse({ ...data, habits }) as HabitData;
 }
@@ -262,7 +281,8 @@ function periodResult(habit: Habit, rule: HabitRule, date: string, today: string
 export function habitDay(habit: Habit, date: string, today = localDate()) { return memoized(habit, `day:${date}:${today}`, () => computeHabitDay(habit, date, today)); }
 function computeHabitDay(habit: Habit, date: string, today: string) {
   const rule = habitRuleOn(habit, date); const entry = entryOn(habit, date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
-  if (date > today) return { status: "future" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
+  // H1: a future day already marked skipped is a planned skip (a trip, a rest); every other future day is simply ahead.
+  if (date > today) return { status: entry?.disposition === "skipped" ? "planned-skip" as const : "future" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   if (!rule) return { status: "not-started" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   if (rule.state !== "active") return { status: rule.state, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled: false };
   const scheduled = scheduledOn(habit, rule, date);
@@ -304,6 +324,78 @@ export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string
   });
 }
 
+const SKIP_HORIZON_DAYS = 366;
+const dayList = (from: string, to: string) => { const out: string[] = []; for (let date = from; date <= to; date = addLocalDays(date, 1)) out.push(date); return out; };
+const sorted = (entries: Habit["entries"]) => [...entries].sort((a, b) => a.date.localeCompare(b.date));
+/**
+ * H1 (Session P): a planned skip is a future scheduled day marked skipped ahead of time, up to a year out. It is an
+ * ordinary skipped entry, neutral for streaks and silent for reminders, with the reason in the note.
+ */
+export function planSkip(data: HabitData, id: string, rawDate: string, reason = "", now = new Date()): HabitData {
+  const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data, now);
+  if (date <= today || date > addLocalDays(today, SKIP_HORIZON_DAYS)) throw new Error("Choose a scheduled day within the next year.");
+  return replaceHabit(data, id, (habit) => {
+    const rule = habitRuleOn(habit, date); if (!scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled day within the next year.");
+    const period = aggregatePeriod(rule!); if (period) throw new Error(`This habit counts per ${period}; skip a day in its History instead.`);
+    const previous = habit.entries.find((item) => item.date === date); if (previous?.disposition === "logged" && previous.count > 0) throw new Error("A check-in is already saved for that day.");
+    const entry = entrySchema.parse({ date, count: 0, disposition: "skipped", note: `Planned skip${reason.trim() ? ` · ${reason.trim().slice(0, 100)}` : ""}`, updatedAt: now.toISOString() });
+    return { ...habit, updatedAt: now.toISOString(), entries: sorted([...habit.entries.filter((item) => item.date !== date), entry]) };
+  });
+}
+/** Removes a planned skip on a future day; today's or a past skip is corrected from the day editor. */
+export function unplanSkip(data: HabitData, id: string, rawDate: string, now = new Date()): HabitData {
+  const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data, now);
+  if (date <= today) throw new Error("Today and earlier days are changed from the day editor.");
+  return replaceHabit(data, id, (habit) => habit.entries.some((item) => item.date === date && item.disposition === "skipped") ? { ...habit, updatedAt: now.toISOString(), entries: habit.entries.filter((item) => item.date !== date) } : habit);
+}
+export const VACATION_NOTE = "Vacation";
+export type VacationRange = { from: string; to: string; habitIds?: readonly string[] };
+/** The habits a vacation applies to: the chosen ones, else every habit whose latest rule is active. */
+const vacationHabits = (data: HabitData, range: VacationRange) => new Set(range.habitIds ?? data.habits.filter((habit) => latestHabitRule(habit).state === "active").map((habit) => habit.id));
+function vacationDates(data: HabitData, range: VacationRange, now: Date) {
+  const from = dateSchema.parse(range.from), to = dateSchema.parse(range.to), today = habitCalendarDay(data, now);
+  if (from < today || to < from || to > addLocalDays(today, SKIP_HORIZON_DAYS)) throw new Error("Choose days from today up to a year ahead.");
+  return { from, to, today };
+}
+/**
+ * H1: marks every scheduled day in the range as skipped ("Vacation") for the chosen habits, today included, keeping
+ * check-ins already saved. Streaks do not break on skipped days and reminders stay quiet on them. All or nothing: a
+ * habit whose history would pass its limit refuses the whole change.
+ */
+export function setVacation(data: HabitData, range: VacationRange, now = new Date()): HabitData {
+  const { from, to } = vacationDates(data, range, now), ids = vacationHabits(data, range), days = dayList(from, to);
+  let next = data;
+  for (const habit of data.habits) {
+    if (!ids.has(habit.id)) continue;
+    const additions: Habit["entries"] = [];
+    for (const date of days) {
+      const rule = habitRuleOn(habit, date); if (!scheduledOn(habit, rule, date) || aggregatePeriod(rule!)) continue;
+      const previous = habit.entries.find((item) => item.date === date);
+      if ((previous?.disposition === "logged" && previous.count > 0) || (previous?.disposition === "skipped" && previous.note === VACATION_NOTE)) continue;
+      additions.push(entrySchema.parse({ date, count: previous?.count ?? 0, disposition: "skipped", note: VACATION_NOTE, mood: previous?.mood, updatedAt: now.toISOString() }));
+    }
+    if (!additions.length) continue;
+    const replaced = new Set(additions.map((entry) => entry.date));
+    next = replaceHabit(next, habit.id, (current) => {
+      const entries = sorted([...current.entries.filter((item) => !replaced.has(item.date)), ...additions]);
+      if (entries.length > 20000) throw new Error("This habit's history is full.");
+      return { ...current, updatedAt: now.toISOString(), entries };
+    });
+  }
+  return next;
+}
+/** Removes the vacation entries of the range on days from today on; anything the person wrote themselves stays. */
+export function clearVacation(data: HabitData, range: VacationRange, now = new Date()): HabitData {
+  const { from, to, today } = vacationDates(data, range, now), ids = vacationHabits(data, range);
+  let next = data;
+  for (const habit of data.habits) {
+    if (!ids.has(habit.id)) continue;
+    const kept = habit.entries.filter((item) => !(item.disposition === "skipped" && item.note === VACATION_NOTE && item.date >= today && item.date >= from && item.date <= to));
+    if (kept.length === habit.entries.length) continue;
+    next = replaceHabit(next, habit.id, (current) => ({ ...current, updatedAt: now.toISOString(), entries: kept }));
+  }
+  return next;
+}
 export function habitStats(habit: Habit, today = localDate()) { return memoized(habit, `stats:${today}`, () => computeHabitStats(habit, today)); }
 function computeHabitStats(habit: Habit, today: string) {
   type StreakUnit = "days" | "weeks" | "months" | "years";
@@ -327,7 +419,9 @@ function computeHabitStats(habit: Habit, today: string) {
     if (outcome.start <= weekEnd && outcome.end >= weekStart) { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
     const streak = streakBoard[outcome.unit]; if (previousUnit !== outcome.unit) streak.current = 0;
     if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); }
-    else if (outcome.status === "failed" || outcome.status === "skipped") { if (outcome.status === "failed") failCount++; else skipDecisions++; streak.current = 0; }
+    // H1 (Session P): a skipped day is neutral, it neither adds to a streak nor breaks it; only a failed day resets.
+    else if (outcome.status === "failed") { failCount++; streak.current = 0; }
+    else if (outcome.status === "skipped") skipDecisions++;
     previousUnit = outcome.unit;
   }
   const skipCount = habit.entries.filter((entry) => entry.disposition === "skipped" && entry.date <= today).length;

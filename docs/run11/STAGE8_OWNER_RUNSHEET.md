@@ -129,6 +129,16 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Expected:** Desktop A shows "Unlinked local and cloud records differ…". It holds its own Health entries made before consent, so sync stops for your review instead of merging silently. That is by design.
 - **Record:** pass or fail for each line.
 
+**12b. The final write loses its reply (B12; added in Session P).**
+- **Do:**
+  1. On the phone, with sync on: create a Goal, then straight away turn on airplane mode, so the upload's final reply is lost. The sync panel shows an error; that is expected.
+  2. Still offline, create a second Goal.
+  3. Turn airplane mode off, open Settings and choose "Sync now".
+- **Pass:**
+  - "Account records synced and acknowledged", with no "Unlinked…" or "Conflicting…" review;
+  - on Desktop A, after its own "Sync now", both Goals are there.
+- **Record:** pass or fail per line. If a review appears, record its first words and keep both copies (nothing is lost).
+
 **13. Open again without the secret (F2, F3; changed by Session M).**
 - **Do:**
   1. Close the Home Screen app from the app switcher, then open it again.
@@ -159,6 +169,28 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   - **C2:** allow the camera in Settings, scan, then "Stop camera". The food log is unchanged.
   - **C3:** scan a real product. You see the product or "not found". New barcodes are paced at no more than 5 lookups a minute; one asked for too soon waits or is refused with a plain message.
 - **Record:** pass or fail per row, and the product category only.
+
+**15. What syncs from the new features (B13).**
+- **Do:** on Desktop A: edit a habit and, under "Done automatically from Health", choose water with at least 1 glass; log a glass of water in Health; on another habit, plan a skip for tomorrow (its "History & reflection"); in Wealth → "+ Add asset" → "Import from a CSV file", choose a two-line file (`Name,Asset,Quantity,Kind of asset,Value,Currency` then `Gold,XAU,2,Precious metals,,EUR`); in Health → Diary → "Import a nutrition CSV", choose a one-line file (`Date,Meal,Food,Calories` then today's date, `Breakfast,Oats,380`). Sync now. On Phone B: open Today, Habits, Wealth and Health.
+- **Pass:** the phone shows the automatic check-in as an ordinary check-in (the "Done automatically" badge appears only on the desktop, where the rule lives), the planned skip (◌ on that day), the Gold holding ("Needs valuation") and the imported meal. The phone offers none of the desktop's health goals, weekly review, fasting session or insight cards: those stay on each device for now.
+- **Record:** pass or fail per record kind. Never the file contents.
+
+**15b. Push reminder with the app closed (C5; only after [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–5) · about 10 min.**
+- **Before:** do it outside the quiet hours (22:00–07:00 on the phone, by default), signed in on the Home Screen app.
+- **Do:**
+  1. In the Home Screen app, open Settings → "Reminders when closed". The panel "Reminders on this phone, even when ZIGoals is closed." says "Off." Choose "Turn on on this device" and allow notifications when iOS asks.
+  2. Read: "Reminders while ZIGoals is closed are on for this device." and the state line "On · reminder times checked today."
+  3. In Health → Water, set "Reminder time — on this device" to two minutes from now and choose "Save reminder time" ("Water reminder set for HH:MM on this device."). The app sends the new time to the server by itself.
+  4. Close the app fully from the app switcher and wait for the time.
+  5. The notification arrives: "ZIGoals", "A reminder from ZIGoals", nothing else. Tap it.
+  6. Afterwards: Settings → "Reminders when closed" → "Turn off and delete from the server".
+- **Pass:**
+  - one notification, at the set minute (the Worker sends up to 10 minutes late, never later);
+  - tapping it opens the app on Today, where the usual water reminder card is;
+  - no second notification for the same reminder;
+  - after step 6: "Turned off. Nothing about this device is kept on the server." and the state line "Off."
+- **Record:** pass or fail per line; the iOS version; how many minutes after the set time it arrived; and, if the app happened to be open at a reminder time, whether iOS showed the banner then (ADR-010 lists this as not verified). Never the push address, the Worker's host name or the account.
+- **If nothing arrives:** the troubleshooting table in [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) (quiet hours, the 10-minute rule, the 30-day prune, the keys comparison). Don't retry more than once before reading it.
 
 ## Part 5: providers (Desktop A) · about 15 min
 **15. One real market refresh (C4).**

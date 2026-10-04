@@ -1,6 +1,6 @@
 /** Read-only projections of existing Positions and canonical Goal accounting. */
 import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
-import {marketQuoteSchema,nativeZigIdentity,quoteIsStale,quoteMatchesPosition,quoteValue,sameAsset,type MarketQuote} from './market-quotes';
+import {isNativeZig,marketQuoteSchema,quoteIsStale,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 export const ASSET_COLORS:Record<AssetClass,string>={Crypto:'#38d9f5',Stablecoins:'#70e1c3',Stocks:'#8c9cff','Precious Metals':'#ecc779',Property:'#ce92ff',Cash:'#80baff',Custom:'#ee8fce'};
 export function assetClassOf(p:Position):AssetClass{
@@ -31,7 +31,7 @@ export function ringSegments(mix:readonly AssetMix[],progressPct:string){
 }
 function automaticMarketRef(p:Position):MarketAssetRef|undefined{
  if(p.marketRef&&p.valuationMode==='automatic')return p.marketRef;
- return !p.marketRef&&p.valuationMode!=='manual'&&sameAsset(p,nativeZigIdentity)&&p.providerId==='native-zig'?nativeZigRequest.marketRef:undefined;
+ return !p.marketRef&&p.valuationMode!=='manual'&&isNativeZig(p)&&p.providerId==='native-zig'?nativeZigRequest.marketRef:undefined;
 }
 function deduplicatedRequests(requests:MarketQuoteRequest[]):MarketQuoteRequest[]{return uniqueMarketRequests([...new Map(requests.map(request=>[marketRequestKey(request),request])).values()]);}
 /** Build public quote requests without exposing Position IDs, quantities, Goals or allocations. */
@@ -86,7 +86,7 @@ export function wealthHistory(s:Platform):WealthHistory[]{
 }
 function computeWealthHistory(s:Platform):WealthHistory[]{
  const byId=new Map(s.positions.map(p=>[p.id,p]));
- const currencyOf=(p:Position)=>p.valuation?.currency??(p.valuationMode==='automatic'||p.marketRef||sameAsset(p,nativeZigIdentity)?p.quoteCurrency??'USD':undefined);
+ const currencyOf=(p:Position)=>p.valuation?.currency??(p.valuationMode==='automatic'||p.marketRef||isNativeZig(p)?p.quoteCurrency??'USD':undefined);
  const currencies=[...new Set(s.positions.flatMap(p=>currencyOf(p)?[currencyOf(p)!]:[]))];
  return currencies.flatMap(currency=>{
   const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id),requiredIds=new Set(required);

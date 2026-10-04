@@ -30,3 +30,18 @@ test('late OTP result cannot select a prior account after a scope transition',as
  vi.stubGlobal('fetch',async(_url:string,init?:RequestInit)=>{if(!init?.body)return Response.json({signedIn:false});if(JSON.parse(String(init.body)).action==='send')return Response.json({message:'sent'});return new Promise<Response>(resolve=>{finish=resolve;});});
  const view=await mount({onAuthenticated:()=>{notified=true;}});await input(view,'email','fixture@example.com');await click(button(view,'Send email code'));await input(view,'code','123456');await click(button(view,'Verify email code'));await act(async()=>activateAccount(bob));await act(async()=>finish(Response.json({signedIn:true,accountId:alice})));expect(getAccountScope()).toBe(bob);expect(notified).toBe(false);
 });
+// Session P (PR 1, 1.4): the relay's invite-only answer is shown in its own words; any other refusal keeps this panel's wording.
+test('an invite-only refusal shows the relay’s words, keeps the address and starts no cooldown; other refusals keep the panel’s wording',async()=>{
+ const INVITE_ONLY='ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app.';
+ let answer=()=>Response.json({error:'INVITE_ONLY',message:INVITE_ONLY},{status:403});const sends:string[]=[];
+ vi.stubGlobal('fetch',async(_url:string,init?:RequestInit)=>{if(!init?.body)return Response.json({signedIn:false});const action=JSON.parse(String(init.body));expect(action.action).toBe('send');sends.push(action.email);return answer();});
+ const view=await mount();await input(view,'email','friend@example.com');await click(button(view,'Send email code'));
+ expect(view.textContent).toContain(INVITE_ONLY);expect(view.querySelector('input[name="code"]')).toBeNull();expect(button(view,'Send email code').disabled).toBe(false);expect(button(view,'Send email code').textContent).toBe('Send email code');
+ expect((view.querySelector('input[name="email"]') as HTMLInputElement).value).toBe('friend@example.com');expect(getAccountScope()).toBeNull();
+ answer=()=>Response.json({error:'ORIGIN_DENIED',message:'Fixture words that must never be shown.'},{status:403});
+ await click(button(view,'Send email code'));
+ expect(view.textContent).toContain('Account access was not confirmed. Check the code and try again.');expect(view.textContent).not.toContain('Fixture words');
+ answer=()=>Response.json({error:'EMAIL_UNAVAILABLE',message:'Signing in by email isn’t available right now. Try again later.'},{status:403});
+ await click(button(view,'Send email code'));
+ expect(view.textContent).toContain('Signing in by email isn’t available right now. Try again later.');expect(sends).toEqual(['friend@example.com','friend@example.com','friend@example.com']);
+});

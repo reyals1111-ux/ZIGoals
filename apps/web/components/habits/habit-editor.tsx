@@ -5,6 +5,9 @@ import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import { INVISIBLE_NAME, isInvisibleName } from "../../lib/visible-text";
 import { ReminderTimeField } from "../reminders/reminder-time-field";
+import { HealthLinkField, healthLinkDraft, healthLinkFromDraft } from "./health-link-field";
+import type { HabitHealthLink } from "../../lib/habit-health-links/schema";
+import type { ExerciseCounter } from "../../lib/health-counters";
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };
 type MeasurementKind = HabitRule["measurement"]["kind"];
@@ -31,8 +34,12 @@ export function habitTemplateInput(key: HabitTemplateKey): HabitInput {
   return habitInputSchema.parse({ title: t.title, category: t.category, description: "", notes: "", type: t.type, measurement, target: t.type === "quit" ? 0 : t.target, targetPeriod: schedule.kind === "frequency" ? "day" : t.targetPeriod, schedule, timeOfDay: "anytime", endCondition: { kind: "none" } });
 }
 
-/** `reminder` is this device's reminder time for the habit ("" for none); it is saved apart from the habit (lib/reminders). */
-export function HabitEditor({ habit, goals, habits,today, reminder = "", onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[];today:string; reminder?: string; onSave: (input: HabitInput,from?:string,expected?:string,reminder?:string) => Promise<void>; onCancel: () => void }) {
+/**
+ * `reminder` is this device's reminder time for the habit ("" for none) and `healthLink` its "done automatically from
+ * Health" rule (null for none); both are saved apart from the habit (lib/reminders, lib/habit-health-links) through
+ * onSave's trailing arguments. `counters` and `waterUnit` come from the Health journal for the link's choices.
+ */
+export function HabitEditor({ habit, goals, habits,today, reminder = "", healthLink = null, counters = [], waterUnit = "ml", healthLinksUnreadable = false, onStartOverHealthLinks, onSave, onCancel }: { habit?: Habit; goals: HabitGoalOption[]; habits: Habit[];today:string; reminder?: string; healthLink?: HabitHealthLink | null; counters?: readonly ExerciseCounter[]; waterUnit?: "ml" | "fl-oz-us"; healthLinksUnreadable?: boolean; onStartOverHealthLinks?: () => void; onSave: (input: HabitInput,from?:string,expected?:string,reminder?:string,healthLink?:HabitHealthLink|null) => Promise<void>; onCancel: () => void }) {
   const formId = useId();
   const [effectiveFrom,setEffectiveFrom]=useState(()=>habit?earliestHabitChange(habit,today):"");
   const [expected]=useState(()=>habit?habitEditFingerprint(habit):undefined);
@@ -58,6 +65,7 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", onSave,
   const [endCount, setEndCount] = useState(String(habit?.endCondition.kind === "completions" ? habit.endCondition.count : 30));
   const [stackAfterId, setStackAfterId] = useState(habit?.stackAfterId ?? "");
   const [reminderTime, setReminderTime] = useState(reminder);
+  const [linkDraft, setLinkDraft] = useState(() => healthLinkDraft(healthLink, waterUnit));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const savedLink = habit?.goalLink;
@@ -100,7 +108,10 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", onSave,
     const endCondition = endKind === "date" ? { kind: "date" as const, date: endDate } : endKind === "completions" ? { kind: "completions" as const, count } : endKind === "goal" && goalLink ? { kind: "goal" as const, goal: goalLink } : { kind: "none" as const };
     const parsed = habitInputSchema.safeParse({ title, category, description, notes, goalLink, type, measurement: measurementValue(), target: targetValue, targetPeriod: scheduleKind === "frequency" ? "day" : targetPeriod, schedule: scheduleValue(every, times), timeOfDay, endCondition, stackAfterId: stackAfterId || undefined });
     if (!parsed.success) { setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
-    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected,reminderTime); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
+    // The Health link is checked after the habit itself, so its message names its own field; a quit or limit habit has none.
+    let link: HabitHealthLink | null = null;
+    if (type === "build" && !healthLinksUnreadable) { try { link = healthLinkFromDraft(linkDraft, waterUnit); } catch (e) { setError(`Done automatically from Health: ${e instanceof Error ? e.message : "Check the link."}`); return; } }
+    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected,reminderTime,healthLinksUnreadable?undefined:link); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
   }
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
     <div className="habit-section-heading"><div><p className="eyebrow">Set your cadence</p><h2 id={`${formId}-heading`}>{habit ? "Edit habit" : "Create a habit"}</h2></div><span aria-hidden="true" className="habit-spark">✦</span></div>
@@ -120,11 +131,13 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", onSave,
       </div>
       <label className="field">Description (optional)<input maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="A small action, a little more often." /></label>
       <label className="field">Schedule<select value={scheduleKind} onChange={(event) => setScheduleKind(event.target.value as ScheduleKind)}><option value="daily">Every day</option><option value="weekdays">Selected weekdays</option><option value="interval">Every N days</option><option value="frequency">X times per period</option><option value="month-dates">Specific dates each month</option></select></label>
+      <div className="fine habit-rest-days">Rest days are simply the days off your schedule: choose the weekdays you do this, or X times per period. Days off the schedule never count against you. <button type="button" className="quiet" onClick={() => { setScheduleKind("weekdays"); setDays([1, 2, 3, 4, 5]); }}>Weekdays only</button></div>
       {scheduleKind === "weekdays" && <fieldset className="habit-weekdays"><legend>Scheduled weekdays</legend>{[1, 2, 3, 4, 5, 6, 0].map((day) => <label key={day}><input type="checkbox" checked={days.includes(day)} onChange={(event) => setDays(event.target.checked ? [...days, day] : days.filter((item) => item !== day))} /><span aria-hidden="true">{weekdayLabels[day]!.slice(0, 3)}</span><span className="sr-only">{weekdayLabels[day]}</span></label>)}</fieldset>}
       {scheduleKind === "interval" && <label className="field">Repeat every (days)<input type="text" inputMode="numeric" autoComplete="off" value={interval} onChange={(event) => setInterval(event.target.value)} /></label>}
       {scheduleKind === "frequency" && <div className="habit-form-grid"><label className="field">Times per period<input type="text" inputMode="numeric" autoComplete="off" value={frequency} onChange={(event) => setFrequency(event.target.value)} /></label><label className="field">Frequency period<select value={frequencyPeriod} onChange={(event) => { const next = event.target.value as typeof frequencyPeriod; setFrequencyPeriod(next); setTargetPeriod(next); setFrequency((current) => { const limit = { week: 7, month: 28, year: 365 }[next]; return /^\d+$/.test(current.trim()) && Number(current) > limit ? String(limit) : current; }); }}><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option></select></label></div>}
       {scheduleKind === "month-dates" && <label className="field">Dates in month<input value={monthDates} onChange={(event) => setMonthDates(event.target.value)} placeholder="1, 15, 28" /><small>Comma-separated dates from 1 to 31. Months without that date simply skip it.</small></label>}
       <ReminderTimeField value={reminderTime} onChange={setReminderTime} />
+      {type === "build" && <HealthLinkField draft={linkDraft} onChange={setLinkDraft} counters={counters} waterUnit={waterUnit} unreadable={healthLinksUnreadable} onStartOver={onStartOverHealthLinks} />}
       <label className="field">Linked Goal (optional)<select name="goal" defaultValue={unmatchedLink ? "keep" : savedGoalIndex < 0 ? "" : JSON.stringify(goals[savedGoalIndex]!.link)}><option value="">Standalone habit</option>{unmatchedLink && <option value="keep">Keep existing link · another Goal scope</option>}{goals.map((option) => <option key={JSON.stringify(option.link)} value={JSON.stringify(option.link)}>{option.label}</option>)}</select></label>
       <label className="field">Stack after (optional)<select value={stackAfterId} onChange={(event) => setStackAfterId(event.target.value)}><option value="">No habit stack</option>{habits.filter((item) => item.id !== habit?.id).map((item) => <option value={item.id} key={item.id}>After {item.title}</option>)}</select></label>
       <div className="habit-form-grid"><label className="field">End condition<select value={endKind} onChange={(event) => setEndKind(event.target.value as typeof endKind)}><option value="none">No end date</option><option value="date">End date</option><option value="completions">Number of completions</option><option value="goal" disabled>Linked Goal target · metadata only</option></select></label>{endKind === "date" && <label className="field">End date<input type="date" required value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>}{endKind === "completions" && <label className="field">Completion count<input type="text" inputMode="numeric" autoComplete="off" value={endCount} onChange={(event) => setEndCount(event.target.value)} /></label>}</div>

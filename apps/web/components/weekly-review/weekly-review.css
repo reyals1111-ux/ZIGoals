@@ -1,0 +1,9 @@
+/* G1: weekly review (Session P). */
+.weekly-review { display: grid; gap: 10px; }.weekly-review-step { margin: 0; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: #aaa0bb; }.weekly-review h3 { margin: 0; font-size: 1.2rem; }
+.weekly-review-summary { display: grid; gap: 4px; font-size: 15px; line-height: 1.5; }.weekly-review-summary p { margin: 0; }
+.weekly-review textarea { font-size: 16px; min-height: 88px; }.weekly-review-actions button { min-height: 44px; }
+.weekly-review-card .actions button { min-height: 44px; }.weekly-review-status { margin: 0; }
+.weekly-review-day { display: grid; gap: 8px; margin-top: 12px; }.weekly-review-day select { min-height: 44px; }.weekly-review-last summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+.weekly-review-last dl { display: grid; gap: 8px; margin: 8px 0 0; }.weekly-review-last dt { font-size: 14px; color: #aaa0bb; }.weekly-review-last dd { margin: 0; font-size: 15px; white-space: pre-wrap; }
+.weekly-review-dialog { max-width: 640px; }
+@media (max-width: 600px) { .weekly-review-day select { font-size: 16px; } }

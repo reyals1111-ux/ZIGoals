@@ -1,3 +1,4 @@
+import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
 import {expect, test} from '@playwright/test';
 
 // Help (Session L): structure, wording that follows the owner principle, keyboard, motion, phones, and no requests or
@@ -5,11 +6,11 @@ import {expect, test} from '@playwright/test';
 const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
   ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['questions', 'Good to know about the Alpha'],
-  ['feedback', 'Tell us what you think'],
+  ['whats-new-alpha', 'New in this Alpha, in your own words'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'Questions', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'Questions', 'What\'s new', 'Send feedback'];
 
-test('Help has one title and seven topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and eight topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -23,6 +24,24 @@ test('Help has one title and seven topics, listed before them, each linking to i
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
   await topics.nth(5).click();
   await expect(page).toHaveURL(/#questions$/);
+});
+
+test("What's new (Session P): eleven linkable questions; a hash opens its answer and writes nothing", async ({page}) => {
+  await page.goto('/app/help');
+  const section = page.getByRole('region', {name: 'New in this Alpha, in your own words', exact: true});
+  const questions = ['Can a habit tick itself off from my Health journal?', 'What is a health goal, and where does its progress come from?', 'I’m away for a week. Will my streak break?', 'What is the weekly review?', 'How does the fasting timer work, and is it right for me?', 'What are the “Something you might notice” cards?', 'Can I import a CSV from another app?', 'Can I get all my data out?', 'What can I type into Quick add?', 'Can a reminder reach me when ZIGoals is closed?', 'What is the Guide, and what does it read?'];
+  for (const question of questions) await expect(section.getByText(question, {exact: true})).toBeVisible();
+  await expect(section.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  await page.goto('/app/help#help-imports');
+  const imports = page.locator('#help-imports');
+  await expect(imports).toHaveAttribute('open', '');
+  await expect(imports).toContainText('The file is read on this device and never uploaded');
+  await expect(section.locator('details[open]')).toHaveCount(1);
+  await page.evaluate(() => { window.location.hash = '#help-fasting'; });
+  await expect(page.locator('#help-fasting')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-fasting')).toContainText('talk to a doctor first');
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
 
 test('the wording follows the owner principle: sync once, backups optional, login is not recovery', async ({page}) => {
@@ -48,7 +67,9 @@ test('questions open and close from the keyboard', async ({page}) => {
   await page.goto('/app/help');
   const answer = page.getByText('Automatic prices come from CoinGecko and are labelled with their source.', {exact: false});
   await expect(answer).toBeHidden();
-  await page.getByText('Where do prices come from?', {exact: true}).focus();
+  // Focus must have landed before Enter is pressed: CI once saw the key go nowhere (PR #70, 2026-10-04, phone project).
+  const question = page.getByText('Where do prices come from?', {exact: true});
+  await question.focus(); await expect(question).toBeFocused();
   await page.keyboard.press('Enter');await expect(answer).toBeVisible();
   await page.keyboard.press('Enter');await expect(answer).toBeHidden();
 });
@@ -63,14 +84,18 @@ test('feedback opens an email to the Alpha address with a short template, and se
 });
 
 test('viewing Help asks no server and writes nothing', async ({page}) => {
-  // Reduced motion keeps the shell's once-per-session logo intro (and its sessionStorage flag) out of the comparison.
+  // Reduced motion keeps the shell's once-per-session logo intro (and its sessionStorage flag) out of the comparison,
+  // and so does its session flag, set up front (Session P, as in install-guide.spec.ts: a media emulation the browser
+  // applies late once let the intro write that flag under reduced motion in CI).
   // The baseline is a static same-origin file, so no other page's requests can land in the list.
   await page.emulateMedia({reducedMotion: 'reduce'});
+  await page.addInitScript(key => { try { sessionStorage.setItem(key, 'played'); } catch { /* storage denied */ } }, LOGO_INTRO_KEY);
   await page.goto('/robots.txt');
   const snapshot = () => page.evaluate(() => ({local: {...localStorage}, session: {...sessionStorage}}));
   const before = await snapshot(), requests: string[] = [];
   page.on('request', request => { const url = new URL(request.url()); if (url.pathname.startsWith('/api/')) requests.push(url.pathname); });
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
   for (const summary of await page.locator('.help-question > summary').all()) await summary.click();
   await page.waitForTimeout(500);
   expect(requests).toEqual([]);

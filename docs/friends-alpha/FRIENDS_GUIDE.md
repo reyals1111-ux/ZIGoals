@@ -23,6 +23,7 @@ Thank you for trying ZIGoals with us! ZIGoals is one calm place for your Goals, 
 
 - **Before accounts open,** everything you enter stays on the device you use, and only there. Installing ZIGoals and "Keep my data on this device" protect it.
 - **Once accounts open,** sign in with a code sent to your email. Turn on encrypted sync once: it's offered right after you sign in. From then on, every device you unlock stays up to date by itself, with no backups or transfers by hand.
+- **Invite-only for now.** If ZIGoals answers that it's invite-only when you ask for a code, your address isn't on the list yet: ask the person who invited you, or request an invite at contact@zigoals.app.
 - **Turn on encrypted sync on your first device before you start using a second one.** Then the second device starts from your synced records instead of keeping its own separate ones.
 - **Health is your choice.** It syncs only if you tick "Also sync my Health records".
 - **Your data is encrypted on your device before it leaves.** The server can't read your plans, habits or health entries. It does see your account and some technical details, such as sizes and times.
@@ -50,7 +51,25 @@ You don't need backups to stay up to date. If you'd like an extra safety net, **
 - **Barcodes:** when barcode lookup is available, only the barcode number is sent, to Open Food Facts. The camera picture stays on your device.
 - **"Needs attention" on sync?** Nothing was lost. ZIGoals kept both versions for you to choose from, in Settings → Account & sync.
 
-## 6. Tell us what you think
+## 6. What's new (October 2026)
+
+Eleven small things arrived together. All optional, all on your device, and none of them estimates, suggests or grades anything:
+
+- **Habits that tick themselves off** from your Health journal (edit a habit → "Done automatically from Health").
+- **Health goals**: steps, water, an exercise counter, active minutes or your weight trend, counted from your own entries.
+- **Planned skips and vacation days**: a skipped day never breaks a streak.
+- **A weekly review** on the day you choose in Settings: six calm steps with your own numbers.
+- **A fasting timer**, with a plain safety note and no streaks or praise.
+- **"Something you might notice" cards** on Today: pairings in your own records, in counts, never a cause.
+- **CSV imports** for transactions, holdings and meals, read on your device, with one-tap undo.
+- **Export everything**: one readable ZIP of all your records, any time, never needed.
+- **The Quick-add line**: type "drank 2 glasses of water", see exactly what will be saved, then Save.
+- **Reminders when ZIGoals is closed** (once accounts open, and only when we have switched it on): optional and per device, in Settings → Reminders when closed. On an iPhone it works only in the app on your Home Screen. The notification is always the same one sentence, "A reminder from ZIGoals", nothing more, and it is off until you turn it on. It is the only one of these that uses our server, which gets your reminder times and never what they are for.
+- **The Guide**: optional, in Settings → Guide on this device. Calm notes from your own records, made on this device with no AI service behind them, and never advice. "Not today" or "Turn off the Guide" is one tap.
+
+Each one has a Help entry under "What's new". Today shows a one-time "What's new" card once per device; dismiss it whenever you like.
+
+## 7. Tell us what you think
 
 **Help → Send feedback** opens an email to **contact@zigoals.app** with a short template. Please leave out codes, your recovery secret, and personal money or health details.
 

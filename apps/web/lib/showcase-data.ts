@@ -2,6 +2,14 @@
 import {emptyPlatform,platformSchema,PLATFORM_KEY,type Platform,type Position,type PrivateGoal,type ContributionEvent} from './positions';
 import {contributionTotals} from './goal-intelligence';
 import {emptyHabitData,createHabit,habitDataSchema,HABITS_KEY,type HabitInput} from './habits';
+import {HABIT_HEALTH_LINKS_KEY,habitHealthLinksSchema,type AppliedCheckIn} from './habit-health-links/schema';
+import {HEALTH_GOALS_KEY,healthGoalsSchema} from './health-goals/schema';
+import {FASTING_KEY,fastingSchema} from './fasting/schema';
+import {WEEKLY_REVIEW_KEY,weeklyReviewSchema} from './weekly-review/schema';
+import {reviewWindow} from './weekly-review/engine';
+import {IMPORT_UNDO_KEY,importUndoSchema} from './import/undo-schema';
+import {GUIDE_KEY,guideSchema} from './coach/schema';
+import {addLocalDays} from './local-date';
 import {createEmptyHealth,healthSchema,HEALTH_STORAGE_KEY,HEALTH_MEALS} from './health';
 import {DEFAULT_COUNTERS} from './health-counters';
 import type {MarketAssetRef} from './market-assets';
@@ -43,14 +51,37 @@ export function buildShowcase(day:string){
  platform.goalHistory.push({id:'example-plan-change',goalId:'9202',kind:'plan',capturedAt:at(-14),label:'Monthly contribution plan reviewed · Showcase',provenance:'LOCAL_EDIT'},{id:'example-milestone',goalId:'9205',kind:'milestone',capturedAt:at(-1),label:'Portfolio completed · Showcase',provenance:'LOCAL_EDIT'});
  platform=platformSchema.parse(platform);
  let habits=emptyHabitData();const titles=['Read','Exercise','Walk','Meditate','Contribute','Drink water'],targets=[30,30,8000,10,1,8],units=['minutes','minutes','steps','minutes','times','glasses'];
- titles.forEach((title,i)=>{const id=`92000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`;const input:HabitInput={title,category:i===4?'Wealth':i===0?'Learning':'Wellbeing',description:'A small daily step toward tomorrow.',notes:'SHOWCASE DATA · fictional 30-day history',schedule:{kind:'daily'},target:targets[i]!,measurement:{kind:'count',unit:units[i]!}};habits=createHabit(habits,input,new Date(at(-29)),id);const h=habits.habits.at(-1)!;h.entries=Array.from({length:30},(_,n)=>({date:date(-29+n),count:n===29?(i%2===0?targets[i]!:Math.floor(targets[i]!/2)):(n+i)%9===0?0:targets[i]!,disposition:(n+i)%9===0&&n!==29?'skipped' as const:'logged' as const,note:'Showcase example',updatedAt:at(-29+n)}));h.updatedAt=now;});habits=habitDataSchema.parse(habits);
+ titles.forEach((title,i)=>{const id=`92000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`;const input:HabitInput={title,category:i===4?'Wealth':i===0?'Learning':'Wellbeing',description:'A small daily step toward tomorrow.',notes:'SHOWCASE DATA · fictional 30-day history',schedule:{kind:'daily'},target:targets[i]!,measurement:{kind:'count',unit:units[i]!}};habits=createHabit(habits,input,new Date(at(-29)),id);const h=habits.habits.at(-1)!;h.entries=Array.from({length:30},(_,n)=>({date:date(-29+n),count:n===29?(i%2===0?targets[i]!:Math.floor(targets[i]!/2)):(n+i)%9===0?0:targets[i]!,disposition:(n+i)%9===0&&n!==29?'skipped' as const:'logged' as const,note:'Showcase example',updatedAt:at(-29+n)}));if(i===1)h.entries.push({date:date(3),count:0,disposition:'skipped',note:'Planned skip · SHOWCASE DATA · fictional travel day',updatedAt:now});h.updatedAt=now;});habits=habitDataSchema.parse(habits);
  const health=createEmptyHealth();health.targets={kcal:2200,proteinMg:120000,carbsMg:260000,fatMg:73000,weightGrams:72000,steps:8000};
  const meals=[['Berry overnight oats',420,22000,59000,12000],['Chicken and quinoa bowl',620,44000,70000,18000],['Salmon, rice and greens',690,48000,69000,25000],['Yogurt and almonds',240,17000,19000,10000]] as const;
  meals.forEach(([name,kcal,proteinMg,carbsMg,fatMg],i)=>health.foods.push({id:`health_food-000${i}`,name,brand:'Showcase kitchen',servingGrams:300,nutrients:{kcal,proteinMg,carbsMg,fatMg},createdAt:start,updatedAt:start}));
  for(let n=0;n<30;n++){const d=date(-29+n),stamp=at(-29+n);health.foods.forEach((f,i)=>health.diary.push({id:`health_diary-${String(n).padStart(3,'0')}-${i}`,sourceId:f.id,sourceKind:'food',snapshot:{name:f.name,servingGrams:f.servingGrams,nutrients:f.nutrients},date:d,meal:HEALTH_MEALS[i]!,quantityMilli:n===29?1000:900+(n%5)*50,createdAt:stamp,updatedAt:stamp}));health.activity.push({id:`health_activity-${String(n).padStart(3,'0')}`,date:d,name:'Showcase walk',steps:6000+(n%5)*700,minutes:35+n%4*5,createdAt:stamp,updatedAt:stamp});if(n%4===0)health.weights.push({id:`health_weight-${String(n).padStart(3,'0')}`,date:d,grams:74600-n*40,createdAt:stamp,updatedAt:stamp});}
+ // M3 (Session P): water on 12 of the 30 days (n%5 of 4 or 1), two entries each, so one pairing meets its thresholds ("6 of 12 … 6 of 18").
+ health.daily={version:1,favorites:[],savedMeals:[],plans:[],water:[],waterOperations:[],copyOperations:[],preferences:{timezone:null,waterUnit:'ml',waterTargetMl:null,weightUnit:'kg'},groceryNotes:''};
+ // Water on every fifth and fourth day of the cycle; the last pair lands on yesterday, so today's Water journal list stays
+ // short (ui-design-pass keeps that card within a screen) and the insight pairings keep their counts.
+ for(let n=0;n<30;n++){if(n%5!==4&&n%5!==1)continue;const d=date(n===29?-1:-29+n),stamp=at(n===29?-1:-29+n);for(const [suffix,amountMilli] of [['a',250000],['b',500000]] as const){const id=`health_water-${String(n).padStart(3,'0')}-${suffix}`;health.daily.water.push({id,date:d,amountMilli,unit:'ml',createdAt:stamp,updatedAt:stamp});health.daily.waterOperations.push(id);}}
+ // I1 (Session P): one imported food with two breakfast entries six and five days ago, and its undo record, all labelled.
+ const importedOats={id:'health_food-0009',name:'Showcase imported oats',brand:'Showcase import (fictional)',servingGrams:100,nutrients:{kcal:380,proteinMg:13000,carbsMg:67000,fatMg:7000,fiberMg:10000},createdAt:start,updatedAt:start};
+ health.foods.push(importedOats);
+ for(const [k,offset] of [[0,-6],[1,-5]] as const)health.diary.push({id:`health_import-showcase-${k}`,sourceId:importedOats.id,sourceKind:'food',snapshot:{name:importedOats.name,servingGrams:100,nutrients:{...importedOats.nutrients}},date:date(offset),meal:'Breakfast',quantityMilli:500,createdAt:start,updatedAt:start});
  // Fictional quick exercise counters for the last 14 days; some days have no entry.
  health.exercise={version:1,counters:DEFAULT_COUNTERS.map(c=>({...c})),days:[]};
  for(let n=0;n<14;n++){if(n%4===2)continue;const d=date(-13+n);DEFAULT_COUNTERS.forEach((c,i)=>{if((n+i)%5===4)return;health.exercise!.days.push({id:`${c.id}@${d}`,counterId:c.id,date:d,count:[20,6,30][i]!+((n*7+i*3)%11)});});}
- const records:Record<string,string>={[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health))};
+ // H7 (Session P): "Walk" ticks itself off from the activity log at 8,000 steps; a marker for every past day the Showcase walk reached it while the Walk entry is logged (n%5 is 3 or 4; the skipped days never qualify), today included.
+ const walk=habits.habits[2]!,applied:AppliedCheckIn[]=[];
+ for(let n=0;n<30;n++){const steps=6000+(n%5)*700,entry=walk.entries.find(e=>e.date===date(-29+n));if(steps>=8000&&entry?.disposition==='logged')applied.push({habitId:walk.id,date:date(-29+n),healthDate:date(-29+n),measure:'steps',value:steps,appliedAt:at(-29+n)});}
+ const habitHealthLinks=habitHealthLinksSchema.parse({version:1,links:{[walk.id]:{version:1,measure:'steps',rule:'at-least',target:8000,updatedAt:start}},applied});
+ // G3: one fictional health goal; with the Showcase walks its rolling four weeks read 7,475 of 8,000 steps.
+ const healthGoals=healthGoalsSchema.parse({version:1,goals:[{version:1,id:'92000000-0000-4000-8000-0000000000a1',name:'Walk more (Showcase)',measure:'steps',direction:'at-least',target:{value:'8000',decimals:0},unit:'steps',window:{kind:'rolling',weeks:4},status:'active',notes:'SHOWCASE DATA · fictional health goal',createdAt:start,updatedAt:start}]});
+ // HE6: one completed 16-hour session, yesterday evening to today noon; nothing running, so Today shows no fasting line.
+ const fasting=fastingSchema.parse({version:1,sessions:[{id:'fast_showcase-1',startedAt:new Date(Date.parse(at(-1))+20*3600000).toISOString(),endedAt:new Date(Date.parse(at(0))+12*3600000).toISOString(),targetHours:16,timeZone:'UTC',note:'SHOWCASE DATA · fictional session',stoppedBy:'person'}]});
+ // G1: the review of the week before the current one, so the current week's review is due on the Showcase day.
+ const reviewDay=reviewWindow(0,day).reviewDay;
+ const weeklyReview=weeklyReviewSchema.parse({version:1,weekday:0,reviews:[{weekStart:addLocalDays(reviewDay,-13),completedAt:`${addLocalDays(reviewDay,-7)}T19:30:00.000Z`,notes:{wentWell:'SHOWCASE DATA · fictional reflection: three walks and a calm week',intention:'SHOWCASE DATA · fictional intention: one short walk after lunch'}}]});
+ const importUndo=importUndoSchema.parse({version:1,imports:[{id:'92000000-0000-4000-8000-0000000000c1',kind:'nutrition',at:start,label:'SHOWCASE DATA · fictional example import',createdIds:['health_food-0009','health_import-showcase-0','health_import-showcase-1'],expiresAt:'2099-12-31T00:00:00.000Z'}]});
+ // The Guide (ADR-011): on in the Showcase from its first day, so its card shows; its words come from the fictional records above.
+ const guide=guideSchema.parse({version:1,enabled:true,enabledOn:date(-29),dismissed:{}});
+ const records:Record<string,string>={[GUIDE_KEY]:JSON.stringify(guide),[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health)),[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview),[IMPORT_UNDO_KEY]:JSON.stringify(importUndo)};
  return {day,records};
 }
