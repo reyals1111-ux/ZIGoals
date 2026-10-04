@@ -28,6 +28,7 @@ ZIGoals stores your Goals, Wealth positions and plans, Habits, Health records (f
 - **Clearing this site's data in your browser deletes it from this device.** It does not remove anything already sent to a public blockchain.
 - **Showcase** (demo data) lives in the current tab only and is separate from your records.
 - **Exports** you download are files you control. Readable exports are **not encrypted** and contain personal data. Encrypted backups are protected by their own separate secret.
+- **The Guide (optional).** If you turn it on in Settings, the Guide reads your records on this device only and shows short notes built from them. It uses no service and sends nothing anywhere; its switch and the notes you dismissed are kept on this device.
 
 ## 2. Accounts and encrypted sync (once accounts open)
 
@@ -53,6 +54,12 @@ ZIGoals stores your Goals, Wealth positions and plans, Habits, Health records (f
   This is **not metadata anonymity**.
 - **Health is synced only after a separate opt-in.** Turning Health sync off later does **not** delete encrypted Health copies already stored. [Lawyer: the "which part of the app" detail can show that someone keeps Health records, though not what they say. Health data may be special-category data.]
 - **Remember on this device (optional).** When you tick it while unlocking, your browser stores a key on this device so your account opens here without the recovery secret, until you lock it or choose Forget this device. That key stays on your device and is never sent to us. Anyone who can use that device can then open your account records too. It is ticked for you only in the app installed on your Home Screen. [Lawyer: describe this as local storage of a device-bound key under the device-storage section too.]
+- **Reminders while the app is closed (optional, per device).** In Settings → Reminders when closed you can turn on, for one device, a notification when a reminder time passes while the app is closed. It is off until you do, and needs you to be signed in. On iPhone it works only in the app saved to the Home Screen.
+  - **What we receive and store:** the address your browser hands out for push messages and the two keys that encrypt them; your time zone and quiet hours; your reminder times as times of day with weekdays (up to 20); a mark per sent reminder and day; counters. Never a habit's name, a count or anything you record. Every message carries the same encrypted, fixed content, and the only text shown is "ZIGoals: A reminder from ZIGoals".
+  - **What the push service receives:** the platform that delivers notifications to your device (Apple, Google, Mozilla or Microsoft, depending on your browser) receives the encrypted message and sees that one was sent to your device at that time, not what it says. [Lawyer: their role for this delivery.]
+  - **How long:** while your device keeps refreshing it (the app does so about once a day while you use it). A device that has not refreshed for 30 days is deleted. See section 5.
+  - **How to turn it off:** Settings → Reminders when closed → "Turn off and delete from the server" deletes this device's data at once. Signing out does the same for that device. "Revoke other sessions", deleting your cloud records and deleting your account delete all of it.
+  - [Lawyer: the subscription and the small push-only service worker are stored on the device only after the person's explicit request. ePrivacy Art. 5(3): consent, or a service "explicitly requested"? See LEGAL_CHECKLIST §2, question 9. A water reminder's existence is a fact about the person's health habits.]
 - **Recovery.** If you lose your recovery secret and every device that can open your account, your synced data cannot be recovered by anyone, including us. Access to your email does not recover it.
 
 ## 3. Optional services that receive public information only
@@ -77,6 +84,7 @@ Our host, **Cloudflare**, receives ordinary web requests. That includes your IP 
   - It does **not** erase copies already on your devices, or files you exported.
   - Infrastructure backups at our providers follow their own retention.
 - **Deleting one synced part:** you can delete a single part, such as Health, from the cloud. Your local records stay on your device.
+- **Push reminders (once accounts open):** a device's push data is deleted when you turn reminders off on that device, when you sign out there, when you delete your cloud records or your account, and by itself after 30 days without opening the app on that device.
 - **Fixed retention periods** for sign-in records, session records and abuse counters are **not yet set**. [Owner and lawyer: set them; ACTIVATION.md has the operating limits.]
 
 ## 6. Security
@@ -128,3 +136,5 @@ Note for the lawyer: we cannot read synced content, so many requests are best se
 | Account deletion, provider identity option, what it does not erase | `apps/web/components/account-deletion.tsx` |
 | Section deletion keeps local records | `apps/web/components/vault-sync-controls.tsx` (message "Cloud section deleted. Local records were kept.") |
 | Separate Home Screen storage on iPhone | [docs/friends-alpha/IOS_STORAGE.md](../friends-alpha/IOS_STORAGE.md) |
+| Push reminders: what is stored, the fixed text, retention and deletion (added 2026-10-04) | `workers/push-reminders/worker.mjs`; `apps/web/public/push-sw.js`; `apps/web/lib/push/device.ts`; [docs/architecture/ADR-010-push-reminders.md](../architecture/ADR-010-push-reminders.md) |
+| The Guide reads records on this device only (added 2026-10-04) | [docs/architecture/ADR-011-coach.md](../architecture/ADR-011-coach.md) |

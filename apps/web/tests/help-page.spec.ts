@@ -25,10 +25,10 @@ test('Help has one title and eight topics, listed before them, each linking to i
   await expect(page).toHaveURL(/#questions$/);
 });
 
-test("What's new (Session P): nine linkable questions; a hash opens its answer and writes nothing", async ({page}) => {
+test("What's new (Session P): eleven linkable questions; a hash opens its answer and writes nothing", async ({page}) => {
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'New in this Alpha, in your own words', exact: true});
-  const questions = ['Can a habit tick itself off from my Health journal?', 'What is a health goal, and where does its progress come from?', 'I’m away for a week. Will my streak break?', 'What is the weekly review?', 'How does the fasting timer work, and is it right for me?', 'What are the “Something you might notice” cards?', 'Can I import a CSV from another app?', 'Can I get all my data out?', 'What can I type into Quick add?'];
+  const questions = ['Can a habit tick itself off from my Health journal?', 'What is a health goal, and where does its progress come from?', 'I’m away for a week. Will my streak break?', 'What is the weekly review?', 'How does the fasting timer work, and is it right for me?', 'What are the “Something you might notice” cards?', 'Can I import a CSV from another app?', 'Can I get all my data out?', 'What can I type into Quick add?', 'Can a reminder reach me when ZIGoals is closed?', 'What is the Guide, and what does it read?'];
   for (const question of questions) await expect(section.getByText(question, {exact: true})).toBeVisible();
   await expect(section.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));

@@ -63,6 +63,7 @@ A fillable copy of every check in [ACTIVATION.md](ACTIVATION.md) Stage 8, plus t
 | C2 | Camera cancel | Cancelling the scan leaves the food log unchanged | | |
 | C3 | Physical barcode | A real product barcode finds the product (or "not found"), at most 5 lookups a minute | | |
 | C4 | Bounded provider refresh | One real market refresh stays within the configured `MARKET_POLICY` budget; no extra dispatch | | |
+| C5 | Push reminder with the app closed (Session P, [ADR-010](../architecture/ADR-010-push-reminders.md); only after [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–5) | The iPhone Home Screen app receives one "A reminder from ZIGoals" notification at the set time with the app closed; tapping it opens Today; "Turn off and delete from the server" leaves nothing; what the server held meanwhile was nothing but the device's push address and keys, times, zone, weekdays and quiet hours | | |
 
 ## D. Hosted recovery (fictional accounts only)
 Run the procedures in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md).

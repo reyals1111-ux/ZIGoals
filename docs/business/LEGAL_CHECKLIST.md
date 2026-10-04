@@ -14,6 +14,7 @@
 - **Market prices** come from CoinGecko, and **food data** from Open Food Facts.
 - **Wallet connection is read-only and non-custodial.** There are no blockchain transactions or financial signatures in the public Alpha, and mainnet is disabled.
 - **A one-time price of 4.99** is being considered.
+- **Push reminders** ([ADR-010](../architecture/ADR-010-push-reminders.md)) and **the Guide** ([ADR-011](../architecture/ADR-011-coach.md)) were added on 2026-10-04 (Session P), both off by default: questions 2.9, 4.4 and 4.5 below.
 
 ## 1. Open Food Facts data and the ODbL
 **Questions:**
@@ -46,6 +47,11 @@
 6. **Device storage.** Does storing records in the browser's local storage and IndexedDB need consent under the ePrivacy rule on terminal equipment (Art. 5(3) of Directive 2002/58/EC), or is it strictly necessary?
 7. **Rights we cannot read for.** How do we meet access, erasure and portability requests for synced data we cannot decrypt? Are the in-app export and deletion enough?
 8. **Belgium.** Which Belgian rules or guidance from the Data Protection Authority (GBA/APD) apply on top?
+9. **Push reminders** ([ADR-010](../architecture/ADR-010-push-reminders.md), built, off until the owner activates it; added 2026-10-04). A signed-in person can turn on, for one device, a notification when a reminder time passes while the app is closed. The device then stores a push subscription and a small push-only service worker. Our push Worker stores per account: the subscription address and its two encryption keys, the device's time zone and quiet hours, up to 20 reminder times as times of day with weekdays, sent marks and counters. Never a habit's name, a count or any content; every message carries the same encrypted, fixed content, and the notification text is fixed ("A reminder from ZIGoals"). The platform's push service (Apple, Google, Mozilla or Microsoft, by browser) delivers it and sees the timing. A device not refreshed for 30 days is deleted; turn-off, sign-out and account deletion delete at once.
+   - Under ePrivacy Art. 5(3), is storing the subscription and the service worker after the person's explicit request "strictly necessary" for a service "explicitly requested", or must consent be recorded, and how?
+   - What is our role for the schedule metadata (times, zone, weekdays)? Are the push services processors, independent controllers or neither? Which agreements and transfer safeguards follow (Chapter V)?
+   - The server never sees health content, but a water reminder's existence (a reminder time, every day) is a fact about the person's health habits. Does it need the Health consent wording, and does it change the answer to question 1?
+   - Must the notice state a fixed retention period beyond "30 days without a refresh" ([PRIVACY_NOTICE_DRAFT.md](../legal/PRIVACY_NOTICE_DRAFT.md) §2 and §5)?
 
 **Read first:**
 - GDPR, Regulation (EU) 2016/679, <https://eur-lex.europa.eu/eli/reg/2016/679/oj>
@@ -78,6 +84,15 @@
    - could any use be high-risk (Annex III)?
    - what changes if it comments on money or health?
 3. **Medical device.** Could the Health features ever qualify as medical device software (Regulation (EU) 2017/745, classification rule 11), for example if they give nutrition or weight advice? Which features or wording keep them general wellness?
+4. **The Guide, phase 1** ([ADR-011](../architecture/ADR-011-coach.md), built, opt-in, on the device; added 2026-10-04). A fixed table of rules written by people turns the person's own records into at most one short note a day on Today and one paragraph in the weekly review. No model, no learning, no network call. Every note carries the label "Guide · on this device, no AI service". It never gives money or medical advice and never moves anything.
+   - Is such a rule table an "AI system" under the AI Act's Art. 3(1) ("infers, from the input it receives, how to generate outputs such as predictions, content, recommendations, or decisions"), or outside it?
+   - If it is one: does the label meet the Art. 50(1) transparency duty (applying from 2 August 2026, Art. 113), and is anything more needed?
+   - To confirm: Annex III (high-risk) is not engaged by a wellbeing and planning app.
+   - Art. 5(1)(a) and (b): the Guide has no countdown, no loss framing and no interruption, by design. Is anything else needed to stay clear of manipulative techniques or the exploitation of vulnerabilities?
+5. **The Guide, phase 2** (not built; options (a) a model on the device, (b) an opt-in cloud proxy, (c) hybrid, in ADR-011). If notes were worded by a model on the device, or by a hosted model through a proxy Worker with consent per message:
+   - for a hosted provider: a processor agreement and transfer safeguards (question 2.5), the provider's retention and training terms, and special-category data if Health content were ever sent (GDPR Art. 9);
+   - whether a free-text conversation about money or health can slide into advice (questions 4.1 and 4.3), and which design keeps it general information;
+   - the age limit for the Alpha ([PRIVACY_NOTICE_DRAFT.md](../legal/PRIVACY_NOTICE_DRAFT.md) §8) and how it is checked.
 
 **Read first:**
 - MiFID II, Directive 2014/65/EU, <https://eur-lex.europa.eu/eli/dir/2014/65/oj>

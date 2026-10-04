@@ -35,6 +35,8 @@ Every genuinely new record type lives in its own versioned key through `getAppSt
 | `zigoals:insights:v1` | M3 | `{version, dismissed: {[cardId]: "YYYY-MM-DD"} ≤ 200}` | yes | stays device-only (a view preference, like reminder dismissals) |
 | `zigoals:import-undo:v1` | W3, I1 | `{version, imports: ImportRecord[] ≤ 20}` | yes | stays device-only (an undo ledger for records that already sync as ordinary records) |
 | `zigoals:whats-new:v1` | the card | `{version, dismissed: string[] ≤ 50}` (release ids) | no | stays device-only (a flag, like `zigoals:onboarding:v1`) |
+| `zigoals:push:v1` (PR 4, ADR-010) | the push panel in Settings, the daily refresh | `{version, subscriptionId, endpointHash, quiet: {from, to}, lastSyncDay}` | yes (a device's push subscription) | stays device-only: it describes this browser's subscription, which no other device can use |
+| `zigoals:guide:v1` (PR 4, ADR-011) | the Guide switch, "Not today" | `{version, enabled, enabledOn?, dismissed: {[nudgeId]: day} ≤ 100}` | yes | stays device-only (a view preference, like insight dismissals) |
 
 Rules for each key:
 1. **Schema:** `lib/<feature>/schema.ts` exports the key, the zod schema, the type and `empty<Name>()`. Field names and types of a record with a synced home are exactly those of the home's schema (`habitHealthLinkSchema` in `lib/habits.ts`, `healthGoalSchema` in `lib/positions.ts`, `weeklyReviewSchema` in `lib/dashboard-settings.ts`, `fastingSessionSchema` in `lib/health.ts`, all as shipped in PR 2), so the move is a plain copy.
