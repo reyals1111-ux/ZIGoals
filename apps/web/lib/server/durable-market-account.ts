@@ -50,6 +50,15 @@ const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('forget-many'),ids:z.array(id).min(1).max(64)}).strict(),
 ]);
 type Config=z.infer<typeof configSchema>;type Command=z.infer<typeof commandSchema>;
+/** Session U Part 2d: when the configured accounting period ends (an exact window: its end; a confirmed UTC calendar:
+ * the next month's start), or null for a missing or invalid policy. After it, every command is refused
+ * (CLOCK_OR_PERIOD), cached prices included, until the owner sets the next period's policy. Read by QuoteService's
+ * /status, which never calls the account object. */
+export function marketPolicyWindowEnd(raw:string|undefined,now:number):number|null{
+ let config:Config;try{config=configSchema.parse(JSON.parse(raw??'null'));}catch{return null;}
+ if(config.month)return config.month.end;
+ const date=new Date(now);return Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1);
+}
 type Observation=Parameters<typeof recordMarketTelemetry>[2];
 type Association={work:PublicMarketWork;lease:WorkLease};
 type Outcome={result:Record<string,unknown>;commit:boolean|'auto'};
