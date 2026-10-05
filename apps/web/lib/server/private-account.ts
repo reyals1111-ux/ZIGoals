@@ -50,6 +50,21 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
   if(secure)for(const legacy of ['zigoals_session','zigoals_refresh'])result.headers.append('Set-Cookie',`${legacy}=; HttpOnly; SameSite=Strict; Path=/api/private-account; Max-Age=0; Secure`);
   return result;}
  async function upstream(url:string,init:RequestInit){return fetcher(url,{...init,redirect:'manual',signal:AbortSignal.timeout(10000),cache:'no-store'});}
+ // Session U Part 5 (FIX_PLAN A3, FINDINGS Q-AUTH-02): a revoke ends the provider session too, with Supabase's documented
+ // logout only (supabase/auth internal/api/logout.go, read 2026-10-04: `/logout` with the user's own token supports the
+ // scopes `local`, `others` and `global`; no admin route ends one session). "Revoke other sessions" logs out `others` with
+ // this session's token. A single revoke is enforced by private sync at once, and the revoked session's own provider
+ // session is logged out (`local`) the first time that session reaches this relay again: on its status check, a vault or
+ // account request, or a refresh (then with the fresh token the provider has just issued).
+ async function endProviderSession(cfg:AccountConfig,access:string,scope:'local'|'others'):Promise<boolean>{
+  try{const result=await upstream(`${cfg.authOrigin}/auth/v1/logout?scope=${scope}`,{method:'POST',headers:{apikey:cfg.publicKey,authorization:`Bearer ${access}`}});await result.body?.cancel().catch(()=>{});return result.ok;}catch{return false;}
+ }
+ /** Private sync's answer, relayed as before; a session it refuses as revoked is also logged out at the provider. */
+ async function relayed(cfg:AccountConfig,remote:Response,limit:number,headers:Record<string,string>={}){
+  const data=await readBounded(remote,limit);
+  if(remote.status===401&&data?.error==='SESSION_REVOKED'&&token)await endProviderSession(cfg,token,'local');
+  return reply(data,remote.status,headers);
+ }
  try{
   let action:z.infer<typeof actionSchema>|undefined;
   if(request.method==='POST'){
@@ -74,16 +89,18 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
     const remote=await upstream(`${cfg.authOrigin}/auth/v1/user`,{headers:{apikey:cfg.publicKey,authorization:`Bearer ${token}`}});
     if(!remote.ok){await remote.body?.cancel().catch(()=>{});return remote.status===401||remote.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,refresh?{}:{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);}
     const user=z.object({id:z.uuid()}).parse(await readBounded(remote,32768));
-    const allowed=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':user.id}});await allowed.body?.cancel().catch(()=>{});if(!allowed.ok)return allowed.status===401||allowed.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,refresh?{}:{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);
+    const allowed=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':user.id}});
+    if(allowed.status===401&&(await readBounded(allowed,4096).catch(()=>null))?.error==='SESSION_REVOKED')await endProviderSession(cfg,token,'local');else await allowed.body?.cancel().catch(()=>{});
+    if(!allowed.ok)return allowed.status===401||allowed.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,refresh?{}:{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);
     return reply({signedIn:true,accountId:user.id.toLowerCase()});
    }
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
-   if(new URL(request.url).searchParams.get('action')==='rotation'){const remote=await upstream(`${cfg.syncOrigin}/v1/rotation`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return reply(await readBounded(remote,32768),remote.status);}
-   if(new URL(request.url).searchParams.get('action')==='sessions'){const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return reply(await readBounded(remote,1_000_000),remote.status);}
+   if(new URL(request.url).searchParams.get('action')==='rotation'){const remote=await upstream(`${cfg.syncOrigin}/v1/rotation`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return relayed(cfg,remote,32768);}
+   if(new URL(request.url).searchParams.get('action')==='sessions'){const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return relayed(cfg,remote,1_000_000);}
    const query=new URL(request.url).searchParams,cursor=query.get('cursor'),ids=query.has('ids')?query.get('ids')!.split(','):null;if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return reply({error:'INVALID_CURSOR'},400);if(ids&&(cursor||ids.length>100||!ids.length||new Set(ids).size!==ids.length||ids.some(id=>!z.uuid().safeParse(id).success)))return reply({error:'INVALID_RECORD_SELECTION'},400);
    const remote=await upstream(`${cfg.syncOrigin}/v1/vault${ids?'?ids='+encodeURIComponent(ids.join(',')):cursor?'?cursor='+encodeURIComponent(cursor):''}`,{headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence}});
-   return reply(await readBounded(remote,36_000_000),remote.status);
+   return relayed(cfg,remote,36_000_000);
   }
   if(!action)throw Error('Missing account action.');
   if(action.action==='refresh'){
@@ -92,15 +109,18 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    if(!remote.ok){await remote.body?.cancel().catch(()=>{});return reply({error:'REFRESH_NOT_CONFIRMED'},remote.status===429?429:401);}
    const refreshed=z.object({access_token:z.string().regex(/^[A-Za-z0-9._-]{1,4096}$/),refresh_token:z.string().regex(/^[A-Za-z0-9._-]{1,4096}$/),expires_in:z.number().int().min(1).max(86400),user:z.object({id:z.uuid()})}).parse(await readBounded(remote,32768));
    const registry=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${refreshed.access_token}`,'x-zigoals-account':refreshed.user.id,'content-type':'application/json'},body:JSON.stringify({action:'refresh',previous:token})});
-   if(!registry.ok){await registry.body?.cancel().catch(()=>{});throw Error('Session refresh denied.');}z.object({registered:z.literal(true),id:z.uuid()}).parse(await readBounded(registry,32768));
+   if(!registry.ok){if(registry.status===401&&(await readBounded(registry,4096).catch(()=>null))?.error==='SESSION_REVOKED')await endProviderSession(cfg,refreshed.access_token,'local');else await registry.body?.cancel().catch(()=>{});throw Error('Session refresh denied.');}z.object({registered:z.literal(true),id:z.uuid()}).parse(await readBounded(registry,32768));
    return withCookies(reply({signedIn:true,accountId:refreshed.user.id.toLowerCase()}),refreshed.access_token,refreshed.refresh_token,30*86400);
   }
-  if(action.action==='session'){if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account'));const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});const data=await readBounded(remote,32768);return reply(data,remote.status,data.currentRevoked?{'Set-Cookie':cookie('',0)}:{});}
+  if(action.action==='session'){if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account'));const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});const data=await readBounded(remote,32768);
+   if(remote.ok&&action.operation.action==='revoke-others'){data.providerSignedOut=await endProviderSession(cfg,token,'others');return reply(data,remote.status);}
+   if(remote.ok&&data.currentRevoked===true||remote.status===401&&data?.error==='SESSION_REVOKED')await endProviderSession(cfg,token,'local');
+   return reply(data,remote.status,data.currentRevoked?{'Set-Cookie':cookie('',0)}:{});}
   if(action.action==='sync'||action.action==='rotation'||action.action==='delete'||action.action==='domain'){
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
    const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});
-   return reply(await readBounded(remote,action.action==='rotation'?1_000_000:32768),remote.status);
+   return relayed(cfg,remote,action.action==='rotation'?1_000_000:32768);
   }
   // Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): a code request never asks the provider to create a user, so an
   // address that is not on the invite list stays unknown even if sign-ups are ever switched back on.

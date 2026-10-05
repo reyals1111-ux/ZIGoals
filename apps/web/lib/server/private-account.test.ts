@@ -190,3 +190,60 @@ test('a code request never asks the provider to create a user',async()=>{
  expect(result.status).toBe(200);expect(bodies).toEqual([{email:'friend@example.com',create_user:false}]);
  expect(JSON.stringify(bodies)).not.toContain('"create_user":true');
 });
+
+// Session U Part 5 (FIX_PLAN A3, FINDINGS Q-AUTH-02): a revoke ends the provider session too, with Supabase's documented
+// logout only. Fake upstreams: the provider's logout is a recorded call; nothing reaches a network.
+const account='10000000-0000-4000-8000-000000000001';
+const sessionAction=(operation:unknown,token='current-token')=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:`__Host-zigoals_session=${token}`,'x-zigoals-account':account},body:JSON.stringify({action:'session',operation})});
+const logouts=(calls:[string,RequestInit|undefined][])=>calls.filter(([url])=>url.includes('/auth/v1/logout')).map(([url,init])=>[url.replace(config.authOrigin,''),new Headers(init?.headers).get('authorization')]);
+test('revoke other sessions signs them out at the provider with this session’s token, after private sync revoked them',async()=>{
+ for(const [provider,signedOut] of [[204,true],[500,false],[0,false]] as const){
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(sessionAction({action:'revoke-others'}),config,async(url,init)=>{calls.push([String(url),init]);if(String(url).endsWith('/v1/sessions'))return Response.json({revoked:2,currentRevoked:false});if(!provider)throw TypeError('fetch failed');return new Response(null,{status:provider});});
+  expect(result.status).toBe(200);expect(await result.json()).toEqual({revoked:2,currentRevoked:false,providerSignedOut:signedOut});
+  expect(calls.map(([url])=>url)).toEqual([config.syncOrigin+'/v1/sessions',config.authOrigin+'/auth/v1/logout?scope=others']);
+  expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=others','Bearer current-token']]);expect(result.headers.get('set-cookie')).toBeNull();
+ }
+ // Refused by private sync: nothing is signed out at the provider.
+ const calls:[string,RequestInit|undefined][]=[];
+ const refused=await privateAccountRequest(sessionAction({action:'revoke-others'}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json({error:'SESSION_CAPACITY'},{status:507});});
+ expect(refused.status).toBe(507);expect(logouts(calls)).toEqual([]);
+});
+test('revoking this session signs it out at the provider; revoking another one is enforced by private sync alone',async()=>{
+ const calls:[string,RequestInit|undefined][]=[];
+ const own=await privateAccountRequest(sessionAction({action:'revoke',id:crypto.randomUUID()}),config,async(url,init)=>{calls.push([String(url),init]);return String(url).endsWith('/v1/sessions')?Response.json({revoked:1,currentRevoked:true}):new Response(null,{status:204});});
+ expect(own.status).toBe(200);expect(own.headers.get('set-cookie')).toContain('Max-Age=0');expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=local','Bearer current-token']]);
+ calls.length=0;
+ const other=await privateAccountRequest(sessionAction({action:'revoke',id:crypto.randomUUID()}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json({revoked:1,currentRevoked:false});});
+ expect(other.status).toBe(200);expect(await other.json()).toEqual({revoked:1,currentRevoked:false});expect(logouts(calls)).toEqual([]);
+});
+test('a revoked session is signed out at the provider the first time it reaches the relay again: status, vault and account requests',async()=>{
+ const revoked=()=>Response.json({error:'SESSION_REVOKED'},{status:401}),cookie='__Host-zigoals_session=revoked-token';
+ const requests=[
+  new Request('https://app.test/api/private-account?action=status',{headers:{cookie}}),
+  new Request('https://app.test/api/private-account',{headers:{cookie,'x-zigoals-account':account}}),
+  new Request('https://app.test/api/private-account?action=sessions',{headers:{cookie,'x-zigoals-account':account}}),
+  new Request('https://app.test/api/private-account?action=rotation',{headers:{cookie,'x-zigoals-account':account}}),
+  ...['sync','rotation','delete','domain'].map(action=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie,'x-zigoals-account':account},body:JSON.stringify({action,operation:action==='delete'?{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}:action==='domain'?{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0}:{}})})),
+ ];
+ for(const request of requests){
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(request,config,async(url,init)=>{calls.push([String(url),init]);if(String(url).endsWith('/auth/v1/user'))return Response.json({id:account});if(String(url).startsWith(config.syncOrigin))return revoked();return new Response(null,{status:204});});
+  expect(result.status,request.url).toBe(401);expect(logouts(calls),request.url).toEqual([['/auth/v1/logout?scope=local','Bearer revoked-token']]);
+ }
+ // Any other refusal leaves the provider session alone: an expired token, another account, an outage.
+ for(const answer of [Response.json({error:'SIGN_IN_REQUIRED'},{status:401}),Response.json({error:'ACCOUNT_CHANGED'},{status:409}),Response.json({error:'TEMPORARY'},{status:503})]){
+  const calls:[string,RequestInit|undefined][]=[];
+  await privateAccountRequest(new Request('https://app.test/api/private-account',{headers:{cookie,'x-zigoals-account':account}}),config,async(url,init)=>{calls.push([String(url),init]);return answer.clone();});
+  expect(logouts(calls)).toEqual([]);
+ }
+});
+test('a revoked session that refreshes is signed out at the provider with the token the provider has just issued',async()=>{
+ const calls:[string,RequestInit|undefined][]=[];
+ const result=await privateAccountRequest(new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'__Host-zigoals_session=old-token; __Host-zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'}),config,async(url,init)=>{calls.push([String(url),init]);
+  if(String(url).includes('/token?grant_type=refresh_token'))return Response.json({access_token:'fresh-token',refresh_token:'fresh-refresh',expires_in:3600,user:{id:account}});
+  if(String(url).endsWith('/v1/sessions'))return Response.json({error:'SESSION_REVOKED'},{status:401});
+  return new Response(null,{status:204});});
+ expect(result.status).toBe(400);expect(result.headers.has('set-cookie')).toBe(false);expect(await result.text()).not.toMatch(/fresh-token|fresh-refresh/);
+ expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=local','Bearer fresh-token']]);
+});
