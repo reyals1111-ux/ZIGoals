@@ -38,6 +38,8 @@ export function validatePrivateCopies(copies,templates){
   if(c.name!==expected)errors.push(kind+': name must share the reviewed prefix of the app Worker.');
   for(const field of ['main','compatibility_date','compatibility_flags','durable_objects','migrations','workers_dev','preview_urls','limits','assets'])if(!same(c[field],t[field]))errors.push(kind+': '+field+' differs from the reviewed template.');
   for(const [name,value]of Object.entries(c.vars??{}))if(typeof value!=='string'||PLACEHOLDER.test(value))errors.push(kind+': '+name+' is still a placeholder.');
+  // Session U Part 5: the fixture clock (private sync's revoked-session sweep, food, market) exists for scripts/run11 tests only.
+  if(['ISOLATED_FIXTURE','LOCAL_TEST_NOW','LOCAL_SWEEP_MS'].some(name=>name in(c.vars??{})))errors.push(kind+': the test clock vars must never be configured.');
   if(!same(Object.keys(t.vars??{}).filter(k=>!(k in(c.vars??{}))),[]))errors.push(kind+': a template var is missing.');
  }
  const a=copies.app.vars??{},p=copies.private.vars??{},l=copies.lifecycle.vars??{},m=copies.market.vars??{};

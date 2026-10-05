@@ -1,9 +1,9 @@
 import {rotationRequest} from './rotation.mjs';
-import {sessionAllowed,sessionsRequest} from './sessions.mjs';
+import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DOMAINS=new Set(['finance','health','habits','settings']);
-/** @typedef {{VAULTS:DurableObjectNamespace,LIFECYCLE:Fetcher,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string}} SyncEnv */
+/** @typedef {{VAULTS:DurableObjectNamespace,LIFECYCLE:Fetcher,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string}} SyncEnv */
 /** @param {unknown} value @param {number} [status] */
 const response=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 /** @param {any} value @param {string[]} keys */
@@ -68,12 +68,20 @@ export default privateSyncWorker;
 export class PrivateVault{
  /** @param {RecordState} state @param {SyncEnv} env */
  constructor(state,env){this.state=state;this.env=env;}
- async alarm(){await this.finishDomainDeletion();}
+ /** The fixture clock and alarm spacing: scripts/run11 tests only; activation-check refuses these vars in every owner config. */
+ now(){const local=Number(this.env.LOCAL_TEST_NOW);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)?local:Date.now();}
+ /** @param {number} due */
+ alarmAt(due){const local=Number(this.env.LOCAL_SWEEP_MS);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?Date.now()+local:due;}
+ async alarm(){
+  if(await this.state.storage.get('domain-delete-intent'))await this.finishDomainDeletion();
+  // Session U Part 5: the revoked-session sweep shares the vault's one alarm; a pending domain deletion keeps its own.
+  await this.state.storage.transaction(async store=>{await sweepRevokedSessions(store,this.now());if(!await store.get('domain-delete-intent'))await armSweep(store,due=>this.alarmAt(due));});
+ }
  /** A durable intent fences writes before the independent deletion decision. Alarms replay it after response loss. */
  async finishDomainDeletion(){
   const intent=await this.state.storage.get('domain-delete-intent');if(!intent)return response({error:'NO_DOMAIN_INTENT'},409);
   await this.state.storage.setAlarm(Date.now()+60000);
-  let decision;try{const result=await this.env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:'POST',headers:{'x-verified-account':intent.account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:intent.domain,operation:intent.operation,generation:intent.generation})}));if(!result.ok){if([400,409,410,507].includes(result.status)){await this.state.storage.transaction(async store=>{if((await store.get('domain-delete-intent'))?.operation===intent.operation){await store.delete('domain-delete-intent');await store.deleteAlarm();}});return response({error:result.status===507?'LIFECYCLE_CAPACITY':'DOMAIN_REVIEW_CHANGED'},result.status===507?507:409);}return response({error:'DOMAIN_DELETION_PENDING'},503);}decision=await boundedJSON(result,4096);}catch{return response({error:'DOMAIN_DELETION_PENDING'},503);}
+  let decision;try{const result=await this.env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:'POST',headers:{'x-verified-account':intent.account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:intent.domain,operation:intent.operation,generation:intent.generation})}));if(!result.ok){if([400,409,410,507].includes(result.status)){await this.state.storage.transaction(async store=>{if((await store.get('domain-delete-intent'))?.operation===intent.operation){await store.delete('domain-delete-intent');await armSweep(store,due=>this.alarmAt(due));}});return response({error:result.status===507?'LIFECYCLE_CAPACITY':'DOMAIN_REVIEW_CHANGED'},result.status===507?507:409);}return response({error:'DOMAIN_DELETION_PENDING'},503);}decision=await boundedJSON(result,4096);}catch{return response({error:'DOMAIN_DELETION_PENDING'},503);}
   return this.state.storage.transaction(async store=>{
    const current=await store.get('domain-delete-intent');if(!current||current.operation!==intent.operation)return response({error:'DOMAIN_DELETION_CHANGED'},409);
    if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
@@ -81,7 +89,7 @@ export class PrivateVault{
    if((next[intent.domain]??0)<=intent.generation)return response({error:'DOMAIN_DELETION_PENDING'},503);
    let bytes=await store.get('bytes')??0,cursor;for(;;){const rows=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!rows.size)break;cursor=[...rows.keys()].at(-1);for(const [id,row]of rows)if((next[row.domain]??0)>(applied[row.domain]??0)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
    for(;;){const rows=await store.list({prefix:'rotation-row:',limit:128});if(!rows.size)break;await store.delete([...rows.keys()]);}
-   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});await store.delete(['domain-delete-intent','rotation']);await store.deleteAlarm();return response({deleted:true,domainGenerations:next});
+   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});await store.delete(['domain-delete-intent','rotation']);await armSweep(store,due=>this.alarmAt(due));return response({deleted:true,domainGenerations:next});
   });
  }
  /** @param {Request} request @param {string|null} sessionHash */
@@ -130,7 +138,7 @@ export class PrivateVault{
    });
   }
   if(await this.state.storage.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
-  if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON);
+  if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON,()=>this.now(),due=>this.alarmAt(due));
   if(request.method==='GET'){
    const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'',ids=url.searchParams.has('ids')?/** @type {string} */(url.searchParams.get('ids')).split(','):null;
    if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return response({error:'INVALID_CURSOR'},400);
