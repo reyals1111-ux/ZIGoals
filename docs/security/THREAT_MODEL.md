@@ -92,6 +92,32 @@ Fresh contract/frontend engineering reviews are independent of implementation bu
 
 Primary session-expiry behavior: https://supabase.com/docs/guides/auth/signout . This draft engineering model is not a professional audit or full account-lifecycle certification.
 
+## Session U changes (October 2026)
+
+Added by Session U (2026-10-05) for the changes of PR #74; each row names the part of the PR. Evidence labels as in
+docs/STATUS.md (Session U entry).
+
+| Threat | Control added | Remaining exposure |
+|---|---|---|
+| Inbox owner learns who is invited (Part 5, A1/A2) | Code requests never create a user; every request past admission gets one answer, byte for byte, and the provider call runs after the answer (Next `after()`, proven in the packaged Worker) | Admission limits (429/503) are address-independent and still visible; email delivery itself can be observed by the inbox owner |
+| A revoked device keeps its provider session (Part 5, A3) | "Revoke other sessions" logs out `others` at the provider; a single revoke is enforced at once by private sync, and the revoked session is logged out at the provider the next time it reaches the relay | Supabase has no admin route to end one session; an access token lives until its expiry (up to an hour) |
+| Revoked-session records kept forever (Part 5, C7) | Deleted 90 days after revocation; families keep a dateless tombstone; swept on session requests and by the alarm | Tombstones remain, bounded by the lifetime session cap |
+| Script extracts a remembered root (Part 5, B1) | Remembered records v2 hold the root as a non-extractable HKDF key with a key commitment; v1 migrates on open | Script can still use the key while it runs (ADR-008 addendum); WebKit may keep v1 (owner row) |
+| One tab locks, another stays open (Part 5, B2) | Lock broadcasts a manual lock to every tab of the browser, which forgets the device | A browser with BroadcastChannel off falls back to the old message (still locks, may reopen remembered) |
+| Owner erase leaves vault rows (Part 5, H1 follow-up) | `recovery-admin erase` also removes the account's encrypted rows through a second, owner-only binding, only once the lifecycle authority says deleted | The binding exists only while the owner runs the command; activation-check refuses it anywhere else |
+| Cross-origin window access (Part 6, D1) | `Cross-Origin-Opener-Policy: same-origin` on every app response, asserted after each upload | None known for this app (it opens no cross-origin windows) |
+| Origin header spoofing and SVG script (Part 6, D2) | The layout trusts `x-zigoals-origin` only from a server allowlist; SVGs get their own `default-src 'none'; sandbox` CSP | The `/_next/static` plain-404 finding: its local check and result are in STATUS (Session U, D2) |
+| Spreadsheet formula injection in exports (Part 6, D3) | One `csvSafeCell` for every CSV writer, including full-width `＝＋－＠` and leading whitespace | Only CSV; JSON exports are data |
+| HTML/script injection (Part 6, D4) | An inert Trusted Types default policy (script URLs from this origin's `/_next/static/` and `/push-sw.js` only, returned unchanged) and a local report-only trial: no violation across the full browser suite (TRUSTED_TYPES.md) | Nothing is enforced yet: enforcement follows once Session T's specs are clean too |
+| Secrets in review screenshots (Part 6, D6) | Screenshot helpers paint over every recovery-secret field; a spec reads the pixels back | Old screenshots on `review/session-l-screenshots` until the owner deletes it (HOUSEKEEPING.md) |
+| Push to an attacker's host (Part 6) | The push Worker posts only to four cited vendor hosts (re-read 2026-10-05), never with an explicit port, credentials or fragment | `PUSH_ALLOWED_HOSTS` can widen the list (exact hosts or one `*.suffix`) |
+| Stray files published with the landing (Part 6, F4) | `.assetsignore` ends with media-type negations and a dotfile denial; the checker fails on untracked files; a wrangler dry run proves what uploads | A deploy from a dirty checkout outside git is not checked (LANDING.md: deploy from a fresh worktree) |
+| A swapped package manager in CI (Part 6, F2) | Corepack installs pnpm by its registry SHA-512 in every workflow install step | Local installs still trust the developer's pnpm |
+| An agent dispatches a deploy (Part 7) | Exactly the Claude GitHub App's bot login, only `workflow_dispatch` on `main`, after the owner's own chat message; `alpha` approval stays the owner's | The App's Actions permission also allows cancel/re-run (AGENT_DISPATCH.md) |
+| Public callers exhaust the market budget (Part 2) | Optional partition of the daily row budget; public cold work only for catalogued assets and within a daily cap | A partition is only as good as the policy the owner sets |
+| Health-describing data synced without Health consent (Part 9) | Health goals, habit-health links with their markers, fasting and the review's Health note live in Health, which syncs only with the Health permission; device keys are never rewritten | A rollback to #28 leaves a v3 Health section unreadable there until the roll-forward (bytes kept) |
+| A malicious sync server and the Portfolio copy (Part 9, ADR-013) | Each part sealed for its place (label, index, revision, epoch) and stating the part count; an older or altered copy than the device last saw is refused; writes compare-and-swap; separate keyspace that older clients never touch | The server sees the copy's size, revision and timing, can withhold it, and can fake a deletion generation (the device then stops syncing and says so) |
+
 ## Friends Alpha (October 2026)
 
 Added by Session S (2026-10-04) from the pre-Alpha review's [THREAT_MODEL_REFRESH.md](review-2026-10/THREAT_MODEL_REFRESH.md) (FIX_PLAN E1). Finding IDs refer to [FINDINGS.md](review-2026-10/FINDINGS.md); the refresh lists assets, attackers and trust boundaries, and [DATA_FLOWS.md](review-2026-10/DATA_FLOWS.md) what each provider can see. This is an internal review by an AI, not a professional audit. "Since" notes record what changed after the review.
