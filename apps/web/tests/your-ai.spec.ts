@@ -447,3 +447,29 @@ test('phone: a denied microphone shows the steps for this browser and the compos
   await expect(panel(page)).toHaveCount(0);
   await expect(openButton(page)).toBeFocused();
 });
+
+test('"Ask ZIGi about this" on a habit card and on a goal detail opens the chat with the item named, and sends nothing until Send', async ({page}) => {
+  const captured = await mockLocal(page, () => stream('Read is going well: 26 days in a row.'));
+  await seed(page, connectedLocal());
+  await page.goto('/app/habits');
+  const ask = page.getByRole('button', {name: /^Ask ZIGi about /}).first();
+  await expect(ask).toBeVisible();
+  const label = (await ask.getAttribute('aria-label'))!.replace('Ask ZIGi about ', '');
+  await ask.click();
+  await expect(panel(page)).toBeVisible();
+  await expect(page.getByLabel('Message to your AI')).toHaveValue(`About my habit "${label}": `);
+  expect(captured.filter(c => c.url.endsWith('/chat/completions'))).toHaveLength(0);
+  await page.getByLabel('Message to your AI').fill(`About my habit "${label}": how is it going?`);
+  await page.getByRole('button', {name: 'Send', exact: true}).click();
+  await expect(panel(page).locator('.ai-turn-assistant')).toContainText('26 days');
+  expect(captured.filter(c => c.url.endsWith('/chat/completions'))).toHaveLength(1);
+  await page.keyboard.press('Escape');
+  const goalId = await page.evaluate(() => (JSON.parse(localStorage.getItem('zigoals:platform:v1')!) as {goals: {id: string}[]}).goals[0]!.id);
+  await page.goto(`/app/goals/tracked/${goalId}`);
+  const askGoal = page.getByRole('button', {name: 'Ask ZIGi about this goal', exact: true});
+  await expect(askGoal).toBeVisible();
+  await askGoal.click();
+  await expect(panel(page)).toBeVisible();
+  await expect(page.getByLabel('Message to your AI')).toHaveValue(/^About my goal ".+": $/);
+  expect(captured.filter(c => c.url.endsWith('/chat/completions'))).toHaveLength(1);
+});
