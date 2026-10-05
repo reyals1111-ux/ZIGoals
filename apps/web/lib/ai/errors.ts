@@ -64,8 +64,8 @@ export const isAbortLike = (error: unknown): boolean => (error as {name?: unknow
 export function mapNetworkError(provider: ProviderId, error: unknown, context: {local: boolean; online?: boolean}): AiError {
   if (error instanceof AiError) return error;
   if (isAbortLike(error)) return new AiError('aborted', 'Stopped.', {provider});
-  if (context.online === false) return new AiError('offline', 'You are offline. Your AI needs a connection; your records stay on this device.', {provider, cause: error});
-  if (context.local) return new AiError('local-unreachable', 'No local server answered. Start it, allow this page\'s origin, and try again.', {provider, cause: error});
+  if (context.local) return new AiError('local-unreachable', context.online === false ? 'No local server answered. Being offline does not stop a model on this computer; check that the server is running, then try again.' : 'No local server answered. Start it, allow this page\'s origin, and try again.', {provider, cause: error});
+  if (context.online === false) return new AiError('offline', 'You are offline. Your AI needs a connection; your records stay on this device. A model on this computer would keep working.', {provider, cause: error});
   return new AiError('cors', 'Your provider could not be reached from this browser. Check your connection; if you are online, the provider refused the browser\'s request.', {provider, cause: error});
 }
 /** Fix steps for the interface, as data: provider-specific where the documentation gives a switch to flip. */

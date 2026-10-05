@@ -95,9 +95,18 @@ export function recognitionText(results: RecognitionResultList): {final: string;
   return {final: final.trim(), interim: interim.trim()};
 }
 /** Plain words for recognition errors (the Web Speech error codes). */
+/** The steps that allow the microphone again, per browser; an installed iPhone app has its switch in iOS Settings. */
+export function microphoneDeniedText(browser: Browser, installed = false): string {
+  const steps = installed ? 'Open the iPhone\u2019s Settings, find ZIGoals (or Safari) and allow the Microphone, then come back.'
+    : browser === 'chrome' ? 'In Chrome, press the icon left of the address, open Site settings, set Microphone to Allow, then reload this page.'
+    : browser === 'safari' ? 'In Safari, open the Safari menu \u2192 Settings for this website \u2192 Microphone \u2192 Allow, then try again.'
+    : browser === 'firefox' ? 'In Firefox, press the permissions icon left of the address, remove the blocked microphone, then try again.'
+    : 'Allow the microphone for this site in the browser\u2019s site settings, then try again.';
+  return `The microphone was not allowed, so nothing was recorded. ${steps} You can always type instead.`;
+}
 export function recognitionErrorText(code: string): string {
   switch (code) {
-    case 'not-allowed': case 'service-not-allowed': return 'The microphone was not allowed. Allow it for this site in the browser, then try again.';
+    case 'not-allowed': case 'service-not-allowed': return microphoneDeniedText(typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent));
     case 'no-speech': return 'No speech was heard.';
     case 'audio-capture': return 'No microphone was found.';
     case 'network': return 'The browser\'s speech service could not be reached.';

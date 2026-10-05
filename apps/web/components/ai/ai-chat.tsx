@@ -27,6 +27,7 @@ import type {AiSettings} from '../../lib/ai/settings';
 import {useChatSession, type ChatSession} from './use-chat-session';
 import {useProposals} from './use-proposals';
 import {useReadAloud, useVoice} from './use-voice';
+import {ASK_EVENT, takePendingAsk} from './ask';
 import {speechLanguage} from '../../lib/ai/voice';
 
 /**
@@ -48,6 +49,8 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history'>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
   useVisualViewportInsets(phone && open);
+  // The page behind a phone sheet does not scroll (iOS scrolls the document behind a modal dialog otherwise).
+  useEffect(() => { if (!(phone && open)) return; document.documentElement.dataset.aiSheet = ''; return () => { delete document.documentElement.dataset.aiSheet; }; }, [phone, open]);
   useEffect(() => {
     const d = dialog.current; if (!d) return;
     if (open && !d.open) { if (phone) d.showModal(); else d.show(); requestAnimationFrame(() => composer.current?.focus({preventScroll: true})); }
@@ -103,8 +106,8 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
         {session.failure && <div className="ai-failure" role="alert"><p className="ai-failure-title">{session.failure.title}</p>{session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}<div className="ai-card-actions">{['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <Link className="secondary" href={SETTINGS_HREF} onClick={onClose}>Open Settings</Link>}<button type="button" className="text-link" onClick={session.dismissFailure}>Dismiss</button></div></div>}
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
-      {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive}/>}
-      {connected && <Composer ref={composer} session={session} attach={attach} phone={phone} settings={data} scope={scope} placeholder={`Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
+      {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)}/>}
+      {connected && <Composer ref={composer} session={session} attach={attach} phone={phone} settings={data} scope={scope} placeholder={phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </dialog>;
@@ -134,25 +137,38 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
     </div>
   </article>;
 }
-function ContextBar({context, attach, onAttach, sensitive}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean}) {
+/** The conversation's running token total from the provider's own counts (tokens only, never money); null until a provider reported any. */
+export function conversationTokens(turns: readonly ChatTurn[]): {input: number; output: number} | null {
+  let input = 0, output = 0, any = false;
+  for (const turn of turns) { if (turn.role !== 'assistant' || !turn.usage) continue; if (turn.usage.input !== null) { input += turn.usage.input; any = true; } if (turn.usage.output !== null) { output += turn.usage.output; any = true; } }
+  return any ? {input, output} : null;
+}
+function ContextBar({context, attach, onAttach, sensitive, total}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean; total: {input: number; output: number} | null}) {
   const label = AREA_LABELS[context.area];
-  if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span></div>;
-  if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span></div>;
-  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span></div>;
+  const totalLine = total ? <span className="ai-context-total" aria-label="Tokens so far in this conversation">{total.input.toLocaleString('en-US')} in · {total.output.toLocaleString('en-US')} out tokens so far</span> : null;
+  if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span>{totalLine}</div>;
+  if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span>{totalLine}</div>;
+  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{totalLine}</div>;
   return <div className="ai-context-bar">
     <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)}/> Share this page’s data{context.preview ? ` · ${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens` : ''}</label>
     {attach && context.preview && <details className="ai-context-preview"><summary>What your AI sees</summary><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></details>}
     {attach && !context.preview && context.ready && <span className="ai-note">Nothing to share on this page yet.</span>}
+    {totalLine}
   </div>;
 }
 import {forwardRef} from 'react';
 const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string}>(function Composer({session, attach, phone, settings, scope, placeholder}, ref) {
   const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false);
+  useEffect(() => { const pending = takePendingAsk(); if (pending) setText(pending); const onAsk = (event: Event) => { const text = (event as CustomEvent<{text: string}>).detail?.text; if (text) { takePendingAsk(); setText(text); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
   const submit = (event?: FormEvent) => { event?.preventDefault(); const value = text.trim(); if (!value || busy) return; setText(''); void session.send(value, {withContext: attach}); };
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
   const toggleMic = () => { setDisclosed(true); if (talking) voice.stop(); else void voice.start(); };
+  // Phones: hold to talk and release to stop, or tap once to start and once to stop (a press shorter than 300 ms is a tap).
+  const pressStart = useRef<number | null>(null), tapped = useRef(false);
+  const onMicDown = () => { setDisclosed(true); pressStart.current = Date.now(); if (talking && tapped.current) { tapped.current = false; voice.stop(); pressStart.current = null; return; } if (!talking) { tapped.current = false; void voice.start(); } };
+  const onMicUp = () => { const started = pressStart.current; pressStart.current = null; if (started === null) return; if (Date.now() - started < 300) { tapped.current = true; return; } if (talking) voice.stop(); };
   return <form className="ai-composer-wrap" onSubmit={submit}>
     {voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
     {(voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
@@ -160,11 +176,11 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     <div className="ai-composer">
       <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={20_000} placeholder={placeholder} aria-label="Message to your AI" autoComplete="off" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); } }}/>
       {voice.mode !== 'off' && <button type="button" className={`secondary ai-mic${talking ? ' ai-mic-on' : ''}`} aria-label={micLabel} title={micLabel} aria-pressed={talking} disabled={!voice.available || voice.state === 'transcribing'} onClick={!phone ? toggleMic : undefined}
-        onPointerDown={phone ? () => { setDisclosed(true); if (!talking) void voice.start(); } : undefined} onPointerUp={phone ? () => { if (talking) voice.stop(); } : undefined} onPointerCancel={phone ? () => voice.cancel() : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
+        onPointerDown={phone ? onMicDown : undefined} onPointerUp={phone ? onMicUp : undefined} onPointerCancel={phone ? () => { pressStart.current = null; voice.cancel(); } : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
         <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}
       {busy ? <button type="button" className="secondary" onClick={session.stop}>Stop</button> : <button type="submit" className="primary" disabled={!text.trim()}>Send</button>}
     </div>
-    {phone && voice.mode !== 'off' && voice.available && <p className="ai-note">Hold the microphone to talk; release to stop.</p>}
+    {phone && voice.mode !== 'off' && voice.available && <p className="ai-note">Hold the microphone to talk and release to stop, or tap once to start and once to stop.</p>}
   </form>;
 });
 function BridgeView({settings, context, attach, sensitive}: {settings: AiSettingsStore; context: ReturnType<typeof useAiContext>; attach: boolean; sensitive: boolean}) {
@@ -204,7 +220,8 @@ function HistoryView({session, onOpen}: {session: ChatSession; onOpen: () => voi
   const [items, setItems] = useState<ChatSummary[] | null>(null), [query, setQuery] = useState(''), [renaming, setRenaming] = useState<{id: string; title: string} | null>(null), [confirmClear, setConfirmClear] = useState(false), [error, setError] = useState('');
   const {list, search} = session;
   const refresh = useCallback(async () => { try { setItems(query.trim() ? await search(query.trim()) : await list()); setError(''); } catch { setError('Your chats could not be read on this device.'); } }, [list, search, query]);
-  useEffect(() => { void refresh(); }, [refresh]);
+  // The search waits for a short pause in typing; the list itself loads at once.
+  useEffect(() => { if (!query.trim()) { void refresh(); return; } const t = window.setTimeout(() => void refresh(), 180); return () => window.clearTimeout(t); }, [refresh, query]);
   return <div className="ai-history" aria-label="Chat history">
     <div className="ai-history-tools"><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search your chats" aria-label="Search your chats"/>{items && items.length > 0 && (confirmClear ? <span className="ai-card-actions"><button type="button" className="secondary" onClick={() => void session.removeAll().then(refresh)}>Delete all chats</button><button type="button" className="text-link" onClick={() => setConfirmClear(false)}>Keep them</button></span> : <button type="button" className="text-link" onClick={() => setConfirmClear(true)}>Clear all</button>)}</div>
     {error && <p className="ai-card-error" role="alert">{error}</p>}

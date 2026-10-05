@@ -1,9 +1,11 @@
 'use client';
+import {currentInstallContext} from '../../lib/install/platform';
+const isInstalled = () => { try { return currentInstallContext() === 'installed'; } catch { return false; } };
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {readKey} from '../../lib/ai/keys';
 import {PROVIDERS} from '../../lib/ai/providers';
 import type {AiSettings} from '../../lib/ai/settings';
-import {browserSpeechDisclosure, detectBrowser, MAX_RECORDING_MS, recognitionConstructor, recognitionErrorText, recognitionText, recorderMimeType, speechLanguage, transcribe, type RecognitionLike} from '../../lib/ai/voice';
+import {browserSpeechDisclosure, detectBrowser, MAX_RECORDING_MS, recognitionConstructor, recognitionErrorText, recognitionText, recorderMimeType, speechLanguage, transcribe, type RecognitionLike, microphoneDeniedText} from '../../lib/ai/voice';
 import {zigiEvents} from '../zigi/events';
 
 /**
@@ -56,7 +58,7 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
     const mime = recorderMimeType(type => MediaRecorder.isTypeSupported(type));
     let media: MediaStream;
     try { media = await navigator.mediaDevices.getUserMedia({audio: true}); }
-    catch { setError('The microphone was not allowed. Allow it for this site in the browser, then try again.'); return; }
+    catch { setError(microphoneDeniedText(detectBrowser(navigator.userAgent), isInstalled())); return; }
     stream.current = media; chunks.current = [];
     const rec = new MediaRecorder(media, mime ? {mimeType: mime} : undefined);
     recorder.current = rec;
