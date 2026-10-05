@@ -7,6 +7,18 @@ import {doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
 export const ACCOUNT='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+/**
+ * Session U Part 4: a Worker's answer through mf.dispatchFetch, read at once into a fresh Response, for harnesses that
+ * hold an answer across an await (a held acknowledgement) before the relay reads it. Miniflare answers with
+ * `new Response(inner.body, inner)`, and undici cancels a body stream when the Response it was created for is
+ * garbage-collected unread (undici lib/web/fetch/body.js, streamRegistry): a collection during the hold left the relay
+ * an empty body, so it answered REQUEST_FAILED and the panel showed "Sync was not confirmed" (sync-inflight-edit and
+ * sync-self-conflict in CI). Reproduced locally with --expose-gc; recorded in docs/STATUS.md (Session U, Part 4).
+ */
+export async function workerAnswer(mf,url,init){
+ const response=await mf.dispatchFetch(url,init),empty=[101,204,205,304].includes(response.status);
+ return new Response(empty?null:await response.arrayBuffer(),{status:response.status,statusText:response.statusText,headers:response.headers});
+}
 export async function privateRuntime(persist){
  persist??=await mkdtemp(join(tmpdir(),'zigoals-run11-vault-'));
  const mf=await createPrivateMiniflare({persist});
