@@ -25,6 +25,7 @@ The Workers Scripts permission is an account-level authority; this workflow's fi
 GitHub documents [environment reviewer/branch protection](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments) and [environment API access](https://docs.github.com/en/rest/deployments/environments). The workflow's GitHub token has `contents: read` and `actions: read`; it has no repository write, OIDC or attestation permission.
 
 ## Every deployment
+> **Session U (owner option 3):** a Claude Code session may also dispatch the run, once, after your own `deploy <SHA>` message, under the rule in CLAUDE.md; approving the `alpha` environment for the deploy job stays yours alone. See [AGENT_DISPATCH.md](AGENT_DISPATCH.md).
 
 1. Review and merge the intended change using the existing owner-controlled process. Check the normal main CI is green. Copy the **full current main commit SHA** from GitHub.
 2. Open **Actions → Manual Alpha deployment → Run workflow**. Select the **main** branch, paste the full SHA into `expected_commit`, and check `owner_approval` only when approving that exact source for Alpha. There is no target, command, hostname or environment input.
