@@ -136,7 +136,7 @@ for (const viewport of VIEWPORTS) {
       await shot(page, '22-cards-batch');
       await panel(page).getByRole('button', {name: 'Edit', exact: true}).first().click();
       await shot(page, '23-card-edit');
-      await page.keyboard.press('Escape');
+      await panel(page).getByRole('button', {name: 'Cancel', exact: true}).first().click();
       await panel(page).getByRole('button', {name: /^Add all/}).click();
       await expect(panel(page).locator('.ai-proposals-undo')).toBeVisible();
       await shot(page, '24-cards-added-undo');

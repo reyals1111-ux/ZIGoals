@@ -185,3 +185,5 @@
 html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior:none}
 /* The anchor lands below the phone's sticky top bar and the desktop's status row. */
 .ai-settings{scroll-margin-top:84px}
+/* The premium badge belongs to Settings on a phone; the sheet header keeps its one line. */
+@media (max-width:767.98px){.ai-chat-head .ai-chat-premium{display:none}}
