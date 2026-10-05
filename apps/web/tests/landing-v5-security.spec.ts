@@ -10,8 +10,9 @@ import { landingRoot, startLandingServer, type LandingServer } from "./landing-s
 // violation and asks no other origin for anything; every file the page references exists and every file that ships is
 // referenced; and the copy makes no earn, yield or partnership claim. The only link that is not https is the invite e-mail.
 
-// SHA-256 of landing/_headers and landing/.assetsignore on main at 57275a6 (Alpha deploy #23 source, Landing V4).
-const HEADERS_SHA256 = "f0ce45672bd3f660045212fd1424d674b2fb98418ddfbc6906ea310a48bd31de";
+// SHA-256 of landing/_headers and landing/.assetsignore on main at 57275a6 (Alpha deploy #23 source, Landing V4), then:
+// Session U Part 6 added `Strict-Transport-Security: max-age=31536000` to _headers (V4/V5 value f0ce4567…bd31de).
+const HEADERS_SHA256 = "c1c50c7ae32bdbe399c69f86322953165068883e68fb0e66e11a2433bec0fc1d";
 // Session U Part 6 (FIX_PLAN F4): .assetsignore gained its final block (only the reviewed media types under assets/, no
 // dotfile anywhere); nothing it published before is dropped. Landing V4/V5 value: e1388b8c…f74807.
 const ASSETSIGNORE_SHA256 = "8c09ec286426c5281e713cd1998ade09cbd3b2618759f273fbcddbf3b93a66b9";

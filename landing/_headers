@@ -5,3 +5,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000

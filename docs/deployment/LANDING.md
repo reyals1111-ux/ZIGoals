@@ -57,7 +57,19 @@ Verify `https://zigoals.app/` and the CTA links after publication, and confirm t
 curl -sSI https://zigoals.app/
 ```
 
-Expect `content-security-policy`, `x-content-type-options`, `x-frame-options`, `referrer-policy`, `permissions-policy` and `cross-origin-opener-policy`, and expect `https://zigoals.app/_headers` to answer 404. There is deliberately no HSTS header in `landing/_headers`; adding one, or any `includeSubDomains`/`preload` directive, is a separate zone-level decision and is not part of this procedure.
+Expect `content-security-policy`, `x-content-type-options`, `x-frame-options`, `referrer-policy`, `permissions-policy`, `cross-origin-opener-policy` and `strict-transport-security: max-age=31536000`, and expect `https://zigoals.app/_headers` to answer 404.
+
+Since Session U, `landing/_headers` sends `Strict-Transport-Security: max-age=31536000`, the app's value, with no `includeSubDomains` and no `preload`. `.app` is on browsers' HSTS preload list as a whole top-level domain, so browsers already reach `zigoals.app` and its subdomains only over HTTPS; the header says the same to every other client and cannot lock a subdomain out. Adding `includeSubDomains` or `preload` stays a separate zone-level decision.
+
+### `www.zigoals.app` → `zigoals.app` (owner steps, dashboard)
+
+The landing Worker serves static assets only and cannot redirect by host name without a route, so the redirect is a zone rule (Cloudflare docs, "Create a redirect rule in the dashboard" and "Redirect www to root", read 2026-10-05):
+
+1. Cloudflare dashboard → the `zigoals.app` zone → **Rules → Overview → Create rule → Redirect Rule**.
+2. **Rule name:** `www to apex`. **When incoming requests match:** wildcard pattern, request URL `https://www.zigoals.app/*`.
+3. **Then:** target URL `https://zigoals.app/${1}`, status code **301**, **Preserve query string** on. Deploy.
+4. Redirect Rules apply only to traffic Cloudflare proxies: `www` needs a proxied (orange-cloud) DNS record. If the dashboard offers to create one, accept a proxied `AAAA www 100::`: Cloudflare's DNS docs ("Manage DNS records", read 2026-10-05) give `100::`, from the IPv6 discard prefix, as the placeholder for a host that only redirects. Do not point `www` at anything else.
+5. Check: `curl -sSI https://www.zigoals.app/` answers `301` with `location: https://zigoals.app/`.
 
 This procedure does not publish `zigoals-alpha`, add routes, change DNS or email records, sign a release, or authorize any chain upload.
 
