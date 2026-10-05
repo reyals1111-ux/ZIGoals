@@ -50,7 +50,7 @@ async function settle(page: Page) { await page.waitForTimeout(350); }
 async function freshSetup(page: Page) { await page.goto('/app'); await page.goto('/app/settings#your-ai'); await expect(page.locator('#your-ai').getByTestId('ai-setup')).toBeVisible(); }
 test.skip(!enabled, 'Set ZIGI_CAPTURES=1 to write the gallery');
 // Six page loads and a dozen states per test: more than the suite's 45 s.
-test.setTimeout(240_000);
+test.setTimeout(600_000);
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 for (const viewport of VIEWPORTS) {
@@ -120,9 +120,8 @@ for (const viewport of VIEWPORTS) {
       held.resolve?.({body: stream('Here is your day: three of five habits done, water at 1.5 L of 2 L, the Emergency Fund goal on track.')});
       await expect(panel(page).locator('.ai-turn-assistant')).toBeVisible();
       await shot(page, '18-reply-with-controls');
-      await panel(page).getByRole('button', {name: /Expand the chat/}).click().catch(() => undefined);
-      await shot(page, '19-expanded');
-      await panel(page).getByRole('button', {name: /Shrink the chat/}).click().catch(() => undefined);
+      const expand = panel(page).getByRole('button', {name: /Expand the chat/});
+      if (await expand.count()) { await expand.click(); await shot(page, '19-expanded'); await panel(page).getByRole('button', {name: /Shrink the chat/}).click(); }
       await panel(page).locator('summary', {hasText: 'What your AI sees'}).click();
       await shot(page, '20-what-your-ai-sees');
       await panel(page).locator('summary', {hasText: 'What your AI sees'}).click();
