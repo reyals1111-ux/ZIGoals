@@ -1,6 +1,6 @@
 # ZIGi · your AI: screenshot gallery (Session T follow-up, 2026-10-05)
 
-Production build of `feature/session-t-your-ai-2026-10-04`, MOCK providers (nothing left the browser), captured by `apps/web/tests/your-ai-captures.spec.ts` with `ZIGI_CAPTURES=1`. Viewports: desktop-1440, phone-390, tablet-1024. Playwright's Chromium stands in for Chrome in the sandbox.
+Production build of `feature/session-t-your-ai-2026-10-04` (re-captured at `1983489` after the merge of `main` `1d2e47a`, Session U), MOCK providers (nothing left the browser), captured by `apps/web/tests/your-ai-captures.spec.ts` with `ZIGI_CAPTURES=1`. Viewports: desktop-1440, phone-390, tablet-1024. Playwright's Chromium stands in for Chrome in the sandbox.
 
 | State | desktop-1440 | phone-390 | tablet-1024 |
 |---|---|---|---|
