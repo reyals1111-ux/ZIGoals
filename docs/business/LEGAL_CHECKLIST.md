@@ -211,6 +211,23 @@ From the pre-Alpha review: [INCIDENT_RUNBOOK.md](../security/review-2026-10/INCI
 - EDPB Guidelines 9/2022 on personal data breach notification (version 2.0), <https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-92022-personal-data-breach-notification-under_en>
 - Belgian Data Protection Authority, data breaches, <https://www.autoriteprotectiondonnees.be/professionnel/actions/violation-de-donnees-personnelles>
 
+## 8. ZIGi · your AI: bring-your-own provider, the premium label and voice (added 2026-10-05, Session T, [ADR-012](../architecture/ADR-012-your-ai.md))
+
+Facts to start from: the chat calls the AI provider the person chose, from their browser, with their own key; ZIGoals receives nothing and runs nothing for it; the provider's terms apply to the conversation; Health goes only behind three switches; the feature is labelled "Premium · free during Alpha" without any payment; voice uses either the browser's speech service or the person's provider.
+
+1. **Roles under the GDPR.** For a transfer the person makes from their own browser to a provider they contract with, is ZIGoals a controller, a joint controller, a processor or outside the processing altogether? Does offering the integration (and writing the prompt) change that? What does the notice have to say?
+2. **Health data.** When the person turns "Include Health" on, their health records go to the provider. Is the three-switch consent (the Today Health domain, Include Health, the account permission) explicit enough, and should the app show a consent sheet at the first Health-including message?
+3. **Provider terms.** Must the notice name OpenAI, Anthropic, Google, xAI and OpenRouter and link their privacy terms? Is there a duty to warn about retention (for example OpenAI's 30-day abuse monitoring even with `store: false`) and training defaults?
+4. **The subscription bridge.** The person copies a prompt with their own data into ChatGPT, Claude, Grok or Gemini. Is anything owed beyond saying so? Is linking to those apps a "promotion" of anything?
+5. **"Premium · free during Alpha".** Does announcing a future paid tier create a consumer-law duty (price information, duration of the free period, changes)? Does it touch the app-store questions in §5 if the app is ever wrapped?
+6. **Advice-like content (ties to §4).** ZIGi repeats the no-advice rules in its system prompt and labels every reply as the person's own AI's answer, not ZIGoals'. Is the label enough under consumer and health-claim rules, given that the provider's model may still give advice?
+7. **AI Act.** The chat is a general-purpose model the person brings, running on the provider's side; ZIGoals is a deployer of nothing and a provider of nothing, but it interacts with people through that model. Does Art. 50 transparency (the person is told they talk to an AI) apply to ZIGoals, the provider, or both? Is the "ZIGi" mascot a problem under Art. 50(1) (it is always labelled as the person's AI)?
+8. **Voice.** Browser speech recognition sends audio to Google (Chrome, unless on-device) or Apple (Safari); provider transcription sends it to OpenAI. Is voice data biometric here (it is not used to identify anyone)? Is the in-app disclosure before first use enough, and in which languages?
+9. **Keys.** The app stores the person's provider key encrypted on their device. Any duty beyond saying how it is protected and how to remove it?
+10. **Minors.** Does a chat with an external AI change the age-limit question (§2, notice §8)?
+11. **Local models.** The app explains how to allow its origin in Ollama (`OLLAMA_ORIGINS`) and how to answer Chrome's local-network prompt. Any liability for what a local server does?
+12. **Logs we do not have.** Since nothing passes our servers, we cannot answer a data-subject request about those conversations; the person asks the provider. Must the notice say that explicitly?
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);

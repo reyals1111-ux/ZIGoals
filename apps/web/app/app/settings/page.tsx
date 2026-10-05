@@ -13,6 +13,7 @@ import { ExportEverything } from "../../../components/export-everything";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
 import { GuideSettings } from "../../../components/coach/guide-settings";
+import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import { deployment } from "../../../lib/deployment-config";
 import { useState } from "react";
 import { useGoals } from "../../../components/goal-provider";
@@ -54,7 +55,7 @@ export default function Settings() {
       </div>
       <PhoneSettingsList/>
       <ShowcaseControls/>
-      <nav className="settings-sections" aria-label="Settings sections">{[["Demo / Showcase", "showcase"], ["Backups & privacy", "privacy"], ["Market data", "market-data"], ["Account", "account"], ["Network", "network"], ["Goals / Contract", "contract"], ["Habits", "habits-settings"], ["Health", "health-settings"], ["Reminders when closed", "reminders"], ["Guide", "guide"], ["Diagnostics", "diagnostics"]].map(([label, id]) => <a href={`#${id}`} key={id}>{label}</a>)}</nav>
+      <nav className="settings-sections" aria-label="Settings sections">{[["Demo / Showcase", "showcase"], ["Backups & privacy", "privacy"], ["Market data", "market-data"], ["Account", "account"], ["Network", "network"], ["Goals / Contract", "contract"], ["Habits", "habits-settings"], ["Health", "health-settings"], ["Reminders when closed", "reminders"], ["Guide", "guide"], ["ZIGi · your AI", "your-ai"], ["Diagnostics", "diagnostics"]].map(([label, id]) => <a href={`#${id}`} key={id}>{label}</a>)}</nav>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div><Link className="text-link" href="/app/markets">Explore market references →</Link></section>
       <div className="settings-overview">
@@ -69,6 +70,7 @@ export default function Settings() {
       <PrivateVaultTools/>
       <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Motion</h2><MotionPreference/></section>
       <GuideSettings/>
+      <AiSettingsSection/>
       <PrivateBackups/>
       <ExportEverything/>
       <div className="detail-grid">

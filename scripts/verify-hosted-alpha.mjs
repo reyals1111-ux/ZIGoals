@@ -14,6 +14,8 @@ const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
 if (!output) throw Error('Provide a new evidence output directory.');
 await mkdir(output);
+// Session T (ADR-012): the reviewed connect-src comes from the app's own data file, never a copy.
+const egressPolicy = JSON.parse(await readFile(new URL('../apps/web/lib/egress-policy.json', import.meta.url), 'utf8'));
 const alpha = 'https://alpha.zigoals.app';
 const fallback = 'https://zigoals-alpha.reyals1111.workers.dev';
 const apex = 'https://zigoals.app';
@@ -55,7 +57,7 @@ try {
         const csp=headers['content-security-policy'];
         assert.match(csp,/script-src 'self' 'nonce-[A-Za-z0-9+/]+=*' 'strict-dynamic'/);
         assert.doesNotMatch(csp.split(';').find(s=>s.includes('script-src')),/unsafe-inline|unsafe-eval/);
-        assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), ["'self'", "https://testnet-rpc.zigchain.com", "https://testnet-api.zigchain.com"].sort());
+        assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), ["'self'", ...egressPolicy.chainOrigins, ...Object.values(egressPolicy.aiProviderOrigins), ...egressPolicy.localModelSources].sort());
         for (const d of ['object-src','frame-src','frame-ancestors','base-uri']) assert(csp.includes(`${d} 'none'`));
         assert(csp.includes("form-action 'self'"));
         assert.match(headers['strict-transport-security'],/max-age=31536000/);

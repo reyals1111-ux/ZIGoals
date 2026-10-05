@@ -21,7 +21,7 @@ test('a brand-new device sees the welcome and no "What\'s new" card', async ({pa
   expect(await page.evaluate(key => localStorage.getItem(key), WHATS_NEW_KEY)).toBeNull();
 });
 
-test('after onboarding the card lists the nine Help entries, is dismissed once per device and writes nothing on view', async ({page}) => {
+test('after onboarding the card lists the Help entries, is dismissed once per device and writes nothing on view', async ({page}) => {
   await seed(page);
   await page.goto('/app');
   const card = page.getByRole('region', {name: 'A few new things.'});

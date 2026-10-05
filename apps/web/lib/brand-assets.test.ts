@@ -17,8 +17,9 @@ test('no file under public/brand carries a character Workers Assets would re-spe
 
 test('every 1x mark, word and figure has its -2x twin, and the sidebar marks exist in all three forms',()=>{
  const webp=files.filter(f=>/^(marks|words|figures)\/.*\.webp$/.test(f));
- const ones=webp.filter(f=>!f.endsWith('-2x.webp')),twos=webp.filter(f=>f.endsWith('-2x.webp'));
- expect(twos.length).toBe(17);
+ // ZIGi's frames (components/zigi/manifest.json, YOUR_AI_V1.md §4) come as 1x, -2x and a documented -large size; a large frame has no 2x twin by design.
+ const ones=webp.filter(f=>!f.endsWith('-2x.webp')&&!f.endsWith('-large.webp')),twos=webp.filter(f=>f.endsWith('-2x.webp'));
+ expect(twos.length).toBe(18);
  expect(ones.map(f=>f.replace(/\.webp$/,'-2x.webp')).sort()).toEqual(twos.sort());
  for(const mark of PAGE_MARKS)for(const dir of ['marks','words','figures'])expect(ones,`${dir}/${mark.name}`).toContain(`${dir}/${mark.name}.webp`);
 });

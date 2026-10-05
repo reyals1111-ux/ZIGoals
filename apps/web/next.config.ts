@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { execFileSync } from "node:child_process";
 import pkg from "./package.json";
+import egress from "./lib/egress-policy.json";
 function publicBuildIdentity() {
   try {
     const run = (args: string[]) =>
@@ -53,11 +54,15 @@ const config: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: egress.permissionsPolicy.global,
           },
         ],
       },
-      {source:"/app/health",headers:[{key:"Permissions-Policy",value:"camera=(self), microphone=(), geolocation=()"}]},
+      // Permissions-Policy per route (one source: lib/egress-policy.json). Next applies the last matching entry for the
+      // same header key, so the order is global → every app page → Health. The app's own pages allow the microphone
+      // for ZIGi's voice input (ADR-012); the camera stays Health-only for the barcode scanner.
+      {source:"/app/:path*",headers:[{key:"Permissions-Policy",value:egress.permissionsPolicy.app}]},
+      {source:"/app/health",headers:[{key:"Permissions-Policy",value:egress.permissionsPolicy.health}]},
     ];
   },
 };

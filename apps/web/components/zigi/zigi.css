@@ -1,0 +1,12 @@
+/* ZIGi (ADR-012): a static frame; a breath while thinking, a small lift when something was added. Still under reduced motion and Motion Off. */
+.zigi{display:inline-flex;align-items:flex-end;justify-content:center;flex:none;position:relative}
+.zigi img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(20,10,60,.45));transform-origin:50% 100%}
+.zigi-thinking img{animation:zigi-breathe 2.4s ease-in-out infinite}
+.zigi-speaking img,.zigi-listening img{animation:zigi-breathe 1.6s ease-in-out infinite}
+.zigi-celebrate img{animation:zigi-lift .9s cubic-bezier(.2,.8,.2,1) 1}
+.zigi-error img{filter:drop-shadow(0 6px 14px rgba(20,10,60,.45)) saturate(.6)}
+.zigi-sleepy img{opacity:.8}
+@keyframes zigi-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
+@keyframes zigi-lift{0%{transform:translateY(0)}35%{transform:translateY(-8px) rotate(-2deg)}70%{transform:translateY(0) rotate(1deg)}100%{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.zigi img{animation:none!important}}
+:root[data-app-motion=off] .zigi img{animation:none!important}

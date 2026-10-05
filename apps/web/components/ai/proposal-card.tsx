@@ -1,0 +1,61 @@
+'use client';
+import {useId, useState, type FormEvent} from 'react';
+import {applyEdits, editableFields, fieldText, type Field} from '../../lib/ai/actions/edit';
+import type {Plan} from '../../lib/ai/actions/plan';
+import type {Action} from '../../lib/ai/actions/schema';
+
+/**
+ * One proposal from ZIGi (ADR-012, Part 5): exactly what would be written, where and for which day, with Add, Edit and
+ * Dismiss. Nothing happens until Add. "AI estimate" marks values the AI guessed; the fasting cards carry HE6's safety
+ * note. Fully keyboard-usable: plain buttons, a plain form, status text in a live region owned by the list.
+ */
+export type ProposalStatus = 'proposed' | 'busy' | 'added' | 'undone' | 'dismissed' | 'opened';
+export type ProposalCardProps = {
+  action: Action; plan: Plan | null; refusal: string | null; status: ProposalStatus; error: string | null;
+  onAdd: () => void; onDismiss: () => void; onEdit: (action: Action) => void;
+};
+const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself'};
+export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit}: ProposalCardProps) {
+  const titleId = useId();
+  const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
+  if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
+    <h4 id={titleId}>Nothing proposed</h4>
+    <p>{refusal ?? 'This proposal could not be turned into a card.'}</p>
+    {status === 'proposed' && <div className="ai-card-actions"><button type="button" className="text-link" onClick={onDismiss}>Dismiss</button></div>}
+  </article>;
+  const {card} = plan, fields = editableFields(action), form = plan.target === 'form';
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget), values: Record<string, string> = {};
+    for (const field of fields) values[field.key] = String(data.get(field.key) ?? '');
+    const result = applyEdits(action, values);
+    if (!result.ok) { setEditError(result.message); return; }
+    setEditError(''); setEditing(false); onEdit(result.action);
+  }
+  return <article className={`ai-card ai-card-${status}${card.estimate ? ' ai-card-estimate' : ''}`} aria-labelledby={titleId} data-kind={card.kind}>
+    <header className="ai-card-head"><span className="ai-card-where">{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">AI estimate</span>}</header>
+    <h4 id={titleId}>{card.title}</h4>
+    <ul className="ai-card-lines">{card.lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
+    {card.safety && <p className="ai-card-safety">{card.safety}</p>}
+    {editing ? <form className="ai-card-edit" onSubmit={save} aria-label={`Edit: ${card.title}`}>
+      {fields.map(field => <EditField key={field.key} field={field} value={fieldText(action, field)}/>)}
+      {editError && <p role="alert" className="ai-card-error">{editError}</p>}
+      <div className="ai-card-actions"><button type="submit" className="primary">Save changes</button><button type="button" className="text-link" onClick={() => { setEditing(false); setEditError(''); }}>Cancel</button></div>
+    </form> : <div className="ai-card-actions">
+      {status === 'proposed' ? <>
+        <button type="button" className="primary" onClick={onAdd}>{form ? 'Open the form' : 'Add'}</button>
+        {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)}>Edit</button>}
+        <button type="button" className="text-link" onClick={onDismiss}>Dismiss</button>
+      </> : <span className="ai-card-status">{STATUS_TEXT[status]}</span>}
+    </div>}
+    {error && <p role="alert" className="ai-card-error">{error}</p>}
+  </article>;
+}
+function EditField({field, value}: {field: Field; value: string}) {
+  const id = useId();
+  const control = field.type === 'select' ? <select id={id} name={field.key} defaultValue={value}>{field.optional && <option value="">—</option>}{field.options!.map(option => <option key={option} value={option}>{option}</option>)}</select>
+    : field.type === 'day' || field.type === 'date' ? <input id={id} name={field.key} type="date" defaultValue={value === 'today' || value === 'yesterday' ? '' : value} placeholder={field.type === 'day' ? 'today' : undefined}/>
+    : field.multiline ? <textarea id={id} name={field.key} defaultValue={value} rows={2} maxLength={2000}/>
+    : <input id={id} name={field.key} type="text" inputMode={field.type === 'text' ? undefined : field.type === 'integer' ? 'numeric' : 'decimal'} defaultValue={value} autoComplete="off" spellCheck={field.type === 'text'}/>;
+  return <label className="field" htmlFor={id}>{field.label}{field.optional && field.type !== 'day' ? <small> (optional)</small> : field.type === 'day' ? <small> (empty = today)</small> : null}{control}</label>;
+}

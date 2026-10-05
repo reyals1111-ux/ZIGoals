@@ -97,6 +97,8 @@ Nothing below is built. Each option would need its own ADR, the lawyer's answers
 | UX | Works offline after the download; latency depends on the device; needs an "installing the model" state and a way to delete it | Fast and good wording; needs a consent sheet per conversation, a visible "sent to a service" state and a plain failure state | The most to explain |
 | Dependencies | An inference library and model weights: a new dependency and a licence review | A provider client (or plain `fetch`), a new Worker, a secret through `secret put` | Both |
 
+**Added 2026-10-05 (Session T):** a fourth option, **(d) the person's own provider, browser-direct**, was chosen and built as a separate feature, ZIGi · your AI ([ADR-012](ADR-012-your-ai.md)). The Guide is unchanged; its phase 2 (a)–(c) remain open.
+
 **Questions the owner must answer before phase 2:**
 1. Is a conversation wanted at all, or only better wording of the rule-based nudges?
 2. Which is acceptable: a one-time large download on the person's device (a), or sending composed text to a provider (b)?

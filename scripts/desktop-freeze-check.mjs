@@ -22,6 +22,15 @@ import { fileURLToPath } from "node:url";
 export const FIXED_TIME = "2026-09-30T10:00:00.000Z";
 /** The device-only first-run flag (apps/web/lib/onboarding.ts). */
 export const ONBOARDING_KEY = "zigoals:onboarding:v1";
+/**
+ * ZIGi's device settings (apps/web/lib/ai/settings.ts, ADR-012). Every page capture runs with the launcher hidden through
+ * this valid record, so pages compare without the floating button; the `zigi-launcher` capture removes it and shows the
+ * button once. In Showcase the app reads its storage from the tab's namespaced sessionStorage, so the record is written
+ * there as well, under the prefix the Showcase records carry (found from the Habits record).
+ */
+export const AI_SETTINGS_KEY = "zigoals:ai:v1";
+export const AI_LAUNCHER_HIDDEN = { version: 1, enabled: false, mode: null, provider: null, model: null, localServer: null, baseUrl: null, subscriptionApp: null, rememberKey: false, pageShare: { today: true, goals: true, habits: true, health: false, wealth: true, help: true }, includeHealth: false, customInstructions: "", contextBudgetTokens: 6000, maxOutputTokens: 1024, launcherHidden: true, voice: { transcription: "off", transcriptionModel: null, language: null, readAloud: false } };
+const SHOWCASE_PROBE_KEY = "zigoals:habits:v1";
 export const SIZES = [
   { name: "1440x900", width: 1440, height: 900 },
   { name: "1280x800", width: 1280, height: 800 },
@@ -51,6 +60,8 @@ export const PAGES = [
   { name: "help", path: "/app/help" },
   { name: "dialog-quick-add", path: "/app", showcaseOnly: true, dialog: "quick-add", sizes: ["1024x768", "820x1180-touch"] },
   { name: "dialog-add-asset", path: "/app/wealth?add=asset", showcaseOnly: true, dialog: "sheet", sizes: ["1024x768", "820x1180-touch"] },
+  // ZIGi (ADR-012): the one capture with the launcher shown; every other capture hides it through its device key.
+  { name: "zigi-launcher", path: "/app", showcaseOnly: true, launcher: true, sizes: ["1280x800"] },
 ];
 
 export function captureName(size, state, page) { return `${size}__${state}__${page}`; }
@@ -125,10 +136,20 @@ async function settle(page) {
   await page.waitForTimeout(600);
 }
 
+/** Writes (or removes) the hidden-launcher record in the Showcase tab's namespaced sessionStorage; a no-op outside Showcase. */
+async function setShowcaseLauncher(page, hidden) {
+  await page.evaluate(([key, probe, value, hide]) => {
+    const physical = Object.keys(sessionStorage).find(k => k.endsWith(probe));
+    if (!physical) return;
+    const scoped = physical.slice(0, -probe.length) + key;
+    if (hide) sessionStorage.setItem(scoped, value); else sessionStorage.removeItem(scoped);
+  }, [AI_SETTINGS_KEY, SHOWCASE_PROBE_KEY, JSON.stringify(AI_LAUNCHER_HIDDEN), hidden]);
+}
 async function openContext(browser, origin, size, { seedOnboarding }) {
   const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1, reducedMotion: "reduce", hasTouch: !!size.touch, isMobile: !!size.touch, colorScheme: "dark" });
   await context.route("**/api/**", route => route.fulfill({ status: 503, contentType: "application/json", body: '{"error":"LOCAL_FIXTURE_ONLY"}' }));
   if (seedOnboarding) await context.addInitScript(key => { try { localStorage.setItem(key, JSON.stringify({ version: 1, seen: true })); } catch { /* storage blocked */ } }, ONBOARDING_KEY);
+  await context.addInitScript(([key, value]) => { try { if (localStorage.getItem(key) === null) localStorage.setItem(key, value); } catch { /* storage blocked */ } }, [AI_SETTINGS_KEY, JSON.stringify(AI_LAUNCHER_HIDDEN)]);
   const page = await context.newPage();
   await page.clock.setFixedTime(new Date(FIXED_TIME));
   return { context, page };
@@ -164,6 +185,7 @@ export async function capture({ base, out, only }) {
         await page.goto(`${origin}/app/settings`);
         await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
         await page.waitForURL("**/app");
+        await setShowcaseLauncher(page, true);
       }
       for (const item of wanted) {
         let path = item.page.path;
@@ -172,11 +194,14 @@ export async function capture({ base, out, only }) {
           path = await page.evaluate(() => document.querySelector('main a[href^="/app/goals/tracked/"]')?.getAttribute("href")?.split("#")[0] ?? null);
           if (!path) { errors.push(`${item.name}: no Goal detail link`); continue; }
         }
+        if (item.page.launcher) { await page.evaluate(key => localStorage.removeItem(key), AI_SETTINGS_KEY); await setShowcaseLauncher(page, false); }
         await page.goto(`${origin}${path}`);
         await settle(page);
+        if (item.page.launcher) { await page.getByTestId("ai-launcher").waitFor({ state: "visible", timeout: 15000 }); await page.waitForTimeout(400); }
         if (item.page.dialog === "quick-add") await page.locator(".today-hero").getByRole("button", { name: "+ Quick add", exact: true }).click();
         if (item.page.dialog) { await page.locator("dialog[open]").first().waitFor({ state: "visible" }); await page.waitForTimeout(400); }
         await shoot(page, out, item.name, manifest, path);
+        if (item.page.launcher) await setShowcaseLauncher(page, true);
       }
       await context.close();
     }

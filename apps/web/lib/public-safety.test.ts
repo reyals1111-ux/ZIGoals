@@ -3,7 +3,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { config, middleware } from "../middleware";
 import { expect, test } from "vitest";
-import { securityPolicy } from "./security-policy";
+import { CONNECT_SOURCES, securityPolicy } from "./security-policy";
+import egress from "./egress-policy.json";
+import nextConfig from "../next.config";
 import { diagnosticSummary } from "./diagnostic-summary";
 test("production policy has per-request unpredictable nonces and exact connection origins", () => {
   const a = securityPolicy(false, true), b = securityPolicy(false, true);
@@ -11,10 +13,32 @@ test("production policy has per-request unpredictable nonces and exact connectio
   expect(a.nonce).toMatch(/^[A-Za-z0-9+/]{43}=$/);
   expect(a.csp).toContain(`script-src 'self' 'nonce-${a.nonce}' 'strict-dynamic'`);
   expect(a.csp.split(";").find(s=>s.includes("script-src"))).not.toMatch(/unsafe-inline|unsafe-eval/);
-  expect(a.csp).not.toMatch(/https:;|ws:|\*/);
-  expect(a.csp).toContain("connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com");
+  // No scheme source, no bare wildcard and no websocket anywhere in production. The one wildcard shape allowed is the
+  // port of the two loopback names (http://localhost:*, http://127.0.0.1:*) for a local model (ADR-012).
+  for (const directive of a.csp.split(";")) {
+    const sources = directive.trim().split(/\s+/).slice(1);
+    expect(sources, directive).not.toContain("*"); expect(sources, directive).not.toContain("https:"); expect(sources.some(s => /^wss?:/.test(s)), directive).toBe(false);
+    for (const source of sources.filter(s => s.includes("*"))) expect(egress.localModelSources, directive).toContain(source);
+  }
+  // connect-src comes from one data file: self, the two Testnet endpoints, the AI providers a person may connect (their
+  // own key, browser-direct), and the loopback names. Exactly these, in this order, and nothing else.
+  expect(a.csp).toContain(`connect-src ${CONNECT_SOURCES.join(" ")}`);
+  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*"]);
+  for (const origin of Object.values(egress.aiProviderOrigins)) expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+$/);
   expect(a.csp).toContain("frame-ancestors 'none'");
   expect(a.csp).toContain("worker-src 'self'");
+});
+test("Permissions-Policy: denied everywhere, the microphone on the app's own pages, the camera only on Health; the entries are ordered so the last match wins", async () => {
+  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=()", app: "camera=(), microphone=(self), geolocation=()", health: "camera=(self), microphone=(self), geolocation=()" });
+  const entries = await nextConfig.headers!();
+  const permission = (source: string) => entries.find(e => e.source === source)?.headers.find(h => h.key === "Permissions-Policy")?.value;
+  expect(permission("/(.*)")).toBe(egress.permissionsPolicy.global);
+  expect(permission("/app/:path*")).toBe(egress.permissionsPolicy.app);
+  expect(permission("/app/health")).toBe(egress.permissionsPolicy.health);
+  const order = entries.map(e => e.source);
+  expect(order.indexOf("/(.*)")).toBeLessThan(order.indexOf("/app/:path*")); expect(order.indexOf("/app/:path*")).toBeLessThan(order.indexOf("/app/health"));
+  // Nothing else grants a permission, and no entry uses a wildcard allowlist.
+  for (const entry of entries) for (const header of entry.headers) if (header.key === "Permissions-Policy") expect(header.value).not.toMatch(/=\*|=\(\s*"/);
 });
 test("the push service worker is push-only: no fetch handler, no cache, no storage, no imported scripts", () => {
   const worker = readFileSync(new URL("../public/push-sw.js", import.meta.url), "utf8");

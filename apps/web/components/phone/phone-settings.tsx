@@ -22,6 +22,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Showcase tour", "Fictional demo data in separate storage", "showcase"],
     ["Motion & display", "Follow device preference, or Off", "appearance"],
     ["Guide on this device", "Calm notes from your own records", "guide"],
+    ["ZIGi · your AI", "Your own AI, page by page", "your-ai"],
     ["Show the welcome again", "Set up a first goal and habit", "/app/welcome"],
   ] },
   { title: "Wallet & network", rows: [

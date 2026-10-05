@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "name": "ZIGi",
+  "alt": "ZIGi",
+  "sizes": {
+    "1x": {
+      "file": "/brand/figures/zigi-placeholder.webp",
+      "width": 96,
+      "height": 126
+    },
+    "2x": {
+      "file": "/brand/figures/zigi-placeholder-2x.webp",
+      "width": 192,
+      "height": 253
+    },
+    "large": {
+      "file": "/brand/figures/zigi-placeholder-large.webp",
+      "width": 480,
+      "height": 632
+    }
+  },
+  "budgetBytes": {
+    "1x": 40000,
+    "2x": 100000,
+    "large": 200000,
+    "animated": 400000
+  },
+  "states": {
+    "idle": {
+      "code": "F001",
+      "label": "Idle",
+      "animated": null
+    },
+    "greeting": {
+      "code": "F002",
+      "label": "Greeting",
+      "animated": null
+    },
+    "insight": {
+      "code": "F003",
+      "label": "Insight",
+      "animated": null
+    },
+    "listening": {
+      "code": "F004",
+      "label": "Listening",
+      "animated": null
+    },
+    "speaking": {
+      "code": "F005",
+      "label": "Speaking",
+      "animated": null
+    },
+    "presenting": {
+      "code": "F006",
+      "label": "Presenting",
+      "animated": null
+    },
+    "attention": {
+      "code": "F007",
+      "label": "Attention",
+      "animated": null
+    },
+    "sleepy": {
+      "code": "F008",
+      "label": "Sleepy",
+      "animated": null
+    },
+    "celebrate": {
+      "code": "F009",
+      "label": "Celebrate",
+      "animated": null
+    },
+    "thinking": {
+      "code": "T001",
+      "label": "Thinking",
+      "animated": null
+    },
+    "error": {
+      "code": "E001",
+      "label": "Something went wrong",
+      "animated": null
+    }
+  }
+}

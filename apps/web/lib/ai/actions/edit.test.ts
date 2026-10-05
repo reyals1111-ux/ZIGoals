@@ -1,0 +1,43 @@
+import {expect, test} from 'vitest';
+import {applyEdits, editableFields, fieldText} from './edit';
+import {ACTION_KINDS, actionSchema, type Action} from './schema';
+
+// ADR-012, Part 5: an edited proposal is validated like a fresh one; handles are never editable.
+const action = (raw: Record<string, unknown>): Action => actionSchema.parse(raw);
+test('every kind has its fields, each field reads a key the schema knows, and no field is a handle', () => {
+  const samples: Record<string, Record<string, unknown>> = {
+    'log-water': {kind: 'log-water', glasses: 1}, 'log-weight': {kind: 'log-weight', value: 70, unit: 'kg'}, 'log-steps': {kind: 'log-steps', steps: 10}, 'log-food': {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f1'},
+    'log-measurement': {kind: 'log-measurement', kind_of: 'waist', value: 80, unit: 'cm'}, 'check-in': {kind: 'check-in', habit: 'h1'}, skip: {kind: 'skip', habit: 'h1'}, 'create-habit': {kind: 'create-habit', title: 'x'}, 'start-fast': {kind: 'start-fast', targetHours: 16}, 'stop-fast': {kind: 'stop-fast'},
+    'create-goal': {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, 'add-goal-note': {kind: 'add-goal-note', goal: 'g1', note: 'x'}, 'prefill-holding': {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
+  };
+  for (const kind of ACTION_KINDS) {
+    const a = action(samples[kind]!), fields = editableFields(a);
+    expect(fields.map(f => f.key), kind).not.toContain('habit'); expect(fields.map(f => f.key), kind).not.toContain('goal'); expect(fields.map(f => f.key), kind).not.toContain('food'); expect(fields.map(f => f.key), kind).not.toContain('kind');
+    // Writing every field back unchanged keeps the proposal valid and identical.
+    const values = Object.fromEntries(fields.map(f => [f.key, fieldText(a, f)]));
+    expect(applyEdits(a, values), kind).toEqual({ok: true, action: a});
+  }
+});
+test('edits change plain values, clear optional ones, add an estimate, and read "today" as an empty day', () => {
+  const water = action({kind: 'log-water', glasses: 2});
+  expect(fieldText(water, {key: 'day', label: 'Day', type: 'day'})).toBe(''); expect(fieldText(water, {key: 'glasses', label: 'g', type: 'number'})).toBe('2');
+  expect(applyEdits(water, {glasses: '', millilitres: '750', day: 'yesterday'})).toEqual({ok: true, action: {kind: 'log-water', millilitres: 750, day: 'yesterday'}});
+  const food = action({kind: 'log-food', name: 'Toast', meal: 'Breakfast'});
+  expect(applyEdits(food, {'estimate.kcal': '180', 'estimate.protein_g': '5,5', quantity: '2'})).toEqual({ok: true, action: {kind: 'log-food', name: 'Toast', meal: 'Breakfast', quantity: 2, estimate: {kcal: 180, protein_g: 5.5}, day: 'today'}});
+  const estimated = action({kind: 'log-food', name: 'Toast', meal: 'Breakfast', estimate: {kcal: 180}});
+  expect(applyEdits(estimated, {'estimate.kcal': ''})).toEqual({ok: true, action: {kind: 'log-food', name: 'Toast', meal: 'Breakfast', quantity: 1, day: 'today'}});
+  const goal = action({kind: 'create-goal', name: 'Bike', target: 1200, currency: 'EUR'});
+  expect(applyEdits(goal, {targetDate: '2027-01-01', category: 'Custom', currency: 'usd'})).toMatchObject({ok: true, action: {targetDate: '2027-01-01', category: 'Custom', currency: 'USD'}});
+});
+test('an edit cannot widen a proposal: wrong numbers, bad enums, lost required values and unknown kinds are refused in plain words', () => {
+  const weight = action({kind: 'log-weight', value: 70, unit: 'kg'});
+  expect(applyEdits(weight, {value: 'seventy'})).toEqual({ok: false, message: 'Weight needs a number.'});
+  expect(applyEdits(weight, {value: ''})).toMatchObject({ok: false, message: expect.stringMatching(/^Weight: /)});
+  expect(applyEdits(weight, {unit: 'stone'})).toMatchObject({ok: false, message: expect.stringMatching(/^Unit: /)});
+  expect(applyEdits(action({kind: 'log-steps', steps: 10}), {steps: '10.5'})).toEqual({ok: false, message: 'Steps needs a whole number.'});
+  expect(applyEdits(action({kind: 'start-fast', targetHours: 16}), {targetHours: '24'})).toMatchObject({ok: false});
+  expect(applyEdits(action({kind: 'log-water', glasses: 1}), {glasses: '', millilitres: ''})).toMatchObject({ok: false});
+  // Values for keys outside the kind's fields are ignored, so a "kind" or "habit" text can never slip in.
+  const checkIn = action({kind: 'check-in', habit: 'h1'});
+  expect(applyEdits(checkIn, {kind: 'delete-everything', habit: 'h9', value: '3'})).toEqual({ok: true, action: {kind: 'check-in', habit: 'h1', value: 3, day: 'today'}});
+});

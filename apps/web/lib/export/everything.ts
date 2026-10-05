@@ -13,6 +13,7 @@ import {INSIGHTS_KEY} from '../insights/schema';
 import {IMPORT_UNDO_KEY} from '../import/undo-schema';
 import {PUSH_KEY} from '../push/client';
 import {GUIDE_KEY} from '../coach/schema';
+import {AI_SETTINGS_KEY} from '../ai/launcher-record';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
 import {LOCAL_CHAIN, LOCAL_OWNER, parseLocalLedger} from '../local-ledger';
@@ -29,7 +30,10 @@ import {buildStoredZip} from './zip';
  * and writes nothing in storage. Not a restore format: the encrypted backup and the module backups remain those.
  */
 export const MODULE_KEYS = {finance: PLATFORM_KEY, habits: HABITS_KEY, health: HEALTH_STORAGE_KEY, settings: DASHBOARD_SETTINGS_KEY} as const;
-export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HEALTH_LINKS_KEY, healthGoals: HEALTH_GOALS_KEY, weeklyReview: WEEKLY_REVIEW_KEY, fasting: FASTING_KEY, insights: INSIGHTS_KEY, importUndo: IMPORT_UNDO_KEY, push: PUSH_KEY, guide: GUIDE_KEY} as const;
+// ZIGi (ADR-012): its settings key is exported like every device key; its conversations arrive through `aiChats` (they
+// live in IndexedDB, read by the caller through lib/ai/chats.ts); its provider keys live in a separate key store that
+// the export never reads.
+export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HEALTH_LINKS_KEY, healthGoals: HEALTH_GOALS_KEY, weeklyReview: WEEKLY_REVIEW_KEY, fasting: FASTING_KEY, insights: INSIGHTS_KEY, importUndo: IMPORT_UNDO_KEY, push: PUSH_KEY, guide: GUIDE_KEY, ai: AI_SETTINGS_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv'] as const;
@@ -38,7 +42,7 @@ export type EverythingTexts = Record<string, string | null>;
 export type LocalSimulationExport = {section: string; warning: string | null} | null;
 export type EverythingJson = {
   format: 'zigoals-everything'; version: 1; exportedAt: string; app: {version: string; commit: string}; note: string;
-  modules: Partial<Record<keyof typeof MODULE_KEYS, unknown>>; portfolio?: unknown; device: Partial<Record<keyof typeof DEVICE_KEYS, unknown>>; localSimulation?: unknown; unreadable: string[];
+  modules: Partial<Record<keyof typeof MODULE_KEYS, unknown>>; portfolio?: unknown; device: Partial<Record<keyof typeof DEVICE_KEYS | 'aiChats', unknown>>; localSimulation?: unknown; unreadable: string[];
 };
 export type Collected = {json: EverythingJson; csv: Record<CsvFileName, string>; unreadable: string[]; warnings: string[]};
 const CSV_HEADERS: Record<CsvFileName, string[]> = {
@@ -92,13 +96,14 @@ function goalRows(platform: Platform | null, localSimulation: LocalSimulationExp
 }
 
 /** The JSON and the CSVs from the stored texts; unreadable keys are named, never copied. */
-export function collectEverything(texts: EverythingTexts, {now, version, commit, localSimulation}: {now: Date; version: string; commit: string; localSimulation: LocalSimulationExport}): Collected {
+export function collectEverything(texts: EverythingTexts, {now, version, commit, localSimulation, aiChats}: {now: Date; version: string; commit: string; localSimulation: LocalSimulationExport; aiChats?: unknown}): Collected {
   const unreadable: string[] = [], warnings: string[] = [];
   const json: EverythingJson = {format: 'zigoals-everything', version: 1, exportedAt: now.toISOString(), app: {version, commit}, note: EVERYTHING_NOTE, modules: {}, device: {}, unreadable};
   const read = (key: string): unknown => { const text = texts[key]; if (text === null || text === undefined) return undefined; try { return parseJson(text); } catch { unreadable.push(key); return undefined; } };
   for (const [name, key] of Object.entries(MODULE_KEYS) as [keyof typeof MODULE_KEYS, string][]) { const value = read(key); if (value !== undefined) json.modules[name] = value; }
   const portfolio = read(PORTFOLIO_KEY); if (portfolio !== undefined) json.portfolio = portfolio;
   for (const [name, key] of Object.entries(DEVICE_KEYS) as [keyof typeof DEVICE_KEYS, string][]) { const value = read(key); if (value !== undefined) json.device[name] = value; }
+  if (aiChats !== undefined) json.device.aiChats = aiChats;
   if (localSimulation) { json.localSimulation = JSON.parse(localSimulation.section); if (localSimulation.warning) warnings.push(localSimulation.warning); }
   const typed = <T,>(name: string, value: unknown, parse: (value: unknown) => {success: true; data: T} | {success: false}): T | null => { if (value === undefined) return null; const result = parse(value); if (result.success) return result.data; warnings.push(`Your ${name} records did not read as expected, so their CSV files hold the header only; everything.json still holds them as stored.`); return null; };
   const platform = typed<Platform>('finance', json.modules.finance, v => platformSchema.safeParse(v));

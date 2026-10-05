@@ -1,0 +1,50 @@
+import {test,expect,beforeAll} from 'vitest';
+import {createRequire} from 'node:module';
+import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {hermeticWorkerOptions} from './hermetic-wrangler.mjs';
+const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
+const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{unstable_getMiniflareWorkerOptions}=require('wrangler');
+const root=new URL('../../',import.meta.url).pathname;
+// Session T (ADR-012): the effective headers of the generated public-Alpha artifact (build:alpha, then the dry run of
+// wrangler.alpha.jsonc with --outdir), served by the real Worker in Miniflare: the Permissions-Policy per route (the
+// microphone on every app page, the camera only on Health; Next applies the last matching header entry) and the one
+// connect-src the app's data file names. Requires the generated build; never deploys or reaches a network.
+//   pnpm --filter @zigoals/web build:alpha
+//   pnpm --filter @zigoals/web exec wrangler deploy --config wrangler.alpha.jsonc --dry-run --outdir /tmp/zigoals-alpha-dry
+//   ALPHA_PACKAGED=1 pnpm exec vitest run scripts/run11/alpha-packaged-headers.test.mjs
+const enabled=process.env.ALPHA_PACKAGED==='1';
+let script,app,egress;
+beforeAll(async()=>{
+ egress=JSON.parse(await readFile(resolve(root,'apps/web/lib/egress-policy.json'),'utf8'));
+ if(!enabled)return;
+ script=await readFile(process.env.ALPHA_PACKAGE_BUNDLE??'/tmp/zigoals-alpha-dry/worker.js','utf8');
+ app=hermeticWorkerOptions(unstable_getMiniflareWorkerOptions,resolve(root,'apps/web/wrangler.alpha.jsonc')).workerOptions;
+},60000);
+async function alpha(){
+ const mf=new Miniflare(convertV4MiniflareOptions({workers:[
+  {name:'zigoals-alpha',modules:true,script,compatibilityDate:app.compatibilityDate,compatibilityFlags:app.compatibilityFlags,assets:app.assets,bindings:app.bindings,serviceBindings:{WORKER_SELF_REFERENCE:{name:'zigoals-alpha'}},outboundService:request=>{throw Error('Outbound fixture refused '+new URL(request.url).host);}},
+ ]}));
+ return mf;
+}
+test.runIf(enabled)('the packaged Alpha answers every app route with the reviewed Permissions-Policy and connect-src',async()=>{
+ const mf=await alpha();
+ try{
+  for(const [path,expected] of [['/app',egress.permissionsPolicy.app],['/app/habits',egress.permissionsPolicy.app],['/app/health',egress.permissionsPolicy.health],['/app/settings',egress.permissionsPolicy.app]]){
+   const response=await mf.dispatchFetch(`https://alpha.zigoals.app${path}`,{headers:{'cf-connecting-ip':'192.0.2.44'}});
+   expect(response.status,path).toBe(200);
+   expect(response.headers.get('permissions-policy'),path).toBe(expected);
+   const connect=(response.headers.get('content-security-policy')??'').split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src '));
+   expect(connect,path).toBe(`connect-src ${["'self'",...egress.chainOrigins,...Object.values(egress.aiProviderOrigins),...egress.localModelSources].join(' ')}`);
+  }
+  // The root redirects to /app; the global policy is asserted on the root's own response, not on the page it leads to.
+  const root_=await mf.dispatchFetch('https://alpha.zigoals.app/',{headers:{'cf-connecting-ip':'192.0.2.44'},redirect:'manual'});
+  expect([200,307,308]).toContain(root_.status);
+  expect(root_.headers.get('permissions-policy')).toBe(egress.permissionsPolicy.global);
+ }finally{await mf.dispose();}
+},60000);
+test('the data file names exactly the reviewed values (runs without the artifact)',()=>{
+ expect(egress.permissionsPolicy).toEqual({global:'camera=(), microphone=(), geolocation=()',app:'camera=(), microphone=(self), geolocation=()',health:'camera=(self), microphone=(self), geolocation=()'});
+ expect(egress.localModelSources).toEqual(['http://localhost:*','http://127.0.0.1:*']);
+ expect(Object.keys(egress.aiProviderOrigins)).toEqual(['openai','anthropic','gemini','xai','openrouter']);
+});
