@@ -1,4 +1,5 @@
 import {marketRuntimeBundles} from './market-runtime-fixture.mjs';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
 import {test,expect} from 'vitest';
 import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
@@ -24,8 +25,8 @@ async function runtime({hold,overrides={}}={}){
    if(url.pathname.endsWith('/simple/price'))return Response.json(Object.fromEntries(ids.map(id=>[id,{usd:2,eur:3,last_updated_at:Math.floor(t/1000)}])));
    if(url.pathname.endsWith('/market_chart'))return Response.json({prices:[[t-1000,2],[t,3]]});
    throw Error('Unexpected provider path');
-  }}]}),resourcePersistencePath:persist});
- const object=async path=>{const ns=await mf.getDurableObjectNamespace('MARKETS','market');return (await ns.get(ns.idFromName('cost-account')).fetch('https://internal'+path,{method:'POST',body:'{}'})).json();};
+  }},doProbeWorker({className:'CountingAccount',scriptName:'market'})]}),resourcePersistencePath:persist});
+ const object=async path=>{const ns=await doProbe(mf);return (await ns.get(ns.idFromName('cost-account')).fetch('https://internal'+path,{method:'POST',body:'{}'})).json();};
  const post=async(path,body,ip='192.0.2.10')=>{const response=await mf.dispatchFetch('https://app/api/market-'+path,{method:'POST',headers:{'content-type':'application/json','cf-connecting-ip':ip},body:JSON.stringify(body)});return {status:response.status,body:await response.json()};};
  /** What one HTTP request cost the account object. */
  const measure=async run=>{await object('/test/counts');const result=await run();return {result,cost:await object('/test/counts')};};
@@ -67,7 +68,7 @@ test('the day\'s row budget stops new cold work for every address while cached p
   const cached=Array.from({length:32},(_,k)=>coin(`day-cached-${k}`)),cold=Array.from({length:32},(_,k)=>coin(`day-cold-${k}`));
   expect((await r.post('quotes',{requests:cached},'192.0.2.41')).body.complete).toBe(true);expect(r.calls).toHaveLength(1);
   // The 64 works the cache can hold are not enough to write 1,000 rows, so today's count is set at the budget.
-  const object=async(path,body)=>{const ns=await r.mf.getDurableObjectNamespace('MARKETS','market');return (await ns.get(ns.idFromName('cost-account')).fetch('https://internal'+path,{method:'POST',body:JSON.stringify(body)})).json();};
+  const object=async(path,body)=>{const ns=await doProbe(r.mf);return (await ns.get(ns.idFromName('cost-account')).fetch('https://internal'+path,{method:'POST',body:JSON.stringify(body)})).json();};
   await object('/test/day',{rows:1000});
   for(const ip of ['192.0.2.42','198.51.100.42']){const refused=await r.measure(()=>r.post('quotes',{requests:cold},ip));expect(refused.result.body.results.every(row=>row.failure==='LOCAL_BUDGET')).toBe(true);expect(refused.cost.writes+refused.cost.deletes).toBe(0);}
   const served=await r.measure(()=>r.post('quotes',{requests:cached},'203.0.113.42'));

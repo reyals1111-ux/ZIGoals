@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {createVault} from '../../apps/web/lib/vault/crypto';
 import {cloudSnapshot,synchronize} from '../../apps/web/lib/vault/cloud-sync';
 import {prepareDomainReview,deleteCloudDomain} from '../../apps/web/lib/vault/domain-lifecycle';
+import {doProbe} from './do-probe.mjs';
 test('cloud deletion refuses changes published after its protected review',async()=>{
  const r=await privateRuntime();try{
   await r.call('/v1/sessions',{action:'register',label:'Fixture'});const v=await createVault();await r.call('/v1/vault',{protocol:1,vault:v.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:v.manifest});
@@ -21,7 +22,7 @@ test('cloud deletion refuses changes published after its protected review',async
 },30000);
 test('a real durable alarm completes an interrupted authorized deletion without the client returning',async()=>{
  const persist=await mkdtemp(join(tmpdir(),'run11-domain-alarm-'));let blocked=true;
- const lifecycleService=async(request,mf)=>{if(request.method==='POST'&&blocked)return Response.json({error:'SYNTHETIC_UNAVAILABLE'},{status:503});const ns=await mf.getDurableObjectNamespace('LIFECYCLES','run11-lifecycle');return ns.get(ns.idFromName(ACCOUNT)).fetch(request);};
+ const lifecycleService=async(request,mf)=>{if(request.method==='POST'&&blocked)return Response.json({error:'SYNTHETIC_UNAVAILABLE'},{status:503});const ns=await doProbe(mf);return ns.get(ns.idFromName(ACCOUNT)).fetch(request);};
  const mf=await createPrivateMiniflare({persist,lifecycleService}),call=(path,body)=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('owner'),'x-zigoals-account':ACCOUNT,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
  try{await call('/v1/sessions',{action:'register',label:'Owner'});const v=await createVault();await call('/v1/vault',{protocol:1,vault:v.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:v.manifest});
   expect((await call('/v1/domain',{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0})).status).toBe(503);blocked=false;
@@ -30,7 +31,7 @@ test('a real durable alarm completes an interrupted authorized deletion without 
 },90000);
 test('durable deletion intent fences writers and resumes a lost authority acknowledgement after restart',async()=>{
  const persist=await mkdtemp(join(tmpdir(),'run11-domain-intent-'));let lost=false;
- const lifecycleService=async(request,mf)=>{const ns=await mf.getDurableObjectNamespace('LIFECYCLES','run11-lifecycle'),res=await ns.get(ns.idFromName(ACCOUNT)).fetch(request);if(request.method==='POST'&&res.ok&&!lost){lost=true;await res.body?.cancel();throw Error('Synthetic lost authority acknowledgement');}return res;};
+ const lifecycleService=async(request,mf)=>{const ns=await doProbe(mf),res=await ns.get(ns.idFromName(ACCOUNT)).fetch(request);if(request.method==='POST'&&res.ok&&!lost){lost=true;await res.body?.cancel();throw Error('Synthetic lost authority acknowledgement');}return res;};
  let mf=await createPrivateMiniflare({persist,lifecycleService});const call=(path,body)=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('owner'),'x-zigoals-account':ACCOUNT,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
  try{
   await call('/v1/sessions',{action:'register',label:'Owner'});const v=await createVault();await call('/v1/vault',{protocol:1,vault:v.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:v.manifest});

@@ -4,6 +4,7 @@ import {mkdtemp,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url)),{Miniflare,convertV4MiniflareOptions}=require('miniflare'),{build}=require('esbuild');
 const pair=id=>({marketRef:{provider:'coingecko',kind:'coin',id},currency:'USD'});
 const percentile=(rows,n)=>[...rows].sort((a,b)=>a-b)[Math.min(rows.length-1,Math.floor(rows.length*n))];
@@ -11,7 +12,7 @@ test('four Worker callers share a 62-pair slow stream; mixed fallback, integrity
  const artifact=await mkdtemp(join(tmpdir(),'run11-market-matrix-')),now=Date.now(),code=(await build({entryPoints:[new URL('../../workers/market-coordinator/worker.ts',import.meta.url).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers'],banner:{js:`Date.now=()=>${now}; // Test-only logical clock; real deadline behavior has a separate Worker regression.`}})).outputFiles[0].text;
  const config={policy:{providerMinuteLimit:100,providerMonthlyLimit:1000,operating:{minute:90,monthly:900},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:3,monthly:30},optionalCeiling:{minute:80,monthly:800},concurrent:1,queueLimit:16,reservationMs:30000,ownershipMs:10000},month:{id:'synthetic-matrix',start:now-1000,end:now+3600000},quoteCost:3,operationCosts:{token:6,rwa:7,catalog:2,history:4,insights:5},leaseMs:30000,maxAttempts:128,maxWorks:64,telemetry:{enabled:true,build:createHash('sha256').update(code).digest('hex'),retentionHours:2}};
  let calls=0,mf,release,entered,peakDispatch=0,peakFollowers=0;const start=new Promise(r=>{entered=r;}),hold=new Promise(r=>{release=r;}),latencies=[];
- const command=async body=>{const ns=await mf.getDurableObjectNamespace('MARKETS','matrix-market');return(await ns.get(ns.idFromName('matrix-account')).fetch('https://internal',{method:'POST',body:JSON.stringify(body)})).json();};
+ const command=async body=>{const ns=await doProbe(mf);return(await ns.get(ns.idFromName('matrix-account')).fetch('https://internal',{method:'POST',body:JSON.stringify(body)})).json();};
  const memoryStart=process.memoryUsage().rss;
  const provider=async request=>{
   calls++;const status=await command({action:'inspect'});expect(status.dispatched).toBe(1);expect(status.chargedCredits).toBeGreaterThan(0);peakDispatch=Math.max(peakDispatch,status.dispatched);
@@ -24,7 +25,7 @@ test('four Worker callers share a 62-pair slow stream; mixed fallback, integrity
   const text=JSON.stringify(Object.fromEntries(ids.map(id=>[id,{usd:1.25,last_updated_at:Math.floor(now/1000)}]))),mid=Math.floor(text.length/2);
   return new Response(new ReadableStream({start(c){c.enqueue(new TextEncoder().encode(text.slice(0,mid)));entered();void hold.then(()=>{c.enqueue(new TextEncoder().encode(text.slice(mid)));c.close();});}}),{headers:{'content-type':'application/json'}});
  };
- mf=new Miniflare({...convertV4MiniflareOptions({workers:[...Array.from({length:4},(_,i)=>({name:'matrix-app-'+i,modules:true,script:'export default {fetch(request,env){return env.MARKET_QUOTES.fetch(request)}}',compatibilityDate:'2026-09-13',serviceBindings:{MARKET_QUOTES:{name:'matrix-market',entrypoint:'QuoteService'}}})),{name:'matrix-market',modules:true,script:code,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'matrix-account',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config),COINGECKO_DEMO_API_KEY:'synthetic'},outboundService:provider}]}),resourcePersistencePath:join(artifact,'state')});
+ mf=new Miniflare({...convertV4MiniflareOptions({workers:[...Array.from({length:4},(_,i)=>({name:'matrix-app-'+i,modules:true,script:'export default {fetch(request,env){return env.MARKET_QUOTES.fetch(request)}}',compatibilityDate:'2026-09-13',serviceBindings:{MARKET_QUOTES:{name:'matrix-market',entrypoint:'QuoteService'}}})),{name:'matrix-market',modules:true,script:code,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'matrix-account',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config),COINGECKO_DEMO_API_KEY:'synthetic'},outboundService:provider},doProbeWorker({className:'MarketAccount',scriptName:'matrix-market'})]}),resourcePersistencePath:join(artifact,'state')});
  const load=async(index,requests)=>{const t=performance.now(),app=await mf.getWorker('matrix-app-'+index),res=await app.fetch('https://app/quotes',{method:'POST',headers:{'content-type':'application/json',cookie:'private-fixture'},body:JSON.stringify({version:1,requests})});const result=await res.json();latencies.push(performance.now()-t);return result;};
  try{
   const coins=Array.from({length:60},(_,i)=>pair('fixture-'+String(i).padStart(3,'0'))),requests=[...coins,pair('zignaly'),{marketRef:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'},currency:'USD'}],owner=load(0,requests);await start;

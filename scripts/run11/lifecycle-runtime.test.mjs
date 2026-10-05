@@ -3,6 +3,7 @@ import {cp,rm,mkdtemp} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {privateRuntime,fixtureToken} from './private-runtime.mjs';
+import {doProbe} from './do-probe.mjs';
 // A recognised Supabase secret-key shape (Session S): an unrecognised admin key is never sent. Built at runtime, so the
 // tracked-file secret scan has nothing to match.
 const ADMIN_KEY='sb_secret_'+'fixture-admin';
@@ -47,6 +48,6 @@ test('provider deletion acknowledgement loss recovers after restart without the 
  const call=(body)=>mf.dispatchFetch('https://sync.test'+(body.action==='register'?'/v1/sessions':'/v1/account'),{method:'POST',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('owner'),'x-zigoals-account':account,'content-type':'application/json'},body:JSON.stringify(body)});
  try{await call({action:'register',label:'Owner'});expect((await call({action:'delete-account',confirm:'DELETE ACCOUNT'})).status).toBe(202);expect(identityExists).toBe(false);
   await mf.dispose();mf=await createPrivateMiniflare(options);expect((await call({action:'delete-account',confirm:'DELETE ACCOUNT'})).status).toBe(401);
-  const ns=await mf.getDurableObjectNamespace('LIFECYCLES','run11-lifecycle');const resumed=await ns.get(ns.idFromName(account)).fetch('https://internal/account',{method:'POST',headers:{'x-verified-account':account,'content-type':'application/json'},body:'{"action":"resume-provider"}'});expect(await resumed.json()).toMatchObject({deleted:true,provider:'deleted'});expect(attempts).toBe(2);
+  const ns=await doProbe(mf);const resumed=await ns.get(ns.idFromName(account)).fetch('https://internal/account',{method:'POST',headers:{'x-verified-account':account,'content-type':'application/json'},body:'{"action":"resume-provider"}'});expect(await resumed.json()).toMatchObject({deleted:true,provider:'deleted'});expect(attempts).toBe(2);
  }finally{await mf.dispose();}
 },30000);
