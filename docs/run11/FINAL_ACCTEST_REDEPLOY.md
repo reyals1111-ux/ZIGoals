@@ -161,8 +161,8 @@ Close the browser profile used for the dashboard. The private env file stays in 
 - **Never** roll back across a Durable Object migration or a data-format change. Session S changes neither: new rows and fields are additive, and older code ignores them.
 - The app first, then the services in reverse order.
 
-## To merge into the runsheet after Session P
-Session P edits [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md), so these rows wait here until P has merged:
+## Merged into the runsheet (Session U, 2026-10-05)
+Session P has merged, so these rows are now in [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md): the final redeploy and the market policy window under "Before you start", the erase rehearsal as row 1b, sign out everywhere as row 6b, and the Supabase key proof on row 16. The table stays as the record of what was proposed:
 
 | Proposed row | Where in the runsheet | What |
 |---|---|---|

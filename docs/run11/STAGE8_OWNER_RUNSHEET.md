@@ -11,6 +11,9 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 
 ## Before you start
 - **Stages 1–7 are done** on the isolated acceptance services. Never use the live Alpha.
+- **The final redeploy is done:** [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md), once: every changed Worker, the services first and the app last.
+- **The market policy window:** the private `MARKET_POLICY` ends at 2026-10-31 16:00 UTC. Around 28 October, dry-run `node scripts/run11/next-market-policy.mjs`; switch at or after 16:00 UTC on 31 October ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)).
+- **The owner hardening below is done.**
 - **Use fictional data only:** no real names, money or health records.
 - **Have ready:**
   - your desktop browser (Desktop A);
@@ -22,6 +25,75 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   - account or session IDs, tokens or keys;
   - private Worker host names or IP addresses;
   - screenshots that show any of these.
+
+## Before Stage 8 — owner hardening · about 75 min
+Session U (owner review change 11). Do these once, before Stage 8, in this order. Every click path is from the vendor's
+own documentation, read 2026-10-05 (linked); if a screen differs, follow the vendor's page. Keep every recovery code
+and backup code in Bitwarden, as its own item, never in a note, a screenshot or this repository.
+
+**H1. Cloudflare: a new password first.** ([Change password](https://developers.cloudflare.com/fundamentals/user-profiles/change-password-or-email/))
+- **Do:** Profile → **Authentication** → **Password** → **Change Password** → a new password from Bitwarden's generator → **Save**.
+- **Then:** API tokens made before this keep working; H6 reviews them.
+
+**H2. Cloudflare: two-factor with a mobile app.** ([Two-factor authentication](https://developers.cloudflare.com/fundamentals/user-profiles/2fa/))
+- **Do:** **My Profile** → **Authentication** → **Two-Factor Authentication** → **Set up** → **Mobile App Authentication** → **Add**; scan the QR code with your authenticator, enter its code and your password → **Next**.
+- **Then:** Cloudflare offers the backup codes: **Download** or **Copy** them straight into a new Bitwarden item (H3).
+
+**H3. Cloudflare: backup codes in Bitwarden.**
+- **Do:** if you did not keep them in H2: **My Profile** → **Authentication** → **Two-Factor Authentication** → **Manage** → **Backup codes** → **Regenerate** (this cancels the old ones), then into Bitwarden.
+- Cloudflare's page does not say the codes can be shown again later: keep them when they are shown.
+
+**H4. Cloudflare: a security key as a second factor.** (same page)
+- **Do:** **Two-Factor Authentication** → **Security Key Authentication** → **Add**, your password → **Next**, then touch your Mac's Touch ID (or a hardware key) and name it.
+- Cloudflare describes WebAuthn security keys, built-in ones such as Touch ID included, as a second factor, and recommends at least two factors. Its pages do not describe a passkey that replaces the password; there is nothing more to set up for that.
+
+**H5. Cloudflare: members.** ([Manage members](https://developers.cloudflare.com/fundamentals/manage-members/manage/))
+- **Do:** your account → **Members**. Open each member with **Edit**.
+- **Pass:** only you, or people you chose, each with the narrowest role they need.
+
+**H6. Cloudflare: API tokens, including the Alpha deploy token.** ([Roll a token](https://developers.cloudflare.com/fundamentals/api/how-to/roll-token/))
+- **Do:** **My Profile** → **API Tokens**, then **Manage account** → **Account API tokens**. For each token, read its permissions.
+- **Keep** the Alpha deploy token (the GitHub `alpha` environment's `CLOUDFLARE_ALPHA_API_TOKEN`) with exactly the "Current dedicated token policy" in [MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md): Entire Account → Workers Scripts Read + Edit, nothing else. **Delete** (three-dot menu → **Delete**) any token you no longer use, and any made by `wrangler login` that you don't recognise.
+- **If in doubt about a token's secrecy:** three-dot menu → **Roll** → **Confirm**: same permissions, new value, the old one stops at once; then update the GitHub secret.
+- Cloudflare's tokens can be limited to an account or a zone, not to one Worker (FIX_PLAN F5): see "Owner decisions" in STATUS.
+
+**H7. Cloudflare: the audit log.** ([Audit logs](https://developers.cloudflare.com/fundamentals/account/account-security/audit-logs/))
+- **Do:** **Manage Account** → **Audit Logs**. Look through the last 90 days.
+- **Pass:** every change is one you or a reviewed workflow made.
+
+**H8. Supabase: MFA on your own dashboard login.** ([Multi-factor authentication](https://supabase.com/docs/guides/platform/multi-factor-authentication))
+- **Do:** Supabase dashboard → your account → **Security** (supabase.com/dashboard/account/security) → add an authenticator app.
+- Supabase gives **no recovery codes**: add a second authenticator factor on another device instead. Turning MFA on signs out your other dashboard sessions.
+- "Require MFA to access organization" exists only on the Pro, Team and Enterprise plans ([enforcement](https://supabase.com/docs/guides/platform/mfa/org-mfa-enforcement)).
+
+**H9. Supabase: no localhost sign-in redirect before any wider launch.** ([Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls))
+- **Do:** your project → **Authentication** → **URL Configuration** → Redirect URLs: remove `http://127.0.0.1:3100` (and any other loopback entry). Keep the acceptance app's own URL.
+- **When:** before you invite anyone beyond the friends Alpha; it is harmless until then but has no purpose there.
+
+**H10. Supabase: time-boxed sessions, only if your plan has them.** ([Sessions](https://supabase.com/docs/guides/auth/sessions))
+- "Time-box user sessions" and "Inactivity timeout" (Authentication → Sessions) are "only available on Pro Plans and up". On the free plan, skip this row and write "not on this plan".
+
+**H11. Resend: MFA.** ([How can I add MFA](https://resend.com/docs/knowledge-base/how-can-i-add-mfa))
+- **Do:** resend.com → your **Profile** → **Enable MFA** → scan the QR code → enter the code.
+
+**H12. CoinGecko: 2FA.** ([Account and Security](https://support.coingecko.com/hc/en-us/articles/44946361836185-Account-and-Security))
+- **Do:** your CoinGecko account → **Account** → **Login & Security** → turn on 2FA ("Modify 2FA"). The page does not say which kind or whether recovery codes exist: keep whatever it shows in Bitwarden.
+
+**H13. Bitwarden: two-step login.** ([Authenticator app](https://bitwarden.com/help/setup-two-step-login-authenticator/), [recovery code](https://bitwarden.com/help/two-step-recovery-code/))
+- **Do:** the Bitwarden web app → **Settings** → **Security** → **Two-step login** → **Authenticator App** → **Manage**, master password, scan, code → **Enable**.
+- **Then:** **Two-step login** → **View recovery code**: print it and keep it somewhere safe outside Bitwarden (it is what lets you back in).
+
+**H14. Your Mac: FileVault.** ([Apple: FileVault](https://support.apple.com/guide/mac-help/protect-data-on-your-mac-with-filevault-mh11785/mac))
+- **Do:** Apple menu → **System Settings** → **Privacy & Security** → **FileVault** → **Turn On**; choose either iCloud unlock or "Create a recovery key and do not use my iCloud account" and keep that key safe.
+- Why: `~/.config/zigoals/` holds the private configs and keys.
+
+**H15. Google: 2-Step Verification** (the account behind your inboxes and devices). ([Google help](https://support.google.com/accounts/answer/185839))
+- **Do:** myaccount.google.com → **Security & sign-in** → "How you sign in to Google" → **Turn on 2-Step Verification**, then follow the steps; keep the backup codes in Bitwarden.
+
+**H16. DMARC: tighten from `p=none` in mid-October.** ([Cloudflare: email authentication](https://developers.cloudflare.com/email-service/concepts/email-authentication/), [troubleshooting](https://developers.cloudflare.com/email-service/reference/troubleshooting/))
+- Cloudflare's advice: start with `p=none`, read the reports for several weeks, then `p=quarantine`, then `p=reject` once legitimate mail passes, with SPF and DKIM aligned.
+- **Do (mid-October, once Resend's code emails pass in the reports):** Cloudflare → the `zigoals.app` zone → **DNS** → **Records** → the `_dmarc` TXT record → change `p=none` to `p=quarantine`. Move to `p=reject` only after another clean period. Reports: **Email** → **DMARC Management** (FINDINGS Q-OPS-01).
+- **Pass:** a code email still arrives in Inbox 1 and Inbox 2 after the change.
 
 ---
 
@@ -37,6 +109,10 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   6. no new Worker, route or subdomain besides the rehearsal Worker.
 - **Record:** pass or fail for runbook steps 3–8, the wrangler version, the commit and the date.
 - **If it fails:** stop. Hosted recovery is not relied on (the runbook's "Fallback").
+
+**1b. Erase rehearsal (merged from FINAL_ACCTEST_REDEPLOY).**
+- **Do:** [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md), "Erase an account": steps 1–4 now, on the fictional rehearsal account; step 5 at the Stage 8 serve switch.
+- **Record:** pass or fail per step, the wrangler version and the commit.
 
 ## Part 2: sign-in with real email (Desktop A, Inbox 1) · about 25 min
 **2. A real code arrives (rows A1–A4, the provider's own part).**
@@ -67,6 +143,10 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Do:** request a code and leave it unused until after the expiry time set in your Supabase project's email sign-in settings. Then type it.
 - **Pass:** refused with the same message, and a new code works after the countdown.
 - **Tip:** do other parts while you wait.
+
+**6b. Sign out everywhere (merged from FINAL_ACCTEST_REDEPLOY).**
+- **Do:** [OWNER_SIGN_OUT_EVERYWHERE.md](OWNER_SIGN_OUT_EVERYWHERE.md), once, with your own fictional test user.
+- **Record:** pass or fail, and the date.
 
 ## Part 3: turn on sync from the new offer (Desktop A, Inbox 1) · about 10 min
 **7. The sync offer.**
@@ -210,6 +290,7 @@ Follow [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md), in this order:
   2. Delete it in the app (Settings → Account deletion).
   3. Run `recovery-admin.mjs export` for it the same day.
 - **Pass:** a 0600 file and a digest.
+- **Also (merged from FINAL_ACCTEST_REDEPLOY; Session S Part 1):** once the lifecycle Worker serves, the fictional user disappears from Supabase → Authentication → Users within about a minute. If it stays, the identity deletion is pending: check the lifecycle secret's key format.
 - **Record:** the date. Keep the digest in Bitwarden only.
 
 **17. Custody (D2).**
