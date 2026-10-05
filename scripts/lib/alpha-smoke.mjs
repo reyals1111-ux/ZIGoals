@@ -112,12 +112,12 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     const html = await response.text();
     const nonce = assertHtml(response, html, route, { baseline });
     if (route === "/app/health" && !baseline) assertHealthCamera(response.headers.get("permissions-policy"));
-    if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");
       assert.match(html, /Local [Dd]emo/, "Local Demo default missing");
     }
+    if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (route === "/app/settings") {
       assert.match(html, /PUBLIC_ALPHA_UNDEPLOYED/, "Public Alpha safety mode missing");
       if (expectedCommit) assert(html.includes(expectedCommit), "Hosted build commit differs from reviewed source");
