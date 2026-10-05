@@ -68,6 +68,27 @@ test("the manual Alpha workflow and deploy script never name or pass the market 
 test("only a fresh explicit owner dispatch of the full main SHA is authorized", () => {
   expect(() => assertDispatch(dispatch())).not.toThrow();
 });
+// Session U Part 7 (owner option 3): exactly the Claude GitHub App's bot may dispatch too, under every other condition.
+test("the Claude GitHub App's bot may dispatch, with every other condition unchanged; no other account may", () => {
+  const bot = { GITHUB_ACTOR: "claude[bot]", GITHUB_TRIGGERING_ACTOR: "claude[bot]" };
+  expect(() => assertDispatch({ ...dispatch(), ...bot })).not.toThrow();
+  for (const [key, value] of [["GITHUB_EVENT_NAME", "push"], ["GITHUB_REF", "refs/heads/feature"], ["GITHUB_RUN_ATTEMPT", "2"], ["OWNER_APPROVAL", "false"], ["EXPECTED_COMMIT", "b".repeat(40)]])
+    expect(() => assertDispatch({ ...dispatch(), ...bot, [key]: value })).toThrow();
+  for (const actor of ["claude", "claude-bot", "Claude[bot]", "claude[bot] ", " claude[bot]", "claude[Bot]", "claude[bot]x", "github-actions[bot]", "dependabot[bot]", "anthropics", "collaborator", ""])
+    expect(() => assertDispatch({ ...dispatch(), GITHUB_ACTOR: actor, GITHUB_TRIGGERING_ACTOR: actor })).toThrow();
+  // The account that dispatched must be the one that triggered the run: neither may stand in for the other.
+  expect(() => assertDispatch({ ...dispatch(), GITHUB_ACTOR: "claude[bot]", GITHUB_TRIGGERING_ACTOR: "reyals1111-ux" })).toThrow();
+  expect(() => assertDispatch({ ...dispatch(), GITHUB_ACTOR: "reyals1111-ux", GITHUB_TRIGGERING_ACTOR: "claude[bot]" })).toThrow();
+});
+test("the workflow's own first step accepts exactly the same two dispatchers, before checkout", () => {
+  const workflow = readFileSync(new URL("../.github/workflows/deploy-alpha.yml", import.meta.url), "utf8");
+  const step = workflow.slice(workflow.indexOf("Reject unauthorized refs, actors and reruns before checkout"), workflow.indexOf("- uses: actions/checkout"));
+  expect(step).toContain(`test "$GITHUB_ACTOR" = reyals1111-ux || test "$GITHUB_ACTOR" = 'claude[bot]'`);
+  expect(step).toContain(`test "$GITHUB_TRIGGERING_ACTOR" = "$GITHUB_ACTOR"`);
+  expect(step).toContain("test \"$GITHUB_EVENT_NAME\" = workflow_dispatch");expect(step).toContain("test \"$GITHUB_REF\" = refs/heads/main");expect(step).toContain("test \"$GITHUB_RUN_ATTEMPT\" = 1");
+  // Two exact comparisons; never a pattern (no =~, glob or [[ ]] match on the actor).
+  expect(step.match(/GITHUB_ACTOR"? = /g)).toHaveLength(2);expect(step).not.toMatch(/GITHUB(_TRIGGERING)?_ACTOR[^\n]*(=~|\*|\[\[)/);
+});
 test.each([
   ["GITHUB_EVENT_NAME", "push"], ["GITHUB_REPOSITORY", "fork/ZIGoals"],
   ["GITHUB_ACTOR", "collaborator"], ["GITHUB_TRIGGERING_ACTOR", "collaborator"],
