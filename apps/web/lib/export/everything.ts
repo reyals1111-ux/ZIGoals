@@ -1,3 +1,4 @@
+import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
 import {HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../health';
@@ -56,8 +57,8 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'wealth-positions.csv': ['id', 'name', 'asset', 'asset_class', 'source_type', 'network', 'quantity', 'decimals', 'valuation_value', 'valuation_currency', 'valuation_decimals', 'valuation_source', 'observed_at_utc', 'archived_at_utc', 'provenance', 'notes'],
 };
 type Cell = string | number | boolean | null | undefined;
-/** Every cell quoted, quotes doubled, a leading apostrophe before what a spreadsheet would run as a formula (the Health CSV rule). */
-export const csvCell = (value: Cell) => { if (value === null || value === undefined) return '""'; const text = String(value); return `"${(/^[\s]*[=+\-@\t\r]/.test(text) ? "'" + text : text).replaceAll('"', '""')}"`; };
+/** Every cell quoted, quotes doubled, a leading apostrophe before what a spreadsheet would run as a formula (csv-safe.ts, Session U). */
+export const csvCell = (value: Cell) => csvSafeCell(value);
 const csv = (header: readonly string[], rows: readonly Cell[][]) => [header, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
 const parseJson = (text: string): unknown => JSON.parse(text);
 /** The day of an instant in a zone, for timed weight measurements; the UTC day when the zone cannot be read. */
@@ -109,7 +110,11 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   const habits = typed<HabitData>('habits', json.modules.habits, v => habitDataSchema.safeParse(v));
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
-  const applied = links?.success ? links.data.applied.filter(a => !a.undone) : [];
+  // Session U Part 9: with the sync writes on, the markers live in Health v3 (`habitLinks`); the device key's are read too
+  // (it is never rewritten), and for the same habit and day the Health copy is the one in use.
+  const markers = new Map((links?.success ? links.data.applied : []).map(a => [`${a.habitId}:${a.date}`, a] as const));
+  for (const a of (health && 'habitLinks' in health ? health.habitLinks?.applied : undefined) ?? []) markers.set(`${a.habitId}:${a.date}`, a);
+  const applied = [...markers.values()].filter(a => !a.undone);
   const out: Record<CsvFileName, string> = {} as Record<CsvFileName, string>;
   out['goals.csv'] = csv(CSV_HEADERS['goals.csv'], goalRows(platform, localSimulation, warnings));
   out['contributions.csv'] = csv(CSV_HEADERS['contributions.csv'], (platform?.contributions ?? []).map(c => [c.id, c.goalId, c.goalScope, c.direction, c.quantity, c.asset, c.decimals, c.occurredAt, c.provenance, c.fundingMode ?? '', c.scheduledDate ?? '', c.positionId ?? '', c.reversesId ?? '', c.note ?? '']));

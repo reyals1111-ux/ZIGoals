@@ -4,7 +4,7 @@ import {emailCodeOperation,validateEmailTarget} from './pre-run11-email.mjs';
 const config={origin:'https://projectabc.supabase.co',allowedOrigin:'https://projectabc.supabase.co',key:'sb_publishable_privatevalue',recipients:['owner@test.invalid']};
 
 test('one request posts the expected email payload',async()=>{
- let calls=0;const r=await emailCodeOperation('request',config,'owner@test.invalid',null,async(url,init)=>{calls++;assert.equal(url,'https://projectabc.supabase.co/auth/v1/otp');assert.equal(JSON.parse(init.body).create_user,true);return new Response('{}',{status:200});});
+ let calls=0;const r=await emailCodeOperation('request',config,'owner@test.invalid',null,async(url,init)=>{calls++;assert.equal(url,'https://projectabc.supabase.co/auth/v1/otp');assert.deepEqual(JSON.parse(init.body),{email:'owner@test.invalid',create_user:false});return new Response('{}',{status:200});});
  assert.equal(calls,1);assert.equal(r,'CODE_REQUEST_ACCEPTED');
 });
 test('successful verification does not return or print tokens',async()=>{

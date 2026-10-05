@@ -1,6 +1,9 @@
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type Locator, type Page} from '@playwright/test';
 import {HABITS_KEY, createHabit, emptyHabitData, logHabitCount} from '../lib/habits';
-import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
+import {DASHBOARD_SETTINGS_KEY, emptyDashboardSettings, presetSettings} from '../lib/dashboard-settings';
+import {HEALTH_STORAGE_KEY, createEmptyHealth} from '../lib/health';
+import {SYNC_WRITES} from '../lib/vault/sync-writes';
+import {weeklyReviewIn} from '../lib/vault/sync-homes';
 import {WEEKLY_REVIEW_KEY, type WeeklyReview} from '../lib/weekly-review/schema';
 import {reviewWindow} from '../lib/weekly-review/engine';
 import {addLocalDays} from '../lib/local-date';
@@ -13,13 +16,26 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date(`${TODAY}T10:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 });
-const stored = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), WEEKLY_REVIEW_KEY)) ?? 'null') as WeeklyReview | null;
+// Session U Part 9: with the sync writes on (lib/vault/sync-writes.ts), the review lives in settings v2 and its Health notes in
+// Health v3; the device key is read once (merged) and never written. Switched off, it lives in the device key as before.
+const HOMES = SYNC_WRITES ? [DASHBOARD_SETTINGS_KEY, HEALTH_STORAGE_KEY] : [WEEKLY_REVIEW_KEY];
+const stored = async (page: Page): Promise<WeeklyReview | null> => {
+  const [first, second] = await page.evaluate(keys => keys.map(key => localStorage.getItem(key)), HOMES);
+  if (!SYNC_WRITES) return JSON.parse(first ?? 'null') as WeeklyReview | null;
+  return weeklyReviewIn(first ? JSON.parse(first) : emptyDashboardSettings(), second ? JSON.parse(second) : createEmptyHealth());
+};
+const homeEntries = (page: Page) => page.evaluate(keys => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => keys.some(key => k.includes(key)))), HOMES);
 async function seed(page: Page) {
   let habits = createHabit(emptyHabitData(), {title: 'Stretch', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1, measurement: {kind: 'count', unit: 'times'}}, new Date('2026-09-01T08:00:00.000Z'), '11111111-1111-4111-8111-111111111111');
   habits = logHabitCount(habits, '11111111-1111-4111-8111-111111111111', '2026-09-14', 1, '', new Date('2026-09-14T08:00:00.000Z'));
   habits = logHabitCount(habits, '11111111-1111-4111-8111-111111111111', TODAY, 1, '', new Date(`${TODAY}T09:00:00.000Z`));
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WEEKLY_REVIEW_KEY]: JSON.stringify({version: 1, weekday: WEEKDAY, reviews: []})});
+}
+/** Next saves the words before the step changes (Session U Part 9: in Health and settings, after their storage lock), so each click waits for its step to change; a click that raced ahead could land on Finish review. */
+async function nextToLastStep(dialog: Locator) {
+  const next = dialog.getByRole('button', {name: 'Next', exact: true}), step = dialog.getByText(/^Step \d+ of \d+$/);
+  while (await next.count()) { const before = await step.textContent(); await next.click(); await expect(step).not.toHaveText(before!); }
 }
 const card = (page: Page) => page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
 /** On a phone one "For you" card is open; the review may wait behind Show more. */
@@ -51,7 +67,7 @@ test('on the review day: six steps with the week\'s own numbers, an intention, f
   await dialog.getByRole('button', {name: 'Next', exact: true}).click();
   await expect(dialog.getByRole('heading', {level: 3})).toHaveText('Habits');
   await expect(dialog).toContainText(/Stretch · 2 of \d+/);
-  while (await dialog.getByRole('button', {name: 'Next', exact: true}).count()) await dialog.getByRole('button', {name: 'Next', exact: true}).click();
+  await nextToLastStep(dialog);
   await expect(dialog.getByRole('heading', {level: 3})).toHaveText('One intention');
   await words.fill('Walk on Thursday');
   await dialog.getByRole('button', {name: 'Finish review', exact: true}).click();
@@ -61,6 +77,7 @@ test('on the review day: six steps with the week\'s own numbers, an intention, f
   expect(saved.reviews).toHaveLength(1);
   expect(saved.reviews[0]).toMatchObject({weekStart: window.weekStart, notes: {intention: 'Walk on Thursday'}});
   expect(saved.reviews[0]!.completedAt).toBeTruthy();
+  if (SYNC_WRITES) expect(JSON.parse((await page.evaluate(key => localStorage.getItem(key), WEEKLY_REVIEW_KEY))!)).toEqual({version: 1, weekday: WEEKDAY, reviews: []});
   await expect(card(page)).toHaveCount(0);
   await page.reload();
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
@@ -100,13 +117,13 @@ test('Showcase: the review is offered on its day, the last fictional intention i
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  const before = await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), WEEKLY_REVIEW_KEY);
+  const before = await homeEntries(page);
   expect(before).not.toBe('[]');
   await reveal(page);
   await expect(card(page)).toBeVisible();
-  expect(await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), WEEKLY_REVIEW_KEY)).toBe(before);
+  expect(await homeEntries(page)).toBe(before);
   await card(page).getByRole('button', {name: 'Start review', exact: true}).click();
   const dialog = page.getByRole('dialog', {name: 'Your week'});
-  while (await dialog.getByRole('button', {name: 'Next', exact: true}).count()) await dialog.getByRole('button', {name: 'Next', exact: true}).click();
+  await nextToLastStep(dialog);
   await expect(dialog).toContainText('Last week you wrote: SHOWCASE DATA · fictional intention');
 });

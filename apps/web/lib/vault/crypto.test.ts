@@ -69,3 +69,14 @@ test('a repeated nonce is safe across distinct single-use derived keys, independ
   await expect(crypto.subtle.decrypt({name:'AES-GCM',iv:decode(second.nonce),additionalData:aad,tagLength:128},key,decode(second.ciphertext))).rejects.toThrow();
  }finally{spy.mockRestore();}
 });
+// Session U Part 5 (item 8): the `portfolio` label for Part 9's records; the four existing labels are unchanged.
+test('a portfolio record seals and opens under its own label, which no other label opens; existing labels keep their bytes',async()=>{
+ const {key,manifest}=await createVault(),object=crypto.randomUUID(),at=(domain:'portfolio'|'finance')=>({vault:manifest.vault,domain,object,revision:1,epoch:manifest.epoch});
+ const sealed=await sealRecord(key,at('portfolio'),{fictional:'portfolio'});
+ expect(await openRecord(key,at('portfolio'),sealed)).toEqual({fictional:'portfolio'});
+ await expect(openRecord(key,at('finance'),sealed)).rejects.toThrow();
+ await expect(openRecord(key,at('portfolio'),await sealRecord(key,at('finance'),{fictional:'finance'}))).rejects.toThrow();
+ // A finance record opens under its own label as before.
+ const legacy=await sealRecord(key,at('finance'),{fictional:'unchanged'});expect(await openRecord(key,at('finance'),legacy)).toEqual({fictional:'unchanged'});
+ await expect(sealRecord(key,{...at('finance'),domain:'wealth' as 'finance'},{})).rejects.toThrow();
+});

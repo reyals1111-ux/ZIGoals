@@ -69,7 +69,16 @@ test('questions open and close from the keyboard', async ({page}) => {
   await expect(answer).toBeHidden();
   // Focus must have landed before Enter is pressed: CI once saw the key go nowhere (PR #70, 2026-10-04, phone project).
   const question = page.getByText('Where do prices come from?', {exact: true});
-  await question.focus(); await expect(question).toBeFocused();
+  // Session U Part 4: CI twice saw "inactive" for 5 s (runs 37217545365 desktop, 37245262048 phone); never locally (60 of
+  // 60 runs, also under CPU load). toBeFocused needs the element to be the active one AND document.hasFocus() (Playwright
+  // 1.63, _activelyFocused): a page without window focus reads "inactive" and its keys can go nowhere, which is what CI
+  // first saw. So the page is brought to the front before focusing. If it happens again, the report names the element
+  // that held the focus and whether the document had it.
+  await page.bringToFront();
+  await question.focus(); await expect(question).toBeFocused().catch(async error => {
+    const holder = await page.evaluate(() => { const a = document.activeElement; return `${a ? `${a.tagName.toLowerCase()}${a.id ? '#' + a.id : ''}${typeof a.className === 'string' && a.className ? '.' + a.className.trim().split(/\s+/).join('.') : ''}` : 'none'} hasFocus=${document.hasFocus()} visibility=${document.visibilityState}`; });
+    test.info().annotations.push({type: 'focus-holder', description: holder}); console.log('focus-holder', holder); throw error;
+  });
   await page.keyboard.press('Enter');await expect(answer).toBeVisible();
   await page.keyboard.press('Enter');await expect(answer).toBeHidden();
 });

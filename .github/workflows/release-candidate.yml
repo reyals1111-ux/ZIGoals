@@ -17,6 +17,11 @@ jobs:
         env:
           EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: |
+          # FIX_PLAN F3 (Q-SC-06): only the owner starts a release candidate (it can mint an attestation).
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = reyals1111-ux/ZIGoals
+          test "$GITHUB_ACTOR" = reyals1111-ux
+          test "$GITHUB_TRIGGERING_ACTOR" = reyals1111-ux
           test "$GITHUB_REF" = refs/heads/main
           test "$EXPECTED_COMMIT" = "$GITHUB_SHA"
           [[ "$EXPECTED_COMMIT" =~ ^[a-f0-9]{40}$ ]]

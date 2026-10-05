@@ -12,6 +12,9 @@ import {GUIDE_KEY,guideSchema} from './coach/schema';
 import {addLocalDays} from './local-date';
 import {createEmptyHealth,healthSchema,HEALTH_STORAGE_KEY,HEALTH_MEALS} from './health';
 import {DEFAULT_COUNTERS} from './health-counters';
+import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings} from './dashboard-settings';
+import {SYNC_WRITES} from './vault/sync-writes';
+import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vault/sync-homes';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
 const rwa=(id:string,assetType:'stock'|'etf'|'commodity'):MarketAssetRef=>({provider:'coingecko',kind:'rwa',id,assetType});
@@ -82,6 +85,12 @@ export function buildShowcase(day:string){
  const importUndo=importUndoSchema.parse({version:1,imports:[{id:'92000000-0000-4000-8000-0000000000c1',kind:'nutrition',at:start,label:'SHOWCASE DATA · fictional example import',createdIds:['health_food-0009','health_import-showcase-0','health_import-showcase-1'],expiresAt:'2099-12-31T00:00:00.000Z'}]});
  // The Guide (ADR-011): on in the Showcase from its first day, so its card shows; its words come from the fictional records above.
  const guide=guideSchema.parse({version:1,enabled:true,enabledOn:date(-29),dismissed:{}});
- const records:Record<string,string>={[GUIDE_KEY]:JSON.stringify(guide),[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health)),[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview),[IMPORT_UNDO_KEY]:JSON.stringify(importUndo)};
+ const records:Record<string,string>={[GUIDE_KEY]:JSON.stringify(guide),[PLATFORM_KEY]:JSON.stringify(platform),[HABITS_KEY]:JSON.stringify(habits),[HEALTH_STORAGE_KEY]:JSON.stringify(healthSchema.parse(health)),[IMPORT_UNDO_KEY]:JSON.stringify(importUndo)};
+ if(SYNC_WRITES){
+  // Session U Part 9: with the sync writes on, the Showcase holds these four records where the app keeps them (Health and
+  // settings, lib/vault/sync-homes.ts), so viewing it never has a device key to merge and writes nothing.
+  const homed=withWeeklyReview(emptyDashboardSettings(),withHabitLinks(withHealthGoals(withFasting(healthSchema.parse(health),fasting),healthGoals),habitHealthLinks),weeklyReview);
+  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(homed.health));records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(homed.settings));
+ }else Object.assign(records,{[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview)});
  return {day,records};
 }

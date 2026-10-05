@@ -73,7 +73,7 @@ export function SyncOffer({account, manifest, opened, preparing, busy, health, o
     {device
       ? <p id={id + 'lede'}>Your account already has encrypted sync. Unlock it here with your recovery secret, and this device catches up automatically.</p>
       : <p id={id + 'lede'}>Turn it on once, and your Goals, Wealth, Habits and Today preferences stay up to date on every device you unlock. No backups or transfers by hand.</p>}
-    <p>Your data is end-to-end encrypted on this device before it leaves; nobody else can read it.</p>
+    <p>Your data is end-to-end encrypted on this device before it leaves; nobody else can read it, as long as the app code we serve has not been tampered with. A device you choose to remember can open it too.</p>
     <p className="sync-offer-secret">{device
       ? 'Your password manager can fill in the recovery secret. Your email code signs you in, but it cannot unlock your data.'
       : 'You’ll get a recovery secret. Keep it safe; a password manager is ideal. Your email code signs you in, but only the recovery secret unlocks your data. ZIGoals asks for it when you open your account on a device, unless you choose to remember that device.'}</p>

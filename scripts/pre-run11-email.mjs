@@ -35,7 +35,7 @@ export async function emailCodeOperation(mode,config,email,code,fetcher=fetch){
  const path=mode==='request'?'otp':'verify';
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
  try{
-  const response=await fetcher(`${config.origin}/auth/v1/${path}`,{method:'POST',headers:{apikey:config.key,'content-type':'application/json'},body:JSON.stringify(mode==='request'?{email,create_user:true}:{email,token:code,type:'email'}),redirect:'manual',cache:'no-store',signal:controller.signal});
+  const response=await fetcher(`${config.origin}/auth/v1/${path}`,{method:'POST',headers:{apikey:config.key,'content-type':'application/json'},body:JSON.stringify(mode==='request'?{email,create_user:false}:{email,token:code,type:'email'}),redirect:'manual',cache:'no-store',signal:controller.signal});
   if(response.status>=300&&response.status<400){await response.body?.cancel().catch(()=>{});return 'PROVIDER_REDIRECT';}
   if(!response.ok){await response.body?.cancel().catch(()=>{});return response.status===429?'RATE_LIMITED':mode==='verify'?'CODE_REJECTED':'REQUEST_REJECTED';}
   if(mode==='request'){await response.body?.cancel().catch(()=>{});return 'CODE_REQUEST_ACCEPTED';}

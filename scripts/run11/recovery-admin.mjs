@@ -166,10 +166,13 @@ function checkedFile(input){
 
 /** Owner erase (Session S, FIX_PLAN H1; runbook "Erase an account"): export into custody first, then the account UUID
  * and that export's digest typed at the terminal, then the lifecycle Worker's /admin/erase, which applies only while the
- * account's checkpoint still has that digest. A second export (beside the first, "-after-erase") goes into custody too. */
+ * account's checkpoint still has that digest. A second export (beside the first, "-after-erase") goes into custody too.
+ * Session U Part 5 (item 7): then private sync's PrivateVaultRecoveryAdmin removes the account's encrypted vault rows,
+ * only while the lifecycle Worker serves; in reconcile mode the command says so, and running it again after the serve
+ * switch removes them (the deletion is already recorded, so the second run only reports it). */
 async function erase(admin,token,input,root,{prompt,print}){
  const before=await exportEnvelope(admin,token,input.account),text=JSON.stringify(before,null,1)+'\n',path=writeCheckpointFile(root,input.out,text);
- print([`Exported the current state to ${path} (mode 0600).`,`SHA-256 digest: ${before.digest}`,before.checkpoint.lifecycle.deleted?'The account is already deleted; erase only requests the sign-in identity deletion if it is still retained.':'The account is not deleted yet.','Erasing records the deletion: sync refuses the account for good and its sign-in identity is deleted once the lifecycle Worker serves. The encrypted vault rows stay stored, unreachable (docs/run11/OWNER_RECOVERY_ADMIN.md, "Erase an account").'].join('\n'));
+ print([`Exported the current state to ${path} (mode 0600).`,`SHA-256 digest: ${before.digest}`,before.checkpoint.lifecycle.deleted?'The account is already deleted; erase only requests the sign-in identity deletion if it is still retained.':'The account is not deleted yet.','Erasing records the deletion: sync refuses the account for good, its sign-in identity is deleted once the lifecycle Worker serves, and its encrypted vault rows are removed while the lifecycle Worker serves (in reconcile mode: run erase again after the serve switch; docs/run11/OWNER_RECOVERY_ADMIN.md, "Erase an account").'].join('\n'));
  const typedAccount=(await prompt('Type the account UUID to confirm erase: '))?.trim(),typedDigest=(await prompt('Type the digest of the export just written: '))?.trim();
  if(!typedAccount||!typedDigest)throw Error('Refused: erase needs both confirmations typed in an interactive terminal. Nothing was erased; the export stays in custody.');
  if(typedAccount!==input.account||typedDigest!==before.digest)throw Error('Refused: the typed confirmation does not match --account and the export digest. Nothing was erased.');
@@ -177,7 +180,12 @@ async function erase(admin,token,input,root,{prompt,print}){
  if(response.status!==200||response.json?.erased!==true)throw refusal(response);
  const after=await exportEnvelope(admin,token,input.account),afterText=JSON.stringify(after,null,1)+'\n',afterPath=writeCheckpointFile(root,input.out.replace(/(\.json)?$/,'-after-erase.json'),afterText);
  if(after.checkpoint.lifecycle.deleted!==true)throw Error(`The re-export (${afterPath}) does not show the account deleted. Keep both files and follow the runbook's failure steps.`);
- print([`${response.json.alreadyDeleted?'ALREADY DELETED':'ERASED'}: identity deletion ${response.json.provider==='deleted'?'already done':'pending (runs when the lifecycle Worker serves)'}.`,`Re-exported to ${afterPath} (mode 0600).`,`SHA-256 digest: ${after.digest}`,'Put both files and their digests into custody as separate items.'].join('\n'));
+ // Session U Part 5 (item 7): the vault rows go too, through private sync's own erase, now that the deletion is recorded.
+ const vault=await adminCall(admin.url,token,'/admin/erase-vault',{account:input.account,body:JSON.stringify({confirm:'ERASE VAULT'})});
+ const rows=vault.status===200&&vault.json?.vaultErased===true?'Encrypted vault rows: REMOVED (private sync keeps only the marker that refuses the account).'
+  :vault.json?.error==='LIFECYCLE_NOT_SERVING'?'Encrypted vault rows: NOT REMOVED YET: the lifecycle Worker is in reconcile mode. After the switch to serve, run erase again for this account (with a new --out file); it removes them then.'
+  :`Encrypted vault rows: NOT REMOVED (${vault.json?.error==='ACCOUNT_NOT_DELETED'?'the lifecycle Worker does not report the account deleted':vault.json?.error==='VAULT_ADMIN_BINDING_MISSING'?'the recovery admin copy has no VAULT_ADMIN binding: regenerate it with make-private-configs.mjs --recovery-admin':`private sync answered HTTP ${vault.status}`}). Run erase again; the runbook has the checks.`;
+ print([`${response.json.alreadyDeleted?'ALREADY DELETED':'ERASED'}: identity deletion ${response.json.provider==='deleted'?'already done':'pending (runs when the lifecycle Worker serves)'}.`,rows,`Re-exported to ${afterPath} (mode 0600).`,`SHA-256 digest: ${after.digest}`,'Put both files and their digests into custody as separate items.'].join('\n'));
 }
 /** Runs one command. Returns nothing; throws an Error whose message is safe to print. */
 export async function run(argv,{root=ROOT,launch=launchWrangler,prompt=ttyPrompt,print=console.log}={}){

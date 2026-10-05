@@ -22,7 +22,7 @@ vi.mock('node:fs',async importOriginal=>{
 const repo=resolve(import.meta.dirname,'../..');
 const STRAY=JSON.stringify({name:'stray',services:[{binding:'RECOVERY',service:'zigoals-lifecycle-local',entrypoint:'LifecycleRecoveryAdmin'}]});
 const git=(cwd,...args)=>execFileSync('git',['-c','user.email=fixture@example.invalid','-c','user.name=Fixture',...args],{cwd,encoding:'utf8'});
-const stray=path=>path+': binds the recovery admin entrypoint; only the local recovery-admin config may.';
+const stray=path=>path+': binds a recovery admin entrypoint; only the local recovery-admin config may.';
 async function checkout(){
  const base=await mkdtemp(join(tmpdir(),'activation-entries-')),root=join(base,'ops');await mkdir(root);git(root,'init','-q');
  for(const path of [...Object.values(CONFIGS),ADMIN_CONFIG,'apps/web/wrangler.alpha.jsonc','landing/wrangler.jsonc']){await mkdir(dirname(join(root,path)),{recursive:true});await copyFile(join(repo,path),join(root,path));}

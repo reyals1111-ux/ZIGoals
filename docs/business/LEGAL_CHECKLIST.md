@@ -198,8 +198,9 @@ From the pre-Alpha review: [INCIDENT_RUNBOOK.md](../security/review-2026-10/INCI
    - Is that retention lawful and proportionate (Art. 5(1)(e), Art. 17(3))?
    - Must it be stated in the notice, and for how long may it be kept?
    - Cloudflare's 30-day point-in-time recovery also keeps "deleted" ciphertext restorable for 30 days. Must that be stated?
+   - **Added 2026-10-05 (Session U):** revoked sessions follow a fixed rule now. 90 days after a revocation, the revoked session's record (device label, token hash and dates) is deleted; only a dateless "this sign-in may never come back" marker stays, bounded by the account's lifetime limit of 5,000 sign-ins. Is 90 days proportionate, and must the notice state it?
 3. **Held but not decryptable.**
-   - After an owner erase for someone who can no longer sign in (Session S), the encrypted vault rows stay stored, unreadable and unreachable, until a code change removes them.
+   - After an owner erase for someone who can no longer sign in (Session S), the encrypted vault rows stayed stored, unreadable and unreachable. Since Session U the erase removes them too, but only once the lifecycle Worker serves; until then (and in Cloudflare's 30-day recovery window) they remain.
    - Encrypted records are unreadable to us without the person's recovery secret.
    - Does storing them count as processing that needs a basis and a retention period? Does an erasure request oblige physical removal within a time limit?
 4. **Operator visibility of code emails.**

@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {createDeviceKey,createVault,manifestDigest,openDeviceRoot,openRecord,sealRecord,unlockVault,unlockVaultForDevice,type VaultManifest} from './crypto';
+import {createDeviceKey,createVault,deviceCommitment,deviceCommitmentMatches,manifestDigest,openDeviceRoot,openRecord,sealDigest,sealRecord,unlockVault,unlockVaultForDevice,type VaultManifest} from './crypto';
 
 // Session M, Part B2 (ADR-008, remember this device): a non-extractable device key seals the vault root once, while the
 // recovery secret opens it; later the root is unwrapped straight into a key, bound to the account and the live manifest.
@@ -68,5 +68,55 @@ describe('remember this device: the sealed root',()=>{
   expect(await manifestDigest(reordered)).toBe(await manifestDigest(manifest));
   expect(await manifestDigest(manifest)).toMatch(/^[A-Za-z0-9_-]{43}$/);
   expect(await manifestDigest({...manifest,epoch:manifest.epoch+1})).not.toBe(await manifestDigest(manifest));
+ });
+});
+
+// Session U Part 5 (B1, FINDINGS Q-SYNC-01): the reproduction from FINDINGS, and why a version 2 record cannot be turned
+// back into the root's bytes. Synthetic vaults only.
+const bytesOf=(text:string)=>Uint8Array.from(atob(text.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+const aadOf=async(account:string,manifest:VaultManifest)=>new TextEncoder().encode(JSON.stringify(['zigoals-device-root',1,account,await manifestDigest(manifest)]));
+describe('remember this device: version 2 keeps the root itself (B1)',()=>{
+ it('version 1: script holding the record could unwrap the seal as an extractable key and export the root (the finding)',async()=>{
+  const vault=await createVault(),deviceKey=await createDeviceKey(),{sealed}=await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey);
+  // What any script in the origin could do with a version 1 record: rebuild the additional data from its own fields.
+  const extractable=await crypto.subtle.unwrapKey('raw',bytesOf(sealed.ciphertext),deviceKey,{name:'AES-GCM',iv:bytesOf(sealed.iv),additionalData:await aadOf(A,vault.manifest),tagLength:128},{name:'AES-GCM'},true,['encrypt']);
+  expect(new Uint8Array(await crypto.subtle.exportKey('raw',extractable)).byteLength).toBe(32);
+ });
+ it('version 2: the stored root derives record keys, opens what the secret sealed, and no call returns its bytes',async()=>{
+  const vault=await createVault(),root=vault.key,record=context(vault.manifest);
+  expect(root.extractable).toBe(false);expect(root.algorithm.name).toBe('HKDF');expect([...root.usages]).toEqual(['deriveKey']);
+  expect(await openRecord(root,record,await sealRecord(await unlockVault(vault.manifest,vault.recovery),record,{fictional:'v2'}))).toEqual({fictional:'v2'});
+  await expect(crypto.subtle.exportKey('raw',root)).rejects.toThrow();
+  await expect(crypto.subtle.wrapKey('raw',root,await crypto.subtle.generateKey({name:'AES-KW',length:256},false,['wrapKey']),'AES-KW')).rejects.toThrow();
+  await expect(crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(12)},root,new Uint8Array(48))).rejects.toThrow();
+  // HKDF never yields its own input: a derived key, even an extractable one, is not the root.
+  const derived=await crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:new Uint8Array(32),info:new Uint8Array(0)},root,{name:'AES-GCM',length:256},true,['encrypt']);
+  const exported=new Uint8Array(await crypto.subtle.exportKey('raw',derived));expect(exported.byteLength).toBe(32);
+  const unwrapped=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytesOf(vault.manifest.wrapped.nonce),additionalData:new TextEncoder().encode(`zigoals:root:v1:${vault.manifest.vault}:epoch${vault.manifest.epoch}`),tagLength:128},await crypto.subtle.importKey('raw',bytesOf(vault.recovery),{name:'AES-GCM'},false,['decrypt']),bytesOf(vault.manifest.wrapped.ciphertext));
+  expect([...exported]).not.toEqual([...new Uint8Array(unwrapped)]);
+ });
+ it('the commitment binds the stored root to one account and one manifest digest',async()=>{
+  const vault=await createVault(),digest=await manifestDigest(vault.manifest),commitment=await deviceCommitment(vault.key,A,digest);
+  expect(commitment).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  expect(await deviceCommitmentMatches(vault.key,A,digest,commitment)).toBe(true);
+  // The same root unlocked again (or unwrapped from a version 1 seal) gives the same commitment.
+  const deviceKey=await createDeviceKey(),{sealed}=await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey);
+  expect(await deviceCommitmentMatches(await openDeviceRoot(deviceKey,sealed,A,vault.manifest),A,digest,commitment)).toBe(true);
+  expect(await deviceCommitmentMatches(await unlockVault(vault.manifest,vault.recovery),A,digest,commitment)).toBe(true);
+  // Another account, another manifest, another root, a changed or malformed commitment: no.
+  expect(await deviceCommitmentMatches(vault.key,B,digest,commitment)).toBe(false);
+  expect(await deviceCommitmentMatches(vault.key,A,await manifestDigest((await createVault()).manifest),commitment)).toBe(false);
+  expect(await deviceCommitmentMatches((await createVault()).key,A,digest,commitment)).toBe(false);
+  expect(await deviceCommitmentMatches(vault.key,A,digest,commitment.slice(0,42)+(commitment[42]==='A'?'E':'A'))).toBe(false);
+  expect(await deviceCommitmentMatches(vault.key,A,digest,'not a commitment')).toBe(false);
+  expect(await deviceCommitmentMatches(vault.key,'not-an-account',digest,commitment)).toBe(false);
+  await expect(deviceCommitment(vault.key,A,'short')).rejects.toThrow();
+ });
+ it('a version 1 seal has one digest, different for every seal',async()=>{
+  const vault=await createVault(),deviceKey=await createDeviceKey();
+  const first=(await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey)).sealed,second=(await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey)).sealed;
+  expect(await sealDigest(first)).toBe(await sealDigest({...first}));expect(await sealDigest(first)).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  expect(await sealDigest(first)).not.toBe(await sealDigest(second));
+  await expect(sealDigest({iv:'short',ciphertext:first.ciphertext})).rejects.toThrow();
  });
 });

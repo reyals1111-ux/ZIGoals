@@ -85,6 +85,19 @@ export function assertHtml(response, html, route="/app", { baseline = false } = 
   return nonce;
 }
 
+// Session U Part 2d (kept apart from the imports above, which Session T also edits).
+import { readPolicyWindow, POLICY_STATUS_PATH } from "./market-policy-window.mjs";
+/**
+ * Session U Part 3: the Health document must grant its own camera (the barcode scanner) and never location. The
+ * microphone may be () or (self) (Session T's voice input). Only these three are required here, never the exact value:
+ * assertHtml keeps the exact per-route check. Post-upload smoke only; the rollback capture never fails on it.
+ */
+export function assertHealthCamera(header) {
+  const entries = new Map(String(header ?? "").split(/\s*,\s*/).filter(Boolean).map(entry => [entry.slice(0, entry.indexOf("=")), entry.slice(entry.indexOf("=") + 1)]));
+  assert.equal(entries.get("camera"), "(self)", "Health must allow its own camera (camera=(self)) for the barcode scanner");
+  assert.equal(entries.get("geolocation"), "()", "Health must not allow geolocation (geolocation=())");
+  assert(["()", "(self)"].includes(entries.get("microphone")), "Health microphone must be () or (self)");
+}
 /**
  * `marketProbe` (Session S, the post-deploy smoke only): one BTC/USD probe of /api/market-quotes. The answer must be a
  * well-formed envelope; VERIFIED or UNAVAILABLE is recorded as information and never fails the smoke. The rollback capture
@@ -101,11 +114,13 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     });
     const html = await response.text();
     const nonce = assertHtml(response, html, route, { baseline });
+    if (route === "/app/health" && !baseline) assertHealthCamera(response.headers.get("permissions-policy"));
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");
       assert.match(html, /Local [Dd]emo/, "Local Demo default missing");
     }
+    if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (route === "/app/settings") {
       assert.match(html, /PUBLIC_ALPHA_UNDEPLOYED/, "Public Alpha safety mode missing");
       if (expectedCommit) assert(html.includes(expectedCommit), "Hosted build commit differs from reviewed source");
@@ -114,9 +129,20 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     checks.push({ route, status: response.status, security: "PASS" });
   }
   if (marketProbe) {
+    // Session U Part 2d: when the market policy period ends, read first and recorded as information only.
+    const policy = await readPolicyWindow({ origin: ALPHA_ORIGIN, fetcher });
+    checks.push({ route: POLICY_STATUS_PATH, status: policy.httpStatus, policyWindowEnd: policy.policyWindowEnd, nextPolicyWindowEnd: policy.nextPolicyWindowEnd });
     const market = await probeAlphaMarket({ origin: ALPHA_ORIGIN, fetcher });
     assert(market.wellFormed, `Alpha market route did not answer a well-formed price envelope (${market.reason})`);
     checks.push({ route: "/api/market-quotes", status: market.httpStatus, market: market.result, pair: market.pair, failure: market.failure });
   }
   return checks;
+}
+/**
+ * Session U Part 6 (FIX_PLAN D1, FINDINGS Q-WEB-01): every app page is sent with Cross-Origin-Opener-Policy:
+ * same-origin, so a page it opens, or that opens it, gets no handle on it. Post-upload smoke only: the rollback capture
+ * never requires it (the live, previous build may predate it).
+ */
+export function assertOpenerPolicy(header) {
+  assert.equal(header, "same-origin", "Cross-Origin-Opener-Policy must be same-origin");
 }

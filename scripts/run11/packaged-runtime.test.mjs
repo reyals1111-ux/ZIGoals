@@ -21,7 +21,7 @@ const pair=id=>({marketRef:{provider:'coingecko',kind:'coin',id},currency:'USD'}
 // deploys, loads owner credentials, or forwards a request to an external network.
 test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact uses local named account, market and food services across restart',async()=>{
  const persist=await mkdtemp(join(tmpdir(),'run11-package-')),bundlePath=process.env.RUN11_PACKAGE_BUNDLE??'/tmp/zigoals-run11-package-bundle/worker.js';
- const script=await readFile(bundlePath,'utf8'),now=Date.now();let mf,calls=[];
+ const script=await readFile(bundlePath,'utf8'),now=Date.now();let mf,calls=[],otpHold=Promise.resolve();const otpRequests=[];
  const bundle=async path=>(await build({entryPoints:[resolve(root,path)],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;
  const codes=await Promise.all(['workers/private-sync/worker.mjs','workers/private-sync/lifecycle.mjs','workers/market-coordinator/worker.ts','workers/food-lookup/worker.mjs','workers/auth-abuse/worker.mjs'].map(bundle));
  const policy={providerMinuteLimit:100,providerMonthlyLimit:1000,operating:{minute:90,monthly:900},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:3,monthly:30},optionalCeiling:{minute:80,monthly:800},concurrent:2,queueLimit:16,reservationMs:20000,ownershipMs:10000};
@@ -30,7 +30,7 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
   const url=new URL(request.url);calls.push(url.pathname);
   if(url.origin==='https://fixture.supabase.co'){
    if(url.pathname==='/auth/v1/user')return Response.json({id:ACCOUNT});
-   if(url.pathname==='/auth/v1/otp')return Response.json({});
+   if(url.pathname==='/auth/v1/otp'){otpRequests.push(await request.json());await otpHold;return Response.json({});}
    if(url.pathname==='/auth/v1/verify'){const body=await request.json();return Response.json({access_token:fixtureToken('packaged-'+body.email),refresh_token:'fixture-refresh',expires_in:3600,user:{id:ACCOUNT}});}
    if(url.pathname==='/auth/v1/logout')return Response.json({});
   }
@@ -62,7 +62,15 @@ test.runIf(process.env.RUN11_PACKAGED==='1')('full generated OpenNext artifact u
  try{
   mf=await runtime();const page=await call('/app/settings');expect(page.status).toBe(200);const html=await page.text();expect(html).toContain('Settings');const asset=html.match(/src="([^\"]+\.js[^\"]*)"/);expect(asset).not.toBeNull();expect((await call(asset[1].replaceAll('&amp;','&'))).status).toBe(200);
   expect((await call('/api/private-account',{action:'send',email:'fictional@example.invalid'},{origin:'https://attacker.invalid','x-zigoals-origin':'https://attacker.invalid'})).status).toBe(403);
-  const sent=await call('/api/private-account',{action:'send',email:'fictional@example.invalid'}),sentBody=await sent.json();if(sent.status!==200)console.log('Fixture send failure',sentBody);expect({status:sent.status,body:sentBody}).toMatchObject({status:200});
+  // Session U Part 5 (FIX_PLAN A2): the answer to a code request does not wait for the provider. The provider's answer is
+  // held until the relay has answered: the call runs after the answer, through Next's after() and OpenNext's waitUntil in
+  // this generated Worker, and still reaches the provider once, with create_user:false. An awaited call could answer
+  // only after the 8-second fallback release, and then `answeredFirst` would be false.
+  let released=false,release;otpHold=new Promise(resolve=>{release=()=>{released=true;resolve();};});const fallback=setTimeout(()=>release(),8000);
+  const sent=await call('/api/private-account',{action:'send',email:'fictional@example.invalid'}),sentBody=await sent.json(),answeredFirst=!released;release();clearTimeout(fallback);
+  if(sent.status!==200)console.log('Fixture send failure',sentBody);
+  expect({status:sent.status,body:sentBody,answeredFirst}).toEqual({status:200,body:{message:'If this address has an invite, a code is on its way. Check your inbox and spam folder, and wait at least 60 seconds before requesting another.'},answeredFirst:true});
+  await expect.poll(()=>otpRequests,{timeout:10000}).toEqual([{email:'fictional@example.invalid',create_user:false}]);
   const loginResponse=await call('/api/private-account',{action:'verify',email:'fictional@example.invalid',code:'123456'});expect(loginResponse.status).toBe(200);cookie=loginResponse.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');expect(cookie).toContain('zigoals_session=');
   const vault=await createVault();const operation={protocol:1,vault:vault.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:vault.manifest};
   expect((await call('/api/private-account',{action:'sync',operation})).status).toBe(200);expect(await(await call('/api/private-account')).json()).toMatchObject({manifest:vault.manifest,revision:1});

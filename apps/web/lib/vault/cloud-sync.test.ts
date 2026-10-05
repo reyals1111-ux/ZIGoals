@@ -135,3 +135,30 @@ test('a merged section is not marked synced before commit, so another device edi
  const local={settings:JSON.stringify({x:1,y:0})},merged=await synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,local,noop,noop);expect(JSON.parse(merged.data.settings!)).toEqual({x:1,y:2});expect(s.journal.state.base.settings).toBe(S0);
  const retried=await sync(s,local);expect(JSON.parse(retried.data.settings!)).toEqual({x:1,y:2});expect(JSON.parse((await cloudSnapshot(s.cloud,s.vault.key,s.vault.manifest)).data.settings!)).toEqual({x:1,y:2});
 });
+
+// Session U Part 9: the merge rules for the records that now sync inside Health and settings (lib/vault/sync-homes.ts).
+test('two devices that each raised a section merge at the higher version instead of conflicting on the number',()=>{
+ const base={settings:JSON.stringify({schemaVersion:1,a:1})},local={settings:JSON.stringify({schemaVersion:2,a:1,b:2})},remote={settings:JSON.stringify({schemaVersion:3,a:1,c:3})};
+ expect(JSON.parse(mergePrivateData(base,local,remote).settings!)).toEqual({schemaVersion:3,a:1,b:2,c:3});
+ expect(JSON.parse(mergePrivateData(base,remote,local).settings!)).toEqual({schemaVersion:3,a:1,b:2,c:3});
+});
+test('automatic check-in markers merge to their union: the first application of a day stays, and an undo on either side holds',()=>{
+ const wrap=(applied:unknown[])=>({health:JSON.stringify({schemaVersion:3,habitLinks:{version:1,links:{},applied}})});
+ const m=(date:string,at:string,extra:object={})=>({habitId:'h',date,healthDate:date,measure:'water',value:1,appliedAt:at,...extra});
+ const base=wrap([m('2026-10-01','2026-10-01T10:00:00.000Z')]);
+ const local=wrap([m('2026-10-01','2026-10-01T10:00:00.000Z'),m('2026-10-02','2026-10-02T09:00:00.000Z')]);
+ const remote=wrap([m('2026-10-01','2026-10-01T10:00:00.000Z',{undone:true}),m('2026-10-02','2026-10-02T08:00:00.000Z')]);
+ const expected=[m('2026-10-01','2026-10-01T10:00:00.000Z',{undone:true}),m('2026-10-02','2026-10-02T08:00:00.000Z')];
+ expect(JSON.parse(mergePrivateData(base,local,remote).health!).habitLinks.applied).toEqual(expected);
+ expect(JSON.parse(mergePrivateData(base,remote,local).health!).habitLinks.applied).toEqual(expected);
+ expect(JSON.parse(base.health).habitLinks.applied).toEqual([m('2026-10-01','2026-10-01T10:00:00.000Z')]);
+});
+test('weekly reviews merge week by week and field by field; the same field changed on both sides still stops for review',()=>{
+ const wrap=(weekday:number,reviews:unknown[])=>({settings:JSON.stringify({schemaVersion:2,weeklyReview:{version:1,weekday,reviews}})});
+ const base=wrap(0,[{weekStart:'2026-09-21',notes:{goals:'a'}}]);
+ const local=wrap(0,[{weekStart:'2026-09-21',notes:{goals:'a',habits:'local'}},{weekStart:'2026-09-28',skipped:true}]);
+ const remote=wrap(3,[{weekStart:'2026-09-21',completedAt:'2026-09-27T18:00:00.000Z',notes:{goals:'a'}},{weekStart:'2026-10-05',notes:{wealth:'remote'}}]);
+ expect(JSON.parse(mergePrivateData(base,local,remote).settings!).weeklyReview).toEqual({version:1,weekday:3,reviews:[{weekStart:'2026-09-21',completedAt:'2026-09-27T18:00:00.000Z',notes:{goals:'a',habits:'local'}},{weekStart:'2026-09-28',skipped:true},{weekStart:'2026-10-05',notes:{wealth:'remote'}}]});
+ expect(()=>mergePrivateData(base,wrap(0,[{weekStart:'2026-09-21',notes:{goals:'x'}}]),wrap(0,[{weekStart:'2026-09-21',notes:{goals:'y'}}]))).toThrow('Conflicting');
+ expect(()=>mergePrivateData(base,wrap(0,[]),wrap(0,[{weekStart:'2026-09-21',notes:{goals:'edited'}}]))).toThrow('Conflicting');
+});

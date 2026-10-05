@@ -2,6 +2,8 @@ import {expect, test, type Page} from '@playwright/test';
 import {FASTING_KEY} from '../lib/fasting/schema';
 import {isPhone} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
+import {HEALTH_STORAGE_KEY} from '../lib/health';
+import {SYNC_WRITES} from '../lib/vault/sync-writes';
 
 // HE6 (Session P): the fasting timer is a clock with a plain safety note; no streaks, no praise; stopped at 24 hours.
 const SAFETY = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
@@ -13,7 +15,11 @@ test.beforeEach(async ({page}) => {
   await page.goto('/app/settings');
   await page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [DASHBOARD_SETTINGS_KEY, JSON.stringify({...presetSettings('habits-health'), onboarded: true})]);
 });
-const stored = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), FASTING_KEY)) ?? 'null') as {sessions: {endedAt: string | null; targetHours: number; stoppedBy: string}[]} | null;
+// Session U Part 9: with the sync writes on (lib/vault/sync-writes.ts), fasts live in Health (`fasting`) and the device
+// key is never written; switched off, they live in the device key as before.
+const HOME = SYNC_WRITES ? HEALTH_STORAGE_KEY : FASTING_KEY;
+const stored = async (page: Page) => { const raw = JSON.parse((await page.evaluate(key => localStorage.getItem(key), HOME)) ?? 'null'); return (SYNC_WRITES ? raw?.fasting ?? null : raw) as {sessions: {endedAt: string | null; targetHours: number; stoppedBy: string}[]} | null; };
+const deviceKey = (page: Page) => page.evaluate(key => localStorage.getItem(key), FASTING_KEY);
 async function openTimer(page: Page) {
   await page.goto('/app/health');
   const region = page.getByRole('region', {name: 'Fasting timer', exact: true});
@@ -51,6 +57,7 @@ test('start, watch the clock, stop: the note is always visible, Today shows the 
   await expect(again.getByRole('list')).toContainText('3.3 h · target 16 h · stopped by you');
   expect((await stored(page))!.sessions).toHaveLength(1);
   expect((await stored(page))!.sessions[0]!.endedAt).not.toBeNull();
+  if (SYNC_WRITES) expect(await deviceKey(page)).toBeNull();
   await page.goto('/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Fasting', exact: true})).toHaveCount(0);
@@ -81,11 +88,11 @@ test('Showcase: the fictional fast is labelled and viewing writes nothing; reduc
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  const before = await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), FASTING_KEY);
+  const before = await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HOME);
   const timer = await openTimer(page);
   await expect(timer.getByRole('list')).toContainText('Showcase example');
   await expect(timer.getByRole('list')).toContainText('target 16 h · stopped by you');
-  expect(await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), FASTING_KEY)).toBe(before);
+  expect(await page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HOME)).toBe(before);
   await timer.getByRole('group', {name: 'Fasting target'}).getByRole('button', {name: '12:12', exact: true}).click();
   await timer.getByRole('button', {name: 'Start fast', exact: true}).click();
   await expect(timer.locator('.fasting-clock')).toHaveText('Fasting · 0 h 00 min of 12 h');

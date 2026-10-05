@@ -56,3 +56,18 @@ export async function closeFormSheet(page:Page){
  const sheet=page.locator('dialog.phone-form-sheet[open]');
  if(await sheet.count()){await page.keyboard.press('Escape');await expect(sheet).toHaveCount(0);}
 }
+
+/**
+ * Session U follow-up F3: on a phone each Today widget card is a folded row that opens in place. Opens every row, so a
+ * test reads or uses the cards as on a larger screen; does nothing elsewhere or while Today is being customized (no
+ * widget folds then). The rows appear once the phone layout has taken over after hydration, so it waits for one per card.
+ */
+export async function openTodayWidgets(page:Page){
+ if(!await isPhone(page))return;
+ const modules=page.locator('.today-page .placed-module[data-kind="widget"]');
+ await expect(modules.first()).toBeAttached();
+ if(await page.getByRole('button',{name:'Finish customizing',exact:true}).isVisible())return;
+ await expect(modules.locator('.phone-fold-toggle')).toHaveCount(await modules.count());
+ const closed=modules.locator('.phone-fold-toggle[aria-expanded="false"]');
+ while(await closed.count())await closed.first().click();
+}

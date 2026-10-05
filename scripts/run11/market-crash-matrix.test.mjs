@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{build}=require('esbuild');
 const now=Date.parse('2026-09-30T23:59:59Z');
@@ -13,8 +14,8 @@ let code;
  beforeAll(async()=>{code=(await build({entryPoints:[new URL('../../workers/market-coordinator/worker.ts',import.meta.url).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;});
 async function fixture(){
  const persist=await mkdtemp(join(tmpdir(),'run11-market-crash-'));let mf;
- const restart=async clock=>{await mf?.dispose();mf=new Miniflare({...convertV4MiniflareOptions({modules:true,script:code,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(clock),MARKET_POLICY:JSON.stringify({policy,calendar:{timeZone:'UTC',confirmed:true},quoteCost:3,leaseMs:1000,maxAttempts:16,maxWorks:8,retryRetentionMs:120000})},outboundService:()=>{throw Error('Authority matrix forbids provider I/O');}}),resourcePersistencePath:persist});};
- const call=async command=>{const ns=await mf.getDurableObjectNamespace('MARKETS');return(await ns.get(ns.idFromName('crash-matrix')).fetch('https://internal',{method:'POST',body:JSON.stringify(command)})).json();};
+ const restart=async clock=>{await mf?.dispose();mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:'main',modules:true,script:code,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(clock),MARKET_POLICY:JSON.stringify({policy,calendar:{timeZone:'UTC',confirmed:true},quoteCost:3,leaseMs:1000,maxAttempts:16,maxWorks:8,retryRetentionMs:120000})},outboundService:()=>{throw Error('Authority matrix forbids provider I/O');}},doProbeWorker({className:'MarketAccount',scriptName:'main'})]}),resourcePersistencePath:persist});};
+ const call=async command=>{const ns=await doProbe(mf);return(await ns.get(ns.idFromName('crash-matrix')).fetch('https://internal',{method:'POST',body:JSON.stringify(command)})).json();};
  await restart(now);return {call,restart,dispose:()=>mf.dispose()};
 }
 for(const stage of ['acquired','queued','reserved','owned','dispatched','settled','published','published-settled'])test(`persistent restart at ${stage}: no duplicate permission, forged evidence, refund or lost receipt`,async()=>{

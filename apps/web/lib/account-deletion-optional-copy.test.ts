@@ -41,6 +41,6 @@ test('a copy first stays available as an option, and the wording says what delet
  expect(button('Prepare backup before deletion')).toBeDefined();
  expect(element.textContent).toContain('Deletion does not need a download. After deletion ZIGoals cannot open this account’s cloud records again, on any device, and signing in later cannot bring them back.');
  // Retention and the separate local copies are still said as before.
- expect(element.textContent).toContain('Infrastructure backups follow their retention policy.');
+ expect(element.textContent).toContain('Encrypted copies can remain in our host’s 30-day recovery history. We keep a minimal deletion record (account identifier, dates, which sections) so deleted data cannot come back.');
  expect(element.textContent).toContain('Local account data stays on this browser, locked after deletion.');
 });

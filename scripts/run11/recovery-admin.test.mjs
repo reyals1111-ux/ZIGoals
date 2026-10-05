@@ -118,7 +118,7 @@ test('refusals before anything starts: wrong digest, wrong account, readable or 
  await expect(c.run(['status'])).rejects.toThrow('.dev.vars');
  await rm(join(root,'workers/recovery-admin/.dev.vars'));
  const market=join(root,privatePath(CONFIGS.market)),m=JSON5.parse(await readFile(market,'utf8'));m.services=[{binding:'RECOVERY',service:'zigoals-acctest-lifecycle',entrypoint:'LifecycleRecoveryAdmin'}];await writeFile(market,JSON.stringify(m),{mode:0o600});
- await expect(c.run(['export','--account',account,'--out',join(custody,'new.json')])).rejects.toThrow('binds the recovery admin entrypoint');
+ await expect(c.run(['export','--account',account,'--out',join(custody,'new.json')])).rejects.toThrow('binds a recovery admin entrypoint');
  await chmod(join(root,privatePath(ADMIN_CONFIG)),0o644);
  await expect(c.run(['status'])).rejects.toThrow('not mode 0600');
  expect(calls).toEqual([]);
@@ -158,7 +158,7 @@ test('the admin Worker refuses requests without the session token, other paths, 
   // The lifecycle Worker's public fetch stays closed.
   expect((await (await admin.mf.getWorker('lifecycle')).fetch('https://fixture/admin/export',{headers:{'x-verified-account':account,'x-lifecycle-recovery-admin':'1'}})).status).toBe(404);
  }finally{await admin.stop();}
- const unset=await (async()=>{const mf=await miniflare(persist,[{name:'recovery-admin',modules:true,script:adminScript,compatibilityDate,serviceBindings:{ADMIN:{name:'lifecycle',entrypoint:'LifecycleRecoveryAdmin'}}},await lifecycleWorker('serve')]);try{return (await mf.dispatchFetch('http://127.0.0.1/status')).status;}finally{await mf.dispose();}})();
+ const unset=await (async()=>{const mf=await miniflare(persist,[{name:'recovery-admin',modules:true,script:adminScript,compatibilityDate,serviceBindings:{ADMIN:{name:'lifecycle',entrypoint:'LifecycleRecoveryAdmin'}}},await lifecycleWorker('serve')]);try{const res=await mf.dispatchFetch('http://127.0.0.1/status');await res.arrayBuffer();return res.status;}finally{await mf.dispose();}})();
  expect(unset).toBe(503);
 },60000);
 

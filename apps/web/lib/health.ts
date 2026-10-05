@@ -4,6 +4,8 @@ import {exerciseSchema} from "./health-counters";
 import { z } from "zod";
 import { addLocalDays } from "./local-date";
 import { formatNumber } from "./visual-format";
+import { healthGoalsSchema } from "./health-goals/schema";
+import { habitHealthLinksSchema } from "./habit-health-links/schema";
 
 export const HEALTH_STORAGE_KEY = "zigoals:health:v1";
 export const HEALTH_MEALS = ["Breakfast", "Lunch", "Dinner", "Snacks"] as const;
@@ -152,7 +154,25 @@ const healthRules = (data: HealthFields, ctx: z.core.$RefinementCtx) => {
 export const healthV1Schema = z.strictObject({ schemaVersion: z.literal(1), ...healthFields }).superRefine(healthRules);
 /** Health v2: v1's fields plus the optional `fasting` group. Written only once PR 3's fasting sessions move here. */
 export const healthV2Schema = z.strictObject({ schemaVersion: z.literal(2), ...healthFields, fasting: fastingSchema.optional() }).superRefine(healthRules);
-export const healthSchema = z.union([healthV2Schema, healthV1Schema]);
+/** The Health readers of builds #27 and #28 (R1): v2 and v1. Exported for the old-reads-new proofs of Health v3. */
+export const healthR1Schema = z.union([healthV2Schema, healthV1Schema]);
+export const MAX_REVIEW_HEALTH_NOTES = 520;
+/**
+ * The weekly review's Health note, one per week keyed by the week's first day (Session U Part 9). The review itself lives
+ * in settings v2; only the words a person wrote about their health live here, under the Health consent.
+ */
+export const reviewHealthNotesSchema = z.strictObject({ version: z.literal(1), notes: z.record(z.iso.date(), z.string().min(1).max(2000)) })
+  .refine((r) => Object.keys(r.notes).length <= MAX_REVIEW_HEALTH_NOTES, `Up to ${MAX_REVIEW_HEALTH_NOTES} weekly Health notes.`);
+export type ReviewHealthNotes = z.infer<typeof reviewHealthNotesSchema>;
+/**
+ * Health v3 (Session U Part 9, docs/product/SYNC_HOMES.md): v2 plus the Health-describing records of Session P that
+ * sync only inside Health, under the Health consent: health goals (`healthGoals`), habit-health links with their
+ * automatic check-in markers (`habitLinks`) and the weekly review's Health notes (`reviewNotes`). Each group is
+ * byte-for-byte its device key's record. A section becomes v3 only when one of these groups is first written; builds
+ * #27/#28 refuse v3 and keep its bytes.
+ */
+export const healthV3Schema = z.strictObject({ schemaVersion: z.literal(3), ...healthFields, fasting: fastingSchema.optional(), healthGoals: healthGoalsSchema.optional(), habitLinks: habitHealthLinksSchema.optional(), reviewNotes: reviewHealthNotesSchema.optional() }).superRefine(healthRules);
+export const healthSchema = z.union([healthV3Schema, healthV2Schema, healthV1Schema]);
 export type HealthData = z.infer<typeof healthSchema>;
 
 export function createEmptyHealth(): HealthData {

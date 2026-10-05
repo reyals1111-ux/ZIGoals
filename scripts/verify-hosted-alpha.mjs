@@ -1,10 +1,14 @@
 // Explicit manual public smoke. Never part of CI, never connects a wallet.
+// Status: PASS (exit 0), FAIL (1), COMPLETED_WITH_FINDINGS (2) or NEEDS_OWNER_REVIEW (3): an answer it could not check, or
+// live prices that are not VERIFIED. The live price check runs first and never stops the rest (Session U Part 2b).
 // Fresh ephemeral context; fictional browser-local data only; no mocks.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { probeAlphaMarket } from './lib/alpha-market-probe.mjs';
+import { appNonceFindings, priceFinding, reviewReason, hostedStatus } from './lib/hosted-alpha-review.mjs';
+import { readPolicyWindow, policyWindowNote } from './lib/market-policy-window.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
@@ -15,7 +19,7 @@ const egressPolicy = JSON.parse(await readFile(new URL('../apps/web/lib/egress-p
 const alpha = 'https://alpha.zigoals.app';
 const fallback = 'https://zigoals-alpha.reyals1111.workers.dev';
 const apex = 'https://zigoals.app';
-const report = { observedAt: new Date().toISOString(), evidenceSource: 'INDEPENDENT_HOSTED_SMOKE', sourceScript: fileURLToPath(import.meta.url), mocks: false, walletInteraction: false, freshEphemeralContext: true, responses: [], requestRecords: [], pageErrors: [], consoleErrors: [], failedRequests: [], httpErrors: [], layouts: [], stages: [], limits: ['Single client and small request sample; not load testing or Core Web Vitals.', 'This automated smoke does not inspect Cloudflare CPU/account metrics or private email settings.', 'No real wallet extension test; owner evidence remains separate.'] };
+const report = { observedAt: new Date().toISOString(), evidenceSource: 'INDEPENDENT_HOSTED_SMOKE', review: [], sourceScript: fileURLToPath(import.meta.url), mocks: false, walletInteraction: false, freshEphemeralContext: true, responses: [], requestRecords: [], pageErrors: [], consoleErrors: [], failedRequests: [], httpErrors: [], layouts: [], stages: [], limits: ['Single client and small request sample; not load testing or Core Web Vitals.', 'This automated smoke does not inspect Cloudflare CPU/account metrics or private email settings.', 'No real wallet extension test; owner evidence remains separate.'] };
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', permissions: [] });
 const page = await context.newPage();
@@ -34,8 +38,17 @@ async function layout(label) {
 }
 async function stage(name, action) { await action(); report.stages.push({name, status:'PASS'}); }
 try {
+  // Session S: live prices. Unlike the Manual Alpha workflow's smoke, this owner check requires a fresh verified BTC/USD
+  // price. Only closed-vocabulary fields are recorded. On UNAVAILABLE, follow docs/run11/ALPHA_PRICES_ROLLOUT.md.
+  report.marketProbe=await probeAlphaMarket({origin:alpha});
+  const price=priceFinding(report.marketProbe); if (price) report.review.push(price);
+  report.stages.push({name:'Live BTC/USD price through the market coordinator', status:price?'NEEDS_OWNER_REVIEW':'PASS'});
+  // Session U Part 2d: when the market policy period ends. Information only, never a review reason.
+  const policyRead=await readPolicyWindow({origin:alpha}); report.policyWindow={...policyRead,...policyWindowNote(policyRead.policyWindowEnd,Date.now(),policyRead.nextPolicyWindowEnd)};
   for (const [origin, path, count] of [[alpha,'/app',3],[fallback,'/app',2],[apex,'/',2]]) {
     for (let sample=1; sample<=count; sample++) {
+      // Session U: a sample that cannot be fetched or checked is a review reason, not the end of the run.
+      try {
       const start=performance.now(); const response=await context.request.get(origin+path, {timeout:20000});
       const body=await response.body(); const headers=response.headers();
       report.responses.push({url:response.url(), sample, status:response.status(), elapsedMs:Math.round(performance.now()-start), decodedBodyBytes:body.length, headers});
@@ -50,18 +63,14 @@ try {
         assert.match(headers['strict-transport-security'],/max-age=31536000/);
         assert.match(headers['cache-control'],/no-store/); assert.match(headers['x-robots-tag'],/noindex/);
         assert.equal(headers['x-frame-options'],'DENY'); assert.equal(headers['x-content-type-options'],'nosniff'); assert.equal(headers['referrer-policy'],'no-referrer');
+        // Session U Part 6 (FIX_PLAN D1): a page this app opens, or that opens it, gets no handle on it.
+        assert.equal(headers['cross-origin-opener-policy'],'same-origin');
       }
+      } catch (error) { report.review.push(reviewReason(`${origin}${path} sample ${sample}`, error)); }
     }
   }
-  const nonces=report.responses.filter(r=>r.headers['content-security-policy']).map(r=>r.headers['content-security-policy'].match(/'nonce-([^']+)'/)[1]);
-  assert.equal(new Set(nonces).size,nonces.length); report.freshNonceSamples=nonces.length;
-  // Session S: live prices. Unlike the Manual Alpha workflow's smoke, this owner check requires a fresh verified BTC/USD
-  // price. Only closed-vocabulary fields are recorded. On UNAVAILABLE, follow docs/run11/ALPHA_PRICES_ROLLOUT.md.
-  await stage('Live BTC/USD price through the market coordinator', async()=>{
-    report.marketProbe=await probeAlphaMarket({origin:alpha});
-    assert(report.marketProbe.wellFormed,`Market route answer is not a well-formed price envelope (${report.marketProbe.reason})`);
-    assert.equal(report.marketProbe.result,'VERIFIED',`Live prices are ${report.marketProbe.result} (${report.marketProbe.pair}, ${report.marketProbe.failure}); see docs/run11/ALPHA_PRICES_ROLLOUT.md`);
-  });
+  // Nonces of the Alpha's /app samples only: the apex landing's static CSP has none (the old line crashed on it).
+  const nonceSample=appNonceFindings(report.responses); report.review.push(...nonceSample.findings); report.freshNonceSamples=nonceSample.nonces.length;
   await stage('Live Alpha identity, initial resources and navigation', async()=>{
     await page.goto(alpha+'/app'); await page.waitForLoadState('networkidle');
     await expect(page.locator('footer')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
@@ -137,8 +146,8 @@ try {
   assert(report.requestOrigins.every(o=>[alpha,apex,'https://testnet-rpc.zigchain.com','https://testnet-api.zigchain.com','https://fonts.googleapis.com','https://fonts.gstatic.com'].includes(o)));
   assert(report.requestRecords.every(r=>r.method==='GET'));
   assert.deepEqual(report.pageErrors,[]); assert.deepEqual(report.httpErrors,[]);
-  report.status=report.consoleErrors.length || report.failedRequests.length || report.layouts.some(x=>!x.pass) ? 'COMPLETED_WITH_FINDINGS' : 'PASS';
-  if (report.status !== 'PASS') process.exitCode=2;
+  report.status=hostedStatus(report);
+  if (report.status !== 'PASS') process.exitCode=report.status==='NEEDS_OWNER_REVIEW'?3:2;
 } catch(error) { report.status='FAIL'; report.failure=String(error); report.failureStack=error.stack; report.failurePage=await page.locator('body').innerText().catch(()=> 'unavailable'); await page.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{}); process.exitCode=1; }
 finally { report.completedAt=new Date().toISOString(); await writeFile(output+'/HOSTED_SMOKE.json',JSON.stringify(report,null,2)+'\n'); await context.close(); await browser.close(); }
-console.log(JSON.stringify({status:report.status, stages:report.stages, failure:report.failure, output}));
+console.log(JSON.stringify({status:report.status, stages:report.stages, review:report.review, policyWindow:report.policyWindow?.text, failure:report.failure, output}));

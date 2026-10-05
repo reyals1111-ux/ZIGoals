@@ -1,3 +1,4 @@
+import { trustedOrigin } from "../lib/trusted-origin";
 import { connection } from "next/server";
 import { headers } from "next/headers";
 import type { Metadata, Viewport } from "next";
@@ -20,8 +21,9 @@ export const viewport: Viewport = {
   ],
 };
 export async function generateMetadata(): Promise<Metadata> {
-  // Middleware overwrites this header from the URL being served, never a supplied header.
-  const origin = (await headers()).get("x-zigoals-origin");
+  // Middleware overwrites this header from the URL being served; on the paths it skips, a client could send it, so only
+  // the public Alpha's and loopback origins are used (lib/trusted-origin.ts, Session U Part 6, FIX_PLAN D2).
+  const origin = trustedOrigin((await headers()).get("x-zigoals-origin"));
   return {
     metadataBase: origin ? new URL(origin) : undefined,
     // Use the public entry for every Alpha screen, excluding private goal IDs and queries.

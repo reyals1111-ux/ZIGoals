@@ -1,3 +1,4 @@
+import { csvSafeCell } from './export/csv-safe';
 import {additionalNutrients,groceryEditSchema} from './health';
 import {
   healthSchema, healthDateSchema, healthTimezoneSchema, savedMealSchema, mealItemSchema,
@@ -180,7 +181,7 @@ export function servingsFromMeasure(raw:string,snapshot:{servingGrams:number|nul
  return servingsFromGrams(raw,amount);
 }
 function validateRange(from: string, to: string) { healthDateSchema.parse(from); healthDateSchema.parse(to); if (from > to) throw Error("End date precedes start date."); }
-const csvCell = (value: string | number) => { const text = String(value); return `"${(/^[\s]*[=+\-@\t\r]/.test(text) ? "'" + text : text).replaceAll('"', '""')}"`; };
+const csvCell = (value: string | number) => csvSafeCell(value);
 export function exportHealthCsv(data: HealthData, from: string, to: string): string {
   validateRange(from, to); healthSchema.parse(data);
   const rows: (string | number)[][] = [["record_id", "date", "kind", "name", "meal", "quantity", "unit", "serving_weight_g", "kcal_per_serving", "protein_mg_per_serving", "carbs_mg_per_serving", "fat_mg_per_serving", "source", "created_at_utc", "updated_at_utc"]];

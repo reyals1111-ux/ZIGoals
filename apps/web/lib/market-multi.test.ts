@@ -54,7 +54,7 @@ it('requires a server key and never leaks it in query/body or provider errors',a
  const fetcher=vi.fn(async()=>new Response('quota private provider detail',{headers:{"Content-Type":"application/json"},status:429}));
  await expect(createCoinGeckoProvider({key:()=>undefined,fetcher,clock:()=>now}).quotes([coin('bitcoin')])).rejects.toThrow(/unavailable/);expect(fetcher).not.toHaveBeenCalled();
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).quotes([coin('bitcoin')])).rejects.toThrow('CoinGecko market data unavailable.');
- const [url,init]=fetcher.mock.calls[0]! as unknown as [string,RequestInit];expect(url).not.toContain('fixture-key');expect(init.headers).toEqual({Accept:'application/json','x-cg-demo-api-key':'fixture-key'});expect(init.body).toBeUndefined();
+ const [url,init]=fetcher.mock.calls[0]! as unknown as [string,RequestInit];expect(url).not.toContain('fixture-key');expect(init.headers).toEqual({Accept:'application/json','User-Agent':'ZIGoals/1.0 (+https://zigoals.app)','x-cg-demo-api-key':'fixture-key'});expect(init.body).toBeUndefined();
 });
 it('chunks public IDs at provider limits rather than one request per position',()=>{
  const batches=buildCoinGeckoRequests(Array.from({length:500},(_,i)=>coin(`asset-${i}`)));expect(batches).toHaveLength(2);expect(batches.map(b=>b.requests.length)).toEqual([250,250]);

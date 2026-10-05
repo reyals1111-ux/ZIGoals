@@ -86,7 +86,7 @@ Our host, **Cloudflare**, receives ordinary web requests. That includes your IP 
   - It removes the active encrypted records from our server and stops your other devices from re-creating them.
   - You can also choose to delete your email sign-in identity at the provider.
   - It does **not** erase copies already on your devices, or files you exported.
-  - Infrastructure backups at our providers follow their own retention.
+  - Encrypted copies can remain in our host's 30-day recovery history. We keep a minimal deletion record (account identifier, dates, which sections) so deleted data cannot come back. (Session U, FINDINGS Q-PRIV-01; for the lawyer: the record's retention, LEGAL_CHECKLIST.)
 - **Deleting one synced part:** you can delete a single part, such as Health, from the cloud. Your local records stay on your device.
 - **Push reminders (once accounts open):** a device's push data is deleted when you turn reminders off on that device, when you sign out there, when you delete your cloud records or your account, and by itself after 30 days without opening the app on that device.
 - **Fixed retention periods** for sign-in records, session records and abuse counters are **not yet set**. [Owner and lawyer: set them; ACTIVATION.md has the operating limits.]

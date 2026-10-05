@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {formNumberText, readFormNumber} from '../../lib/decimal-input';
 import {healthLinkIssue, type HabitHealthLink, type HealthMeasure} from '../../lib/habit-health-links/schema';
 import type {ExerciseCounter} from '../../lib/health-counters';
+import {SYNC_WRITES} from '../../lib/vault/sync-writes';
 
 const FL_OZ = 29.5735295625;
 /** The editor's view of a link: a measure (or none), a counter for the exercise measure, a rule and a typed target in the Health water unit. */
@@ -52,7 +53,7 @@ export function HealthLinkField({draft, onChange, counters, waterUnit, unreadabl
           <input type="text" inputMode="decimal" autoComplete="off" aria-label="Target" disabled={draft.rule !== 'at-least'} value={draft.target} onChange={event => onChange({...draft, target: event.target.value})} /><span>{UNITS[draft.measure](waterUnit)}</span></label>
         <label><input type="radio" name="health-link-rule" value="recorded" checked={draft.rule === 'recorded'} onChange={() => onChange({...draft, rule: 'recorded'})} /><span>anything is recorded</span></label>
       </div>}
-      {draft.measure && <p className="fine">ZIGoals checks your Health journal when you open Today, Habits or Health, and ticks this habit off once per day. A tap always wins; Undo keeps it off for that day. Kept on this device.</p>}
+      {draft.measure && <p className="fine">ZIGoals checks your Health journal when you open Today, Habits or Health, and ticks this habit off once per day. A tap always wins; Undo keeps it off for that day. {SYNC_WRITES ? 'Kept with your Health records.' : 'Kept on this device.'}</p>}
     </>}
   </fieldset>;
 }

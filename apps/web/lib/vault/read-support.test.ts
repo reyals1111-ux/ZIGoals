@@ -2,14 +2,14 @@ import {beforeEach,describe,expect,test,vi} from 'vitest';
 import {z} from 'zod';
 import {emptyPlatform,financeVersion,hasPlanZone,healthGoalSchema,platformSchema,platformV3Schema,PLATFORM_KEY} from '../positions';
 import {emptyHabitData,habitDataSchema,habitDataV2Schema,logHabitCount,needsHabitsV3,HABITS_KEY} from '../habits';
-import {healthSchema,healthV1Schema,fastingSessionSchema,HEALTH_STORAGE_KEY} from '../health';
+import {healthSchema,healthV1Schema,healthR1Schema,fastingSessionSchema,HEALTH_STORAGE_KEY} from '../health';
 import {dashboardSettingsSchema,dashboardSettingsV1Schema,weeklyReviewSchema,DASHBOARD_SETTINGS_KEY} from '../dashboard-settings';
 import {reviseGoalPlan,planFingerprint} from '../plan-revisions';
 import {importPrivateStore,readPrivateStore,updatePrivateStore} from '../private-storage';
 import {CURRENT_VERSIONS,NEWER_SECTION_MESSAGE,modules,validateData} from './account-data';
 import {createVault,type VaultManifest} from './crypto';
 import {cloudSnapshot,synchronize,RevisionConflict,type CloudOperation,type CloudTransport,type Domain,type Journal,type PrivateData,type SyncState} from './cloud-sync';
-import {FORMAT_PAIRS,FIXTURE_AT,HEALTH_GOAL,HABIT_HEALTH_LINK,FASTING_SESSION,WEEKLY_REVIEW,MONTHLY_PLAN,financeV3,financeV4,habitsV2,habitsV3,healthV2,settingsV1,settingsV2} from './format-fixtures';
+import {FORMAT_PAIRS,FIXTURE_AT,HEALTH_GOAL,HABIT_HEALTH_LINK,FASTING_SESSION,WEEKLY_REVIEW,MONTHLY_PLAN,financeV3,financeV4,habitsV2,habitsV3,healthV1,healthV2,healthV3,settingsV1,settingsV2} from './format-fixtures';
 
 // Session P (PR 2, 2026-10-03): read support ahead of the writers, the two-release rule of TIMEZONE_DESIGN.md
 // ("Versioning and migration"). This build (R1) reads finance v4, habits v3, health v2 and settings v2, and still writes
@@ -47,7 +47,8 @@ describe('new reads old: today\'s records read and write back byte-identical',()
   const habits=await updatePrivateStore(storage,HABITS_KEY,habitDataSchema,emptyHabitData,d=>logHabitCount(d,d.habits[0]!.id,'2026-09-08',1,'',new Date(FIXTURE_AT)));
   expect(habits.schemaVersion).toBe(2);expect(JSON.parse(storage.getItem(HABITS_KEY)!).schemaVersion).toBe(2);
   expect(Object.keys(snapshot(storage)).filter(k=>k.includes(':recovery:'))).toEqual([]);
-  expect(CURRENT_VERSIONS).toEqual({finance:4,habits:3,health:2,settings:2});
+  // Health 3 since Session U Part 9 (lib/vault/sync-writes.ts); the other three are R1's.
+  expect(CURRENT_VERSIONS).toEqual({finance:4,habits:3,health:3,settings:2});
  });
  test('the empty records every module starts from are today\'s versions',()=>{
   expect(DOMAINS.map(d=>(modules[d].empty() as {schemaVersion:number}).schemaVersion)).toEqual([3,2,1,1]);
@@ -152,7 +153,8 @@ describe('old reads new: an older build refuses a newer record by its version al
 describe('the sync message for a section from a newer build',()=>{
  test.each(DOMAINS)('%s: a version above this build\'s is refused with the plain message, this build\'s versions pass',domain=>{
   const pair=FORMAT_PAIRS[domain];
-  expect(()=>validateData({[domain]:bytes({...pair.newRecord(),schemaVersion:pair.next+1})})).toThrow(NEWER_SECTION_MESSAGE);
+  // One above the newest version this build reads (Health reads v3 since Session U Part 9, one past its pair's `next`).
+  expect(()=>validateData({[domain]:bytes({...pair.newRecord(),schemaVersion:CURRENT_VERSIONS[domain]+1})})).toThrow(NEWER_SECTION_MESSAGE);
   expect(()=>validateData({[domain]:bytes({...pair.newRecord(),schemaVersion:99})})).toThrow(NEWER_SECTION_MESSAGE);
   expect(()=>validateData({[domain]:stored(domain,pair.oldRecord())})).not.toThrow();
   expect(()=>validateData({[domain]:stored(domain,pair.newRecord())})).not.toThrow();
@@ -232,5 +234,50 @@ describe('mixed devices through sync',()=>{
   const pulled=await sync(s,b,{});
   expect(pulled.data).toEqual(next);expect(await cloudData(s)).toEqual(next);
   expect(DOMAINS.map(d=>JSON.parse(b.state.base[d]!).schemaVersion)).toEqual([4,3,2,2]);
+ });
+});
+
+describe('Health v3 (Session U Part 9): this build reads and writes it; #27/#28 refuse it and keep the bytes',()=>{
+ const V1=()=>stored('health',healthV1()),V2=()=>stored('health',healthV2()),V3=()=>stored('health',healthV3());
+ /** Builds #27/#28 (R1): Health up to v2; a newer section is refused with the plain message (their CURRENT_VERSIONS). */
+ const validateR1=(data:PrivateData)=>{for(const [domain,raw] of Object.entries(data)){const parsed=JSON.parse(raw!);if(domain==='health'){if(parsed.schemaVersion>2)throw Error(NEWER_SECTION_MESSAGE);healthR1Schema.parse(parsed);}else modules[domain as Domain].schema.parse(parsed);}};
+ test('new reads new: v3 round-trips byte-identical with every group, and the sync check passes it',()=>{
+  const raw=V3(),v3=healthSchema.parse(JSON.parse(raw));
+  expect(v3.schemaVersion).toBe(3);expect(bytes(v3)).toBe(raw);
+  expect(Object.keys(v3)).toEqual(expect.arrayContaining(['fasting','healthGoals','habitLinks','reviewNotes']));
+  expect(()=>validateData({health:raw})).not.toThrow();
+  // Each group is strict: a field no version knows is refused.
+  expect(healthSchema.safeParse({...healthV3(),reviewNotes:{version:1,notes:{'2026-09-28':'x'},mood:3}}).success).toBe(false);
+  expect(healthSchema.safeParse({...healthV3(),schemaVersion:2}).success).toBe(false);
+ });
+ test('#27/#28 refuse v3 locally and on import and keep the bytes; this build never replaces v3 by an older backup',async()=>{
+  const storage=memoryStorage();storage.setItem(HEALTH_STORAGE_KEY,V3());
+  expect(()=>readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,modules.health.empty)).toThrow('Private data is invalid or uses an unsupported version. Original data was preserved.');
+  expect(snapshot(storage)).toEqual({[HEALTH_STORAGE_KEY]:V3()});
+  const older=memoryStorage();older.setItem(HEALTH_STORAGE_KEY,V2());
+  await expect(importPrivateStore(older,HEALTH_STORAGE_KEY,healthR1Schema,V3())).rejects.toThrow('unsupported version');
+  expect(snapshot(older)).toEqual({[HEALTH_STORAGE_KEY]:V2()});
+  await expect(importPrivateStore(storage,HEALTH_STORAGE_KEY,healthSchema,V2())).rejects.toMatchObject({code:'NEWER_VERSION'});
+  expect(snapshot(storage)).toEqual({[HEALTH_STORAGE_KEY]:V3()});
+ });
+ test('sync: a #27/#28 device pulling v3 Health stops with the plain message; nothing uploaded, cloud and journal unchanged',async()=>{
+  const s=await cloud(),mine=new MemoryJournal(),r1=new MemoryJournal();
+  await sync(s,mine,{health:V2()});await sync(s,r1,{health:V2()},validateR1);
+  await sync(s,mine,{health:V3()});
+  const before={calls:s.cloud.calls.length,revision:s.cloud.revision,journal:structuredClone(r1.state)};
+  await expect(synchronize(s.cloud,r1,s.vault.key,s.vault.manifest,{health:V2()},validateR1,noop)).rejects.toThrow(NEWER_SECTION_MESSAGE);
+  expect(s.cloud.calls.length).toBe(before.calls);expect(s.cloud.revision).toBe(before.revision);expect(r1.state).toEqual(before.journal);
+  expect((await cloudData(s)).health).toBe(V3());
+ });
+ test('sync: two devices that each raised Health (a fast to v2 here, a goal to v3 there) merge at v3 with both',async()=>{
+  const s=await cloud(),a=new MemoryJournal(),b=new MemoryJournal();
+  await sync(s,a,{health:V1()});await sync(s,b,{health:V1()});
+  const withFast=stored('health',{...healthV1(),schemaVersion:2,fasting:{version:1,sessions:[FASTING_SESSION]}});
+  const withGoal=stored('health',{...healthV1(),schemaVersion:3,healthGoals:{version:1,goals:[HEALTH_GOAL]}});
+  await sync(s,a,{health:withFast});
+  const merged=await sync(s,b,{health:withGoal});
+  const health=JSON.parse(merged.data.health!);
+  expect(health.schemaVersion).toBe(3);expect(health.fasting.sessions).toEqual([FASTING_SESSION]);expect(health.healthGoals.goals).toEqual([HEALTH_GOAL]);
+  expect((await sync(s,a,{health:withFast})).data.health).toBe(merged.data.health);
  });
 });

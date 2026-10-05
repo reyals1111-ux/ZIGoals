@@ -44,7 +44,7 @@ test('create a portfolio and record transactions; without prices values stay unk
   await expect(holding).toContainText('$60,020.00');
   await expect(page.getByLabel('Fictional coins totals')).toContainText('Cost basis$30,010.00');
   await expect(page.getByLabel('Fictional coins totals')).toContainText('1 coin has no price yet and is not counted.');
-  await expect(page.getByText('Live prices aren’t connected yet.', {exact: false})).toBeVisible();
+  await expect(page.getByText('No live price is available right now.', {exact: false})).toBeVisible();
   // A sale larger than the holding is refused, with nothing written.
   const before = await stored(page);
   await form.getByRole('button', {name: /Bitcoin/}).click();

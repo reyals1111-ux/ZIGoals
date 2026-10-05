@@ -148,3 +148,8 @@ Option A is implemented as decided. Where the code needed it, the design above w
   - only while the account's checkpoint digest equals the digest of the export the CLI wrote into custody, which the owner typed back (compare-and-swap).
 - **What it cannot do:** remove the vault's ciphertext rows in the private-sync Worker. They stay unreachable. See [OWNER_RECOVERY_ADMIN.md](../run11/OWNER_RECOVERY_ADMIN.md), "Erase an account".
 
+## Addendum (Session U, 2026-10-05): erase also removes the vault rows
+- Private sync has a second owner-only entrypoint, `PrivateVaultRecoveryAdmin` (`workers/private-sync/worker.mjs`, `POST /admin/erase-vault`). It erases exactly as the app's "Delete cloud data" does (every row, then the terminal marker that refuses the account), and only when the lifecycle authority (`LifecycleService`) reports the account deleted, which it answers only in `RECOVERY_MODE=serve`.
+- The local admin Worker gets a second remote binding, `VAULT_ADMIN`, to that entrypoint. `activation-check --admin` accepts exactly the two bindings (ADMIN to the private lifecycle Worker, then VAULT_ADMIN to the private sync Worker of the same prefix, which must bind that lifecycle Worker) and refuses either entrypoint in every other config. An admin copy made before Session U has one binding and is refused: the owner moves it out of the checkout and regenerates it with `make-private-configs.mjs --recovery-admin` (OWNER_RECOVERY_ADMIN.md).
+- `recovery-admin.mjs erase` calls it after recording the deletion and re-exporting. In `reconcile` it prints "NOT REMOVED YET"; running `erase` again after the serve switch removes the rows (the deletion is already recorded; the command is idempotent). No backstop path removes rows without the lifecycle decision.
+

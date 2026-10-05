@@ -1,8 +1,9 @@
 import {test,expect,type Page} from '@playwright/test';
 import {seed} from './coherence-fixture';
+import {safeScreenshot} from './safe-screenshot';
 import {createHabit,emptyHabitData,logHabitCount} from '../lib/habits';
 test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
-async function shot(page:Page,name:string){if(process.env.COHERENCE_CAPTURE==='1')await page.screenshot({path:`../../docs/verification/run8-1-coherence/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}
+async function shot(page:Page,name:string){if(process.env.COHERENCE_CAPTURE==='1')await safeScreenshot(page,{path:`../../docs/verification/run8-1-coherence/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}
 test('release, reallocate, pin, lock and delete preserve wealth and Habit history',async({page})=>{
  await seed(page);let habits=createHabit(emptyHabitData(),{title:'Keep my history',category:'Goals',description:'',notes:'',goalLink:{chainId:'private',owner:'local',goalId:'81'},schedule:{kind:'weekdays',days:[0,1,2,3,4,5,6]},target:1});
  habits=logHabitCount(habits,habits.habits[0]!.id,new Date().toLocaleDateString('en-CA'),1);

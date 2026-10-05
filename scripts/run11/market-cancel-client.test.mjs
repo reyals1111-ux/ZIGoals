@@ -4,6 +4,7 @@ import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {marketRuntimeBundles} from './market-runtime-fixture.mjs';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare');
 // Session S Part 8a: the real coordinator Worker in workerd. QuoteService checks `x-market-client` before every path,
@@ -18,10 +19,10 @@ test('/cancel refuses a spoofed client header, and a valid group gets only its s
  const persist=await mkdtemp(join(tmpdir(),'run11-market-cancel-'));
  const mf=new Miniflare({...convertV4MiniflareOptions({workers:[
   {name:'app',modules:true,script:'export default {fetch(r,e){return e.MARKET_QUOTES.fetch(r)}}',compatibilityDate:'2026-09-13',serviceBindings:{MARKET_QUOTES:{name:'market',entrypoint:'QuoteService'}}},
-  {name:'market',modules:true,script:bundles.market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'cancel-fixture',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config)},outboundService:()=>{throw Error('Cancellation must never call a provider');}},
+  {name:'market',modules:true,script:bundles.market,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_ACCOUNT_ID:'cancel-fixture',MARKET_QUOTE_DISPATCH:'durable-v1',MARKET_POLICY:JSON.stringify(config)},outboundService:()=>{throw Error('Cancellation must never call a provider');}},doProbeWorker({className:'MarketAccount',scriptName:'market'})
  ]}),resourcePersistencePath:persist});
  const cancel=async(headers={})=>{const response=await mf.dispatchFetch('https://market.internal/cancel',{method:'POST',headers:{'content-type':'application/json',...headers},body:JSON.stringify({cancelToken:crypto.randomUUID()})});return {status:response.status,body:await response.json()};};
- const fences=async()=>{const ns=await mf.getDurableObjectNamespace('MARKETS','market');const response=await ns.get(ns.idFromName('cancel-fixture')).fetch('https://internal',{method:'POST',body:'{"action":"inspect"}'});return response.json();};
+ const fences=async()=>{const ns=await doProbe(mf);const response=await ns.get(ns.idFromName('cancel-fixture')).fetch('https://internal',{method:'POST',body:'{"action":"inspect"}'});return response.json();};
  try{
   for(const spoofed of ['192.0.2.1','v4:999.0.0.1','v6:2001:db8::1','v4:192.0.2.1, v4:198.51.100.1'])expect(await cancel({'x-market-client':spoofed})).toEqual({status:400,body:{error:'INVALID_MARKET_REQUEST'}});
   // Nothing reached the account: the first inspect sees an empty object.

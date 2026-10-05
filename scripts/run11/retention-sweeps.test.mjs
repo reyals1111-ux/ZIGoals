@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
 
@@ -22,9 +23,9 @@ function foodRuntime(){
  let persist,provider='ok';
  const at=async(time,sweep)=>{
   persist??=await mkdtemp(join(tmpdir(),'run11-food-retention-'));
-  const mf=new Miniflare({...convertV4MiniflareOptions({modules:true,script:foodCode,compatibilityDate:'2026-09-13',durableObjects:{FOOD_BUDGET:{className:'FoodBudget',useSQLite:true}},bindings:{FOOD_USER_AGENT:'ZIGoals/0.1.0 (alpha-contact@example.invalid)',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),...(sweep?{LOCAL_SWEEP_MS:String(sweep)}:{})},outboundService:async request=>{const code=new URL(request.url).pathname.split('/').at(-1);return provider==='down'?new Response('down',{status:500}):code==='00000000'?new Response('{}',{status:404}):Response.json({code,product:{product_name:'Fixture'}});}}),resourcePersistencePath:persist});
+  const mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:'main',modules:true,script:foodCode,compatibilityDate:'2026-09-13',durableObjects:{FOOD_BUDGET:{className:'FoodBudget',useSQLite:true}},bindings:{FOOD_USER_AGENT:'ZIGoals/0.1.0 (alpha-contact@example.invalid)',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),...(sweep?{LOCAL_SWEEP_MS:String(sweep)}:{})},outboundService:async request=>{const code=new URL(request.url).pathname.split('/').at(-1);return provider==='down'?new Response('down',{status:500}):code==='00000000'?new Response('{}',{status:404}):Response.json({code,product:{product_name:'Fixture'}});}},doProbeWorker({className:'FoodBudget',scriptName:'main'})]}),resourcePersistencePath:persist});
   const lookup=(code,client)=>mf.dispatchFetch('https://food.test/lookup?code='+code,{headers:client?{'x-food-client':client}:{}}).then(async r=>{await r.text();return r.status;});
-  const rows=async()=>{const ns=await mf.getDurableObjectNamespace('FOOD_BUDGET');return (await ns.get(ns.idFromName('shared-provider-budget-v1')).fetch('https://internal/test/rows')).json();};
+  const rows=async()=>{const ns=await doProbe(mf);return (await ns.get(ns.idFromName('shared-provider-budget-v1')).fetch('https://internal/test/rows')).json();};
   return {mf,lookup,rows};
  };
  return {at,down:()=>{provider='down';}};
@@ -61,8 +62,8 @@ test('market: an idle account deletes its client key and day rows',async()=>{
  const persist=await mkdtemp(join(tmpdir(),'run11-market-retention-'));
  const policy={providerMinuteLimit:100,providerMonthlyLimit:1000,operating:{minute:90,monthly:900},monitoringReserve:{minute:2,monthly:20},monitoringMaximum:{minute:3,monthly:30},optionalCeiling:{minute:80,monthly:800},concurrent:2,queueLimit:16,reservationMs:20000,ownershipMs:10000};
  const config={policy,calendar:{timeZone:'UTC',confirmed:true},quoteCost:3,leaseMs:20000,maxAttempts:128,maxWorks:64};
- const start=(time,sweep)=>new Miniflare({...convertV4MiniflareOptions({modules:true,script:marketCode,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_POLICY:JSON.stringify(config),ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),...(sweep?{LOCAL_SWEEP_MS:String(sweep)}:{})}}),resourcePersistencePath:persist});
- const object=async(mf,path,body)=>{const ns=await mf.getDurableObjectNamespace('MARKETS');return (await ns.get(ns.idFromName('fixture-account')).fetch('https://internal'+path,{method:'POST',body:JSON.stringify(body??{})})).json();};
+ const start=(time,sweep)=>new Miniflare({...convertV4MiniflareOptions({workers:[{name:'main',modules:true,script:marketCode,compatibilityDate:'2026-09-13',durableObjects:{MARKETS:{className:'MarketAccount',useSQLite:true}},bindings:{MARKET_POLICY:JSON.stringify(config),ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),...(sweep?{LOCAL_SWEEP_MS:String(sweep)}:{})}},doProbeWorker({className:'MarketAccount',scriptName:'main'})]}),resourcePersistencePath:persist});
+ const object=async(mf,path,body)=>{const ns=await doProbe(mf);return (await ns.get(ns.idFromName('fixture-account')).fetch('https://internal'+path,{method:'POST',body:JSON.stringify(body??{})})).json();};
  const retained=rows=>Object.keys(rows).filter(key=>key==='market-client-key'||key.startsWith('market-day:'));
  let mf=start(T0,150);
  try{

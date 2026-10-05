@@ -75,7 +75,7 @@ export function PortfolioView() {
       <h1 id="portfolio-title"><NebulaFlow identity="portfolio-title">Portfolio</NebulaFlow></h1>
       <p className="page-lede">Keep track of coins you hold, or a portfolio you are only considering. It stays apart from your Wealth and Goals.</p>
       {store.showcase && <p className="portfolio-note" role="note">Showcase: a fictional portfolio with fixture prices. These are not market prices.</p>}
-      {noPrices && <p className="portfolio-note" role="status">Live prices aren’t connected yet. Values and results stay unknown until a price is available.</p>}
+      {noPrices && <p className="portfolio-note" role="status">No live price is available right now. Values and results stay unknown until one is.</p>}
     </section>
     {message && <p role="status" className="portfolio-message">{message}</p>}
     {error && <p role="alert" className="notice">{error}</p>}

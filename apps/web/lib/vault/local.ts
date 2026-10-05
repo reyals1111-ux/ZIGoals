@@ -43,7 +43,11 @@ export async function updateDurableStore<T>(storage:Storage,key:string,schema:z.
   const previous=await db.read(space,key);if(!previous)throw Error('Private database missing.');
   const latest=schema.parse(previous.data),next=updater(latest);if(next===latest)return latest;
   const validated=schema.parse(next);fence(storage,key);
-  try{await db.commit(space,key,previous.revision,validated);}catch(error){throw asStorageError(error,{durable:true});}
+  // Like the browser-storage path (private-storage.ts): a write that raises the record's version keeps the record it
+  // replaces as a recovery copy, in the same transaction (Session U Part 9: Health v3 after a rollback to #28).
+  const version=(value:unknown)=>value&&typeof value==='object'?(value as {schemaVersion?:unknown}).schemaVersion:undefined,before=version(previous.data),after=version(validated);
+  const original=typeof before==='number'&&typeof after==='number'&&before<after?JSON.stringify(previous.data):undefined;
+  try{await db.commit(space,key,previous.revision,validated,undefined,original);}catch(error){throw asStorageError(error,{durable:true});}
   return validated;
  });
 }

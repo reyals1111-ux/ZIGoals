@@ -13,9 +13,14 @@
 Written by Session S (2026-10-04) from the Stage 7 lessons. Nothing here was run by a session.
 
 ## 0. Before you start (read only)
+0. **Before the redeploy: the sync-writes switch-ON PR is merged** (Session U follow-up F1). PR #74 ships
+   `SYNC_WRITES = false`; the one-line switch-ON PR ([docs/product/SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) is
+   merged at least 7 days after the first public Alpha deploy carrying PR #74 and on or after 2026-10-11, and this
+   redeploy's release SHA must contain it. If it is not merged, deploy anyway and mark Stage 8 rows 15 and 15c "not run:
+   switch off".
 1. **The release SHA:** the full SHA of `main` that you deploy. Main's CI is green on it.
 2. **The Alpha prices rollout is done:** [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Note the SHA the market coordinator was deployed from there.
-3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Regenerate it around **28 October** (ACTIVATION Stage 6 steps 1–3), or the coordinator fails closed.
+3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Around **28 October** install the two-window policy (the current window and the next), and the coordinator takes the next period by itself at the boundary ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period); Session U follow-up F2). If this redeploy runs after that, keep the two-window policy in the private coordinator config.
 
 ## 1. Ops checkout at the release SHA
 ```sh
@@ -43,7 +48,8 @@ node scripts/run11/stage7-preflight.mjs            # read only: READY
 Run this from the checkout. It lists each Worker's sources that changed since the Stage 7 deploy:
 ```sh
 for w in "lifecycle:workers/private-sync/lifecycle.mjs" \
-         "private-sync:workers/private-sync/worker.mjs workers/private-sync/sessions.mjs workers/private-sync/rotation.mjs" \
+         "private-sync:workers/private-sync/worker.mjs workers/private-sync/sessions.mjs workers/private-sync/rotation.mjs workers/private-sync/portfolio.mjs" \
+         "push-reminders:workers/push-reminders/" \
          "food-lookup:workers/food-lookup/" \
          "auth-abuse:workers/auth-abuse/" \
          "market-coordinator:workers/market-coordinator/ apps/web/lib/server/ apps/web/lib/market-*.ts apps/web/lib/exact-market-json.ts apps/web/lib/provider-validation.ts apps/web/lib/json-media-type.ts" \
@@ -156,13 +162,58 @@ pnpm --filter @zigoals/web exec wrangler logout
 ```
 Close the browser profile used for the dashboard. The private env file stays in `~/.config/zigoals/`.
 
+## Session U changes (PR #74, 2026-10-05)
+Session U changed four Workers and the local admin tool. Re-run step 2 at your release SHA; this is what to expect.
+
+| Worker | What changed (commits) | Must redeploy |
+|---|---|---|
+| private sync (`PrivateVault`, new `PrivateVaultRecoveryAdmin` entrypoint) | revoked sessions deleted 90 days after revocation, swept by the vault's alarm (`8ace5b0`); the owner-only erase entrypoint (`9e60016`); the opt-in Portfolio copy, `/v1/portfolio`, its own keyspace (Part 9, ADR-013) | **yes** |
+| market coordinator (`MarketAccount`, `QuoteService`) | `QuoteService /status` names when the policy period ends (`4b88a67`); the optional public share of the daily rows (`8b8059d`); the public daily cap on new price work (`43a05ca`) | **yes** (it serves the public Alpha too: check prices there afterwards) |
+| push reminders | only the four cited vendor hosts, never an explicit port or an IP address (`9ef5abd`) | **yes, if you activated it** (PUSH_ACTIVATION.md) |
+| lifecycle, food lookup, auth admission | nothing by Session U | only if your diff shows a change |
+| acceptance app (OpenNext) | Parts 2–9 | **yes**, last |
+| recovery admin (local, never deployed) | a second remote binding, to private sync, for "erase" (`9e60016`) | **regenerate the local copy** after private sync is deployed |
+
+**Order:** lifecycle (if changed), **private sync**, food lookup and auth admission (if changed), **market coordinator**,
+**push reminders** (if active), then **regenerate the admin copy** (`node scripts/run11/make-private-configs.mjs`, as in
+OWNER_RECOVERY_ADMIN.md, then `node scripts/run11/activation-check.mjs --admin`: PASS with the two-binding shape), and
+**the app last** (step 5).
+
+**Checks after:**
+- private sync: `deployments list` at 100% and the same secret names; there is nothing to curl (no routes). Stage 8 rows
+  6c, 13c, 13d, 15 and 15c exercise it.
+- market coordinator: `node scripts/verify-hosted-alpha.mjs` prints the policy window end and BTC/USD on the public Alpha.
+- the app on `accounts-test.zigoals.app` (step 6's curl): also `cross-origin-opener-policy: same-origin`, and on
+  `/app/health` a `permissions-policy` with `camera=(self)`.
+- the recovery rehearsal (step 7): "Erase an account" now also prints `Encrypted vault rows: REMOVED` at its serve step (`NOT REMOVED YET` before the serve switch).
+
+**The sync-writes switch (Session U follow-up F1):** PR #74 ships `SYNC_WRITES = false`, so it can go to
+`alpha.zigoals.app` any time after the coordinator redeploy: it writes exactly what #28 writes and adds the Health v3
+read support. The switch turns on in its own one-line PR before this redeploy (step 0 above;
+docs/product/SYNC_WRITES_ON.md). From the Alpha deploy that carries the switch on, the Alpha's rollback floor is the
+build that first carried v3 read support (PR #74's deploy).
+
+**The acceptance app skips R1:** it goes from its Stage 7 build straight to this one, which (with the switch-ON PR merged)
+writes the newer sections (settings v2, Health v2 and v3). After the app's redeploy, reload every open tab and reopen the Home Screen app on each
+test device before syncing. A tab still on the Stage 7 build cannot read the newer sections: its sync stops with an
+error instead of applying them, until it is reloaded.
+
+**Rollback, Session U specifics** (in addition to the rules below):
+- **App back to a build before Session U** (the acceptance app's Stage 7 version, or #28 on the public Alpha):
+  remembered devices ask for the recovery secret once, because older builds delete the new v2 remembered-device records
+  (fail-closed; ADR-008 addendum). A Health section that reached v3 is unreadable there until the roll-forward; its bytes
+  and recovery copies are kept, and the four device keys keep working on the older build. Never roll back below R1 (#27).
+- **Private sync back:** the Portfolio copy stays in its keyspace, unread and untouched (older code never lists it); the
+  account erase still removes it (it removes every key). Revoked-session records simply stop being swept.
+- **Market coordinator back:** the partition and the public cap disappear; `/status` answers "not reported" to newer apps.
+
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.
 - **Never** roll back across a Durable Object migration or a data-format change. Session S changes neither: new rows and fields are additive, and older code ignores them.
 - The app first, then the services in reverse order.
 
-## To merge into the runsheet after Session P
-Session P edits [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md), so these rows wait here until P has merged:
+## Merged into the runsheet (Session U, 2026-10-05)
+Session P has merged, so these rows are now in [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md): the final redeploy and the market policy window under "Before you start", the erase rehearsal as row 1b, sign out everywhere as row 6b, and the Supabase key proof on row 16. The table stays as the record of what was proposed:
 
 | Proposed row | Where in the runsheet | What |
 |---|---|---|
@@ -170,4 +221,4 @@ Session P edits [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md), so these r
 | Erase rehearsal | Part 1, after the recovery rehearsal | OWNER_RECOVERY_ADMIN "Erase an account" steps 1–4, then step 5 at the serve switch |
 | Supabase key proof | the delete-account row | "The fictional Supabase user disappears within about a minute (Session S Part 1)" |
 | Sign out everywhere | Part 2 (sessions) | [OWNER_SIGN_OUT_EVERYWHERE.md](OWNER_SIGN_OUT_EVERYWHERE.md) once with your own test user |
-| Market policy window | before Stage 8 | Regenerate `MARKET_POLICY` around 28 October (window ends 2026-10-31 16:00 UTC) |
+| Market policy window | before Stage 8 | Around 28 October, install the two-window policy with `next-market-policy.mjs`; the coordinator takes the next period by itself at 2026-10-31 16:00 UTC ([Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)) |

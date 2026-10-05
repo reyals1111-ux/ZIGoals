@@ -28,6 +28,8 @@ From the pre-Alpha review ([FINDINGS.md](../security/review-2026-10/FINDINGS.md)
 | Serves another vault's or account's records | **Yes**: manifest equality, AAD and a different root |
 | Relabels a record's epoch, or the manifest's vault or epoch | **Yes** |
 | Withholds referenced parts or the head | **Yes** with a journal ("Snapshot is incomplete"); **no** on a fresh device, which then sees an empty cloud (nothing is deleted) |
+| Serves an older or altered Portfolio copy (Session U Part 9, [ADR-013](../architecture/ADR-013-portfolio-sync.md)) | **Yes**: a lower generation or revision than the device last saw, or another copy at the same revision, is refused; each part is sealed for its index, revision and epoch and states the part count |
+| Withholds the Portfolio copy or fakes its deletion | **No**: the device then sees no copy, or stops syncing its Portfolio and says the copy was deleted; nothing local is lost |
 | Rolls back a device with no journal (new device, eviction, cleared data) | **No** |
 | Freezes a device at the last head it saw, or forks writes per device | **No** (inherent: one sequencer) |
 | Downgrades to an older epoch | **No**, if the person types the old secret (`Q-SYNC-03`) |

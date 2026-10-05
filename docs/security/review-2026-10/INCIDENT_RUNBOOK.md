@@ -101,7 +101,7 @@ Details in [DATA_FLOWS.md](DATA_FLOWS.md).
    - provider logs (Supabase sign-ins, Resend code emails) under their retention.
 5. **If they cannot sign in any more** (lost email access, or no device):
    - since Session S, use `recovery-admin.mjs erase` ([OWNER_RECOVERY_ADMIN.md](../../run11/OWNER_RECOVERY_ADMIN.md), "Erase an account"). It exports first, records the deletion so no device can sync the account again, and deletes the sign-in identity once the lifecycle Worker serves (`Q-OPS-06`);
-   - the encrypted rows still stay stored, unreadable and unreachable, until a private-sync change removes them;
+   - since Session U the same command also removes the encrypted vault rows, while the lifecycle Worker serves; in reconcile mode it says "NOT REMOVED YET", and running it again after the serve switch removes them;
    - tell them so, and log it as an open request.
 6. **Legal flags (for the lawyer):**
    - the response time for erasure requests;

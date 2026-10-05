@@ -1,3 +1,4 @@
+import {csvSafeCell} from './export/csv-safe';
 import {healthSchema,type HealthData} from './health';
 import {healthDay} from './health-daily';
 import {bodyMeasurementSchema,measurementValueSchema,canonicalMeasurement,type MeasurementDraft,type BodyMeasurement} from './body-measurement-schema';
@@ -43,7 +44,7 @@ export function exportMeasurementsCsv(data:HealthData){
  const rows:(string|number)[][]=[['id','kind','observed_at_utc','entered_timezone','value','original_unit','canonical_value','canonical_unit','source','recorded_at','record_version','duplicate_of','observation_status','source_receipts']];
  const groups=measurementGroups(data),byId=new Map(groups.flatMap(g=>g.copies.map(r=>[r.id,g] as const)));
  for(const r of [...(data.measurements??[])].sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt)||a.id.localeCompare(b.id)))for(const [index,v]of [...r.corrections,r].entries()){const group=byId.get(r.id)!;rows.push([r.id,v.kind,v.observedAt,v.timezone,v.quantityMilli/1000,v.unit,v.canonical,v.kind==='weight'?'mg':'um',v.sourceLabel,v.recordedAt,index===r.corrections.length?'current':'previous-'+(index+1),group.conflict||group.id===r.id?'':group.id,group.conflict?'unresolved-'+group.conflict:group.copies.length>1?'retained-copy':'independent',JSON.stringify(r.observationSources??[])]);}
- return rows.map(row=>row.map(value=>{const raw=String(value),safe=/^[\s]*[=+\-@\t\r]/.test(raw)?"'"+raw:raw;return '"'+safe.replaceAll('"','""')+'"';}).join(',')).join('\r\n');
+ return rows.map(row=>row.map(csvSafeCell).join(',')).join('\r\n');
 }
 
 /** A timed reading belongs to the calendar day of the zone it was entered in, not the UTC day. */

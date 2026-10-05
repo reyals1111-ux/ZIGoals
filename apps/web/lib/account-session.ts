@@ -1,7 +1,7 @@
 /** A tab-local selector is not authentication. Only a verified server identity may activate it. */
 export const ACCOUNT_SELECTOR='zigoals:account:selector:v1';
 export const ACCOUNT_CHANGE='zigoals:account-change';
-export type AccountLockReason='access-changed';
+export type AccountLockReason='access-changed'|'manual';
 export type AccountLockDetail={reason:AccountLockReason;account:string|null;generation:number};
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 type Session={raw:string|null;scope:string|null;locked:boolean;generation:number};
@@ -10,10 +10,20 @@ const channels=new WeakMap<object,BroadcastChannel>();
 function channel():BroadcastChannel|null{
  if(typeof window==='undefined'||typeof window.BroadcastChannel!=='function')return null;
  let value=channels.get(window);
- if(!value){try{value=new window.BroadcastChannel('zigoals:account-lock:v1');value.onmessage=event=>{if(event.data==='lock'){try{lockAccount();}catch{/* Corrupt selectors already fail closed. */}}};channels.set(window,value);}catch{return null;}}
+ // Session U Part 5 (B2): Lock in one tab sends {type:'lock',reason:'manual'} and then the plain 'lock' that tabs of
+ // earlier builds understand; a tab of this build marks the lock as manual, so a remembered device does not reopen it.
+ if(!value){try{value=new window.BroadcastChannel('zigoals:account-lock:v1');value.onmessage=event=>{const data=event.data as unknown;if(data==='lock'){try{lockAccount();}catch{/* Corrupt selectors already fail closed. */}}else if(data&&typeof data==='object'&&(data as {type?:unknown}).type==='lock'&&(data as {reason?:unknown}).reason==='manual'){try{lockAccount('manual');}catch{/* Corrupt selectors already fail closed. */}}};channels.set(window,value);}catch{return null;}}
  return value;
 }
 function lockOtherTabs(){try{channel()?.postMessage('lock');}catch{/* Server account fences still reject a stale account request. */}}
+/**
+ * Session U Part 5 (B2, FINDINGS Q-SYNC-02): Lock locks this tab at once, as before, and then every other tab of this
+ * browser: a manual lock first (so a remembered device does not reopen them), then the plain 'lock' for older tabs.
+ */
+export function lockEveryTab():void{
+ lockAccount('manual');
+ try{const all=channel();all?.postMessage({type:'lock',reason:'manual'});all?.postMessage('lock');}catch{/* Server account fences still reject a stale account request. */}
+}
 function session():Session{
  if(typeof window==='undefined')return {raw:null,scope:null,locked:true,generation:0};
  channel();

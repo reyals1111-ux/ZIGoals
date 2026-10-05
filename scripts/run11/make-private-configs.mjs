@@ -13,7 +13,7 @@ import {randomBytes} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import JSON5 from 'json5';
-import {CONFIGS,ADMIN_CONFIG,privatePath,privateFileProblems,validatePrivateCopies,validateAdminConfig,lifecycleTargetProblems} from './activation-check.mjs';
+import {CONFIGS,ADMIN_CONFIG,privatePath,privateFileProblems,validatePrivateCopies,validateAdminConfig,lifecycleTargetProblems,syncTargetProblems} from './activation-check.mjs';
 
 const FLAGS=['--auth-ref','--workers-subdomain','--app-origin','--name-prefix','--market-account-id','--market-policy-file'];
 const USAGE='Usage: node scripts/run11/make-private-configs.mjs '+FLAGS.map(f=>f+' <value>').join(' ')+'\n   or: node scripts/run11/make-private-configs.mjs --recovery-admin   (after Stage 4: the seventh, local-only config)'+'\n   or: node scripts/run11/make-private-configs.mjs --set-market-policy <policy file>   (Stage 6: MARKET_POLICY only)'+'\n   or: node scripts/run11/make-private-configs.mjs --set-food-user-agent "ZIGoals/<version> (<contact email>)"   (Stage 6: FOOD_USER_AGENT only)';
@@ -86,25 +86,25 @@ export function makePrivateConfigs(root,input){
  }catch(error){for(const target of written)try{unlinkSync(target);}catch{}throw error;}
  return Object.keys(CONFIGS).map(kind=>summary(kind,templates[kind],copies[kind]));
 }
-/** The seventh copy (ADR-007 option A): the local-only recovery admin config, bound to the private lifecycle Worker. */
-export function buildAdminCopy(template,lifecycleName){
+/** The seventh copy (ADR-007 option A): the local-only recovery admin config, bound to the private lifecycle Worker and
+ * (Session U Part 5, item 7) to the private sync Worker, whose PrivateVaultRecoveryAdmin entrypoint erase uses. */
+export function buildAdminCopy(template,lifecycleName,syncName){
  const copy=structuredClone(template);copy.name=lifecycleName.replace(/-lifecycle$/,'')+'-recovery-admin-local-only';
- copy.services=template.services.map(s=>({...s,service:lifecycleName}));return copy;
+ copy.services=template.services.map(s=>({...s,service:s.binding==='VAULT_ADMIN'?syncName:lifecycleName}));return copy;
 }
 /** Writes the recovery admin copy next to its template, from the existing Stage 4 lifecycle and private-sync copies. */
 export function makeAdminConfig(root){
  const lifecycle=privatePath(CONFIGS.lifecycle),sync=privatePath(CONFIGS.private),path=privatePath(ADMIN_CONFIG),target=resolve(root,path);
  const problems=[lifecycle,sync].flatMap(p=>privateFileProblems(root,p).map(x=>p+': '+x));
  if(problems.length)throw Error('Generate the six Stage 4 private configs first; nothing written:\n'+problems.join('\n'));
- const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),l=read(lifecycle),template=read(ADMIN_CONFIG),copy=buildAdminCopy(template,l.name);
- const errors=[...lifecycleTargetProblems(l),...validateAdminConfig(copy,template,l.name,{privateCopy:true})];
- if(!read(sync).services?.some(s=>s.binding==='LIFECYCLE'&&s.service===l.name&&s.entrypoint==='LifecycleService'))errors.push('recovery-admin: private sync must bind the same lifecycle Worker.');
+ const read=p=>JSON5.parse(readFileSync(resolve(root,p),'utf8')),l=read(lifecycle),s=read(sync),template=read(ADMIN_CONFIG),copy=buildAdminCopy(template,l.name,s.name);
+ const errors=[...lifecycleTargetProblems(l),...syncTargetProblems(s,l.name),...validateAdminConfig(copy,template,l.name,{privateCopy:true,syncName:s.name})];
  if(errors.length)throw Error(errors.join('\n'));
- if(existsSync(target))throw Error('Refusing to overwrite the existing recovery admin config: '+path);
+ if(existsSync(target))throw Error('Refusing to overwrite the existing recovery admin config: '+path+'. A copy made before Session U has one binding: move it out of the checkout first, then run this again (docs/run11/OWNER_RECOVERY_ADMIN.md).');
  if(spawnSync('git',['check-ignore','-q',target],{cwd:root}).status!==0)throw Error('git would not ignore '+path+'; nothing written.');
  writeFileSync(target,JSON.stringify(copy,null,2)+'\n',{flag:'wx',mode:0o600});
  try{chmodSync(target,0o600);const left=privateFileProblems(root,path);if(left.length)throw Error(path+': '+left.join(', '));}catch(error){try{unlinkSync(target);}catch{}throw error;}
- return `${path}: name ${template.name} → ${copy.name}; services ADMIN→${l.name} (LifecycleRecoveryAdmin, remote)`;
+ return `${path}: name ${template.name} → ${copy.name}; services ADMIN→${l.name} (LifecycleRecoveryAdmin, remote), VAULT_ADMIN→${s.name} (PrivateVaultRecoveryAdmin, remote)`;
 }
 // ---- Stage 6 update modes ----
 // A JSONC reader that only locates members: double-quoted keys and strings, // and /* */ comments, trailing

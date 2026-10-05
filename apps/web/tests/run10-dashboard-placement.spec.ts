@@ -1,5 +1,6 @@
 import {expect,test} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
+import {openTodayWidgets} from './phone-nav';
 
 test('widget insertion, rail placement and encrypted layout recovery keep one binding',async({page})=>{
  const original=presetSettings('balanced');
@@ -21,6 +22,7 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await card.getByRole('button',{name:'Move to rail'}).click();
  await expect(page.locator('.today-rail > .placed-module').filter({has:card})).toBeVisible();
  await page.reload();
+ await openTodayWidgets(page);
  await expect(page.locator('.today-rail > .placed-module').filter({has:card})).toHaveCount(1);
  await expect(page.locator('.placed-module').filter({has:card})).toHaveCount(1);
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
@@ -56,6 +58,7 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await vault.getByRole('button',{name:'Restore selected module'}).click();
  await expect(vault).toContainText('Selected module restored');
  await page.goto('/app');
+ await openTodayWidgets(page);
  await expect(page.locator('.today-rail > .placed-module').filter({has:card})).toHaveCount(1);
  await expect(page.locator('.placed-module').filter({has:card})).toHaveCount(1);
  await expect(page.getByRole('region',{name:'Your selected widgets'}).getByRole('link',{name:/My water/})).toHaveCount(1);

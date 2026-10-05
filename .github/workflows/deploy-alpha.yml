@@ -1,5 +1,5 @@
 name: Manual Alpha deployment
-run-name: Alpha ${{ inputs.expected_commit }} approved by ${{ github.actor }}
+run-name: Alpha ${{ inputs.expected_commit }} dispatched by ${{ github.actor }}
 
 # Deliberately no push, pull_request, workflow_run, workflow_call or schedule.
 on:
@@ -45,8 +45,10 @@ jobs:
         run: |
           test "$GITHUB_EVENT_NAME" = workflow_dispatch
           test "$GITHUB_REPOSITORY" = reyals1111-ux/ZIGoals
-          test "$GITHUB_ACTOR" = reyals1111-ux
-          test "$GITHUB_TRIGGERING_ACTOR" = reyals1111-ux
+          # Session U Part 7: the owner, or exactly the Claude GitHub App's bot (docs/deployment/AGENT_DISPATCH.md);
+          # the alpha approval below stays the owner's alone.
+          test "$GITHUB_ACTOR" = reyals1111-ux || test "$GITHUB_ACTOR" = 'claude[bot]'
+          test "$GITHUB_TRIGGERING_ACTOR" = "$GITHUB_ACTOR"
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$GITHUB_REF" = refs/heads/main
           test "$OWNER_APPROVAL" = true
@@ -83,7 +85,9 @@ jobs:
         with:
           node-version: "24.19.0"
           package-manager-cache: false
-      - run: npm install --global pnpm@11.19.0
+      # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, refused unless its bytes match the registry's sha512 for
+      # pnpm 11.19.0 (the same pin as ci.yml); package.json keeps "pnpm@11.19.0".
+      - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
       - name: Verify exact main before building
         env:
           GH_TOKEN: ${{ github.token }}
@@ -141,7 +145,9 @@ jobs:
         with:
           node-version: "24.19.0"
           package-manager-cache: false
-      - run: npm install --global pnpm@11.19.0
+      # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, refused unless its bytes match the registry's sha512 for
+      # pnpm 11.19.0 (the same pin as ci.yml); package.json keeps "pnpm@11.19.0".
+      - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
       - name: Verify exact main after owner approval
         env:
           GH_TOKEN: ${{ github.token }}

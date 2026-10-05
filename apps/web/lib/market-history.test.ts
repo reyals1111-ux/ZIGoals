@@ -28,7 +28,7 @@ it('requires a server key, suppresses provider details and never requests RWA hi
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).history({...request,marketRef:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'}})).rejects.toThrow(/local/i);expect(fetcher).not.toHaveBeenCalled();
  await expect(createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now}).history(request)).rejects.toThrow('CoinGecko market data unavailable.');
  const [url,init]=fetcher.mock.calls[0]! as unknown as [string,RequestInit];expect(url).toBe('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=90&precision=full');
- expect(init).toMatchObject({credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',headers:{Accept:'application/json','x-cg-demo-api-key':'fixture-key'}});expect(init.body).toBeUndefined();
+ expect(init).toMatchObject({credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',headers:{Accept:'application/json','User-Agent':'ZIGoals/1.0 (+https://zigoals.app)','x-cg-demo-api-key':'fixture-key'}});expect(init.body).toBeUndefined();
 });
 it('shares quote and history admission instead of multiplying the provider quota',async()=>{
  let calls=0;const fetcher:typeof fetch=async()=>{calls++;return new Response(sample, {headers:{"Content-Type":"application/json"}});};const provider=createCoinGeckoProvider({key:()=> 'fixture-key',fetcher,clock:()=>now});

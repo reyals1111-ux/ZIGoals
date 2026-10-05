@@ -10,7 +10,7 @@ import {presetSettings} from '../dashboard-settings';
 // older build refuses, what this one reads unchanged and what nothing writes yet. A fixture like power-user-fixture.ts:
 // nothing in the app imports it.
 export const FIXTURE_AT='2026-09-08T12:00:00.000Z';
-const HABIT_ID='c3a1e5d2-7b64-4f0a-9c3e-1d2f3a4b5c6d',HEALTH_GOAL_ID='8f0f2a62-6d0b-4c53-9b6d-2c6e0c1a7a11';
+export const HABIT_ID='c3a1e5d2-7b64-4f0a-9c3e-1d2f3a4b5c6d',HEALTH_GOAL_ID='8f0f2a62-6d0b-4c53-9b6d-2c6e0c1a7a11';
 export const MONTHLY_PLAN:ContributionPlan={amount:'50000',asset:'EUR',decimals:2,cadence:'monthly',nextDate:'2026-10-15',active:true};
 const goal=(plan:ContributionPlan)=>privateGoalSchema.parse({id:'1',name:'Holiday',type:'VALUE',status:'active',asset:'EUR',denom:'EUR',decimals:2,target:'600000',notes:'',createdAt:'2026-09-20T12:00:00.000Z',milestones:[],plan});
 
@@ -37,6 +37,13 @@ export function healthV1(){return {...createEmptyHealth(),weights:[{id:'health_f
 export const FASTING_SESSION={id:'fast-2026-09-07',startedAt:'2026-09-07T19:00:00.000Z',endedAt:'2026-09-08T11:00:00.000Z',targetHours:16,timeZone:'Europe/Brussels',habitId:HABIT_ID,stoppedBy:'person' as const};
 /** Health v2: the v1 twin plus one fasting session. Nothing writes it in R1. */
 export function healthV2(){return {...healthV1(),schemaVersion:2 as const,fasting:{version:1 as const,sessions:[FASTING_SESSION]}};}
+/** One automatic check-in marker (PR 3's H7), as Health v3 carries it with its link. */
+export const AUTO_CHECK_IN={habitId:HABIT_ID,date:'2026-09-07',healthDate:'2026-09-07',measure:'water' as const,value:2100,appliedAt:FIXTURE_AT};
+/**
+ * Health v3 (Session U Part 9): the v2 twin plus a health goal, a habit's Health link with one automatic check-in, and a
+ * weekly review's Health note, each byte-for-byte its device key's record. Builds #27/#28 (R1) refuse it.
+ */
+export function healthV3(){return {...healthV2(),schemaVersion:3 as const,healthGoals:{version:1 as const,goals:[HEALTH_GOAL]},habitLinks:{version:1 as const,links:{[HABIT_ID]:HABIT_HEALTH_LINK},applied:[AUTO_CHECK_IN]},reviewNotes:{version:1 as const,notes:{'2026-09-28':'Slept better.'}}};}
 
 /** Settings v1: the balanced preset, exactly what today's build writes. */
 export function settingsV1(){return presetSettings('balanced');}

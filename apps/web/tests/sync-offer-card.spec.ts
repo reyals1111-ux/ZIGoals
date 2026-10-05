@@ -52,7 +52,7 @@ test('after sign-in the offer explains sync, keeps Health as its own unticked ch
   await signIn(page);
   const offer = card(page);
   await expect(offer).toBeVisible();
-  await expect(offer).toContainText('end-to-end encrypted on this device before it leaves; nobody else can read it.');
+  await expect(offer).toContainText('end-to-end encrypted on this device before it leaves; nobody else can read it, as long as the app code we serve has not been tampered with. A device you choose to remember can open it too.');
   await expect(offer).toContainText('No backups or transfers by hand.');
   await expect(offer).toContainText('a password manager is ideal');
   await expect(offer).toContainText('only the recovery secret unlocks your data');

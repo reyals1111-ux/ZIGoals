@@ -4,7 +4,7 @@
 A plain clock for people who already fast: start, see the elapsed time against a target they chose, stop. It keeps a short history of hours and targets, and can add the hours to a duration habit. It does not count calories, keep streaks, rank fasts or praise a longer one, and it says clearly who should not fast without medical advice.
 
 ## Owner principles applied
-Health safety (owner decision P5): presets 12:12, 14:10 and 16:8 only; a custom target capped at 18 hours; a session stopped automatically at 24 hours with a plain note; no streaks, no "longest fast", no calories; the safety note always visible; copy never praises a longer fast; eating-disorder care in the note and in the absence of any comparison. Honest numbers (the clock only, from the device's time; a clock change is shown, not hidden). Private by design (device-only until the write switch). Never a chore (one tap to start, one to stop).
+Health safety (owner decision P5): presets 12:12, 14:10 and 16:8 only; a custom target capped at 18 hours; a session stopped automatically at 24 hours with a plain note; no streaks, no "longest fast", no calories; the safety note always visible; copy never praises a longer fast; eating-disorder care in the note and in the absence of any comparison. Honest numbers (the clock only, from the device's time; a clock change is shown, not hidden). Private by design (device-only until the write switch; since Session U Part 9 kept in Health v2 and synced only with Health sync, docs/product/SYNC_HOMES.md). Never a chore (one tap to start, one to stop).
 
 ## Scope in PR 3
 - `lib/fasting/`: schema, store, pure session engine (start, stop, elapsed, auto-stop, history), the optional linked duration habit.

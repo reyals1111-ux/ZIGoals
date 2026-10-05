@@ -6,6 +6,8 @@ import {ACCOUNT_CHANGE,activateAccount,clearAccountSession,getAccountGeneration,
 import {isShowcase} from '../lib/showcase-storage';
 type Props={onAuthenticated?:(accountId:string)=>void|Promise<void>;onSignout?:()=>void|Promise<void>;onVerifying?:(active:boolean)=>void};
 const identity=z.object({signedIn:z.literal(true),accountId:z.uuid()});
+/** Session U Part 5 (FIX_PLAN A2): the relay gives every admitted code request one answer, so this reads the same for every address. */
+export const CODE_SENT='If this address has an invite, a code is on its way. Check your inbox and spam folder. You can request another in 60 seconds.';
 export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
  const [deviceLabel,setDeviceLabel]=useState('This browser'),[email,setEmail]=useState(''),[code,setCode]=useState(''),[sentTo,setSentTo]=useState(''),[cooldown,setCooldown]=useState(0),[busy,setBusy]=useState(true),[status,setStatus]=useState<'checking'|'signed-out'|'signed-in'|'unavailable'>('checking'),[message,setMessage]=useState('Checking account availability…'),[locked,setLocked]=useState(true),[showcase,setShowcase]=useState(false);
  const pending=useRef<AbortController|null>(null),callbacks=useRef({onAuthenticated,onSignout,onVerifying});
@@ -13,7 +15,8 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
  useEffect(()=>{if(cooldown<=0)return;const timer=setTimeout(()=>setCooldown(value=>Math.max(0,value-1)),1000);return()=>clearTimeout(timer);},[cooldown]);
  const refreshSelection=useCallback(()=>{try{setLocked(isAccountLocked());setShowcase(isShowcase());}catch{setLocked(true);}},[]);
  async function response(res:Response){const text=await res.text();if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);if(res.status===503){setStatus('unavailable');throw Error('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');}if(!res.ok){
-   // Two refusals carry their own words from the relay (lib/server/private-account.ts: invite-only, email sign-in off); every other message is this panel's.
+   // Two refusals carry their own words from a relay before Session U (it named invite-only and email sign-in off; the
+   // current relay answers every code request the same way); every other message is this panel's.
    if(res.status===403&&data&&typeof data==='object'&&(data.error==='INVITE_ONLY'||data.error==='EMAIL_UNAVAILABLE')&&typeof data.message==='string'&&data.message.length<=300)throw Error(data.message);
    throw Error(res.status===429?'Please wait before requesting another code.':res.status===401?'Your session expired. Sign in again to continue.':'Account access was not confirmed. Check the code and try again.');}
   return data;}
@@ -41,7 +44,7 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
    if(action==='verify')callbacks.current.onVerifying?.(true);
    const generation=getAccountGeneration();const res=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},cache:'no-store',signal:controller.signal,body:JSON.stringify(action==='send'?{action,email:address}:{action,email:address,code,label:deviceLabel.trim()||'This browser'})});
    if(res.status===429)setCooldown(60);const data=await response(res);if(controller.signal.aborted||generation!==getAccountGeneration())return;
-   if(action==='send'){setSentTo(address);setCooldown(60);setMessage('If this address can receive a code, check your inbox. You can request another in 60 seconds.');return;}
+   if(action==='send'){setSentTo(address);setCooldown(60);setMessage(CODE_SENT);return;}
    const verified=identity.parse(data);activateAccount(verified.accountId);setCode('');setStatus('signed-in');setMessage('Account verified. Unlock your encrypted vault below to access account records.');await callbacks.current.onAuthenticated?.(verified.accountId);refreshSelection();
   }catch(error){if(!controller.signal.aborted)setMessage(error instanceof Error?error.message:'Account access was not confirmed.');}
   finally{if(action==='verify')callbacks.current.onVerifying?.(false);if(pending.current===controller)setBusy(false);}

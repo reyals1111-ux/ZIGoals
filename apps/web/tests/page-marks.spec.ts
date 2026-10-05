@@ -81,9 +81,14 @@ test('changing pages crossfades the marks once with motion on, and swaps them at
   if(setting==='reduced motion')await page.emulateMedia({reducedMotion:'reduce'});else{await page.emulateMedia({reducedMotion:'no-preference'});await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));}
   await page.goto('/app');
   await page.evaluate(()=>{const seen={phases:[] as string[]};Object.assign(window,{markSeen:seen});new MutationObserver(records=>{for(const r of records)for(const n of r.addedNodes)if(n instanceof HTMLElement&&n.matches('.sidebar-mark-layer'))seen.phases.push(`${n.dataset.mark}:${n.dataset.phase??'static'}`);}).observe(document.querySelector('.sidebar-destination')!,{subtree:true,childList:true});});
+  // Session U Part 3: a click into Health is now a fresh page (its own camera permission), so the in-page swap is checked
+  // on Wealth, the other page whose mark differs from Today's; Health's fresh page renders its one mark, nothing fading.
+  await nav.getByRole('link',{name:'Wealth',exact:true}).click();await page.waitForURL('**/app/wealth');
+  await expect(page.locator('.sidebar-mark')).toHaveAttribute('data-mark','wealth-bull');await page.waitForTimeout(400);
+  expect(await page.evaluate(()=>(window as unknown as {markSeen:{phases:string[]}}).markSeen.phases),setting).toEqual(['wealth-bull:static']);
   await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
-  await expect(page.locator('.sidebar-mark')).toHaveAttribute('data-mark','health-heart');await page.waitForTimeout(400);
-  expect(await page.evaluate(()=>(window as unknown as {markSeen:{phases:string[]}}).markSeen.phases),setting).toEqual(['health-heart:static']);
+  await expect(page.locator('.sidebar-mark')).toHaveAttribute('data-mark','health-heart');
+  await expect(page.locator('.sidebar-mark-layer')).toHaveCount(1);
  }
 });
 

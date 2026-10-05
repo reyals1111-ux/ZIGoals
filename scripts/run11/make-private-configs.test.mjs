@@ -82,6 +82,11 @@ test.each([
  ['mismatched auth origin',c=>{c.app.vars.ZIGOALS_AUTH_ORIGIN='https://zyxwvutsrqponmlkjihg.supabase.co';}],
  ['credential var',c=>{c.market.vars.COINGECKO_DEMO_API_KEY='not-a-real-key';}],
  ['serving lifecycle',c=>{c.lifecycle.vars.RECOVERY_MODE='serve';}],
+ // Session U Part 5: the fixture clock never reaches an owner config (private sync's sweep, food, market).
+ ['test clock on private sync',c=>{c.private.vars.ISOLATED_FIXTURE='true';}],
+ ['test time on private sync',c=>{c.private.vars.LOCAL_TEST_NOW='1791158400000';}],
+ ['test alarm spacing on food',c=>{c.food.vars={...c.food.vars,LOCAL_SWEEP_MS:'200'};}],
+ ['test clock on the market coordinator',c=>{c.market.vars.ISOLATED_FIXTURE='true';}],
 ])('the private check rejects a %s',async(_,mutate)=>{
  const {root,input}=await sandbox();makePrivateConfigs(root,input);
  const copies=await load(root,privatePath),templates=await load(root,p=>p);mutate(copies);

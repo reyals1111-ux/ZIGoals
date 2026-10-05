@@ -2,6 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 import {applyLocal,initialLedger} from '../lib/local-ledger';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
 import {nativeZigIdentity} from '../lib/market-quotes';
+import {safeScreenshot} from './safe-screenshot';
 const quote=()=>({base:nativeZigIdentity,currency:'USD',price:'43',priceDecimals:3,source:'CoinGecko',providerAssetId:'zignaly',observedAt:new Date().toISOString(),verification:'VERIFIED'});
 async function seed(page:Page){
  await page.route('**/api/market-quotes*',route=>route.fulfill({json:{quote:quote()}}));
@@ -11,7 +12,7 @@ async function seed(page:Page){
  await page.evaluate(({data,q,ledger,metadata})=>{localStorage.setItem('zigoals:platform:v1',JSON.stringify(data));localStorage.setItem('zigoals:public-market-quotes:v1',JSON.stringify(q));localStorage.setItem('zigoals:local-ledger:v1',JSON.stringify(ledger));localStorage.setItem('zigoals:metadata:v1:local-simulation:local-demo-user',JSON.stringify(metadata));},{data,q:quote(),ledger:applyLocal(applyLocal(initialLedger(),{kind:'create'},'2026-09-17T00:00:00.000Z'),{kind:'deposit',id:'1',amount:'100000000000000000000'},'2026-09-17T00:00:00.000Z'),metadata:{schemaVersion:1,chainId:'local-simulation',walletAddress:'local-demo-user',goals:{'1':{name:'Kyoto in spring',category:'Travel',targetValue:'1200',currency:'ZIG',targetDate:'2027-09-18',startingAmount:'0',monthlyContribution:'100',riskPreference:'Conservative',liquidityPreference:'Anytime',deadlineFlexible:false,notes:''}}}});
  await page.reload();await page.emulateMedia({reducedMotion:'reduce'});
 }
-async function shot(page:Page,name:string){if(process.env.OWNER_CAPTURE==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`../../docs/verification/run8-1-owner/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}}
+async function shot(page:Page,name:string){if(process.env.OWNER_CAPTURE==='1'){await page.evaluate(()=>window.scrollTo(0,0));await safeScreenshot(page,{path:`../../docs/verification/run8-1-owner/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}}
 test('one circular family, Today active count and a chosen Goal share exact USD valuation',async({page})=>{
  await page.setViewportSize({width:1440,height:1000});await seed(page);await expect(page.locator('.unified-goal-card')).toHaveCount(4);await expect(page.locator('.unified-goal-card .goal-progress-ring')).toHaveCount(4);await expect(page.locator('.unified-goal-card progress')).toHaveCount(0);
  const value=page.locator('[data-goal-key="private:82"]');await expect(value).toContainText('$11,309');await expect(value).toContainText('$500,000');await expect(value.getByRole('progressbar',{name:'Financial Freedom progress'})).toHaveAttribute('aria-valuenow','2.26');await shot(page,'01-unified-goals');

@@ -50,7 +50,7 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
         let changed = false;
         try {
           await updateHabits(data => { const next = applyAutoCompletion(data, item, new Date()); changed = next !== data; return next; });
-          if (changed) updateLinks(current => recordAutoCheckIn(current, autoCheckInMarker(item, new Date())));
+          if (changed) await updateLinks(current => recordAutoCheckIn(current, autoCheckInMarker(item, new Date())));
           setNotice(item.habitId, null);
         } catch (error) {
           setNotice(item.habitId, `This habit could not be ticked off automatically. ${error instanceof Error ? error.message : 'Try again later.'}`);

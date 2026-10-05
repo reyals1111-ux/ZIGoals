@@ -16,6 +16,11 @@ async function showcase(page:Page){
 const layout=(page:Page)=>page.evaluate(()=>{const still=document.createElement('style');still.textContent='*,*::before,*::after{transform:none!important;translate:none!important;scale:none!important;rotate:none!important}';document.head.append(still);const boxes=[...document.querySelectorAll('main h1,main details,main strong,main section,main article,.app-sidebar .brand-logo,.app-nav a')].map(e=>{const r=e.getBoundingClientRect();return [e.tagName,r.left+scrollX,r.top+scrollY,r.width,r.height];}).filter(([,,y])=>(y as number)<innerHeight).map(b=>b.map(v=>typeof v==='number'?v.toFixed(2):v).join(':'));still.remove();return boxes;});
 
 test('a newly selected page arrives once: nav pop and light sweep, title sweep, card settle, figure shine, and no layout change',async({page},info)=>{
+ // Session U Part 3: a click into Health is a full page load unless this document already allows the camera (or an
+ // account is open), so Health's own camera permission applies (lib/health-navigation.ts; the full load is covered by
+ // health-camera-navigation.spec.ts). This spec is about arrivals within one document, so its documents report the
+ // camera as allowed and Health stays a soft navigation, as it does for an open account.
+ await page.addInitScript(()=>Object.defineProperty(Document.prototype,'permissionsPolicy',{configurable:true,get:()=>({allowsFeature:(feature:string)=>feature==='camera'})}));
  await showcase(page);
  const nav=page.getByRole('navigation',{name:'Main navigation'}),habits=nav.getByRole('link',{name:'Habits',exact:true});
  await habits.click();await page.waitForURL('**/app/habits');

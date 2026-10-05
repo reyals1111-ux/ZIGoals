@@ -4,6 +4,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp,cp} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {doProbe} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url)),{build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
 const account='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',family='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',operation='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 async function start(persist,mode='serve',anchor,name='lifecycle'){
@@ -48,7 +49,7 @@ test('local simultaneous vault and lifecycle rollback remains closed until exter
   await r.call('/v1/sessions',{action:'register',label:'Pre-deletion fixture'});const vault=await createVault();expect((await r.call('/v1/vault',{protocol:1,vault:vault.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:vault.manifest})).status).toBe(200);
   await r.mf.dispose();await cp(r.persist,backup,{recursive:true});r=await privateRuntime(r.persist);
   expect((await r.call('/v1/account',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'})).status).toBe(200);
-  const ns=await r.mf.getDurableObjectNamespace('LIFECYCLES','run11-lifecycle');saved=await(await ns.get(ns.idFromName(account)).fetch('https://internal/admin/export',{headers:{'x-verified-account':account,'x-lifecycle-recovery-admin':'1'}})).json();expect(saved.checkpoint.lifecycle.deleted).toBe(true);
+  const ns=await doProbe(r.mf);saved=await(await ns.get(ns.idFromName(account)).fetch('https://internal/admin/export',{headers:{'x-verified-account':account,'x-lifecycle-recovery-admin':'1'}})).json();expect(saved.checkpoint.lifecycle.deleted).toBe(true);
  }finally{await r.mf.dispose();}
  let recovery=await createPrivateMiniflare({persist:backup,recoveryMode:'reconcile'});
  try{expect((await recovery.dispatchFetch('https://sync.test/v1/vault',{headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('fixture'),'x-zigoals-account':account}})).status).toBe(503);}finally{await recovery.dispose();}
