@@ -78,7 +78,7 @@ const nonPublicLandingFile = (name) =>
 
 /**
  * Session U Part 6 (FIX_PLAN F4): in a git checkout, every file under landing/ must be tracked, so a deploy publishes only
- * reviewed bytes. Untracked folders are listed once. Returns null outside a checkout of this root (the test fixtures),
+ * reviewed bytes. Untracked folders are listed once; empty ones (nothing to upload) are not. Returns null outside a checkout of this root (the test fixtures),
  * where there is nothing to compare against.
  */
 export function untrackedLandingFiles(root) {
@@ -89,7 +89,7 @@ export function untrackedLandingFiles(root) {
     return null;
   }
   if (realpathSync(top) !== realpathSync(root)) return null;
-  return execFileSync("git", ["-C", root, "ls-files", "--others", "--directory", "-z", "--", "landing"], { encoding: "utf8" })
+  return execFileSync("git", ["-C", root, "ls-files", "--others", "--directory", "--no-empty-directory", "-z", "--", "landing"], { encoding: "utf8" })
     .split("\0")
     .filter(Boolean)
     .sort();

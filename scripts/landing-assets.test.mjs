@@ -73,7 +73,8 @@ test("in a git checkout, an untracked file under landing/ fails the check; outsi
   git("init", "-q");
   mkdirSync(join(repo, "landing/assets"), { recursive: true });
   writeFileSync(join(repo, "landing/index.html"), "<!doctype html>");
-  git("add", "landing/index.html");
+  writeFileSync(join(repo, "landing/assets/kept.webp"), "x");
+  git("add", "landing/index.html", "landing/assets/kept.webp");
   git("-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid", "commit", "-q", "-m", "fixture");
   expect(untrackedLandingFiles(repo)).toEqual([]);
   writeFileSync(join(repo, "landing/assets/draft.webp"), "x");
