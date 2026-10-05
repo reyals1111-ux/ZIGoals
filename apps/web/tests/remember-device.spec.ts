@@ -61,7 +61,7 @@ test('a remembered device opens again without the secret after a reload and in a
   const vault = await fixtureAccount(page);
   await page.goto('/app/settings');
   await unlock(page, vault.recovery, true);
-  await expect(panel(page)).toContainText('This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking also forgets this device.');
+  await expect(panel(page)).toContainText('This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking locks every tab of this browser and forgets this device.');
   await expect(panel(page)).toContainText('On this remembered device the vault stays open until you lock it');
   // A reload asks for nothing.
   await page.reload();
@@ -162,4 +162,28 @@ test('B1: a version 1 record from an earlier build opens once more, then is vers
   // And it keeps opening.
   await page.reload();
   await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
+});
+
+// Session U Part 5 (B2, FINDINGS Q-SYNC-02): Lock locks every tab of this browser, and a remembered device reopens none.
+test('B2: Lock in one tab locks every tab of this browser, and none of them reopens', async ({page, context}) => {
+  const vault = await fixtureAccount(page);
+  await page.goto('/app/settings');
+  await unlock(page, vault.recovery, true);
+  const second = await context.newPage();
+  await fixtureAccount(second, vault);
+  await second.goto('/app/settings');
+  await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
+  // Settings in a new tab locks the other tabs, as before; the first tab reopens from the remembered device when used.
+  await page.bringToFront();
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
+  // Lock in the first tab: the second tab locks too, and focusing it does not reopen it.
+  await panel(page).getByRole('button', {name: 'Lock account vault', exact: true}).click();
+  await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toHaveCount(0);
+  await second.bringToFront();
+  await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(panel(second).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
+  await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toHaveCount(0);
+  await expect.poll(() => readRecord(second)).toBeNull();
+  await second.close();
 });

@@ -216,6 +216,17 @@ describe('version 2 records (B1)',()=>{
  });
 });
 
+// Session U Part 5 (B2, FINDINGS Q-SYNC-02): Lock in another tab of this browser arrives as a manual lock.
+test('Lock in another tab of this browser is a manual lock here: the remembered device does not reopen this tab',async()=>{
+ await remembered();await reload(false);expect(isAccountLocked()).toBe(false);
+ // An older tab's plain lock: this tab reopens from the remembered device when it is used again, as before.
+ await act(async()=>{lockAccount();});await settle();expect(isAccountLocked()).toBe(true);
+ await act(async()=>{window.dispatchEvent(new Event('focus'));});await settle();expect(isAccountLocked()).toBe(false);
+ // Lock in a tab of this build: manual here too, so focus does not reopen it.
+ await act(async()=>{lockAccount('manual');});await settle();expect(isAccountLocked()).toBe(true);
+ await act(async()=>{window.dispatchEvent(new Event('focus'));});await settle();expect(isAccountLocked()).toBe(true);
+});
+
 test('Showcase: no device database is read and no account request is made',async()=>{
  sessionStorage.setItem('zigoals:showcase:active:v1',JSON.stringify({version:1,generation:'fictional',day:'2026-10-02'}));
  const spy=vi.spyOn(indexedDB,'databases');

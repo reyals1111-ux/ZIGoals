@@ -17,7 +17,7 @@ import {planLocalAttach,assertAttachSourceUnchanged,type AttachPlan} from '../li
 import {encryptPendingRecovery} from '../lib/vault/pending-recovery';
 import {AccountDevices} from './account-devices';
 import {AccountAccess} from './account-access';
-import {ACCOUNT_CHANGE,adoptAccount,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,unlockAccount,type AccountLockDetail} from '../lib/account-session';
+import {ACCOUNT_CHANGE,adoptAccount,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,lockEveryTab,unlockAccount,type AccountLockDetail} from '../lib/account-session';
 import {getAppStorage,isShowcase} from '../lib/showcase-storage';
 import {withStorageLock} from '../lib/storage';
 import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceRoot,manifestDigest,manifestSchema,deviceCommitment,deviceCommitmentMatches,sealDigest,type VaultManifest,type SealedRoot} from '../lib/vault/crypto';
@@ -239,7 +239,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  /** The account changed on another device (vault, section or account deleted there): this tab's own record goes, if still stored. */
  function dropStale(){const selected=session.current,device=selected?.device;if(!selected||!device)return;selected.device=null;setRemembered(false);setDeviceNote('This device is no longer remembered because the account changed on another device. Unlocking again needs the recovery secret.');void dropDevice(device).catch(()=>{});}
  /** "Lock account vault" locks this tab and forgets this device (M1 d): a lock that a reload undoes is not a lock. */
- function lockNow(){manualLock.current=true;setRemembered(false);lockAccount();void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
+ // Session U Part 5 (B2): every tab of this browser locks too (lockEveryTab), before the device is forgotten, and even if forgetting fails.
+ function lockNow(){manualLock.current=true;setRemembered(false);lockEveryTab();void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
  /** "Forget this device" deletes the remembered material at once; this tab stays open until it is locked or reloaded (M1 f). */
  async function forgetDevice(){try{await forgetDevices();if(session.current)session.current.device=null;setRemembered(false);setDeviceNote('This device is no longer remembered. Unlocking again needs the recovery secret.');}catch{setDeviceNote(NOT_FORGOTTEN);}}
  const registerAccess=useCallback(()=>{access.current++;return()=>{access.current--;};},[]);
@@ -269,7 +270,10 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  useEffect(()=>{syncRef.current=()=>sync(true);reopenRef.current=reopen;});
  useEffect(()=>{
   let debounce:ReturnType<typeof setTimeout>|undefined;
-  const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){
+  const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();
+   // Session U Part 5 (B2): Lock in another tab of this browser is a manual lock here too: no reopen from a remembered device.
+   if(detail?.reason==='manual')manualLock.current=true;
+   if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){
    // A revoked session, another account or a deleted account makes a remembered device stale; a routine token expiry does not:
    // the device then reopens at once, refreshing the token as Settings does.
    const device=session.current?.device??null,code=accessChanged?takeAccessDenial(detail!.account):null,expired=accessChanged&&!!device&&code==='SIGN_IN_REQUIRED';
@@ -318,7 +322,7 @@ export function VaultSyncControls(){
  {c.generated&&<div className="notice"><label>New vault recovery secret<input value={c.generated.recovery} readOnly autoComplete="off" spellCheck={false}/></label><p>Save this privately now. It is shown only while preparing this vault.</p><label className="checkbox"><input type="checkbox" checked={saved} onChange={e=>setSaved(e.target.checked)}/>I saved this vault recovery secret separately.</label>{rememberChoice('remember-new')}<button className="primary" disabled={!saved||c.busy} onClick={()=>void c.enroll(remembering)}>Confirm and create vault</button><button className="secondary" disabled={c.busy} onClick={c.cancel}>Cancel</button></div>}
  {c.manifest&&!c.opened&&<form onSubmit={e=>{e.preventDefault();const value=secret;setSecret('');void c.unlock(value,remembering);}}><label>Vault recovery secret<input type="password" autoComplete="off" value={secret} onChange={e=>setSecret(e.target.value)}/></label>{rememberChoice('remember')}<button className="primary" disabled={c.busy||!secret}>Unlock account vault</button></form>}
  {c.opened&&<div className="actions"><button className="primary" disabled={c.busy} onClick={()=>void c.sync()}>Sync now</button><button className="secondary" onClick={()=>{setSecret('');c.lockNow();}}>Lock account vault</button></div>}
- {c.remembered&&<div className="notice"><p>{c.opened?'This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking also forgets this device.':'This device is remembered: ZIGoals can open your account records here without the recovery secret.'}</p><button className="secondary" disabled={c.busy} onClick={()=>void c.forgetDevice()}>Forget this device</button></div>}
+ {c.remembered&&<div className="notice"><p>{c.opened?'This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking locks every tab of this browser and forgets this device.':'This device is remembered: ZIGoals can open your account records here without the recovery secret.'}</p><button className="secondary" disabled={c.busy} onClick={()=>void c.forgetDevice()}>Forget this device</button></div>}
  {c.deviceNote&&<p className="fine" aria-live="polite">{c.deviceNote}</p>}
  {c.opened&&<ConflictReviewControls busy={c.busy} review={c.conflictReview} prepare={c.prepareConflict} confirm={c.confirmConflict} cancel={c.cancelConflict}/>}
  {c.opened&&<ForwardRecoveryControls busy={c.busy} review={c.forwardReview} prepare={c.prepareForward} confirm={c.confirmForward} cancel={c.cancelForward}/>}
