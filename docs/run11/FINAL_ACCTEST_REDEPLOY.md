@@ -43,7 +43,8 @@ node scripts/run11/stage7-preflight.mjs            # read only: READY
 Run this from the checkout. It lists each Worker's sources that changed since the Stage 7 deploy:
 ```sh
 for w in "lifecycle:workers/private-sync/lifecycle.mjs" \
-         "private-sync:workers/private-sync/worker.mjs workers/private-sync/sessions.mjs workers/private-sync/rotation.mjs" \
+         "private-sync:workers/private-sync/worker.mjs workers/private-sync/sessions.mjs workers/private-sync/rotation.mjs workers/private-sync/portfolio.mjs" \
+         "push-reminders:workers/push-reminders/" \
          "food-lookup:workers/food-lookup/" \
          "auth-abuse:workers/auth-abuse/" \
          "market-coordinator:workers/market-coordinator/ apps/web/lib/server/ apps/web/lib/market-*.ts apps/web/lib/exact-market-json.ts apps/web/lib/provider-validation.ts apps/web/lib/json-media-type.ts" \
@@ -155,6 +156,44 @@ Record each in the recovery section of your STAGE8_ACCEPTANCE copy, with the wra
 pnpm --filter @zigoals/web exec wrangler logout
 ```
 Close the browser profile used for the dashboard. The private env file stays in `~/.config/zigoals/`.
+
+## Session U changes (PR #74, 2026-10-05)
+Session U changed four Workers and the local admin tool. Re-run step 2 at your release SHA; this is what to expect.
+
+| Worker | What changed (commits) | Must redeploy |
+|---|---|---|
+| private sync (`PrivateVault`, new `PrivateVaultRecoveryAdmin` entrypoint) | revoked sessions deleted 90 days after revocation, swept by the vault's alarm (`8ace5b0`); the owner-only erase entrypoint (`9e60016`); the opt-in Portfolio copy, `/v1/portfolio`, its own keyspace (Part 9, ADR-013) | **yes** |
+| market coordinator (`MarketAccount`, `QuoteService`) | `QuoteService /status` names when the policy period ends (`4b88a67`); the optional public share of the daily rows (`8b8059d`); the public daily cap on new price work (`43a05ca`) | **yes** (it serves the public Alpha too: check prices there afterwards) |
+| push reminders | only the four cited vendor hosts, never an explicit port or an IP address (`9ef5abd`) | **yes, if you activated it** (PUSH_ACTIVATION.md) |
+| lifecycle, food lookup, auth admission | nothing by Session U | only if your diff shows a change |
+| acceptance app (OpenNext) | Parts 2–9 | **yes**, last |
+| recovery admin (local, never deployed) | a second remote binding, to private sync, for "erase" (`9e60016`) | **regenerate the local copy** after private sync is deployed |
+
+**Order:** lifecycle (if changed), **private sync**, food lookup and auth admission (if changed), **market coordinator**,
+**push reminders** (if active), then **regenerate the admin copy** (`node scripts/run11/make-private-configs.mjs`, as in
+OWNER_RECOVERY_ADMIN.md, then `node scripts/run11/activation-check.mjs --admin`: PASS with the two-binding shape), and
+**the app last** (step 5).
+
+**Checks after:**
+- private sync: `deployments list` at 100% and the same secret names; there is nothing to curl (no routes). Stage 8 rows
+  6c, 13c, 13d, 15 and 15c exercise it.
+- market coordinator: `node scripts/verify-hosted-alpha.mjs` prints the policy window end and BTC/USD on the public Alpha.
+- the app on `accounts-test.zigoals.app` (step 6's curl): also `cross-origin-opener-policy: same-origin`, and on
+  `/app/health` a `permissions-policy` with `camera=(self)`.
+- the recovery rehearsal (step 7): "Erase an account" now also prints `vaultErased: true` at its serve step.
+
+**Before deploying to the public Alpha:** this PR turns on the new sync writes (`apps/web/lib/vault/sync-writes.ts`).
+Deploy it to `alpha.zigoals.app` on or after **2026-10-11** (the seven-day T4 gap after deploy #27), or set
+`SYNC_WRITES` to `false` first (docs/product/SYNC_HOMES.md, "The write switch").
+
+**Rollback, Session U specifics** (in addition to the rules below):
+- **App back to a build before Session U** (the acceptance app's Stage 7 version, or #28 on the public Alpha):
+  remembered devices ask for the recovery secret once, because older builds delete the new v2 remembered-device records
+  (fail-closed; ADR-008 addendum). A Health section that reached v3 is unreadable there until the roll-forward; its bytes
+  and recovery copies are kept, and the four device keys keep working on the older build. Never roll back below R1 (#27).
+- **Private sync back:** the Portfolio copy stays in its keyspace, unread and untouched (older code never lists it); the
+  account erase still removes it (it removes every key). Revoked-session records simply stop being swept.
+- **Market coordinator back:** the partition and the public cap disappear; `/status` answers "not reported" to newer apps.
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.

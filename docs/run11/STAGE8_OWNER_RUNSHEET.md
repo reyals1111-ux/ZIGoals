@@ -112,16 +112,28 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 
 **1b. Erase rehearsal (merged from FINAL_ACCTEST_REDEPLOY).**
 - **Do:** [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md), "Erase an account": steps 1–4 now, on the fictional rehearsal account; step 5 at the Stage 8 serve switch.
+- **Pass (Session U, Part 5 item 7):** at the serve step the command also prints `vaultErased: true` (the account's encrypted vault rows are gone, Portfolio copy included); before the serve switch it says the rows are not removed yet.
 - **Record:** pass or fail per step, the wrangler version and the commit.
 
 ## Part 2: sign-in with real email (Desktop A, Inbox 1) · about 25 min
 **2. A real code arrives (rows A1–A4, the provider's own part).**
 - **Do:** open the acceptance app, go to Settings → Account & sync, enter Inbox 1's address and choose "Send email code".
 - **Pass:**
+  - the panel says "If this address has an invite, a code is on its way. Check your inbox and spam folder. You can request another in 60 seconds." (Session U: the same answer for every address);
   - the email arrives from your verified sender;
   - it shows a code;
   - the button counts down from "(60s)".
 - **Record:** how long delivery took.
+
+**2b. An address without an invite (Session U, A1/A2).**
+- **Do:** request a code for an address you own that is not on the invite list.
+- **Pass:** exactly the same answer and countdown as row 2; no email arrives; Supabase → Authentication → Users shows no new user.
+- **Record:** pass or fail.
+
+**2c. When the email limit is reached (Session U, owner review change 6).**
+- **Do:** with Inbox 1, request codes (each after the countdown) until your Supabase email rate limit for the hour is used up (Authentication → Rate limits shows it); request one more.
+- **Pass:** that request shows the same answer as row 2 and no email arrives; Help → "I asked for a sign-in code and none arrived" says to wait, check the spam folder and try again later.
+- **Record:** pass or fail, and the limit you saw (a number only).
 
 **3. Wrong code (A1).**
 - **Do:** type `000000` and choose "Verify email code".
@@ -147,6 +159,11 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 **6b. Sign out everywhere (merged from FINAL_ACCTEST_REDEPLOY).**
 - **Do:** [OWNER_SIGN_OUT_EVERYWHERE.md](OWNER_SIGN_OUT_EVERYWHERE.md), once, with your own fictional test user.
 - **Record:** pass or fail, and the date.
+
+**6c. A revoke also ends the provider session (Session U, A3).**
+- **Do:** sign in with Inbox 1 in two browser profiles. In profile 1, Settings → Devices and sessions → "Revoke other sessions" and confirm. Then, in profile 2, open Settings.
+- **Pass:** profile 1 says "1 session(s) revoked. They were also signed out at the email provider."; profile 2 is signed out (it asks for an email code again).
+- **Record:** pass or fail per line.
 
 ## Part 3: turn on sync from the new offer (Desktop A, Inbox 1) · about 10 min
 **7. The sync offer.**
@@ -242,6 +259,16 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
   - after step 5 the phone asks for the secret: the old one is refused ("Unlock or integrity check failed"), and the new one works.
 - **Record:** pass or fail per line. Never either secret.
 
+**13c. A device remembered before the redeploy (Session U, B1).**
+- **Do:** only if the phone was remembered on the Stage 7 build: after the final redeploy, close and reopen the Home Screen app, then close and reopen it once more.
+- **Pass:** both times it opens without the secret (the old record is replaced by the new kind on the first open). If the first open asks for the secret once, record it: Safari could not keep the new kind of record, and that browser keeps the old one (owner decision in STATUS, Session U).
+- **Record:** pass or fail per open, and the iOS version.
+
+**13d. Lock locks every tab (Session U, B2).**
+- **Do:** on Desktop A, with the vault open and remembered, open Settings in two tabs. In tab 1 choose "Lock account vault". Look at tab 2, switch to another app and back, then reload tab 2.
+- **Pass:** tab 2 shows "Account records locked." and no longer says "This device is remembered"; it does not reopen on focus; after the reload it asks for the recovery secret.
+- **Record:** pass or fail per line.
+
 **14. Camera (C1, C2, C3).**
 - **Do:** Health → "Scan or look up a food barcode" → "Scan barcode".
 - **Pass:**
@@ -250,10 +277,23 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
   - **C3:** scan a real product. You see the product or "not found". New barcodes are paced at no more than 5 lookups a minute; one asked for too soon waits or is refused with a plain message.
 - **Record:** pass or fail per row, and the product category only.
 
-**15. What syncs from the new features (B13).**
-- **Do:** on Desktop A: edit a habit and, under "Done automatically from Health", choose water with at least 1 glass; log a glass of water in Health; on another habit, plan a skip for tomorrow (its "History & reflection"); in Wealth → "+ Add asset" → "Import from a CSV file", choose a two-line file (`Name,Asset,Quantity,Kind of asset,Value,Currency` then `Gold,XAU,2,Precious metals,,EUR`); in Health → Diary → "Import a nutrition CSV", choose a one-line file (`Date,Meal,Food,Calories` then today's date, `Breakfast,Oats,380`). Sync now. On Phone B: open Today, Habits, Wealth and Health.
-- **Pass:** the phone shows the automatic check-in as an ordinary check-in (the "Done automatically" badge appears only on the desktop, where the rule lives), the planned skip (◌ on that day), the Gold holding ("Needs valuation") and the imported meal. The phone offers none of the desktop's health goals, weekly review, fasting session or insight cards: those stay on each device for now.
-- **Record:** pass or fail per record kind. Never the file contents.
+**15. What syncs from the new features (B13; changed by Session U Part 9, the sync writes on).**
+- **Before:** both devices have "Sync my Health records" ticked.
+- **Do:** on Desktop A: edit a habit and, under "Done automatically from Health", choose water with at least 1 glass; log a glass of water in Health; on another habit, plan a skip for tomorrow (its "History & reflection"); in Wealth → "+ Add asset" → "Import from a CSV file", choose a two-line file (`Name,Asset,Quantity,Kind of asset,Value,Currency` then `Gold,XAU,2,Precious metals,,EUR`); in Health → Diary → "Import a nutrition CSV", choose a one-line file (`Date,Meal,Food,Calories` then today's date, `Breakfast,Oats,380`); on Goals, create a health goal; in Health, start a fast and stop it; on Today's review day, write the weekly review with a few words under "Health" and finish it. Sync now. On Phone B: sync, then open Today, Habits, Goals, Wealth and Health.
+- **Pass:**
+  - the automatic check-in with its "Done automatically" badge (the rule and its marker travel with Health now), the planned skip (◌ on that day), the Gold holding ("Needs valuation") and the imported meal;
+  - the health goal on Goals, the fast in Health → "Recent fasts", and the finished weekly review with its Health words (Settings → Weekly review day → "Last review");
+  - the insight cards stay on each device;
+  - then, on Phone B, untick "Sync my Health records" and repeat one change of each kind on Desktop A: after "Sync now" the phone receives the review's other words only, none of the Health ones.
+- **Record:** pass or fail per record kind. Never the file contents, the review's words or the goal's name.
+
+**15c. Portfolio sync, opt-in (Session U Part 9, ADR-013).**
+- **Do:** on Desktop A, Portfolio: create a fictional portfolio with one buy. In Settings → account sync, tick "Also sync my Portfolio (optional)" and "Sync now". On Phone B tick it too and "Sync now". Then add a second buy on each device without syncing in between, and sync Desktop A, then the phone.
+- **Pass:**
+  - after the first round the phone shows the same portfolio; Wealth and Goals on both devices are unchanged;
+  - the second round asks on the phone "Choose which one to keep": "Keep the encrypted copy" shows the desktop's buys, and the phone's own Portfolio is kept as a recovery copy;
+  - "Delete the Portfolio's encrypted copy…" → "Delete the encrypted copy" on the phone, then "Sync now" on the desktop: the desktop says the copy was deleted on another device and unticks its box; both devices keep their Portfolio.
+- **Record:** pass or fail per line.
 
 **15b. Push reminder with the app closed (C5; only after [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–5) · about 10 min.**
 - **Before:** do it outside the quiet hours (22:00–07:00 on the phone, by default), signed in on the Home Screen app.
