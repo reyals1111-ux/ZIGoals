@@ -32,7 +32,9 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - run: npm install --global pnpm@11.19.0
+      # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, refused unless its bytes match the registry's sha512 for
+      # pnpm 11.19.0; package.json keeps "pnpm@11.19.0", which the pnpm shim then runs from this verified copy.
+      - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
       - run: pnpm install --frozen-lockfile
       - run: node scripts/doctor.mjs
       - run: pnpm check:deploy-configs && pnpm check:landing
@@ -69,7 +71,9 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - run: npm install --global pnpm@11.19.0
+      # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, refused unless its bytes match the registry's sha512 for
+      # pnpm 11.19.0; package.json keeps "pnpm@11.19.0", which the pnpm shim then runs from this verified copy.
+      - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
       - run: pnpm install --frozen-lockfile
       # The runner image ships Google Chrome stable at Playwright's chrome
       # channel path; chrome-deps.sh keeps it, installs the channel only when
@@ -127,7 +131,9 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - run: npm install --global pnpm@11.19.0
+      # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, refused unless its bytes match the registry's sha512 for
+      # pnpm 11.19.0; package.json keeps "pnpm@11.19.0", which the pnpm shim then runs from this verified copy.
+      - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
       - run: pnpm install --frozen-lockfile
       # Same script and retry as the browser shards; see there.
       - name: Install Chrome for Playwright (up to 3 attempts)
@@ -207,10 +213,13 @@ jobs:
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
       - run: cargo install cosmwasm-check --version 2.2.2 --locked --root .toolchain/check
-      - run: npm install --prefix .toolchain/wasm-tools --ignore-scripts --no-audit --no-fund binaryen@123.0.0
+      # FIX_PLAN F2 (Q-SC-03): binaryen from the release toolchain's lockfile (integrity-checked), as reproducibility.yml does.
+      - run: npm ci --prefix scripts/release/toolchain --ignore-scripts --no-audit --no-fund
       - run: bash contracts/goal-manager/scripts/build-wasm.sh
+        env:
+          BINARYEN_JS: ${{ github.workspace }}/scripts/release/toolchain/node_modules/binaryen/bin/wasm-opt
       - run: |
-          npm install --global pnpm@11.19.0
+          corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
           pnpm install --frozen-lockfile
           cargo schema --locked
           node contracts/goal-manager/scripts/generate-types.mjs
