@@ -50,14 +50,36 @@ const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('forget-many'),ids:z.array(id).min(1).max(64)}).strict(),
 ]);
 type Config=z.infer<typeof configSchema>;type Command=z.infer<typeof commandSchema>;
-/** Session U Part 2d: when the configured accounting period ends (an exact window: its end; a confirmed UTC calendar:
- * the next month's start), or null for a missing or invalid policy. After it, every command is refused
- * (CLOCK_OR_PERIOD), cached prices included, until the owner sets the next period's policy. Read by QuoteService's
- * /status, which never calls the account object. */
-export function marketPolicyWindowEnd(raw:string|undefined,now:number):number|null{
- let config:Config;try{config=configSchema.parse(JSON.parse(raw??'null'));}catch{return null;}
- if(config.month)return config.month.end;
- const date=new Date(now);return Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1);
+/** Session U follow-up F2: MARKET_POLICY is either one policy (configSchema, unchanged), or the current billing window
+ * and the next one, installed in advance: `{"windows":[current, next]}`. Each window is a whole policy validated by
+ * configSchema with an exact `month` window; the next starts exactly where the current ends (no gap, no overlap) under a
+ * different label. Anything else is no policy at all (POLICY_UNAVAILABLE). */
+const windowsSchema=z.object({windows:z.tuple([z.unknown(),z.unknown()])}).strict();
+export function marketPolicies(raw:string|undefined):Config[]|null{
+ let value:unknown;try{value=JSON.parse(raw??'null');}catch{return null;}
+ const pair=windowsSchema.safeParse(value);
+ if(!pair.success){const one=configSchema.safeParse(value);return one.success?[one.data]:null;}
+ const configs:Config[]=[];for(const window of pair.data.windows){const one=configSchema.safeParse(window);if(!one.success)return null;configs.push(one.data);}
+ const [current,next]=configs as [Config,Config];
+ if(!current.month||!next.month||current.month.id===next.month.id||current.month.start>=current.month.end||next.month.start!==current.month.end||next.month.start>=next.month.end)return null;
+ return configs;
+}
+/** The policy that serves at `now`: the only one, or of two windows the next one from its start on (at the boundary
+ * itself the next window serves). The chosen window's own period check (validTime) still refuses a time outside it, so
+ * before the first window and after the last everything fails closed (CLOCK_OR_PERIOD), cached prices included. */
+export function marketPolicyAt(configs:readonly Config[],now:number):Config{
+ const next=configs[1];return next?.month&&now>=next.month.start?next:configs[0]!;
+}
+/** Session U Part 2d (follow-up F2: both ends): when the serving accounting period ends (an exact window: its end; a
+ * confirmed UTC calendar: the next month's start) and, with a next window installed that has not started, when that one
+ * ends. Both null for a missing or invalid policy. After the last end every command is refused (CLOCK_OR_PERIOD), cached
+ * prices included, until the owner installs the next policy. Read by QuoteService's /status, which never calls the
+ * account object. */
+export function marketPolicyWindowEnds(raw:string|undefined,now:number):{policyWindowEnd:number|null;nextPolicyWindowEnd:number|null}{
+ const configs=marketPolicies(raw);if(!configs)return {policyWindowEnd:null,nextPolicyWindowEnd:null};
+ const config=marketPolicyAt(configs,now),next=configs[1]&&config===configs[0]?configs[1].month!.end:null;
+ if(config.month)return {policyWindowEnd:config.month.end,nextPolicyWindowEnd:next};
+ const date=new Date(now);return {policyWindowEnd:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1),nextPolicyWindowEnd:null};
 }
 type Observation=Parameters<typeof recordMarketTelemetry>[2];
 type Association={work:PublicMarketWork;lease:WorkLease};
@@ -109,15 +131,17 @@ export class DurableMarketAccount {
  /** `caller` (Session U Part 2e) is the calling app's label, set by QuoteService from the app's own bindings; anything
   * but 'friends' is public. */
  async apply(raw:unknown,{caller}:{caller?:MarketCaller}={}):Promise<Record<string,unknown>>{
-  let config:Config,command:Command;
-  try{config=configSchema.parse(JSON.parse(this.rawConfig??'null'));}catch{return {ok:false,reason:'POLICY_UNAVAILABLE'};}
+  let command:Command;
+  // Session U follow-up F2: the window that serves is chosen inside the transaction, from the same clock reading.
+  const configs=marketPolicies(this.rawConfig);if(!configs)return {ok:false,reason:'POLICY_UNAVAILABLE'};
+  let config=configs[0]!;
   try{command=commandSchema.parse(raw);}catch{return {ok:false,reason:'MALFORMED'};}
   const group='client' in command?command.client:undefined;let key:(ClientKey&{stored:boolean})|undefined,bucket:string|undefined;
   try{if(group){key=await this.clientKey(this.clock());bucket=await clientBucket(key.key,group);}}catch{return {ok:false,reason:'STORAGE_UNAVAILABLE'};}
   const buffered=this.telemetry.slice();let committed=false,observations:Observation[]=[],at=0;
   try{
    const result=await this.storage.transaction(async real=>{
-    const tx=new BufferedMarketStorage(real),now=this.clock();at=now;
+    const tx=new BufferedMarketStorage(real),now=this.clock();at=now;config=marketPolicyAt(configs,now);
     const original=await tx.get<BudgetState>('budget')??emptyBudgetState(),lastTime=await tx.get<number>('last-time')??0;
     if(!Number.isSafeInteger(now)||now<Math.max(original.lastTime,lastTime))return {ok:false,reason:'CLOCK_OR_PERIOD'};
     const date=new Date(now),month=config.month??{id:date.toISOString().slice(0,7),start:Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1),end:Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1)};

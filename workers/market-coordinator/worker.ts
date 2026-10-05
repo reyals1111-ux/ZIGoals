@@ -1,4 +1,4 @@
-import {DurableMarketAccount,marketPolicyWindowEnd,type AtomicMarketStorage} from '../../apps/web/lib/server/durable-market-account';
+import {DurableMarketAccount,marketPolicyWindowEnds,type AtomicMarketStorage} from '../../apps/web/lib/server/durable-market-account';
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {durableCatalog,durableHistory,durableInsights,parseDurableMarketBody} from '../../apps/web/lib/server/market-durable-data';
 import {boundedQuoteText} from '../../apps/web/lib/market-quotes';
@@ -64,9 +64,10 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   const label=request.headers.get('x-market-caller');
   if(label!==null&&label!=='public'&&label!=='friends')return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});
   const caller=label??'public';
-  // Session U Part 2d: when this coordinator's MARKET_POLICY period ends, for the deploy summary and the owner's verifier.
-  // Read from its own binding only: no account command, no provider read, nothing about usage.
-  if(path==='/status'){const end=marketPolicyWindowEnd(this.env.MARKET_POLICY,this.env.ISOLATED_FIXTURE==='true'?Number(this.env.LOCAL_TEST_NOW):Date.now());return Response.json({version:1,policyWindowEnd:end===null?null:new Date(end).toISOString()},{headers});}
+  // Session U Part 2d: when this coordinator's MARKET_POLICY period ends, for the deploy summary and the owner's verifier;
+  // follow-up F2: also when an installed next window ends (null when none is waiting). Read from its own binding only: no
+  // account command, no provider read, nothing about usage.
+  if(path==='/status'){const ends=marketPolicyWindowEnds(this.env.MARKET_POLICY,this.env.ISOLATED_FIXTURE==='true'?Number(this.env.LOCAL_TEST_NOW):Date.now()),iso=(end:number|null)=>end===null?null:new Date(end).toISOString();return Response.json({version:1,policyWindowEnd:iso(ends.policyWindowEnd),nextPolicyWindowEnd:iso(ends.nextPolicyWindowEnd)},{headers});}
   if(path==='/cancel'){
    let token;try{const raw=JSON.parse(await boundedQuoteText(new Response(request.body),256));if(Object.keys(raw).length!==1||typeof raw.cancelToken!=='string'||!/^([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(raw.cancelToken))throw Error();token=raw.cancelToken;}catch{return Response.json({error:'INVALID_MARKET_REQUEST'},{status:400,headers});}
    return stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:{'x-market-caller':caller},body:JSON.stringify({action:'cancel-followers',cancelToken:token,...(client?{client}:{})})}));

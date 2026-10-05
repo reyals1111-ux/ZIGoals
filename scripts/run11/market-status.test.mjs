@@ -21,18 +21,26 @@ async function coordinator(bindings){
 test('an exact window answers its end; a confirmed UTC calendar answers the next month start',async()=>{
  for(const [bindings,end] of [[{MARKET_POLICY:JSON.stringify(windowPolicy)},'2026-10-31T16:00:00.000Z'],[{MARKET_POLICY:JSON.stringify(calendarPolicy),ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(Date.UTC(2026,11,31,23,59))},'2027-01-01T00:00:00.000Z']]){
   const c=await coordinator(bindings);try{
-   expect(await c.call('/status')).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:end}});
+   expect(await c.call('/status')).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:end,nextPolicyWindowEnd:null}});
    // A client group is checked first, as on every path; a valid one changes nothing.
-   expect((await c.call('/status',{method:'POST',headers:{'x-market-client':'v4:192.0.2.10'},body:'{}'})).body).toEqual({version:1,policyWindowEnd:end});
+   expect((await c.call('/status',{method:'POST',headers:{'x-market-client':'v4:192.0.2.10'},body:'{}'})).body).toEqual({version:1,policyWindowEnd:end,nextPolicyWindowEnd:null});
    expect((await c.call('/status',{method:'POST',headers:{'x-market-client':'not a group'},body:'{}'})).status).toBe(400);
   }finally{await c.mf.dispose();}
+ }
+},60000);
+
+test('follow-up F2: with the next window installed, both ends until it starts, then the next end alone',async()=>{
+ const next={...policy,month:{id:'plan-window-2',start:Date.UTC(2026,9,31,16),end:Date.UTC(2026,10,30,16)}},MARKET_POLICY=JSON.stringify({windows:[windowPolicy,next]});
+ for(const [now,body] of [[Date.UTC(2026,9,31,15,59),{version:1,policyWindowEnd:'2026-10-31T16:00:00.000Z',nextPolicyWindowEnd:'2026-11-30T16:00:00.000Z'}],[Date.UTC(2026,9,31,16),{version:1,policyWindowEnd:'2026-11-30T16:00:00.000Z',nextPolicyWindowEnd:null}]]){
+  const c=await coordinator({MARKET_POLICY,ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(now)});
+  try{expect((await c.call('/status')).body).toEqual(body);}finally{await c.mf.dispose();}
  }
 },60000);
 
 test('a missing or invalid policy reports no end; an unconfigured coordinator keeps its setup gate; only POST /status exists',async()=>{
  for(const MARKET_POLICY of [undefined,'not json',JSON.stringify({...policy}),JSON.stringify({...windowPolicy,calendar:calendarPolicy.calendar})]){
   const c=await coordinator(MARKET_POLICY===undefined?{}:{MARKET_POLICY});try{
-   expect(await c.call('/status')).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:null}});
+   expect(await c.call('/status')).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:null,nextPolicyWindowEnd:null}});
   }finally{await c.mf.dispose();}
  }
  const c=await coordinator({MARKET_POLICY:JSON.stringify(windowPolicy)});try{

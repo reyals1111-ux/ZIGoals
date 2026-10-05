@@ -22,19 +22,22 @@ export async function configuredDurableHistory(request:MarketHistoryRequest,sign
  try{const response=await runtime.binding.fetch(new Request('https://market.internal/history',{method:'POST',signal,headers:marketBindingHeaders(runtime.caller,client),body:JSON.stringify({version:1,request})}));if(!response.ok)return unavailable;const raw=JSON.parse(await boundedQuoteText(response,2*1024*1024));if(!raw.history)return unavailable;const history=verifiedMarketHistory(raw.history,request);return {history,error:raw.error?HISTORY_UNAVAILABLE:null,stale:historyIsStale(history),nextAttemptAt:Date.now()+60000};}catch{return unavailable;}
 }
 /** Session U Part 2d: when the coordinator's MARKET_POLICY period ends (QuoteService /status), for the deploy summary and
- * the owner's verifier. null means "not reported": no binding, an older coordinator (404) or any other answer. A
- * reported end is kept in this isolate for 10 minutes; /status reads no account state, so this only saves a call. */
-const statusSchema=z.object({version:z.literal(1),policyWindowEnd:z.iso.datetime().nullable()}).strict();
-let reportedStatus:{value:z.infer<typeof statusSchema>;until:number}|undefined;
-export async function configuredMarketStatus(signal?:AbortSignal,client?:string|null):Promise<z.infer<typeof statusSchema>>{
- const none={version:1 as const,policyWindowEnd:null};
+ * the owner's verifier; follow-up F2: and when an installed next window ends (null when none waits, or from a coordinator
+ * built before F2, which does not send it). null means "not reported": no binding, an older coordinator (404) or any other
+ * answer. A reported end is kept in this isolate for 10 minutes, never past the end itself (the next window takes over
+ * there); /status reads no account state, so this only saves a call. */
+const statusSchema=z.object({version:z.literal(1),policyWindowEnd:z.iso.datetime().nullable(),nextPolicyWindowEnd:z.iso.datetime().nullable().default(null)}).strict();
+type MarketStatus=z.output<typeof statusSchema>;
+let reportedStatus:{value:MarketStatus;until:number}|undefined;
+export async function configuredMarketStatus(signal?:AbortSignal,client?:string|null):Promise<MarketStatus>{
+ const none={version:1 as const,policyWindowEnd:null,nextPolicyWindowEnd:null};
  if(reportedStatus&&Date.now()<reportedStatus.until)return reportedStatus.value;
  const runtime=await marketRuntime();if(runtime.mode!=='durable')return none;
  try{
   const response=await runtime.binding.fetch(new Request('https://market.internal/status',{method:'POST',signal,headers:marketBindingHeaders(runtime.caller,client),body:'{"version":1}'}));
   if(!response.ok){await response.body?.cancel();return none;}
   const value=statusSchema.parse(JSON.parse(await boundedQuoteText(response,1024)));
-  if(value.policyWindowEnd)reportedStatus={value,until:Date.now()+600000};
+  if(value.policyWindowEnd)reportedStatus={value,until:Math.min(Date.now()+600000,Date.parse(value.policyWindowEnd))};
   return value;
  }catch{return none;}
 }

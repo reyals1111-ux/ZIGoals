@@ -20,12 +20,24 @@ async function get(url='https://alpha.test/api/market-status'){
 test('a reported end is relayed as is, with the edge client group, and kept in the isolate for 10 minutes',async()=>{
  vi.useFakeTimers({now:Date.UTC(2026,9,5,12),toFake:['Date']});
  const calls=coordinator(()=>Response.json({version:1,policyWindowEnd:end}));
- expect(await get()).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:end}});
+ expect(await get()).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:end,nextPolicyWindowEnd:null}});
  expect(calls).toEqual([{path:'/status',method:'POST',client:'v4:198.51.100.23',body:'{"version":1}'}]);
  vi.setSystemTime(Date.UTC(2026,9,5,12,9));
- expect((await get()).body).toEqual({version:1,policyWindowEnd:end});expect(calls).toHaveLength(1);
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:end,nextPolicyWindowEnd:null});expect(calls).toHaveLength(1);
  vi.setSystemTime(Date.UTC(2026,9,5,12,10,1));
- expect((await get()).body).toEqual({version:1,policyWindowEnd:end});expect(calls).toHaveLength(2);
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:end,nextPolicyWindowEnd:null});expect(calls).toHaveLength(2);
+});
+
+test('follow-up F2: a next window installed in advance is relayed too, and the cache never outlives the current end',async()=>{
+ const next='2026-11-30T16:00:00.000Z';
+ vi.useFakeTimers({now:Date.parse(end)-5*60000,toFake:['Date']});
+ const calls=coordinator(()=>Response.json(Date.now()<Date.parse(end)?{version:1,policyWindowEnd:end,nextPolicyWindowEnd:next}:{version:1,policyWindowEnd:next,nextPolicyWindowEnd:null}));
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:end,nextPolicyWindowEnd:next});
+ vi.setSystemTime(Date.parse(end)-60000);
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:end,nextPolicyWindowEnd:next});expect(calls).toHaveLength(1);
+ // At the boundary the next window serves: asked again, not 10 minutes later.
+ vi.setSystemTime(Date.parse(end));
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:next,nextPolicyWindowEnd:null});expect(calls).toHaveLength(2);
 });
 
 test.each([
@@ -33,22 +45,23 @@ test.each([
  ['the setup gate (503)',()=>Response.json({error:'MARKET_SETUP_REQUIRED'},{status:503})],
  ['a policy without an end',()=>Response.json({version:1,policyWindowEnd:null})],
  ['an extra field',()=>Response.json({version:1,policyWindowEnd:end,usage:5})],
+ ['a next end that is not ISO',()=>Response.json({version:1,policyWindowEnd:end,nextPolicyWindowEnd:'30 Nov 2026'})],
  ['another version',()=>Response.json({version:2,policyWindowEnd:end})],
  ['a date that is not ISO',()=>Response.json({version:1,policyWindowEnd:'31 Oct 2026'})],
  ['not JSON',()=>new Response('nope',{headers:{'content-type':'application/json'}})],
  ['an oversized answer',()=>Response.json({version:1,policyWindowEnd:end,pad:'x'.repeat(2000)})],
 ])('%s is "not reported", and never cached',async(_label,answer)=>{
  const calls=coordinator(answer);
- expect(await get()).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:null}});
+ expect(await get()).toEqual({status:200,cache:'no-store',body:{version:1,policyWindowEnd:null,nextPolicyWindowEnd:null}});
  await get();expect(calls).toHaveLength(2);
 });
 
 test('no binding, a query string, or a throwing binding never reaches a coordinator answer',async()=>{
  vi.mocked(getCloudflareContext).mockResolvedValue({env:{}} as never);
- expect((await get()).body).toEqual({version:1,policyWindowEnd:null});
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:null,nextPolicyWindowEnd:null});
  const calls=coordinator(()=>Response.json({version:1,policyWindowEnd:end}));
  expect(await get('https://alpha.test/api/market-status?detail=1')).toEqual({status:400,cache:'no-store',body:{error:'Unsupported public market query.'}});
  expect(calls).toEqual([]);
  vi.mocked(getCloudflareContext).mockResolvedValue({env:{ZIGOALS_MARKET_QUOTES_MODE:'durable-v1',MARKET_QUOTES:{fetch:async()=>{throw Error('binding down');}}}} as never);
- expect((await get()).body).toEqual({version:1,policyWindowEnd:null});
+ expect((await get()).body).toEqual({version:1,policyWindowEnd:null,nextPolicyWindowEnd:null});
 });
