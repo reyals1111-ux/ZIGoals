@@ -110,7 +110,8 @@ test('reduced motion and the Off preference switch the navigation glide and page
   expect(await pill.evaluate(e=>getComputedStyle(e).transitionDuration.split(',').every(d=>parseFloat(d)===0))).toBe(true);
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();
-  await nav.getByRole('link',{name:'Health',exact:true}).click();
+  // Health opens with a full page load (Session U Part 3, camera access): wait for it before reading the new page.
+  await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
   await expect(nav.getByRole('link',{name:'Health',exact:true})).toHaveAttribute('aria-current','page');
   expect(await pill.evaluate(e=>getComputedStyle(e).transitionDuration.split(',').every(d=>parseFloat(d)===0))).toBe(true);
   await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');
@@ -121,7 +122,9 @@ test('reduced motion and the Off preference switch the navigation glide and page
  await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();
- await nav.getByRole('link',{name:'Health',exact:true}).click();
+ // Health opens with a full page load (Session U Part 3): until the new page's styles apply, the server-rendered phone
+ // tab bar still counts as visible, so the assertions wait for the load.
+ await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
  await expect(nav.getByRole('link',{name:'Health',exact:true})).toHaveAttribute('aria-current','page');
  await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
  await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');
