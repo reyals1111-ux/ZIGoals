@@ -203,3 +203,11 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-source-chip button:hover,.ai-source-chip button:focus-visible{background:color-mix(in srgb,var(--cyan,#6fd3ff) 22%,transparent)}
 .ai-question-withheld{font-size:14px}
 .ai-bridge-local{margin:8px 0}
+/* Session V Part 5: the context pack card in Settings. */
+.ai-pack{margin:18px 0 8px;padding:12px 14px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0d1330) 70%,transparent)}
+.ai-pack-summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:17px;font-weight:600}
+.ai-pack-body{display:grid;gap:10px;margin-top:6px}
+.ai-pack-areas{display:grid;gap:6px;border:0;padding:0;margin:0}
+.ai-pack-areas legend{font-weight:600;margin-bottom:4px}
+.ai-pack-areas small{display:block;margin-left:28px;color:var(--muted,#aab2d9);font-size:14px}
+.ai-pack-warning{margin:0;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--gold,#ecc779) 55%,var(--line,#2a325a));background:color-mix(in srgb,var(--gold,#ecc779) 10%,transparent);font-size:15px;line-height:1.5}

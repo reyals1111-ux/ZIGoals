@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useCallback, useEffect, useState, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useState, type ReactNode} from 'react';
 import {forgetChats} from '../../lib/ai/chats';
 import {AiError, errorSteps} from '../../lib/ai/errors';
 import {dropMemoryKeys, forgetAiKeys, forgetKey, hasRememberedKey, holdKey, readKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
@@ -37,6 +37,16 @@ const PAGE_NOTES: Record<PageArea, string> = {
 };
 function Switch({checked, onChange, label, disabled, note}: {checked: boolean; onChange: (next: boolean) => void; label: string; disabled?: boolean; note?: ReactNode}) {
   return <div className="ai-switch-row"><button type="button" role="switch" aria-checked={checked} aria-label={label} className={checked ? 'primary' : 'secondary'} disabled={disabled} onClick={() => onChange(!checked)}>{checked ? 'On' : 'Off'}</button><span className="ai-switch-copy"><strong>{label}</strong>{note && <small>{note}</small>}</span></div>;
+}
+/** Session V Part 5: the context pack, loaded only when the person opens its card. */
+const ContextPackPanel = lazy(() => import('./context-pack'));
+function ContextPackCard() {
+  const [open, setOpen] = useState(false);
+  return <details className="ai-pack" onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Context pack for my AI</summary>
+    <p className="ai-note">A file of your records to add to your AI&rsquo;s project knowledge (Claude Projects, ChatGPT Projects, Gemini Gems or similar), so it knows your goals, habits and wealth between chats. Made on this device; nothing is sent from here.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ContextPackPanel/></Suspense>}
+  </details>;
 }
 function useOpenRouterCallback(): {seed: SetupSeed; error: string | null} {
   const [state, setState] = useState<{seed: SetupSeed; error: string | null}>({seed: null, error: null});
@@ -140,6 +150,7 @@ export default function AiSettings() {
       {!turningOff ? <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => setTurningOff(true)}>Turn off ZIGi</button><span className="ai-note">Removes the keys from this device and resets the switches. Chats stay unless you choose below.</span></div>
         : <div className="ai-confirm" role="group" aria-label="Turn off ZIGi"><p>ZIGi goes off on this device: the connection and its keys are removed, every switch goes back to the start.</p><label className="ai-check"><input type="checkbox" checked={alsoChats} onChange={e => setAlsoChats(e.target.checked)}/> Also delete all chats on this device</label><div className="ai-card-actions"><button type="button" className="primary" onClick={() => void turnOff()}>Turn off ZIGi</button><button type="button" className="text-link" onClick={() => { setTurningOff(false); setAlsoChats(false); }}>Keep it on</button></div></div>}
     </>}
+    {settings.loaded && <ContextPackCard/>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
     <p className="fine">Costs are between you and your provider; ZIGoals bills nothing and shows token counts only. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
   </div>;

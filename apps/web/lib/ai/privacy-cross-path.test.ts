@@ -13,6 +13,7 @@ import {availableTools, runTool, TOOLS, toolText} from './tools/registry';
 import {localAnswer} from './local-answers/engine';
 import {recordsForAi} from './local-answers/more';
 import {questionContext} from './context/question';
+import {buildContextPack} from './context-pack/build';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -119,4 +120,15 @@ test('Part 4: the records chosen from a question, on every page and in the copie
   // The control: the gate open, the same questions reach the values.
   const open = questions.map(q => JSON.stringify(questionContext(q, s, gatesFor(true, 'health', '/app/health')))).join('\n');
   expect(sentinelsIn(open).length).toBeGreaterThan(3);
+});
+
+test('Part 5: the context pack carries no Health unless the gate is open AND its own box is ticked', () => {
+  const s = {...sources(), notes: [{text: SENTINEL.note, category: 'health'}, {text: 'Saving for Japan', category: 'goals'}]};
+  const all = {habits: true, goals: true, health: true, wealth: true, notes: true, days: 365 as const};
+  for (const [area, pathname] of PAGES) {
+    for (const pack of [buildContextPack({sources: s, gates: gatesFor(false, area, pathname), scope: all}), buildContextPack({sources: s, gates: gatesFor(true, area, pathname), scope: {...all, health: false}})]) {
+      expect(sentinelsIn(pack.markdown), pathname).toEqual([]); expect(sentinelsIn(JSON.stringify(pack.json)), pathname).toEqual([]);
+    }
+  }
+  expect(sentinelsIn(buildContextPack({sources: s, gates: gatesFor(true), scope: all}).markdown).length).toBeGreaterThan(3);
 });
