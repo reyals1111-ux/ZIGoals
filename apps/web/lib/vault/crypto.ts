@@ -3,7 +3,9 @@ import {z} from 'zod';
 const MAX_BYTES=262_144;
 const uuid=z.uuid();
 export const epochSchema=z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
-export const recordContextSchema=z.object({vault:uuid,domain:z.enum(['finance','habits','health','settings']),object:uuid,revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:epochSchema}).strict();
+// Session U Part 5 (item 8): `portfolio` labels the records of the opt-in Portfolio sync (Session U Part 9, ADR-013). One
+// enum entry: every existing record's context, and so its key and additional data, is unchanged.
+export const recordContextSchema=z.object({vault:uuid,domain:z.enum(['finance','habits','health','settings','portfolio']),object:uuid,revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:epochSchema}).strict();
 export type RecordContext=z.infer<typeof recordContextSchema>;
 const base64=z.string().regex(/^[A-Za-z0-9_-]+$/);
 const legacyEnvelopeSchema=z.object({version:z.literal(1),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
