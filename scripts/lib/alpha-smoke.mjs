@@ -112,6 +112,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     const html = await response.text();
     const nonce = assertHtml(response, html, route, { baseline });
     if (route === "/app/health" && !baseline) assertHealthCamera(response.headers.get("permissions-policy"));
+    if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (checks.length === 0) {
       firstNonce = nonce;
       assert.match(html, /YOUR FINANCIAL ORBIT/, "Run 9.2 Today hero missing");
@@ -133,4 +134,12 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     checks.push({ route: "/api/market-quotes", status: market.httpStatus, market: market.result, pair: market.pair, failure: market.failure });
   }
   return checks;
+}
+/**
+ * Session U Part 6 (FIX_PLAN D1, FINDINGS Q-WEB-01): every app page is sent with Cross-Origin-Opener-Policy:
+ * same-origin, so a page it opens, or that opens it, gets no handle on it. Post-upload smoke only: the rollback capture
+ * never requires it (the live, previous build may predate it).
+ */
+export function assertOpenerPolicy(header) {
+  assert.equal(header, "same-origin", "Cross-Origin-Opener-Policy must be same-origin");
 }
