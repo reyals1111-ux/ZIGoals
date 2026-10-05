@@ -1,4 +1,6 @@
 import egress from '../egress-policy.json';
+import {PROVIDER_APPS, type ChatApp} from './apps';
+export {SUBSCRIPTION_APPS, isSubscriptionAppId, type SubscriptionAppId} from './apps';
 
 /**
  * The providers ZIGi can talk to (ADR-012, docs/product/YOUR_AI_V1.md §1). Every fact here was read from the official
@@ -21,7 +23,7 @@ export type Provider = {
   usageUrl: string | null;
   docsUrl: string;
   /** The provider's own chat app, for the launcher's "Open <app>" button (a text label, never a logo). */
-  app: {name: string; url: string} | null;
+  app: ChatApp | null;
   /** Speech-to-text through the same key, where the provider documents an endpoint; the size limit is the provider's. */
   transcription: {path: string; maxBytes: number} | null;
   /** An official user-scoped sign-in documented for third-party browser apps, where one exists. */
@@ -30,11 +32,11 @@ export type Provider = {
 };
 const ORIGINS = egress.aiProviderOrigins;
 export const PROVIDERS: Record<ProviderId, Provider> = {
-  openai: {id: 'openai', name: 'OpenAI', origin: ORIGINS.openai, auth: 'bearer', wire: 'openai', keysUrl: 'https://platform.openai.com/api-keys', usageUrl: 'https://platform.openai.com/usage', docsUrl: 'https://developers.openai.com/api/docs/api-reference/chat/create', app: {name: 'ChatGPT', url: 'https://chatgpt.com/'}, transcription: {path: '/v1/audio/transcriptions', maxBytes: 25 * 1024 * 1024}, signIn: null, verified: '2026-10-04'},
-  anthropic: {id: 'anthropic', name: 'Anthropic', origin: ORIGINS.anthropic, auth: 'x-api-key', wire: 'anthropic', keysUrl: 'https://platform.claude.com/settings/keys', usageUrl: 'https://platform.claude.com/settings/usage', docsUrl: 'https://platform.claude.com/docs/en/api/messages', app: {name: 'Claude', url: 'https://claude.ai/new'}, transcription: null, signIn: null, verified: '2026-10-04'},
-  gemini: {id: 'gemini', name: 'Google Gemini', origin: ORIGINS.gemini, auth: 'x-goog-api-key', wire: 'gemini', keysUrl: 'https://aistudio.google.com/apikey', usageUrl: 'https://aistudio.google.com/usage', docsUrl: 'https://ai.google.dev/api/generate-content', app: {name: 'Gemini', url: 'https://gemini.google.com/app'}, transcription: null, signIn: null, verified: '2026-10-04'},
-  xai: {id: 'xai', name: 'xAI', origin: ORIGINS.xai, auth: 'bearer', wire: 'openai', keysUrl: 'https://console.x.ai/', usageUrl: 'https://console.x.ai/', docsUrl: 'https://docs.x.ai/developers/rest-api-reference', app: {name: 'Grok', url: 'https://grok.com/'}, transcription: null, signIn: null, verified: '2026-10-04'},
-  openrouter: {id: 'openrouter', name: 'OpenRouter', origin: ORIGINS.openrouter, auth: 'bearer', wire: 'openai', keysUrl: 'https://openrouter.ai/settings/keys', usageUrl: 'https://openrouter.ai/activity', docsUrl: 'https://openrouter.ai/docs/api-reference/overview', app: {name: 'OpenRouter', url: 'https://openrouter.ai/chat'}, transcription: null, signIn: 'openrouter-pkce', verified: '2026-10-04'},
+  openai: {id: 'openai', name: 'OpenAI', origin: ORIGINS.openai, auth: 'bearer', wire: 'openai', keysUrl: 'https://platform.openai.com/api-keys', usageUrl: 'https://platform.openai.com/usage', docsUrl: 'https://developers.openai.com/api/docs/api-reference/chat/create', app: PROVIDER_APPS.openai, transcription: {path: '/v1/audio/transcriptions', maxBytes: 25 * 1024 * 1024}, signIn: null, verified: '2026-10-04'},
+  anthropic: {id: 'anthropic', name: 'Anthropic', origin: ORIGINS.anthropic, auth: 'x-api-key', wire: 'anthropic', keysUrl: 'https://platform.claude.com/settings/keys', usageUrl: 'https://platform.claude.com/settings/usage', docsUrl: 'https://platform.claude.com/docs/en/api/messages', app: PROVIDER_APPS.anthropic, transcription: null, signIn: null, verified: '2026-10-04'},
+  gemini: {id: 'gemini', name: 'Google Gemini', origin: ORIGINS.gemini, auth: 'x-goog-api-key', wire: 'gemini', keysUrl: 'https://aistudio.google.com/apikey', usageUrl: 'https://aistudio.google.com/usage', docsUrl: 'https://ai.google.dev/api/generate-content', app: PROVIDER_APPS.gemini, transcription: null, signIn: null, verified: '2026-10-04'},
+  xai: {id: 'xai', name: 'xAI', origin: ORIGINS.xai, auth: 'bearer', wire: 'openai', keysUrl: 'https://console.x.ai/', usageUrl: 'https://console.x.ai/', docsUrl: 'https://docs.x.ai/developers/rest-api-reference', app: PROVIDER_APPS.xai, transcription: null, signIn: null, verified: '2026-10-04'},
+  openrouter: {id: 'openrouter', name: 'OpenRouter', origin: ORIGINS.openrouter, auth: 'bearer', wire: 'openai', keysUrl: 'https://openrouter.ai/settings/keys', usageUrl: 'https://openrouter.ai/activity', docsUrl: 'https://openrouter.ai/docs/api-reference/overview', app: PROVIDER_APPS.openrouter, transcription: null, signIn: 'openrouter-pkce', verified: '2026-10-04'},
   local: {id: 'local', name: 'A local model', origin: '', auth: 'optional-bearer', wire: 'detected', keysUrl: null, usageUrl: null, docsUrl: 'https://docs.ollama.com/faq', app: null, transcription: null, signIn: null, verified: '2026-10-04'},
 };
 export const PROVIDER_IDS = Object.keys(PROVIDERS) as ProviderId[];
@@ -45,18 +47,6 @@ export function openAiBase(provider: Provider, baseUrl?: string): string {
   if (provider.id === 'local') return baseUrl ?? '';
   return provider.origin;
 }
-/**
- * The consumer chat apps the subscription-only path can open (docs/product/YOUR_AI_V1.md §1). Fixed addresses with
- * nothing appended: personal data never goes into a URL.
- */
-export const SUBSCRIPTION_APPS = [
-  {id: 'chatgpt', name: 'ChatGPT', url: 'https://chatgpt.com/'},
-  {id: 'claude', name: 'Claude', url: 'https://claude.ai/new'},
-  {id: 'grok', name: 'Grok', url: 'https://grok.com/'},
-  {id: 'gemini', name: 'Gemini', url: 'https://gemini.google.com/app'},
-] as const;
-export type SubscriptionAppId = typeof SUBSCRIPTION_APPS[number]['id'];
-export const isSubscriptionAppId = (value: unknown): value is SubscriptionAppId => SUBSCRIPTION_APPS.some(app => app.id === value);
 
 /**
  * A local server address the content security policy allows: plain http on localhost or 127.0.0.1, any port, an

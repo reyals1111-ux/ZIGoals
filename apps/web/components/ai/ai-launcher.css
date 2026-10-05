@@ -1,0 +1,23 @@
+/* ZIGi · your AI (ADR-012): the launcher shell, shipped on every app page; everything else lives in ai.css and loads with the chat. */
+/* ---- Launcher ---- */
+.ai-launcher{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));z-index:46;display:flex;align-items:center;gap:8px}
+.ai-launcher-phone{right:calc(var(--safe-right,0px) + 12px);bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 14px)}
+:root[data-keyboard=open] .ai-launcher{display:none}
+.ai-launcher-button{display:inline-flex;align-items:flex-end;justify-content:center;width:56px;height:56px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);background:radial-gradient(120% 120% at 30% 20%,#2b2a6e,#0d1230 70%);box-shadow:0 14px 34px -14px rgba(60,40,160,.8),0 0 0 1px rgba(255,255,255,.04) inset;cursor:pointer;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.ai-launcher-button:hover,.ai-launcher-button:focus-visible{transform:translateY(-2px);box-shadow:0 18px 40px -14px rgba(90,70,200,.9)}
+.ai-launcher-button:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.ai-launcher-button{transition:none}.ai-launcher-button:hover,.ai-launcher-button:focus-visible{transform:none}}
+:root[data-app-motion=off] .ai-launcher-button{transition:none}
+:root[data-app-motion=off] .ai-launcher-button:hover,:root[data-app-motion=off] .ai-launcher-button:focus-visible{transform:none}
+.ai-launcher-button .zigi{width:44px!important;height:44px!important}
+.ai-launcher-button .zigi img{filter:none}
+.ai-launcher-pill{font-size:14px;line-height:1;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 85%,transparent);color:var(--text,#eef1ff);text-decoration:none;white-space:nowrap}
+.ai-launcher-pill:hover{border-color:color-mix(in srgb,var(--violet,#8b7cff) 60%,var(--line,#2a325a))}
+.ai-launcher-hide{width:44px;height:44px;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--muted,#aab2d9);font-size:20px;line-height:1;cursor:pointer}
+.ai-launcher-hide:hover,.ai-launcher-hide:focus-visible{color:var(--text,#eef1ff);border-color:var(--line,#2a325a)}
+.ai-launcher-toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,var(--panel,#0f1530) 92%,transparent);border:1px solid var(--line,#2a325a);color:var(--text,#eef1ff);font-size:15px;max-width:min(92vw,560px)}
+@media (max-width:767.98px){.ai-launcher-pill{display:none}.ai-launcher-toast{bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 14px)}}
+/* ---- Shared with the Settings section shell ---- */
+.ai-chat-premium{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);color:var(--text,#eef1ff)}
+.ai-settings .ai-chat-premium{margin-left:8px;vertical-align:middle}
+.ai-settings-loading{color:var(--muted,#aab2d9);font-size:15px;margin:12px 0 0}

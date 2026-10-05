@@ -1,8 +1,8 @@
 import {existsSync, statSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test} from 'vitest';
-import manifest from './manifest.json';
-import {stateForEvent, type ZigiEvent} from './events';
+import manifest from '../../components/zigi/manifest.json';
+import {stateForEvent, type ZigiEvent} from '../../components/zigi/events';
 
 // ADR-012: the mascot is a static manifest; every state has a frame on disk, within the documented size budget.
 const PUBLIC = join(__dirname, '..', '..', 'public');

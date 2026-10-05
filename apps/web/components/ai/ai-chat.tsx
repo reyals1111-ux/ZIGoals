@@ -14,13 +14,15 @@ import {parseBlocks, plainText} from '../../lib/ai/safe-render';
 import type {ModelInfo} from '../../lib/ai/types';
 import {entitlement} from '../../lib/entitlements';
 import {NebulaFlow} from '../nebula-flow';
+import './ai.css';
 import {useVisualViewportInsets} from '../phone/use-visual-viewport';
 import {useZigiState} from '../zigi/events';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
 import {SafeText} from './safe-text';
 import {useAiContext} from './use-ai-context';
-import type {AiSettingsStore} from './use-ai-settings';
+import {useAiSettings, type AiSettingsStore} from './use-ai-settings';
+import {currentAiScope} from '../../lib/ai/scope';
 import type {AiSettings} from '../../lib/ai/settings';
 import {useChatSession, type ChatSession} from './use-chat-session';
 import {useProposals} from './use-proposals';
@@ -33,10 +35,11 @@ import {speechLanguage} from '../../lib/ai/voice';
  * rendered from a parsed tree; proposals become cards; every reply says whose answer it is. The pending state is
  * announced once; streaming is batched per animation frame and never announced token by token.
  */
-type Props = {open: boolean; onClose: () => void; settings: AiSettingsStore; scope: string; sensitive: boolean; phone: boolean};
+type Props = {open: boolean; onClose: () => void; sensitive: boolean; phone: boolean};
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
-export default function AiChat({open, onClose, settings, scope, sensitive, phone}: Props) {
+export default function AiChat({open, onClose, sensitive, phone}: Props) {
+  const settings = useAiSettings(), scope = currentAiScope();
   const data = settings.data, provider = data.provider ? PROVIDERS[data.provider] : null;
   const providerName = data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
   const connected = data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model, bridge = data.enabled && data.mode === 'subscription';

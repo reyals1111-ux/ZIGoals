@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import {expect, test} from 'vitest';
-import {isSensitiveScreen, SENSITIVE_SELECTOR} from './use-sensitive-screen';
+import {isSensitiveScreen, SENSITIVE_SELECTOR} from '../../components/ai/use-sensitive-screen';
 
 // ADR-012, owner rule 8: ZIGi hides, and reads nothing, on dialogs and on the account panels' private forms.
 const html = (body: string) => { const root = document.createElement('div'); root.innerHTML = body; return root; };

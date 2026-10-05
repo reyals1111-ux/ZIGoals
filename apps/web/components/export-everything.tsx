@@ -3,7 +3,6 @@ import {useState} from 'react';
 import {getAppStorage, isShowcase} from '../lib/showcase-storage';
 import {localDate} from '../lib/local-date';
 import {buildEverythingZip, collectEverything, readEverything} from '../lib/export/everything';
-import {currentChatStore, exportChats} from '../lib/ai/scope';
 import './export-everything.css';
 
 /**
@@ -19,7 +18,8 @@ export function ExportEverything() {
       const storage = getAppStorage(), now = new Date();
       const {texts, localSimulation} = await readEverything(storage);
       // ZIGi's conversations (ADR-012) ride along; its provider keys live in a key store the export never opens.
-      const aiChats = await exportChats(currentChatStore()).catch(() => undefined);
+      // The chat store (IndexedDB, or the Showcase tab's storage) is imported only for the export itself; the page never ships it.
+      const aiChats = await import('../lib/ai/scope').then(({currentChatStore, exportChats}) => exportChats(currentChatStore())).catch(() => undefined);
       const collected = collectEverything(texts, {now, version: process.env.NEXT_PUBLIC_APP_VERSION ?? '', commit: process.env.NEXT_PUBLIC_APP_COMMIT ?? '', localSimulation, aiChats});
       const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now});
       const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));

@@ -13,7 +13,6 @@ import type {ModelInfo} from '../../lib/ai/types';
 import {browserSpeechDisclosure, detectBrowser, speechLanguage, TRANSCRIPTION_MODELS} from '../../lib/ai/voice';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
-import {entitlement} from '../../lib/entitlements';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {usePrivateStore} from '../use-private-store';
 import {AiSetup, type SetupSeed} from './ai-setup';
@@ -51,7 +50,7 @@ function useOpenRouterCallback(): {seed: SetupSeed; error: string | null} {
   }, []);
   return state;
 }
-export function AiSettings() {
+export default function AiSettings() {
   const settings = useAiSettings(), data = settings.data, scope = currentAiScope(), showcase = scope === SHOWCASE_SCOPE, callback = useOpenRouterCallback();
   const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent();
   const [remembered, setRemembered] = useState<boolean | null>(null), [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [models, setModels] = useState<ModelInfo[] | null>(null), [modelsBusy, setModelsBusy] = useState(false), [turningOff, setTurningOff] = useState(false), [alsoChats, setAlsoChats] = useState(false), [keyDraft, setKeyDraft] = useState('');
@@ -93,10 +92,7 @@ export function AiSettings() {
     catch (error) { setMessage({text: error instanceof Error ? error.message : 'The key could not be stored.', failed: true}); }
   };
   const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent), language = speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language);
-  return <section className="panel ai-settings" id="your-ai" aria-labelledby="your-ai-title">
-    <p className="eyebrow">ZIGI · YOUR AI <span className="ai-chat-premium">{entitlement('your-ai').label}</span></p>
-    <h2 id="your-ai-title">Your own AI, page by page.</h2>
-    <p>Connect the AI you already pay for, or one running on your computer. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them, logs nothing and runs nothing on its servers for this. ZIGi reads a page only with your permission, never writes anything by itself, and proposes changes as cards you add, edit or dismiss.</p>
+  return <div className="ai-settings-body">
     {settings.unreadable && <p role="alert">This device&rsquo;s ZIGi settings could not be read; they count as off until you save a choice here.</p>}
     {callback.error && <p role="alert">{callback.error}</p>}
     {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right or with ⌘K / Ctrl+K. Health stays off until you turn on “Include Health”.'})}/>}
@@ -146,5 +142,5 @@ export function AiSettings() {
     </>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
     <p className="fine">Costs are between you and your provider; ZIGoals bills nothing and shows token counts only. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
-  </section>;
+  </div>;
 }

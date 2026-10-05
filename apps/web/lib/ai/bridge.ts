@@ -1,6 +1,6 @@
 import type {PageContext} from './context/types';
 import {DATA_CLOSE, DATA_OPEN, SPECIALISTS} from './context/specialists';
-import {SUBSCRIPTION_APPS, type SubscriptionAppId} from './providers';
+export {subscriptionApp} from './apps';
 import {estimateTokens} from './context/budget';
 
 /**
@@ -10,7 +10,6 @@ import {estimateTokens} from './context/budget';
  * personal data, never a cookie or password, never a scraped login.
  */
 export const BRIDGE_CHARS_MAX = 60_000;
-export const subscriptionApp = (id: SubscriptionAppId | string | null | undefined) => SUBSCRIPTION_APPS.find(app => app.id === id) ?? null;
 export function bridgePrompt({context, question, customInstructions = ''}: {context: PageContext | null; question: string; customInstructions?: string}): string {
   const specialist = context ? SPECIALISTS[context.area] : null;
   const parts = [

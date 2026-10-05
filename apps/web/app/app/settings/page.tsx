@@ -13,7 +13,7 @@ import { ExportEverything } from "../../../components/export-everything";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
 import { GuideSettings } from "../../../components/coach/guide-settings";
-import { AiSettings } from "../../../components/ai/ai-settings";
+import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import { deployment } from "../../../lib/deployment-config";
 import { useState } from "react";
 import { useGoals } from "../../../components/goal-provider";
@@ -70,7 +70,7 @@ export default function Settings() {
       <PrivateVaultTools/>
       <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Motion</h2><MotionPreference/></section>
       <GuideSettings/>
-      <AiSettings/>
+      <AiSettingsSection/>
       <PrivateBackups/>
       <ExportEverything/>
       <div className="detail-grid">

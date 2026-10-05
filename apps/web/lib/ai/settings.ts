@@ -7,7 +7,8 @@ import {PROVIDER_IDS, SUBSCRIPTION_APPS, normalizeLocalBaseUrl} from './provider
  * separate key store (keys.ts) or in memory. Zod-validated and read-tolerant: unreadable bytes read as off and are
  * never rewritten by anything but the person's next choice. Never synced. Listed as personal in onboarding.ts.
  */
-export const AI_SETTINGS_KEY = 'zigoals:ai:v1';
+export {AI_SETTINGS_KEY} from './launcher-record';
+import {AI_SETTINGS_KEY} from './launcher-record';
 /** Showcase conversations live in the tab's session storage under this app-storage key (chats.ts). */
 export const AI_CHATS_SESSION_KEY = 'zigoals:ai-chats:v1';
 export const PAGE_AREAS = ['today', 'goals', 'habits', 'health', 'wealth', 'help'] as const;

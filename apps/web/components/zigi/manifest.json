@@ -2,7 +2,6 @@
   "version": 1,
   "name": "ZIGi",
   "alt": "ZIGi",
-  "note": "ZIGi, the mascot of 'ZIGi · your AI' (ADR-012). Every state maps to the static placeholder until the figure set lands; docs/product/YOUR_AI_V1.md §4 names the files, sizes and budgets. Static frames are WebP; an animated state is an animated WebP (APNG as the fallback) under the per-size budget below, and every animated state needs its static frame for reduced motion and Motion Off.",
   "sizes": {
     "1x": {
       "file": "/brand/figures/zigi-placeholder.webp",

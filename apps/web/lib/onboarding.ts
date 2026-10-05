@@ -12,7 +12,7 @@ import {INSIGHTS_KEY} from './insights/schema';
 import {IMPORT_UNDO_KEY} from './import/undo-schema';
 import {PUSH_KEY} from './push/client';
 import {GUIDE_KEY} from './coach/schema';
-import {AI_SETTINGS_KEY} from './ai/settings';
+import {AI_SETTINGS_KEY} from './ai/launcher-record';
 export const ONBOARDING_KEY = 'zigoals:onboarding:v1';
 export type OnboardingFlag = { version: 1; seen: true };
 type Read = Pick<Storage, 'getItem'>;

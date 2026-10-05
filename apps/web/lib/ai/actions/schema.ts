@@ -10,7 +10,8 @@ import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
  */
 export const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'] as const;
 export const MEASUREMENT_KINDS = ['waist', 'hips', 'chest', 'arm', 'thigh'] as const;
-export const HOLDING_CATEGORIES = ['Cash', 'Crypto', 'Stablecoins', 'Stocks', 'Precious metals', 'Property', 'Custom asset'] as const;
+export {HOLDING_CATEGORIES} from './holding-categories';
+import {HOLDING_CATEGORIES} from './holding-categories';
 export const GOAL_CATEGORIES = ['Emergency Fund', 'First Home', 'Financial Freedom', 'Travel', 'Education', 'Custom'] as const;
 export const GLASS_ML = 250, MAX_PROPOSALS = 10;
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
