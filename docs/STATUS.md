@@ -14,7 +14,7 @@ Nothing was deployed, merged, dispatched or approved, and nothing was logged int
 
 **Branch:** `fix/session-u-2026-10-04` (the brief's name; the push was accepted, so no other branch was used). **Base:** `main` `e336227`; main did not move during the session, so no merge was needed.
 
-**Session T's lane** (`feature/session-t-your-ai-2026-10-04`, head `45b1e8f` throughout): read only, never edited. Before every push the changed files were compared with T's and a 3-way merge was tried (`git merge-tree`); the overlaps are listed at the end.
+**Session T's lane** (`feature/session-t-your-ai-2026-10-04`, head `45b1e8f` until the first close-out, `7702112` during the follow-up): read only, never edited. Before every push the changed files were compared with T's and a 3-way merge was tried (`git merge-tree`); the overlaps are listed at the end.
 
 ## Parts
 | Part | What | Tier | Commits (revert these) | Tests added or changed | Evidence |
@@ -107,7 +107,7 @@ Nothing was deployed, merged, dispatched or approved, and nothing was logged int
 - **Screenshots:** before and after, Showcase and seeded, on `review/session-u-today-screens` (never to be merged). **Owner's visual OK requested.**
 
 ## Part 9: the switch and its evidence
-- **Switch:** `apps/web/lib/vault/sync-writes.ts` → `SYNC_WRITES = true`; every store and test runs both states.
+- **Switch:** `apps/web/lib/vault/sync-writes.ts` → `SYNC_WRITES = true`; every store and test runs both states. **Superseded by follow-up F1: shipped `false`** (below, "Follow-up (2026-10-05)").
 - **Why it is safe to ship on:** (a) the public Alpha has no account or sync path (only `WORKER_SELF_REFERENCE` and `MARKET_QUOTES`, pinned by `assertAlphaConfig` and `check-deployment-configs`; the account route answers 503 without bindings; no sync host in its CSP), so the switch changes only where a device keeps the four records; (b) the acceptance app runs the Stage 7 build until the 22–24 October redeploy (owner-reported, FINAL_ACCTEST).
 - **The T4 gap:** #27 (R1, read support) went live on 2026-10-04; the two-release rule wants seven days before a build writes the new formats on the public Alpha. Deploy this to `alpha.zigoals.app` on or after **2026-10-11**, or set the switch to `false` first (owner decision below).
 - **Where the records live:** fasting → Health v2; the weekly review → settings v2 without its Health note; health goals, habit-health links (with their markers) and the review's Health note → **Health v3**, under the Health consent only, lazily (a section changes version only when one of those fields is first written). The device keys are read and merged on every load (idempotent, per-record digest marker) and never rewritten.
@@ -171,23 +171,18 @@ repository's typecheck (`tsc --noEmit` for the app and for the Workers):
 10. Part 9: the whole-Portfolio merge asks the person on any two-sided change (no per-transaction merge); a finer merge is possible later without a format change.
 
 ## Owner decisions needed
-1. **Sync writes and the T4 gap:** deploy this PR to the public Alpha on or after 2026-10-11, or set `SYNC_WRITES = false` before an earlier deploy.
-2. **F5:** Cloudflare API token permissions for Workers Scripts are account-level, with no per-Worker scope (source: developers.cloudflare.com, API token permissions, read 2026-10-05). The Alpha deploy token can therefore upload any Worker in the account: keep one account, or move the public Alpha to its own account.
+1. **Sync writes and the T4 gap:** resolved by follow-up F1 (the switch ships off; the switch-ON PR follows, docs/product/SYNC_WRITES_ON.md).
+2. **F5:** Cloudflare API token permissions for Workers Scripts are account-level, with no per-Worker scope (source: developers.cloudflare.com, API token permissions, read 2026-10-05). The Alpha deploy token can therefore upload any Worker in the account. **Decided: keep one Cloudflare account for now (owner, 2026-10-05).**
 3. **D5 wording:** approve the new Help, sync-offer, deletion and rotation sentences (`c0107af`).
 4. **Part 8:** the visual OK on the before/after screenshots.
 5. **R1 devices with Health sync:** a #27/#28 build signed in with Health sync stops syncing (all four sections) once another device writes Health v3. This matters only if an R1 build ever runs with accounts; the acceptance app runs the Stage 7 build until its redeploy.
 6. **Portfolio cap:** about 1 MB sealed per account (about 670,000 characters of plain Latin text, fewer for other scripts); larger Portfolios are told to export.
-7. **The `MARKET_POLICY` gap:** the current period ends 2026-10-31 16:00 UTC and the next cannot be deployed earlier: prepare around 28 October, switch at or after that time.
+7. **The `MARKET_POLICY` gap:** resolved by follow-up F2 (the next period is installed in advance around 28 October and takes over by itself).
 
 ## Owner steps, in order
-1. Review PR #74 (Part 8 screenshots on `review/session-u-today-screens`; D5 wording) and merge it.
-2. Market coordinator redeploy from merged `main` (rollback `4754e86f-42c2-4ea3-8373-3c0a7031036b`), then one `node scripts/verify-hosted-alpha.mjs`: prices VERIFIED and the policy period end printed.
-3. Manual Alpha deployment of the merged `main` — on or after 2026-10-11, or with `SYNC_WRITES = false` (decision 1).
-4. `verify-hosted-alpha.mjs` again after the app deploy.
-5. Landing deploy per LANDING.md (HSTS and copy; rollback `a37cf208-058e-4a4d-aa37-dfb849d7b48d`).
-6. Around 28 October: `node scripts/run11/next-market-policy.mjs` (dry run), then `--write` and the printed steps at or after 2026-10-31 16:00 UTC.
-7. 22–24 October, FINAL_ACCTEST_REDEPLOY: services first (private sync, market coordinator, push reminders if active), regenerate the recovery-admin copy, the app last, then reload every test device (the acceptance app goes straight from Stage 7 to this build); then STAGE8_OWNER_RUNSHEET (owner hardening first), including the iPhone remembered-device row 13c.
-8. Housekeeping (docs/ops/HOUSEKEEPING.md): the stale `review/*` branches (including `review/session-l-screenshots`) and old worktrees, one step at a time.
+Superseded by the follow-up's steps (below, "Follow-up (2026-10-05)", "Owner steps, in order"). In short: merge →
+one coordinator redeploy → verify → Manual Alpha deployment any time after the coordinator redeploy (switch OFF) →
+verify → landing → ~28 Oct the two-window policy → before 22 Oct the switch-ON PR → FINAL_ACCTEST.
 
 ## Follow-ups (not done here)
 - **Q-SYNC-05:** a revoked session removes a remembered device's record only when that device next opens the vault (PRIVACY.md says so); the code change is a follow-up.
@@ -203,14 +198,94 @@ Ten rows are appended to the table below (earlier rows unchanged): the Part 4 fi
 cause, `unified-goals.spec.ts:66` as the known browser click hang, and `brand-nav-polish.spec.ts:101` (not an
 intermittent: Part 3's full page load).
 
-## Session T overlaps (T head `45b1e8f`)
+## Session T overlaps (T head `45b1e8f`; re-checked at `7702112` in the follow-up)
 - Edited by both, in separate hunks: `apps/web/components/help/help-page.tsx`, `shell.tsx`, `vault-sync-controls.tsx`, `lib/export/everything.ts`, `lib/security-policy.ts`, `next.config.ts`, `tests/help-page.spec.ts`, `tests/public-alpha.spec.ts`, `docs/PRIVACY.md`, `docs/business/LEGAL_CHECKLIST.md`, `docs/legal/PRIVACY_NOTICE_DRAFT.md`, `docs/security/THREAT_MODEL.md`, `scripts/alpha-deployment.test.mjs`, `scripts/lib/alpha-smoke.mjs`, `scripts/verify-hosted-alpha.mjs`. `git merge-tree` against T's head merges them all cleanly.
 - **`docs/STATUS.md` conflicts** (both add entries at the top): whoever merges second keeps both entries, newest first.
 - Not touched here: `whats-new-card.tsx`, `lib/whats-new.ts`, `phone-chrome.tsx`, `phone-settings.tsx` and every other file in T's lane.
 
 ## How the owner can review
-- Preview: `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, then http://127.0.0.1:3100/app (Settings → Load Showcase Demo). On a phone-sized window: Today (Part 8), Health → Scan a barcode (Part 3), Settings → account sync shows "Also sync my Portfolio (optional)" only with an account.
+- Preview: `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, then http://127.0.0.1:3100/app (Settings → Load Showcase Demo). On a phone-sized window: Today (Part 8), Health → Scan a barcode (Part 3), Settings → account sync shows "Also sync my Portfolio (optional)" only with an account and only once the sync-writes switch is on (it ships off, follow-up F1).
 - Part by part: the PR description's checklist; each part reverts alone (dependencies above).
+
+## Follow-up (2026-10-05)
+Owner-approved in advance (the owner merges PR #74, redeploys the coordinator once, then deploys the Alpha together with
+Session T's PR). Same branch, same PR; the plan is in the PR description ("Follow-up plan"). `main` did not move
+(`e336227`), so no merge was needed. Nothing was deployed, merged, dispatched or approved, and nothing was logged into.
+
+| Part | What | Tier | Commits (revert these) | Tests | Evidence |
+|---|---|---|---|---|---|
+| F1 | `SYNC_WRITES = false`: the build carries the Health v3 read support and writes exactly what #28 writes; the switch-ON step written down | `[TIER 3] (sync)` `43b6fae`; tests and docs `0b043b4`, `537c85d` | `43b6fae` alone turns the switch back on | `sync-writes-off.test.ts` (new), `sync-homes-store.test.ts`; the six switch-following browser specs | local, CI |
+| F2 | `MARKET_POLICY` may hold the current window and the next (`{"windows":[current, next]}`); the coordinator hands over by itself at the boundary | `[TIER 3] (market Worker)` `7127116`; `[TIER 3] (deploy workflow)` `12e0977`; — `2b11e51`, docs `b775356` | each alone | `market-policy-windows.test.ts` and `.test.mjs` (new), `market-status*`, `alpha-policy-window`, `alpha-deployment`, `next-market-policy` | local, Miniflare, CI |
+| F3 | Today on a phone: each widget card folds to a row named by it; the overview keeps every value in view | Tier 2 | `e1af2d6`, `dd04259`, `45d4756` | `today-phone-folds.spec.ts` (new), `today-screens.spec.ts` (ceilings lowered); ten browser specs and three browser integration tests open the rows first (assertions unchanged) | local (production builds), freeze check |
+| F4 | This section and the corrections above (T's head, the F5 decision, owner step 3) | — | this commit | — | — |
+
+### F1: the sync writes ship off
+- **Why** (also in SYNC_HOMES "The write switch", ADR-013, FINAL_ACCTEST and the runsheet): with the switch on, the public Alpha writes Health v3 into the browser's own storage; no deployed build reads v3 yet, so a rollback to #28 would leave that person's Health section unreadable there until the roll-forward. Shipping off puts the v3 **read** support live first.
+- **Off, this build** (`sync-writes-off.test.ts`, local): reads Health v2/v3 and settings v2 when present (a Health edit keeps the v3 groups byte for byte); writes exactly the device keys #28 writes (Health and settings untouched, no marker, no recovery copy); never converts device data; every value it writes parses with #28's readers. Portfolio sync shares the switch, so it is hidden. Unrelated to the switch, Part 5's remembered-device record v2 is still written (rollback note above).
+- **Switching on:** a one-line PR plus its test (docs/product/SYNC_WRITES_ON.md), merged at least 7 days after the first Alpha deploy carrying PR #74 and on or after 2026-10-11, included in the 22–24 October acceptance redeploy. From then on the Alpha's rollback floor is PR #74's deploy (the first build with v3 read support).
+
+### F2: the next price window, installed in advance
+- **Shape:** `{"windows":[current, next]}`. Each window is a whole policy checked by the existing `configSchema`; both exact windows; the next starts exactly where the current ends; different labels. Anything else is no policy. One policy alone works exactly as before (equality tests).
+- **Hand-over:** the window is chosen inside each command's transaction from the same clock reading; the next window serves from its start, the boundary included. Before the first window and after the last, everything is refused (cached prices too).
+- **Budget across the boundary:** the daily row budget and the public cold-work cap count per UTC day, so what was spent before 16:00 UTC still counts after it (Miniflare with a fixture clock before, at and after the boundary; unit: the automatic hand-over equals the manual switch row for row). The monthly credits start again with the new billing period, as CoinGecko's do.
+- **Status:** QuoteService `/status` and `GET /api/market-status` add `nextPolicyWindowEnd`; the deploy summary and `verify-hosted-alpha.mjs` say when the next period takes over and warn 7 days before the last installed end.
+- **Owner tool:** `next-market-policy.mjs --current-policy <installed file>` builds the pair (dry run by default; `--write` any time once checked; prints the steps, runs none). **Install around 28 October with one policy update** (`MARKET_POLICY` is a var in the private coordinator config, so: `make-private-configs.mjs --set-market-policy`, then one coordinator deploy of the same code); it takes over by itself on 2026-10-31 16:00 UTC (17:00 Belgian time).
+- **Rides tonight's single coordinator redeploy** (rollback `4754e86f-42c2-4ea3-8373-3c0a7031036b`). A coordinator rolled back below F2 reads a pair as no policy: set the single-window file again.
+
+### F3: Today on a phone, for real
+- **Changed** (phones only): each Today widget card is a row named by the card ("Daily Habits", "Water today", …) that opens it in place; "Your selected widgets" still shows every widget's value. Nothing folds while Today is being customized. A long title wraps inside its row.
+- **Numbers** (local production builds of the same commit with and without F3, 390×844, every API answered 503, motion reduced): Showcase **10.92 → 9.46** screens (target ≤ 10.2); seeded Local Demo **4.93 → 3.95** (≤ 4.5); What's new dismissed **4.58 → 3.59** (≤ 4.2). Ceilings lowered to **9.7 / 4.2 / 3.85**.
+- **Freeze check** (154 captures, six desktop and tablet sizes): **154 of 154 identical** (pixels and accessibility snapshot).
+- **Not changed:** the hero, For you and What's new (Session T's lane), Habits, Health, the overview. Open/closed is not remembered: that would need a new storage key (owner decision 8 below).
+- **Screenshots:** `review/session-u-today-screens` (`541e760`, `index.md`, `followup-f3/`; never merge). **Owner's visual OK requested.**
+
+### F4: corrections
+- Session T's head is now `7702112` (PR #73, finished, unmerged); its new commits touch none of this follow-up's files except four that merge cleanly (THREAT_MODEL, `alpha-deployment.test.mjs`, `alpha-smoke.mjs`, `verify-hosted-alpha.mjs`). `git merge-tree` against `7702112`: only `docs/STATUS.md` conflicts (keep both entries).
+- **Agent dispatches currently appear as the owner's actor** (docs/deployment/AGENT_DISPATCH.md; FINDINGS Q-AI-01): GitHub shows `reyals1111-ux` "via claude", so the workflow cannot tell an agent's dispatch from the owner's. The protected `alpha` environment approval, which only the owner gives, is the real gate.
+- **F5 decided:** keep one Cloudflare account for now (owner, 2026-10-05).
+
+### Gates (local; app code as at `e1af2d6`, tests as at `45d4756`; F4 is docs only)
+- `pnpm lint`, `pnpm typecheck`: clean.
+- `pnpm test`: 356 files (339 passed, 17 skipped); 3,272 tests: **3,237 passed**, 1 expected fail, 34 skipped.
+- `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, then the full Playwright suite at 2 workers against `next start` (49 min): **1,089 passed, 78 skipped, 11 failed.** Four are the intro-film specs this Chromium cannot play (CLAUDE.md; green in CI). The other seven were specs reading a widget card on Today at phone width, which F3 folds: `45d4756` opens the rows first and all seven pass on the same build (15 of 15 with their other projects).
+- Browser integration (`account-browser`, the Stage 8 sync-offer rehearsal, `packaged-runtime`) against the same build on port 3100: 4 passed, 2 skipped (the packaged-artifact journey is gated, as in CI). CI on `e1af2d6` had found the first three; fixed in `dd04259`.
+- Freeze check (desktop and tablet, 154 captures): 154 of 154 identical.
+- `pnpm check:deploy-configs` (isolated and internally consistent); `pnpm check:landing` (274 files, no bindings).
+- `build:alpha`; `check:alpha-artifact` (passed); the Alpha dry run with `--outdir`; `ALPHA_PACKAGED=1 alpha-packaged-prices.test.mjs`: 6/6.
+
+### Revert-alone gate (follow-up parts)
+In a fresh worktree at `45d4756`, `git revert -n` newest first, then both typechecks (local):
+
+| Part | Reverts cleanly | Typechecks |
+|---|---|---|
+| F1's switch (`43b6fae`) alone | yes | yes |
+| F1 whole (`537c85d`, `0b043b4`, `43b6fae`) | together with F2's docs `b775356` | yes |
+| F2 (`b775356`, `2b11e51`, `12e0977`, `7127116`) | yes, alone | yes |
+| F3 (`45d4756`, `dd04259`, `e1af2d6`) | yes, alone | yes |
+
+- **F1's docs dependency:** F1's runsheet prerequisite line sits right above the "market policy window" line that F2's docs rewrote; git treats adjacent changes as one. To turn the switch back on, revert `43b6fae` alone; to remove F1's docs too, revert `b775356` first or keep that one line by hand.
+
+### CI
+- **On `b775356`** (F1 and F2): Milestone quality ([run 37290321919](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37290321919)) and Canonical reproducibility ([run 37290321995](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37290321995)): success on attempt 1, every job. (Actions API)
+- **On `e1af2d6`** (F3): web integration failed in three browser integration tests that read a widget card on a phone (`account-browser` ×2, the Stage 8 sync-offer rehearsal); root cause F3's fold, fixed in `dd04259`; no re-run used. (CI log)
+- This commit's own CI is linked from the PR.
+
+### Owner decisions needed (follow-up)
+8. **F3:** the folded widget rows close again on every visit (remembering them would need a new storage key).
+9. **F3 and Part 8:** the visual OK on `review/session-u-today-screens`.
+(Decisions 3–6 above still stand; 1, 2 and 7 are settled.)
+
+### Owner steps, in order
+1. Review PR #74 (D5 wording; screenshots on `review/session-u-today-screens`) and merge it.
+2. **One** market coordinator redeploy from merged `main` (it carries Part 2 and F2; `MARKET_POLICY` unchanged tonight; rollback `4754e86f-42c2-4ea3-8373-3c0a7031036b`; docs/run11/ALPHA_PRICES_ROLLOUT.md).
+3. `node scripts/verify-hosted-alpha.mjs`: prices VERIFIED and "Market policy period ends 2026-10-31T16:00:00.000Z".
+4. Manual Alpha deployment any time after the coordinator redeploy (switch OFF), with Session T's PR as planned.
+5. `verify-hosted-alpha.mjs` again.
+6. Landing deploy per LANDING.md (rollback `a37cf208-058e-4a4d-aa37-dfb849d7b48d`).
+7. Around 28 October: install the two-window policy (`next-market-policy.mjs --current-policy …`, then `--write`, `make-private-configs.mjs --set-market-policy`, one coordinator deploy, the verifier). Nothing to do at 2026-10-31 16:00 UTC.
+8. Before 22 October (and at least 7 days after step 4, on or after 2026-10-11): the switch-ON PR (docs/product/SYNC_WRITES_ON.md).
+9. 22–24 October: FINAL_ACCTEST_REDEPLOY (step 0: the switch-ON PR is in; services first, regenerate the recovery-admin copy, the app last, reload every test device), then the Stage 8 runsheet.
+10. Housekeeping (docs/ops/HOUSEKEEPING.md).
 
 # Owner records — 2026-10-04 evening: the app-side market key and the GitHub `alpha` secret are deleted
 
