@@ -1,3 +1,4 @@
+import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
 import {HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../health';
@@ -52,8 +53,8 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'wealth-positions.csv': ['id', 'name', 'asset', 'asset_class', 'source_type', 'network', 'quantity', 'decimals', 'valuation_value', 'valuation_currency', 'valuation_decimals', 'valuation_source', 'observed_at_utc', 'archived_at_utc', 'provenance', 'notes'],
 };
 type Cell = string | number | boolean | null | undefined;
-/** Every cell quoted, quotes doubled, a leading apostrophe before what a spreadsheet would run as a formula (the Health CSV rule). */
-export const csvCell = (value: Cell) => { if (value === null || value === undefined) return '""'; const text = String(value); return `"${(/^[\s]*[=+\-@\t\r]/.test(text) ? "'" + text : text).replaceAll('"', '""')}"`; };
+/** Every cell quoted, quotes doubled, a leading apostrophe before what a spreadsheet would run as a formula (csv-safe.ts, Session U). */
+export const csvCell = (value: Cell) => csvSafeCell(value);
 const csv = (header: readonly string[], rows: readonly Cell[][]) => [header, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
 const parseJson = (text: string): unknown => JSON.parse(text);
 /** The day of an instant in a zone, for timed weight measurements; the UTC day when the zone cannot be read. */
