@@ -58,7 +58,8 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     if (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription') { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · your AI.']}); return; }
     if (isFull(chatRef.current) && !options.reuse) { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
     const provider = PROVIDERS[settings.provider], contextText = options.withContext === false ? null : context.context?.text ?? null, contextHandles = options.withContext === false ? [] : context.context?.handles ?? [];
-    const base = {area: context.area, customInstructions: settings.customInstructions, providerName: provider.name};
+    const providerName = settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
+    const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
     const systemOnly = buildSystemPrompt({...base, context: null}), system = buildSystemPrompt({...base, context: contextText});
     const started = options.reuse ? chatRef.current : appendTurn(chatRef.current, userTurn(text));
     const fit = fitToBudget({system: systemOnly, context: contextText ?? '', turns: messagesFor(started.turns), budgetTokens: settings.contextBudgetTokens});
@@ -86,7 +87,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
         const aiError = error instanceof AiError ? error : mapNetworkError(settings.provider, error, {local: settings.provider === 'local', online: navigator.onLine});
         if (reply) finish(reply, usage, `Interrupted: ${aiError.message}`.slice(0, 200), contextHandles);
         const hosted = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
-        setFailure({kind: aiError.kind, title: aiError.message, steps: errorSteps(aiError, {providerName: provider.name, local: settings.provider === 'local' ? {server: settings.localServer, baseUrl: settings.baseUrl ?? ''} : undefined, hostedPage: hosted, keysUrl: provider.keysUrl})});
+        setFailure({kind: aiError.kind, title: aiError.message, steps: errorSteps(aiError, {providerName, local: settings.provider === 'local' ? {server: settings.localServer, baseUrl: settings.baseUrl ?? ''} : undefined, hostedPage: hosted, keysUrl: provider.keysUrl})});
         zigiEvents.emit('error');
       }
     } finally {

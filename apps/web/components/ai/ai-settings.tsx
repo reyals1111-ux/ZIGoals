@@ -104,7 +104,7 @@ export function AiSettings() {
       <ZigiAvatar state="idle" size={44} decorative/>
       <div className="ai-connection-copy">
         <strong>{data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`}</strong>
-        <small>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept for this page only.'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
+        <small>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
       </div>
       <div className="ai-card-actions">
         {connected && <button type="button" className="secondary" disabled={modelsBusy} onClick={() => models ? setModels(null) : void loadModels()}>{modelsBusy ? 'Loading models…' : models ? 'Hide models' : 'Change model'}</button>}
@@ -113,7 +113,7 @@ export function AiSettings() {
     </div>}
     {models && <div className="ai-setup-form"><ModelPicker models={models} value={data.model} onChange={id => { save(s => ({...s, model: id}), `Model changed to ${id}.`); setModels(null); }}/></div>}
     {data.enabled && data.mode !== 'subscription' && data.provider && !showcase && <div className="ai-setup-form ai-key-replace">
-      <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key on this device" note="Encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page and is forgotten when the tab closes."/>
+      <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key on this device" note="Encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
       <label className="field">Replace the key<input type="password" value={keyDraft} onChange={e => setKeyDraft(e.target.value)} autoComplete="off" spellCheck={false} autoCapitalize="off" placeholder="Paste a new key"/></label>
       <div className="ai-card-actions"><button type="button" className="secondary" disabled={!keyDraft.trim()} onClick={() => void replaceKey()}>Use this key</button></div>
     </div>}

@@ -50,11 +50,11 @@
 @media (max-width:767.98px){.ai-launcher-pill{display:none}.ai-launcher-toast{bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 14px)}}
 
 /* ---- Chat panel ---- */
-.ai-chat{position:fixed;inset:auto 20px 20px auto;margin:0;width:min(440px,calc(100vw - 40px));height:min(72vh,760px);max-height:calc(100vh - 40px);padding:0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 36%,var(--line,#2a325a));border-radius:22px;background:linear-gradient(170deg,color-mix(in srgb,var(--panel,#0f1530) 94%,transparent),color-mix(in srgb,#07091c 96%,transparent));color:var(--text,#eef1ff);box-shadow:0 30px 80px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset;z-index:48;display:none;flex-direction:column;overflow:hidden;backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2)}
+.ai-chat{position:fixed;inset:auto 20px 20px auto;margin:0;width:min(440px,calc(100vw - 40px));max-width:none;height:min(72vh,760px);max-height:calc(100vh - 40px);padding:0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 36%,var(--line,#2a325a));border-radius:22px;background:linear-gradient(170deg,color-mix(in srgb,var(--panel,#0f1530) 94%,transparent),color-mix(in srgb,#07091c 96%,transparent));color:var(--text,#eef1ff);box-shadow:0 30px 80px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset;z-index:48;display:none;flex-direction:column;overflow:hidden;backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2)}
 .ai-chat[open]{display:flex}
 .ai-chat::before{content:"";position:absolute;inset:-40% -30% auto auto;width:70%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent),transparent 72%)}
 .ai-chat-expanded{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(880px,calc(100vw - 48px));height:min(86vh,900px)}
-.ai-chat-phone{inset:0;width:100vw;height:100dvh;max-height:none;border-radius:0;border:0;padding-top:var(--safe-top,0px)}
+.ai-chat-phone{inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;border:0;padding-top:var(--safe-top,0px)}
 .ai-chat-phone::backdrop{background:#01050dc7}
 .ai-chat>*{position:relative}
 .ai-chat-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"avatar identity close" "tools tools tools";align-items:center;column-gap:10px;row-gap:4px;padding:10px 10px 6px 14px;border-bottom:1px solid var(--line,#2a325a)}

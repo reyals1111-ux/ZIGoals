@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { captureName, intendedDifference, matrix, ONBOARDING_KEY, PAGES, SIZES, snapshotDiff, STATES, validateBase } from "./desktop-freeze-check.mjs";
+import { AI_LAUNCHER_HIDDEN, AI_SETTINGS_KEY, captureName, intendedDifference, matrix, ONBOARDING_KEY, PAGES, SIZES, snapshotDiff, STATES, validateBase } from "./desktop-freeze-check.mjs";
+import { AI_SETTINGS_KEY as APP_AI_SETTINGS_KEY, aiSettingsSchema } from "../apps/web/lib/ai/settings.ts";
 
 describe("desktop freeze check", () => {
   test("covers every main page at the four frozen sizes, in Showcase and empty", () => {
@@ -17,8 +18,8 @@ describe("desktop freeze check", () => {
     expect(paths).toContain("/app/portfolio");
     expect(paths).toContain("/app/help");
     expect(paths).not.toContain("/app/goals/positions");
-    // 6 sizes x (13 pages x 2 states - the Showcase-only Goal detail) + 4 dialog captures.
-    expect(matrix().length).toBe(154);
+    // 6 sizes x (13 pages x 2 states - the Showcase-only Goal detail) + 4 dialog captures + the ZIGi launcher capture.
+    expect(matrix().length).toBe(155);
   });
   test("never includes a phone size: every size is at least 768 wide and taller than 500", () => {
     for (const size of SIZES) { expect(size.width).toBeGreaterThanOrEqual(768); expect(size.height).toBeGreaterThan(500); }
@@ -30,7 +31,12 @@ describe("desktop freeze check", () => {
       "1024x768__showcase__dialog-quick-add", "1024x768__showcase__dialog-add-asset",
       "820x1180-touch__showcase__dialog-quick-add", "820x1180-touch__showcase__dialog-add-asset",
     ]);
-    expect(matrix().length).toBe(SIZES.length * (PAGES.filter(p => !p.dialog).length * STATES.length - 1) + dialogs.length);
+    expect(matrix().length).toBe(SIZES.length * (PAGES.filter(p => !p.dialog && !p.launcher).length * STATES.length - 1) + dialogs.length + 1);
+  });
+  test("hides the ZIGi launcher through a valid device record during the matrix and shows it in exactly one capture", () => {
+    expect(AI_SETTINGS_KEY).toBe(APP_AI_SETTINGS_KEY);
+    expect(aiSettingsSchema.parse(AI_LAUNCHER_HIDDEN).launcherHidden).toBe(true);
+    expect(matrix().filter(item => item.page.launcher).map(item => item.name)).toEqual(["1280x800__showcase__zigi-launcher"]);
   });
   test("accepts only loopback HTTP origins", () => {
     expect(validateBase("http://127.0.0.1:3102")).toBe("http://127.0.0.1:3102");
