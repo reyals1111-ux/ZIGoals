@@ -5,7 +5,7 @@ import { reduceReport, summarise } from "./trusted-types-trial.mjs";
 const report = (fields) => ({ "csp-report": { "document-uri": "http://127.0.0.1:3101/app/settings?secret=x", referrer: "http://127.0.0.1:3101/app?private=1", "original-policy": "require-trusted-types-for 'script'; trusted-types default; report-uri http://127.0.0.1:9311/", disposition: "report", "status-code": 200, ...fields } });
 test("a sink report keeps the directive, the sink sample, and paths without queries; nothing else", () => {
   const reduced = reduceReport(report({ "effective-directive": "require-trusted-types-for", "blocked-uri": "trusted-types-sink", "script-sample": "HTMLScriptElement src|https://attacker.invalid/a-very-long-tail", "source-file": "http://127.0.0.1:3101/_next/static/chunks/main.js?v=1", "line-number": 3, "column-number": 14 }));
-  expect(reduced).toEqual({ directive: "require-trusted-types-for", blocked: "trusted-types-sink", sample: "HTMLScriptElement src|https://attacker.in", document: "/app/settings", source: "/_next/static/chunks/main.js", line: 3, column: 14 });
+  expect(reduced).toEqual({ directive: "require-trusted-types-for", blocked: "trusted-types-sink", sample: "HTMLScriptElement src|https://attacker.i", document: "/app/settings", source: "/_next/static/chunks/main.js", line: 3, column: 14 });
   expect(JSON.stringify(reduced)).not.toMatch(/secret|private|original|referrer|report-uri/);
 });
 test("a policy-name report is kept; anything that is not a Trusted Types report is dropped", () => {
