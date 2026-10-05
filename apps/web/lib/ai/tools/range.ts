@@ -164,3 +164,34 @@ export function findRange(question: string, today: string): ({ok: true} & DayRan
   }
   return null;
 }
+/** Every distinct range a question names, in the order they appear ("this week vs last week" gives both). */
+export function findRanges(question: string, today: string): ({ok: true} & DayRange & {phrase: string; at: number})[] {
+  const text = question.toLowerCase().replace(/[?!]+/g, ' ').replace(/\s+/g, ' ').trim(), found: ({ok: true} & DayRange & {phrase: string; at: number})[] = [];
+  const phrases = new Set<string>();
+  for (const words of Object.values(PHRASES)) for (const w of words) phrases.add(w);
+  const patterns = [new RegExp(`${LAST} \\d{1,3} (?:${UNIT_DAYS}|${UNIT_WEEKS}|${UNIT_MONTHS})`, 'g'), /\d{4}-\d{2}-\d{2}/g, /(?:on |last )?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)/g, /(?:in )?(?:january|february|april|june|july|august|september|october|november|december)(?: \d{4})?/g];
+  const candidates: {phrase: string; at: number}[] = [];
+  for (const w of phrases) { const re = new RegExp(`(?:^|\\W)(${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(?=$|\\W)`, 'g'); let m: RegExpExecArray | null; while ((m = re.exec(text))) candidates.push({phrase: m[1]!, at: m.index + m[0].indexOf(m[1]!)}); }
+  for (const pattern of patterns) { let m: RegExpExecArray | null; while ((m = pattern.exec(text))) candidates.push({phrase: m[0], at: m.index}); }
+  // Longer phrases first, so "last week" wins over "week" parts; a phrase inside one already taken is skipped.
+  const taken: [number, number][] = [];
+  for (const c of candidates.sort((a, b) => b.phrase.length - a.phrase.length || a.at - b.at)) {
+    if (taken.some(([s, e]) => c.at < e && c.at + c.phrase.length > s)) continue;
+    const parsed = parseRange(c.phrase, today);
+    if (!parsed.ok) continue;
+    taken.push([c.at, c.at + c.phrase.length]);
+    if (!found.some(f => f.from === parsed.from && f.to === parsed.to)) found.push({...parsed, phrase: c.phrase, at: c.at});
+  }
+  return found.sort((a, b) => a.at - b.at);
+}
+/** The period just before a range, for "this vs last" questions: a period-to-date compares with the same days of the period before. */
+export function previousRange(range: DayRange, today: string): DayRange {
+  const days = daysBetween(range.from, range.to) + 1;
+  if (range.label === 'this month') { const from = monthStart(shiftMonths(range.from, -1)); const to = addLocalDays(from, days - 1); const end = monthEnd(Number(from.slice(0, 4)), Number(from.slice(5, 7)) - 1); return {from, to: to > end ? end : to, label: 'the same days last month'}; }
+  if (range.label === 'this week') { const from = addLocalDays(range.from, -7); return {from, to: addLocalDays(from, days - 1), label: 'the same days last week'}; }
+  if (range.label === 'this year') { const y = Number(range.from.slice(0, 4)) - 1; return {from: `${y}-01-01`, to: `${y}${range.to.slice(4)}`, label: 'the same days last year'}; }
+  if (range.label === 'today') { const d = addLocalDays(today, -1); return {from: d, to: d, label: 'yesterday'}; }
+  if (range.label === 'last month') { const from = monthStart(shiftMonths(range.from, -1)); return {from, to: monthEnd(Number(from.slice(0, 4)), Number(from.slice(5, 7)) - 1), label: 'the month before'}; }
+  const to = addLocalDays(range.from, -1);
+  return {from: addLocalDays(to, -(days - 1)), to, label: days === 1 ? 'the day before' : days === 7 ? 'the week before' : `the ${days} days before`};
+}

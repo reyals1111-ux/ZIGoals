@@ -27,9 +27,13 @@ export function regenerateTarget(chat: Chat, now = new Date()): {chat: Chat; que
   if (!last || last.role !== 'user') return null;
   return {chat: {...chat, turns, updatedAt: now.toISOString()}, question: last.text};
 }
-/** The provider's view of the conversation: user and assistant texts in order, empty turns dropped. */
+/**
+ * The provider's view of the conversation: user and assistant texts in order, empty turns dropped. Questions answered
+ * on the device and their local answers (Session V Part 3, `source: 'local'`) are never sent to a provider later; "Ask
+ * my AI for more" asks again, with the records shown, as a new turn.
+ */
 export function messagesFor(turns: readonly ChatTurn[]): ChatMessage[] {
-  return turns.filter(t => t.text.trim().length > 0).map(t => ({role: t.role, content: t.text}));
+  return turns.filter(t => t.source !== 'local' && t.text.trim().length > 0).map(t => ({role: t.role, content: t.text}));
 }
 /** One honest line for a reply that ended early. */
 export function stopReason(reason: string | null, aborted: boolean): string | undefined {

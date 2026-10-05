@@ -187,3 +187,11 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-settings{scroll-margin-top:84px}
 /* The premium badge belongs to Settings on a phone; the sheet header keeps its one line. */
 @media (max-width:767.98px){.ai-chat-head .ai-chat-premium{display:none}}
+/* Session V Part 3: answers made on this device, no AI. A calm card, set apart from AI replies by its label and edge. */
+.ai-turn-local .ai-turn-body>.ai-local-answer{padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 38%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 7%,transparent)}
+.ai-turn-local .ai-local-answer p{margin:0 0 6px}
+.ai-turn-local .ai-local-answer ul{margin:4px 0 0;padding-left:20px}
+.ai-turn-local .ai-chips{margin-top:8px}
+.ai-records .ai-record-source{margin:6px 0 4px;font-size:14px;line-height:1.45}
+.ai-local-intro{padding:4px 2px 0 86px}
+@media (max-width:640px){.ai-local-intro{padding-left:2px}}

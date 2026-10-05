@@ -1,5 +1,5 @@
 'use client';
-import {useMemo} from 'react';
+import {useCallback, useMemo} from 'react';
 import {usePathname} from 'next/navigation';
 import {formatUnits} from '@zigoals/chain-config';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
@@ -18,6 +18,9 @@ import {attachesContext, pageArea, wealthView} from '../../lib/ai/context/pages'
 import {previewContext, type Preview} from '../../lib/ai/context/preview';
 import type {PageContext} from '../../lib/ai/context/types';
 import type {AiSettings, PageArea} from '../../lib/ai/settings';
+import {aiGates, type Gates} from '../../lib/ai/gates';
+import type {PriceOf, ToolSources} from '../../lib/ai/tools/env';
+import {isShowcase} from '../../lib/showcase-storage';
 import {useGoals} from '../goal-provider';
 import {useHabits} from '../habits/use-habits';
 import {useFasting} from '../health/use-fasting';
@@ -34,7 +37,12 @@ import {useHealthConsent} from './use-health-consent';
  * Health permission), then the context built from the same stores the page reads. Nothing is read on sensitive screens
  * or on Settings. The preview is the exact text that would be attached next.
  */
-export type AiContextState = {area: PageArea; pathname: string; attaches: boolean; consent: Consent; context: PageContext | null; preview: Preview | null; ready: boolean};
+/**
+ * Session V Part 2/3: the same stores also feed ZIGi's tools. `toolSources()` builds them for one question at the time
+ * it is asked (today is today), on every page but sensitive screens, whether or not an AI is connected; `gates` says
+ * what each path may read (lib/ai/gates.ts). Prices are only those already on this page; nothing is fetched for a tool.
+ */
+export type AiContextState = {area: PageArea; pathname: string; attaches: boolean; consent: Consent; context: PageContext | null; preview: Preview | null; ready: boolean; gates: Gates; toolSources: () => ToolSources | null};
 const NO_REQUESTS: MarketQuoteRequest[] = [];
 export function useAiContext(settings: AiSettings, providerName: string, sensitive: boolean): AiContextState {
   const pathname = usePathname() ?? '/app', area = pageArea(pathname), attaches = attachesContext(pathname);
@@ -73,5 +81,25 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
     } catch { return null; }
   }, [reads, area, pathname, gates, habits.data, health.data, fasting.data, platform.data, legacy.goals, legacy.metadata, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data]);
   const preview = useMemo(() => context ? previewContext(context, {provider: providerName}) : null, [context, providerName]);
-  return {area, pathname, attaches, consent: gates, context, preview, ready};
+  const toolGates = useMemo(() => aiGates({settings, area, pathname, layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted, sensitive}), [settings, area, pathname, layoutHasHealth, healthConsent.accountActive, healthConsent.accountHealthPermitted, sensitive]);
+  const toolSources = useCallback((): ToolSources | null => {
+    if (!ready || sensitive) return null;
+    const now = new Date(), deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let hDay = now.toISOString().slice(0, 10), habitDay = hDay;
+    const healthZone = dailyData(health.data).preferences.timezone ?? deviceZone, habitZone = habits.data.timeZone ?? deviceZone;
+    try { hDay = healthDay(dailyData(health.data).preferences.timezone, now); } catch { /* an unknown zone falls back to the UTC date */ }
+    try { habitDay = habitCalendarDay(habits.data, now); } catch { habitDay = hDay; }
+    const refs = new Map<string, {provider: string; kind: string; id: string}>();
+    for (const p of portfolios.data.portfolios) for (const c of p.coins) refs.set(coinKey(c.ref), c.ref);
+    // A coin's price in the portfolio's own currency, with its source and time; never another currency's.
+    const priceOf: PriceOf = (coin, currency) => {
+      const ref = refs.get(coin); if (!ref) return undefined;
+      if (portfolios.showcase) { const price = currency === 'USD' ? SHOWCASE_PRICES[coin] : undefined; return price ? {price, source: 'Showcase example price', observedAt: null} : undefined; }
+      const quote = referenceQuote(ref as Parameters<typeof referenceQuote>[0], currency, portfolioMarket.quotes, portfolioMarket.now);
+      return quote ? {price: formatUnits(quote.price, quote.priceDecimals), source: quote.source, observedAt: quote.observedAt ?? quote.fetchedAt ?? null} : undefined;
+    };
+    return {now, habitDay, healthDay: hDay, habitZone, healthZone, habits: habits.data, health: health.data, fasting: fasting.data, platform: platform.data, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, quotes: market.quotes,
+      localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: null, showcase: isShowcase()};
+  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data]);
+  return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};
 }

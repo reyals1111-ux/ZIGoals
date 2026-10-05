@@ -10,6 +10,8 @@ import type {PageArea} from './settings';
 import {toolEnv, type ToolSources} from './tools/env';
 import {gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
 import {availableTools, runTool, TOOLS, toolText} from './tools/registry';
+import {localAnswer} from './local-answers/engine';
+import {recordsForAi} from './local-answers/more';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -84,4 +86,21 @@ test('Settings and sensitive screens read nothing at all, whatever the switches 
     expect(availableTools(env)).toEqual([]);
     for (const tool of TOOLS) { const result = runTool(tool.name, {}, env); expect(result.ok, tool.name).toBe(false); expect(sentinelsIn(JSON.stringify(result)), tool.name).toEqual([]); }
   }
+});
+
+test('Part 3: local answers stay on the device, and "Ask my AI for more" carries no Health once the gate is closed', () => {
+  const s = sources();
+  // Answers made on the device with the gate closed read nothing of Health.
+  const shut = toolEnv(s, gatesFor(false), 'local');
+  for (const q of ['How much water did I drink today?', 'Average steps this week?', 'What did I eat today?', 'How many calories did I eat today?', 'How many minutes did I meditate this month?', 'How many steps did I walk today?']) expect(sentinelsIn(JSON.stringify(localAnswer(q, shut))), q).toEqual([]);
+  // An answer made while the gate was open, sent later for more with the gate closed: the records are refused, not sent.
+  const opened = toolEnv(s, gatesFor(true), 'local');
+  const calls = ['How much water did I drink today?', 'What did I eat today?', 'How many steps did I walk today?'].flatMap(q => { const r = localAnswer(q, opened); return r.kind === 'answer' ? r.calls : []; });
+  expect(calls.length).toBe(3);
+  // What a chat stores for those answers (tool, arguments, label) carries no Health value either.
+  expect(sentinelsIn(JSON.stringify(calls))).toEqual([]);
+  const later = recordsForAi(calls, s, gatesFor(false))!;
+  expect(sentinelsIn(later.text)).toEqual([]);
+  // The control: with the gate open the same records do carry the values.
+  expect(sentinelsIn(recordsForAi(calls, s, gatesFor(true))!.text).length).toBeGreaterThan(0);
 });
