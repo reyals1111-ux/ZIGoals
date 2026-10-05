@@ -1,9 +1,10 @@
 # Sync homes for Session P's device-only records
 
-**Status:** read support shipped in Session P, PR 2 (2026-10-03, R1, live since Alpha deploy #27 on 2026-10-04). **The
-write switch is on since Session U Part 9** (2026-10-05, `apps/web/lib/vault/sync-writes.ts`, `SYNC_WRITES = true`):
-the four records below are written into their synced homes and read from there. Before the switch they lived only in
-device keys.
+**Status:** read support shipped in Session P, PR 2 (2026-10-03, R1, live since Alpha deploy #27 on 2026-10-04). Session U
+Part 9 built the writes, the merge and Health v3 (read support included). **The write switch ships OFF** (Session U
+follow-up F1, 2026-10-05, `apps/web/lib/vault/sync-writes.ts`, `SYNC_WRITES = false`): the four records below stay in
+their device keys, exactly as on #28, until the one-line switch-ON PR (docs/product/SYNC_WRITES_ON.md) writes them into
+their synced homes.
 
 Session P's PR 3 added four kinds of record that had no place in the synced formats: habit-health links with their
 automatic check-in markers (H7), health goals (G3), weekly reviews (G1) and fasting sessions (HE6). PR 3 kept each in a
@@ -69,7 +70,8 @@ with the account. Three merge rules keep two devices from conflicting over these
 
 ## Behaviour on every build
 
-- **This build** reads and writes all of the above. A record it reads at a newer version is written back at that version.
+- **This build, switch on** reads and writes all of the above. A record it reads at a newer version is written back at that version.
+- **This build as shipped (switch off)** reads all of the above and writes only what #28 writes (above).
 - **Builds #27 and #28 (R1)** read Health v2 and settings v2 and write them back unchanged. They **refuse Health v3**:
   locally "Private data is invalid or uses an unsupported version. Original data was preserved." with the bytes kept; an
   import of a v3 export is refused, nothing touched; a sync that pulls a v3 Health section stops with "This section was
@@ -85,24 +87,48 @@ bytes and the recovery copies are kept, and the roll-forward reads them again an
 keys meanwhile. Never roll back below R1 (#27) once this build has been live: settings v2 and Health v2 would be refused
 too.
 
+**Once the switch-ON PR has shipped** (Session U follow-up F1), the Alpha's rollback floor is the build that first carried
+v3 read support (PR #74's merge, switch off): it reads every section the switched-on build writes. Rolled back to it, the
+four features show their device-key copies (the homes are kept, untouched, and merged again on the roll-forward).
+
 ## The write switch
 
 `SYNC_WRITES` in `apps/web/lib/vault/sync-writes.ts`. Off, every store reads and writes its device key exactly as before
-(tests cover both states, `apps/web/lib/sync-homes-store.test.ts`). The T4 preconditions (TIMEZONE_DESIGN.md) and where
-they stand on 2026-10-05:
+(tests cover both states, `apps/web/lib/sync-homes-store.test.ts`; the switch-off guarantees, `apps/web/lib/sync-writes-off.test.ts`).
+
+**Shipped off (Session U follow-up F1, 2026-10-05).** With the switch on, the public Alpha would write Health v3 into the
+browser's own storage; no deployed build reads v3 yet, so a rollback to #28 would leave that person's Health section
+unreadable there until the roll-forward. Shipping off puts the v3 **read** support live first. Off, this build:
+
+- reads Health v2 and v3 and settings v2 wherever they appear (local, import, sync), and writes a section back at the
+  version it already has (a Health edit keeps the v3 groups byte for byte). The four features themselves read their
+  device keys, so records a switched-on build put in the homes are kept but not shown until the switch is on;
+- writes exactly what #28 writes: the four device keys, and Health and settings only through their own screens; no
+  version is raised, no marker or recovery copy is written;
+- never converts device data: no merge runs, nothing moves into the homes;
+- writes nothing #28 cannot read.
+
+(Unrelated to this switch, Part 5's remembered-device record v2 is still written; a rollback to #28 asks remembered
+devices for the recovery secret once. See FINAL_ACCTEST_REDEPLOY.md, "Rollback, Session U specifics".)
+
+**Switching on** is its own one-line PR, merged at least 7 days after the first Alpha deploy that carries this read
+support and on or after 2026-10-11, and included in the 22–24 October final acceptance redeploy. After it ships, the
+Alpha's rollback floor is the build that first carried v3 read support. Step by step: docs/product/SYNC_WRITES_ON.md.
+
+The T4 preconditions (TIMEZONE_DESIGN.md) and where they stand on 2026-10-05:
 
 | Precondition | State |
 |---|---|
 | The Alpha deploy with PR 2 (R1) is live | yes: #27, 2026-10-04 |
 | At least one further Alpha deploy | yes: #28 |
-| At least seven days since | **no: 2026-10-11.** Owner decision: deploy this to the public Alpha on or after 2026-10-11, or set the switch to `false` first |
+| At least seven days since | **no: 2026-10-11** (and 7 days after the first Alpha deploy carrying v3 read support) |
 | The Stage 8 sync rows ran on a build with PR 2 | **no**: the acceptance redeploy of 22–24 Oct carries this PR; Stage 8 row B13 checks the homes |
 | No "newer ZIGoals" refusals reported | owner to confirm |
 | The Manual Alpha rollback target is at or after R1 | yes while #27/#28 are the rollback targets |
 
-Why on now: the public Alpha has no account or sync path (its config binds only the market service; no sync host in its
-CSP), so there a switched-on build only changes where a device stores its own records; the acceptance app runs the Stage 7
-build until the 22–24 Oct redeploy, which carries this PR and its Stage 8 rows.
+The public Alpha has no account or sync path (its config binds only the market service; no sync host in its CSP), so
+there the switch changes only where a device stores its own records; but those records are in the browser, and a
+rollback is what makes v3 matter there.
 
 ## Tests
 

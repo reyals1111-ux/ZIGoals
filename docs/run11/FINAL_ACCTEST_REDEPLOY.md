@@ -13,6 +13,11 @@
 Written by Session S (2026-10-04) from the Stage 7 lessons. Nothing here was run by a session.
 
 ## 0. Before you start (read only)
+0. **Before the redeploy: the sync-writes switch-ON PR is merged** (Session U follow-up F1). PR #74 ships
+   `SYNC_WRITES = false`; the one-line switch-ON PR ([docs/product/SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) is
+   merged at least 7 days after the first public Alpha deploy carrying PR #74 and on or after 2026-10-11, and this
+   redeploy's release SHA must contain it. If it is not merged, deploy anyway and mark Stage 8 rows 15 and 15c "not run:
+   switch off".
 1. **The release SHA:** the full SHA of `main` that you deploy. Main's CI is green on it.
 2. **The Alpha prices rollout is done:** [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Note the SHA the market coordinator was deployed from there.
 3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Prepare the next period around **28 October** and switch at or after 16:00 UTC on 31 October ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)); the coordinator refuses a period before it starts and every price after the old one ends.
@@ -182,12 +187,14 @@ OWNER_RECOVERY_ADMIN.md, then `node scripts/run11/activation-check.mjs --admin`:
   `/app/health` a `permissions-policy` with `camera=(self)`.
 - the recovery rehearsal (step 7): "Erase an account" now also prints `Encrypted vault rows: REMOVED` at its serve step (`NOT REMOVED YET` before the serve switch).
 
-**Before deploying to the public Alpha:** this PR turns on the new sync writes (`apps/web/lib/vault/sync-writes.ts`).
-Deploy it to `alpha.zigoals.app` on or after **2026-10-11** (the seven-day T4 gap after deploy #27), or set
-`SYNC_WRITES` to `false` first (docs/product/SYNC_HOMES.md, "The write switch").
+**The sync-writes switch (Session U follow-up F1):** PR #74 ships `SYNC_WRITES = false`, so it can go to
+`alpha.zigoals.app` any time after the coordinator redeploy: it writes exactly what #28 writes and adds the Health v3
+read support. The switch turns on in its own one-line PR before this redeploy (step 0 above;
+docs/product/SYNC_WRITES_ON.md). From the Alpha deploy that carries the switch on, the Alpha's rollback floor is the
+build that first carried v3 read support (PR #74's deploy).
 
-**The acceptance app skips R1:** it goes from its Stage 7 build straight to this one, which writes the newer sections
-(settings v2, Health v2 and v3). After the app's redeploy, reload every open tab and reopen the Home Screen app on each
+**The acceptance app skips R1:** it goes from its Stage 7 build straight to this one, which (with the switch-ON PR merged)
+writes the newer sections (settings v2, Health v2 and v3). After the app's redeploy, reload every open tab and reopen the Home Screen app on each
 test device before syncing. A tab still on the Stage 7 build cannot read the newer sections: its sync stops with an
 error instead of applying them, until it is reloaded.
 

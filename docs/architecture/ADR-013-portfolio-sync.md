@@ -1,7 +1,10 @@
 # ADR-013: Opt-in encrypted sync for the Portfolio
 
 - **Status:** accepted (owner-approved Session U plan, 2026-10-04); built in Session U Part 9 (2026-10-05), behind the
-  sync-writes switch (`apps/web/lib/vault/sync-writes.ts`). ADR-012 is Session T's.
+  sync-writes switch (`apps/web/lib/vault/sync-writes.ts`). ADR-012 is Session T's. **Shipped off** (Session U
+  follow-up F1, 2026-10-05): while `SYNC_WRITES` is `false` the choice, the Help question and every transfer are absent, and
+  the private-sync Worker's `/v1/portfolio` routes simply go unused. They arrive with the switch-ON PR
+  (docs/product/SYNC_WRITES_ON.md).
 - **Context:** the Portfolio (PORTFOLIO_V1.md) is a device record (`zigoals:portfolio:v1`): never synced, never in the
   private backups, never read by Wealth, Goals or anything else. People with two devices asked to see the same Portfolio on
   both. The four synced sections (finance, habits, health, settings) have a fixed catalog that every older client reads,

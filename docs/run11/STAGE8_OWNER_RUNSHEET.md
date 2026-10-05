@@ -12,6 +12,7 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 ## Before you start
 - **Stages 1–7 are done** on the isolated acceptance services. Never use the live Alpha.
 - **The final redeploy is done:** [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md), once: every changed Worker, the services first and the app last.
+- **The sync-writes switch is on in that build:** before the redeploy, the one-line switch-ON PR ([SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) was merged (PR #74 ships it off). In the app: Settings → account sync shows "Also sync my Portfolio (optional)" once an account is open. If the switch is still off, mark rows 15 and 15c "not run: switch off".
 - **The market policy window:** the private `MARKET_POLICY` ends at 2026-10-31 16:00 UTC. Around 28 October, dry-run `node scripts/run11/next-market-policy.mjs`; switch at or after 16:00 UTC on 31 October ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)).
 - **The owner hardening below is done.**
 - **Use fictional data only:** no real names, money or health records.
@@ -277,7 +278,7 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
   - **C3:** scan a real product. You see the product or "not found". New barcodes are paced at no more than 5 lookups a minute; one asked for too soon waits or is refused with a plain message.
 - **Record:** pass or fail per row, and the product category only.
 
-**15. What syncs from the new features (B13; changed by Session U Part 9, the sync writes on).**
+**15. What syncs from the new features (B13; changed by Session U Part 9; needs the switch-ON PR, [SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)).**
 - **Before:** both devices have "Sync my Health records" ticked.
 - **Do:** on Desktop A: edit a habit and, under "Done automatically from Health", choose water with at least 1 glass; log a glass of water in Health; on another habit, plan a skip for tomorrow (its "History & reflection"); in Wealth → "+ Add asset" → "Import from a CSV file", choose a two-line file (`Name,Asset,Quantity,Kind of asset,Value,Currency` then `Gold,XAU,2,Precious metals,,EUR`); in Health → Diary → "Import a nutrition CSV", choose a one-line file (`Date,Meal,Food,Calories` then today's date, `Breakfast,Oats,380`); on Goals, create a health goal; in Health, start a fast and stop it; on Today's review day, write the weekly review with a few words under "Health" and finish it. Sync now. On Phone B: sync, then open Today, Habits, Goals, Wealth and Health.
 - **Pass:**
@@ -287,7 +288,7 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
   - then, on Phone B, untick "Sync my Health records" and repeat one change of each kind on Desktop A: after "Sync now" the phone receives the review's other words only, none of the Health ones.
 - **Record:** pass or fail per record kind. Never the file contents, the review's words or the goal's name.
 
-**15c. Portfolio sync, opt-in (Session U Part 9, ADR-013).**
+**15c. Portfolio sync, opt-in (Session U Part 9, ADR-013; needs the switch-ON PR).**
 - **Do:** on Desktop A, Portfolio: create a fictional portfolio with one buy. In Settings → account sync, tick "Also sync my Portfolio (optional)" and "Sync now". On Phone B tick it too and "Sync now". Then add a second buy on each device without syncing in between, and sync Desktop A, then the phone.
 - **Pass:**
   - after the first round the phone shows the same portfolio; Wealth and Goals on both devices are unchanged;
