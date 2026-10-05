@@ -1,3 +1,217 @@
+# Session U — records, live prices, camera, reliability, sign-in and remembered devices, security hardening, sync writes and Portfolio sync, Stage 8 readiness (2026-10-04/05, [PR #74](https://github.com/reyals1111-ux/ZIGoals/pull/74), not merged or deployed)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox: Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`, Playwright's Chromium standing in for Chrome (CLAUDE.md), at most 2 workers, never two suites at once.
+- **Miniflare:** the real Worker code in workerd through the pinned wrangler's Miniflare, with local stubs for every provider.
+- **mock:** a fake upstream inside a unit test.
+- **CI:** Milestone quality and Canonical reproducibility on the PR.
+- **source:** official documentation or upstream code, with the date read.
+- **real provider:** keyless public CoinGecko requests from this sandbox (no key, no account).
+- **live request:** a request to `alpha.zigoals.app` or `zigoals.app`, each one listed under "Live requests".
+- **owner-reported:** from the Session U brief or the owner's later messages.
+
+Nothing was deployed, merged, dispatched or approved, and nothing was logged into: no Cloudflare, Supabase, CoinGecko, Resend or GitHub settings were touched.
+
+**Branch:** `fix/session-u-2026-10-04` (the brief's name; the push was accepted, so no other branch was used). **Base:** `main` `e336227`; main did not move during the session, so no merge was needed.
+
+**Session T's lane** (`feature/session-t-your-ai-2026-10-04`, head `45b1e8f` throughout): read only, never edited. Before every push the changed files were compared with T's and a 3-way merge was tried (`git merge-tree`); the overlaps are listed at the end.
+
+## Parts
+| Part | What | Tier | Commits (revert these) | Tests added or changed | Evidence |
+|---|---|---|---|---|---|
+| 1 | Records: deploys #26–#28, Landing V5.1, the coordinator redeploy, the app-side key deletion and the GitHub `alpha` secret (deleted by the owner 2026-10-04); Release identity #28 live | — | `af52d30`, `451d989` | — | Actions API, CI logs, evidence artifacts, owner-reported |
+| 2a | Every CoinGecko read sends `User-Agent: ZIGoals/1.0 (+https://zigoals.app)`; rollout doc with the cause | `[TIER 3] (market Worker)` | `c1e53a3` + `8754509`; docs `52f782a` | `market-user-agent.test.mjs` (new, failing first), 4 market tests pin the header | Miniflare, real provider |
+| 2b | `verify-hosted-alpha.mjs` never crashes; `NEEDS_OWNER_REVIEW` with the reason; the price check always runs | — | `b446c90` | `hosted-alpha-review.test.mjs` (new) | local |
+| 2c | CI runs the packaged Alpha price contract | `[TIER 3] (CI workflow)` | `d23532c` | — | CI |
+| 2d | QuoteService `/status`, `GET /api/market-status`, the deploy summary and the verifier print the policy period end; `dailyRowBudget` in the generator; `next-market-policy.mjs` | `[TIER 3] (market Worker)` `4b88a67`; `[TIER 3] (deploy workflow)` `3037696` | `4b88a67`, `121cbe5`, `3037696`, `7f56d2b`, `4d14caf` (each alone) | `market-status.test.mjs`, `market-status-route.test.ts`, `alpha-policy-window.test.mjs`, `next-market-policy.test.mjs` (new); route coverage, policy, deployment tests | Miniflare, local |
+| 2e | The apps label coordinator calls `public`/`friends` from their own bindings; optional `MARKET_POLICY.partition` (off unless set) | `[TIER 3] (market Worker budget)` | `8b8059d` | `market-partition.test.mjs`, `market-partition.test.ts` (new); route coverage, quota, policy | Miniflare, local |
+| 2f | A daily cap on the public Alpha's new price work (default ⌊dailyRowBudget/8⌋) | `[TIER 3] (market Worker budget)` | `43a05ca` (revert before `8b8059d`) | `market-cold-work.test.ts` (new) | local |
+| 2g | Portfolio's no-price note no longer says prices "aren't connected" | — | `114b4d3` | `portfolio.spec.ts` | local |
+| 3 | A click into Health is a full page load (Health's own `camera=(self)` applies) unless an account is open in the tab; barcode 429 waits exactly `retryAfter`; a still photo when the live camera is blocked; the post-upload smoke requires Health's camera | `[TIER 3] (deploy workflow)` for `7b0ebed` only | `cb4fced`, `af09b81`, `7b0ebed`, `cda3dde`, `7417cdc`, `4068a83` | `health-navigation.test.ts`, `health-camera-navigation.spec.ts`, `food-cooldown.test.ts`, `alpha-health-camera.test.mjs` (new); `page-marks`, `run10-barcode`, `motion-arrival`, `brand-nav-polish` specs | local (failing first), CI |
+| 4 | Intermittents root-caused (table below); Miniflare object proxies replaced by a probe Worker in 17 files; sync harnesses read the Worker's answer at once | — | `96a7d8c`, `9cd9fd5`, `86c6106`, `30fe7de`, `0a4469f` | specs and harnesses only | local repeats, CI traces |
+| 5.1 | Code requests never ask the provider to create a user | `[TIER 3] (auth)` | `16a0122` | relay and owner-tool bodies | mock |
+| 5.2 | One neutral answer to every code request; the provider call runs after it (`after()`, proven in the packaged Worker) | `[TIER 3] (auth)` | `c0c52b0` | byte-identical answers; packaged runtime; sign-in rehearsal; `invite-only.spec.ts` | mock, Miniflare (packaged), local |
+| 5.3 | Revoke also ends the provider session (documented `/logout` scopes only) | `[TIER 3] (auth)` | `2725ea9` | relay tests (fake upstream) | mock, source (supabase/auth, 2026-10-04) |
+| 5.4 | Revoked session records deleted 90 days after revocation; tombstoned families | `[TIER 3] (auth/sync)` | `8ace5b0` | `session-retention.test.mjs` (new) | Miniflare |
+| 5.5 | A remembered device stores the root as a non-extractable key (record v2, key commitment, migration by compare-and-swap) | `[TIER 3] (vault)` | `e135b16` | crypto-device, device-unlock, vault-remember, `remember-device.spec.ts` | local |
+| 5.6 | Lock locks every tab of this browser | `[TIER 3] (vault)` | `7135527`, `b5eadfd` | account-isolation, vault-remember, two-tab spec | local |
+| 5.7 | The owner's erase also removes the encrypted vault rows (`PrivateVaultRecoveryAdmin`, second admin binding) | `[TIER 3] (auth/sync owner tooling)` | `9e60016` | recovery-admin erase/config/CLI, activation-check | Miniflare |
+| 5.8 | A `portfolio` record label (Part 9 depends on it) | `[TIER 3] (vault)` | `edc09d5` (revert Part 9 and `c0107af` first: revert-alone gate) | `crypto.test.ts` | local |
+| 5.9 | Docs as built (ADR-008 and ADR-007 addenda, PRIVACY, LEGAL_CHECKLIST, Help, FRIENDS_GUIDE, INCIDENT_RUNBOOK); test typing fixes | — | `839a936`, `25f7e97` | — | — |
+| 6 D1 | `Cross-Origin-Opener-Policy: same-origin`; the post-upload smoke requires it | — / `[TIER 3] (deploy workflow)` | `9983140` (with D2), `8a1f1de`, `32db097` | `static-security-headers.test.ts`, `alpha-opener-policy.test.mjs` (new), `public-alpha.spec.ts` | local, Miniflare (CI) |
+| 6 D2 | SVG files get a script-free policy; the layout's origin from an allowlist; the `/_next/static` plain 404 recorded | — | `9983140` | `trusted-origin.test.ts` (new) | local, source |
+| 6 D3 | One CSV formula guard for the three writers | — | `3504b65` | `csv-safe.test.ts` (new) | local |
+| 6 D4 | Trusted Types: inventory, an inert default policy, a local report-only trial; **no enforcement** | — | `30e398f`, `6da740e`, `26dfc06`, `94b303e` | `trusted-types*.test.*`, `trusted-types-trial.spec.ts` (new) | local trial (full suite) |
+| 6 D5 | The copy friends read says what the code does (owner approves the wording) | — | `c0107af` | `fix-plan-d5-copy.test.ts` (new) | local |
+| 6 D6 | Screenshot helpers paint over recovery secrets | — | `2612513` | `safe-screenshot.spec.ts` (new) | local |
+| 6 F1 | Audit of all dependencies, as a warning | `[TIER 3] (CI workflow)` | `60c1879` | — | CI |
+| 6 F2 | pnpm through Corepack with its registry SHA-512; binaryen from its lockfile | `[TIER 3] (CI workflow)` `a742ba5`; `[TIER 3] (deploy workflow)` `027a70d` | each alone | — | local, CI |
+| 6 F3 | Only the owner may start a release candidate | `[TIER 3] (release workflow)` | `389ca07` | `release-candidate-workflow.test.mjs` (new) | local |
+| 6 F4 | The landing upload drops strays; the checker fails on untracked files | `[TIER 3] (deploy workflow)` | `8702c4a`, `583405b` | `landing-assets.test.mjs` (new), `landing-v5-security.spec.ts` | local |
+| 6 F5 | Per-Worker deploy-token scope: none exists → owner decision (below) | — | — (this entry) | — | source (Cloudflare API token permissions, 2026-10-05) |
+| 6 | Push hosts re-verified, explicit ports and IPs refused; landing HSTS and copy; THREAT_MODEL rows | — | `9ef5abd`, `b2d3d21`, `7dd5b01` | `push-hosts.test.mjs` (new), `landing-v5-security.spec.ts` | local, source |
+| 7 | Deploy dispatch option 3: one narrow rule for agents; the workflow accepts exactly the Claude App's bot; AGENT_DISPATCH.md | `[TIER 3] (project rules)` `e7171e3`; `[TIER 3] (deploy workflow)` `4d01059` | each alone | `alpha-deployment.test.mjs` | local |
+| 8 | Today on phones: a tighter rhythm, nothing removed | Tier 2 | `fb86c74` | `today-screens.spec.ts` (comment only; ceilings unchanged) | local, freeze check |
+| 9a | Health v3 read support, merge rules, a durable recovery copy on version raises | `[TIER 3] (sync)` | `f2b27bd` | read-support, cloud-sync, durable-recovery-copies, health | local |
+| 9a | The sync-writes switch (`SYNC_WRITES = true`): Session P's four records live in their synced homes | `[TIER 3] (sync)` | `4f35de9` | `sync-homes.test.ts`, `sync-homes-store.test.ts` (new); 6 unit and 6 browser files | local |
+| 9b | Opt-in Portfolio sync (ADR-013) | `[TIER 3] (sync)` | `c043105` | `portfolio-sync.test.ts`, `portfolio-keyspace.test.mjs` (new), relay tests | local, Miniflare |
+| 9 | Docs: SYNC_HOMES, ADR-013, PRIVACY, SYNC_SECURITY, PORTFOLIO_V1, features, TIMEZONE_PHASE4_DECISIONS; Help's Portfolio question moved to the end of "Questions" (revert-alone gate) | — | `2d06ff6`, `53c0a6b` | — | — |
+| 10 | Stage 8 runsheet "Before Stage 8 — owner hardening" and merged rows; HOUSEKEEPING.md; FINAL_ACCTEST "Session U changes" and the Stage 8 rows | — | `18386a6`, `046c308`, `275a941`, `9ada8d6`, `d36ea72` | — | source (official docs, cited in the runsheet) |
+| 11 | This entry | — | this commit | — | — |
+
+## Part 2: why #28 said "UNAVAILABLE (UNKNOWN)"
+- **Cause:** CoinGecko refuses a request without a User-Agent: `403`, "Please add a descriptive User-Agent to your request" (real provider, keyless, 2026-10-04 22:36 UTC, `/simple/price` and `/simple/token_price`). Workers' `fetch` sends none and the coordinator set none; a 403 is `UNKNOWN` by design. ZIG kept working through its token-price fallback (another CoinGecko backend). Reproduced in workerd before the fix; CoinGecko answered 200 to the new header value (keyless, 22:38 UTC).
+- **Not confirmed with the coordinator's own key** (no session holds it): the owner's coordinator redeploy and one `verify-hosted-alpha.mjs` run confirm it.
+- **Policy period finding:** a next `MARKET_POLICY` period cannot be deployed before it starts. Prepare around 28 October with `next-market-policy.mjs`; switch at or after 2026-10-31 16:00 UTC.
+
+## Tier 3, in plain words (risk and revert)
+| Commit | Risk | Revert |
+|---|---|---|
+| `c1e53a3` market Worker UA | none to data; names the app to CoinGecko | revert with `8754509` |
+| `d23532c` CI packaged prices | a CI step that could fail on a real packaging regression | alone |
+| `4b88a67` QuoteService `/status` | a read-only endpoint, binding-only | alone |
+| `3037696` deploy summary period end | prints only; never fails a deploy | alone |
+| `8b8059d`, `43a05ca` market budget | off unless `partition` is set; the public cold-work cap is on by default (decision below) | `43a05ca` first, then `8b8059d` |
+| `7b0ebed` smoke requires Health's camera | a deploy whose Health lacks `camera=(self)` ends in NEEDS_OWNER_REVIEW | alone |
+| `60c1879`, `a742ba5` CI workflow | an audit warning; a pinned pnpm hash to keep current | each alone |
+| `027a70d`, `8702c4a`, `583405b`, `8a1f1de`, `32db097`, `4d01059` deploy workflow | each adds a check before or after upload (`32db097` only moves the COOP check within the smoke); a false refusal stops a deploy safely | each alone (`32db097` with `8a1f1de`) |
+| `389ca07` release workflow | only the owner may start a release candidate | alone |
+| `e7171e3` project rules | widens what an agent may do, narrowly; `alpha` approval stays owner-only | alone |
+| `16a0122`, `c0c52b0`, `2725ea9` auth | an uninvited address gets no code; a failed provider call looks like a sent code (Help says what to do) | each alone |
+| `8ace5b0` session retention | deletes only records 90 days past revocation | alone |
+| `e135b16`, `7135527`, `b5eadfd` vault | remembered devices migrate to v2 on the next open; a rollback asks for the secret once | `b5eadfd` with `7135527`; `e135b16` alone |
+| `9e60016` owner erase | an owner-only path that deletes data, gated by the lifecycle decision and typed confirmations | alone; then regenerate the admin copy |
+| `edc09d5` vault label | none for existing records | after Part 9 |
+| `f2b27bd`, `4f35de9`, `c043105` sync | the switch writes Health v3 and settings v2 for Session P's records; Portfolio sync is opt-in | `53c0a6b` and `2d06ff6`, then `c043105`, `4f35de9`, `f2b27bd` |
+
+## Part 4: intermittent tests
+| Test | Root cause | Fix (no assertion relaxed) | Evidence |
+|---|---|---|---|
+| `guide.spec.ts:30` | the request listener caught a late `/api` request from the seeding page | leave for `about:blank` before listening | 20/20 local |
+| `run10-motion.spec.ts:5` | a 200 ms wall-clock "mid" sample fired after the 650 ms entrance on a loaded runner | seek the animation to half its duration | 20/20 local |
+| `brand-nav-polish.spec.ts:51` | the glide ended before the first poll | record `transitionrun` / glide state from before the click | 20/20 local |
+| `help-page.spec.ts:66` (CI 37217545365, 37245262048) | `toBeFocused` also needs `document.hasFocus()`; a page without window focus lost its keys | bring the page to the front before focusing | 20/20 local (60/60 before, never reproduced) |
+| `run10-account-access.spec.ts:3` (CI 37245262048) | the test crossed UTC midnight | the page clock fixed at today's noon | 6/6 local |
+| `run10-ecosystem.spec.ts:10` (CI 37252838585) | two `boundingBox()` reads 350 ms apart saw a scroll as an overlap | both rectangles read in one frame | 80/80 local |
+| `brand-nav-polish.spec.ts:101` (CI 37255944690) | Part 3's full page load into Health: Motion Off applies at hydration, after the load event | wait for the load and for `data-app-motion="off"` | 20/20 local |
+| 17 Miniflare files (object proxies) | proxy stubs freed by a FinalizationRegistry with an unread request; an overlapping `dispose()` raised "terminated" | a probe Worker on its own loopback socket | 17 files, 70 tests, 20/20 runs clean; the erase pair 20/20 |
+| "Sync was not confirmed" (sync-inflight, self-conflict) | the harness held the Worker's answer across an await; undici cancels a body whose Response is collected unread | read the answer at once (`workerAnswer`); the relay itself is unchanged | inflight 20/20, self-conflict 20/20, account-switch 5/5 |
+| `unified-goals.spec.ts:66` (CI 37201230870, attempt 1) | the CI trace shows the click on "Add a contribution plan" dispatched, then no frame, snapshot or request for 45 s; that path only renders a form | none: the known browser click hang (table) | 26/26 local; trace read 2026-10-05 |
+| `install-guide.spec.ts:49`, `logo-fold.spec.ts:107`, `habit-paint-first.spec.ts:36` | fixed in Session P (PR 1) | — | — |
+
+## Part 8: Today on phones
+- **Changed** (`components/phone/phone-today.css`, inside the phone query only): 16 px between Today's blocks (24 before) and 12 px before the bottom rows; the hero's 14 px bottom margin removed; a rail with no module takes no row; the empty save line takes no room (it keeps its room while arranging); the "For you" card sits flush in its slot; "Show more" is a 48 px row (56 before; touch targets stay ≥ 44 px); the hero pillars' captions use the full width (one line instead of two).
+- **Not changed:** no content removed, hidden or reordered; "How it works" and "Your week" were already folded on phones (Session I); `components/for-you/whats-new-card.tsx` and the What's new data were not edited (owner review change 2). The What's new list cannot fold without its own file, so it stays as it is; folding it is a follow-up after Session T merges (T edits that file).
+- **Numbers** (local production builds, 390×844, every API answered 503, motion reduced): Showcase **11.07 → 10.92** screens; seeded Local Demo **5.09 → 4.93**; after What's new is dismissed **4.74 → 4.58**. Ceilings unchanged (11.3 / 5.3 / 5.0).
+- **Freeze check** (`scripts/desktop-freeze-check.mjs`, 154 captures at six desktop and tablet sizes, the build just before Part 8 against Part 8's, local): **142 identical, 0 page errors.** The other 12 are the Help page at every size and state, whose feedback link carries the build's commit; their pixels are identical. Part 8 changes nothing outside the phone query.
+- **Screenshots:** before and after, Showcase and seeded, on `review/session-u-today-screens` (never to be merged). **Owner's visual OK requested.**
+
+## Part 9: the switch and its evidence
+- **Switch:** `apps/web/lib/vault/sync-writes.ts` → `SYNC_WRITES = true`; every store and test runs both states.
+- **Why it is safe to ship on:** (a) the public Alpha has no account or sync path (only `WORKER_SELF_REFERENCE` and `MARKET_QUOTES`, pinned by `assertAlphaConfig` and `check-deployment-configs`; the account route answers 503 without bindings; no sync host in its CSP), so the switch changes only where a device keeps the four records; (b) the acceptance app runs the Stage 7 build until the 22–24 October redeploy (owner-reported, FINAL_ACCTEST).
+- **The T4 gap:** #27 (R1, read support) went live on 2026-10-04; the two-release rule wants seven days before a build writes the new formats on the public Alpha. Deploy this to `alpha.zigoals.app` on or after **2026-10-11**, or set the switch to `false` first (owner decision below).
+- **Where the records live:** fasting → Health v2; the weekly review → settings v2 without its Health note; health goals, habit-health links (with their markers) and the review's Health note → **Health v3**, under the Health consent only, lazily (a section changes version only when one of those fields is first written). The device keys are read and merged on every load (idempotent, per-record digest marker) and never rewritten.
+- **Old builds:** #27/#28 read every new local version except Health v3, which they refuse and keep byte for byte (local, import and sync tests). Builds before #27 refuse settings v2 and Health v2: never roll back below R1.
+- **Portfolio sync:** opt-in, unticked by default, its own keyspace in the account's vault object (today's and older clients never see or remove it; the account erase does), at most 1,000,000 bytes sealed, checked on the device before any upload.
+
+## Live requests
+| Time (UTC) | Request | Result | Possible side effect |
+|---|---|---|---|
+| 2026-10-04 21:29 | `HEAD https://zigoals.app/` (landing header read) | 200; CSP and COOP present, no HSTS | none |
+| 21:32:52 | `GET https://alpha.zigoals.app/api/market-quotes` (ZIG/USD, the route's GET form) | 200 `VERIFIED_FRESH` | at most one coordinator price read (counted in the day's row budget) |
+| 21:33:22 | `GET https://alpha.zigoals.app/api/market-assets` | 200, 21,848 coins and 957 RWAs | may have published the coordinator's catalog index (it is written on publication) |
+| 22:19:57 | `POST https://alpha.zigoals.app/api/market-quotes`, BTC/USD (the deploy smoke's request) | 503 `PROVIDER_UNAVAILABLE`, `UNKNOWN` | one public cold-work attempt (a refused CoinGecko read) |
+| 22:19:58 | the same for BTC/EUR | 503 `PROVIDER_UNAVAILABLE`, `UNKNOWN` | the same |
+
+Times are the answers' `Date` headers (the #28 record below said 22:19:55 and 22:19:57; this commit corrects it to the answers' times). No other request reached `alpha.zigoals.app` or `zigoals.app`. **No final verification request was made:** nothing from this PR is deployed, so the owner's `verify-hosted-alpha.mjs` after the coordinator redeploy and the Manual Alpha deployment is the final verification. Separately, keyless public CoinGecko reads checked the User-Agent cause (2026-10-04 22:20, 22:36, 22:38 UTC; real provider).
+
+## Rollback notes
+- **App back to #28 (or the acceptance app back to its Stage 7 build):** remembered devices ask for the recovery secret once, because old builds delete version 2 remembered-device records (owner review change 13; fail-closed, ADR-008 addendum). A Health section that reached v3 is unreadable there until the roll-forward (on the Stage 7 build, settings v2 and Health v2 too); the bytes and recovery copies are kept, and the four device keys keep working on the older build. Never roll the public Alpha back below R1 (#27).
+- **Private sync back:** the Portfolio copy stays in its keyspace, unread; revoked-session records stop being swept; the owner's erase loses its vault-row step (regenerate the admin copy).
+- **Market coordinator back:** the partition and the public cap disappear; `/status` answers "not reported" to newer apps.
+- **Landing back:** version `a37cf208-058e-4a4d-aa37-dfb849d7b48d` (LANDING.md).
+
+## Full gate (local, head `fb86c74`)
+- `pnpm lint`, `pnpm typecheck`: clean.
+- `pnpm test`: 353 files (336 passed, 17 skipped); 3,256 tests: 3,221 passed, 1 expected fail, 34 skipped.
+- `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, then Playwright at 2 workers against `next start` (46.5 min): **1,086 passed, 78 skipped, 4 failed.** The 4 are the intro-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this Chromium cannot play (CLAUDE.md); they pass in CI.
+- `pnpm check:deploy-configs` ("isolated and internally consistent"); `pnpm check:landing` (274 files, no bindings).
+- `build:alpha`; `check:alpha-artifact` (no compiled environment, env-file copies, secret markers or configured names); the Alpha dry run with `--outdir`; `ALPHA_PACKAGED=1 alpha-packaged-prices.test.mjs`: 6/6.
+- `preview:alpha` of that artifact for D2 (decision 5).
+- **After `fb86c74`:** docs (`d36ea72`) and two one-line moves the revert-alone gate asked for (`53c0a6b`, `32db097`), re-checked at `32db097`: `pnpm lint`, `pnpm typecheck`, the production build, `help-page`, `whats-new` and `public-alpha` specs (36 passed), and the smoke's script tests (`alpha-opener-policy`, `alpha-health-camera`, `alpha-deployment`, `alpha-policy-window`: 170 passed).
+
+## Revert-alone gate (local)
+Each part's commits reverted with `git revert -n` (newest first) in a fresh scratch worktree at `32db097`, then the
+repository's typecheck (`tsc --noEmit` for the app and for the Workers):
+
+| Part | Reverts cleanly | Typechecks |
+|---|---|---|
+| 1, 2, 3, 4, 6, 7, 8, 9, 10 | yes, each alone | yes, each alone |
+| 5 | together with Part 9 and Part 6 D5's `c0107af` | yes |
+
+- **Part 5's dependencies:** Part 9 uses item 8's `portfolio` label, and its `/v1/portfolio` route sits next to item 4's lines in `workers/private-sync/worker.mjs`; Part 5's docs commit (`839a936`) and D5 (`c0107af`) edit the same PRIVACY.md paragraph. So: revert Part 9 and `c0107af` first, or keep that paragraph by hand.
+- **Inside parts:** 2f (`43a05ca`) before 2e (`8b8059d`); Part 9's follow-up (`53c0a6b`) and Part 6 D1's (`32db097`) with their parts.
+- **What the gate found and fixed:** two conflicts between lines that touched (git treats changes on adjacent lines as one): Help's Portfolio question right after Part 3's barcode answer, and Part 6 D1's COOP check right after Part 3's Health-camera check in the smoke. Each line moved a little further down (`53c0a6b`, `32db097`), with the same behaviour.
+
+## CI
+- **On `fb86c74`** (Parts 1–10 at the full gate): Milestone quality #502 ([run 37265109320](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37265109320)) and Canonical reproducibility #429 ([run 37265109361](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37265109361)): success on attempt 1, every job (web checks, integration with the packaged price step and the Alpha gate, contract, the three browser shards). (Actions API)
+- **Earlier heads:** green on `114b4d3` (#488) and `275a941` (#501). Four runs failed once, each root-caused and fixed in this PR, with no re-run used: #492 on `7b0ebed` (`help-page.spec.ts:66`, `run10-account-access.spec.ts:3` → `96a7d8c`), #496 on `86c6106` (the erase test's "terminated" → `30fe7de`), #498 on `2612513` (`run10-ecosystem.spec.ts:10` → `0a4469f`), #500 on `b5eadfd` (`[mobile] brand-nav-polish.spec.ts:101` → `7417cdc`, `4068a83`). #482–#486 were cancelled by newer pushes. (Actions API, CI logs)
+- This commit's own CI is linked from the PR.
+
+## Decisions made without the owner (each the safest option that keeps the brief's promises)
+1. Part 2f: public callers start new price work only for assets in an authoritative catalog index (the featured set always), within ⌊dailyRowBudget/8⌋ new works a UTC day for all public clients together; `publicColdWorks: 10000000` in `MARKET_POLICY` restores today's behaviour. Part 2e's partition is off unless set.
+2. Part 3: a click into Health stays a soft navigation while an account is open in the tab (a full load would lock the vault); the scanner then says "Reload Health for camera access" as before.
+3. Part 5.3: a single revoke ends that session at the provider lazily, the next time it reaches the relay. The alternative (a single revoke also ends every other provider session at once) would sign out devices the person did not choose, so it was not taken.
+4. Part 5.5: a browser that cannot store a key object (possibly WebKit) keeps version 1 records; Stage 8 row 13c records what the iPhone does.
+5. Part 6 D2: the `/_next/static/*` plain-404 finding: reproduced in part on a local `preview:alpha` of this build (2026-10-05): a missing `/_next/static/*` file answers Next's 404 page as HTML without a CSP (its other headers are there: private no-store, nosniff, `DENY`, COOP, no-referrer, noindex); the spoofed `x-zigoals-origin` is no longer reflected (the D2 allowlist). Real asset hits are served by the asset layer before the Worker (200, immutable), and `/icon.svg` carries the new SVG policy there. Answering those misses with a plain 404 needs a custom Worker entry in front of OpenNext's (only misses reach the Worker), which changes the pinned Alpha deploy config, so it is a follow-up (FINDINGS severity: Info).
+6. Part 6 D2: an origin outside the allowlist (any `*.workers.dev` preview) gets no canonical or social-card URL; the public Alpha, the acceptance app and loopback keep theirs.
+7. Part 6 D4: Trusted Types stays report-free in production (no enforcement); enforce after Session T merges, once the full suite including T's specs reports zero violations.
+8. Part 6 F1: the `braces` advisory (lint-time only, through `eslint-config-next`) has no patched release yet; nothing was changed.
+9. Part 7: an agent's dispatch with the owner's user token appears as the owner (FINDINGS Q-AI-01), so the protected `alpha` approval stays the real gate.
+10. Part 9: the whole-Portfolio merge asks the person on any two-sided change (no per-transaction merge); a finer merge is possible later without a format change.
+
+## Owner decisions needed
+1. **Sync writes and the T4 gap:** deploy this PR to the public Alpha on or after 2026-10-11, or set `SYNC_WRITES = false` before an earlier deploy.
+2. **F5:** Cloudflare API token permissions for Workers Scripts are account-level, with no per-Worker scope (source: developers.cloudflare.com, API token permissions, read 2026-10-05). The Alpha deploy token can therefore upload any Worker in the account: keep one account, or move the public Alpha to its own account.
+3. **D5 wording:** approve the new Help, sync-offer, deletion and rotation sentences (`c0107af`).
+4. **Part 8:** the visual OK on the before/after screenshots.
+5. **R1 devices with Health sync:** a #27/#28 build signed in with Health sync stops syncing (all four sections) once another device writes Health v3. This matters only if an R1 build ever runs with accounts; the acceptance app runs the Stage 7 build until its redeploy.
+6. **Portfolio cap:** about 1 MB sealed per account (about 670,000 characters of plain Latin text, fewer for other scripts); larger Portfolios are told to export.
+7. **The `MARKET_POLICY` gap:** the current period ends 2026-10-31 16:00 UTC and the next cannot be deployed earlier: prepare around 28 October, switch at or after that time.
+
+## Owner steps, in order
+1. Review PR #74 (Part 8 screenshots on `review/session-u-today-screens`; D5 wording) and merge it.
+2. Market coordinator redeploy from merged `main` (rollback `4754e86f-42c2-4ea3-8373-3c0a7031036b`), then one `node scripts/verify-hosted-alpha.mjs`: prices VERIFIED and the policy period end printed.
+3. Manual Alpha deployment of the merged `main` — on or after 2026-10-11, or with `SYNC_WRITES = false` (decision 1).
+4. `verify-hosted-alpha.mjs` again after the app deploy.
+5. Landing deploy per LANDING.md (HSTS and copy; rollback `a37cf208-058e-4a4d-aa37-dfb849d7b48d`).
+6. Around 28 October: `node scripts/run11/next-market-policy.mjs` (dry run), then `--write` and the printed steps at or after 2026-10-31 16:00 UTC.
+7. 22–24 October, FINAL_ACCTEST_REDEPLOY: services first (private sync, market coordinator, push reminders if active), regenerate the recovery-admin copy, the app last, then reload every test device (the acceptance app goes straight from Stage 7 to this build); then STAGE8_OWNER_RUNSHEET (owner hardening first), including the iPhone remembered-device row 13c.
+8. Housekeeping (docs/ops/HOUSEKEEPING.md): the stale `review/*` branches (including `review/session-l-screenshots`) and old worktrees, one step at a time.
+
+## Follow-ups (not done here)
+- **Q-SYNC-05:** a revoked session removes a remembered device's record only when that device next opens the vault (PRIVACY.md says so); the code change is a follow-up.
+- **Q-SYNC-04:** restoring Health should show the Health checkbox instead of turning it on (FIX_PLAN B4).
+- **Session T's lane:** a duplicate React key `habits-settings` in `components/phone/phone-settings.tsx` (seen in dev mode).
+- **Trusted Types enforcement** after Session T merges (decision 7).
+- **What's new on phones:** fold its list once Session T's edits to `whats-new-card.tsx` are in.
+- **`/*.svg` header rule:** verified in Miniflare and in the local packaged preview; not yet seen on the live platform (one `curl -sI https://alpha.zigoals.app/icon.svg` after the next deploy).
+- **D2 static misses:** a plain 404 for `/_next/static/*` misses through a custom Worker entry (changes `wrangler.alpha.jsonc`'s `main`, so `assertAlphaConfig` and `check-deployment-configs` too).
+
+## Known CI intermittents
+Ten rows are appended to the table below (earlier rows unchanged): the Part 4 fixes, the "Sync was not confirmed" root
+cause, `unified-goals.spec.ts:66` as the known browser click hang, and `brand-nav-polish.spec.ts:101` (not an
+intermittent: Part 3's full page load).
+
+## Session T overlaps (T head `45b1e8f`)
+- Edited by both, in separate hunks: `apps/web/components/help/help-page.tsx`, `shell.tsx`, `vault-sync-controls.tsx`, `lib/export/everything.ts`, `lib/security-policy.ts`, `next.config.ts`, `tests/help-page.spec.ts`, `tests/public-alpha.spec.ts`, `docs/PRIVACY.md`, `docs/business/LEGAL_CHECKLIST.md`, `docs/legal/PRIVACY_NOTICE_DRAFT.md`, `docs/security/THREAT_MODEL.md`, `scripts/alpha-deployment.test.mjs`, `scripts/lib/alpha-smoke.mjs`, `scripts/verify-hosted-alpha.mjs`. `git merge-tree` against T's head merges them all cleanly.
+- **`docs/STATUS.md` conflicts** (both add entries at the top): whoever merges second keeps both entries, newest first.
+- Not touched here: `whats-new-card.tsx`, `lib/whats-new.ts`, `phone-chrome.tsx`, `phone-settings.tsx` and every other file in T's lane.
+
+## How the owner can review
+- Preview: `NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm dev`, then http://127.0.0.1:3100/app (Settings → Load Showcase Demo). On a phone-sized window: Today (Part 8), Health → Scan a barcode (Part 3), Settings → account sync shows "Also sync my Portfolio (optional)" only with an account.
+- Part by part: the PR description's checklist; each part reverts alone (dependencies above).
+
 # Owner records — 2026-10-04 evening: the app-side market key and the GitHub `alpha` secret are deleted
 
 Recorded by Session U at the owner's request.
@@ -25,7 +239,7 @@ Evidence labels:
 - **Rollback:** `98755815-f27e-439d-86ad-c3f8ddb50a7c`, the version deploy #27 published, so the chain holds. (CI log, evidence artifact)
 - **Bindings in the upload log:** `WORKER_SELF_REFERENCE`, `MARKET_QUOTES` (`zigoals-acctest-market-coordinator#QuoteService`), `ASSETS` and the variable `ZIGOALS_MARKET_QUOTES_MODE` (`"durable-v1"`), as Session S Part 8 intended. (CI log)
 - **Smoke:** the eleven page checks answered 200 with every security check passing. The price probe got `/api/market-quotes` → 503, `UNAVAILABLE`, pair `PROVIDER_UNAVAILABLE`, failure `UNKNOWN`; the summary line reads "Live prices (information only, never a failure): **UNAVAILABLE** (UNKNOWN)". (Evidence artifact, CI log)
-  - It still reproduced later: Session U's owner-authorised probes at 22:19:55 and 22:19:57 UTC got the same answer for BTC/USD and BTC/EUR. Session U Part 2 investigates. (Session U, live request)
+  - It still reproduced later: Session U's owner-authorised probes (answered at 22:19:57 and 22:19:58 UTC) got the same answer for BTC/USD and BTC/EUR. Session U Part 2 investigates. (Session U, live request)
 - **CI on `e336227`:** Milestone quality #477 ([run 37227294438](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37227294438)): success on attempt 1. (Actions API)
 - **Earlier attempts at `d9b0807` (the merge of #72), none of which uploaded anything:**
   - [Run 37223014303](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37223014303) (run number 28), attempt 1: the deploy job stopped in "Capture current rollback version and validate live Alpha". The live Alpha's CSP did not have `worker-src`, which the new build's exact directive set required. Summary `NOT_DEPLOYED`. (Actions API, CI log)
@@ -4074,6 +4288,16 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | `product-data.spec.ts:72` "private Habit and Health sentinel values stay outside…": `waitForLoadState("networkidle")` after reload hits the 45 s test timeout | Local sandbox only (2026-09-30): 1–2 per full run; A/B 2/20 on next 16.3.5 and 2/20 on 16.3.6; 4/20 in Session D's instrumented runs. Not seen in CI | web browser suite | **Fixed in #50** (`0a11876`, test-only): not a market request. Next.js link prefetches cancelled by the navigation while the test's `page.route()` held them are never reported finished or failed, so Playwright's networkidle never fires. The reload now settles on the requests the reloaded page starts; route, recorder and assertions unchanged. 40/40 consecutive after (20 desktop + 20 mobile) |
 | `run9-2-life.spec.ts:95` (desktop) "strict mode violation: locator('.habits-workspace') resolved to 2 elements" right after `page.goto('/app/habits')` | CI: once on #70 (`54f0968`, run 37169747347, shard 2); 0 of 12 probes and 3 of 3 runs of the spec locally | web browser suite | **Fixed in #70** (test-only): the Habits workspace streams after the shell (its Suspense boundary resolves late on the server) and React 19.2 batches the reveal for a frame or up to 300 ms, so on a slow runner the client-rendered root and the server's hidden copy coexist for that moment; the spec now waits for exactly one root before the visibility check. Role-based locators are immune (the copy is `hidden`) |
 | `run10-widgets.spec.ts:20` (mobile) "locator.check: Clicking the checkbox did not change its state" on the "Balanced" preset radio | Local: once in a full run under load (2026-10-04, PR #70's gate); 9 of 9 alone | web browser suite | Monitor: the dialog's code is unchanged in #70; under load the click may land during the dialog's entrance motion |
+| `run10-motion.spec.ts:5` and `brand-nav-polish.spec.ts:51` (the "Monitor (motion timing)" row above) | as above | web browser suite | **Fixed in Session U** (`96a7d8c`, test-only): the mid sample seeks the entrance animation to half its duration; the glide records `transitionrun` / its state from before the click. 20/20 locally each |
+| `guide.spec.ts:30` "off by default … no request": a late `/api` request started by the seeding page reached the listener | before Session U (Session U plan) | web browser suite | **Fixed in Session U** (`96a7d8c`, test-only): the spec leaves the seeding page for `about:blank` before it listens. 20/20 locally |
+| `help-page.spec.ts:66` "questions open and close from the keyboard" | CI: #70's merge (run 37217545365) and #74 (run 37245262048); never locally | web browser suite | **Fixed in Session U** (`96a7d8c`, test-only): `toBeFocused` also needs `document.hasFocus()`; the page is brought to the front first, and a recurrence reports the focus state. 20/20 locally |
+| `run10-account-access.spec.ts:3` (phone): today's water added at 23:59:58 UTC, looked for after midnight | CI: #74 (run 37245262048) | web browser suite | **Fixed in Session U** (`96a7d8c`, test-only): the page clock is fixed at today's noon. 6/6 locally |
+| `run10-ecosystem.spec.ts:10` "reflows at 390px": two `boundingBox()` reads 350 ms apart saw a scroll as an overlap | CI: #74 (run 37252838585) | web browser suite | **Fixed in Session U** (`0a4469f`, test-only): both rectangles read in one frame. 80/80 locally |
+| `unified-goals.spec.ts:66` (desktop) 45 s timeout in `check` of "Add a contribution plan" | CI: main `da6b52d` attempt 1 (run 37201230870); 26/26 locally | web browser suite | **The browser click hang** (first row): the CI trace shows the click dispatched and then no frame, snapshot or request for 45 s, on a path that only renders a form. Monitor |
+| `recovery-admin-erase.test.mjs` "TypeError: terminated" | CI: #74 (run 37249534852) | web checks (unit) | **Fixed in Session U** (`30fe7de`, test-only): a `return` inside `try` let `finally` stop Miniflare before the body arrived; the body is read first. Reproduced standalone |
+| Miniflare object proxies (17 run10/run11 files, the "possible intermittent" Session S noted) | Session S (local) | web checks (unit) | **Fixed in Session U** (`9cd9fd5`, test-only): a probe Worker on its own loopback socket, as Session S did for the erase test. 17 files × 20 runs clean |
+| `sync-inflight-edit-browser` / `sync-self-conflict-browser` "Sync was not confirmed" (the Monitor row above) | as above; local 4/10 and 3/21 with Session U's uncommitted logging | web integration job | **Root cause found and fixed in Session U** (`86c6106`, test harness only): the harness held the Worker's answer across an await, and undici cancels a body whose Response is collected unread; the relay then read 0 bytes. The harnesses read the answer at once; the relay is unchanged. 20/20 and 20/20 locally |
+| `brand-nav-polish.spec.ts:101` (phone) "reduced motion and the Off preference …" | CI: #74 (run 37255944690) | web browser suite | **Not an intermittent: Session U Part 3** made the Health link a full page load; the spec now waits for the load and for Motion Off (`7417cdc`, `4068a83`). 20/20 locally |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
