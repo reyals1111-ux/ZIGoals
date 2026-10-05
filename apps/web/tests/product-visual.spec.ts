@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { installRun7Demo } from "./fixtures/run7-demo";
+import { openTodayWidgets } from "./phone-nav";
 test.use({ timezoneId: "Europe/Brussels" });
 test("populated product fits every required viewport with reduced motion and scoped links", async ({ page }, info) => {
   test.setTimeout(120_000);
@@ -11,6 +12,7 @@ test("populated product fits every required viewport with reduced motion and sco
     for (const [name, route] of [["today", "/app"], ["goals", "/app/goals"], ["goal-detail", "/app/goals/1"], ["create-goal", "/app/goals/new"], ["habits", "/app/habits"], ["health", "/app/health"], ["activity", "/app/activity"], ["settings", "/app/settings"], ["ecosystem", "/app/ecosystem"]]) {
       await page.goto(route!);
       await expect(page.locator("main h1")).toBeVisible();
+      if (name === "today") await openTodayWidgets(page);
       if (name === "today") await expect(page.getByRole("article", { name: "Your destinations", exact: true }).getByRole("link", { name: "First home", exact: true })).toBeVisible();
       if (name === "habits") await expect(page.getByRole("article", { name: "Review my spending", exact: true })).toBeVisible();
       if (name === "health") await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("Morning oats");

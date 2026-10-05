@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {emptyPlatform,privateGoalSchema} from '../lib/positions';
+import {openTodayWidgets} from './phone-nav';
 
 test('adjacent Goal option panels remain inside their cards and accept ordinary pointer pinning',async({page},info)=>{
  if(info.project.name==='mobile')await page.setViewportSize({width:320,height:900});
@@ -16,5 +17,5 @@ test('adjacent Goal option panels remain inside their cards and accept ordinary 
   await action.click();await expect(card.getByText(`${goal.name} progress added to Today.`,{exact:true})).toBeVisible();
  }
  expect(await page.evaluate(()=>localStorage.getItem('zigoals:platform:v1'))).toBe(original);
- await page.getByRole('link',{name:'Today',exact:true}).first().click();for(const goal of goals)await expect(page.getByRole('article',{name:goal.name,exact:true})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.getByRole('link',{name:'Today',exact:true}).first().click();await openTodayWidgets(page);for(const goal of goals)await expect(page.getByRole('article',{name:goal.name,exact:true})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
