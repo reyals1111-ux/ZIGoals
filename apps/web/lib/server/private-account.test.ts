@@ -151,9 +151,9 @@ const OUTCOMES:[string,()=>Promise<Response>][]=[
 ];
 const snapshot=async(response:Response)=>({status:response.status,headers:[...response.headers.entries()],body:await response.text()});
 test('every outcome of a code request gets the same answer, byte for byte, and the provider is asked only after it',async()=>{
- const answers=[];
+ const answers:Awaited<ReturnType<typeof snapshot>>[]=[];
  for(const [name,outcome] of OUTCOMES){
-  const calls:unknown[]=[],queued:(()=>Promise<void>)[]=[],admit=vi.fn(async()=>new Response(null,{status:204}));
+  const calls:unknown[]=[],queued:(()=>Promise<void>)[]=[],admit=vi.fn<(...args:unknown[])=>Promise<Response>>(async()=>new Response(null,{status:204}));
   const result=await privateAccountRequest(sendRequest(),config,async(url,init)=>{calls.push([String(url),JSON.parse(String(init?.body))]);return outcome();},admit,work=>{queued.push(work);});
   expect(calls,name).toEqual([]);expect(queued,name).toHaveLength(1);
   answers.push(await snapshot(result));

@@ -187,7 +187,7 @@ describe('version 2 records (B1)',()=>{
  const v1Record=async()=>{const deviceKey=await createDeviceKey(),{sealed}=await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey);return {version:1 as const,account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:await manifestDigest(vault.manifest),session:S1,health:false,createdAt:'2026-10-02T10:00:00.000Z',sealed,key:deviceKey};};
  test('a new remember stores the root key itself, and it opens again after a reload',async()=>{
   await remembered();
-  const [record]=await readDevices();expect(record!.version).toBe(2);if(record!.version!==2)throw Error('expected version 2');
+  const [record]=await readDevices();expect(record!.version).toBe(2);if(!record||record.version!==2)throw Error('expected version 2');
   expect(record.root.extractable).toBe(false);expect([...record.root.usages]).toEqual(['deriveKey']);expect(record).not.toHaveProperty('sealed');expect(record).not.toHaveProperty('key');
   await reload();await verified();expect(opened()).toBe(true);expect((await readDevices())[0]!.version).toBe(2);
  });

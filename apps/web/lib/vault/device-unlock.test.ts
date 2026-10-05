@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {createDeviceKey,createVault,deviceCommitment,unlockVaultForDevice,manifestDigest,sealDigest} from './crypto';
-import {DEVICE_DATABASE,bindingOf,confirmDevice,dropDevice,forgetCount,forgetDevices,readDevices,rememberDevice,rememberDeviceRecord,rememberHealth,replaceDevice,stillRemembered,type DeviceRecord,type DeviceRecordV1,type DeviceRecordV2} from './device-unlock';
+import {DEVICE_DATABASE,bindingOf,confirmDevice,dropDevice,forgetCount,forgetDevices,readDevices,rememberDevice,rememberDeviceRecord,rememberHealth,replaceDevice,stillRemembered,type DeviceRecordV1,type DeviceRecordV2} from './device-unlock';
 
 // Session M, Part B2 (ADR-008): the remembered record lives in its own IndexedDB database, local only. Reading never
 // creates the database; anything this version cannot use is deleted; a forget always wins over a remember in flight.
@@ -38,7 +38,8 @@ describe('remembered device records',()=>{
  it('stores one record, reads it back with a usable key, and keeps one account at most',async()=>{
   const first=await record(A);expect(await rememberDevice(first,0)).toBe(true);
   const [read]=await readDevices();expect(bindingOf(read!)).toEqual(bindingOf(first));
-  expect(read!.key.extractable).toBe(false);expect(await stillRemembered(bindingOf(first))).toBe(true);
+  if(!read||read.version!==1)throw Error('expected version 1');
+  expect(read.key.extractable).toBe(false);expect(await stillRemembered(bindingOf(first))).toBe(true);
   const second=await record(B);expect(await rememberDevice(second,0)).toBe(true);
   expect((await readDevices()).map(r=>r.account)).toEqual([B]);
   expect(await stillRemembered(bindingOf(first))).toBe(false);
@@ -83,7 +84,7 @@ describe('remembered device records, version 2',()=>{
  it('stores the root key itself: not extractable, deriveKey only, with no key that can unwrap anything',async()=>{
   const item=await recordV2(A);expect(await rememberDevice(item,0)).toBe(true);
   const [read]=await readDevices();expect(read!.version).toBe(2);expect(bindingOf(read!)).toEqual(bindingOf(item));
-  if(read!.version!==2)throw Error('expected version 2');
+  if(!read||read.version!==2)throw Error('expected version 2');
   expect(read.root.extractable).toBe(false);expect(read.root.algorithm.name).toBe('HKDF');expect([...read.root.usages]).toEqual(['deriveKey']);
   await expect(crypto.subtle.exportKey('raw',read.root)).rejects.toThrow();
   expect(Object.keys(read).sort()).toEqual(['account','commitment','createdAt','epoch','health','id','manifest','root','session','vault','version']);
