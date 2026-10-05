@@ -36,8 +36,7 @@ describe('switch off',()=>{
    expect(readPrivateStore(storage,DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings)).toEqual(settingsV2());
    const edited=await updatePrivateStore(storage,HEALTH_STORAGE_KEY,healthSchema,createEmptyHealth,weight);
    expect(edited.schemaVersion).toBe(health.schemaVersion);
-   const {weights:_after,...rest}=JSON.parse(storage.getItem(HEALTH_STORAGE_KEY)!),{weights:_before,...kept}=health;
-   expect(rest).toEqual(kept);
+   expect({...JSON.parse(storage.getItem(HEALTH_STORAGE_KEY)!),weights:health.weights}).toEqual(health);
    // Nothing about the homes is read or merged while the switch is off.
    expect(await ensureDeviceRecordsMerged(storage,off)).toBe(false);expect(storage.getItem(SYNC_HOMES_KEY)).toBeNull();
   }
