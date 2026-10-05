@@ -37,7 +37,8 @@ export type BuilderInput = {
   now: Date; habitDay: string; healthDay: string;
   habits: HabitData; health: HealthData; fasting: Fasting | null;
   platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[];
-  portfolio: {data: PortfolioData; priceOf: (coin: string) => string | undefined} | null;
+  /** A coin's price in the given currency (the portfolio's own; Session V Part 4 fix: never another currency's price). */
+  portfolio: {data: PortfolioData; priceOf: (coin: string, currency: string) => string | undefined} | null;
   /** The weekly review's window and record, for Today's "This week" counts (follow-up part F); absent means no week section. */
   week?: {weekStart: string; weekEnd: string; review: WeeklyReview} | null;
 };
@@ -138,10 +139,10 @@ function wealthSection(input: BuilderInput): Section[] {
   }
   return sections;
 }
-function portfolioLine(p: Portfolio, priceOf: (coin: string) => string | undefined): string {
+function portfolioLine(p: Portfolio, priceOf: (coin: string, currency: string) => string | undefined): string {
   const label = p.kind === 'real' ? 'Real' : 'Hypothetical';
   if (!validHistory(p)) return `${label} portfolio ${clean(p.name, 60)} (${p.currency}): its history needs review in the app`;
-  const totals = portfolioTotals(p, priceOf);
+  const totals = portfolioTotals(p, coin => priceOf(coin, p.currency));
   return `${label} portfolio ${clean(p.name, 60)} (${p.currency}): ${totals.held} coins held · value ${totals.unpriced === totals.held && totals.held > 0 ? 'unknown' : `${totals.knownValue} ${p.currency}${totals.unpriced ? ` (${totals.unpriced} coins unpriced, not counted)` : ''}`} · cost ${totals.costKnown ? `${totals.cost} ${p.currency}` : 'unknown'}`;
 }
 export const HELP_NOTES = [

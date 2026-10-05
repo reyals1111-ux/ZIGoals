@@ -11,6 +11,7 @@ import {buildPageContext, habitByTitle, moneyText, resolveHandle, unitsText, typ
 import {buildSystemPrompt, DATA_CLOSE, DATA_OPEN} from './specialists';
 import {emptyWeeklyReview} from '../../weekly-review/schema';
 import {bridgePrompt} from '../bridge';
+import {showcaseSources, withPortfolios} from '../tools/fixtures';
 
 // ADR-012, Part 4: the context is short, honest, handle-based and free of identifiers; the person's words are data.
 const {records} = buildShowcase('2026-09-20');
@@ -117,4 +118,14 @@ test('Today: the week section and Health-filled check-ins follow the Health gate
   if (today.entries.some(e => e.date === '2026-09-20' && e.source !== 'health')) expect(buildPageContext(input('today', '/app', {consent: gate(false), week})).text).not.toContain('value from Health, not shared');
   const habitLines = closed.text.split('\n').filter(l => /^h\d+: /.test(l) && l.includes(today.title));
   for (const line of habitLines) expect(line).toContain('value from Health, not shared');
+});
+// Session V Part 4, a fix found while building the tools: T valued every portfolio holding a coin with the price in the
+// first portfolio's currency, so a EUR portfolio could show a USD price as EUR. Each portfolio now asks in its own.
+test('Portfolio: each portfolio is valued in its own currency only, never with another currency\'s price', () => {
+  const data = withPortfolios(showcaseSources()).portfolio!.data;
+  const asked: string[] = [];
+  const context = buildPageContext(input('wealth', '/app/portfolio', {portfolio: {data, priceOf: (coin, currency) => { asked.push(`${coin}:${currency}`); return coin === 'coingecko:coin:bitcoin' && currency === 'USD' ? '62000' : undefined; }}}));
+  expect(context.text).toContain('Real portfolio Long-term coins (USD): 2 coins held · value 3100 USD (1 coins unpriced, not counted)');
+  expect(context.text).toContain('Hypothetical portfolio What if (EUR): 1 coins held · value unknown');
+  expect(asked).toContain('coingecko:coin:bitcoin:EUR');
 });

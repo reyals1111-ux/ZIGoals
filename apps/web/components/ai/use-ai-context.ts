@@ -70,10 +70,12 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
     try { habitDay = habitCalendarDay(habits.data, now); } catch { habitDay = hDay; }
     const refs = new Map<string, {ref: {provider: string; kind: string; id: string}; currency: 'USD' | 'EUR'}>();
     for (const p of portfolios.data.portfolios) for (const c of p.coins) { const key = coinKey(c.ref); if (!refs.has(key)) refs.set(key, {ref: c.ref, currency: p.currency}); }
-    const priceOf = (coin: string): string | undefined => {
+    // A coin's price in the asking portfolio's own currency (Session V Part 4 fix: T used the first portfolio's currency
+    // for every portfolio holding that coin, so a EUR portfolio could be valued with a USD price).
+    const priceOf = (coin: string, currency: string): string | undefined => {
       const entry = refs.get(coin); if (!entry) return undefined;
-      if (portfolios.showcase) return entry.currency === 'USD' ? SHOWCASE_PRICES[coin] : undefined;
-      const quote = referenceQuote(entry.ref as Parameters<typeof referenceQuote>[0], entry.currency, portfolioMarket.quotes, portfolioMarket.now);
+      if (portfolios.showcase) return currency === 'USD' ? SHOWCASE_PRICES[coin] : undefined;
+      const quote = referenceQuote(entry.ref as Parameters<typeof referenceQuote>[0], currency, portfolioMarket.quotes, portfolioMarket.now);
       return quote ? formatUnits(quote.price, quote.priceDecimals) : undefined;
     };
     try {
