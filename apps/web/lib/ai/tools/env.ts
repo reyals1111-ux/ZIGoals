@@ -9,6 +9,7 @@ import type {Platform} from '../../positions';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import type {Gates} from '../gates';
 import {Handles} from '../handles';
+import {HEALTH_NOTE_CATEGORIES} from '../store/records';
 import type {PageArea} from '../settings';
 import {CHARS_DEFAULT, ROWS_DEFAULT} from './types';
 
@@ -42,6 +43,6 @@ export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {
   const areas = purpose === 'provider' ? gates.areas : gates.local, health = purpose === 'provider' ? gates.health : gates.localHealth;
-  const notes = sources.notes ? sources.notes.filter(note => health || note.category !== 'health') : null;
+  const notes = sources.notes ? sources.notes.filter(note => health || !HEALTH_NOTE_CATEGORIES.includes(note.category)) : null;
   return {...sources, health: health ? sources.health : null, fasting: health ? sources.fasting : null, notes, areas: {...areas, health}, handles, limits};
 }
