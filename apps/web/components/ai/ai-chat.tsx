@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
 import type {ChatSummary, ChatTurn} from '../../lib/ai/chats';
@@ -34,6 +34,8 @@ import {LOCAL_LABEL} from '../../lib/ai/local-answers/words';
 import {toolEnv} from '../../lib/ai/tools/env';
 import {runTool} from '../../lib/ai/tools/registry';
 import type {ToolResult} from '../../lib/ai/tools/types';
+import {questionContext, type QuestionContext} from '../../lib/ai/context/question';
+import {localAnswer} from '../../lib/ai/local-answers/engine';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -54,6 +56,14 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context}), runner = useProposals(), zigi = useZigiState();
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history'>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
+  // Session V Part 4: the records chosen from the question being typed, as removable chips; the same text goes with it.
+  const [draft, setDraft] = useState(''), [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set());
+  const question = useMemo(() => connected && !sensitive ? questionContext(draft, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null, [connected, sensitive, draft, context, removed]);
+  const sendQuestion = useCallback((value: string) => {
+    const chosen = connected && !sensitive ? questionContext(value, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null;
+    setRemoved(new Set()); setDraft('');
+    void session.ask(value, {withContext: attach, ...(chosen?.text ? {extra: {text: chosen.text, handles: chosen.handles}} : {})});
+  }, [attach, connected, context, removed, sensitive, session]);
   const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
   useVisualViewportInsets(phone && open);
   // The page behind a phone sheet does not scroll (iOS scrolls the document behind a modal dialog otherwise).
@@ -102,8 +112,8 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
       <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation">
         {!data.enabled && <NotConnected onClose={onClose}/>}
         {localOnly && session.chat.turns.length === 0 && !sensitive && <LocalIntro context={context} onAsk={question => void session.ask(question)}/>}
-        {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive}/>}
-        {connected && session.chat.turns.length === 0 && !busy && <Greeting area={area} onChip={chip => void session.ask(chip, {withContext: attach})}/>}
+        {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
+        {connected && session.chat.turns.length === 0 && !busy && <Greeting area={area} onChip={sendQuestion}/>}
         {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && turn.source === 'local'
           ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy}/>
           : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader}/>)}
@@ -116,9 +126,9 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
         {session.failure && <div className="ai-failure" role="alert"><p className="ai-failure-title">{session.failure.title}</p>{session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}<div className="ai-card-actions">{['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <Link className="secondary" href={SETTINGS_HREF} onClick={onClose}>Open Settings</Link>}<button type="button" className="text-link" onClick={session.dismissFailure}>Dismiss</button></div></div>}
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
-      {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)}/>}
+      {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
-      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
+      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </dialog>;
@@ -196,26 +206,38 @@ export function conversationTokens(turns: readonly ChatTurn[]): {input: number; 
   for (const turn of turns) { if (turn.role !== 'assistant' || !turn.usage) continue; if (turn.usage.input !== null) { input += turn.usage.input; any = true; } if (turn.usage.output !== null) { output += turn.usage.output; any = true; } }
   return any ? {input, output} : null;
 }
-function ContextBar({context, attach, onAttach, sensitive, total}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean; total: {input: number; output: number} | null}) {
+function QuestionSources({question, onRemove}: {question: QuestionContext | null; onRemove: (id: string) => void}) {
+  if (!question || (!question.sources.length && !question.withheld.length)) return null;
+  return <div className="ai-question-sources" role="group" aria-label="Records chosen from your question">
+    {question.sources.length > 0 && <span className="ai-question-label">For this question:</span>}
+    {question.sources.map(s => <span key={s.id} className="ai-source-chip">{s.label}<button type="button" onClick={() => onRemove(s.id)} aria-label={`Leave out ${s.label}`} title="Leave out">×</button></span>)}
+    {question.withheld.map(w => <span key={w} className="ai-note ai-question-withheld">Not included: {w}</span>)}
+  </div>;
+}
+function ContextBar({context, attach, onAttach, sensitive, total, question, onRemove}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean; total: {input: number; output: number} | null; question: QuestionContext | null; onRemove: (id: string) => void}) {
   const label = AREA_LABELS[context.area];
   const totalLine = total ? <span className="ai-context-total" aria-label="Tokens so far in this conversation">{total.input.toLocaleString('en-US')} in · {total.output.toLocaleString('en-US')} out tokens so far</span> : null;
   if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span>{totalLine}</div>;
   if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span>{totalLine}</div>;
-  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{totalLine}</div>;
+  const questionPreview = question?.text ? <><p className="ai-note">And the records chosen from your question:</p><pre>{question.text}</pre></> : null;
+  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span><QuestionSources question={question} onRemove={onRemove}/>{questionPreview && <details className="ai-context-preview"><summary>What your AI sees</summary>{questionPreview}</details>}{totalLine}</div>;
   return <div className="ai-context-bar">
     <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)}/> Share this page’s data{context.preview ? ` · ${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens` : ''}</label>
-    {attach && context.preview && <details className="ai-context-preview"><summary>What your AI sees</summary><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></details>}
+    <QuestionSources question={question} onRemove={onRemove}/>
+    {((attach && context.preview) || questionPreview) && <details className="ai-context-preview"><summary>What your AI sees</summary>{attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></>}{questionPreview}</details>}
     {attach && !context.preview && context.ready && <span className="ai-note">Nothing to share on this page yet.</span>}
     {totalLine}
   </div>;
 }
 import {forwardRef} from 'react';
-const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean}>(function Composer({session, attach, phone, settings, scope, placeholder, local}, ref) {
+const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean; onDraft?: (text: string) => void; onSend?: (text: string) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, local, onDraft, onSend}, ref) {
   const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false);
   useEffect(() => { const pending = takePendingAsk(); if (pending) setText(pending); const onAsk = (event: Event) => { const text = (event as CustomEvent<{text: string}>).detail?.text; if (text) { takePendingAsk(); setText(text); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
-  const submit = (event?: FormEvent) => { event?.preventDefault(); const value = text.trim(); if (!value || busy) return; setText(''); void session.ask(value, {withContext: attach}); };
+  // The question's records follow the words after a short pause in typing (Session V Part 4).
+  useEffect(() => { if (!onDraft) return; const t = window.setTimeout(() => onDraft(text), 300); return () => window.clearTimeout(t); }, [text, onDraft]);
+  const submit = (event?: FormEvent) => { event?.preventDefault(); const value = text.trim(); if (!value || busy) return; setText(''); if (onSend) onSend(value); else void session.ask(value, {withContext: attach}); };
   const mic = voice.mode !== 'off' && !local;
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
   const toggleMic = () => { setDisclosed(true); if (talking) voice.stop(); else void voice.start(); };
@@ -237,14 +259,26 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {phone && mic && voice.available && <p className="ai-note">Hold the microphone to talk and release to stop, or tap once to start and once to stop.</p>}
   </form>;
 });
-function BridgeView({settings, context, attach, sensitive}: {settings: AiSettingsStore; context: ReturnType<typeof useAiContext>; attach: boolean; sensitive: boolean}) {
-  const [question, setQuestion] = useState(''), [status, setStatus] = useState(''), app = subscriptionApp(settings.data.subscriptionApp);
-  const prompt = useMemo(() => bridgePrompt({context: attach && !sensitive ? context.context : null, question: question || '(your question)', customInstructions: settings.data.customInstructions}), [attach, sensitive, context.context, question, settings.data.customInstructions]);
-  const copy = () => { navigator.clipboard?.writeText(prompt).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
+/** "Open <app> side by side" (Session V Part 4): the app's own page in a window beside ZIGoals; the browser may make it a tab. */
+function openSideBySide(url: string) {
+  const s = window.screen as Screen & {availLeft?: number; availTop?: number}, width = Math.max(420, Math.round(s.availWidth * 0.42)), height = s.availHeight;
+  window.open(url, 'zigoals-ai-app', `noopener,popup,width=${width},height=${height},left=${(s.availLeft ?? 0) + s.availWidth - width},top=${s.availTop ?? 0}`);
+}
+function BridgeView({settings, context, attach, sensitive, phone}: {settings: AiSettingsStore; context: ReturnType<typeof useAiContext>; attach: boolean; sensitive: boolean; phone: boolean}) {
+  const [question, setQuestion] = useState(''), [status, setStatus] = useState(''), [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set()), app = subscriptionApp(settings.data.subscriptionApp);
+  const typed = useDeferredValue(question);
+  // The records chosen from the question (removable), and, for a lookup, the answer made here with no AI at all.
+  const chosen = useMemo(() => sensitive ? null : questionContext(typed, context.toolSources(), context.gates, context.context?.handles ?? [], removed), [typed, sensitive, context, removed]);
+  const local = useMemo(() => { const sources = sensitive || typed.trim().length < 3 ? null : context.toolSources(); if (!sources) return null; const reply = localAnswer(typed, toolEnv(sources, context.gates, 'local')); return reply.kind === 'answer' ? reply : null; }, [typed, sensitive, context]);
+  const prompt = useMemo(() => bridgePrompt({context: attach && !sensitive ? context.context : null, question: typed || '(your question)', customInstructions: settings.data.customInstructions, questionData: chosen?.text ?? ''}), [attach, sensitive, context.context, typed, settings.data.customInstructions, chosen]);
+  // Built again at the click from the words as they stand, with the chips the person kept: exactly what is copied.
+  const copy = () => { const fresh = sensitive ? null : questionContext(question, context.toolSources(), context.gates, context.context?.handles ?? [], removed); navigator.clipboard?.writeText(bridgePrompt({context: attach && !sensitive ? context.context : null, question: question || '(your question)', customInstructions: settings.data.customInstructions, questionData: fresh?.text ?? ''})).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
   return <div className="ai-bridge">
     <p className="ai-greeting-text">A {app?.name ?? 'consumer'} subscription has no connection a browser app may use, so ZIGoals writes the prompt for you: copy it, open {app?.name ?? 'your AI'}, paste. Nothing is sent from here.</p>
-    <label className="field">Your question<textarea value={question} onChange={e => setQuestion(e.target.value)} rows={3} maxLength={5000}/></label>
-    <div className="ai-card-actions"><button type="button" className="primary" onClick={copy} disabled={!question.trim()}>Copy for my AI</button>{app && <a className="secondary" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}</div>
+    <label className="field">Your question<textarea value={question} onChange={e => { setQuestion(e.target.value); setRemoved(new Set()); }} rows={3} maxLength={5000}/></label>
+    <QuestionSources question={chosen} onRemove={id => setRemoved(current => new Set([...current, id]))}/>
+    {local && <div className="ai-bridge-local"><SafeText className="ai-local-answer" text={local.text}/><p className="ai-turn-meta"><span className="ai-turn-label">{LOCAL_LABEL}</span></p></div>}
+    <div className="ai-card-actions"><button type="button" className="primary" onClick={copy} disabled={!question.trim()}>Copy for my AI</button>{app && <a className="secondary" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}{app && !phone && <button type="button" className="secondary" onClick={() => openSideBySide(app.url)}>Open {app.name} side by side</button>}</div>
     {status && <p className="ai-note" role="status">{status}</p>}
     <details className="ai-context-preview"><summary>What will be copied</summary><pre>{prompt}</pre></details>
   </div>;

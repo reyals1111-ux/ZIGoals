@@ -93,6 +93,26 @@ function strongestHabits(hits: HabitHit[], q: string): HabitHit[] {
   return [];
 }
 
+/**
+ * What a question is about, for the question-aware context (Part 4): the habits, goals, asset and Health measures it
+ * names, and its periods. Nothing of Health is read to decide this unless the environment holds Health (counter names).
+ */
+export type Subjects = {
+  habits: Habit[]; goals: ReturnType<typeof summaries>; asset: string | null; wealthTotal: boolean; contributions: boolean;
+  health: {nutrient: NutrientName | null; water: boolean; steps: boolean; active: boolean; weight: boolean; measurement: boolean; fasting: boolean; diary: boolean; counter: string | true | null};
+  ranges: (DayRange & {phrase?: string})[];
+};
+export function detectSubjects(question: string, env: ToolEnv): Subjects {
+  const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
+  const hits = strongestHabits(habitHits(env, q), q), counters = env.health ? exerciseData(env.health).counters.map(c => c.name) : [];
+  const counter = counters.find(name => new RegExp(`\\b${normalise(name).replace(/ /g, '[ -]?')}\\b`).test(normalise(q))) ?? (HEALTH.counter.test(q) ? true : null);
+  return {
+    habits: hits.filter(h => h.strength !== 'partial' || hits.length === 1).map(h => h.habit).slice(0, 3),
+    goals: mentionedGoals(env, q).slice(0, 2), asset: mentionedAsset(env, q), wealthTotal: WEALTH_TOTAL.test(q), contributions: CONTRIBUTION.test(q),
+    health: {nutrient: NUTRIENT_WORDS.find(([re]) => re.test(q))?.[1] ?? null, water: HEALTH.water.test(q), steps: HEALTH.steps.test(q), active: HEALTH.active.test(q), weight: HEALTH.weight.test(q), measurement: HEALTH.measurement.test(q), fasting: HEALTH.fasting.test(q), diary: HEALTH.diary.test(q), counter},
+    ranges: findRanges(q, env.healthDay),
+  };
+}
 /** The answer to a question, or `none` when it is not a lookup ZIGi answers on the device. */
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const reply = answer(question, env, subject);

@@ -12,6 +12,7 @@ import {gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHand
 import {availableTools, runTool, TOOLS, toolText} from './tools/registry';
 import {localAnswer} from './local-answers/engine';
 import {recordsForAi} from './local-answers/more';
+import {questionContext} from './context/question';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -103,4 +104,19 @@ test('Part 3: local answers stay on the device, and "Ask my AI for more" carries
   expect(sentinelsIn(later.text)).toEqual([]);
   // The control: with the gate open the same records do carry the values.
   expect(sentinelsIn(recordsForAi(calls, s, gatesFor(true))!.text).length).toBeGreaterThan(0);
+});
+
+test('Part 4: the records chosen from a question, on every page and in the copied prompt, carry no Health with the gate closed', () => {
+  const s = sources();
+  const questions = ['How many minutes did I meditate this month?', 'How much water did I drink today?', 'Help me eat more protein this week', 'What did I eat today?', 'Any tips for my steps?', 'How many steps did I walk today?', `How are my ${SENTINEL.counter} going?`, 'What is my weight?', 'When was my last fast?', 'Plan my groceries for this week', 'How far am I on my Japan goal?'];
+  for (const [area, pathname] of PAGES) for (const q of questions) {
+    const chosen = questionContext(q, s, gatesFor(false, area, pathname));
+    expect(sentinelsIn(JSON.stringify(chosen)), `${pathname} ${q}`).toEqual([]);
+    const page = buildPageContext(builderInput(s, area, pathname, false));
+    // The person's own question is quoted back as typed; everything else in the copy must hold no Health value.
+    expect(sentinelsIn(bridgePrompt({context: page, question: q, questionData: chosen?.text ?? ''}).replace(`My question: ${q}`, '')), `${pathname} ${q}`).toEqual([]);
+  }
+  // The control: the gate open, the same questions reach the values.
+  const open = questions.map(q => JSON.stringify(questionContext(q, s, gatesFor(true, 'health', '/app/health')))).join('\n');
+  expect(sentinelsIn(open).length).toBeGreaterThan(3);
 });
