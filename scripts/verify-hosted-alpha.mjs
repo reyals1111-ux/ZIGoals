@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { probeAlphaMarket } from './lib/alpha-market-probe.mjs';
 import { appNonceFindings, priceFinding, reviewReason, hostedStatus } from './lib/hosted-alpha-review.mjs';
 import { readPolicyWindow, policyWindowNote } from './lib/market-policy-window.mjs';
+import { GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal } from './lib/hosted-alpha-goal-stage.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
@@ -78,16 +79,13 @@ try {
     report.initialPerformance=await page.evaluate(()=>({navigation:performance.getEntriesByType('navigation').map(x=>x.toJSON()),resources:performance.getEntriesByType('resource').map(x=>x.toJSON())}));
     await layout('alpha-dashboard');
   });
-  const sentinels=['M5_FICTIONAL_GOAL_81f3c7','7319.2468','7319246800000000000000','2033-11-27','M5_FICTIONAL_NOTE_29a6f4'];
+  // Session V Part 1a: the goal steps live in lib/hosted-alpha-goal-stage.mjs, which a browser spec runs against a local
+  // production build on every PR (apps/web/tests/hosted-alpha-goal-stage.spec.ts), so these selectors cannot go stale.
+  const sentinels=[GOAL_SENTINELS.name,GOAL_SENTINELS.target,GOAL_SENTINELS.targetUnits,GOAL_SENTINELS.date,GOAL_SENTINELS.note];
   await stage('Fictional local create, deposit and withdraw', async()=>{
-    await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click(); await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
-    await page.getByRole('button',{name:'Travel',exact:true}).click(); await page.getByRole('button',{name:'Continue →',exact:true}).click();
-    await page.getByLabel('Private goal name').fill(sentinels[0]); await page.getByLabel('Target amount').fill(sentinels[1]);
-    for(let n=0;n<3;n++) await page.getByRole('button',{name:'Continue →',exact:true}).click();
-    await page.getByRole('button',{name:'Create goal',exact:true}).click(); await page.getByRole('button',{name:'Confirm simulation',exact:true}).click();
-    await expect(page.getByRole('heading',{name:sentinels[0],exact:true})).toBeVisible();
+    await createFictionalGoal(page, expect);
     await layout('alpha-goal');
-    for(const name of ['Add funds','Withdraw']) { await page.getByLabel('Amount in ZIG').fill('10'); await page.getByRole('button',{name,exact:true}).click(); await page.getByRole('button',{name:'Confirm simulation',exact:true}).click(); }
+    await depositAndWithdraw(page);
   });
   await stage('Local backup export/import and live read-only diagnostics', async()=>{
     await page.getByRole('link',{name:'Settings',exact:true}).click();
@@ -95,18 +93,17 @@ try {
     const backup=JSON.parse(await readFile(await file.path(),'utf8')); assert.equal(backup.goals['1'].name,sentinels[0]);
     backup.goals['1'].notes=sentinels[4]; backup.goals['1'].targetDate=sentinels[3];
     await page.getByLabel('Or paste backup JSON').fill(JSON.stringify(backup)); await page.getByRole('button',{name:'Import backup',exact:true}).click();
-    await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:metadata:v1:local-simulation:local-demo-user')).goals['1'].notes)).toBe(sentinels[4]);
-    const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:metadata:v1:local-simulation:local-demo-user')));
+    await expect.poll(async()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)).goals['1'].notes,LOCAL_SIMULATION_METADATA_KEY)).toBe(sentinels[4]);
+    const stored=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),LOCAL_SIMULATION_METADATA_KEY);
     assert.equal(stored.goals['1'].notes,sentinels[4]); assert.equal(stored.goals['1'].targetDate,sentinels[3]);
+    // Session V Part 1a: "Check connection" sits inside the folded Advanced Diagnostics, and the safe summary is previewed
+    // before it is copied ("Preview safe diagnostics", then "Copy reviewed diagnostics").
+    const panel=await openDiagnostics(page);
     await page.getByRole('button',{name:'Check connection',exact:true}).click();
-    await expect(page.getByRole('region',{name:'Connection diagnostics'})).toContainText('Verified zig-test-2 · azig · 18 decimals · v5.0.0-patch-1',{timeout:20000});
-    const panel=page.getByRole('region',{name:'Connection diagnostics'}); report.diagnostics=await panel.innerText();
+    await expect(panel).toContainText('Verified zig-test-2 · azig · 18 decimals · v5.0.0-patch-1',{timeout:20000});
+    report.diagnostics=await panel.innerText();
     assert.match(report.diagnostics,/3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72/); assert.equal(await panel.getByText('NOT DEPLOYED',{exact:true}).count(),3);
-    await page.getByRole('button',{name:'Copy safe diagnostics',exact:true}).click();
-    await expect(page.getByRole('region',{name:'Connection diagnostics'})).toContainText(/Safe diagnostic summary copied\.|Clipboard unavailable\./);
-    const safe=page.getByLabel('Safe diagnostic summary');
-    if(await safe.isVisible()) report.safeDiagnostics=await safe.inputValue();
-    else { await expect(page.getByText('Safe diagnostic summary copied.',{exact:true})).toBeVisible(); report.safeDiagnostics='Clipboard write succeeded; clipboard contents not read.'; }
+    report.safeDiagnostics=await previewSafeDiagnostics(page, expect);
     for(const value of sentinels) assert(!report.safeDiagnostics.includes(value));
     await layout('alpha-settings');
   });
@@ -114,8 +111,7 @@ try {
     await page.goto(alpha+'/app/goals/1'); await expect(page.getByRole('heading',{name:sentinels[0],exact:true})).toBeVisible();
     await page.reload(); await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
     await expect(page.getByRole('heading',{name:sentinels[0],exact:true})).toBeVisible();
-    await page.getByRole('button',{name:'Close empty goal',exact:true}).click(); await page.getByRole('button',{name:'Confirm simulation',exact:true}).click();
-    await expect(page.getByText(/Travel · closed/i)).toBeVisible();
+    await closeFictionalGoal(page, expect);
     await page.getByRole('link',{name:'Activity',exact:true}).click(); await expect(page.getByRole('heading',{name:'Activity.',exact:true})).toBeVisible();
     await page.waitForLoadState('networkidle');
   });
