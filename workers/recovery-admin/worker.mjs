@@ -3,14 +3,16 @@
  * ADMIN is the remote service binding to the private lifecycle Worker's LifecycleRecoveryAdmin
  * entrypoint, opened by the owner's own Cloudflare login. Each run sets a random
  * ADMIN_SESSION_TOKEN; a request without it is refused, so other local processes and pages that
- * rebind a hostname to 127.0.0.1 cannot use the open port. */
-/** @typedef {{ADMIN?:Fetcher,ADMIN_SESSION_TOKEN?:string}} AdminEnv */
+ * rebind a hostname to 127.0.0.1 cannot use the open port.
+ * Session U Part 5 (item 7): VAULT_ADMIN is the second remote binding, to the private sync Worker's
+ * PrivateVaultRecoveryAdmin entrypoint; only /admin/erase-vault uses it, after the deletion is recorded. */
+/** @typedef {{ADMIN?:Fetcher,VAULT_ADMIN?:Fetcher,ADMIN_SESSION_TOKEN?:string}} AdminEnv */
 /** @param {unknown} body @param {number} [status] */
 const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 // Lowercase only, as the auth provider issues it: the lifecycle authority keys its Durable Object by the exact string.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 /** @type {Record<string,'GET'|'POST'>} */
-const ROUTES={'/status':'GET','/admin/export':'GET','/admin/dry-run':'POST','/admin/reconcile':'POST','/admin/erase':'POST'};
+const ROUTES={'/status':'GET','/admin/export':'GET','/admin/dry-run':'POST','/admin/reconcile':'POST','/admin/erase':'POST','/admin/erase-vault':'POST'};
 // The lifecycle authority refuses checkpoints above 16 MiB itself; this only bounds what is buffered here.
 const MAX_BODY=16*1024*1024;
 /** Compares without returning early on the first differing byte. @param {string} a @param {string} b */
@@ -35,6 +37,7 @@ const recoveryAdminWorker={
   if(url.search||!method)return reply({error:'NOT_FOUND'},404);
   if(request.method!==method)return reply({error:'METHOD_NOT_ALLOWED'},405);
   if(!env.ADMIN)return reply({error:'ADMIN_BINDING_MISSING'},503);
+  const target=url.pathname==='/admin/erase-vault'?env.VAULT_ADMIN:env.ADMIN;if(!target)return reply({error:'VAULT_ADMIN_BINDING_MISSING'},503);
   if(url.pathname==='/status')return reply({ok:true,service:'zigoals-recovery-admin'});
   const account=request.headers.get('x-verified-account')??'';
   if(!UUID.test(account))return reply({error:'IDENTITY_REQUIRED'},403);
@@ -45,7 +48,7 @@ const recoveryAdminWorker={
    if(request.headers.get('content-type')?.split(';')[0]?.trim()!=='application/json')return reply({error:'JSON_REQUIRED'},415);
    body=await boundedBody(request);if(body===null)return reply({error:'RECOVERY_CAPACITY'},413);headers['content-type']='application/json';
   }
-  const response=await env.ADMIN.fetch(new Request('https://recovery-admin.internal'+url.pathname,{method,headers,...(body?{body}:{})}));
+  const response=await target.fetch(new Request('https://recovery-admin.internal'+url.pathname,{method,headers,...(body?{body}:{})}));
   return new Response(response.body,{status:response.status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
  },
 };

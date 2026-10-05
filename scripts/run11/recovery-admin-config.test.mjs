@@ -22,10 +22,11 @@ async function sandbox(){
 }
 const readJson=async(root,path)=>JSON5.parse(await readFile(join(root,path),'utf8'));
 
-test('the reviewed template is local only, binds only the lifecycle recovery entrypoint remotely, and nothing else in the checkout binds it',()=>{
+test('the reviewed template is local only, binds only the two recovery entrypoints remotely, and nothing else in the checkout binds them',()=>{
  const t=template();
  expect(validateAdminConfig(t,t,'zigoals-lifecycle-local')).toEqual([]);
- expect(t).toMatchObject({workers_dev:false,preview_urls:false,services:[{binding:'ADMIN',service:'zigoals-lifecycle-local',entrypoint:'LifecycleRecoveryAdmin',remote:true}]});
+ // Session U Part 5 (item 7): the second binding reaches private sync's PrivateVaultRecoveryAdmin, which erase uses.
+ expect(t).toMatchObject({workers_dev:false,preview_urls:false,services:[{binding:'ADMIN',service:'zigoals-lifecycle-local',entrypoint:'LifecycleRecoveryAdmin',remote:true},{binding:'VAULT_ADMIN',service:'zigoals-private-sync-local',entrypoint:'PrivateVaultRecoveryAdmin',remote:true}]});
  expect(t.routes??t.route??t.triggers).toBeUndefined();
  expect(strayAdminBindings(repo)).toEqual([]);
 });
@@ -42,7 +43,14 @@ test.each([
  ['a Durable Object',c=>{c.durable_objects={bindings:[{name:'X',class_name:'X'}]};}],
  ['vars',c=>{c.vars={ADMIN_SESSION_TOKEN:'fixed'};}],
  ['an account id',c=>{c.account_id='0123456789abcdef0123456789abcdef';}],
- ['a second service binding',c=>{c.services.push({binding:'SYNC',service:'zigoals-private-sync-local'});}],
+ ['a third service binding',c=>{c.services.push({binding:'SYNC',service:'zigoals-private-sync-local'});}],
+ ['no vault binding (a copy made before Session U)',c=>{c.services.pop();}],
+ ['the two bindings swapped',c=>{c.services.reverse();}],
+ ['a local (non-remote) vault binding',c=>{c.services[1].remote=false;}],
+ ['the vault binding on the lifecycle Worker',c=>{c.services[1].service='zigoals-lifecycle-local';}],
+ ['the vault binding on the ordinary private sync entrypoint',c=>{delete c.services[1].entrypoint;}],
+ ['the vault binding on another entrypoint',c=>{c.services[1].entrypoint='LifecycleRecoveryAdmin';}],
+ ['the vault binding on the Alpha',c=>{c.services[1].service='zigoals-alpha';}],
  ['a local (non-remote) binding',c=>{c.services[0].remote=false;}],
  ['a missing remote flag',c=>{delete c.services[0].remote;}],
  ['the ordinary lifecycle entrypoint',c=>{c.services[0].entrypoint='LifecycleService';}],
@@ -52,21 +60,21 @@ test.each([
  ['another main module',c=>{c.main='../private-sync/lifecycle.mjs';}],
 ])('the admin check rejects %s',(_,mutate)=>{const c=template();mutate(c);expect(validateAdminConfig(c,template(),'zigoals-lifecycle-local').length).toBeGreaterThan(0);});
 
-test.each([...Object.values(CONFIGS),...OTHER_CONFIGS])('a recovery admin binding added to %s is reported',async path=>{
+test.each([...Object.values(CONFIGS),...OTHER_CONFIGS].flatMap(path=>[[path,'LifecycleRecoveryAdmin','zigoals-lifecycle-local'],[path,'PrivateVaultRecoveryAdmin','zigoals-private-sync-local']]))('a recovery admin binding added to %s (%s) is reported',async(path,entrypoint,service)=>{
  const {root}=await sandbox();expect(strayAdminBindings(root)).toEqual([]);
- const c=await readJson(root,path);c.services=[...(c.services??[]),{binding:'RECOVERY',service:'zigoals-lifecycle-local',entrypoint:'LifecycleRecoveryAdmin'}];
+ const c=await readJson(root,path);c.services=[...(c.services??[]),{binding:'RECOVERY',service,entrypoint}];
  await writeFile(join(root,path),JSON.stringify(c));
- expect(strayAdminBindings(root)).toEqual([path+': binds the recovery admin entrypoint; only the local recovery-admin config may.']);
+ expect(strayAdminBindings(root)).toEqual([path+': binds a recovery admin entrypoint; only the local recovery-admin config may.']);
 });
 
-test('generates the seventh copy after Stage 4: ignored, 0600, bound to the private lifecycle Worker, passing the admin check',async()=>{
+test('generates the seventh copy after Stage 4: ignored, 0600, bound to the private lifecycle and private sync Workers, passing the admin check',async()=>{
  const {root,input}=await sandbox();makePrivateConfigs(root,input);
  const line=makeAdminConfig(root),path=privatePath(ADMIN_CONFIG),full=join(root,path);
  expect(path).toBe('workers/recovery-admin/wrangler.acctest.owner.jsonc');
  expect((await stat(full)).mode&0o777).toBe(0o600);expect(spawnSync('git',['check-ignore','-q',full],{cwd:root}).status).toBe(0);expect(privateFileProblems(root,path)).toEqual([]);
  const copy=await readJson(root,path);
- expect(copy).toEqual({...template(),name:'zigoals-acctest-recovery-admin-local-only',services:[{binding:'ADMIN',service:'zigoals-acctest-lifecycle',entrypoint:'LifecycleRecoveryAdmin',remote:true}]});
- expect(validateAdminConfig(copy,template(),'zigoals-acctest-lifecycle',{privateCopy:true})).toEqual([]);
+ expect(copy).toEqual({...template(),name:'zigoals-acctest-recovery-admin-local-only',services:[{binding:'ADMIN',service:'zigoals-acctest-lifecycle',entrypoint:'LifecycleRecoveryAdmin',remote:true},{binding:'VAULT_ADMIN',service:'zigoals-acctest-private-sync',entrypoint:'PrivateVaultRecoveryAdmin',remote:true}]});
+ expect(validateAdminConfig(copy,template(),'zigoals-acctest-lifecycle',{privateCopy:true,syncName:'zigoals-acctest-private-sync'})).toEqual([]);
  expect(checkAdmin(root)).toMatch(/^PASS/);
  for(const value of ['abcdefghijklmnopqrst','fictional'])expect(line).not.toContain(value);
  // The six runtime copies are unchanged by it and still pass.
@@ -88,9 +96,12 @@ test('refuses when the lifecycle copy is readable by others',async()=>{
 
 test.each([
  ['a readable admin copy',async(root,path)=>{await chmod(join(root,path),0o644);},'not mode 0600'],
- ['an admin copy aimed at another Worker',async(root,path)=>{const c=await readJson(root,path);c.services[0].service='zigoals-acctest-private-sync';await writeFile(join(root,path),JSON.stringify(c),{mode:0o600});},'exactly one remote ADMIN binding'],
+ ['an admin copy aimed at another Worker',async(root,path)=>{const c=await readJson(root,path);c.services[0].service='zigoals-acctest-private-sync';await writeFile(join(root,path),JSON.stringify(c),{mode:0o600});},'exactly two remote bindings'],
+ ['a vault binding aimed at another Worker',async(root,path)=>{const c=await readJson(root,path);c.services[1].service='zigoals-acctest-lifecycle';await writeFile(join(root,path),JSON.stringify(c),{mode:0o600});},'exactly two remote bindings'],
+ ['an admin copy made before Session U (one binding)',async(root,path)=>{const c=await readJson(root,path);c.services=c.services.slice(0,1);await writeFile(join(root,path),JSON.stringify(c),{mode:0o600});},'Regenerate the copy'],
+ ['a private sync copy of another prefix',async root=>{const p=privatePath(CONFIGS.private),c=await readJson(root,p);c.name='zigoals-other-private-sync';await writeFile(join(root,p),JSON.stringify(c),{mode:0o600});},'the private sync Worker of the same prefix'],
  ['a route in the admin copy',async(root,path)=>{const c=await readJson(root,path);c.routes=['admin.fictional-owner.net/*'];await writeFile(join(root,path),JSON.stringify(c),{mode:0o600});},'remove routes'],
- ['a stray binding in the private app copy',async root=>{const p=privatePath(CONFIGS.app),c=await readJson(root,p);c.services.push({binding:'RECOVERY',service:'zigoals-acctest-lifecycle',entrypoint:'LifecycleRecoveryAdmin'});await writeFile(join(root,p),JSON.stringify(c),{mode:0o600});},'apps/web/wrangler.run11.acctest.owner.jsonc: binds the recovery admin entrypoint'],
+ ['a stray binding in the private app copy',async root=>{const p=privatePath(CONFIGS.app),c=await readJson(root,p);c.services.push({binding:'RECOVERY',service:'zigoals-acctest-lifecycle',entrypoint:'LifecycleRecoveryAdmin'});await writeFile(join(root,p),JSON.stringify(c),{mode:0o600});},'apps/web/wrangler.run11.acctest.owner.jsonc: binds a recovery admin entrypoint'],
  ['private sync bound to another lifecycle Worker',async root=>{const p=privatePath(CONFIGS.private),c=await readJson(root,p);c.services[0].service='zigoals-other-lifecycle';await writeFile(join(root,p),JSON.stringify(c),{mode:0o600});},'private sync must bind the same lifecycle Worker'],
 ])('the --admin check rejects %s',async(_,mutate,message)=>{
  const {root,input}=await sandbox();makePrivateConfigs(root,input);makeAdminConfig(root);

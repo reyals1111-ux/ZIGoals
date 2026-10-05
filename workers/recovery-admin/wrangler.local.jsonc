@@ -2,8 +2,9 @@
 // scripts/run11/recovery-admin.mjs runs it with `wrangler dev` on 127.0.0.1 for one command.
 // This template is deliberately unconfigured: the owner's private copy
 // (wrangler.acctest.owner.jsonc, from make-private-configs.mjs --recovery-admin) names the
-// private lifecycle Worker. activation-check.mjs refuses routes, workers.dev, preview URLs,
-// triggers and any binding other than ADMIN, and refuses this entrypoint in every other config.
+// private lifecycle Worker and, since Session U Part 5, the private sync Worker (VAULT_ADMIN, for
+// erase). activation-check.mjs refuses routes, workers.dev, preview URLs, triggers and any binding
+// other than ADMIN and VAULT_ADMIN, and refuses both entrypoints in every other config.
 {
   "name": "zigoals-recovery-admin-local-only",
   "main": "worker.mjs",
@@ -15,6 +16,12 @@
       "binding": "ADMIN",
       "service": "zigoals-lifecycle-local",
       "entrypoint": "LifecycleRecoveryAdmin",
+      "remote": true
+    },
+    {
+      "binding": "VAULT_ADMIN",
+      "service": "zigoals-private-sync-local",
+      "entrypoint": "PrivateVaultRecoveryAdmin",
       "remote": true
     }
   ],

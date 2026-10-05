@@ -1,3 +1,4 @@
+import {WorkerEntrypoint} from 'cloudflare:workers';
 import {rotationRequest} from './rotation.mjs';
 import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
@@ -65,6 +66,34 @@ const privateSyncWorker={async fetch(request,env){
  return stub.fetch(new Request(request,{headers}));
 }};
 export default privateSyncWorker;
+/**
+ * Session U Part 5 (item 7; FIX_PLAN H1 follow-up, ADR-007): the owner's erase also removes the account's encrypted vault
+ * rows. Only the owner's local recovery-admin Worker binds this entrypoint (a second remote binding, while one erase
+ * command runs); the app never does, and activation-check refuses it in every other config. It erases exactly as the
+ * app's "Delete cloud data" does (every row, then the terminal marker that stops a device re-enrolling), and only when the
+ * lifecycle authority reports the account deleted. In reconcile mode the authority does not serve, so nothing is removed
+ * and the owner runs erase again after the serve switch. Answers carry no row, count or identifier.
+ * @extends {WorkerEntrypoint<SyncEnv>}
+ */
+export class PrivateVaultRecoveryAdmin extends WorkerEntrypoint{
+ /** @param {Request} request */
+ async fetch(request){
+  const account=request.headers.get('x-verified-account'),url=new URL(request.url);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(account??''))return response({error:'IDENTITY_REQUIRED'},403);
+  if(url.search||url.pathname!=='/admin/erase-vault'||request.method!=='POST')return response({error:'NOT_FOUND'},404);
+  let body;try{body=await boundedJSON(request,256);}catch{return response({error:'INVALID_ERASE'},400);}
+  if(!exact(body,['confirm'])||body.confirm!=='ERASE VAULT')return response({error:'INVALID_ERASE'},400);
+  if(!this.env.LIFECYCLE)return response({error:'LIFECYCLE_CONFIGURATION_REQUIRED'},503);
+  const decision=await this.env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{headers:{'x-verified-account':/** @type {string} checked above */(account)}}));
+  if(!decision.ok){await decision.body?.cancel();return response({error:decision.status===503?'LIFECYCLE_NOT_SERVING':'LIFECYCLE_UNAVAILABLE'},503);}
+  /** @type {any} */let state;try{state=await boundedJSON(decision,4096);}catch{return response({error:'LIFECYCLE_UNAVAILABLE'},503);}
+  if(state?.deleted!==true)return response({error:'ACCOUNT_NOT_DELETED'},409);
+  const stub=this.env.VAULTS.get(this.env.VAULTS.idFromName(/** @type {string} checked above */(account)));
+  const erased=await stub.fetch(new Request('https://vault.internal/v1/account',{method:'POST',headers:{'x-lifecycle-delete-authorized':'1','x-verified-account':/** @type {string} */(account),'content-type':'application/json'},body:'{"action":"delete-cloud-data","confirm":"DELETE CLOUD DATA"}'}));
+  await erased.body?.cancel();
+  return erased.ok?response({vaultErased:true}):response({error:'VAULT_UNAVAILABLE'},503);
+ }
+}
 export class PrivateVault{
  /** @param {RecordState} state @param {SyncEnv} env */
  constructor(state,env){this.state=state;this.env=env;}

@@ -8,6 +8,9 @@ import {execFileSync} from 'node:child_process';
 import {CONFIGS,ADMIN_CONFIG} from './activation-check.mjs';
 import {makePrivateConfigs,makeAdminConfig} from './make-private-configs.mjs';
 import {run,parseArgs,checkpointDigest} from './recovery-admin.mjs';
+import {fixtureToken} from './private-runtime.mjs';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
+import {createVault} from '../../apps/web/lib/vault/crypto';
 
 // Session S Part 5 (FIX_PLAN H1, Q-OPS-06): the owner's erase command, end to end with the stand-in harness of
 // recovery-admin.test.mjs. The real admin Worker reaches the real lifecycle authority through a LOCAL binding to the
@@ -21,6 +24,25 @@ const adminScript=readFileSync(join(repo,'workers/recovery-admin/worker.mjs'),'u
 let lifecycleCode;
 const lifecycleScript=async()=>lifecycleCode??=(await build({entryPoints:[join(repo,'workers/private-sync/lifecycle.mjs')],bundle:true,write:false,format:'esm',platform:'browser',external:['cloudflare:workers']})).outputFiles[0].text;
 const noOutbound=()=>{throw Error('Erase must never call external providers');};
+// Session U Part 5 (item 7): private sync with its owner-only entrypoint, so erase also removes the vault rows. A
+// test-only subclass lists the vault object's rows; the production class is unchanged.
+let syncCode;
+const syncScript=async()=>syncCode??=(await build({stdin:{contents:"import worker,{PrivateVault as Base,PrivateVaultRecoveryAdmin} from './worker.mjs';export default worker;export {PrivateVaultRecoveryAdmin};export class PrivateVault extends Base{constructor(state,env){super(state,env);this.rowsState=state;}async fetch(request){if(new URL(request.url).pathname==='/test/rows')return Response.json(Object.fromEntries(await this.rowsState.storage.list()));return super.fetch(request);}}",resolveDir:join(repo,'workers/private-sync'),loader:'js'},bundle:true,write:false,format:'esm',platform:'browser',external:['cloudflare:workers']})).outputFiles[0].text;
+const providerFixture=async request=>{if(new URL(request.url).hostname!=='fixture.supabase.co')throw Error('Fixture refused external destination');return Response.json({id:account});};
+const syncWorker=async(outbound=noOutbound)=>({name:'sync',modules:true,script:await syncScript(),compatibilityDate,durableObjects:{VAULTS:{className:'PrivateVault',useSQLite:true}},serviceBindings:{LIFECYCLE:{name:'lifecycle',entrypoint:'LifecycleService'}},bindings:{AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN:'https://app.test'},outboundService:outbound});
+const vaultProbe=doProbeWorker({className:'PrivateVault',scriptName:'sync',name:'vault-probe'});
+const vaultRows=async mf=>{const ns=await doProbe(mf,'vault-probe');return (await ns.get(ns.idFromName(account)).fetch('https://internal/test/rows')).json();};
+/** A vault with one encrypted record, written through private sync as the app writes it. */
+async function seedVault(persist){
+ const mf=await miniflare(persist,[await syncWorker(providerFixture),await lifecycleWorker('serve'),vaultProbe]);
+ try{
+  const token=fixtureToken('vault-owner',account),call=(path,body)=>mf.dispatchFetch('https://sync.test'+path,{method:'POST',headers:{origin:'https://app.test',authorization:'Bearer '+token,'x-zigoals-account':account,'content-type':'application/json'},body:JSON.stringify(body)});
+  expect((await call('/v1/sessions',{action:'register',label:'Fictional phone'})).status).toBe(200);
+  const v=await createVault(),record={id:crypto.randomUUID(),domain:'habits',revision:1,epoch:1,deleted:false,envelope:{version:1,nonce:'AAAAAAAAAAAAAAAA',ciphertext:'A'.repeat(64)}};
+  expect((await call('/v1/vault',{protocol:1,vault:v.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[record],manifest:v.manifest})).status).toBe(200);
+  const rows=await vaultRows(mf);expect(Object.keys(rows).some(key=>key.startsWith('record:'))).toBe(true);expect(rows.manifest).toEqual(v.manifest);
+ }finally{await mf.dispose();}
+}
 const lifecycleWorker=async mode=>({name:'lifecycle',modules:true,script:await lifecycleScript(),compatibilityDate,durableObjects:{LIFECYCLES:{className:'LifecycleAuthority',useSQLite:true}},bindings:{RECOVERY_MODE:mode},outboundService:noOutbound});
 const miniflare=async(persist,workers)=>new Miniflare({...convertV4MiniflareOptions({workers,durableObjectsPersist:persist}),resourcePersistencePath:persist});
 /** The ordinary service path: a Health section deletion, and optionally the app's own account deletion. */
@@ -38,7 +60,7 @@ async function seed(persist,{deleteAccount=false}={}){
 function launcher(persist,{mode='serve'}={}){
  const state={};
  const launch=async({token})=>{
-  const mf=await miniflare(persist,[{name:'recovery-admin',modules:true,script:adminScript,compatibilityDate,bindings:{ADMIN_SESSION_TOKEN:token},serviceBindings:{ADMIN:{name:'lifecycle',entrypoint:'LifecycleRecoveryAdmin'}},outboundService:noOutbound},await lifecycleWorker(mode),probeWorker]);
+  const mf=await miniflare(persist,[{name:'recovery-admin',modules:true,script:adminScript,compatibilityDate,bindings:{ADMIN_SESSION_TOKEN:token},serviceBindings:{ADMIN:{name:'lifecycle',entrypoint:'LifecycleRecoveryAdmin'},VAULT_ADMIN:{name:'sync',entrypoint:'PrivateVaultRecoveryAdmin'}},outboundService:noOutbound},await lifecycleWorker(mode),await syncWorker(),probeWorker,vaultProbe]);
   state.mf=mf;return {url:String(await mf.ready).replace(/\/$/,''),stop:()=>mf.dispose()};
  };
  return {launch,state};
@@ -80,7 +102,8 @@ test('erase: export into custody, typed account and export digest, deletion reco
  expect(after.checkpoint.receipts).toEqual(before.checkpoint.receipts);
  const text=c.lines.join('\n');
  expect(text).toContain(`SHA-256 digest: ${before.digest}`);expect(text).toContain(`SHA-256 digest: ${after.digest}`);
- expect(text).toMatch(/ERASED: identity deletion pending/);expect(text).toContain('The encrypted vault rows stay stored, unreachable');
+ expect(text).toMatch(/ERASED: identity deletion pending/);expect(text).toContain('its encrypted vault rows are removed while the lifecycle Worker serves');
+ expect(text).toContain('Encrypted vault rows: REMOVED');
  c.assertPrivate();
  // A second erase is idempotent and reports it.
  const again=join(await outside(),'again.json'),c2=cli(root,launcher(persist).launch,[account,async()=>JSON.parse(await readFile(again,'utf8')).digest]);
@@ -109,6 +132,24 @@ test('erase after the app deleted cloud data only requests the identity deletion
  expect(after.checkpoint.lifecycle).toMatchObject({deleted:true,generation:2,provider:'pending',authorizedFamily:family});
  expect(c.lines.join('\n')).toMatch(/ALREADY DELETED: identity deletion pending/);c.assertPrivate();
 },60000);
+
+// Session U Part 5 (item 7): erase removes the account's encrypted vault rows through private sync's own erase, only while
+// the lifecycle Worker serves; in reconcile mode nothing is removed until erase runs again after the serve switch.
+test('erase removes the encrypted vault rows while the lifecycle Worker serves; in reconcile mode, after a second run',async()=>{
+ const root=await checkout(),persist=await mkdtemp(join(tmpdir(),'erase-vault-'));await seedVault(persist);await seed(persist);
+ const runErase=async mode=>{const file=join(await outside(),'v.json'),h=launcher(persist,{mode}),c=cli(root,h.launch,[account,async()=>JSON.parse(await readFile(file,'utf8')).digest]);await c.run(['erase','--account',account,'--out',file]);c.assertPrivate();return c.lines.join('\n');};
+ const rowsNow=async()=>{const h=launcher(persist),admin=await h.launch({token:'x'.repeat(43)});try{return await vaultRows(h.state.mf);}finally{await admin.stop();}};
+ // Reconcile mode: the deletion is recorded, the rows stay, and the command says what to do.
+ const first=await runErase('reconcile');
+ expect(first).toMatch(/ERASED: identity deletion pending/);expect(first).toContain('Encrypted vault rows: NOT REMOVED YET: the lifecycle Worker is in reconcile mode.');
+ expect(Object.keys(await rowsNow()).some(key=>key.startsWith('record:'))).toBe(true);
+ // After the serve switch, the same command removes them: only the deletion marker is left.
+ const second=await runErase('serve');
+ expect(second).toMatch(/ALREADY DELETED: identity deletion pending/);expect(second).toContain('Encrypted vault rows: REMOVED');
+ const rows=await rowsNow();expect(Object.keys(rows)).toEqual(['account-deleted']);
+ // A further run changes nothing and says the same.
+ expect(await runErase('serve')).toContain('Encrypted vault rows: REMOVED');expect(Object.keys(await rowsNow())).toEqual(['account-deleted']);
+},120000);
 
 test('erase needs exactly --account and --out',()=>{
  expect(parseArgs(['erase','--account',account,'--out','x.json'])).toMatchObject({command:'erase',account,out:'x.json'});
