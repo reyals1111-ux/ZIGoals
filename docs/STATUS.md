@@ -216,7 +216,7 @@ Session T's PR). Same branch, same PR; the plan is in the PR description ("Follo
 |---|---|---|---|---|---|
 | F1 | `SYNC_WRITES = false`: the build carries the Health v3 read support and writes exactly what #28 writes; the switch-ON step written down | `[TIER 3] (sync)` `43b6fae`; tests and docs `0b043b4`, `537c85d` | `43b6fae` alone turns the switch back on | `sync-writes-off.test.ts` (new), `sync-homes-store.test.ts`; the six switch-following browser specs | local, CI |
 | F2 | `MARKET_POLICY` may hold the current window and the next (`{"windows":[current, next]}`); the coordinator hands over by itself at the boundary | `[TIER 3] (market Worker)` `7127116`; `[TIER 3] (deploy workflow)` `12e0977`; — `2b11e51`, docs `b775356` | each alone | `market-policy-windows.test.ts` and `.test.mjs` (new), `market-status*`, `alpha-policy-window`, `alpha-deployment`, `next-market-policy` | local, Miniflare, CI |
-| F3 | Today on a phone: each widget card folds to a row named by it; the overview keeps every value in view | Tier 2 | `e1af2d6`, `dd04259`, `45d4756` | `today-phone-folds.spec.ts` (new), `today-screens.spec.ts` (ceilings lowered); ten browser specs and three browser integration tests open the rows first (assertions unchanged) | local (production builds), freeze check |
+| F3 | Today on a phone: each widget card folds to a row named by it; the overview keeps every value in view | Tier 2 | `e1af2d6`, `dd04259`, `45d4756`, `033dc5b`, `90e8e06` | `today-phone-folds.spec.ts` (new), `today-screens.spec.ts` (ceilings lowered); ten browser specs and three browser integration tests open the rows first (assertions unchanged) | local (production builds), freeze check |
 | F4 | This section and the corrections above (T's head, the F5 decision, owner step 3) | — | this commit | — | — |
 
 ### F1: the sync writes ship off
@@ -248,7 +248,7 @@ Session T's PR). Same branch, same PR; the plan is in the PR description ("Follo
 - `pnpm lint`, `pnpm typecheck`: clean.
 - `pnpm test`: 356 files (339 passed, 17 skipped); 3,272 tests: **3,237 passed**, 1 expected fail, 34 skipped.
 - `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, then the full Playwright suite at 2 workers against `next start` (49 min): **1,089 passed, 78 skipped, 11 failed.** Four are the intro-film specs this Chromium cannot play (CLAUDE.md; green in CI). The other seven were specs reading a widget card on Today at phone width, which F3 folds: `45d4756` opens the rows first and all seven pass on the same build (15 of 15 with their other projects).
-- Browser integration (`account-browser`, the Stage 8 sync-offer rehearsal, `packaged-runtime`) against the same build on port 3100: 4 passed, 2 skipped (the packaged-artifact journey is gated, as in CI). CI on `e1af2d6` had found the first three; fixed in `dd04259`.
+- Browser integration (`account-browser`, the Stage 8 sync-offer rehearsal, `packaged-runtime`) against the same build on port 3100: 4 passed, 2 skipped (the packaged-artifact journey is gated, as in CI). CI on `e1af2d6` had found the first three; fixed in `dd04259`. The gated packaged-artifact journey itself was then run as CI runs it (`RUN11_PACKAGED=1` on the generated package): 2 passed, 1 skipped.
 - Freeze check (desktop and tablet, 154 captures): 154 of 154 identical.
 - `pnpm check:deploy-configs` (isolated and internally consistent); `pnpm check:landing` (274 files, no bindings).
 - `build:alpha`; `check:alpha-artifact` (passed); the Alpha dry run with `--outdir`; `ALPHA_PACKAGED=1 alpha-packaged-prices.test.mjs`: 6/6.
@@ -268,6 +268,7 @@ In a fresh worktree at `45d4756`, `git revert -n` newest first, then both typech
 ### CI
 - **On `b775356`** (F1 and F2): Milestone quality ([run 37290321919](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37290321919)) and Canonical reproducibility ([run 37290321995](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37290321995)): success on attempt 1, every job. (Actions API)
 - **On `e1af2d6`** (F3): web integration failed in three browser integration tests that read a widget card on a phone (`account-browser` ×2, the Stage 8 sync-offer rehearsal); root cause F3's fold, fixed in `dd04259`; no re-run used. (CI log)
+- **On `b5cc370`:** everything green except the gated packaged-artifact step (`RUN11_PACKAGED`), which reads preset, goal and habit cards on its phone profile; root cause F3's fold, fixed in `033dc5b` and `90e8e06` and reproduced first, then passed locally (Run11 package built with `build:alpha` and `activation-check --dry-run` at the commit; 2 passed, 1 gated skip); no re-run used. (CI log, local)
 - This commit's own CI is linked from the PR.
 
 ### Owner decisions needed (follow-up)
