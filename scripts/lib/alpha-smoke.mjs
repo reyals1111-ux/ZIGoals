@@ -128,7 +128,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
   if (marketProbe) {
     // Session U Part 2d: when the market policy period ends, read first and recorded as information only.
     const policy = await readPolicyWindow({ origin: ALPHA_ORIGIN, fetcher });
-    checks.push({ route: POLICY_STATUS_PATH, status: policy.httpStatus, policyWindowEnd: policy.policyWindowEnd });
+    checks.push({ route: POLICY_STATUS_PATH, status: policy.httpStatus, policyWindowEnd: policy.policyWindowEnd, nextPolicyWindowEnd: policy.nextPolicyWindowEnd });
     const market = await probeAlphaMarket({ origin: ALPHA_ORIGIN, fetcher });
     assert(market.wellFormed, `Alpha market route did not answer a well-formed price envelope (${market.reason})`);
     checks.push({ route: "/api/market-quotes", status: market.httpStatus, market: market.result, pair: market.pair, failure: market.failure });

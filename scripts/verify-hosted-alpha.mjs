@@ -42,7 +42,7 @@ try {
   const price=priceFinding(report.marketProbe); if (price) report.review.push(price);
   report.stages.push({name:'Live BTC/USD price through the market coordinator', status:price?'NEEDS_OWNER_REVIEW':'PASS'});
   // Session U Part 2d: when the market policy period ends. Information only, never a review reason.
-  const policyRead=await readPolicyWindow({origin:alpha}); report.policyWindow={...policyRead,...policyWindowNote(policyRead.policyWindowEnd)};
+  const policyRead=await readPolicyWindow({origin:alpha}); report.policyWindow={...policyRead,...policyWindowNote(policyRead.policyWindowEnd,Date.now(),policyRead.nextPolicyWindowEnd)};
   for (const [origin, path, count] of [[alpha,'/app',3],[fallback,'/app',2],[apex,'/',2]]) {
     for (let sample=1; sample<=count; sample++) {
       // Session U: a sample that cannot be fetched or checked is a review reason, not the end of the run.

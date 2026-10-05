@@ -361,7 +361,7 @@ test.each([["verified", "VERIFIED", 200, "VERIFIED_FRESH", null], ["unavailable"
     const checks = await smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true });
     expect(checks).toHaveLength(13);
     // Session U Part 2d: the policy period end is read first, as information (this fixture answers HTML: not reported).
-    expect(checks.at(-2)).toEqual({ route: "/api/market-status", status: 200, policyWindowEnd: null });
+    expect(checks.at(-2)).toEqual({ route: "/api/market-status", status: 200, policyWindowEnd: null, nextPolicyWindowEnd: null });
     expect(checks.at(-1)).toEqual({ route: "/api/market-quotes", status, market: result, pair, failure });
     const probe = calls.at(-1);
     expect(probe.url).toBe("https://alpha.zigoals.app/api/market-quotes");
@@ -376,7 +376,7 @@ test("the rollback capture smoke sends no market probe", async () => {
 });
 test("Session U: the post-deploy smoke reads the market policy period end first, as information only", async () => {
   const reported = "2026-10-31T16:00:00.000Z";
-  for (const [answer, recorded] of [[() => Response.json({ version: 1, policyWindowEnd: reported }), { status: 200, policyWindowEnd: reported }], [() => { throw new TypeError("fetch failed"); }, { status: null, policyWindowEnd: null }]]) {
+  for (const [answer, recorded] of [[() => Response.json({ version: 1, policyWindowEnd: reported }), { status: 200, policyWindowEnd: reported, nextPolicyWindowEnd: null }], [() => Response.json({ version: 1, policyWindowEnd: reported, nextPolicyWindowEnd: "2026-11-30T16:00:00.000Z" }), { status: 200, policyWindowEnd: reported, nextPolicyWindowEnd: "2026-11-30T16:00:00.000Z" }], [() => { throw new TypeError("fetch failed"); }, { status: null, policyWindowEnd: null, nextPolicyWindowEnd: null }]]) {
     const { calls, fetcher } = alphaFetcher("unavailable");
     const withStatus = async (url, options) => { if (new URL(url).pathname !== "/api/market-status") return fetcher(url, options); calls.push({ url, options }); return answer(); };
     const checks = await smokeAlpha({ expectedCommit: sha, fetcher: withStatus, marketProbe: true });

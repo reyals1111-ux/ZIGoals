@@ -127,7 +127,8 @@ function summary() {
   const report = existsSync(path) ? read(path) : { status: "NOT_DEPLOYED", newVersionId: null };
   const rollback = report.rollbackVersionId ?? (existsSync(rollbackPath) ? read(rollbackPath).versionId : null);
   const market = Array.isArray(report.smoke) ? report.smoke.find(check => check.route === "/api/market-quotes") : undefined;
-  const policy = policyWindowNote(Array.isArray(report.smoke) ? report.smoke.find(check => check.route === "/api/market-status")?.policyWindowEnd ?? null : null);
+  const status = Array.isArray(report.smoke) ? report.smoke.find(check => check.route === "/api/market-status") : undefined;
+  const policy = policyWindowNote(status?.policyWindowEnd ?? null, Date.now(), status?.nextPolicyWindowEnd ?? null);
   note([
     "## Manual Alpha deployment", "",
     `- Result: **${report.status}**`, `- Worker: \`${WORKER}\``,
