@@ -13,28 +13,25 @@ const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()])}).strict(),
  z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()])}).strict(),
 ]);
-/** Session P (PR 1, 1.4): what the person reads when the provider refuses an address that is not on the invite list. */
-export const INVITE_ONLY_MESSAGE='ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app.';
-export const EMAIL_UNAVAILABLE_MESSAGE='Signing in by email isn’t available right now. Try again later.';
 /**
- * The provider's name for a refusal. Supabase Auth puts it in the `x-sb-error-code` header and in the body: `error_code`
- * in the legacy shape this relay receives (it sends no X-Supabase-Api-Version), `code` from API version 2024-01-01.
- * Verified 2026-10-03 from github.com/supabase/auth (internal/api/otp.go, internal/api/apierrors). The body is read
- * within a small bound and never surfaced; anything unexpected reads as "no name".
+ * Session U Part 5 (FIX_PLAN A2, FINDINGS Q-AUTH-06): the one answer to every code request that passes admission. Session
+ * P named two provider refusals to the person (403 INVITE_ONLY for `otp_disabled`/`signup_disabled`, 403 EMAIL_UNAVAILABLE
+ * for `email_provider_disabled`), which told anyone whether an address was invited; the invite hint is now in this answer,
+ * for every address. The panel shows its own words (components/account-access.tsx) and still reads an older relay's 403s.
  */
-async function refusalCode(response:Response):Promise<string|null>{
- const header=response.headers.get('x-sb-error-code');
- const body=await readBounded(response,8192).catch(()=>null) as {error_code?:unknown;code?:unknown}|null;
- const named=header??(typeof body?.error_code==='string'?body.error_code:typeof body?.code==='string'?body.code:null);
- return named&&/^[a-z_]{1,64}$/.test(named)?named:null;
-}
+export const CODE_REQUEST_MESSAGE='If this address has an invite, a code is on its way. Check your inbox and spam folder, and wait at least 60 seconds before requesting another.';
 const reply=(data:unknown,status=200,headers:Record<string,string>={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 async function readBounded(response:Request|Response,max:number){
  const reader=response.body?.getReader();if(!reader)throw Error('Missing body');const chunks:Uint8Array[]=[];let total=0;
  try{while(true){const part=await reader.read();if(part.done)break;total+=part.value.length;if(total>max)throw Error('Too large');chunks.push(part.value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
  const all=new Uint8Array(total);let offset=0;for(const c of chunks){all.set(c,offset);offset+=c.length;}return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(all));
 }
-export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>):Promise<Response>{
+/**
+ * `later` runs work after the answer is sent: the route passes Next's after() (bundled docs 04-functions/after.md; on
+ * Cloudflare, OpenNext's waitUntil), proven in the packaged Worker by scripts/run11/packaged-runtime.test.mjs. Without it
+ * the work is awaited first, and the answer is the same.
+ */
+export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>,later?:(work:()=>Promise<void>)=>void):Promise<Response>{
  const origin=new URL(request.url).origin;
  if(request.method!=='GET'&&(request.method!=='POST'||request.headers.get('origin')!==origin))return reply({error:'ORIGIN_DENIED'},403);
  // Hosted (https) sessions use __Host- cookies: Secure, Path=/ and no Domain, so a sibling
@@ -108,19 +105,21 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
   // Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): a code request never asks the provider to create a user, so an
   // address that is not on the invite list stays unknown even if sign-ups are ever switched back on.
   if(admit){const admission=await admit(action.action,action.email);await admission.body?.cancel().catch(()=>{});if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
-  const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:false}:{email:action.email,token:action.code,type:'email'})});
+  if(action.action==='send'){
+   // Session U Part 5 (FIX_PLAN A2): whatever the provider does with the request (a code sent; 422 `otp_disabled` or
+   // `signup_disabled` for an address not on the invite list; `email_provider_disabled`; its own rate limit; an outage),
+   // the answer is CODE_REQUEST_MESSAGE, byte for byte. With `later` the provider call starts after the answer, so its
+   // timing says nothing either. Help says what to do when no code arrives.
+   const send=async()=>{try{const remote=await upstream(`${cfg.authOrigin}/auth/v1/otp`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify({email:action.email,create_user:false})});await remote.body?.cancel().catch(()=>{});}catch{/* The same answer either way. */}};
+   if(later)later(send);else await send();
+   return reply({message:CODE_REQUEST_MESSAGE});
+  }
+  const remote=await upstream(`${cfg.authOrigin}/auth/v1/verify`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify({email:action.email,token:action.code,type:'email'})});
   if(!remote.ok){
-   // With sign-ups closed, the provider refuses a code for an address that is not on the invite list with 422
-   // `otp_disabled` ("Signups not allowed for otp"); `signup_disabled` is the same door; `email_provider_disabled` means
-   // email sign-in is switched off. Those three are named to the person; every other refusal keeps the usual answer.
-   const refusal=action.action==='send'&&remote.status!==429?await refusalCode(remote):null;
    await remote.body?.cancel().catch(()=>{});
-   if(refusal==='otp_disabled'||refusal==='signup_disabled')return reply({error:'INVITE_ONLY',message:INVITE_ONLY_MESSAGE},403);
-   if(refusal==='email_provider_disabled')return reply({error:'EMAIL_UNAVAILABLE',message:EMAIL_UNAVAILABLE_MESSAGE},403);
    // A rejected code counts toward the per-email daily cap on failed verifications.
-   if(action.action==='verify'&&remote.status!==429&&admit){const failed=await admit('verify-failed',action.email).catch(()=>null);await failed?.body?.cancel().catch(()=>{});}
+   if(remote.status!==429&&admit){const failed=await admit('verify-failed',action.email).catch(()=>null);await failed?.body?.cancel().catch(()=>{});}
    return reply({error:remote.status===429?'TRY_LATER':'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'},remote.status===429?429:400);}
-  if(action.action==='send'){await remote.body?.cancel().catch(()=>{});return reply({message:'If this address can receive a code, check your inbox. Wait at least 60 seconds before requesting another.'});}
   const session=z.object({access_token:z.string().regex(/^[A-Za-z0-9._-]{1,4096}$/),expires_in:z.number().int().min(1).max(86400),refresh_token:z.string().regex(/^[A-Za-z0-9._-]{1,4096}$/).optional(),user:z.object({id:z.uuid()})}).parse(await readBounded(remote,32768));
   const registered=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${session.access_token}`,'x-zigoals-account':session.user.id,'content-type':'application/json'},body:JSON.stringify({action:'register',label:action.label??'Browser session'})});if(!registered.ok){await registered.body?.cancel().catch(()=>{});throw Error('Session registration not confirmed.');}z.object({registered:z.literal(true),id:z.uuid()}).parse(await readBounded(registered,32768));
   return withCookies(reply({signedIn:true,accountId:session.user.id.toLowerCase()}),session.access_token,session.refresh_token,session.refresh_token?30*86400:session.expires_in);

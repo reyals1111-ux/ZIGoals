@@ -23,7 +23,7 @@ Thank you for trying ZIGoals with us! ZIGoals is one calm place for your Goals, 
 
 - **Before accounts open,** everything you enter stays on the device you use, and only there. Installing ZIGoals and "Keep my data on this device" protect it.
 - **Once accounts open,** sign in with a code sent to your email. Turn on encrypted sync once: it's offered right after you sign in. From then on, every device you unlock stays up to date by itself, with no backups or transfers by hand.
-- **Invite-only for now.** If ZIGoals answers that it's invite-only when you ask for a code, your address isn't on the list yet: ask the person who invited you, or request an invite at contact@zigoals.app.
+- **Invite-only for now.** ZIGoals answers every code request the same way, so it never tells anyone which addresses are invited. If no code arrives: wait a minute, check your spam folder, check that you typed the address your invite went to, and try again later. Still nothing? Ask the person who invited you, or write to contact@zigoals.app.
 - **Turn on encrypted sync on your first device before you start using a second one.** Then the second device starts from your synced records instead of keeping its own separate ones.
 - **Health is your choice.** It syncs only if you tick "Also sync my Health records".
 - **Your data is encrypted on your device before it leaves.** The server can't read your plans, habits or health entries. It does see your account and some technical details, such as sizes and times.

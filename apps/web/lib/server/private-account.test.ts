@@ -1,5 +1,5 @@
 import {test,expect,vi} from 'vitest';
-import {privateAccountRequest} from './private-account';
+import {CODE_REQUEST_MESSAGE,privateAccountRequest} from './private-account';
 const config={authOrigin:'https://test.supabase.co',publicKey:'public',syncOrigin:'https://sync.example.workers.dev'};
 test('configuration and cross-origin fail closed before external calls',async()=>{
  const fetcher=vi.fn();const req=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://evil.test','content-type':'application/json'},body:'{"action":"send","email":"a@example.com"}'});
@@ -128,44 +128,55 @@ test('a rejected code is reported to admission as a failed verification; a provi
  }
 });
 
-// Session P (PR 1, 1.4): Supabase's invite-only refusal, verified 2026-10-03 from github.com/supabase/auth
-// (internal/api/otp.go, internal/api/apierrors). With sign-ups disabled, POST /auth/v1/otp for an unknown address answers
-// 422 with `x-sb-error-code: otp_disabled` and, in the legacy body shape this relay receives (it sends no
-// X-Supabase-Api-Version), {"code":422,"error_code":"otp_disabled","msg":"Signups not allowed for otp"}; API version
-// 2024-01-01 answers {"code":"otp_disabled","message":"Signups not allowed for otp"}.
-const INVITE_ONLY='ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app.';
+// Session U Part 5 (FIX_PLAN A2, FINDINGS Q-AUTH-06): every code request that passes admission gets one answer, byte for
+// byte, whatever the provider answers, and the provider is asked only after that answer exists. Session P named two of
+// these refusals to the person (403 INVITE_ONLY, 403 EMAIL_UNAVAILABLE), which told anyone whether an address was
+// invited. The refusals below are Supabase's own, verified 2026-10-03 from github.com/supabase/auth (internal/api/otp.go,
+// internal/api/apierrors): with sign-ups disabled, POST /auth/v1/otp for an unknown address answers 422 with
+// `x-sb-error-code: otp_disabled` and {"code":422,"error_code":"otp_disabled","msg":"Signups not allowed for otp"} in the
+// legacy shape this relay receives, or {"code":"otp_disabled","message":"Signups not allowed for otp"} from API version
+// 2024-01-01.
 const sendRequest=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'send',email:'friend@example.com'})});
-const provider=(status:number,headers:Record<string,string>,body:unknown)=>vi.fn(async(url:string|URL|Request,init?:RequestInit)=>{
- expect(String(url)).toBe('https://test.supabase.co/auth/v1/otp');expect(JSON.parse(String(init?.body))).toEqual({email:'friend@example.com',create_user:false});
- return new Response(body===null?'':typeof body==='string'?body:JSON.stringify(body),{status,headers:{'content-type':'application/json',...headers}});
-});
-test.each([
- ['the legacy body and the header',{'x-sb-error-code':'otp_disabled'},{code:422,error_code:'otp_disabled',msg:'Signups not allowed for otp'}],
- ['the 2024-01-01 body without the header',{},{code:'otp_disabled',message:'Signups not allowed for otp'}],
- ['the header alone',{'x-sb-error-code':'otp_disabled'},null],
- ['signup_disabled',{'x-sb-error-code':'signup_disabled'},{code:422,error_code:'signup_disabled',msg:'Signups not allowed for this instance'}],
-])('an invite-only refusal of a code request (%s) is named to the person: 403 INVITE_ONLY, no cookie, one provider call',async(_name,headers,body)=>{
- const upstream=provider(422,headers,body),admit=vi.fn<(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>>(async()=>new Response(null,{status:204}));
- const result=await privateAccountRequest(sendRequest(),config,upstream,admit);
- expect(result.status).toBe(403);expect(await result.json()).toEqual({error:'INVITE_ONLY',message:INVITE_ONLY});
- expect(result.headers.get('set-cookie')).toBeNull();expect(upstream).toHaveBeenCalledTimes(1);expect(admit.mock.calls.map(c=>c[0])).toEqual(['send']);
-});
-test('email sign-in switched off at the provider is said plainly, and every other refusal of a code request keeps the usual answer',async()=>{
- const off=await privateAccountRequest(sendRequest(),config,provider(422,{'x-sb-error-code':'email_provider_disabled'},{code:422,error_code:'email_provider_disabled',msg:'Email logins are disabled'}));
- expect(off.status).toBe(403);expect(await off.json()).toEqual({error:'EMAIL_UNAVAILABLE',message:'Signing in by email isn’t available right now. Try again later.'});
- for(const [status,headers,body] of [
-  [400,{},{code:400,error_code:'validation_failed',msg:'Unable to validate email address'}],
-  [422,{'x-sb-error-code':'over_email_send_rate_limit'},{code:422,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'}],
-  [500,{},'not json at all'],
-  [422,{},{code:422,error_code:'OTP_DISABLED'}],
-  [422,{'x-sb-error-code':'otp_disabled'.repeat(8)},null],
-  [422,{},{code:422,error_code:'otp_disabled',msg:'x'.repeat(9000)}],
- ] as const){
-  const result=await privateAccountRequest(sendRequest(),config,provider(status,headers,body));
-  expect(result.status,`${status} ${JSON.stringify(headers)}`).toBe(400);expect(await result.json()).toEqual({error:'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'});
+const OUTCOMES:[string,()=>Promise<Response>][]=[
+ ['a code sent',async()=>Response.json({})],
+ ['not on the invite list (legacy body and header)',async()=>Response.json({code:422,error_code:'otp_disabled',msg:'Signups not allowed for otp'},{status:422,headers:{'x-sb-error-code':'otp_disabled'}})],
+ ['not on the invite list (2024-01-01 body)',async()=>Response.json({code:'otp_disabled',message:'Signups not allowed for otp'},{status:422})],
+ ['sign-ups closed',async()=>Response.json({code:422,error_code:'signup_disabled',msg:'Signups not allowed for this instance'},{status:422,headers:{'x-sb-error-code':'signup_disabled'}})],
+ ['email sign-in switched off',async()=>Response.json({code:422,error_code:'email_provider_disabled',msg:'Email logins are disabled'},{status:422,headers:{'x-sb-error-code':'email_provider_disabled'}})],
+ ['the provider\u2019s email rate limit',async()=>Response.json({code:429,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'},{status:429,headers:{'x-sb-error-code':'over_email_send_rate_limit'}})],
+ ['the provider\u2019s email quota',async()=>Response.json({code:422,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'},{status:422,headers:{'x-sb-error-code':'over_email_send_rate_limit'}})],
+ ['an address the provider rejects',async()=>Response.json({code:400,error_code:'validation_failed',msg:'Unable to validate email address'},{status:400})],
+ ['an outage',async()=>new Response('not json at all',{status:500})],
+ ['no answer at all',async()=>{throw TypeError('fetch failed');}],
+];
+const snapshot=async(response:Response)=>({status:response.status,headers:[...response.headers.entries()],body:await response.text()});
+test('every outcome of a code request gets the same answer, byte for byte, and the provider is asked only after it',async()=>{
+ const answers=[];
+ for(const [name,outcome] of OUTCOMES){
+  const calls:unknown[]=[],queued:(()=>Promise<void>)[]=[],admit=vi.fn(async()=>new Response(null,{status:204}));
+  const result=await privateAccountRequest(sendRequest(),config,async(url,init)=>{calls.push([String(url),JSON.parse(String(init?.body))]);return outcome();},admit,work=>{queued.push(work);});
+  expect(calls,name).toEqual([]);expect(queued,name).toHaveLength(1);
+  answers.push(await snapshot(result));
+  await queued[0]!();
+  expect(calls,name).toEqual([['https://test.supabase.co/auth/v1/otp',{email:'friend@example.com',create_user:false}]]);
+  expect(admit.mock.calls.map(c=>c[0]),name).toEqual(['send']);
  }
- const limited=await privateAccountRequest(sendRequest(),config,provider(429,{'x-sb-error-code':'over_email_send_rate_limit'},{code:429,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'}));
- expect(limited.status).toBe(429);expect(await limited.json()).toEqual({error:'TRY_LATER',message:'Check your code or request a new one after the cooldown.'});
+ expect(answers[0]).toEqual({status:200,headers:expect.any(Array),body:JSON.stringify({message:CODE_REQUEST_MESSAGE})});
+ for(const answer of answers)expect(answer).toEqual(answers[0]);
+ expect(answers[0]!.headers.map(([name])=>name)).not.toContain('set-cookie');
+});
+test('without a scheduler the provider call is awaited first, and the answer is still the same for every outcome',async()=>{
+ const answers=[];
+ for(const [,outcome] of OUTCOMES){const upstream=vi.fn(async()=>outcome());answers.push(await snapshot(await privateAccountRequest(sendRequest(),config,upstream)));expect(upstream).toHaveBeenCalledTimes(1);}
+ expect(answers[0]!.body).toBe(JSON.stringify({message:CODE_REQUEST_MESSAGE}));
+ for(const answer of answers)expect(answer).toEqual(answers[0]);
+});
+test('our own admission still answers for itself, before any provider call: the same for every address',async()=>{
+ for(const [status,error] of [[429,'TRY_LATER'],[503,'AUTH_ADMISSION_UNAVAILABLE']] as const){
+  const upstream=vi.fn(),queued:unknown[]=[];
+  const result=await privateAccountRequest(sendRequest(),config,upstream,async()=>Response.json({},{status}),work=>{queued.push(work);});
+  expect(result.status).toBe(status);expect((await result.json()).error).toBe(error);expect(upstream).not.toHaveBeenCalled();expect(queued).toEqual([]);
+ }
 });
 test('a rejected code never reads as invite-only, even when the provider names otp_disabled',async()=>{
  const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'friend@example.com',code:'123456'})});
