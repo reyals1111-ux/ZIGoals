@@ -9,7 +9,9 @@ test('ecosystem filters, clears, opens useful details and keeps external links p
 });
 for(const width of [320,390,1440])test(`ecosystem directory reflows at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await page.goto('/app/ecosystem');await expect(page.locator('.ecosystem-project')).toHaveCount(18);await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- const cards=page.locator('.ecosystem-project');const first=await cards.nth(0).boundingBox(),second=await cards.nth(1).boundingBox();expect(first).not.toBeNull();expect(second).not.toBeNull();expect(Math.abs(first!.x-second!.x)).toBeLessThan(2);expect(second!.y).toBeGreaterThan(first!.y+first!.height-2);
+ // Both boxes come from one frame (Session U Part 4): two boundingBox() calls 350 ms apart once read a 33 px shift in
+ // between as an overlap (CI run 37252838585, [mobile] 390px). The assertions are unchanged.
+ const cards=page.locator('.ecosystem-project');const [first,second]=await cards.evaluateAll(nodes=>nodes.slice(0,2).map(node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,height:r.height};}));expect(first).toBeTruthy();expect(second).toBeTruthy();expect(Math.abs(first!.x-second!.x)).toBeLessThan(2);expect(second!.y).toBeGreaterThan(first!.y+first!.height-2);
  await expect(page.locator('.ecosystem-logo img')).toHaveCount(16);await expect(page.locator('.ecosystem-initials')).toHaveCount(2);
  for(const image of await page.locator('.ecosystem-logo img').all()){await image.scrollIntoViewIfNeeded();await expect.poll(()=>image.evaluate(img=>(img as HTMLImageElement).complete&&(img as HTMLImageElement).naturalWidth>0)).toBe(true);}
  const iconSources=await page.locator('.ecosystem-logo img').evaluateAll(images=>images.map(img=>(img as HTMLImageElement).src));expect(iconSources.every(src=>src.startsWith(new URL(page.url()).origin+'/ecosystem-logos/'))).toBe(true);
