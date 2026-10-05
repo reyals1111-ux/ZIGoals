@@ -94,3 +94,72 @@ test('a remembered device opens again without the secret after a reload and in a
   await page.reload();
   await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
 });
+
+// Session U Part 5 (B1, FINDINGS Q-SYNC-01) in a real browser: a new remember stores version 2, the root key itself, which
+// script can use but not export; a version 1 record written by an earlier build (rebuilt here in the page with WebCrypto,
+// exactly as lib/vault/crypto.ts sealed it) still opens once, is migrated to version 2, and its unwrap-capable key is gone.
+const readRecord = (page: Page) => page.evaluate(async () => new Promise<Record<string, unknown> | null>((resolve, reject) => {
+  const open = indexedDB.open('zigoals-device-unlock-v1');
+  open.onerror = () => reject(open.error);
+  open.onsuccess = () => {
+    const db = open.result, all = db.transaction('devices').objectStore('devices').getAll();
+    all.onsuccess = () => { db.close(); resolve((all.result[0] as Record<string, unknown>) ?? null); };
+  };
+}));
+const describeRecord = (page: Page) => page.evaluate(async () => {
+  const record = await new Promise<Record<string, unknown> | null>(resolve => {
+    const open = indexedDB.open('zigoals-device-unlock-v1');
+    open.onsuccess = () => { const all = open.result.transaction('devices').objectStore('devices').getAll(); all.onsuccess = () => { open.result.close(); resolve((all.result[0] as Record<string, unknown>) ?? null); }; };
+  });
+  if (!record) return null;
+  const root = record.root as CryptoKey | undefined, exported = root ? await crypto.subtle.exportKey('raw', root).then(() => 'exported', error => (error as Error).name) : 'no root';
+  return {version: record.version, keys: Object.keys(record).sort(), root: root ? {type: root.type, extractable: root.extractable, algorithm: root.algorithm.name, usages: [...root.usages]} : null, exported, migratedFrom: typeof record.migratedFrom === 'string'};
+});
+
+test('B1: a new remember stores the root key itself, which this browser cannot export', async ({page}) => {
+  const vault = await fixtureAccount(page);
+  await page.goto('/app/settings');
+  await unlock(page, vault.recovery, true);
+  await expect(panel(page)).toContainText('This device is remembered');
+  expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'InvalidAccessError', migratedFrom: false});
+  await page.reload();
+  await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
+  await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toHaveCount(0);
+});
+
+test('B1: a version 1 record from an earlier build opens once more, then is version 2 and nothing can unwrap the root', async ({page}) => {
+  const vault = await fixtureAccount(page);
+  await page.goto('/app/settings');
+  await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
+  // Write the record an earlier build wrote, and show the finding on it: its key unwraps the root as an extractable key.
+  const finding = await page.evaluate(async ({manifest, recovery, account, session}) => {
+    const decode = (text: string) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    const encode = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const utf8 = (text: string) => new TextEncoder().encode(text);
+    const digest = encode(new Uint8Array(await crypto.subtle.digest('SHA-256', utf8(JSON.stringify([manifest.version, manifest.vault, manifest.epoch, manifest.wrapped.version, manifest.wrapped.nonce, manifest.wrapped.ciphertext])))));
+    const wrapping = await crypto.subtle.importKey('raw', decode(recovery), {name: 'AES-GCM'}, false, ['decrypt']);
+    const raw = new Uint8Array(await crypto.subtle.decrypt({name: 'AES-GCM', iv: decode(manifest.wrapped.nonce), additionalData: utf8(`zigoals:root:v1:${manifest.vault}:epoch${manifest.epoch}`), tagLength: 128}, wrapping, decode(manifest.wrapped.ciphertext)));
+    const key = await crypto.subtle.generateKey({name: 'AES-GCM', length: 256}, false, ['encrypt', 'unwrapKey']), iv = crypto.getRandomValues(new Uint8Array(12)), aad = utf8(JSON.stringify(['zigoals-device-root', 1, account, digest]));
+    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv, additionalData: aad, tagLength: 128}, key, raw));raw.fill(0);
+    const record = {version: 1, account, vault: manifest.vault, epoch: manifest.epoch, manifest: digest, session, health: false, createdAt: '2026-10-02T10:00:00.000Z', sealed: {iv: encode(iv), ciphertext: encode(ciphertext)}, key};
+    await new Promise<void>((resolve, reject) => {
+      const open = indexedDB.open('zigoals-device-unlock-v1', 1);
+      open.onupgradeneeded = () => { for (const name of ['devices', 'state']) open.result.createObjectStore(name); };
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => { const t = open.result.transaction('devices', 'readwrite'); t.objectStore('devices').put(record, account); t.oncomplete = () => { open.result.close(); resolve(); }; t.onerror = () => reject(t.error); };
+    });
+    const extractable = await crypto.subtle.unwrapKey('raw', ciphertext, key, {name: 'AES-GCM', iv, additionalData: aad, tagLength: 128}, {name: 'AES-GCM'}, true, ['encrypt']);
+    return new Uint8Array(await crypto.subtle.exportKey('raw', extractable)).byteLength;
+  }, {manifest: vault.manifest, recovery: vault.recovery, account, session});
+  expect(finding).toBe(32);
+  expect((await readRecord(page))?.version).toBe(1);
+  // The next open: no secret, and the record is version 2 now, migrated from that seal, with no unwrap-capable key left.
+  await page.reload();
+  await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
+  await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toHaveCount(0);
+  await expect.poll(async () => (await describeRecord(page))?.version).toBe(2);
+  expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'migratedFrom', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'InvalidAccessError', migratedFrom: true});
+  // And it keeps opening.
+  await page.reload();
+  await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
+});

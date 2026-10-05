@@ -39,10 +39,13 @@ export async function unlockVault(input:unknown,recovery:string):Promise<CryptoK
  const manifest=manifestSchema.parse(input);const raw=await decrypt(await wrappingKey(recovery),manifest.wrapped,`zigoals:root:v1:${manifest.vault}:epoch${manifest.epoch}`);
  try{if(raw.length!==32)throw Error('Invalid vault key.');return await rootKey(raw);}finally{raw.fill(0);}
 }
-// Remember this device (ADR-008). A non-extractable device key seals the 32 root bytes once, while a recovery secret
-// is opening the vault; a later open unwraps them straight into a non-extractable HKDF key, so they never reach script
-// again. The device key cannot decrypt, only wrap. Bound by additional data to the verified account and the exact live
-// manifest (vault, epoch and wrapped root), so a record cannot open another account, another vault or a newer epoch.
+// Remember this device (ADR-008), version 1 records. A non-extractable device key seals the 32 root bytes once, while a
+// recovery secret is opening the vault; a later open unwraps them into a non-extractable HKDF key. Bound by additional
+// data to the verified account and the exact live manifest (vault, epoch and wrapped root), so a record cannot open
+// another account, another vault or a newer epoch. Session U Part 5 (B1, FINDINGS Q-SYNC-01): unwrapKey lets its caller
+// choose the result's algorithm and extractability, so script in this origin could unwrap the seal as an extractable AES
+// or HMAC key and export the root's bytes. Version 1 records are no longer written: an open migrates one to version 2
+// (deviceCommitment below), which stores the root key itself and no key that can unwrap anything.
 export const sealedRootSchema=z.object({iv:base64.length(16),ciphertext:base64.length(64)}).strict();
 export type SealedRoot=z.infer<typeof sealedRootSchema>;
 /** The SHA-256 of the manifest's fields, in a fixed order: what a remembered device is bound to. */
@@ -69,6 +72,28 @@ export async function openDeviceRoot(deviceKey:CryptoKey,input:unknown,account:s
  if(iv.byteLength!==12||ciphertext.byteLength!==48)throw Error('This device could not open the vault.');
  try{return await crypto.subtle.unwrapKey('raw',ciphertext,deviceKey,{name:'AES-GCM',iv,additionalData:aad,tagLength:128},'HKDF',false,['deriveKey']);}
  catch{throw Error('This device could not open the vault.');}
+}
+// Session U Part 5 (B1): a version 2 record stores the root itself, the non-extractable HKDF key that opening the vault
+// made (deriveKey only). Script running in this origin can still use it while the app runs (derive record keys, and
+// export those derived keys), but no call returns the root's bytes. The commitment, an HMAC under a key derived from that
+// root over the account and the manifest digest, is checked before the stored key opens anything: a record stays bound
+// to one account and one manifest, as the version 1 seal's additional data bound it.
+const commitmentText=(account:string,manifest:string)=>bytes(JSON.stringify(['zigoals-device-root',2,account.toLowerCase(),manifest]));
+async function commitmentKey(root:CryptoKey){return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:bytes('zigoals-device-commitment'),info:bytes('zigoals:device:v2:commitment')},root,{name:'HMAC',hash:'SHA-256',length:256},false,['sign','verify']);}
+/** The commitment a version 2 record stores for its root, the account and the manifest digest (manifestDigest). */
+export async function deviceCommitment(root:CryptoKey,account:string,manifest:string):Promise<string>{
+ uuid.parse(account);if(!/^[A-Za-z0-9_-]{43}$/.test(manifest))throw Error('Invalid manifest digest.');
+ return encode(new Uint8Array(await crypto.subtle.sign('HMAC',await commitmentKey(root),commitmentText(account,manifest))));
+}
+/** Whether a stored root still derives its record's commitment; false for anything unusable, never an error. */
+export async function deviceCommitmentMatches(root:CryptoKey,account:string,manifest:string,commitment:string):Promise<boolean>{
+ try{uuid.parse(account);const tag=decode(commitment);return tag.byteLength===32&&await crypto.subtle.verify('HMAC',await commitmentKey(root),tag,commitmentText(account,manifest));}catch{return false;}
+}
+/** A version 1 seal's digest. The version 2 record migrated from it keeps it, so a tab that opened with the version 1
+ * record still recognises the record it opened with (its binding holds the seal, not the new record's id). */
+export async function sealDigest(input:unknown):Promise<string>{
+ const s=sealedRootSchema.parse(input);
+ return encode(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes(JSON.stringify(['zigoals-device-seal',1,s.iv,s.ciphertext])))));
 }
 function contextText(input:RecordContext,version:1|2){const c=recordContextSchema.parse(input);return JSON.stringify(['zigoals-record',version,c.vault,c.domain,c.object,c.revision,c.epoch]);}
 // Each seal derives one nonextractable AES key, encrypts once, then drops it.

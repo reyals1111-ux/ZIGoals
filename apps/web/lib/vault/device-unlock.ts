@@ -1,18 +1,30 @@
 /**
  * Remember this device (ADR-008). At most one record, for the account this browser last remembered, in its own IndexedDB
  * database: the account, vault, epoch, manifest digest and server session it is bound to, whether Health sync was on,
- * and the sealed root with its non-extractable device key. Local only: nothing here is sent anywhere and nothing is
- * written to localStorage. Reading never creates the database and gives up after a time limit (a first open can hang
- * in Safari, see database.ts), so a browser that cannot answer simply counts as not remembered.
+ * and the root: version 2 (Session U Part 5, B1) stores the root itself as a non-extractable HKDF key with its commitment;
+ * version 1 stored the sealed root with a device key that could unwrap it, and is migrated on its next open. Local only:
+ * nothing here is sent anywhere and nothing is written to localStorage. Reading never creates the database and gives up
+ * after a time limit (a first open can hang in Safari, see database.ts), so a browser that cannot answer simply counts as
+ * not remembered. The database and its stores keep version 1: a build before this one deletes a version 2 record as one
+ * it cannot use, and then asks for the recovery secret once.
  */
 import {z} from 'zod';
-import {epochSchema,sealedRootSchema} from './crypto';
+import {deviceCommitmentMatches,epochSchema,sealDigest,sealedRootSchema} from './crypto';
 
 export const DEVICE_DATABASE='zigoals-device-unlock-v1';
 const DEVICES='devices',STATE='state',FORGETS='forgets',LIMIT_MS=3000;
-export const deviceRecordSchema=z.object({version:z.literal(1),account:z.uuid(),vault:z.uuid(),epoch:epochSchema,manifest:z.string().regex(/^[A-Za-z0-9_-]{43}$/),session:z.uuid(),health:z.boolean(),createdAt:z.iso.datetime(),sealed:sealedRootSchema}).strict();
-export type DeviceBinding=z.infer<typeof deviceRecordSchema>;
-export type DeviceRecord=DeviceBinding&{key:CryptoKey};
+const digest=z.string().regex(/^[A-Za-z0-9_-]{43}$/);
+export const deviceRecordSchema=z.object({version:z.literal(1),account:z.uuid(),vault:z.uuid(),epoch:epochSchema,manifest:digest,session:z.uuid(),health:z.boolean(),createdAt:z.iso.datetime(),sealed:sealedRootSchema}).strict();
+/** Version 2: the same bindings, a random id, the root's commitment and, when migrated, the version 1 seal's digest. */
+export const deviceRecordV2Schema=z.object({version:z.literal(2),id:z.uuid(),account:z.uuid(),vault:z.uuid(),epoch:epochSchema,manifest:digest,session:z.uuid(),health:z.boolean(),createdAt:z.iso.datetime(),commitment:digest,migratedFrom:digest.optional()}).strict();
+export type DeviceBindingV1=z.infer<typeof deviceRecordSchema>;
+export type DeviceBindingV2=z.infer<typeof deviceRecordV2Schema>;
+export type DeviceBinding=DeviceBindingV1|DeviceBindingV2;
+export type DeviceRecordV1=DeviceBindingV1&{key:CryptoKey};
+export type DeviceRecordV2=DeviceBindingV2&{root:CryptoKey};
+export type DeviceRecord=DeviceRecordV1|DeviceRecordV2;
+/** What names one remember: its seal (version 1; a version 2 record migrated from that seal counts too) or its id. */
+export type DeviceIdentity=Pick<DeviceBindingV1,'account'|'sealed'>|Pick<DeviceBindingV2,'account'|'id'>;
 
 /** The device key must be what createDeviceKey makes: AES-GCM 256, not extractable, able to seal and unwrap only. */
 function deviceKey(key:unknown):key is CryptoKey{
@@ -20,16 +32,38 @@ function deviceKey(key:unknown):key is CryptoKey{
  const algorithm=key.algorithm as AesKeyAlgorithm;
  return key.type==='secret'&&!key.extractable&&algorithm.name==='AES-GCM'&&algorithm.length===256&&[...key.usages].sort().join(',')==='encrypt,unwrapKey';
 }
+/** A version 2 root must be what opening the vault makes: HKDF, not extractable, deriveKey only. */
+function storedRoot(key:unknown):key is CryptoKey{
+ if(typeof CryptoKey==='undefined'||!(key instanceof CryptoKey))return false;
+ return key.type==='secret'&&!key.extractable&&key.algorithm.name==='HKDF'&&[...key.usages].join(',')==='deriveKey';
+}
 /** A stored value as a record, or null when this version cannot use it. */
 export function deviceRecord(value:unknown):DeviceRecord|null{
  if(!value||typeof value!=='object'||Array.isArray(value))return null;
+ if((value as {version?:unknown}).version===2){
+  const {root,...meta}=value as Record<string,unknown>,parsed=deviceRecordV2Schema.safeParse(meta);
+  return parsed.success&&storedRoot(root)&&parsed.data.account===parsed.data.account.toLowerCase()?{...parsed.data,root}:null;
+ }
  const {key,...meta}=value as Record<string,unknown>,parsed=deviceRecordSchema.safeParse(meta);
  return parsed.success&&deviceKey(key)&&parsed.data.account===parsed.data.account.toLowerCase()?{...parsed.data,key}:null;
 }
 /** What a record is bound to, without its key: kept by an open vault to recognise its own record later. */
-export function bindingOf(record:DeviceRecord):DeviceBinding{const {key,...binding}=record;void key;return binding;}
-/** Two records are the same remember when they hold the same seal (its IV is random for every seal). */
-const sameSeal=(value:unknown,expected:Pick<DeviceBinding,'account'|'sealed'>)=>{const v=value as {account?:unknown;sealed?:{iv?:unknown;ciphertext?:unknown}}|undefined;return v?.account===expected.account&&v.sealed?.iv===expected.sealed.iv&&v.sealed?.ciphertext===expected.sealed.ciphertext;};
+export function bindingOf(record:DeviceRecord):DeviceBinding{
+ if(record.version===2){const {root,...binding}=record;void root;return binding;}
+ const {key,...binding}=record;void key;return binding;
+}
+/** The seal digest of a version 1 identity, computed before a transaction opens (an await inside one would end it). */
+const sealOf=async(expected:DeviceIdentity)=>'sealed' in expected?sealDigest(expected.sealed).catch(()=>null):null;
+/**
+ * Whether a stored value is this remember: the same version 2 id; or the same seal (its IV is random for every seal), or
+ * the version 2 record migrated from that seal, so a tab that opened with the version 1 record still finds it.
+ */
+const sameRemember=(value:unknown,expected:DeviceIdentity,seal:string|null)=>{
+ const v=value as {account?:unknown;version?:unknown;id?:unknown;migratedFrom?:unknown;sealed?:{iv?:unknown;ciphertext?:unknown}}|undefined;
+ if(v?.account!==expected.account)return false;
+ if('id' in expected)return v.version===2&&v.id===expected.id;
+ return v.sealed?.iv===expected.sealed.iv&&v.sealed?.ciphertext===expected.sealed.ciphertext||seal!==null&&v.version===2&&v.migratedFrom===seal;
+};
 
 function limited<T>(work:Promise<T>,late:(value:T)=>void):Promise<T>{
  return new Promise((resolve,reject)=>{
@@ -106,27 +140,58 @@ export async function forgetDevices():Promise<void>{
  }finally{db.close();}
 }
 /** Deletes exactly this record if it is still the stored one, so a late answer never removes a newer remember. */
-export async function dropDevice(expected:Pick<DeviceBinding,'account'|'sealed'>):Promise<void>{
- const db=await existing();if(!db)return;
+export async function dropDevice(expected:DeviceIdentity):Promise<void>{
+ const seal=await sealOf(expected),db=await existing();if(!db)return;
  try{
   const t=db.transaction(DEVICES,'readwrite'),store=t.objectStore(DEVICES),current=store.get(expected.account);
-  current.onsuccess=()=>{if(sameSeal(current.result,expected))store.delete(expected.account);};
+  current.onsuccess=()=>{if(sameRemember(current.result,expected,seal))store.delete(expected.account);};
   await finished(t);
  }finally{db.close();}
 }
 /** Updates the remembered Health choice of exactly this record (Health turned on or off on a remembered device). */
-export async function rememberHealth(expected:Pick<DeviceBinding,'account'|'sealed'>,health:boolean):Promise<void>{
- const db=await existing();if(!db)return;
+export async function rememberHealth(expected:DeviceIdentity,health:boolean):Promise<void>{
+ const seal=await sealOf(expected),db=await existing();if(!db)return;
  try{
   const t=db.transaction(DEVICES,'readwrite'),store=t.objectStore(DEVICES),current=store.get(expected.account);
-  current.onsuccess=()=>{if(sameSeal(current.result,expected))store.put({...(current.result as object),health},expected.account);};
+  current.onsuccess=()=>{if(sameRemember(current.result,expected,seal))store.put({...(current.result as object),health},expected.account);};
   await finished(t);
  }finally{db.close();}
 }
 /** Whether this exact record is still stored (the idle check: another tab may have forgotten the device). */
-export async function stillRemembered(expected:Pick<DeviceBinding,'account'|'sealed'>):Promise<boolean>{
+export async function stillRemembered(expected:DeviceIdentity):Promise<boolean>{
+ const seal=await sealOf(expected),db=await existing();if(!db)return false;
+ try{return sameRemember(await answer(db.transaction(DEVICES,'readonly').objectStore(DEVICES).get(expected.account)),expected,seal);}finally{db.close();}
+}
+/**
+ * Session U Part 5 (B1): stores `next` in place of exactly `expected` (compare-and-swap), for the migration of a version 1
+ * record and for taking it back. False when a forget, another remember or a change landed first; an error (for example
+ * a browser that cannot store the key object) aborts the transaction, so the stored record stays as it was.
+ */
+export async function replaceDevice(expected:DeviceIdentity,next:DeviceRecord):Promise<boolean>{
+ if(!deviceRecord(next)||next.account!==expected.account)throw Error('This device could not be remembered.');
+ const seal=await sealOf(expected),db=await existing();if(!db)return false;
+ try{
+  const t=db.transaction(DEVICES,'readwrite'),store=t.objectStore(DEVICES),current=store.get(expected.account);let replaced=false;
+  current.onsuccess=()=>{if(sameRemember(current.result,expected,seal)){store.put(next,next.account);replaced=true;}};
+  await finished(t);return replaced;
+ }finally{db.close();}
+}
+/**
+ * Session U Part 5 (B1): stores a new remember as version 2 where this browser keeps the key object and reads it back
+ * intact; otherwise as version 1 (owner decision: such a browser keeps version 1). Both are refused (null) when a forget
+ * ran since `forgets` was read. Answers the record that is stored.
+ */
+export async function rememberDeviceRecord(v2:DeviceRecordV2,v1:DeviceRecordV1,forgets:number):Promise<DeviceRecord|null>{
+ const stored=await rememberDevice(v2,forgets).catch(()=>false);
+ if(stored&&await confirmDevice(v2).catch(()=>false))return v2;
+ return await rememberDevice(v1,forgets)?v1:null;
+}
+/** Reads back exactly this version 2 record: still stored, still valid, and its stored root derives its commitment. */
+export async function confirmDevice(expected:Pick<DeviceBindingV2,'account'|'id'>):Promise<boolean>{
  const db=await existing();if(!db)return false;
- try{return sameSeal(await answer(db.transaction(DEVICES,'readonly').objectStore(DEVICES).get(expected.account)),expected);}finally{db.close();}
+ let value:unknown;try{value=await answer(db.transaction(DEVICES,'readonly').objectStore(DEVICES).get(expected.account));}finally{db.close();}
+ const record=deviceRecord(value);
+ return record?.version===2&&record.id===expected.id&&await deviceCommitmentMatches(record.root,record.account,record.manifest,record.commitment);
 }
 
 const statusSchema=z.object({signedIn:z.literal(true),accountId:z.uuid()});

@@ -20,8 +20,8 @@ import {AccountAccess} from './account-access';
 import {ACCOUNT_CHANGE,adoptAccount,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,unlockAccount,type AccountLockDetail} from '../lib/account-session';
 import {getAppStorage,isShowcase} from '../lib/showcase-storage';
 import {withStorageLock} from '../lib/storage';
-import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceRoot,manifestDigest,manifestSchema,type VaultManifest,type SealedRoot} from '../lib/vault/crypto';
-import {readDevices,rememberDevice,forgetDevices,forgetCount,dropDevice,stillRemembered,rememberHealth,bindingOf,verifiedAccount,currentSession,type DeviceBinding} from '../lib/vault/device-unlock';
+import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceRoot,manifestDigest,manifestSchema,deviceCommitment,deviceCommitmentMatches,sealDigest,type VaultManifest,type SealedRoot} from '../lib/vault/crypto';
+import {readDevices,rememberDeviceRecord,forgetDevices,forgetCount,dropDevice,stillRemembered,rememberHealth,bindingOf,replaceDevice,confirmDevice,verifiedAccount,currentSession,type DeviceBinding,type DeviceRecordV1,type DeviceRecordV2} from '../lib/vault/device-unlock';
 import {StaleDeviceError,takeAccessDenial,deniesDevice} from '../lib/vault/stale-device';
 import {currentInstallContext} from '../lib/install/platform';
 import {storageMessageOr} from '../lib/storage-error-copy';
@@ -98,19 +98,39 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   let records;try{records=await readDevices();}catch{return false;}fence();
   if(records.some(record=>record.account!==id)){await forgetDevices().catch(()=>{});fence();setRemembered(false);return false;}
   const record=records[0];if(!record)return false;
-  const binding=bindingOf(record),drop=async()=>{await dropDevice(binding).catch(()=>{});setRemembered(false);};
+  let binding=bindingOf(record);const drop=async()=>{await dropDevice(binding).catch(()=>{});setRemembered(false);};
   if(!m||record.vault!==m.vault||record.epoch!==m.epoch||record.manifest!==await manifestDigest(m)){await drop();fence();return false;}
   setRemembered(true);
   const current=await currentSession(id,AbortSignal.timeout(15000)).catch(()=>null);fence();
   if(current===null)return false;
   if(current!==record.session){await drop();fence();return false;}
-  let key:CryptoKey;try{key=await openDeviceRoot(record.key,record.sealed,id,m);}catch{await drop();fence();return false;}fence();
+  let key:CryptoKey;
+  // Version 2 holds the root itself: it opens only when it still derives the record's commitment. Version 1 is unsealed
+  // as before and then migrated (B1); if the migration fails it stays version 1 and this open goes ahead.
+  if(record.version===2){if(!await deviceCommitmentMatches(record.root,id,record.manifest,record.commitment)){await drop();fence();return false;}key=record.root;}
+  else{try{key=await openDeviceRoot(record.key,record.sealed,id,m);}catch{await drop();fence();return false;}fence();binding=await migrateDevice(record,key);}
+  fence();
   // The remembered Health choice (M1 e) passes the same check as ticking the box: not while Health is held after deletion.
   const consent=record.health&&!await healthHeld(id);fence();
   if(!await stillRemembered(binding).catch(()=>false)){fence();setRemembered(false);return false;}fence();
   open(id,key,m,consent,binding);setDeviceNote('');
   if(record.health&&!consent)void rememberHealth(binding,false).catch(()=>{});
   return true;
+ }
+ /**
+  * Session U Part 5 (B1): replaces a version 1 record by its version 2 form after a successful open. The version 2 record
+  * is written by compare-and-swap, read back and checked (its stored root must derive its commitment) before it counts;
+  * any failure puts the version 1 record back, so this device never loses its remember to the migration. The new record
+  * keeps the seal's digest, so another tab that opened with the version 1 record still recognises it.
+  */
+ async function migrateDevice(record:DeviceRecordV1,key:CryptoKey):Promise<DeviceBinding>{
+  try{
+   const next:DeviceRecordV2={version:2,id:crypto.randomUUID(),account:record.account,vault:record.vault,epoch:record.epoch,manifest:record.manifest,session:record.session,health:record.health,createdAt:record.createdAt,commitment:await deviceCommitment(key,record.account,record.manifest),migratedFrom:await sealDigest(record.sealed),root:key};
+   if(!await replaceDevice(bindingOf(record) as DeviceRecordV1,next))return bindingOf(record);
+   if(await confirmDevice(next).catch(()=>false))return bindingOf(next);
+   await replaceDevice(next,record).catch(()=>false);
+  }catch{/* The version 1 record stays as it was. */}
+  return bindingOf(record);
  }
  async function healthHeld(id:string){try{return !!(await new SyncJournal(id).read()).heldDomains?.includes('health');}catch{return true;}}
  function open(id:string,key:CryptoKey,m:VaultManifest,consent:boolean,device:DeviceBinding|null=null){unlockAccount();const generation=getAccountGeneration();session.current={account:id,generation,key,manifest:m,health:consent,device};auto.current=true;idle.current=Date.now();manualLock.current=false;setOpened(true);setAccount(id);setManifest(m);setHealthState(consent);setGenerated(null);setRemembered(!!device);setMessage('Vault unlocked. Preparing account sync…');}
@@ -123,9 +143,13 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   try{
    if(device.forgets===null)throw Error('Device storage did not answer.');
    const current=await currentSession(id,AbortSignal.timeout(15000));fence();if(!current)throw Error('The account session could not be confirmed.');
-   const record={version:1 as const,account:id.toLowerCase(),vault:m.vault,epoch:m.epoch,manifest:await manifestDigest(m),session:current,health:selected.health,createdAt:new Date().toISOString(),sealed:device.sealed,key:device.deviceKey},binding=bindingOf(record);
+   const meta={account:id.toLowerCase(),vault:m.vault,epoch:m.epoch,manifest:await manifestDigest(m),session:current,health:selected.health,createdAt:new Date().toISOString()};
+   // Session U Part 5 (B1): version 2, the root key itself, where this browser can store and read back that key object;
+   // otherwise version 1 as before (owner decision: such a browser keeps version 1).
+   const v2:DeviceRecordV2={version:2,id:crypto.randomUUID(),...meta,commitment:await deviceCommitment(device.key,meta.account,meta.manifest),root:device.key},v1:DeviceRecordV1={version:1,...meta,sealed:device.sealed,key:device.deviceKey};
    // A sign-out, Lock now or Forget that ran meanwhile wins: nothing is stored, or what was stored is taken back.
-   if(!await rememberDevice(record,device.forgets))return;
+   const record=await rememberDeviceRecord(v2,v1,device.forgets);if(!record)return;
+   const binding=bindingOf(record);
    try{fence();}catch(error){await dropDevice(binding).catch(()=>{});throw error;}
    selected.device=binding;setRemembered(true);setDeviceNote('');
   }catch(error){if(session.current===selected)setDeviceNote(`This device was not remembered, so unlocking again will need the recovery secret. ${storageMessageOr(error,'Try again at your next unlock.')}`);}
