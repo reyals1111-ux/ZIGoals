@@ -7,6 +7,7 @@ import type {Action} from '../../lib/ai/actions/schema';
 import type {Handle} from '../../lib/ai/context/types';
 import {ProposalCard, type ProposalStatus} from './proposal-card';
 import type {ProposalRunner} from './use-proposals';
+import {zigiEvents} from '../zigi/events';
 import './ai.css';
 
 /**
@@ -33,7 +34,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const plan = planOf(item); if (!plan) return;
     if (plan.target === 'form') { const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce('The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
-    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
+    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiEvents.emit('action-applied'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
     catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be written.'}); }
   }, [announce, onNavigate, patch, runner]);
   const addAll = useCallback(async () => {
@@ -43,7 +44,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const {after, error} = await runner.applyAll(plans);
     const done = pending.slice(0, after.length), failed = pending[after.length];
     setItems(current => current.map(item => { const i = done.findIndex(d => d.id === item.id); if (i >= 0) return {...item, status: 'added', after: after[i]!}; if (failed && item.id === failed.id) return {...item, status: 'proposed', error}; if (pending.some(p => p.id === item.id)) return {...item, status: 'proposed'}; return item; }));
-    if (done.length) setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS});
+    if (done.length) { setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS}); zigiEvents.emit('action-applied'); }
     announce(done.length ? `Added ${done.length} of ${pending.length}. Undo is available for ten seconds.` : error ?? 'Nothing was added.');
   }, [announce, items, patch, runner]);
   const undo = useCallback(async () => {
