@@ -5,6 +5,9 @@ import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
 import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
 const navigate=async(page,name)=>{await page.getByRole('link',{name,exact:true}).first().click();};
+/** Session U follow-up F3: on a phone a Today widget card is a row named by it that opens in place; open it there. */
+async function todayCard(page,name){if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches))await page.getByRole('button',{name,exact:true}).click();return page.getByRole('article',{name,exact:true});}
+
 async function openModule(page,id){const section=page.locator('#'+id);if(await section.getAttribute('open')===null)await section.locator('summary').first().click();return section;}
 async function sync(page){await navigate(page,'Settings');const synced1=await armPackagedSync(page);await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page,synced1);}
 async function timeline(page,kind){
@@ -20,7 +23,7 @@ async function pinGoalAndHabit(page,name,path,habit){
  await card.getByRole('button',{name:`Options for ${name}`,exact:true}).click();await card.getByRole('button',{name:`Add ${name} progress to Today`,exact:true}).click();await card.getByText(`${name} progress added to Today.`,{exact:true}).waitFor();
  await navigate(page,'Habits');await page.getByRole('button',{name:'All',exact:true}).click();const habitCard=page.locator('.habit-card').filter({has:page.getByRole('heading',{name:habit,exact:true})});
  await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('button',{name:`Add ${habit} today to Today`,exact:true}).click();
- await navigate(page,'Today');await page.getByRole('article',{name,exact:true}).waitFor();await page.getByRole('article',{name:habit,exact:true}).waitFor();
+ await navigate(page,'Today');await (await todayCard(page,name)).waitFor();await (await todayCard(page,habit)).waitFor();
 }
 async function create(page,type){
  const name=`Packaged ${type} continuity`;
@@ -69,7 +72,7 @@ export async function verifyPackagedGoalJourneys(a,b,evidenceDir){
    const plan=await openModule(b,'contribution-plan');expect(await plan.getByLabel('Planned amount',{exact:true}).inputValue()).toBe(type==='Value'?'50':'1');expect(await plan.getByLabel('Contribution asset',{exact:true}).inputValue()).toBe(type==='Value'?'USD':'BTC');
    const allocation=await openModule(b,'allocate');expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(evidence.allocationText);expect(await timeline(b,'contribution')).toEqual(evidence.original);expect(await timeline(b,'reversal')).toEqual(evidence.reversed);
   }
-  await b.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-mobile-history.png`,mask:[b.getByLabel(/recovery secret/i)],maskColor:'#FF00FF'});await navigate(b,'Today');await b.getByRole('article',{name:goal.name,exact:true}).waitFor();await b.getByRole('article',{name:goal.habit,exact:true}).waitFor();expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await b.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-mobile-history.png`,mask:[b.getByLabel(/recovery secret/i)],maskColor:'#FF00FF'});await navigate(b,'Today');await (await todayCard(b,goal.name)).waitFor();await (await todayCard(b,goal.habit)).waitFor();expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   results.push({...goal,...evidence,secondProfileHistoryEqual:true,todayGoalAndHabitReceived:true,financialContribution:type!=='Project'});
  }
  await writeFile(`${evidenceDir}/goal-journeys.json`,JSON.stringify({criteria:'GOAL-06',generatedApplication:true,mutationPath:'visible UI only',projectSemantics:'Milestone changes and linked weekly review Habit; no financial plan, allocation or contribution controls.',journeys:results},null,2));return results;
