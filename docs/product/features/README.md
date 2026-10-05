@@ -26,11 +26,11 @@
 ## Device-only records (P2)
 Every genuinely new record type lives in its own versioned key through `getAppStorage()` (`lib/showcase-storage.ts:32`): per account when one is active, the tab's session storage in Showcase, plain `localStorage` otherwise. The pattern is `lib/reminders/` (schema, store, hook) and `lib/portfolio/store.ts` for the unreadable case.
 
-| Key | Written by | Shape (`version: 1`, zod `strictObject`) | Personal | Synced home (read support shipped in PR 2, SYNC_HOMES.md) |
+| Key | Written by | Shape (`version: 1`, zod `strictObject`) | Personal | Synced home (SYNC_HOMES.md; written there since Session U Part 9, the device key read and merged, never rewritten) |
 |---|---|---|---|---|
-| `zigoals:habit-health-links:v1` | H7 | `{version, links: {[habitId]: HabitHealthLink} ≤ 200, applied: AppliedCheckIn[] ≤ 5,000}` | yes | habits v3: `habits[].healthLink`, `entries[].source` |
-| `zigoals:health-goals:v1` | G3 | `{version, goals: HealthGoal[] ≤ 200}` | yes | finance v4: `healthGoals[]` |
-| `zigoals:weekly-review:v1` | G1 | `{version, weekday: 0–6, reviews: Review[] ≤ 520}` | yes | settings v2: `weeklyReview` |
+| `zigoals:habit-health-links:v1` | H7 | `{version, links: {[habitId]: HabitHealthLink} ≤ 200, applied: AppliedCheckIn[] ≤ 5,000}` | yes | **health v3: `habitLinks`** (links and markers; habits stay v2). Session P's plan was habits v3 |
+| `zigoals:health-goals:v1` | G3 | `{version, goals: HealthGoal[] ≤ 200}` | yes | **health v3: `healthGoals`**. Session P's plan was finance v4 |
+| `zigoals:weekly-review:v1` | G1 | `{version, weekday: 0–6, reviews: Review[] ≤ 520}` | yes | settings v2: `weeklyReview`, without its Health note; the Health note in **health v3: `reviewNotes`** |
 | `zigoals:fasting:v1` | HE6 | `{version, sessions: FastingSession[] ≤ 2,000}` | yes | health v2: `fasting` |
 | `zigoals:insights:v1` | M3 | `{version, dismissed: {[cardId]: "YYYY-MM-DD"} ≤ 200}` | yes | stays device-only (a view preference, like reminder dismissals) |
 | `zigoals:import-undo:v1` | W3, I1 | `{version, imports: ImportRecord[] ≤ 20}` | yes | stays device-only (an undo ledger for records that already sync as ordinary records) |

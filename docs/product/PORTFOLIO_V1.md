@@ -41,7 +41,10 @@
   session storage. It is versioned and zod-validated (`lib/portfolio/schema.ts`).
 - **Unreadable data** shows a calm notice and is never replaced unless the reader chooses "Start over". Writes touch this
   key only.
-- **Stored on this device only:** not synced, and not in the private module backups.
+- **Stored on this device only:** not in the private module backups, and not synced unless the person ticks "Also sync my
+  Portfolio (optional)" in Settings → account sync (Session U Part 9, ADR-013): then an encrypted copy of the whole
+  Portfolio travels with the account, in its own keyspace of the vault, merged three-way (a two-sided change asks
+  "Keep this device's Portfolio" or "Keep the encrypted copy"). Unticked by default; the Portfolio itself stays this key.
 - **Export and import:** a JSON file holding Portfolio only. Import is checked in full, then replaces everything only after
   an explicit confirmation. Refusals say why: not an export, damaged, too large, or a sale before its coins came in.
 - **Isolation:** nothing writes to the platform store. Portfolio never feeds Wealth, Goals, Positions, Allocation,

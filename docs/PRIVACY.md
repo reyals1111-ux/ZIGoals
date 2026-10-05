@@ -10,6 +10,16 @@ The isolated backend retains hashed-token session records and user-supplied devi
 
 Encrypted backup downloads are now available separately from legacy plaintext JSON exports, with explicit recovery-secret acknowledgement and optional Health inclusion. Private restore preserves prior local bytes. Food lookup sends only a confirmed barcode to the same-origin server/provider; scanner frames stay on device. For abuse limits only, the food service counts lookups per client the same way as the market coordinator: a keyed hash of the network address group under a key replaced every UTC day, never the address itself, with day records deleted after about 48 hours; a barcode the provider does not know is remembered for one hour so a repeat costs no provider request. Camera permission is self-only on the Health document, with explicit activation; microphone and location remain denied.
 
+**Session U Part 9 (2026-10-05).** Four records that were device-only now live in the synced sections they belong to
+([SYNC_HOMES.md](product/SYNC_HOMES.md)): fasting sessions, health goals, habit-health links with their automatic check-in
+markers, and the Health note of a weekly review live in Health, so they sync only under the separate Health permission;
+the rest of the weekly review (its other notes, status and day) lives with the Today settings. Their device copies stay on
+the device, unchanged. The Portfolio can also sync, only when the person ticks "Also sync my Portfolio (optional)": an
+encrypted copy of the whole Portfolio, sealed in the browser with the vault key like every section, in its own keyspace of
+the account's vault ([ADR-013](architecture/ADR-013-portfolio-sync.md)). It is deleted with the account, or for every
+device with "Delete the Portfolio's encrypted copy"; it never feeds Wealth or Goals. On the public Alpha, which has no
+account path, nothing of this leaves the device.
+
 See [account sync evidence](run10/ACCOUNT_SYNC_EVIDENCE.md), [owner setup](run10/OWNER_ACTIVATION.md) and the [security/recovery design](run10/SYNC_SECURITY_AND_RECOVERY.md) for unverified limits. Hosting infrastructure still observes ordinary connection metadata. No financial execution, wallet authentication signature, deployment or live data migration occurred.
 
 ---
