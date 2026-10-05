@@ -88,11 +88,52 @@ function reconcileHealthReceipts(base:unknown,local:unknown,remote:unknown){
   }
  }
 }
+/**
+ * Session U Part 9: a section only ever moves up a version (no writer downgrades one) and each version's fields include
+ * the lower one's, so two devices that each raised a section (say fasting to Health v2 here, a health goal to v3 there)
+ * merge at the higher version instead of conflicting on the number.
+ */
+function reconcileVersions(base:unknown,local:unknown,remote:unknown){
+ const version=(v:unknown)=>v&&typeof v==='object'?(v as {schemaVersion?:unknown}).schemaVersion:undefined;
+ // Only when both sides raised it differently: a side that kept the base's version is left as it is, so the merge still
+ // takes the other side whole when this one did not change.
+ const b=version(base),l=version(local),r=version(remote);if(typeof l!=='number'||typeof r!=='number'||l===r||l===b||r===b)return;
+ const top=Math.max(l,r);(local as {schemaVersion:number}).schemaVersion=top;(remote as {schemaVersion:number}).schemaVersion=top;
+}
+/**
+ * Automatic check-in markers (Health v3 `habitLinks.applied`, Session U Part 9) say "this habit was ticked off from
+ * Health on this day": one per habit and day, never edited except to be undone. Two devices that each applied or undid
+ * one merge to the union: the first application of a day is kept, and an undo on either side stays.
+ */
+function reconcileAutoCheckIns(base:unknown,local:unknown,remote:unknown){
+ const applied=(v:unknown):unknown[]|undefined=>{const links=v&&typeof v==='object'?(v as {habitLinks?:unknown}).habitLinks:undefined,list=links&&typeof links==='object'?(links as {applied?:unknown}).applied:undefined;return Array.isArray(list)?list:undefined;};
+ const [prior,left,right]=[base,local,remote].map(applied);if(!left||!right)return;
+ const merged=new Map<string,Record<string,unknown>>();
+ for(const marker of [...(prior??[]),...left,...right]){
+  if(!marker||typeof marker!=='object'||Array.isArray(marker))throw Error('Invalid automatic check-in marker.');
+  const m=marker as Record<string,unknown>,key=JSON.stringify([m.habitId,m.date]),held=merged.get(key);
+  if(!held){merged.set(key,m);continue;}
+  const first=String(held.appliedAt)<=String(m.appliedAt)?held:m;
+  merged.set(key,held.undone===true||m.undone===true?{...first,undone:true}:first);
+ }
+ const list=[...merged.values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.habitId).localeCompare(String(b.habitId)));
+ (local as {habitLinks:{applied:unknown[]}}).habitLinks.applied=list;(remote as {habitLinks:{applied:unknown[]}}).habitLinks.applied=structuredClone(list);
+}
+/** Weekly reviews (settings v2 `weeklyReview.reviews`, one per week, Session U Part 9) merge week by week and field by field, like records with an id. */
+function reconcileWeeklyReviews(base:unknown,local:unknown,remote:unknown){
+ const reviews=(v:unknown):unknown[]|undefined=>{const review=v&&typeof v==='object'?(v as {weeklyReview?:unknown}).weeklyReview:undefined,list=review&&typeof review==='object'?(review as {reviews?:unknown}).reviews:undefined;return Array.isArray(list)?list:undefined;};
+ const lists=[base,local,remote].map(reviews);if(!lists[1]||!lists[2])return;
+ const maps=lists.map(list=>new Map((list??[]).map(r=>[String((r as {weekStart?:unknown}|null)?.weekStart),r] as const)));
+ if(maps.some((m,i)=>m.size!==(lists[i]??[]).length))throw Error('Duplicate weekly review.');
+ const weeks=[...new Set(maps.flatMap(m=>[...m.keys()]))].sort();
+ const merged=weeks.flatMap(week=>{const value=mergeValue(maps[0]!.get(week),maps[1]!.get(week),maps[2]!.get(week),'settings weekly review');return value===undefined?[]:[value];});
+ (local as {weeklyReview:{reviews:unknown[]}}).weeklyReview.reviews=merged;(remote as {weeklyReview:{reviews:unknown[]}}).weeklyReview.reviews=structuredClone(merged);
+}
 export function mergePrivateData(base:PrivateData,local:PrivateData,remote:PrivateData):PrivateData{
  const result:PrivateData={};for(const domain of DOMAINS){if(local[domain]===undefined){if(remote[domain]!==undefined)result[domain]=remote[domain];continue;}
   const b=base[domain],l=local[domain],r=remote[domain];if(r===undefined){result[domain]=l;continue;}if(b===undefined){if(l!==r)throw Error('Unlinked local and cloud records differ. Export both before choosing what to keep.');result[domain]=r;continue;}
   if(domain==='finance'){if(l!==b&&r!==b&&l!==r)throw Error('Conflicting financial changes. Local and cloud evidence remain separate; export both before reconciling.');result[domain]=l===b?r:l;}
-  else {const parsed=[b,l,r].map(v=>JSON.parse(v));if(domain==='health')reconcileHealthReceipts(parsed[0],parsed[1],parsed[2]);result[domain]=JSON.stringify(mergeValue(parsed[0],parsed[1],parsed[2],domain));}
+  else {const parsed=[b,l,r].map(v=>JSON.parse(v));reconcileVersions(parsed[0],parsed[1],parsed[2]);if(domain==='health'){reconcileHealthReceipts(parsed[0],parsed[1],parsed[2]);reconcileAutoCheckIns(parsed[0],parsed[1],parsed[2]);}if(domain==='settings')reconcileWeeklyReviews(parsed[0],parsed[1],parsed[2]);result[domain]=JSON.stringify(mergeValue(parsed[0],parsed[1],parsed[2],domain));}
  }return result;
 }
 export class RevisionConflict extends Error{constructor(){super('Cloud changed. Local records were preserved. Retry to reconcile.');}}

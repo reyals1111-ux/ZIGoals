@@ -20,8 +20,8 @@ function assertHabitsRetained(beforeRaw:string,afterRaw:string|undefined){
  const before=habitDataSchema.parse(JSON.parse(beforeRaw)),after=habitDataSchema.parse(JSON.parse(afterRaw)),rows=new Map(after.habits.map(h=>[h.id,h]));
  for(const h of before.habits)for(const key of ['ruleRevisions','timerReceipts'] as const){const next=new Map((rows.get(h.id)?.[key]??[]).map(v=>[v.id,v]));for(const original of h[key]??[])if(JSON.stringify(next.get(original.id))!==JSON.stringify(original))throw Error('Accepted Habit rule and timer evidence is append-only. Both copies were preserved for review.');}
 }
-/** The newest version of each section this build reads (timezone phase 3, R1, and Session P's read-only sync homes). */
-export const CURRENT_VERSIONS:Record<Domain,number>={finance:4,habits:3,health:2,settings:2};
+/** The newest version of each section this build reads (timezone phase 3, R1, Session P's read-only sync homes, and Health v3 of Session U Part 9). */
+export const CURRENT_VERSIONS:Record<Domain,number>={finance:4,habits:3,health:3,settings:2};
 export const NEWER_SECTION_MESSAGE='This section was saved by a newer ZIGoals. Update the app on this device to keep syncing.';
 export function validateData(data:PrivateData,prior?:PrivateData){for(const [domain,raw]of Object.entries(data)){const m=modules[domain as Domain];if(!m||typeof raw!=='string'||new TextEncoder().encode(raw).length>32_000_000)throw Error('Unsupported private data.');const parsed:unknown=JSON.parse(raw);
   // A section from a build this one cannot read: a plain message, nothing uploaded, local records unchanged (TIMEZONE_DESIGN.md, "Sync implications").
