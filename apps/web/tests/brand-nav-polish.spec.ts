@@ -113,6 +113,8 @@ test('reduced motion and the Off preference switch the navigation glide and page
   // Health opens with a full page load (Session U Part 3, camera access): wait for it before reading the new page.
   await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
   await expect(nav.getByRole('link',{name:'Health',exact:true})).toHaveAttribute('aria-current','page');
+  // The new page applies Motion Off when it hydrates (MotionPreferenceSync), which can come after its load event.
+  await expect(page.locator('html')).toHaveAttribute('data-app-motion','off');
   expect(await pill.evaluate(e=>getComputedStyle(e).transitionDuration.split(',').every(d=>parseFloat(d)===0))).toBe(true);
   await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');
   return;
