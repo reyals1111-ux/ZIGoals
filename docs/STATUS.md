@@ -105,6 +105,26 @@ Branch `review/session-t-screens` (never merged); its `index.md` maps each of th
 - The app-page weight target (+5 KB) if the remaining 2–3 KB matter: the next lever is splitting the phone More row and the launcher's toast into the chat chunk.
 - The figure set, a sync home for chats and the legal answers stay open, as decided.
 
+### Main merge after Session U (2026-10-05)
+`origin/main` moved to `1d2e47a` (Session U's PR #74). Merged with a merge commit (`07f778a`); the only conflict was `docs/STATUS.md`, resolved by keeping both entries, Session T above Session U. Every other shared file merged automatically and was re-read afterwards:
+- `next.config.ts`: U's `Cross-Origin-Opener-Policy` entry sits in the global block; the Permissions-Policy order global → `/app/:path*` → `/app/health` from `lib/egress-policy.json` is intact.
+- `lib/security-policy.ts`: `connect-src` still from the egress file; U's `TRUSTED_TYPES_TRIAL` constant stays apart from the policy and is not enforced.
+- `scripts/lib/alpha-smoke.mjs` and `scripts/verify-hosted-alpha.mjs`: both read the egress file; the Health check accepts `microphone` as `()` or `(self)`.
+- `components/vault-sync-controls.tsx`: the one awaited `forgetAiAccount` line still runs right after `forgetPushOnThisDevice` in U's reworked `eraseAccount`.
+- `shell.tsx` (launcher), `phone-chrome.tsx` (More row), `help-page.tsx` (topic), `lib/export/everything.ts` (the key name from the tiny module): all in place.
+- U's Today phone folding: none of this PR's specs read Today widget cards at phone width, so no spec needed `openTodayWidgets`.
+- The Habits card is on main now, so "Ask ZIGi" sits on each habit card too (`1983489`), matching the Goals detail view; one end-to-end test covers both on both projects.
+
+Gate on the merged tree (local):
+- Unit (`pnpm test`): 385 files (368 passed, 17 skipped); **3,419 passed, 1 expected failure, 35 skipped**. Typecheck and lint clean (the two untracked diagnostics aside).
+- `tests/guide.spec.ts` and `tests/help-page.spec.ts`, 20 repeats each, both projects: **600 of 600 passed** (U's Part 4 holds here); the ZIGi spec: **31 passed** on both projects, the new entry-point test included.
+- Full browser suite, both projects, 2 workers: **1,129 passed, 99 skipped, 4 failed** in 50.6 min, the four being the brand-film specs (the Chromium stand-in; green in CI). The Guide and Help races are gone.
+- Desktop freeze check against the **new main `1d2e47a`** (built in a worktree, fresh baseline): **155 compared, 110 identical, 45 different, 0 page errors.** The differences: Settings ×12 and Help ×12 (the section and the topic), Today ×6 (the What's new link), Goals detail ×6 ("Ask ZIGi about this goal"), **Habits ×6 ("Ask ZIGi" on each card, this step)**, the Quick-add dialog ×2, the `zigi-launcher` capture ×1 (no baseline); every one intended.
+- Weight against the new main (same method): Today 589 KB → 597 KB gz (+8.3 KB; main itself grew by 11 KB with U's changes and Turbopack regrouped the chunks: 31 scripts instead of 29), Settings 503 KB → 512 KB (+8.2 KB).
+- `check:deploy-configs` clean; `build:alpha`, the wrangler dry run, `check:alpha-artifact` and the two packaged Miniflare tests (8 passed) green.
+Screens: every state re-captured on the merged build (the capture spec, 9 passed, 104 images; a first run against a stale server produced "This page couldn't load" and was discarded) and pushed to `review/session-t-screens` at `6271a44`. Against the earlier gallery (`49bff7c`), 53 images are pixel-identical and 51 differ; 28 by one percent or more, all in pages around the panel: the Today page behind the launcher on phones (Session U's phone Today: the three launcher states), the Settings page around the section (the five setup states, Settings connected), the Help topic (U's Help changes), and the Habits page behind the cards states (the "Ask ZIGi" link on each card). The remaining 23 differ by under one percent (the launcher's glow and the hover ring in the error and chat states). The ZIGi panel, the sheet and the cards themselves did not change.
+CI: the merge commit and the Habits commit run as `1983489` ([Milestone quality 37335742868](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37335742868), [Canonical reproducibility 37335743788](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37335743788)); the final commit's runs are reported in the PR. The two untracked diagnostic specs from the main session were deleted from the sandbox (they were never in the PR).
+
 # Session U — records, live prices, camera, reliability, sign-in and remembered devices, security hardening, sync writes and Portfolio sync, Stage 8 readiness (2026-10-04/05, [PR #74](https://github.com/reyals1111-ux/ZIGoals/pull/74), not merged or deployed)
 
 **Evidence labels:**
