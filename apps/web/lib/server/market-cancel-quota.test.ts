@@ -83,11 +83,13 @@ const post=(headers:Record<string,string>)=>POST(new Request('https://alpha.test
 
 test('the cancel route names the client only from cf-connecting-ip; a caller-supplied header is never forwarded',async()=>{
  const seen=bound(()=>Response.json({ok:true}));
- expect((await post({'cf-connecting-ip':'192.0.2.7','x-market-client':'v4:203.0.113.1'})).status).toBe(204);
+ expect((await post({'cf-connecting-ip':'192.0.2.7','x-market-client':'v4:203.0.113.1','x-market-caller':'friends'})).status).toBe(204);
  expect((await post({'x-market-client':'v4:203.0.113.1'})).status).toBe(204);
  expect((await post({'cf-connecting-ip':'127.0.0.1'})).status).toBe(204);
  expect(seen.map(r=>r.headers.get('x-market-client'))).toEqual(['v4:192.0.2.7',null,null]);
- for(const request of seen)expect([...request.headers.keys()].sort()).toEqual(request.headers.has('x-market-client')?['content-type','x-market-client']:['content-type']);
+ // Session U Part 2e: the app's own caller label from its bindings (this runtime has no PRIVATE_SYNC), never the caller's.
+ expect(seen.map(r=>r.headers.get('x-market-caller'))).toEqual(['public','public','public']);
+ for(const request of seen)expect([...request.headers.keys()].sort()).toEqual(request.headers.has('x-market-client')?['content-type','x-market-caller','x-market-client']:['content-type','x-market-caller']);
 });
 
 test('a refused fence answers 503, as any unavailable cancellation',async()=>{

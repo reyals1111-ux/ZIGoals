@@ -141,6 +141,24 @@ Status: **Accepted.** Option 1 below, with the owner's decision M1 (2026-10-02, 
   - Forgetting every device needs nothing more than "Forget this device" or clearing site data.
 
 ## Not done here (follow-ups)
-- **Store the root as a non-extractable HKDF `CryptoKey`** instead of a sealed blob plus an unwrap-capable device key (FIX_PLAN B1, `Q-SYNC-01`; Session S corrected T2 above, the code change is a later `TIER 3 (auth/sync)` session).
+- ~~**Store the root as a non-extractable HKDF `CryptoKey`** instead of a sealed blob plus an unwrap-capable device key (FIX_PLAN B1, `Q-SYNC-01`; Session S corrected T2 above, the code change is a later `TIER 3 (auth/sync)` session).~~ Done in Session U Part 5: see the addendum below.
 - Option (2), a passkey (PRF) to protect a remembered device, after a device test on the owner's iPhone.
 - A time limit on remembering independent of the session. Today the session's own lifetime bounds it: a new sign-in needs the secret once.
+
+## Addendum (Session U, 2026-10-05): version 2 records (B1) and Lock in every tab (B2)
+**B1, as built** (`apps/web/lib/vault/crypto.ts`, `device-unlock.ts`, `components/vault-sync-controls.tsx`):
+- A **version 2** record stores the root itself: the non-extractable HKDF `CryptoKey` that opening the vault made, usable only for `deriveKey`. It keeps the version 1 bindings (account, vault, epoch, manifest digest, server session, Health choice, created date) and adds a random `id` and a **commitment**: an HMAC, under a key derived from the root, over the account and the manifest digest. The commitment is checked before the stored key opens anything, so a record stays bound to one account and one manifest, as the version 1 seal's additional data bound it.
+- **New remembers write version 2.** Where a browser cannot store the key object, or does not read it back intact, the remember is version 1 as before (owner decision, listed in STATUS: such a browser keeps version 1). Chromium and Node are tested; Firefox and WebKit are Stage 8 rows.
+- **Migration:** the next open of a version 1 record unseals it as before, then writes the version 2 record in its place by compare-and-swap (only if that exact version 1 record is still stored), reads it back and checks the commitment. Any failure puts the version 1 record back, so the migration never costs a remember. The version 2 record keeps the version 1 seal's digest (`migratedFrom`), so another tab that opened with the version 1 record still recognises its record (idle check, Health choice, drop on a stale event).
+- Same database and stores (`zigoals-device-unlock-v1`, version 1): no IndexedDB upgrade.
+
+**T2 now (script running in the origin, on a device with a version 2 record):**
+- It **can** use the root while the app runs: derive record keys and decrypt what this account's session can fetch, exactly as the app does.
+- It **can** derive keys and export *those*: a per-record key for a record whose salt it knows, or a legacy version 1 per-domain key of an epoch (which opens that domain's legacy-envelope records of that epoch). It can post the key object to another context of this origin; it stays non-extractable there.
+- It **cannot** export the root's bytes, wrap it, or unwrap anything: no stored key has `unwrapKey`, and an HKDF key is never extractable. The finding's lasting offline copy of the root is closed for version 2 records. A version 1 record that remains (a browser that cannot keep version 2) keeps the old T2 row.
+- Unchanged: T3 (someone with the profile's files), and **after losing a remembered device or a suspected compromise: revoke its session, then rotate the vault key.**
+
+**B2, as built** (`apps/web/lib/account-session.ts`): **Lock** locks the tab where it is clicked at once, as before, then every other tab of this browser: it sends a manual lock on the `zigoals:account-lock:v1` channel, then the plain `'lock'` that tabs of earlier builds understand. A tab of this build marks that lock as manual, so a remembered device does not reopen it; then the device is forgotten (the broadcast goes out even if forgetting fails). The panel says "Locking locks every tab of this browser and forgets this device."
+
+**Rollback:** a build before Session U (for example #27 or #28) treats a version 2 record as one it cannot use: it deletes it and asks for the recovery secret once. Rolling forward again needs the secret once too (the deleted record is gone); nothing else is lost.
+

@@ -2,7 +2,7 @@
 import {act,createElement} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,expect,test,vi} from 'vitest';
-import {AccountAccess} from '../components/account-access';
+import {AccountAccess,CODE_SENT} from '../components/account-access';
 import {clearAccountSession,getAccountScope,isAccountLocked,activateAccount,unlockAccount} from './account-session';
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root|undefined;
@@ -44,4 +44,18 @@ test('an invite-only refusal shows the relay’s words, keeps the address and st
  answer=()=>Response.json({error:'EMAIL_UNAVAILABLE',message:'Signing in by email isn’t available right now. Try again later.'},{status:403});
  await click(button(view,'Send email code'));
  expect(view.textContent).toContain('Signing in by email isn’t available right now. Try again later.');expect(sends).toEqual(['friend@example.com','friend@example.com','friend@example.com']);
+});
+// Session U Part 5 (FIX_PLAN A2): the relay answers every admitted code request the same way, so the panel does too.
+test('a code request reads the same for every address: one message, the code field and the cooldown',async()=>{
+ vi.useFakeTimers();
+ vi.stubGlobal('fetch',async(_url:string,init?:RequestInit)=>{if(!init?.body)return Response.json({signedIn:false});return Response.json({message:'If this address has an invite, a code is on its way. Check your inbox and spam folder, and wait at least 60 seconds before requesting another.'});});
+ const view=await mount(),seen:string[]=[];
+ for(const address of ['invited@example.com','stranger@example.com']){
+  await input(view,'email',address);await click(button(view,'Send email code'));
+  expect(view.textContent).toContain(CODE_SENT);expect(view.querySelector('input[name="code"]')).not.toBeNull();expect(button(view,'Send email code').disabled).toBe(true);
+  seen.push(view.querySelector('[role="status"]')!.textContent!);
+  for(let second=0;second<61;second++)await act(async()=>{vi.advanceTimersByTime(1000);});
+  expect(button(view,'Send email code').disabled).toBe(false);
+ }
+ expect(seen[0]).toBe(CODE_SENT);expect(seen[1]).toBe(seen[0]);expect(getAccountScope()).toBeNull();
 });

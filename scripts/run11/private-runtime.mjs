@@ -3,9 +3,22 @@ import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
 export const ACCOUNT='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+/**
+ * Session U Part 4: a Worker's answer through mf.dispatchFetch, read at once into a fresh Response, for harnesses that
+ * hold an answer across an await (a held acknowledgement) before the relay reads it. Miniflare answers with
+ * `new Response(inner.body, inner)`, and undici cancels a body stream when the Response it was created for is
+ * garbage-collected unread (undici lib/web/fetch/body.js, streamRegistry): a collection during the hold left the relay
+ * an empty body, so it answered REQUEST_FAILED and the panel showed "Sync was not confirmed" (sync-inflight-edit and
+ * sync-self-conflict in CI). Reproduced locally with --expose-gc; recorded in docs/STATUS.md (Session U, Part 4).
+ */
+export async function workerAnswer(mf,url,init){
+ const response=await mf.dispatchFetch(url,init),empty=[101,204,205,304].includes(response.status);
+ return new Response(empty?null:await response.arrayBuffer(),{status:response.status,statusText:response.statusText,headers:response.headers});
+}
 export async function privateRuntime(persist){
  persist??=await mkdtemp(join(tmpdir(),'zigoals-run11-vault-'));
  const mf=await createPrivateMiniflare({persist});
@@ -18,7 +31,7 @@ export async function createPrivateMiniflare({persist,origin='https://app.test',
  // Every worker outbound request stays in this Node callback. Never forward to fetch.
  const isolatedUpstream=async request=>{if(new URL(request.url).hostname!=='fixture.supabase.co'&&new URL(request.url).hostname!=='test.supabase.co')throw Error('Fixture refused external destination');return syntheticUpstream(request);};
  const bundle=async name=>(await build({entryPoints:[new URL('../../workers/private-sync/'+name,import.meta.url).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;
- return new Miniflare({...convertV4MiniflareOptions({workers:[{name:'run11-private-sync',modules:true,script:await bundle('worker.mjs'),compatibilityDate:'2026-09-13',durableObjects:{VAULTS:{className:'PrivateVault',useSQLite:true}},serviceBindings:{LIFECYCLE:lifecycleService??{name:'run11-lifecycle',entrypoint:'LifecycleService'}},bindings:{AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN:origin,...bindings},outboundService:isolatedUpstream},{name:'run11-lifecycle',modules:true,script:await bundle('lifecycle.mjs'),compatibilityDate:'2026-09-13',durableObjects:{LIFECYCLES:{className:'LifecycleAuthority',useSQLite:true}},bindings:{RECOVERY_MODE:recoveryMode,AUTH_ORIGIN:'https://fixture.supabase.co',...(bindings.AUTH_ADMIN_KEY?{AUTH_ADMIN_KEY:bindings.AUTH_ADMIN_KEY}:{})},outboundService:isolatedUpstream}],durableObjectsPersist:persist}),resourcePersistencePath:persist});
+ return new Miniflare({...convertV4MiniflareOptions({workers:[{name:'run11-private-sync',modules:true,script:await bundle('worker.mjs'),compatibilityDate:'2026-09-13',durableObjects:{VAULTS:{className:'PrivateVault',useSQLite:true}},serviceBindings:{LIFECYCLE:lifecycleService??{name:'run11-lifecycle',entrypoint:'LifecycleService'}},bindings:{AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN:origin,...bindings},outboundService:isolatedUpstream},{name:'run11-lifecycle',modules:true,script:await bundle('lifecycle.mjs'),compatibilityDate:'2026-09-13',durableObjects:{LIFECYCLES:{className:'LifecycleAuthority',useSQLite:true}},bindings:{RECOVERY_MODE:recoveryMode,AUTH_ORIGIN:'https://fixture.supabase.co',...(bindings.AUTH_ADMIN_KEY?{AUTH_ADMIN_KEY:bindings.AUTH_ADMIN_KEY}:{})},outboundService:isolatedUpstream},doProbeWorker({className:'LifecycleAuthority',scriptName:'run11-lifecycle'})],durableObjectsPersist:persist}),resourcePersistencePath:persist});
 }
 
 export function fixtureToken(alias,account=ACCOUNT,family=['old','new','racer','revived'].includes(alias)?'refresh-family':alias){

@@ -1,5 +1,5 @@
 import {test,expect,vi} from 'vitest';
-import {privateAccountRequest} from './private-account';
+import {CODE_REQUEST_MESSAGE,privateAccountRequest} from './private-account';
 const config={authOrigin:'https://test.supabase.co',publicKey:'public',syncOrigin:'https://sync.example.workers.dev'};
 test('configuration and cross-origin fail closed before external calls',async()=>{
  const fetcher=vi.fn();const req=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://evil.test','content-type':'application/json'},body:'{"action":"send","email":"a@example.com"}'});
@@ -72,6 +72,24 @@ test('rotation proxy requires captured account and forwards only authenticated l
   expect(result.status).toBe(200);
  }
 });
+test('the Portfolio copy (Session U Part 9, ADR-013): GET and POST go to /v1/portfolio for the signed-in account only, nothing else changes',async()=>{
+ const id='10000000-0000-4000-8000-000000000001',cookie='__Host-zigoals_session=fixture-token';
+ for(const method of ['GET','POST']){
+  const operation={protocol:1,action:'delete',vault:crypto.randomUUID(),operation:crypto.randomUUID(),base:1,generation:0};
+  const req=(headers:Record<string,string>)=>new Request(`https://app.test/api/private-account${method==='GET'?'?action=portfolio':''}`,{method,headers:{origin:'https://app.test','content-type':'application/json',...headers},...(method==='POST'?{body:JSON.stringify({action:'portfolio',operation})}:{})});
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(req({cookie,'x-zigoals-account':id}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json(method==='GET'?{protocol:1,revision:0,generation:0,epoch:null,parts:[]}:{revision:2,generation:1});});
+  expect(result.status).toBe(200);expect(calls.map(([url])=>url)).toEqual([config.syncOrigin+'/v1/portfolio']);
+  const sent=new Headers(calls[0]![1]?.headers);expect(sent.get('x-zigoals-account')).toBe(id);expect(sent.get('authorization')).toBe('Bearer fixture-token');
+  if(method==='POST')expect(JSON.parse(calls[0]![1]?.body as string)).toEqual(operation);
+  // Signed out: refused before any call.
+  const fetcher=vi.fn();expect((await privateAccountRequest(req({'x-zigoals-account':id}),config,fetcher)).status).toBe(401);expect(fetcher).not.toHaveBeenCalled();
+ }
+ // A snapshot near the Worker's limit answers through the GET relay's bound; the POST body is checked by the Worker.
+ const big=JSON.stringify({protocol:1,revision:1,generation:0,epoch:1,parts:['x'.repeat(1_050_000)]});
+ const read=await privateAccountRequest(new Request('https://app.test/api/private-account?action=portfolio',{headers:{cookie,'x-zigoals-account':id}}),config,async()=>new Response(big,{headers:{'content-type':'application/json'}}));
+ expect(read.status).toBe(200);expect((await read.text()).length).toBe(big.length);
+});
 test('refresh rotates durable session access before exposing new cookies and never sends refresh material to the browser body',async()=>{
  const id='10000000-0000-4000-8000-000000000001';
  const req=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'__Host-zigoals_session=old-token; __Host-zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'});
@@ -128,47 +146,123 @@ test('a rejected code is reported to admission as a failed verification; a provi
  }
 });
 
-// Session P (PR 1, 1.4): Supabase's invite-only refusal, verified 2026-10-03 from github.com/supabase/auth
-// (internal/api/otp.go, internal/api/apierrors). With sign-ups disabled, POST /auth/v1/otp for an unknown address answers
-// 422 with `x-sb-error-code: otp_disabled` and, in the legacy body shape this relay receives (it sends no
-// X-Supabase-Api-Version), {"code":422,"error_code":"otp_disabled","msg":"Signups not allowed for otp"}; API version
-// 2024-01-01 answers {"code":"otp_disabled","message":"Signups not allowed for otp"}.
-const INVITE_ONLY='ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app.';
+// Session U Part 5 (FIX_PLAN A2, FINDINGS Q-AUTH-06): every code request that passes admission gets one answer, byte for
+// byte, whatever the provider answers, and the provider is asked only after that answer exists. Session P named two of
+// these refusals to the person (403 INVITE_ONLY, 403 EMAIL_UNAVAILABLE), which told anyone whether an address was
+// invited. The refusals below are Supabase's own, verified 2026-10-03 from github.com/supabase/auth (internal/api/otp.go,
+// internal/api/apierrors): with sign-ups disabled, POST /auth/v1/otp for an unknown address answers 422 with
+// `x-sb-error-code: otp_disabled` and {"code":422,"error_code":"otp_disabled","msg":"Signups not allowed for otp"} in the
+// legacy shape this relay receives, or {"code":"otp_disabled","message":"Signups not allowed for otp"} from API version
+// 2024-01-01.
 const sendRequest=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'send',email:'friend@example.com'})});
-const provider=(status:number,headers:Record<string,string>,body:unknown)=>vi.fn(async(url:string|URL|Request,init?:RequestInit)=>{
- expect(String(url)).toBe('https://test.supabase.co/auth/v1/otp');expect(JSON.parse(String(init?.body))).toEqual({email:'friend@example.com',create_user:true});
- return new Response(body===null?'':typeof body==='string'?body:JSON.stringify(body),{status,headers:{'content-type':'application/json',...headers}});
-});
-test.each([
- ['the legacy body and the header',{'x-sb-error-code':'otp_disabled'},{code:422,error_code:'otp_disabled',msg:'Signups not allowed for otp'}],
- ['the 2024-01-01 body without the header',{},{code:'otp_disabled',message:'Signups not allowed for otp'}],
- ['the header alone',{'x-sb-error-code':'otp_disabled'},null],
- ['signup_disabled',{'x-sb-error-code':'signup_disabled'},{code:422,error_code:'signup_disabled',msg:'Signups not allowed for this instance'}],
-])('an invite-only refusal of a code request (%s) is named to the person: 403 INVITE_ONLY, no cookie, one provider call',async(_name,headers,body)=>{
- const upstream=provider(422,headers,body),admit=vi.fn<(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>>(async()=>new Response(null,{status:204}));
- const result=await privateAccountRequest(sendRequest(),config,upstream,admit);
- expect(result.status).toBe(403);expect(await result.json()).toEqual({error:'INVITE_ONLY',message:INVITE_ONLY});
- expect(result.headers.get('set-cookie')).toBeNull();expect(upstream).toHaveBeenCalledTimes(1);expect(admit.mock.calls.map(c=>c[0])).toEqual(['send']);
-});
-test('email sign-in switched off at the provider is said plainly, and every other refusal of a code request keeps the usual answer',async()=>{
- const off=await privateAccountRequest(sendRequest(),config,provider(422,{'x-sb-error-code':'email_provider_disabled'},{code:422,error_code:'email_provider_disabled',msg:'Email logins are disabled'}));
- expect(off.status).toBe(403);expect(await off.json()).toEqual({error:'EMAIL_UNAVAILABLE',message:'Signing in by email isn’t available right now. Try again later.'});
- for(const [status,headers,body] of [
-  [400,{},{code:400,error_code:'validation_failed',msg:'Unable to validate email address'}],
-  [422,{'x-sb-error-code':'over_email_send_rate_limit'},{code:422,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'}],
-  [500,{},'not json at all'],
-  [422,{},{code:422,error_code:'OTP_DISABLED'}],
-  [422,{'x-sb-error-code':'otp_disabled'.repeat(8)},null],
-  [422,{},{code:422,error_code:'otp_disabled',msg:'x'.repeat(9000)}],
- ] as const){
-  const result=await privateAccountRequest(sendRequest(),config,provider(status,headers,body));
-  expect(result.status,`${status} ${JSON.stringify(headers)}`).toBe(400);expect(await result.json()).toEqual({error:'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'});
+const OUTCOMES:[string,()=>Promise<Response>][]=[
+ ['a code sent',async()=>Response.json({})],
+ ['not on the invite list (legacy body and header)',async()=>Response.json({code:422,error_code:'otp_disabled',msg:'Signups not allowed for otp'},{status:422,headers:{'x-sb-error-code':'otp_disabled'}})],
+ ['not on the invite list (2024-01-01 body)',async()=>Response.json({code:'otp_disabled',message:'Signups not allowed for otp'},{status:422})],
+ ['sign-ups closed',async()=>Response.json({code:422,error_code:'signup_disabled',msg:'Signups not allowed for this instance'},{status:422,headers:{'x-sb-error-code':'signup_disabled'}})],
+ ['email sign-in switched off',async()=>Response.json({code:422,error_code:'email_provider_disabled',msg:'Email logins are disabled'},{status:422,headers:{'x-sb-error-code':'email_provider_disabled'}})],
+ ['the provider\u2019s email rate limit',async()=>Response.json({code:429,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'},{status:429,headers:{'x-sb-error-code':'over_email_send_rate_limit'}})],
+ ['the provider\u2019s email quota',async()=>Response.json({code:422,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'},{status:422,headers:{'x-sb-error-code':'over_email_send_rate_limit'}})],
+ ['an address the provider rejects',async()=>Response.json({code:400,error_code:'validation_failed',msg:'Unable to validate email address'},{status:400})],
+ ['an outage',async()=>new Response('not json at all',{status:500})],
+ ['no answer at all',async()=>{throw TypeError('fetch failed');}],
+];
+const snapshot=async(response:Response)=>({status:response.status,headers:[...response.headers.entries()],body:await response.text()});
+test('every outcome of a code request gets the same answer, byte for byte, and the provider is asked only after it',async()=>{
+ const answers:Awaited<ReturnType<typeof snapshot>>[]=[];
+ for(const [name,outcome] of OUTCOMES){
+  const calls:unknown[]=[],queued:(()=>Promise<void>)[]=[],admit=vi.fn<(...args:unknown[])=>Promise<Response>>(async()=>new Response(null,{status:204}));
+  const result=await privateAccountRequest(sendRequest(),config,async(url,init)=>{calls.push([String(url),JSON.parse(String(init?.body))]);return outcome();},admit,work=>{queued.push(work);});
+  expect(calls,name).toEqual([]);expect(queued,name).toHaveLength(1);
+  answers.push(await snapshot(result));
+  await queued[0]!();
+  expect(calls,name).toEqual([['https://test.supabase.co/auth/v1/otp',{email:'friend@example.com',create_user:false}]]);
+  expect(admit.mock.calls.map(c=>c[0]),name).toEqual(['send']);
  }
- const limited=await privateAccountRequest(sendRequest(),config,provider(429,{'x-sb-error-code':'over_email_send_rate_limit'},{code:429,error_code:'over_email_send_rate_limit',msg:'Email rate limit exceeded'}));
- expect(limited.status).toBe(429);expect(await limited.json()).toEqual({error:'TRY_LATER',message:'Check your code or request a new one after the cooldown.'});
+ expect(answers[0]).toEqual({status:200,headers:expect.any(Array),body:JSON.stringify({message:CODE_REQUEST_MESSAGE})});
+ for(const answer of answers)expect(answer).toEqual(answers[0]);
+ expect(answers[0]!.headers.map(([name])=>name)).not.toContain('set-cookie');
+});
+test('without a scheduler the provider call is awaited first, and the answer is still the same for every outcome',async()=>{
+ const answers=[];
+ for(const [,outcome] of OUTCOMES){const upstream=vi.fn(async()=>outcome());answers.push(await snapshot(await privateAccountRequest(sendRequest(),config,upstream)));expect(upstream).toHaveBeenCalledTimes(1);}
+ expect(answers[0]!.body).toBe(JSON.stringify({message:CODE_REQUEST_MESSAGE}));
+ for(const answer of answers)expect(answer).toEqual(answers[0]);
+});
+test('our own admission still answers for itself, before any provider call: the same for every address',async()=>{
+ for(const [status,error] of [[429,'TRY_LATER'],[503,'AUTH_ADMISSION_UNAVAILABLE']] as const){
+  const upstream=vi.fn(),queued:unknown[]=[];
+  const result=await privateAccountRequest(sendRequest(),config,upstream,async()=>Response.json({},{status}),work=>{queued.push(work);});
+  expect(result.status).toBe(status);expect((await result.json()).error).toBe(error);expect(upstream).not.toHaveBeenCalled();expect(queued).toEqual([]);
+ }
 });
 test('a rejected code never reads as invite-only, even when the provider names otp_disabled',async()=>{
  const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'friend@example.com',code:'123456'})});
  const result=await privateAccountRequest(request,config,async()=>Response.json({code:422,error_code:'otp_disabled',msg:'Signups not allowed for otp'},{status:422,headers:{'x-sb-error-code':'otp_disabled'}}));
  expect(result.status).toBe(400);expect(await result.json()).toEqual({error:'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'});expect(result.headers.get('set-cookie')).toBeNull();
+});
+// Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): the request body itself, for an address the provider does not know.
+test('a code request never asks the provider to create a user',async()=>{
+ const bodies:unknown[]=[];
+ const result=await privateAccountRequest(sendRequest(),config,async(_url,init)=>{bodies.push(JSON.parse(String(init?.body)));return Response.json({});});
+ expect(result.status).toBe(200);expect(bodies).toEqual([{email:'friend@example.com',create_user:false}]);
+ expect(JSON.stringify(bodies)).not.toContain('"create_user":true');
+});
+
+// Session U Part 5 (FIX_PLAN A3, FINDINGS Q-AUTH-02): a revoke ends the provider session too, with Supabase's documented
+// logout only. Fake upstreams: the provider's logout is a recorded call; nothing reaches a network.
+const account='10000000-0000-4000-8000-000000000001';
+const sessionAction=(operation:unknown,token='current-token')=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:`__Host-zigoals_session=${token}`,'x-zigoals-account':account},body:JSON.stringify({action:'session',operation})});
+const logouts=(calls:[string,RequestInit|undefined][])=>calls.filter(([url])=>url.includes('/auth/v1/logout')).map(([url,init])=>[url.replace(config.authOrigin,''),new Headers(init?.headers).get('authorization')]);
+test('revoke other sessions signs them out at the provider with this session’s token, after private sync revoked them',async()=>{
+ for(const [provider,signedOut] of [[204,true],[500,false],[0,false]] as const){
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(sessionAction({action:'revoke-others'}),config,async(url,init)=>{calls.push([String(url),init]);if(String(url).endsWith('/v1/sessions'))return Response.json({revoked:2,currentRevoked:false});if(!provider)throw TypeError('fetch failed');return new Response(null,{status:provider});});
+  expect(result.status).toBe(200);expect(await result.json()).toEqual({revoked:2,currentRevoked:false,providerSignedOut:signedOut});
+  expect(calls.map(([url])=>url)).toEqual([config.syncOrigin+'/v1/sessions',config.authOrigin+'/auth/v1/logout?scope=others']);
+  expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=others','Bearer current-token']]);expect(result.headers.get('set-cookie')).toBeNull();
+ }
+ // Refused by private sync: nothing is signed out at the provider.
+ const calls:[string,RequestInit|undefined][]=[];
+ const refused=await privateAccountRequest(sessionAction({action:'revoke-others'}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json({error:'SESSION_CAPACITY'},{status:507});});
+ expect(refused.status).toBe(507);expect(logouts(calls)).toEqual([]);
+});
+test('revoking this session signs it out at the provider; revoking another one is enforced by private sync alone',async()=>{
+ const calls:[string,RequestInit|undefined][]=[];
+ const own=await privateAccountRequest(sessionAction({action:'revoke',id:crypto.randomUUID()}),config,async(url,init)=>{calls.push([String(url),init]);return String(url).endsWith('/v1/sessions')?Response.json({revoked:1,currentRevoked:true}):new Response(null,{status:204});});
+ expect(own.status).toBe(200);expect(own.headers.get('set-cookie')).toContain('Max-Age=0');expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=local','Bearer current-token']]);
+ calls.length=0;
+ const other=await privateAccountRequest(sessionAction({action:'revoke',id:crypto.randomUUID()}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json({revoked:1,currentRevoked:false});});
+ expect(other.status).toBe(200);expect(await other.json()).toEqual({revoked:1,currentRevoked:false});expect(logouts(calls)).toEqual([]);
+});
+test('a revoked session is signed out at the provider the first time it reaches the relay again: status, vault and account requests',async()=>{
+ const revoked=()=>Response.json({error:'SESSION_REVOKED'},{status:401}),cookie='__Host-zigoals_session=revoked-token';
+ const requests=[
+  new Request('https://app.test/api/private-account?action=status',{headers:{cookie}}),
+  new Request('https://app.test/api/private-account',{headers:{cookie,'x-zigoals-account':account}}),
+  new Request('https://app.test/api/private-account?action=sessions',{headers:{cookie,'x-zigoals-account':account}}),
+  new Request('https://app.test/api/private-account?action=rotation',{headers:{cookie,'x-zigoals-account':account}}),
+  new Request('https://app.test/api/private-account?action=portfolio',{headers:{cookie,'x-zigoals-account':account}}),
+  ...['sync','rotation','delete','domain','portfolio'].map(action=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie,'x-zigoals-account':account},body:JSON.stringify({action,operation:action==='delete'?{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}:action==='domain'?{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0}:{}})})),
+ ];
+ for(const request of requests){
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(request,config,async(url,init)=>{calls.push([String(url),init]);if(String(url).endsWith('/auth/v1/user'))return Response.json({id:account});if(String(url).startsWith(config.syncOrigin))return revoked();return new Response(null,{status:204});});
+  expect(result.status,request.url).toBe(401);expect(logouts(calls),request.url).toEqual([['/auth/v1/logout?scope=local','Bearer revoked-token']]);
+ }
+ // Any other refusal leaves the provider session alone: an expired token, another account, an outage.
+ for(const answer of [Response.json({error:'SIGN_IN_REQUIRED'},{status:401}),Response.json({error:'ACCOUNT_CHANGED'},{status:409}),Response.json({error:'TEMPORARY'},{status:503})]){
+  const calls:[string,RequestInit|undefined][]=[];
+  await privateAccountRequest(new Request('https://app.test/api/private-account',{headers:{cookie,'x-zigoals-account':account}}),config,async(url,init)=>{calls.push([String(url),init]);return answer.clone();});
+  expect(logouts(calls)).toEqual([]);
+ }
+});
+test('a revoked session that refreshes is signed out at the provider with the token the provider has just issued',async()=>{
+ const calls:[string,RequestInit|undefined][]=[];
+ const result=await privateAccountRequest(new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'__Host-zigoals_session=old-token; __Host-zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'}),config,async(url,init)=>{calls.push([String(url),init]);
+  if(String(url).includes('/token?grant_type=refresh_token'))return Response.json({access_token:'fresh-token',refresh_token:'fresh-refresh',expires_in:3600,user:{id:account}});
+  if(String(url).endsWith('/v1/sessions'))return Response.json({error:'SESSION_REVOKED'},{status:401});
+  return new Response(null,{status:204});});
+ expect(result.status).toBe(400);expect(result.headers.has('set-cookie')).toBe(false);expect(await result.text()).not.toMatch(/fresh-token|fresh-refresh/);
+ expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=local','Bearer fresh-token']]);
 });

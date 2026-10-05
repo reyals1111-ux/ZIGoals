@@ -10,7 +10,7 @@ Do not rely on hosted recovery before then.
 - One local command, `node scripts/run11/recovery-admin.mjs`, run from your ops checkout.
 - It starts a small admin Worker on your own computer (127.0.0.1) for the length of one command, then stops it. Nothing is deployed and there is no URL.
 - The admin Worker reaches the lifecycle Worker's recovery entrypoint through a remote service binding. Your own Cloudflare login opens that binding; there is no other credential.
-- Every command except `verify` first checks your ignored configs. It refuses unless the admin config binds **only** the private lifecycle Worker that your private-sync config uses, and unless no other config binds the recovery entrypoint.
+- Every command except `verify` first checks your ignored configs. It refuses unless the admin config binds **only** the private lifecycle Worker that your private-sync config uses and (since Session U) that private-sync Worker's own erase entrypoint, and unless no other config binds either recovery entrypoint.
 - It prints digests, counts and file paths only. It never prints checkpoint contents, the account UUID, or wrangler's own output (that can include your login email).
 
 | Command | Contacts Cloudflare | What it does |
@@ -20,9 +20,11 @@ Do not rely on hosted recovery before then.
 | `verify --file <file> --digest <sha256>` | no | Checks a custody copy against its separately kept digest. Works anywhere, without configs |
 | `dry-run --account <uuid> --file <file> --digest <sha256>` | yes | Asks the Worker whether the checkpoint would apply; changes nothing |
 | `reconcile --account <uuid> --file <file> --digest <sha256>` | yes | Dry run, then you **type** the account UUID and the digest, then reconcile, re-export and compare digests |
-| `erase --account <uuid> --out <file>` | yes | Exports first, then you **type** the account UUID and that export's digest, then the deletion is recorded and re-exported (Session S; see "Erase an account") |
+| `erase --account <uuid> --out <file>` | yes | Exports first, then you **type** the account UUID and that export's digest, then the deletion is recorded, re-exported and, while the lifecycle Worker serves, the encrypted vault rows are removed (Sessions S and U; see "Erase an account") |
 
 ## One-time setup (after Stage 4, about 15 minutes)
+> **Session U (2026-10-05): a copy made before Session U must be made again.** The admin config now has a second binding, `VAULT_ADMIN`, to the private-sync Worker's `PrivateVaultRecoveryAdmin` entrypoint (erase uses it to remove the vault rows). The tool refuses an old copy ("exactly two remote bindings are required"). In the ops checkout: move the old `workers/recovery-admin/wrangler.acctest.owner.jsonc` out of the checkout (for example into your custody folder; it holds no secret), then run step 2 below again. Do this after the private-sync Worker of this PR is deployed (FINAL_ACCTEST_REDEPLOY.md, "Session U changes").
+
 1. In the ops checkout, on the reviewed commit: `node scripts/doctor.mjs`.
 2. Create the seventh private config. It is written as `workers/recovery-admin/wrangler.acctest.owner.jsonc`, 0600 and ignored by git:
    ```sh
@@ -192,6 +194,7 @@ Option B is the alternative: a deployed admin Worker behind Cloudflare Access, w
 3. Asks you to **type** the account UUID, then the digest it just printed.
 4. Asks the lifecycle Worker to record the deletion. The Worker applies it only if the account's current state still has exactly that digest; otherwise you see "the account changed after the export" and nothing happens.
 5. **Re-exports** to `<file>-after-erase.json` and prints the new digest. Put both files and both digests into custody as separate items ("Custody" above).
+6. **Removes the encrypted vault rows** (Session U), through the private-sync Worker's own erase: exactly what the app's "delete cloud data" does (every row, then the marker that refuses the account). Private sync does this only when the lifecycle Worker reports the account deleted, so only while the lifecycle Worker is in `RECOVERY_MODE=serve`. In `reconcile` the command prints `Encrypted vault rows: NOT REMOVED YET`; run `erase` again for that account after the switch to `serve` (a new `--out` file): it reports `ALREADY DELETED` and removes the rows.
 
 **What the deletion is:** the same as the app's "delete account":
 - the deletion decision, recorded with a fixed owner marker instead of a session;
@@ -199,13 +202,13 @@ Option B is the alternative: a deployed admin Worker behind Cloudflare Access, w
 
 From then on, private sync refuses that account (410) and no device can enrol it again. The lifecycle alarm deletes the Supabase user once the Worker is in `RECOVERY_MODE=serve`. In `reconcile` it stays "pending" until then.
 
-**What it does not do:** the account's **encrypted vault rows stay stored** in the private-sync Worker. They are unreadable without the friend's recovery secret, and nothing can reach them any more. Removing them needs a private-sync change: a follow-up recorded in STATUS. Tell the friend, as INCIDENT_RUNBOOK §3 says.
+**What it does not do:** it cannot reach copies outside the service: a friend's devices, their exports and backups, and the Cloudflare and Supabase backups for their own retention periods. Before Session U the encrypted vault rows also stayed stored; with this version they are removed (step 6). Tell the friend, as INCIDENT_RUNBOOK §3 says.
 
 **Running it:**
 ```sh
 node scripts/run11/recovery-admin.mjs erase --account <uuid> --out ~/zigoals-custody/<label>-erase-<date>.json
 ```
-- Expected: `ERASED: identity deletion pending…` (or `already done`), then the re-export path and digest.
+- Expected: `ERASED: identity deletion pending…` (or `already done`), then `Encrypted vault rows: REMOVED` (or `NOT REMOVED YET` in reconcile mode), then the re-export path and digest.
 - `ALREADY DELETED` means the account was deleted before; the command then only asks for the identity deletion if it was still retained.
 
 **Rehearsal on the final acceptance redeploy day** (fictional account, after the recovery rehearsal steps 4 and 6; [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md)):
@@ -216,7 +219,8 @@ node scripts/run11/recovery-admin.mjs erase --account <uuid> --out ~/zigoals-cus
    - Expected: `MATCH` twice.
 4. Run `export` again to a third file.
    - Expected: the same digest as the `-after-erase` file, which means nothing changed in between.
-5. The lifecycle Worker stays in `RECOVERY_MODE=reconcile` until the Stage 8 row that switches it to `serve`, so the identity deletion waits.
+5. The lifecycle Worker stays in `RECOVERY_MODE=reconcile` until the Stage 8 row that switches it to `serve`, so the identity deletion and the vault rows wait (step 2 printed `Encrypted vault rows: NOT REMOVED YET`).
+   - After that switch, run `erase` for the same fictional account again (a new `--out` file). Expected: `ALREADY DELETED`, then `Encrypted vault rows: REMOVED`.
    - After that switch, the fictional Supabase user disappears within about a minute (Authentication → Users).
    - Signing in again with that inbox is refused.
    - This also proves Session S Part 1's header form.

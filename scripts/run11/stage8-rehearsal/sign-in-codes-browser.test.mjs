@@ -20,7 +20,7 @@ test.runIf(BROWSER)('the sign-in panel refuses wrong, expired and reused codes w
    expect(await page.getByLabel('Vault recovery secret',{exact:true}).count()).toBe(0);
   };
   await ui.settings();await ui.requestCode(email);
-  await ui.access().getByText('If this address can receive a code, check your inbox.',{exact:false}).waitFor();
+  await ui.access().getByText('If this address has an invite, a code is on its way.',{exact:false}).waitFor();
   // A4: the button counts down and stays disabled.
   await expect.poll(()=>send().textContent()).toMatch(/^Send email code \((5[0-9]|60)s\)$/);
   expect(await send().isDisabled()).toBe(true);

@@ -29,6 +29,8 @@ const stored = (page: Page) => page.evaluate(key => localStorage.getItem(key), G
 
 test('off by default: no card, no request, and the switch in Settings says so', async ({page}) => {
   await seed(page, MONDAY_EVENING);
+  // Session U Part 4: leave the seeding page (Settings) first, so a request it starts late is never counted as Today's.
+  await page.goto('about:blank');
   const requests: string[] = []; page.on('request', request => { if (request.url().includes('/api/')) requests.push(request.url()); });
   await page.goto('/app'); await reveal(page);
   await expect(card(page)).toHaveCount(0);
@@ -100,7 +102,9 @@ test('the weekly review\'s last step shows the Guide\'s paragraph only while the
     if (!(await review.isVisible().catch(() => false))) { const fold = area.getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
     await review.getByRole('button', {name: /^(Start review|Continue)$/}).click();
     const dialog = page.getByRole('dialog', {name: 'Your week'}); await expect(dialog).toBeVisible();
-    while (await dialog.getByRole('button', {name: 'Next', exact: true}).count()) await dialog.getByRole('button', {name: 'Next', exact: true}).click();
+    // Next saves the words before the step changes (Session U Part 9: in Health and settings), so each click waits for it.
+    const next = dialog.getByRole('button', {name: 'Next', exact: true}), step = dialog.getByText(/^Step \d+ of \d+$/);
+    while (await next.count()) { const before = await step.textContent(); await next.click(); await expect(step).not.toHaveText(before!); }
     await expect(dialog.getByRole('heading', {name: 'One intention', exact: true})).toBeVisible();
     return dialog;
   };

@@ -2,6 +2,7 @@ import {boundedQuoteText,cleanupMarketBody} from '../market-quotes';
 import {isJsonMediaType} from '../json-media-type';
 import {ProviderTransportError,ProviderValidationError} from '../provider-validation';
 import {ProviderFailure,providerHttpFailure} from './provider-failure';
+import {PROVIDER_USER_AGENT} from './provider-user-agent';
 export type MarketCommand=(command:unknown)=>Promise<Record<string,unknown>>;
 export type ChargedOperation='quote'|'catalog'|'history'|'insights'|'token'|'rwa';
 const paths:Record<ChargedOperation,RegExp>={quote:/^\/api\/v3\/simple\/price$/,catalog:/^\/api\/v3\/(coins|rwas)\/list$/,history:/^\/api\/v3\/coins\/[a-z0-9_-]+\/market_chart$/,insights:/^\/api\/v3\/(coins|rwas)\/markets$/,token:/^\/api\/v3\/simple\/token_price\/ethereum$/,rwa:/^\/api\/v3\/rwas\/markets$/};
@@ -11,7 +12,7 @@ const paths:Record<ChargedOperation,RegExp>={quote:/^\/api\/v3\/simple\/price$/,
 export async function providerText(url:URL,operation:ChargedOperation,limit:number,{key,fetcher=fetch,signal}:{key?:string;fetcher?:typeof fetch;signal?:AbortSignal}):Promise<string>{
  if(!key?.trim())throw new ProviderFailure('AUTHENTICATION');
  if(url.origin!=='https://api.coingecko.com'||!paths[operation].test(url.pathname))throw new ProviderFailure('UNSUPPORTED');
- const response=await fetcher(url.href,{method:'GET',headers:{Accept:'application/json','x-cg-demo-api-key':key.trim()},credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(8000)]):AbortSignal.timeout(8000)});
+ const response=await fetcher(url.href,{method:'GET',headers:{Accept:'application/json','User-Agent':PROVIDER_USER_AGENT,'x-cg-demo-api-key':key.trim()},credentials:'omit',redirect:'manual',referrerPolicy:'no-referrer',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(8000)]):AbortSignal.timeout(8000)});
  const failure=response.redirected?new ProviderFailure('UNKNOWN'):!response.ok?providerHttpFailure(response.status):!isJsonMediaType(response.headers.get('content-type'))?new ProviderFailure('MALFORMED'):null;
  if(failure){await cleanupMarketBody(()=>response.body?.cancel()??Promise.resolve());throw failure;}
  return boundedQuoteText(response,limit);

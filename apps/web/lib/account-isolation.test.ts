@@ -36,3 +36,22 @@ test('profile-wide notifications can only lock and never unlock or echo secrets'
  // Deliver through the actual registered channel handler, as another tab would.
  return Promise.resolve().then(()=>{incoming?.({data:'unlock'} as MessageEvent);expect(account.isAccountLocked()).toBe(false);incoming?.({data:'lock'} as MessageEvent);expect(account.isAccountLocked()).toBe(true);expect(sent).toEqual(['lock']);account.clearAccountSession();expect(sent).toEqual(['lock','lock']);});
 });
+// Session U Part 5 (B2, FINDINGS Q-SYNC-02): Lock locks every tab of this browser, and an older tab still understands it.
+test('Lock in one tab locks every tab: a manual lock first, then the plain lock older tabs understand',()=>{
+ const w=browser(),sent:unknown[]=[],details:unknown[]=[];let incoming:((event:MessageEvent)=>void)|null=null;
+ class Channel{onmessage:((event:MessageEvent)=>void)|null=null;constructor(){queueMicrotask(()=>{incoming=this.onmessage;});}postMessage(value:unknown){sent.push(value);}}
+ Object.assign(w,{BroadcastChannel:Channel});w.addEventListener('zigoals:account-change',e=>details.push((e as CustomEvent).detail));
+ account.activateAccount(alice);account.unlockAccount();sent.length=0;
+ account.lockEveryTab();
+ expect(account.isAccountLocked()).toBe(true);expect(sent).toEqual([{type:'lock',reason:'manual'},'lock']);
+ expect(details.at(-1)).toMatchObject({reason:'manual',account:alice});
+ return Promise.resolve().then(()=>{
+  // As another tab of this build receives it: locked, and marked manual.
+  account.unlockAccount();incoming?.({data:{type:'lock',reason:'manual'}} as MessageEvent);
+  expect(account.isAccountLocked()).toBe(true);expect(details.at(-1)).toMatchObject({reason:'manual',account:alice});
+  // Nothing else in that shape locks or unlocks anything, and nothing is sent back.
+  account.unlockAccount();sent.length=0;
+  for(const data of [{type:'lock',reason:'other'},{type:'unlock',reason:'manual'},{type:'lock'},['lock'],null])incoming?.({data} as MessageEvent);
+  expect(account.isAccountLocked()).toBe(false);expect(sent).toEqual([]);
+ });
+});

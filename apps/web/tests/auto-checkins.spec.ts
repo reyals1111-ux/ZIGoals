@@ -1,6 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
 import {HABIT_HEALTH_LINKS_KEY} from '../lib/habit-health-links/schema';
 import {isPhone} from './phone-nav';
+import {HEALTH_STORAGE_KEY} from '../lib/health';
+import {SYNC_WRITES} from '../lib/vault/sync-writes';
 
 // H7 (Session P): a habit that ticks itself off from the Health journal; the rule and the markers stay on this device.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -8,8 +10,12 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date('2026-09-15T10:00:00.000Z')});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 });
-const sessionLinks = (page: Page) => page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HABIT_HEALTH_LINKS_KEY);
-const storedLinks = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABIT_HEALTH_LINKS_KEY)) ?? 'null') as {applied: {habitId: string; date: string; measure: string; value: number; undone?: true}[]} | null;
+// Session U Part 9: with the sync writes on (lib/vault/sync-writes.ts), links and markers live in Health v3 (`habitLinks`) and
+// the device key is never written; switched off, they live in the device key as before.
+const HOME = SYNC_WRITES ? HEALTH_STORAGE_KEY : HABIT_HEALTH_LINKS_KEY;
+const sessionLinks = (page: Page) => page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HOME);
+type Links = {applied: {habitId: string; date: string; measure: string; value: number; undone?: true}[]};
+const storedLinks = async (page: Page): Promise<Links | null> => { const raw = JSON.parse((await page.evaluate(key => localStorage.getItem(key), HOME)) ?? 'null'); return SYNC_WRITES ? raw?.habitLinks ?? null : raw; };
 async function addHabit(page: Page, title: string) {
   await page.getByRole('button', {name: '+ New habit', exact: true}).click();
   await page.getByLabel('Habit title', {exact: true}).fill(title);

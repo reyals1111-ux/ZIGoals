@@ -4,6 +4,7 @@ import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {MARKET_CLIENT_GROUP} from '../../apps/web/lib/server/market-client-address.ts';
+import {doProbe,doProbeWorker} from './do-probe.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{build}=require('esbuild');
 
@@ -17,9 +18,9 @@ function food({missing=[]}={}){
  const calls=[];let persist;
  const at=async time=>{
   persist??=await mkdtemp(join(tmpdir(),'run11-food-client-'));
-  const mf=new Miniflare({...convertV4MiniflareOptions({modules:true,script:wrapper,compatibilityDate:'2026-09-13',durableObjects:{FOOD_BUDGET:{className:'FoodBudget',useSQLite:true}},bindings:{FOOD_USER_AGENT:'ZIGoals/0.1.0 (alpha-contact@example.invalid)',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time)},outboundService:async request=>{const code=new URL(request.url).pathname.split('/').at(-1);calls.push(code);return missing.includes(code)?new Response('{}',{status:404}):Response.json({code,product:{product_name:'Fixture '+code}});}}),resourcePersistencePath:persist});
+  const mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:'main',modules:true,script:wrapper,compatibilityDate:'2026-09-13',durableObjects:{FOOD_BUDGET:{className:'FoodBudget',useSQLite:true}},bindings:{FOOD_USER_AGENT:'ZIGoals/0.1.0 (alpha-contact@example.invalid)',ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time)},outboundService:async request=>{const code=new URL(request.url).pathname.split('/').at(-1);calls.push(code);return missing.includes(code)?new Response('{}',{status:404}):Response.json({code,product:{product_name:'Fixture '+code}});}},doProbeWorker({className:'FoodBudget',scriptName:'main'})]}),resourcePersistencePath:persist});
   const lookup=async(code,client)=>{const response=await mf.dispatchFetch('https://food.test/lookup?code='+code,{headers:client?{'x-food-client':client}:{}});return {status:response.status,body:await response.json()};};
-  const rows=async()=>{const ns=await mf.getDurableObjectNamespace('FOOD_BUDGET');return (await ns.get(ns.idFromName('shared-provider-budget-v1')).fetch('https://internal/test/rows')).json();};
+  const rows=async()=>{const ns=await doProbe(mf);return (await ns.get(ns.idFromName('shared-provider-budget-v1')).fetch('https://internal/test/rows')).json();};
   return {mf,lookup,rows};
  };
  return {calls,at};

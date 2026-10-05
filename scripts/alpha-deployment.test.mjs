@@ -68,6 +68,27 @@ test("the manual Alpha workflow and deploy script never name or pass the market 
 test("only a fresh explicit owner dispatch of the full main SHA is authorized", () => {
   expect(() => assertDispatch(dispatch())).not.toThrow();
 });
+// Session U Part 7 (owner option 3): exactly the Claude GitHub App's bot may dispatch too, under every other condition.
+test("the Claude GitHub App's bot may dispatch, with every other condition unchanged; no other account may", () => {
+  const bot = { GITHUB_ACTOR: "claude[bot]", GITHUB_TRIGGERING_ACTOR: "claude[bot]" };
+  expect(() => assertDispatch({ ...dispatch(), ...bot })).not.toThrow();
+  for (const [key, value] of [["GITHUB_EVENT_NAME", "push"], ["GITHUB_REF", "refs/heads/feature"], ["GITHUB_RUN_ATTEMPT", "2"], ["OWNER_APPROVAL", "false"], ["EXPECTED_COMMIT", "b".repeat(40)]])
+    expect(() => assertDispatch({ ...dispatch(), ...bot, [key]: value })).toThrow();
+  for (const actor of ["claude", "claude-bot", "Claude[bot]", "claude[bot] ", " claude[bot]", "claude[Bot]", "claude[bot]x", "github-actions[bot]", "dependabot[bot]", "anthropics", "collaborator", ""])
+    expect(() => assertDispatch({ ...dispatch(), GITHUB_ACTOR: actor, GITHUB_TRIGGERING_ACTOR: actor })).toThrow();
+  // The account that dispatched must be the one that triggered the run: neither may stand in for the other.
+  expect(() => assertDispatch({ ...dispatch(), GITHUB_ACTOR: "claude[bot]", GITHUB_TRIGGERING_ACTOR: "reyals1111-ux" })).toThrow();
+  expect(() => assertDispatch({ ...dispatch(), GITHUB_ACTOR: "reyals1111-ux", GITHUB_TRIGGERING_ACTOR: "claude[bot]" })).toThrow();
+});
+test("the workflow's own first step accepts exactly the same two dispatchers, before checkout", () => {
+  const workflow = readFileSync(new URL("../.github/workflows/deploy-alpha.yml", import.meta.url), "utf8");
+  const step = workflow.slice(workflow.indexOf("Reject unauthorized refs, actors and reruns before checkout"), workflow.indexOf("- uses: actions/checkout"));
+  expect(step).toContain(`test "$GITHUB_ACTOR" = reyals1111-ux || test "$GITHUB_ACTOR" = 'claude[bot]'`);
+  expect(step).toContain(`test "$GITHUB_TRIGGERING_ACTOR" = "$GITHUB_ACTOR"`);
+  expect(step).toContain("test \"$GITHUB_EVENT_NAME\" = workflow_dispatch");expect(step).toContain("test \"$GITHUB_REF\" = refs/heads/main");expect(step).toContain("test \"$GITHUB_RUN_ATTEMPT\" = 1");
+  // Two exact comparisons; never a pattern (no =~, glob or [[ ]] match on the actor).
+  expect(step.match(/GITHUB_ACTOR"? = /g)).toHaveLength(2);expect(step).not.toMatch(/GITHUB(_TRIGGERING)?_ACTOR[^\n]*(=~|\*|\[\[)/);
+});
 test.each([
   ["GITHUB_EVENT_NAME", "push"], ["GITHUB_REPOSITORY", "fork/ZIGoals"],
   ["GITHUB_ACTOR", "collaborator"], ["GITHUB_TRIGGERING_ACTOR", "collaborator"],
@@ -262,6 +283,7 @@ function htmlResponse(nonce = "A".repeat(43) + "=",path="/app") {
     "content-type": "text/html", "cache-control": "private, no-store, max-age=0",
     "content-security-policy": `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://testnet-api.zigchain.com https://testnet-rpc.zigchain.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests`,
     "strict-transport-security": "max-age=31536000, max-age=31536000",
+    "cross-origin-opener-policy": "same-origin",
     "x-frame-options": "DENY", "x-content-type-options": "nosniff", "x-robots-tag": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
     "referrer-policy": "no-referrer", "permissions-policy": `${path==='/app/health'?'camera=(self)':'camera=()'}, microphone=(), geolocation=()`,
   } });
@@ -337,7 +359,9 @@ test.each([["verified", "VERIFIED", 200, "VERIFIED_FRESH", null], ["unavailable"
   "the post-deploy smoke records a %s market answer as information", async (market, result, status, pair, failure) => {
     const { calls, fetcher } = alphaFetcher(market);
     const checks = await smokeAlpha({ expectedCommit: sha, fetcher, marketProbe: true });
-    expect(checks).toHaveLength(12);
+    expect(checks).toHaveLength(13);
+    // Session U Part 2d: the policy period end is read first, as information (this fixture answers HTML: not reported).
+    expect(checks.at(-2)).toEqual({ route: "/api/market-status", status: 200, policyWindowEnd: null, nextPolicyWindowEnd: null });
     expect(checks.at(-1)).toEqual({ route: "/api/market-quotes", status, market: result, pair, failure });
     const probe = calls.at(-1);
     expect(probe.url).toBe("https://alpha.zigoals.app/api/market-quotes");
@@ -349,6 +373,18 @@ test("the rollback capture smoke sends no market probe", async () => {
   const { calls, fetcher } = alphaFetcher("crashed");
   expect(await smokeAlpha({ fetcher })).toHaveLength(11);
   expect(calls.some(c => new URL(c.url).pathname.startsWith("/api/"))).toBe(false);
+});
+test("Session U: the post-deploy smoke reads the market policy period end first, as information only", async () => {
+  const reported = "2026-10-31T16:00:00.000Z";
+  for (const [answer, recorded] of [[() => Response.json({ version: 1, policyWindowEnd: reported }), { status: 200, policyWindowEnd: reported, nextPolicyWindowEnd: null }], [() => Response.json({ version: 1, policyWindowEnd: reported, nextPolicyWindowEnd: "2026-11-30T16:00:00.000Z" }), { status: 200, policyWindowEnd: reported, nextPolicyWindowEnd: "2026-11-30T16:00:00.000Z" }], [() => { throw new TypeError("fetch failed"); }, { status: null, policyWindowEnd: null, nextPolicyWindowEnd: null }]]) {
+    const { calls, fetcher } = alphaFetcher("unavailable");
+    const withStatus = async (url, options) => { if (new URL(url).pathname !== "/api/market-status") return fetcher(url, options); calls.push({ url, options }); return answer(); };
+    const checks = await smokeAlpha({ expectedCommit: sha, fetcher: withStatus, marketProbe: true });
+    expect(checks.at(-2)).toEqual({ route: "/api/market-status", ...recorded });
+    expect(checks.at(-1)).toMatchObject({ route: "/api/market-quotes", market: "UNAVAILABLE", failure: "LOCAL_BUDGET" });
+    expect(calls.map(c => new URL(c.url).pathname).slice(-2)).toEqual(["/api/market-status", "/api/market-quotes"]);
+    expect(calls.at(-2).options).toMatchObject({ method: "GET", redirect: "manual" });
+  }
 });
 test("a malformed market answer fails the post-deploy smoke without echoing the body", async () => {
   const { fetcher } = alphaFetcher("crashed");

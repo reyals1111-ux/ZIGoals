@@ -15,7 +15,7 @@ test('explicit mode requires configured service; cannot fall back after binding 
 test('binding receives only canonical public work; versioned partial outcomes survive client transport',async()=>{
  const now=Date.now(),quote=parseCoinQuotes('{"bitcoin":{"usd":1.23456789123456789,"last_updated_at":'+Math.floor(now/1000)+'}}',[pairs[0]!],now)[0]!;
  const expected=marketPairEnvelope(pairs,[quote],[{request:pairs[1]!,category:'UPSTREAM_5XX'}],now);
- const binding=vi.fn(async(request:Request)=>{expect([...request.headers.keys()]).toEqual(['content-type']);expect(await request.json()).toEqual({version:1,requests:pairs});return Response.json(expected);});
+ const binding=vi.fn(async(request:Request)=>{expect([...request.headers.keys()]).toEqual(['content-type','x-market-caller']);expect(request.headers.get('x-market-caller')).toBe('public');expect(await request.json()).toEqual({version:1,requests:pairs});return Response.json(expected);});
  const result=await configuredDurableQuotes(pairs,async()=>({ZIGOALS_MARKET_QUOTES_MODE:'durable-v1',MARKET_QUOTES:{fetch:binding}}));
  expect(result).toMatchObject({version:1,quotes:[quote],degraded:true});
  const loaded=await fetchPublicMarketQuotes(pairs,false,async()=>Response.json(result));expect(loaded.quotes).toEqual([quote]);expect(loaded.results).toEqual(expected.results);

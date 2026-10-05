@@ -243,3 +243,5 @@
 @media(max-width:480px) { .health-planning-grid .panel,.health-water { padding: 20px 16px; } .health-simple-list .health-row-actions { width:100%; } }
 .health-extra-nutrients{grid-column:1/-1;min-width:0;width:100%;margin-top:1rem}.health-extra-nutrients dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem}.health-extra-nutrients dd{margin:.3rem 0;overflow-wrap:anywhere}
 @media (max-width: 900px) { .health-page .health-date .field input { font-size:16px; } }
+/* Session U Part 3: the remaining wait after a food lookup 429 (plain text, no animation). */
+.barcode-wait { margin-inline-start: 12px; font-size: .875rem; color: var(--health-muted); font-variant-numeric: tabular-nums; }

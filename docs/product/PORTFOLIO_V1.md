@@ -28,7 +28,7 @@
 ## Honesty
 - **Prices** come only from the shared public quote cache (`useMarketQuotes`), batched, with its 60 s per-pair gate and
   server budgets. Nothing polls in the background.
-- **On Alpha** the page says "Live prices aren't connected yet" and values stay unknown.
+- **Without a live price** (none returned for the portfolio's coins, for example while the coordinator is unavailable) the page says "No live price is available right now" and values stay unknown. On the public Alpha, prices come through the market coordinator (Session S); Session U fixed the provider refusal that kept them UNAVAILABLE after deploy #28.
 - **A stale price** says "Needs refresh" with its time, and the totals say they include prices that need a refresh.
 - **CoinGecko attribution** appears where prices show.
 - **Showcase** shows a clearly fictional portfolio with fixture prices labelled "Showcase fixture prices, not market data".
@@ -41,7 +41,10 @@
   session storage. It is versioned and zod-validated (`lib/portfolio/schema.ts`).
 - **Unreadable data** shows a calm notice and is never replaced unless the reader chooses "Start over". Writes touch this
   key only.
-- **Stored on this device only:** not synced, and not in the private module backups.
+- **Stored on this device only:** not in the private module backups, and not synced unless the person ticks "Also sync my
+  Portfolio (optional)" in Settings → account sync (Session U Part 9, ADR-013): then an encrypted copy of the whole
+  Portfolio travels with the account, in its own keyspace of the vault, merged three-way (a two-sided change asks
+  "Keep this device's Portfolio" or "Keep the encrypted copy"). Unticked by default; the Portfolio itself stays this key.
 - **Export and import:** a JSON file holding Portfolio only. Import is checked in full, then replaces everything only after
   an explicit confirmation. Refusals say why: not an export, damaged, too large, or a sale before its coins came in.
 - **Isolation:** nothing writes to the platform store. Portfolio never feeds Wealth, Goals, Positions, Allocation,

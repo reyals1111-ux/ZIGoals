@@ -37,6 +37,7 @@
     "maxWorks": 64,
     "maxCacheBytes": 16777216,
     "retryRetentionMs": 3600000,
+    "dailyRowBudget": 20000,
     "breaker": { "threshold": 3, "windowMs": 60000, "cooldownMs": 30000, "maxCooldownMs": 300000, "halfOpenProbes": 1 },
     "accountThrottle": { "distinctEndpoints": 2, "windowMs": 60000 }
   }

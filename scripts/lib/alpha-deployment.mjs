@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 
 export const REPOSITORY = "reyals1111-ux/ZIGoals";
 export const OWNER = "reyals1111-ux";
+// Session U Part 7 (owner option 3, docs/deployment/AGENT_DISPATCH.md): the Claude GitHub App's own bot account may also
+// dispatch. A GitHub App's bot login is its slug plus "[bot]" (actions/create-github-app-token README, read 2026-10-05);
+// the slug "claude" (app id 1236702, owner anthropics) is this repository's record (PR #74 was created through it).
+// People's logins cannot contain "[" or "]", so only the App holds this exact string. Approving the protected alpha
+// environment stays the owner's alone (assertEnvironment).
+export const CLAUDE_APP_BOT = "claude[bot]";
+export const DISPATCHERS = Object.freeze([OWNER, CLAUDE_APP_BOT]);
 export const WORKER = "zigoals-alpha";
 export const MARKET_COORDINATOR = "zigoals-acctest-market-coordinator";
 const SHA = /^[a-f0-9]{40}$/;
@@ -37,8 +44,8 @@ export function alphaDeployArgs() {
 export function assertDispatch(env) {
   assert.equal(env.GITHUB_EVENT_NAME, "workflow_dispatch", "Manual dispatch required");
   assert.equal(env.GITHUB_REPOSITORY, REPOSITORY, "Canonical repository required");
-  assert.equal(env.GITHUB_ACTOR, OWNER, "Owner must dispatch");
-  assert.equal(env.GITHUB_TRIGGERING_ACTOR, OWNER, "Owner must trigger the run");
+  assert.ok(DISPATCHERS.includes(env.GITHUB_ACTOR), "Owner (or the Claude GitHub App's bot) must dispatch");
+  assert.equal(env.GITHUB_TRIGGERING_ACTOR, env.GITHUB_ACTOR, "The dispatcher must trigger the run");
   assert.equal(env.GITHUB_RUN_ATTEMPT, "1", "Use a fresh dispatch; reruns are refused");
   assert.equal(env.GITHUB_REF, "refs/heads/main", "Select the main branch");
   assert.equal(env.OWNER_APPROVAL, "true", "Explicit owner approval required");

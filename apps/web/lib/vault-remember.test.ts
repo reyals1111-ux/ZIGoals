@@ -5,8 +5,8 @@ import {afterEach,beforeEach,describe,expect,test,vi} from 'vitest';
 import {act,createElement} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {activateAccount,clearAccountSession,getAccountScope,isAccountLocked,lockAccount} from './account-session';
-import {createVault} from './vault/crypto';
-import {DEVICE_DATABASE,readDevices} from './vault/device-unlock';
+import {createDeviceKey,createVault,deviceCommitment,manifestDigest,sealDigest,unlockVaultForDevice} from './vault/crypto';
+import {DEVICE_DATABASE,readDevices,rememberDevice} from './vault/device-unlock';
 import {StaleDeviceError,noteAccessDenial} from './vault/stale-device';
 const h=vi.hoisted(()=>({access:{} as any,manifest:null as any,session:'',signedIn:null as string|null,held:[] as string[],requests:[] as string[],synchronize:vi.fn()}));
 vi.mock('../components/account-access',()=>({AccountAccess:(p:any)=>{h.access=p;return null;}}));
@@ -179,6 +179,52 @@ describe('what makes it ask for the secret again',()=>{
   await act(async()=>{form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));clearAccountSession();h.access.onSignout();});await settle();
   expect(await readDevices()).toEqual([]);expect(isAccountLocked()).toBe(true);
  });
+});
+
+// Session U Part 5 (B1, FINDINGS Q-SYNC-01): a new remember stores version 2 (the root key itself); a version 1 record
+// from an earlier build opens once more and is migrated; a browser that cannot store the key object keeps version 1.
+describe('version 2 records (B1)',()=>{
+ const v1Record=async()=>{const deviceKey=await createDeviceKey(),{sealed}=await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey);return {version:1 as const,account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:await manifestDigest(vault.manifest),session:S1,health:false,createdAt:'2026-10-02T10:00:00.000Z',sealed,key:deviceKey};};
+ test('a new remember stores the root key itself, and it opens again after a reload',async()=>{
+  await remembered();
+  const [record]=await readDevices();expect(record!.version).toBe(2);if(!record||record.version!==2)throw Error('expected version 2');
+  expect(record.root.extractable).toBe(false);expect([...record.root.usages]).toEqual(['deriveKey']);expect(record).not.toHaveProperty('sealed');expect(record).not.toHaveProperty('key');
+  await reload();await verified();expect(opened()).toBe(true);expect((await readDevices())[0]!.version).toBe(2);
+ });
+ test('a version 1 record opens without the secret and is migrated to version 2, keeping its bindings',async()=>{
+  const v1=await v1Record();expect(await rememberDevice(v1,0)).toBe(true);
+  await mount();await verified();expect(opened()).toBe(true);
+  const [record]=await readDevices();expect(record).toMatchObject({version:2,account:A,vault:v1.vault,epoch:v1.epoch,manifest:v1.manifest,session:S1,health:false,createdAt:v1.createdAt,migratedFrom:await sealDigest(v1.sealed)});
+  await reload();await verified();expect(opened()).toBe(true);expect((await readDevices())[0]!.version).toBe(2);
+  // Lock now still forgets it.
+  await act(async()=>button('Lock account vault')!.click());await settle();expect(await readDevices()).toEqual([]);
+ });
+ test('a browser that cannot store the key object keeps version 1: it remembers, opens, and stays version 1',async()=>{
+  const put=IDBObjectStore.prototype.put;
+  const refuse=vi.spyOn(IDBObjectStore.prototype,'put').mockImplementation(function(this:IDBObjectStore,...args:Parameters<IDBObjectStore['put']>){if((args[0] as {version?:number})?.version===2)throw new DOMException('The object could not be cloned.','DataCloneError');return put.apply(this,args);});
+  // Restored here: afterEach does not restore spies, and the next test stores a version 2 record.
+  try{
+   await remembered();expect((await readDevices())[0]!.version).toBe(1);
+   await reload();await verified();expect(opened()).toBe(true);expect((await readDevices())[0]!.version).toBe(1);
+  }finally{refuse.mockRestore();}
+ });
+ test('a version 2 record whose root no longer derives its commitment is deleted, and the secret is asked for',async()=>{
+  const other=await createVault(),digest=await manifestDigest(vault.manifest);
+  expect(await rememberDevice({version:2,id:crypto.randomUUID(),account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:digest,session:S1,health:false,createdAt:'2026-10-02T10:00:00.000Z',commitment:await deviceCommitment(vault.key,A,digest),root:other.key},0)).toBe(true);
+  await mount();await verified();expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);
+  expect(element.querySelector('input[type=password]')).not.toBeNull();
+ });
+});
+
+// Session U Part 5 (B2, FINDINGS Q-SYNC-02): Lock in another tab of this browser arrives as a manual lock.
+test('Lock in another tab of this browser is a manual lock here: the remembered device does not reopen this tab',async()=>{
+ await remembered();await reload(false);expect(isAccountLocked()).toBe(false);
+ // An older tab's plain lock: this tab reopens from the remembered device when it is used again, as before.
+ await act(async()=>{lockAccount();});await settle();expect(isAccountLocked()).toBe(true);
+ await act(async()=>{window.dispatchEvent(new Event('focus'));});await settle();expect(isAccountLocked()).toBe(false);
+ // Lock in a tab of this build: manual here too, so focus does not reopen it.
+ await act(async()=>{lockAccount('manual');});await settle();expect(isAccountLocked()).toBe(true);
+ await act(async()=>{window.dispatchEvent(new Event('focus'));});await settle();expect(isAccountLocked()).toBe(true);
 });
 
 test('Showcase: no device database is read and no account request is made',async()=>{

@@ -14,6 +14,9 @@ import {privateFileProblems} from './activation-check.mjs';
 export const OWNER_SCHEMA='zigoals-market-policy-owner/1';
 const OPERATIONS=['catalog','history','insights','token','rwa'];
 const DAY=86400000;
+/** The coordinator's default when the policy names no dailyRowBudget (DEFAULT_DAILY_ROW_BUDGET in
+ * apps/web/lib/server/market-client-limits.ts; market-policy.test.mjs keeps them equal). */
+export const DEFAULT_DAILY_ROWS=20000;
 // Provider limit pairs used only by repository test fixtures; a real plan never matches them exactly.
 export const FIXTURE_LIMITS=[[10,100],[20,100],[100,1000],[3,80]];
 const FIXTURE_KEYS=/^(LOCAL_TEST_NOW|ISOLATED_FIXTURE|status|unresolved_do_not_default|activation_prerequisites|proposed_policy)$/;
@@ -77,12 +80,30 @@ export function validateOwnerPolicy(owner,{now=Date.now()}={}){
  need(isInt(b.threshold)&&b.threshold<=100&&isInt(b.windowMs)&&b.windowMs<=3600000&&isInt(b.cooldownMs)&&isInt(b.maxCooldownMs)&&b.maxCooldownMs>=b.cooldownMs&&isInt(b.halfOpenProbes)&&b.halfOpenProbes<=8&&Object.keys(b).length===5,'coordinator.breaker must hold threshold (≤100), windowMs (≤3600000), cooldownMs, maxCooldownMs (≥cooldownMs) and halfOpenProbes (≤8).');
  const t=c.accountThrottle??{};
  need(isInt(t.distinctEndpoints,2)&&t.distinctEndpoints<=8&&isInt(t.windowMs)&&t.windowMs<=60000&&Object.keys(t).length===2,'coordinator.accountThrottle must hold distinctEndpoints (2 to 8) and windowMs (≤60000).');
+ // Session U Part 2d: rows the account object may write per UTC day. Optional: absent keeps the coordinator's default.
+ if(c.dailyRowBudget!==undefined)need(isInt(c.dailyRowBudget)&&c.dailyRowBudget>=1000&&c.dailyRowBudget<=10000000,`coordinator.dailyRowBudget must be 1000 to 10000000 rows a day, or absent for the default ${DEFAULT_DAILY_ROWS} (docs/run11/ALPHA_PRICES_ROLLOUT.md, dailyRowBudget advice).`);
+ // Session U Part 2e: the public Alpha's share of those rows. Optional: absent means no partition (today's behaviour).
+ const part=c.partition;
+ if(part!==undefined)need(part!==null&&typeof part==='object'&&!Array.isArray(part)&&Object.keys(part).join()==='publicPercent'&&isInt(part.publicPercent)&&part.publicPercent>=10&&part.publicPercent<=90,'coordinator.partition must be {"publicPercent": 10 to 90}, or absent for no partition (docs/run11/ALPHA_PRICES_ROLLOUT.md, "Two apps, one budget").');
+ // Session U Part 2f: new works all public callers together may start per UTC day. Optional: absent means an eighth of
+ // the daily row budget.
+ if(c.publicColdWorks!==undefined)need(isInt(c.publicColdWorks)&&c.publicColdWorks<=10000000,'coordinator.publicColdWorks must be 1 to 10000000 new works a day, or absent for an eighth of the daily row budget (docs/run11/ALPHA_PRICES_ROLLOUT.md, "Two apps, one budget").');
  if(errors.length)return {errors};
  const pick=(n)=>({minute:o[n].minute,monthly:o[n].monthly});
- const policy={policy:{providerMinuteLimit:p.perMinuteLimit,providerMonthlyLimit:p.monthlyCredits,operating:pick('operating'),monitoringReserve:pick('monitoringReserve'),monitoringMaximum:pick('monitoringMaximum'),optionalCeiling:pick('optionalCeiling'),concurrent:o.concurrent,queueLimit:o.queueLimit,reservationMs:o.reservationMs,ownershipMs:o.ownershipMs},...period,quoteCost:costs.quote,...(Object.keys(operationCosts).length?{operationCosts}:{}),leaseMs:c.leaseMs,maxAttempts:c.maxAttempts,maxWorks:c.maxWorks,maxCacheBytes:c.maxCacheBytes,retryRetentionMs:c.retryRetentionMs,breaker:{threshold:b.threshold,windowMs:b.windowMs,cooldownMs:b.cooldownMs,maxCooldownMs:b.maxCooldownMs,halfOpenProbes:b.halfOpenProbes},accountThrottle:{distinctEndpoints:t.distinctEndpoints,windowMs:t.windowMs}};
+ const policy={policy:{providerMinuteLimit:p.perMinuteLimit,providerMonthlyLimit:p.monthlyCredits,operating:pick('operating'),monitoringReserve:pick('monitoringReserve'),monitoringMaximum:pick('monitoringMaximum'),optionalCeiling:pick('optionalCeiling'),concurrent:o.concurrent,queueLimit:o.queueLimit,reservationMs:o.reservationMs,ownershipMs:o.ownershipMs},...period,quoteCost:costs.quote,...(Object.keys(operationCosts).length?{operationCosts}:{}),leaseMs:c.leaseMs,maxAttempts:c.maxAttempts,maxWorks:c.maxWorks,maxCacheBytes:c.maxCacheBytes,retryRetentionMs:c.retryRetentionMs,breaker:{threshold:b.threshold,windowMs:b.windowMs,cooldownMs:b.cooldownMs,maxCooldownMs:b.maxCooldownMs,halfOpenProbes:b.halfOpenProbes},accountThrottle:{distinctEndpoints:t.distinctEndpoints,windowMs:t.windowMs},...(c.dailyRowBudget!==undefined?{dailyRowBudget:c.dailyRowBudget}:{}),...(part!==undefined?{partition:{publicPercent:part.publicPercent}}:{}),...(c.publicColdWorks!==undefined?{publicColdWorks:c.publicColdWorks}:{})};
  return {errors:[],policy,enabled,disabled};
 }
 
+/** Writes a validated policy to a new file inside the checkout, ignored by git and mode 0600; never overwrites. Shared
+ * with next-market-policy.mjs (Session U). */
+export function writePolicyFile(root,out,policy){
+ const target=resolve(root,out);
+ if(existsSync(target))throw Error(`Refusing to overwrite ${out}.`);
+ if(!target.startsWith(resolve(root)+'/')||spawnSync('git',['check-ignore','-q',target],{cwd:root}).status!==0)throw Error(`${out} must be inside the checkout and ignored by git (name it *.market-policy.private.json); nothing written.`);
+ writeFileSync(target,JSON.stringify(policy)+'\n',{flag:'wx',mode:0o600});chmodSync(target,0o600);
+ const problems=privateFileProblems(root,out);
+ if(problems.length){unlinkSync(target);throw Error(`${out}: ${problems.join(', ')}; removed.`);}
+}
 /** Validates the owner file and writes the policy. Returns summary lines without figures. */
 export function writeMarketPolicy(root,{ownerFile,out},{now=Date.now()}={}){
  const ownerProblems=privateFileProblems(root,ownerFile);
@@ -90,12 +111,7 @@ export function writeMarketPolicy(root,{ownerFile,out},{now=Date.now()}={}){
  let owner;try{owner=JSON.parse(readFileSync(resolve(root,ownerFile),'utf8'));}catch{throw Error(`${ownerFile} is not valid JSON.`);}
  const result=validateOwnerPolicy(owner,{now});
  if(result.errors.length)throw Error(['Owner policy rejected; nothing written:',...result.errors.map(e=>'- '+e)].join('\n'));
- const target=resolve(root,out);
- if(existsSync(target))throw Error(`Refusing to overwrite ${out}.`);
- if(!target.startsWith(resolve(root)+'/')||spawnSync('git',['check-ignore','-q',target],{cwd:root}).status!==0)throw Error(`${out} must be inside the checkout and ignored by git (name it *.market-policy.private.json); nothing written.`);
- writeFileSync(target,JSON.stringify(result.policy)+'\n',{flag:'wx',mode:0o600});chmodSync(target,0o600);
- const problems=privateFileProblems(root,out);
- if(problems.length){unlinkSync(target);throw Error(`${out}: ${problems.join(', ')}; removed.`);}
+ writePolicyFile(root,out,result.policy);
  return [`Wrote MARKET_POLICY to ${out} (0600, ignored by git; values not printed).`,`Accounting period: ${result.policy.calendar?'confirmed UTC calendar month':'exact window '+result.policy.month.id+' (generate a new policy before it ends; the coordinator fails closed after it)'}.`,`Enabled operations: ${result.enabled.join(', ')}.`,...(result.disabled.length?[`Disabled, fail closed: ${result.disabled.join(', ')}.`]:[]),`Next: node scripts/run11/make-private-configs.mjs … --market-policy-file ${out}`];
 }
 function main(){

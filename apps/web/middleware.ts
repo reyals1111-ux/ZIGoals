@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { securityPolicy } from "./lib/security-policy";
+import { securityPolicy, trustedTypesTrialHeader } from "./lib/security-policy";
 // Legacy edge middleware is intentional: OpenNext cannot run Node proxy yet.
 export function middleware(request: NextRequest) {
   const https = request.nextUrl.protocol === "https:";
@@ -11,6 +11,9 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next({request:{headers}});
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("Cache-Control", "private, no-store, max-age=0");
+  // Session U Part 6 (FIX_PLAN D4): the Trusted Types trial, report-only, on a local run only (security-policy.ts).
+  const trial = trustedTypesTrialHeader(process.env.ZIGOALS_TRUSTED_TYPES_TRIAL, request.nextUrl.hostname);
+  if (trial) response.headers.set("Content-Security-Policy-Report-Only", trial);
   return response;
 }
 export const config = {

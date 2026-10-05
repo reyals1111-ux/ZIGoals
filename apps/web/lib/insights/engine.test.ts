@@ -2,7 +2,8 @@ import {afterEach, describe, expect, test} from 'vitest';
 import {buildShowcase} from '../showcase-data';
 import {HABITS_KEY, createHabit, emptyHabitData, habitDataSchema, logHabitCount, setHabitEntryStatus, type HabitData, type HabitInput} from '../habits';
 import {HEALTH_STORAGE_KEY, createEmptyHealth, healthSchema, type HealthData} from '../health';
-import {HABIT_HEALTH_LINKS_KEY, type HabitHealthLinks} from '../habit-health-links/schema';
+import {type HabitHealthLinks} from '../habit-health-links/schema';
+import {homeRecordsIn} from '../sync-homes-store';
 import {addLocalDays} from '../local-date';
 import {setDisplayLocale} from '../visual-format';
 import {FORBIDDEN_INSIGHT_WORDS, insightCards, stepThreshold} from './engine';
@@ -18,7 +19,7 @@ const INPUT: HabitInput = {title: 'Read', category: 'Learning', description: '',
 const forbidden = (text: string) => FORBIDDEN_INSIGHT_WORDS.filter(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
 function showcase() {
   const {records} = buildShowcase(DAY);
-  return {habits: habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health: healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)), links: JSON.parse(records[HABIT_HEALTH_LINKS_KEY]!) as HabitHealthLinks};
+  return {habits: habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health: healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)), links: homeRecordsIn(records).habitLinks as HabitHealthLinks};
 }
 /** `days` back from DAY: activity with the given steps, water where `water[i]`. */
 function journal(steps: number[], water: boolean[], extra: Partial<HealthData> = {}): HealthData {

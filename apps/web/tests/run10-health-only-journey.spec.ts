@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-import { navLink, openMealLog } from './phone-nav';
+import { navLink, openMealLog, openTodayWidgets } from './phone-nav';
 
 test('JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests', async ({ page, context, isMobile }, info) => {
   expect(await context.storageState()).toEqual({ cookies: [], origins: [] });
@@ -69,6 +69,7 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   await expect(page).toHaveURL(/\/app$/);
   await page.reload();
   await expect(page.locator('.personalized-today')).toHaveAttribute('data-interests', 'health');
+  await openTodayWidgets(page);
   await expect(widget).toContainText('250 mL');
   await expect(page.getByRole('region', { name: 'Today financial intelligence' })).toHaveCount(0);
   await expect(page.getByRole('complementary', { name: 'Showcase data' })).toHaveCount(0);

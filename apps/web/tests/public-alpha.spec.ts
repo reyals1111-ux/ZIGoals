@@ -62,6 +62,7 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(h["content-security-policy"]).toContain("worker-src 'self'");
   expect(h["x-frame-options"]).toBe("DENY"); expect(h["x-content-type-options"]).toBe("nosniff");
   expect(h["referrer-policy"]).toBe("no-referrer"); expect(h["cache-control"]).toContain("no-store");
+  expect(h["cross-origin-opener-policy"]).toBe("same-origin");
   expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
   const socialUrl = new URL("/social-card.png", response!.url());
   // NextURL intentionally normalizes loopback addresses to localhost.
@@ -146,7 +147,11 @@ test("public icon and robots bypass nonce work while lookalike HTML retains CSP"
     const response = await request.get(route);
     expect(response.status()).toBe(200);
     const h = response.headers();
-    expect(h["content-security-policy"]).toBeUndefined();
+    // Session U Part 6 (FIX_PLAN D2): an SVG opened on its own runs under a static, script-free policy (public/_headers);
+    // no public file gets the pages' nonce policy.
+    if (route.endsWith(".svg")) expect(h["content-security-policy"]).toBe("default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox");
+    else expect(h["content-security-policy"]).toBeUndefined();
+    expect(h["cross-origin-opener-policy"]).toBe("same-origin");
     expect(h["cache-control"]).not.toContain("no-store");
     expect(h["x-frame-options"]).toBe("DENY");
     expect(h["x-content-type-options"]).toBe("nosniff");

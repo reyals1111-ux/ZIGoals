@@ -26,6 +26,7 @@ import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
 import { formatPlainDecimal } from "../lib/visual-format";
+import { HealthDocumentLinks } from "./health-document-links";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -65,6 +66,7 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <>
       <RouteFocusFallback />
+      <HealthDocumentLinks />
       <a className="skip" href="#main">
         Skip to content
       </a>

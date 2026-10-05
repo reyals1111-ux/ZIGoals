@@ -161,9 +161,13 @@ export function TodayDashboard(){
   const hidden=ref.kind==='widget'?widget!.hidden:placement.hiddenBuiltins.includes(ref.id as DashboardBuiltinId);
   if(hidden&&!customize)return null;
   const label=ref.kind==='widget'?widget!.title||WIDGET_CATALOG[widget!.kind].label:builtin!.label;
+  // Session U follow-up F3: on a phone each widget card also folds to a row named by the widget and opens in place; the
+  // overview ("Your selected widgets") still shows every widget's value at a glance, so nothing is removed. While Today
+  // is being customized no widget folds, so every card and its options stay in reach.
+  const foldLabel=ref.kind==='widget'?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has(ref.id as DashboardBuiltinId)?PHONE_FOLD_LABEL[ref.id]??label:undefined;
   return <div key={`${ref.kind}:${ref.id}`} id={itemId(ref)} tabIndex={-1} className="placed-module" data-kind={ref.kind} data-module={ref.id} data-size={widget?.size} data-hidden={hidden?'true':undefined}>
    {customize&&ref.kind==='builtin'&&<div className="dashboard-builtin-options"><CardOptions label={label}><button type="button" disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,label)}>Move earlier</button><button type="button" disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,label)}>Move later</button>{builtin!.hideable&&<button type="button" disabled={busy} onClick={()=>apply(s=>setDashboardBuiltinHidden(s,ref.id as DashboardBuiltinId,!hidden,placement.revision))}>{hidden?'Show card':'Hide card'}</button>}</CardOptions></div>}
-   {hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:ref.kind==='builtin'&&PHONE_FOLDED.has(ref.id as DashboardBuiltinId)?<PhoneFold label={PHONE_FOLD_LABEL[ref.id]??label}>{content}</PhoneFold>:content}
+   {hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel}>{content}</PhoneFold>:content}
    {customize&&<button type="button" className="dashboard-insert-here" disabled={busy||settings.data.widgets.length>=24} onClick={()=>addAfter(ref,region)}>+ Add widget after {label}</button>}
   </div>;
  }

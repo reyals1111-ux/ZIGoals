@@ -30,7 +30,7 @@ export function reviewSteps(summary: WeekSummary, financial: boolean, formatWeal
  */
 export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financial, formatWealth, onSaveNotes, onFinish, onClose, guideNote}: {
   weekStart: string; weekEnd: string; summary: WeekSummary; review: Review | undefined; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string;
-  onSaveNotes: (notes: Partial<Record<ReviewNoteField, string>>) => void; onFinish: (notes: Partial<Record<ReviewNoteField, string>>) => void; onClose: () => void; /** The Guide's paragraph for the last step (ADR-011), only while the Guide is on. */ guideNote?: string;
+  onSaveNotes: (notes: Partial<Record<ReviewNoteField, string>>) => unknown; onFinish: (notes: Partial<Record<ReviewNoteField, string>>) => unknown; onClose: () => void; /** The Guide's paragraph for the last step (ADR-011), only while the Guide is on. */ guideNote?: string;
 }) {
   const phone = usePhoneActive(), steps = reviewSteps(summary, financial, formatWealth);
   const [index, setIndex] = useState(0); const [error, setError] = useState('');
@@ -38,7 +38,7 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus(); }, [index]);
   const step = steps[index]!;
-  const save = (fn: typeof onSaveNotes) => { setError(''); try { fn(notes); return true; } catch (e) { setError(e instanceof Error ? e.message : 'Your words were not saved on this device.'); return false; } };
+  const save = async (fn: typeof onSaveNotes) => { setError(''); try { await fn(notes); return true; } catch (e) { setError(e instanceof Error ? e.message : 'Your words were not saved on this device.'); return false; } };
   const body = <div className="weekly-review" aria-label="Your week">
     <p className="eyebrow">Your week · {weekStart} – {weekEnd}</p>
     <p className="weekly-review-step">Step {index + 1} of {steps.length}</p>
@@ -49,11 +49,11 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
     {error && <p role="alert">{error}</p>}
     <div className="actions weekly-review-actions">
       <button type="button" className="quiet" disabled={index === 0} onClick={() => setIndex(index - 1)}>Back</button>
-      {index < steps.length - 1 ? <button type="button" className="primary" onClick={() => { if (save(onSaveNotes)) setIndex(index + 1); }}>Next</button> : <button type="button" className="primary" onClick={() => { if (save(onFinish)) onClose(); }}>Finish review</button>}
-      <button type="button" className="secondary" onClick={() => { save(onSaveNotes); onClose(); }}>Close</button>
+      {index < steps.length - 1 ? <button type="button" className="primary" onClick={() => void save(onSaveNotes).then(saved => { if (saved) setIndex(index + 1); })}>Next</button> : <button type="button" className="primary" onClick={() => void save(onFinish).then(saved => { if (saved) onClose(); })}>Finish review</button>}
+      <button type="button" className="secondary" onClick={() => { void save(onSaveNotes); onClose(); }}>Close</button>
     </div>
   </div>;
-  return phone ? <PhoneFormSheet title="Your week" onClose={() => { save(onSaveNotes); onClose(); }}>{body}</PhoneFormSheet> : <ReviewModal title="Your week" onClose={() => { save(onSaveNotes); onClose(); }}>{body}</ReviewModal>;
+  return phone ? <PhoneFormSheet title="Your week" onClose={() => { void save(onSaveNotes); onClose(); }}>{body}</PhoneFormSheet> : <ReviewModal title="Your week" onClose={() => { void save(onSaveNotes); onClose(); }}>{body}</ReviewModal>;
 }
 function ReviewModal({title, onClose, children}: {title: string; onClose: () => void; children: ReactNode}) {
   const ref = useRef<HTMLDialogElement>(null);

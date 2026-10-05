@@ -1,5 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
 import {seed} from './coherence-fixture';
+import {safeScreenshot} from './safe-screenshot';
 import {manualSourcePosition} from '../lib/manual-source';
 import {emptyPlatform,privateGoalSchema} from '../lib/positions';
 import {createAllocatedGoal} from '../lib/wealth';
@@ -9,7 +10,7 @@ async function shot(page:Page,name:string){
  const path=`../../docs/verification/run8-1-wealth/screenshots/${name}.png`;
  if(name.startsWith('05')||name.startsWith('06'))await page.locator('.asset-picker').screenshot({path,animations:'disabled'});
  else if(name.startsWith('02'))await page.locator('.setup-next').screenshot({path,animations:'disabled'});
- else await page.screenshot({path,fullPage:!['03','07','08'].some(prefix=>name.startsWith(prefix)),animations:'disabled'});
+ else await safeScreenshot(page,{path,fullPage:!['03','07','08'].some(prefix=>name.startsWith(prefix)),animations:'disabled'});
 }
 async function mixed(page:Page){await seed(page);const positions=[
  manualSourcePosition({category:'Crypto',name:'Example crypto',symbol:'BTC',quantity:'0.25',currency:'USD',value:'25000'},'crypto'),

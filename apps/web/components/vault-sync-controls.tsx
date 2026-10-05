@@ -17,26 +17,29 @@ import {planLocalAttach,assertAttachSourceUnchanged,type AttachPlan} from '../li
 import {encryptPendingRecovery} from '../lib/vault/pending-recovery';
 import {AccountDevices} from './account-devices';
 import {AccountAccess} from './account-access';
-import {ACCOUNT_CHANGE,adoptAccount,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,unlockAccount,type AccountLockDetail} from '../lib/account-session';
+import {ACCOUNT_CHANGE,adoptAccount,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount,lockEveryTab,unlockAccount,type AccountLockDetail} from '../lib/account-session';
 import {getAppStorage,isShowcase} from '../lib/showcase-storage';
 import {withStorageLock} from '../lib/storage';
-import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceRoot,manifestDigest,manifestSchema,type VaultManifest,type SealedRoot} from '../lib/vault/crypto';
-import {readDevices,rememberDevice,forgetDevices,forgetCount,dropDevice,stillRemembered,rememberHealth,bindingOf,verifiedAccount,currentSession,type DeviceBinding} from '../lib/vault/device-unlock';
+import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceRoot,manifestDigest,manifestSchema,deviceCommitment,deviceCommitmentMatches,sealDigest,type VaultManifest,type SealedRoot} from '../lib/vault/crypto';
+import {readDevices,rememberDeviceRecord,forgetDevices,forgetCount,dropDevice,stillRemembered,rememberHealth,bindingOf,replaceDevice,confirmDevice,verifiedAccount,currentSession,type DeviceBinding,type DeviceRecordV1,type DeviceRecordV2} from '../lib/vault/device-unlock';
 import {StaleDeviceError,takeAccessDenial,deniesDevice} from '../lib/vault/stale-device';
 import {currentInstallContext} from '../lib/install/platform';
 import {storageMessageOr} from '../lib/storage-error-copy';
-import {synchronize,cloudSnapshot,SyncJournal,type Domain} from '../lib/vault/cloud-sync';
+import {synchronize,cloudSnapshot,SyncJournal,RevisionConflict,type Domain} from '../lib/vault/cloud-sync';
 import {accountTransport} from '../lib/vault/account-transport';
 import {localDatabase} from '../lib/vault/local';
 import {captureData,applyData,validateData,modules,isSyncedChangeEvent,LocalRecordsChangedDuringSync} from '../lib/vault/account-data';
 import { formatTime } from '../lib/visual-format';
 import {SyncOffer} from './account-sync-offer/sync-offer';
+import {PortfolioSyncChoice,type PortfolioStatus} from './portfolio-sync-choice';
+import {SYNC_WRITES} from '../lib/vault/sync-writes';
+import {choosePortfolioSync,deletePortfolioCopy,portfolioSyncChosen,portfolioTransport,syncPortfolio} from '../lib/vault/portfolio-sync';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean;device:DeviceBinding|null};
 type Sealed={key:CryptoKey;sealed:SealedRoot;deviceKey:CryptoKey;forgets:number|null};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
 type AttachPreview={plan:AttachPlan;generation:number};
 type RotationKeys=Awaited<ReturnType<typeof createVault>>;
-type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:()=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:()=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string};
+type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:()=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:()=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string;portfolio:PortfolioStatus|null;syncPortfolioNow:(choice?:'keep-device'|'keep-cloud')=>Promise<void>;deletePortfolioCloud:()=>Promise<void>};
 const Context=createContext<Controls|null>(null);
 /** Refusals of the Health consent checkbox; the checkbox is described by the error while one is shown. */
 const HEALTH_HELD_REFUSAL='Health is kept locally after cloud deletion. Use Review restoring local section before enabling transfers.',HEALTH_UNVERIFIED_REFUSAL='Health permission could not be verified. Transfers remain off.';
@@ -51,6 +54,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  const [attachPreview,setAttachPreview]=useState<AttachPreview|null>(null);
  const [pendingRecovery,setPendingRecovery]=useState<{file:string;recovery:string}|null>(null);
  const [rotationKeys,setRotationKeys]=useState<RotationKeys|null>(null),[stagedRotation,setStagedRotation]=useState<VaultManifest|null>(null);
+ const [portfolio,setPortfolio]=useState<PortfolioStatus|null>(null);
  const session=useRef<Session|null>(null),running=useRef<symbol|null>(null),auto=useRef(false),idle=useRef(0),syncRef=useRef<()=>Promise<void>>(async()=>{});
  // Remember this device (ADR-008). Lock now blocks reopening in this tab until the next unlock with the secret; one reopen
  // runs at a time, a failed one waits 30 s before a focus tries again; `access` counts the AccountAccess panels shown (Settings),
@@ -61,7 +65,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  const syncing=useRef(false),followUp=useRef(false),scheduleRef=useRef<()=>void>(()=>{});
  // The automatic sync that is running now (if any), and whether a person's action is waiting for it to end.
  const automaticRun=useRef<Promise<void>|null>(null),waiting=useRef(false);
- function forget(){running.current=null;followUp.current=false;setBusy(false);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setError('');
+ function forget(){running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setError('');
   // Sign-out forgets every remembered device on this browser; its server session is revoked too, so nothing it held can open again.
   verified.current=null;setRemembered(false);setDeviceNote('');void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
  function selectionFence(id:string,generation:number){if(isShowcase()||getAccountScope()!==id||getAccountGeneration()!==generation)throw Error('Account selection changed. No result was applied.');}
@@ -98,19 +102,39 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   let records;try{records=await readDevices();}catch{return false;}fence();
   if(records.some(record=>record.account!==id)){await forgetDevices().catch(()=>{});fence();setRemembered(false);return false;}
   const record=records[0];if(!record)return false;
-  const binding=bindingOf(record),drop=async()=>{await dropDevice(binding).catch(()=>{});setRemembered(false);};
+  let binding=bindingOf(record);const drop=async()=>{await dropDevice(binding).catch(()=>{});setRemembered(false);};
   if(!m||record.vault!==m.vault||record.epoch!==m.epoch||record.manifest!==await manifestDigest(m)){await drop();fence();return false;}
   setRemembered(true);
   const current=await currentSession(id,AbortSignal.timeout(15000)).catch(()=>null);fence();
   if(current===null)return false;
   if(current!==record.session){await drop();fence();return false;}
-  let key:CryptoKey;try{key=await openDeviceRoot(record.key,record.sealed,id,m);}catch{await drop();fence();return false;}fence();
+  let key:CryptoKey;
+  // Version 2 holds the root itself: it opens only when it still derives the record's commitment. Version 1 is unsealed
+  // as before and then migrated (B1); if the migration fails it stays version 1 and this open goes ahead.
+  if(record.version===2){if(!await deviceCommitmentMatches(record.root,id,record.manifest,record.commitment)){await drop();fence();return false;}key=record.root;}
+  else{try{key=await openDeviceRoot(record.key,record.sealed,id,m);}catch{await drop();fence();return false;}fence();binding=await migrateDevice(record,key);}
+  fence();
   // The remembered Health choice (M1 e) passes the same check as ticking the box: not while Health is held after deletion.
   const consent=record.health&&!await healthHeld(id);fence();
   if(!await stillRemembered(binding).catch(()=>false)){fence();setRemembered(false);return false;}fence();
   open(id,key,m,consent,binding);setDeviceNote('');
   if(record.health&&!consent)void rememberHealth(binding,false).catch(()=>{});
   return true;
+ }
+ /**
+  * Session U Part 5 (B1): replaces a version 1 record by its version 2 form after a successful open. The version 2 record
+  * is written by compare-and-swap, read back and checked (its stored root must derive its commitment) before it counts;
+  * any failure puts the version 1 record back, so this device never loses its remember to the migration. The new record
+  * keeps the seal's digest, so another tab that opened with the version 1 record still recognises it.
+  */
+ async function migrateDevice(record:DeviceRecordV1,key:CryptoKey):Promise<DeviceBinding>{
+  try{
+   const next:DeviceRecordV2={version:2,id:crypto.randomUUID(),account:record.account,vault:record.vault,epoch:record.epoch,manifest:record.manifest,session:record.session,health:record.health,createdAt:record.createdAt,commitment:await deviceCommitment(key,record.account,record.manifest),migratedFrom:await sealDigest(record.sealed),root:key};
+   if(!await replaceDevice(bindingOf(record) as DeviceRecordV1,next))return bindingOf(record);
+   if(await confirmDevice(next).catch(()=>false))return bindingOf(next);
+   await replaceDevice(next,record).catch(()=>false);
+  }catch{/* The version 1 record stays as it was. */}
+  return bindingOf(record);
  }
  async function healthHeld(id:string){try{return !!(await new SyncJournal(id).read()).heldDomains?.includes('health');}catch{return true;}}
  function open(id:string,key:CryptoKey,m:VaultManifest,consent:boolean,device:DeviceBinding|null=null){unlockAccount();const generation=getAccountGeneration();session.current={account:id,generation,key,manifest:m,health:consent,device};auto.current=true;idle.current=Date.now();manualLock.current=false;setOpened(true);setAccount(id);setManifest(m);setHealthState(consent);setGenerated(null);setRemembered(!!device);setMessage('Vault unlocked. Preparing account sync…');}
@@ -123,9 +147,13 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   try{
    if(device.forgets===null)throw Error('Device storage did not answer.');
    const current=await currentSession(id,AbortSignal.timeout(15000));fence();if(!current)throw Error('The account session could not be confirmed.');
-   const record={version:1 as const,account:id.toLowerCase(),vault:m.vault,epoch:m.epoch,manifest:await manifestDigest(m),session:current,health:selected.health,createdAt:new Date().toISOString(),sealed:device.sealed,key:device.deviceKey},binding=bindingOf(record);
+   const meta={account:id.toLowerCase(),vault:m.vault,epoch:m.epoch,manifest:await manifestDigest(m),session:current,health:selected.health,createdAt:new Date().toISOString()};
+   // Session U Part 5 (B1): version 2, the root key itself, where this browser can store and read back that key object;
+   // otherwise version 1 as before (owner decision: such a browser keeps version 1).
+   const v2:DeviceRecordV2={version:2,id:crypto.randomUUID(),...meta,commitment:await deviceCommitment(device.key,meta.account,meta.manifest),root:device.key},v1:DeviceRecordV1={version:1,...meta,sealed:device.sealed,key:device.deviceKey};
    // A sign-out, Lock now or Forget that ran meanwhile wins: nothing is stored, or what was stored is taken back.
-   if(!await rememberDevice(record,device.forgets))return;
+   const record=await rememberDeviceRecord(v2,v1,device.forgets);if(!record)return;
+   const binding=bindingOf(record);
    try{fence();}catch(error){await dropDevice(binding).catch(()=>{});throw error;}
    selected.device=binding;setRemembered(true);setDeviceNote('');
   }catch(error){if(session.current===selected)setDeviceNote(`This device was not remembered, so unlocking again will need the recovery secret. ${storageMessageOr(error,'Try again at your next unlock.')}`);}
@@ -133,6 +161,17 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  async function prepare(){await guarded(async()=>{if(!account||manifest!==null)throw Error('Verify an account without an existing vault first.');const generation=getAccountGeneration(),result=await createVault();selectionFence(account,generation);setGenerated({...result,operation:crypto.randomUUID()});});}
  async function enroll(remember=false){await guarded(async()=>{if(!account||!generated||manifest!==null)throw Error('Prepare and save the recovery secret first.');const generation=getAccountGeneration(),fence=()=>selectionFence(account,generation),consent=health,device=remember?await sealForDevice(generated.manifest,generated.recovery,account):null;fence();await accountTransport(account,fence).write({protocol:1,vault:generated.manifest.vault,operation:generated.operation,base:0,changes:[],manifest:generated.manifest});fence();open(account,generated.key,generated.manifest,consent);if(device)await keepDevice(account,generated.manifest,device);});if(session.current)await sync();}
  async function unlock(secret:string,remember=false){await guarded(async()=>{if(!account||!manifest)throw Error('Verify your account first.');const generation=getAccountGeneration(),consent=health;if(!remember){const key=await unlockVault(manifest,secret);selectionFence(account,generation);open(account,key,manifest,consent);return;}const device=await sealForDevice(manifest,secret,account);selectionFence(account,generation);open(account,device.key,manifest,consent);await keepDevice(account,manifest,device);});if(session.current)await sync();}
+ async function runPortfolio(selected:Session,fence:()=>void,choice?:'keep-device'|'keep-cloud'){
+  const storage=getAppStorage(),attempt=()=>syncPortfolio({transport:portfolioTransport(selected.account,fence),key:selected.key,manifest:selected.manifest,storage,fence,choice});
+  try{let outcome;try{outcome=await attempt();}catch(error){if(!(error instanceof RevisionConflict))throw error;fence();outcome=await attempt();}
+   fence();if(outcome.state==='deleted')choosePortfolioSync(storage,false);setPortfolio(outcome);}
+  catch(error){fence();setPortfolio({state:'error',message:error instanceof Error?error.message:'Portfolio sync was not confirmed. Your Portfolio on this device was preserved.'});}
+ }
+ function portfolioSession(){const selected=session.current;if(!selected)throw Error('Unlock your vault before syncing.');const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Vault locked. Sync result was not applied.');};return {selected,fence};}
+ async function syncPortfolioNow(choice?:'keep-device'|'keep-cloud'){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();await runPortfolio(selected,fence,choice);});});}
+ async function deletePortfolioCloud(){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage();
+  try{await deletePortfolioCopy({transport:portfolioTransport(selected.account,fence),manifest:selected.manifest,storage,fence});fence();choosePortfolioSync(storage,false);setPortfolio({state:'removed'});}
+  catch(error){fence();setPortfolio({state:'error',message:error instanceof Error?error.message:'The Portfolio copy was not deleted.'});}});});}
  async function sync(automatic=false){await guarded(async()=>{
   const selected=session.current;if(!selected)throw Error('Unlock your vault before syncing.');const healthPermission=selected.health;
   syncing.current=true;followUp.current=false;try{
@@ -146,6 +185,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
     // conflict, so automatic sync stays on and one follow-up uploads the newer edit.
     if(!(error instanceof LocalRecordsChangedDuringSync))throw error;fence();followUp.current=true;auto.current=true;setMessage('Newer local edits found. Syncing them next…');return;}
    await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(formatTime(new Date()));setMessage('Account records synced and acknowledged.');auto.current=true;
+   // Session U Part 9 (ADR-013): the opt-in Portfolio copy, after the four sections and under the same lock. Its own
+   // outcome is shown beside its choice; a Portfolio failure never undoes or pauses the account sync above.
+   if(SYNC_WRITES&&portfolioSyncChosen(storage))await runPortfolio(selected,fence);
   });
   }finally{syncing.current=false;}
  },true,automatic);if(followUp.current){followUp.current=false;scheduleRef.current();}}
@@ -215,7 +257,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  /** The account changed on another device (vault, section or account deleted there): this tab's own record goes, if still stored. */
  function dropStale(){const selected=session.current,device=selected?.device;if(!selected||!device)return;selected.device=null;setRemembered(false);setDeviceNote('This device is no longer remembered because the account changed on another device. Unlocking again needs the recovery secret.');void dropDevice(device).catch(()=>{});}
  /** "Lock account vault" locks this tab and forgets this device (M1 d): a lock that a reload undoes is not a lock. */
- function lockNow(){manualLock.current=true;setRemembered(false);lockAccount();void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
+ // Session U Part 5 (B2): every tab of this browser locks too (lockEveryTab), before the device is forgotten, and even if forgetting fails.
+ function lockNow(){manualLock.current=true;setRemembered(false);lockEveryTab();void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
  /** "Forget this device" deletes the remembered material at once; this tab stays open until it is locked or reloaded (M1 f). */
  async function forgetDevice(){try{await forgetDevices();if(session.current)session.current.device=null;setRemembered(false);setDeviceNote('This device is no longer remembered. Unlocking again needs the recovery secret.');}catch{setDeviceNote(NOT_FORGOTTEN);}}
  const registerAccess=useCallback(()=>{access.current++;return()=>{access.current--;};},[]);
@@ -245,12 +288,16 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  useEffect(()=>{syncRef.current=()=>sync(true);reopenRef.current=reopen;});
  useEffect(()=>{
   let debounce:ReturnType<typeof setTimeout>|undefined;
-  const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){
+  const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();
+   // Session U Part 5 (B2): Lock in another tab of this browser is a manual lock here too: no reopen from a remembered device,
+   // and no "This device is remembered" note, since the tab that locked forgets the device.
+   if(detail?.reason==='manual'){manualLock.current=true;setRemembered(false);}
+   if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){
    // A revoked session, another account or a deleted account makes a remembered device stale; a routine token expiry does not:
    // the device then reopens at once, refreshing the token as Settings does.
    const device=session.current?.device??null,code=accessChanged?takeAccessDenial(detail!.account):null,expired=accessChanged&&!!device&&code==='SIGN_IN_REQUIRED';
    if(device&&deniesDevice(code)){setRemembered(false);void dropDevice(device).catch(()=>{});}
-   running.current=null;setBusy(false);session.current=null;auto.current=false;setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError(accessChanged&&!expired?'Account access changed. Sign in and unlock again.':'');setLast('');setMessage('Account sync is locked.');if(expired)void reopenRef.current('expiry');}};
+   running.current=null;setBusy(false);session.current=null;auto.current=false;setPortfolio(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError(accessChanged&&!expired?'Account access changed. Sign in and unlock again.':'');setLast('');setMessage('Account sync is locked.');if(expired)void reopenRef.current('expiry');}};
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
   const edited=()=>{if(syncing.current&&!isSyncedChangeEvent()){followUp.current=true;return;}schedule();};
@@ -269,7 +316,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   void reopenRef.current('load');
   return()=>{running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
  },[]);
- return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last}}>{children}</Context.Provider>;
+ return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud}}>{children}</Context.Provider>;
 }
 export function VaultSyncControls(){
  // "Remember on this device" is ticked by default only in the installed app (Home Screen or installed desktop app), unticked in a browser tab (M1 b).
@@ -290,11 +337,12 @@ export function VaultSyncControls(){
  {/* Sign-in resets Health consent for the newly selected account, so it is offered only once that account is ready. */}
  <label className="checkbox" htmlFor={id+'health'}><input ref={consentRef} id={id+'health'} type="checkbox" checked={c.health} disabled={!c.account} aria-describedby={[!c.account&&(finishing?id+'finishing':id+'signin'),healthRefused&&id+'error'].filter(Boolean).join(' ')||undefined} onChange={e=>c.setHealth(e.target.checked)}/>Sync my Health records with this account. Turning this off stops Health transfers on this tab; it does not delete existing encrypted cloud copies.</label>
  {!c.account&&(finishing?<p className="fine" id={id+'finishing'}>Finishing sign-in…</p>:<span className="sr-only" id={id+'signin'}>Available after you sign in.</span>)}
+ {SYNC_WRITES&&c.account&&<PortfolioSyncChoice key={c.account} opened={c.opened} busy={c.busy} status={c.portfolio} onSync={c.syncPortfolioNow} onDelete={c.deletePortfolioCloud}/>}
  {c.account&&c.manifest===null&&!c.generated&&<button className="primary" disabled={c.busy} onClick={()=>{setSaved(false);void c.prepare();}}>Create encrypted account vault</button>}
  {c.generated&&<div className="notice"><label>New vault recovery secret<input value={c.generated.recovery} readOnly autoComplete="off" spellCheck={false}/></label><p>Save this privately now. It is shown only while preparing this vault.</p><label className="checkbox"><input type="checkbox" checked={saved} onChange={e=>setSaved(e.target.checked)}/>I saved this vault recovery secret separately.</label>{rememberChoice('remember-new')}<button className="primary" disabled={!saved||c.busy} onClick={()=>void c.enroll(remembering)}>Confirm and create vault</button><button className="secondary" disabled={c.busy} onClick={c.cancel}>Cancel</button></div>}
  {c.manifest&&!c.opened&&<form onSubmit={e=>{e.preventDefault();const value=secret;setSecret('');void c.unlock(value,remembering);}}><label>Vault recovery secret<input type="password" autoComplete="off" value={secret} onChange={e=>setSecret(e.target.value)}/></label>{rememberChoice('remember')}<button className="primary" disabled={c.busy||!secret}>Unlock account vault</button></form>}
  {c.opened&&<div className="actions"><button className="primary" disabled={c.busy} onClick={()=>void c.sync()}>Sync now</button><button className="secondary" onClick={()=>{setSecret('');c.lockNow();}}>Lock account vault</button></div>}
- {c.remembered&&<div className="notice"><p>{c.opened?'This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking also forgets this device.':'This device is remembered: ZIGoals can open your account records here without the recovery secret.'}</p><button className="secondary" disabled={c.busy} onClick={()=>void c.forgetDevice()}>Forget this device</button></div>}
+ {c.remembered&&<div className="notice"><p>{c.opened?'This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking locks every tab of this browser and forgets this device.':'This device is remembered: ZIGoals can open your account records here without the recovery secret.'}</p><button className="secondary" disabled={c.busy} onClick={()=>void c.forgetDevice()}>Forget this device</button></div>}
  {c.deviceNote&&<p className="fine" aria-live="polite">{c.deviceNote}</p>}
  {c.opened&&<ConflictReviewControls busy={c.busy} review={c.conflictReview} prepare={c.prepareConflict} confirm={c.confirmConflict} cancel={c.cancelConflict}/>}
  {c.opened&&<ForwardRecoveryControls busy={c.busy} review={c.forwardReview} prepare={c.prepareForward} confirm={c.confirmForward} cancel={c.cancelForward}/>}

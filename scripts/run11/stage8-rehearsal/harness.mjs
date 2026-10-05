@@ -9,7 +9,7 @@ import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {privateAccountRequest} from '../../../apps/web/lib/server/private-account.ts';
-import {createPrivateMiniflare,fixtureToken} from '../private-runtime.mjs';
+import {createPrivateMiniflare,fixtureToken,workerAnswer} from '../private-runtime.mjs';
 import {armSyncCompletion} from '../sync-completion.mjs';
 
 const appRequire=createRequire(new URL('../../../apps/web/package.json',import.meta.url));
@@ -115,7 +115,7 @@ export async function routeAccount(context,{mf,provider,admit,afterVault}){
   const r=route.request(),headers=await r.allHeaders();let drop=false;
   const result=await privateAccountRequest(new Request(r.url(),{method:r.method(),headers,...(r.postData()?{body:r.postData()}:{})}),ACCOUNT_CONFIG,async(url,init)=>{
    const u=new URL(url);if(u.hostname!=='fixture.workers.dev')return provider.handle(url,init);
-   const response=await mf.dispatchFetch(url,init);
+   const response=await workerAnswer(mf,url,init);
    if(u.pathname==='/v1/vault'&&afterVault&&await afterVault(init?.method??'GET',init?.body?JSON.parse(init.body):null)==='drop')drop=true;
    return response;
   },admit);

@@ -1,3 +1,4 @@
+import {after} from 'next/server';
 import {privateAccountRequest} from '../../../lib/server/private-account';
 import {loadRuntimeBindings} from '../../../lib/server/runtime-bindings';
 export const dynamic='force-dynamic';
@@ -13,7 +14,8 @@ async function handle(request:Request){
  const inbound=request.headers.get('x-zigoals-origin');if(inbound){const url=new URL(request.url),trusted=new URL(inbound);if(trusted.origin!==inbound||!['https:','http:'].includes(trusted.protocol))return Response.json({error:'ORIGIN_DENIED'},{status:403});request=new Request(new URL(url.pathname+url.search,inbound),request);}
  const fetcher:typeof fetch=async(input,init)=>{const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;if(new URL(url).origin===config?.syncOrigin){if(bindings.PRIVATE_SYNC)return bindings.PRIVATE_SYNC.fetch(new Request(input,init));if(values!==process.env)return Response.json({error:'SYNC_BINDING_REQUIRED'},{status:503});}return fetch(input,init);};
  const admit=async(action:'send'|'verify'|'verify-failed',email:string)=>bindings.AUTH_ABUSE?bindings.AUTH_ABUSE.fetch(new Request('https://auth-admission.internal/admit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,email,ip:request.headers.get('cf-connecting-ip')??''})})):Response.json({error:'AUTH_ADMISSION_REQUIRED'},{status:503});
- return privateAccountRequest(request,config,fetcher,admit);
+ // Session U Part 5 (FIX_PLAN A2): a code request's provider call runs after the answer (after(), see private-account.ts).
+ return privateAccountRequest(request,config,fetcher,admit,work=>after(work));
 }
 export const GET=handle;
 export const POST=handle;

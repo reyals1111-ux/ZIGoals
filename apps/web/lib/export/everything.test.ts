@@ -3,7 +3,8 @@ import {buildShowcase} from '../showcase-data';
 import {HABITS_KEY, habitDataSchema} from '../habits';
 import {HEALTH_STORAGE_KEY, healthSchema} from '../health';
 import {exportHealthCsv} from '../health-daily';
-import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema} from '../habit-health-links/schema';
+import {homeRecordsIn} from '../sync-homes-store';
+import {SYNC_WRITES} from '../vault/sync-writes';
 import {LOCAL_SIMULATION_DAMAGED} from '../vault/local-simulation-backup';
 import {CSV_FILES, EVERYTHING_KEYS, buildEverythingZip, collectEverything, csvCell, readEverything} from './everything';
 import {readStoredZip} from './zip-reader';
@@ -27,12 +28,13 @@ describe('T4 export everything', () => {
     const collected = collectEverything(records, APP);
     expect(collected.unreadable).toEqual([]); expect(collected.warnings).toEqual([]);
     expect(collected.json.modules.habits).toEqual(JSON.parse(records[HABITS_KEY]!));
-    expect((collected.json.device.fasting as {sessions: {id: string}[]}).sessions[0]!.id).toBe('fast_showcase-1');
+    // Session U Part 9: with the sync writes on, the Showcase's fast is in Health; switched off, in its device key.
+    expect((SYNC_WRITES ? (collected.json.modules.health as {fasting: {sessions: {id: string}[]}}).fasting : collected.json.device.fasting as {sessions: {id: string}[]}).sessions[0]!.id).toBe('fast_showcase-1');
     const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), entries = habits.habits.reduce((n, h) => n + h.entries.length, 0);
     const checkIns = lines(collected.csv['check-ins.csv']);
     expect(checkIns.length).toBe(entries + 1); expect(entries).toBeGreaterThanOrEqual(180);
     expect(checkIns.some(l => l.includes('"skipped"'))).toBe(true);
-    const links = habitHealthLinksSchema.parse(JSON.parse(records[HABIT_HEALTH_LINKS_KEY]!)), marked = links.applied.filter(a => !a.undone);
+    const links = homeRecordsIn(records).habitLinks, marked = links.applied.filter(a => !a.undone);
     expect(marked.length).toBe(12);
     const withAuto = checkIns.slice(1).filter(l => !l.endsWith(',""'));
     expect(withAuto.length).toBe(12);

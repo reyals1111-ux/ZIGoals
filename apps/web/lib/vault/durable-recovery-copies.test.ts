@@ -93,3 +93,13 @@ test('a module changed elsewhere is CONFLICT; an oversized backup is MODULE_LIMI
  error=undefined;try{await restoreDurableStore(s,HEALTH,schema,'x'.repeat(32_000_001),db);}catch(caught){error=caught;}
  expect(storageErrorCode(error)).toBe('MODULE_LIMIT');
 });
+
+test('an edit that raises the record\'s version keeps the record it replaced as a recovery copy; an ordinary edit adds none (Session U Part 9)',async()=>{
+ const versioned=z.object({schemaVersion:z.number().int(),rows:z.array(z.object({id:z.string(),value:z.string()}))});
+ const s=await durable(HEALTH,raw('original'));
+ await updateDurableStore(s,HEALTH,versioned,v=>({...v,rows:[{id:'a',value:'edited'}]}),db);
+ expect(await db.recovery('local',HEALTH)).toEqual([raw('original')]);
+ await updateDurableStore(s,HEALTH,versioned,v=>({...v,schemaVersion:2}),db);
+ expect((await db.recovery('local',HEALTH)).sort()).toEqual([raw('edited'),raw('original')].sort());
+ expect((await db.read('local',HEALTH))?.data).toEqual({schemaVersion:2,rows:[{id:'a',value:'edited'}]});
+});

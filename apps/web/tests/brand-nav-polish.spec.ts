@@ -59,9 +59,12 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   await page.keyboard.press('Escape');
   // The active tab's pill glides to the new tab (a running transform transition), then settles.
   const pill=page.locator('.phone-tab-pill'),habits=nav.getByRole('link',{name:'Habits',exact:true});
+  // Session U Part 4: the glide is recorded from before the click (transitionrun), so a 320 ms glide that ends before the
+  // first poll on a loaded runner is still seen; the poll below then proves it settled.
+  await pill.evaluate(e=>{const runs:string[]=[];Object.assign(window,{pillRuns:runs});e.addEventListener('transitionrun',event=>runs.push((event as TransitionEvent).propertyName));});
   await habits.click();
   await expect(habits).toHaveAttribute('aria-current','page');
-  await expect.poll(()=>pill.evaluate(e=>e.getAnimations().length)).toBeGreaterThan(0);
+  await expect.poll(()=>page.evaluate(()=>(window as unknown as {pillRuns:string[]}).pillRuns.includes('transform'))).toBe(true);
   await expect.poll(()=>pill.evaluate(e=>e.getAnimations().length)).toBe(0);
   expect(await page.locator('.phone-tabs').evaluate(e=>getComputedStyle(e).getPropertyValue('--tab-index').trim())).toBe('2');
   const positions=await navLink(page,'Staking');
@@ -76,10 +79,16 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  }
  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Activity','Settings']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
+ // Session U Part 4: the glide's moving state and the nav's data-gliding are recorded from before the click (a
+ // MutationObserver), so a glide that ends before the first check on a loaded runner is still seen.
+ await page.evaluate(()=>{
+  const seen:string[]=[];Object.assign(window,{glideSeen:seen});
+  new MutationObserver(()=>{seen.push(`state:${document.querySelector('.nav-glide')?.getAttribute('data-state')}`,`gliding:${document.querySelector('.app-nav')?.hasAttribute('data-gliding')}`);}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-state','data-gliding']});
+ });
  await markets.click();
  await expect(markets).toHaveAttribute('aria-current','page');
- await expect(glide).toHaveAttribute('data-state','moving');
- await expect(page.locator('.app-nav')).toHaveAttribute('data-gliding','');
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as {glideSeen:string[]}).glideSeen.includes('state:moving'))).toBe(true);
+ expect(await page.evaluate(()=>(window as unknown as {glideSeen:string[]}).glideSeen.includes('gliding:true'))).toBe(true);
  await expect(glide).toHaveAttribute('data-state','done');
  await expect(page.locator('.app-nav')).not.toHaveAttribute('data-gliding','');
  const positions=nav.getByRole('link',{name:'Staking',exact:true});
@@ -101,8 +110,11 @@ test('reduced motion and the Off preference switch the navigation glide and page
   expect(await pill.evaluate(e=>getComputedStyle(e).transitionDuration.split(',').every(d=>parseFloat(d)===0))).toBe(true);
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();
-  await nav.getByRole('link',{name:'Health',exact:true}).click();
+  // Health opens with a full page load (Session U Part 3, camera access): wait for it before reading the new page.
+  await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
   await expect(nav.getByRole('link',{name:'Health',exact:true})).toHaveAttribute('aria-current','page');
+  // The new page applies Motion Off when it hydrates (MotionPreferenceSync), which can come after its load event.
+  await expect(page.locator('html')).toHaveAttribute('data-app-motion','off');
   expect(await pill.evaluate(e=>getComputedStyle(e).transitionDuration.split(',').every(d=>parseFloat(d)===0))).toBe(true);
   await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');
   return;
@@ -112,7 +124,9 @@ test('reduced motion and the Off preference switch the navigation glide and page
  await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();
- await nav.getByRole('link',{name:'Health',exact:true}).click();
+ // Health opens with a full page load (Session U Part 3): until the new page's styles apply, the server-rendered phone
+ // tab bar still counts as visible, so the assertions wait for the load.
+ await nav.getByRole('link',{name:'Health',exact:true}).click();await page.waitForURL('**/app/health');
  await expect(nav.getByRole('link',{name:'Health',exact:true})).toHaveAttribute('aria-current','page');
  await expect(page.locator('.nav-glide')).not.toHaveAttribute('data-state',/./);
  await expect(page.locator('.workspace main>div').first()).toHaveCSS('animation-name','none');

@@ -6,20 +6,23 @@ import { expect, test } from "@playwright/test";
 import { landingRoot, startLandingServer, type LandingServer } from "./landing-server";
 
 // Landing V5 (Session N): the security posture is V4's, unchanged. The response headers and the upload allowlist are
-// byte-identical; under the real Content-Security-Policy a full scroll raises no violation and asks no other origin
-// for anything; every file the page references exists and every file that ships is referenced; and the copy makes no
-// earn, yield or partnership claim. The only link that is not https is the invite e-mail.
+// pinned by hash (Session U Part 6 changes, below); under the real Content-Security-Policy a full scroll raises no
+// violation and asks no other origin for anything; every file the page references exists and every file that ships is
+// referenced; and the copy makes no earn, yield or partnership claim. The only link that is not https is the invite e-mail.
 
-// SHA-256 of landing/_headers and landing/.assetsignore on main at 57275a6 (Alpha deploy #23 source, Landing V4).
-const HEADERS_SHA256 = "f0ce45672bd3f660045212fd1424d674b2fb98418ddfbc6906ea310a48bd31de";
-const ASSETSIGNORE_SHA256 = "e1388b8c5e34299c917b79790c6ea454786e6ee85316154ac949dbcfcbf74807";
+// SHA-256 of landing/_headers and landing/.assetsignore on main at 57275a6 (Alpha deploy #23 source, Landing V4), then:
+// Session U Part 6 added `Strict-Transport-Security: max-age=31536000` to _headers (V4/V5 value f0ce4567…bd31de).
+const HEADERS_SHA256 = "c1c50c7ae32bdbe399c69f86322953165068883e68fb0e66e11a2433bec0fc1d";
+// Session U Part 6 (FIX_PLAN F4): .assetsignore gained its final block (only the reviewed media types under assets/, no
+// dotfile anywhere); nothing it published before is dropped. Landing V4/V5 value: e1388b8c…f74807.
+const ASSETSIGNORE_SHA256 = "8c09ec286426c5281e713cd1998ade09cbd3b2618759f273fbcddbf3b93a66b9";
 const INVITE = "mailto:contact@zigoals.app?subject=Friends%20Alpha%20invite";
 const sha256 = (file: string) => createHash("sha256").update(readFileSync(resolve(landingRoot, file))).digest("hex");
 
 test.describe("files", () => {
   test.beforeEach(({}, info) => { test.skip(info.project.name !== "desktop", "File checks run once, in the desktop project"); });
 
-  test("the response headers and the upload allowlist are byte-identical to Landing V4", () => {
+  test("the response headers and the upload allowlist are exactly their reviewed bytes", () => {
     expect(sha256("_headers")).toBe(HEADERS_SHA256);
     expect(sha256(".assetsignore")).toBe(ASSETSIGNORE_SHA256);
   });

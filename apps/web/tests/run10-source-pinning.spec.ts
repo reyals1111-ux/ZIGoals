@@ -1,12 +1,14 @@
 import {expect,test} from '@playwright/test';
 import {createHabit,emptyHabitData,HABITS_KEY} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY,presetSettings,saveWidget} from '../lib/dashboard-settings';
+import {openTodayWidgets} from './phone-nav';
 
 test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route.fulfill({status:503,json:{error:'Fictional offline fixture'}}));});
 
 test('visual library hides ineligible staking and card menu returns focus on Escape',async({page},info)=>{
  await page.setViewportSize({width:320,height:800});
  await page.goto('/app');
+ await openTodayWidgets(page);
  await page.locator('.dashboard-widget').first().screenshot({path:info.outputPath('today-widget-normal-320.png'),animations:'disabled'});
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  const card=page.getByRole('article',{name:'Your destinations',exact:true});
@@ -71,6 +73,7 @@ test('a bound Habit updates its Today summary and card after the source changes'
  await page.clock.install({time:new Date('2026-09-24T12:00:00Z')});
  await page.addInitScript(({habitsKey,habitsValue,settingsKey,settingsValue})=>{if(!sessionStorage.getItem('fixture-bound-habit-seeded')){localStorage.setItem(habitsKey,habitsValue);localStorage.setItem(settingsKey,settingsValue);sessionStorage.setItem('fixture-bound-habit-seeded','true');}},{habitsKey:HABITS_KEY,habitsValue:JSON.stringify(habit),settingsKey:DASHBOARD_SETTINGS_KEY,settingsValue:JSON.stringify(settings)});
  await page.goto('/app');
+ await openTodayWidgets(page);
  const summary=page.getByRole('region',{name:'Your selected widgets'});
  const item=summary.locator('.dashboard-summary-item').filter({hasText:'Reading today'});
  const card=page.getByRole('article',{name:'Reading today',exact:true});
@@ -81,11 +84,13 @@ test('a bound Habit updates its Today summary and card after the source changes'
  await source.getByRole('button',{name:/^Add one to/}).click();
  await expect(source.locator('.habit-count strong')).toHaveText('1');
  await page.goto('/app');
+ await openTodayWidgets(page);
  // One page is singular (Session G, QA-28); "1 pages" no longer matches.
  const onePage=/1 page(?!s)/;
  await expect(item).toContainText(onePage);
  await expect(card).toContainText(onePage);
  await page.reload();
+ await openTodayWidgets(page);
  await expect(item).toContainText(onePage);
  await expect(card).toContainText(onePage);
  await card.getByRole('button',{name:'Options for Reading today'}).click();
@@ -102,6 +107,7 @@ test('a missing Habit binding stays visible and can be rebound to a saved source
  await page.clock.install({time:new Date('2026-09-24T12:00:00Z')});
  await page.addInitScript(({habitsKey,habitsValue,settingsKey,settingsValue})=>{if(!sessionStorage.getItem('fixture-missing-habit-seeded')){localStorage.setItem(habitsKey,habitsValue);localStorage.setItem(settingsKey,settingsValue);sessionStorage.setItem('fixture-missing-habit-seeded','true');}},{habitsKey:HABITS_KEY,habitsValue:JSON.stringify(habits),settingsKey:DASHBOARD_SETTINGS_KEY,settingsValue:JSON.stringify(settings)});
  await page.goto('/app');
+ await openTodayWidgets(page);
  const card=page.getByRole('article',{name:'Saved reading card',exact:true});
  await expect(card).toContainText('Record unavailable');
  await expect(card).toContainText('Choose another or remove this widget');
@@ -113,5 +119,6 @@ test('a missing Habit binding stays visible and can be rebound to a saved source
  await editor.getByRole('button',{name:'Save widget'}).click();
  await expect(card).toContainText('0 pages');
  await page.reload();
+ await openTodayWidgets(page);
  await expect(card).toContainText('0 pages');
 });
