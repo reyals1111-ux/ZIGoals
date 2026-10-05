@@ -1,8 +1,20 @@
 /* Today on a phone (Session E): a true phone dashboard. The saved (synced) placement order is untouched; each module
    gets a phone presentation, compact widgets pair up like iOS widgets, and repeated figures shrink to glanceable rows. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  /* Session U Part 8: a tighter rhythm between Today's blocks. Nothing is removed, hidden or reordered: the same blocks
+     with less empty space between them (desktop and tablet are outside this query). */
+  :root .today-page.personalized-today { gap: 12px; }
+  :root .today-page .today-primary { gap: 16px; }
+  /* A rail with no module placed in it takes no row (and no gap). */
+  :root .today-page .today-rail:not(:has(.placed-module)) { display: none; }
+  /* The layout's save line takes room only when it has something to say, and always while arranging. */
+  :root:not([data-layout-editing]) .today-page .dashboard-save-status:empty { min-height: 0; margin: 0; }
+  /* "For you": the open card sits flush in its slot, and "Show more" is a slimmer row (still a 44 px target and more). */
+  :root .today-page .for-you-slot > .panel { margin: 0; }
+  :root .today-page .for-you-fold .phone-fold-toggle { min-height: 48px; padding-block: 10px; }
+
   /* Hero: the slogan stays the moment it is; copy and actions tighten. */
-  :root .today-page .today-hero { margin: 0 -6px 14px; border-radius: 22px; }
+  :root .today-page .today-hero { margin: 0 -6px; border-radius: 22px; }
   :root .today-page .today-hero-copy { padding: 20px 16px 14px; }
   :root .today-page .today-hero .today-lede { font-size: 16px; line-height: 1.45; margin-block: 10px 14px; }
   :root .today-page .today-hero .hero-actions { gap: 10px; }
@@ -13,7 +25,7 @@
   :root .today-page .hero-pillars > div { flex-direction: row; align-items: center; gap: 12px; padding: 8px 0; border-right: 0; border-top: 1px solid var(--edge-soft); }
   :root .today-page .hero-pillars .icon-medallion { width: 34px; height: 34px; }
   :root .today-page .hero-pillars strong { font-size: 15px; }
-  :root .today-page .hero-pillars small { display: block; font-size: 15px; }
+  :root .today-page .hero-pillars small { display: block; font-size: 15px; max-width: none; }
 
   /* "Make Today yours.": four tiles in a 2×2 grid, the continue link a full-width row. */
   :root .dashboard-welcome h2 { font-size: 22px; }

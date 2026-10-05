@@ -10,6 +10,9 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
  * 4.33. With PR 3 (one "For you" card open on a phone): Showcase 11.02, seeded Local Demo 5.04 with the one-time
  * "What's new" card and 4.74 once it is dismissed. The ceilings below hold those numbers with a small margin, so a
  * later change that makes Today meaningfully longer on a phone fails here instead of going unnoticed.
+ * Session U Part 8 (a tighter phone rhythm, nothing removed): Showcase 11.07 → 10.92, seeded Local Demo 5.09 → 4.93,
+ * and 4.74 → 4.58 once What's new is dismissed (local production builds before and after, 2026-10-05). The ceilings
+ * stay as they were.
  */
 const CEILING = {showcase: 11.3, local: 5.3, localAfterWhatsNew: 5.0};
 test.use({viewport: {width: 390, height: 844}, reducedMotion: 'reduce'});
