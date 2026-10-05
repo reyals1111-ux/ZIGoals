@@ -59,8 +59,44 @@ Exactly the request the browser sends: the system prompt of the page specialist,
 
 **Any other OpenAI-compatible server** on `localhost`/`127.0.0.1`: the same `/v1/models` and `/v1/chat/completions` paths; it must answer CORS preflights for the ZIGoals origin.
 
-## 4. Design, states and assets
-Filled in by Part 10 of Session T (the chat panel and sheet, the launcher, the proposal cards, the ZIGi state table and asset naming, size budgets, motion rules). The contract for the owner's artwork is fixed now: `apps/web/public/brand/figures/zigi/<code>-<state>.webp` (1×), `-2x.webp`, `-large.webp`; animated variants as animated WebP or APNG with the same names and a `.webp`/`.png` extension; `components/zigi/manifest.json` lists what exists; every missing file falls back to the placeholder.
+## 4. Design, states and assets (Session T, Parts 6–8)
+
+### The surfaces
+- **Launcher** (`components/ai/ai-launcher.tsx`): a 56 px round ZIGi button, fixed bottom right (24 px from the edges; on phones above the glass tab bar, `calc(var(--phone-tabs) + var(--safe-bottom) + 14px)`), z-index 46 (below sheets and the chat, above the glass light). Next to it an "Open <app> ↗" text pill where the person's AI has its own app (no logos) and a 44 px × that hides the launcher with a 10 s Undo toast, after which Settings → "Show the ZIGi button" or the phone's More sheet brings it back. Hidden on sensitive screens, while any dialog is open, and on phones while the keyboard is up (`:root[data-keyboard=open]`). ⌘K / Ctrl+K toggles the chat. The chat bundle loads on the first open (`next/dynamic`) and stays mounted so a closed panel keeps its conversation; focus returns to the launcher on close.
+- **Chat panel** (`ai-chat.tsx`): desktop and tablet a non-modal `<dialog>` 440 px wide, up to 72 vh, bottom right, deep navy glass (`color-mix` of `--panel` with a nebula edge in `--violet`, `backdrop-filter: blur(18px)`), **Expand** to a centred 880 px × 86 vh view; phones a full-height modal sheet with safe-area insets and the visual-viewport keyboard inset on the composer. Header: ZIGi avatar, "ZIGi · your AI" in `NebulaFlow`, "via <provider> · <model>", the premium pill, a second row of tools (Model switcher with search, New, History, Settings, Expand), Close. Esc closes, Tab stays inside, `aria-live` announces "Waiting for your AI to reply…" once and "Your AI replied." once; streaming is batched per animation frame and open proposal fences are hidden until the reply ends. Labels ≥ 14 px, body 15 px, inputs 16 px, targets ≥ 44 px.
+- **Proposal cards** (`proposal-card.tsx`, `proposal-list.tsx`): eyebrow "<where> · <day>", title, the exact lines, an "AI estimate" badge where values were guessed, HE6's note on fasting cards, Add / Edit (a plain form over the kind's fields, re-validated) / Dismiss; "Add all N" for batches; one Undo button with a countdown; a `details` for suggestions that were not turned into cards; a polite live region.
+- **Composer**: a 16 px textarea (Enter sends on desktop, Shift+Enter breaks), the microphone (tap to toggle, hold to talk on phones), Send / Stop. Below it the per-message "Share this page's data" switch with the token estimate and "What your AI sees" (the exact text).
+- **Settings section** (`ai-settings.tsx`, `id="your-ai"`), **setup** (`ai-setup.tsx`, three paths), **Help topic** (`help-page.tsx`, `#your-ai`), **phone rows** (Settings list, More sheet).
+
+### ZIGi states (`components/zigi/manifest.json`)
+| State | Code | When |
+|---|---|---|
+| idle | F001 | at rest, and the fallback after every transient state |
+| greeting | F002 | the panel opens (2.5 s) |
+| insight | F003 | a reply without proposals arrived (3 s) |
+| listening | F004 | the microphone is on |
+| speaking | F005 | the reply streams, or read-aloud is playing |
+| presenting | F006 | a reply with proposal cards arrived (3 s) |
+| attention | F007 | not connected yet (the setup pointer) |
+| sleepy | F008 | reserved (not driven by any event yet) |
+| celebrate | F009 | a proposal was added (2.5 s) |
+| thinking | T001 | waiting for the first token |
+| error | E001 | a request failed (4 s) |
+
+Events come from the chat only (`components/zigi/events.ts`: open, reply-pending, reply-streaming, reply-done, reply-with-proposals, action-applied, error, listening, speaking, idle). ZIGi never notifies, never badges, never appears outside the chat and the launcher.
+
+### Assets and budgets
+- **Now:** every state maps to the static placeholder: `apps/web/public/brand/figures/zigi-placeholder.webp` (96 × 126, 1×), `zigi-placeholder-2x.webp` (192 × 253), `zigi-placeholder-large.webp` (480 × 632, for sizes above 192 px). The brand inventory test (`lib/brand-assets.test.ts`) counts the 2× frame and exempts `-large` frames, which have no 2× twin by design.
+- **The figure set, when it lands:** `apps/web/public/brand/figures/zigi/<code>-<state>.webp` (1×, 96 × 126), `<code>-<state>-2x.webp` (192 × 253), `<code>-<state>-large.webp` (480 × 632); an animated state adds `<code>-<state>.anim.webp` (animated WebP; APNG `.anim.png` as the fallback) and keeps its static frame for reduced motion and Motion Off. The manifest's `states.<state>.animated` then names the file; `sizes` may become per-state. Budgets (`manifest.budgetBytes`): 1× ≤ 40 KB, 2× ≤ 100 KB, large ≤ 200 KB, animated ≤ 400 KB per state; the manifest test enforces the static ones against the files on disk.
+- **Proportion** 96:126 for every frame; transparent background; the figure sits on the baseline of its box (`object-fit: contain`, drop shadow by CSS).
+
+### Motion
+- CSS only: a 2.4 s breath while thinking (1.6 s while listening or speaking), a one-time lift on celebrate, a pulse on the microphone while recording, three dots while pending, a caret while streaming. All of it is off under `prefers-reduced-motion: reduce` and under Motion Off (`:root[data-app-motion=off]`); the end-to-end test checks the computed `animation-name` is `none` in both.
+
+### Copy rules (ADR-011 tone, carried over)
+- Second person, calm, short; never shame, never urgency, never a countdown except the honest "Undo · 7 s".
+- Every reply: "Answer from your AI (<provider>), not from ZIGoals." Every estimate: "AI estimate". Every unknown: "unknown".
+- Errors: what happened and the next step, never a header or a body, never a key (`scrubSecrets`).
 
 ## Sources (read 2026-10-04 unless stated)
 - OpenAI: Chat Completions reference <https://developers.openai.com/api/docs/api-reference/chat/create>; Models list <https://developers.openai.com/api/docs/api-reference/models/list>; Error codes <https://developers.openai.com/api/docs/guides/error-codes>; Your data <https://developers.openai.com/api/docs/guides/your-data>; Audio transcriptions <https://developers.openai.com/api/docs/api-reference/audio/createTranscription>; Speech to text guide <https://developers.openai.com/api/docs/guides/speech-to-text>; openai-node README (browser support) <https://github.com/openai/openai-node/blob/master/README.md>. (`platform.openai.com/docs/*` redirects to `developers.openai.com`.)

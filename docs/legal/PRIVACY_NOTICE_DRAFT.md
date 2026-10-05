@@ -71,6 +71,10 @@ These run only while we have switched them on, and only when you use the feature
 
 **Wallets and the test network.** If you connect a wallet such as Keplr, the app sees the public account you approve. Public ZIGChain services you query can see your IP address and the public account, contract or transaction you ask about. Anything confirmed on a blockchain is public and generally cannot be erased.
 
+### Your own AI, if you connect one (ZIGi · your AI, optional)
+
+ZIGi is a chat inside the app that uses an AI provider **you** choose and pay: an API key of yours (OpenAI, Anthropic, Google Gemini, xAI, OpenRouter), a model on your own computer, or OpenRouter's sign-in. It is off until you connect it. When you send a message, your browser sends your words, the data of the page you are on (only for pages you leave switched on; Health is off unless you switch it on separately) and your own instructions **directly to that provider**, never through our servers. We do not see, store or log these conversations; what the provider does with them is governed by **your** agreement with the provider. Your key stays on your device; chats stay on your device. You can turn ZIGi off, delete the chats and remove the key at any time in Settings. If you use the microphone, either your browser's speech service (Chrome: Google unless on-device recognition is available; Safari: Apple) or your provider receives the audio; the app says which before the first use. ZIGi never changes your records on its own and cannot move money.
+
 ## 4. Hosting
 
 Our host, **Cloudflare**, receives ordinary web requests. That includes your IP address, browser details and the page addresses you visit; a goal page's address contains that goal's identifier, but not its name or amounts. Cloudflare keeps infrastructure logs and aggregate statistics under its own terms. Cloudflare may add network error-reporting headers, which are separate from ZIGoals. We add no tracker. [Lawyer: Cloudflare's role and terms.]
@@ -120,6 +124,8 @@ Note for the lawyer: we cannot read synced content, so many requests are best se
 6. **Device storage and consent.** Storage on the device is used only to run the app. Does it need a consent banner under the applicable ePrivacy rules? (The app has no trackers or analytics.)
 7. **Age limit** for the Alpha.
 8. **Publication:** where the final notice is shown in the app (for example Help or Settings) and how friends are told before accounts open.
+
+9. **ZIGi · your AI (added 2026-10-05, [ADR-012](../architecture/ADR-012-your-ai.md)).** The person sends their own data from their browser to a provider they chose and contract with; ZIGoals never receives it. Is ZIGoals a controller, a processor, or neither for that transfer? Does the notice need to name the five providers and link their terms? What must be said about Health data when the person turns "Include Health" on, and about the browser speech services (Google, Apple)? Does "Premium · free during Alpha" create a consumer-law expectation? See [LEGAL_CHECKLIST §8](../business/LEGAL_CHECKLIST.md).
 
 ## Sources in the repository (2026-10-02)
 
