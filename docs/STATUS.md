@@ -59,6 +59,52 @@ Nothing was deployed, logged into or sent to Cloudflare, Supabase or any AI prov
 - Steps: [YOUR_AI_OWNER_TEST.md](product/YOUR_AI_OWNER_TEST.md). Real providers were never reachable from the sandbox.
 - Open: the first ZIGi figure set (contract in YOUR_AI_V1 §4); whether the launcher should show before setup (ADR-012 decision 12); the lawyer's answers to LEGAL_CHECKLIST §8; a sync home for chats (SYNC_HOMES); the two intermittents above.
 
+## Follow-up (2026-10-05): polish and completion, owner pre-approved
+
+Same branch and PR; `origin/main` stayed at `e336227`, so no merge was needed. Session U's branch was read before every push (heads `fb86c74` and `4ba6506`); its files were not edited except one more one-line "lane overlap with Session U" commit (`686dff8`, `lib/export/everything.ts`: the AI key name imported from the tiny constants module). `tests/guide.spec.ts` and `tests/help-page.spec.ts` were left to U's Part 4. The plan went into the PR description first ("Follow-up plan") and the decisions into ADR-012 ("Follow-up decisions"). Evidence labels as above; **MOCK** everywhere a provider is involved.
+
+| Part | What | Commits | Tests | Evidence |
+|---|---|---|---|---|
+| A | A launcher shell on every page (button, Hide + undo, "Open <app>" pill, ⌘K, the placeholder figure) reading the device record with a tiny tolerant reader and the app table; the chat chunk (React.lazy, warmed on hover or focus) carries the settings hook, scope, key and chat stores, setup, voice and proposals; the Settings `#your-ai` anchor, heading and promise stay in the page and the body loads near the viewport, on its hash or the OpenRouter callback, or when idle; onboarding, the export panel, the erase helper and the Wealth hand-off no longer pull the AI library. The three component tests of the main session had never run (the root vitest config collects `apps/web/lib/**` only); they live under `lib/ai` now and pass | `686dff8`, `aa8f5cf` | 2 new files, 3 moved | local |
+| B | Capture spec `tests/your-ai-captures.spec.ts` (opt-in `ZIGI_CAPTURES=1`, 35 states × 1440/1024/390); review and fixes: the chat panel clips instead of hiding overflow (the glow could make the dialog scroll sideways after a message, seen in the first captures), every ZIGi text at least 14 px, the liquid-glass light follows a growing element, a shorter phone placeholder; the context bar bounded so the composer always fits, a one-line phone header, a scroll margin for the Settings anchor; gallery pushed to `review/session-t-screens` | `a6104c3`, `bac7b0d`, `d1f7598`, `09129ea` | capture spec, 104 images | local, MOCK |
+| C | Phone: the page behind the sheet is locked, the composer rises with the keyboard inset (`visualViewport`), tap once / tap again as the alternative to hold-to-talk, microphone denied → the steps for Chrome, Safari, Firefox or the installed iPhone app, offline → a calm card that says a model on this computer keeps working; Esc and focus return re-asserted; three new end-to-end tests (one mobile-only) | `1154c4a`, `7366def` | 3 e2e | local, MOCK |
+| D | `lib/ai/fixtures/reply-corpus.ts`: 46 hand-written replies in seven provider styles; parser: a cut-off block is removed and reported, wrapped objects and arrays accepted, non-objects reported, fences inside strings no longer count as open; one calm line for every reject ("I couldn't turn that into an entry."); the planner runs over every surviving proposal without writing; two or three few-shot examples per specialist (tested: whitelisted kinds, no advice wording, guardrails unchanged); the context bar shows the conversation's running token total | `5a54cdc` | 70 (corpus + examples) | local, MOCK |
+| E | `components/zigi/events.ts`: a pure transition function (greeting once a day, thinking, speaking, listening, error, sleepy after 90 s, idle; celebrate only after `action-applied`, emitted by the proposal list after the store confirmed a write); the launcher emits close; static under reduced motion and Motion Off | `0992f0a` | 5 | local |
+| F | "Ask ZIGi about this goal" on the Goals detail view (an in-page event pre-fills the composer; nothing is sent before Send); the Habits card is in Session U's diff, so Habits has no entry point here; practical starter chips per area without advice wording; Today's context gains "This week (for your weekly review)" from the review engine's counts, read-only; history search waits for a pause in typing; "Delete all chats" already asked twice; the export test extended in `your-ai.spec.ts` (chats and settings travel, the key never) | `30f896c` | in C/H | local |
+| G | `YOUR_AI_OWNER_TEST.md` rewritten click by click for a beginner: the local preview with Node 24.19.0 and pnpm 11.19.0, Ollama with `llama3.2:1b` (1.3 GB, from Ollama's library page), ZIGi on every page, voice, actions and Undo, the optional key with a budget (the provider's own pages; no amount suggested), the OpenRouter sign-in, the bridge, privacy checks, the deployed Alpha with `OLLAMA_ORIGINS` and Chrome's prompt, the installed iPhone app, what to report back | `ba34f5d` | — | source |
+| H | An end-to-end key scan after a sealed setup (DOM, every attribute, both storages, the key store's rows as text and bytes, the export ZIP); data-borne instructions in the corpus (a habit title, a goal note, a food name with a fake fence, the data marks in text); THREAT_MODEL rows updated (prompt injection, key exposure, the new entry point) | `7366def` | in D/H | local |
+| I | Full gates, freeze check, Alpha artifact, CI, this section | this commit | — | local, Miniflare, CI |
+
+### Weight (production HTML, every `<script src>`, `gzip -6`; main `e336227` built in a worktree next to this branch)
+| Page | main | before the follow-up | after | delta |
+|---|---|---|---|---|
+| /app | 578 KB (592,840 B) | 595 KB (+17) | 586 KB (600,533 B) | **+7.5 KB** |
+| /app/settings | 491 KB (502,978 B) | 521 KB (+31) | 498 KB (510,747 B) | **+7.6 KB** |
+| /app/habits | 491 KB (503,167 B) | — | 497 KB (509,643 B) | +6.3 KB |
+| /app/goals | 480 KB (492,451 B) | — | 487 KB (498,927 B) | +6.3 KB |
+| /app/health | 514 KB (526,576 B) | — | 520 KB (533,233 B) | +6.5 KB |
+| /app/wealth | 512 KB (524,377 B) | — | 519 KB (531,716 B) | +7.2 KB |
+The Settings target (≤ +8 KB) is met. The app-page target (≤ +5 KB) is **not**: an elimination build without the launcher and the More row measured 582 KB (596,412 B) on Today, so the shell itself costs about 4.9 KB and the remaining 2–3 KB is the other shared changes plus Turbopack's extra chunk (30 scripts instead of 29). The chat chunk loads on the first open only.
+
+### Contrast (computed from the tokens in `app/globals.css`, WCAG 2.x)
+muted `#a1afc8` on the panel `#0d1629`: **8.15:1**; muted on the page `#060b19`: 8.86:1; muted on the chat's darkest gradient stop `#07091c`: 8.90:1; body `#f0f5ff` on the panel: 16.5:1; on the launcher button `#0d1230`: 16.8:1. No text in the ZIGi stylesheets is below 14 px any more (14 declarations raised).
+
+### Screenshot gallery
+Branch `review/session-t-screens` (never merged); its `index.md` maps each of the 35 states to its three images: [`review/session-t-screens` at `49bff7c`, index.md](https://github.com/reyals1111-ux/ZIGoals/blob/review/session-t-screens/index.md).
+
+### Full gate (local, tree at `09129ea` plus this entry)
+- **Unit** (`pnpm test`): 354 files (337 passed, 17 skipped); **3,188 passed, 1 expected failure (Z16), 35 skipped** (the corpus, examples, state-machine, record and app-table tests added; the three component tests now collected).
+- **Typecheck and lint** clean (the only lint findings are two untracked diagnostic files left in the sandbox from the main session, not in the PR).
+- **Production build** clean; **browser suite, both projects, 2 workers**: **1,097 passed, 98 skipped, 5 failed** in 45.5 min, the five being the four brand-film specs (the Chromium stand-in; green in CI) and `guide.spec.ts:30` on mobile (the seed race, U's Part 4). The ZIGi spec alone: 29 passed, 3 project-skips, on both projects; the capture spec: 9 passed, 104 images.
+- **Desktop freeze check** against the main baseline of the main session (`e336227`): **155 compared, 116 identical, 39 different, 0 page errors.** The differences: Today ×6 (the What's new link), Settings ×12 and Help ×12 (the section and the topic), the Quick-add dialog ×2 (the longer Today page behind it), the `zigi-launcher` capture ×1 (no baseline), and **Goals detail ×6 (the "Ask ZIGi about this goal" link the follow-up brief asked for, part F)**; every one intended.
+- `check:deploy-configs` clean; **hermetic Alpha artifact**: `build:alpha`, the wrangler dry run (14,572 KiB, gzip 2,862 KiB), `check:alpha-artifact` and the two packaged Miniflare tests (**8 passed**) all green.
+- **CI**: every check green on `bac7b0d` (run 37274284706) and on `09129ea` ([Milestone quality 37276765182](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37276765182), [Canonical reproducibility 37276765207](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37276765207)); the final commit's run is reported in the PR.
+
+### Remaining owner checks
+- Everything in `docs/product/YOUR_AI_OWNER_TEST.md` (real providers were never reachable here).
+- The app-page weight target (+5 KB) if the remaining 2–3 KB matter: the next lever is splitting the phone More row and the launcher's toast into the chat chunk.
+- The figure set, a sync home for chats and the legal answers stay open, as decided.
+
 # Session S — Stage 8 readiness and live prices on the public Alpha (2026-10-04, [PR #71](https://github.com/reyals1111-ux/ZIGoals/pull/71), not merged or deployed)
 
 **Evidence labels:**
