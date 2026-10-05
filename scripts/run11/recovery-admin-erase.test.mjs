@@ -89,7 +89,9 @@ test('erase: export into custody, typed account and export digest, deletion reco
 
 test('erase refuses a wrong typed account or digest, a missing terminal, and a change after the export; nothing is erased',async()=>{
  const root=await checkout(),persist=await mkdtemp(join(tmpdir(),'erase-refuse-'));await seed(persist);
- const deleted=async()=>{const h=launcher(persist),admin=await h.launch({token:'x'.repeat(43)});try{return (await (await lifecycle(h.state.mf)).fetch('https://internal/account')).json();}finally{await admin.stop();}};
+ // `return await`: a bare `return …json()` inside try lets finally stop the runtime before the body arrives ("terminated",
+ // CI run 37249534852; Session U Part 4).
+ const deleted=async()=>{const h=launcher(persist),admin=await h.launch({token:'x'.repeat(43)});try{const res=await (await lifecycle(h.state.mf)).fetch('https://internal/account');return await res.json();}finally{await admin.stop();}};
  const attempt=async answers=>{const file=join(await outside(),'e.json'),h=launcher(persist),c=cli(root,h.launch,typeof answers==='function'?answers(file,h):answers);await expect(c.run(['erase','--account',account,'--out',file])).rejects.toThrow(/Nothing was erased/);c.assertPrivate();return file;};
  await attempt(['dddddddd-dddd-4ddd-8ddd-dddddddddddd','0'.repeat(64)]);
  await attempt([account,async()=>'1'.repeat(64)]);
