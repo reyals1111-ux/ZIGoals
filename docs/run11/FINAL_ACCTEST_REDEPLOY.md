@@ -186,6 +186,11 @@ OWNER_RECOVERY_ADMIN.md, then `node scripts/run11/activation-check.mjs --admin`:
 Deploy it to `alpha.zigoals.app` on or after **2026-10-11** (the seven-day T4 gap after deploy #27), or set
 `SYNC_WRITES` to `false` first (docs/product/SYNC_HOMES.md, "The write switch").
 
+**The acceptance app skips R1:** it goes from its Stage 7 build straight to this one, which writes the newer sections
+(settings v2, Health v2 and v3). After the app's redeploy, reload every open tab and reopen the Home Screen app on each
+test device before syncing. A tab still on the Stage 7 build cannot read the newer sections: its sync stops with an
+error instead of applying them, until it is reloaded.
+
 **Rollback, Session U specifics** (in addition to the rules below):
 - **App back to a build before Session U** (the acceptance app's Stage 7 version, or #28 on the public Alpha):
   remembered devices ask for the recovery secret once, because older builds delete the new v2 remembered-device records
