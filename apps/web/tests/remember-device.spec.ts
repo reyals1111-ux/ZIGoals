@@ -177,13 +177,19 @@ test('B2: Lock in one tab locks every tab of this browser, and none of them reop
   await page.bringToFront();
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
-  // Lock in the first tab: the second tab locks too, and focusing it does not reopen it.
+  // Lock in the first tab: the second tab locks too, as the clicking tab does ("Account records locked."), drops its
+  // "remembered" note, and focusing it does not reopen it. After a reload it asks for the recovery secret.
   await panel(page).getByRole('button', {name: 'Lock account vault', exact: true}).click();
   await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toHaveCount(0);
+  const locked = (tab: Page) => tab.getByRole('region', {name: 'Email account access', exact: true}).getByText('Account records locked.', {exact: true});
+  await expect(locked(second)).toBeVisible();
+  await expect(panel(second)).not.toContainText('This device is remembered');
   await second.bringToFront();
   await second.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await expect(panel(second).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
+  await expect(locked(second)).toBeVisible();
   await expect(panel(second).getByRole('button', {name: 'Lock account vault', exact: true})).toHaveCount(0);
   await expect.poll(() => readRecord(second)).toBeNull();
+  await second.reload();
+  await expect(panel(second).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
   await second.close();
 });

@@ -271,8 +271,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  useEffect(()=>{
   let debounce:ReturnType<typeof setTimeout>|undefined;
   const change=(event:Event)=>{const detail=(event as CustomEvent<AccountLockDetail|undefined>).detail,accessChanged=detail?.reason==='access-changed'&&detail.account===getAccountScope()&&detail.generation===getAccountGeneration();
-   // Session U Part 5 (B2): Lock in another tab of this browser is a manual lock here too: no reopen from a remembered device.
-   if(detail?.reason==='manual')manualLock.current=true;
+   // Session U Part 5 (B2): Lock in another tab of this browser is a manual lock here too: no reopen from a remembered device,
+   // and no "This device is remembered" note, since the tab that locked forgets the device.
+   if(detail?.reason==='manual'){manualLock.current=true;setRemembered(false);}
    if(isAccountLocked()||(session.current&&getAccountScope()!==session.current.account)){
    // A revoked session, another account or a deleted account makes a remembered device stale; a routine token expiry does not:
    // the device then reopens at once, refreshing the token as Settings does.
