@@ -13,8 +13,12 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
  * Session U Part 8 (a tighter phone rhythm, nothing removed): Showcase 11.07 → 10.92, seeded Local Demo 5.09 → 4.93,
  * and 4.74 → 4.58 once What's new is dismissed (local production builds before and after, 2026-10-05). The ceilings
  * stay as they were.
+ * Session U follow-up F3 (each widget card folds to a row named by it on a phone; the overview keeps every value in
+ * view; nothing removed): Showcase 10.92 → 9.46, seeded Local Demo 4.93 → 3.95, and 4.58 → 3.59 once What's new is
+ * dismissed (local production builds before and after, 2026-10-05). The ceilings come down to those numbers with a
+ * small margin.
  */
-const CEILING = {showcase: 11.3, local: 5.3, localAfterWhatsNew: 5.0};
+const CEILING = {showcase: 9.7, local: 4.2, localAfterWhatsNew: 3.85};
 test.use({viewport: {width: 390, height: 844}, reducedMotion: 'reduce'});
 test('Today at 390×844 stays within its screen-count ceilings', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));

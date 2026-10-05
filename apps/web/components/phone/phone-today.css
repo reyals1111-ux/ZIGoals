@@ -168,4 +168,7 @@
   :root .today-page .dashboard-summary .dashboard-summary-grid { align-items: flex-start; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading > svg { display: none; }
   :root .today-page .placed-module[data-size="compact"] .dashboard-widget-heading h3 { overflow-wrap: break-word; }
+  /* Session U follow-up F3: a widget card's folded row (today-dashboard.tsx) wraps a long title instead of widening
+     the page. */
+  :root .today-page .placed-module[data-kind="widget"] .phone-fold-toggle > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 }
