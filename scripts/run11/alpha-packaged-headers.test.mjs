@@ -37,7 +37,9 @@ test.runIf(enabled)('the packaged Alpha answers every app route with the reviewe
    const connect=(response.headers.get('content-security-policy')??'').split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src '));
    expect(connect,path).toBe(`connect-src ${["'self'",...egress.chainOrigins,...Object.values(egress.aiProviderOrigins),...egress.localModelSources].join(' ')}`);
   }
-  const root_=await mf.dispatchFetch('https://alpha.zigoals.app/',{headers:{'cf-connecting-ip':'192.0.2.44'}});
+  // The root redirects to /app; the global policy is asserted on the root's own response, not on the page it leads to.
+  const root_=await mf.dispatchFetch('https://alpha.zigoals.app/',{headers:{'cf-connecting-ip':'192.0.2.44'},redirect:'manual'});
+  expect([200,307,308]).toContain(root_.status);
   expect(root_.headers.get('permissions-policy')).toBe(egress.permissionsPolicy.global);
  }finally{await mf.dispose();}
 },60000);
