@@ -12,7 +12,10 @@ test('visible hero and Goal ring move once per visit and settle on real values',
    if(!kind)return;
    const value=()=>kind==='hero'?`${getComputedStyle(target).opacity}|${getComputedStyle(target).transform}`:getComputedStyle(target).getPropertyValue('stroke-dashoffset').trim();
    const sample:Sample={kind,start:value()};samples.push(sample);
-   setTimeout(()=>{sample.mid=value();},200);
+   // Session U Part 4: the middle is read by seeking this very animation to half its duration and back, at once. A
+   // 200 ms timer could fire after the end on a loaded runner (run 36865907188), when the "mid" equalled the end.
+   const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===(event as AnimationEvent).animationName);
+   if(animation){const timing=animation.effect!.getComputedTiming(),held=animation.currentTime;animation.currentTime=Number(timing.delay??0)+Number(timing.duration)/2;sample.mid=value();animation.currentTime=held;}
    target.addEventListener('animationend',()=>{sample.end=value();},{once:true});
   },true);
  });

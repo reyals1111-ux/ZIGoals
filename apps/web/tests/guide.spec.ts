@@ -29,6 +29,8 @@ const stored = (page: Page) => page.evaluate(key => localStorage.getItem(key), G
 
 test('off by default: no card, no request, and the switch in Settings says so', async ({page}) => {
   await seed(page, MONDAY_EVENING);
+  // Session U Part 4: leave the seeding page (Settings) first, so a request it starts late is never counted as Today's.
+  await page.goto('about:blank');
   const requests: string[] = []; page.on('request', request => { if (request.url().includes('/api/')) requests.push(request.url()); });
   await page.goto('/app'); await reveal(page);
   await expect(card(page)).toHaveCount(0);

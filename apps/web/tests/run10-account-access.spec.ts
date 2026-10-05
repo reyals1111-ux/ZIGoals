@@ -1,6 +1,10 @@
 import {test,expect} from '@playwright/test';
 const fixtureAccount='10000000-0000-4000-8000-000000000001';
 for(const width of [320,390])test(`fixture email access stays locked and preserves separate local Health at ${width}px`,async({page})=>{
+ // Session U Part 4: the water entry is today's, and this test once started at 23:59:58 UTC in CI (run 37245262048): the
+ // entry was made on one day and looked for on the next. Every page here reads today's noon (UTC) as the time, fixed;
+ // timers still run.
+ const noon=new Date();noon.setUTCHours(12,0,0,0);await page.clock.setFixedTime(noon);
  await page.setViewportSize({width,height:900});let signedIn=false;
  await page.route('**/api/private-account*',async route=>{
   const request=route.request(),url=new URL(request.url());
