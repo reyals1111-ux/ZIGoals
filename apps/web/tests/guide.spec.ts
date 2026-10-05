@@ -102,7 +102,9 @@ test('the weekly review\'s last step shows the Guide\'s paragraph only while the
     if (!(await review.isVisible().catch(() => false))) { const fold = area.getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
     await review.getByRole('button', {name: /^(Start review|Continue)$/}).click();
     const dialog = page.getByRole('dialog', {name: 'Your week'}); await expect(dialog).toBeVisible();
-    while (await dialog.getByRole('button', {name: 'Next', exact: true}).count()) await dialog.getByRole('button', {name: 'Next', exact: true}).click();
+    // Next saves the words before the step changes (Session U Part 9: in Health and settings), so each click waits for it.
+    const next = dialog.getByRole('button', {name: 'Next', exact: true}), step = dialog.getByText(/^Step \d+ of \d+$/);
+    while (await next.count()) { const before = await step.textContent(); await next.click(); await expect(step).not.toHaveText(before!); }
     await expect(dialog.getByRole('heading', {name: 'One intention', exact: true})).toBeVisible();
     return dialog;
   };

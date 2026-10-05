@@ -105,7 +105,11 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   const habits = typed<HabitData>('habits', json.modules.habits, v => habitDataSchema.safeParse(v));
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
-  const applied = links?.success ? links.data.applied.filter(a => !a.undone) : [];
+  // Session U Part 9: with the sync writes on, the markers live in Health v3 (`habitLinks`); the device key's are read too
+  // (it is never rewritten), and for the same habit and day the Health copy is the one in use.
+  const markers = new Map((links?.success ? links.data.applied : []).map(a => [`${a.habitId}:${a.date}`, a] as const));
+  for (const a of (health && 'habitLinks' in health ? health.habitLinks?.applied : undefined) ?? []) markers.set(`${a.habitId}:${a.date}`, a);
+  const applied = [...markers.values()].filter(a => !a.undone);
   const out: Record<CsvFileName, string> = {} as Record<CsvFileName, string>;
   out['goals.csv'] = csv(CSV_HEADERS['goals.csv'], goalRows(platform, localSimulation, warnings));
   out['contributions.csv'] = csv(CSV_HEADERS['contributions.csv'], (platform?.contributions ?? []).map(c => [c.id, c.goalId, c.goalScope, c.direction, c.quantity, c.asset, c.decimals, c.occurredAt, c.provenance, c.fundingMode ?? '', c.scheduledDate ?? '', c.positionId ?? '', c.reversesId ?? '', c.note ?? '']));

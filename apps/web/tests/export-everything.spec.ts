@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {HABITS_KEY} from '../lib/habits';
 import {CSV_FILES} from '../lib/export/everything';
 import {readStoredZip} from '../lib/export/zip-reader';
+import {SYNC_WRITES} from '../lib/vault/sync-writes';
 
 // T4 (Session P): "Export everything (optional)": one readable ZIP, made on the device, nothing written, nothing sent.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -45,7 +46,8 @@ test('one ZIP with everything.json and nine CSVs; nothing written on view or by 
   const json = JSON.parse(new TextDecoder().decode(entries[0]!.data));
   expect(json.format).toBe('zigoals-everything');
   expect(json.modules.habits).toEqual(JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABITS_KEY))!));
-  expect(json.device.fasting.sessions[0].id).toBe('fast_showcase-1');
+  // Session U Part 9: with the sync writes on, the Showcase's fast is in Health; switched off, in its device key.
+  expect((SYNC_WRITES ? json.modules.health.fasting : json.device.fasting).sessions[0].id).toBe('fast_showcase-1');
   expect(json.unreadable).toEqual([]);
   const firstLines = Object.fromEntries(entries.slice(1).map(e => [e.name, new TextDecoder().decode(e.data).split('\r\n')[0]]));
   expect(firstLines['goals.csv']).toMatch(/^"source","id","name"/);

@@ -1,6 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
 import {HEALTH_GOALS_KEY} from '../lib/health-goals/schema';
 import {isPhone} from './phone-nav';
+import {HEALTH_STORAGE_KEY} from '../lib/health';
+import {SYNC_WRITES} from '../lib/vault/sync-writes';
 
 // G3 (Session P): health goals on the Goals page and Today, counted from the Health journal only; kept on this device.
 test.use({timezoneId: 'Europe/Brussels'});
@@ -8,7 +10,10 @@ test.beforeEach(async ({page}) => {
   await page.clock.install({time: new Date('2026-09-15T10:00:00.000Z')});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 });
-const sessionGoals = (page: Page) => page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HEALTH_GOALS_KEY);
+// Session U Part 9: with the sync writes on (lib/vault/sync-writes.ts), health goals live in Health v3 (`healthGoals`) and the
+// device key is never written; switched off, they live in the device key as before.
+const HOME = SYNC_WRITES ? HEALTH_STORAGE_KEY : HEALTH_GOALS_KEY;
+const sessionGoals = (page: Page) => page.evaluate(key => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes(key))), HOME);
 
 test('Showcase: the fictional goal is counted from the Showcase journal on Goals and Today, and viewing writes nothing', async ({page}) => {
   await page.goto('/app/settings');
@@ -52,7 +57,8 @@ test('Local Demo: create, count from a water entry, close and reopen a health go
   const list = section.getByRole('list', {name: 'Active health goals'});
   await expect(list).toContainText('Water days');
   await expect(list).toContainText('No data yet');
-  const stored = JSON.parse((await page.evaluate(key => localStorage.getItem(key), HEALTH_GOALS_KEY))!);
+  const home = JSON.parse((await page.evaluate(key => localStorage.getItem(key), HOME))!), stored = SYNC_WRITES ? home.healthGoals : home;
+  if (SYNC_WRITES) { expect(home.schemaVersion).toBe(3); expect(await page.evaluate(key => localStorage.getItem(key), HEALTH_GOALS_KEY)).toBeNull(); }
   expect(stored.version).toBe(1); expect(stored.goals).toHaveLength(1);
   expect(stored.goals[0]).toMatchObject({version: 1, name: 'Water days', measure: 'water', direction: 'at-least', target: {value: '5', decimals: 0}, unit: 'days', window: {kind: 'rolling', weeks: 2}, status: 'active'});
   await page.goto('/app/health');

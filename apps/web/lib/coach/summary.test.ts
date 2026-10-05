@@ -3,7 +3,7 @@ import {buildShowcase} from '../showcase-data';
 import {HABITS_KEY, habitDataSchema} from '../habits';
 import {HEALTH_STORAGE_KEY, healthSchema} from '../health';
 import {PLATFORM_KEY, platformSchema} from '../positions';
-import {WEEKLY_REVIEW_KEY, weeklyReviewSchema} from '../weekly-review/schema';
+import {homeRecordsIn} from '../sync-homes-store';
 import {reviewWindow, weekSummary} from '../weekly-review/engine';
 import {summaryCounts, summaryParagraph, guideWeekSummary} from './summary';
 
@@ -11,7 +11,7 @@ import {summaryCounts, summaryParagraph, guideWeekSummary} from './summary';
 const DAY = '2026-09-20';
 function showcase() {
   const {records} = buildShowcase(DAY);
-  return {habits: habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health: healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)), platform: platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!)), review: weeklyReviewSchema.parse(JSON.parse(records[WEEKLY_REVIEW_KEY]!))};
+  return {habits: habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health: healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)), platform: platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!)), review: homeRecordsIn(records).weeklyReview};
 }
 test('the Showcase week: habit days, water days and the intention agree with the weekly review engine', () => {
   const {habits, health, platform, review} = showcase(), window = reviewWindow(review.weekday, DAY), now = Date.parse(`${DAY}T12:00:00Z`);

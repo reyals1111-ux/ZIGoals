@@ -3,7 +3,7 @@ import {buildShowcase} from '../showcase-data';
 import {HABITS_KEY, createHabit, emptyHabitData, habitDataSchema, logHabitValue, type HabitData, type HabitInput} from '../habits';
 import {HEALTH_STORAGE_KEY, createEmptyHealth, healthSchema, type HealthData} from '../health';
 import {PLATFORM_KEY, platformSchema} from '../positions';
-import {WEEKLY_REVIEW_KEY, weeklyReviewSchema} from '../weekly-review/schema';
+import {homeRecordsIn} from '../sync-homes-store';
 import {reviewState, reviewWindow} from '../weekly-review/engine';
 import {insightCards} from '../insights/engine';
 import {unifiedGoalSummaries, type GoalSummary} from '../goal-summary';
@@ -107,7 +107,7 @@ test('the Showcase data (buildShowcase) gives a fixed, deterministic nudge seque
   const sequence: string[] = [];
   for (let n = 0; n < 14; n++) {
     const day = addLocalDays('2026-09-20', n), {records} = buildShowcase(day), [y, m, d] = day.split('-').map(Number);
-    const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)), platform = platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!)), review = weeklyReviewSchema.parse(JSON.parse(records[WEEKLY_REVIEW_KEY]!));
+    const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)), platform = platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!)), review = homeRecordsIn(records).weeklyReview;
     const now = new Date(y!, m! - 1, d!, 19, 0), window = reviewWindow(review.weekday, day);
     const nudge = guideNudge({guide: on({enabledOn: '2026-09-20'}), habits, health, reminders: emptyReminders(), goals: unifiedGoalSummaries([], {}, platform, [], now.getTime()), insights: insightCards({habits, health, today: day}), review: {isReviewDay: localWeekday(day) === review.weekday, state: reviewState(review, window.weekStart)}, now, today: day});
     sequence.push(nudge ? nudge.id.replace(/:[0-9a-f-]{36}:/, ':<habit>:') : 'none');
