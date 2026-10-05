@@ -322,7 +322,16 @@ test('phone: a full-height sheet with a 16 px composer, the launcher above the t
   await page.getByRole('button', {name: 'More', exact: true}).click();
   await expect(page.locator('dialog.phone-more[open]')).toBeVisible();
   await expect(launcher(page)).toHaveCount(0);
+  await expect(page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'})).toHaveCount(0);
   await page.getByRole('button', {name: 'Close More'}).click();
+  await expect(launcher(page)).toBeVisible();
+  // Hidden through its device key, the launcher comes back from the More sheet.
+  await page.evaluate(k => { const s = JSON.parse(localStorage.getItem(k)!); s.launcherHidden = true; localStorage.setItem(k, JSON.stringify(s)); }, AI_SETTINGS_KEY);
+  await page.reload();
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(launcher(page)).toHaveCount(0);
+  await page.getByRole('button', {name: 'More', exact: true}).click();
+  await page.locator('dialog.phone-more[open]').getByRole('button', {name: 'Show ZIGi again'}).click();
   await expect(launcher(page)).toBeVisible();
   await openChat(page);
   const box = (await panel(page).boundingBox())!, viewport = page.viewportSize()!;
