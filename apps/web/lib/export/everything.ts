@@ -12,7 +12,7 @@ import {INSIGHTS_KEY} from '../insights/schema';
 import {IMPORT_UNDO_KEY} from '../import/undo-schema';
 import {PUSH_KEY} from '../push/client';
 import {GUIDE_KEY} from '../coach/schema';
-import {AI_SETTINGS_KEY} from '../ai/settings';
+import {AI_SETTINGS_KEY} from '../ai/launcher-record';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
 import {LOCAL_CHAIN, LOCAL_OWNER, parseLocalLedger} from '../local-ledger';
