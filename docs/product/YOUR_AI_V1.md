@@ -69,6 +69,8 @@ Exactly the request the browser sends: the system prompt of the page specialist,
 - **Settings section** (`ai-settings.tsx`, `id="your-ai"`), **setup** (`ai-setup.tsx`, three paths), **Help topic** (`help-page.tsx`, `#your-ai`), **phone rows** (Settings list, More sheet).
 
 ### ZIGi states (`components/zigi/manifest.json`)
+
+The manifest is a static, build-time import that every app page ships with the launcher shell (follow-up 2026-10-05), so it holds only what the avatar needs: the sizes, the per-size budgets and the state table below. Every state maps to the static placeholder until the figure set lands; an animated state is an animated WebP (APNG as the fallback) under the per-size budget, and every animated state needs its static frame for reduced motion and Motion Off.
 | State | Code | When |
 |---|---|---|
 | idle | F001 | at rest, and the fallback after every transient state |

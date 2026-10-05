@@ -1,86 +1,205 @@
-# ZIGi · your AI: the owner's test plan (Session T, 2026-10-05)
+# ZIGi · your AI: the owner's test, click by click (Session T follow-up, 2026-10-05)
 
-Real providers cannot be reached from the build sandbox, so every provider path below was exercised only against
-MOCK servers (`apps/web/tests/your-ai.spec.ts`, `lib/ai/*.test.ts`). These are the steps that prove the real thing,
-on the owner's Mac and iPhone, after the PR is merged and the Alpha is deployed. Nothing here needs a ZIGoals secret;
-every key stays with the owner. Expected time: about forty minutes.
+This is the test you run yourself, on your Mac and later on your iPhone. It assumes nothing: every Terminal command
+sits in its own block with one line saying what it does, and every click is named. Real providers could not be reached
+from the build sandbox, so this document is how the real thing gets proven. Nothing here needs a ZIGoals secret; every
+key stays yours. Plan about an hour for parts 1 to 7, and twenty minutes for part 8 after the deploy.
 
-## Before you start
-- Use the deployed Alpha (`https://alpha.zigoals.app`) for everything except step A4, which also works on `http://127.0.0.1:3100`.
-- Settings → ZIGi · your AI shows **Premium · free during Alpha**. If the section is missing, the build is not this PR.
-- Keep the browser console open once (step F) to see that nothing is logged there.
+Facts about other people's software (Ollama, OpenAI, OpenRouter, Chrome) come from their official pages, read on
+2026-10-05 and listed at the end. Where a provider's menu may have moved since, the step says what to look for.
 
-## A. A local model on the Mac (Ollama)
-1. Install Ollama (ollama.com) and pull a small chat model, for example `ollama pull llama3.2`.
-2. Allow the Alpha's origin, then restart Ollama (quit it from the menu bar and open it again):
+## 1. Start the local preview on your Mac
+
+Open **Terminal** (press ⌘ Space, type `Terminal`, press Return). Then run these blocks one at a time: paste a block,
+press Return, wait until the prompt comes back.
+
+Install the Node version manager `fnm` if you do not have it yet (skip when `fnm --version` already answers):
+```
+curl -fsSL https://fnm.vercel.app/install | bash
+```
+Close Terminal and open it again so `fnm` is on your path. Then go to the repository (adjust the path if you keep it
+elsewhere):
+```
+cd ~/ZIGoals
+```
+Select the exact Node version the repository pins (`.node-version` says 24.19.0):
+```
+fnm install 24.19.0 && fnm use 24.19.0
+```
+Turn on Corepack so the exact pnpm version from `package.json` (11.19.0) is used automatically:
+```
+corepack enable
+```
+Check out the pull request's branch:
+```
+git fetch origin && git checkout feature/session-t-your-ai-2026-10-04 && git pull
+```
+Install the dependencies exactly as locked, without running any package's install scripts:
+```
+pnpm install --frozen-lockfile --ignore-scripts
+```
+Confirm the toolchain (it prints the Node and pnpm versions and says whether they match):
+```
+pnpm run doctor
+```
+Start the app as a Local Demo on port 3101 (leave this Terminal window open; it keeps the server running):
+```
+NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101
+```
+Now open **Chrome** and go to `http://127.0.0.1:3101/app`. You should see Today. If the page is empty, go to
+**Settings** (left sidebar) → **Load Showcase Demo**, which fills the app with fictional records.
+
+Expected: at the bottom right of every app page a round **ZIGi** button with the placeholder figure, and in Settings a
+section **ZIGi · your AI** with the label **Premium · free during Alpha**. If the section is missing, the branch did
+not check out; run the `git checkout` block again.
+
+## 2. Install Ollama and one small model
+
+1. In Chrome open `https://ollama.com/download`, download Ollama for macOS, open the downloaded file and move Ollama
+   to Applications. Open it once; a llama icon appears in the menu bar.
+2. Pull one small chat model. Ollama's library lists Llama 3.2 in two sizes: `llama3.2:1b` (1.3 GB download) and
+   `llama3.2:3b` (2.0 GB). Start with the 1B model; it answers quickly on any recent Mac. Open a **second** Terminal
+   window (⌘ N) and run:
    ```
-   launchctl setenv OLLAMA_ORIGINS https://alpha.zigoals.app
+   ollama pull llama3.2:1b
    ```
-   Without this, step 4 fails with "No local server answered" and the fix steps name this variable.
-3. Open the Alpha in **Chrome 142 or later**. Settings → ZIGi · your AI → **I run a model on this computer** → the
-   Ollama preset (`http://127.0.0.1:11434`) → **Test connection**. Chrome asks once whether the site may "look for and
-   connect to devices on your local network": allow it. Expected: "Found Ollama at …" and the list of pulled models.
-4. Pick the model → **Connect**. Open Habits, press the ZIGi button (or ⌘K) and ask "Which habits are still open
-   today?". Expected: a reply built from your real habits, labelled "Answer from your AI (Ollama), not from ZIGoals.",
-   token counts under it (Ollama reports them), no money.
-5. Ask "Mark <one of your habits> as done". Expected: one card "Check in: <habit>" with the day; **Add** writes it (the
-   habit shows done in the list behind the panel); **Undo** within ten seconds puts it back.
-6. Safari on the same Mac: repeat step 3. Safari has no local-network prompt; CORS is answered by Ollama because of
-   step 2. Firefox: the chat works; the microphone route "Browser speech recognition" says Firefox has none.
+3. Confirm the model runs. This opens a chat in Terminal; type `hello`, read the answer, then type `/bye`:
+   ```
+   ollama run llama3.2:1b
+   ```
+4. Confirm the server answers on its default address. You should see one line of JSON with a version:
+   ```
+   curl http://127.0.0.1:11434/api/version
+   ```
+Expected: a version number. If Terminal says `Connection refused`, open the Ollama app from Applications and try again.
 
-## B. One API key (OpenAI recommended: it also covers voice)
-1. Create a key at platform.openai.com/api-keys with a small spending limit. Settings → ZIGi · your AI → **I have an
-   API key** → OpenAI → paste the key. Leave **Remember on this device** off for this first run.
-2. **Test connection** lists chat models (no embedding or audio models). Pick one → **Connect**.
-3. Open Health, allow Health sharing for this test (Settings: "Health page data" on, "Include Health" on; both are
-   off by default), then ask "What did I log today, and add a glass of water". Expected: a summary of today's own
-   entries and one water card; Add → the Water widget behind the panel updates; Undo removes it.
-4. Reload the page and send another message. Expected: the calm failure "Your key is not on this device." with the
-   step to paste it again: the key lived in the page's memory only. Paste it again in Settings ("Replace the key")
-   with **Remember on this device** on. Reload: the chat works; Settings shows "Key sealed on this device".
-5. Check platform.openai.com/usage after a few messages: the counts there are the only bill. ZIGoals shows tokens only.
-6. Voice: Settings → Voice → "Recorded, transcribed by OpenAI", model `gpt-4o-mini-transcribe`. In the chat press the
-   microphone, say a sentence, press it again. Expected: the words appear in the message box for editing; the
-   recording stopped by itself after at most a minute if you kept talking. Then switch to "Browser speech
-   recognition" and read the disclosure line (Chrome: Google's service unless on-device; Safari: Apple).
-7. **Disconnect** in Settings. Expected: the connection card disappears, switches are kept, and the key is gone
-   (reconnecting asks for it again).
+A page on `127.0.0.1` (your preview) may talk to Ollama without any extra setting. The hosted Alpha needs one more
+step; it is in part 8.
 
-## C. OpenRouter's sign-in (the one official PKCE flow)
-1. Settings → I have an API key → OpenRouter → **Sign in with OpenRouter instead**. Expected: OpenRouter's own page
-   asks you to authorise ZIGoals; after that you are back on Settings → ZIGi · your AI with the address cleaned
-   (no `code=` left in the URL) and the setup continues at the model list.
-2. On openrouter.ai/settings/keys the new key is listed; revoke it there when done and confirm ZIGi then fails with
-   the "key" fix steps.
+## 3. Connect ZIGi to Ollama and use it on every page
 
-## D. Someone with only a subscription (the bridge)
-1. Settings → **I only have a subscription** → ChatGPT (or Claude, Grok, Gemini) → Use my subscription.
-2. On Goals press the ZIGi button. Expected: the bridge view, a question box, **Copy for my AI** and **Open ChatGPT ↗**.
-   Type a question, copy, open the app, paste. Nothing is sent from ZIGoals; the copied text starts with the framing
-   that the data is records, not instructions.
+1. In the preview, open **Settings** → scroll to **ZIGi · your AI** → press **I run a model on this computer**.
+2. Press the **Ollama** preset. The address field shows `http://127.0.0.1:11434`.
+3. Press **Test connection**. Expected: "Found Ollama at http://127.0.0.1:11434" and a list with `llama3.2:1b`.
+4. Press `llama3.2:1b`, then **Connect**. Expected: a connection card "Ollama · llama3.2:1b" and the note that no key is
+   kept because none is needed.
+5. Go to **Habits**. Press the **ZIGi** button at the bottom right (or press ⌘ K). Expected: the panel opens with
+   ZIGi's greeting and four suggestion chips. Press **Which habits are still open today?** Expected: an answer built
+   from your real habits, under it the line **Answer from your AI (Ollama), not from ZIGoals.** and a token count such
+   as "128 in · 40 out tokens". No money appears anywhere.
+6. Type `Mark <one of your open habits> as done` and press **Send**. Expected: one card "Check in: <habit>" with the
+   day. Press **Add**. Expected: the habit shows as done behind the panel and the card says "Added". Press **Undo**
+   within ten seconds. Expected: the check-in is gone again.
+7. Type `I drank two glasses of water and had two eggs for breakfast`. Expected: two cards (water, and the eggs
+   labelled **AI estimate** with the estimated values), a button **Add all**, and after it one **Undo** for both.
+8. Press **What your AI sees** above the message box. Expected: the exact text sent with your messages: habit names,
+   schedules, today's state, nothing else. Close it again.
+9. Go to **Today**, **Goals**, **Health** and **Wealth**, open ZIGi on each, press one chip each time. Expected: each
+   page has its own chips; Health's answer says Health data is off until you turn on **Include Health** in Settings;
+   Wealth shows one total per currency and never converts.
+10. Go to **Settings** → ZIGi · your AI → **Health page data** on and **Include Health** on. Back on Health, ask
+    `What did I log today?` Expected: today's own entries as names and counts.
+11. Voice without any key: in the chat press the **microphone** button. Expected: a line saying which browser service
+    may process the audio (Chrome: Google's service unless on-device recognition is available). Allow the microphone
+    when Chrome asks, speak one sentence, press the button again. Expected: your words appear in the message box for
+    you to edit; nothing is sent until you press Send. If you deny the microphone, expected: a calm note with the steps
+    to allow it again, no error dialog.
 
-## E. iPhone, after the deploy
-1. Open the Alpha in Safari and add it to the Home Screen (Help → Install on iPhone). In the installed app, Settings →
-   ZIGi · your AI → I have an API key: **Remember on this device** is on by default (it is off in a Safari tab).
-2. Connect with the OpenAI key. The ZIGi button sits above the tab bar; it disappears while More or any sheet is
-   open and while the keyboard is up. The chat is a full-height sheet; the message box is 16 px (no zoom on focus).
-3. Hold the microphone to talk, release to stop. Browser speech on iOS Safari shows the Apple disclosure.
-4. Local models do not work from the phone (nothing listens on the phone's localhost): the setup says so.
-5. The × next to the ZIGi button hides it; **Show ZIGi again** in the More sheet brings it back.
+## 4. Optional: one API key (OpenAI shown; it also covers provider transcription)
 
-## F. Privacy checks (any browser)
-1. On Wealth open the chat and expand **What your AI sees**: holdings by name and class with your recorded values,
-   one total per currency; no addresses, no account, no identifiers. On Settings the bar says no page data is read.
-2. Settings → Account & sync: while the sign-in form, a one-time code, the vault unlock or a recovery secret is
-   showing, the ZIGi button is gone.
-3. Settings → Export everything: the ZIP's JSON has `device.aiChats` (your chats) and `device.ai` (settings) and no key
-   anywhere (search the files for `sk-`).
-4. Browser console: no key, no prompt, no reply is ever printed; provider errors show status and plain words only.
-5. Settings → ZIGi · your AI → **Turn off ZIGi** with "Also delete all chats": the section returns to the setup, the
-   History in a new chat is empty, and reconnecting asks for the key.
+Do this only if you want to test a cloud provider. The key stays in your browser; ZIGoals never receives it.
 
-## G. What to report back
-- Which steps passed, and the exact text of any failure card (it is written to be copied).
-- Chrome's local-network prompt: whether it appeared once, and whether a denied prompt was explained well enough.
-- Whether the "Premium · free during Alpha" label and the Help article say what you want them to say.
-- The first ZIGi figure set: the file contract is in YOUR_AI_V1.md §4; the placeholder shows in every state until then.
+1. In Chrome open `https://platform.openai.com/api-keys` and sign in. Press **Create new secret key**, name it
+   `ZIGoals test`, and copy it once (OpenAI shows it only once).
+2. Give it a small monthly budget so a mistake cannot cost much: in the platform's **Settings** look for **Limits**
+   (`https://platform.openai.com/settings/organization/limits`) and set a low monthly budget there; the page names
+   the fields. If your account is on prepaid billing, **Billing** shows your credit balance and lets you top it up.
+   Pick an amount you are comfortable losing; this document does not suggest one.
+3. In the preview: Settings → ZIGi · your AI → **Disconnect** (from Ollama) → **I have an API key** → provider
+   **OpenAI** → paste the key. Leave **Remember on this device** off for this first run.
+4. Press **Test connection**. Expected: a list of chat models (no embedding or audio models). Pick one, press
+   **Connect**. Expected: "OpenAI · <model>" and "Key kept in this page's memory only".
+5. Open ZIGi on Today, send `How is my day?`. Expected: an answer labelled "Answer from your AI (OpenAI)…" with token
+   counts.
+6. Reload the page (⌘ R) and send another message. Expected: the calm failure **Your key is not on this device.** with
+   the step to paste it again: the key lived in the page's memory only. In Settings press **Replace the key**, paste
+   it again with **Remember on this device** on. Reload: the chat works, and Settings says **Key sealed on this
+   device**.
+7. Check `https://platform.openai.com/usage`. Expected: a few requests. That page is the only bill; ZIGoals shows
+   tokens only.
+8. Voice through the key: Settings → ZIGi · your AI → **Voice** → **Recorded, transcribed by OpenAI**, model
+   `gpt-4o-mini-transcribe`. In the chat press the microphone, speak, press again. Expected: the words appear in the
+   message box; a recording stops by itself after sixty seconds.
+9. Afterwards: Settings → **Disconnect**. Expected: the connection card disappears and reconnecting asks for a key
+   again. Then delete the key at `https://platform.openai.com/api-keys` (the bin icon next to `ZIGoals test`).
+
+## 5. The OpenRouter sign-in (the one official sign-in flow)
+
+1. Settings → ZIGi · your AI → **I have an API key** → provider **OpenRouter** → **Sign in with OpenRouter instead**.
+2. Expected: OpenRouter's own page asks you to allow ZIGoals. Allow it. You come back to Settings → ZIGi · your AI
+   with a clean address (no `code=` in the URL) and the setup continues at the model list.
+3. Pick a model, Connect, send one message on Today. Then open `https://openrouter.ai/settings/keys`: the new key is
+   listed. Revoke it there when done; the next message in ZIGi should fail with the "key" fix steps.
+
+## 6. Someone with only a subscription (the bridge)
+
+1. Settings → ZIGi · your AI → **Disconnect** if connected → **I only have a subscription** → **ChatGPT** → **Use my
+   subscription**.
+2. Go to **Goals**, press the ZIGi button. Expected: a question box, **Copy for my AI** and **Open ChatGPT ↗**; a
+   fold **What will be copied** shows the exact text, which starts by saying the records are data, not instructions.
+3. Type a question, press **Copy for my AI**, press **Open ChatGPT ↗**, paste. Nothing was sent by ZIGoals.
+
+## 7. Privacy checks
+
+1. Settings → **Account & sync**: while the sign-in form, a one-time code, the vault unlock or a recovery secret is
+   on screen, the ZIGi button must be gone. Close the form: it comes back.
+2. Settings → **Export everything**: unzip the file, open the JSON. Expected: `device.aiChats` (your chats) and
+   `device.ai` (your settings) exist and no key appears anywhere (search the files for `sk-`).
+3. Open Chrome's console (⌥ ⌘ J): no key, no prompt and no reply is ever printed; provider errors show a status and
+   plain words only.
+4. Settings → ZIGi · your AI → **Turn off ZIGi** with **Also delete all chats** ticked. Expected: the section returns
+   to the setup, a new chat's History is empty, and reconnecting asks for the key again.
+5. The ZIGi button's **×** hides it; a toast offers **Undo** for ten seconds. Afterwards **Settings → ZIGi · your AI →
+   Show the ZIGi button** brings it back (on a phone also **More → Show ZIGi again**).
+
+## 8. After the deploy: alpha.zigoals.app and the iPhone
+
+1. The hosted page must be allowed to reach Ollama. In Terminal (the exact command from Ollama's FAQ, with our origin):
+   ```
+   launchctl setenv OLLAMA_ORIGINS "https://alpha.zigoals.app"
+   ```
+   Then quit Ollama from the menu bar icon and open it again. Without this, Test connection fails with "No local
+   server answered" and the fix steps name this variable.
+2. Open `https://alpha.zigoals.app/app` in **Chrome 142 or later**. Settings → ZIGi · your AI → I run a model on this
+   computer → Ollama → **Test connection**. Expected: Chrome asks once whether the site may "look for and connect to
+   devices on your local network"; allow it. Then "Found Ollama…" as in part 3. Safari shows no such prompt and works
+   through the same `OLLAMA_ORIGINS` setting; Firefox works too but has no browser speech recognition.
+3. iPhone: open the Alpha in Safari, add it to the Home Screen (Help → Install on iPhone). Open the installed app.
+   Settings → ZIGi · your AI → I have an API key: **Remember on this device** is on by default here (it is off in a
+   Safari tab). Connect with the OpenAI key from part 4 (local models do not work from a phone: nothing listens on the
+   phone's own localhost, and the setup says so).
+4. Expected on the phone: the ZIGi button sits above the tab bar and disappears while **More** or any sheet is open;
+   the chat is a full-height sheet; when the keyboard opens, the message box stays above it and the page behind does
+   not scroll; the × closes it and focus returns to the ZIGi button.
+5. Voice on the phone: hold the microphone to talk and release to stop, or tap once to start and once to stop; iOS
+   Safari shows the Apple disclosure line.
+
+## 9. What to report back
+
+For each part, a line "passed" or the exact text of the failure card (it is written to be copied). Please add:
+- screenshots of anything that looks wrong, with the device (Mac/iPhone), the browser and the page;
+- whether Chrome's local-network prompt appeared once and whether a denied prompt was explained well enough;
+- whether the labels **Premium · free during Alpha** and the Help topic say what you want;
+- the first ZIGi figure set, when ready: the file contract is in [YOUR_AI_V1.md](YOUR_AI_V1.md) §4.
+
+## Sources (read 2026-10-05)
+- Ollama library, Llama 3.2: <https://ollama.com/library/llama3.2> (tags `1b` 1.3 GB and `3b` 2.0 GB; `ollama run`
+  and `ollama pull`). Ollama FAQ: <https://docs.ollama.com/faq> (`OLLAMA_ORIGINS`, `launchctl setenv`, "Restart Ollama
+  application"). Ollama download: <https://ollama.com/download>.
+- OpenAI API keys: <https://platform.openai.com/api-keys>; usage: <https://platform.openai.com/usage>; limits:
+  <https://platform.openai.com/settings/organization/limits> (the help article on prepaid billing could not be read
+  from the sandbox on 2026-10-05, so the budget step names the page and no amount).
+- OpenRouter PKCE and keys: <https://openrouter.ai/docs/use-cases/oauth-pkce>, <https://openrouter.ai/settings/keys>.
+- Chrome 142 Local Network Access prompt and the browser facts: [YOUR_AI_V1.md](YOUR_AI_V1.md) §2, with its sources.
+- Node and pnpm versions: the repository's `.node-version` and `package.json` (`packageManager`); `fnm`:
+  <https://github.com/Schniz/fnm>.
