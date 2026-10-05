@@ -61,6 +61,8 @@ try {
         assert.match(headers['strict-transport-security'],/max-age=31536000/);
         assert.match(headers['cache-control'],/no-store/); assert.match(headers['x-robots-tag'],/noindex/);
         assert.equal(headers['x-frame-options'],'DENY'); assert.equal(headers['x-content-type-options'],'nosniff'); assert.equal(headers['referrer-policy'],'no-referrer');
+        // Session U Part 6 (FIX_PLAN D1): a page this app opens, or that opens it, gets no handle on it.
+        assert.equal(headers['cross-origin-opener-policy'],'same-origin');
       }
       } catch (error) { report.review.push(reviewReason(`${origin}${path} sample ${sample}`, error)); }
     }

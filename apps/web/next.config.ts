@@ -38,10 +38,15 @@ const config: NextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      // Session U Part 6 (FIX_PLAN D2, FINDINGS Q-WEB-03): an SVG opened on its own runs no script and loads nothing from
+      // elsewhere. The same value as public/_headers' "/*.svg" rule, which serves these files on Cloudflare.
+      { source: "/:file(.*\\.svg)", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox" }] },
       {
         source: "/(.*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
+          // Session U Part 6 (FIX_PLAN D1, FINDINGS Q-WEB-01): a page this app opens, or that opens it, gets no handle on it.
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
           { key: "Strict-Transport-Security", value: "max-age=31536000" },
           { key: "X-Content-Type-Options", value: "nosniff" },
