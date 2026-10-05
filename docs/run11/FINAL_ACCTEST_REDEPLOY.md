@@ -180,7 +180,7 @@ OWNER_RECOVERY_ADMIN.md, then `node scripts/run11/activation-check.mjs --admin`:
 - market coordinator: `node scripts/verify-hosted-alpha.mjs` prints the policy window end and BTC/USD on the public Alpha.
 - the app on `accounts-test.zigoals.app` (step 6's curl): also `cross-origin-opener-policy: same-origin`, and on
   `/app/health` a `permissions-policy` with `camera=(self)`.
-- the recovery rehearsal (step 7): "Erase an account" now also prints `vaultErased: true` at its serve step.
+- the recovery rehearsal (step 7): "Erase an account" now also prints `Encrypted vault rows: REMOVED` at its serve step (`NOT REMOVED YET` before the serve switch).
 
 **Before deploying to the public Alpha:** this PR turns on the new sync writes (`apps/web/lib/vault/sync-writes.ts`).
 Deploy it to `alpha.zigoals.app` on or after **2026-10-11** (the seven-day T4 gap after deploy #27), or set

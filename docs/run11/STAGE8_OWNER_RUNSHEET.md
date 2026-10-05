@@ -112,7 +112,7 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 
 **1b. Erase rehearsal (merged from FINAL_ACCTEST_REDEPLOY).**
 - **Do:** [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md), "Erase an account": steps 1–4 now, on the fictional rehearsal account; step 5 at the Stage 8 serve switch.
-- **Pass (Session U, Part 5 item 7):** at the serve step the command also prints `vaultErased: true` (the account's encrypted vault rows are gone, Portfolio copy included); before the serve switch it says the rows are not removed yet.
+- **Pass (Session U, Part 5 item 7):** at the serve step the command also prints `Encrypted vault rows: REMOVED` (the account's encrypted vault rows are gone, Portfolio copy included); before the serve switch it says the rows are not removed yet.
 - **Record:** pass or fail per step, the wrangler version and the commit.
 
 ## Part 2: sign-in with real email (Desktop A, Inbox 1) · about 25 min
