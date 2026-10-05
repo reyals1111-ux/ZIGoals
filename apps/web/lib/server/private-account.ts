@@ -105,8 +105,10 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});
    return reply(await readBounded(remote,action.action==='rotation'?1_000_000:32768),remote.status);
   }
+  // Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): a code request never asks the provider to create a user, so an
+  // address that is not on the invite list stays unknown even if sign-ups are ever switched back on.
   if(admit){const admission=await admit(action.action,action.email);await admission.body?.cancel().catch(()=>{});if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
-  const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:true}:{email:action.email,token:action.code,type:'email'})});
+  const remote=await upstream(`${cfg.authOrigin}/auth/v1/${action.action==='send'?'otp':'verify'}`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify(action.action==='send'?{email:action.email,create_user:false}:{email:action.email,token:action.code,type:'email'})});
   if(!remote.ok){
    // With sign-ups closed, the provider refuses a code for an address that is not on the invite list with 422
    // `otp_disabled` ("Signups not allowed for otp"); `signup_disabled` is the same door; `email_provider_disabled` means

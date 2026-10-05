@@ -136,7 +136,7 @@ test('a rejected code is reported to admission as a failed verification; a provi
 const INVITE_ONLY='ZIGoals is invite-only right now. Ask the person who invited you, or request an invite at contact@zigoals.app.';
 const sendRequest=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'send',email:'friend@example.com'})});
 const provider=(status:number,headers:Record<string,string>,body:unknown)=>vi.fn(async(url:string|URL|Request,init?:RequestInit)=>{
- expect(String(url)).toBe('https://test.supabase.co/auth/v1/otp');expect(JSON.parse(String(init?.body))).toEqual({email:'friend@example.com',create_user:true});
+ expect(String(url)).toBe('https://test.supabase.co/auth/v1/otp');expect(JSON.parse(String(init?.body))).toEqual({email:'friend@example.com',create_user:false});
  return new Response(body===null?'':typeof body==='string'?body:JSON.stringify(body),{status,headers:{'content-type':'application/json',...headers}});
 });
 test.each([
@@ -171,4 +171,11 @@ test('a rejected code never reads as invite-only, even when the provider names o
  const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'friend@example.com',code:'123456'})});
  const result=await privateAccountRequest(request,config,async()=>Response.json({code:422,error_code:'otp_disabled',msg:'Signups not allowed for otp'},{status:422,headers:{'x-sb-error-code':'otp_disabled'}}));
  expect(result.status).toBe(400);expect(await result.json()).toEqual({error:'AUTH_FAILED',message:'Check your code or request a new one after the cooldown.'});expect(result.headers.get('set-cookie')).toBeNull();
+});
+// Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): the request body itself, for an address the provider does not know.
+test('a code request never asks the provider to create a user',async()=>{
+ const bodies:unknown[]=[];
+ const result=await privateAccountRequest(sendRequest(),config,async(_url,init)=>{bodies.push(JSON.parse(String(init?.body)));return Response.json({});});
+ expect(result.status).toBe(200);expect(bodies).toEqual([{email:'friend@example.com',create_user:false}]);
+ expect(JSON.stringify(bodies)).not.toContain('"create_user":true');
 });
