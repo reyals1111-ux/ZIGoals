@@ -1,6 +1,6 @@
 import type {GoalMetadata} from '@zigoals/shared-types';
 import {habitDay as habitDayOf, habitStats, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitData} from '../../habits';
-import {dailyHealthSummary, nutritionSummaryText, scaleNutrition, type HealthData} from '../../health';
+import {createEmptyHealth, dailyHealthSummary, nutritionSummaryText, scaleNutrition, type HealthData} from '../../health';
 import {dailyData, waterSummary} from '../../health-daily';
 import {countOn, exerciseData} from '../../health-counters';
 import {elapsedMs, fastingHistory, formatFast, runningSession} from '../../fasting/engine';
@@ -67,7 +67,10 @@ function habitsSection(input: BuilderInput, handles: Handles, onlyDue: boolean):
     if (onlyDue && !['due', 'partial'].includes(day.status)) continue;
     const stats = habitStats(habit, input.habitDay), unit = measurementUnit(rule);
     const handle = handles.add('habit', habit.id, habit.title);
-    lines.push(`${handle}: ${clean(habit.title)} · ${rule.type} · ${scheduleLabel(rule.schedule)} · target ${rule.target}${unit ? ' ' + unit : ''} per ${rule.targetPeriod} · today: ${day.status}${day.count ? ` (${day.count}${unit ? ' ' + unit : ''} logged)` : ''} · streak ${stats.currentStreak} ${stats.streakUnit} · ${habit.timeOfDay}`);
+    // A check-in filled in from Health carries a Health value (steps, minutes…): it goes only with the Health gate open.
+    const fromHealth = habit.entries.find(e => e.date === input.habitDay)?.source === 'health';
+    const logged = !day.count ? '' : fromHealth && !input.consent.health ? ' (value from Health, not shared)' : ` (${day.count}${unit ? ' ' + unit : ''} logged)`;
+    lines.push(`${handle}: ${clean(habit.title)} · ${rule.type} · ${scheduleLabel(rule.schedule)} · target ${rule.target}${unit ? ' ' + unit : ''} per ${rule.targetPeriod} · today: ${day.status}${logged} · streak ${stats.currentStreak} ${stats.streakUnit} · ${habit.timeOfDay}`);
   }
   if (active.length > LIMITS.habits) lines.push(`(${active.length - LIMITS.habits} more habits not listed)`);
   if (!lines.length) lines.push(onlyDue ? 'No habit is open right now.' : 'No active habits yet.');
@@ -156,13 +159,16 @@ export const HELP_NOTES = [
 function weekSection(input: BuilderInput): Section | null {
   if (!input.week) return null;
   const {weekStart, weekEnd, review} = input.week;
+  // Health counts and lines (meals, steps, water, weight) go only with the Health gate open, like every Health line:
+  // without it the week is summarised from an empty Health journal and the health-entry count is left out, not zeroed.
+  const health = input.consent.health ? input.health : createEmptyHealth();
   try {
-    const week = weekSummary({weekStart, weekEnd, habits: input.habits, health: input.health, platform: input.platform, localGoals: input.localGoals, metadata: input.metadata, quotes: input.quotes, now: input.now.getTime(), financial: false, review});
+    const week = weekSummary({weekStart, weekEnd, habits: input.habits, health, platform: input.platform, localGoals: input.localGoals, metadata: input.metadata, quotes: input.quotes, now: input.now.getTime(), financial: false, review});
     const lines = [
       `Week ${weekStart} to ${weekEnd} · review ${reviewState(review, weekStart)} (the person writes the review themselves; you may summarise these counts and ask what went well)`,
-      `${week.wentWell.habitCheckIns} habit check-ins · ${week.wentWell.healthEntries} health entries · ${week.wentWell.goalContributions} goal contributions${week.wentWell.bestDay ? ` · busiest day ${week.wentWell.bestDay}` : ''}`,
+      `${week.wentWell.habitCheckIns} habit check-ins${input.consent.health ? ` · ${week.wentWell.healthEntries} health entries` : ''} · ${week.wentWell.goalContributions} goal contributions${week.wentWell.bestDay ? ` · busiest day ${week.wentWell.bestDay}` : ''}`,
       ...week.habits.slice(0, LIMITS.habits).map(h => `${clean(h.title)}: ${h.done} of ${h.scheduled} scheduled done${h.skipped ? `, ${h.skipped} skipped` : ''}${h.streak ? `, streak ${h.streak}` : ''}`),
-      ...week.health.slice(0, 12).map(line => clean(line, 160)),
+      ...(input.consent.health ? week.health.slice(0, 12).map(line => clean(line, 160)) : []),
       week.lastIntention ? `Last week's intention: ${clean(week.lastIntention, 200)}` : 'No intention written last week.',
     ];
     return {title: 'This week (for your weekly review)', lines};
