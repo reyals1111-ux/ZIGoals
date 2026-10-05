@@ -38,6 +38,11 @@ jobs:
       - run: pnpm check:deploy-configs && pnpm check:landing
       - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
       - run: pnpm audit --prod --audit-level high
+      # FIX_PLAN F1 (Q-SC-02): every dependency, development ones included, reported as a warning and never a failure.
+      # The step above still fails on production advisories. Known on 2026-10-05: braces <=3.0.3 (GHSA-vfj7-8cjw-p6xm)
+      # through eslint-config-next, lint-time only, with no patched braces published yet.
+      - name: pnpm audit, all dependencies (warning only)
+        run: pnpm audit --audit-level high || echo "::warning title=pnpm audit (all dependencies)::Advisories in development dependencies; read this step's log (FIX_PLAN F1)."
       - run: node scripts/check-secrets.mjs
   web-browser:
     name: web browser suite (shard ${{ matrix.shard }}/3)
