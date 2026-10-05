@@ -16,6 +16,8 @@ import type {PageArea} from '../settings';
 import {estimateTokens} from './budget';
 import type {Consent} from './consent';
 import {wealthView} from './pages';
+import {reviewState, weekSummary} from '../../weekly-review/engine';
+import type {WeeklyReview} from '../../weekly-review/schema';
 import {escapeData} from './specialists';
 import type {Handle, PageContext} from './types';
 
@@ -34,6 +36,8 @@ export type BuilderInput = {
   habits: HabitData; health: HealthData; fasting: Fasting | null;
   platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[];
   portfolio: {data: PortfolioData; priceOf: (coin: string) => string | undefined} | null;
+  /** The weekly review's window and record, for Today's "This week" counts (follow-up part F); absent means no week section. */
+  week?: {weekStart: string; weekEnd: string; review: WeeklyReview} | null;
 };
 const LIMITS = {habits: 60, goals: 40, diary: 40, foods: 40, recipes: 20, positions: 60, portfolios: 20, chars: 24_000};
 const clean = (text: string, max = 120) => escapeData(text.replace(/\s+/g, ' ').trim()).slice(0, max);
@@ -148,12 +152,28 @@ export const HELP_NOTES = [
   'Backups are optional: an encrypted backup with its own secret, readable exports per area, and Export everything (a readable ZIP). The Alpha runs on a test network: nothing is real money.',
 ];
 /** Builds the page context for the next message, under the given consent. */
+/** Counts of the person's own week for the weekly review (read-only, from the review engine; nothing scored, nothing drafted). */
+function weekSection(input: BuilderInput): Section | null {
+  if (!input.week) return null;
+  const {weekStart, weekEnd, review} = input.week;
+  try {
+    const week = weekSummary({weekStart, weekEnd, habits: input.habits, health: input.health, platform: input.platform, localGoals: input.localGoals, metadata: input.metadata, quotes: input.quotes, now: input.now.getTime(), financial: false, review});
+    const lines = [
+      `Week ${weekStart} to ${weekEnd} · review ${reviewState(review, weekStart)} (the person writes the review themselves; you may summarise these counts and ask what went well)`,
+      `${week.wentWell.habitCheckIns} habit check-ins · ${week.wentWell.healthEntries} health entries · ${week.wentWell.goalContributions} goal contributions${week.wentWell.bestDay ? ` · busiest day ${week.wentWell.bestDay}` : ''}`,
+      ...week.habits.slice(0, LIMITS.habits).map(h => `${clean(h.title)}: ${h.done} of ${h.scheduled} scheduled done${h.skipped ? `, ${h.skipped} skipped` : ''}${h.streak ? `, streak ${h.streak}` : ''}`),
+      ...week.health.slice(0, 12).map(line => clean(line, 160)),
+      week.lastIntention ? `Last week's intention: ${clean(week.lastIntention, 200)}` : 'No intention written last week.',
+    ];
+    return {title: 'This week (for your weekly review)', lines};
+  } catch { return null; }
+}
 export function buildPageContext(input: BuilderInput): PageContext {
   const handles = new Handles(), sections: Section[] = [], omitted: string[] = [];
   if (!input.consent.page) return {area: input.area, text: '', handles: [], included: [], omitted: input.consent.reasons, estimatedTokens: 0};
   const health = () => { if (input.consent.health) sections.push(healthSection(input, handles, input.area === 'health')); else omitted.push(...(input.consent.reasons.length ? input.consent.reasons.filter(r => r.startsWith('Health')) : ['Health: not shared'])); };
   switch (input.area) {
-    case 'today': sections.push({title: 'Today', lines: [`Habit day ${input.habitDay} · health day ${input.healthDay} · now ${input.now.toISOString().slice(0, 16).replace('T', ' ')} UTC`]}); sections.push(habitsSection(input, handles, true)); health(); sections.push(goalsSection(input, handles, true)); break;
+    case 'today': sections.push({title: 'Today', lines: [`Habit day ${input.habitDay} · health day ${input.healthDay} · now ${input.now.toISOString().slice(0, 16).replace('T', ' ')} UTC`]}); sections.push(habitsSection(input, handles, true)); health(); sections.push(goalsSection(input, handles, true)); { const week = weekSection(input); if (week) sections.push(week); } break;
     case 'habits': sections.push(habitsSection(input, handles, false)); break;
     case 'goals': sections.push(goalsSection(input, handles, false)); break;
     case 'health': health(); break;

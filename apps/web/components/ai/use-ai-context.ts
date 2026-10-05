@@ -3,6 +3,8 @@ import {useMemo} from 'react';
 import {usePathname} from 'next/navigation';
 import {formatUnits} from '@zigoals/chain-config';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
+import {reviewWindow} from '../../lib/weekly-review/engine';
+import {emptyWeeklyReview, WEEKLY_REVIEW_KEY, weeklyReviewSchema} from '../../lib/weekly-review/schema';
 import {habitCalendarDay} from '../../lib/habits';
 import {dailyData, healthDay} from '../../lib/health-daily';
 import {coinKey} from '../../lib/portfolio/schema';
@@ -38,6 +40,7 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
   const pathname = usePathname() ?? '/app', area = pageArea(pathname), attaches = attachesContext(pathname);
   const platform = usePlatform(), habits = useHabits(), health = useHealth(), fasting = useFasting(), portfolios = usePortfolios(), legacy = useGoals();
   const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent();
+  const weekly = usePrivateStore(WEEKLY_REVIEW_KEY, weeklyReviewSchema, emptyWeeklyReview);
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
   const gates = useMemo(() => consent({settings, area, pathname, layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted}), [settings, area, pathname, layoutHasHealth, healthConsent.accountActive, healthConsent.accountHealthPermitted]);
   const ready = platform.loaded && habits.loaded && health.loaded && fasting.loaded && portfolios.loaded && legacy.loaded && dashboard.loaded && healthConsent.loaded;
@@ -66,9 +69,9 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       return quote ? formatUnits(quote.price, quote.priceDecimals) : undefined;
     };
     try {
-      return buildPageContext({area, pathname, consent: gates, now, habitDay, healthDay: hDay, habits: habits.data, health: health.data, fasting: fasting.data, platform: platform.data, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, quotes: market.quotes, portfolio: wealthView(pathname) === 'portfolio' ? {data: portfolios.data, priceOf} : null});
+      return buildPageContext({area, pathname, consent: gates, now, habitDay, healthDay: hDay, habits: habits.data, health: health.data, fasting: fasting.data, platform: platform.data, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, quotes: market.quotes, portfolio: wealthView(pathname) === 'portfolio' ? {data: portfolios.data, priceOf} : null, week: area === 'today' && weekly.loaded && !weekly.error ? (() => { const w = reviewWindow(weekly.data.weekday, habitDay); return {weekStart: w.weekStart, weekEnd: w.weekEnd, review: weekly.data}; })() : null});
     } catch { return null; }
-  }, [reads, area, pathname, gates, habits.data, health.data, fasting.data, platform.data, legacy.goals, legacy.metadata, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now]);
+  }, [reads, area, pathname, gates, habits.data, health.data, fasting.data, platform.data, legacy.goals, legacy.metadata, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data]);
   const preview = useMemo(() => context ? previewContext(context, {provider: providerName}) : null, [context, providerName]);
   return {area, pathname, attaches, consent: gates, context, preview, ready};
 }

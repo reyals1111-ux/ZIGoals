@@ -67,6 +67,8 @@ export function LiquidGlass() {
     overlay.append(document.createElement('i'));
     document.body.append(overlay);
     let lifted: HTMLElement[] = [], lit: HTMLElement | null = null, pill: {x: number; y: number} | null = null, frame = 0, focusSource = false;
+    // The lit element can grow under the pointer (a form that opens, a section that loads): its light follows its size.
+    let sizeWatch: ResizeObserver | null = null;
     const leaveTimers = new WeakMap<HTMLElement, number>();
 
     function place() {
@@ -99,7 +101,9 @@ export function LiquidGlass() {
       lifted = wanted; focusSource = fromFocus;
       const light = next ? (kindOf(next.inner) === 'control' ? next.card ?? null : next.inner) : null;
       if (light !== lit) {
+        sizeWatch?.disconnect(); sizeWatch = null;
         lit = light;
+        if (lit && typeof ResizeObserver === 'function') { sizeWatch = new ResizeObserver(schedule); sizeWatch.observe(lit); }
         if (lit) {
           const kind = kindOf(lit);
           const row = kind === 'row' ? rowPill(lit) : null;

@@ -7,6 +7,7 @@ import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {useZigiState, zigiEvents} from '../zigi/events';
 import {useAccountCleanup, useLauncherRecord} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
+import {ASK_EVENT} from './ask';
 import './ai-launcher.css';
 
 /**
@@ -45,6 +46,8 @@ export function AiLauncher() {
     return () => window.removeEventListener('keydown', onKey);
   }, [sensitive, launcher.record.launcherHidden, toggle]);
   useEffect(() => { if (sensitive && open) setOpen(false); }, [sensitive, open]);
+  // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
+  useEffect(() => { const onAsk = () => { if (!launcher.record.launcherHidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [launcher.record.launcherHidden, sensitive]);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
   const hide = () => {
     setOpen(false); launcher.setLauncherHidden(true); setUndoUntil(Date.now() + HIDE_UNDO_MS);
