@@ -14,6 +14,7 @@ import {IMPORT_UNDO_KEY} from '../import/undo-schema';
 import {PUSH_KEY} from '../push/client';
 import {GUIDE_KEY} from '../coach/schema';
 import {AI_SETTINGS_KEY} from '../ai/launcher-record';
+import {TODAY_FOLDS_KEY} from '../today-folds';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
 import {LOCAL_CHAIN, LOCAL_OWNER, parseLocalLedger} from '../local-ledger';
@@ -33,7 +34,7 @@ export const MODULE_KEYS = {finance: PLATFORM_KEY, habits: HABITS_KEY, health: H
 // ZIGi (ADR-012): its settings key is exported like every device key; its conversations arrive through `aiChats` (they
 // live in IndexedDB, read by the caller through lib/ai/chats.ts); its provider keys live in a separate key store that
 // the export never reads.
-export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HEALTH_LINKS_KEY, healthGoals: HEALTH_GOALS_KEY, weeklyReview: WEEKLY_REVIEW_KEY, fasting: FASTING_KEY, insights: INSIGHTS_KEY, importUndo: IMPORT_UNDO_KEY, push: PUSH_KEY, guide: GUIDE_KEY, ai: AI_SETTINGS_KEY} as const;
+export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HEALTH_LINKS_KEY, healthGoals: HEALTH_GOALS_KEY, weeklyReview: WEEKLY_REVIEW_KEY, fasting: FASTING_KEY, insights: INSIGHTS_KEY, importUndo: IMPORT_UNDO_KEY, push: PUSH_KEY, guide: GUIDE_KEY, ai: AI_SETTINGS_KEY, todayFolds: TODAY_FOLDS_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv'] as const;

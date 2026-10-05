@@ -52,6 +52,8 @@ import {getAccountScope} from '../../lib/account-session';
 import { formatPlainDecimal } from "../../lib/visual-format";
 import {ReminderCards} from '../reminders/reminder-cards';
 import {PhoneFold} from '../phone/phone-fold';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {isFoldOpen,readTodayFolds,rememberFold,type TodayFolds} from '../../lib/today-folds';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
 const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
@@ -89,6 +91,11 @@ export function TodayDashboard(){
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
+ // Session V Part 1b: the widget rows a person left open on a phone stay open (zigoals:today-folds:v1), read after mount
+ // and written only when the person opens or closes a row.
+ const [folds,setFolds]=useState<TodayFolds|null>(null);
+ useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;try{setFolds(readTodayFolds(getAppStorage()));}catch{setFolds(null);}});return()=>{active=false;};},[showcase]);
+ const toggleFold=(id:string,open:boolean)=>{try{setFolds(rememberFold(getAppStorage(),id,open));}catch{/* storage refused: the row still opens, it is just not remembered */}};
  const loaded=(domain:string)=>domain==='health'?health.loaded:domain==='habits'?habits.loaded:platform.loaded&&legacy.loaded;
  const domainError=(domain:string)=>domain==='health'?health.error:domain==='habits'?habits.error:platform.error;
  const savedLayout=useSavedLayout();
@@ -167,7 +174,7 @@ export function TodayDashboard(){
   const foldLabel=ref.kind==='widget'?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has(ref.id as DashboardBuiltinId)?PHONE_FOLD_LABEL[ref.id]??label:undefined;
   return <div key={`${ref.kind}:${ref.id}`} id={itemId(ref)} tabIndex={-1} className="placed-module" data-kind={ref.kind} data-module={ref.id} data-size={widget?.size} data-hidden={hidden?'true':undefined}>
    {customize&&ref.kind==='builtin'&&<div className="dashboard-builtin-options"><CardOptions label={label}><button type="button" disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,label)}>Move earlier</button><button type="button" disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,label)}>Move later</button>{builtin!.hideable&&<button type="button" disabled={busy} onClick={()=>apply(s=>setDashboardBuiltinHidden(s,ref.id as DashboardBuiltinId,!hidden,placement.revision))}>{hidden?'Show card':'Hide card'}</button>}</CardOptions></div>}
-   {hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel}>{content}</PhoneFold>:content}
+   {hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel} {...(ref.kind==='widget'?{remembered:!!folds&&isFoldOpen(folds,ref.id),onToggle:(open:boolean)=>toggleFold(ref.id,open)}:{})}>{content}</PhoneFold>:content}
    {customize&&<button type="button" className="dashboard-insert-here" disabled={busy||settings.data.widgets.length>=24} onClick={()=>addAfter(ref,region)}>+ Add widget after {label}</button>}
   </div>;
  }

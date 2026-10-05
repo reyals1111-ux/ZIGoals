@@ -13,6 +13,7 @@ import {IMPORT_UNDO_KEY} from './import/undo-schema';
 import {PUSH_KEY} from './push/client';
 import {GUIDE_KEY} from './coach/schema';
 import {AI_SETTINGS_KEY} from './ai/launcher-record';
+import {TODAY_FOLDS_KEY} from './today-folds';
 export const ONBOARDING_KEY = 'zigoals:onboarding:v1';
 export type OnboardingFlag = { version: 1; seen: true };
 type Read = Pick<Storage, 'getItem'>;
@@ -38,7 +39,7 @@ export function markOnboardingSeen(storage: Write | null | undefined): boolean {
  */
 export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HEALTH_GOALS_KEY, WEEKLY_REVIEW_KEY, FASTING_KEY, INSIGHTS_KEY, IMPORT_UNDO_KEY, PUSH_KEY, GUIDE_KEY, AI_SETTINGS_KEY];
 /** Device keys that hold no personal records: display preferences, public caches and this flag. */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1'];
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are
