@@ -150,7 +150,7 @@ UNAVAILABLE is a safe state: cached prices and manual valuation keep working, an
 
 **Fix:** every CoinGecko read sends `User-Agent: ZIGoals/1.0 (+https://zigoals.app)` (`apps/web/lib/server/provider-user-agent.ts`). It names the app and its public site only. CoinGecko answered 200 to that exact value (keyless, 2026-10-04 22:38 UTC).
 
-**Owner steps after the merge** (the coordinator does the provider reads, so it carries the fix; the Alpha needs no redeploy for prices):
+**Owner steps after the merge** (the coordinator does the provider reads, so it carries the fix; the Alpha needs no redeploy for prices). **One coordinator redeploy carries all of PR #74's coordinator changes:** this fix, the policy-period status (Part 2d), the budget partition and public cold-work cap (Parts 2e/2f) and the two-window `MARKET_POLICY` (follow-up F2). `MARKET_POLICY` itself is not changed tonight; the two-window policy is installed around 28 October ([Next policy period](#next-policy-period)).
 1. Steps 1–3 above at the merged main: ops checkout, `deployments list` (write down the live version: today `4754e86f-42c2-4ea3-8373-3c0a7031036b`, your rollback), `deploy`, verify.
 2. Probe once: `node scripts/verify-hosted-alpha.mjs <new dir>` (it requires VERIFIED), or the Markets page.
 3. **VERIFIED:** done; record it. **Still `UNKNOWN`:** roll back only if something else broke (`wrangler rollback 4754e86f-42c2-4ea3-8373-3c0a7031036b --config "$PWD/workers/market-coordinator/wrangler.acctest.owner.jsonc"`), keep the evidence and report it: the cause is then on CoinGecko's side for the key, and the CoinGecko dashboard is the next read-only check.
@@ -167,22 +167,26 @@ Session U Part 2e. Off until you set it; nothing changes without it.
 - **Rollback:** a policy without `partition` (regenerate without it), or roll the coordinator back; the label is ignored by older coordinators.
 
 ## Next policy period
-The coordinator's `MARKET_POLICY` covers one CoinGecko billing period (exact window). **It cannot take the next period early:** the coordinator refuses a period that has not started, and the old one refuses everything once it has ended (Session U found this; the earlier advice to "regenerate around 28 October" could not work). So:
+The coordinator's `MARKET_POLICY` covers one CoinGecko billing period (exact window); the current one ends **2026-10-31 16:00 UTC** (17:00 Belgian time). Since Session U follow-up F2 the next period is **installed in advance**: `MARKET_POLICY` may hold the current window and the next one, `{"windows":[current, next]}`, and the coordinator switches from one to the other **by itself at the boundary**. Nothing has to happen at 16:00 UTC.
 
-- **Around 28 October (read only): prepare.** In the ops checkout, with the current filled owner file:
-  ```sh
-  node scripts/run11/next-market-policy.mjs --owner-file <name>.market-policy.owner.json --window-end <next reset from the CoinGecko dashboard, UTC, e.g. 2026-11-30T16:00:00Z> --credits-used 0 [--daily-row-budget 100000]
-  ```
-  - A dry run: it checks the next period's figures as of its start, prints the period and every step below, and writes nothing.
-  - `--daily-row-budget 100000` is the [advice below](#advice-dailyrowbudget-on-workers-paid-no-change-made) for Workers Paid; leave it out to keep 20,000.
-- **On 31 October, at or after 16:00 UTC: switch.** Run the command the dry run printed (with `--credits-used` from the dashboard for the new period, `--write --out <name>.market-policy.private.json`), then:
-  1. `node scripts/run11/make-private-configs.mjs --set-market-policy <name>.market-policy.private.json`
-  2. `wrangler login`, `deployments list` on the coordinator (read only: your rollback), then `deploy` (step 2 above, the same commands).
-  3. `node scripts/verify-hosted-alpha.mjs <new dir>` prints "Market policy period ends 2026-11-30T16:00:00.000Z" (or your new end). Then `wrangler logout`.
-  4. Set the owner file's `provider.reset` to the new period, as the tool printed, for the period after.
-- **Between 16:00 UTC and step 2 every price is refused** (LOCAL_BUDGET), on both apps. Manual valuation keeps working. Keep the gap short; nothing else is affected.
-- `--write` refuses before 16:00 UTC; it writes only the policy file (inside the checkout, ignored by git, 0600, never overwritten) and runs no command.
-- **Where you see the end:** the Manual Alpha workflow summary ("Market policy period ends …", with a **Warning** below 7 days) and `verify-hosted-alpha.mjs`. Both read `GET /api/market-status`; "not reported" means the coordinator predates Session U.
+- **What the coordinator checks** (`marketPolicies`, `apps/web/lib/server/durable-market-account.ts`): each window is a whole policy that passes the same checks as a single one; both are exact windows; the next starts exactly where the current ends (no gap, no overlap); the labels differ. Anything else is no policy (every price refused, `LOCAL_BUDGET`). Before the first window and after the last, every price is refused too, cached ones included.
+- **Budget across the boundary:** the daily row budget and the public cold-work cap count per UTC day, so what was spent before 16:00 UTC on 31 October still counts after it (no second budget that day). The monthly credits start again with the new billing period, as CoinGecko's do.
+- **One policy alone** works exactly as before.
+
+**Around 28 October: install it** (in the ops checkout; needs this PR's coordinator, i.e. tonight's redeploy):
+1. Dry run, with the current filled owner file and the policy file installed now (the `*.market-policy.private.json` you last gave to `make-private-configs.mjs --set-market-policy`):
+   ```sh
+   node scripts/run11/next-market-policy.mjs --owner-file <name>.market-policy.owner.json --current-policy <installed>.market-policy.private.json --window-end <next reset from the CoinGecko dashboard, UTC, e.g. 2026-11-30T16:00:00Z> --credits-used 0 [--daily-row-budget 100000]
+   ```
+   It checks the next period's figures as of its start, keeps the installed window byte for byte, prints both windows and every step below, and writes nothing. `--daily-row-budget 100000` is the [advice below](#advice-dailyrowbudget-on-workers-paid-no-change-made) for Workers Paid; leave it out to keep 20,000.
+2. The same command with `--write --out <name>.market-policy.private.json` (writes only that file: inside the checkout, ignored by git, 0600, never overwritten).
+3. **The one policy update:** `node scripts/run11/make-private-configs.mjs --set-market-policy <name>.market-policy.private.json` (`MARKET_POLICY` is a var in the private coordinator config, not a secret).
+4. `wrangler login`, `deployments list` on the coordinator (read only: your rollback), then `deploy` (step 2 above, the same commands; same code, new policy).
+5. `node scripts/verify-hosted-alpha.mjs <new dir>` prints "Market policy period ends 2026-10-31T16:00:00.000Z; the next period is installed and takes over by itself, ending 2026-11-30T16:00:00.000Z" (or your end). Then `wrangler logout`.
+6. After the boundary: set the owner file's `provider.reset` to the new period, as the tool printed, and keep the new policy file: it is `--current-policy` for the period after.
+
+- **Where you see the ends:** the Manual Alpha workflow summary and `verify-hosted-alpha.mjs` ("Market policy period ends …", with a **Warning** below 7 days before the last installed end). Both read `GET /api/market-status` (`{version, policyWindowEnd, nextPolicyWindowEnd}`); "not reported" means the coordinator predates Session U.
+- **Rollback:** a coordinator rolled back to a version before follow-up F2 reads the two-window policy as no policy (every price refused). After such a rollback, set a single-window policy again (the installed file you kept) with steps 3–4.
 
 ## Advice: `dailyRowBudget` on Workers Paid (no change made)
 **Facts** (Cloudflare Durable Objects pricing, read 2026-10-04: https://developers.cloudflare.com/durable-objects/platform/pricing/):

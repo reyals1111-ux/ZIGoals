@@ -13,7 +13,7 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Stages 1–7 are done** on the isolated acceptance services. Never use the live Alpha.
 - **The final redeploy is done:** [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md), once: every changed Worker, the services first and the app last.
 - **The sync-writes switch is on in that build:** before the redeploy, the one-line switch-ON PR ([SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) was merged (PR #74 ships it off). In the app: Settings → account sync shows "Also sync my Portfolio (optional)" once an account is open. If the switch is still off, mark rows 15 and 15c "not run: switch off".
-- **The market policy window:** the private `MARKET_POLICY` ends at 2026-10-31 16:00 UTC. Around 28 October, dry-run `node scripts/run11/next-market-policy.mjs`; switch at or after 16:00 UTC on 31 October ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)).
+- **The market policy window:** the private `MARKET_POLICY` ends at 2026-10-31 16:00 UTC. Around 28 October, install the two-window policy with `node scripts/run11/next-market-policy.mjs` (one policy update and one coordinator deploy); the coordinator takes the next period by itself at the boundary ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)).
 - **The owner hardening below is done.**
 - **Use fictional data only:** no real names, money or health records.
 - **Have ready:**

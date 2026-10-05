@@ -20,7 +20,7 @@ Written by Session S (2026-10-04) from the Stage 7 lessons. Nothing here was run
    switch off".
 1. **The release SHA:** the full SHA of `main` that you deploy. Main's CI is green on it.
 2. **The Alpha prices rollout is done:** [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Note the SHA the market coordinator was deployed from there.
-3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Prepare the next period around **28 October** and switch at or after 16:00 UTC on 31 October ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)); the coordinator refuses a period before it starts and every price after the old one ends.
+3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Around **28 October** install the two-window policy (the current window and the next), and the coordinator takes the next period by itself at the boundary ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period); Session U follow-up F2). If this redeploy runs after that, keep the two-window policy in the private coordinator config.
 
 ## 1. Ops checkout at the release SHA
 ```sh
@@ -221,4 +221,4 @@ Session P has merged, so these rows are now in [STAGE8_OWNER_RUNSHEET.md](STAGE8
 | Erase rehearsal | Part 1, after the recovery rehearsal | OWNER_RECOVERY_ADMIN "Erase an account" steps 1–4, then step 5 at the serve switch |
 | Supabase key proof | the delete-account row | "The fictional Supabase user disappears within about a minute (Session S Part 1)" |
 | Sign out everywhere | Part 2 (sessions) | [OWNER_SIGN_OUT_EVERYWHERE.md](OWNER_SIGN_OUT_EVERYWHERE.md) once with your own test user |
-| Market policy window | before Stage 8 | Dry run of `next-market-policy.mjs` around 28 October; switch at or after 2026-10-31 16:00 UTC ([Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)) |
+| Market policy window | before Stage 8 | Around 28 October, install the two-window policy with `next-market-policy.mjs`; the coordinator takes the next period by itself at 2026-10-31 16:00 UTC ([Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)) |
