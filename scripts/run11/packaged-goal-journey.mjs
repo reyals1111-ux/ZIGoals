@@ -1,5 +1,6 @@
 // Real visible UI against the caller's generated app and local Worker topology.
 // Project progress is milestones, so it deliberately has no financial funding.
+// Evidence screenshots mask every recovery-secret field (Session U Part 6, FIX_PLAN D6; apps/web/tests/safe-screenshot.ts).
 import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
 import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
@@ -60,7 +61,7 @@ export async function verifyPackagedGoalJourneys(a,b,evidenceDir){
  const results=[];
  for(const type of ['Value','Quantity','Project']){
   const goal=await create(a,type),evidence=type==='Project'?await projectProgress(a):await fund(a,goal);
-  await pinGoalAndHabit(a,goal.name,goal.path,goal.habit);await a.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-desktop.png`});await sync(a);await sync(b);await openGoal(b,goal.name,goal.path);
+  await pinGoalAndHabit(a,goal.name,goal.path,goal.habit);await a.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-desktop.png`,mask:[a.getByLabel(/recovery secret/i)],maskColor:'#FF00FF'});await sync(a);await sync(b);await openGoal(b,goal.name,goal.path);
   const supporting=await openModule(b,'supporting-habits');await supporting.getByRole('heading',{name:goal.habit,exact:true}).waitFor();
   if(type==='Project'){
    expect(await b.getByRole('button',{name:'Fund Goal',exact:true}).count()).toBe(0);expect(await b.locator('#contribution-plan,#allocate').count()).toBe(0);const milestones=await openModule(b,'milestones');expect(await milestones.getByLabel('Fictional research review',{exact:true}).isChecked()).toBe(false);expect(await milestones.getByLabel('Fictional delivery review',{exact:true}).isChecked()).toBe(true);expect(await timeline(b,'milestone')).toEqual(evidence.changes);
@@ -68,7 +69,7 @@ export async function verifyPackagedGoalJourneys(a,b,evidenceDir){
    const plan=await openModule(b,'contribution-plan');expect(await plan.getByLabel('Planned amount',{exact:true}).inputValue()).toBe(type==='Value'?'50':'1');expect(await plan.getByLabel('Contribution asset',{exact:true}).inputValue()).toBe(type==='Value'?'USD':'BTC');
    const allocation=await openModule(b,'allocate');expect(await allocation.locator('.platform-position-row').first().textContent()).toBe(evidence.allocationText);expect(await timeline(b,'contribution')).toEqual(evidence.original);expect(await timeline(b,'reversal')).toEqual(evidence.reversed);
   }
-  await b.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-mobile-history.png`});await navigate(b,'Today');await b.getByRole('article',{name:goal.name,exact:true}).waitFor();await b.getByRole('article',{name:goal.habit,exact:true}).waitFor();expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await b.screenshot({path:`${evidenceDir}/goal-${type.toLowerCase()}-mobile-history.png`,mask:[b.getByLabel(/recovery secret/i)],maskColor:'#FF00FF'});await navigate(b,'Today');await b.getByRole('article',{name:goal.name,exact:true}).waitFor();await b.getByRole('article',{name:goal.habit,exact:true}).waitFor();expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   results.push({...goal,...evidence,secondProfileHistoryEqual:true,todayGoalAndHabitReceived:true,financialContribution:type!=='Project'});
  }
  await writeFile(`${evidenceDir}/goal-journeys.json`,JSON.stringify({criteria:'GOAL-06',generatedApplication:true,mutationPath:'visible UI only',projectSemantics:'Milestone changes and linked weekly review Habit; no financial plan, allocation or contribution controls.',journeys:results},null,2));return results;
