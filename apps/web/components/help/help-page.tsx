@@ -51,17 +51,17 @@ export function HelpPage() {
       <p>Your Goals, Habits, Health and Wealth live only on this device, in this browser. Browser storage is not encrypted: anyone who can use this browser profile could read it, so keep your phone and computer locked.</p>
       <h3>Once accounts open</h3>
       <p>You sign in with a code sent to your email, and turn on encrypted sync once: it&rsquo;s offered right after you sign in. From then on, every device you unlock stays up to date automatically. No backups or transfers by hand. Turn on encrypted sync on your first device before you start using a second one.</p>
-      <p>Your data is end-to-end encrypted on your device before it leaves; nobody else can read it. The server stores that encrypted data plus what it needs to deliver it: your account, record identifiers, sizes, times, and which part of the app a record belongs to. It cannot read your plans, habits or health entries. Health syncs only if you turn it on, separately.</p>
+      <p>Your data is end-to-end encrypted on your device before it leaves; nobody else can read it, as long as the app code we serve has not been tampered with. A device you chose to remember can open it too. The server stores that encrypted data plus what it needs to deliver it: your account, record identifiers, sizes, times, and which part of the app a record belongs to. It cannot read your plans, habits or health entries. Health syncs only if you turn it on, separately.</p>
       <h3>Signing in is not recovery</h3>
       <p>Your email code proves it&rsquo;s you. It cannot unlock your data: only your recovery secret can. ZIGoals asks for it when you open your account on a device; a password manager can fill it in. On your own phone or computer you can tick &ldquo;Remember on this device&rdquo;: ZIGoals then opens your account there without asking again, until you lock it or choose Forget this device in Settings. Locking locks every tab of this browser. Don&rsquo;t use it on a shared computer.</p>
     </Section>
 
     <Section id="recovery-secret" eyebrow="YOUR RECOVERY SECRET" title="The one thing to keep safe">
-      <p>When you turn on encrypted sync, your device creates a long random <strong>recovery secret</strong>. It is the only key to your encrypted data, and it is shown only then.</p>
+      <p>When you turn on encrypted sync, your device creates a long random <strong>recovery secret</strong>. It is the only key to your encrypted data you can write down (a device you chose to remember holds the vault key too), and it is shown only then.</p>
       <ul className="help-list">
         <li><strong>Keep it in a password manager</strong>, or written down somewhere safe and offline.</li>
         <li><strong>Never share it</strong>: not in screenshots, chats or support emails. We will never ask for it.</li>
-        <li><strong>Lost a device?</strong> Sign in on another one and unlock with the secret; sync brings everything back.</li>
+        <li><strong>Lost a device?</strong> Revoke it under Settings → Devices and sessions, then rotate the vault key (Settings → Rotate vault encryption) so a remembered copy cannot open new records. Sign in on another device and unlock with the secret; sync brings everything back.</li>
         <li><strong>Lost the secret, but a device still opens your account?</strong> On that device, choose Rotate vault encryption in Settings to get a new secret, and save it.</li>
         <li><strong>Lost the secret and every device that opens your account?</strong> Then the data is gone. Nobody, including us, can unlock it.</li>
       </ul>
