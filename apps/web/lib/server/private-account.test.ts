@@ -72,6 +72,24 @@ test('rotation proxy requires captured account and forwards only authenticated l
   expect(result.status).toBe(200);
  }
 });
+test('the Portfolio copy (Session U Part 9, ADR-013): GET and POST go to /v1/portfolio for the signed-in account only, nothing else changes',async()=>{
+ const id='10000000-0000-4000-8000-000000000001',cookie='__Host-zigoals_session=fixture-token';
+ for(const method of ['GET','POST']){
+  const operation={protocol:1,action:'delete',vault:crypto.randomUUID(),operation:crypto.randomUUID(),base:1,generation:0};
+  const req=(headers:Record<string,string>)=>new Request(`https://app.test/api/private-account${method==='GET'?'?action=portfolio':''}`,{method,headers:{origin:'https://app.test','content-type':'application/json',...headers},...(method==='POST'?{body:JSON.stringify({action:'portfolio',operation})}:{})});
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(req({cookie,'x-zigoals-account':id}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json(method==='GET'?{protocol:1,revision:0,generation:0,epoch:null,parts:[]}:{revision:2,generation:1});});
+  expect(result.status).toBe(200);expect(calls.map(([url])=>url)).toEqual([config.syncOrigin+'/v1/portfolio']);
+  const sent=new Headers(calls[0]![1]?.headers);expect(sent.get('x-zigoals-account')).toBe(id);expect(sent.get('authorization')).toBe('Bearer fixture-token');
+  if(method==='POST')expect(JSON.parse(calls[0]![1]?.body as string)).toEqual(operation);
+  // Signed out: refused before any call.
+  const fetcher=vi.fn();expect((await privateAccountRequest(req({'x-zigoals-account':id}),config,fetcher)).status).toBe(401);expect(fetcher).not.toHaveBeenCalled();
+ }
+ // A snapshot near the Worker's limit answers through the GET relay's bound; the POST body is checked by the Worker.
+ const big=JSON.stringify({protocol:1,revision:1,generation:0,epoch:1,parts:['x'.repeat(1_050_000)]});
+ const read=await privateAccountRequest(new Request('https://app.test/api/private-account?action=portfolio',{headers:{cookie,'x-zigoals-account':id}}),config,async()=>new Response(big,{headers:{'content-type':'application/json'}}));
+ expect(read.status).toBe(200);expect((await read.text()).length).toBe(big.length);
+});
 test('refresh rotates durable session access before exposing new cookies and never sends refresh material to the browser body',async()=>{
  const id='10000000-0000-4000-8000-000000000001';
  const req=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'__Host-zigoals_session=old-token; __Host-zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'});
@@ -224,7 +242,8 @@ test('a revoked session is signed out at the provider the first time it reaches 
   new Request('https://app.test/api/private-account',{headers:{cookie,'x-zigoals-account':account}}),
   new Request('https://app.test/api/private-account?action=sessions',{headers:{cookie,'x-zigoals-account':account}}),
   new Request('https://app.test/api/private-account?action=rotation',{headers:{cookie,'x-zigoals-account':account}}),
-  ...['sync','rotation','delete','domain'].map(action=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie,'x-zigoals-account':account},body:JSON.stringify({action,operation:action==='delete'?{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}:action==='domain'?{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0}:{}})})),
+  new Request('https://app.test/api/private-account?action=portfolio',{headers:{cookie,'x-zigoals-account':account}}),
+  ...['sync','rotation','delete','domain','portfolio'].map(action=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie,'x-zigoals-account':account},body:JSON.stringify({action,operation:action==='delete'?{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}:action==='domain'?{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0}:{}})})),
  ];
  for(const request of requests){
   const calls:[string,RequestInit|undefined][]=[];

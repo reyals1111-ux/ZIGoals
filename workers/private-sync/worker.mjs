@@ -1,6 +1,7 @@
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {rotationRequest} from './rotation.mjs';
 import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
+import {portfolioRequest} from './portfolio.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DOMAINS=new Set(['finance','health','habits','settings']);
@@ -21,7 +22,7 @@ async function boundedJSON(request,max=1_000_000){
 }
 /** @type {ExportedHandler<SyncEnv>} */
 const privateSyncWorker={async fetch(request,env){
- const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
+ const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain','/v1/portfolio'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(env.AUTH_ORIGIN??'')||!env.AUTH_PUBLIC_KEY||!env.APP_ORIGIN)return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
  if(request.headers.get('origin')!==env.APP_ORIGIN)return response({error:'ORIGIN_DENIED'},403);
  const token=request.headers.get('authorization');if(!token||!/^Bearer [A-Za-z0-9._-]{1,4096}$/.test(token))return response({error:'SIGN_IN_REQUIRED'},401);
@@ -167,6 +168,8 @@ export class PrivateVault{
    });
   }
   if(await this.state.storage.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
+  // Session U Part 9 (ADR-013): the opt-in Portfolio copy, in its own keyspace (portfolio.mjs).
+  if(path==='/v1/portfolio')return portfolioRequest(request,this.state,boundedJSON,envelope,sessionHash);
   if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON,()=>this.now(),due=>this.alarmAt(due));
   if(request.method==='GET'){
    const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'',ids=url.searchParams.has('ids')?/** @type {string} */(url.searchParams.get('ids')).split(','):null;
