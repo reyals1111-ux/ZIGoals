@@ -5,9 +5,15 @@ import {installTrustedTypesDefault,trustedScriptURL} from './trusted-types';
 const origin='https://alpha.zigoals.app';
 test('script URLs are trusted only from this origin’s /_next/static/ and /push-sw.js', () => {
   for (const value of ['/_next/static/chunks/main.js', 'https://alpha.zigoals.app/_next/static/x.js', '/push-sw.js'])
-    expect(trustedScriptURL(value, origin), value).not.toBeNull();
+    expect(trustedScriptURL(value, origin), value).toBe(value);
   for (const value of ['https://attacker.invalid/_next/static/x.js', '/_next/image?url=x', '/push-sw.js.map/../x', '/api/push', 'data:text/javascript,alert(1)', 'javascript:alert(1)', '//attacker.invalid/push-sw.js', '/_next/statically.js', 'blob:https://alpha.zigoals.app/x'])
     expect(trustedScriptURL(value, origin), value).toBeNull();
+});
+test('a relative URL is checked where the browser will load it from: the document’s base URL', () => {
+  expect(trustedScriptURL('static/chunks/a.js', origin, 'https://alpha.zigoals.app/_next/')).toBe('static/chunks/a.js');
+  expect(trustedScriptURL('chunks/a.js', origin, 'https://alpha.zigoals.app/app/')).toBeNull();
+  expect(trustedScriptURL('/_next/static/a.js', origin, 'https://attacker.invalid/')).toBeNull();
+  expect(trustedScriptURL('/_next/static/a.js', origin, 'not a base')).toBeNull();
 });
 test('the default policy is created once, makes no HTML or script string trusted, and is skipped where it cannot be', () => {
   const createPolicy = vi.fn((_name: string, rules: {createScriptURL: (value: string) => string | null}) => rules);
@@ -15,7 +21,9 @@ test('the default policy is created once, makes no HTML or script string trusted
   expect(installTrustedTypesDefault(scope)).toBe(true);
   const [name, rules] = createPolicy.mock.calls[0]!;
   expect(name).toBe('default');expect(Object.keys(rules)).toEqual(['createScriptURL']);
-  expect(rules.createScriptURL('/_next/static/chunks/a.js')).toBe('https://alpha.zigoals.app/_next/static/chunks/a.js');
+  // The framework's own string comes back unchanged: Turbopack finds a loaded chunk by the script's raw src attribute,
+  // so a rewritten (absolute) URL left every soft navigation waiting under the trial (found by the trial, 2026-10-05).
+  expect(rules.createScriptURL('/_next/static/chunks/a.js')).toBe('/_next/static/chunks/a.js');
   // Refusal is null (the browser blocks under enforcement, reports under the trial), never a throw that breaks the page.
   expect(rules.createScriptURL('https://attacker.invalid/x.js')).toBeNull();
   // A page that already has a default policy keeps it; a browser without Trusted Types, or a CSP that forbids the name, is a no-op.
