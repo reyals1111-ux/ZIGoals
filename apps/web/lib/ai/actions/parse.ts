@@ -22,13 +22,30 @@ function normalise(value: unknown): unknown {
   if (record.day === undefined || record.day === null) delete record.day;
   return record;
 }
+/** An opening proposal fence with no closing fence: the stream was cut, or the model forgot to close it. */
+const OPEN_FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]*\n/gi;
+/** The calm note the cards area shows for anything that could not become an entry. */
+export const NOT_AN_ENTRY = 'I couldn\u2019t turn that into an entry.';
 export function parseReply(reply: string): ParsedReply {
   const proposals: Action[] = [], rejected: Rejected[] = [], seen = new Set<string>();
-  const text = reply.replace(FENCE, (block, _fence: string, body: string) => {
+  let source = reply;
+  // A block that never closes (a cut stream, a forgotten fence) is removed from the text and reported, never shown half-raw.
+  // An opening fence that sits inside a closed block (a fence inside a JSON string) is not an open block.
+  const closed = [...source.matchAll(FENCE)].map(m => [m.index, m.index + m[0].length] as const);
+  const opens = [...source.matchAll(OPEN_FENCE)].filter(m => !closed.some(([a, b]) => m.index >= a && m.index < b));
+  if (opens.length) {
+    const dangling = opens[opens.length - 1]!;
+    const cut = source.slice(dangling.index + dangling[0].length).trim();
+    rejected.push({raw: cut.slice(0, 200), reason: 'The proposal was cut off before it finished.'});
+    source = source.slice(0, dangling.index);
+  }
+  const text = source.replace(FENCE, (block, _fence: string, body: string) => {
     let parsed: unknown;
     try { parsed = JSON.parse(body.trim()); } catch { rejected.push({raw: body.trim().slice(0, 200), reason: 'The proposal was not valid JSON.'}); return ''; }
-    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const unwrapped = parsed && typeof parsed === 'object' && !Array.isArray(parsed) && !('kind' in (parsed as object)) && Object.keys(parsed as object).length === 1 ? Object.values(parsed as object)[0] : parsed;
+    const items = Array.isArray(unwrapped) ? unwrapped : [unwrapped];
     for (const item of items) {
+      if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
       const result = actionSchema.safeParse(normalise(item));
       if (!result.success) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: firstIssue(result.error)}); continue; }
       const key = JSON.stringify(result.data);

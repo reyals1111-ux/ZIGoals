@@ -7,6 +7,7 @@ import type {Action} from '../../lib/ai/actions/schema';
 import type {Handle} from '../../lib/ai/context/types';
 import {ProposalCard, type ProposalStatus} from './proposal-card';
 import type {ProposalRunner} from './use-proposals';
+import {NOT_AN_ENTRY} from '../../lib/ai/actions/parse';
 import {zigiEvents} from '../zigi/events';
 import './ai.css';
 
@@ -66,7 +67,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>)}
     {pendingBatch.length > 1 && <div className="ai-proposals-batch"><button type="button" className="primary" disabled={!runner.ready} onClick={() => void addAll()}>Add all {pendingBatch.length}</button><span className="ai-card-note">One Undo covers everything added together.</span></div>}
     {live && <div className="ai-proposals-undo"><button type="button" className="secondary" onClick={() => void undo()}>{undoGroup!.ids.length === 1 ? 'Undo' : `Undo these ${undoGroup!.ids.length}`} · {secondsLeft} s</button></div>}
-    {rejected.length > 0 && <details className="ai-proposals-rejected"><summary>{rejected.length === 1 ? 'One suggestion was not turned into a card' : `${rejected.length} suggestions were not turned into cards`}</summary><p>ZIGoals only accepts the proposals listed in its protocol; anything else stays text.</p><ul>{rejected.map((r, i) => <li key={i}>{r.reason}</li>)}</ul></details>}
+    {rejected.length > 0 && <details className="ai-proposals-rejected"><summary>{rejected.length === 1 ? NOT_AN_ENTRY : `${NOT_AN_ENTRY} (${rejected.length} suggestions)`}</summary><p>ZIGoals only accepts the proposals listed in its protocol; anything else stays text.</p><ul>{rejected.map((r, i) => <li key={i}>{r.reason}</li>)}</ul></details>}
     <p className="ai-proposals-live" role="status" aria-live="polite">{note}</p>
   </div>;
 }
