@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,7 +18,27 @@ const publishableAssetPatterns = new Set([
   "!scripts/*.mjs",
   "!assets",
   "!assets/**",
+  // Only inside the final block below (Session U Part 6, FIX_PLAN F4).
+  "!assets/**/",
+  "!assets/**/*.webp",
+  "!assets/**/*.png",
+  "!assets/**/*.svg",
+  "!assets/**/*.mp4",
 ]);
+
+// Session U Part 6 (FIX_PLAN F4, FINDINGS Q-WEB-02): the file ends with exactly this block. Wrangler applies
+// `.assetsignore` with gitignore rules (the `ignore` package; a later line wins, and a file inside an ignored folder
+// stays ignored), so under assets/ only the reviewed media types are published, and no dotfile anywhere. A stray
+// note, draft, `.DS_Store` or `.git` folder left in the tree is not uploaded.
+const finalAssetRules = [
+  "assets/**/*",
+  "!assets/**/",
+  "!assets/**/*.webp",
+  "!assets/**/*.png",
+  "!assets/**/*.svg",
+  "!assets/**/*.mp4",
+  ".*",
+];
 
 // Kept after the negations so a file added later under an allowed directory is
 // still denied by type rather than silently published. `_headers` is denied on
@@ -54,6 +75,25 @@ const nonPublicLandingFile = (name) =>
   (/\.(md|json|jsonc|py|sh|zip|mov|prores)$/i.test(name) ||
     /\.test\.(js|mjs|ts)$/i.test(name) ||
     name.startsWith(".env"));
+
+/**
+ * Session U Part 6 (FIX_PLAN F4): in a git checkout, every file under landing/ must be tracked, so a deploy publishes only
+ * reviewed bytes. Untracked folders are listed once. Returns null outside a checkout of this root (the test fixtures),
+ * where there is nothing to compare against.
+ */
+export function untrackedLandingFiles(root) {
+  let top;
+  try {
+    top = execFileSync("git", ["-C", root, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return null;
+  }
+  if (realpathSync(top) !== realpathSync(root)) return null;
+  return execFileSync("git", ["-C", root, "ls-files", "--others", "--directory", "-z", "--", "landing"], { encoding: "utf8" })
+    .split("\0")
+    .filter(Boolean)
+    .sort();
+}
 
 // Walks the real deployable directory. `.assetsignore` states the intent; this
 // proves the tree itself carries nothing that must never reach zigoals.app.
@@ -215,11 +255,19 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
       errors.push(`landing/.assetsignore must keep denying ${pattern}`);
     }
   }
+  const tail = assetsIgnorePatterns.slice(-finalAssetRules.length);
+  if (tail.length !== finalAssetRules.length || tail.some((line, index) => line !== finalAssetRules[index]) ||
+    assetsIgnorePatterns.slice(0, -finalAssetRules.length).some((line) => finalAssetRules.slice(1, -1).includes(line))) {
+    errors.push("landing/.assetsignore must end with the reviewed assets/ media types and the dotfile denial");
+  }
   if (!existsSync(resolve(root, "landing/index.html"))) {
     errors.push("landing/index.html must exist");
   }
   for (const file of unpublishableLandingFiles(resolve(root, "landing"))) {
     errors.push(`landing must not contain the non-public file ${file}`);
+  }
+  for (const file of untrackedLandingFiles(root) ?? []) {
+    errors.push(`landing must contain only tracked files; untracked: ${file}`);
   }
 
   return errors;

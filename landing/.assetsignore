@@ -17,3 +17,11 @@ wrangler.jsonc
 *.test.mjs
 *.py
 *.sh
+# Session U Part 6 (FIX_PLAN F4, FINDINGS Q-WEB-02): under assets/ only the reviewed media types, and no dotfile anywhere.
+assets/**/*
+!assets/**/
+!assets/**/*.webp
+!assets/**/*.png
+!assets/**/*.svg
+!assets/**/*.mp4
+.*

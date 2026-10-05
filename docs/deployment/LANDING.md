@@ -13,6 +13,8 @@ WRANGLER_SEND_METRICS=false pnpm check:landing
 
 `check:deploy-configs` reads both repository configs without network access and fails on a target, path, route, binding, or static-asset isolation mismatch. It also enforces the apex upload allowlist: `landing/.assetsignore` must deny everything with `*` and may re-include only the public runtime (`index.html`, `favicon.ico`, `styles/*.css`, `scripts/*.js`, `scripts/*.mjs`, `assets/**`); the type denials that follow it must stay; and the real `landing/` tree must contain no non-public file — no `.wrangler/`, `node_modules/`, `docs/`, `review/`, `tools/`, `backups/` or `source/` directory, and no `.md`, `.json`, `.jsonc`, `.py`, `.sh`, `.test.*` or `.env*` file. It also requires `"workers_dev": false` and `"preview_urls": false` in `landing/wrangler.jsonc` (see below).
 
+Since Session U (FIX_PLAN F4, FINDINGS Q-WEB-02), `.assetsignore` ends with one more block, in this order: `assets/**/*`, then `!assets/**/` and `!assets/**/*.webp`, `*.png`, `*.svg`, `*.mp4`, then `.*`. Under `assets/` only those media types are uploaded, and no dotfile is uploaded anywhere: a note, a draft, a `.DS_Store` or a `.git` folder left in the tree stays out (`scripts/landing-assets.test.mjs` asks Wrangler's dry run). `check:deploy-configs` requires the block at the end of the file and, in a git checkout, fails while any untracked file sits under `landing/`.
+
 `check:landing` is the canonical apex dry run. It compiles and inspects the static upload without contacting the deployment API or changing Cloudflare. Wrangler reports every entry in `landing/` before ignore filtering — currently 274, which is 251 files plus 23 directories (Landing V5; V4 had 225) — and then ignores `.assetsignore`, `wrangler.jsonc` and `_headers`. For a local audit of those decisions, set `WRANGLER_LOG=debug` and direct `WRANGLER_LOG_PATH` to a scratch file outside `landing/`; the log prints an `Ignoring asset:` line per excluded file.
 
 `landing/_headers` is excluded from the upload on purpose. Wrangler still parses it into the Worker's response headers — it logs `✨ Parsed 1 valid header rule.` — so the security policy applies while the file itself is not fetchable. Keep it denied in `.assetsignore`.
@@ -29,7 +31,9 @@ pnpm --filter @zigoals/web exec wrangler dev --config ../../landing/wrangler.jso
 
 ## Owner-only deployment
 
-The following commands mutate or inspect the owner’s Cloudflare account. They are documented for an authenticated owner and were not run while preparing this change. Keep the explicit config path and Worker name on every Worker/version command. Before an upload, verify the authenticated account, inspect the current deployment, and record its known-good version ID for rollback:
+The following commands mutate or inspect the owner’s Cloudflare account. They are documented for an authenticated owner and were not run while preparing this change.
+
+Deploy from a clean checkout of the reviewed commit, never from a working tree with other files in it (FINDINGS Q-WEB-02). For example, from the repository root: `git worktree add ../zigoals-landing-deploy <reviewed SHA>`, then `cd ../zigoals-landing-deploy`, `pnpm install --frozen-lockfile --ignore-scripts`, and run `pnpm check:deploy-configs` there; it must pass. Remove the worktree afterwards with `git worktree remove ../zigoals-landing-deploy`. Keep the explicit config path and Worker name on every Worker/version command. Before an upload, verify the authenticated account, inspect the current deployment, and record its known-good version ID for rollback:
 
 ```sh
 pnpm --filter @zigoals/web exec wrangler whoami
