@@ -49,6 +49,8 @@ async function settle(page: Page) { await page.waitForTimeout(350); }
 /** A fresh Settings page on its ZIGi anchor: a hash-only goto would not reload, so the route leaves first. */
 async function freshSetup(page: Page) { await page.goto('/app'); await page.goto('/app/settings#your-ai'); await expect(page.locator('#your-ai').getByTestId('ai-setup')).toBeVisible(); }
 test.skip(!enabled, 'Set ZIGI_CAPTURES=1 to write the gallery');
+// Six page loads and a dozen states per test: more than the suite's 45 s.
+test.setTimeout(240_000);
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 for (const viewport of VIEWPORTS) {
@@ -144,8 +146,8 @@ for (const viewport of VIEWPORTS) {
       await send(page, 'I ate two eggs and toast and drank two glasses');
       await expect(panel(page).getByTestId('ai-proposals')).toBeVisible();
       await shot(page, '25-cards-health-estimate');
-      await panel(page).getByRole('button', {name: 'History', exact: true}).click();
-      await expect(panel(page).getByRole('region', {name: 'Chat history'}).or(panel(page).getByLabel('Chat history'))).toBeVisible();
+      await panel(page).getByRole('button', {name: 'Chat history', exact: true}).click();
+      await expect(panel(page).locator('.ai-history')).toBeVisible();
       await shot(page, '26-history');
     });
 

@@ -65,7 +65,7 @@
 .ai-model-list [role=option]{width:100%;text-align:left;padding:8px 10px;min-height:40px;border-radius:10px;border:0;background:transparent;color:var(--text,#eef1ff);font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .ai-model-list [role=option] small{color:var(--muted,#aab2d9);font-size:14px}
 .ai-model-list [role=option]:hover,.ai-model-list [role=option][aria-selected=true]{background:color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent)}
-.ai-chat-log{flex:1 1 0;min-height:0;overflow:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth;overscroll-behavior:contain}
+.ai-chat-log{flex:1 1 0;min-height:72px;overflow:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth;overscroll-behavior:contain}
 @media (prefers-reduced-motion:reduce){.ai-chat-log{scroll-behavior:auto}}
 .ai-turn{display:flex;gap:10px;align-items:flex-start}
 .ai-turn-user{justify-content:flex-end}
@@ -107,11 +107,11 @@
 .ai-failure-title{font-weight:650}
 .ai-failure ul{padding-left:18px;color:var(--muted,#aab2d9);font-size:14px}
 .ai-note{margin:0;font-size:14px;color:var(--muted,#aab2d9)}
-.ai-context-bar{flex-shrink:0;display:grid;gap:6px;padding:8px 14px;border-top:1px solid var(--line,#2a325a);font-size:14px;color:var(--muted,#aab2d9)}
+.ai-context-bar{flex:0 1 auto;max-height:46%;overflow:auto;display:grid;gap:6px;padding:8px 14px;border-top:1px solid var(--line,#2a325a);font-size:14px;color:var(--muted,#aab2d9)}
 .ai-chat .ai-context-switch{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;min-height:32px;cursor:pointer;text-align:left;margin:0}
 .ai-chat .ai-context-switch input{width:18px;height:18px;min-height:0;margin:0;flex:none;accent-color:var(--cyan,#6fd3ff)}
 .ai-context-preview summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff)}
-.ai-context-preview pre{max-height:200px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:4px 0 0}
+.ai-context-preview pre{max-height:140px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:4px 0 0}
 .ai-composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px calc(12px + var(--keyboard-inset,0px));border-top:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
 .ai-chat-phone .ai-composer{padding-bottom:calc(12px + max(var(--safe-bottom,0px),var(--keyboard-inset,0px)))}
 .ai-composer textarea{flex:1;min-height:44px;max-height:160px;resize:vertical;font-size:16px;line-height:1.4;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--bg,#070a1a) 70%,transparent);color:inherit;font-family:inherit}
@@ -183,3 +183,5 @@
 .ai-key-replace{margin-top:8px}
 /* A phone sheet locks the page behind it; the sheet's own log scrolls. */
 html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior:none}
+/* The anchor lands below the phone's sticky top bar and the desktop's status row. */
+.ai-settings{scroll-margin-top:84px}
