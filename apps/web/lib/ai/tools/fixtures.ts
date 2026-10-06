@@ -1,5 +1,5 @@
 import {saveMeasurement} from '../../body-measurements';
-import {fastingSchema, type Fasting} from '../../fasting/schema';
+import type {Fasting} from '../../fasting/schema';
 import {habitDataSchema, type HabitData} from '../../habits';
 import {healthSchema, logHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, type HealthData} from '../../health';
 import {addCounter, changeCount} from '../../health-counters';
@@ -7,7 +7,8 @@ import {addWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, s
 import {platformSchema, type Platform} from '../../positions';
 import {portfolioDataSchema, type PortfolioData} from '../../portfolio/schema';
 import {buildShowcase} from '../../showcase-data';
-import {weeklyReviewSchema, type WeeklyReview} from '../../weekly-review/schema';
+import type {WeeklyReview} from '../../weekly-review/schema';
+import {homeRecordsIn} from '../../sync-homes-store';
 import {addLocalDays} from '../../local-date';
 import {aiGates, type Gates} from '../gates';
 import {defaultAiSettings, type AiSettings, type PageArea} from '../settings';
@@ -34,8 +35,9 @@ export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {})
   const habits = habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData;
   const health = healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData;
   const platform = platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform;
-  const fasting = records['zigoals:fasting:v1'] ? fastingSchema.parse(JSON.parse(records['zigoals:fasting:v1'])) as Fasting : null;
-  const weekly = records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) as WeeklyReview : null;
+  // Session P's four records where the app keeps them (Session W Part 1: the sync writes are on, so the Showcase holds
+  // fasting and the weekly review in Health and settings, not in their device keys).
+  const homes = homeRecordsIn(records), fasting = homes.fasting as Fasting, weekly = homes.weeklyReview as WeeklyReview;
   return {now: new Date(`${day}T19:00:00Z`), habitDay: day, healthDay: day, habitZone: 'UTC', healthZone: 'UTC', habits, health, fasting, platform, localGoals: [], metadata: {}, quotes: [], localActivity: null, portfolio: null, weekly, notes: null, showcase: true, ...overrides};
 }
 const at = (day: string) => `${day}T08:00:00.000Z`;

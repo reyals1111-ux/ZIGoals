@@ -13,10 +13,9 @@
  * refuse all of them. Rolling the public Alpha back to #28 therefore leaves a v3 Health section unreadable there until
  * the roll-forward (bytes and recovery copies kept), and the Manual Alpha rollback target must never go below R1.
  *
- * Session U follow-up F1: shipped OFF. This build carries the Health v3 read support; it writes exactly what #28 writes
- * and converts nothing. The switch goes ON in its own one-line PR, merged at least 7 days after the first Alpha deploy
- * that carries this read support and on or after 2026-10-11, and included in the 22–24 October final acceptance
- * redeploy (docs/product/SYNC_WRITES_ON.md). From then on the Alpha's rollback floor is the build that first carried
- * v3 read support. Portfolio sync (ADR-013) shares this switch, so it is hidden while it is off.
+ * Session U follow-up F1 shipped it OFF (the Health v3 read support went live first, in Alpha deploy #29).
+ * Switched on in Session W Part 1, 2026-10-06 (owner decision W1, which overrides SYNC_WRITES_ON.md's "from 2026-10-12"
+ * wait). From now on the Alpha's rollback floor is #29, the first build that read v3: never roll the Alpha back past
+ * it. Portfolio sync (ADR-013) shares this switch, so its choice appears with it.
  */
-export const SYNC_WRITES: boolean = false;
+export const SYNC_WRITES: boolean = true;

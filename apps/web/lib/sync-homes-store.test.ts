@@ -28,7 +28,7 @@ const fast=(id:string)=>(current:Parameters<typeof startFast>[0])=>startFast(cur
 const on={syncWrites:true},off={syncWrites:false};
 beforeEach(()=>{vi.stubGlobal('navigator',{locks:{request:async(_key:string,work:()=>unknown)=>work()}});});
 
-test('this build ships with the switch off (lib/vault/sync-writes.ts; Session U follow-up F1)',()=>{expect(SYNC_WRITES).toBe(false);});
+test('this build ships with the switch on (lib/vault/sync-writes.ts; Session W Part 1, owner decision W1)',()=>{expect(SYNC_WRITES).toBe(true);});
 
 describe('switch off: exactly the device keys, as before',()=>{
  test('each record reads from and writes to its own device key; Health and settings are untouched',async()=>{

@@ -4,9 +4,8 @@ import {habitDataSchema, latestHabitRule, type HabitData} from '../../habits';
 import {healthSchema, saveRecipe, saveWeight, type HealthData} from '../../health';
 import {addWater, dailyData, editWater} from '../../health-daily';
 import {platformSchema, type Platform} from '../../positions';
-import {fastingSchema, FASTING_KEY} from '../../fasting/schema';
+import {homeRecordsIn} from '../../sync-homes-store';
 import {emptyReminders} from '../../reminders/schema';
-import {emptyWeeklyReview, weeklyReviewSchema} from '../../weekly-review/schema';
 import {runningSession} from '../../fasting/engine';
 import type {Handle} from '../context/types';
 import {applyBatch, batchable, undoBatch, UNDO_WINDOW_MS} from './batch';
@@ -21,9 +20,9 @@ const stores: Stores = {
   habits: habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData,
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
-  fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
+  fasting: homeRecordsIn(records).fasting,
   // Session V Part 7: the three device records a proposal may also write.
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) : emptyWeeklyReview(), memory: {version: 1},
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
 };
 const DAY = '2026-09-20', now = new Date('2026-09-20T19:00:00Z');
 const habit = (i: number) => stores.habits.habits[i]!;

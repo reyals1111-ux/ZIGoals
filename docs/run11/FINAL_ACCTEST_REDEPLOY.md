@@ -13,11 +13,11 @@
 Written by Session S (2026-10-04) from the Stage 7 lessons. Nothing here was run by a session.
 
 ## 0. Before you start (read only)
-0. **Before the redeploy: the sync-writes switch-ON PR is merged** (Session U follow-up F1). PR #74 ships
-   `SYNC_WRITES = false`; the one-line switch-ON PR ([docs/product/SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) is
-   merged at least 7 days after the first public Alpha deploy carrying PR #74 and on or after 2026-10-11, and this
-   redeploy's release SHA must contain it. If it is not merged, deploy anyway and mark Stage 8 rows 15 and 15c "not run:
-   switch off".
+0. **The sync-writes switch is on in the release SHA.** Session W Part 1 (2026-10-06) switched `SYNC_WRITES` on in the
+   Session W PR, by owner decision W1 (it overrides SYNC_WRITES_ON.md's "from 2026-10-12" wait). Check that the release
+   SHA contains it: `grep -n "SYNC_WRITES: boolean = true" apps/web/lib/vault/sync-writes.ts` prints one line. If the
+   Session W PR is not merged, the switch commit can be merged alone (it is self-contained); if neither is in the release
+   SHA, deploy anyway and mark Stage 8 rows 15 and 15c and the Session W sync rows "not run: switch off".
 1. **The release SHA:** the full SHA of `main` that you deploy. Main's CI is green on it.
 2. **The Alpha prices rollout is done:** [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Note the SHA the market coordinator was deployed from there.
 3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Around **28 October** install the two-window policy (the current window and the next), and the coordinator takes the next period by itself at the boundary ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period); Session U follow-up F2). If this redeploy runs after that, keep the two-window policy in the private coordinator config.
@@ -206,6 +206,33 @@ error instead of applying them, until it is reloaded.
 - **Private sync back:** the Portfolio copy stays in its keyspace, unread and untouched (older code never lists it); the
   account erase still removes it (it removes every key). Revoked-session records simply stop being swept.
 - **Market coordinator back:** the partition and the public cap disappear; `/status` answers "not reported" to newer apps.
+
+## Session V changes (PR #76, 2026-10-06)
+Session V changed **only the app** for this stack; re-run step 2 at your release SHA to confirm.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| acceptance app (OpenNext) | ZIGi v2 (ADR-014): Trusted Types **enforced** in the production build (`require-trusted-types-for 'script'; trusted-types default`); ZIGi's device keys (`zigoals:ai-options:v1`, `ai-usage`, `ai-memory`, `ai-actions`, `zigi`, `zigi-reminders`, `zigi-knock`); chat records v2 (only with V fields; older builds skip them); push reminder names opt-in (IndexedDB `zigoals-push-labels-v1`, read-only in the service worker) | **yes**, last |
+| ZIGi relay (`workers/zigi-relay`, new) | ZIGoals hosted, off by default | **no**: not part of this stack; it is activated only by ZIGI_RELAY_ACTIVATION.md, never by this redeploy |
+| private sync, lifecycle, market coordinator, push, food lookup, auth admission | nothing by Session V | no |
+
+**Checks after:** step 6's curl of `/app` shows `require-trusted-types-for 'script'` and `trusted-types default` in the
+`content-security-policy`; open ZIGi on a phone and on a computer (Stage 8 has no ZIGi row; the owner test v2,
+docs/product/YOUR_AI_OWNER_TEST.md Part V, covers it).
+
+## Session W changes (Session W PR, 2026-10-06/…)
+Filled in part by part as Session W lands. Re-run step 2 at your release SHA; this is what to expect.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| acceptance app (OpenNext) | the sync-writes switch on (Part 1): Session P's four records live in Health v2/v3 and settings v2, and the opt-in Portfolio sync appears | **yes**, last |
+
+**What syncs now that did not before:** with the switch on, fasting sessions (Health v2), health goals, habit-health links
+with their automatic check-in markers and the weekly review's Health note (Health v3, under the Health consent), and the
+weekly review (settings v2). "Also sync my Portfolio (optional)" appears under account sync, unticked.
+
+**Rollback, Session W specifics:**
+- The Alpha's rollback floor is **#29** (the first build that reads Health v3): never roll back past it.
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.

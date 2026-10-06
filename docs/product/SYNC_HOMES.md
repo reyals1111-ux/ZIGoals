@@ -1,10 +1,11 @@
 # Sync homes for Session P's device-only records
 
 **Status:** read support shipped in Session P, PR 2 (2026-10-03, R1, live since Alpha deploy #27 on 2026-10-04). Session U
-Part 9 built the writes, the merge and Health v3 (read support included). **The write switch ships OFF** (Session U
-follow-up F1, 2026-10-05, `apps/web/lib/vault/sync-writes.ts`, `SYNC_WRITES = false`): the four records below stay in
-their device keys, exactly as on #28, until the one-line switch-ON PR (docs/product/SYNC_WRITES_ON.md) writes them into
-their synced homes.
+Part 9 built the writes, the merge and Health v3 (read support included). **The write switch is on since Session W Part 1
+(2026-10-06, owner decision W1; `apps/web/lib/vault/sync-writes.ts`, `SYNC_WRITES = true`)**: the four records below are
+written into their synced homes, the device keys are read and merged on every load and never rewritten. The Alpha's
+rollback floor is #29 (the first deploy with v3 read support). It shipped off first (Session U follow-up F1, 2026-10-05)
+so that the v3 read support went live before any build wrote v3.
 
 Session P's PR 3 added four kinds of record that had no place in the synced formats: habit-health links with their
 automatic check-in markers (H7), health goals (G3), weekly reviews (G1) and fasting sessions (HE6). PR 3 kept each in a

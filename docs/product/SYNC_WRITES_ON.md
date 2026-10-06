@@ -1,7 +1,20 @@
 # Switching the sync writes on (ready-to-use instruction)
 
-**Status:** not done. PR #74 (Session U) ships `SYNC_WRITES = false` (follow-up F1, 2026-10-05). This page is the whole
-switch-ON step, written so the owner or an agent can follow it as it is. No PR exists yet.
+**Status: done.** Session W Part 1 (2026-10-06) set `SYNC_WRITES = true` in the Session W PR, exactly as described below,
+by **owner decision W1**: "implement the switch-ON exactly as docs/product/SYNC_WRITES_ON.md describes …, overriding its
+'from 2026-10-12' wait. The owner accepts that testers may lose test data during the Alpha; still never design a
+migration that loses data, keep reads tolerant, and state the new rollback floor (Alpha must never roll back past #29)."
+
+- **Rollback floor:** from the first Alpha deploy that carries the switch on, the Alpha's rollback target must be **#29 or
+  later** (#29 is the first deploy that carried the v3 read support, `c97edbe`). At the time of writing the live Alpha is
+  #31 and its rollback target #30 (both read v3), so the precondition below holds.
+- **What changed in code:** the two lines below, plus test fixtures that now read Session P's four records where the app
+  keeps them (`homeRecordsIn`, `lib/sync-homes-store.ts`) instead of from the device keys of the Showcase seed. Nothing
+  else.
+- **If the Session W PR is not merged before the 22–24 October acceptance redeploy,** the switch commit can be merged on
+  its own; it is self-contained.
+
+The rest of this page is the original instruction, kept as written.
 
 ## Why it is a separate step
 

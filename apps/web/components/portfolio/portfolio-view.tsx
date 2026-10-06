@@ -38,7 +38,7 @@ const signed = (value: string, currency: string) => formatSignedMoney(value, cur
 const percent = (value: string) => `${value.startsWith('-') ? '−' : '+'}${formatNumber(Math.abs(Number(value)), {maximumFractionDigits: 2})}%`;
 
 /**
- * Portfolio (Session I, Part 11): crypto portfolios kept on this device only, each in USD or EUR and marked real or
+ * Portfolio (Session I, Part 11): crypto portfolios kept on this device (synced only by the opt-in of ADR-013), each in USD or EUR and marked real or
  * hypothetical. Prices come only from the shared public quotes (or the Showcase's labelled fixture); without one, a
  * value is unknown, never zero. Nothing here is read by Wealth, Goals, Positions, Allocation, Activity or Today.
  */
@@ -71,7 +71,7 @@ export function PortfolioView() {
   const noPrices = live && requests.length > 0 && !market.loading && !market.quotes.some(q => selected!.coins.some(c => referenceQuote(c.ref, selected!.currency, [q], market.now)));
   return <div className="dashboard portfolio-page">
     <section className="portfolio-hero" aria-labelledby="portfolio-title">
-      <p className="eyebrow page-eyebrow"><NebulaFlow identity="portfolio-eyebrow">On this device only</NebulaFlow></p>
+      <p className="eyebrow page-eyebrow"><NebulaFlow identity="portfolio-eyebrow">On this device</NebulaFlow></p>
       <h1 id="portfolio-title"><NebulaFlow identity="portfolio-title">Portfolio</NebulaFlow></h1>
       <p className="page-lede">Keep track of coins you hold, or a portfolio you are only considering. It stays apart from your Wealth and Goals.</p>
       {store.showcase && <p className="portfolio-note" role="note">Showcase: a fictional portfolio with fixture prices. These are not market prices.</p>}
@@ -92,7 +92,7 @@ export function PortfolioView() {
         <PortfolioFiles data={store.data} showcase={store.showcase} onImport={data => run(() => data, 'Portfolios replaced from the file.', 'The file was not imported.')} importing={importing} onImportCsv={() => setImporting(!importing)} />
         {importPanel && (phone ? <PhoneFormSheet title="Import transactions" onClose={() => setImporting(false)}>{importPanel}</PhoneFormSheet> : importPanel)}
       </>}
-    <p className="fine portfolio-privacy">Stored on this device only, never synced and not part of your private backups. Portfolio never changes your Wealth, Goals, Positions or Today.</p>
+    <p className="fine portfolio-privacy">Stored on this device and not part of your private backups. With an account, it syncs, encrypted, only if you tick &ldquo;Also sync my Portfolio&rdquo; in Settings. Portfolio never changes your Wealth, Goals, Positions or Today.</p>
   </div>;
 }
 
