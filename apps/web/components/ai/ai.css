@@ -204,7 +204,7 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-question-withheld{font-size:14px}
 .ai-bridge-local{margin:8px 0}
 /* Session V Part 5: the context pack card in Settings. */
-.ai-pack{margin:18px 0 8px;padding:12px 14px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0d1330) 70%,transparent)}
+.ai-pack,.ai-notes-card{margin:18px 0 8px;padding:12px 14px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0d1330) 70%,transparent)}
 .ai-pack-summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:17px;font-weight:600}
 .ai-pack-body{display:grid;gap:10px;margin-top:6px}
 .ai-pack-areas{display:grid;gap:6px;border:0;padding:0;margin:0}
@@ -237,3 +237,11 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-turn-attachment{margin:4px 0 0}
 .ai-card-photo{margin:0 0 6px}
 .ai-photo-setting{display:grid;gap:4px;margin:6px 0}
+/* Session V Part 8: "What ZIGi knows about me" */
+.ai-memory-add{display:grid;gap:8px}
+.ai-memory-hint{display:block;margin-top:-4px;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
+.ai-memory-list{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.ai-memory-note{padding:10px 0;border-top:1px solid var(--line,#2a325a);display:grid;gap:6px}
+.ai-memory-text{margin:0;font-size:16px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-memory-meta{margin:0;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
+.ai-memory-edit{display:grid;gap:8px}

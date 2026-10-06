@@ -45,17 +45,17 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
       <div className="ai-card-actions"><button type="submit" className="primary">Save changes</button><button type="button" className="text-link" onClick={() => { setEditing(false); setEditError(''); }}>Cancel</button></div>
     </form> : <div className="ai-card-actions">
       {status === 'proposed' ? <>
-        <button type="button" className="primary" onClick={onAdd}>{form ? 'Open the form' : 'Add'}</button>
+        <button type="button" className="primary" onClick={onAdd}>{form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
         {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)}>Edit</button>}
         <button type="button" className="text-link" onClick={onDismiss}>Dismiss</button>
-      </> : <span className="ai-card-status">{STATUS_TEXT[status]}</span>}
+      </> : <span className="ai-card-status">{status === 'added' && card.kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : STATUS_TEXT[status]}</span>}
     </div>}
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;
 }
 function EditField({field, value}: {field: Field; value: string}) {
   const id = useId();
-  const control = field.type === 'select' ? <select id={id} name={field.key} defaultValue={value}>{field.optional && <option value="">—</option>}{field.options!.map(option => <option key={option} value={option}>{option}</option>)}</select>
+  const control = field.type === 'select' ? <select id={id} name={field.key} defaultValue={value}>{field.optional && <option value="">—</option>}{field.options!.map(option => <option key={option} value={option}>{field.labels?.[option] ?? option}</option>)}</select>
     : field.type === 'day' || field.type === 'date' ? <input id={id} name={field.key} type="date" defaultValue={value === 'today' || value === 'yesterday' ? '' : value} placeholder={field.type === 'day' ? 'today' : undefined}/>
     : field.multiline ? <textarea id={id} name={field.key} defaultValue={value} rows={2} maxLength={2000}/>
     : <input id={id} name={field.key} type="text" inputMode={field.type === 'text' ? undefined : field.type === 'integer' ? 'numeric' : 'decimal'} defaultValue={value} autoComplete="off" spellCheck={field.type === 'text'}/>;

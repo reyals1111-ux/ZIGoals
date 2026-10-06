@@ -11,7 +11,9 @@ import {getAppStorage} from '../../lib/showcase-storage';
  * in another tab or an account change. `update` writes the person's choice and tells every other reader; it throws, with
  * nothing written, when the result is invalid or storage refuses. A read never writes.
  */
-export type DeviceRecordState<T> = {data: T; loaded: boolean; unreadable: boolean; update: (change: (current: T) => T) => T};
+export type DeviceRecordState<T> = {data: T; loaded: boolean; unreadable: boolean; update: (change: (current: T) => T) => T;
+  /** Removes the record from this device (Part 8: "Delete all notes"); every reader then reads it as empty. */
+  clear: () => void};
 export function useDeviceRecord<T>(spec: DeviceRecordSpec<T>): DeviceRecordState<T> {
   const [state, setState] = useState<{data: T; loaded: boolean; unreadable: boolean}>(() => ({data: spec.empty(), loaded: false, unreadable: false}));
   const refresh = useCallback(() => {
@@ -32,5 +34,10 @@ export function useDeviceRecord<T>(spec: DeviceRecordSpec<T>): DeviceRecordState
     window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: spec.key}));
     return next;
   }, [spec]);
-  return {...state, update};
+  const clear = useCallback(() => {
+    getAppStorage().removeItem(spec.key);
+    setState({data: spec.empty(), loaded: true, unreadable: false});
+    window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: spec.key}));
+  }, [spec]);
+  return {...state, update, clear};
 }

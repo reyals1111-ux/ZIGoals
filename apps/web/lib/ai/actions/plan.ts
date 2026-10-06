@@ -14,7 +14,8 @@ import type {Reminders} from '../../reminders/schema';
 import {reviewWindow} from '../../weekly-review/engine';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import {reviewFor, saveReviewNotes} from '../../weekly-review/store';
-import type {ZigiReminders} from '../store/records';
+import {addNote, CATEGORY_LABELS, deleteNote, isHealthNote, newNoteId, noteProblem} from '../memory';
+import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
 import {GLASS_ML, PLAN_AHEAD_DAYS, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
@@ -29,11 +30,12 @@ import {GLASS_ML, PLAN_AHEAD_DAYS, type HOLDING_CATEGORIES, type Action, type Ac
 /**
  * Session V Part 7 adds three device records a proposal may write, each through its own existing save path: the in-app
  * reminders (`zigoals:reminders:v1`), ZIGi's own reminder kinds (`zigoals:zigi-reminders:v1`) and the weekly review.
+ * Part 8 adds the person's notes for ZIGi (`zigoals:ai-memory:v1`), written only from a "Remember this?" card they confirm.
  */
-export type Stores = {health: HealthData; habits: HabitData; fasting: Fasting; platform: Platform; reminders: Reminders; zigiReminders: ZigiReminders; weekly: WeeklyReview};
+export type Stores = {health: HealthData; habits: HabitData; fasting: Fasting; platform: Platform; reminders: Reminders; zigiReminders: ZigiReminders; weekly: WeeklyReview; memory: AiMemory};
 export type Target = keyof Stores | 'form';
 /** `refs`: habits that cards of the same reply create ("new1" → the id it will have and its title), for their reminders. */
-export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitDay: string; healthDay: string; timeZone: string; weightUnit?: 'kg' | 'lb'; newHealthId?: () => string; newHabitId?: () => string; refs?: ReadonlyMap<string, {id: string; title: string}>};
+export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitDay: string; healthDay: string; timeZone: string; weightUnit?: 'kg' | 'lb'; newHealthId?: () => string; newHabitId?: () => string; newNoteId?: () => string; refs?: ReadonlyMap<string, {id: string; title: string}>};
 export type Card = {kind: ActionKind; title: string; lines: string[]; where: string; day: string | null; estimate: boolean; safety?: string};
 export type Undo = {label: string; write: (current: Stores) => Partial<Stores>; unchanged: (afterApply: Stores, current: Stores) => boolean};
 export type HoldingPrefill = {category: (typeof HOLDING_CATEGORIES)[number]; name: string; quantity: string; currency: string; value?: string; symbol?: string; notes?: string};
@@ -371,6 +373,16 @@ export function planAction(action: Action, env: Env): PlanResult {
         undo: {label: previous ? 'Put the previous intention back' : 'Remove this intention', write: s => ({weekly: weeklyReviewSchema.parse({...s.weekly, reviews: [...s.weekly.reviews.filter(r => r.weekStart !== weekStart), ...(before ? [before] : [])].sort((a, b) => a.weekStart.localeCompare(b.weekStart))})}),
           unchanged: (after, current) => same(reviewFor(after.weekly, weekStart), reviewFor(current.weekly, weekStart))},
         activity: {id: `review:${weekStart}:intention`, title: 'Weekly intention set'}}};
+    }
+    case 'remember': {
+      // ZIGi never keeps a note about a health condition by itself; the person can write one in the panel if they want it.
+      if (action.category === 'health') return refuse('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · your AI → What ZIGi knows about me.');
+      const problem = noteProblem(action.text, stores.memory); if (problem) return refuse(problem);
+      const id = (env.newNoteId ?? newNoteId)(), sent = isHealthNote(action.category) ? 'while "Use my notes" is on and Health is shared with ZIGi' : 'while "Use my notes" is on';
+      return {ok: true, plan: {target: 'memory', card: {kind: action.kind, title: 'Remember this?', lines: [action.text, `Kept as: ${CATEGORY_LABELS[action.category]}`, `On this device only; it goes to your AI with your messages ${sent}`], where: 'ZIGi · What ZIGi knows about me', day: null, estimate: false},
+        write: s => ({memory: addNote(s.memory, {text: action.text, category: action.category, source: 'zigi'}, env.now, id)}),
+        undo: {label: 'Forget this note', write: s => ({memory: deleteNote(s.memory, id)}), unchanged: (after, current) => same(after.memory.notes?.find(n => n.id === id), current.memory.notes?.find(n => n.id === id))},
+        activity: {id: `note:${id}`, title: `Remembered: ${action.text.slice(0, 120)}`}}};
     }
   }
 }

@@ -20,6 +20,8 @@ import type {PageContext} from '../../lib/ai/context/types';
 import type {AiSettings, PageArea} from '../../lib/ai/settings';
 import {aiGates, type Gates} from '../../lib/ai/gates';
 import type {PriceOf, ToolSources} from '../../lib/ai/tools/env';
+import {notesForAi} from '../../lib/ai/memory';
+import {AI_MEMORY, AI_OPTIONS} from '../../lib/ai/store/records';
 import {isShowcase} from '../../lib/showcase-storage';
 import {useGoals} from '../goal-provider';
 import {useHabits} from '../habits/use-habits';
@@ -29,6 +31,7 @@ import {usePlatform} from '../platform/use-platform';
 import {useMarketQuotes} from '../platform/use-market-quotes';
 import {usePortfolios} from '../portfolio/use-portfolios';
 import {usePrivateStore} from '../use-private-store';
+import {useDeviceRecord} from './use-device-record';
 import {useHealthConsent} from './use-health-consent';
 
 /**
@@ -49,6 +52,8 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
   const platform = usePlatform(), habits = useHabits(), health = useHealth(), fasting = useFasting(), portfolios = usePortfolios(), legacy = useGoals();
   const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent();
   const weekly = usePrivateStore(WEEKLY_REVIEW_KEY, weeklyReviewSchema, emptyWeeklyReview);
+  // Part 8: the person's notes, only while "Use my notes" is on; the gates decide per path where they may go.
+  const memory = useDeviceRecord(AI_MEMORY), options = useDeviceRecord(AI_OPTIONS);
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
   const gates = useMemo(() => consent({settings, area, pathname, layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted}), [settings, area, pathname, layoutHasHealth, healthConsent.accountActive, healthConsent.accountHealthPermitted]);
   const ready = platform.loaded && habits.loaded && health.loaded && fasting.loaded && portfolios.loaded && legacy.loaded && dashboard.loaded && healthConsent.loaded;
@@ -85,7 +90,7 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
   const preview = useMemo(() => context ? previewContext(context, {provider: providerName}) : null, [context, providerName]);
   const toolGates = useMemo(() => aiGates({settings, area, pathname, layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted, sensitive}), [settings, area, pathname, layoutHasHealth, healthConsent.accountActive, healthConsent.accountHealthPermitted, sensitive]);
   const toolSources = useCallback((): ToolSources | null => {
-    if (!ready || sensitive) return null;
+    if (!ready || sensitive || !memory.loaded || !options.loaded) return null;
     const now = new Date(), deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let hDay = now.toISOString().slice(0, 10), habitDay = hDay;
     const healthZone = dailyData(health.data).preferences.timezone ?? deviceZone, habitZone = habits.data.timeZone ?? deviceZone;
@@ -101,7 +106,7 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       return quote ? {price: formatUnits(quote.price, quote.priceDecimals), source: quote.source, observedAt: quote.observedAt ?? quote.fetchedAt ?? null} : undefined;
     };
     return {now, habitDay, healthDay: hDay, habitZone, healthZone, habits: habits.data, health: health.data, fasting: fasting.data, platform: platform.data, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, quotes: market.quotes,
-      localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: null, showcase: isShowcase()};
-  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data]);
+      localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: notesForAi(options.data, memory.data), showcase: isShowcase()};
+  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};
 }

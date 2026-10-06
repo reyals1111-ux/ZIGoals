@@ -13,6 +13,8 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     'create-food': {kind: 'create-food', name: 'Shake', serving_ml: 300, estimate: {kcal: 200}}, 'create-recipe': {kind: 'create-recipe', name: 'Soup', ingredients: [{name: 'Lentils', grams: 250}]},
     'plan-meal': {kind: 'plan-meal', recipe: 'r1', meal: 'Dinner'}, 'grocery-item': {kind: 'grocery-item', items: ['Oat milk', 'Spinach']}, counter: {kind: 'counter', counter: 'Push-ups', count: 20},
     'create-reminder': {kind: 'create-reminder', for: 'water', time: '10:00'}, 'review-intention': {kind: 'review-intention', intention: 'Walk after lunch'},
+    // Session V Part 8
+    remember: {kind: 'remember', text: 'Prefers morning workouts', category: 'preferences'},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);

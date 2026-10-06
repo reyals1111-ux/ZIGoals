@@ -43,6 +43,8 @@ export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {
   const areas = purpose === 'provider' ? gates.areas : gates.local, health = purpose === 'provider' ? gates.health : gates.localHealth;
-  const notes = sources.notes ? sources.notes.filter(note => health || !HEALTH_NOTE_CATEGORIES.includes(note.category)) : null;
+  // Notes (Part 8): to the person's AI only where a page attaches data; on the device whenever nothing private shows.
+  const notesOpen = purpose === 'provider' ? gates.notes : !gates.paused;
+  const notes = notesOpen && sources.notes ? sources.notes.filter(note => health || !HEALTH_NOTE_CATEGORIES.includes(note.category)) : null;
   return {...sources, health: health ? sources.health : null, fasting: health ? sources.fasting : null, notes, areas: {...areas, health}, handles, limits};
 }

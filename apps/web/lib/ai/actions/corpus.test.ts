@@ -25,7 +25,7 @@ const stores: Stores = {
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
   // Session V Part 7: the three device records a proposal may also write.
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) : emptyWeeklyReview(),
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) : emptyWeeklyReview(), memory: {version: 1},
 };
 const handles: Handle[] = [
   ...stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})),

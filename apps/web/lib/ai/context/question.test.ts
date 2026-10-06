@@ -53,8 +53,10 @@ test('Health stays out when its gate is closed: listed as not included, no senti
     expect(sentinelsIn(JSON.stringify(chosen)), q).toEqual([]);
   }
   const water = questionContext('How much water did I drink yesterday?', s, healthPage(false))!;
-  // The habit the question names is not Health data and may go; the Health water journal may not.
-  expect(water.sources.map(x => x.call.tool)).toEqual(['habit_stats']); expect(water.sources[0]!.label).toBe('Drink water · yesterday');
+  // The habit the question names is not Health data and may go; the Health water journal may not. Part 8: the person's
+  // notes go first, without the one tagged health (the sentinel note), since the gate is closed.
+  expect(water.sources.map(x => x.call.tool)).toEqual(['about_me', 'habit_stats']); expect(water.sources[1]!.label).toBe('Drink water · yesterday');
+  expect(water.sources[0]!.label).toBe('About me · 1 note'); expect(water.sources[0]!.text).toContain('Prefers short answers in the morning');
   expect(water.withheld).toEqual([HEALTH_CLOSED]);
   // The control: with the gate open the same question carries the values.
   expect(questionContext('How much water did I drink today?', s, healthPage(true))!.text).toContain(String(SENTINEL.waterMl));

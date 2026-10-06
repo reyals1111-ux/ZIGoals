@@ -23,7 +23,7 @@ const stores: Stores = {
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
   // Session V Part 7: the three device records a proposal may also write.
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) : emptyWeeklyReview(),
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) : emptyWeeklyReview(), memory: {version: 1},
 };
 const DAY = '2026-09-20', now = new Date('2026-09-20T19:00:00Z');
 const habit = (i: number) => stores.habits.habits[i]!;
@@ -230,7 +230,9 @@ test('cards name records by title, never by identifier, and every kind the parse
   const samples: Record<string, unknown>[] = [{kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
     // Session V Part 7
     {kind: 'create-food', name: 'Shake', serving_ml: 300, estimate: {kcal: 200}}, {kind: 'create-recipe', name: 'Soup', ingredients: [{name: 'Lentils', grams: 250}]}, {kind: 'plan-meal', recipe: 'r1', meal: 'Dinner'},
-    {kind: 'grocery-item', items: ['Oat milk']}, {kind: 'counter', counter: 'Push-ups', count: 20}, {kind: 'create-reminder', for: 'water', time: '10:00'}, {kind: 'review-intention', intention: 'Walk after lunch'}];
+    {kind: 'grocery-item', items: ['Oat milk']}, {kind: 'counter', counter: 'Push-ups', count: 20}, {kind: 'create-reminder', for: 'water', time: '10:00'}, {kind: 'review-intention', intention: 'Walk after lunch'},
+    // Session V Part 8
+    {kind: 'remember', text: 'Prefers morning workouts', category: 'preferences'}];
   const kinds = new Set<string>();
   // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).
   const recipeId = 'health_recipe-sample-0001', withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Sample soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};

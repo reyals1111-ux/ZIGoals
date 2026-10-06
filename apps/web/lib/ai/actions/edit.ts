@@ -1,3 +1,4 @@
+import {CATEGORY_LABELS, REMEMBER_CATEGORIES} from '../memory';
 import {GOAL_CATEGORIES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, actionSchema, type Action, type ActionKind} from './schema';
 
 /**
@@ -6,7 +7,9 @@ import {GOAL_CATEGORIES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, actionSch
  * (h1, g2, f3) are not editable: the person never sees identifiers, and a record is chosen by asking again.
  */
 /** `lines` (Session V Part 7): a list edited as one item per line (grocery items, goal milestones). */
-export type Field = {key: string; label: string; type: 'number' | 'integer' | 'text' | 'date' | 'select' | 'day' | 'lines'; options?: readonly string[]; optional?: boolean; multiline?: boolean};
+export type Field = {key: string; label: string; type: 'number' | 'integer' | 'text' | 'date' | 'select' | 'day' | 'lines'; options?: readonly string[]; optional?: boolean; multiline?: boolean;
+  /** Words shown for a select's options (Part 8), when they differ from the stored values. */
+  labels?: Readonly<Record<string, string>>};
 const num = (key: string, label: string, optional = false): Field => ({key, label, type: 'number', optional});
 const int = (key: string, label: string, optional = false): Field => ({key, label, type: 'integer', optional});
 const text = (key: string, label: string, optional = false, multiline = false): Field => ({key, label, type: 'text', optional, multiline});
@@ -37,6 +40,8 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   counter: [int('count', 'Count (negative to take away)'), DAY],
   'create-reminder': [{key: 'time', label: 'Time (HH:MM)', type: 'text'}, int('weekday', 'Weekday (0 = Sunday; weekly reminders)', true)],
   'review-intention': [text('intention', 'Intention', false, true)],
+  // Session V Part 8: the note and its kind (never Health: ZIGi's cards keep no notes about health conditions).
+  remember: [text('text', 'Note (up to 500 characters)', false, true), {key: 'category', label: 'Kind of note', type: 'select', options: REMEMBER_CATEGORIES, labels: CATEGORY_LABELS}],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];
 const read = (record: unknown, path: string): unknown => path.split('.').reduce<unknown>((value, part) => value && typeof value === 'object' ? (value as Record<string, unknown>)[part] : undefined, record);

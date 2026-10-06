@@ -164,3 +164,20 @@ test('Part 6: native tool calls carry no Health with the gate closed: no Health 
   const open = await sent(true, 'health', '/app/health');
   expect(sentinelsIn(JSON.stringify(open.requests)).length).toBeGreaterThan(3);
 });
+test('Part 8: the person\'s notes: a health or diet note never leaves with the gate closed, and no note leaves while "Use my notes" is off', () => {
+  // The sources carry a health-tagged sentinel note and an ordinary one (fixtures.ts).
+  const s = sources(), off = {...s, notes: null}, ordinary = 'Prefers short answers in the morning';
+  expect(s.notes!.map(n => n.text)).toEqual([SENTINEL.note, ordinary]);
+  for (const [area, pathname] of PAGES) for (const q of ['Hi', 'How many minutes did I meditate this month?', 'What do you know about me?']) {
+    const chosen = questionContext(q, s, gatesFor(false, area, pathname));
+    expect(sentinelsIn(JSON.stringify(chosen)), `${pathname} ${q}`).toEqual([]);
+    expect(sentinelsIn(bridgePrompt({context: buildPageContext(builderInput(s, area, pathname, false)), question: q, questionData: chosen?.text ?? ''}).replace(`My question: ${q}`, '')), `${pathname} ${q}`).toEqual([]);
+    // "Use my notes" off: not even the ordinary note goes, gate open or not.
+    for (const health of [false, true]) expect(JSON.stringify(questionContext(q, off, gatesFor(health, area, pathname))), `${pathname} ${q}`).not.toContain(ordinary);
+    const env = toolEnv(s, gatesFor(false, area, pathname), 'provider');
+    for (const args of [{}, {category: 'health'}, {category: 'diet'}]) expect(sentinelsIn(toolText(runTool('about_me', args, env), env)), `${pathname} about_me`).toEqual([]);
+  }
+  // The controls: the ordinary note does go with the gate closed, and the health note once the gate is open.
+  expect(questionContext('Hi', s, gatesFor(false))!.text).toContain(ordinary);
+  expect(questionContext('Hi', s, gatesFor(true))!.text).toContain(SENTINEL.note);
+});

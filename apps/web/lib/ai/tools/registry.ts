@@ -4,6 +4,7 @@ import {HEALTH_CLOSED, refuse, text} from './format';
 import {GOAL_TOOLS} from './goals';
 import {HABIT_TOOLS} from './habits';
 import {HEALTH_TOOLS} from './health';
+import {aboutMe} from './memory';
 import {todaySummary} from './today';
 import type {AnyTool, JsonSchema, ToolRefusal, ToolResult} from './types';
 import {WEALTH_TOOLS} from './wealth';
@@ -16,14 +17,14 @@ import {WEALTH_TOOLS} from './wealth';
  * purpose (Health through its gate, notes only when the person uses them); then it runs, and any failure inside a tool is
  * a refusal too. `toolText` turns a result into the compact text an AI reads, within the per-tool character cap.
  */
-export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, ...HEALTH_TOOLS, ...GOAL_TOOLS, ...WEALTH_TOOLS, recentActivity] as unknown as readonly AnyTool[];
+export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, ...HEALTH_TOOLS, ...GOAL_TOOLS, ...WEALTH_TOOLS, recentActivity, aboutMe] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
 /** Why the tool may not run in this environment (without running anything), or null when it may. */
 export function toolBlocked(tool: AnyTool, env: ToolEnv): ToolRefusal | null {
   const label = tool.title;
   if (tool.area === 'health') return env.health && env.areas.health ? null : refuse(tool.name, label, 'gate', HEALTH_CLOSED);
-  if (tool.area === 'memory') return env.notes ? null : refuse(tool.name, label, 'area', 'Your notes for ZIGi are not in use: turn on "Use my notes" in What ZIGi knows about me.');
+  if (tool.area === 'memory') return env.notes?.length ? null : refuse(tool.name, label, 'area', 'No notes about the person are shared with ZIGi here ("Use my notes" in What ZIGi knows about me).');
   return env.areas[tool.area] ? null : refuse(tool.name, label, 'area', `${tool.area[0]!.toUpperCase()}${tool.area.slice(1)} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · your AI.`);
 }
 /** The tools this environment may run, for a provider's tool list or a browser agent (Health tools only with the gate). */

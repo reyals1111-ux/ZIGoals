@@ -9,7 +9,8 @@ import {attachesContext} from './context/pages';
  *   "Share this page's data" switches, one per area);
  * - Health goes only through the three-part gate: the Health switch, "Include Health", Health in this device's Today
  *   layout, and, with an account, the account's Health permission read fail-closed (use-health-consent.ts);
- * - Settings attaches nothing (its account, sync and recovery controls are there), and a sensitive screen reads nothing.
+ * - Settings attaches nothing (its account, sync and recovery controls are there), and a sensitive screen reads nothing;
+ * - the person's notes for ZIGi (Part 8) follow the same page rule, and those about health or diet need the Health gate.
  * `local` is the narrower set ZIGi may read to answer on this device with no AI at all (local answers, chips, the brief):
  * every area works before setup because nothing leaves the device, except Health, which still needs its gate.
  * Every consumer receives Health as `null` when `health` is false, so no code path can read it by mistake.
@@ -30,6 +31,8 @@ export type Gates = {
   local: AreaFlags;
   /** Health for local answers: the same three-part gate, never weaker. */
   localHealth: boolean;
+  /** The person's own notes may go with a question (Part 8): connected, on a page that attaches data, nothing private on screen. "Use my notes" decides the rest. */
+  notes: boolean;
   reasons: string[];
 };
 const NONE: AreaFlags = {today: false, goals: false, habits: false, health: false, wealth: false, help: false};
@@ -42,13 +45,13 @@ export function healthGate(input: Pick<ConsentInput, 'settings' | 'layoutHasHeal
 export function aiGates(input: GatesInput): Gates {
   const page = consent(input);
   const health = healthGate(input);
-  if (input.sensitive) return {connected: input.settings.enabled, paused: true, page: {page: false, health: false, reasons: ['Paused on this private screen: nothing is read.']}, areas: NONE, health: false, local: NONE, localHealth: false, reasons: ['Paused on this private screen: nothing is read.']};
+  if (input.sensitive) return {connected: input.settings.enabled, paused: true, page: {page: false, health: false, reasons: ['Paused on this private screen: nothing is read.']}, areas: NONE, health: false, local: NONE, localHealth: false, notes: false, reasons: ['Paused on this private screen: nothing is read.']};
   const share = input.settings.pageShare, attaches = attachesContext(input.pathname), connected = input.settings.enabled;
   const areas: AreaFlags = connected && attaches
     ? {today: share.today, goals: share.goals, habits: share.habits, health, wealth: share.wealth, help: share.help}
     : NONE;
   const local: AreaFlags = {today: true, goals: true, habits: true, health, wealth: true, help: true};
-  return {connected, paused: false, page, areas, health: connected && attaches && health, local, localHealth: health, reasons: page.reasons};
+  return {connected, paused: false, page, areas, health: connected && attaches && health, local, localHealth: health, notes: connected && attaches, reasons: page.reasons};
 }
 /** The defaults before anything was chosen, for tests and for the shell: nothing shared, nothing paused. */
 export const closedGates = (settings: AiSettings): Gates => aiGates({settings, area: 'help', pathname: '/app/help', layoutHasHealth: false, accountActive: false, accountHealthPermitted: null, sensitive: false});

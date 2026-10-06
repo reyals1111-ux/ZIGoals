@@ -34,5 +34,6 @@ export function actionPlace(kind: string): {category: 'HEALTH' | 'HABIT' | 'GOAL
   if (/^(check-in|skip|create-habit)$/.test(kind)) return {category: 'HABIT', href: '/app/habits'};
   if (/^(create-goal|add-goal-note)$/.test(kind)) return {category: 'GOAL', href: '/app/goals'};
   if (/^(create-reminder|review-intention)$/.test(kind)) return {category: 'ZIGI', href: '/app'};
+  if (kind === 'remember') return {category: 'ZIGI', href: '/app/settings#zigi-notes'};
   return {category: 'HEALTH', href: '/app/health'};
 }

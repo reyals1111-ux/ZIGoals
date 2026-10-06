@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {HABITS_KEY} from '../lib/habits';
+import {QUESTION_HEADING} from '../lib/ai/context/question';
 
 /**
  * Session V Part 4, the owner's finding: on the Health page, "How many minutes did I meditate this month?" must carry
@@ -36,14 +37,14 @@ test('copy path (Grok subscription) on Health: the meditation figures for this m
   await page.goto('/app/health');
   await openChat(page);
   await panel(page).getByLabel('Your question').fill(OWNER);
-  const chips = panel(page).getByRole('group', {name: 'Records chosen from your question'});
+  const chips = panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'});
   await expect(chips).toContainText('Meditate · this month');
   // A lookup is also answered right here, with no AI.
   await expect(panel(page).locator('.ai-bridge-local')).toContainText(`You logged ${meditationMinutes()} minutes of Meditate this month`);
   await expect(panel(page).locator('.ai-bridge-local .ai-turn-label')).toHaveText('Answered on your device · no AI used');
   await panel(page).getByText('What will be copied').click();
   const preview = panel(page).locator('details').filter({hasText: 'What will be copied'}).locator('pre');
-  await expect(preview).toContainText('## For this question (records chosen from your question by ZIGi, on this device)');
+  await expect(preview).toContainText(QUESTION_HEADING);
   await expect(preview).toContainText(`"valueText":"${meditationMinutes()} minutes"`);
   await panel(page).getByRole('button', {name: 'Copy for my AI'}).click();
   await expect(panel(page)).toContainText('Copied. Paste it into Grok.');
@@ -83,21 +84,21 @@ test('AI path (MOCK local server) on Health: a question that names the habit car
   await openChat(page);
   const composer = page.getByLabel('Message to your AI');
   await composer.fill('Help me meditate more this month');
-  const chips = panel(page).getByRole('group', {name: 'Records chosen from your question'});
+  const chips = panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'});
   await expect(chips).toContainText('Meditate · this month');
   await panel(page).getByText('What your AI sees').click();
   await expect(panel(page).locator('.ai-context-preview pre').last()).toContainText(`"valueText":"${meditationMinutes()} minutes"`);
   await page.getByRole('button', {name: 'Send', exact: true}).click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: here is a gentle idea.');
   const first = JSON.parse(bodies[0]!) as {messages: {role: string; content: string}[]};
-  expect(first.messages[0]!.content).toContain('## For this question (records chosen from your question by ZIGi, on this device)');
+  expect(first.messages[0]!.content).toContain(QUESTION_HEADING);
   expect(first.messages[0]!.content).toContain(`"valueText":"${meditationMinutes()} minutes"`);
   expect(first.messages.at(-1)).toEqual({role: 'user', content: 'Help me meditate more this month'});
   // The same question with the chip taken off: the page's data only.
   await composer.fill('Help me meditate more this month');
   await expect(chips).toContainText('Meditate · this month');
   await chips.getByRole('button', {name: 'Leave out Meditate · this month'}).click();
-  await expect(panel(page).getByRole('group', {name: 'Records chosen from your question'})).toHaveCount(0);
+  await expect(panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'})).toHaveCount(0);
   await page.getByRole('button', {name: 'Send', exact: true}).click();
   await expect.poll(() => bodies.length).toBe(2);
   expect(JSON.parse(bodies[1]!).messages[0].content).not.toContain('## For this question');

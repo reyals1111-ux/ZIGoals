@@ -20,7 +20,7 @@ const data = (result: ToolResult) => okData(result).data as Record<string, any>;
 test('the registry: unique names, portable JSON-Schema parameters, plain descriptions, and every tool runs on the Showcase', () => {
   const names = TOOLS.map(t => t.name);
   expect(new Set(names).size).toBe(names.length);
-  expect(names).toEqual(expect.arrayContaining(['today_summary', 'list_habits', 'habit_stats', 'habit_checkins', 'habits_due', 'diary_entries', 'nutrient_totals', 'water', 'steps', 'weight', 'body_measurements', 'fasting', 'counters', 'search_foods', 'list_recipes', 'meal_plan', 'groceries', 'list_goals', 'goal_progress', 'goal_contributions', 'weekly_review', 'holdings', 'totals_per_currency', 'portfolios', 'staking_watch', 'recent_activity']));
+  expect(names).toEqual(expect.arrayContaining(['today_summary', 'list_habits', 'habit_stats', 'habit_checkins', 'habits_due', 'diary_entries', 'nutrient_totals', 'water', 'steps', 'weight', 'body_measurements', 'fasting', 'counters', 'search_foods', 'list_recipes', 'meal_plan', 'groceries', 'list_goals', 'goal_progress', 'goal_contributions', 'weekly_review', 'holdings', 'totals_per_currency', 'portfolios', 'staking_watch', 'recent_activity', 'about_me']));
   for (const spec of toolSpecs(TOOLS)) {
     expect(spec.name).toMatch(/^[a-z_]{3,40}$/); expect(spec.description.length).toBeGreaterThan(40); expect(spec.description.length).toBeLessThan(400);
     expect(spec.parameters.type).toBe('object');
@@ -29,7 +29,8 @@ test('the registry: unique names, portable JSON-Schema parameters, plain descrip
     // Only the plain keywords every provider and browser agent reads.
     expect(JSON.stringify(spec.parameters)).not.toMatch(/"(\$ref|\$schema|anyOf|oneOf|allOf|additionalProperties|format|pattern|default)"/);
   }
-  const env = open(withPortfolios(withHandHealth(showcaseSources())));
+  // Part 8: fictional notes, so "about_me" has something to read like every other tool.
+  const env = open({...withPortfolios(withHandHealth(showcaseSources())), notes: [{text: 'Prefers short answers', category: 'preferences'}]});
   const required: Record<string, unknown> = {habit_stats: {habit: 'Meditate'}, habit_checkins: {habit: 'Meditate'}, search_foods: {query: 'oats'}, goal_progress: {goal: 'Japan'}};
   for (const tool of TOOLS) {
     const result = runTool(tool.name, required[tool.name] ?? {}, env);

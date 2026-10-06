@@ -24,7 +24,7 @@ const stores: Stores = {
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1']!)),
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1']!)), memory: {version: 1},
 };
 const habitNamed = (title: string) => stores.habits.habits.find(h => h.title === title)!;
 const handles: Handle[] = [

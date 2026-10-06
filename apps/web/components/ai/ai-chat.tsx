@@ -261,7 +261,7 @@ export function conversationTokens(turns: readonly ChatTurn[]): {input: number; 
 }
 function QuestionSources({question, onRemove}: {question: QuestionContext | null; onRemove: (id: string) => void}) {
   if (!question || (!question.sources.length && !question.withheld.length)) return null;
-  return <div className="ai-question-sources" role="group" aria-label="Records chosen from your question">
+  return <div className="ai-question-sources" role="group" aria-label="Records ZIGi chose for this question">
     {question.sources.length > 0 && <span className="ai-question-label">For this question:</span>}
     {question.sources.map(s => <span key={s.id} className="ai-source-chip">{s.label}<button type="button" onClick={() => onRemove(s.id)} aria-label={`Leave out ${s.label}`} title="Leave out">×</button></span>)}
     {question.withheld.map(w => <span key={w} className="ai-note ai-question-withheld">Not included: {w}</span>)}
@@ -272,7 +272,7 @@ function ContextBar({context, attach, onAttach, sensitive, total, question, onRe
   const totalLine = total ? <span className="ai-context-total" aria-label="Tokens so far in this conversation">{total.input.toLocaleString('en-US')} in · {total.output.toLocaleString('en-US')} out tokens so far</span> : null;
   if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span>{totalLine}</div>;
   if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span>{totalLine}</div>;
-  const questionPreview = question?.text ? <><p className="ai-note">And the records chosen from your question:</p><pre>{question.text}</pre></> : null;
+  const questionPreview = question?.text ? <><p className="ai-note">And the records ZIGi chose for this question:</p><pre>{question.text}</pre></> : null;
   if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}<QuestionSources question={question} onRemove={onRemove}/>{questionPreview && <details className="ai-context-preview"><summary>What your AI sees</summary>{questionPreview}</details>}{totalLine}</div>;
   return <div className="ai-context-bar">
     <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)}/> Share this page’s data{context.preview ? ` · ${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens` : ''}</label>

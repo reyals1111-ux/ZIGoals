@@ -147,10 +147,13 @@ export const readZigiPrefs = (storage: Read): ZigiPrefs => zigiPrefs(readDeviceR
 /**
  * "Turn off ZIGi" (T's control): V's connection choices go back to the start (the route, data mode, deep models, the
  * hosted consent, browser agents, notification names) and knocking stops. The look and feel stays, like the launcher's
- * own hide; the person's own records (notes, the actions log, usage, reminders) stay until they delete them.
+ * own hide; the person's own records (notes, the actions log, usage, reminders) stay until they delete them. Part 8: a
+ * "Use my notes" turned off stays off, so turning ZIGi on again never starts sending notes the person held back.
  */
 export function resetOnTurnOff(storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>): void {
+  const options = readDeviceRecord(storage, AI_OPTIONS);
   storage.removeItem(AI_OPTIONS_KEY);
+  if (!options.unreadable && options.data.useNotes === false) storage.setItem(AI_OPTIONS_KEY, JSON.stringify({version: 1, useNotes: false}));
   storage.removeItem(ZIGI_KNOCK_KEY);
   const zigi = readDeviceRecord(storage, ZIGI);
   if (!zigi.unreadable && zigi.data.knock?.enabled) updateDeviceRecord(storage, ZIGI, current => ({...current, knock: {...current.knock, enabled: false}}));
