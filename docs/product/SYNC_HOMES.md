@@ -143,3 +143,50 @@ rollback is what makes v3 matter there.
   the recovery copy on a version raise in the durable database.
 - Browser: `fasting.spec.ts`, `health-goals.spec.ts`, `weekly-review.spec.ts`, `auto-checkins.spec.ts` check the homes
   and that the device keys stay unwritten; Stage 8 row B13 checks two devices through account sync.
+
+## Session W: the homes of this release's records (2026-10-06)
+
+Session W (owner decision W1: "new synced records follow SYNC_HOMES") adds records with a synced home from the start.
+Every new group is its own strict `version: 1` record with caps, held only by a new module version; an older build
+refuses that version as a whole and keeps the bytes (no "opaque newer group" is ever read or merged). Writers are lazy:
+a module moves up only when one of these groups first gets content, and never goes down (`lib/vault/w-homes.ts`,
+`lib/w-homes-store.ts`, `max(current, needed)` in every writer, `lib/vault/sync-homes.ts` included).
+
+| Module | Version | Written in W? | Groups | Where in the code |
+|---|---|---|---|---|
+| Health | **v4** | yes, lazily | `sleep` (nights and naps; a running night is `end: null`), `meditation` (sessions, weekly goal, bells), `vitals` (one record per day and source), `quick` (water buttons, pinned items), `moods` (the wrap-up's mood, per day); `habitLinks` may hold `sleepMinutes`, `bedtimeBy`, `meditationMinutes` (v4 only) | `lib/health.ts` `healthV4Schema` |
+| Settings | **v3** | yes, lazily | `pages` (shown/hidden per page or button, start page), `links` (My links), `chess` (usernames, rating goals, the chess habit and its markers), `wrapUp` (on/off, time, the day's intention); Today widgets of kinds `sleep`, `meditation`, `chess`, `links`, `music` | `lib/dashboard-settings.ts` `dashboardSettingsV3Schema` |
+| Finance | **v5** | **no: read support only** | `accounts` (accounts and debts), a milestone's `targetDate` | `lib/positions.ts` `platformV5` |
+
+**Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
+Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in
+the device key `zigoals:accounts:v1` and milestone target dates in `zigoals:milestone-dates:v1`, each with exactly its
+home's fields (features/README rule 1). A later one-line switch PR, at least seven days after the W deploy and with the
+rollback target at or after W, moves them into finance v5, the P2 pattern used for Session P's records.
+
+**Merge rules (`lib/vault/cloud-sync.ts`).** Inside these groups, and only these, a value carries the moment it was set:
+a choice `{v, at}`, a day's answer `{…, at}`, a record's `updatedAt`. When two devices changed the same stamped value
+differently, the later stamp is kept whole (equal stamps: a fixed order of the two texts, so both devices agree), so a
+page switch, a mood or an edited night never stops sync. Imported and linked records carry deterministic ids
+(`health_sleep-<source>-<hash>`, `health_vital-<source>-<date>`), so the same export imported on two devices is one
+record. Two devices that each started a night while apart keep both running nights (the latest is tonight's; the other
+asks for its end time; none is ever invented). Chess's check-in markers merge to the union, like Health's. Everything
+outside Session W's groups merges exactly as before. A version raised by sync keeps the section it replaced as a
+recovery copy, as a local raise does.
+
+**Rollback (shown to the owner on purpose).** Never below #29 (W1). Rolled back from a W build to #29–#31: a person who
+used a new Health feature (sleep, meditation, vitals, quick buttons, the wrap-up's mood, a sleep or meditation habit
+link, a Health import) sees their whole Health page unreadable there until the roll-forward; a person who used a new
+settings feature (page visibility, links, chess usernames, the wrap-up, a new Today widget) sees Today's layout and
+preferences unreadable there. Bytes and recovery copies are kept and read again on the roll-forward. Everyone else is
+unaffected. Finance is never raised by W.
+
+**Device-only records of Session W** (lib/w-device-keys.ts; never synced, all in "Export everything"): personal —
+`zigoals:accounts:v1` and `zigoals:milestone-dates:v1` (homes above, moved later), `zigoals:import-batches:v1`,
+`zigoals:w-reminders:v1`, `zigoals:chess-cache:v1`, `zigoals:celebrations:v1`, `zigoals:meditation-run:v1`; display
+preferences — `zigoals:music:v1`, `zigoals:pages-view:v1`. Sign-in tokens of linked services are sealed in IndexedDB
+(`zigoals-link-tokens-v1`), never exported or synced.
+
+Tests: `lib/vault/w-formats.test.ts` (new reads new, old refuses new in storage, backups and sync, lazy raises, never
+down, the merge rules, the sync recovery copy), `lib/vault/schema-snapshot.test.ts` (no frozen format edited in place;
+the six frozen digests equal main `1063765`), `lib/w-device-records.test.ts`, `lib/export/w-export.test.ts`.

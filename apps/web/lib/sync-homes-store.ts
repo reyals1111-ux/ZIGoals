@@ -42,10 +42,10 @@ async function readModule<T>(storage: Storage, key: string, schema: z.ZodType<T>
 async function updateModule<T>(storage: Storage, key: string, schema: z.ZodType<T>, empty: () => T, updater: (latest: T) => T): Promise<T> {
   return isDurableMarker(storage.getItem(key)) ? updateDurableStore(storage, key, schema, updater) : updatePrivateStore(storage, key, schema, empty, updater);
 }
-const readHealth = (storage: Storage) => readModule<HealthData>(storage, HEALTH_STORAGE_KEY, healthSchema, createEmptyHealth);
-const readSettings = (storage: Storage) => readModule<DashboardSettings>(storage, DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
-const updateHealth = (storage: Storage, updater: (latest: HealthData) => HealthData) => updateModule<HealthData>(storage, HEALTH_STORAGE_KEY, healthSchema, createEmptyHealth, updater);
-const updateSettings = (storage: Storage, updater: (latest: DashboardSettings) => DashboardSettings) => updateModule<DashboardSettings>(storage, DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, updater);
+export const readHealth = (storage: Storage) => readModule<HealthData>(storage, HEALTH_STORAGE_KEY, healthSchema, createEmptyHealth);
+export const readSettings = (storage: Storage) => readModule<DashboardSettings>(storage, DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
+export const updateHealth = (storage: Storage, updater: (latest: HealthData) => HealthData) => updateModule<HealthData>(storage, HEALTH_STORAGE_KEY, healthSchema, createEmptyHealth, updater);
+export const updateSettings = (storage: Storage, updater: (latest: DashboardSettings) => DashboardSettings) => updateModule<DashboardSettings>(storage, DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, updater);
 
 /** Like a module edit made through usePrivateStore: open views of the module refresh, and account sync schedules an upload. */
 export function announceModuleChange(keys: readonly string[]) {

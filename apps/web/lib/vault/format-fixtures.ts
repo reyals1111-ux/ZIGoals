@@ -54,3 +54,41 @@ export function settingsV2(){return {...settingsV1(),schemaVersion:2 as const,jo
 
 /** Every domain: the version today's build writes and the one read ahead of its writer, with a record of each. */
 export const FORMAT_PAIRS={finance:{today:3,next:4,oldRecord:financeV3,newRecord:financeV4},habits:{today:2,next:3,oldRecord:habitsV2,newRecord:habitsV3},health:{today:1,next:2,oldRecord:healthV1,newRecord:healthV2},settings:{today:1,next:2,oldRecord:settingsV1,newRecord:settingsV2}};
+
+// Session W (2026-10-06): the records of this release's new groups. Each newer record is again its older twin plus exactly
+// the new groups. Health v4 and settings v3 are written by this build, lazily (only when a new group first gets content);
+// finance v5 is read here and written by nothing (its homes move in a later switch PR). Builds #29–#31 refuse all three
+// and keep their bytes.
+export const SLEEP_NIGHT={id:'health_sleep-manual-fixture01',kind:'night' as const,start:'2026-09-06T21:30:00.000Z',end:'2026-09-07T05:45:00.000Z',timeZone:'Europe/Brussels',latencyMin:15,quality:4,tags:['screens'],source:'manual' as const,createdAt:FIXTURE_AT,updatedAt:FIXTURE_AT};
+export const MEDITATION_SESSION={id:'health_med-fixture-session01',startedAt:'2026-09-07T06:30:00.000Z',seconds:600,kind:'breathing' as const,pattern:'box' as const,moodBefore:3,moodAfter:4,timeZone:'Europe/Brussels',source:'breathing' as const,createdAt:FIXTURE_AT,updatedAt:FIXTURE_AT};
+export const VITAL_DAY={id:'health_vital-apple-health-2026-09-07',date:'2026-09-07',source:'apple-health' as const,restingHr:58,activeKcal:420,updatedAt:FIXTURE_AT};
+/** A habit ticked off by sleep (Health v4 only): at least 7 hours asleep. */
+export const SLEEP_HABIT_LINK={version:1 as const,measure:'sleepMinutes' as const,rule:'at-least' as const,target:420,updatedAt:FIXTURE_AT};
+/** Health v4: the v3 twin plus one night, one breathing session, one day of vitals, quick buttons, a mood and a sleep link. */
+export function healthV4(){
+ const v3=healthV3();
+ return {...v3,schemaVersion:4 as const,habitLinks:{...v3.habitLinks,links:{...v3.habitLinks.links,'d4b2f6e3-8c75-4a1b-8d4f-2e3a4b5c6d7e':SLEEP_HABIT_LINK}},
+  sleep:{version:1 as const,nights:[SLEEP_NIGHT],goal:{minutes:450,bedFrom:'22:30',bedTo:'23:30',updatedAt:FIXTURE_AT}},
+  meditation:{version:1 as const,sessions:[MEDITATION_SESSION],goal:{minutesPerWeek:60,updatedAt:FIXTURE_AT}},
+  vitals:{version:1 as const,days:[VITAL_DAY]},
+  quick:{version:1 as const,waterSizesMl:[250,500,750],pinned:[],updatedAt:FIXTURE_AT},
+  moods:{version:1 as const,days:{'2026-09-07':{mood:4,at:FIXTURE_AT}}}};
+}
+export const PERSONAL_LINK={id:'5b1c2d3e-4f50-4a61-8b72-9c8d7e6f5a4b',label:'My running club',url:'https://example.org/club',icon:'strava' as const,order:0,createdAt:FIXTURE_AT,updatedAt:FIXTURE_AT};
+/** Settings v3: the v2 twin plus page choices, one link, chess, the wrap-up and a sleep widget. */
+export function settingsV3(){
+ const v2=settingsV2();
+ return {...v2,schemaVersion:3 as const,widgets:[...v2.widgets,{id:'w-sleep',kind:'sleep' as const,metric:'last-night',title:'',size:'compact' as const,hidden:false,revision:1}],
+  pages:{version:1 as const,items:{chess:{v:'shown' as const,at:FIXTURE_AT},markets:{v:'hidden' as const,at:FIXTURE_AT}},start:{id:'health' as const,at:FIXTURE_AT}},
+  links:{version:1 as const,items:[PERSONAL_LINK]},
+  chess:{version:1 as const,lichess:{username:'fixture_player',at:FIXTURE_AT},goals:[],applied:[{date:'2026-09-07',appliedAt:FIXTURE_AT}]},
+  wrapUp:{version:1 as const,enabled:{v:true,at:FIXTURE_AT},time:{v:'19:00',at:FIXTURE_AT},days:{'2026-09-07':{intention:'Walk at lunch.',doneAt:FIXTURE_AT,at:FIXTURE_AT}}}};
+}
+export const ACCOUNT={id:'7e8f9a0b-1c2d-4e3f-8a4b-5c6d7e8f9a0b',kind:'savings' as const,name:'Rainy-day savings',currency:'EUR',snapshots:[{id:'0a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d',date:'2026-09-07',value:'250000',decimals:2}],payments:[],createdAt:FIXTURE_AT,updatedAt:FIXTURE_AT};
+/** Finance v5 (read only here): the v4 twin whose Goal has a dated milestone, plus one savings account. */
+export function financeV5(){
+ const v4=financeV4();
+ return {...v4,schemaVersion:5 as const,goals:v4.goals.map(g=>({...g,milestones:[{id:'m1',title:'Flights booked',done:false,target:'150000',targetDate:'2026-12-01'}]})),accounts:{version:1 as const,items:[ACCOUNT]}};
+}
+/** Session W's pairs: the version builds #29–#31 read and write, and the one this release adds. */
+export const W_FORMAT_PAIRS={finance:{older:4,newer:5,oldRecord:financeV4,newRecord:financeV5,written:false},health:{older:3,newer:4,oldRecord:healthV3,newRecord:healthV4,written:true},settings:{older:2,newer:3,oldRecord:settingsV2,newRecord:settingsV3,written:true}} as const;

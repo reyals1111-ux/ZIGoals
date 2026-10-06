@@ -57,5 +57,6 @@ test('Today settings without the new widget kinds stay readable by deploy #12, t
 
 test('the only catalog entries deploy #12 cannot read are the new kinds and the macros ring', () => {
   const unreadable = Object.entries(WIDGET_CATALOG).flatMap(([kind, entry]) => entry.metrics.filter(m => !DEPLOY12_WIDGET_METRICS[kind]?.includes(m)).map(m => `${kind}:${m}`));
-  expect(unreadable.sort()).toEqual(['checkins:week', 'exercise:counts', 'health:macros-ring', 'holding-share:top', 'milestone:next', 'streak:best']);
+  // Session W's kinds (sleep, meditation, chess, links, music) live only in settings v3, which deploy #12 refuses as a whole.
+  expect(unreadable.sort()).toEqual(['checkins:week', 'chess:ratings', 'exercise:counts', 'health:macros-ring', 'holding-share:top', 'links:buttons', 'meditation:today', 'meditation:week', 'milestone:next', 'music:player', 'sleep:last-night', 'sleep:week', 'streak:best']);
 });

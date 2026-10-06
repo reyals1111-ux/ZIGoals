@@ -6,7 +6,8 @@ import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
- * One of ZIGi's Session V device records in a component (lib/ai/store/records.ts): read after mount through the app
+ * One of ZIGi's Session V device records (lib/ai/store/records.ts), or one of Session W's (lib/w-device-records.ts), in a
+ * component: read after mount through the app
  * storage (per account; the tab's session storage in Showcase), read again after a save anywhere on the page, a change
  * in another tab or an account change. `update` writes the person's choice and tells every other reader; it throws, with
  * nothing written, when the result is invalid or storage refuses. A read never writes.

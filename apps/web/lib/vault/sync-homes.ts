@@ -3,7 +3,7 @@ import type {HealthData} from '../health';
 import type {DashboardSettings} from '../dashboard-settings';
 import {emptyFasting, type Fasting} from '../fasting/schema';
 import {emptyHealthGoals, type HealthGoal, type HealthGoals} from '../health-goals/schema';
-import {emptyHabitHealthLinks, type AppliedCheckIn, type HabitHealthLink, type HabitHealthLinks} from '../habit-health-links/schema';
+import {emptyHabitHealthLinks, usesV4Measures, type AppliedCheckIn, type HabitHealthLink, type HabitHealthLinks} from '../habit-health-links/schema';
 import type {Review, WeeklyReview} from '../weekly-review/schema';
 
 /**
@@ -39,11 +39,12 @@ export type DeviceRecords = {fasting?: Fasting; healthGoals?: HealthGoals; habit
 
 type Group = 'fasting' | 'healthGoals' | 'habitLinks' | 'reviewNotes';
 const holds = (health: HealthData, group: Group) => (health as Partial<Record<Group, unknown>>)[group] !== undefined;
-const versionFor = (health: HealthData, group: Group) => Math.max(health.schemaVersion, group === 'fasting' ? 2 : 3);
+// Never below the record's own version (Session W: a v4 record stays v4); a link or marker of a Session W measure needs v4.
+const versionFor = (health: HealthData, group: Group, value: unknown) => Math.max(health.schemaVersion, group === 'fasting' ? 2 : group === 'habitLinks' && usesV4Measures(value as HabitHealthLinks) ? 4 : 3);
 /** The same object when nothing changes, so a store sees no edit and writes nothing. */
 function put(health: HealthData, group: Group, value: unknown, empty: boolean): HealthData {
   if (!holds(health, group) && empty) return health;
-  const version = versionFor(health, group);
+  const version = versionFor(health, group, value);
   if (holds(health, group) && version === health.schemaVersion && JSON.stringify((health as Record<string, unknown>)[group]) === JSON.stringify(value)) return health;
   return {...health, schemaVersion: version, [group]: value} as HealthData;
 }
@@ -52,7 +53,7 @@ export const fastingIn = (health: HealthData): Fasting => (health as {fasting?: 
 export const healthGoalsIn = (health: HealthData): HealthGoals => (health as {healthGoals?: HealthGoals}).healthGoals ?? emptyHealthGoals();
 export const habitLinksIn = (health: HealthData): HabitHealthLinks => (health as {habitLinks?: HabitHealthLinks}).habitLinks ?? emptyHabitHealthLinks();
 const reviewNotesIn = (health: HealthData): Record<string, string> => (health as {reviewNotes?: {notes: Record<string, string>}}).reviewNotes?.notes ?? {};
-type SettingsReview = NonNullable<Extract<DashboardSettings, {schemaVersion: 2}>['weeklyReview']>;
+type SettingsReview = NonNullable<DashboardSettings['weeklyReview']>;
 const settingsReviewIn = (settings: DashboardSettings): SettingsReview | undefined => (settings as {weeklyReview?: SettingsReview}).weeklyReview;
 
 export const withFasting = (health: HealthData, fasting: Fasting): HealthData => put(health, 'fasting', fasting, !fasting.sessions.length);
@@ -83,8 +84,9 @@ export function withWeeklyReview(settings: DashboardSettings, health: HealthData
   });
   const home = settingsReviewIn(settings), empty = !reviews.length && review.weekday === 0, value = {version: 1, weekday: review.weekday, reviews};
   const nextSettings = home === undefined && empty ? settings
-    : home !== undefined && settings.schemaVersion === 2 && JSON.stringify(home) === JSON.stringify(value) ? settings
-    : {...settings, schemaVersion: 2, weeklyReview: value} as DashboardSettings;
+    : home !== undefined && settings.schemaVersion >= 2 && JSON.stringify(home) === JSON.stringify(value) ? settings
+    // Settings v2 at least, never down (Session W: a v3 record stays v3).
+    : {...settings, schemaVersion: Math.max(settings.schemaVersion, 2), weeklyReview: value} as DashboardSettings;
   const nextHealth = put(health, 'reviewNotes', {version: 1, notes}, !Object.keys(notes).length);
   return {settings: nextSettings, health: nextHealth};
 }
@@ -179,7 +181,7 @@ export function mergeDeviceIntoSettings(settings: DashboardSettings, device: Dev
   const weekday = device.weeklyReview.weekday, weekdayDigest = recordDigest(weekday);
   const takeWeekday = marker.weekday !== weekdayDigest && (marker.weekday !== undefined || home === undefined) && weekday !== (home?.weekday ?? 0);
   if (!changed && !takeWeekday) return {settings, marker: {reviews: digests, weekday: weekdayDigest}};
-  const next = {...settings, schemaVersion: 2, weeklyReview: {version: 1, weekday: takeWeekday ? weekday : home?.weekday ?? 0, reviews: [...reviews.values()].sort((a, b) => a.weekStart.localeCompare(b.weekStart))}} as DashboardSettings;
+  const next = {...settings, schemaVersion: Math.max(settings.schemaVersion, 2), weeklyReview: {version: 1, weekday: takeWeekday ? weekday : home?.weekday ?? 0, reviews: [...reviews.values()].sort((a, b) => a.weekStart.localeCompare(b.weekStart))}} as DashboardSettings;
   return {settings: next, marker: {reviews: digests, weekday: weekdayDigest}};
 }
 /** Whether the device keys hold anything the marker has not seen, so a load with nothing new writes nothing. */

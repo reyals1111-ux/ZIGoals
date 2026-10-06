@@ -28,7 +28,7 @@ test('stale edits and duplicate bindings fail while unrelated concurrent changes
 });
 test('future versions, unknown fields, unsupported metrics and missing references reject',()=>{
  const s=emptyDashboardSettings();
- for(const value of [{...s,schemaVersion:3}/* v2 is read since Session P, read-support.test.ts */,{...s,privateValue:'leak'},{...s,widgets:[{...goal,entity:''}]},{...s,widgets:[{...goal,metric:'calories'}]},{...s,widgets:[{...goal,balance:'42'}]}])expect(dashboardSettingsSchema.safeParse(value).success).toBe(false);
+ for(const value of [{...s,schemaVersion:4}/* v2 is read since Session P and v3 since Session W, read-support.test.ts */,{...s,privateValue:'leak'},{...s,widgets:[{...goal,entity:''}]},{...s,widgets:[{...goal,metric:'calories'}]},{...s,widgets:[{...goal,balance:'42'}]}])expect(dashboardSettingsSchema.safeParse(value).success).toBe(false);
  expect(dashboardSettingsSchema.safeParse({...s,widgets:[goal,goal]}).success).toBe(false);
 });
 

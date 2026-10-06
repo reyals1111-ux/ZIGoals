@@ -1,6 +1,10 @@
 import {z} from 'zod';
 import {timeZoneSchema} from './time-zone-schema';
 import {HEALTH_MEALS,diarySchema} from './health';
+import {pagesSchema} from './pages/schema';
+import {linksSchema} from './links/schema';
+import {chessSettingsSchema} from './skills/chess/schema';
+import {wrapUpSchema} from './wrap-up/schema';
 export const DASHBOARD_SETTINGS_KEY='zigoals:settings:v1';
 export const PRESETS=[{id:'balanced',label:'Balanced',description:'Goals, daily rhythm, Health and Wealth.'},{id:'wealth',label:'Wealth',description:'Your assets and financial destinations.'},{id:'habits-health',label:'Habits + Health',description:'Daily routines and caring for yourself.'},{id:'health',label:'Health-only',description:'Meals, water, movement and measurements.'}] as const;
 export type DashboardPreset=typeof PRESETS[number]['id'];
@@ -23,15 +27,31 @@ export const WIDGET_CATALOG={
  checkins:{label:'This week’s check-ins',domain:'habits',metrics:['week']},
  'holding-share':{label:'Top holding share',domain:'wealth',metrics:['top']},
  exercise:{label:'Exercise counters today',domain:'health',metrics:['counts']},
+ // Session W: kinds that only settings v3 can hold (WIDGET_KINDS_V3_ONLY below); older builds' schemas refuse them.
+ sleep:{label:'Sleep',domain:'health',metrics:['last-night','week']},
+ meditation:{label:'Meditation',domain:'health',metrics:['week','today']},
+ chess:{label:'Chess ratings',domain:'chess',metrics:['ratings']},
+ links:{label:'My links',domain:'links',metrics:['buttons']},
+ music:{label:'Your soundtrack',domain:'music',metrics:['player']},
 } as const;
 export type WidgetKind=keyof typeof WIDGET_CATALOG;
-const widgetSchema=z.object({id:z.string().min(1).max(100),kind:z.enum(['goals','goal','habits','habit','health','food-entry','meal','wealth','asset','staking','allocation','ecosystem','milestone','streak','checkins','holding-share','exercise']),entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)}).strict().superRefine((w,ctx)=>{
+/** The widget kinds settings v1 and v2 hold (every build since the UI design pass reads exactly these). */
+export const WIDGET_KINDS_V1=['goals','goal','habits','habit','health','food-entry','meal','wealth','asset','staking','allocation','ecosystem','milestone','streak','checkins','holding-share','exercise'] as const;
+/** Session W: the kinds only settings v3 holds (sleep, meditation, chess, my links, the music player). */
+export const WIDGET_KINDS_V3_ONLY=['sleep','meditation','chess','links','music'] as const;
+// Field order is the stored order (zod writes keys in schema order): id, kind, then the rest, exactly as before Session W.
+const widgetFields=<K extends z.ZodType>(kind:K)=>({id:z.string().min(1).max(100),kind,entity:z.string().min(1).max(250).optional(),metric:z.string().min(1).max(40),title:z.string().trim().max(80),size:z.enum(['compact','wide']),hidden:z.boolean(),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)});
+const widgetRules=(w:{kind:WidgetKind;metric:string;entity?:string},ctx:z.core.$RefinementCtx)=>{
  if(!(WIDGET_CATALOG[w.kind].metrics as readonly string[]).includes(w.metric))ctx.addIssue({code:'custom',message:'This metric is not supported by this widget.'});
  if(w.kind==='meal'&&!(HEALTH_MEALS as readonly string[]).includes(w.entity??''))ctx.addIssue({code:'custom',message:'Choose a supported meal.'});
  if(w.kind==='food-entry'&&!diarySchema.shape.id.safeParse(w.entity).success)ctx.addIssue({code:'custom',message:'Choose a saved diary entry.'});
  if(w.kind!=='ecosystem'&&['goal','habit','asset','staking','allocation','food-entry','meal'].includes(w.kind)!==!!w.entity)ctx.addIssue({code:'custom',message:'Choose a record only for an entity widget.'});
-});
-export type DashboardWidget=z.infer<typeof widgetSchema>;
+};
+const widgetSchema=z.object(widgetFields(z.enum(WIDGET_KINDS_V1))).strict().superRefine(widgetRules);
+/** Settings v3's widgets: v1's kinds plus Session W's. */
+const widgetV3Schema=z.object(widgetFields(z.enum([...WIDGET_KINDS_V1,...WIDGET_KINDS_V3_ONLY]))).strict().superRefine(widgetRules);
+export type DashboardWidget=z.infer<typeof widgetV3Schema>;
+export const isV3WidgetKind=(kind:WidgetKind)=>(WIDGET_KINDS_V3_ONLY as readonly string[]).includes(kind);
 export const DASHBOARD_BUILTINS=[
  {id:'whole-life',label:'Whole-life overview',region:'main',hideable:false,financial:false},
  {id:'attention',label:'Attention agenda',region:'main',hideable:false,financial:false},
@@ -89,8 +109,19 @@ export const weeklyReviewSchema=z.object({version:z.literal(1),weekday:z.number(
  * v2 only when one of them is written (R2 and later); until then every record stays v1 and no bytes change.
  */
 export const dashboardSettingsV2Schema=z.object({schemaVersion:z.literal(2),...settingsFields,journalTimeZone:timeZoneSchema.optional(),weeklyReview:weeklyReviewSchema.optional()}).strict().superRefine(settingsRules);
-export const dashboardSettingsSchema=z.union([dashboardSettingsV2Schema,dashboardSettingsV1Schema]);
-export type DashboardSettings=z.infer<typeof dashboardSettingsSchema>;
+/** The settings readers of builds #29–#31 (v2, v1), kept as the exact objects above for the old-reads-new proofs of settings v3. */
+export const dashboardSettingsR2Schema=z.union([dashboardSettingsV2Schema,dashboardSettingsV1Schema]);
+/**
+ * Settings v3 (Session W, docs/product/SYNC_HOMES.md): v2 plus the groups of the new settings features, each its own strict
+ * `version: 1` record: `pages` (Your pages & buttons), `links` (My links), `chess` (usernames, rating goals, the chess
+ * habit and its markers), `wrapUp` (the evening wrap-up), and Today widgets of Session W's kinds. A record becomes v3
+ * only when one of these is first written (`lib/vault/w-homes.ts`, `saveWidget`); builds #29–#31 refuse v3 and keep its bytes.
+ */
+export const SETTINGS_V3_GROUPS=['pages','links','chess','wrapUp'] as const;
+export const dashboardSettingsV3Schema=z.object({schemaVersion:z.literal(3),...settingsFields,widgets:z.array(widgetV3Schema).max(24),journalTimeZone:timeZoneSchema.optional(),weeklyReview:weeklyReviewSchema.optional(),pages:pagesSchema.optional(),links:linksSchema.optional(),chess:chessSettingsSchema.optional(),wrapUp:wrapUpSchema.optional()}).strict().superRefine(settingsRules);
+/** One wide type for every version this build reads (v1 and v2 records are v3 records without the newer groups). */
+export type DashboardSettings=Omit<z.infer<typeof dashboardSettingsV3Schema>,'schemaVersion'>&{schemaVersion:1|2|3};
+export const dashboardSettingsSchema:z.ZodType<DashboardSettings>=z.union([dashboardSettingsV3Schema,dashboardSettingsV2Schema,dashboardSettingsV1Schema]);
 const binding=(w:DashboardWidget)=>JSON.stringify([w.kind,w.entity??'',w.metric]);
 export function presetSettings(preset:DashboardPreset):DashboardSettings{
  const specs:Record<DashboardPreset,[WidgetKind,string][]>= {balanced:[['goals','overview'],['habits','overview'],['health','kcal'],['wealth','USD']],wealth:[['wealth','USD'],['wealth','EUR'],['goals','overview'],['ecosystem','directory']],'habits-health':[['habits','overview'],['health','kcal'],['health','water'],['health','activity']],health:[['health','kcal'],['health','water'],['health','weight'],['health','steps']]};
@@ -100,13 +131,15 @@ export function emptyDashboardSettings():DashboardSettings{return {...presetSett
 export function visibleDomains(s:DashboardSettings){return [...new Set(s.widgets.filter(w=>!w.hidden).map(w=>WIDGET_CATALOG[w.kind].domain))];}
 export function saveWidget(s:DashboardSettings,input:DashboardWidget,expectedRevision?:number):DashboardSettings{
  dashboardSettingsSchema.parse(s);
- const w=widgetSchema.parse(input),existing=s.widgets.find(x=>x.id===w.id);
+ const w=widgetV3Schema.parse(input),existing=s.widgets.find(x=>x.id===w.id);
  if(expectedRevision!==undefined&&(!existing||existing.revision!==expectedRevision))throw Error('This widget changed. Reopen its settings before saving.');
  if(existing&&expectedRevision===undefined)throw Error('Widget already exists.');
  if(s.widgets.some(x=>x.id!==w.id&&binding(x)===binding(w)))throw Error('That metric is already on Today. Edit or show the existing widget.');
  const updated={...w,revision:existing?existing.revision+1:1};
  const placement=s.placement&&!existing?reconcileDashboardPlacement(s):s.placement;
- return dashboardSettingsSchema.parse({...s,onboarded:true,widgets:existing?s.widgets.map(x=>x.id===w.id?updated:x):[...s.widgets,updated],...(placement?{placement:existing?placement:{...placement,revision:placement.revision+1,main:[...placement.main,{kind:'widget',id:w.id}]}}:{})});
+ // A Session W kind lives only in settings v3: the record moves up to v3 with it, and never back down.
+ const schemaVersion=isV3WidgetKind(w.kind)?Math.max(s.schemaVersion,3):s.schemaVersion;
+ return dashboardSettingsSchema.parse({...s,schemaVersion,onboarded:true,widgets:existing?s.widgets.map(x=>x.id===w.id?updated:x):[...s.widgets,updated],...(placement?{placement:existing?placement:{...placement,revision:placement.revision+1,main:[...placement.main,{kind:'widget',id:w.id}]}}:{})});
 }
 export function moveWidget(s:DashboardSettings,id:string,direction:-1|1):DashboardSettings{
  dashboardSettingsSchema.parse(s);

@@ -117,7 +117,7 @@ test("manual activity adds steps and minutes without changing food nutrition", (
 
 describe("strict import boundary", () => {
   test.each([
-    { schemaVersion: 4 } /* v2 is read since Session P and v3 since Session U Part 9, read-support.test.ts */, { kind: "other" }, { extra: "unknown" }, { foods: [food, food] },
+    { schemaVersion: 5 } /* v2 is read since Session P, v3 since Session U Part 9 and v4 since Session W, read-support.test.ts */, { kind: "other" }, { extra: "unknown" }, { foods: [food, food] },
     { foods: [{ ...food, name: "x".repeat(121) }] },
     { foods: [{ ...food, nutrients: { ...food.nutrients, proteinMg: NaN } }] },
     { foods: [{ ...food, servingGrams: 0 }] },

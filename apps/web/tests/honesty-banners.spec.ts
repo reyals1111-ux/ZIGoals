@@ -16,7 +16,7 @@ async function expectBanners(page:Page,path:string){
 }
 
 const stores=[
- {name:'Today settings written by a newer build',key:DASHBOARD_SETTINGS_KEY,value:JSON.stringify({...presetSettings('balanced'),schemaVersion:3}),unreadableOn:['/app']}, // v2 is read since Session P (timezone phase 3); 3 is the next unknown version
+ {name:'Today settings written by a newer build',key:DASHBOARD_SETTINGS_KEY,value:JSON.stringify({...presetSettings('balanced'),schemaVersion:4}),unreadableOn:['/app']}, // v3 is read since Session W; 4 is the next unknown version
  {name:'corrupt Today settings',key:DASHBOARD_SETTINGS_KEY,value:'{"schemaVersion":1,"kind":"zigoals-settings",',unreadableOn:['/app']},
  {name:'Health with a field this build does not know',key:HEALTH_STORAGE_KEY,value:JSON.stringify({...createEmptyHealth(),futureGroup:{version:1}}),unreadableOn:['/app','/app/health']},
  {name:'corrupt Health',key:HEALTH_STORAGE_KEY,value:'not json',unreadableOn:['/app','/app/health']},

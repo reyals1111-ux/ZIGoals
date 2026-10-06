@@ -25,6 +25,9 @@ export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={
  milestone:'The nearest saved target date across active Goals',streak:'Your longest current streak across Habits',
  checkins:'Recorded check-ins over the last 7 days','holding-share':'Your largest holding within its own currency',
  exercise:'Today’s quick exercise counters, each in its own count',
+ // Session W kinds (settings v3 only); each joins WIDGET_GROUPS in the part that builds its card.
+ sleep:'Last night’s sleep or your week of nights',meditation:'Mindful minutes today or this week',
+ chess:'Your chess.com and Lichess ratings',links:'Your own links as buttons',music:'Your soundtrack: ambient sounds or your music app',
 };
 
 export function eligibleWidgetSources(kind:WidgetKind,s:DashboardSources):{id:string;label:string}[]{

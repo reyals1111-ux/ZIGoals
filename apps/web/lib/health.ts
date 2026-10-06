@@ -5,7 +5,12 @@ import { z } from "zod";
 import { addLocalDays } from "./local-date";
 import { formatNumber } from "./visual-format";
 import { healthGoalsSchema } from "./health-goals/schema";
-import { habitHealthLinksSchema } from "./habit-health-links/schema";
+import { habitHealthLinksSchema, habitHealthLinksV4Schema } from "./habit-health-links/schema";
+import { sleepSchema } from "./sleep/schema";
+import { meditationSchema } from "./meditation/schema";
+import { vitalsSchema } from "./vitals/schema";
+import { healthQuickSchema } from "./health-quick/schema";
+import { moodsSchema } from "./moods/schema";
 
 export const HEALTH_STORAGE_KEY = "zigoals:health:v1";
 export const HEALTH_MEALS = ["Breakfast", "Lunch", "Dinner", "Snacks"] as const;
@@ -172,8 +177,21 @@ export type ReviewHealthNotes = z.infer<typeof reviewHealthNotesSchema>;
  * #27/#28 refuse v3 and keep its bytes.
  */
 export const healthV3Schema = z.strictObject({ schemaVersion: z.literal(3), ...healthFields, fasting: fastingSchema.optional(), healthGoals: healthGoalsSchema.optional(), habitLinks: habitHealthLinksSchema.optional(), reviewNotes: reviewHealthNotesSchema.optional() }).superRefine(healthRules);
-export const healthSchema = z.union([healthV3Schema, healthV2Schema, healthV1Schema]);
-export type HealthData = z.infer<typeof healthSchema>;
+/** The Health readers of builds #29–#31 (v3, v2, v1), kept as the exact objects above for the old-reads-new proofs of Health v4. */
+export const healthR3Schema = z.union([healthV3Schema, healthV2Schema, healthV1Schema]);
+/**
+ * Health v4 (Session W, docs/product/SYNC_HOMES.md): v3 plus the groups of the new Health features, each its own strict
+ * `version: 1` record with caps: `sleep` (nights and naps), `meditation` (sessions, goal, bells), `vitals` (daily
+ * resting heart rate and energy from imports and device links), `quick` (water buttons, pinned items) and `moods` (the
+ * wrap-up's mood). `habitLinks` may hold the sleep and meditation measures here, and only here. A section becomes v4 only
+ * when one of these is first written (`lib/vault/w-homes.ts`); builds #29–#31 refuse v4 and keep its bytes. The new
+ * groups have their own ids, outside `healthRules`' cross-list check.
+ */
+export const HEALTH_V4_GROUPS = ["sleep", "meditation", "vitals", "quick", "moods"] as const;
+export const healthV4Schema = z.strictObject({ schemaVersion: z.literal(4), ...healthFields, fasting: fastingSchema.optional(), healthGoals: healthGoalsSchema.optional(), habitLinks: habitHealthLinksV4Schema.optional(), reviewNotes: reviewHealthNotesSchema.optional(), sleep: sleepSchema.optional(), meditation: meditationSchema.optional(), vitals: vitalsSchema.optional(), quick: healthQuickSchema.optional(), moods: moodsSchema.optional() }).superRefine(healthRules);
+/** One wide type for every version this build reads (an older record is a v4 record without the newer groups). */
+export type HealthData = Omit<z.infer<typeof healthV4Schema>, "schemaVersion"> & { schemaVersion: 1 | 2 | 3 | 4 };
+export const healthSchema: z.ZodType<HealthData> = z.union([healthV4Schema, healthV3Schema, healthV2Schema, healthV1Schema]);
 
 export function createEmptyHealth(): HealthData {
   return { schemaVersion: 1, kind: "zigoals-health", targets: { kcal: null, proteinMg: null, carbsMg: null, fatMg: null, weightGrams: null, steps: null }, foods: [], recipes: [], diary: [], weights: [], activity: [] };

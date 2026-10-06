@@ -7,6 +7,7 @@ import {withStorageLock} from '../storage';
 import {storageLockKey} from '../showcase-storage';
 import {isDurableMarker,enableDurableStore,exportDurableStore,localDatabase,durableSpace} from './local';
 import type {Domain,PrivateData} from './cloud-sync';
+import {CURRENT_VERSIONS,NEWER_SECTION_MESSAGE} from './versions';
 export const modules:Record<Domain,{key:string;schema:z.ZodType;empty:()=>unknown}>={finance:{key:PLATFORM_KEY,schema:platformSchema,empty:emptyPlatform},habits:{key:HABITS_KEY,schema:habitDataSchema,empty:emptyHabitData},health:{key:HEALTH_STORAGE_KEY,schema:healthSchema,empty:createEmptyHealth},settings:{key:DASHBOARD_SETTINGS_KEY,schema:dashboardSettingsSchema,empty:emptyDashboardSettings}};
 /** Sync cannot rewrite accepted immutable evidence. Explicit backup replacement is separate. */
 function assertFinanceRetained(before:Platform,after:Platform){
@@ -20,9 +21,7 @@ function assertHabitsRetained(beforeRaw:string,afterRaw:string|undefined){
  const before=habitDataSchema.parse(JSON.parse(beforeRaw)),after=habitDataSchema.parse(JSON.parse(afterRaw)),rows=new Map(after.habits.map(h=>[h.id,h]));
  for(const h of before.habits)for(const key of ['ruleRevisions','timerReceipts'] as const){const next=new Map((rows.get(h.id)?.[key]??[]).map(v=>[v.id,v]));for(const original of h[key]??[])if(JSON.stringify(next.get(original.id))!==JSON.stringify(original))throw Error('Accepted Habit rule and timer evidence is append-only. Both copies were preserved for review.');}
 }
-/** The newest version of each section this build reads (timezone phase 3, R1, Session P's read-only sync homes, and Health v3 of Session U Part 9). */
-export const CURRENT_VERSIONS:Record<Domain,number>={finance:4,habits:3,health:3,settings:2};
-export const NEWER_SECTION_MESSAGE='This section was saved by a newer ZIGoals. Update the app on this device to keep syncing.';
+export {CURRENT_VERSIONS,NEWER_SECTION_MESSAGE};
 export function validateData(data:PrivateData,prior?:PrivateData){for(const [domain,raw]of Object.entries(data)){const m=modules[domain as Domain];if(!m||typeof raw!=='string'||new TextEncoder().encode(raw).length>32_000_000)throw Error('Unsupported private data.');const parsed:unknown=JSON.parse(raw);
   // A section from a build this one cannot read: a plain message, nothing uploaded, local records unchanged (TIMEZONE_DESIGN.md, "Sync implications").
   const version=parsed&&typeof parsed==='object'?(parsed as {schemaVersion?:unknown}).schemaVersion:undefined;if(typeof version==='number'&&version>CURRENT_VERSIONS[domain as Domain])throw Error(NEWER_SECTION_MESSAGE);
@@ -39,14 +38,19 @@ export async function applyData(storage:Storage,before:PrivateData,after:Private
  for(const [domain]of entries){const {key,schema,empty}=modules[domain as Domain];fence();if(before[domain as Domain]===undefined&&storage.getItem(key)!==null)throw new LocalRecordsChangedDuringSync();if(storage.getItem(key)===null)await enableDurableStore(storage,key,schema,empty);}
  async function locked(index:number):Promise<void>{
   if(index<entries.length){const {key}=modules[entries[index]![0] as Domain];return withStorageLock(storageLockKey(storage,key),()=>locked(index+1));}
-  const batch:{domain:string;base:number;data:unknown}[]=[];let space:string|undefined;
+  const batch:{domain:string;base:number;data:unknown;original?:string}[]=[];let space:string|undefined;
   for(const [domain,raw]of entries){
    const {key,schema,empty}=modules[domain as Domain];fence();if(!isDurableMarker(storage.getItem(key)))throw Error('Storage changed during sync.');
    const currentSpace=durableSpace(storage,key);if(space!==undefined&&currentSpace!==space)throw Error('Account selection changed.');space=currentSpace;
    const prior=await localDatabase.read(space,key);if(!prior)throw Error('Private records unavailable.');
    const expected=before[domain as Domain]??JSON.stringify(schema.parse(empty()));
    if(JSON.stringify(prior.data)!==expected&&JSON.stringify(prior.data)!==raw)throw new LocalRecordsChangedDuringSync();
-   if(JSON.stringify(prior.data)!==raw)batch.push({domain:key,base:prior.revision,data:schema.parse(JSON.parse(raw))});
+   if(JSON.stringify(prior.data)!==raw){
+    // Session W ([TIER 3] (sync)): a version that sync raises keeps the section it replaced as a recovery copy, in the same
+    // transaction, exactly as a local edit that raises one does (vault/local.ts).
+    const data=schema.parse(JSON.parse(raw)),version=(v:unknown)=>v&&typeof v==='object'?(v as {schemaVersion?:unknown}).schemaVersion:undefined,from=version(prior.data),to=version(data);
+    batch.push({domain:key,base:prior.revision,data,...(typeof from==='number'&&typeof to==='number'&&from<to?{original:JSON.stringify(prior.data)}:{})});
+   }
   }
   fence();if(batch.length)await localDatabase.commitBatch(space!,batch,fence);
  }

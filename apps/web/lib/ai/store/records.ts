@@ -150,7 +150,7 @@ export type ZigiKnock = z.infer<typeof zigiKnockSchema>;
 export const ZIGI_KNOCK: DeviceRecordSpec<ZigiKnock> = {key: ZIGI_KNOCK_KEY, schema: zigiKnockSchema, empty};
 
 /** Every V device record, for the registrations (onboarding, export) and the tests. */
-export const ZIGI_RECORDS = [AI_OPTIONS, AI_USAGE, AI_MEMORY, AI_ACTIONS, ZIGI, ZIGI_REMINDERS, ZIGI_KNOCK] as const;
+export const ZIGI_RECORDS: readonly DeviceRecordSpec<{version: 1}>[] = [AI_OPTIONS, AI_USAGE, AI_MEMORY, AI_ACTIONS, ZIGI, ZIGI_REMINDERS, ZIGI_KNOCK];
 
 type Read = Pick<Storage, 'getItem'>;
 export const readZigiPrefs = (storage: Read): ZigiPrefs => zigiPrefs(readDeviceRecord(storage, ZIGI).data);

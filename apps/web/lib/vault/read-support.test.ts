@@ -47,8 +47,8 @@ describe('new reads old: today\'s records read and write back byte-identical',()
   const habits=await updatePrivateStore(storage,HABITS_KEY,habitDataSchema,emptyHabitData,d=>logHabitCount(d,d.habits[0]!.id,'2026-09-08',1,'',new Date(FIXTURE_AT)));
   expect(habits.schemaVersion).toBe(2);expect(JSON.parse(storage.getItem(HABITS_KEY)!).schemaVersion).toBe(2);
   expect(Object.keys(snapshot(storage)).filter(k=>k.includes(':recovery:'))).toEqual([]);
-  // Health 3 since Session U Part 9 (lib/vault/sync-writes.ts); the other three are R1's.
-  expect(CURRENT_VERSIONS).toEqual({finance:4,habits:3,health:3,settings:2});
+  // Health 3 since Session U Part 9 (lib/vault/sync-writes.ts); Session W reads Health 4, settings 3 and finance 5 (lib/vault/versions.ts).
+  expect(CURRENT_VERSIONS).toEqual({finance:5,habits:3,health:4,settings:3});
  });
  test('the empty records every module starts from are today\'s versions',()=>{
   expect(DOMAINS.map(d=>(modules[d].empty() as {schemaVersion:number}).schemaVersion)).toEqual([3,2,1,1]);
@@ -220,7 +220,7 @@ describe('mixed devices through sync',()=>{
   const s=await cloud(),newer=new MemoryJournal(),mine=new MemoryJournal();
   await sync(s,mine,{finance:V3(),habits:H2()});
   await sync(s,newer,{finance:V3(),habits:H2()},validateNewer);
-  const future=bytes({...financeV4(),schemaVersion:5,futureField:true});
+  const future=bytes({...financeV4(),schemaVersion:6,futureField:true}); // finance v5 is read since Session W; 6 is the next unknown version
   await sync(s,newer,{finance:future,habits:H2()},validateNewer);
   const before={calls:s.cloud.calls.length,revision:s.cloud.revision,journal:structuredClone(mine.state)};
   await expect(synchronize(s.cloud,mine,s.vault.key,s.vault.manifest,{finance:V3(),habits:H2()},validateData,noop)).rejects.toThrow(NEWER_SECTION_MESSAGE);

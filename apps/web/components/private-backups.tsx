@@ -11,8 +11,9 @@ import { plural } from "../lib/plural";
 const count = (n: number, one: string, many?: string) => `${n} ${plural(n, one, many)}`;
 import { exportFileName, isShowcaseBackup, type ShowcaseModule } from "../lib/showcase-detect";
 import { backupRefusal, backupRefusalMessage, blockedReadMessage } from "../lib/storage-error-copy";
-/** The newest schemaVersion this app reads, per module: a newer backup is refused as such (QA-22). */
-const NEWEST: Record<ShowcaseModule, number> = { platform: 3, habits: 2, health: 1 };
+import { CURRENT_VERSIONS } from "../lib/vault/versions";
+/** The newest schemaVersion this app reads, per module: a newer backup is refused as such (QA-22). One table with sync's (Session W). */
+const NEWEST: Record<ShowcaseModule, number> = { platform: CURRENT_VERSIONS.finance, habits: CURRENT_VERSIONS.habits, health: CURRENT_VERSIONS.health };
 
 import { useHabits } from "./habits/use-habits";
 import { useHealth } from "./health/use-health";

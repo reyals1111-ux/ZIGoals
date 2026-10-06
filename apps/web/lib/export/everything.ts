@@ -2,10 +2,10 @@ import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
 import {HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../health';
-import {DASHBOARD_SETTINGS_KEY} from '../dashboard-settings';
+import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, type DashboardSettings} from '../dashboard-settings';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
 import {REMINDERS_KEY} from '../reminders/schema';
-import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema} from '../habit-health-links/schema';
+import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema, type AppliedCheckInV4} from '../habit-health-links/schema';
 import {HEALTH_GOALS_KEY} from '../health-goals/schema';
 import {WEEKLY_REVIEW_KEY} from '../weekly-review/schema';
 import {FASTING_KEY} from '../fasting/schema';
@@ -16,6 +16,8 @@ import {GUIDE_KEY} from '../coach/schema';
 import {AI_SETTINGS_KEY} from '../ai/launcher-record';
 import {TODAY_FOLDS_KEY} from '../today-folds';
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from '../ai/store/keys';
+import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
+import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
 import {LOCAL_CHAIN, LOCAL_OWNER, parseLocalLedger} from '../local-ledger';
@@ -37,10 +39,15 @@ export const MODULE_KEYS = {finance: PLATFORM_KEY, habits: HABITS_KEY, health: H
 // the export never reads.
 export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HEALTH_LINKS_KEY, healthGoals: HEALTH_GOALS_KEY, weeklyReview: WEEKLY_REVIEW_KEY, fasting: FASTING_KEY, insights: INSIGHTS_KEY, importUndo: IMPORT_UNDO_KEY, push: PUSH_KEY, guide: GUIDE_KEY, ai: AI_SETTINGS_KEY, todayFolds: TODAY_FOLDS_KEY,
   // Session V: ZIGi's own device records (options, usage, notes, the actions log, look and feel, reminders, knocks).
-  aiOptions: AI_OPTIONS_KEY, aiUsage: AI_USAGE_KEY, aiMemory: AI_MEMORY_KEY, aiActions: AI_ACTIONS_KEY, zigi: ZIGI_KEY, zigiReminders: ZIGI_REMINDERS_KEY, zigiKnock: ZIGI_KNOCK_KEY} as const;
+  aiOptions: AI_OPTIONS_KEY, aiUsage: AI_USAGE_KEY, aiMemory: AI_MEMORY_KEY, aiActions: AI_ACTIONS_KEY, zigi: ZIGI_KEY, zigiReminders: ZIGI_REMINDERS_KEY, zigiKnock: ZIGI_KNOCK_KEY,
+  // Session W: accounts and debts, milestone dates, import batches, reminders, the chess cache, celebrations shown, a
+  // running meditation, the music player's choices and the visible-pages mirror (lib/w-device-keys.ts).
+  accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
-export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv'] as const;
+export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
+  // Session W: one per new area, each a plain copy of its stored records.
+  'sleep.csv', 'meditation.csv', 'vitals.csv', 'moods.csv', 'accounts.csv', 'links.csv'] as const;
 export type CsvFileName = typeof CSV_FILES[number];
 export type EverythingTexts = Record<string, string | null>;
 export type LocalSimulationExport = {section: string; warning: string | null} | null;
@@ -59,6 +66,12 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'water.csv': ['id', 'date', 'amount', 'unit', 'millilitres', 'created_at_utc', 'updated_at_utc'],
   'activity.csv': ['id', 'date', 'kind', 'name', 'steps', 'minutes', 'count', 'created_at_utc', 'updated_at_utc'],
   'wealth-positions.csv': ['id', 'name', 'asset', 'asset_class', 'source_type', 'network', 'quantity', 'decimals', 'valuation_value', 'valuation_currency', 'valuation_decimals', 'valuation_source', 'observed_at_utc', 'archived_at_utc', 'provenance', 'notes'],
+  'sleep.csv': ['id', 'kind', 'start_utc', 'end_utc', 'timezone', 'latency_minutes', 'awake_minutes', 'awakenings', 'deep_minutes', 'rem_minutes', 'core_minutes', 'quality', 'tags', 'source', 'note', 'created_at_utc', 'updated_at_utc'],
+  'meditation.csv': ['id', 'started_at_utc', 'seconds', 'kind', 'pattern', 'mood_before', 'mood_after', 'heart_rate_avg', 'heart_rate_min', 'heart_rate_max', 'timezone', 'source', 'note', 'created_at_utc', 'updated_at_utc'],
+  'vitals.csv': ['id', 'date', 'source', 'resting_heart_rate', 'heart_rate_min', 'heart_rate_avg', 'heart_rate_max', 'active_kcal', 'resting_kcal', 'updated_at_utc'],
+  'moods.csv': ['date', 'mood', 'note', 'recorded_at_utc'],
+  'accounts.csv': ['home', 'account_id', 'name', 'kind', 'currency', 'institution', 'own_rate_percent', 'archived_at_utc', 'entry', 'entry_id', 'date', 'value', 'decimals', 'note'],
+  'links.csv': ['id', 'label', 'url', 'icon', 'order', 'created_at_utc', 'updated_at_utc'],
 };
 type Cell = string | number | boolean | null | undefined;
 /** Every cell quoted, quotes doubled, a leading apostrophe before what a spreadsheet would run as a formula (csv-safe.ts, Session U). */
@@ -116,7 +129,7 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
   // Session U Part 9: with the sync writes on, the markers live in Health v3 (`habitLinks`); the device key's are read too
   // (it is never rewritten), and for the same habit and day the Health copy is the one in use.
-  const markers = new Map((links?.success ? links.data.applied : []).map(a => [`${a.habitId}:${a.date}`, a] as const));
+  const markers = new Map<string, AppliedCheckInV4>((links?.success ? links.data.applied : []).map(a => [`${a.habitId}:${a.date}`, a] as const));
   for (const a of (health && 'habitLinks' in health ? health.habitLinks?.applied : undefined) ?? []) markers.set(`${a.habitId}:${a.date}`, a);
   const applied = [...markers.values()].filter(a => !a.undone);
   const out: Record<CsvFileName, string> = {} as Record<CsvFileName, string>;
@@ -129,6 +142,21 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   out['water.csv'] = csv(CSV_HEADERS['water.csv'], (health?.daily?.water ?? []).map(w => [w.id, w.date, milliText(w.amountMilli), w.unit === 'ml' ? 'mL' : 'US fl oz', w.unit === 'ml' ? milliText(w.amountMilli) : String(Math.round(w.amountMilli / 1000 * 29.5735295625 * 1000) / 1000), w.createdAt, w.updatedAt]));
   out['activity.csv'] = csv(CSV_HEADERS['activity.csv'], [...(health?.activity ?? []).map(a => [a.id, a.date, 'activity', a.name, a.steps, a.minutes, '', a.createdAt, a.updatedAt] as Cell[]), ...(health ? exerciseData(health).days.map(d => { const counter = exerciseData(health).counters.find(c => c.id === d.counterId); return [d.id, d.date, 'counter', counter?.name ?? d.counterId, '', '', d.count, '', ''] as Cell[]; }) : [])]);
   out['wealth-positions.csv'] = csv(CSV_HEADERS['wealth-positions.csv'], (platform?.positions ?? []).map(p => [p.id, p.providerId, p.asset, p.assetClass ?? '', p.sourceType, p.network, p.quantity, p.decimals, p.valuation?.value ?? '', p.valuation?.currency ?? '', p.valuation?.decimals ?? '', p.valuation?.source ?? '', p.observedAt, p.archivedAt ?? '', p.provenance, p.notes]));
+  // Session W's areas. Accounts live in their device key in this release; a later build keeps them in finance v5, so
+  // both homes are copied, each row saying which one it came from.
+  out['sleep.csv'] = csv(CSV_HEADERS['sleep.csv'], (health?.sleep?.nights ?? []).map(n => [n.id, n.kind, n.start, n.end ?? '', n.timeZone, n.latencyMin, n.awakeMin, n.awakenings, n.stages?.deepMin, n.stages?.remMin, n.stages?.coreMin, n.quality, (n.tags ?? []).join('; '), n.source, n.note ?? '', n.createdAt, n.updatedAt]));
+  out['meditation.csv'] = csv(CSV_HEADERS['meditation.csv'], (health?.meditation?.sessions ?? []).map(m => [m.id, m.startedAt, m.seconds, m.kind, m.pattern ?? '', m.moodBefore, m.moodAfter, m.heartRate?.avg, m.heartRate?.min, m.heartRate?.max, m.timeZone, m.source, m.note ?? '', m.createdAt, m.updatedAt]));
+  out['vitals.csv'] = csv(CSV_HEADERS['vitals.csv'], (health?.vitals?.days ?? []).map(v => [v.id, v.date, v.source, v.restingHr, v.hrMin, v.hrAvg, v.hrMax, v.activeKcal, v.restingKcal, v.updatedAt]));
+  out['moods.csv'] = csv(CSV_HEADERS['moods.csv'], Object.entries(health?.moods?.days ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([date, m]) => [date, m.mood, m.note ?? '', m.at]));
+  const deviceAccounts = json.device.accounts === undefined ? null : typed('accounts', json.device.accounts, v => accountsSchema.safeParse(v));
+  const accountRows = (home: string, account: Account): Cell[][] => {
+    const head = [home, account.id, account.name, account.kind, account.currency, account.institution ?? '', account.ratePercent ?? '', account.archivedAt ?? ''];
+    const entries = [...account.snapshots.map(e => ['balance', e] as const), ...account.payments.map(e => ['payment', e] as const)];
+    return entries.length ? entries.map(([entry, e]) => [...head, entry, e.id, e.date, e.value, e.decimals, e.note ?? '']) : [[...head, '', '', '', '', '', '']];
+  };
+  out['accounts.csv'] = csv(CSV_HEADERS['accounts.csv'], [...(deviceAccounts?.items ?? []).flatMap(a => accountRows('device', a)), ...((platform && 'accounts' in platform ? platform.accounts?.items : undefined) ?? []).flatMap(a => accountRows('synced', a))]);
+  const settings = typed<DashboardSettings>('Today settings', json.modules.settings, v => dashboardSettingsSchema.safeParse(v));
+  out['links.csv'] = csv(CSV_HEADERS['links.csv'], (settings?.links?.items ?? []).map(l => [l.id, l.label, l.url, l.icon, l.order, l.createdAt, l.updatedAt]));
   return {json, csv: out, unreadable, warnings};
 }
 
