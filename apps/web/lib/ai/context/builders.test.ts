@@ -9,6 +9,8 @@ import {defaultAiSettings} from '../settings';
 import {consent} from './consent';
 import {buildPageContext, habitByTitle, moneyText, resolveHandle, unitsText, type BuilderInput} from './builders';
 import {buildSystemPrompt, DATA_CLOSE, DATA_OPEN} from './specialists';
+import {emptyWeeklyReview} from '../../weekly-review/schema';
+import {bridgePrompt} from '../bridge';
 
 // ADR-012, Part 4: the context is short, honest, handle-based and free of identifiers; the person's words are data.
 const {records} = buildShowcase('2026-09-20');
@@ -91,4 +93,28 @@ test('Goals and Help: goals carry progress, dates and funding words as recorded;
   expect(help.handles).toEqual([]); expect(help.text).toContain('ZIGi is the person'); expect(help.text).toContain('one total per currency');
   const settingsPage = buildPageContext(input('help', '/app/settings'));
   expect(settingsPage.text).toBe(''); expect(settingsPage.omitted[0]).toContain('Settings holds your account');
+});
+// Session V Part 1c: Today's "This week" section and the habit lines carried Health values (meals, steps, movement minutes,
+// water days, the latest weight, a health-entry count, Health-filled check-ins) even with the Health gate closed.
+test('Today: the week section and Health-filled check-ins follow the Health gate', () => {
+  const gate = (includeHealth: boolean) => consent({settings: {...settings, includeHealth}, area: 'today', pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null});
+  const today = habits.habits.find(h => h.entries.some(e => e.date === '2026-09-20' && e.count > 0))!;
+  const healthFilled = habitDataSchema.parse({...habits, schemaVersion: 3, habits: habits.habits.map(h => h.id !== today.id ? h : {...h, entries: h.entries.map(e => e.date === '2026-09-20' ? {...e, count: 7919, source: 'health'} : e)})}) as HabitData;
+  const week = {weekStart: '2026-09-14', weekEnd: '2026-09-20', review: emptyWeeklyReview()};
+  const open = buildPageContext(input('today', '/app', {consent: gate(true), week, habits: healthFilled}));
+  expect(open.included).toContain('This week (for your weekly review)');
+  expect(open.text).toMatch(/health entries/); expect(open.text).toMatch(/days? with meals logged|steps · \d+ min movement|days? with water|latest weight/);
+  const closed = buildPageContext(input('today', '/app', {consent: gate(false), week, habits: healthFilled}));
+  expect(closed.included).toContain('This week (for your weekly review)');
+  expect(closed.included).not.toContain('Health');
+  expect(closed.text).not.toMatch(/health entries|meals logged|min movement|with water|weight|\bkcal\b|\bmL\b/i);
+  expect(closed.text).not.toContain('7919');
+  const prompt = buildSystemPrompt({area: 'today', context: closed.text, customInstructions: '', providerName: 'Mock'});
+  expect(prompt).not.toMatch(/latest weight|meals logged|min movement|7919/);
+  // The subscription bridge copies the same context: nothing of Health either.
+  expect(bridgePrompt({context: closed, question: 'How was my week?'})).not.toMatch(/latest weight|meals logged|min movement|health entries|7919/);
+  // A check-in the person made themselves keeps its value; only Health's value is held back.
+  if (today.entries.some(e => e.date === '2026-09-20' && e.source !== 'health')) expect(buildPageContext(input('today', '/app', {consent: gate(false), week})).text).not.toContain('value from Health, not shared');
+  const habitLines = closed.text.split('\n').filter(l => /^h\d+: /.test(l) && l.includes(today.title));
+  for (const line of habitLines) expect(line).toContain('value from Health, not shared');
 });
