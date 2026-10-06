@@ -11,3 +11,11 @@ overrides:
   # `pnpm update --depth Infinity` keeps the locked 5.0.9. Remove once the lock
   # resolves >=5.0.12 without it.
   "minimatch@10>brace-expansion": ^5.0.12
+  # In-range audit fix (GHSA-68fv-2mgg-jv7q): postcss (through next) declares
+  # source-map-js ^1.2.1, but `pnpm update --depth Infinity` keeps the locked
+  # 1.2.1. Remove once the lock resolves >=1.2.2 without it.
+  "postcss>source-map-js": ^1.2.2
+  # In-range audit fix (GHSA-wq5f-xc86-pv6w): next declares sharp ^0.35.4
+  # (optional), but `pnpm update sharp --depth Infinity` keeps the locked
+  # 0.35.4. Remove once the lock resolves >=0.35.5 without it.
+  "next>sharp": ^0.35.5
