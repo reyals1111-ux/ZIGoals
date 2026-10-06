@@ -12,7 +12,7 @@ import './ai-launcher.css';
  */
 const AiSettingsBody = lazy(() => import('./ai-settings'));
 /** The addresses that load the body at once: the section, the notes card (Part 8) and the context pack card (Part 10's /pack). */
-const ANCHORS = ['#your-ai', '#zigi-notes', '#zigi-pack'];
+const ANCHORS = ['#your-ai', '#zigi-notes', '#zigi-pack', '#zigi-look'];
 export function AiSettingsSection() {
   const section = useRef<HTMLElement>(null);
   const [load, setLoad] = useState(false);

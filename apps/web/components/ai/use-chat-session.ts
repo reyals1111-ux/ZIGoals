@@ -1,6 +1,6 @@
 'use client';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {parseReply, type ParsedReply} from '../../lib/ai/actions/parse';
+import {hasOpenFence, parseReply, type ParsedReply} from '../../lib/ai/actions/parse';
 import {streamChat} from '../../lib/ai/chat';
 import {newChat, type Chat, type ChatStore, type ChatSummary} from '../../lib/ai/chats';
 import {fitToBudget, type Fit} from '../../lib/ai/context/budget';
@@ -12,7 +12,8 @@ import {PROVIDERS} from '../../lib/ai/providers';
 import {currentChatStore} from '../../lib/ai/scope';
 import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings} from '../../lib/ai/settings';
-import {zigiEvents} from '../zigi/events';
+import {zigiEvents} from '../zigi/bus';
+import {localEvent} from '../../lib/ai/zigi-reactions';
 import type {AiContextState} from './use-ai-context';
 import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -113,7 +114,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const persist = useCallback((next: Chat) => { if (!next.turns.length) return; store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [store]);
   const parsed = useMemo(() => { const map = new Map<string, ParsedReply>(); for (const turn of chat.turns) if (turn.role === 'assistant') map.set(turn.id, parseReply(turn.text)); return map; }, [chat.turns]);
   const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? context.context?.handles ?? [], [context.context]);
-  const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean} = {}) => {
+  const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean} = {}) => {
     if (!text && !stopped) return;
     const made = assistantTurn({text, provider: settings.provider, model: extra.model ?? settings.model, usage, stopped});
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
@@ -123,7 +124,8 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     let next: Chat;
     try { next = appendTurn(chatRef.current, turn); } catch { next = {...chatRef.current, turns: [...chatRef.current.turns.slice(1), turn]}; }
     setChat(next); persist(next);
-    zigiEvents.emit(parseReply(text).proposals.length ? 'reply-with-proposals' : 'reply-done');
+    // Session V Part 12: cards to present, else a gentle look after a careful-mode answer, else the insight.
+    zigiEvents.emit(parseReply(text).proposals.length ? 'reply-with-proposals' : extra.careful ? 'careful' : 'reply-done');
   }, [persist, setChat, settings.model, settings.provider]);
   /** Provider metadata for one model, read once per session by the person's own message (never stored). */
   const capabilityFor = useCallback((key: string | null, model: string, signal: AbortSignal): Promise<Capability> => {
@@ -177,7 +179,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     if (key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
     const controller = new AbortController(); abort.current = controller;
     setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiEvents.emit('reply-pending');
-    let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null;
+    let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
     const found: Lookup[] = [];
     const flush = () => { frame.current = 0; setDraft(pendingText.current); };
     // The photo travels with the question it belongs to, the last user message, and nowhere else.
@@ -192,7 +194,13 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const sources = mode === 'tools' ? context.toolSources() : null, toolHandles = new Handles(contextHandles);
     const env = sources ? toolEnv(sources, context.gates, 'provider', toolHandles) : null;
     if (!env || !toolsFor(env).length) mode = 'attach';
-    const onText = (delta: string) => { reply += delta; pendingText.current = reply; if (!first) { first = true; setStatus('streaming'); zigiEvents.emit('reply-streaming'); } if (!frame.current) frame.current = requestAnimationFrame(flush); };
+    const onText = (delta: string) => {
+      reply += delta; pendingText.current = reply;
+      if (!first) { first = true; setStatus('streaming'); zigiEvents.emit('reply-streaming'); }
+      // Session V Part 12: ZIGi writes while a proposal block streams in (the cards show once it is complete).
+      if (!writing && hasOpenFence(reply)) { writing = true; zigiEvents.emit('writing-proposal'); }
+      if (!frame.current) frame.current = requestAnimationFrame(flush);
+    };
     // A request counts once the provider answers it (a refused one costs nothing and is not counted).
     const counted = async function* (r: Parameters<typeof streamChat>[0]) { let seen = false; for await (const event of streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
     const record = () => {
@@ -207,7 +215,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
           if (event.type === 'text') onText(event.delta);
           else if (event.type === 'usage') usage = {input: event.input, output: event.output};
           else if (event.type === 'done') reason = event.reason;
-          else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); }
+          else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); zigiEvents.emit('tool-call'); }
           else if (event.type === 'tool-limit') limit = event.reason;
         }
         return;
@@ -218,14 +226,14 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
         else if (event.type === 'done') reason = event.reason;
       }
     };
-    const done = (stopped: string | undefined) => finish(reply, usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep});
+    const done = (stopped: string | undefined) => finish(reply, usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
     try {
       try { await run(mode); }
       catch (error) {
         // A provider that does not take the tool fields: the same message again with the records attached, and this
         // model stays on "attach" for the rest of the session.
         if (mode !== 'tools' || controller.signal.aborted || !isToolRejection(error)) throw error;
-        fellBack.current.add(fbKey); mode = 'attach'; found.length = 0; reply = ''; first = false; pendingText.current = ''; setDraft(''); setLooking([]); setStatus('pending');
+        fellBack.current.add(fbKey); mode = 'attach'; found.length = 0; reply = ''; first = false; writing = false; pendingText.current = ''; setDraft(''); setLooking([]); setStatus('pending');
         await run('attach');
       }
       setLastMode({mode, fellBack: fellBack.current.has(fbKey)});
@@ -274,7 +282,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})});
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
-    zigiEvents.emit('reply-done');
+    zigiEvents.emit(localEvent(reply, question));
   }, [persist, rememberArea, setChat]);
   const localEnv = useCallback(() => { const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; }, [context]);
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {

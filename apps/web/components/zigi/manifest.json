@@ -1,24 +1,37 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "ZIGi",
   "alt": "ZIGi",
-  "sizes": {
-    "1x": {
-      "file": "/brand/figures/zigi-placeholder.webp",
-      "width": 96,
-      "height": 126
-    },
-    "2x": {
-      "file": "/brand/figures/zigi-placeholder-2x.webp",
-      "width": 192,
-      "height": 253
-    },
-    "large": {
-      "file": "/brand/figures/zigi-placeholder-large.webp",
-      "width": 480,
-      "height": 632
+  "defaultSkin": "origami-nebula",
+  "skins": {
+    "origami-nebula": {
+      "label": "Original",
+      "placeholder": true,
+      "opticalOffset": {
+        "x": -0.041,
+        "y": 0.001
+      },
+      "sizes": {
+        "1x": {
+          "file": "/brand/figures/zigi-placeholder.webp",
+          "width": 96,
+          "height": 126
+        },
+        "2x": {
+          "file": "/brand/figures/zigi-placeholder-2x.webp",
+          "width": 192,
+          "height": 253
+        },
+        "large": {
+          "file": "/brand/figures/zigi-placeholder-large.webp",
+          "width": 480,
+          "height": 632
+        }
+      },
+      "states": {}
     }
   },
+  "comingSoon": 3,
   "budgetBytes": {
     "1x": 40000,
     "2x": 100000,
@@ -29,57 +42,177 @@
     "idle": {
       "code": "F001",
       "label": "Idle",
-      "animated": null
+      "kind": "loop",
+      "durationMs": 5600,
+      "fallback": null
     },
     "greeting": {
       "code": "F002",
       "label": "Greeting",
-      "animated": null
+      "kind": "one-shot",
+      "durationMs": 2500,
+      "fallback": "idle"
     },
     "insight": {
       "code": "F003",
       "label": "Insight",
-      "animated": null
+      "kind": "one-shot",
+      "durationMs": 3000,
+      "fallback": "idle"
     },
     "listening": {
       "code": "F004",
       "label": "Listening",
-      "animated": null
+      "kind": "loop",
+      "durationMs": 1600,
+      "fallback": "idle"
     },
     "speaking": {
       "code": "F005",
       "label": "Speaking",
-      "animated": null
+      "kind": "loop",
+      "durationMs": 1600,
+      "fallback": "idle"
     },
     "presenting": {
       "code": "F006",
       "label": "Presenting",
-      "animated": null
+      "kind": "one-shot",
+      "durationMs": 3000,
+      "fallback": "insight"
     },
     "attention": {
       "code": "F007",
       "label": "Attention",
-      "animated": null
+      "kind": "loop",
+      "durationMs": 2400,
+      "fallback": "idle"
     },
     "sleepy": {
       "code": "F008",
       "label": "Sleepy",
-      "animated": null
+      "kind": "loop",
+      "durationMs": 6000,
+      "fallback": "idle"
     },
     "celebrate": {
       "code": "F009",
       "label": "Celebrate",
-      "animated": null
+      "kind": "one-shot",
+      "durationMs": 2500,
+      "fallback": "idle"
     },
     "thinking": {
       "code": "T001",
       "label": "Thinking",
-      "animated": null
+      "kind": "loop",
+      "durationMs": 2400,
+      "fallback": "idle"
     },
     "error": {
       "code": "E001",
       "label": "Something went wrong",
-      "animated": null
+      "kind": "one-shot",
+      "durationMs": 4000,
+      "fallback": "idle"
+    },
+    "reading-your-data": {
+      "code": "F010",
+      "label": "Reading your data",
+      "kind": "loop",
+      "durationMs": 1600,
+      "fallback": "thinking"
+    },
+    "writing-proposal": {
+      "code": "F011",
+      "label": "Writing a proposal",
+      "kind": "loop",
+      "durationMs": 1600,
+      "fallback": "speaking"
+    },
+    "success": {
+      "code": "F012",
+      "label": "Success",
+      "kind": "one-shot",
+      "durationMs": 1800,
+      "fallback": "celebrate"
+    },
+    "proud": {
+      "code": "F013",
+      "label": "Proud",
+      "kind": "one-shot",
+      "durationMs": 2800,
+      "fallback": "celebrate"
+    },
+    "curious": {
+      "code": "F014",
+      "label": "Curious",
+      "kind": "one-shot",
+      "durationMs": 3000,
+      "fallback": "attention"
+    },
+    "surprised": {
+      "code": "F015",
+      "label": "Surprised",
+      "kind": "one-shot",
+      "durationMs": 1500,
+      "fallback": "attention"
+    },
+    "confused": {
+      "code": "F016",
+      "label": "Confused",
+      "kind": "one-shot",
+      "durationMs": 3000,
+      "fallback": "attention"
+    },
+    "empathetic": {
+      "code": "F017",
+      "label": "Empathetic",
+      "kind": "one-shot",
+      "durationMs": 3500,
+      "fallback": "idle"
+    },
+    "encouraging": {
+      "code": "F018",
+      "label": "Encouraging",
+      "kind": "one-shot",
+      "durationMs": 2800,
+      "fallback": "insight"
+    },
+    "wave-goodbye": {
+      "code": "F019",
+      "label": "Wave goodbye",
+      "kind": "one-shot",
+      "durationMs": 1400,
+      "fallback": "greeting"
+    },
+    "reminder": {
+      "code": "F020",
+      "label": "Reminder",
+      "kind": "one-shot",
+      "durationMs": 2400,
+      "fallback": "attention"
+    },
+    "offline": {
+      "code": "F021",
+      "label": "Offline",
+      "kind": "loop",
+      "durationMs": 4000,
+      "fallback": "sleepy"
+    },
+    "peek": {
+      "code": "F022",
+      "label": "Peek",
+      "kind": "loop",
+      "durationMs": 4000,
+      "fallback": "idle"
+    },
+    "loading-model": {
+      "code": "F023",
+      "label": "Loading a model",
+      "kind": "loop",
+      "durationMs": 1600,
+      "fallback": "thinking"
     }
   }
 }

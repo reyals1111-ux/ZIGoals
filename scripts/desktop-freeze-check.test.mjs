@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { AI_LAUNCHER_HIDDEN, AI_SETTINGS_KEY, captureName, intendedDifference, matrix, ONBOARDING_KEY, PAGES, SIZES, snapshotDiff, STATES, validateBase } from "./desktop-freeze-check.mjs";
+import { AI_LAUNCHER_HIDDEN, AI_SETTINGS_KEY, captureName, intendedDifference, matrix, ONBOARDING_KEY, PAGES, SIZES, snapshotDiff, STATES, validateBase, ZIGI_KEY, ZIGI_NO_EDGE_TAB } from "./desktop-freeze-check.mjs";
 import { AI_SETTINGS_KEY as APP_AI_SETTINGS_KEY, aiSettingsSchema } from "../apps/web/lib/ai/settings.ts";
+import { ZIGI_KEY as APP_ZIGI_KEY } from "../apps/web/lib/ai/store/keys.ts";
+import { zigiPrefs, zigiSchema } from "../apps/web/lib/ai/store/records.ts";
 
 describe("desktop freeze check", () => {
   test("covers every main page at the four frozen sizes, in Showcase and empty", () => {
@@ -37,6 +39,11 @@ describe("desktop freeze check", () => {
     expect(AI_SETTINGS_KEY).toBe(APP_AI_SETTINGS_KEY);
     expect(aiSettingsSchema.parse(AI_LAUNCHER_HIDDEN).launcherHidden).toBe(true);
     expect(matrix().filter(item => item.page.launcher).map(item => item.name)).toEqual(["1280x800__showcase__zigi-launcher"]);
+  });
+  test("turns ZIGi's edge tab off through a valid look record, so a hidden launcher leaves nothing on the page", () => {
+    expect(ZIGI_KEY).toBe(APP_ZIGI_KEY);
+    expect(zigiPrefs(zigiSchema.parse(ZIGI_NO_EDGE_TAB)).edgeTab).toBe(false);
+    expect(zigiPrefs(zigiSchema.parse(ZIGI_NO_EDGE_TAB))).toMatchObject({ animation: "calm", side: "right", size: "m" });
   });
   test("accepts only loopback HTTP origins", () => {
     expect(validateBase("http://127.0.0.1:3102")).toBe("http://127.0.0.1:3102");

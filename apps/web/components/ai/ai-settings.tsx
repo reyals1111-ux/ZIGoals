@@ -44,7 +44,7 @@ const PAGE_NOTES: Record<PageArea, string> = {
  * #zigi-notes opens it: the "Remember this?" cards and Activity point here).
  */
 const NotesPanel = lazy(() => import('./ai-notes'));
-const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack';
+const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack', LOOK_ANCHOR = 'zigi-look';
 /** A card that opens when the address names it (#zigi-notes, and #zigi-pack for ZIGi's /pack, Session V Part 10). */
 function useAnchoredCard(anchor: string) {
   const [open, setOpen] = useState(false), card = useRef<HTMLDetailsElement>(null);
@@ -61,6 +61,16 @@ function NotesCard() {
     <summary className="ai-pack-summary">What ZIGi knows about me</summary>
     <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you.</p>
     {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><NotesPanel/></Suspense>}
+  </details>;
+}
+/** Session V Part 12: ZIGi's look and feel (the panel's Customize, here too), loaded only when its card opens. */
+const CustomizePanel = lazy(() => import('./zigi-customize'));
+function LookCard() {
+  const {open, setOpen, card} = useAnchoredCard(LOOK_ANCHOR);
+  return <details ref={card} id={LOOK_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">ZIGi&rsquo;s look and feel</summary>
+    <p className="ai-note">How ZIGi looks and moves, which side it sits on, its size, its greeting and the tab that brings it back. Kept on this device; nothing is sent.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><CustomizePanel/></Suspense>}
   </details>;
 }
 /** Session V Part 5: the context pack, loaded only when the person opens its card. */
@@ -179,6 +189,7 @@ export default function AiSettings() {
       {!turningOff ? <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => setTurningOff(true)}>Turn off ZIGi</button><span className="ai-note">Removes the keys from this device and resets the switches. Chats stay unless you choose below.</span></div>
         : <div className="ai-confirm" role="group" aria-label="Turn off ZIGi"><p>ZIGi goes off on this device: the connection and its keys are removed, every switch goes back to the start.</p><label className="ai-check"><input type="checkbox" checked={alsoChats} onChange={e => setAlsoChats(e.target.checked)}/> Also delete all chats on this device</label><div className="ai-card-actions"><button type="button" className="primary" onClick={() => void turnOff()}>Turn off ZIGi</button><button type="button" className="text-link" onClick={() => { setTurningOff(false); setAlsoChats(false); }}>Keep it on</button></div></div>}
     </>}
+    {settings.loaded && <LookCard/>}
     {settings.loaded && <NotesCard/>}
     {settings.loaded && <ContextPackCard/>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}

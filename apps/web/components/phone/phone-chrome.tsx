@@ -50,6 +50,7 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path.startsWith("/app/wealth/asset/")) return { title: "Asset", back: { href: "/app/wealth", label: "Wealth" } };
   if (path === "/app/welcome") return { title: "Welcome" };
   if (path === "/app/help") return { title: "Help", back: { href: "/app/settings", label: "Settings" } };
+  if (path === "/app/zigi") return { title: "Meet ZIGi", back: { href: "/app/settings", label: "Settings" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : "ZIGoals" };
 }

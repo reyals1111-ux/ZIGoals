@@ -1,12 +1,56 @@
-/* ZIGi (ADR-012): a static frame; a breath while thinking, a small lift when something was added. Still under reduced motion and Motion Off. */
+/* ZIGi (ADR-012; Session V Part 12): a still frame per state and a small CSS motion each, until the figure set lands.
+   Loops hold (thinking, speaking, listening, reading, writing, sleepy, offline, peek, loading); one-shots play once.
+   The idle breath runs on the launcher (its shell CSS) and the panel's head only. Nothing moves under reduced motion,
+   Motion Off or ZIGi's animation Off; loops that scroll out of view on Meet ZIGi pause. */
 .zigi{display:inline-flex;align-items:flex-end;justify-content:center;flex:none;position:relative}
 .zigi img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(20,10,60,.45));transform-origin:50% 100%}
+.ai-chat-head .zigi-idle img,.zigi-play.zigi-idle img{animation:zigi-breath-panel 5.6s ease-in-out infinite}
+:root[data-zigi-motion=full] .ai-chat-head .zigi-idle img,:root[data-zigi-motion=full] .zigi-play.zigi-idle img{animation:zigi-breath-panel-full 3.6s ease-in-out infinite}
 .zigi-thinking img{animation:zigi-breathe 2.4s ease-in-out infinite}
 .zigi-speaking img,.zigi-listening img{animation:zigi-breathe 1.6s ease-in-out infinite}
-.zigi-celebrate img{animation:zigi-lift .9s cubic-bezier(.2,.8,.2,1) 1}
-.zigi-error img{filter:drop-shadow(0 6px 14px rgba(20,10,60,.45)) saturate(.6)}
-.zigi-sleepy img{opacity:.8}
+.zigi-listening img{animation-name:zigi-tilt}
+.zigi-greeting img{animation:zigi-wave 1.2s ease-in-out 2}
+.zigi-insight img{animation:zigi-pop .8s cubic-bezier(.2,.8,.2,1) 1}
+.zigi-presenting img{animation:zigi-lean 1.4s ease-in-out 1}
+.zigi-attention img{animation:zigi-bounce 2.4s ease-in-out infinite}
+.zigi-sleepy img{opacity:.8;animation:zigi-sway 6s ease-in-out infinite}
+.zigi-celebrate img{animation:zigi-lift .9s cubic-bezier(.2,.8,.2,1) 2}
+.zigi-error img{filter:drop-shadow(0 6px 14px rgba(20,10,60,.45)) saturate(.6);animation:zigi-shake .5s ease-in-out 1}
+.zigi-reading-your-data img{animation:zigi-scan 1.6s ease-in-out infinite}
+.zigi-writing-proposal img{animation:zigi-nod 1.6s ease-in-out infinite}
+.zigi-success img{animation:zigi-hop .7s cubic-bezier(.2,.8,.2,1) 1}
+.zigi-proud img{animation:zigi-proud 2.2s ease-in-out 1}
+.zigi-curious img{animation:zigi-curious 2.4s ease-in-out 1}
+.zigi-surprised img{animation:zigi-surprised .6s cubic-bezier(.2,.8,.2,1) 1}
+.zigi-confused img{animation:zigi-confused 2.4s ease-in-out 1}
+.zigi-empathetic img{animation:zigi-soft 3.2s ease-in-out 1}
+.zigi-encouraging img{animation:zigi-nod .7s ease-in-out 2}
+.zigi-wave-goodbye img{animation:zigi-wave .7s ease-in-out 2}
+.zigi-reminder img{animation:zigi-knock 1.1s ease-in-out 2}
+.zigi-offline img{filter:drop-shadow(0 6px 14px rgba(20,10,60,.45)) grayscale(.6);animation:zigi-dim 4s ease-in-out infinite}
+.zigi-peek img{animation:zigi-peek 4s ease-in-out infinite}
+.zigi-loading-model img{animation:zigi-dim 1.6s ease-in-out infinite}
+@keyframes zigi-breath-panel{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-1px) scale(1.02)}}
+@keyframes zigi-breath-panel-full{0%,100%{transform:translateY(0) scale(1) rotate(0)}30%{transform:translateY(-2px) scale(1.035) rotate(-1.5deg)}65%{transform:translateY(-1px) scale(1.015) rotate(1deg)}}
 @keyframes zigi-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
+@keyframes zigi-tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg)}}
+@keyframes zigi-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(4deg)}}
+@keyframes zigi-pop{0%{transform:scale(1)}40%{transform:scale(1.06) translateY(-3px)}100%{transform:scale(1)}}
+@keyframes zigi-lean{0%,100%{transform:scale(1)}40%,70%{transform:scale(1.04) translateY(-1px)}}
+@keyframes zigi-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+@keyframes zigi-sway{0%,100%{transform:rotate(0)}50%{transform:rotate(2deg) translateY(1px)}}
 @keyframes zigi-lift{0%{transform:translateY(0)}35%{transform:translateY(-8px) rotate(-2deg)}70%{transform:translateY(0) rotate(1deg)}100%{transform:translateY(0)}}
+@keyframes zigi-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@keyframes zigi-scan{0%,100%{transform:translateX(0)}30%{transform:translateX(-2px) rotate(-1deg)}70%{transform:translateX(2px) rotate(1deg)}}
+@keyframes zigi-nod{0%,100%{transform:rotate(0)}50%{transform:rotate(2deg) translateY(1px)}}
+@keyframes zigi-hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-6px)}}
+@keyframes zigi-proud{0%,100%{transform:scale(1)}30%,70%{transform:scale(1.06) translateY(-2px)}}
+@keyframes zigi-curious{0%,100%{transform:rotate(0)}25%,75%{transform:rotate(-6deg)}}
+@keyframes zigi-surprised{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-5px) scale(1.05)}}
+@keyframes zigi-confused{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}60%{transform:rotate(4deg)}}
+@keyframes zigi-soft{0%,100%{transform:scale(1)}50%{transform:scale(1.025) translateY(1px)}}
+@keyframes zigi-knock{0%,40%,100%{transform:translateX(0)}15%{transform:translateX(-2px) rotate(-2deg)}28%{transform:translateX(1px)}}
+@keyframes zigi-dim{0%,100%{opacity:.85}50%{opacity:.6}}
+@keyframes zigi-peek{0%,100%{transform:translateX(0)}50%{transform:translateX(-2px) rotate(-3deg)}}
 @media (prefers-reduced-motion:reduce){.zigi img{animation:none!important}}
-:root[data-app-motion=off] .zigi img{animation:none!important}
+:root[data-app-motion=off] .zigi img,:root[data-zigi-motion=off] .zigi img{animation:none!important}

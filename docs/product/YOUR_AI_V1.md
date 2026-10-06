@@ -70,6 +70,8 @@ Exactly the request the browser sends: the system prompt of the page specialist,
 
 ### ZIGi states (`components/zigi/manifest.json`)
 
+> **Superseded in part (2026-10-06, Session V Part 12, ADR-014):** the manifest is version 2 (twenty-five states, skins, an optical offset, per-state files) and the launcher shell no longer ships it. ZIGi's states, files, budgets, motion and the launcher are now specified in [`ZIGI_ASSET_SPEC.md`](ZIGI_ASSET_SPEC.md). The three sections below are kept as Session T wrote them.
+
 The manifest is a static, build-time import that every app page ships with the launcher shell (follow-up 2026-10-05), so it holds only what the avatar needs: the sizes, the per-size budgets and the state table below. Every state maps to the static placeholder until the figure set lands; an animated state is an animated WebP (APNG as the fallback) under the per-size budget, and every animated state needs its static frame for reduced motion and Motion Off.
 | State | Code | When |
 |---|---|---|

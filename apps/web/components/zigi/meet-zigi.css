@@ -1,0 +1,15 @@
+/* Meet ZIGi (Session V Part 12). */
+.meet-zigi{display:grid;gap:16px}
+.meet-zigi .help-back{margin:0}
+.meet-zigi-motion,.meet-zigi-skin{display:grid;gap:12px}
+.meet-zigi-motion h2,.meet-zigi-skin h2{margin:0;font-size:20px}
+.meet-zigi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.meet-zigi-card{display:grid;gap:8px;align-content:start;padding:14px;border-radius:16px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
+.meet-zigi-card header{display:grid;gap:2px}
+.meet-zigi-card h3{margin:0;font-size:17px}
+.meet-zigi-meta{margin:0;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
+.meet-zigi-sizes{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;min-height:212px;padding:8px 6px;border-radius:12px;background:radial-gradient(120% 120% at 30% 20%,#1d1c4e,#0d1230 75%)}
+.meet-zigi-sizes figure{margin:0;display:grid;justify-items:center;gap:6px}
+.meet-zigi-sizes figcaption{font-size:13px;color:var(--muted,#aab2d9)}
+.meet-zigi-card button{justify-self:start;min-height:44px}
+.meet-zigi-card[data-offscreen] .zigi img{animation-play-state:paused}

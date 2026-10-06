@@ -1,5 +1,5 @@
 'use client';
-import {useMemo, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useState, type ReactNode} from 'react';
 import {wealthView} from '../../lib/ai/context/pages';
 import {BRIEF_LABEL, briefForAi, morningBrief, SAY_IT_NICER, type Brief} from '../../lib/ai/proactive/brief';
 import {chipsFor, type Chip, type ChipView} from '../../lib/ai/proactive/chips';
@@ -14,6 +14,7 @@ import {useHabitHealthLinks} from '../habits/use-habit-health-links';
 import type {useAiContext} from './use-ai-context';
 import type {ChatSession} from './use-chat-session';
 import {useDeviceRecord} from './use-device-record';
+import {zigiEvents} from '../zigi/bus';
 
 /**
  * ZIGi's proactive side (Session V Part 9), all computed on this device: the morning brief in the greeting, suggestion
@@ -83,6 +84,9 @@ export function ReviewView({context, connected, session, onBack}: {context: Cont
   const local = useEnv(context, 'local'), outbound = useEnv(context, 'provider');
   const review = useMemo(() => local ? localReview(local) : null, [local]);
   const data = useMemo(() => connected && outbound ? reviewForAi(outbound) : null, [connected, outbound]);
+  // Session V Part 12: ZIGi looks encouraging while the person looks back at their week.
+  const shown = review !== null;
+  useEffect(() => { if (shown) zigiEvents.emit('encourage'); }, [shown]);
   return <ViewFrame title="Your week with ZIGi" onBack={onBack}>
     {!review ? <p className="ai-note">The weekly review is not available on this device yet; it starts on Today.</p> : <>
       <p className="ai-note">Your review week, {review.from} to {review.to}, read on this device. Counts, not grades: a skipped day is part of a plan.</p>

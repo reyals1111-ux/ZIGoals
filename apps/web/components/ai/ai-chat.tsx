@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
 import type {ChatTurn} from '../../lib/ai/chats';
@@ -16,7 +16,8 @@ import {entitlement} from '../../lib/entitlements';
 import {NebulaFlow} from '../nebula-flow';
 import './ai.css';
 import {useVisualViewportInsets} from '../phone/use-visual-viewport';
-import {useZigiState} from '../zigi/events';
+import {useZigiState} from '../zigi/bus';
+import {useZigiMachine} from '../zigi/events';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
 import {SafeText} from './safe-text';
@@ -68,6 +69,8 @@ import {carefulNote, detectRisk} from '../../lib/ai/safety';
  * announced once; streaming is batched per animation frame and never announced token by token.
  */
 type Props = {open: boolean; onClose: () => void; sensitive: boolean; phone: boolean};
+/** Session V Part 12: Customize ZIGi, loaded when the person opens it. */
+const ZigiCustomize = lazy(() => import('./zigi-customize'));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
 export default function AiChat({open, onClose, sensitive, phone}: Props) {
@@ -78,9 +81,11 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device.
   const localOnly = !connected && !bridge;
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context}), runner = useProposals(), zigi = useZigiState();
+  // ZIGi's state machine runs here, once the chat chunk is on the page (Session V Part 12); the launcher shows its state.
+  useZigiMachine();
   const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
-  const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | 'continue' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
+  const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | 'continue' | 'customize' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const tool = session.toolState(data.model), lastMode = session.lastMode;
   // Session V Part 7: a meal photo needs a model that reads photos (its metadata, or the person's word) and Health shared.
   const declaredVision = data.provider && data.model ? aiOptions.visionDeclared?.[`${data.provider}:${data.model}`] : undefined;
@@ -159,12 +164,14 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
         {connected && <ModelSwitcher settings={settings} scope={scope}/>}
         <button type="button" className="quiet" onClick={() => { session.startNew(); setView('chat'); composer.current?.focus(); }} aria-label="New chat" title="New chat">New</button>
         <button type="button" className="quiet" aria-pressed={view === 'history'} onClick={() => setView(v => v === 'history' ? 'chat' : 'history')} aria-label="Chat history" title="History">History</button>
+        <button type="button" className="quiet" aria-pressed={view === 'customize'} onClick={() => setView(v => v === 'customize' ? 'chat' : 'customize')} aria-label="Customize ZIGi" title="Customize">Customize</button>
         <Link className="quiet" href={SETTINGS_HREF} onClick={onClose} aria-label="ZIGi settings" title="Settings">Settings</Link>
         {!phone && <button type="button" className="quiet" onClick={() => setExpanded(e => !e)} aria-pressed={expanded} aria-label={expanded ? 'Shrink the chat' : 'Expand the chat'} title={expanded ? 'Shrink' : 'Expand'}>{expanded ? 'Shrink' : 'Expand'}</button>}
       </div>
     </header>
     {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
       : view === 'continue' ? <ContinueView settings={data} session={session} context={context} attach={attach} sensitive={sensitive} phone={phone} onBack={() => setView('chat')}/>
+      : view === 'customize' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Customize ZIGi"><header className="ai-proactive-head"><h3>Customize ZIGi</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ZigiCustomize onNavigate={onClose}/></Suspense></section></div>
       : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
       : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
       <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onScroll={event => { const el = event.currentTarget, far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; setAway(far && !jumping.current); }}>
