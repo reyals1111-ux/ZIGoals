@@ -67,6 +67,7 @@ import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {copyText, nextFrame} from '../../lib/ai/chat-window';
 import {useMiniWindow} from './use-mini-window';
 import './pip.css';
+import {ON_DEVICE_LABEL} from '../../lib/ai/on-device';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -80,6 +81,8 @@ import './pip.css';
 type Props = {open: boolean; onClose: () => void; onOpen?: () => void; sensitive: boolean; phone: boolean};
 /** Session V Part 12: Customize ZIGi, loaded when the person opens it. */
 const ZigiCustomize = lazy(() => import('./zigi-customize'));
+/** Session V Part 15: "Which setup fits me?", loaded when the person opens it. */
+const SetupChooser = lazy(() => import('./setup-chooser'));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
 export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props) {
@@ -96,7 +99,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
   // Session V Part 14: the mini window; "Back to tab" opens the panel here again.
   const mini = useMiniWindow(() => onOpen?.());
-  const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | 'continue' | 'customize' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
+  const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | 'continue' | 'customize' | 'chooser' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const tool = session.toolState(data.model), lastMode = session.lastMode;
   // Session V Part 7: a meal photo needs a model that reads photos (its metadata, or the person's word) and Health shared.
   const declaredVision = data.provider && data.model ? aiOptions.visionDeclared?.[`${data.provider}:${data.model}`] : undefined;
@@ -191,20 +194,21 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     </header>
     {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
       : view === 'continue' ? <ContinueView settings={data} session={session} context={context} attach={attach} sensitive={sensitive} phone={phone} onBack={() => setView('chat')}/>
+      : view === 'chooser' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Which setup fits me?"><header className="ai-proactive-head"><h3>Which setup fits me?</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooser/></Suspense></section></div>
       : view === 'customize' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Customize ZIGi"><header className="ai-proactive-head"><h3>Customize ZIGi</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ZigiCustomize onNavigate={onClose}/></Suspense></section></div>
       : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
       : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
       <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onScroll={event => { const el = event.currentTarget, far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; setAway(far && !jumping.current); }}>
-        {!data.enabled && <NotConnected onClose={onClose}/>}
+        {!data.enabled && <NotConnected onClose={onClose} onChooser={() => setView('chooser')}/>}
         {localOnly && session.chat.turns.length === 0 && !sensitive && <LocalIntro context={context} session={session} onAsk={question => void session.ask(question)} onView={setView}/>}
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
         {connected && session.chat.turns.length === 0 && !busy && <Greeting context={context} session={session} sensitive={sensitive} onChip={sendQuestion} onView={setView}/>}
-        {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && turn.source === 'local'
+        {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && (turn.source === 'local' || turn.source === 'on-device')
           ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy} runner={runner} onNavigate={onClose} onAsk={ask}/>
           : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length}
             asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} onAsk={ask} onContinue={() => setView('continue')} onEdit={turn.role === 'user' && !busy && turn === lastAsked ? () => startEdit(turn) : undefined}/>)}
-        {!busy && <KnockOffer connected={data.enabled} sensitive={sensitive} chatEnded={session.chat.turns.some(t => t.role === 'assistant' && t.source !== 'local')} today={localDate()} connectedOn={data.connectedOn ?? null}/>}
-        {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">{session.looking.length ? `ZIGi looked at ${session.looking.join(', ')}; waiting for ${providerName}…` : `Waiting for ${providerName}…`}</span></div>}
+        {!busy && <KnockOffer connected={data.enabled} sensitive={sensitive} chatEnded={session.chat.turns.some(t => t.role === 'assistant' && t.source !== 'local' && t.source !== 'on-device')} today={localDate()} connectedOn={data.connectedOn ?? null}/>}
+        {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">{!connected ? 'Asking Chrome’s on-device model…' : session.looking.length ? `ZIGi looked at ${session.looking.join(', ')}; waiting for ${providerName}…` : `Waiting for ${providerName}…`}</span></div>}
         {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
         {session.confirmation && <div className="ai-confirm" role="group" aria-label="This page's data is larger than your budget">
@@ -245,8 +249,8 @@ function Greeting({context, session, sensitive, onChip, onView}: {context: Retur
     <FirstRunTips/>
   </div></div>;
 }
-function NotConnected({onClose}: {onClose: () => void}) {
-  return <div className="ai-greeting ai-not-connected"><ZigiAvatar state="attention" size={72} decorative/><div><p className="ai-greeting-text">Connect your own AI to start: an API key, a local model on this computer, or the subscription bridge. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them.</p><Link className="primary" href={SETTINGS_HREF} onClick={onClose}>Set up in Settings</Link></div></div>;
+function NotConnected({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {
+  return <div className="ai-greeting ai-not-connected"><ZigiAvatar state="attention" size={72} decorative/><div><p className="ai-greeting-text">Connect your own AI to start: an API key, a local model on this computer, or the subscription bridge. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them.</p><div className="ai-card-actions"><Link className="primary" href={SETTINGS_HREF} onClick={onClose}>Set up in Settings</Link><button type="button" className="secondary" onClick={onChooser}>Which setup fits me?</button></div></div></div>;
 }
 /** Before any AI is connected: what ZIGi answers here from the records, as examples to tap (Session V Part 3). */
 function LocalIntro({context, session, onAsk, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; onAsk: (question: string) => void; onView: (view: ProactiveView) => void}) {
@@ -273,8 +277,10 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const chips = isLast && reply ? reply.kind === 'choices' ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'refusal' && reply.choices ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
-  const copy = () => { copyText(`${shown}\n\n${LOCAL_LABEL}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
-  return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label="Answer from ZIGi, made on this device">
+  // Session V Part 15: an answer made with Chrome's on-device model says so; it stays on this device like a lookup.
+  const label = turn.source === 'on-device' ? ON_DEVICE_LABEL : LOCAL_LABEL;
+  const copy = () => { copyText(`${shown}\n\n${label}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
+  return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <SafeText className="ai-local-answer" text={shown}/>
@@ -289,7 +295,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       </details>}
       {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk}/>}
       <footer className="ai-turn-meta">
-        <span className="ai-turn-label">{LOCAL_LABEL}</span>
+        <span className="ai-turn-label">{label}</span>
         <TurnTime at={turn.at}/>
         <span className="ai-turn-actions"><button type="button" className="text-link" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>{connected && calls.length > 0 && question && <button type="button" className="text-link" onClick={() => void session.askMore(question, calls, {withContext: attach})}>Ask my AI for more</button>}</span>
       </footer>

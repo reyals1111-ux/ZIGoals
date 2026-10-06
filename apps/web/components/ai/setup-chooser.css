@@ -1,0 +1,14 @@
+/* "Which setup fits me?" (Session V Part 15). */
+.ai-chooser{display:grid;gap:12px}
+.ai-chooser-question{border:0;margin:0;padding:0;min-width:0}
+.ai-chooser-question legend{font-weight:600;font-size:15px;margin:0 0 6px;padding:0}
+.ai-chooser-options{display:flex;flex-wrap:wrap;gap:8px}
+.ai-chooser-option{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent);cursor:pointer;flex:1 1 160px;min-width:0}
+.ai-chooser-option:has(input:checked){border-color:color-mix(in srgb,var(--violet,#8b7cff) 70%,transparent);background:color-mix(in srgb,var(--violet,#8b7cff) 14%,transparent)}
+.ai-chooser-result{display:grid;gap:8px;padding:14px 16px;border-radius:16px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 40%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 6%,transparent)}
+.ai-chooser-result h4{margin:0;font-size:17px}
+.ai-chooser-result p,.ai-chooser-result ul,.ai-chooser-result ol{margin:0}
+.ai-chooser-result ul,.ai-chooser-result ol{padding-left:20px;display:grid;gap:4px}
+.ai-chooser-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.ai-chooser-head{font-weight:600}
+.ai-chooser-result .text-link{justify-self:start;min-height:44px}

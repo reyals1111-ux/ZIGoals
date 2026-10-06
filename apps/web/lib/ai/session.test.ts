@@ -33,3 +33,9 @@ test('Session V Part 3: questions answered on the device and their answers never
     userTurn('How many minutes did I meditate this month?', now), assistantTurn({text: 'MOCK answer with the records.', provider: 'openai', model: 'mock-chat', usage: null, now})];
   expect(messagesFor(turns)).toEqual([{role: 'user', content: 'How many minutes did I meditate this month?'}, {role: 'assistant', content: 'MOCK answer with the records.'}]);
 });
+test('Session V Part 15: exchanges with Chrome\'s on-device model stay on the device too', () => {
+  const now = new Date('2026-10-06T10:00:00Z');
+  const turns = [{...userTurn('what is a gentle way to start stretching', now), source: 'on-device' as const}, {...assistantTurn({text: 'A short stretch after a walk is a good start.', provider: null, model: null, usage: null, now}), source: 'on-device' as const},
+    userTurn('And for my back?', now)];
+  expect(messagesFor(turns)).toEqual([{role: 'user', content: 'And for my back?'}]);
+});

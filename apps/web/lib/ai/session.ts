@@ -46,7 +46,8 @@ export function editTarget(chat: Chat, turnId: string, now = new Date()): Chat |
  * my AI for more" asks again, with the records shown, as a new turn.
  */
 export function messagesFor(turns: readonly ChatTurn[]): ChatMessage[] {
-  return turns.filter(t => t.source !== 'local' && t.text.trim().length > 0).map((t): ChatMessage => t.role === 'user' ? {role: 'user', content: t.text} : {role: 'assistant', content: t.text});
+  // Answers made on this device (ZIGi's lookups, and Session V Part 15's on-device model) never go to a provider later.
+  return turns.filter(t => t.source !== 'local' && t.source !== 'on-device' && t.text.trim().length > 0).map((t): ChatMessage => t.role === 'user' ? {role: 'user', content: t.text} : {role: 'assistant', content: t.text});
 }
 /** One honest line for a reply that ended early. */
 export function stopReason(reason: string | null, aborted: boolean): string | undefined {

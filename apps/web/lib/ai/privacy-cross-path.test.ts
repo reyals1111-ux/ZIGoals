@@ -22,6 +22,7 @@ import {usesHealth, zigiInsights} from './proactive/insights';
 import {reviewForAi} from './proactive/review';
 import {continuePrompt} from './continue';
 import {storedChat, type Chat, type ChatTurn} from './chats';
+import {CHAT_SYSTEM, onDevicePrompts, REWRITE_SYSTEM} from './on-device-chat';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -228,4 +229,13 @@ test('Part 10: "Continue in my AI" and a chat read back from History carry no He
   expect(replay.ok).toBe(false); expect(sentinelsIn(toolText(replay, closed))).toEqual([]);
   // The control: on Health with the gate open, the page's records in "Continue in my AI" do carry the sentinels.
   expect(sentinelsIn(continuePrompt({turns, context: buildPageContext(builderInput(s, 'health', '/app/health', true), new Handles())})).length).toBeGreaterThan(0);
+});
+test('Part 15: Chrome\'s on-device model gets its fixed instructions and the person\'s own words, never a record', () => {
+  // The question names a habit and a Health measure; the records behind them stay out (the sentinels are on the device).
+  void withSentinels(withHandHealth(showcaseSources()));
+  const question = 'How much water did I drink this week, and did I meditate?';
+  const prompts = onDevicePrompts(question);
+  expect(prompts.rewrite).toEqual({system: REWRITE_SYSTEM, input: question});
+  expect(prompts.chat).toEqual({system: CHAT_SYSTEM, input: question});
+  for (const p of [prompts.rewrite, prompts.chat]) expect(sentinelsIn(`${p.system}\n${p.input}`)).toEqual([]);
 });

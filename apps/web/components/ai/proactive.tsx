@@ -15,6 +15,9 @@ import type {useAiContext} from './use-ai-context';
 import type {ChatSession} from './use-chat-session';
 import {useDeviceRecord} from './use-device-record';
 import {zigiEvents} from '../zigi/bus';
+import {AI_OPTIONS} from '../../lib/ai/store/records';
+import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
+import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, SAY_NICER_SYSTEM, shortReply} from '../../lib/ai/on-device-chat';
 
 /**
  * ZIGi's proactive side (Session V Part 9), all computed on this device: the morning brief in the greeting, suggestion
@@ -37,10 +40,34 @@ function AiSees({label, instruction, data}: {label: string; instruction: string;
   return <details className="ai-sends"><summary>{label}</summary><p className="ai-note">Your request: {instruction}</p><pre>{data}</pre></details>;
 }
 export function BriefBlock({context, connected, session}: {context: Context; connected: boolean; session: ChatSession}) {
-  const zigi = useDeviceRecord(ZIGI), local = useEnv(context, connected ? 'provider' : 'local');
+  const zigi = useDeviceRecord(ZIGI), options = useDeviceRecord(AI_OPTIONS), local = useEnv(context, connected ? 'provider' : 'local');
   const brief = useMemo(() => local ? morningBrief(local) : null, [local]);
   if (!zigi.loaded || zigiPrefs(zigi.data).greeting === 'quiet' || !brief) return null;
-  return <BriefLines brief={brief} footer={connected ? <SayItNicer brief={brief} session={session}/> : null}/>;
+  // Session V Part 15: with no AI connected, Chrome's on-device model can reword it, when the person turned it on.
+  const onDevice = !connected && options.data.onDevice === true && languageModel() !== null;
+  return <BriefLines brief={brief} footer={connected ? <SayItNicer brief={brief} session={session}/> : onDevice ? <SayItNicerOnDevice brief={brief}/> : null}/>;
+}
+/**
+ * "Say it nicer" with Chrome's on-device model (Session V Part 15), from the person's click: the brief's lines (made on
+ * this device under the local gates) go to the model inside Chrome on this computer; nothing is sent anywhere.
+ */
+function SayItNicerOnDevice({brief}: {brief: Brief}) {
+  const [text, setText] = useState<string | null>(null), [busy, setBusy] = useState(false), [note, setNote] = useState('');
+  const run = async () => {
+    setBusy(true); setNote(''); zigiEvents.emit('model-loading');
+    try {
+      // Never Chrome's download from here: only Settings starts it, from its own button.
+      if (await onDeviceAvailability() !== 'available') { setNote(ON_DEVICE_NOT_READY); return; }
+      const model = await onDeviceSession({system: SAY_NICER_SYSTEM});
+      try { const reply = shortReply(await model.prompt(briefForAi(brief))); if (reply) setText(reply); else setNote(ON_DEVICE_FAILED); } finally { model.destroy(); }
+    } catch { setNote(ON_DEVICE_FAILED); }
+    finally { setBusy(false); zigiEvents.emit('model-ready'); }
+  };
+  return <div className="ai-brief-ai">
+    {text ? <><p className="ai-brief-nicer">{text}</p><p className="ai-note">Reworded by Chrome&rsquo;s on-device model from the lines above, on this computer.</p></>
+      : <button type="button" className="text-link" disabled={busy} onClick={() => void run()}>{busy ? 'Rewording…' : 'Say it nicer · on this computer'}</button>}
+    {note && <p className="ai-note" role="status">{note}</p>}
+  </div>;
 }
 export function BriefLines({brief, footer}: {brief: Brief; footer?: ReactNode}) {
   return <section className="ai-brief" aria-label="Your morning brief">

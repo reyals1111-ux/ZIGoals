@@ -24,6 +24,7 @@ import {useAiSettings} from './use-ai-settings';
 import {useHealthConsent} from './use-health-consent';
 import './ai.css';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {onDeviceAvailability} from '../../lib/ai/on-device';
 
 /**
  * Settings → ZIGi · your AI (ADR-012, Part 8; id="your-ai"): the connection (setup, change model, disconnect), what
@@ -71,6 +72,32 @@ function LookCard() {
     <summary className="ai-pack-summary">ZIGi&rsquo;s look and feel</summary>
     <p className="ai-note">How ZIGi looks and moves, which side it sits on, its size, its greeting, the tab that brings it back, and whether it knocks when a reminder is due. Kept on this device; nothing is sent.</p>
     {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><CustomizePanel/></Suspense>}
+  </details>;
+}
+/** Session V Part 15: "Which setup fits me?", loaded when its card opens (a link to #zigi-setup opens it). */
+const SetupChooserPanel = lazy(() => import('./setup-chooser'));
+const SETUP_ANCHOR = 'zigi-setup', ON_DEVICE_ANCHOR = 'zigi-on-device';
+function SetupChooserCard() {
+  const {open, setOpen, card} = useAnchoredCard(SETUP_ANCHOR);
+  return <details ref={card} id={SETUP_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Which setup fits me?</summary>
+    <p className="ai-note">Three or four questions, then one suggestion with its honest pros and cons and the exact next steps. Worked out here on this device; nothing is sent.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooserPanel/></Suspense>}
+  </details>;
+}
+/**
+ * Session V Part 15: Chrome's on-device model, only where this browser has it and says it can run here (asking
+ * downloads nothing); loaded when its card opens.
+ */
+const OnDevicePanel = lazy(() => import('./on-device-panel'));
+function OnDeviceCard() {
+  const {open, setOpen, card} = useAnchoredCard(ON_DEVICE_ANCHOR), [offered, setOffered] = useState(false);
+  useEffect(() => { let live = true; void onDeviceAvailability().then(state => { if (live) setOffered(state !== 'unavailable'); }); return () => { live = false; }; }, []);
+  if (!offered) return null;
+  return <details ref={card} id={ON_DEVICE_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Chrome&rsquo;s on-device model</summary>
+    <p className="ai-note">A small model that runs inside Chrome on this computer. While no AI is connected it gives short answers, rewords ZIGi&rsquo;s brief and helps ZIGi understand questions. Nothing is sent anywhere.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><OnDevicePanel/></Suspense>}
   </details>;
 }
 /** Session V Part 5: the context pack, loaded only when the person opens its card. */
@@ -189,6 +216,8 @@ export default function AiSettings() {
       {!turningOff ? <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => setTurningOff(true)}>Turn off ZIGi</button><span className="ai-note">Removes the keys from this device and resets the switches. Chats stay unless you choose below.</span></div>
         : <div className="ai-confirm" role="group" aria-label="Turn off ZIGi"><p>ZIGi goes off on this device: the connection and its keys are removed, every switch goes back to the start.</p><label className="ai-check"><input type="checkbox" checked={alsoChats} onChange={e => setAlsoChats(e.target.checked)}/> Also delete all chats on this device</label><div className="ai-card-actions"><button type="button" className="primary" onClick={() => void turnOff()}>Turn off ZIGi</button><button type="button" className="text-link" onClick={() => { setTurningOff(false); setAlsoChats(false); }}>Keep it on</button></div></div>}
     </>}
+    {settings.loaded && <SetupChooserCard/>}
+    {settings.loaded && <OnDeviceCard/>}
     {settings.loaded && <LookCard/>}
     {settings.loaded && <NotesCard/>}
     {settings.loaded && <ContextPackCard/>}

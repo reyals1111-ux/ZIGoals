@@ -35,6 +35,8 @@ import type {ChatImage} from '../../lib/ai/types';
 import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
+import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, onDevicePrompts, parseRewrite, readAs, shortReply} from '../../lib/ai/on-device-chat';
 
 /**
  * One conversation with the person's own AI (ADR-012, Part 6). The request goes from this browser straight to the
@@ -91,6 +93,10 @@ export type ChatSession = {
 };
 const SAVE_NOTE = 'This chat could not be saved on this device; it stays here until you close it.';
 /** A local answer's records once more, under the same gate, for its chart (Session V Part 10; nothing is stored). */
+/** Session V Part 15: the person turned on Chrome's on-device model, and this browser has it. */
+function onDeviceOn(): boolean {
+  try { return readDeviceRecord(getAppStorage(), AI_OPTIONS).data.onDevice === true && languageModel() !== null; } catch { return false; }
+}
 function resultsFor(reply: LocalReply, env: ReturnType<typeof toolEnv> | null): ToolResult[] | undefined {
   if (reply.kind !== 'answer' || !env || !reply.calls.length) return undefined;
   try { return reply.calls.slice(0, 4).map(c => runTool(c.tool, c.args, env)); } catch { return undefined; }
@@ -273,11 +279,11 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const toolState = useCallback((model: string | null) => { if (!settings.provider || !model) return {capability: null, fellBack: false}; const id = fallbackKey(settings.provider, model); return {capability: known.current.get(id) ?? null, fellBack: fellBack.current.has(id)}; }, [settings.provider]);
   const connected = settings.enabled && settings.mode !== 'subscription' && !!settings.provider && !!settings.model;
   /** A local answer: the person's question and ZIGi's answer from the records, both marked local (never sent to an AI later). */
-  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results}: {replace?: string; results?: readonly ToolResult[]} = {}) => {
+  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results, source = 'local'}: {replace?: string; results?: readonly ToolResult[]; source?: 'local' | 'on-device'} = {}) => {
     if (reply.kind === 'none') return;
     const before = replace ? editTarget(chatRef.current, replace) ?? chatRef.current : chatRef.current;
-    const user = {...userTurn(shown), source: 'local' as const};
-    const answer = {...assistantTurn({text: reply.text, provider: null, model: null, usage: null}), source: 'local' as const, ...(reply.calls.length ? {tools: reply.calls.slice(0, 16).map(c => ({tool: c.tool, args: c.args, label: c.label.slice(0, 160)}))} : {})};
+    const user = {...userTurn(shown), source};
+    const answer = {...assistantTurn({text: reply.text, provider: null, model: null, usage: null}), source, ...(reply.calls.length ? {tools: reply.calls.slice(0, 16).map(c => ({tool: c.tool, args: c.args, label: c.label.slice(0, 160)}))} : {})};
     let next: Chat;
     try { next = appendTurn(appendTurn(before, user), answer); }
     catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
@@ -287,6 +293,44 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     zigiEvents.emit(localEvent(reply, question));
   }, [persist, rememberArea, setChat]);
   const localEnv = useCallback(() => { const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; }, [context]);
+  /**
+   * Session V Part 15: a question ZIGi's lookups did not recognise, with no AI connected and Chrome's on-device model
+   * turned on. The model first puts the question in plain words for ZIGi's own lookup, whose numbers come from the
+   * records; otherwise it answers briefly itself. It gets only the person's own words (lib/ai/on-device-chat.ts), runs
+   * inside Chrome on this computer, and Stop ends it. Both turns stay on this device: never sent to a provider later.
+   */
+  const askOnDevice = useCallback(async (text: string, env: ReturnType<typeof toolEnv> | null, replace?: string) => {
+    const controller = new AbortController(), signal = controller.signal, prompts = onDevicePrompts(text);
+    abort.current = controller; setFailure(null); setStatus('pending'); zigiEvents.emit('model-loading');
+    let failed = ON_DEVICE_FAILED;
+    try {
+      // A question never starts Chrome's download (it is large): only Settings does, from its own button.
+      if (await onDeviceAvailability() !== 'available') { failed = ON_DEVICE_NOT_READY; throw new Error(failed); }
+      const sorter = await onDeviceSession({system: prompts.rewrite.system, signal});
+      let rewritten: string | null = null;
+      try { rewritten = parseRewrite(await sorter.prompt(prompts.rewrite.input, {signal})); } finally { sorter.destroy(); }
+      if (rewritten && env) {
+        let reply: LocalReply = {kind: 'none'};
+        try { reply = localAnswer(rewritten, env); } catch { reply = {kind: 'none'}; }
+        if (reply.kind === 'answer' || reply.kind === 'choices' || reply.kind === 'refusal') {
+          answerLocally(text, rewritten, {...reply, text: `${readAs(rewritten)}\n\n${reply.text}`}, {replace, results: resultsFor(reply, env), source: 'on-device'});
+          return;
+        }
+      }
+      const chat = await onDeviceSession({system: prompts.chat.system, signal});
+      let answer = '';
+      try { answer = shortReply(await chat.prompt(prompts.chat.input, {signal})); } finally { chat.destroy(); }
+      if (!answer) throw new Error('No answer from the on-device model.');
+      answerLocally(text, text, {kind: 'answer', text: answer, calls: []}, {replace, source: 'on-device'});
+    } catch {
+      if (signal.aborted) return;
+      const examples = examplesReply(env);
+      answerLocally(text, text, examples.kind === 'examples' ? {...examples, text: `${failed} ${examples.text}`} : examples, {replace});
+    } finally {
+      if (abort.current === controller) abort.current = null;
+      setStatus('idle'); zigiEvents.emit('model-ready');
+    }
+  }, [answerLocally]);
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
     if (connected && (options.images?.length || options.log || options.direct || options.plan)) return send(text, options);
@@ -294,8 +338,9 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     let reply: LocalReply = {kind: 'none'};
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
     if (reply.kind === 'none' && connected) return send(text, options);
+    if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
     answerLocally(text, text, reply.kind === 'none' ? examplesReply(env) : reply, {replace: options.replace, results: resultsFor(reply, env)});
-  }, [answerLocally, connected, localEnv, send]);
+  }, [answerLocally, askOnDevice, connected, localEnv, send]);
   const choose = useCallback((question: string, choice: LocalChoice) => {
     const env = localEnv(); if (!env || abort.current) return;
     let reply: LocalReply = {kind: 'none'};
