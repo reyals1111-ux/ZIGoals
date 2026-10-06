@@ -36,6 +36,9 @@ import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
+import {streamHosted} from '../../lib/ai/hosted';
+import type {HostedState} from './use-hosted';
+import {getAccountScope} from '../../lib/account-session';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, onDevicePrompts, parseRewrite, readAs, shortReply} from '../../lib/ai/on-device-chat';
 
 /**
@@ -101,7 +104,11 @@ function resultsFor(reply: LocalReply, env: ReturnType<typeof toolEnv> | null): 
   if (reply.kind !== 'answer' || !env || !reply.calls.length) return undefined;
   try { return reply.calls.slice(0, 4).map(c => runTool(c.tool, c.args, env)); } catch { return undefined; }
 }
-export function useChatSession({settings, scope, context}: {settings: AiSettings; scope: string; context: AiContextState}): ChatSession {
+/**
+ * Session V Part 17: `hosted`, when ZIGoals hosted is in use (chosen, agreed to and entitled), answers through /api/zigi
+ * instead of the person's own provider; its turns are marked hosted and its usage counts under "hosted".
+ */
+export function useChatSession({settings, scope, context, hosted = null}: {settings: AiSettings; scope: string; context: AiContextState; hosted?: HostedState['active']}): ChatSession {
   const store = useMemo<ChatStore>(() => currentChatStore(), [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- the store follows the scope
   const [chat, setChatState] = useState<Chat>(() => newChat(scope, settings.provider, settings.model));
   const chatRef = useRef(chat);
@@ -123,7 +130,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? context.context?.handles ?? [], [context.context]);
   const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean} = {}) => {
     if (!text && !stopped) return;
-    const made = assistantTurn({text, provider: settings.provider, model: extra.model ?? settings.model, usage, stopped});
+    const made = {...assistantTurn({text, provider: hosted ? null : settings.provider, model: extra.model ?? (hosted ? hosted.model : settings.model), usage, stopped}), ...(hosted ? {source: 'hosted' as const} : {})};
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
     const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {})};
     if (extra.lookups?.length) lookups.current.set(turn.id, extra.lookups);
@@ -133,7 +140,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     setChat(next); persist(next);
     // Session V Part 12: cards to present, else a gentle look after a careful-mode answer, else the insight.
     zigiEvents.emit(parseReply(text).proposals.length ? 'reply-with-proposals' : extra.careful ? 'careful' : 'reply-done');
-  }, [persist, setChat, settings.model, settings.provider]);
+  }, [persist, setChat, settings.model, settings.provider, hosted]);
   /** Provider metadata for one model, read once per session by the person's own message (never stored). */
   const capabilityFor = useCallback((key: string | null, model: string, signal: AbortSignal): Promise<Capability> => {
     const id = fallbackKey(settings.provider!, model), cached = capabilities.current.get(id);
@@ -147,12 +154,14 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const rememberArea = useCallback((chatId: string) => { if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
-    if (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription') { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · your AI.']}); return; }
+    if (!hosted && (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription')) { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · your AI.']}); return; }
+    // ZIGoals hosted stands in for the person's provider: the relay chooses the model; the wire is OpenAI's.
+    const providerId = hosted ? 'openai' as const : settings.provider!, account = hosted ? getAccountScope() : null;
     const before = !options.reuse && options.replace ? editTarget(chatRef.current, options.replace) ?? chatRef.current : chatRef.current;
     if (isFull(before) && !options.reuse) { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
     let options_: AiOptions = {version: 1};
     try { options_ = readDeviceRecord(getAppStorage(), AI_OPTIONS).data; } catch { /* the defaults */ }
-    const deepModel = options.deep ? options_.deepModel?.[settings.provider] ?? null : null, model = deepModel ?? settings.model;
+    const deepModel = options.deep && !hosted ? options_.deepModel?.[providerId] ?? null : null, model = hosted ? hosted.model : deepModel ?? settings.model!;
     // "Ask first": past the monthly cap from the person's own prices, ZIGi asks before sending (only when they chose it).
     if (!options.spendConfirmed) {
       let cap = null; try { cap = capState(readUsage(getAppStorage()).data, monthKey(new Date())); } catch { cap = null; }
@@ -160,9 +169,9 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     }
     setSpendCheck(null);
     const pageText = options.withContext === false ? null : context.context?.text ?? null;
-    const provider = PROVIDERS[settings.provider], contextText = [pageText, options.extra?.text].filter(Boolean).join('\n\n') || null;
+    const provider = PROVIDERS[providerId], contextText = [pageText, options.extra?.text].filter(Boolean).join('\n\n') || null;
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
-    const providerName = settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
+    const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
     const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
     // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
     const risk = detectRisk(text);
@@ -175,15 +184,16 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const fit = fitToBudget({system: systemOnly, context: contextText ?? '', turns: messagesFor(started.turns), budgetTokens: settings.contextBudgetTokens});
     if (fit.overBudget && !options.confirmed) { setConfirmation({text, fit, budget: settings.contextBudgetTokens, reuse: !!options.reuse, ...(options.extra ? {extra: options.extra} : {}), ...(options.deep ? {deep: true} : {}), ...(options.images ? {images: options.images} : {}), ...(options.log ? {log: true} : {}), options}); return; }
     setConfirmation(null); setFailure(null);
-    const next = {...started, provider: settings.provider, model: settings.model};
+    const next = {...started, provider: hosted ? null : settings.provider, model: hosted ? hosted.model : settings.model};
     const asked = [...next.turns].reverse().find(t => t.role === 'user');
     if (asked && options.extra) extras.current.set(asked.id, options.extra);
     if (asked && options.images?.length) photos.current.set(asked.id, options.images);
     setChat(next); persist(next);
     if (!options.reuse && !before.turns.length) rememberArea(next.id);
     let key: string | null = null;
-    try { key = await readKey(scope, settings.provider); } catch { key = null; }
-    if (key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
+    if (!hosted) try { key = await readKey(scope, providerId); } catch { key = null; }
+    if (hosted && !account) { setFailure({kind: 'blocked', title: 'Sign in again to use ZIGoals hosted.', steps: ['ZIGoals hosted works with your account; sign in under Settings → Account & sync.']}); return; }
+    if (!hosted && key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
     const controller = new AbortController(); abort.current = controller;
     setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiEvents.emit('reply-pending');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
@@ -192,12 +202,12 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     // The photo travels with the question it belongs to, the last user message, and nowhere else.
     const lastUser = fit.messages.map(m => m.role).lastIndexOf('user');
     const messages = options.images?.length && lastUser >= 0 ? fit.messages.map((m, i) => i === lastUser && m.role === 'user' ? {...m, images: options.images} : m) : fit.messages;
-    const request = {provider: settings.provider, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal};
+    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal};
     // Session V Part 6: how this message gets the data. Tools only with the page's data shared for this message, never
     // after this model refused them in this session; the setting first, then the provider's own metadata.
-    const toolMode = options_.toolMode ?? 'auto', fbKey = fallbackKey(settings.provider, model);
+    const toolMode = options_.toolMode ?? 'auto', fbKey = fallbackKey(providerId, hosted ? `hosted:${model}` : model);
     let mode: DataMode = 'attach';
-    if (options.withContext !== false && toolMode !== 'attach' && !fellBack.current.has(fbKey)) mode = dataMode(toolMode, toolMode === 'auto' ? await capabilityFor(key, model, controller.signal).catch(() => null) : null, false);
+    if (options.withContext !== false && toolMode !== 'attach' && !fellBack.current.has(fbKey)) mode = dataMode(toolMode, toolMode === 'auto' ? hosted ? {tools: true, vision: null} : await capabilityFor(key, model, controller.signal).catch(() => null) : null, false);
     const sources = mode === 'tools' ? context.toolSources() : null, toolHandles = new Handles(contextHandles);
     const env = sources ? toolEnv(sources, context.gates, 'provider', toolHandles) : null;
     if (!env || !toolsFor(env).length) mode = 'attach';
@@ -210,10 +220,10 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
       if (!frame.current) frame.current = nextFrame(flush);
     };
     // A request counts once the provider answers it (a refused one costs nothing and is not counted).
-    const counted = async function* (r: Parameters<typeof streamChat>[0]) { let seen = false; for await (const event of streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
+    const counted = async function* (r: Parameters<typeof streamChat>[0]) { let seen = false; for await (const event of hosted && account ? streamHosted(r, account) : streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
     const record = () => {
       if (!requests) return;
-      try { recordUsage(getAppStorage(), settings.provider!, usage ?? {input: null, output: null}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
+      try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, usage ?? {input: null, output: null}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
       try { const cap = capState(readUsage(getAppStorage()).data, monthKey(new Date())), line = capNote(cap); if (line && noted.current !== `${monthKey(new Date())}:${cap?.level}`) { noted.current = `${monthKey(new Date())}:${cap?.level}`; setUsageNote(line); } } catch { /* no note */ }
     };
     const run = async (current: DataMode) => {
@@ -249,10 +259,10 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     } catch (error) {
       if (isAbortLike(error)) { done('Stopped'); }
       else {
-        const aiError = error instanceof AiError ? error : mapNetworkError(settings.provider, error, {local: settings.provider === 'local', online: navigator.onLine});
+        const aiError = error instanceof AiError ? error : mapNetworkError(providerId, error, {local: !hosted && settings.provider === 'local', online: navigator.onLine});
         if (reply) done(`Interrupted: ${aiError.message}`.slice(0, 200));
-        const hosted = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
-        setFailure({kind: aiError.kind, title: aiError.message, steps: errorSteps(aiError, {providerName, local: settings.provider === 'local' ? {server: settings.localServer, baseUrl: settings.baseUrl ?? ''} : undefined, hostedPage: hosted, keysUrl: provider.keysUrl})});
+        const hostedPage = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+        setFailure({kind: aiError.kind, title: aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: settings.provider === 'local' ? {server: settings.localServer, baseUrl: settings.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl})});
         zigiEvents.emit('error');
       }
     } finally {
@@ -260,7 +270,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
       abort.current = null; frame.current?.(); frame.current = null;
       setStatus('idle'); setDraft(''); setLooking([]); pendingText.current = '';
     }
-  }, [capabilityFor, context, finish, persist, rememberArea, scope, setChat, settings]);
+  }, [capabilityFor, context, finish, persist, rememberArea, scope, setChat, settings, hosted]);
   const stop = useCallback(() => abort.current?.abort(), []);
   const again = useCallback(async (deep: boolean) => {
     if (abort.current) return;
@@ -277,7 +287,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const lookupsFor = useCallback((turnId: string) => lookups.current.get(turnId), []);
   /** What this session knows about the current model: its published capability and whether it refused tools. */
   const toolState = useCallback((model: string | null) => { if (!settings.provider || !model) return {capability: null, fellBack: false}; const id = fallbackKey(settings.provider, model); return {capability: known.current.get(id) ?? null, fellBack: fellBack.current.has(id)}; }, [settings.provider]);
-  const connected = settings.enabled && settings.mode !== 'subscription' && !!settings.provider && !!settings.model;
+  const connected = !!hosted || (settings.enabled && settings.mode !== 'subscription' && !!settings.provider && !!settings.model);
   /** A local answer: the person's question and ZIGi's answer from the records, both marked local (never sent to an AI later). */
   const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results, source = 'local'}: {replace?: string; results?: readonly ToolResult[]; source?: 'local' | 'on-device'} = {}) => {
     if (reply.kind === 'none') return;

@@ -63,6 +63,8 @@ import {CopyMarkdown, FeedbackButtons, FollowupChips, TurnTime} from './turn-ext
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
+import {useHosted} from './use-hosted';
+import {HOSTED_LABEL, hostedSettings} from '../../lib/ai/hosted';
 import {useAgentBatches} from './agent-inbox';
 import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
@@ -88,13 +90,16 @@ const SetupChooser = lazy(() => import('./setup-chooser'));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
 export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props) {
-  const settings = useAiSettings(), scope = currentAiScope();
-  const data = settings.data, provider = data.provider ? PROVIDERS[data.provider] : null;
-  const providerName = data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
-  const connected = data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model, bridge = data.enabled && data.mode === 'subscription';
+  const settings = useAiSettings(), scope = currentAiScope(), hostedState = useHosted(), hosted = hostedState.active;
+  // Session V Part 17: with ZIGoals hosted in use, it stands in for the person's own AI; the page switches still decide
+  // what goes, and Health needs the hosted consent's own box on top of the three-part gate.
+  const data = useMemo(() => hosted ? hostedSettings(settings.data, {version: 1, hostedConsent: {at: '', health: hostedState.health}}) : settings.data, [settings.data, hosted, hostedState.health]);
+  const provider = !hosted && data.provider ? PROVIDERS[data.provider] : null;
+  const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
+  const connected = !!hosted || (data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model), bridge = !hosted && data.enabled && data.mode === 'subscription';
   // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device.
   const localOnly = !connected && !bridge;
-  const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context}), runner = useProposals(), zigi = useZigiState();
+  const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context, hosted}), runner = useProposals(), zigi = useZigiState();
   // ZIGi's state machine runs here, once the chat chunk is on the page (Session V Part 12); the launcher shows its state.
   useZigiMachine();
   const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
@@ -188,7 +193,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       <ZigiAvatar state={zigi} size={40} decorative/>
       <div className="ai-chat-identity">
         <h2 id={titleId} className="ai-chat-title"><NebulaFlow identity="ai-chat-title">ZIGi · your AI</NebulaFlow></h2>
-        <p className="ai-chat-via"><span className="ai-chat-via-text">{connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span><span className="ai-chat-premium">{entitlement('your-ai').label}</span></p>
+        <p className="ai-chat-via"><span className="ai-chat-via-text">{hosted ? `${hosted.provider} · ${hosted.model} via ZIGoals hosted` : connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span><span className="ai-chat-premium">{entitlement(hosted ? 'hosted' : 'your-ai').label}</span></p>
       </div>
       <button type="button" className="quiet ai-chat-close" onClick={mini.win ? mini.close : onClose} aria-label="Close ZIGi">×</button>
       <div className="ai-chat-tools" role="toolbar" aria-label="Chat tools">
@@ -353,7 +358,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
     {onEdit && <p className="ai-turn-extras ai-turn-edit"><button type="button" className="text-link" aria-label="Edit your last message" onClick={onEdit}>Edit</button></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   const copy = () => { copyText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
-  const label = ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName);
+  const label = turn.source === 'hosted' ? HOSTED_LABEL(providerName.replace(/ via ZIGoals hosted$/, '').replace(/^your AI$/, 'the provider ZIGoals uses')) : ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName);
   return <article className="ai-turn ai-turn-assistant" aria-label="Reply">
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">

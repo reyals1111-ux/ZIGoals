@@ -23,6 +23,8 @@ import {reviewForAi} from './proactive/review';
 import {continuePrompt} from './continue';
 import {storedChat, type Chat, type ChatTurn} from './chats';
 import {CHAT_SYSTEM, onDevicePrompts, REWRITE_SYSTEM} from './on-device-chat';
+import {hostedSettings} from './hosted';
+import {openAiBody} from './adapters/openai-compatible';
 import {agentRunner, parseAgentActions, proposalAnswer, proposeTool, readTools, type AgentCall} from './webmcp';
 
 /**
@@ -265,4 +267,23 @@ test('Part 16: browser AI agents (WebMCP): no Health tool offered, every result 
   const open = toolEnv(s, gatesFor(true, 'health', '/app/health'), 'provider');
   const water = readTools(availableTools(open).filter(t => t.name === 'water'), agentRunner(() => open, () => undefined));
   expect(sentinelsIn(await water[0]!.execute({range: 'today'}))).toContain(String(SENTINEL.waterMl));
+});
+
+test('Part 17: the hosted relay\'s request carries no Health unless the hosted consent ticked it, even with the three-part gate open', () => {
+  const s = sources(), open = settingsWith(true);
+  const relayBody = (consentHealth: boolean) => {
+    const settings = hostedSettings(open, {version: 1, route: 'hosted', hostedConsent: {at: '2026-10-06T10:00:00.000Z', health: consentHealth}});
+    const out: string[] = [];
+    for (const [area, pathname] of PAGES) {
+      const gates = aiGates({settings, area, pathname, layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false});
+      const context = buildPageContext({...builderInput(s, area, pathname, settings.includeHealth), consent: gates.page}, new Handles());
+      const env = toolEnv(s, gates, 'provider');
+      const tools = toolsFor(env);
+      out.push(JSON.stringify(openAiBody('openai', {model: 'relay', system: buildSystemPrompt({area, context: context.text, customInstructions: '', providerName: 'OpenAI via ZIGoals hosted', tools: true}), messages: [{role: 'user', content: 'How was my week?'}], maxOutputTokens: 1024, tools})));
+      for (const tool of TOOLS) out.push(toolText(runTool(tool.name, tool.name === 'search_foods' ? {query: SENTINEL.food} : {}, env), env));
+    }
+    return out;
+  };
+  for (const text of relayBody(false)) expect(sentinelsIn(text)).toEqual([]);
+  expect(relayBody(true).some(text => sentinelsIn(text).length > 0)).toBe(true);
 });
