@@ -48,7 +48,7 @@ import './dashboard.css';
 import {WelcomeCard} from '../onboarding/welcome-card';
 import {useShowcase} from '../showcase-controls';
 import {noExistingData,onboardingSeen} from '../../lib/onboarding';
-import {getAccountScope} from '../../lib/account-session';
+import {ACCOUNT_CHANGE,getAccountScope} from '../../lib/account-session';
 import { formatPlainDecimal } from "../../lib/visual-format";
 import {ReminderCards} from '../reminders/reminder-cards';
 import {PhoneFold} from '../phone/phone-fold';
@@ -91,10 +91,12 @@ export function TodayDashboard(){
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
- // Session V Part 1b: the widget rows a person left open on a phone stay open (zigoals:today-folds:v1), read after mount
- // and written only when the person opens or closes a row.
- const [folds,setFolds]=useState<TodayFolds|null>(null);
- useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;try{setFolds(readTodayFolds(getAppStorage()));}catch{setFolds(null);}});return()=>{active=false;};},[showcase]);
+ // Session V Part 1b: the widget rows a person left open on a phone stay open (zigoals:today-folds:v1), written only when
+ // the person opens or closes a row. Read on the client's first render, so a remembered row is open the first time it
+ // shows (the phone rows only appear after hydration, so the server's folded markup never differs), and read again
+ // after mount and whenever the account changes.
+ const [folds,setFolds]=useState<TodayFolds|null>(()=>{if(typeof window==='undefined')return null;try{return readTodayFolds(getAppStorage());}catch{return null;}});
+ useEffect(()=>{let active=true;const read=()=>{if(!active)return;try{setFolds(readTodayFolds(getAppStorage()));}catch{setFolds(null);}};queueMicrotask(read);window.addEventListener(ACCOUNT_CHANGE,read);return()=>{active=false;window.removeEventListener(ACCOUNT_CHANGE,read);};},[showcase]);
  const toggleFold=(id:string,open:boolean)=>{try{setFolds(rememberFold(getAppStorage(),id,open));}catch{/* storage refused: the row still opens, it is just not remembered */}};
  const loaded=(domain:string)=>domain==='health'?health.loaded:domain==='habits'?habits.loaded:platform.loaded&&legacy.loaded;
  const domainError=(domain:string)=>domain==='health'?health.error:domain==='habits'?habits.error:platform.error;

@@ -18,7 +18,9 @@ export function PhoneFold({ label, children, always = false, expanded = false, r
   // that must be seen while something runs is neither folded away nor remounted when it changes state.
   // `remembered` / `onToggle` (Session V Part 1b, Today's widget rows): the row opens as the person left it, read by the
   // caller after mount; a toggle by the person tells the caller, which remembers it. Viewing writes nothing.
-  const phone = usePhoneActive() || always, [chosen, setOpen] = useState(false), open = chosen || expanded, id = useId(), body = useRef<HTMLDivElement>(null);
+  // A remembered row starts open, so it never shows folded first (the caller reads its memory on the client's first
+  // render; on the server and during hydration a phone row is not rendered at all unless `always`).
+  const phone = usePhoneActive() || always, [chosen, setOpen] = useState(!!remembered && !always), open = chosen || expanded, id = useId(), body = useRef<HTMLDivElement>(null);
   useEffect(() => { if (expanded) setOpen(true); }, [expanded]);
   useEffect(() => { if (remembered) setOpen(true); }, [remembered]);
   useEffect(() => {

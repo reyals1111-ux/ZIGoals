@@ -62,3 +62,31 @@ test('Showcase keeps the remembered rows in the tab and never in this device\'s 
   expect(await stored(page)).toBeNull();
   expect(await page.evaluate(key => Object.keys(sessionStorage).filter(k => k.endsWith(key)).length, TODAY_FOLDS_KEY)).toBe(1);
 });
+
+// Run11's packaged journey (CI, Session V) opened a row by clicking it on every visit; a row remembered open, then shown
+// folded for a moment, closed under that click. A remembered row is open the first time it shows, after a reload and
+// after moving between pages in the app. Rows are told apart by their widget id: before the person's layout loads,
+// Today shows the default one for a moment, whose rows can carry the same names.
+test('a remembered row is open the first time it shows: after a reload and after an in-app navigation', async ({page}) => {
+  await page.addInitScript(() => {
+    const seen: string[] = []; (window as unknown as {__rowStates: string[]}).__rowStates = seen;
+    const note = (el: Element) => { if (el instanceof HTMLButtonElement && el.classList.contains('phone-fold-toggle')) seen.push(`${el.closest('.placed-module')?.getAttribute('data-module') ?? ''}=${el.getAttribute('aria-expanded')}`); };
+    new MutationObserver(list => { for (const m of list) { if (m.type === 'attributes') note(m.target as Element); for (const n of m.addedNodes) if (n instanceof Element) { note(n); n.querySelectorAll('.phone-fold-toggle').forEach(note); } } })
+      .observe(document, {subtree: true, childList: true, attributes: true, attributeFilter: ['aria-expanded']});
+  });
+  await seeded(page);
+  const id = 'preset-habits-health-1', row = page.locator(`.placed-module[data-module="${id}"] .phone-fold-toggle`);
+  await row.click();
+  await expect(row).toHaveAttribute('aria-expanded', 'true');
+  const states = () => page.evaluate(module => (window as unknown as {__rowStates: string[]}).__rowStates.filter(s => s.startsWith(`${module}=`)), id);
+  await page.reload(); await expect(row).toHaveAttribute('aria-expanded', 'true');
+  expect(await states()).toEqual([`${id}=true`]);
+  await page.evaluate(() => { (window as unknown as {__rowStates: string[]}).__rowStates.length = 0; });
+  await page.getByRole('link', {name: 'Habits', exact: true}).first().click();
+  await expect(page).toHaveURL(/\/app\/habits$/);
+  await page.getByRole('link', {name: 'Today', exact: true}).first().click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(row).toHaveAttribute('aria-expanded', 'true');
+  expect(await states()).toEqual([`${id}=true`]);
+  await expect(page.locator('.placed-module[data-module="preset-habits-health-0"] .phone-fold-toggle')).toHaveAttribute('aria-expanded', 'false');
+});

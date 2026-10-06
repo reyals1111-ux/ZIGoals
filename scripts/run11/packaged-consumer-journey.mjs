@@ -6,7 +6,9 @@ import {armSyncCompletion} from './sync-completion.mjs';
 // A sync wait needs a completion counted after armPackagedSync(page) was called just before the
 // action that starts the sync; the success message alone can be left over from an earlier sync.
 /** Session U follow-up F3: on a phone a Today widget card is a row named by it that opens in place; open it there. */
-async function todayCard(page,name){if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches))await page.getByRole('button',{name,exact:true}).click();return page.getByRole('article',{name,exact:true});}
+// Session V Part 1b: a row the person opened before stays open on that device, so it is opened only while folded (a
+// remembered state that lands between the read and the click closes it once, and the second pass opens it again).
+async function todayCard(page,name){if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name,exact:true});for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}return page.getByRole('article',{name,exact:true});}
 export async function armPackagedSync(page){await armSyncCompletion(page);return page.evaluate(()=>window.__zigoalsSyncCompletions);}
 export async function waitPackagedSync(page,mark){await page.waitForFunction(m=>window.__zigoalsSyncCompletions>m&&[...document.querySelectorAll('button')].some(b=>b.textContent==='Sync now'&&!b.disabled),mark);await page.getByRole('region',{name:'Encrypted account sync',exact:true}).getByText(/Account records synced and acknowledged/).waitFor();}
 export async function createPackagedRecords(page){
