@@ -160,10 +160,10 @@ weighted by its opacity) lands on the circle's centre. The values are fractions 
   "ZIGi's look and feel" (`#zigi-look`) offer the same controls:
   - look (Original, plus the "Coming soon" tiles);
   - animation, side, size and greeting;
-  - the edge tab.
+  - the edge tab;
+  - knock when a reminder is due (Part 13; off by default, also offered once in the chat).
 
-  Every choice is a display preference on this device, in Export and never synced. Part 13 adds the knock switch
-  there.
+  Every choice is a display preference on this device, in Export and never synced.
 - **Meet ZIGi** (`/app/zigi`):
   - shows every state of every skin at the launcher's, the panel's and a large size, with its code, kind and fallback;
   - one-shots play again on request, and the animation choice sits at the top;

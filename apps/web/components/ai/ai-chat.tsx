@@ -60,6 +60,8 @@ import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
 import {CopyMarkdown, FeedbackButtons, FollowupChips, TurnTime} from './turn-extras';
 import {CareNote} from './care-note';
+import {KnockOffer} from './knock-offer';
+import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 
 /**
@@ -183,6 +185,7 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
           ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy} runner={runner} onNavigate={onClose} onAsk={ask}/>
           : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length}
             asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} onAsk={ask} onContinue={() => setView('continue')} onEdit={turn.role === 'user' && !busy && turn === lastAsked ? () => startEdit(turn) : undefined}/>)}
+        {!busy && <KnockOffer connected={data.enabled} sensitive={sensitive} chatEnded={session.chat.turns.some(t => t.role === 'assistant' && t.source !== 'local')} today={localDate()} connectedOn={data.connectedOn ?? null}/>}
         {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">{session.looking.length ? `ZIGi looked at ${session.looking.join(', ')}; waiting for ${providerName}…` : `Waiting for ${providerName}…`}</span></div>}
         {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}

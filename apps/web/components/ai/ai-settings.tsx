@@ -69,7 +69,7 @@ function LookCard() {
   const {open, setOpen, card} = useAnchoredCard(LOOK_ANCHOR);
   return <details ref={card} id={LOOK_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">ZIGi&rsquo;s look and feel</summary>
-    <p className="ai-note">How ZIGi looks and moves, which side it sits on, its size, its greeting and the tab that brings it back. Kept on this device; nothing is sent.</p>
+    <p className="ai-note">How ZIGi looks and moves, which side it sits on, its size, its greeting, the tab that brings it back, and whether it knocks when a reminder is due. Kept on this device; nothing is sent.</p>
     {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><CustomizePanel/></Suspense>}
   </details>;
 }

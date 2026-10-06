@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {currentInstallContext} from '../../lib/install/platform';
 import {AI_SETTINGS_KEY, defaultAiSettings, readAiSettings, turnOffAi, updateAiSettings, type AiSettings} from '../../lib/ai/settings';
+import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
@@ -38,6 +39,9 @@ export function useAiSettings(): AiSettingsStore {
     const next = turnOffAi(getAppStorage(), installed.current);
     setState(s => ({...s, data: next, loaded: true, unreadable: false}));
     window.dispatchEvent(new Event(AI_SETTINGS_EVENT));
+    // Session V: the reset also changed ZIGi's own records (options, knock); every reader reads them again at once, so
+    // knocking stops and the opted-in reminder names go now, not on the next visit.
+    window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT));
     return next;
   }, []);
   return {...state, update, turnOff};

@@ -4,7 +4,7 @@ import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {launcherApp} from '../../lib/ai/apps';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {ZigiFigure} from '../zigi/zigi-figure';
-import {useZigiState, zigiEvents} from '../zigi/bus';
+import {useZigiState, zigiEvents, zigiState} from '../zigi/bus';
 import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
 import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
@@ -28,6 +28,13 @@ const loadChat = () => import('./ai-chat');
 // React's own lazy loading: the launcher renders only after mount, so the chunk is never asked for on the server.
 const AiChat = lazy(loadChat);
 const HIDE_UNDO_MS = 10_000;
+/** Session V Part 13: the knock, loaded only once the person turned knocking on. */
+const ZigiCompanion = lazy(() => import('../zigi/companion'));
+/** ZIGi greets once when the person comes back from a reminder notification (the worker's message or its address). */
+function greetOnce(): void {
+  zigiState.set('greeting');
+  window.setTimeout(() => { if (zigiState.get() === 'greeting') zigiState.set('idle'); }, 2500);
+}
 export function AiLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false), [undoUntil, setUndoUntil] = useState<number | null>(null);
   const launcher = useLauncherRecord(), {look, loaded: lookLoaded} = useZigiLook(), sensitive = useSensitiveScreen(), phone = usePhoneActive(), pathname = usePathname() ?? '', zigi = useZigiState();
@@ -53,6 +60,13 @@ export function AiLauncher() {
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
   useEffect(() => { const onAsk = () => { if (!launcher.record.launcherHidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [launcher.record.launcherHidden, sensitive]);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('zigi') === 'hello') { url.searchParams.delete('zigi'); window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); greetOnce(); }
+    const onMessage = (event: MessageEvent) => { if (event.data?.type === 'zigoals:push-open') greetOnce(); };
+    navigator.serviceWorker?.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker?.removeEventListener('message', onMessage);
+  }, []);
   const hide = () => {
     setOpen(false); launcher.setLauncherHidden(true); setUndoUntil(Date.now() + HIDE_UNDO_MS);
     if (timer.current) window.clearTimeout(timer.current);
@@ -83,5 +97,6 @@ export function AiLauncher() {
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
     {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
     {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} sensitive={sensitive} phone={phone}/></Suspense>}
+    {lookLoaded && look.knock && <Suspense fallback={null}><ZigiCompanion away={!visible || open} phone={phone} side={look.side}/></Suspense>}
   </>;
 }

@@ -143,6 +143,8 @@ export const zigiKnockSchema = z.looseObject({
   counts: z.record(day, z.number().int().min(0).max(100)).refine(atMost(14)).optional(),
   /** A reminder's key → snoozed until this instant. */
   snoozed: z.record(z.string().min(1).max(160), stamp).refine(atMost(200)).optional(),
+  /** Session V Part 13: the reminders ZIGi knocked for, per day (one knock per reminder a day unless snoozed). */
+  shown: z.record(day, z.array(z.string().min(1).max(160)).max(50)).refine(atMost(14)).optional(),
 });
 export type ZigiKnock = z.infer<typeof zigiKnockSchema>;
 export const ZIGI_KNOCK: DeviceRecordSpec<ZigiKnock> = {key: ZIGI_KNOCK_KEY, schema: zigiKnockSchema, empty};

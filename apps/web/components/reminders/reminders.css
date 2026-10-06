@@ -1,5 +1,7 @@
 /* In-app reminders (Session I, Part 8). */
 .reminder-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin:0 0 18px}
+/* Session V Part 13: a device with ZIGi's weekly reminders and none due today shows nothing here. */
+.reminder-cards:empty{display:none}
 .reminder-card{display:grid;gap:8px;padding:18px 20px;border:1px solid #8fd2ff40;background:radial-gradient(circle at 0 0,#2bd6ff1c,transparent 45%),linear-gradient(150deg,#16243e,#111a31)}
 .reminder-card .eyebrow{margin:0}
 .reminder-card h2{margin:0;font-size:1.25rem}
