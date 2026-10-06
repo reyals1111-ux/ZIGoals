@@ -24,12 +24,13 @@ const SIDE_LABELS = {right: 'Right', left: 'Left'} as const;
 const SIZE_LABELS = {s: 'Small', m: 'Medium', l: 'Large'} as const;
 const GREETING_LABELS = {friendly: 'Friendly', quiet: 'Quiet'} as const;
 const GREETING_NOTES = {friendly: 'On the first open of the day, a short brief from your records, made on this device.', quiet: 'Just the chat.'} as const;
+/** Session V Part 16: each option is named by its label alone ("Calm"); its note is the description. */
 function Choice<T extends string>({legend, value, options, labels, notes, onChange}: {legend: string; value: T; options: readonly T[]; labels: Record<T, string>; notes?: Partial<Record<T, string>>; onChange: (next: T) => void}) {
   const name = useId();
   return <fieldset className="zigi-choice"><legend>{legend}</legend>
     <div className="zigi-choice-options">{options.map(option => <label key={option} className="zigi-choice-option">
-      <input type="radio" name={name} value={option} checked={value === option} onChange={() => onChange(option)}/>
-      <span><strong>{labels[option]}</strong>{notes?.[option] && <small>{notes[option]}</small>}</span>
+      <input type="radio" name={name} value={option} checked={value === option} onChange={() => onChange(option)} aria-labelledby={`${name}-${option}`} aria-describedby={notes?.[option] ? `${name}-${option}-note` : undefined}/>
+      <span><strong id={`${name}-${option}`}>{labels[option]}</strong>{notes?.[option] && <small id={`${name}-${option}-note`}>{notes[option]}</small>}</span>
     </label>)}</div>
   </fieldset>;
 }

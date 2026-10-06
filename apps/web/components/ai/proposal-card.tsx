@@ -23,7 +23,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
     <h4 id={titleId}>Nothing proposed</h4>
     <p>{refusal ?? 'This proposal could not be turned into a card.'}</p>
-    {status === 'proposed' && <div className="ai-card-actions"><button type="button" className="text-link" onClick={onDismiss}>Dismiss</button></div>}
+    {status === 'proposed' && <div className="ai-card-actions"><button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button></div>}
   </article>;
   const {card} = plan, fields = editableFields(action), form = plan.target === 'form';
   function save(event: FormEvent<HTMLFormElement>) {
@@ -45,9 +45,10 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
       <div className="ai-card-actions"><button type="submit" className="primary">Save changes</button><button type="button" className="text-link" onClick={() => { setEditing(false); setEditError(''); }}>Cancel</button></div>
     </form> : <div className="ai-card-actions">
       {status === 'proposed' ? <>
-        <button type="button" className="primary" onClick={onAdd}>{form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
-        {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)}>Edit</button>}
-        <button type="button" className="text-link" onClick={onDismiss}>Dismiss</button>
+        {/* Session V Part 16: each button keeps its short name and is described by the card's title, so a list of buttons still says which card. */}
+        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
+        {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)} aria-describedby={titleId}>Edit</button>}
+        <button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button>
       </> : <span className="ai-card-status">{status === 'added' && card.kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : STATUS_TEXT[status]}</span>}
     </div>}
     {error && <p role="alert" className="ai-card-error">{error}</p>}

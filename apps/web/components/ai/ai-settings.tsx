@@ -25,6 +25,7 @@ import {useHealthConsent} from './use-health-consent';
 import './ai.css';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {onDeviceAvailability} from '../../lib/ai/on-device';
+import {modelContext} from '../../lib/ai/webmcp';
 
 /**
  * Settings → ZIGi · your AI (ADR-012, Part 8; id="your-ai"): the connection (setup, change model, disconnect), what
@@ -98,6 +99,21 @@ function OnDeviceCard() {
     <summary className="ai-pack-summary">Chrome&rsquo;s on-device model</summary>
     <p className="ai-note">A small model that runs inside Chrome on this computer. While no AI is connected it gives short answers, rewords ZIGi&rsquo;s brief and helps ZIGi understand questions. Nothing is sent anywhere.</p>
     {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><OnDevicePanel/></Suspense>}
+  </details>;
+}
+/**
+ * Session V Part 16: browser AI agents (WebMCP), only in a browser that offers tools to them; loaded when the card opens.
+ */
+const AgentsPanel = lazy(() => import('./agents-panel'));
+const AGENTS_ANCHOR = 'zigi-agents';
+function AgentsCard() {
+  const {open, setOpen, card} = useAnchoredCard(AGENTS_ANCHOR), [offered, setOffered] = useState(false);
+  useEffect(() => { setOffered(modelContext() !== null); }, []);
+  if (!offered) return null;
+  return <details ref={card} id={AGENTS_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Browser AI agents</summary>
+    <p className="ai-note">An AI agent built into this browser can use ZIGi&rsquo;s lookups and propose changes on the pages you open, only if you allow it. Off by default.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><AgentsPanel/></Suspense>}
   </details>;
 }
 /** Session V Part 5: the context pack, loaded only when the person opens its card. */
@@ -218,6 +234,7 @@ export default function AiSettings() {
     </>}
     {settings.loaded && <SetupChooserCard/>}
     {settings.loaded && <OnDeviceCard/>}
+    {settings.loaded && <AgentsCard/>}
     {settings.loaded && <LookCard/>}
     {settings.loaded && <NotesCard/>}
     {settings.loaded && <ContextPackCard/>}

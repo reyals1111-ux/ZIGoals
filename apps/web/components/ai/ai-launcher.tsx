@@ -28,8 +28,10 @@ const loadChat = () => import('./ai-chat');
 // React's own lazy loading: the launcher renders only after mount, so the chunk is never asked for on the server.
 const AiChat = lazy(loadChat);
 const HIDE_UNDO_MS = 10_000;
-/** Session V Part 13: the knock, loaded only once the person turned knocking on. */
+/** Session V Part 13: the knock, loaded only once the person turned knocking on; Part 16: browser agents, only where the browser offers them. */
 const ZigiCompanion = lazy(() => import('../zigi/companion'));
+/** Session V Part 16: a browser that offers tools to AI agents (WebMCP); only there can the person's switch for them matter. */
+const agentsOffered = () => [document, navigator].some(host => typeof (host as {modelContext?: {registerTool?: unknown}}).modelContext?.registerTool === 'function');
 /** ZIGi greets once when the person comes back from a reminder notification (the worker's message or its address). */
 function greetOnce(): void {
   zigiState.set('greeting');
@@ -83,7 +85,7 @@ export function AiLauncher() {
   if (!mounted || !pathname.startsWith('/app')) return null;
   const app = launcherApp(launcher.record);
   const visible = launcher.loaded && lookLoaded && !launcher.record.launcherHidden && !sensitive;
-  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && look.edgeTab && !sensitive;
+  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && look.edgeTab && !sensitive, agents = agentsOffered();
   return <>
     {visible && <div className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}
@@ -99,6 +101,6 @@ export function AiLauncher() {
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
     {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
     {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense>}
-    {lookLoaded && look.knock && <Suspense fallback={null}><ZigiCompanion away={!visible || open} phone={phone} side={look.side}/></Suspense>}
+    {lookLoaded && (look.knock || agents) && <Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!visible || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense>}
   </>;
 }

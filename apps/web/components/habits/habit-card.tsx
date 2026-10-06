@@ -133,7 +133,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
 
 function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
   const stats = habitStats(habit, today); const trends = habitTrends(habit, today);
-  return <div className="habit-insights" aria-label={`${habit.title} insights`}>
+  return <div className="habit-insights" role="group" aria-label={`${habit.title} insights`}>
     <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
     <div className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><GlassBar identity={`habit-trends:${habit.id}:${trend.period}`} className="habit-trend-track" aria-hidden="true" value={trend.percentage / 100} /><strong>{trend.percentage}%</strong></div>)}</div>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>

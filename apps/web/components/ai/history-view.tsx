@@ -34,7 +34,7 @@ export function HistoryView({session, onOpen}: {session: ChatSession; onOpen: ()
           <button type="button" className="text-link" onClick={() => void session.remove(item.id).then(() => { forget([item.id]); return refresh(); })}>Delete</button>
         </span></>}
   </li>;
-  return <div className="ai-history" aria-label="Chat history">
+  return <div className="ai-history" role="region" aria-label="Chat history">
     <div className="ai-history-tools">
       <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search your chats" aria-label="Search your chats"/>
       <label className="ai-history-filter">Page<select value={filter} onChange={e => setFilter(e.target.value as HistoryFilter)}><option value="all">All pages</option>{PAGE_AREAS.map(a => <option key={a} value={a}>{AREA_LABELS[a]}</option>)}</select></label>

@@ -23,6 +23,7 @@ import {reviewForAi} from './proactive/review';
 import {continuePrompt} from './continue';
 import {storedChat, type Chat, type ChatTurn} from './chats';
 import {CHAT_SYSTEM, onDevicePrompts, REWRITE_SYSTEM} from './on-device-chat';
+import {agentRunner, parseAgentActions, proposalAnswer, proposeTool, readTools, type AgentCall} from './webmcp';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -238,4 +239,30 @@ test('Part 15: Chrome\'s on-device model gets its fixed instructions and the per
   expect(prompts.rewrite).toEqual({system: REWRITE_SYSTEM, input: question});
   expect(prompts.chat).toEqual({system: CHAT_SYSTEM, input: question});
   for (const p of [prompts.rewrite, prompts.chat]) expect(sentinelsIn(`${p.system}\n${p.input}`)).toEqual([]);
+});
+
+test('Part 16: browser AI agents (WebMCP): no Health tool offered, every result and the person\'s notice free of Health with the gate closed', async () => {
+  const s = sources(), seen: AgentCall[] = [];
+  for (const [area, pathname] of PAGES) {
+    const handles = new Handles(), env = toolEnv(s, gatesFor(false, area, pathname), 'provider', handles);
+    const offered = readTools(availableTools(env), agentRunner(() => env, call => seen.push(call)));
+    expect(offered.some(t => /water|steps|weight|nutrient|diary|fasting|counters|recipes|meal_plan|groceries|search_foods|body_measurements/.test(t.name)), pathname).toBe(false);
+    expect(sentinelsIn(JSON.stringify(offered.map(t => [t.name, t.title, t.description, t.inputSchema]))), pathname).toEqual([]);
+    // Every tool, offered or not, called the way an agent would: the gate refuses the Health ones without reading.
+    const all = readTools(TOOLS, agentRunner(() => env, call => seen.push(call)));
+    for (const tool of all) {
+      const name = tool.name.slice('zigoals_'.length);
+      const input = name === 'habit_stats' || name === 'habit_checkins' ? {habit: 'Walk', range: 'today'} : name === 'search_foods' ? {query: SENTINEL.food} : name === 'counters' ? {counter: SENTINEL.counter} : {};
+      expect(sentinelsIn(await tool.execute(JSON.stringify(input))), `${tool.name} on ${pathname}`).toEqual([]);
+    }
+    // The proposal tool only answers with its own words; a Health proposal is a card for the person, nothing comes back.
+    const answer = await proposeTool(actions => proposalAnswer(parseAgentActions(actions, handles.list))).execute({actions: [{kind: 'log-water', millilitres: 250}]});
+    expect(sentinelsIn(answer), pathname).toEqual([]);
+  }
+  expect(seen.length).toBeGreaterThan(100);
+  for (const call of seen) expect(sentinelsIn(JSON.stringify(call))).toEqual([]);
+  // With the gate open the same calls do carry Health, which proves the checks can see it.
+  const open = toolEnv(s, gatesFor(true, 'health', '/app/health'), 'provider');
+  const water = readTools(availableTools(open).filter(t => t.name === 'water'), agentRunner(() => open, () => undefined));
+  expect(sentinelsIn(await water[0]!.execute({range: 'today'}))).toContain(String(SENTINEL.waterMl));
 });

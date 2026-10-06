@@ -62,6 +62,8 @@ import {SlashMenu, useSlashMenu} from './slash-menu';
 import {CopyMarkdown, FeedbackButtons, FollowupChips, TurnTime} from './turn-extras';
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
+import {AgentProposals} from './agent-proposals';
+import {useAgentBatches} from './agent-inbox';
 import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {copyText, nextFrame} from '../../lib/ai/chat-window';
@@ -153,6 +155,14 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // Announced once per reply: when the wait starts, and when the reply has arrived.
   const replies = session.chat.turns.filter(t => t.role === 'assistant').length, lastStatus = useRef(session.status), lastReplies = useRef(replies);
   useEffect(() => { if (session.status === 'pending' && lastStatus.current === 'idle') setNote('Waiting for your AI to reply…'); lastStatus.current = session.status; }, [session.status]);
+  // Session V Part 16: a browser AI agent's proposals arrive as cards in the chat view, announced once.
+  const agentBatches = useAgentBatches(), announcedAgent = useRef(new Set<string>());
+  useEffect(() => {
+    const fresh = agentBatches.filter(b => !announcedAgent.current.has(b.id)); if (!fresh.length) return;
+    for (const b of fresh) announcedAgent.current.add(b.id);
+    const n = fresh.reduce((sum, b) => sum + b.proposals.length, 0);
+    setView('chat'); setNote(`A browser AI agent proposed ${n === 1 ? 'one change' : `${n} changes`}. Nothing is written until you add a card.`);
+  }, [agentBatches]);
   useEffect(() => {
     if (replies > lastReplies.current) { setNote('Your AI replied.'); if (data.voice.readAloud && open) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); } }
     lastReplies.current = replies;
@@ -208,6 +218,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
           : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length}
             asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} onAsk={ask} onContinue={() => setView('continue')} onEdit={turn.role === 'user' && !busy && turn === lastAsked ? () => startEdit(turn) : undefined}/>)}
         {!busy && <KnockOffer connected={data.enabled} sensitive={sensitive} chatEnded={session.chat.turns.some(t => t.role === 'assistant' && t.source !== 'local' && t.source !== 'on-device')} today={localDate()} connectedOn={data.connectedOn ?? null}/>}
+        {!sensitive && <AgentProposals runner={runner} onNavigate={onClose}/>}
         {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">{!connected ? 'Asking Chrome’s on-device model…' : session.looking.length ? `ZIGi looked at ${session.looking.join(', ')}; waiting for ${providerName}…` : `Waiting for ${providerName}…`}</span></div>}
         {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
@@ -244,7 +255,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
 function Greeting({context, session, sensitive, onChip, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; sensitive: boolean; onChip: (chip: string) => void; onView: (view: ProactiveView) => void}) {
   return <div className="ai-greeting"><ZigiAvatar state="greeting" size={72} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. I read this page with your permission and answer with your own AI. Nothing is written unless you add a card.</p>
     {!sensitive && <BriefBlock context={context} connected session={session}/>}
-    {sensitive ? <div className="ai-chips" aria-label="Suggestions">{SPECIALISTS[context.area].chips.map(chip => <button key={chip} type="button" className="ai-chip" onClick={() => onChip(chip)}>{chip}</button>)}</div> : <ProactiveChips context={context} connected onChip={onChip} onView={onView}/>}
+    {sensitive ? <div className="ai-chips" role="group" aria-label="Suggestions">{SPECIALISTS[context.area].chips.map(chip => <button key={chip} type="button" className="ai-chip" onClick={() => onChip(chip)}>{chip}</button>)}</div> : <ProactiveChips context={context} connected onChip={onChip} onView={onView}/>}
     {!sensitive && <ProactiveEntries onView={onView}/>}
     <FirstRunTips/>
   </div></div>;
@@ -255,7 +266,7 @@ function NotConnected({onClose, onChooser}: {onClose: () => void; onChooser: () 
 /** Before any AI is connected: what ZIGi answers here from the records, as examples to tap (Session V Part 3). */
 function LocalIntro({context, session, onAsk, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; onAsk: (question: string) => void; onView: (view: ProactiveView) => void}) {
   const examples = useMemo(() => { const sources = context.toolSources(); return examplesFor(sources ? toolEnv(sources, context.gates, 'local') : null, 4); }, [context]);
-  return <div className="ai-local-intro"><BriefBlock context={context} connected={false} session={session}/><p className="ai-greeting-text">Meanwhile, ZIGi answers questions about your own records right here, on this device, with no AI: nothing is sent anywhere.</p><div className="ai-chips" aria-label="Questions ZIGi answers here">{examples.map(e => <button key={e} type="button" className="ai-chip" onClick={() => onAsk(e)}>{e}</button>)}</div><ProactiveEntries onView={onView}/><FirstRunTips/></div>;
+  return <div className="ai-local-intro"><BriefBlock context={context} connected={false} session={session}/><p className="ai-greeting-text">Meanwhile, ZIGi answers questions about your own records right here, on this device, with no AI: nothing is sent anywhere.</p><div className="ai-chips" role="group" aria-label="Questions ZIGi answers here">{examples.map(e => <button key={e} type="button" className="ai-chip" onClick={() => onAsk(e)}>{e}</button>)}</div><ProactiveEntries onView={onView}/><FirstRunTips/></div>;
 }
 /** The records behind a local answer, recomputed now from this device's records and shown exactly. */
 function RecordsUsed({calls, context}: {calls: readonly {tool: string; args?: Record<string, unknown>; label: string}[]; context: ReturnType<typeof useAiContext>}) {
@@ -286,7 +297,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       <SafeText className="ai-local-answer" text={shown}/>
       {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate}/>}
       <DataViz results={info?.results}/>
-      {chips.length > 0 && <div className="ai-chips" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" onClick={c.run}>{c.label}</button>)}</div>}
+      {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
@@ -382,14 +393,15 @@ function QuestionSources({question, onRemove}: {question: QuestionContext | null
   </div>;
 }
 function ContextBar({context, attach, onAttach, sensitive, total, question, onRemove, modeLine}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean; total: {input: number; output: number} | null; question: QuestionContext | null; onRemove: (id: string) => void; modeLine: string | null}) {
-  const label = AREA_LABELS[context.area];
-  const totalLine = total ? <span className="ai-context-total" aria-label="Tokens so far in this conversation">{total.input.toLocaleString('en-US')} in · {total.output.toLocaleString('en-US')} out tokens so far</span> : null;
+  const label = AREA_LABELS[context.area], barId = useId();
+  const totalLine = total ? <span className="ai-context-total" role="note" aria-label="Tokens so far in this conversation">{total.input.toLocaleString('en-US')} in · {total.output.toLocaleString('en-US')} out tokens so far</span> : null;
   if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span>{totalLine}</div>;
   if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span>{totalLine}</div>;
   const questionPreview = question?.text ? <><p className="ai-note">And the records ZIGi chose for this question:</p><pre>{question.text}</pre></> : null;
   if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}<QuestionSources question={question} onRemove={onRemove}/>{questionPreview && <details className="ai-context-preview"><summary>What your AI sees</summary>{questionPreview}</details>}{totalLine}</div>;
   return <div className="ai-context-bar">
-    <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)}/> Share this page’s data{context.preview ? ` · ${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens` : ''}</label>
+    {/* Session V Part 16: a stable name for the switch; the area and its size are its description. */}
+    <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)} aria-labelledby={`${barId}-name`} aria-describedby={context.preview ? `${barId}-size` : undefined}/><span><span id={`${barId}-name`}>Share this page’s data</span>{context.preview && <> · <span id={`${barId}-size`}>{`${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens`}</span></>}</span></label>
     {modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}
     <QuestionSources question={question} onRemove={onRemove}/>
     {((attach && context.preview) || questionPreview) && <details className="ai-context-preview"><summary>What your AI sees</summary>{attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></>}{questionPreview}</details>}
