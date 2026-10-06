@@ -16,6 +16,10 @@ import {questionContext} from './context/question';
 import {buildContextPack} from './context-pack/build';
 import {runWithTools, toolsFor} from './tool-loop';
 import type {ChatEvent, ChatRequest} from './types';
+import {briefForAi, morningBrief} from './proactive/brief';
+import {explainFor} from './proactive/explain';
+import {usesHealth, zigiInsights} from './proactive/insights';
+import {reviewForAi} from './proactive/review';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -180,4 +184,22 @@ test('Part 8: the person\'s notes: a health or diet note never leaves with the g
   // The controls: the ordinary note does go with the gate closed, and the health note once the gate is open.
   expect(questionContext('Hi', s, gatesFor(false))!.text).toContain(ordinary);
   expect(questionContext('Hi', s, gatesFor(true))!.text).toContain(SENTINEL.note);
+});
+test('Part 9: the brief ("Say it nicer"), the review reflection, insight requests and "Ask ZIGi about this" chips carry no Health with the gate closed', () => {
+  const s = sources();
+  const numbers: [string, string, string?][] = [['health', 'kcal'], ['health', 'macros'], ['health', 'water'], ['health', 'weight'], ['health', 'steps'], ['health', 'history'], ['meal', 'kcal'], ['exercise', 'counts'], ['habit', 'streak', 'Walk'], ['goals', 'overview'], ['wealth', 'USD'], ['habit-history', 'days']];
+  for (const [area, pathname] of PAGES) {
+    const env = toolEnv(s, gatesFor(false, area, pathname), 'provider'), brief = morningBrief(env);
+    expect(sentinelsIn(brief ? briefForAi(brief) : ''), `brief ${pathname}`).toEqual([]);
+    expect(sentinelsIn(reviewForAi(env) ?? ''), `review ${pathname}`).toEqual([]);
+    expect(zigiInsights(env).some(usesHealth), `insights ${pathname}`).toBe(false); expect(sentinelsIn(JSON.stringify(zigiInsights(env))), `insights ${pathname}`).toEqual([]);
+    for (const [kind, metric, name] of numbers) {
+      const explain = explainFor(kind, metric, name);
+      if (!explain) continue;
+      expect(sentinelsIn(JSON.stringify(questionContext(explain.question, s, gatesFor(false, area, pathname), [], new Set(), [explain.about]))), `${kind}/${metric} on ${pathname}`).toEqual([]);
+    }
+  }
+  // The control: with the gate open on Health, the same chips reach the sentinel values.
+  const open = numbers.map(([kind, metric, name]) => { const e = explainFor(kind, metric, name); return e ? JSON.stringify(questionContext(e.question, s, gatesFor(true, 'health', '/app/health'), [], new Set(), [e.about])) : ''; }).join('\n');
+  expect(sentinelsIn(open).length).toBeGreaterThan(2);
 });

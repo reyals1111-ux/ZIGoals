@@ -110,8 +110,8 @@
 .ai-context-bar{flex:0 1 auto;max-height:46%;overflow:auto;display:grid;gap:6px;padding:8px 14px;border-top:1px solid var(--line,#2a325a);font-size:14px;color:var(--muted,#aab2d9)}
 .ai-chat .ai-context-switch{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;min-height:32px;cursor:pointer;text-align:left;margin:0}
 .ai-chat .ai-context-switch input{width:18px;height:18px;min-height:0;margin:0;flex:none;accent-color:var(--cyan,#6fd3ff)}
-.ai-context-preview summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff)}
-.ai-context-preview pre{max-height:140px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:4px 0 0}
+.ai-context-preview summary,.ai-sends summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff)}
+.ai-context-preview pre,.ai-sends pre{max-height:140px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:4px 0 0}
 .ai-composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px calc(12px + var(--keyboard-inset,0px));border-top:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
 .ai-chat-phone .ai-composer{padding-bottom:calc(12px + max(var(--safe-bottom,0px),var(--keyboard-inset,0px)))}
 .ai-composer textarea{flex:1;min-height:44px;max-height:160px;resize:vertical;font-size:16px;line-height:1.4;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--bg,#070a1a) 70%,transparent);color:inherit;font-family:inherit}
@@ -245,3 +245,30 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-memory-text{margin:0;font-size:16px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .ai-memory-meta{margin:0;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
 .ai-memory-edit{display:grid;gap:8px}
+/* Session V Part 9: the morning brief, suggestion chips from the records, the weekly review and patterns */
+.ai-greeting-body{display:grid;gap:10px;min-width:0}
+.ai-brief{display:grid;gap:6px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 35%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 7%,transparent)}
+.ai-brief-title{margin:0;font-weight:600;font-size:15px}
+.ai-brief-lines{margin:0;padding-left:18px;display:grid;gap:4px;font-size:15px;line-height:1.45}
+.ai-brief-label{margin:0}
+.ai-brief-ai{display:grid;gap:6px;justify-items:start}
+.ai-chip-pair{display:inline-flex;align-items:stretch;border-radius:999px;max-width:100%}
+.ai-chip-pair .ai-chip-data{border-top-right-radius:0;border-bottom-right-radius:0;border-right:0}
+.ai-chip-hide{min-width:40px;min-height:40px;padding:0 10px;border-radius:0 999px 999px 0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--violet,#8b7cff) 6%,transparent);color:var(--muted,#aab2d9);font-size:16px;cursor:pointer}
+.ai-chip-hide:hover,.ai-chip-hide:focus-visible{color:var(--text,#eef1ff)}
+.ai-proactive-entries{display:flex;flex-wrap:wrap;gap:8px}
+.ai-proactive-entries button{min-height:44px}
+.ai-proactive-view{display:grid;gap:10px;padding:4px 2px}
+.ai-proactive-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ai-proactive-head h3{margin:0;font-size:17px}
+.ai-review-lines{margin:0;padding-left:18px;display:grid;gap:4px;font-size:15px;line-height:1.45}
+.ai-review-table{width:100%;border-collapse:collapse;font-size:14px}
+.ai-review-table th,.ai-review-table td{padding:6px 8px;border-bottom:1px solid var(--line,#2a325a);text-align:left}
+.ai-review-table td{font-variant-numeric:tabular-nums}
+.ai-insights{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ai-insight{display:grid;gap:4px;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#2a325a)}
+.ai-insight-sentence{margin:0;font-size:15px;line-height:1.45}
+.ai-insight .ai-note{margin:0}
+/* Part 8/9: the notes panel and the brief card keep every control at least 44 px tall (phone touch targets). */
+.ai-memory .ai-switch-row [role=switch],.ai-memory .ai-card-actions button,.zigi-brief-card .ai-card-actions button,.ai-brief-ai>button,.ai-proactive-head button{min-height:44px}
+.ai-chip-hide{min-width:44px}

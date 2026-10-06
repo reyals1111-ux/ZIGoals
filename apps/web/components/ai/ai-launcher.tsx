@@ -7,7 +7,7 @@ import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {useZigiState, zigiEvents} from '../zigi/events';
 import {useAccountCleanup, useLauncherRecord} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
-import {ASK_EVENT} from './ask';
+import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
 import './ai-launcher.css';
 
 /**
@@ -55,6 +55,9 @@ export function AiLauncher() {
     timer.current = window.setTimeout(() => { timer.current = null; setUndoUntil(null); }, HIDE_UNDO_MS);
   };
   const undoHide = () => { launcher.setLauncherHidden(false); setUndoUntil(null); if (timer.current) { window.clearTimeout(timer.current); timer.current = null; } requestAnimationFrame(() => button.current?.focus({preventScroll: true})); };
+  // Session V Part 9: the page's "Ask ZIGi" affordances show only while this button does (CSS reads the root's mark).
+  const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !launcher.record.launcherHidden && !sensitive;
+  useEffect(() => { const root = document.documentElement; if (shown) root.dataset[LAUNCHER_SHOWN_ATTRIBUTE] = 'shown'; else delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; return () => { delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; }; }, [shown]);
   if (!mounted || !pathname.startsWith('/app')) return null;
   const app = launcherApp(launcher.record);
   const visible = launcher.loaded && !launcher.record.launcherHidden && !sensitive;

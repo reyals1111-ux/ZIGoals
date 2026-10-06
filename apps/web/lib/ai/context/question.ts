@@ -55,12 +55,14 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
 /** The person's notes for ZIGi (Part 8), with every message while "Use my notes" is on; a removable chip like the others. */
 export const NOTES_CALL: ToolCallRecord = {tool: 'about_me', args: {}, label: 'About me'};
 /** The question's sources, run now for the person's AI; `removed` holds the ids of chips the person took off. */
-export function questionContext(question: string, sources: ToolSources | null, gates: Gates, pageHandles: readonly Handle[] = [], removed: ReadonlySet<string> = new Set()): QuestionContext | null {
+export function questionContext(question: string, sources: ToolSources | null, gates: Gates, pageHandles: readonly Handle[] = [], removed: ReadonlySet<string> = new Set(), pinned: readonly ToolCallRecord[] = []): QuestionContext | null {
   const q = question.trim();
   if (!sources || gates.paused) return null;
   const handles = new Handles(pageHandles), env = toolEnv(sources, gates, 'provider', handles);
   const notes = env.notes?.length ? [NOTES_CALL] : [];
-  const calls = [...notes, ...(q.length >= 3 && Object.values(gates.areas).some(Boolean) ? questionCalls(q, sources, gates) : [])];
+  // Part 9: the records behind a number the person asked about ("Ask ZIGi about this") come right after the notes.
+  const asked = Object.values(gates.areas).some(Boolean) ? [...pinned, ...(q.length >= 3 ? questionCalls(q, sources, gates) : [])] : [];
+  const seen = new Set<string>(), calls = [...notes, ...asked].filter(c => { const id = sourceId(c); if (seen.has(id)) return false; seen.add(id); return true; });
   if (!calls.length) return null;
   const out: QuestionSource[] = [], withheld: string[] = [];
   let total = 0, capped = false;

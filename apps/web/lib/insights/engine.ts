@@ -37,8 +37,9 @@ const n = (value: number) => formatNumber(value);
 /**
  * The pairings in the last 60 days with enough records on each side, as count sentences, ordered by contrast.
  * Days are paired by their stored date strings, whatever zone each journal used. Dismissed cards are left out.
+ * `max` (Session V Part 9): Today shows two; ZIGi's Insights view lists every pairing that qualifies.
  */
-export function insightCards({habits, health, today, links, hidden = new Set<string>()}: {habits: HabitData; health: HealthData; today: string; links?: HabitHealthLinks; hidden?: ReadonlySet<string>}): InsightCard[] {
+export function insightCards({habits, health, today, links, hidden = new Set<string>(), max = MAX_SHOWN}: {habits: HabitData; health: HealthData; today: string; links?: HabitHealthLinks; hidden?: ReadonlySet<string>; max?: number}): InsightCard[] {
   const window = {start: addLocalDays(today, -(WINDOW_DAYS - 1)), end: today}, days = dayList(window.start, window.end), cards: InsightCard[] = [];
   const hasActivity = (date: string) => health.activity.some(a => a.date === date), steps = (date: string) => dailyHealthSummary(health, date).steps;
   const water = (date: string) => waterSummary(health, date).entries > 0;
@@ -69,5 +70,5 @@ export function insightCards({habits, health, today, links, hidden = new Set<str
   const weekday = habits.habits.map(habit => ({habit, sample: days.map(date => ({date, day: habitDay(habit, date, today)})).filter(x => x.day.scheduled && x.day.status !== 'skipped').map(x => ({a: localWeekday(x.date) >= 1 && localWeekday(x.date) <= 5, b: x.day.status === 'complete'}))})).sort((x, y) => y.sample.length - x.sample.length)[0];
   if (weekday && weekday.sample.length) push(`habit-weekday:${weekday.habit.id}`, weekday.sample, s => `On ${n(s.withA.yes)} of ${n(s.withA.total)} weekdays you completed ${weekday.habit.title}; at weekends ${n(s.withoutA.yes)} of ${n(s.withoutA.total)}.`);
   const order = cards.map((card, index) => ({card, index}));
-  return order.filter(({card}) => !hidden.has(card.id)).sort((x, y) => y.card.contrast - x.card.contrast || x.index - y.index).slice(0, MAX_SHOWN).map(({card}) => card);
+  return order.filter(({card}) => !hidden.has(card.id)).sort((x, y) => y.card.contrast - x.card.contrast || x.index - y.index).slice(0, max).map(({card}) => card);
 }

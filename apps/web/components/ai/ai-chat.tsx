@@ -40,6 +40,9 @@ import {dataMode, dataModeLine, toolListTokens} from '../../lib/ai/capabilities'
 import {toolsFor} from '../../lib/ai/tool-loop';
 import {AI_OPTIONS, type AiOptions} from '../../lib/ai/store/records';
 import {useDeviceRecord} from './use-device-record';
+import {BriefBlock, InsightsView, ProactiveChips, ProactiveEntries, ReviewView, type ProactiveView} from './proactive';
+import type {AskAbout} from './ask';
+import type {ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {photoAllowance, preparePhoto, type Photo, type PhotoAllowance} from '../../lib/ai/photo';
 import type {ChatImage} from '../../lib/ai/types';
 
@@ -62,7 +65,7 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context}), runner = useProposals(), zigi = useZigiState();
   const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
-  const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history'>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
+  const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const tool = session.toolState(data.model), lastMode = session.lastMode;
   // Session V Part 7: a meal photo needs a model that reads photos (its metadata, or the person's word) and Health shared.
   const declaredVision = data.provider && data.model ? aiOptions.visionDeclared?.[`${data.provider}:${data.model}`] : undefined;
@@ -70,12 +73,17 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   const dataLine = useMemo(() => connected ? modeLine(aiOptions, {capability: tool.capability, fellBack: tool.fellBack}, attach, context) : null, [connected, aiOptions, tool.capability, tool.fellBack, attach, context, lastMode]); // eslint-disable-line react-hooks/exhaustive-deps -- lastMode marks what the session learned
   // Session V Part 4: the records chosen from the question being typed, as removable chips; the same text goes with it.
   const [draft, setDraft] = useState(''), [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set());
-  const question = useMemo(() => connected && !sensitive ? questionContext(draft, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null, [connected, sensitive, draft, context, removed]);
+  // Session V Part 9: "Ask ZIGi about this" on a number's card attaches its records as one more removable chip.
+  const [pinned, setPinned] = useState<ToolCallRecord[]>([]);
+  const onAbout = useCallback((about: AskAbout | undefined) => setPinned(about ? [about] : []), []);
+  // An ask from the page lands in the chat, whichever view is open.
+  useEffect(() => { const toChat = () => setView('chat'); window.addEventListener(ASK_EVENT, toChat); return () => window.removeEventListener(ASK_EVENT, toChat); }, []);
+  const question = useMemo(() => connected && !sensitive ? questionContext(draft, context.toolSources(), context.gates, context.context?.handles ?? [], removed, pinned) : null, [connected, sensitive, draft, context, removed, pinned]);
   const sendQuestion = useCallback((value: string, extra: ComposerExtra = {}) => {
-    const chosen = connected && !sensitive ? questionContext(value, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null;
-    setRemoved(new Set()); setDraft('');
+    const chosen = connected && !sensitive ? questionContext(value, context.toolSources(), context.gates, context.context?.handles ?? [], removed, pinned) : null;
+    setRemoved(new Set()); setDraft(''); setPinned([]);
     void session.ask(value, {withContext: attach, ...(chosen?.text ? {extra: {text: chosen.text, handles: chosen.handles}} : {}), ...extra});
-  }, [attach, connected, context, removed, sensitive, session]);
+  }, [attach, connected, context, removed, pinned, sensitive, session]);
   const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
   useVisualViewportInsets(phone && open);
   // The page behind a phone sheet does not scroll (iOS scrolls the document behind a modal dialog otherwise).
@@ -120,12 +128,14 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
         {!phone && <button type="button" className="quiet" onClick={() => setExpanded(e => !e)} aria-pressed={expanded} aria-label={expanded ? 'Shrink the chat' : 'Expand the chat'} title={expanded ? 'Shrink' : 'Expand'}>{expanded ? 'Shrink' : 'Expand'}</button>}
       </div>
     </header>
-    {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/> : <>
+    {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
+      : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
+      : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
       <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation">
         {!data.enabled && <NotConnected onClose={onClose}/>}
-        {localOnly && session.chat.turns.length === 0 && !sensitive && <LocalIntro context={context} onAsk={question => void session.ask(question)}/>}
+        {localOnly && session.chat.turns.length === 0 && !sensitive && <LocalIntro context={context} session={session} onAsk={question => void session.ask(question)} onView={setView}/>}
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
-        {connected && session.chat.turns.length === 0 && !busy && <Greeting area={area} onChip={sendQuestion}/>}
+        {connected && session.chat.turns.length === 0 && !busy && <Greeting context={context} session={session} sensitive={sensitive} onChip={sendQuestion} onView={setView}/>}
         {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && turn.source === 'local'
           ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy}/>
           : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length}/>)}
@@ -146,21 +156,25 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
       </div>
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
-      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} photo={photo} providerName={providerName} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
+      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={connected ? onAbout : undefined} photo={photo} providerName={providerName} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </dialog>;
 }
-function Greeting({area, onChip}: {area: keyof typeof SPECIALISTS; onChip: (chip: string) => void}) {
-  return <div className="ai-greeting"><ZigiAvatar state="greeting" size={72} decorative/><div><p className="ai-greeting-text">Hi, I’m ZIGi. I read this page with your permission and answer with your own AI. Nothing is written unless you add a card.</p><div className="ai-chips" aria-label="Suggestions">{SPECIALISTS[area].chips.map(chip => <button key={chip} type="button" className="ai-chip" onClick={() => onChip(chip)}>{chip}</button>)}</div></div></div>;
+function Greeting({context, session, sensitive, onChip, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; sensitive: boolean; onChip: (chip: string) => void; onView: (view: ProactiveView) => void}) {
+  return <div className="ai-greeting"><ZigiAvatar state="greeting" size={72} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. I read this page with your permission and answer with your own AI. Nothing is written unless you add a card.</p>
+    {!sensitive && <BriefBlock context={context} connected session={session}/>}
+    {sensitive ? <div className="ai-chips" aria-label="Suggestions">{SPECIALISTS[context.area].chips.map(chip => <button key={chip} type="button" className="ai-chip" onClick={() => onChip(chip)}>{chip}</button>)}</div> : <ProactiveChips context={context} connected onChip={onChip} onView={onView}/>}
+    {!sensitive && <ProactiveEntries onView={onView}/>}
+  </div></div>;
 }
 function NotConnected({onClose}: {onClose: () => void}) {
   return <div className="ai-greeting ai-not-connected"><ZigiAvatar state="attention" size={72} decorative/><div><p className="ai-greeting-text">Connect your own AI to start: an API key, a local model on this computer, or the subscription bridge. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them.</p><Link className="primary" href={SETTINGS_HREF} onClick={onClose}>Set up in Settings</Link></div></div>;
 }
 /** Before any AI is connected: what ZIGi answers here from the records, as examples to tap (Session V Part 3). */
-function LocalIntro({context, onAsk}: {context: ReturnType<typeof useAiContext>; onAsk: (question: string) => void}) {
+function LocalIntro({context, session, onAsk, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; onAsk: (question: string) => void; onView: (view: ProactiveView) => void}) {
   const examples = useMemo(() => { const sources = context.toolSources(); return examplesFor(sources ? toolEnv(sources, context.gates, 'local') : null, 4); }, [context]);
-  return <div className="ai-local-intro"><p className="ai-greeting-text">Meanwhile, ZIGi answers questions about your own records right here, on this device, with no AI: nothing is sent anywhere.</p><div className="ai-chips" aria-label="Questions ZIGi answers here">{examples.map(e => <button key={e} type="button" className="ai-chip" onClick={() => onAsk(e)}>{e}</button>)}</div></div>;
+  return <div className="ai-local-intro"><BriefBlock context={context} connected={false} session={session}/><p className="ai-greeting-text">Meanwhile, ZIGi answers questions about your own records right here, on this device, with no AI: nothing is sent anywhere.</p><div className="ai-chips" aria-label="Questions ZIGi answers here">{examples.map(e => <button key={e} type="button" className="ai-chip" onClick={() => onAsk(e)}>{e}</button>)}</div><ProactiveEntries onView={onView}/></div>;
 }
 /** The records behind a local answer, recomputed now from this device's records and shown exactly. */
 function RecordsUsed({calls, context}: {calls: readonly {tool: string; args?: Record<string, unknown>; label: string}[]; context: ReturnType<typeof useAiContext>}) {
@@ -286,9 +300,11 @@ function ContextBar({context, attach, onAttach, sensitive, total, question, onRe
 import {forwardRef} from 'react';
 /** What the composer sends besides the words (Session V Part 7): a meal photo for this message, and "talk to log". */
 export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean};
-const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; photo?: PhotoAllowance; providerName?: string}>(function Composer({session, attach, phone, settings, scope, placeholder, local, onDraft, onSend, photo, providerName = 'your AI'}, ref) {
+const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string}>(function Composer({session, attach, phone, settings, scope, placeholder, local, onDraft, onSend, onAbout, photo, providerName = 'your AI'}, ref) {
   const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false);
-  useEffect(() => { const pending = takePendingAsk(); if (pending) setText(pending); const onAsk = (event: Event) => { const text = (event as CustomEvent<{text: string}>).detail?.text; if (text) { takePendingAsk(); setText(text); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
+  // A page's ask fills the composer; the records behind a number (Part 9) go to the panel as a removable chip.
+  const aboutRef = useRef(onAbout); useEffect(() => { aboutRef.current = onAbout; });
+  useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
   // Session V Part 7: one meal photo per message (only with a model that reads photos and Health shared), and log mode.
