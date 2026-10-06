@@ -86,6 +86,9 @@ export const ZIGI_ANIMATIONS = ['full', 'calm', 'off'] as const;
 export const ZIGI_SIDES = ['right', 'left'] as const;
 export const ZIGI_SIZES = ['s', 'm', 'l'] as const;
 export const ZIGI_GREETINGS = ['quiet', 'friendly'] as const;
+export const MAX_CHAT_AREAS = 200;
+/** The pages a chat can start on: `PAGE_AREAS` of `../settings`, which imports this file (a test keeps the two equal). */
+export const CHAT_AREAS = ['today', 'goals', 'habits', 'health', 'wealth', 'help'] as const;
 export const zigiSchema = z.looseObject({
   version: z.literal(1),
   skin: z.string().regex(/^[a-z0-9-]{1,40}$/).optional(),
@@ -99,6 +102,11 @@ export const zigiSchema = z.looseObject({
   dismissed: z.looseObject({day, ids: z.array(z.string().min(1).max(80)).max(50)}).optional(),
   greetedOn: day.optional(),
   tipsSeen: z.array(z.string().min(1).max(40)).max(20).optional(),
+  /**
+   * Session V Part 10: the page each chat started on (chat id → area), for History's filter. Kept here rather than in the
+   * chat, so a chat that uses nothing else new stays version 1 (build #29 shows it); the newest 200 are kept.
+   */
+  chatAreas: z.record(z.string().min(1).max(80), z.enum(CHAT_AREAS)).refine(atMost(MAX_CHAT_AREAS)).optional(),
 });
 export type ZigiRecord = z.infer<typeof zigiSchema>;
 export const ZIGI: DeviceRecordSpec<ZigiRecord> = {key: ZIGI_KEY, schema: zigiSchema, empty};

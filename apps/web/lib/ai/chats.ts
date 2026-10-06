@@ -67,7 +67,8 @@ export function storedChat(chat: Chat): z.infer<typeof storedChatSchema> {
   return chatSchema.parse({...definedOnly(chat, V1_CHAT_KEYS), version: 1, turns: chat.turns.map(turn => definedOnly(turn, V1_TURN_KEYS))});
 }
 const readChat = (value: unknown): Chat | null => { const parsed = storedChatSchema.safeParse(value); return parsed.success ? parsed.data as Chat : null; };
-export type ChatSummary = Pick<Chat, 'id' | 'title' | 'updatedAt' | 'provider' | 'model'> & {turnCount: number};
+/** `pinned` (Session V Part 10): History's "Pinned" section. */
+export type ChatSummary = Pick<Chat, 'id' | 'title' | 'updatedAt' | 'provider' | 'model'> & {turnCount: number; pinned?: boolean};
 export interface ChatStore {
   list(): Promise<ChatSummary[]>;
   read(id: string): Promise<Chat | null>;
@@ -77,7 +78,7 @@ export interface ChatStore {
   removeAll(): Promise<void>;
   search(query: string): Promise<ChatSummary[]>;
 }
-const summary = (chat: Chat): ChatSummary => ({id: chat.id, title: chat.title, updatedAt: chat.updatedAt, provider: chat.provider, model: chat.model, turnCount: chat.turns.length});
+const summary = (chat: Chat): ChatSummary => ({id: chat.id, title: chat.title, updatedAt: chat.updatedAt, provider: chat.provider, model: chat.model, turnCount: chat.turns.length, ...(chat.pinned ? {pinned: true} : {})});
 const byRecent = (a: ChatSummary, b: ChatSummary) => b.updatedAt.localeCompare(a.updatedAt);
 /** A title from the first words of the first message. */
 export function titleFor(text: string): string { const words = text.replace(/\s+/g, ' ').trim(); return (words.length > 60 ? `${words.slice(0, 57).trimEnd()}…` : words) || 'New chat'; }

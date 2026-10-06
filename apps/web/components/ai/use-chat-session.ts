@@ -10,12 +10,13 @@ import {AiError, errorSteps, isAbortLike, mapNetworkError} from '../../lib/ai/er
 import {readKey} from '../../lib/ai/keys';
 import {PROVIDERS} from '../../lib/ai/providers';
 import {currentChatStore} from '../../lib/ai/scope';
-import {appendTurn, assistantTurn, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
+import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings} from '../../lib/ai/settings';
 import {zigiEvents} from '../zigi/events';
 import type {AiContextState} from './use-ai-context';
 import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {toolEnv} from '../../lib/ai/tools/env';
+import {runTool} from '../../lib/ai/tools/registry';
 import {recordsForAi} from '../../lib/ai/local-answers/more';
 import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability, type DataMode} from '../../lib/ai/capabilities';
 import {Handles} from '../../lib/ai/handles';
@@ -29,6 +30,8 @@ import {getAppStorage} from '../../lib/showcase-storage';
 import {LOG_MODE_NOTE} from '../../lib/ai/context/specialists';
 import {PHOTO_NOTE} from '../../lib/ai/photo';
 import type {ChatImage} from '../../lib/ai/types';
+import {rememberChatArea} from '../../lib/ai/history';
+import {PLAN_NOTE} from '../../lib/ai/slash';
 
 /**
  * One conversation with the person's own AI (ADR-012, Part 6). The request goes from this browser straight to the
@@ -39,14 +42,21 @@ import type {ChatImage} from '../../lib/ai/types';
 export type ChatFailure = {kind: AiError['kind'] | 'missing-key' | 'not-connected' | 'full' | 'save'; title: string; steps: string[]};
 /** Records sent with a question on top of the page's data ("Ask my AI for more"): the exact text and the reply's handles. */
 export type ExtraData = {text: string; handles: readonly Handle[]};
-export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boolean; extra?: ExtraData; deep?: boolean; images?: readonly ChatImage[]; log?: boolean};
+export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boolean; extra?: ExtraData; deep?: boolean; images?: readonly ChatImage[]; log?: boolean;
+  /** Session V Part 10: every option of the message, so "Send anyway" sends it exactly as asked. */
+  options: SendOptions};
 /**
  * `deep` (Session V Part 6, "Think deeper"): the provider's deep model and twice the data cap. `spendConfirmed`: the
  * person chose to send although their monthly cap is reached ("ask first").
  */
 export type SendOptions = {withContext?: boolean; confirmed?: boolean; reuse?: boolean; extra?: ExtraData; deep?: boolean; spendConfirmed?: boolean;
   /** Session V Part 7: a meal photo for this message only (never stored), and "talk to log" (proposals, no advice). */
-  images?: readonly ChatImage[]; log?: boolean};
+  images?: readonly ChatImage[]; log?: boolean;
+  /**
+   * Session V Part 10: /ask skips ZIGi's on-device answer for this message; /plan asks the person's AI for plan cards;
+   * `replace` is the person's last question being edited (it and its answers make way once the new words are asked).
+   */
+  direct?: boolean; plan?: boolean; replace?: string};
 /** One lookup the person's AI asked for in a reply: the exact text sent back, kept in memory for this session only. */
 export type Lookup = {label: string; args: Record<string, unknown> | null; result: ToolResult; text: string};
 /** A chip's words: the lookup, and whether it was refused (a closed area or the Health gate) or could not be answered. */
@@ -58,7 +68,9 @@ export type SpendCheck = {text: string; note: string; options: SendOptions};
 /** The answer cap with "Think deeper": twice the usual data per answer. */
 export const DEEP_ANSWER_CHARS = ANSWER_CHARS * 2;
 /** A local answer's choices or examples, kept in memory for the chips (they are not stored with the chat). */
-export type LocalInfo = {reply: LocalReply; question: string};
+export type LocalInfo = {reply: LocalReply; question: string;
+  /** Session V Part 10: the records the answer used, made at answer time for its chart; in memory for this session only. */
+  results?: readonly ToolResult[]};
 export type ChatSession = {
   chat: Chat; status: 'idle' | 'pending' | 'streaming'; draft: string; failure: ChatFailure | null; confirmation: Confirmation | null; saveNote: string | null;
   parsed: ReadonlyMap<string, ParsedReply>; handlesFor: (turnId: string) => readonly Handle[];
@@ -71,8 +83,15 @@ export type ChatSession = {
   looking: readonly string[]; lookupsFor: (turnId: string) => readonly Lookup[] | undefined; lastMode: {mode: DataMode; fellBack: boolean} | null;
   thinkDeeper: () => Promise<void>; spendCheck: SpendCheck | null; confirmSpend: () => void; cancelSpend: () => void; usageNote: string | null;
   toolState: (model: string | null) => {capability: Capability | null; fellBack: boolean};
+  /** Session V Part 10: a chat pinned in History (a version 2 record), and the person's own note on an answer (device only, never sent). */
+  pin: (id: string, pinned: boolean) => Promise<void>; setFeedback: (turnId: string, value: 'up' | 'down' | undefined) => void; say: (shown: string, text: string) => void;
 };
 const SAVE_NOTE = 'This chat could not be saved on this device; it stays here until you close it.';
+/** A local answer's records once more, under the same gate, for its chart (Session V Part 10; nothing is stored). */
+function resultsFor(reply: LocalReply, env: ReturnType<typeof toolEnv> | null): ToolResult[] | undefined {
+  if (reply.kind !== 'answer' || !env || !reply.calls.length) return undefined;
+  try { return reply.calls.slice(0, 4).map(c => runTool(c.tool, c.args, env)); } catch { return undefined; }
+}
 export function useChatSession({settings, scope, context}: {settings: AiSettings; scope: string; context: AiContextState}): ChatSession {
   const store = useMemo<ChatStore>(() => currentChatStore(), [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- the store follows the scope
   const [chat, setChatState] = useState<Chat>(() => newChat(scope, settings.provider, settings.model));
@@ -114,10 +133,13 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     capabilities.current.set(id, read);
     return read;
   }, [settings.baseUrl, settings.localServer, settings.provider]);
+  /** The page a chat started on, for History's filter (Session V Part 10); never on Settings, which attaches nothing. */
+  const rememberArea = useCallback((chatId: string) => { if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
     if (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription') { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · your AI.']}); return; }
-    if (isFull(chatRef.current) && !options.reuse) { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
+    const before = !options.reuse && options.replace ? editTarget(chatRef.current, options.replace) ?? chatRef.current : chatRef.current;
+    if (isFull(before) && !options.reuse) { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
     let options_: AiOptions = {version: 1};
     try { options_ = readDeviceRecord(getAppStorage(), AI_OPTIONS).data; } catch { /* the defaults */ }
     const deepModel = options.deep ? options_.deepModel?.[settings.provider] ?? null : null, model = deepModel ?? settings.model;
@@ -132,20 +154,21 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
     const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
-    const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null].filter((n): n is string => !!n);
+    const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null].filter((n): n is string => !!n);
     const withNotes = (prompt: string) => [prompt, ...notes].join('\n\n');
     const systemOnly = buildSystemPrompt({...base, context: null}), system = withNotes(buildSystemPrompt({...base, context: contextText}));
     // A photo is kept in memory for this session (a regenerate sends it again); the chat records only that one was attached.
     const asking = options.images?.length ? {...userTurn(text), attachments: [{kind: 'photo' as const}]} : userTurn(text);
-    const started = options.reuse ? chatRef.current : appendTurn(chatRef.current, asking);
+    const started = options.reuse ? chatRef.current : appendTurn(before, asking);
     const fit = fitToBudget({system: systemOnly, context: contextText ?? '', turns: messagesFor(started.turns), budgetTokens: settings.contextBudgetTokens});
-    if (fit.overBudget && !options.confirmed) { setConfirmation({text, fit, budget: settings.contextBudgetTokens, reuse: !!options.reuse, ...(options.extra ? {extra: options.extra} : {}), ...(options.deep ? {deep: true} : {}), ...(options.images ? {images: options.images} : {}), ...(options.log ? {log: true} : {})}); return; }
+    if (fit.overBudget && !options.confirmed) { setConfirmation({text, fit, budget: settings.contextBudgetTokens, reuse: !!options.reuse, ...(options.extra ? {extra: options.extra} : {}), ...(options.deep ? {deep: true} : {}), ...(options.images ? {images: options.images} : {}), ...(options.log ? {log: true} : {}), options}); return; }
     setConfirmation(null); setFailure(null);
     const next = {...started, provider: settings.provider, model: settings.model};
     const asked = [...next.turns].reverse().find(t => t.role === 'user');
     if (asked && options.extra) extras.current.set(asked.id, options.extra);
     if (asked && options.images?.length) photos.current.set(asked.id, options.images);
     setChat(next); persist(next);
+    if (!options.reuse && !before.turns.length) rememberArea(next.id);
     let key: string | null = null;
     try { key = await readKey(scope, settings.provider); } catch { key = null; }
     if (key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
@@ -218,7 +241,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
       abort.current = null; if (frame.current) { cancelAnimationFrame(frame.current); frame.current = 0; }
       setStatus('idle'); setDraft(''); setLooking([]); pendingText.current = '';
     }
-  }, [capabilityFor, context, finish, persist, scope, setChat, settings]);
+  }, [capabilityFor, context, finish, persist, rememberArea, scope, setChat, settings]);
   const stop = useCallback(() => abort.current?.abort(), []);
   const again = useCallback(async (deep: boolean) => {
     if (abort.current) return;
@@ -237,32 +260,34 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const toolState = useCallback((model: string | null) => { if (!settings.provider || !model) return {capability: null, fellBack: false}; const id = fallbackKey(settings.provider, model); return {capability: known.current.get(id) ?? null, fellBack: fellBack.current.has(id)}; }, [settings.provider]);
   const connected = settings.enabled && settings.mode !== 'subscription' && !!settings.provider && !!settings.model;
   /** A local answer: the person's question and ZIGi's answer from the records, both marked local (never sent to an AI later). */
-  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply) => {
+  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results}: {replace?: string; results?: readonly ToolResult[]} = {}) => {
     if (reply.kind === 'none') return;
+    const before = replace ? editTarget(chatRef.current, replace) ?? chatRef.current : chatRef.current;
     const user = {...userTurn(shown), source: 'local' as const};
     const answer = {...assistantTurn({text: reply.text, provider: null, model: null, usage: null}), source: 'local' as const, ...(reply.calls.length ? {tools: reply.calls.slice(0, 16).map(c => ({tool: c.tool, args: c.args, label: c.label.slice(0, 160)}))} : {})};
     let next: Chat;
-    try { next = appendTurn(appendTurn(chatRef.current, user), answer); }
+    try { next = appendTurn(appendTurn(before, user), answer); }
     catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
-    locals.current.set(answer.id, {reply, question});
+    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})});
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
+    if (!before.turns.length) rememberArea(next.id);
     zigiEvents.emit('reply-done');
-  }, [persist, setChat]);
+  }, [persist, rememberArea, setChat]);
   const localEnv = useCallback(() => { const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; }, [context]);
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
+    if (connected && (options.images?.length || options.log || options.direct || options.plan)) return send(text, options);
     const env = localEnv();
     let reply: LocalReply = {kind: 'none'};
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
-    if (connected && (options.images?.length || options.log)) return send(text, options);
     if (reply.kind === 'none' && connected) return send(text, options);
-    answerLocally(text, text, reply.kind === 'none' ? examplesReply(env) : reply);
+    answerLocally(text, text, reply.kind === 'none' ? examplesReply(env) : reply, {replace: options.replace, results: resultsFor(reply, env)});
   }, [answerLocally, connected, localEnv, send]);
   const choose = useCallback((question: string, choice: LocalChoice) => {
     const env = localEnv(); if (!env || abort.current) return;
     let reply: LocalReply = {kind: 'none'};
     try { reply = localAnswer(question, env, choice.subject); } catch { reply = {kind: 'none'}; }
-    answerLocally(choice.label, question, reply.kind === 'none' ? examplesReply(env) : reply);
+    answerLocally(choice.label, question, reply.kind === 'none' ? examplesReply(env) : reply, {results: resultsFor(reply, env)});
   }, [answerLocally, localEnv]);
   /** The records a local answer used, recomputed now for the person's AI (its gate: switches, Health, sensitive screens). */
   const moreText = useCallback((calls: readonly ToolCallRecord[]): ExtraData | null => {
@@ -274,6 +299,8 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     await send(question, {...options, ...(extra ? {extra} : {})});
   }, [moreText, send]);
   const localFor = useCallback((turnId: string) => locals.current.get(turnId), []);
+  /** Session V Part 10: words ZIGi writes on the device (the /help list, a command that needs an AI), kept as a local turn. */
+  const say = useCallback((shown: string, text: string) => answerLocally(shown, shown, {kind: 'answer', text, calls: []}), [answerLocally]);
   const startNew = useCallback(() => { abort.current?.abort(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [scope, setChat, settings.model, settings.provider]);
   const open = useCallback(async (id: string) => { const found = await store.read(id); if (found) { abort.current?.abort(); setChat(found); setFailure(null); setConfirmation(null); } }, [setChat, store]);
   const rename = useCallback(async (id: string, title: string) => { await store.rename(id, title); if (chatRef.current.id === id) setChat({...chatRef.current, title: title.trim() || chatRef.current.title}); }, [setChat, store]);
@@ -281,6 +308,17 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const removeAll = useCallback(async () => { await store.removeAll(); startNew(); }, [startNew, store]);
   const list = useCallback(() => store.list(), [store]), search = useCallback((query: string) => store.search(query), [store]);
   const dismissFailure = useCallback(() => setFailure(null), []), cancelConfirmation = useCallback(() => setConfirmation(null), []);
+  const pin = useCallback(async (id: string, pinned: boolean) => {
+    const pinnedAs = (chat: Chat): Chat => { const next = {...chat}; if (pinned) next.pinned = true; else delete next.pinned; return next; };
+    const current = chatRef.current.id === id && chatRef.current.turns.length ? chatRef.current : await store.read(id);
+    if (!current) return;
+    await store.save(pinnedAs(current));
+    if (chatRef.current.id === id) setChat(pinnedAs(chatRef.current));
+  }, [setChat, store]);
+  const setFeedback = useCallback((turnId: string, value: 'up' | 'down' | undefined) => {
+    const turns = chatRef.current.turns.map(t => { if (t.id !== turnId || t.role !== 'assistant') return t; const next = {...t}; if (value) next.feedback = value; else delete next.feedback; return next; });
+    const next = {...chatRef.current, turns}; setChat(next); persist(next);
+  }, [persist, setChat]);
   return {chat, status, draft, failure, confirmation, saveNote, parsed, handlesFor, send, stop, regenerate, dismissFailure, cancelConfirmation, ask, choose, askMore, moreText, localFor, startNew, open, list, search, rename, remove, removeAll,
-    looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState};
+    looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState, pin, setFeedback, say};
 }

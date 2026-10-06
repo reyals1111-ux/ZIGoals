@@ -20,6 +20,8 @@ import {briefForAi, morningBrief} from './proactive/brief';
 import {explainFor} from './proactive/explain';
 import {usesHealth, zigiInsights} from './proactive/insights';
 import {reviewForAi} from './proactive/review';
+import {continuePrompt} from './continue';
+import {storedChat, type Chat, type ChatTurn} from './chats';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -202,4 +204,28 @@ test('Part 9: the brief ("Say it nicer"), the review reflection, insight request
   // The control: with the gate open on Health, the same chips reach the sentinel values.
   const open = numbers.map(([kind, metric, name]) => { const e = explainFor(kind, metric, name); return e ? JSON.stringify(questionContext(e.question, s, gatesFor(true, 'health', '/app/health'), [], new Set(), [e.about])) : ''; }).join('\n');
   expect(sentinelsIn(open).length).toBeGreaterThan(2);
+});
+test('Part 10: "Continue in my AI" and a chat read back from History carry no Health with the gate closed', () => {
+  const s = sources(), at = '2026-10-05T10:00:00.000Z';
+  // An answer made on this device is never part of what goes to an AI, whatever it holds.
+  const turns: ChatTurn[] = [
+    {id: 't1', role: 'user', text: 'How much water did I drink?', at, source: 'local'},
+    {id: 't2', role: 'assistant', text: `You drank ${SENTINEL.waterMl} mL.`, at, provider: null, model: null, usage: null, source: 'local'},
+    {id: 't3', role: 'user', text: 'Plan my week', at},
+    {id: 't4', role: 'assistant', text: 'MOCK plan', at, provider: 'openai', model: 'mock', usage: null},
+  ];
+  for (const [area, pathname] of PAGES) {
+    const context = buildPageContext(builderInput(s, area, pathname, false), new Handles());
+    expect(sentinelsIn(continuePrompt({turns, context})), `continue ${pathname}`).toEqual([]);
+  }
+  expect(continuePrompt({turns, context: null})).toContain('Me: Plan my week');
+  // History keeps the lookup (tool, arguments, label), never its result; read back with the gate closed it is refused.
+  const open = toolEnv(s, gatesFor(true, 'health', '/app/health'), 'provider'), looked = runTool('water', {range: 'today'}, open);
+  expect(sentinelsIn(toolText(looked, open)).length).toBeGreaterThan(0);
+  const chat: Chat = {version: 1, id: 'c1', scope: 'local', title: 'Water', provider: 'openai', model: 'mock', createdAt: at, updatedAt: at, turns: [turns[2]!, {...turns[3]!, tools: [{tool: 'water', args: {range: 'today'}, label: looked.label}]}]};
+  expect(sentinelsIn(JSON.stringify(storedChat(chat)))).toEqual([]);
+  const closed = toolEnv(s, gatesFor(false, 'health', '/app/health'), 'provider'), replay = runTool('water', {range: 'today'}, closed);
+  expect(replay.ok).toBe(false); expect(sentinelsIn(toolText(replay, closed))).toEqual([]);
+  // The control: on Health with the gate open, the page's records in "Continue in my AI" do carry the sentinels.
+  expect(sentinelsIn(continuePrompt({turns, context: buildPageContext(builderInput(s, 'health', '/app/health', true), new Handles())})).length).toBeGreaterThan(0);
 });

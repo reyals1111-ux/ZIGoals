@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {forgetChats} from '../../lib/ai/chats';
+import {forgetChatAreas} from '../../lib/ai/history';
 import {AiError, errorSteps} from '../../lib/ai/errors';
 import {dropMemoryKeys, forgetAiKeys, forgetKey, hasRememberedKey, holdKey, readKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
 import {listModels} from '../../lib/ai/models';
@@ -22,6 +23,7 @@ import {Switch} from './ai-switch';
 import {useAiSettings} from './use-ai-settings';
 import {useHealthConsent} from './use-health-consent';
 import './ai.css';
+import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
  * Settings → ZIGi · your AI (ADR-012, Part 8; id="your-ai"): the connection (setup, change model, disconnect), what
@@ -42,14 +44,19 @@ const PAGE_NOTES: Record<PageArea, string> = {
  * #zigi-notes opens it: the "Remember this?" cards and Activity point here).
  */
 const NotesPanel = lazy(() => import('./ai-notes'));
-const NOTES_ANCHOR = 'zigi-notes';
-function NotesCard() {
+const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack';
+/** A card that opens when the address names it (#zigi-notes, and #zigi-pack for ZIGi's /pack, Session V Part 10). */
+function useAnchoredCard(anchor: string) {
   const [open, setOpen] = useState(false), card = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
-    const follow = () => { if (window.location.hash !== `#${NOTES_ANCHOR}`) return; setOpen(true); requestAnimationFrame(() => card.current?.scrollIntoView({block: 'start'})); };
+    const follow = () => { if (window.location.hash !== `#${anchor}`) return; setOpen(true); requestAnimationFrame(() => card.current?.scrollIntoView({block: 'start'})); };
     follow(); window.addEventListener('hashchange', follow);
     return () => window.removeEventListener('hashchange', follow);
-  }, []);
+  }, [anchor]);
+  return {open, setOpen, card};
+}
+function NotesCard() {
+  const {open, setOpen, card} = useAnchoredCard(NOTES_ANCHOR);
   return <details ref={card} id={NOTES_ANCHOR} className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">What ZIGi knows about me</summary>
     <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you.</p>
@@ -59,8 +66,8 @@ function NotesCard() {
 /** Session V Part 5: the context pack, loaded only when the person opens its card. */
 const ContextPackPanel = lazy(() => import('./context-pack'));
 function ContextPackCard() {
-  const [open, setOpen] = useState(false);
-  return <details className="ai-pack" onToggle={event => setOpen(event.currentTarget.open)}>
+  const {open, setOpen, card} = useAnchoredCard(PACK_ANCHOR);
+  return <details ref={card} id={PACK_ANCHOR} className="ai-pack" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Context pack for my AI</summary>
     <p className="ai-note">A file of your records to add to your AI&rsquo;s project knowledge (Claude Projects, ChatGPT Projects, Gemini Gems or similar), so it knows your goals, habits and wealth between chats. Made on this device; nothing is sent from here.</p>
     {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ContextPackPanel/></Suspense>}
@@ -102,7 +109,10 @@ export default function AiSettings() {
     try { await forgetAiKeys(scope); } catch { /* nothing remembered */ }
     dropMemoryKeys();
     let chatsNote = '';
-    if (alsoChats) { try { await forgetChats(scope); chatsNote = ' All chats on this device were deleted.'; } catch { chatsNote = ' The chats could not be deleted; try again from here.'; } }
+    if (alsoChats) {
+      try { await forgetChats(scope); chatsNote = ' All chats on this device were deleted.'; } catch { chatsNote = ' The chats could not be deleted; try again from here.'; }
+      try { forgetChatAreas(getAppStorage()); } catch { /* History's page index goes with the chats when it can */ }
+    }
     try { settings.turnOff(); setMessage({text: `ZIGi is off. Keys were removed from this device.${chatsNote}`}); } catch (error) { setMessage({text: `ZIGi could not be turned off on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); }
     setTurningOff(false); setAlsoChats(false); setModels(null);
   };

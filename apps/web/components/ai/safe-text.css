@@ -1,0 +1,8 @@
+/* Session V Part 10: tables in replies */
+.ai-table-wrap{max-width:100%;overflow-x:auto;margin:8px 0;border:1px solid var(--line,#2a325a);border-radius:12px}
+.ai-table-wrap:focus-visible{outline:3px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.ai-table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.4}
+.ai-table th,.ai-table td{padding:6px 10px;border-bottom:1px solid var(--line,#2a325a);text-align:left;vertical-align:top}
+.ai-table thead th{background:color-mix(in srgb,var(--violet,#8b7cff) 10%,transparent);font-weight:600}
+.ai-table .ai-align-right{text-align:right;font-variant-numeric:tabular-nums}
+.ai-table .ai-align-center{text-align:center}
