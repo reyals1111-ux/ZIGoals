@@ -17,6 +17,7 @@ import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {usePrivateStore} from '../use-private-store';
 import {AiSetup, type SetupSeed} from './ai-setup';
 import {ModelPicker} from './model-picker';
+import {AiDataUsage} from './ai-data-usage';
 import {useAiSettings} from './use-ai-settings';
 import {useHealthConsent} from './use-health-consent';
 import './ai.css';
@@ -128,6 +129,7 @@ export default function AiSettings() {
       <p className="ai-note">On by default except Health. Off means ZIGi answers without that page&rsquo;s data. Identifiers, wallet addresses, chain details, account and sync metadata are never sent.</p>
       <div className="ai-switch-list">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
       <Switch checked={data.includeHealth} onChange={next => save(s => ({...s, includeHealth: next}))} label="Include Health" disabled={!layoutHasHealth} note={!layoutHasHealth ? 'Health is not part of your Today layout on this device, so nothing from Health can be shared. Add Health to Today first.' : healthConsent.accountActive && !healthConsent.accountHealthPermitted ? 'With your account open, Health is shared only when the account\'s Health permission is on for this device (Settings → Account & sync). It is not, so Health stays out.' : 'Health goes to your AI only with this switch, the Health page switch above and, with an account, its Health permission. Off by default.'}/>
+      {data.mode !== 'subscription' && <AiDataUsage settings={data} scope={scope}/>}
       <h3>Spend protection</h3>
       <div className="ai-fields">
         <label className="field">Output cap per reply (tokens)<input type="number" min={OUTPUT_CAP.min} max={OUTPUT_CAP.max} step={64} value={data.maxOutputTokens} onChange={e => { const v = Number(e.target.value); if (v >= OUTPUT_CAP.min && v <= OUTPUT_CAP.max) save(s => ({...s, maxOutputTokens: Math.round(v)})); }}/><small>Sent as the provider&rsquo;s maximum; a longer reply is cut off and says so. Default {OUTPUT_CAP.default}.</small></label>
@@ -152,6 +154,6 @@ export default function AiSettings() {
     </>}
     {settings.loaded && <ContextPackCard/>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
-    <p className="fine">Costs are between you and your provider; ZIGoals bills nothing and shows token counts only. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
+    <p className="fine">Costs are between you and your provider; ZIGoals bills nothing. It counts the tokens your provider reports and, only with prices you enter, shows an estimate. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
   </div>;
 }

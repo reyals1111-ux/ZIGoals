@@ -32,10 +32,14 @@ import {speechLanguage} from '../../lib/ai/voice';
 import {examplesFor} from '../../lib/ai/local-answers/examples';
 import {LOCAL_LABEL} from '../../lib/ai/local-answers/words';
 import {toolEnv} from '../../lib/ai/tools/env';
-import {runTool} from '../../lib/ai/tools/registry';
+import {runTool, toolText} from '../../lib/ai/tools/registry';
 import type {ToolResult} from '../../lib/ai/tools/types';
 import {questionContext, type QuestionContext} from '../../lib/ai/context/question';
 import {localAnswer} from '../../lib/ai/local-answers/engine';
+import {dataMode, dataModeLine, toolListTokens} from '../../lib/ai/capabilities';
+import {toolsFor} from '../../lib/ai/tool-loop';
+import {AI_OPTIONS, type AiOptions} from '../../lib/ai/store/records';
+import {useDeviceRecord} from './use-device-record';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -54,8 +58,11 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device.
   const localOnly = !connected && !bridge;
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context}), runner = useProposals(), zigi = useZigiState();
+  const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history'>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
+  const tool = session.toolState(data.model), lastMode = session.lastMode;
+  const dataLine = useMemo(() => connected ? modeLine(aiOptions, {capability: tool.capability, fellBack: tool.fellBack}, attach, context) : null, [connected, aiOptions, tool.capability, tool.fellBack, attach, context, lastMode]); // eslint-disable-line react-hooks/exhaustive-deps -- lastMode marks what the session learned
   // Session V Part 4: the records chosen from the question being typed, as removable chips; the same text goes with it.
   const [draft, setDraft] = useState(''), [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set());
   const question = useMemo(() => connected && !sensitive ? questionContext(draft, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null, [connected, sensitive, draft, context, removed]);
@@ -116,17 +123,23 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
         {connected && session.chat.turns.length === 0 && !busy && <Greeting area={area} onChip={sendQuestion}/>}
         {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && turn.source === 'local'
           ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy}/>
-          : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader}/>)}
-        {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">Waiting for {providerName}…</span></div>}
+          : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null}/>)}
+        {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">{session.looking.length ? `ZIGi looked at ${session.looking.join(', ')}; waiting for ${providerName}…` : `Waiting for ${providerName}…`}</span></div>}
+        {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
         {session.confirmation && <div className="ai-confirm" role="group" aria-label="This page's data is larger than your budget">
           <p>This page’s data is about {session.confirmation.fit.estimated.context.toLocaleString('en-US')} tokens; with the conversation that is {session.confirmation.fit.estimated.total.toLocaleString('en-US')}, above your budget of {session.confirmation.budget.toLocaleString('en-US')} (Settings → ZIGi · your AI → Context budget).</p>
-          <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, withContext: false, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
+          <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra, deep: session.confirmation!.deep, spendConfirmed: true})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, withContext: false, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra, deep: session.confirmation!.deep, spendConfirmed: true})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
         </div>}
+        {session.spendCheck && <div className="ai-confirm" role="group" aria-label="Your monthly cap is reached">
+          <p>{session.spendCheck.note} You asked ZIGi to check with you first (Settings → ZIGi · your AI → Usage).</p>
+          <div className="ai-card-actions"><button type="button" className="primary" onClick={session.confirmSpend}>Send anyway</button><button type="button" className="text-link" onClick={session.cancelSpend}>Not now</button></div>
+        </div>}
+        {session.usageNote && <p className="ai-note ai-usage-note" role="status">{session.usageNote}</p>}
         {session.failure && <div className="ai-failure" role="alert"><p className="ai-failure-title">{session.failure.title}</p>{session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}<div className="ai-card-actions">{['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <Link className="secondary" href={SETTINGS_HREF} onClick={onClose}>Open Settings</Link>}<button type="button" className="text-link" onClick={session.dismissFailure}>Dismiss</button></div></div>}
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
-      {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))}/>}
+      {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
       {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
     </>}
@@ -181,7 +194,40 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast}: {
     </div>
   </article>;
 }
-function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>}) {
+/** Session V Part 6: which way the data travels with the next message, for the context bar; null when nothing would. */
+function modeLine(options: AiOptions, tool: {capability: Parameters<typeof dataMode>[1]; fellBack: boolean}, attach: boolean, context: ReturnType<typeof useAiContext>): string | null {
+  if (!attach || !context.attaches || !Object.values(context.gates.areas).some(Boolean)) return null;
+  const mode = dataMode(options.toolMode, tool.capability, tool.fellBack);
+  if (mode !== 'tools') return dataModeLine(mode, tool.fellBack);
+  const sources = context.toolSources();
+  return dataModeLine(mode, false, sources ? toolListTokens(toolsFor(toolEnv(sources, context.gates, 'provider'))) : undefined);
+}
+/** "ZIGi looked at": each lookup the person's AI asked for in this reply, and the exact text it got back. */
+function LookedAt({turn, session, context}: {turn: ChatTurn; session: ChatSession; context: ReturnType<typeof useAiContext>}) {
+  const [shown, setShown] = useState<{label: string; text: string}[] | null>(null), [recomputed, setRecomputed] = useState(false);
+  const calls = turn.tools ?? [];
+  if (!calls.length) return null;
+  const load = () => {
+    const kept = session.lookupsFor(turn.id);
+    if (kept) { setShown(kept.map(l => ({label: l.label, text: l.text}))); setRecomputed(false); return; }
+    // After a reload the results are not kept: they are made again now, under the gate that applies now.
+    const sources = context.toolSources();
+    if (!sources) { setShown([]); setRecomputed(true); return; }
+    const env = toolEnv(sources, context.gates, 'provider');
+    setShown(calls.map(c => ({label: c.label, text: toolText(runTool(c.tool, c.args ?? {}, env), env)}))); setRecomputed(true);
+  };
+  return <div className="ai-looked" role="group" aria-label="ZIGi looked at">
+    <span className="ai-question-label">ZIGi looked at:</span>
+    {calls.map((c, i) => <span key={i} className="ai-source-chip ai-looked-chip">{c.label}</span>)}
+    <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) load(); }}>
+      <summary>What ZIGi sent to your AI</summary>
+      {shown && shown.length === 0 && <p className="ai-note">Nothing is read on this screen.</p>}
+      {shown?.map((l, i) => <div key={i} className="ai-record"><p className="ai-record-source">{l.label}</p><pre>{l.text}</pre></div>)}
+      {shown && shown.length > 0 && recomputed && <p className="ai-note">Made again now from the records on this device, under your current settings; the reply itself is unchanged.</p>}
+    </details>
+  </div>;
+}
+function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader, context, deepModel}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>; context: ReturnType<typeof useAiContext>; deepModel: string | null}) {
   const [copied, setCopied] = useState(false);
   if (turn.role === 'user') return <article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p></div></article>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
@@ -190,12 +236,14 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       {parsed.text && <SafeText text={parsed.text}/>}
+      <LookedAt turn={turn} session={session} context={context}/>
       {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate}/>}
       <footer className="ai-turn-meta">
         <span className="ai-turn-label">{ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName)}</span>
         {usage && <span className="ai-turn-usage">{usage}{usageUrl && <> · <a href={usageUrl} target="_blank" rel="noopener noreferrer">usage at {providerName} ↗</a></>}</span>}
+        {turn.mode === 'deep' && <span className="ai-turn-deep">Thought deeper with {turn.model}</span>}
         {turn.stopped && <span className="ai-turn-stopped">{turn.stopped}</span>}
-        <span className="ai-turn-actions"><button type="button" className="text-link" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>{reader.supported && (reader.speaking ? <button type="button" className="text-link" onClick={reader.stop}>Stop reading</button> : <button type="button" className="text-link" onClick={() => reader.speak(plainText(parseBlocks(parsed.text)))}>Read aloud</button>)}{isLast && <button type="button" className="text-link" onClick={() => void session.regenerate()}>Regenerate</button>}</span>
+        <span className="ai-turn-actions"><button type="button" className="text-link" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>{reader.supported && (reader.speaking ? <button type="button" className="text-link" onClick={reader.stop}>Stop reading</button> : <button type="button" className="text-link" onClick={() => reader.speak(plainText(parseBlocks(parsed.text)))}>Read aloud</button>)}{isLast && <button type="button" className="text-link" onClick={() => void session.regenerate()}>Regenerate</button>}{isLast && deepModel && deepModel !== turn.model && <button type="button" className="text-link" onClick={() => void session.thinkDeeper()} title={`Ask again with ${deepModel} and more of your records`}>Think deeper</button>}</span>
       </footer>
     </div>
   </article>;
@@ -214,15 +262,16 @@ function QuestionSources({question, onRemove}: {question: QuestionContext | null
     {question.withheld.map(w => <span key={w} className="ai-note ai-question-withheld">Not included: {w}</span>)}
   </div>;
 }
-function ContextBar({context, attach, onAttach, sensitive, total, question, onRemove}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean; total: {input: number; output: number} | null; question: QuestionContext | null; onRemove: (id: string) => void}) {
+function ContextBar({context, attach, onAttach, sensitive, total, question, onRemove, modeLine}: {context: ReturnType<typeof useAiContext>; attach: boolean; onAttach: (value: boolean) => void; sensitive: boolean; total: {input: number; output: number} | null; question: QuestionContext | null; onRemove: (id: string) => void; modeLine: string | null}) {
   const label = AREA_LABELS[context.area];
   const totalLine = total ? <span className="ai-context-total" aria-label="Tokens so far in this conversation">{total.input.toLocaleString('en-US')} in · {total.output.toLocaleString('en-US')} out tokens so far</span> : null;
   if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span>{totalLine}</div>;
   if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span>{totalLine}</div>;
   const questionPreview = question?.text ? <><p className="ai-note">And the records chosen from your question:</p><pre>{question.text}</pre></> : null;
-  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span><QuestionSources question={question} onRemove={onRemove}/>{questionPreview && <details className="ai-context-preview"><summary>What your AI sees</summary>{questionPreview}</details>}{totalLine}</div>;
+  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}<QuestionSources question={question} onRemove={onRemove}/>{questionPreview && <details className="ai-context-preview"><summary>What your AI sees</summary>{questionPreview}</details>}{totalLine}</div>;
   return <div className="ai-context-bar">
     <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)}/> Share this page’s data{context.preview ? ` · ${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens` : ''}</label>
+    {modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}
     <QuestionSources question={question} onRemove={onRemove}/>
     {((attach && context.preview) || questionPreview) && <details className="ai-context-preview"><summary>What your AI sees</summary>{attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></>}{questionPreview}</details>}
     {attach && !context.preview && context.ready && <span className="ai-note">Nothing to share on this page yet.</span>}

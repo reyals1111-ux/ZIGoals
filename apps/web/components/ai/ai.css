@@ -211,3 +211,19 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-pack-areas legend{font-weight:600;margin-bottom:4px}
 .ai-pack-areas small{display:block;margin-left:28px;color:var(--muted,#aab2d9);font-size:14px}
 .ai-pack-warning{margin:0;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--gold,#ecc779) 55%,var(--line,#2a325a));background:color-mix(in srgb,var(--gold,#ecc779) 10%,transparent);font-size:15px;line-height:1.5}
+/* Session V Part 6: what the person's AI looked at, the data mode line, Think deeper, the usage meter in Settings. */
+.ai-looked{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:8px 0 2px}
+.ai-looked-chip{padding:2px 10px}
+.ai-looked>details{flex-basis:100%}
+.ai-looking{margin:4px 0 0 38px}
+.ai-data-mode{display:block;font-size:14px}
+.ai-turn-deep{color:var(--muted,#aab2d9)}
+.ai-usage-note{margin:6px 0}
+.ai-deep-model{display:grid;gap:8px;margin:6px 0 4px}
+.ai-usage-table{width:100%;border-collapse:collapse;font-size:15px;margin:4px 0 8px}
+.ai-usage-table th,.ai-usage-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line,#2a325a)}
+.ai-usage-table td{font-variant-numeric:tabular-nums}
+.ai-usage-prices,.ai-usage-cap{border:1px solid var(--line,#2a325a);border-radius:12px;padding:10px 12px;margin:8px 0;display:grid;gap:8px}
+.ai-usage-prices legend,.ai-usage-cap legend{font-weight:600;padding:0 4px}
+.ai-usage-prices small,.ai-usage-cap small{color:var(--muted,#aab2d9);font-size:14px}
+@media (max-width:640px){.ai-usage-table{font-size:14px}.ai-usage-table th,.ai-usage-table td{padding:6px 4px}.ai-looking{margin-left:0}}

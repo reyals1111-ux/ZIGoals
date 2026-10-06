@@ -36,6 +36,7 @@ const empty = () => ({version: 1 as const});
 
 export const AI_ROUTES = ['hosted', 'on-device'] as const;
 export const TOOL_MODES = ['auto', 'tools', 'attach'] as const;
+export type ToolMode = (typeof TOOL_MODES)[number];
 export const aiOptionsSchema = z.looseObject({
   version: z.literal(1),
   /** A route that is not one of T's connections; null or absent: T's connection in `zigoals:ai:v1`. */
@@ -57,8 +58,8 @@ const tokens = z.number().int().min(0).max(1_000_000_000_000);
 export const MAX_USAGE_MONTHS = 13;
 export const aiUsageSchema = z.looseObject({
   version: z.literal(1),
-  /** "2026-10" → route (a provider id, "hosted" or "on-device") → tokens the provider reported and the requests made. */
-  months: z.record(month, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000)})).refine(atMost(20))).refine(atMost(MAX_USAGE_MONTHS)).optional(),
+  /** "2026-10" → route (a provider id, "hosted" or "on-device") → tokens the provider reported, the requests made, and how many came back without counts (Part 6). */
+  months: z.record(month, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000), unreported: z.number().int().min(0).max(1_000_000_000).optional()})).refine(atMost(20))).refine(atMost(MAX_USAGE_MONTHS)).optional(),
   /** The person's own prices per million tokens; never fetched, never a ZIGoals price. */
   prices: z.partialRecord(provider, z.looseObject({input: decimal.optional(), output: decimal.optional(), currency})).optional(),
   softCap: z.looseObject({amount: decimal, currency}).nullable().optional(),

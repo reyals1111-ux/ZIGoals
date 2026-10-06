@@ -14,6 +14,8 @@ import {localAnswer} from './local-answers/engine';
 import {recordsForAi} from './local-answers/more';
 import {questionContext} from './context/question';
 import {buildContextPack} from './context-pack/build';
+import {runWithTools, toolsFor} from './tool-loop';
+import type {ChatEvent, ChatRequest} from './types';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -131,4 +133,34 @@ test('Part 5: the context pack carries no Health unless the gate is open AND its
     }
   }
   expect(sentinelsIn(buildContextPack({sources: s, gates: gatesFor(true), scope: all}).markdown).length).toBeGreaterThan(3);
+});
+test('Part 6: native tool calls carry no Health with the gate closed: no Health tool offered, every call refused, in every request', async () => {
+  // The model's own words go back to it in the conversation, so its arguments name no sentinel: only what the device
+  // returns is checked (a broad search finds the sentinel food when Health is readable).
+  const argsFor = (name: string): Record<string, unknown> => name === 'habit_stats' || name === 'habit_checkins' ? {habit: 'Walk', range: 'today'} : name === 'search_foods' ? {query: 'SENTINEL'} : name === 'goal_progress' ? {goal: 'Japan'} : {};
+  // A MOCK model that asks for every one of ZIGi's tools, eight per round, then answers.
+  const sent = async (health: boolean, area: PageArea, pathname: string) => {
+    const requests: ChatRequest[] = [], batches = [TOOLS.slice(0, 8), TOOLS.slice(8, 16), TOOLS.slice(16, 24), TOOLS.slice(24)];
+    const stream = async function* (request: ChatRequest): AsyncGenerator<ChatEvent> {
+      requests.push(request);
+      const batch = batches[requests.length - 1] ?? [];
+      for (const [i, tool] of batch.entries()) yield {type: 'tool-call', call: {id: `call_${requests.length}_${i}`, name: tool.name, arguments: JSON.stringify(argsFor(tool.name))}};
+      if (!batch.length) yield {type: 'text', delta: 'MOCK answer'};
+      yield {type: 'done', reason: batch.length ? 'tool_calls' : 'stop'};
+    };
+    const env = toolEnv(sources(), gatesFor(health, area, pathname), 'provider');
+    const system = buildSystemPrompt({area, context: null, customInstructions: '', providerName: 'Mock', tools: true});
+    for await (const event of runWithTools({provider: 'openai', model: 'mock', system, messages: [{role: 'user', content: 'Tell me everything'}], maxOutputTokens: 256, key: null, env, stream, answerChars: 1_000_000})) void event;
+    return {requests, offered: toolsFor(env).map(t => t.name)};
+  };
+  for (const [area, pathname] of PAGES) {
+    const {requests, offered} = await sent(false, area, pathname);
+    expect(offered.filter(name => TOOLS.find(t => t.name === name)?.area === 'health'), pathname).toEqual([]);
+    expect(requests.length, pathname).toBeGreaterThan(0);
+    expect(sentinelsIn(JSON.stringify(requests)), pathname).toEqual([]);
+    expect(JSON.stringify(requests), pathname).not.toContain(String(SENTINEL.habitValue));
+  }
+  // The control: with the gate open on Health, the same exchange carries the sentinels.
+  const open = await sent(true, 'health', '/app/health');
+  expect(sentinelsIn(JSON.stringify(open.requests)).length).toBeGreaterThan(3);
 });
