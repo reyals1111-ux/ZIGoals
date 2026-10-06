@@ -28,6 +28,8 @@ Status: **In progress** on `feature/session-w-whole-life` ([PR #77](https://gith
 | S10 | 1b | Linked services' tokens: their own sealed IndexedDB store (`zigoals-link-tokens-v1`), forgotten with ZIGi's keys and chats when an account is erased. | Same protection and hygiene as AI keys (ADR-012). |
 | S11 | 1b | The chess cache is classified personal (public ratings, but of the username the person typed); the music choices and the visible-pages mirror are display preferences. | A device with a chess username is not "new". |
 | S12 | 1b | "Export everything" CSVs copy stored fields only (no computed sleep length); accounts rows name their home (device or synced). | T4's rule: the export computes nothing new. |
+| S13 | 1c | A fourth advisory in the same audit (braces 3.0.3, high, ESLint plugin only) cannot be fixed: its patched version 3.0.4 is not published. Left as is and documented with the owner's options (docs/dependencies/AUDIT_FIXES_2026-10-06.md); never hidden by an audit ignore. | Nothing can reach a fixed copy; hiding it would misreport the audit. |
+| S14 | 1c | miniflare's exact sharp pin is overridden to the patch release 0.35.5 (the narrowest override); proxy-addr through an in-range override; source-map-js by an in-range update. | The smallest change that removes each vulnerable copy, with no new package. |
 
 ## Assertions changed (deliberate, listed)
 Each is a "next unknown version" or catalog pin that moves because this build reads one more version; none is weakened (the next unknown version is still refused):
