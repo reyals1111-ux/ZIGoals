@@ -150,7 +150,7 @@ Status: **Accepted; implemented in Session V ([PR #76](https://github.com/reyals
 ## Egress, CSP, Permissions-Policy
 - Browser `connect-src`: **unchanged**. Everything new is local or reuses T's provider origins. The relay origin is server-side only (`lib/egress-policy.json` → `serverOnly.zigiRelay`), and a test proves it never enters `connect-src`.
 - Permissions-Policy: unchanged (`language-model` and `tools` default to `self`; Document PiP has no policy feature).
-- Trusted Types: Part 19.
+- **Trusted Types: enforced in every production build** (Part 19, `[TIER 3] (deploy workflow)`): `require-trusted-types-for 'script'; trusted-types default`, after the full browser suite on both projects reported nothing under the report-only trial. The development server stays unenforced. The smoke, the hosted verifier and the Workers gate pin it ([TRUSTED_TYPES.md](../security/TRUSTED_TYPES.md)).
 
 ## Owner-approved changes (exactly as designed in the plan)
 - **The 1c hotfix PR** ([#75](https://github.com/reyals1111-ux/ZIGoals/pull/75)) as an exception to "one PR per session", for a live privacy defect.

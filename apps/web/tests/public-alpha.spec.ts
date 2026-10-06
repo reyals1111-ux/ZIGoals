@@ -79,6 +79,8 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(h["content-security-policy"]).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/]+=*' 'strict-dynamic'/);
   expect(h["content-security-policy"]!.split(";").find(s=>s.includes("script-src"))).not.toMatch(/unsafe-inline|unsafe-eval/);
   expect(h["content-security-policy"]).toContain("worker-src 'self'");
+  // Session V Part 19: Trusted Types enforced with the default policy only.
+  expect(h["content-security-policy"]).toContain("require-trusted-types-for 'script'; trusted-types default");
   expect(h["x-frame-options"]).toBe("DENY"); expect(h["x-content-type-options"]).toBe("nosniff");
   expect(h["referrer-policy"]).toBe("no-referrer"); expect(h["cache-control"]).toContain("no-store");
   expect(h["cross-origin-opener-policy"]).toBe("same-origin");

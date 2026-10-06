@@ -62,7 +62,7 @@ It is a placeholder in `wrangler.local.jsonc`; the owner chooses at activation.
 | PiP and CSP/Trusted Types | the PiP document gets "a clone of creator's policy container" through the HTML spec chain, so the opener's CSP (and Trusted Types) apply: **an inference from the specs, not stated by MDN** | no string sinks in the window; nodes made in the opener and moved | HTML spec, WICG draft |
 | Push and notifications | Chrome/Edge reject a subscription without `userVisibleOnly: true`; Safari revokes permission for invisible pushes; `image` Chrome 56 only (not Firefox or Safari); Safari: `icon` "can be set, but has no effect"; iOS 16.4 only in Home Screen apps | every push shows its notification; ZIGi's figure as `icon` and a wide `image` where supported; what iOS shows is **UNVERIFIED** | MDN, BCD, WebKit blog, Apple developer docs |
 | Animated mascot | animated WebP with alpha in every current engine, Safari 14+; Safari does not support VP8/VP9 alpha | animated WebP plus a static frame; no WebM/HEVC | WebKit blog (Safari 14), MDN image and video guides |
-| Trusted Types | `require-trusted-types-for`: Chrome 83, **Firefox 148, Safari 26** | Part 19 (trial or enforcement) | BCD, MDN |
+| Trusted Types | `require-trusted-types-for`: Chrome 83, **Firefox 148, Safari 26** | enforced in production builds since Part 19 (`require-trusted-types-for 'script'; trusted-types default`), after a clean full-suite trial | BCD, MDN |
 | Local Network Access | the Chrome 142 prompt is still current (147 and 154 extend it) | unchanged from v1 (Ollama, LM Studio) | developer.chrome.com/blog/local-network-access; release notes 142/147/154 |
 
 ## 3. Data flow per path

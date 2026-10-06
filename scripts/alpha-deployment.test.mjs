@@ -313,6 +313,11 @@ test.each([
   csp => `${csp}; script-src-elem * 'unsafe-inline'`,
   csp => `${csp}; script-src-attr 'unsafe-inline'`,
   csp => csp.replace("font-src 'self'", "font-src *"),
+  // Session V Part 19: Trusted Types dropped or widened.
+  csp => csp.replace("; require-trusted-types-for 'script'", ""),
+  csp => csp.replace("; trusted-types default", ""),
+  csp => csp.replace("trusted-types default", "trusted-types default 'allow-duplicates'"),
+  csp => csp.replace("trusted-types default", "trusted-types *"),
 ])("smoke rejects duplicate, overriding or weakened CSP directives %#", async mutate => {
   const response = htmlResponse();
   response.headers.set("content-security-policy", mutate(response.headers.get("content-security-policy")));
@@ -497,7 +502,8 @@ test("capture accepts a live Alpha without worker-src while the new build adds i
   await expect(smokeAlpha({ expectedCommit: sha, fetcher: liveFetcher(withoutWorkerSrc) })).rejects.toThrow(/CSP directive set changed/);
 });
 test("capture accepts additional or newer directives on the live Alpha; the exact check refuses them", async () => {
-  const extra = csp => `${csp}; trusted-types default; require-trusted-types-for 'script'`;
+  // Session V Part 19 enforces Trusted Types, so the example of a newer directive is now another one.
+  const extra = csp => `${csp}; manifest-src 'self'`;
   expect(await smokeAlpha({ baseline: true, fetcher: liveFetcher(extra) })).toHaveLength(11);
   await expect(smokeAlpha({ expectedCommit: sha, fetcher: liveFetcher(extra) })).rejects.toThrow(/CSP directive set changed/);
 });

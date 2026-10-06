@@ -61,6 +61,9 @@ try {
         assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), ["'self'", ...egressPolicy.chainOrigins, ...Object.values(egressPolicy.aiProviderOrigins), ...egressPolicy.localModelSources].sort());
         for (const d of ['object-src','frame-src','frame-ancestors','base-uri']) assert(csp.includes(`${d} 'none'`));
         assert(csp.includes("form-action 'self'"));
+        // Session V Part 19 (docs/security/TRUSTED_TYPES.md): Trusted Types enforced, with the default policy only.
+        assert(csp.split(';').map(s=>s.trim()).includes("require-trusted-types-for 'script'"),'Trusted Types must be enforced');
+        assert.deepEqual(csp.split(';').map(s=>s.trim()).filter(s=>s.startsWith('trusted-types')),['trusted-types default'],'Trusted Types must allow the default policy only');
         assert.match(headers['strict-transport-security'],/max-age=31536000/);
         assert.match(headers['cache-control'],/no-store/); assert.match(headers['x-robots-tag'],/noindex/);
         assert.equal(headers['x-frame-options'],'DENY'); assert.equal(headers['x-content-type-options'],'nosniff'); assert.equal(headers['referrer-policy'],'no-referrer');

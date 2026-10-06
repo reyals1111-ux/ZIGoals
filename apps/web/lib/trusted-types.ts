@@ -1,9 +1,9 @@
 /**
- * Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04): an inert Trusted Types default policy. Browsers call it only for a
- * page whose CSP requires Trusted Types, and no build of this app does: only the report-only trial (TRUSTED_TYPES_TRIAL in
- * lib/security-policy.ts, docs/security/TRUSTED_TYPES.md) asks for it, to list what enforcement would refuse. It allows
- * script URLs only from this origin's /_next/static/ (the framework's chunks) and /push-sw.js (the push-only service
- * worker, ADR-010), and nothing else: no HTML string and no script string is ever made trusted.
+ * Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04): the Trusted Types default policy. Browsers call it only for a page
+ * whose CSP requires Trusted Types: every production page since Session V Part 19 (TRUSTED_TYPES in
+ * lib/security-policy.ts, docs/security/TRUSTED_TYPES.md), and the report-only trial. It allows script URLs only from this
+ * origin's /_next/static/ (the framework's chunks) and /push-sw.js (the push-only service worker, ADR-010), and nothing
+ * else: no HTML string and no script string is ever made trusted.
  */
 export const TRUSTED_SCRIPT_PATHS = ['/_next/static/', '/push-sw.js'] as const;
 /**
