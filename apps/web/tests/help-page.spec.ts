@@ -75,6 +75,9 @@ test('questions open and close from the keyboard', async ({page}) => {
   // first saw. So the page is brought to the front before focusing. If it happens again, the report names the element
   // that held the focus and whether the document had it.
   await page.bringToFront();
+  // The shell keeps the workspace hidden until the account and preferences load, and a hidden element drops focus()
+  // silently (STATUS "Known CI intermittents", measured on c46c079 and again in CI on e390ae6): wait for the reveal.
+  await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await question.focus(); await expect(question).toBeFocused().catch(async error => {
     const holder = await page.evaluate(() => { const a = document.activeElement; return `${a ? `${a.tagName.toLowerCase()}${a.id ? '#' + a.id : ''}${typeof a.className === 'string' && a.className ? '.' + a.className.trim().split(/\s+/).join('.') : ''}` : 'none'} hasFocus=${document.hasFocus()} visibility=${document.visibilityState}`; });
     test.info().annotations.push({type: 'focus-holder', description: holder}); console.log('focus-holder', holder); throw error;

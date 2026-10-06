@@ -228,6 +228,42 @@ Facts to start from: the chat calls the AI provider the person chose, from their
 11. **Local models.** The app explains how to allow its origin in Ollama (`OLLAMA_ORIGINS`) and how to answer Chrome's local-network prompt. Any liability for what a local server does?
 12. **Logs we do not have.** Since nothing passes our servers, we cannot answer a data-subject request about those conversations; the person asks the provider. Must the notice say that explicitly?
 
+### 8a. ZIGi v2 (added 2026-10-06, Session V, [ADR-014](../architecture/ADR-014-zigi-v2.md); questions, not answers)
+
+Facts to start from:
+- By default nothing changes in the data path: the person's browser talks to the provider they chose.
+- ZIGi now also answers from records on the device with no AI, can call read-only lookups while the person's AI answers, can turn a meal photo into cards, writes a context pack file on request, can knock and name a reminder in a notification (opt-in), and can serve a browser's AI agent (opt-in).
+- An off-by-default **ZIGoals hosted** relay exists in the code but is not deployed. Activation is the owner's ([ZIGI_RELAY_ACTIVATION.md](../run11/ZIGI_RELAY_ACTIVATION.md)).
+
+13. **Hosted relay: our role.** With the relay on, ZIGoals receives each message of an invited account, with the records ZIGi attaches (possibly Health, GDPR Art. 9 special-category data, when the person ticks its own box and the Health gate is open), and forwards them to a provider it contracts with and pays.
+    - Is ZIGoals then a controller (it chooses the provider and the purpose) or a processor for the person?
+    - Which legal basis: explicit consent for Health under Art. 9(2)(a)? Is the in-app disclosure with its own Health box enough, and what must it say?
+    - What DPA with the provider (OpenAI in the template), and which transfer mechanism to the US (DPF, SCCs)?
+    - The relay keeps counts and account ids for one extra day, and Cloudflare processes the connection. Is that retention and the sub-processor chain stated well enough?
+    - What must a data-subject request get, given that the relay stores no message?
+14. **EU AI Act labelling.** Replies say "Answer from your AI (<provider>), not from ZIGoals.", "Answer from <provider> via ZIGoals hosted", "Answered on your device · no AI used" or "Answered by Chrome's on-device model".
+    - With the relay on, is ZIGoals a deployer of a general-purpose AI system under Art. 50?
+    - Do the labels meet Art. 50(1) (people told they interact with an AI) and any duty about AI-generated text?
+    - Does the on-device model change anything?
+15. **Advice-like answers.** ZIGi now computes figures itself (local answers, patterns, the brief) and reads records over time. It refuses advice, shows careful mode for risky health topics without numbers, and labels patterns "a pattern, not proof".
+    - Do computed health figures (calories, weight change, fasting lists) or patterns raise medical-device or health-claim questions?
+    - Is careful mode's wording (a doctor, a registered dietitian, someone they trust, the local emergency number or a crisis line for any risk to life) adequate across the EU?
+16. **Photo meal estimates.** A photo goes with one message to the person's own provider and is never stored; the AI estimates foods and nutrients, shown as "Estimated by your AI from a photo", and nothing is written until confirmed.
+    - Is a meal photo health data?
+    - Must people be warned about faces or others in the photo?
+    - Any consumer-law duty about the accuracy of estimates?
+17. **Context pack.** A readable file of the person's records (Health only with its gate and box), made on request, for use in another AI's projects. The warning "This file isn't encrypted. Anyone and any AI you give it to can read it." is shown first.
+    - Anything owed beyond that, like Export everything?
+    - Does suggesting Claude/ChatGPT/Gemini projects make ZIGoals responsible for that transfer?
+18. **Browser AI agents (WebMCP).** With the switch on, an AI agent built into the browser can read ZIGi's lookups (Health only through the gate) and propose cards. What it reads goes to whoever runs that agent, which ZIGoals cannot know. Each read is shown at once in a notice.
+    - Who is responsible for that transfer?
+    - Is the opt-in explanation and the notice enough?
+    - Must the agent's operator be named when the browser does not say?
+19. **Push content.** With "Show what a reminder is for in notifications" on (off by default), a habit's name shows on the lock screen. It is composed on the device; the push server never gets it, and Health-linked habits and water stay generic.
+    - Is a habit name on a lock screen a disclosure we must warn about beyond the switch's note?
+    - Do Apple's and Google's push services see anything new? (The payload is unchanged, `{"v":1}`.)
+20. **Notes ZIGi keeps.** "What ZIGi knows about me" holds up to 100 notes the person writes or confirms (health and diet notes only through the Health gate). Any duty beyond deletion, export and the note on what they are used for?
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);

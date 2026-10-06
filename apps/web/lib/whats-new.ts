@@ -5,7 +5,7 @@ import {z} from 'zod';
  * {version: 1, dismissed: [releaseId]} holds no personal content; unreadable bytes count as dismissed (fail closed).
  */
 export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
-export const WHATS_NEW_RELEASE = '2026-10-session-t';
+export const WHATS_NEW_RELEASE = '2026-10-session-v';
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;
