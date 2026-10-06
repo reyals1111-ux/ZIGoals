@@ -85,6 +85,8 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(h["referrer-policy"]).toBe("no-referrer"); expect(h["cache-control"]).toContain("no-store");
   expect(h["cross-origin-opener-policy"]).toBe("same-origin");
   expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
+  // Session W Part 1d: the build names its exact source commit, the one the page itself shows (Settings, Help).
+  expect(h["x-zigoals-build"]).toMatch(/^[a-f0-9]{40}$/);
   const socialUrl = new URL("/social-card.png", response!.url());
   // NextURL intentionally normalizes loopback addresses to localhost.
   if (socialUrl.hostname === "127.0.0.1") socialUrl.hostname = "localhost";

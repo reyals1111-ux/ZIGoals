@@ -70,6 +70,17 @@ test("HTTPS middleware overwrites attacker nonce/origin and sends non-cacheable 
   expect(response.headers.get("Cache-Control")).toContain("no-store");
 });
 
+test("Session W Part 1d: every app answer names its exact build (the public 40-character commit), and nothing else", () => {
+  const before = process.env.NEXT_PUBLIC_APP_COMMIT;
+  try {
+    process.env.NEXT_PUBLIC_APP_COMMIT = "0123456789abcdef0123456789abcdef01234567";
+    expect(middleware(new NextRequest("https://alpha.zigoals.app/app")).headers.get("x-zigoals-build")).toBe("0123456789abcdef0123456789abcdef01234567");
+    for (const commit of ["Unknown", "", "0123456", "0123456789ABCDEF0123456789ABCDEF01234567", "0123456789abcdef0123456789abcdef01234567\nx"]) {
+      process.env.NEXT_PUBLIC_APP_COMMIT = commit;
+      expect(middleware(new NextRequest("https://alpha.zigoals.app/app")).headers.get("x-zigoals-build"), commit).toBeNull();
+    }
+  } finally { if (before === undefined) delete process.env.NEXT_PUBLIC_APP_COMMIT; else process.env.NEXT_PUBLIC_APP_COMMIT = before; }
+});
 test("HSTS and crawler headers avoid middleware duplication while covering Next and static assets", () => {
   const nextConfig = readFileSync(
     new URL("../next.config.ts", import.meta.url),

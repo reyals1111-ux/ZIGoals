@@ -5,7 +5,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateRepositoryDeploymentConfigs, readDeploymentConfigs } from "./check-deployment-configs.mjs";
 import { REPOSITORY, WORKER, alphaDeploymentEnvironment, alphaDeployArgs, assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, currentDeployment, performDeployment } from "./lib/alpha-deployment.mjs";
-import { smokeAlpha } from "./lib/alpha-smoke.mjs";
+import { readHostedBuilds, smokeAlpha } from "./lib/alpha-smoke.mjs";
 import { policyWindowNote } from "./lib/market-policy-window.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -109,6 +109,9 @@ async function deploy() {
         output: existsSync(outputPath) ? readFileSync(outputPath, "utf8") : "",
       };
     },
+    // Session W Part 1d: first every route from the new build (bounded), then the exact checks.
+    expectedCommit: env.EXPECTED_COMMIT,
+    hostedBuilds: () => readHostedBuilds(),
     smoke: () => smokeAlpha({ expectedCommit: env.EXPECTED_COMMIT, marketProbe: true }),
     save: value => {
       save("deployment.json", { ...value, commit: env.EXPECTED_COMMIT, recordedAt: new Date().toISOString() });
@@ -136,6 +139,7 @@ function summary() {
     `- New version ID: \`${report.newVersionId ?? "NOT_CONFIRMED"}\``,
     `- Rollback version ID: \`${rollback ?? "NOT_CAPTURED"}\``,
     `- Last observed live version: \`${report.observedLiveVersionId ?? "NOT_CHECKED"}\``,
+    `- New version answering on every route: ${report.propagation?.confirmedAfterReads ? `confirmed after ${report.propagation.confirmedAfterReads} reads` : report.propagation ? "**NOT CONFIRMED** (see the error in deployment.json)" : "NOT_CHECKED"}`,
     `- Live prices (information only, never a failure): **${market?.market ?? "NOT_CHECKED"}**${market?.failure ? ` (${market.failure})` : ""}. On UNAVAILABLE, follow docs/run11/ALPHA_PRICES_ROLLOUT.md; do not redeploy.`,
     `- ${policy.warn ? "**Warning:** " : ""}${policy.text}`,
     "- Read deployment.json and rollback.json in the evidence artifact before taking recovery action.",
@@ -152,7 +156,8 @@ try {
     case "capture": await captureRollback(); break;
     case "deploy": await deploy(); break;
     case "summary": summary(); break;
-    case "smoke": console.log(JSON.stringify(await smokeAlpha(), null, 2)); break;
+    // With EXPECTED_COMMIT set to a full SHA, the manual smoke also confirms the answers come from that build.
+    case "smoke": console.log(JSON.stringify(await smokeAlpha({ expectedCommit: /^[a-f0-9]{40}$/.test(env.EXPECTED_COMMIT ?? "") ? env.EXPECTED_COMMIT : undefined }), null, 2)); break;
     default: throw Error("Expected authorize, source, build, capture, deploy, summary or smoke");
   }
 } catch (error) {

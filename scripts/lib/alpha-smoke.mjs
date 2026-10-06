@@ -6,6 +6,27 @@ import { probeAlphaMarket } from "./alpha-market-probe.mjs";
 
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";
 export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings"];
+/**
+ * Session W Part 1d ([TIER 3] (deploy workflow), owner addition B): every app answer names the exact source commit of the
+ * build that sent it (apps/web/middleware.ts; the same 40 characters Settings and Help show). Right after an upload, an
+ * edge can still answer from the previous version for a while (run 37523679885: "CSP directive set changed" was the
+ * previous build's policy). The post-upload smoke therefore first confirms the answer is the new build's, and only then
+ * holds it to the new build's exact policy. A build mismatch is the one smoke failure that may be retried (bounded).
+ */
+export const BUILD_HEADER = "x-zigoals-build";
+export const HOSTED_SOURCE_MISMATCH = "Hosted build commit differs from reviewed source";
+const request = { redirect: "manual", headers: { "Cache-Control": "no-cache", "User-Agent": "ZIGoals-Alpha-Smoke" } };
+/** One read of every app route: which build answered each (null when an answer names none, as builds before Session W). */
+export async function readHostedBuilds({ fetcher = fetch, routes = ALPHA_ROUTES } = {}) {
+  const builds = [];
+  for (const route of routes) {
+    const response = await fetcher(`${ALPHA_ORIGIN}${route}`, { ...request, signal: AbortSignal.timeout(20000) });
+    const build = response.headers.get(BUILD_HEADER);
+    await response.body?.cancel?.().catch?.(() => undefined);
+    builds.push({ route, status: response.status, build: build && /^[a-f0-9]{40}$/.test(build) ? build : null });
+  }
+  return builds;
+}
 
 /**
  * Security floor for the LIVE Alpha before an upload (rollback capture). The live version is the previous build, so it
@@ -111,11 +132,12 @@ export function assertHealthCamera(header) {
 export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe = false, baseline = false } = {}) {
   const checks = []; let firstNonce;
   for (const route of [...ALPHA_ROUTES, "/app"]) {
-    const response = await fetcher(`${ALPHA_ORIGIN}${route}`, {
-      redirect: "manual", signal: AbortSignal.timeout(20000),
-      headers: { "Cache-Control": "no-cache", "User-Agent": "ZIGoals-Alpha-Smoke" },
-    });
+    const response = await fetcher(`${ALPHA_ORIGIN}${route}`, { ...request, signal: AbortSignal.timeout(20000) });
     const html = await response.text();
+    // Session W Part 1d: the new build's identity before anything else, so a previous version's answer is reported as
+    // such (and waited for) instead of failing on its older security headers. The exact checks below are unchanged.
+    // `assert(…)`, not `assert.equal`: the message must be exactly HOSTED_SOURCE_MISMATCH for the bounded retry to see it.
+    if (expectedCommit && !baseline) assert(response.headers.get(BUILD_HEADER) === expectedCommit, HOSTED_SOURCE_MISMATCH);
     const nonce = assertHtml(response, html, route, { baseline });
     if (route === "/app/health" && !baseline) assertHealthCamera(response.headers.get("permissions-policy"));
     if (checks.length === 0) {
@@ -126,7 +148,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (route === "/app/settings") {
       assert.match(html, /PUBLIC_ALPHA_UNDEPLOYED/, "Public Alpha safety mode missing");
-      if (expectedCommit) assert(html.includes(expectedCommit), "Hosted build commit differs from reviewed source");
+      if (expectedCommit) assert(html.includes(expectedCommit), HOSTED_SOURCE_MISMATCH);
     }
     if (checks.length === ALPHA_ROUTES.length) assert.notEqual(nonce, firstNonce, "Response nonce was reused");
     checks.push({ route, status: response.status, security: "PASS" });

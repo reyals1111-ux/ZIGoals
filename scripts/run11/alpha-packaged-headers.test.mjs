@@ -48,3 +48,16 @@ test('the data file names exactly the reviewed values (runs without the artifact
  expect(egress.localModelSources).toEqual(['http://localhost:*','http://127.0.0.1:*']);
  expect(Object.keys(egress.aiProviderOrigins)).toEqual(['openai','anthropic','gemini','xai','openrouter']);
 });
+// Session W Part 1d: the packaged Alpha names its exact build on every app route, the commit build-alpha recorded.
+test.runIf(enabled)('the packaged Alpha names its exact source commit on every app route (X-ZIGoals-Build)',async()=>{
+ const {commit}=JSON.parse(await readFile(resolve(root,'apps/web/.open-next/alpha-build.json'),'utf8'));
+ expect(commit).toMatch(/^[a-f0-9]{40}$/);
+ const mf=await alpha();
+ try{
+  for(const path of ['/app','/app/health','/app/settings','/app/markets']){
+   const response=await mf.dispatchFetch(`https://alpha.zigoals.app${path}`,{headers:{'cf-connecting-ip':'192.0.2.44'}});
+   expect(response.status,path).toBe(200);
+   expect(response.headers.get('x-zigoals-build'),path).toBe(commit);
+  }
+ }finally{await mf.dispose();}
+},60000);
