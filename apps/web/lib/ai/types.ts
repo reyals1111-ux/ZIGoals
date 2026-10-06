@@ -8,9 +8,15 @@ import type {ProviderId} from './providers';
 export type ToolCallPart = {id: string; name: string; arguments: string};
 /** A tool the provider may call: the portable JSON Schema form of lib/ai/tools (no `strict`, no forced choice). */
 export type ToolSpec = {name: string; description: string; parameters: Record<string, unknown>};
+/**
+ * Session V Part 7: a photo the person attached to one message (a meal), downscaled in the browser to a JPEG of at most
+ * 1024 px. It goes to their provider with that message only and is never stored by ZIGoals.
+ */
+export type ChatImage = {mime: 'image/jpeg'; data: string};
 /** One turn of a conversation as the provider sees it. The system prompt travels separately. */
 export type ChatMessage =
-  | {role: 'user' | 'assistant'; content: string; toolCalls?: undefined}
+  | {role: 'user'; content: string; toolCalls?: undefined; images?: readonly ChatImage[]}
+  | {role: 'assistant'; content: string; toolCalls?: undefined}
   /** An assistant turn that asked for tools; `raw` is the provider's own turn when it must be echoed unchanged (Gemini's parts with thought signatures). */
   | {role: 'assistant'; content: string; toolCalls: ToolCallPart[]; raw?: unknown}
   /** A tool's result for one call, as text (the tool's compact JSON). */

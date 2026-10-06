@@ -33,7 +33,7 @@ export function regenerateTarget(chat: Chat, now = new Date()): {chat: Chat; que
  * my AI for more" asks again, with the records shown, as a new turn.
  */
 export function messagesFor(turns: readonly ChatTurn[]): ChatMessage[] {
-  return turns.filter(t => t.source !== 'local' && t.text.trim().length > 0).map(t => ({role: t.role, content: t.text}));
+  return turns.filter(t => t.source !== 'local' && t.text.trim().length > 0).map((t): ChatMessage => t.role === 'user' ? {role: 'user', content: t.text} : {role: 'assistant', content: t.text});
 }
 /** One honest line for a reply that ended early. */
 export function stopReason(reason: string | null, aborted: boolean): string | undefined {

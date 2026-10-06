@@ -29,6 +29,8 @@ function geminiContents(messages: ChatRequest['messages']): Record<string, unkno
       if (last && last.role === 'user' && Array.isArray(last.parts) && (last.parts as {functionResponse?: unknown}[]).every(p => p.functionResponse)) (last.parts as unknown[]).push(part);
       else out.push({role: 'user', parts: [part]});
     } else if (m.role === 'assistant' && m.toolCalls?.length) out.push(m.raw && typeof m.raw === 'object' ? m.raw as Record<string, unknown> : {role: 'model', parts: [...(m.content ? [{text: m.content}] : []), ...m.toolCalls.map(c => ({functionCall: {name: c.name, args: parsedArgs(c.arguments)}}))]});
+    // Session V Part 7: a photo as an inlineData part before the words (read 2026-10-05, research §A3).
+    else if (m.role === 'user' && m.images?.length) out.push({role: 'user', parts: [...m.images.map(i => ({inlineData: {mimeType: i.mime, data: i.data}})), {text: m.content}]});
     else out.push({role: m.role === 'assistant' ? 'model' : 'user', parts: [{text: m.content}]});
   }
   return out;

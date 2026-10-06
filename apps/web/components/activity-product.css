@@ -28,3 +28,5 @@
 @media(max-width:1000px) { .activity-page .activity-context { grid-template-columns:minmax(0,1fr); }.activity-favourites { flex-wrap:wrap; }.activity-favourites>a { margin-left:43px; } }
 @media(max-width:650px) { .activity-event { grid-template-columns:42px minmax(0,1fr); padding:18px; gap:13px; }.unified-activity .timeline-icon { width:40px; height:40px; border-radius:13px; }.activity-event time { grid-column:2; margin:0; }.unified-activity .activity-event a { font-size:18px; }.activity-page .activity-timeline { padding:20px 15px; }.activity-page .activity-filter-row { align-items:flex-start; flex-direction:column; gap:18px; }.activity-page .activity-filter-row h2 { font-size:27px; }.activity-page .view-tabs button { padding:10px 13px; } }
 .activity-page .unified-activity .activity-history-source { font-size:14px; }
+/* Session V Part 7: entries confirmed from a ZIGi card. */
+.activity-by-zigi{font-weight:600}

@@ -13,9 +13,11 @@ export type ProposalStatus = 'proposed' | 'busy' | 'added' | 'undone' | 'dismiss
 export type ProposalCardProps = {
   action: Action; plan: Plan | null; refusal: string | null; status: ProposalStatus; error: string | null;
   onAdd: () => void; onDismiss: () => void; onEdit: (action: Action) => void;
+  /** Session V Part 7: the reply answered a photo, so the card's estimate badge says so. */
+  fromPhoto?: boolean;
 };
 const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself'};
-export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit}: ProposalCardProps) {
+export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
@@ -33,7 +35,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     setEditError(''); setEditing(false); onEdit(result.action);
   }
   return <article className={`ai-card ai-card-${status}${card.estimate ? ' ai-card-estimate' : ''}`} aria-labelledby={titleId} data-kind={card.kind}>
-    <header className="ai-card-head"><span className="ai-card-where">{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">AI estimate</span>}</header>
+    <header className="ai-card-head"><span className="ai-card-where">{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">{fromPhoto ? 'Estimated by your AI from a photo' : 'AI estimate'}</span>}</header>
     <h4 id={titleId}>{card.title}</h4>
     <ul className="ai-card-lines">{card.lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
     {card.safety && <p className="ai-card-safety">{card.safety}</p>}

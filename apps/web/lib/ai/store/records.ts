@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {readDeviceRecord, updateDeviceRecord, type DeviceRecordSpec} from '../../device-record';
 import {PROVIDER_IDS} from '../providers';
-import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from './keys';
+import {AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from './keys';
 
 /**
  * ZIGi's device records added in Session V, defined once here (storage foundation, [TIER 3], ADR-014 S3 and S18) so that
@@ -78,12 +78,9 @@ export const aiMemorySchema = z.looseObject({version: z.literal(1), notes: z.arr
 export type AiMemory = z.infer<typeof aiMemorySchema>;
 export const AI_MEMORY: DeviceRecordSpec<AiMemory> = {key: AI_MEMORY_KEY, schema: aiMemorySchema, empty};
 
-export const MAX_ACTIONS = 500, ACTION_DAYS = 180;
-export const aiActionSchema = z.looseObject({activityId: z.string().min(1).max(200), kind: z.string().min(1).max(40), title: z.string().min(1).max(160), at: stamp});
-export type AiAction = z.infer<typeof aiActionSchema>;
-export const aiActionsSchema = z.looseObject({version: z.literal(1), actions: z.array(aiActionSchema).max(MAX_ACTIONS).optional()});
-export type AiActions = z.infer<typeof aiActionsSchema>;
-export const AI_ACTIONS: DeviceRecordSpec<AiActions> = {key: AI_ACTIONS_KEY, schema: aiActionsSchema, empty};
+// The actions log lives in its own small module (Activity reads it); defined there once and re-exported here.
+export {ACTION_DAYS, AI_ACTIONS, MAX_ACTIONS, aiActionSchema, aiActionsSchema, forgetAction, recordAction, type AiAction, type AiActions} from './actions';
+import {AI_ACTIONS} from './actions';
 
 export const ZIGI_ANIMATIONS = ['full', 'calm', 'off'] as const;
 export const ZIGI_SIDES = ['right', 'left'] as const;
@@ -146,20 +143,7 @@ export const ZIGI_KNOCK: DeviceRecordSpec<ZigiKnock> = {key: ZIGI_KNOCK_KEY, sch
 export const ZIGI_RECORDS = [AI_OPTIONS, AI_USAGE, AI_MEMORY, AI_ACTIONS, ZIGI, ZIGI_REMINDERS, ZIGI_KNOCK] as const;
 
 type Read = Pick<Storage, 'getItem'>;
-type ReadWrite = Pick<Storage, 'getItem' | 'setItem'>;
 export const readZigiPrefs = (storage: Read): ZigiPrefs => zigiPrefs(readDeviceRecord(storage, ZIGI).data);
-/** Records one confirmed ZIGi action for Activity's "Actions by ZIGi" (Part 7); the oldest go after 180 days or 500 lines. */
-export function recordAction(storage: ReadWrite, action: AiAction, now = new Date()): AiActions {
-  const cutoff = new Date(now.getTime() - ACTION_DAYS * 86_400_000).toISOString();
-  return updateDeviceRecord(storage, AI_ACTIONS, current => {
-    const kept = (current.actions ?? []).filter(a => a.activityId !== action.activityId && a.at >= cutoff);
-    return {...current, actions: [...kept, action].slice(-MAX_ACTIONS)};
-  });
-}
-/** Undo of a ZIGi action: its line leaves the log. */
-export function forgetAction(storage: ReadWrite, activityId: string): AiActions {
-  return updateDeviceRecord(storage, AI_ACTIONS, current => ({...current, actions: (current.actions ?? []).filter(a => a.activityId !== activityId)}));
-}
 /**
  * "Turn off ZIGi" (T's control): V's connection choices go back to the start (the route, data mode, deep models, the
  * hosted consent, browser agents, notification names) and knocking stops. The look and feel stays, like the launcher's

@@ -30,6 +30,8 @@ function anthropicMessages(messages: ChatRequest['messages']): Record<string, un
       if (last && last.role === 'user' && Array.isArray(last.content) && (last.content as {type?: string}[]).every(b => b.type === 'tool_result')) (last.content as unknown[]).push(block);
       else out.push({role: 'user', content: [block]});
     } else if (m.role === 'assistant' && m.toolCalls?.length) out.push({role: 'assistant', content: [...(m.content ? [{type: 'text', text: m.content}] : []), ...m.toolCalls.map(c => ({type: 'tool_use', id: c.id, name: c.name, input: parsedInput(c.arguments)}))]});
+    // Session V Part 7: a photo as a base64 image block before the words (read 2026-10-05, research §A2).
+    else if (m.role === 'user' && m.images?.length) out.push({role: 'user', content: [...m.images.map(i => ({type: 'image', source: {type: 'base64', media_type: i.mime, data: i.data}})), {type: 'text', text: m.content}]});
     else out.push({role: m.role, content: m.content});
   }
   return out;

@@ -1,5 +1,5 @@
 import {ACTION_FENCE} from '../context/specialists';
-import {KIND_ALIASES, MAX_PROPOSALS, actionSchema, type Action} from './schema';
+import {COMPOSITE_KINDS, KIND_ALIASES, MAX_PROPOSALS, actionSchema, compositeSchema, expandComposite, type Action} from './schema';
 
 /**
  * Reads the proposals out of a finished reply (ADR-012, Part 5). Runs only after the stream ends: a half-received block
@@ -8,6 +8,8 @@ import {KIND_ALIASES, MAX_PROPOSALS, actionSchema, type Action} from './schema';
  * removed from the displayed text; invalid or unknown proposals are reported in plain words, never shown as cards;
  * duplicates are dropped; at most ten proposals survive. Whatever the person's records said inside the reply is still
  * just text: this parser is the only way a reply reaches the action layer, and it only knows the whitelist.
+ * Session V Part 7: "plan-goal" and "build-habit" are checked as a whole, then become their separate cards (a goal draft
+ * and its supporting habits; a habit and its reminder), each validated like any other proposal.
  */
 export type Rejected = {raw: string; reason: string};
 export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]};
@@ -28,7 +30,9 @@ const OPEN_FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]
 export const NOT_AN_ENTRY = 'I couldn\u2019t turn that into an entry.';
 export function parseReply(reply: string): ParsedReply {
   const proposals: Action[] = [], rejected: Rejected[] = [], seen = new Set<string>();
-  let source = reply;
+  // New habits a reply names itself (new1, new2) keep their numbers; an expanded "build-habit" takes the next free one.
+  let source = reply, refs = Math.max(0, ...[...reply.matchAll(/\bnew(\d{1,2})\b/gi)].map(m => Number(m[1])));
+  const nextRef = () => `new${++refs}`;
   // A block that never closes (a cut stream, a forgotten fence) is removed from the text and reported, never shown half-raw.
   // An opening fence that sits inside a closed block (a fence inside a JSON string) is not an open block.
   const closed = [...source.matchAll(FENCE)].map(m => [m.index, m.index + m[0].length] as const);
@@ -46,12 +50,21 @@ export function parseReply(reply: string): ParsedReply {
     const items = Array.isArray(unwrapped) ? unwrapped : [unwrapped];
     for (const item of items) {
       if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
-      const result = actionSchema.safeParse(normalise(item));
-      if (!result.success) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: firstIssue(result.error)}); continue; }
-      const key = JSON.stringify(result.data);
-      if (seen.has(key)) continue;
-      if (proposals.length >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
-      seen.add(key); proposals.push(result.data);
+      const normalised = normalise(item) as Record<string, unknown>;
+      let parts: unknown[] = [normalised];
+      if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
+        const composite = compositeSchema.safeParse(normalised);
+        if (!composite.success) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: firstIssue(composite.error)}); continue; }
+        parts = expandComposite(composite.data, nextRef);
+      }
+      for (const part of parts) {
+        const result = actionSchema.safeParse(part);
+        if (!result.success) { rejected.push({raw: JSON.stringify(part).slice(0, 200), reason: firstIssue(result.error)}); continue; }
+        const key = JSON.stringify(result.data);
+        if (seen.has(key)) continue;
+        if (proposals.length >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
+        seen.add(key); proposals.push(result.data);
+      }
     }
     void block; return '';
   }).replace(/\n{3,}/g, '\n\n').trim();

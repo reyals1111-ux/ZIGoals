@@ -51,6 +51,10 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
   return <>
     <h3>How your AI gets your data</h3>
     <label className="field">Data for each message<select value={mode} onChange={e => save(options, current => ({...current, toolMode: e.target.value as ToolMode}), `Data mode: ${MODE_LABELS[e.target.value as ToolMode]}.`)}>{TOOL_MODES.map(m => <option key={m} value={m}>{MODE_LABELS[m]}</option>)}</select><small>{MODE_NOTES[mode]} Either way only what your page switches and Include Health allow, and nothing on private screens. Your AI can only read: changes still come as cards you confirm.</small></label>
+    {provider && settings.model && <div className="ai-photo-setting">
+      <label className="ai-check"><input type="checkbox" checked={options.data.visionDeclared?.[`${provider}:${settings.model}`] === true} onChange={e => save(options, current => { const visionDeclared = {...(current.visionDeclared ?? {})}; if (e.target.checked) visionDeclared[`${provider}:${settings.model}`] = true; else delete visionDeclared[`${provider}:${settings.model}`]; return {...current, visionDeclared}; }, e.target.checked ? 'Meal photos are offered in the chat when Health is shared.' : 'Meal photos are not offered for this model.')}/> {settings.model} reads photos</label>
+      <small className="ai-note">For meal photos in the chat: tick it if your provider&rsquo;s model page says this model takes images (OpenRouter, Ollama and LM Studio also say so themselves). A photo needs Health shared, goes only with that message to your AI, and is never kept by ZIGoals.</small>
+    </div>}
     {provider && <div className="ai-deep-model">
       <p className="ai-note"><strong>Think deeper</strong> asks the same question again with a second model you choose and up to twice the records (32,000 characters). {deep ? `Chosen: ${deep}.` : 'No deep model is chosen, so the button does not show.'}</p>
       <div className="ai-card-actions">

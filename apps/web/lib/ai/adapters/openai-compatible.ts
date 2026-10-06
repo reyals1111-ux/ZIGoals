@@ -27,6 +27,8 @@ export function openAiHeaders(flavor: OpenAiFlavor, key: string | null, appOrigi
 function openAiMessage(m: ChatRequest['messages'][number]): Record<string, unknown> {
   if (m.role === 'tool') return {role: 'tool', tool_call_id: m.toolCallId, content: m.content};
   if (m.role === 'assistant' && m.toolCalls?.length) return {role: 'assistant', content: m.content || null, tool_calls: m.toolCalls.map(c => ({id: c.id, type: 'function', function: {name: c.name, arguments: c.arguments}}))};
+  // Session V Part 7: a photo goes as an image_url content part with a data URL, after the words (read 2026-10-05).
+  if (m.role === 'user' && m.images?.length) return {role: 'user', content: [{type: 'text', text: m.content}, ...m.images.map(i => ({type: 'image_url', image_url: {url: `data:${i.mime};base64,${i.data}`}}))]};
   return {role: m.role, content: m.content};
 }
 export function openAiBody(flavor: OpenAiFlavor, request: Pick<ChatRequest, 'model' | 'system' | 'messages' | 'maxOutputTokens' | 'tools'>): Record<string, unknown> {

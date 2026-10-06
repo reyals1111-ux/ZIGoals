@@ -11,6 +11,12 @@ import {useFasting} from '../health/use-fasting';
 import {useHealth} from '../health/use-health';
 import {useHabits} from '../habits/use-habits';
 import {usePlatform} from '../platform/use-platform';
+import {useReminders} from '../reminders/use-reminders';
+import {useWeeklyReview} from '../weekly-review/use-weekly-review';
+import {useDeviceRecord} from './use-device-record';
+import {forgetAction, recordAction, ZIGI_REMINDERS} from '../../lib/ai/store/records';
+import {AI_ACTIONS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
+import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
  * Runs confirmed proposals through the same save paths as the forms (ADR-012, Part 5): usePrivateStore.update for
@@ -18,6 +24,8 @@ import {usePlatform} from '../platform/use-platform';
  * store's update for fasts. A plan's write receives the latest stored record, never a copy from when the card was shown;
  * the undo checks that the touched record is still what the write left before applying the inverse. The money hand-off
  * only stashes the form values and opens Wealth's own add-asset sheet.
+ * Session V Part 7: reminders, ZIGi's own reminder kinds and the weekly review are written through their own hooks too,
+ * and every confirmed card is noted in `zigoals:ai-actions:v1` for Activity's "Actions by ZIGi" (its Undo removes the note).
  */
 export const UNDO_REFUSED = 'Something changed since, so this undo was not applied. Your records are as they are now.';
 export class UndoRefused extends Error { constructor() { super(UNDO_REFUSED); this.name = 'UndoRefused'; } }
@@ -26,7 +34,7 @@ type Updater<K extends Written> = (change: (latest: Stores[K]) => Stores[K]) => 
 export type ProposalRunner = {
   ready: boolean;
   stores: Stores;
-  plan: (action: Action, handles: readonly Handle[]) => PlanResult;
+  plan: (action: Action, handles: readonly Handle[], refs?: ReadonlyMap<string, {id: string; title: string}>) => PlanResult;
   /** Applies one plan; resolves with the stores as the write left them (the baseline for its undo). */
   apply: (plan: Plan) => Promise<Stores>;
   /** Applies several plans in order on the latest stores; stops at the first failure. */
@@ -38,16 +46,26 @@ export type ProposalRunner = {
 };
 export function useProposals(): ProposalRunner {
   const health = useHealth(), habits = useHabits(), fasting = useFasting(), platform = usePlatform(), router = useRouter();
-  const stores = useMemo<Stores>(() => ({health: health.data, habits: habits.data, fasting: fasting.data, platform: platform.data}), [health.data, habits.data, fasting.data, platform.data]);
-  const ready = health.loaded && habits.loaded && fasting.loaded && platform.loaded && !health.error && !habits.error && !platform.error && !fasting.unreadable;
-  const plan = useCallback((action: Action, handles: readonly Handle[]): PlanResult => {
-    const now = new Date(), timeZone = habits.data.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const reminders = useReminders(), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), weekly = useWeeklyReview();
+  const stores = useMemo<Stores>(() => ({health: health.data, habits: habits.data, fasting: fasting.data, platform: platform.data, reminders: reminders.data, zigiReminders: zigiReminders.data, weekly: weekly.data}), [health.data, habits.data, fasting.data, platform.data, reminders.data, zigiReminders.data, weekly.data]);
+  const ready = health.loaded && habits.loaded && fasting.loaded && platform.loaded && reminders.loaded && zigiReminders.loaded && weekly.loaded && !health.error && !habits.error && !platform.error && !fasting.unreadable;
+  const days = useCallback((now: Date) => {
     let day = now.toISOString().slice(0, 10), habitDay = day;
     try { day = healthDay(dailyData(health.data).preferences.timezone, now); } catch { /* an unknown zone falls back to the UTC date */ }
     try { habitDay = habitCalendarDay(habits.data, now); } catch { habitDay = day; }
-    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone};
+    return {day, habitDay};
+  }, [habits.data, health.data]);
+  const plan = useCallback((action: Action, handles: readonly Handle[], refs?: ReadonlyMap<string, {id: string; title: string}>): PlanResult => {
+    const now = new Date(), timeZone = habits.data.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone, {day, habitDay} = days(now);
+    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {})};
     return planAction(action, env);
-  }, [stores, habits.data, health.data]);
+  }, [days, stores, habits.data]);
+  /** "Actions by ZIGi" (Activity): a confirmed card is noted, an undone one forgotten; the note is a convenience and never blocks. */
+  const note = useCallback((p: Plan, done: boolean) => {
+    if (!p.activity) return;
+    try { if (done) recordAction(getAppStorage(), {activityId: p.activity.id.slice(0, 200), kind: p.card.kind, title: p.activity.title.slice(0, 160) || p.card.title.slice(0, 160), at: new Date().toISOString()}); else forgetAction(getAppStorage(), p.activity.id.slice(0, 200)); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_ACTIONS_KEY})); }
+    catch { /* the record itself was written; only the note is missing */ }
+  }, []);
   /** One write through a store's own update: the change sees the latest record, and the stores it leaves are returned. */
   const through = useCallback(async <K extends Written>(key: K, update: Updater<K>, change: (base: Stores) => Stores): Promise<Stores> => {
     let after = stores;
@@ -60,10 +78,13 @@ export function useProposals(): ProposalRunner {
       case 'habits': return through('habits', habits.update, change);
       case 'platform': return through('platform', platform.update, change);
       case 'fasting': return through('fasting', fasting.update, change);
+      case 'reminders': return through('reminders', next => reminders.update(days(new Date()).habitDay, next), change);
+      case 'zigiReminders': return through('zigiReminders', zigiReminders.update, change);
+      case 'weekly': return through('weekly', weekly.update, change);
       case 'form': return Promise.resolve(stores);
     }
-  }, [through, health.update, habits.update, platform.update, fasting.update, stores]);
-  const apply = useCallback((p: Plan) => run(p, base => ({...base, ...p.write(base)})), [run]);
+  }, [through, health.update, habits.update, platform.update, fasting.update, reminders, zigiReminders.update, weekly.update, days, stores]);
+  const apply = useCallback(async (p: Plan) => { const after = await run(p, base => ({...base, ...p.write(base)})); note(p, true); return after; }, [note, run]);
   const applyAll = useCallback(async (plans: readonly Plan[]) => {
     const after: Stores[] = [];
     for (const p of plans) {
@@ -77,11 +98,11 @@ export function useProposals(): ProposalRunner {
     // Every record must still be as the writes left it, checked on the latest stores before anything is undone.
     if (pairs.some(({undo: u, baseline}) => !u.unchanged(baseline, stores))) return UNDO_REFUSED;
     for (const {p, undo: u, baseline} of [...pairs].reverse()) {
-      try { await run(p, base => { if (!u.unchanged(baseline, base)) throw new UndoRefused(); return {...base, ...u.write(base)}; }); }
+      try { await run(p, base => { if (!u.unchanged(baseline, base)) throw new UndoRefused(); return {...base, ...u.write(base)}; }); note(p, false); }
       catch (error) { return error instanceof Error ? error.message : 'This undo could not be applied.'; }
     }
     return null;
-  }, [run, stores]);
+  }, [note, run, stores]);
   const openForm = useCallback((p: Plan) => {
     if (!p.prefill) return false;
     const {category, name, quantity, currency, value, symbol, notes} = p.prefill;

@@ -20,8 +20,11 @@ import './ai.css';
 export type ProposalItem = {id: string; action: Action; result: PlanResult; status: ProposalStatus; error: string | null; after: Stores | null};
 type UndoGroup = {ids: string[]; until: number};
 const planOf = (item: ProposalItem): Plan | null => item.result.ok ? item.result.plan : null;
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void}) {
-  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => ({id: `p${i + 1}`, action, result: runner.plan(action, handles), status: 'proposed', error: null, after: null})));
+/** Session V Part 7: the habits this reply creates get their ids now, so a reminder card of the same reply can name them. */
+const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a => a.kind === 'create-habit' && a.ref ? [[a.ref, {id: crypto.randomUUID(), title: a.title}] as const] : []));
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean}) {
+  const [refs] = useState(() => replyRefs(proposals));
+  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => ({id: `p${i + 1}`, action, result: runner.plan(action, handles, refs), status: 'proposed', error: null, after: null})));
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
   const live = undoGroup !== null && undoGroup.until > now;
   useEffect(() => {
@@ -57,13 +60,14 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     setItems(current => current.map(item => group.some(g => g.id === item.id) ? {...item, status: 'undone'} : item));
     announce(group.length === 1 ? 'Undone.' : `Undone: ${group.length} additions.`);
   }, [announce, items, runner, undoGroup]);
-  const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: runner.plan(action, handles), error: null}), [handles, patch, runner]);
+  const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: runner.plan(action, handles, refs), error: null}), [handles, patch, refs, runner]);
   const pendingBatch = useMemo(() => items.filter(item => item.status === 'proposed' && planOf(item) && planOf(item)!.target !== 'form'), [items]);
   const secondsLeft = undoGroup ? Math.max(0, Math.ceil((undoGroup.until - now) / 1000)) : 0;
   if (!items.length && !rejected.length) return null;
   return <div className="ai-proposals" data-testid="ai-proposals">
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
-    {items.map(item => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error}
+    {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
+    {items.map(item => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} fromPhoto={fromPhoto}
       onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>)}
     {pendingBatch.length > 1 && <div className="ai-proposals-batch"><button type="button" className="primary" disabled={!runner.ready} onClick={() => void addAll()}>Add all {pendingBatch.length}</button><span className="ai-card-note">One Undo covers everything added together.</span></div>}
     {live && <div className="ai-proposals-undo"><button type="button" className="secondary" onClick={() => void undo()}>{undoGroup!.ids.length === 1 ? 'Undo' : `Undo these ${undoGroup!.ids.length}`} · {secondsLeft} s</button></div>}

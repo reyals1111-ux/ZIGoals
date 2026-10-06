@@ -9,6 +9,10 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     'log-water': {kind: 'log-water', glasses: 1}, 'log-weight': {kind: 'log-weight', value: 70, unit: 'kg'}, 'log-steps': {kind: 'log-steps', steps: 10}, 'log-food': {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f1'},
     'log-measurement': {kind: 'log-measurement', kind_of: 'waist', value: 80, unit: 'cm'}, 'check-in': {kind: 'check-in', habit: 'h1'}, skip: {kind: 'skip', habit: 'h1'}, 'create-habit': {kind: 'create-habit', title: 'x'}, 'start-fast': {kind: 'start-fast', targetHours: 16}, 'stop-fast': {kind: 'stop-fast'},
     'create-goal': {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, 'add-goal-note': {kind: 'add-goal-note', goal: 'g1', note: 'x'}, 'prefill-holding': {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
+    // Session V Part 7
+    'create-food': {kind: 'create-food', name: 'Shake', serving_ml: 300, estimate: {kcal: 200}}, 'create-recipe': {kind: 'create-recipe', name: 'Soup', ingredients: [{name: 'Lentils', grams: 250}]},
+    'plan-meal': {kind: 'plan-meal', recipe: 'r1', meal: 'Dinner'}, 'grocery-item': {kind: 'grocery-item', items: ['Oat milk', 'Spinach']}, counter: {kind: 'counter', counter: 'Push-ups', count: 20},
+    'create-reminder': {kind: 'create-reminder', for: 'water', time: '10:00'}, 'review-intention': {kind: 'review-intention', intention: 'Walk after lunch'},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);

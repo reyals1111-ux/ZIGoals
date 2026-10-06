@@ -227,3 +227,13 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-usage-prices legend,.ai-usage-cap legend{font-weight:600;padding:0 4px}
 .ai-usage-prices small,.ai-usage-cap small{color:var(--muted,#aab2d9);font-size:14px}
 @media (max-width:640px){.ai-usage-table{font-size:14px}.ai-usage-table th,.ai-usage-table td{padding:6px 4px}.ai-looking{margin-left:0}}
+/* Session V Part 7: log mode, the meal photo, refused-photo notes. */
+.ai-composer-modes{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 6px}
+.ai-log-mode{min-height:36px}
+.ai-log-mode-on{border-color:color-mix(in srgb,var(--cyan,#6fd3ff) 70%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 18%,transparent)}
+.ai-photo-chip{display:flex;align-items:center;gap:10px;margin:0 0 6px;padding:6px 8px;border-radius:12px;border:1px solid var(--line,#2a325a)}
+.ai-photo-chip img{border-radius:8px;object-fit:cover;flex:none}
+.ai-photo{min-width:44px;min-height:44px}
+.ai-turn-attachment{margin:4px 0 0}
+.ai-card-photo{margin:0 0 6px}
+.ai-photo-setting{display:grid;gap:4px;margin:6px 0}

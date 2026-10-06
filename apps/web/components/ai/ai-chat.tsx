@@ -40,6 +40,8 @@ import {dataMode, dataModeLine, toolListTokens} from '../../lib/ai/capabilities'
 import {toolsFor} from '../../lib/ai/tool-loop';
 import {AI_OPTIONS, type AiOptions} from '../../lib/ai/store/records';
 import {useDeviceRecord} from './use-device-record';
+import {photoAllowance, preparePhoto, type Photo, type PhotoAllowance} from '../../lib/ai/photo';
+import type {ChatImage} from '../../lib/ai/types';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -62,14 +64,17 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history'>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const tool = session.toolState(data.model), lastMode = session.lastMode;
+  // Session V Part 7: a meal photo needs a model that reads photos (its metadata, or the person's word) and Health shared.
+  const declaredVision = data.provider && data.model ? aiOptions.visionDeclared?.[`${data.provider}:${data.model}`] : undefined;
+  const photo = useMemo(() => connected && !sensitive ? photoAllowance({capability: tool.capability, declared: declaredVision, healthOpen: context.gates.health}) : undefined, [connected, sensitive, tool.capability, declaredVision, context.gates.health]);
   const dataLine = useMemo(() => connected ? modeLine(aiOptions, {capability: tool.capability, fellBack: tool.fellBack}, attach, context) : null, [connected, aiOptions, tool.capability, tool.fellBack, attach, context, lastMode]); // eslint-disable-line react-hooks/exhaustive-deps -- lastMode marks what the session learned
   // Session V Part 4: the records chosen from the question being typed, as removable chips; the same text goes with it.
   const [draft, setDraft] = useState(''), [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set());
   const question = useMemo(() => connected && !sensitive ? questionContext(draft, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null, [connected, sensitive, draft, context, removed]);
-  const sendQuestion = useCallback((value: string) => {
+  const sendQuestion = useCallback((value: string, extra: ComposerExtra = {}) => {
     const chosen = connected && !sensitive ? questionContext(value, context.toolSources(), context.gates, context.context?.handles ?? [], removed) : null;
     setRemoved(new Set()); setDraft('');
-    void session.ask(value, {withContext: attach, ...(chosen?.text ? {extra: {text: chosen.text, handles: chosen.handles}} : {})});
+    void session.ask(value, {withContext: attach, ...(chosen?.text ? {extra: {text: chosen.text, handles: chosen.handles}} : {}), ...extra});
   }, [attach, connected, context, removed, sensitive, session]);
   const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
   useVisualViewportInsets(phone && open);
@@ -123,13 +128,13 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
         {connected && session.chat.turns.length === 0 && !busy && <Greeting area={area} onChip={sendQuestion}/>}
         {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && turn.source === 'local'
           ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy}/>
-          : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null}/>)}
+          : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length}/>)}
         {session.status === 'pending' && <div className="ai-pending" aria-hidden="true"><ZigiAvatar state="thinking" size={28} decorative/><span className="ai-pending-dots"><i/><i/><i/></span><span className="ai-pending-text">{session.looking.length ? `ZIGi looked at ${session.looking.join(', ')}; waiting for ${providerName}…` : `Waiting for ${providerName}…`}</span></div>}
         {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
         {session.confirmation && <div className="ai-confirm" role="group" aria-label="This page's data is larger than your budget">
           <p>This page’s data is about {session.confirmation.fit.estimated.context.toLocaleString('en-US')} tokens; with the conversation that is {session.confirmation.fit.estimated.total.toLocaleString('en-US')}, above your budget of {session.confirmation.budget.toLocaleString('en-US')} (Settings → ZIGi · your AI → Context budget).</p>
-          <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra, deep: session.confirmation!.deep, spendConfirmed: true})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, withContext: false, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra, deep: session.confirmation!.deep, spendConfirmed: true})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
+          <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra, deep: session.confirmation!.deep, images: session.confirmation!.images, log: session.confirmation!.log, spendConfirmed: true})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {confirmed: true, withContext: false, reuse: session.confirmation!.reuse, extra: session.confirmation!.extra, deep: session.confirmation!.deep, images: session.confirmation!.images, log: session.confirmation!.log, spendConfirmed: true})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
         </div>}
         {session.spendCheck && <div className="ai-confirm" role="group" aria-label="Your monthly cap is reached">
           <p>{session.spendCheck.note} You asked ZIGi to check with you first (Settings → ZIGi · your AI → Usage).</p>
@@ -141,7 +146,7 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
       </div>
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
-      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
+      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} photo={photo} providerName={providerName} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </dialog>;
@@ -227,9 +232,9 @@ function LookedAt({turn, session, context}: {turn: ChatTurn; session: ChatSessio
     </details>
   </div>;
 }
-function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader, context, deepModel}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>; context: ReturnType<typeof useAiContext>; deepModel: string | null}) {
+function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader, context, deepModel, fromPhoto = false}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>; context: ReturnType<typeof useAiContext>; deepModel: string | null; fromPhoto?: boolean}) {
   const [copied, setCopied] = useState(false);
-  if (turn.role === 'user') return <article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p></div></article>;
+  if (turn.role === 'user') return <article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   const copy = () => { navigator.clipboard?.writeText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   return <article className="ai-turn ai-turn-assistant" aria-label="Reply">
@@ -237,7 +242,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
     <div className="ai-turn-body">
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
-      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate}/>}
+      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto}/>}
       <footer className="ai-turn-meta">
         <span className="ai-turn-label">{ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName)}</span>
         {usage && <span className="ai-turn-usage">{usage}{usageUrl && <> · <a href={usageUrl} target="_blank" rel="noopener noreferrer">usage at {providerName} ↗</a></>}</span>}
@@ -279,14 +284,37 @@ function ContextBar({context, attach, onAttach, sensitive, total, question, onRe
   </div>;
 }
 import {forwardRef} from 'react';
-const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean; onDraft?: (text: string) => void; onSend?: (text: string) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, local, onDraft, onSend}, ref) {
+/** What the composer sends besides the words (Session V Part 7): a meal photo for this message, and "talk to log". */
+export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean};
+const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; photo?: PhotoAllowance; providerName?: string}>(function Composer({session, attach, phone, settings, scope, placeholder, local, onDraft, onSend, photo, providerName = 'your AI'}, ref) {
   const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false);
   useEffect(() => { const pending = takePendingAsk(); if (pending) setText(pending); const onAsk = (event: Event) => { const text = (event as CustomEvent<{text: string}>).detail?.text; if (text) { takePendingAsk(); setText(text); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
+  // Session V Part 7: one meal photo per message (only with a model that reads photos and Health shared), and log mode.
+  const [attached, setAttached] = useState<Photo | null>(null), [photoNote, setPhotoNote] = useState(''), [logMode, setLogMode] = useState(false), file = useRef<HTMLInputElement>(null);
+  const previewUrl = useMemo(() => attached ? URL.createObjectURL(attached.preview) : null, [attached]);
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+  const photosAllowed = !local && photo?.allowed === true;
+  useEffect(() => { if (!photosAllowed) setAttached(null); }, [photosAllowed]);
+  const takePhoto = useCallback(async (blob: Blob | null | undefined) => {
+    if (!blob || !photosAllowed) return;
+    setPhotoNote('Preparing the photo…');
+    try { setAttached(await preparePhoto(blob)); setPhotoNote(''); } catch (error) { setAttached(null); setPhotoNote(error instanceof Error ? error.message : 'This photo could not be read here.'); }
+  }, [photosAllowed]);
   // The question's records follow the words after a short pause in typing (Session V Part 4).
   useEffect(() => { if (!onDraft) return; const t = window.setTimeout(() => onDraft(text), 300); return () => window.clearTimeout(t); }, [text, onDraft]);
-  const submit = (event?: FormEvent) => { event?.preventDefault(); const value = text.trim(); if (!value || busy) return; setText(''); if (onSend) onSend(value); else void session.ask(value, {withContext: attach}); };
+  const submit = (event?: FormEvent) => {
+    event?.preventDefault();
+    let value = text.trim(), log = logMode;
+    // "/log …" is log mode for one message (the slash commands come with Part 10).
+    if (/^\/log(\s|$)/i.test(value)) { log = true; value = value.replace(/^\/log\s*/i, ''); }
+    if (busy || (!value && !attached)) return;
+    if (!value) value = 'Log this meal from the photo.';
+    const extra: ComposerExtra = {...(attached ? {images: [{mime: attached.mime, data: attached.data}]} : {}), ...(log ? {log: true} : {})};
+    setText(''); setAttached(null); setPhotoNote('');
+    if (onSend) onSend(value, extra); else void session.ask(value, {withContext: attach, ...extra});
+  };
   const mic = voice.mode !== 'off' && !local;
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
   const toggleMic = () => { setDisclosed(true); if (talking) voice.stop(); else void voice.start(); };
@@ -294,16 +322,36 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   const pressStart = useRef<number | null>(null), tapped = useRef(false);
   const onMicDown = () => { setDisclosed(true); pressStart.current = Date.now(); if (talking && tapped.current) { tapped.current = false; voice.stop(); pressStart.current = null; return; } if (!talking) { tapped.current = false; void voice.start(); } };
   const onMicUp = () => { const started = pressStart.current; pressStart.current = null; if (started === null) return; if (Date.now() - started < 300) { tapped.current = true; return; } if (talking) voice.stop(); };
-  return <form className="ai-composer-wrap" onSubmit={submit}>
+  return <form className="ai-composer-wrap" onSubmit={submit}
+    onDragOver={photosAllowed && !phone ? e => { if ([...e.dataTransfer.items].some(i => i.kind === 'file' && i.type.startsWith('image/'))) e.preventDefault(); } : undefined}
+    onDrop={photosAllowed && !phone ? e => { const image = [...e.dataTransfer.files].find(f => f.type.startsWith('image/')); if (image) { e.preventDefault(); void takePhoto(image); } } : undefined}>
     {voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
     {(voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
     {voice.error && <p className="ai-card-error" role="alert">{voice.error}</p>}
+    {!local && <div className="ai-composer-modes">
+      <button type="button" className={`ai-chip ai-log-mode${logMode ? ' ai-log-mode-on' : ''}`} aria-pressed={logMode} onClick={() => setLogMode(on => !on)} title="Say or type what you ate, drank or did; ZIGi answers with cards to confirm">Log mode</button>
+      {logMode && <span className="ai-note">Log mode: say or type what you ate, drank or did. Your words stay editable; ZIGi answers with cards, nothing is written until you add them.</span>}
+    </div>}
+    {attached && previewUrl && <div className="ai-photo-chip" role="group" aria-label="Meal photo attached">
+      {/* A local blob preview of the downscaled photo: next/image has nothing to optimise here. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={previewUrl} alt="Your meal photo, as it will be sent" width={48} height={Math.round(48 * attached.height / attached.width)}/>
+      <span className="ai-note">Sent with this message to {providerName} only, then forgotten; ZIGoals does not keep it. {attached.width}×{attached.height}</span>
+      <button type="button" className="text-link" onClick={() => setAttached(null)}>Remove the photo</button>
+    </div>}
+    {photoNote && <p className="ai-note" role="status">{photoNote}</p>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={20_000} placeholder={placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); } }}/>
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
+        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); } }}
+        onPaste={photosAllowed ? e => { const image = [...e.clipboardData.files].find(f => f.type.startsWith('image/')); if (image) { e.preventDefault(); void takePhoto(image); } } : undefined}/>
+      {photosAllowed && <>
+        <input ref={file} type="file" accept="image/*" capture={phone ? 'environment' : undefined} hidden tabIndex={-1} aria-hidden="true" onChange={e => { void takePhoto(e.target.files?.[0]); e.target.value = ''; }}/>
+        <button type="button" className="secondary ai-photo" aria-label="Add a meal photo" title="Add a meal photo (sent only to your AI, not kept)" onClick={() => file.current?.click()}><span aria-hidden="true">📷</span></button>
+      </>}
       {mic && <button type="button" className={`secondary ai-mic${talking ? ' ai-mic-on' : ''}`} aria-label={micLabel} title={micLabel} aria-pressed={talking} disabled={!voice.available || voice.state === 'transcribing'} onClick={!phone ? toggleMic : undefined}
         onPointerDown={phone ? onMicDown : undefined} onPointerUp={phone ? onMicUp : undefined} onPointerCancel={phone ? () => { pressStart.current = null; voice.cancel(); } : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
         <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}
-      {busy ? <button type="button" className="secondary" onClick={session.stop}>Stop</button> : <button type="submit" className="primary" disabled={!text.trim()}>Send</button>}
+      {busy ? <button type="button" className="secondary" onClick={session.stop}>Stop</button> : <button type="submit" className="primary" disabled={!text.trim() && !attached}>{logMode ? 'Log' : 'Send'}</button>}
     </div>
     {phone && mic && voice.available && <p className="ai-note">Hold the microphone to talk and release to stop, or tap once to start and once to stop.</p>}
   </form>;

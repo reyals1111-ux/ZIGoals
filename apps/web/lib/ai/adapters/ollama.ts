@@ -18,6 +18,8 @@ const argsObject = (text: string): Record<string, unknown> => { try { const v = 
 function ollamaMessage(m: ChatRequest['messages'][number]): Record<string, unknown> {
   if (m.role === 'tool') return {role: 'tool', tool_name: m.name, content: m.content};
   if (m.role === 'assistant' && m.toolCalls?.length) return {role: 'assistant', content: m.content, tool_calls: m.toolCalls.map(c => ({type: 'function', function: {name: c.name, arguments: argsObject(c.arguments)}}))};
+  // Session V Part 7: photos as base64 in `images`, without a data: prefix (read 2026-10-05, research §A6).
+  if (m.role === 'user' && m.images?.length) return {role: 'user', content: m.content, images: m.images.map(i => i.data)};
   return {role: m.role, content: m.content};
 }
 export function ollamaBody(request: Pick<ChatRequest, 'model' | 'system' | 'messages' | 'maxOutputTokens' | 'tools'>): Record<string, unknown> {

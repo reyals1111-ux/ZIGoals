@@ -26,6 +26,9 @@ import {runWithTools, toolsFor} from '../../lib/ai/tool-loop';
 import {ANSWER_CHARS, type ToolResult} from '../../lib/ai/tools/types';
 import {capNote, capState, monthKey, needsSpendConfirmation, readUsage, recordUsage} from '../../lib/ai/usage';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {LOG_MODE_NOTE} from '../../lib/ai/context/specialists';
+import {PHOTO_NOTE} from '../../lib/ai/photo';
+import type {ChatImage} from '../../lib/ai/types';
 
 /**
  * One conversation with the person's own AI (ADR-012, Part 6). The request goes from this browser straight to the
@@ -36,12 +39,14 @@ import {getAppStorage} from '../../lib/showcase-storage';
 export type ChatFailure = {kind: AiError['kind'] | 'missing-key' | 'not-connected' | 'full' | 'save'; title: string; steps: string[]};
 /** Records sent with a question on top of the page's data ("Ask my AI for more"): the exact text and the reply's handles. */
 export type ExtraData = {text: string; handles: readonly Handle[]};
-export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boolean; extra?: ExtraData; deep?: boolean};
+export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boolean; extra?: ExtraData; deep?: boolean; images?: readonly ChatImage[]; log?: boolean};
 /**
  * `deep` (Session V Part 6, "Think deeper"): the provider's deep model and twice the data cap. `spendConfirmed`: the
  * person chose to send although their monthly cap is reached ("ask first").
  */
-export type SendOptions = {withContext?: boolean; confirmed?: boolean; reuse?: boolean; extra?: ExtraData; deep?: boolean; spendConfirmed?: boolean};
+export type SendOptions = {withContext?: boolean; confirmed?: boolean; reuse?: boolean; extra?: ExtraData; deep?: boolean; spendConfirmed?: boolean;
+  /** Session V Part 7: a meal photo for this message only (never stored), and "talk to log" (proposals, no advice). */
+  images?: readonly ChatImage[]; log?: boolean};
 /** One lookup the person's AI asked for in a reply: the exact text sent back, kept in memory for this session only. */
 export type Lookup = {label: string; args: Record<string, unknown> | null; result: ToolResult; text: string};
 /** A chip's words: the lookup, and whether it was refused (a closed area or the Health gate) or could not be answered. */
@@ -75,7 +80,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const setChat = useCallback((next: Chat) => { chatRef.current = next; setChatState(next); }, []);
   const [status, setStatus] = useState<ChatSession['status']>('idle'), [draft, setDraft] = useState(''), [failure, setFailure] = useState<ChatFailure | null>(null), [confirmation, setConfirmation] = useState<Confirmation | null>(null), [saveNote, setSaveNote] = useState<string | null>(null);
   const abort = useRef<AbortController | null>(null), handles = useRef(new Map<string, readonly Handle[]>()), frame = useRef(0), pendingText = useRef('');
-  const locals = useRef(new Map<string, LocalInfo>()), extras = useRef(new Map<string, ExtraData>());
+  const locals = useRef(new Map<string, LocalInfo>()), extras = useRef(new Map<string, ExtraData>()), photos = useRef(new Map<string, readonly ChatImage[]>());
   // Session V Part 6, all in memory for this session: provider metadata per model, models that refused tools, the exact
   // tool results of each reply, and the latest context (a private screen opening mid-answer stops the lookups).
   const capabilities = useRef(new Map<string, Promise<Capability>>()), known = useRef(new Map<string, Capability>()), fellBack = useRef(new Set<string>()), lookups = useRef(new Map<string, Lookup[]>());
@@ -127,14 +132,19 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
     const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
-    const systemOnly = buildSystemPrompt({...base, context: null}), system = buildSystemPrompt({...base, context: contextText});
-    const started = options.reuse ? chatRef.current : appendTurn(chatRef.current, userTurn(text));
+    const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null].filter((n): n is string => !!n);
+    const withNotes = (prompt: string) => [prompt, ...notes].join('\n\n');
+    const systemOnly = buildSystemPrompt({...base, context: null}), system = withNotes(buildSystemPrompt({...base, context: contextText}));
+    // A photo is kept in memory for this session (a regenerate sends it again); the chat records only that one was attached.
+    const asking = options.images?.length ? {...userTurn(text), attachments: [{kind: 'photo' as const}]} : userTurn(text);
+    const started = options.reuse ? chatRef.current : appendTurn(chatRef.current, asking);
     const fit = fitToBudget({system: systemOnly, context: contextText ?? '', turns: messagesFor(started.turns), budgetTokens: settings.contextBudgetTokens});
-    if (fit.overBudget && !options.confirmed) { setConfirmation({text, fit, budget: settings.contextBudgetTokens, reuse: !!options.reuse, ...(options.extra ? {extra: options.extra} : {}), ...(options.deep ? {deep: true} : {})}); return; }
+    if (fit.overBudget && !options.confirmed) { setConfirmation({text, fit, budget: settings.contextBudgetTokens, reuse: !!options.reuse, ...(options.extra ? {extra: options.extra} : {}), ...(options.deep ? {deep: true} : {}), ...(options.images ? {images: options.images} : {}), ...(options.log ? {log: true} : {})}); return; }
     setConfirmation(null); setFailure(null);
     const next = {...started, provider: settings.provider, model: settings.model};
     const asked = [...next.turns].reverse().find(t => t.role === 'user');
     if (asked && options.extra) extras.current.set(asked.id, options.extra);
+    if (asked && options.images?.length) photos.current.set(asked.id, options.images);
     setChat(next); persist(next);
     let key: string | null = null;
     try { key = await readKey(scope, settings.provider); } catch { key = null; }
@@ -144,7 +154,10 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null;
     const found: Lookup[] = [];
     const flush = () => { frame.current = 0; setDraft(pendingText.current); };
-    const request = {provider: settings.provider, localServer: settings.localServer ?? undefined, model, system, messages: fit.messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal};
+    // The photo travels with the question it belongs to, the last user message, and nowhere else.
+    const lastUser = fit.messages.map(m => m.role).lastIndexOf('user');
+    const messages = options.images?.length && lastUser >= 0 ? fit.messages.map((m, i) => i === lastUser && m.role === 'user' ? {...m, images: options.images} : m) : fit.messages;
+    const request = {provider: settings.provider, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal};
     // Session V Part 6: how this message gets the data. Tools only with the page's data shared for this message, never
     // after this model refused them in this session; the setting first, then the provider's own metadata.
     const toolMode = options_.toolMode ?? 'auto', fbKey = fallbackKey(settings.provider, model);
@@ -164,7 +177,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const run = async (current: DataMode) => {
       if (current === 'tools' && env) {
         const shouldStop = () => contextRef.current.gates.paused ? 'ZIGi paused its lookups: this screen holds a private form.' : null;
-        for await (const event of runWithTools({...request, system: buildSystemPrompt({...base, context: contextText, tools: true}), env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
+        for await (const event of runWithTools({...request, system: withNotes(buildSystemPrompt({...base, context: contextText, tools: true})), env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
           if (event.type === 'text') onText(event.delta);
           else if (event.type === 'usage') usage = {input: event.input, output: event.output};
           else if (event.type === 'done') reason = event.reason;
@@ -210,9 +223,9 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const again = useCallback(async (deep: boolean) => {
     if (abort.current) return;
     const target = regenerateTarget(chatRef.current); if (!target) return;
-    const asked = target.chat.turns.at(-1), extra = asked ? extras.current.get(asked.id) : undefined;
+    const asked = target.chat.turns.at(-1), extra = asked ? extras.current.get(asked.id) : undefined, images = asked ? photos.current.get(asked.id) : undefined;
     setChat(target.chat); persist(target.chat);
-    await send(target.question, {reuse: true, ...(extra ? {extra} : {}), ...(deep ? {deep: true} : {})});
+    await send(target.question, {reuse: true, ...(extra ? {extra} : {}), ...(images ? {images} : {}), ...(deep ? {deep: true} : {})});
   }, [persist, send, setChat]);
   const regenerate = useCallback(() => again(false), [again]);
   /** "Think deeper" (Session V Part 6): the same question again with the provider's deep model and twice the data cap. */
@@ -241,6 +254,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const env = localEnv();
     let reply: LocalReply = {kind: 'none'};
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
+    if (connected && (options.images?.length || options.log)) return send(text, options);
     if (reply.kind === 'none' && connected) return send(text, options);
     answerLocally(text, text, reply.kind === 'none' ? examplesReply(env) : reply);
   }, [answerLocally, connected, localEnv, send]);
