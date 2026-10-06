@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
 import type {ChatTurn} from '../../lib/ai/chats';
@@ -63,19 +64,25 @@ import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+import {copyText, nextFrame} from '../../lib/ai/chat-window';
+import {useMiniWindow} from './use-mini-window';
+import './pip.css';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
  * view), a full-height modal sheet on phones. Esc closes, Tab stays inside, focus returns to the launcher. Replies are
  * rendered from a parsed tree; proposals become cards; every reply says whose answer it is. The pending state is
- * announced once; streaming is batched per animation frame and never announced token by token.
+ * announced once; streaming is batched per animation frame and never announced token by token. Session V Part 14: on a
+ * computer whose browser has Document Picture-in-Picture, "Pop out" moves the same chat into ZIGi's mini window, an
+ * always-on-top window of this tab; "Back to tab" (or ZIGi's button) brings it back. A private screen in the tab pauses
+ * the mini window behind a blur.
  */
-type Props = {open: boolean; onClose: () => void; sensitive: boolean; phone: boolean};
+type Props = {open: boolean; onClose: () => void; onOpen?: () => void; sensitive: boolean; phone: boolean};
 /** Session V Part 12: Customize ZIGi, loaded when the person opens it. */
 const ZigiCustomize = lazy(() => import('./zigi-customize'));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
-export default function AiChat({open, onClose, sensitive, phone}: Props) {
+export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props) {
   const settings = useAiSettings(), scope = currentAiScope();
   const data = settings.data, provider = data.provider ? PROVIDERS[data.provider] : null;
   const providerName = data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
@@ -87,6 +94,8 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   useZigiMachine();
   const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
+  // Session V Part 14: the mini window; "Back to tab" opens the panel here again.
+  const mini = useMiniWindow(() => onOpen?.());
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | 'continue' | 'customize' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const tool = session.toolState(data.model), lastMode = session.lastMode;
   // Session V Part 7: a meal photo needs a model that reads photos (its metadata, or the person's word) and Health shared.
@@ -111,7 +120,7 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   // While "Jump to the latest message" scrolls (smoothly unless motion is reduced), the button stays away.
   const jumping = useRef(false);
   useEffect(() => setEditing(null), [session.chat.id]);
-  const startEdit = useCallback((turn: ChatTurn) => { setEditing({id: turn.id, text: turn.text, seq: Date.now()}); setView('chat'); requestAnimationFrame(() => composer.current?.focus()); }, []);
+  const startEdit = useCallback((turn: ChatTurn) => { setEditing({id: turn.id, text: turn.text, seq: Date.now()}); setView('chat'); nextFrame(() => composer.current?.focus()); }, []);
   const ask = useCallback((question: string) => { if (connected) sendQuestion(question); else void session.ask(question); }, [connected, sendQuestion, session]);
   /** Slash commands that open a view, a page or a local card (Session V Part 10); /log, /ask and /plan go on as messages. */
   const onCommand = useCallback((name: SlashName, rest: string, typed: string): boolean => {
@@ -130,9 +139,14 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   useEffect(() => { if (!(phone && open)) return; document.documentElement.dataset.aiSheet = ''; return () => { delete document.documentElement.dataset.aiSheet; }; }, [phone, open]);
   useEffect(() => {
     const d = dialog.current; if (!d) return;
-    if (open && !d.open) { if (phone) d.showModal(); else d.show(); requestAnimationFrame(() => composer.current?.focus({preventScroll: true})); }
-    else if (!open && d.open) d.close();
-  }, [open, phone]);
+    const inTab = open && !mini.win;
+    if (inTab && !d.open) { if (phone) d.showModal(); else d.show(); nextFrame(() => composer.current?.focus({preventScroll: true})); }
+    else if (!inTab && d.open) d.close();
+  }, [open, phone, mini.win]);
+  // ZIGi's button while the chat is in the mini window: back to the tab. The composer takes the focus where the chat is.
+  useEffect(() => { if (open && mini.win) mini.backToTab(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- only a new open asks for the chat back
+  useEffect(() => { if (mini.win) return nextFrame(() => composer.current?.focus({preventScroll: true})); }, [mini.win]);
+  const popOut = async () => { if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
   // Announced once per reply: when the wait starts, and when the reply has arrived.
   const replies = session.chat.turns.filter(t => t.role === 'assistant').length, lastStatus = useRef(session.status), lastReplies = useRef(replies);
   useEffect(() => { if (session.status === 'pending' && lastStatus.current === 'idle') setNote('Waiting for your AI to reply…'); lastStatus.current = session.status; }, [session.status]);
@@ -142,33 +156,37 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
   }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed]);
   useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
   useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight; }, [session.chat.turns.length, session.draft]);
-  const trapTab = useCallback((event: ReactKeyboardEvent<HTMLDialogElement>) => {
+  const trapTab = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
     if ((event.target as Element).closest?.('.ai-shortcuts')) return;
     if (event.key === '?' && !(event.target as Element).closest?.('textarea, input, select, [contenteditable="true"]')) { event.preventDefault(); setShortcuts(true); return; }
-    if (event.key === 'Escape' && !phone) { event.preventDefault(); onClose(); return; }
+    // In the mini window Escape closes nothing: the window has its own close button.
+    if (event.key === 'Escape' && !phone && !mini.win) { event.preventDefault(); onClose(); return; }
     if (event.key !== 'Tab') return;
-    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(el => el.offsetParent !== null || el === document.activeElement);
+    const active = event.currentTarget.ownerDocument.activeElement;
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(el => el.offsetParent !== null || el === active);
     const first = items[0], last = items[items.length - 1]; if (!first || !last) return;
-    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-  }, [onClose, phone]);
+    if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+    else if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+  }, [onClose, phone, mini.win]);
   const shownDraft = useMemo(() => { if (!session.draft) return ''; if (hasOpenFence(session.draft)) { const at = session.draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? session.draft.slice(0, at) : session.draft; } return parseReply(session.draft).text; }, [session.draft]);
   const busy = session.status !== 'idle', area = context.area, lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
-  return <dialog ref={dialog} data-ai-dialog="" className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
+  const body = <>
     <header className="ai-chat-head">
       <ZigiAvatar state={zigi} size={40} decorative/>
       <div className="ai-chat-identity">
         <h2 id={titleId} className="ai-chat-title"><NebulaFlow identity="ai-chat-title">ZIGi · your AI</NebulaFlow></h2>
         <p className="ai-chat-via"><span className="ai-chat-via-text">{connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span><span className="ai-chat-premium">{entitlement('your-ai').label}</span></p>
       </div>
-      <button type="button" className="quiet ai-chat-close" onClick={onClose} aria-label="Close ZIGi">×</button>
+      <button type="button" className="quiet ai-chat-close" onClick={mini.win ? mini.close : onClose} aria-label="Close ZIGi">×</button>
       <div className="ai-chat-tools" role="toolbar" aria-label="Chat tools">
         {connected && <ModelSwitcher settings={settings} scope={scope}/>}
         <button type="button" className="quiet" onClick={() => { session.startNew(); setView('chat'); composer.current?.focus(); }} aria-label="New chat" title="New chat">New</button>
         <button type="button" className="quiet" aria-pressed={view === 'history'} onClick={() => setView(v => v === 'history' ? 'chat' : 'history')} aria-label="Chat history" title="History">History</button>
         <button type="button" className="quiet" aria-pressed={view === 'customize'} onClick={() => setView(v => v === 'customize' ? 'chat' : 'customize')} aria-label="Customize ZIGi" title="Customize">Customize</button>
         <Link className="quiet" href={SETTINGS_HREF} onClick={onClose} aria-label="ZIGi settings" title="Settings">Settings</Link>
-        {!phone && <button type="button" className="quiet" onClick={() => setExpanded(e => !e)} aria-pressed={expanded} aria-label={expanded ? 'Shrink the chat' : 'Expand the chat'} title={expanded ? 'Shrink' : 'Expand'}>{expanded ? 'Shrink' : 'Expand'}</button>}
+        {mini.win ? <button type="button" className="quiet" onClick={mini.backToTab} aria-label="Back to the tab" title="Back to tab">Back to tab</button>
+          : !phone && <button type="button" className="quiet" onClick={() => setExpanded(e => !e)} aria-pressed={expanded} aria-label={expanded ? 'Shrink the chat' : 'Expand the chat'} title={expanded ? 'Shrink' : 'Expand'}>{expanded ? 'Shrink' : 'Expand'}</button>}
+        {!phone && !mini.win && mini.supported && <button type="button" className="quiet" onClick={() => void popOut()} aria-label="Pop out ZIGi into a mini window" title="Pop out">Pop out</button>}
       </div>
     </header>
     {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
@@ -208,7 +226,16 @@ export default function AiChat({open, onClose, sensitive, phone}: Props) {
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
     <ShortcutsSheet open={shortcuts} onClose={() => setShortcuts(false)}/>
-  </dialog>;
+  </>;
+  return <>
+    <dialog ref={dialog} data-ai-dialog="" className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
+      {!mini.win && body}
+    </dialog>
+    {mini.win && createPortal(<>
+      <section className="ai-chat ai-chat-pip" aria-labelledby={titleId} onKeyDown={trapTab} inert={sensitive}>{body}</section>
+      {sensitive && <div className="ai-pip-paused" role="status"><p>Paused while a private screen is open in the tab. ZIGi shows and reads nothing until you leave it.</p></div>}
+    </>, mini.win.document.body)}
+  </>;
 }
 function Greeting({context, session, sensitive, onChip, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; sensitive: boolean; onChip: (chip: string) => void; onView: (view: ProactiveView) => void}) {
   return <div className="ai-greeting"><ZigiAvatar state="greeting" size={72} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. I read this page with your permission and answer with your own AI. Nothing is written unless you add a card.</p>
@@ -246,7 +273,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   const chips = isLast && reply ? reply.kind === 'choices' ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'refusal' && reply.choices ? reply.choices.map(c => ({label: c.label, run: () => session.choose(question, c)}))
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
-  const copy = () => { navigator.clipboard?.writeText(`${shown}\n\n${LOCAL_LABEL}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
+  const copy = () => { copyText(`${shown}\n\n${LOCAL_LABEL}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label="Answer from ZIGi, made on this device">
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
@@ -308,7 +335,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-extras ai-turn-edit"><button type="button" className="text-link" aria-label="Edit your last message" onClick={onEdit}>Edit</button></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
-  const copy = () => { navigator.clipboard?.writeText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
+  const copy = () => { copyText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   const label = ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName);
   return <article className="ai-turn ai-turn-assistant" aria-label="Reply">
     <ZigiAvatar state="idle" size={28} decorative/>
@@ -483,7 +510,7 @@ function BridgeView({settings, context, attach, sensitive, phone}: {settings: Ai
   const local = useMemo(() => { const sources = sensitive || typed.trim().length < 3 ? null : context.toolSources(); if (!sources) return null; const reply = localAnswer(typed, toolEnv(sources, context.gates, 'local')); return reply.kind === 'answer' ? reply : null; }, [typed, sensitive, context]);
   const prompt = useMemo(() => bridgePrompt({context: attach && !sensitive ? context.context : null, question: typed || '(your question)', customInstructions: settings.data.customInstructions, questionData: chosen?.text ?? '', careful: careFor(typed)}), [attach, sensitive, context.context, typed, settings.data.customInstructions, chosen]);
   // Built again at the click from the words as they stand, with the chips the person kept: exactly what is copied.
-  const copy = () => { const fresh = sensitive ? null : questionContext(question, context.toolSources(), context.gates, context.context?.handles ?? [], removed); navigator.clipboard?.writeText(bridgePrompt({context: attach && !sensitive ? context.context : null, question: question || '(your question)', customInstructions: settings.data.customInstructions, questionData: fresh?.text ?? '', careful: careFor(question)})).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
+  const copy = () => { const fresh = sensitive ? null : questionContext(question, context.toolSources(), context.gates, context.context?.handles ?? [], removed); copyText(bridgePrompt({context: attach && !sensitive ? context.context : null, question: question || '(your question)', customInstructions: settings.data.customInstructions, questionData: fresh?.text ?? '', careful: careFor(question)})).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
   return <div className="ai-bridge">
     <p className="ai-greeting-text">A {app?.name ?? 'consumer'} subscription has no connection a browser app may use, so ZIGoals writes the prompt for you: copy it, open {app?.name ?? 'your AI'}, paste. Nothing is sent from here.</p>
     <label className="field">Your question<textarea value={question} onChange={e => { setQuestion(e.target.value); setRemoved(new Set()); }} rows={3} maxLength={5000}/></label>

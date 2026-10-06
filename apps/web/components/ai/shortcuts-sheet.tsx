@@ -19,7 +19,7 @@ export function ShortcutsSheet({open, onClose}: {open: boolean; onClose: () => v
   const dialog = useRef<HTMLDialogElement>(null), back = useRef<Element | null>(null);
   useEffect(() => {
     const d = dialog.current; if (!d) return;
-    if (open && !d.open) { back.current = document.activeElement; d.showModal(); }
+    if (open && !d.open) { back.current = d.ownerDocument.activeElement; d.showModal(); }
     else if (!open && d.open) { d.close(); (back.current as HTMLElement | null)?.focus?.(); }
   }, [open]);
   // `data-ai-dialog`: part of the chat, so the launcher's sensitive-screen check does not take it for a page's sheet.

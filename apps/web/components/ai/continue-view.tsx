@@ -1,5 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
+import {copyText} from '../../lib/ai/chat-window';
 import {launcherApp, SUBSCRIPTION_APPS} from '../../lib/ai/apps';
 import {continuePrompt} from '../../lib/ai/continue';
 import type {AiSettings} from '../../lib/ai/settings';
@@ -19,7 +20,7 @@ export function ContinueView({settings, session, context, attach, sensitive, pho
   const records = sensitive ? null : context.context, [withRecords, setWithRecords] = useState(attach), [status, setStatus] = useState('');
   const text = useMemo(() => continuePrompt({turns: session.chat.turns, context: withRecords ? records : null, customInstructions: settings.customInstructions}), [session.chat.turns, withRecords, records, settings.customInstructions]);
   const leftOut = session.chat.turns.filter(t => t.source === 'local' && t.role === 'assistant').length, app = launcherApp(settings);
-  const copy = () => { navigator.clipboard?.writeText(text).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI app'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
+  const copy = () => { copyText(text).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI app'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
   return <section className="ai-continue" aria-label="Continue in my AI">
     <p className="ai-greeting-text">Take this chat to your own AI app: ZIGoals writes it out as one text, you copy it and paste it there. Nothing is sent from here.</p>
     {records && <label className="ai-check"><input type="checkbox" checked={withRecords} onChange={e => setWithRecords(e.target.checked)}/> Include this page’s records</label>}

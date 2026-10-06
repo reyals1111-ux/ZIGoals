@@ -2,6 +2,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {hasOpenFence, parseReply, type ParsedReply} from '../../lib/ai/actions/parse';
 import {streamChat} from '../../lib/ai/chat';
+import {nextFrame} from '../../lib/ai/chat-window';
 import {newChat, type Chat, type ChatStore, type ChatSummary} from '../../lib/ai/chats';
 import {fitToBudget, type Fit} from '../../lib/ai/context/budget';
 import {buildSystemPrompt} from '../../lib/ai/context/specialists';
@@ -100,7 +101,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const chatRef = useRef(chat);
   const setChat = useCallback((next: Chat) => { chatRef.current = next; setChatState(next); }, []);
   const [status, setStatus] = useState<ChatSession['status']>('idle'), [draft, setDraft] = useState(''), [failure, setFailure] = useState<ChatFailure | null>(null), [confirmation, setConfirmation] = useState<Confirmation | null>(null), [saveNote, setSaveNote] = useState<string | null>(null);
-  const abort = useRef<AbortController | null>(null), handles = useRef(new Map<string, readonly Handle[]>()), frame = useRef(0), pendingText = useRef('');
+  const abort = useRef<AbortController | null>(null), handles = useRef(new Map<string, readonly Handle[]>()), frame = useRef<(() => void) | null>(null), pendingText = useRef('');
   const locals = useRef(new Map<string, LocalInfo>()), extras = useRef(new Map<string, ExtraData>()), photos = useRef(new Map<string, readonly ChatImage[]>());
   // Session V Part 6, all in memory for this session: provider metadata per model, models that refused tools, the exact
   // tool results of each reply, and the latest context (a private screen opening mid-answer stops the lookups).
@@ -110,7 +111,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
   const [looking, setLooking] = useState<readonly string[]>([]), [lastMode, setLastMode] = useState<ChatSession['lastMode']>(null), [spendCheck, setSpendCheck] = useState<SpendCheck | null>(null), [usageNote, setUsageNote] = useState<string | null>(null);
   // A new scope (account change) starts a fresh, empty conversation; nothing from the previous one is kept in memory.
   useEffect(() => { abort.current?.abort(); handles.current.clear(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setDraft(''); setStatus('idle'); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- only the scope resets the chat
-  useEffect(() => () => { abort.current?.abort(); if (frame.current) cancelAnimationFrame(frame.current); }, []);
+  useEffect(() => () => { abort.current?.abort(); frame.current?.(); }, []);
   const persist = useCallback((next: Chat) => { if (!next.turns.length) return; store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [store]);
   const parsed = useMemo(() => { const map = new Map<string, ParsedReply>(); for (const turn of chat.turns) if (turn.role === 'assistant') map.set(turn.id, parseReply(turn.text)); return map; }, [chat.turns]);
   const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? context.context?.handles ?? [], [context.context]);
@@ -181,7 +182,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiEvents.emit('reply-pending');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
     const found: Lookup[] = [];
-    const flush = () => { frame.current = 0; setDraft(pendingText.current); };
+    const flush = () => { frame.current = null; setDraft(pendingText.current); };
     // The photo travels with the question it belongs to, the last user message, and nowhere else.
     const lastUser = fit.messages.map(m => m.role).lastIndexOf('user');
     const messages = options.images?.length && lastUser >= 0 ? fit.messages.map((m, i) => i === lastUser && m.role === 'user' ? {...m, images: options.images} : m) : fit.messages;
@@ -199,7 +200,8 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
       if (!first) { first = true; setStatus('streaming'); zigiEvents.emit('reply-streaming'); }
       // Session V Part 12: ZIGi writes while a proposal block streams in (the cards show once it is complete).
       if (!writing && hasOpenFence(reply)) { writing = true; zigiEvents.emit('writing-proposal'); }
-      if (!frame.current) frame.current = requestAnimationFrame(flush);
+      // The chat's own window: the mini window keeps streaming while the tab is in the background (Part 14).
+      if (!frame.current) frame.current = nextFrame(flush);
     };
     // A request counts once the provider answers it (a refused one costs nothing and is not counted).
     const counted = async function* (r: Parameters<typeof streamChat>[0]) { let seen = false; for await (const event of streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
@@ -249,7 +251,7 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
       }
     } finally {
       record();
-      abort.current = null; if (frame.current) { cancelAnimationFrame(frame.current); frame.current = 0; }
+      abort.current = null; frame.current?.(); frame.current = null;
       setStatus('idle'); setDraft(''); setLooking([]); pendingText.current = '';
     }
   }, [capabilityFor, context, finish, persist, rememberArea, scope, setChat, settings]);

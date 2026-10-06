@@ -1,5 +1,6 @@
 'use client';
 import {useState} from 'react';
+import {copyText} from '../../lib/ai/chat-window';
 import {followupsFor, type FollowupCall} from '../../lib/ai/followups';
 import './chat-polish.css';
 
@@ -21,7 +22,7 @@ export function FeedbackButtons({value, onChange}: {value: 'up' | 'down' | undef
 }
 export function CopyMarkdown({text}: {text: string}) {
   const [done, setDone] = useState(false);
-  const copy = () => { navigator.clipboard?.writeText(text).then(() => { setDone(true); window.setTimeout(() => setDone(false), 1500); }).catch(() => undefined); };
+  const copy = () => { copyText(text).then(() => { setDone(true); window.setTimeout(() => setDone(false), 1500); }).catch(() => undefined); };
   return <button type="button" className="text-link" onClick={copy}>{done ? 'Copied as Markdown' : 'Copy as Markdown'}</button>;
 }
 export function FollowupChips({calls, asked, onAsk}: {calls: readonly FollowupCall[]; asked: string; onAsk: (question: string) => void}) {

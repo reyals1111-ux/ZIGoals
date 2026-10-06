@@ -47,6 +47,8 @@ export function AiLauncher() {
   // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
   useEffect(() => { if (open) { setLoaded(true); zigiEvents.emit('open'); } else if (loaded) zigiEvents.emit('close'); }, [open, loaded]);
   const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => button.current?.focus({preventScroll: true})); }, []);
+  // Session V Part 14: the mini window's "Back to tab".
+  const reopen = useCallback(() => setOpen(true), []);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return;
@@ -96,7 +98,7 @@ export function AiLauncher() {
     </div>}
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
     {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
-    {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} sensitive={sensitive} phone={phone}/></Suspense>}
+    {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense>}
     {lookLoaded && look.knock && <Suspense fallback={null}><ZigiCompanion away={!visible || open} phone={phone} side={look.side}/></Suspense>}
   </>;
 }
