@@ -58,6 +58,8 @@ import {ShortcutsSheet} from './shortcuts-sheet';
 import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
 import {CopyMarkdown, FeedbackButtons, FollowupChips, TurnTime} from './turn-extras';
+import {CareNote} from './care-note';
+import {carefulNote, detectRisk} from '../../lib/ai/safety';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -293,7 +295,7 @@ function LookedAt({turn, session, context}: {turn: ChatTurn; session: ChatSessio
 function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader, context, deepModel, fromPhoto = false, asked, onAsk, onContinue, onEdit}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>; context: ReturnType<typeof useAiContext>; deepModel: string | null; fromPhoto?: boolean; asked: string; onAsk: (question: string) => void; onContinue: () => void; onEdit?: () => void}) {
   const [copied, setCopied] = useState(false);
   // "Edit" sits just after the message, not inside it: the message stays only the person's own words.
-  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
+  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-extras ai-turn-edit"><button type="button" className="text-link" aria-label="Edit your last message" onClick={onEdit}>Edit</button></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   const copy = () => { navigator.clipboard?.writeText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
@@ -461,18 +463,21 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {phone && mic && voice.available && <p className="ai-note">Hold the microphone to talk and release to stop, or tap once to start and once to stop.</p>}
   </form>;
 });
+/** Session V Part 11: careful mode travels in the copied prompt too, as its own paragraph. */
+const careFor = (question: string) => { const risk = detectRisk(question); return risk ? carefulNote(risk) : ''; };
 function BridgeView({settings, context, attach, sensitive, phone}: {settings: AiSettingsStore; context: ReturnType<typeof useAiContext>; attach: boolean; sensitive: boolean; phone: boolean}) {
   const [question, setQuestion] = useState(''), [status, setStatus] = useState(''), [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set()), app = subscriptionApp(settings.data.subscriptionApp);
   const typed = useDeferredValue(question);
   // The records chosen from the question (removable), and, for a lookup, the answer made here with no AI at all.
   const chosen = useMemo(() => sensitive ? null : questionContext(typed, context.toolSources(), context.gates, context.context?.handles ?? [], removed), [typed, sensitive, context, removed]);
   const local = useMemo(() => { const sources = sensitive || typed.trim().length < 3 ? null : context.toolSources(); if (!sources) return null; const reply = localAnswer(typed, toolEnv(sources, context.gates, 'local')); return reply.kind === 'answer' ? reply : null; }, [typed, sensitive, context]);
-  const prompt = useMemo(() => bridgePrompt({context: attach && !sensitive ? context.context : null, question: typed || '(your question)', customInstructions: settings.data.customInstructions, questionData: chosen?.text ?? ''}), [attach, sensitive, context.context, typed, settings.data.customInstructions, chosen]);
+  const prompt = useMemo(() => bridgePrompt({context: attach && !sensitive ? context.context : null, question: typed || '(your question)', customInstructions: settings.data.customInstructions, questionData: chosen?.text ?? '', careful: careFor(typed)}), [attach, sensitive, context.context, typed, settings.data.customInstructions, chosen]);
   // Built again at the click from the words as they stand, with the chips the person kept: exactly what is copied.
-  const copy = () => { const fresh = sensitive ? null : questionContext(question, context.toolSources(), context.gates, context.context?.handles ?? [], removed); navigator.clipboard?.writeText(bridgePrompt({context: attach && !sensitive ? context.context : null, question: question || '(your question)', customInstructions: settings.data.customInstructions, questionData: fresh?.text ?? ''})).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
+  const copy = () => { const fresh = sensitive ? null : questionContext(question, context.toolSources(), context.gates, context.context?.handles ?? [], removed); navigator.clipboard?.writeText(bridgePrompt({context: attach && !sensitive ? context.context : null, question: question || '(your question)', customInstructions: settings.data.customInstructions, questionData: fresh?.text ?? '', careful: careFor(question)})).then(() => setStatus(`Copied. Paste it into ${app?.name ?? 'your AI'}.`)).catch(() => setStatus('Copying was not allowed here; select the text below and copy it yourself.')); };
   return <div className="ai-bridge">
     <p className="ai-greeting-text">A {app?.name ?? 'consumer'} subscription has no connection a browser app may use, so ZIGoals writes the prompt for you: copy it, open {app?.name ?? 'your AI'}, paste. Nothing is sent from here.</p>
     <label className="field">Your question<textarea value={question} onChange={e => { setQuestion(e.target.value); setRemoved(new Set()); }} rows={3} maxLength={5000}/></label>
+    <CareNote text={typed}/>
     <QuestionSources question={chosen} onRemove={id => setRemoved(current => new Set([...current, id]))}/>
     {local && <div className="ai-bridge-local"><SafeText className="ai-local-answer" text={local.text}/><p className="ai-turn-meta"><span className="ai-turn-label">{LOCAL_LABEL}</span></p></div>}
     <div className="ai-card-actions"><button type="button" className="primary" onClick={copy} disabled={!question.trim()}>Copy for my AI</button>{app && <a className="secondary" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}{app && !phone && <button type="button" className="secondary" onClick={() => openSideBySide(app.url)}>Open {app.name} side by side</button>}</div>

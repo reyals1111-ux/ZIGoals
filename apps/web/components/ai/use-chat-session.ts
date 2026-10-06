@@ -32,6 +32,7 @@ import {PHOTO_NOTE} from '../../lib/ai/photo';
 import type {ChatImage} from '../../lib/ai/types';
 import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
+import {carefulNote, detectRisk} from '../../lib/ai/safety';
 
 /**
  * One conversation with the person's own AI (ADR-012, Part 6). The request goes from this browser straight to the
@@ -154,7 +155,9 @@ export function useChatSession({settings, scope, context}: {settings: AiSettings
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
     const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
-    const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null].filter((n): n is string => !!n);
+    // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
+    const risk = detectRisk(text);
+    const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);
     const withNotes = (prompt: string) => [prompt, ...notes].join('\n\n');
     const systemOnly = buildSystemPrompt({...base, context: null}), system = withNotes(buildSystemPrompt({...base, context: contextText}));
     // A photo is kept in memory for this session (a regenerate sends it again); the chat records only that one was attached.
