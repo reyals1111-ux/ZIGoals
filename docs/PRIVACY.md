@@ -65,3 +65,18 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
 **The Guide** ([ADR-011](architecture/ADR-011-coach.md), opt-in in Settings → Guide on this device) reads your records on this device only, through the same storage as Today, and calls no service: its one device key, `zigoals:guide:v1`, holds the switch and the nudges you dismissed, and nothing is sent anywhere.
 
 **ZIGi · your AI** ([ADR-012](architecture/ADR-012-your-ai.md), Settings → ZIGi · your AI, off until you connect it) is a chat with an AI *you* bring: an API key you hold with OpenAI, Anthropic, Google Gemini, xAI or OpenRouter, a model running on your own computer (Ollama, LM Studio), OpenRouter's own sign-in, or, with only a consumer subscription, a prompt you copy into that app yourself. Your message, the current page's data (if that page's switch is on; Health only with its own switch and consent) and your own instructions go from your browser straight to that provider, under its terms, and never through ZIGoals; ZIGoals runs nothing for this on its servers and logs nothing. Keys stay on your device (in the page's memory, or sealed in an encrypted store you can turn off) and are never synced, exported or shown back; chats stay on your device per account and are part of "Export everything". ZIGi reads nothing on Settings or while a sign-in, unlock, recovery-secret or deletion screen is showing, never writes a record by itself (every change is a card you add, with Undo), and can never move money. Voice is optional: your browser's speech recognition (Chrome may send audio to Google unless on-device recognition is available; Safari may send it to Apple) or a recording transcribed by your provider.
+
+**ZIGi v2** ([ADR-014](architecture/ADR-014-zigi-v2.md), 2026-10-06):
+- **On your device, no AI:** answers about your records, the morning brief, suggestions, patterns and the weekly review. Nothing is sent.
+- **Sent only on your action, under the same switches:**
+  - the records a question needs, shown as removable items;
+  - lookups your AI asks for while it answers (read-only);
+  - a meal photo, once, to your provider, never kept;
+  - your notes, while "Use my notes" is on.
+- **Files and other AIs, only when you ask:**
+  - a context pack (a readable, unencrypted file you download or copy);
+  - an AI agent built into your browser, only if you turn that on, with every request shown;
+  - Chrome's on-device model, which gets only your words and runs on your computer.
+- **Reminder names** in notifications are opt-in and composed on your device; the push server never sees them.
+- **ZIGoals hosted** is the one path through ZIGoals' servers. It is off by default and not deployed; it is only for invited accounts after a disclosure. It forwards your message and attached records to the named provider, stores and logs none of it, and keeps only daily counts.
+- **New device keys** (all in "Export everything", never synced): ZIGi's options, usage counts, notes, actions log, look and feel, reminders and knock counts, and Today's folded rows.

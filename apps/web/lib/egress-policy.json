@@ -1,7 +1,10 @@
 {
   "version": 1,
   "note": "Single source for the origins the app may connect to and for the Permissions-Policy values (Session T, ADR-012). security-policy.ts, next.config.ts, lib/ai/providers.ts and the deployment checks read this file; no literal copies elsewhere.",
-  "chainOrigins": ["https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com"],
+  "chainOrigins": [
+    "https://testnet-api.zigchain.com",
+    "https://testnet-rpc.zigchain.com"
+  ],
   "aiProviderOrigins": {
     "openai": "https://api.openai.com",
     "anthropic": "https://api.anthropic.com",
@@ -9,7 +12,14 @@
     "xai": "https://api.x.ai",
     "openrouter": "https://openrouter.ai"
   },
-  "localModelSources": ["http://localhost:*", "http://127.0.0.1:*"],
+  "localModelSources": [
+    "http://localhost:*",
+    "http://127.0.0.1:*"
+  ],
+  "serverOnly": {
+    "note": "Origins only the app's own server code reaches, never the browser: none of them enters connect-src (ADR-014 S2). Each is a secret on the app Worker, unset in every committed config.",
+    "zigiRelay": "ZIGOALS_ZIGI_RELAY_ORIGIN: ZIGoals hosted's relay (workers/zigi-relay), reached only by /api/zigi (lib/server/zigi-route.ts); off by default"
+  },
   "permissionsPolicy": {
     "global": "camera=(), microphone=(), geolocation=()",
     "app": "camera=(), microphone=(self), geolocation=()",

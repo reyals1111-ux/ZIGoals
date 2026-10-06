@@ -53,7 +53,11 @@ jobs:
     # each) the shards measured 7.6-8.4 min including about 1.5 min of setup
     # and build (run 36489960661). About 2x headroom for suite growth and
     # slower runners.
-    timeout-minutes: 22
+    # Session V (2026-10-06): on main the slowest shard took 21m14s of the
+    # 22 min (run 37347264034) and 21m08s (run 37319517371); with Session V's
+    # ZIGi specs one finished its tests and was cancelled at 22m02s (run
+    # 37391078178). 30 min gives about 40% headroom again.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

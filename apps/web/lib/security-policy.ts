@@ -24,16 +24,23 @@ export function securityPolicy(development: boolean, https: boolean) {
     "img-src 'self' data: blob:", "font-src 'self'",
     `connect-src ${CONNECT_SOURCES.join(" ")}${development ? " ws://127.0.0.1:3100" : ""}`,
     "object-src 'none'", "frame-src 'none'", "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
+    // Session V Part 19: Trusted Types enforced in every production build (docs/security/TRUSTED_TYPES.md). No string
+    // reaches an HTML or script sink; script URLs pass only the default policy (lib/trusted-types.ts). The development
+    // server keeps its eval-based refresh, so it stays unenforced.
+    ...(development ? [] : TRUSTED_TYPES.split("; ")),
     ...(https ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
   return { nonce, csp };
 }
 /**
- * Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04): the Trusted Types directives, kept apart from the policy above and
- * never enforced in this PR. Only a trial run sends them, report-only, to a local collector (middleware.ts, with
- * ZIGOALS_TRUSTED_TYPES_TRIAL set to a loopback URL; docs/security/TRUSTED_TYPES.md). Enforcing them is a follow-up.
+ * The Trusted Types directives. Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04) built them as a report-only trial;
+ * Session V Part 19 enforces them in every production build (securityPolicy above) after the full browser suite on both
+ * projects reported nothing under the trial (docs/security/TRUSTED_TYPES.md). The trial header stays, so a later
+ * regression can be measured the same way: a trial run sends the same directives report-only to a local collector
+ * (middleware.ts, with ZIGOALS_TRUSTED_TYPES_TRIAL set to a loopback URL), which also covers the development server.
  */
-export const TRUSTED_TYPES_TRIAL = "require-trusted-types-for 'script'; trusted-types default";
+export const TRUSTED_TYPES = "require-trusted-types-for 'script'; trusted-types default";
+export const TRUSTED_TYPES_TRIAL = TRUSTED_TYPES;
 const LOOPBACK_HOSTS = ["127.0.0.1", "localhost"];
 /**
  * The report-only header for a trial run, or null. Both ends must be this machine: a plain http loopback collector, and a

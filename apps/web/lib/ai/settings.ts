@@ -9,6 +9,7 @@ import {PROVIDER_IDS, SUBSCRIPTION_APPS, normalizeLocalBaseUrl} from './provider
  */
 export {AI_SETTINGS_KEY} from './launcher-record';
 import {AI_SETTINGS_KEY} from './launcher-record';
+import {resetOnTurnOff} from './store/records';
 /** Showcase conversations live in the tab's session storage under this app-storage key (chats.ts). */
 export const AI_CHATS_SESSION_KEY = 'zigoals:ai-chats:v1';
 export const PAGE_AREAS = ['today', 'goals', 'habits', 'health', 'wealth', 'help'] as const;
@@ -61,9 +62,14 @@ export function updateAiSettings(storage: ReadWrite, change: (current: AiSetting
   storage.setItem(AI_SETTINGS_KEY, JSON.stringify(valid));
   return valid;
 }
-/** "Turn off ZIGi": the connection and every page switch go back to the start; the launcher stays as the person left it. Keys are the key store's business. */
+/**
+ * "Turn off ZIGi": the connection and every page switch go back to the start; the launcher stays as the person left it.
+ * Keys are the key store's business. Session V's options go back to the start too and knocking stops (store/records.ts).
+ */
 export function turnOffAi(storage: ReadWrite, installed = false): AiSettings {
-  return updateAiSettings(storage, current => ({...defaultAiSettings(installed), launcherHidden: current.launcherHidden, rememberKey: current.rememberKey}), installed);
+  const next = updateAiSettings(storage, current => ({...defaultAiSettings(installed), launcherHidden: current.launcherHidden, rememberKey: current.rememberKey}), installed);
+  resetOnTurnOff(storage);
+  return next;
 }
 /** The connection's one-line label for headers and labels: "via OpenAI · gpt-…", "via a local model · llama…", or null. */
 export function connectionLabel(settings: AiSettings, providerName: (id: NonNullable<AiSettings['provider']>) => string): string | null {

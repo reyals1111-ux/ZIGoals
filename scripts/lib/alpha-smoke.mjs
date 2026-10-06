@@ -63,7 +63,10 @@ export function assertHtml(response, html, route="/app", { baseline = false } = 
   // Session T (ADR-012): the reviewed value per route from the app's own data file (camera only on Health; the microphone only on app pages).
   const expected=(route==='/app/health'?egress.permissionsPolicy.health:egress.permissionsPolicy.app).split(/\s*,\s*/);
   assert.deepEqual(permissions,expected,'Permissions-Policy must be exactly the reviewed value for this route: the camera permission only on Health, the microphone permission only on app pages, everything else denied');
-  assert.deepEqual([...directives.keys()].sort(), ["default-src", "script-src", "worker-src", "style-src", "img-src", "font-src", "connect-src", "object-src", "frame-src", "frame-ancestors", "base-uri", "form-action", "upgrade-insecure-requests"].sort(), "CSP directive set changed");
+  assert.deepEqual([...directives.keys()].sort(), ["default-src", "script-src", "worker-src", "style-src", "img-src", "font-src", "connect-src", "object-src", "frame-src", "frame-ancestors", "base-uri", "form-action", "require-trusted-types-for", "trusted-types", "upgrade-insecure-requests"].sort(), "CSP directive set changed");
+  // Session V Part 19 (docs/security/TRUSTED_TYPES.md): Trusted Types enforced, with the default policy only.
+  assert.deepEqual(directives.get("require-trusted-types-for"), ["'script'"], "CSP require-trusted-types-for changed");
+  assert.deepEqual(directives.get("trusted-types"), ["default"], "CSP trusted-types changed");
   for (const key of ["object-src", "base-uri", "frame-ancestors", "frame-src"]) {
     assert.deepEqual(directives.get(key), ["'none'"], `CSP ${key} changed`);
   }

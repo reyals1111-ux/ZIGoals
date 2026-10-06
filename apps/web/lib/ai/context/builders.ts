@@ -19,7 +19,9 @@ import {wealthView} from './pages';
 import {reviewState, weekSummary} from '../../weekly-review/engine';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import {escapeData} from './specialists';
-import type {Handle, PageContext} from './types';
+import {Handles} from '../handles';
+export {resolveHandle} from '../handles';
+import type {PageContext} from './types';
 
 /**
  * The page context builders (ADR-012, Part 4): short summaries of the person's own records, computed by the app's
@@ -35,7 +37,8 @@ export type BuilderInput = {
   now: Date; habitDay: string; healthDay: string;
   habits: HabitData; health: HealthData; fasting: Fasting | null;
   platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[];
-  portfolio: {data: PortfolioData; priceOf: (coin: string) => string | undefined} | null;
+  /** A coin's price in the given currency (the portfolio's own; Session V Part 4 fix: never another currency's price). */
+  portfolio: {data: PortfolioData; priceOf: (coin: string, currency: string) => string | undefined} | null;
   /** The weekly review's window and record, for Today's "This week" counts (follow-up part F); absent means no week section. */
   week?: {weekStart: string; weekEnd: string; review: WeeklyReview} | null;
 };
@@ -53,10 +56,6 @@ export const moneyText = (value: bigint) => { const negative = value < 0n, v = n
 const kgText = (grams: number) => `${num(grams / 1000)} kg`, lbText = (grams: number) => `${num(grams / 453.59237)} lb`;
 const weightText = (grams: number, unit: 'kg' | 'lb') => unit === 'lb' ? lbText(grams) : kgText(grams);
 
-class Handles {
-  readonly list: Handle[] = []; private counts: Record<Handle['kind'], number> = {habit: 0, goal: 0, food: 0, recipe: 0};
-  add(kind: Handle['kind'], id: string, label: string): string { const prefix = {habit: 'h', goal: 'g', food: 'f', recipe: 'r'}[kind]; const handle = `${prefix}${++this.counts[kind]}`; this.list.push({handle, kind, id, label}); return handle; }
-}
 type Section = {title: string; lines: string[]};
 
 function habitsSection(input: BuilderInput, handles: Handles, onlyDue: boolean): Section {
@@ -140,10 +139,10 @@ function wealthSection(input: BuilderInput): Section[] {
   }
   return sections;
 }
-function portfolioLine(p: Portfolio, priceOf: (coin: string) => string | undefined): string {
+function portfolioLine(p: Portfolio, priceOf: (coin: string, currency: string) => string | undefined): string {
   const label = p.kind === 'real' ? 'Real' : 'Hypothetical';
   if (!validHistory(p)) return `${label} portfolio ${clean(p.name, 60)} (${p.currency}): its history needs review in the app`;
-  const totals = portfolioTotals(p, priceOf);
+  const totals = portfolioTotals(p, coin => priceOf(coin, p.currency));
   return `${label} portfolio ${clean(p.name, 60)} (${p.currency}): ${totals.held} coins held · value ${totals.unpriced === totals.held && totals.held > 0 ? 'unknown' : `${totals.knownValue} ${p.currency}${totals.unpriced ? ` (${totals.unpriced} coins unpriced, not counted)` : ''}`} · cost ${totals.costKnown ? `${totals.cost} ${p.currency}` : 'unknown'}`;
 }
 export const HELP_NOTES = [
@@ -174,8 +173,8 @@ function weekSection(input: BuilderInput): Section | null {
     return {title: 'This week (for your weekly review)', lines};
   } catch { return null; }
 }
-export function buildPageContext(input: BuilderInput): PageContext {
-  const handles = new Handles(), sections: Section[] = [], omitted: string[] = [];
+export function buildPageContext(input: BuilderInput, handles: Handles = new Handles()): PageContext {
+  const sections: Section[] = [], omitted: string[] = [];
   if (!input.consent.page) return {area: input.area, text: '', handles: [], included: [], omitted: input.consent.reasons, estimatedTokens: 0};
   const health = () => { if (input.consent.health) sections.push(healthSection(input, handles, input.area === 'health')); else omitted.push(...(input.consent.reasons.length ? input.consent.reasons.filter(r => r.startsWith('Health')) : ['Health: not shared'])); };
   switch (input.area) {
@@ -189,11 +188,6 @@ export function buildPageContext(input: BuilderInput): PageContext {
   let text = sections.map(s => `## ${s.title}\n${s.lines.join('\n')}`).join('\n\n');
   if (text.length > LIMITS.chars) { text = `${text.slice(0, LIMITS.chars)}\n(context shortened to fit)`; omitted.push('Some lines were cut to keep the context within its size.'); }
   return {area: input.area, text, handles: handles.list, included: sections.map(s => s.title), omitted, estimatedTokens: estimateTokens(text)};
-}
-/** The record behind a handle, or null when the AI used one that was never given (nothing is guessed). */
-export function resolveHandle(handles: readonly Handle[], handle: string, kind?: Handle['kind']): Handle | null {
-  const found = handles.find(h => h.handle === handle.trim().toLowerCase());
-  return found && (!kind || found.kind === kind) ? found : null;
 }
 /** Habits by exact title (case-insensitive), for a proposal that names one instead of using a handle: one match or nothing. */
 export function habitByTitle(habits: readonly Habit[], title: string): Habit | null {

@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
-import {useCallback, useEffect, useState, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode} from 'react';
 import {forgetChats} from '../../lib/ai/chats';
+import {forgetChatAreas} from '../../lib/ai/history';
 import {AiError, errorSteps} from '../../lib/ai/errors';
 import {dropMemoryKeys, forgetAiKeys, forgetKey, hasRememberedKey, holdKey, readKey, rememberKey, SHOWCASE_SCOPE} from '../../lib/ai/keys';
 import {listModels} from '../../lib/ai/models';
@@ -17,15 +18,24 @@ import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {usePrivateStore} from '../use-private-store';
 import {AiSetup, type SetupSeed} from './ai-setup';
 import {ModelPicker} from './model-picker';
+import {AiDataUsage} from './ai-data-usage';
+import {Switch} from './ai-switch';
 import {useAiSettings} from './use-ai-settings';
 import {useHealthConsent} from './use-health-consent';
 import './ai.css';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {onDeviceAvailability} from '../../lib/ai/on-device';
+import {modelContext} from '../../lib/ai/webmcp';
+import {entitlement as entitlementOf} from '../../lib/entitlements';
+import {useHosted} from './use-hosted';
+const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
 
 /**
  * Settings → ZIGi · your AI (ADR-012, Part 8; id="your-ai"): the connection (setup, change model, disconnect), what
  * each page shares, Include Health, the key on this device, the output cap and context budget, voice, your own
  * instructions, the launcher, what your AI sees, and "Turn off ZIGi" with "Also delete all chats". Everything here is
- * a device setting; keys live in the encrypted key store and are never shown back.
+ * a device setting; keys live in the encrypted key store and are never shown back. Session V Part 18 sorts it into
+ * five groups: Connection, Privacy & data, ZIGi's look and feel, Reminders, Advanced.
  */
 const PAGE_NOTES: Record<PageArea, string> = {
   today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates',
@@ -35,8 +45,120 @@ const PAGE_NOTES: Record<PageArea, string> = {
   wealth: 'tracked holdings by name and class with your recorded values, one total per currency; Portfolio as Real or Hypothetical; prices only as the page shows them',
   help: 'the Help notes about how ZIGoals works; no records',
 };
-function Switch({checked, onChange, label, disabled, note}: {checked: boolean; onChange: (next: boolean) => void; label: string; disabled?: boolean; note?: ReactNode}) {
-  return <div className="ai-switch-row"><button type="button" role="switch" aria-checked={checked} aria-label={label} className={checked ? 'primary' : 'secondary'} disabled={disabled} onClick={() => onChange(!checked)}>{checked ? 'On' : 'Off'}</button><span className="ai-switch-copy"><strong>{label}</strong>{note && <small>{note}</small>}</span></div>;
+/**
+ * Session V Part 8: "What ZIGi knows about me", the person's notes, loaded only when its card opens (a link to
+ * #zigi-notes opens it: the "Remember this?" cards and Activity point here).
+ */
+const NotesPanel = lazy(() => import('./ai-notes'));
+const NOTES_ANCHOR = 'zigi-notes', PACK_ANCHOR = 'zigi-pack', LOOK_ANCHOR = 'zigi-look';
+/** A card that opens when the address names it (#zigi-notes, and #zigi-pack for ZIGi's /pack, Session V Part 10). */
+function useAnchoredCard(anchor: string) {
+  const [open, setOpen] = useState(false), card = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const follow = () => { if (window.location.hash !== `#${anchor}`) return; setOpen(true); requestAnimationFrame(() => card.current?.scrollIntoView({block: 'start'})); };
+    follow(); window.addEventListener('hashchange', follow);
+    return () => window.removeEventListener('hashchange', follow);
+  }, [anchor]);
+  return {open, setOpen, card};
+}
+function NotesCard() {
+  const {open, setOpen, card} = useAnchoredCard(NOTES_ANCHOR);
+  return <details ref={card} id={NOTES_ANCHOR} className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">What ZIGi knows about me</summary>
+    <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><NotesPanel/></Suspense>}
+  </details>;
+}
+/** Session V Part 12: ZIGi's look and feel (the panel's Customize, here too), loaded only when its card opens. */
+const CustomizePanel = lazy(() => import('./zigi-customize'));
+function LookCard() {
+  const {open, setOpen, card} = useAnchoredCard(LOOK_ANCHOR);
+  return <details ref={card} id={LOOK_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">ZIGi&rsquo;s look and feel</summary>
+    <p className="ai-note">How ZIGi looks and moves, which side it sits on, its size, its greeting, the tab that brings it back, and whether it knocks when a reminder is due. Kept on this device; nothing is sent.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><CustomizePanel/></Suspense>}
+  </details>;
+}
+/** Session V Part 15: "Which setup fits me?", loaded when its card opens (a link to #zigi-setup opens it). */
+const SetupChooserPanel = lazy(() => import('./setup-chooser'));
+const SETUP_ANCHOR = 'zigi-setup', ON_DEVICE_ANCHOR = 'zigi-on-device';
+function SetupChooserCard() {
+  const {open, setOpen, card} = useAnchoredCard(SETUP_ANCHOR);
+  return <details ref={card} id={SETUP_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Which setup fits me?</summary>
+    <p className="ai-note">Three or four questions, then one suggestion with its honest pros and cons and the exact next steps. Worked out here on this device; nothing is sent.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooserPanel/></Suspense>}
+  </details>;
+}
+/**
+ * Session V Part 15: Chrome's on-device model, only where this browser has it and says it can run here (asking
+ * downloads nothing); loaded when its card opens.
+ */
+const OnDevicePanel = lazy(() => import('./on-device-panel'));
+function OnDeviceCard() {
+  const {open, setOpen, card} = useAnchoredCard(ON_DEVICE_ANCHOR), [offered, setOffered] = useState(false);
+  useEffect(() => { let live = true; void onDeviceAvailability().then(state => { if (live) setOffered(state !== 'unavailable'); }); return () => { live = false; }; }, []);
+  if (!offered) return null;
+  return <details ref={card} id={ON_DEVICE_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Chrome&rsquo;s on-device model</summary>
+    <p className="ai-note">A small model that runs inside Chrome on this computer. While no AI is connected it gives short answers, rewords ZIGi&rsquo;s brief and helps ZIGi understand questions. Nothing is sent anywhere.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><OnDevicePanel/></Suspense>}
+  </details>;
+}
+/**
+ * Session V Part 16: browser AI agents (WebMCP), only in a browser that offers tools to them; loaded when the card opens.
+ */
+const AgentsPanel = lazy(() => import('./agents-panel'));
+const AGENTS_ANCHOR = 'zigi-agents';
+function AgentsCard() {
+  const {open, setOpen, card} = useAnchoredCard(AGENTS_ANCHOR), [offered, setOffered] = useState(false);
+  useEffect(() => { setOffered(modelContext() !== null); }, []);
+  if (!offered) return null;
+  return <details ref={card} id={AGENTS_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Browser AI agents</summary>
+    <p className="ai-note">An AI agent built into this browser can use ZIGi&rsquo;s lookups and propose changes on the pages you open, only if you allow it. Off by default.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><AgentsPanel/></Suspense>}
+  </details>;
+}
+/** Session V Part 17: ZIGoals hosted, only in a hosted build and for an account the relay says is invited today. */
+const HostedPanel = lazy(() => import('./hosted-panel'));
+const HOSTED_ANCHOR = 'zigi-hosted';
+function HostedCard() {
+  const {open, setOpen, card} = useAnchoredCard(HOSTED_ANCHOR), {entitlement} = useHosted();
+  if (!entitlement?.entitled) return null;
+  return <details ref={card} id={HOSTED_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">ZIGoals hosted <span className="ai-chat-premium">{ENTITLEMENT_LABEL}</span></summary>
+    <p className="ai-note">An AI that ZIGoals runs and pays for, for invited accounts: no key or app of your own needed. Read what passes through before you choose it.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><HostedPanel entitlement={entitlement}/></Suspense>}
+  </details>;
+}
+/** Session V Part 5: the context pack, loaded only when the person opens its card. */
+const ContextPackPanel = lazy(() => import('./context-pack'));
+function ContextPackCard() {
+  const {open, setOpen, card} = useAnchoredCard(PACK_ANCHOR);
+  return <details ref={card} id={PACK_ANCHOR} className="ai-pack" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Context pack for my AI</summary>
+    <p className="ai-note">A file of your records to add to your AI&rsquo;s project knowledge (Claude Projects, ChatGPT Projects, Gemini Gems or similar), so it knows your goals, habits and wealth between chats. Made on this device; nothing is sent from here.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ContextPackPanel/></Suspense>}
+  </details>;
+}
+/** Session V Part 18: ZIGi's own weekly reminders, listed with Remove, loaded when the card opens (#zigi-reminders). */
+const RemindersPanel = lazy(() => import('./zigi-reminders-panel'));
+const REMINDERS_ANCHOR = 'zigi-reminders';
+function RemindersCard() {
+  const {open, setOpen, card} = useAnchoredCard(REMINDERS_ANCHOR);
+  return <details ref={card} id={REMINDERS_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">ZIGi&rsquo;s reminders</summary>
+    <p className="ai-note">The weekly reminders ZIGi keeps for you (goal check-ins, a look at Wealth, a new context pack), and whether ZIGi knocks when one is due. Kept on this device.</p>
+    {open && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><RemindersPanel/></Suspense>}
+  </details>;
+}
+/**
+ * Session V Part 18: the section in five groups (Connection, Privacy & data, ZIGi's look and feel, Reminders,
+ * Advanced), each a labelled region with its own heading; the controls inside are the ones Parts 1–17 added.
+ */
+function Group({id, title, children}: {id: string; title: string; children: ReactNode}) {
+  return <section className="ai-settings-group" aria-labelledby={`${id}-title`}><h3 id={`${id}-title`} className="ai-settings-group-title">{title}</h3>{children}</section>;
 }
 function useOpenRouterCallback(): {seed: SetupSeed; error: string | null} {
   const [state, setState] = useState<{seed: SetupSeed; error: string | null}>({seed: null, error: null});
@@ -74,7 +196,10 @@ export default function AiSettings() {
     try { await forgetAiKeys(scope); } catch { /* nothing remembered */ }
     dropMemoryKeys();
     let chatsNote = '';
-    if (alsoChats) { try { await forgetChats(scope); chatsNote = ' All chats on this device were deleted.'; } catch { chatsNote = ' The chats could not be deleted; try again from here.'; } }
+    if (alsoChats) {
+      try { await forgetChats(scope); chatsNote = ' All chats on this device were deleted.'; } catch { chatsNote = ' The chats could not be deleted; try again from here.'; }
+      try { forgetChatAreas(getAppStorage()); } catch { /* History's page index goes with the chats when it can */ }
+    }
     try { settings.turnOff(); setMessage({text: `ZIGi is off. Keys were removed from this device.${chatsNote}`}); } catch (error) { setMessage({text: `ZIGi could not be turned off on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); }
     setTurningOff(false); setAlsoChats(false); setModels(null);
   };
@@ -95,52 +220,72 @@ export default function AiSettings() {
   return <div className="ai-settings-body">
     {settings.unreadable && <p role="alert">This device&rsquo;s ZIGi settings could not be read; they count as off until you save a choice here.</p>}
     {callback.error && <p role="alert">{callback.error}</p>}
-    {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right or with ⌘K / Ctrl+K. Health stays off until you turn on “Include Health”.'})}/>}
-    {data.enabled && <div className="ai-connection">
-      <ZigiAvatar state="idle" size={44} decorative/>
-      <div className="ai-connection-copy">
-        <strong>{data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`}</strong>
-        <small>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
-      </div>
-      <div className="ai-card-actions">
-        {connected && <button type="button" className="secondary" disabled={modelsBusy} onClick={() => models ? setModels(null) : void loadModels()}>{modelsBusy ? 'Loading models…' : models ? 'Hide models' : 'Change model'}</button>}
-        <button type="button" className="secondary" onClick={() => void disconnect()}>Disconnect</button>
-      </div>
-    </div>}
-    {models && <div className="ai-setup-form"><ModelPicker models={models} value={data.model} onChange={id => { save(s => ({...s, model: id}), `Model changed to ${id}.`); setModels(null); }}/></div>}
-    {data.enabled && data.mode !== 'subscription' && data.provider && !showcase && <div className="ai-setup-form ai-key-replace">
-      <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key on this device" note="Encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
-      <label className="field">Replace the key<input type="password" value={keyDraft} onChange={e => setKeyDraft(e.target.value)} autoComplete="off" spellCheck={false} autoCapitalize="off" placeholder="Paste a new key"/></label>
-      <div className="ai-card-actions"><button type="button" className="secondary" disabled={!keyDraft.trim()} onClick={() => void replaceKey()}>Use this key</button></div>
-    </div>}
-    {data.enabled && <>
-      <h3>What each page may share</h3>
-      <p className="ai-note">On by default except Health. Off means ZIGi answers without that page&rsquo;s data. Identifiers, wallet addresses, chain details, account and sync metadata are never sent.</p>
-      <div className="ai-switch-list">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
-      <Switch checked={data.includeHealth} onChange={next => save(s => ({...s, includeHealth: next}))} label="Include Health" disabled={!layoutHasHealth} note={!layoutHasHealth ? 'Health is not part of your Today layout on this device, so nothing from Health can be shared. Add Health to Today first.' : healthConsent.accountActive && !healthConsent.accountHealthPermitted ? 'With your account open, Health is shared only when the account\'s Health permission is on for this device (Settings → Account & sync). It is not, so Health stays out.' : 'Health goes to your AI only with this switch, the Health page switch above and, with an account, its Health permission. Off by default.'}/>
-      <h3>Spend protection</h3>
+    <Group id="zigi-connection" title="Connection">
+      {!data.enabled && settings.loaded && <AiSetup settings={settings} scope={scope} seed={callback.seed} onDone={() => setMessage({text: 'Connected. ZIGi now answers with your own AI on every page where sharing is on; open it from the button at the bottom right or with ⌘K / Ctrl+K. Health stays off until you turn on “Include Health”.'})}/>}
+      {data.enabled && <div className="ai-connection">
+        <ZigiAvatar state="idle" size={44} decorative/>
+        <div className="ai-connection-copy">
+          <strong>{data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`}</strong>
+          <small>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
+        </div>
+        <div className="ai-card-actions">
+          {connected && <button type="button" className="secondary" disabled={modelsBusy} onClick={() => models ? setModels(null) : void loadModels()}>{modelsBusy ? 'Loading models…' : models ? 'Hide models' : 'Change model'}</button>}
+          <button type="button" className="secondary" onClick={() => void disconnect()}>Disconnect</button>
+        </div>
+      </div>}
+      {models && <div className="ai-setup-form"><ModelPicker models={models} value={data.model} onChange={id => { save(s => ({...s, model: id}), `Model changed to ${id}.`); setModels(null); }}/></div>}
+      {data.enabled && data.mode !== 'subscription' && data.provider && !showcase && <div className="ai-setup-form ai-key-replace">
+        <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key on this device" note="Encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
+        <label className="field">Replace the key<input type="password" value={keyDraft} onChange={e => setKeyDraft(e.target.value)} autoComplete="off" spellCheck={false} autoCapitalize="off" placeholder="Paste a new key"/></label>
+        <div className="ai-card-actions"><button type="button" className="secondary" disabled={!keyDraft.trim()} onClick={() => void replaceKey()}>Use this key</button></div>
+      </div>}
+      {settings.loaded && <SetupChooserCard/>}
+      {settings.loaded && <OnDeviceCard/>}
+      {settings.loaded && <HostedCard/>}
+    </Group>
+    <Group id="zigi-privacy" title="Privacy & data">
+      {data.enabled && <>
+        <h4>What each page may share</h4>
+        <p className="ai-note">On by default except Health. Off means ZIGi answers without that page&rsquo;s data. Identifiers, wallet addresses, chain details, account and sync metadata are never sent.</p>
+        <div className="ai-switch-list">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
+        <Switch checked={data.includeHealth} onChange={next => save(s => ({...s, includeHealth: next}))} label="Include Health" disabled={!layoutHasHealth} note={!layoutHasHealth ? 'Health is not part of your Today layout on this device, so nothing from Health can be shared. Add Health to Today first.' : healthConsent.accountActive && !healthConsent.accountHealthPermitted ? 'With your account open, Health is shared only when the account\'s Health permission is on for this device (Settings → Account & sync). It is not, so Health stays out.' : 'Health goes to your AI only with this switch, the Health page switch above and, with an account, its Health permission. Off by default.'}/>
+        <h4>What your AI sees</h4>
+        <p className="ai-note">Only this page&rsquo;s data, as plain text between data marks, after the instruction that it is records and not commands. Open ZIGi on any page and expand &ldquo;What your AI sees&rdquo; for the exact text that would go with your next message. Chats are kept on this device per account and are part of &ldquo;Export everything&rdquo;; keys never are.</p>
+      </>}
+      {settings.loaded && <NotesCard/>}
+      {settings.loaded && <ContextPackCard/>}
+      {settings.loaded && <AgentsCard/>}
+    </Group>
+    <Group id="zigi-look-group" title="ZIGi’s look and feel">
+      {data.enabled && <>
+        <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K opens the chat as well."/>
+      </>}
+      {settings.loaded && <LookCard/>}
+    </Group>
+    <Group id="zigi-reminders-group" title="Reminders">
+      {settings.loaded && <RemindersCard/>}
+    </Group>
+    {data.enabled && <Group id="zigi-advanced" title="Advanced">
+      {data.mode !== 'subscription' && <AiDataUsage settings={data} scope={scope}/>}
+      <h4>Spend protection</h4>
       <div className="ai-fields">
         <label className="field">Output cap per reply (tokens)<input type="number" min={OUTPUT_CAP.min} max={OUTPUT_CAP.max} step={64} value={data.maxOutputTokens} onChange={e => { const v = Number(e.target.value); if (v >= OUTPUT_CAP.min && v <= OUTPUT_CAP.max) save(s => ({...s, maxOutputTokens: Math.round(v)})); }}/><small>Sent as the provider&rsquo;s maximum; a longer reply is cut off and says so. Default {OUTPUT_CAP.default}.</small></label>
         <label className="field">Context budget (tokens)<input type="number" min={CONTEXT_BUDGET.min} max={CONTEXT_BUDGET.max} step={500} value={data.contextBudgetTokens} onChange={e => { const v = Number(e.target.value); if (v >= CONTEXT_BUDGET.min && v <= CONTEXT_BUDGET.max) save(s => ({...s, contextBudgetTokens: Math.round(v)})); }}/><small>Page data plus the last messages, estimated at four characters a token; above it ZIGi asks before sending. Default {CONTEXT_BUDGET.default}.</small></label>
       </div>
-      <h3>Voice</h3>
+      <h4>Voice</h4>
       <div className="ai-fields">
         <label className="field">Speaking to ZIGi<select value={data.voice.transcription} onChange={e => save(s => ({...s, voice: {...s.voice, transcription: e.target.value as AiSettingsData['voice']['transcription'], transcriptionModel: e.target.value === 'provider' ? s.voice.transcriptionModel ?? TRANSCRIPTION_MODELS[0] : s.voice.transcriptionModel}}))}><option value="off">Off (type)</option><option value="browser">Browser speech recognition</option>{data.provider && PROVIDERS[data.provider].transcription && <option value="provider">Recorded, transcribed by {PROVIDERS[data.provider].name}</option>}</select><small>{data.voice.transcription === 'browser' ? browserSpeechDisclosure(browser, false) : data.voice.transcription === 'provider' ? `Recordings of up to a minute go from this browser to ${provider?.name ?? 'your provider'} with your key; nothing through ZIGoals.` : 'The microphone is not used.'}</small></label>
         {data.voice.transcription === 'provider' && <label className="field">Transcription model<select value={data.voice.transcriptionModel ?? TRANSCRIPTION_MODELS[0]} onChange={e => save(s => ({...s, voice: {...s.voice, transcriptionModel: e.target.value}}))}>{TRANSCRIPTION_MODELS.map(m => <option key={m} value={m}>{m}</option>)}</select></label>}
         <label className="field">Language<input value={data.voice.language ?? ''} onChange={e => save(s => ({...s, voice: {...s.voice, language: e.target.value.trim() || null}}))} placeholder={language} maxLength={35} autoComplete="off" spellCheck={false}/><small>A language tag such as en-US, de-DE or pt-BR; empty follows this device ({language}).</small></label>
       </div>
       <Switch checked={data.voice.readAloud} onChange={next => save(s => ({...s, voice: {...s.voice, readAloud: next}}))} label="Read replies aloud" note="Uses the browser's own voices on this device. Off by default; every reply also has its own Read aloud button."/>
-      <h3>Your own instructions</h3>
+      <h4>Your own instructions</h4>
       <label className="field">Sent with every message (up to 2,000 characters)<textarea value={data.customInstructions} maxLength={2000} rows={3} onChange={e => save(s => ({...s, customInstructions: e.target.value}))} placeholder="For example: answer in Spanish; keep it under five sentences; I prefer kilograms."/></label>
-      <h3>The launcher</h3>
-      <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K opens the chat as well."/>
-      <h3>What your AI sees</h3>
-      <p className="ai-note">Only this page&rsquo;s data, as plain text between data marks, after the instruction that it is records and not commands. Open ZIGi on any page and expand &ldquo;What your AI sees&rdquo; for the exact text that would go with your next message. Chats are kept on this device per account and are part of &ldquo;Export everything&rdquo;; keys never are.</p>
-      <h3>Turn off</h3>
+      <h4>Turn off</h4>
       {!turningOff ? <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => setTurningOff(true)}>Turn off ZIGi</button><span className="ai-note">Removes the keys from this device and resets the switches. Chats stay unless you choose below.</span></div>
         : <div className="ai-confirm" role="group" aria-label="Turn off ZIGi"><p>ZIGi goes off on this device: the connection and its keys are removed, every switch goes back to the start.</p><label className="ai-check"><input type="checkbox" checked={alsoChats} onChange={e => setAlsoChats(e.target.checked)}/> Also delete all chats on this device</label><div className="ai-card-actions"><button type="button" className="primary" onClick={() => void turnOff()}>Turn off ZIGi</button><button type="button" className="text-link" onClick={() => { setTurningOff(false); setAlsoChats(false); }}>Keep it on</button></div></div>}
-    </>}
+    </Group>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
-    <p className="fine">Costs are between you and your provider; ZIGoals bills nothing and shows token counts only. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
+    <p className="fine">Costs are between you and your provider; ZIGoals bills nothing. It counts the tokens your provider reports and, only with prices you enter, shows an estimate. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
   </div>;
 }

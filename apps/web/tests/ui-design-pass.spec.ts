@@ -86,8 +86,11 @@ test.describe('Part 18.6: quick counters as bars',()=>{
   test(`${label}: ${perRow} bar${perRow>1?'s':''} per row; icon and name on the left, − / count / + ${perRow>1?'on the right, in one row':'on a second line'}`,async({page})=>{
    await page.setViewportSize({width,height:900});await showcase(page);await page.goto('/app/health');
    const bars=page.locator('.exercise-counter');await expect(bars).toHaveCount(3);await bars.first().scrollIntoViewIfNeeded();await page.mouse.move(1,1);
-   // Measured at rest: no bar lifted by a pointer that just passed over it.
+   // Measured at rest: no bar lifted by a pointer that just passed over it, and the page and card arrival animations
+   // finished (a card still settling reads its buttons below 44 px: CI on c6b5663, tablet; the same wait as
+   // counters-compact.spec.ts). ZIGi's idle breath loops forever and is not waited for.
    await expect(page.locator('.exercise-counter[data-glass]')).toHaveCount(0);
+   await page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'||a.effect?.getComputedTiming().iterations===Infinity));
    const r=await bars.evaluateAll(els=>els.map(e=>{const box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),b=e.getBoundingClientRect(),icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),menu=box('.card-options-trigger'),h3=e.querySelector('h3')!;
     return {top:Math.round(b.top),width:b.width,iconLeftOfName:icon.right<=name.left,nameLeftOfControls:name.right<=minus.left,sameRow:name.top<minus.bottom&&minus.top<name.bottom&&minus.top<plus.bottom&&plus.top<minus.bottom,
      controlsBelow:minus.top>=name.bottom-1&&Math.abs(minus.top-plus.top)<1,menuOnNameRow:menu.top<name.bottom&&name.top<menu.bottom,

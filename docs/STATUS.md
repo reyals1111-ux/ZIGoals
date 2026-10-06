@@ -1,3 +1,196 @@
+# Session V — ZIGi · your AI v2 (ADR-014) (2026-10-05/06, [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76), not merged or deployed)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox.
+  - Toolchain: Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`.
+  - Playwright's Chromium stands in for Chrome (CLAUDE.md), so the two brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`) fail here by design and pass in CI.
+  - Browser runs: a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`), 2 workers, never two suites at once.
+- **MOCK:** every AI answer was served by `page.route` or a fixture. No real provider was ever called.
+- **Miniflare:** the relay Worker in workerd with a MOCK provider; the Alpha artifact's packaged tests.
+- **source:** official documentation, read 2026-10-05/06, cited with dates in [YOUR_AI_V2.md](product/YOUR_AI_V2.md).
+- **CI:** Milestone quality and Canonical reproducibility on the PR (Actions API).
+
+Nothing was deployed. No session logged into or sent anything to Cloudflare, Supabase or any AI provider. No new dependency.
+
+**Base:** `main` `c97edbe` (Merge #73, contains #74). `main` did not move during the session. Hotfix [#75](https://github.com/reyals1111-ux/ZIGoals/pull/75) (Part 1c alone, owner-approved exception to "one PR per session") is open and ready for review.
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 1a | The hosted Alpha check follows the current goal wizard (`scripts/lib/hosted-alpha-goal-stage.mjs`), run against the local build | — | `c101746` | local |
+| 1b | Today remembers open phone rows (`zigoals:today-folds:v1`); CI fix: open at first show, Run11 journeys open only folded rows | `[TIER 3] (storage key)` | `935e8f0`, `98600df` | local, CI |
+| 1c | ZIGi's Today context respects the Health gate (Health-filled check-in values held back); hotfix #75 | — | `c2993a8` | local, CI |
+| 2 | `lib/ai/gates.ts`, `handles.ts`, 26 read-only tools, `range.ts`, the cross-path privacy test; storage foundation (7 device keys, chat v2 only with V fields) | `[TIER 3] (storage keys/data formats)` | `03a31a7`, `f146c96` | local |
+| 3 | Local answers ("Answered on your device · no AI used") | — | `09e0330` | local, MOCK |
+| 4 | Question-aware context on every path; "Open <app> side by side"; T fix: Portfolio priced per portfolio currency | — | `200241e`, `c17c06c` | local, MOCK |
+| 5 | Context pack for my AI (.md/.json) | `[TIER 3] (export format)` | `2dbf296` | local |
+| 6 | Native read-only tool calling (every wire), the tool loop, Automatic/Tools/Attach, Think deeper, the usage meter | — | `0ab7909` | local, MOCK, source |
+| 7 | Act by chat, voice and photo (new kinds, Add all, one Undo, meal photos, log mode), "Actions by ZIGi" | — | `ba8a13e` | local, MOCK |
+| 8 | "What ZIGi knows about me", `about_me`, "Remember this?" | `[TIER 3] (storage keys/data formats)` | `5fb09cb` | local, MOCK |
+| 9 | Proactive, local: brief, chips, your week, patterns, "Ask ZIGi about this"; fix: ZIGi reads the weekly review on the device | — | `25e1985`, `47ec0fd` | local, MOCK |
+| 10 | Chat polish (slash commands, edit, notes, Markdown, follow-ups, charts, Continue in my AI, shortcuts, tips, History pins and page filter, tables) | `[TIER 3] (storage keys/data formats)` | `3553a9b` | local, MOCK |
+| 11 | Voice and safety, careful mode, the golden set (91 cases, 100 %) | — | `5a0ae04` | local, CI |
+| 12 | ZIGi alive: manifest v2 (25 states), skins, Customize, chevron, edge tab, optical centring, CSS breathing, Meet ZIGi | — | `914c68a` | local |
+| 13 | Knock (off by default, offered once), ZIGi's weekly reminders on Today; opt-in reminder names, push-while-open, the notification look; T fix: push schedules read vault habits | `[TIER 3] (service worker/push)` ×2 | `ef60bb2`, `f0ed12c`, `88661e3` | local |
+| 14 | The mini window (Document Picture-in-Picture) | — | `5c1660b` | local |
+| 15 | Chrome's on-device model; "Which setup fits me?" | — | `e68f926` | local |
+| 16 | Browser AI agents (WebMCP); the accessibility pass | — | `f7284c4` | local |
+| 17 | ZIGoals hosted relay, off by default (Worker, `/api/zigi`, client, entitlement) | `[TIER 3] (new Worker, app route, entitlements)` | `e390ae6` | local, Miniflare, MOCK |
+| 18 | ADR-014, YOUR_AI_V2, legal/cost/privacy/threat docs, owner test v2, Help (14 questions), What's new (`2026-10-session-v`), Settings in five groups + "ZIGi's reminders", gallery | — | `d157fbc` | local |
+| 19 | Trusted Types: the full-suite trial reported nothing, so `require-trusted-types-for 'script'; trusted-types default` is enforced in every production build; the smoke, the verifier and the Workers gate pin it | `[TIER 3] (deploy workflow)` | `5d4c8b7` | local |
+| CI | Browser shards 30 min instead of 22 | `[TIER 3] (project rules: CI)` | `693da80` | CI |
+| 20 | This entry, the Alpha deploy #29 record, Release identity, PR ready | — | this commit | — |
+
+## Tier 3, in plain words (risk → rollback)
+- **`935e8f0` today-folds key.**
+  - Risk: a row remembered open on a device.
+  - Rollback: revert; older builds ignore the key.
+- **`f146c96` storage foundation.**
+  - Risk: new device keys and a chat version 2 that #29 skips. Version 2 chats stay stored and still count toward #29's 200-chat cap; in Showcase, one v2 chat hides that tab's list in #29.
+  - Rollback: revert; the keys are ignored, and v2 chats reappear after a roll-forward.
+- **`2dbf296` context pack.**
+  - Risk: a readable file the person chooses to make; the warning comes first.
+  - Rollback: revert.
+- **`5fb09cb` notes, `3553a9b` chat polish.**
+  - Risk: new writes to the foundation's keys; a pinned chat is v2.
+  - Rollback: revert; notes stay stored and unused.
+- **`88661e3` push schedule fix.**
+  - Risk: none beyond the fix (habit reminders now reach the schedule for vault users).
+  - Rollback: revert, which brings the T bug back.
+- **`f0ed12c` push names, push-while-open, notification look.**
+  - Risk: a habit name on a lock screen, opt-in only. The service worker opens one IndexedDB table read-only.
+  - Rollback: revert. #29's worker never opens the table, so it stays inert.
+- **`e390ae6` relay, route, entitlement.**
+  - Risk: none while the three switches stay off (no build has `NEXT_PUBLIC_ZIGI_HOSTED=on`; `/api/zigi` answers 503 without its secret; the kill switch is on).
+  - Rollback: revert.
+- **`693da80` CI timeout.**
+  - Risk: a hung shard waits 8 minutes longer.
+  - Rollback: revert.
+- **`5d4c8b7` Trusted Types enforced.**
+  - Risk: a string sink that only some browser or path reaches would throw instead of running. None was found: the full-suite trial was clean, and a hand review covered Firefox 148 and Safari 26.
+  - Rollback: revert; the directives and their pins leave together.
+
+## Storage keys (device-only, in "Export everything", never synced; Showcase in the tab's session storage)
+- `zigoals:today-folds:v1` (1b);
+- `zigoals:ai-options:v1`, `zigoals:ai-usage:v1`, `zigoals:ai-memory:v1`, `zigoals:ai-actions:v1`, `zigoals:zigi:v1`, `zigoals:zigi-reminders:v1`, `zigoals:zigi-knock:v1` (the foundation; loose schemas);
+- IndexedDB `zigoals-ai-chats-v1`: database version unchanged; records become v2 only with V fields;
+- IndexedDB `zigoals-push-labels-v1`: opt-in only.
+
+`zigoals:ai:v1` is unchanged byte for byte. Details: YOUR_AI_V2 §4.
+
+## Egress, CSP, Permissions-Policy
+- Browser `connect-src` is unchanged. The relay origin is server-side only (`lib/egress-policy.json` → `serverOnly.zigiRelay`, tested), reached through same-origin `/api/zigi` (ADR-014 S2).
+- Permissions-Policy is unchanged.
+- **CSP: Trusted Types enforced** in production builds (`require-trusted-types-for 'script'; trusted-types default`, Part 19). The development server stays unenforced. Everything else in the CSP is unchanged.
+
+## Weight (gzip -6, production builds, gate C)
+Launcher shell against main: chunk 17,138 → 17,701 B (+563), CSS 1,105 → 2,004 B (+899), **+1,462 B in total, within the +2 kB budget**. Every page's scripts, by T's method and by elimination, are in YOUR_AI_V2 §6. Everything else is lazy.
+
+## Tests (counts are not summed across overlapping runs)
+- **Unit** (`pnpm test`, repo root, on this commit's tree): 401 files passed, 17 skipped; **3,689 passed**, 1 expected fail, 35 skipped (main: 347 files / 3,120).
+- **Golden set:** 91 of 91, 100.0 %, on every run (CI prints the line).
+- **Miniflare relay:** 17 of 17 (runtime 9, budget 6, config 2).
+- **Full browser suite at gate C** (`e390ae6`):
+  - desktop: 649 passed, 46 skipped, 2 failed;
+  - mobile: 627 passed, 66 skipped, 4 failed.
+  - The failures are the two brand-film specs in each project, plus two mobile specs that read Part 18's uncommitted constants against the older build; those passed 4 of 4 with matching sources.
+- **Full browser suite under the Trusted Types trial** (`d157fbc`): desktop 653 passed, 61 skipped, 2 failed; mobile 633 passed, 81 skipped, 2 failed (only the brand-film specs). **0 reports**; the collector's 2 are the planted self-check.
+- **Full browser suite under enforcement (gate C again, `5d4c8b7`):** desktop 653 passed, 61 skipped, 2 failed; mobile 633 passed, 81 skipped, 2 failed (only the brand-film specs). Freeze check identical to Part 18 (the same 53 expected captures, 0 page errors).
+- **Part 18 focused run:** 272 passed, 0 failed, both projects.
+- **Freeze check** (main `c97edbe` on :3102 against the branch): 155 compared, 102 identical, 53 different, every one expected:
+  - accessibility-only changes from Part 16 on Today, Health, Help, the quick-add and add-asset dialogs;
+  - Settings taller (the ZIGi groups);
+  - Help taller (the questions; plus the commit hash in the feedback link);
+  - Showcase Today 46–61 px taller (one more What's new link);
+  - the launcher capture.
+- **Alpha artifact at gate C:**
+  - `build:alpha` and `check:alpha-artifact` passed;
+  - dry run 16,285 KiB / gzip 3,305 KiB (T: 14,349 / 2,802);
+  - `ALPHA_PACKAGED=1` prices and headers: 8 of 8;
+  - `check:deploy-configs` consistent.
+  - **Again at `5d4c8b7`:**
+    - `build:alpha` and `check:alpha-artifact` passed;
+    - dry run 16,306 KiB / gzip 3,311 KiB; the bundle carries the Trusted Types directives;
+    - `ALPHA_PACKAGED=1`: 8 of 8;
+    - `check:deploy-configs` consistent;
+    - Miniflare relay: 17 of 17.
+
+## Assertions changed (none weakened)
+- `lib/ai/context/question.test.ts`, `lib/ai/tools/tools.test.ts`, `tests/zigi-question-context.spec.ts` (Part 8): the About me chip comes first; `about_me` was added to the tool list; the chips group got a new name.
+- `lib/ai/zigi-manifest.test.ts` (Part 12): 11 → 25 states, with per-skin file checks under the same budgets.
+- `lib/ai/zigi-events.test.ts` (Part 12): close leads to wave-goodbye, then idle.
+- `tests/counters-compact.spec.ts` (Part 12): its "at rest" wait ignores infinite animations (a wait condition, not an assertion).
+- `scripts/desktop-freeze-check.mjs` (Part 12): seeds `zigoals:zigi:v1` with the edge tab off.
+- `lib/public-safety.test.ts` (Part 13, owner-approved): the service-worker pin is narrowed to one read-only `indexedDB.open` on `zigoals-push-labels-v1`.
+- Robustness without any assertion change:
+  - `tests/help-page.spec.ts:66` waits for the workspace reveal (`d157fbc`);
+  - `tests/zigi-mini-window.spec.ts` awaits the window's close with the clicks that close it (`9b292ae`);
+  - the Run11 packaged journeys open a row only while it is folded (`98600df`).
+
+## Revert-alone gate (local)
+One scratch worktree at `5d4c8b7`, with every workspace `node_modules` linked; `git revert -n`, then the repository's typecheck (app and Workers). The baseline typechecks.
+
+| Revert | Applies cleanly | Typechecks |
+|---|---|---|
+| Alone: 1a, the mini-window spec fix (`9b292ae`), 19, the CI timeout | yes | yes |
+| Alone: 1b, 1c, and each of Parts 3–18 | no (conflicts) | — |
+| Alone: the T push fix `88661e3` | yes | **no**: Part 13's names table (`f0ed12c`) uses the `storedHabits` it adds, so it goes with Part 13 |
+| **Newest part first, cumulatively: 19 → 18 → … → 3** | **yes, every step** | **yes, every step** |
+
+- **What this means for rollback:** Parts 3–19 roll back in reverse order: any newest-first suffix reverts cleanly and typechecks.
+- **A deviation from the plan,** which expected each of Parts 3–17 to revert alone on top of Part 2 and the foundation. Later parts edit the same lines as earlier ones, mostly `ai-chat.tsx`, `ai-settings.tsx`, `ai.css`, `use-chat-session.ts` and `privacy-cross-path.test.ts` (one block per part). The storage foundation did its job: no part's revert resets a device key. But the UI and test files are shared, so a middle part cannot be cut out by `git revert` alone.
+- **1b and 1c:** each conflicts only with a later edit to a neighbouring line (`f146c96` in `lib/export/everything.ts` and `lib/onboarding.ts`; `c17c06c` in `builders.test.ts`).
+
+## CI
+- **On `5d4c8b7`:** Milestone quality #541 ([run 37474161781](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37474161781)): contract, integration (with the packaged Alpha gate and the Workers security gate) and all three browser shards (real Chrome, Trusted Types enforced) green; web checks red **only** at `pnpm audit` (below). Canonical reproducibility #466 ([run 37474161750](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37474161750)): success. (Actions API)
+- **Earlier runs:** every run since `ba8a13e` had the same audit failure. Two runs had one browser test each, both found to be spec races and fixed in the specs: `e390ae6` (`help-page.spec.ts:66`) and `d157fbc` (`zigi-mini-window.spec.ts:67`). Runs cancelled by a newer push are not failures.
+- **This entry's own commit:** its CI is on the PR.
+
+## Known CI intermittents
+- **`tests/help-page.spec.ts:66`** (mobile) failed in shard 2 on `e390ae6`, the third sighting of the focus-before-reveal race recorded under Session T. Fixed in the spec (`d157fbc`): it waits for `.workspace` to lose `aria-busy`.
+- **`tests/zigi-mini-window.spec.ts:67`** (desktop) failed in shard 2 on `d157fbc` with "Target page, context or browser has been closed" in the click on "Back to the tab". That button closes the window the click runs in, and real Chrome closed it before Playwright's click returned. Fixed in the spec (`9b292ae`). The app behaved correctly.
+- `pnpm audit --prod --audit-level high` has been red since `ba8a13e`. The cause is GHSA-68fv-2mgg-jv7q (`source-map-js` 1.2.1 through `next` → `postcss`); the lockfile is identical to `main`. A 4-line override is proposed and **waits for the owner's approval** ([comment](https://github.com/reyals1111-ux/ZIGoals/pull/76#issuecomment-6007869927)).
+
+## Decisions made without the owner
+ADR-014 "Session decisions" S1–S24 (each the safest option that keeps the brief's promises). S2 deviates from the brief's connect-src wording: the relay sits behind same-origin `/api/zigi`.
+
+## Owner items
+- Approve or decline the audit override.
+- Review #75 and this PR.
+- Run the owner test v2 ([YOUR_AI_OWNER_TEST.md](product/YOUR_AI_OWNER_TEST.md), Part V).
+- Look at the gallery ([`review/session-v-screens`](https://github.com/reyals1111-ux/ZIGoals/blob/review/session-v-screens/index.md)).
+- Decide later: hosted activation ([ZIGI_RELAY_ACTIVATION.md](run11/ZIGI_RELAY_ACTIVATION.md)), the figure set, the Guide overlap (ADR-014), LEGAL_CHECKLIST §8a.
+
+## Follow-up (main merge after #75)
+The owner merged hotfix [#75](https://github.com/reyals1111-ux/ZIGoals/pull/75) into `main` (`8c318af`): the 1c Health-gate fix and the `[TIER 3] (dependencies)` overrides for `source-map-js` (GHSA-68fv-2mgg-jv7q) and `sharp` 0.35.5 (GHSA-wq5f-xc86-pv6w). The audit override above is therefore decided (approved, through `main`), not waiting.
+- **Merge commit:** `f725ade` (merge commit, no rebase, no force-push), `origin/main` `8c318af` into this branch.
+- **Resolved file:** `apps/web/lib/ai/context/builders.test.ts`, both intents kept. 1c is identical on both sides, and `main`'s side of both hunks was empty. This branch's fixtures import and the Part 4 portfolio-currency test are kept. `pnpm-workspace.yaml` and `pnpm-lock.yaml` came in from `main` unchanged; `builders.ts` merged cleanly to this branch's version.
+- **Local checks on `f725ade`:**
+  - frozen install: clean;
+  - `pnpm audit --prod --audit-level high`: "No known vulnerabilities found";
+  - lint and typecheck: clean;
+  - unit: 401 files, 3,689 tests passed (1 expected fail, 35 skipped);
+  - production build: clean;
+  - ZIGi, Today, Settings and Help specs, 32 files on both projects against the production build: 263 passed, 63 skipped, 0 failed.
+- **CI finding on `f725ade`, fixed in the test (`afab28c`):**
+  - The packaged-artifact journey (`scripts/run11/packaged-consumer-journey.mjs`) clicked Wealth under a "Fund your Goal" sheet that had not closed, and timed out after 30 s.
+  - Its wait after "Confirm & fund Goal" looked for "$2,000" in the Goal overview. The overview always shows the target ("of $2,000"), so the wait proved nothing.
+  - It now waits for the sheet to close, the "Goal funded." status and the current value; the old wait stays.
+  - Locally on the packaged build: 5 of 5 before the change, 3 of 3 after. Why the sheet stayed open in CI is not known; a repeat now fails at the save, with the page text in the run's `failure.json`.
+- **CI on `afab28c`:** Milestone quality, [run 37510282006](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37510282006): web checks, with the `pnpm audit` step **green** for the first time since `ba8a13e`. Also green: integration (including the packaged journey), contract, all three browser shards and the "web" summary. Canonical reproducibility, [run 37510281998](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37510281998): success. (Actions API)
+- **This section's commit:** its CI is on the PR.
+
+# Alpha deploy #29 — 2026-10-05 evening, `c97edbe` live
+Recorded by Session V at the owner's request (2026-10-06).
+- **Source:** `c97edbe15c8135c2ae6e50624c5ca6e02684ab43`, `main` after [PR #73](https://github.com/reyals1111-ux/ZIGoals/pull/73) (Merge #73, which contains #74).
+- **CI:** Milestone quality #518 ([run 37347264034](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37347264034)) on `c97edbe`: success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 31 ([run 37350713564](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37350713564)), dispatched 2026-10-05 17:44 UTC from `main`, exact source `c97edbe`: success. Verified: Actions API.
+- **Result:** `VERIFIED` (owner-reported).
+- **Alpha Worker `zigoals-alpha`:** live version `94f25ee7-28d3-4901-9b1f-8b8d1e0f13a3`. Live prices `VERIFIED`. Both owner-reported.
+- **Rollback:** `65b2029b-edfd-405f-b887-ddcf1b41d20e`, which is #28's code after the app-side CoinGecko secret deletion. Owner-reported.
+- **What went live:** Session T (ZIGi · your AI, ADR-012) and Session U (records, live prices, camera, reliability, sign-in and remembered devices, security hardening, sync writes off, Stage 8 readiness).
+- **Known since:** the Part 1c defect above (Health-filled check-in values in ZIGi's habit lines). Hotfix #75 is ready for review.
+
 # Session T — ZIGi · your AI: bring your own AI, browser-direct (ADR-012) (2026-10-04/05, [PR #73](https://github.com/reyals1111-ux/ZIGoals/pull/73), not merged or deployed)
 
 **Evidence labels:**
@@ -4637,7 +4830,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-04 evening for the [Alpha deploy #28](#alpha-deploy-28--2026-10-04-evening-e336227-live) record at the top of this file (recorded by Session U at the owner's request).
+Updated 2026-10-06 for the [Alpha deploy #29](#alpha-deploy-29--2026-10-05-evening-c97edbe-live) record near the top of this file (recorded by Session V at the owner's request).
+- Deployed source `c97edbe15c8135c2ae6e50624c5ca6e02684ab43`, `main` after [PR #73](https://github.com/reyals1111-ux/ZIGoals/pull/73) (Merge #73, contains #74). Verified: Actions API.
+- CI: Milestone quality #518 ([run 37347264034](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37347264034)) on `c97edbe`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 31 ([run 37350713564](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37350713564)), exact source `c97edbe`: success; `VERIFIED` (owner-reported). Verified: Actions API for the run.
+- Alpha Worker `zigoals-alpha`: live version `94f25ee7-28d3-4901-9b1f-8b8d1e0f13a3`; live prices `VERIFIED`; rollback `65b2029b-edfd-405f-b887-ddcf1b41d20e` (#28's code after the app-side CoinGecko secret deletion). Owner-reported.
+
+Previous release identity (PR #71, 2026-10-04 evening, recorded by Session U):
 - Deployed source `e336227bd6aa80769642f4761971da46fcdd705b`, `main` after [PR #71](https://github.com/reyals1111-ux/ZIGoals/pull/71) (with #70 and #72). Verified: Actions API.
 - CI: Milestone quality #477 ([run 37227294438](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37227294438)) on `e336227`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 30 ([run 37228865289](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37228865289)), exact source `e336227`: success, `VERIFIED`. Verified: CI log (Actions API), evidence artifact.

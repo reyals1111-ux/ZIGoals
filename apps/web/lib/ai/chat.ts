@@ -30,7 +30,7 @@ export async function collectReply(stream: AsyncIterable<ChatEvent>): Promise<Re
   for await (const event of stream) {
     if (event.type === 'text') text += event.delta;
     else if (event.type === 'usage') { usage.seen = true; if (event.input !== null) usage.input = event.input; if (event.output !== null) usage.output = event.output; }
-    else reason = event.reason;
+    else if (event.type === 'done') reason = event.reason;
   }
   return {text, usage: usage.seen ? {input: usage.input, output: usage.output} : null, reason};
 }

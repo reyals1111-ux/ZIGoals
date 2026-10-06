@@ -1,0 +1,5 @@
+/* The knock, offered once (Session V Part 13): one ZIGi message with two answers. */
+.ai-knock-offer{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;margin:10px 0;padding:12px;border-radius:16px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));background:color-mix(in srgb,var(--violet,#8b7cff) 9%,transparent)}
+.ai-knock-offer-body p{margin:0 0 8px}
+.ai-knock-offer-body .ai-knock-offer-label{margin:0 0 4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.ai-knock-offer .ai-card-actions button{min-height:44px}

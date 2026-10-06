@@ -7,6 +7,7 @@ import { useShowcase } from "../showcase-controls";
 import { useEntrance } from "../use-entrance";
 import { formatDate } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
+import { AskZigiCorner } from "../ai/ask-zigi-item";
 
 export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { habits: Habit[]; today: string }) {
   const result = useMemo(() => habitConsistency(habits, today), [habits, today]);
@@ -15,7 +16,7 @@ export function HabitConsistency({ habits, today, ...layout }: LayoutAttrs & { h
   const monthMaximum = Math.max(1, ...result.days.map(day => day.checkins));
   const monthEntrance = useEntrance<HTMLElement>("habit-month", result.days.length > 0), weekEntrance = useEntrance<HTMLElement>("habit-week", result.week.some(day => day.checkins > 0));
   return <section {...layout} className="habit-consistency" aria-label="Habit consistency history">
-    <article ref={monthEntrance} className="panel habit-consistency-month"><header><p className="eyebrow">SMALL RETURNS ADD UP</p><h2>Your last 30 days.</h2><p>{showcase ? "Showcase example history · fictional check-ins" : "Your saved check-ins · this browser"}</p></header>
+    <article ref={monthEntrance} className="panel habit-consistency-month"><AskZigiCorner kind="habit-history" metric="days" label="your last 30 days of check-ins"/><header><p className="eyebrow">SMALL RETURNS ADD UP</p><h2>Your last 30 days.</h2><p>{showcase ? "Showcase example history · fictional check-ins" : "Your saved check-ins · this browser"}</p></header>
       <div className="habit-consistency-stats"><div><strong>{result.activeDays}<small> / 30</small></strong><span>days you checked in</span></div><div><strong>{result.checkins}</strong><span>recorded check-ins</span></div></div>
       <div className="habit-month-grid" role="img" aria-label={`30-day check-in heatmap: ${result.activeDays} ${plural(result.activeDays,'day')} with check-ins. Exact daily counts are in the history table.`}>{result.days.map((day, index) => <span key={day.date} style={{ "--i": index } as CSSProperties} data-level={day.checkins === 0 ? "none" : day.checkins / monthMaximum < .5 ? "some" : day.checkins < monthMaximum ? "many" : "full"} title={`${day.date}: ${day.checkins} ${plural(day.checkins,'check-in')}, ${day.completed} completed`}><span>{Number(day.date.slice(-2))}</span></span>)}</div>
       <div className="habit-map-legend"><span>{result.days[0]?.date} → {today}</span><span><i /> No check-in <i className="filled" /> Check-ins</span></div>

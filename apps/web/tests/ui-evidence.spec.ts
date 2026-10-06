@@ -94,13 +94,25 @@ test('unlocked layouts: each card keeps its move controls inside itself, never o
  }
 });
 
-test('no hydration errors or page errors on any main page',async({page})=>{
+// Hydration and page errors, in two tests so each pass has the whole test budget: twenty page loads in one test took
+// 29-40 s locally and ran past 45 s on a 2-worker CI runner (Session V, run 37486944678). Every page and every check is kept.
+function watchProblems(page:Page){
  const problems:string[]=[];
  page.on('console',m=>{if(/hydrat|did not match|server rendered/i.test(m.text()))problems.push(`${m.type()}: ${m.text().slice(0,200)}`);});
  page.on('pageerror',e=>problems.push(`pageerror: ${e.message.slice(0,200)}`));
+ return problems;
+}
+test('no hydration errors or page errors on any main page',async({page})=>{
+ const problems=watchProblems(page);
  await showcase(page);
  for(const path of PAGES){await open(page,path);await page.waitForTimeout(700);}
- // A cold load of each page too (no client-side navigation).
+ expect(problems).toEqual([]);
+});
+
+test('no hydration errors or page errors on a cold load of any main page',async({page})=>{
+ const problems=watchProblems(page);
+ await showcase(page);
+ // A cold load of each page (no client-side navigation).
  for(const path of PAGES){await page.reload();await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await page.waitForTimeout(400);}
  expect(problems).toEqual([]);
 });

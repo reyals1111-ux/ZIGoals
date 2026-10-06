@@ -6,7 +6,7 @@ import {readKey} from '../../lib/ai/keys';
 import {PROVIDERS} from '../../lib/ai/providers';
 import type {AiSettings} from '../../lib/ai/settings';
 import {browserSpeechDisclosure, detectBrowser, MAX_RECORDING_MS, recognitionConstructor, recognitionErrorText, recognitionText, recorderMimeType, speechLanguage, transcribe, type RecognitionLike, microphoneDeniedText} from '../../lib/ai/voice';
-import {zigiEvents} from '../zigi/events';
+import {zigiEvents} from '../zigi/bus';
 
 /**
  * Voice input (ADR-012, Part 7). "browser": the Web Speech API with the disclosure for this browser, on-device where

@@ -39,6 +39,7 @@ export function activityPresentation(event: { category: string; title: string; d
   if (event.category === "FAVOURITE") return { label: "Favourite", icon: "star", tone: "favourite" };
   if (event.category === "HABIT") return { label: "Habit", icon: "habits", tone: "habit" };
   if (event.category === "HEALTH") return { label: "Health", icon: "health", tone: "health" };
+  if (event.category === "ZIGI") return { label: "ZIGi", icon: "star", tone: "habit" };
   if (/correction|reversal/i.test(event.title)) return { label: "Correction", icon: "refresh", tone: "correction" };
   if (/contribution|withdrawal|income/i.test(event.title)) return { label: "Contribution", icon: "arrow", tone: "contribution" };
   return { label: "Goal", icon: "goals", tone: "goal" };

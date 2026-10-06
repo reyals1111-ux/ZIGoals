@@ -36,6 +36,9 @@
 /* ---- Chat panel ---- */
 .ai-chat{position:fixed;inset:auto 20px 20px auto;margin:0;width:min(440px,calc(100vw - 40px));max-width:none;height:min(72vh,760px);max-height:calc(100vh - 40px);padding:0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 36%,var(--line,#2a325a));border-radius:22px;background:linear-gradient(170deg,color-mix(in srgb,var(--panel,#0f1530) 94%,transparent),color-mix(in srgb,#07091c 96%,transparent));color:var(--text,#eef1ff);box-shadow:0 30px 80px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset;z-index:48;display:none;flex-direction:column;overflow:clip;backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2)}
 .ai-chat[open]{display:flex}
+/* Session V Part 12: with ZIGi on the left, the panel opens on the left too (past the sidebar on a computer). */
+:root[data-zigi-side=left] .ai-chat:not(.ai-chat-expanded):not(.ai-chat-phone){inset:auto auto 20px 20px}
+@media (min-width:901px){:root[data-zigi-side=left] .ai-chat:not(.ai-chat-expanded):not(.ai-chat-phone){inset:auto auto 20px calc(var(--sidebar-width,216px) + 20px)}}
 .ai-chat::before{content:"";position:absolute;inset:-40% -30% auto auto;width:70%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent),transparent 72%)}
 .ai-chat-expanded{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(880px,calc(100vw - 48px));height:min(86vh,900px)}
 .ai-chat-phone{inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;border:0;padding-top:var(--safe-top,0px)}
@@ -110,8 +113,8 @@
 .ai-context-bar{flex:0 1 auto;max-height:46%;overflow:auto;display:grid;gap:6px;padding:8px 14px;border-top:1px solid var(--line,#2a325a);font-size:14px;color:var(--muted,#aab2d9)}
 .ai-chat .ai-context-switch{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;min-height:32px;cursor:pointer;text-align:left;margin:0}
 .ai-chat .ai-context-switch input{width:18px;height:18px;min-height:0;margin:0;flex:none;accent-color:var(--cyan,#6fd3ff)}
-.ai-context-preview summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff)}
-.ai-context-preview pre{max-height:140px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:4px 0 0}
+.ai-context-preview summary,.ai-sends summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff)}
+.ai-context-preview pre,.ai-sends pre{max-height:140px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:4px 0 0}
 .ai-composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px calc(12px + var(--keyboard-inset,0px));border-top:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
 .ai-chat-phone .ai-composer{padding-bottom:calc(12px + max(var(--safe-bottom,0px),var(--keyboard-inset,0px)))}
 .ai-composer textarea{flex:1;min-height:44px;max-height:160px;resize:vertical;font-size:16px;line-height:1.4;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--bg,#070a1a) 70%,transparent);color:inherit;font-family:inherit}
@@ -187,3 +190,98 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-settings{scroll-margin-top:84px}
 /* The premium badge belongs to Settings on a phone; the sheet header keeps its one line. */
 @media (max-width:767.98px){.ai-chat-head .ai-chat-premium{display:none}}
+/* Session V Part 3: answers made on this device, no AI. A calm card, set apart from AI replies by its label and edge. */
+.ai-turn-local .ai-turn-body>.ai-local-answer{padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 38%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 7%,transparent)}
+.ai-turn-local .ai-local-answer p{margin:0 0 6px}
+.ai-turn-local .ai-local-answer ul{margin:4px 0 0;padding-left:20px}
+.ai-turn-local .ai-chips{margin-top:8px}
+.ai-records .ai-record-source{margin:6px 0 4px;font-size:14px;line-height:1.45}
+.ai-local-intro{padding:4px 2px 0 86px}
+@media (max-width:640px){.ai-local-intro{padding-left:2px}}
+/* Session V Part 4: the records chosen from the question, one removable chip each. */
+.ai-question-sources{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:6px 0}
+.ai-question-label{font-size:14px;color:var(--muted,#aab2d9)}
+.ai-source-chip{display:inline-flex;align-items:center;gap:2px;min-height:32px;padding:2px 2px 2px 10px;border-radius:999px;font-size:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 40%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 9%,transparent)}
+.ai-source-chip button{min-width:32px;min-height:32px;border:0;border-radius:999px;background:transparent;color:inherit;font-size:16px;line-height:1;cursor:pointer}
+.ai-source-chip button:hover,.ai-source-chip button:focus-visible{background:color-mix(in srgb,var(--cyan,#6fd3ff) 22%,transparent)}
+.ai-question-withheld{font-size:14px}
+.ai-bridge-local{margin:8px 0}
+/* Session V Part 5: the context pack card in Settings. */
+.ai-pack,.ai-notes-card,.ai-look-card{margin:18px 0 8px;padding:12px 14px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0d1330) 70%,transparent)}
+.ai-pack-summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:17px;font-weight:600}
+.ai-pack-body{display:grid;gap:10px;margin-top:6px}
+.ai-pack-areas{display:grid;gap:6px;border:0;padding:0;margin:0}
+.ai-pack-areas legend{font-weight:600;margin-bottom:4px}
+.ai-pack-areas small{display:block;margin-left:28px;color:var(--muted,#aab2d9);font-size:14px}
+.ai-pack-warning{margin:0;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--gold,#ecc779) 55%,var(--line,#2a325a));background:color-mix(in srgb,var(--gold,#ecc779) 10%,transparent);font-size:15px;line-height:1.5}
+/* Session V Part 6: what the person's AI looked at, the data mode line, Think deeper, the usage meter in Settings. */
+.ai-looked{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:8px 0 2px}
+.ai-looked-chip{padding:2px 10px}
+.ai-looked>details{flex-basis:100%}
+.ai-looking{margin:4px 0 0 38px}
+.ai-data-mode{display:block;font-size:14px}
+.ai-turn-deep{color:var(--muted,#aab2d9)}
+.ai-usage-note{margin:6px 0}
+.ai-deep-model{display:grid;gap:8px;margin:6px 0 4px}
+.ai-usage-table{width:100%;border-collapse:collapse;font-size:15px;margin:4px 0 8px}
+.ai-usage-table th,.ai-usage-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line,#2a325a)}
+.ai-usage-table td{font-variant-numeric:tabular-nums}
+.ai-usage-prices,.ai-usage-cap{border:1px solid var(--line,#2a325a);border-radius:12px;padding:10px 12px;margin:8px 0;display:grid;gap:8px}
+.ai-usage-prices legend,.ai-usage-cap legend{font-weight:600;padding:0 4px}
+.ai-usage-prices small,.ai-usage-cap small{color:var(--muted,#aab2d9);font-size:14px}
+@media (max-width:640px){.ai-usage-table{font-size:14px}.ai-usage-table th,.ai-usage-table td{padding:6px 4px}.ai-looking{margin-left:0}}
+/* Session V Part 7: log mode, the meal photo, refused-photo notes. */
+.ai-composer-modes{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 6px}
+.ai-log-mode{min-height:36px}
+.ai-log-mode-on{border-color:color-mix(in srgb,var(--cyan,#6fd3ff) 70%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 18%,transparent)}
+.ai-photo-chip{display:flex;align-items:center;gap:10px;margin:0 0 6px;padding:6px 8px;border-radius:12px;border:1px solid var(--line,#2a325a)}
+.ai-photo-chip img{border-radius:8px;object-fit:cover;flex:none}
+.ai-photo{min-width:44px;min-height:44px}
+.ai-turn-attachment{margin:4px 0 0}
+.ai-card-photo{margin:0 0 6px}
+.ai-photo-setting{display:grid;gap:4px;margin:6px 0}
+/* Session V Part 8: "What ZIGi knows about me" */
+.ai-memory-add{display:grid;gap:8px}
+.ai-memory-hint{display:block;margin-top:-4px;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
+.ai-memory-list{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.ai-memory-note{padding:10px 0;border-top:1px solid var(--line,#2a325a);display:grid;gap:6px}
+.ai-memory-text{margin:0;font-size:16px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-memory-meta{margin:0;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
+.ai-memory-edit{display:grid;gap:8px}
+/* Session V Part 9: the morning brief, suggestion chips from the records, the weekly review and patterns */
+.ai-greeting-body{display:grid;gap:10px;min-width:0}
+.ai-brief{display:grid;gap:6px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 35%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 7%,transparent)}
+.ai-brief-title{margin:0;font-weight:600;font-size:15px}
+.ai-brief-lines{margin:0;padding-left:18px;display:grid;gap:4px;font-size:15px;line-height:1.45}
+.ai-brief-label{margin:0}
+.ai-brief-ai{display:grid;gap:6px;justify-items:start}
+.ai-chip-pair{display:inline-flex;align-items:stretch;border-radius:999px;max-width:100%}
+.ai-chip-pair .ai-chip-data{border-top-right-radius:0;border-bottom-right-radius:0;border-right:0}
+.ai-chip-hide{min-width:40px;min-height:40px;padding:0 10px;border-radius:0 999px 999px 0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--violet,#8b7cff) 6%,transparent);color:var(--muted,#aab2d9);font-size:16px;cursor:pointer}
+.ai-chip-hide:hover,.ai-chip-hide:focus-visible{color:var(--text,#eef1ff)}
+.ai-proactive-entries{display:flex;flex-wrap:wrap;gap:8px}
+.ai-proactive-entries button{min-height:44px}
+.ai-proactive-view{display:grid;gap:10px;padding:4px 2px}
+.ai-proactive-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ai-proactive-head h3{margin:0;font-size:17px}
+.ai-review-lines{margin:0;padding-left:18px;display:grid;gap:4px;font-size:15px;line-height:1.45}
+.ai-review-table{width:100%;border-collapse:collapse;font-size:14px}
+.ai-review-table th,.ai-review-table td{padding:6px 8px;border-bottom:1px solid var(--line,#2a325a);text-align:left}
+.ai-review-table td{font-variant-numeric:tabular-nums}
+.ai-insights{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ai-insight{display:grid;gap:4px;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#2a325a)}
+.ai-insight-sentence{margin:0;font-size:15px;line-height:1.45}
+.ai-insight .ai-note{margin:0}
+/* Part 8/9: the notes panel and the brief card keep every control at least 44 px tall (phone touch targets). */
+.ai-memory .ai-switch-row [role=switch],.ai-memory .ai-card-actions button,.zigi-brief-card .ai-card-actions button,.ai-brief-ai>button,.ai-proactive-head button{min-height:44px}
+.ai-chip-hide{min-width:44px}
+/* Session V Part 18: the section in five groups, each a region with an eyebrow heading; the old headings are h4 now. */
+.ai-settings-group{margin:24px 0 0;padding-top:14px;border-top:1px solid var(--line,#2a325a)}
+.ai-settings-group:first-of-type{margin-top:8px;padding-top:0;border-top:0}
+.ai-settings .ai-settings-group-title{margin:0 0 6px;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#aab2d9)}
+.ai-settings h4{margin:16px 0 6px;font-size:16px}
+.ai-reminder-list{list-style:none;margin:8px 0;padding:0;display:grid;gap:8px}
+.ai-reminder-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ai-reminder-list li>span{display:grid;gap:2px}
+.ai-reminder-list small{font-size:14px;color:var(--muted,#aab2d9)}
+.ai-zigi-reminders{display:grid;gap:8px;margin-top:8px}

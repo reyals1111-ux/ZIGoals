@@ -1,5 +1,7 @@
 # Trusted Types: inventory, trial and the way to enforcement
 
+> **Status (2026-10-06, Session V Part 19, [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76)): enforced in every production build.** `require-trusted-types-for 'script'; trusted-types default` is part of the enforced CSP (`TRUSTED_TYPES` in `apps/web/lib/security-policy.ts`), after the full browser suite on both projects ran clean under the trial (results below, "Session V"). The development server stays unenforced. The trial mechanism stays. Session U's text below is kept as the record.
+
 Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04). **Nothing is enforced by this PR.** It ships three things:
 
 1. this inventory of the places where the app hands a string to the browser as HTML, script or a script URL;
@@ -116,3 +118,38 @@ deployed Worker the variable is never set, and the host would be the public one 
    (`scripts/lib/alpha-smoke.mjs`, "CSP directive set changed") and `verify-hosted-alpha.mjs` change in the same commit,
    as `[TIER 3] (deploy workflow)`.
 4. Keep the trial mechanism, so a later regression can be measured the same way.
+
+## Session V (2026-10-05/06): the trial on every new path, then enforcement
+
+**Trials** (production build `PUBLIC_ALPHA_UNDEPLOYED` under `next start`, local Chromium, 2 workers; the collector's self-check of two planted `attacker.invalid` script URLs ran before each run and its two reports arrived):
+
+| When | Build | Specs | Result | Reports from the run |
+|---|---|---|---|---|
+| Gate B | Part 8 (`5fb09cb`) | every ZIGi spec, both projects | 79 passed | 0 |
+| Gate C | Part 17 (`e390ae6`) | every `zigi-*` spec, `your-ai`, `your-ai-captures`, `help-page`, `trusted-types-trial`, both projects | 191 passed, 33 skipped, 0 failed | 0 |
+| Part 19 | Part 18 (`d157fbc`) | **the full suite**, desktop then mobile | desktop 653 passed, 61 skipped, 2 failed; mobile 633 passed, 81 skipped, 2 failed (each pair is the two brand-film specs, which fail on this Chromium by design, CLAUDE.md) | **0** (`summary`: 2 reports, both the self-check) |
+
+**What the runs covered.**
+- Every Session V client path: ZIGi's renderer with tables and charts, local answers, tool chips, proposal cards, the context pack's download and copy, the mini window, the knock, browser agents, the on-device stand-in, the hosted flow (default build) and Settings' new groups.
+- The push-only service worker registration (`navigator.serviceWorker.register('/push-sw.js')`, a script-URL sink the default policy allows).
+- React and Next's own client code, including soft navigation and chunk loading.
+- Not one HTML, script or script-URL sink was reported. React's `innerHTML` for client-created `<script>` elements (inventory above) never fired.
+
+**Enforcement (`[TIER 3] (deploy workflow)`, one commit):**
+- `securityPolicy()` adds the two directives whenever `development` is false (every production build, the Alpha and the acceptance app Workers included).
+- The post-upload smoke's exact directive set (`scripts/lib/alpha-smoke.mjs`) adds them, with exact values `'script'` and `default`.
+- `scripts/verify-hosted-alpha.mjs` requires them.
+- `tests/public-alpha.spec.ts` asserts them on the Workers gate.
+- `tests/trusted-types-trial.spec.ts` now checks enforcement itself: a string at `innerHTML` and a foreign script URL throw a `TypeError` and report `enforce`; a chunk URL passes unchanged; soft navigation works; no other violation occurs.
+- `lib/trusted-types-trial.test.ts` pins the production and development policies.
+
+**Hand review for the browsers the suite does not run** (Firefox 148 and Safari 26 enforce Trusted Types too; the suite is Chromium-only):
+- A search of `apps/web/{app,components,lib,public}` and `instrumentation-client.ts` for `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`, `DOMParser`, `createContextualFragment`, `srcdoc`, `eval`, `new Function`, string `setTimeout`/`setInterval`, `importScripts`, `dangerouslySetInnerHTML`, `.src =` and `serviceWorker.register` found two sites.
+  - `components/logo-intro.tsx` sets `<source>.src`, which is not a Trusted Types sink.
+  - `lib/push/device.ts` registers `/push-sw.js`, which the default policy allows.
+- No Safari-only or Firefox-only code path uses a sink.
+- **Residual risk:** a sink inside a dependency that only runs in Safari or Firefox would now throw there instead of running. None is known; the brand-film specs (video only) are the only ones that never run in this sandbox.
+- The mini window (Document Picture-in-Picture) inherits the opener's policy container (an inference from the specs; YOUR_AI_V2 §2). It has no default policy of its own, so a string sink there would be refused. ZIGi's code there moves nodes and sets `<style>` text only, and the mini-window spec ran clean under the trial.
+
+**Rollback:** revert the enforcement commit (the directives leave the CSP; the smoke, verifier and tests go back with it). Or, as a one-line hotfix, remove the `TRUSTED_TYPES` spread from `securityPolicy()` together with the smoke's two lines.
+

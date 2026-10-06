@@ -1,0 +1,20 @@
+/* Customize ZIGi (Session V Part 12): the panel's Customize view and the Settings card share these. */
+.zigi-customize{display:grid;gap:14px}
+.zigi-choice{border:0;margin:0;padding:0;min-width:0}
+.zigi-choice legend{font-weight:600;font-size:15px;margin:0 0 6px;padding:0}
+.zigi-choice-options{display:flex;flex-wrap:wrap;gap:8px}
+.zigi-choice-option{display:flex;align-items:flex-start;gap:8px;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent);cursor:pointer;flex:1 1 140px;min-width:0}
+.zigi-choice-option:has(input:checked){border-color:color-mix(in srgb,var(--violet,#8b7cff) 70%,transparent);background:color-mix(in srgb,var(--violet,#8b7cff) 14%,transparent)}
+.zigi-choice-option:has(input:focus-visible){outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.zigi-choice-option input{margin:3px 0 0;accent-color:var(--violet,#8b7cff)}
+.zigi-choice-option span{display:grid;gap:2px;min-width:0}
+.zigi-choice-option small{color:var(--muted,#aab2d9);font-size:14px;line-height:1.35}
+.zigi-skins{list-style:none;margin:0 0 6px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.zigi-skin-tile{display:grid;justify-items:center;gap:6px;padding:10px 8px;min-height:44px;border-radius:14px;border:1px solid var(--line,#2a325a);background:radial-gradient(120% 120% at 30% 20%,#1d1c4e,#0d1230 75%);font-size:14px;text-align:center;cursor:pointer;position:relative}
+.zigi-skin-tile input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.zigi-skin-tile:has(input:checked){border-color:color-mix(in srgb,var(--violet,#8b7cff) 70%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--violet,#8b7cff) 40%,transparent) inset}
+.zigi-skin-tile:has(input:focus-visible){outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.zigi-skin-soon{cursor:default;color:var(--muted,#aab2d9)}
+.zigi-silhouette{display:block;width:37px;height:48px;background:url(/brand/figures/zigi-placeholder.webp) center/contain no-repeat;filter:brightness(0) invert(.35);opacity:.55}
+.zigi-customize-links{margin:0}
+.ai-chat .zigi-customize{padding:4px 2px 12px}

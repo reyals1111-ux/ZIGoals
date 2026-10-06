@@ -1,5 +1,7 @@
 # ZIGi · your AI: the owner's test, click by click (Session T follow-up, 2026-10-05)
 
+> **v2 (Session V, 2026-10-06):** parts 1–9 below are Session T's test, unchanged. The ZIGi v2 test, for [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76), is **Part V** at the end: it reuses part 1's setup on the branch `feature/session-v-zigi-v2`.
+
 This is the test you run yourself, on your Mac and later on your iPhone. It assumes nothing: every Terminal command
 sits in its own block with one line saying what it does, and every click is named. Real providers could not be reached
 from the build sandbox, so this document is how the real thing gets proven. Nothing here needs a ZIGoals secret; every
@@ -192,6 +194,151 @@ For each part, a line "passed" or the exact text of the failure card (it is writ
 - whether the labels **Premium · free during Alpha** and the Help topic say what you want;
 - the first ZIGi figure set, when ready: the file contract is in [YOUR_AI_V1.md](YOUR_AI_V1.md) §4.
 
+## Part V. ZIGi v2 (Session V, PR #76), click by click
+
+Start as in part 1, with this branch instead of T's (in the first Terminal window, after stopping the server with
+Control-C):
+```
+git fetch origin && git checkout feature/session-v-zigi-v2 && git pull
+```
+```
+pnpm install --frozen-lockfile --ignore-scripts
+```
+```
+NEXT_PUBLIC_APP_ENVIRONMENT=LOCAL_DEMO pnpm --filter @zigoals/web exec next dev --hostname 127.0.0.1 --port 3101
+```
+Open `http://127.0.0.1:3101/app` in Chrome and load the Showcase (Settings → **Load Showcase Demo**) unless you
+test with your own records. Every reply, card and file says when its data is fictional.
+
+### V1. Mac: your question, answered (the finding from #29)
+1. Before connecting anything: open **Health**, press the ZIGi button, type `How many minutes did I meditate this
+   month?` and press **Send**. Expected: an answer at once, labelled **Answered on your device · no AI used**, with
+   the minutes, the days counted and **Records used** (open it: the meditation habit's check-ins this month). Nothing
+   was sent anywhere.
+2. Ask `How did I sleep?` with Health not shared. Expected: "Health isn't shared with ZIGi" with the way to turn it on;
+   nothing was read.
+3. Ask something that is not a lookup, such as `Help me plan a calmer evening`. Expected: examples of what ZIGi can
+   answer here, made from your own records, and the pointer to connect an AI.
+
+### V2. Mac: the subscription bridge with the meditation question
+1. Settings → ZIGi · your AI → **Connection** → **I only have a subscription** → your app (ChatGPT, Claude, Grok or
+   Gemini) → **Use my subscription**.
+2. On **Health**, type `How many minutes did I meditate this month?`. Expected: above the box, chips naming the
+   records ZIGi chose (the meditation habit, this month); each has a remove button. Open **What will be copied**:
+   the habit's figures for this month are in the text, after the line that they are records, not instructions.
+3. Remove the chip and open **What will be copied** again: the figures are gone. Put them back by typing the question
+   again.
+4. Press **Copy for my AI**, then **Open <app> side by side** (on a wide window) or **Open <app> ↗**. Paste in the app
+   and ask. Expected: the app can now answer with your month's minutes. ZIGoals sent nothing.
+
+### V3. Mac: Ollama on the hosted Alpha (after the deploy) or the preview
+1. For the preview, part 3 of the v1 test is enough. For `https://alpha.zigoals.app`, allow the origin exactly as part
+   8 says:
+   ```
+   launchctl setenv OLLAMA_ORIGINS "https://alpha.zigoals.app"
+   ```
+   then quit and reopen Ollama.
+2. In Chrome 142 or later, Settings → ZIGi · your AI → **I run a model on this computer** → **Ollama** → **Test
+   connection**. Expected: Chrome's prompt to "look for and connect to devices on your local network" once; allow it.
+   Then "Found Ollama…".
+3. Ask the meditation question on Health with **Health page data** and **Include Health** both off. Expected: ZIGi's
+   own answer (as in V1) or, for questions it cannot answer itself, a reply from Ollama labelled **Answer from your AI
+   (Ollama), not from ZIGoals.** Under **Advanced → How your AI gets your data**, the line says whether your model
+   takes tools.
+
+### V4. Mac: one API key with a spending limit (tools, photo, quick and deep)
+1. Create a key and set a monthly limit at the provider first, as in part 4 (OpenAI shown; Anthropic, Google, xAI or
+   OpenRouter work the same way). Connect it in Settings.
+2. Tools: Settings → **Advanced** → **Data for each message** → **Tools**. On **Habits**, ask `Compare my meditation
+   this week with last week`. Expected: under the reply, **ZIGi looked at:** chips (for example "meditation · this
+   week"); open one to see exactly what went to your AI. The usage table in **Advanced → Usage on this device** counts
+   the requests.
+3. Health stays out: ask `How much water did I drink yesterday?` with Health not shared. Expected: your AI says it
+   cannot see Health; no Health chip appears.
+4. Photo meal: Settings → **Health page data** and **Include Health** on, and tick **<model> reads photos** under
+   **Advanced** if your provider's model page says the model takes images. On **Health**, press the 📷 button (**Add a
+   meal photo**), choose a photo of a meal, type `log this as lunch`, **Send**. Expected: cards labelled **Estimated
+   by your AI from a photo**; unknown nutrients stay unknown; nothing is written until you press **Add**. In the
+   conversation the message says the photo went to your AI and ZIGoals did not keep it.
+5. Quick and deep: **Advanced → Choose a deep model**, pick a larger model. Ask a question, then press **Think
+   deeper** under the reply. Expected: the same question answered again by the deep model, labelled with it.
+6. Optional prices: **Advanced → Your prices for <provider>**, enter the prices from the provider's pricing page.
+   Expected: "Estimate from your prices", per currency, never converted, "not a bill".
+7. Log by voice: press **Log mode**, hold the microphone (or tap it), say `two eggs, toast and a coffee for breakfast,
+   30 minutes meditation and two glasses of water`. Expected: editable words in the box; after **Send**, several
+   cards with **Add all** and one **Undo**. Activity then shows **Actions by ZIGi**.
+
+### V5. Mac: the context pack in a Claude or ChatGPT project
+1. Settings → ZIGi · your AI → **Privacy & data** → **Context pack for my AI**. Leave Health unticked. Read the
+   preview and the warning **This file isn't encrypted. Anyone and any AI you give it to can read it.**
+2. Press **Download (.md)**. Expected: a file named `zigoals-context-pack-<date>.md` whose text equals the preview.
+3. In Claude: **Projects** → your project → add the file to the project's knowledge (in ChatGPT: a Project → add
+   files). Ask there `How many minutes did I meditate this month?`. Expected: the answer comes from the file.
+4. Optional: tick **Remind me each week to make a new one**; the reminder shows on Today and in **Reminders → ZIGi's reminders**, where
+   **Remove** deletes it.
+
+### V6. Mac: the mini window
+1. In Chrome (116 or later) open ZIGi on any page and press **Pop out**. Expected: the same conversation in a small
+   window that stays on top of other apps.
+2. Ask a question in the window; switch to another app: the window stays. Press **Back to tab**: the chat returns to
+   the panel with the same messages.
+3. With the window open, open a private screen in the tab (Wealth → Add asset). Expected: the window blurs and says it
+   is paused; closing the sheet resumes it.
+
+### V7. Mac: browser AI agents (WebMCP) with Chrome's flag
+1. In Chrome open `chrome://flags/#enable-webmcp-testing`, set it to **Enabled**, and relaunch Chrome.
+2. Settings → ZIGi · your AI → **Privacy & data** → **Browser AI agents** (the card appears only now). Read it; turn on
+   **Let browser AI agents use ZIGoals tools**.
+3. Use Chrome's built-in agent, or any WebMCP inspector you trust, on Habits. Expected: tools named `zigoals_…`; each
+   call shows a ZIGi notice with **What it got**. A proposal opens ZIGi's panel with cards; nothing is written until
+   **Add**. On Settings no tool is offered.
+4. Press **Turn off browser agents** in the notice. Expected: the tools are gone.
+5. Set the flag back to **Default** when done.
+
+### V8. Mac: Chrome's on-device model, if your Chrome has it
+1. Settings → ZIGi · your AI → **Connection** → **Chrome's on-device model**. If the card is missing, Chrome has no
+   model here (it needs Chrome 148+ on a computer, about 22 GB free and a capable GPU or CPU); note it and skip.
+2. Press **Download Chrome's model** and wait for it to finish. Then turn on **Use Chrome's on-device model**.
+3. Disconnect any AI. Ask a question ZIGi's lookups did not understand. Expected: **Answered by Chrome's on-device
+   model**, or "Read as … with Chrome's on-device model" followed by figures from your records.
+
+### V9. Mac: Customize, Meet ZIGi and the knock
+1. In ZIGi's panel press **Customize**. Try **Animation** Full / Calm / Off, **Side** left, **Size** Large, **Greeting**
+   Quiet. Expected: ZIGi changes at once; with macOS "Reduce motion" on, it holds still whatever you choose.
+2. Press **Meet ZIGi: every state and move →**. Expected: every state at three sizes, with play buttons.
+3. Press the small arrow under the ZIGi button (**Hide ZIGi**). Expected: the button goes, an Undo shows for ten
+   seconds, and a **Show ZIGi** tab stays at the screen edge; press it to bring ZIGi back.
+4. After your first chat ends, ZIGi asks once whether to knock. Press **Yes, knock**. Give a habit a reminder time a
+   minute from now, and stay on Habits. Expected: ZIGi peeks out and knocks once with **Do it now**, **Snooze** and
+   **Not today**. It never knocks on Today, where the reminder has its own card.
+
+### V10. iPhone (after the deploy, the Home Screen app)
+1. **Launcher:** the ZIGi button sits above the tab bar and is centred in its circle at each size; the small arrow
+   under it hides it; the edge tab brings it back; it hides while More, a sheet or the keyboard is open.
+2. **Panel and keyboard:** open ZIGi; the panel is a full-height sheet; when the keyboard opens the message box stays
+   above it and the page does not scroll behind it.
+3. **Voice, talk to log:** press **Log mode**, hold the microphone and say the breakfast sentence from V4.7; release.
+   Expected: the Apple disclosure line, then your words in the box to edit; **Send** gives several cards.
+4. **Chips and proposals:** the chips above the box come from your records (for example a streak); press one; add
+   one card and undo it.
+5. **Knock:** with knocking on (V9.4), a habit due while you are on Habits or Goals makes ZIGi knock.
+6. **Folded rows:** on Today open two folded rows, leave Today and come back, then close the app and reopen it.
+   Expected: the two rows are still open; the others stay folded.
+7. Note: the mini window, browser agents and Chrome's on-device model do not exist on an iPhone; their buttons and
+   cards are absent there by design.
+
+### V11. ZIGoals hosted (only after you activate it)
+It is off in every build, and this PR deploys nothing. If you later activate it, follow
+[ZIGI_RELAY_ACTIVATION.md](../run11/ZIGI_RELAY_ACTIVATION.md) step 6, which is the test.
+
+### V12. What to report back
+- For each step, "passed" or the exact text of what went wrong, with the device, the browser and the page.
+- Whether the meditation question (V1, V2, V3) now gets the month's figures on each path.
+- Whether the five Settings groups read clearly, and whether the Help questions under "ZIGi · your AI" answer what you
+  would ask.
+- Whether the knock offer's wording and the knock itself feel right; whether Calm breathing is calm enough.
+- Anything shown that you did not expect to see, especially Health with Health switched off.
+
 ## Sources (read 2026-10-05)
 - Ollama library, Llama 3.2: <https://ollama.com/library/llama3.2> (tags `1b` 1.3 GB and `3b` 2.0 GB; `ollama run`
   and `ollama pull`). Ollama FAQ: <https://docs.ollama.com/faq> (`OLLAMA_ORIGINS`, `launchctl setenv`, "Restart Ollama
@@ -203,3 +350,4 @@ For each part, a line "passed" or the exact text of the failure card (it is writ
 - Chrome 142 Local Network Access prompt and the browser facts: [YOUR_AI_V1.md](YOUR_AI_V1.md) §2, with its sources.
 - Node and pnpm versions: the repository's `.node-version` and `package.json` (`packageManager`); `fnm`:
   <https://github.com/Schniz/fnm>.
+- Session V additions (read 2026-10-05/06): Chrome's WebMCP testing flag, Document Picture-in-Picture support and the Prompt API requirements, with their sources in [YOUR_AI_V2.md](YOUR_AI_V2.md) §2 and §7.

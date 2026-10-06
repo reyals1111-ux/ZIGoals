@@ -1,0 +1,9 @@
+/* ZIGi's mini window (Session V Part 14): the panel fills the window; the rules for a narrow screen (the window is
+   narrow) are overridden where they would hide or squeeze the panel. A private screen in the tab pauses it behind a blur. */
+html.zigi-pip-root,html.zigi-pip-root body{margin:0;height:100%;background:#050a18;color:var(--text,#eef1ff);overflow:hidden}
+html.zigi-pip-root body{font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.ai-chat.ai-chat-pip{position:relative;inset:auto;display:flex;width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;border-radius:0;box-shadow:none}
+.ai-chat-pip .ai-chat-tools{flex-wrap:wrap}
+.ai-chat-pip .ai-chat-premium{display:none}
+.ai-pip-paused{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding:24px;text-align:center;background:color-mix(in srgb,#050a18 82%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.ai-pip-paused p{margin:0;max-width:30ch}

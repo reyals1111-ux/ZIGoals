@@ -27,9 +27,27 @@ export function regenerateTarget(chat: Chat, now = new Date()): {chat: Chat; que
   if (!last || last.role !== 'user') return null;
   return {chat: {...chat, turns, updatedAt: now.toISOString()}, question: last.text};
 }
-/** The provider's view of the conversation: user and assistant texts in order, empty turns dropped. */
+/** The person's last question in the chat (Session V Part 10, "Edit"), or null when there is none. */
+export function lastQuestion(chat: Chat): ChatTurn | null {
+  return [...chat.turns].reverse().find(t => t.role === 'user') ?? null;
+}
+/**
+ * "Edit" (Session V Part 10): the chat as it was before the person's last question, so the new words take its place
+ * with the answers it had. Null when `turnId` is not that last question; nothing changes until the new words are sent.
+ */
+export function editTarget(chat: Chat, turnId: string, now = new Date()): Chat | null {
+  const at = chat.turns.findIndex(t => t.id === turnId);
+  if (at < 0 || chat.turns[at]!.role !== 'user' || chat.turns.slice(at + 1).some(t => t.role === 'user')) return null;
+  return {...chat, turns: chat.turns.slice(0, at), updatedAt: now.toISOString()};
+}
+/**
+ * The provider's view of the conversation: user and assistant texts in order, empty turns dropped. Questions answered
+ * on the device and their local answers (Session V Part 3, `source: 'local'`) are never sent to a provider later; "Ask
+ * my AI for more" asks again, with the records shown, as a new turn.
+ */
 export function messagesFor(turns: readonly ChatTurn[]): ChatMessage[] {
-  return turns.filter(t => t.text.trim().length > 0).map(t => ({role: t.role, content: t.text}));
+  // Answers made on this device (ZIGi's lookups, and Session V Part 15's on-device model) never go to a provider later.
+  return turns.filter(t => t.source !== 'local' && t.source !== 'on-device' && t.text.trim().length > 0).map((t): ChatMessage => t.role === 'user' ? {role: 'user', content: t.text} : {role: 'assistant', content: t.text});
 }
 /** One honest line for a reply that ended early. */
 export function stopReason(reason: string | null, aborted: boolean): string | undefined {

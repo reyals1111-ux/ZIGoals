@@ -11,20 +11,22 @@ import './ai-launcher.css';
  * never reaches it.
  */
 const AiSettingsBody = lazy(() => import('./ai-settings'));
+/** The addresses that load the body at once: the section, the notes card (Part 8) and the context pack card (Part 10's /pack). */
+const ANCHORS = ['#your-ai', '#zigi-notes', '#zigi-pack', '#zigi-look', '#zigi-setup', '#zigi-on-device', '#zigi-agents', '#zigi-hosted'];
 export function AiSettingsSection() {
   const section = useRef<HTMLElement>(null);
   const [load, setLoad] = useState(false);
   useEffect(() => {
     if (load) return;
     const now = () => setLoad(true);
-    if (window.location.hash === '#your-ai' || /[?&]ai-auth=/.test(window.location.search)) { now(); return; }
+    if (ANCHORS.includes(window.location.hash) || /[?&]ai-auth=/.test(window.location.search)) { now(); return; }
     const node = section.current;
     const observer = node && 'IntersectionObserver' in window ? new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) now(); }, {rootMargin: '800px 0px'}) : null;
     if (observer && node) observer.observe(node);
     const idle: {cancel: () => void} = typeof window.requestIdleCallback === 'function'
       ? (id => ({cancel: () => window.cancelIdleCallback(id)}))(window.requestIdleCallback(now, {timeout: 2500}))
       : (id => ({cancel: () => window.clearTimeout(id)}))(window.setTimeout(now, 1500));
-    const onHash = () => { if (window.location.hash === '#your-ai') now(); };
+    const onHash = () => { if (ANCHORS.includes(window.location.hash)) now(); };
     window.addEventListener('hashchange', onHash);
     return () => { observer?.disconnect(); idle.cancel(); window.removeEventListener('hashchange', onHash); };
   }, [load]);

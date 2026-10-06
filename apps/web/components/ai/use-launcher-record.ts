@@ -2,6 +2,8 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {ACCOUNT_CHANGE, getAccountScope} from '../../lib/account-session';
 import {AI_SETTINGS_EVENT, AI_SETTINGS_KEY, DEFAULT_LAUNCHER_RECORD, readLauncherRecord, type LauncherRecord} from '../../lib/ai/launcher-record';
+import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
+import {DEFAULT_LOOK, readZigiLook, type ZigiLook} from '../../lib/ai/zigi-look';
 import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
@@ -31,6 +33,27 @@ export function useLauncherRecord(): {record: LauncherRecord; loaded: boolean; s
     })).catch(() => undefined);
   }, []);
   return {...state, setLauncherHidden};
+}
+/**
+ * ZIGi's look in the shell (Session V Part 12): the animation, side, size and edge tab from `zigoals:zigi:v1`, read with
+ * the tiny tolerant reader and read again after Customize saves, a change in another tab or an account change. The
+ * animation and the side go on the page's root (`data-zigi-motion`, `data-zigi-side`), where the launcher's breath,
+ * ZIGi's motions and the chat panel (which opens on ZIGi's side) read them.
+ */
+export function useZigiLook(): {look: ZigiLook; loaded: boolean} {
+  const [state, setState] = useState<{look: ZigiLook; loaded: boolean}>({look: DEFAULT_LOOK, loaded: false});
+  useEffect(() => {
+    let active = true;
+    const refresh = () => { let look = DEFAULT_LOOK; try { look = readZigiLook(getAppStorage()); } catch { /* storage refused: the defaults */ } if (active) setState({look, loaded: true}); };
+    queueMicrotask(refresh);
+    const onSaved = (event: Event) => { const key = (event as CustomEvent<string>).detail; if (!key || key === ZIGI_KEY) refresh(); };
+    const onStorage = (event: StorageEvent) => { if (!event.key || event.key.endsWith(ZIGI_KEY)) refresh(); };
+    window.addEventListener(ZIGI_STORE_EVENT, onSaved); window.addEventListener('storage', onStorage); window.addEventListener(ACCOUNT_CHANGE, refresh);
+    return () => { active = false; window.removeEventListener(ZIGI_STORE_EVENT, onSaved); window.removeEventListener('storage', onStorage); window.removeEventListener(ACCOUNT_CHANGE, refresh); };
+  }, []);
+  useEffect(() => { document.documentElement.dataset.zigiMotion = state.look.animation; }, [state.look.animation]);
+  useEffect(() => { document.documentElement.dataset.zigiSide = state.look.side; }, [state.look.side]);
+  return state;
 }
 /**
  * Account hygiene (ADR-012 decision 9) from the shell: on any account change the chat closes (the caller's onChange)

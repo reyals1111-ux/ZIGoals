@@ -1,10 +1,12 @@
 import {expect, test} from 'vitest';
 import {buildShowcase} from '../../showcase-data';
 import {habitDataSchema, latestHabitRule, type HabitData} from '../../habits';
-import {healthSchema, saveWeight, type HealthData} from '../../health';
+import {healthSchema, saveRecipe, saveWeight, type HealthData} from '../../health';
 import {addWater, dailyData, editWater} from '../../health-daily';
 import {platformSchema, type Platform} from '../../positions';
 import {fastingSchema, FASTING_KEY} from '../../fasting/schema';
+import {emptyReminders} from '../../reminders/schema';
+import {emptyWeeklyReview, weeklyReviewSchema} from '../../weekly-review/schema';
 import {runningSession} from '../../fasting/engine';
 import type {Handle} from '../context/types';
 import {applyBatch, batchable, undoBatch, UNDO_WINDOW_MS} from './batch';
@@ -20,6 +22,8 @@ const stores: Stores = {
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
+  // Session V Part 7: the three device records a proposal may also write.
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: records['zigoals:weekly-review:v1'] ? weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1'])) : emptyWeeklyReview(), memory: {version: 1},
 };
 const DAY = '2026-09-20', now = new Date('2026-09-20T19:00:00Z');
 const habit = (i: number) => stores.habits.habits[i]!;
@@ -28,6 +32,7 @@ const handles: Handle[] = [
   ...stores.platform.goals.map((g, i) => ({handle: `g${i + 1}`, kind: 'goal' as const, id: `private:${g.id}`, label: g.name})),
   {handle: 'g9', kind: 'goal', id: 'legacy:sim-1', label: 'Simulation'},
   ...stores.health.foods.map((f, i) => ({handle: `f${i + 1}`, kind: 'food' as const, id: f.id, label: f.name})),
+  ...stores.health.recipes.map((r, i) => ({handle: `r${i + 1}`, kind: 'recipe' as const, id: r.id, label: r.name})),
 ];
 let counter = 0;
 const env = (overrides: Partial<Env> = {}): Env => ({stores, handles, now, habitDay: DAY, healthDay: DAY, timeZone: 'UTC', newHealthId: () => `health_ai-${String(++counter).padStart(8, '0')}`, newHabitId: () => `92000000-0000-4000-8000-00000000ff${String(++counter).padStart(2, '0')}`, ...overrides});
@@ -222,10 +227,18 @@ test('a batch applies in order on the latest stores, stops at the first failure,
   expect(UNDO_WINDOW_MS).toBe(10_000);
 });
 test('cards name records by title, never by identifier, and every kind the parser accepts has a planner', () => {
-  const samples: Record<string, unknown>[] = [{kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'}];
+  const samples: Record<string, unknown>[] = [{kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
+    // Session V Part 7
+    {kind: 'create-food', name: 'Shake', serving_ml: 300, estimate: {kcal: 200}}, {kind: 'create-recipe', name: 'Soup', ingredients: [{name: 'Lentils', grams: 250}]}, {kind: 'plan-meal', recipe: 'r1', meal: 'Dinner'},
+    {kind: 'grocery-item', items: ['Oat milk']}, {kind: 'counter', counter: 'Push-ups', count: 20}, {kind: 'create-reminder', for: 'water', time: '10:00'}, {kind: 'review-intention', intention: 'Walk after lunch'},
+    // Session V Part 8
+    {kind: 'remember', text: 'Prefers morning workouts', category: 'preferences'}];
   const kinds = new Set<string>();
+  // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).
+  const recipeId = 'health_recipe-sample-0001', withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Sample soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};
+  const recipeEnv = env({stores: withRecipe, handles: [...handles.filter(h => h.kind !== 'recipe'), {handle: 'r1', kind: 'recipe', id: recipeId, label: 'Sample soup'}]});
   for (const sample of samples) {
-    const p = plan(sample); kinds.add(p.card.kind);
+    const p = plan(sample, sample.kind === 'plan-meal' ? recipeEnv : env()); kinds.add(p.card.kind);
     const text = JSON.stringify(p.card);
     expect(text, p.card.kind).not.toMatch(UUID); expect(text, p.card.kind).not.toContain('health_'); expect(text, p.card.kind).not.toContain('private:');
     expect(p.card.title.length, p.card.kind).toBeGreaterThan(3); expect(p.card.where.length, p.card.kind).toBeGreaterThan(3);

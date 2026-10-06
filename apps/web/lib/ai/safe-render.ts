@@ -1,10 +1,37 @@
 /**
  * A reply as a tree, never as HTML (ADR-012, Part 6). The AI's text is untrusted: this parser knows paragraphs,
- * headings, lists, quotes, code (fenced and inline), bold, italic and https links, and nothing else. Angle brackets are
+ * headings, lists, quotes, code (fenced and inline), bold, italic, https links and (Session V Part 10) GitHub-style
+ * tables, and nothing else. Angle brackets are
  * text. A link is a link only with an https address; anything else stays as the words it came in. No images.
  */
 export type Inline = {type: 'text'; text: string} | {type: 'strong'; children: Inline[]} | {type: 'em'; children: Inline[]} | {type: 'code'; text: string} | {type: 'link'; href: string; children: Inline[]};
-export type Block = {type: 'paragraph'; children: Inline[]} | {type: 'heading'; level: 1 | 2 | 3; children: Inline[]} | {type: 'list'; ordered: boolean; items: Inline[][]} | {type: 'quote'; children: Inline[]} | {type: 'code'; text: string; language: string | null};
+export type Align = 'left' | 'center' | 'right' | null;
+/** Session V Part 10: a GitHub-style table, its cells inline marks only; at most 20 columns and 100 rows (`cut` says how many more). */
+export type Table = {type: 'table'; align: Align[]; head: Inline[][]; rows: Inline[][][]; cut: number};
+export type Block = {type: 'paragraph'; children: Inline[]} | {type: 'heading'; level: 1 | 2 | 3; children: Inline[]} | {type: 'list'; ordered: boolean; items: Inline[][]} | {type: 'quote'; children: Inline[]} | {type: 'code'; text: string; language: string | null} | Table;
+export const TABLE_COLUMNS = 20, TABLE_ROWS = 100, CELL_CHARS = 500;
+/** A table row's cells: split on unescaped pipes, the outer pipes optional, each cell trimmed and capped. */
+export function tableCells(line: string): string[] | null {
+  if (!line.includes('|')) return null;
+  let body = line.trim();
+  if (body.startsWith('|')) body = body.slice(1);
+  if (body.endsWith('|') && !body.endsWith('\\|')) body = body.slice(0, -1);
+  const cells: string[] = [];
+  let cell = '';
+  for (let i = 0; i < body.length; i++) {
+    if (body[i] === '\\' && body[i + 1] === '|') { cell += '|'; i++; continue; }
+    if (body[i] === '|') { cells.push(cell.trim().slice(0, CELL_CHARS)); cell = ''; continue; }
+    cell += body[i];
+  }
+  cells.push(cell.trim().slice(0, CELL_CHARS));
+  return cells;
+}
+const DELIMITER = /^\s*:?-{1,}:?\s*$/;
+function delimiterRow(line: string): Align[] | null {
+  const cells = tableCells(line);
+  if (!cells || !cells.length || !cells.every(c => DELIMITER.test(c))) return null;
+  return cells.map(c => { const t = c.trim(), left = t.startsWith(':'), right = t.endsWith(':'); return left && right ? 'center' : right ? 'right' : left ? 'left' : null; });
+}
 const HTTPS = /^https:\/\/[^\s<>"'`]+$/i;
 const LINK_TEXT_MAX = 200;
 export const safeHref = (href: string): string | null => { const trimmed = href.trim(); if (!HTTPS.test(trimmed)) return null; try { const url = new URL(trimmed); return url.protocol === 'https:' && url.username === '' && url.password === '' ? url.href : null; } catch { return null; } };
@@ -55,6 +82,21 @@ export function parseBlocks(text: string): Block[] {
       continue;
     }
     if (!line.trim()) { flushParagraph(); i++; continue; }
+    // A table: a header row with pipes, then a delimiter row with as many cells (Session V Part 10).
+    const head = tableCells(line), align = i + 1 < lines.length ? delimiterRow(lines[i + 1]!) : null;
+    if (head && align && align.length === head.length && head.length >= 1) {
+      flushParagraph();
+      const width = Math.min(head.length, TABLE_COLUMNS), rows: Inline[][][] = [];
+      let cut = 0;
+      i += 2;
+      while (i < lines.length && lines[i]!.trim() && lines[i]!.includes('|')) {
+        const cells = tableCells(lines[i]!)!;
+        if (rows.length < TABLE_ROWS) rows.push(Array.from({length: width}, (_, c) => parseInline(cells[c] ?? ''))); else cut++;
+        i++;
+      }
+      blocks.push({type: 'table', align: align.slice(0, width), head: head.slice(0, width).map(parseInline), rows, cut});
+      continue;
+    }
     const heading = /^\s{0,3}(#{1,3})\s+(.+?)\s*#*\s*$/.exec(line);
     if (heading) { flushParagraph(); blocks.push({type: 'heading', level: heading[1]!.length as 1 | 2 | 3, children: parseInline(heading[2]!)}); i++; continue; }
     const quote = /^\s{0,3}>\s?(.*)$/.exec(line);
@@ -81,5 +123,6 @@ export function parseBlocks(text: string): Block[] {
 /** The plain words of a tree, for copying and for read-aloud. */
 export function plainText(blocks: readonly Block[]): string {
   const inline = (nodes: readonly Inline[]): string => nodes.map(n => n.type === 'text' || n.type === 'code' ? n.text : inline(n.children)).join('');
-  return blocks.map(b => b.type === 'code' ? b.text : b.type === 'list' ? b.items.map((item, i) => `${b.ordered ? `${i + 1}.` : '•'} ${inline(item)}`).join('\n') : inline(b.children)).join('\n\n');
+  return blocks.map(b => b.type === 'code' ? b.text : b.type === 'list' ? b.items.map((item, i) => `${b.ordered ? `${i + 1}.` : '•'} ${inline(item)}`).join('\n')
+    : b.type === 'table' ? [b.head, ...b.rows].map(row => row.map(inline).join(' | ')).join('\n') + (b.cut ? `\n(${b.cut} more rows)` : '') : inline(b.children)).join('\n\n');
 }

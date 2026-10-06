@@ -2,6 +2,8 @@
 
 Status: **Accepted and implemented (Session P, PR 4, 2026-10-04); activation is the owner's (docs/run11/PUSH_ACTIVATION.md). Dated addenda below record where the code differs from the first draft.**
 
+> **Superseded in part by [ADR-014](ADR-014-zigi-v2.md) (2026-10-06, Session V Part 13, owner-approved):** rule 2 and the service worker's "no storage" line change for people who turn on "Show what a reminder is for in notifications" (off by default): the worker reads a habit's name, read-only, from an IndexedDB table the page keeps, and the payload stays `{"v":1}` (rule 1 holds). Water and Health-linked habits keep the generic line. Rule 5's "never both" gains ZIGi's knock: an open page also knocks for people who turned knocking on, since the platforms require the notification. The text below is kept as written.
+
 ## Context
 - **In-app reminders exist** ([REMINDERS_V1.md](../product/REMINDERS_V1.md)): a habit and the Water journal can have a reminder time, kept on the device in `zigoals:reminders:v1`; after that time Today shows a card while the app is open. The spec promises "no notifications, no permission prompts and no service worker". People on phones want the same reminder when ZIGoals is closed.
 - **ZIGoals installs as a Home Screen app** (Session L): a manifest with `display: standalone`, no service worker, no caching, no CSP change ([STATUS](../STATUS.md), "Installable app").

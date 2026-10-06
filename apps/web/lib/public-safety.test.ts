@@ -40,11 +40,18 @@ test("Permissions-Policy: denied everywhere, the microphone on the app's own pag
   // Nothing else grants a permission, and no entry uses a wildcard allowlist.
   for (const entry of entries) for (const header of entry.headers) if (header.key === "Permissions-Policy") expect(header.value).not.toMatch(/=\*|=\(\s*"/);
 });
-test("the push service worker is push-only: no fetch handler, no cache, no storage, no imported scripts", () => {
+test("the push service worker is push-only: no fetch handler, no cache, no writes, no imported scripts; it only reads the opted-in names table", () => {
   const worker = readFileSync(new URL("../public/push-sw.js", import.meta.url), "utf8");
   expect(worker).toContain("addEventListener('push'");
   expect(worker).toContain("addEventListener('notificationclick'");
-  expect(worker).not.toMatch(/addEventListener\(\s*['"]fetch['"]|importScripts|caches\b|indexedDB|localStorage|XMLHttpRequest|\bfetch\(/);
+  expect(worker).not.toMatch(/addEventListener\(\s*['"]fetch['"]|importScripts|caches\b|localStorage|sessionStorage|XMLHttpRequest|\bfetch\(/);
+  // Assertion changed (Session V Part 13, owner-approved; ADR-014 "Owner-approved changes", ADR-010 rule 2): IndexedDB was
+  // refused outright; now the worker may open one database, the reminder names the page keeps after the person opted in,
+  // and only to read it. It never creates, writes, clears or deletes anything.
+  expect(worker.match(/indexedDB\.\w+/g)).toEqual(["indexedDB.open"]);
+  expect(worker).toContain("'zigoals-push-labels-v1'");
+  expect(worker).toContain("'readonly'");
+  expect(worker).not.toMatch(/readwrite|createObjectStore|deleteObjectStore|deleteDatabase|\.put\(|\.add\(|\.delete\(|\.clear\(/);
   expect(worker).toContain("'A reminder from ZIGoals'");
 });
 test("safe diagnostics whitelist enums and identities, ignoring adversarial and private values", () => {

@@ -3,11 +3,11 @@ import {usePathname} from 'next/navigation';
 import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {launcherApp} from '../../lib/ai/apps';
 import {usePhoneActive} from '../phone/use-phone-layout';
-import {ZigiAvatar} from '../zigi/zigi-avatar';
-import {useZigiState, zigiEvents} from '../zigi/events';
-import {useAccountCleanup, useLauncherRecord} from './use-launcher-record';
+import {ZigiFigure} from '../zigi/zigi-figure';
+import {useZigiState, zigiEvents, zigiState} from '../zigi/bus';
+import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
-import {ASK_EVENT} from './ask';
+import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
 import './ai-launcher.css';
 
 /**
@@ -19,14 +19,27 @@ import './ai-launcher.css';
  * Follow-up part A: this file is the launcher shell that every app page ships; it reads the device record with the tiny
  * tolerant reader (launcher-record.ts) and the app table (apps.ts) only. The Zod schema, the key store, the chat store,
  * the setup, voice and proposals all arrive with the chat chunk, warmed on hover or focus and loaded on the first open.
+ * Session V Part 12: pill, circle and a "Hide ZIGi" chevron below it are one control, on the side and at the size the
+ * person chose in Customize; the figure is centred on its optical centre and breathes through CSS alone (Calm by
+ * default, livelier with Full, still with Off, reduced motion or Motion Off). While hidden, a small "Show ZIGi" tab at
+ * the screen's edge brings it back (on by default; outside the launcher's own test id).
  */
 const loadChat = () => import('./ai-chat');
 // React's own lazy loading: the launcher renders only after mount, so the chunk is never asked for on the server.
 const AiChat = lazy(loadChat);
 const HIDE_UNDO_MS = 10_000;
+/** Session V Part 13: the knock, loaded only once the person turned knocking on; Part 16: browser agents, only where the browser offers them. */
+const ZigiCompanion = lazy(() => import('../zigi/companion'));
+/** Session V Part 16: a browser that offers tools to AI agents (WebMCP); only there can the person's switch for them matter. */
+const agentsOffered = () => [document, navigator].some(host => typeof (host as {modelContext?: {registerTool?: unknown}}).modelContext?.registerTool === 'function');
+/** ZIGi greets once when the person comes back from a reminder notification (the worker's message or its address). */
+function greetOnce(): void {
+  zigiState.set('greeting');
+  window.setTimeout(() => { if (zigiState.get() === 'greeting') zigiState.set('idle'); }, 2500);
+}
 export function AiLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false), [undoUntil, setUndoUntil] = useState<number | null>(null);
-  const launcher = useLauncherRecord(), sensitive = useSensitiveScreen(), phone = usePhoneActive(), pathname = usePathname() ?? '', zigi = useZigiState();
+  const launcher = useLauncherRecord(), {look, loaded: lookLoaded} = useZigiLook(), sensitive = useSensitiveScreen(), phone = usePhoneActive(), pathname = usePathname() ?? '', zigi = useZigiState();
   const button = useRef<HTMLButtonElement>(null), timer = useRef<number | null>(null), warmed = useRef(false);
   useEffect(() => { setMounted(true); }, []);
   useAccountCleanup(useCallback(() => setOpen(false), []));
@@ -36,6 +49,8 @@ export function AiLauncher() {
   // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
   useEffect(() => { if (open) { setLoaded(true); zigiEvents.emit('open'); } else if (loaded) zigiEvents.emit('close'); }, [open, loaded]);
   const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => button.current?.focus({preventScroll: true})); }, []);
+  // Session V Part 14: the mini window's "Back to tab".
+  const reopen = useCallback(() => setOpen(true), []);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return;
@@ -49,24 +64,43 @@ export function AiLauncher() {
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
   useEffect(() => { const onAsk = () => { if (!launcher.record.launcherHidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [launcher.record.launcherHidden, sensitive]);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('zigi') === 'hello') { url.searchParams.delete('zigi'); window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); greetOnce(); }
+    const onMessage = (event: MessageEvent) => { if (event.data?.type === 'zigoals:push-open') greetOnce(); };
+    navigator.serviceWorker?.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker?.removeEventListener('message', onMessage);
+  }, []);
   const hide = () => {
     setOpen(false); launcher.setLauncherHidden(true); setUndoUntil(Date.now() + HIDE_UNDO_MS);
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => { timer.current = null; setUndoUntil(null); }, HIDE_UNDO_MS);
   };
   const undoHide = () => { launcher.setLauncherHidden(false); setUndoUntil(null); if (timer.current) { window.clearTimeout(timer.current); timer.current = null; } requestAnimationFrame(() => button.current?.focus({preventScroll: true})); };
+  // The focus moves to ZIGi once the edge tab brought it back (the tab itself is gone by then).
+  const showAgain = () => { launcher.setLauncherHidden(false); setUndoUntil(null); requestAnimationFrame(() => requestAnimationFrame(() => button.current?.focus({preventScroll: true}))); };
+  // Session V Part 9: the page's "Ask ZIGi" affordances show only while this button does (CSS reads the root's mark).
+  const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !launcher.record.launcherHidden && !sensitive;
+  useEffect(() => { const root = document.documentElement; if (shown) root.dataset[LAUNCHER_SHOWN_ATTRIBUTE] = 'shown'; else delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; return () => { delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; }; }, [shown]);
   if (!mounted || !pathname.startsWith('/app')) return null;
   const app = launcherApp(launcher.record);
-  const visible = launcher.loaded && !launcher.record.launcherHidden && !sensitive;
+  const visible = launcher.loaded && lookLoaded && !launcher.record.launcherHidden && !sensitive;
+  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && look.edgeTab && !sensitive, agents = agentsOffered();
   return <>
-    {visible && <div className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="">
+    {visible && <div className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}
-      <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your AI' : 'Open ZIGi, your AI (⌘K or Ctrl+K)'} aria-haspopup="dialog" aria-expanded={open} onClick={toggle} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
-        <ZigiAvatar state={zigi} size={44} decorative/>
-      </button>
-      <button type="button" className="ai-launcher-hide" aria-label="Hide ZIGi (show it again from Settings)" onClick={hide}>×</button>
+      <div className="ai-launcher-stack">
+        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your AI' : 'Open ZIGi, your AI (⌘K or Ctrl+K)'} aria-haspopup="dialog" aria-expanded={open} onClick={toggle} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
+          <ZigiFigure state={zigi}/>
+        </button>
+        <button type="button" className="ai-launcher-hide" aria-label="Hide ZIGi" data-tip="Hide ZIGi" onClick={hide}>
+          <svg viewBox="0 0 22 12" width="22" height="12" aria-hidden="true" focusable="false"><defs><linearGradient id="zigi-chevron-nebula" x1="0" x2="1" y1="0" y2="0"><stop offset="0"/><stop offset=".5"/><stop offset="1"/></linearGradient></defs><path d="M3 3l8 6 8-6" fill="none" stroke="url(#zigi-chevron-nebula)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+      </div>
     </div>}
-    {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>ZIGi is hidden. Show it again from Settings → ZIGi · your AI.</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
-    {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} sensitive={sensitive} phone={phone}/></Suspense>}
+    {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
+    {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
+    {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense>}
+    {lookLoaded && (look.knock || agents) && <Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!visible || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense>}
   </>;
 }

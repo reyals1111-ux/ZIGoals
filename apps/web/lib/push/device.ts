@@ -6,6 +6,7 @@ import {getAccountScope} from '../account-session';
 import {applicationServerKey, clearPushRecord, postPush, pushRefusalMessage, readPushRecord, sha256Hex, subscriptionKeys, writePushRecord, type PushAnswer, type PushRecord} from './client';
 import {DEFAULT_QUIET, deriveSchedules, type Derived, type QuietHours} from './schedule';
 import {deviceZone} from './support';
+import {isDurableMarker, readDurableStore} from '../vault/local';
 
 /**
  * The browser side of push reminders (ADR-010): the one service worker at /push-sw.js, the browser's subscription,
@@ -18,13 +19,21 @@ export type TurnOn = {ok: true; record: PushRecord; note: string} | {ok: false; 
 export const BLOCKED = 'Notifications are blocked for ZIGoals in your device settings. Allow them there, then try again.';
 export const NOT_ALLOWED = 'Notifications were not allowed, so nothing was set up.';
 export const LOST = 'Your browser gave up its push subscription, so reminders while ZIGoals is closed are off. Turn them on again in Settings when you like.';
-/** This device's habits as stored, for the weekday masks; undefined when there are none or they do not read. */
-function storedHabits(storage: Pick<Storage, 'getItem'>): HabitData | undefined {
-  try { const raw = storage.getItem(HABITS_KEY); if (raw === null) return undefined; const parsed = habitDataSchema.safeParse(JSON.parse(raw)); return parsed.success ? parsed.data : undefined; } catch { return undefined; }
+/**
+ * This device's habits as stored, for the weekday masks; undefined when there are none or they do not read. Once the
+ * account vault keeps the habits in its durable store, the browser key holds only a pointer, and the pointer is
+ * followed (Session V Part 13 found that it was not: every habit reminder was then left out of the schedule).
+ */
+export async function storedHabits(storage: Storage): Promise<HabitData | undefined> {
+  try {
+    const raw = storage.getItem(HABITS_KEY); if (raw === null) return undefined;
+    if (isDurableMarker(raw)) return await readDurableStore(storage, HABITS_KEY, habitDataSchema);
+    const parsed = habitDataSchema.safeParse(JSON.parse(raw)); return parsed.success ? parsed.data : undefined;
+  } catch { return undefined; }
 }
 /** The schedule set this device would send now. */
-export function currentSchedules(quiet: QuietHours, now = new Date()): Derived & {today: string} {
-  const storage = getAppStorage(), habits = storedHabits(storage), today = habits ? habitCalendarDay(habits, now) : localDate(now);
+export async function currentSchedules(quiet: QuietHours, now = new Date()): Promise<Derived & {today: string}> {
+  const storage = getAppStorage(), habits = await storedHabits(storage), today = habits ? habitCalendarDay(habits, now) : localDate(now);
   return {...deriveSchedules({reminders: readReminders(storage).data, habits, zone: deviceZone(), quiet, today}), today};
 }
 /** Plain words for refused and dropped rows, or an empty string. */
@@ -35,9 +44,13 @@ export function scheduleNote(derived: Derived, quiet: QuietHours): string {
   return parts.join(' ');
 }
 async function registration(): Promise<ServiceWorkerRegistration | undefined> { return navigator.serviceWorker?.getRegistration(SW_SCOPE); }
-/** Unsubscribes in the browser and unregisters the worker; never throws. */
+/**
+ * Unsubscribes in the browser, unregisters the worker and deletes the opted-in names table (Session V Part 13, loaded
+ * only now); never throws.
+ */
 async function forgetInBrowser(): Promise<void> {
   try { const reg = await registration(); const sub = await reg?.pushManager.getSubscription(); await sub?.unsubscribe(); await reg?.unregister(); } catch { /* nothing left to undo */ }
+  try { await (await import('./labels-sync')).forgetPushLabels(); } catch { /* nothing to delete */ }
 }
 /**
  * From a tap: permission (asked first, inside the gesture), the worker, the browser subscription, the subscribe call
@@ -63,7 +76,7 @@ export async function turnOnPush({account, publicKey, quiet = DEFAULT_QUIET}: {a
   }
   const keys = subscriptionKeys(sub.toJSON());
   if (!keys) { await forgetInBrowser(); return {ok: false, message: 'This browser gave no usable push subscription, so nothing was set up.'}; }
-  const derived = currentSchedules(quiet), zone = deviceZone();
+  const derived = await currentSchedules(quiet), zone = deviceZone();
   let answer: PushAnswer;
   try { answer = await postPush({action: 'subscribe', ...keys, zone, quiet, schedules: derived.schedules}, account); }
   catch { await forgetInBrowser(); return {ok: false, message: 'Reminders while ZIGoals is closed could not be set up right now. Try again later.'}; }
@@ -95,7 +108,7 @@ export type SyncOutcome = {state: 'off' | 'kept' | 'synced' | 'resubscribed' | '
 export async function syncPushSchedules({account, force = false, now = new Date()}: {account: string | null; force?: boolean; now?: Date}): Promise<SyncOutcome> {
   const storage = getAppStorage(), record = readPushRecord(storage).data;
   if (!record) return {state: 'off'};
-  const derived = currentSchedules(record.quiet, now);
+  const derived = await currentSchedules(record.quiet, now);
   if (!force && record.lastSyncDay === derived.today) return {state: 'kept'};
   if (!account) return {state: 'sign-in', message: 'Sign in again to keep reminders while ZIGoals is closed up to date.'};
   const reg = await registration(), sub = await reg?.pushManager.getSubscription(), keys = sub ? subscriptionKeys(sub.toJSON()) : null;

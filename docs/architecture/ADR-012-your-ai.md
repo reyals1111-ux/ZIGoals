@@ -2,6 +2,8 @@
 
 Status: **Accepted; implemented in Session T ([PR #73](https://github.com/reyals1111-ux/ZIGoals/pull/73), 2026-10-04/05), not merged or deployed at the time of writing.** This is the phase-2 option **(d)** that [ADR-011](ADR-011-coach.md) did not list: not a model on the device (a), not a proxy Worker (b), not a hybrid (c), but the AI the person already has, called from their own browser. The Guide (ADR-011) is untouched and keeps its label "no AI service"; ZIGi never calls itself the Guide.
 
+> **Superseded in part by [ADR-014](ADR-014-zigi-v2.md) (2026-10-06, Session V, owner decisions D1–D3):** decision 1 (native tool calling is now added, for read-only tools only; the action blocks stay the write path), the Addendum's "no notifications from ZIGi, ever" (ZIGi may knock and push reminders show its figure), "token counts, never money" (money now only as an estimate from the person's own prices), and the only-browser-direct data path and server-free entitlement (ZIGoals hosted is an off-by-default, disclosed exception with an entitlement asked from its relay). Everything else stands. The text below is kept as written.
+
 ## Context
 - The owner wants a premium chat inside ZIGoals that reads the current page and helps create entries by text or voice, as the first premium feature, free during the Alpha ("Premium · free during Alpha", `lib/entitlements.ts`, no payment code).
 - The promises of the app hold: no analytics, nothing on our servers that reads content, Health behind its own consent, no financial or medical advice, nothing moves money ([PRIVACY_NOTICE_DRAFT](../legal/PRIVACY_NOTICE_DRAFT.md), [THREAT_MODEL](../security/THREAT_MODEL.md)).

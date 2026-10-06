@@ -2,6 +2,8 @@
 
 **Status:** specification and sourced research, Session T, 2026-10-04 (branch `feature/session-t-your-ai-2026-10-04`, base `main` `e336227`). Decision record: [ADR-012](../architecture/ADR-012-your-ai.md). The Guide ([ADR-011](../architecture/ADR-011-coach.md)) is untouched and is never called an AI; this feature is ADR-011's phase-2 option **(d) "your own provider, browser-direct"**.
 
+> **Extended by [YOUR_AI_V2.md](YOUR_AI_V2.md) (2026-10-06, Session V, [ADR-014](../architecture/ADR-014-zigi-v2.md)):** tool calling, vision, the browser features (Prompt API, WebMCP, Document Picture-in-Picture), the data flow per path, the new storage keys, limits and weight. This file stays the reference for endpoints, auth, errors, keys and voice.
+
 **What it is.** People connect **their own** AI — an API key, a local model on their computer, or OpenRouter's official one-click sign-in — and get a chat inside ZIGoals that knows the page they are on (Today, Goals, Habits, Health, Wealth with Portfolio, Staking and Markets, Help). It helps them read their progress and create entries by text or voice. The mascot **ZIGi** is the face; the answers come from the person's provider, and every answer says so: *"Answer from your AI (<provider>), not from ZIGoals."* Free during the Alpha, labelled **"Premium · free during Alpha"**; there is no payment code.
 
 **What it never does.** ZIGoals is not in the path: prompts, replies and keys travel from the browser straight to the chosen provider. No ZIGoals proxy, no new Worker, no logging. No AI writes anything by itself: every action is a proposal card the person confirms, with Undo. Money is pre-fill only (the person submits the existing form). Never contributions, deposits, allocations, staking, wallet, Keplr, chain or contract calls, never sync, account, export, deletion or settings changes. No medical or financial advice.
@@ -69,6 +71,8 @@ Exactly the request the browser sends: the system prompt of the page specialist,
 - **Settings section** (`ai-settings.tsx`, `id="your-ai"`), **setup** (`ai-setup.tsx`, three paths), **Help topic** (`help-page.tsx`, `#your-ai`), **phone rows** (Settings list, More sheet).
 
 ### ZIGi states (`components/zigi/manifest.json`)
+
+> **Superseded in part (2026-10-06, Session V Part 12, ADR-014):** the manifest is version 2 (twenty-five states, skins, an optical offset, per-state files) and the launcher shell no longer ships it. ZIGi's states, files, budgets, motion and the launcher are now specified in [`ZIGI_ASSET_SPEC.md`](ZIGI_ASSET_SPEC.md). The three sections below are kept as Session T wrote them.
 
 The manifest is a static, build-time import that every app page ships with the launcher shell (follow-up 2026-10-05), so it holds only what the avatar needs: the sizes, the per-size budgets and the state table below. Every state maps to the static placeholder until the figure set lands; an animated state is an animated WebP (APNG as the fallback) under the per-size budget, and every animated state needs its static frame for reduced motion and Motion Off.
 | State | Code | When |

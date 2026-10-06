@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useState} from 'react';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
 import type {Platform} from '../../lib/positions';
@@ -28,6 +28,12 @@ import {guideWeekSummary} from '../../lib/coach/summary';
 import {unifiedGoalSummaries} from '../../lib/goal-summary';
 import {habitCalendarDay} from '../../lib/habits';
 import {localWeekday} from '../../lib/local-date';
+import {useLauncherRecord} from '../ai/use-launcher-record';
+import type {DayBrief} from '../ai/zigi-brief';
+
+// Session V Part 9: ZIGi's morning brief, loaded only while ZIGi is on and its launcher shows.
+const BriefProbe = lazy(() => import('../ai/zigi-brief').then(m => ({default: m.BriefProbe})));
+const BriefCard = lazy(() => import('../ai/zigi-brief').then(m => ({default: m.BriefCard})));
 
 const formatWealth = (s: {currency: string; value: bigint}) => wealthMoney(s.value, s.currency);
 /**
@@ -40,6 +46,8 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const insights = useInsightCards({habits, health, links: links.loaded && !links.unreadable ? links.data : undefined});
   const [whatsNew, setWhatsNew] = useState<boolean | null>(null);
   const [reviewNote, setReviewNote] = useState('');
+  const launcher = useLauncherRecord(), [brief, setBrief] = useState<DayBrief | null>(null);
+  const zigiOn = launcher.loaded && launcher.record.enabled && !launcher.record.launcherHidden;
   useEffect(() => { let active = true; queueMicrotask(() => { if (!active) return; try { setWhatsNew(!whatsNewSeen(getAppStorage())); } catch { setWhatsNew(false); } }); return () => { active = false; }; }, [showcase]);
   const dismissNew = useCallback(() => { let ok = false; try { ok = dismissWhatsNew(getAppStorage()); } catch { ok = false; } if (ok) setWhatsNew(false); return ok; }, []);
   const window = useMemo(() => reviewWindow(review.data.weekday, today), [review.data.weekday, today]);
@@ -59,5 +67,6 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});
-  return <ForYou cards={cards} status={reviewNote} />;
+  if (zigiOn && brief) cards.push({id: 'zigi-brief', priority: 7, node: <Suspense fallback={null}><BriefCard {...brief} /></Suspense>});
+  return <>{zigiOn && <Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense>}<ForYou cards={cards} status={reviewNote} /></>;
 }

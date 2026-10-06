@@ -42,8 +42,9 @@ for(const width of [320,360,390,430])
  test(`${width} px: six counters with ~20-character names keep every number and button whole, with 44 px targets`,async({page},info)=>{
   await page.setViewportSize({width,height:844});
   await sixLongCounters(page);
-  // Measured at rest: the page and card arrival animations have finished (a moving card reads sub-pixel sizes).
-  await page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'));
+  // Measured at rest: the page and card arrival animations have finished (a moving card reads sub-pixel sizes). ZIGi's
+  // idle breath (Session V Part 12) loops for as long as the page shows, on the launcher's figure only: not waited for.
+  await page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'||a.effect?.getComputedTiming().iterations===Infinity));
   await page.mouse.move(1,1);
   const bars=await page.locator('.exercise-counter').evaluateAll(els=>els.map(e=>{
    const b=e.getBoundingClientRect(),box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),h3=e.querySelector('h3')!,out=e.querySelector('output')!;

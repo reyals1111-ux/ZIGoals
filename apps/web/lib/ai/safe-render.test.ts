@@ -26,3 +26,26 @@ test('an unfinished fence, odd markers and nested marks do not break the parser;
   expect(plainText(parseBlocks('# T\n\nA **b** [c](https://x.y)\n\n- one\n- two'))).toBe('T\n\nA b c\n\n• one\n• two');
   expect(parseBlocks('')).toEqual([]);
 });
+
+// Session V Part 10: GitHub-style tables, still a parsed tree: cells are inline marks only, HTML stays text.
+test('tables: header, alignment, escaped pipes, inline marks, caps; anything else stays a paragraph', () => {
+  const blocks = parseBlocks('Your week:\n\n| Habit | Done | Note |\n|:--|--:|:-:|\n| **Read** | 5 | a \\| b |\n| Walk | 3 |\n\nAfter.');
+  expect(blocks.map(b => b.type)).toEqual(['paragraph', 'table', 'paragraph']);
+  expect(blocks[1]).toEqual({type: 'table', align: ['left', 'right', 'center'], cut: 0,
+    head: [[{type: 'text', text: 'Habit'}], [{type: 'text', text: 'Done'}], [{type: 'text', text: 'Note'}]],
+    rows: [[[{type: 'strong', children: [{type: 'text', text: 'Read'}]}], [{type: 'text', text: '5'}], [{type: 'text', text: 'a | b'}]], [[{type: 'text', text: 'Walk'}], [{type: 'text', text: '3'}], []]]});
+  // HTML, scripts, images and non-https links inside cells stay words.
+  const evil = parseBlocks('| a | b |\n|---|---|\n| <img src=x onerror=alert(1)> | [x](javascript:alert(1)) |\n| ![i](https://e.x/i.png) | <script>alert(1)</script> |');
+  const cells = JSON.stringify(evil);
+  expect(cells).not.toContain('"type":"link"'); expect(cells).toContain('<img src=x onerror=alert(1)>'); expect(cells).toContain('<script>alert(1)</script>');
+  // A pipe line without a delimiter row is a paragraph; a delimiter needs pipes and dashes.
+  expect(parseBlocks('a | b\nc | d').map(b => b.type)).toEqual(['paragraph']);
+  expect(parseBlocks('Title\n---').map(b => b.type)).toEqual(['paragraph']);
+  // Caps: 20 columns, 100 rows (the rest counted), 500 characters a cell.
+  const wide = parseBlocks(`|${Array.from({length: 25}, (_, i) => ` c${i} `).join('|')}|\n|${Array.from({length: 25}, () => '---').join('|')}|`)[0] as {head: unknown[]};
+  expect(wide.head).toHaveLength(20);
+  const long = parseBlocks(['| n |', '|---|', ...Array.from({length: 130}, (_, i) => `| ${i} |`)].join('\n'))[0] as {rows: unknown[]; cut: number};
+  expect(long.rows).toHaveLength(100); expect(long.cut).toBe(30);
+  expect((parseBlocks(`| a |\n|---|\n| ${'x'.repeat(900)} |`)[0] as {rows: {text: string}[][][]}).rows[0]![0]![0]!.text.length).toBe(500);
+  expect(plainText(blocks)).toBe('Your week:\n\nHabit | Done | Note\nRead | 5 | a | b\nWalk | 3 | \n\nAfter.');
+});
