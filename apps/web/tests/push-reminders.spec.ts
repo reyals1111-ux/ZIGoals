@@ -193,3 +193,67 @@ test('an iPhone browser tab is told to install first; a locked account is told t
     await expect(panel(page).getByRole('button')).toHaveCount(0);
   }
 });
+
+// Session V Part 13 (owner-approved, ADR-014): reminder names in notifications, opt-in. The page keeps the names table,
+// the real worker reads it when a push arrives (delivered through the browser's DevTools protocol), the server never
+// sees a name, and turning it off deletes the table.
+const labelRows = (page: Page) => page.evaluate(() => new Promise<unknown[] | null>(resolve => {
+  void indexedDB.databases().then(list => {
+    if (!list.some(db => db.name === 'zigoals-push-labels-v1')) { resolve(null); return; }
+    const open = indexedDB.open('zigoals-push-labels-v1');
+    open.onsuccess = () => { const all = open.result.transaction('labels', 'readonly').objectStore('labels').getAll(); all.onsuccess = () => { resolve(all.result); open.result.close(); }; };
+    open.onerror = () => resolve(null);
+  });
+}));
+const labelsListed = (page: Page) => page.evaluate(async () => (await indexedDB.databases()).some(db => db.name === 'zigoals-push-labels-v1'));
+const notificationBodies = (page: Page) => page.evaluate(async () => (await (await navigator.serviceWorker.getRegistration('/'))!.getNotifications()).map(n => n.body));
+test('reminder names: off by default; on, a push names the habit due now, composed on this device; off deletes the table', async ({page, context}) => {
+  await context.grantPermissions(['notifications']);
+  await stubPushManager(page);
+  if (onMobile()) await installed(page);
+  await fixtureAccount(page);
+  const calls = await fixturePush(page);
+  await signInAndUnlock(page);
+  await panel(page).getByRole('button', {name: 'Turn on on this device', exact: true}).click();
+  await expect(state(page)).toHaveText('On · reminder times checked today.');
+  const names = panel(page).getByRole('switch', {name: 'Show what a reminder is for in notifications'});
+  await expect(names).toHaveAttribute('aria-checked', 'false');
+  expect(await labelRows(page)).toBeNull();
+  // A habit whose reminder was due a few minutes ago, on this device's clock.
+  const due = await page.evaluate(() => { const d = new Date(Date.now() - (new Date().getMinutes() >= 5 ? 3 : 0) * 60_000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; });
+  await go(page, 'Habits', '/app/habits');
+  await page.getByRole('button', {name: '+ New habit', exact: true}).click();
+  await page.getByLabel('Habit title', {exact: true}).fill('Stretch');
+  await page.getByLabel('Reminder time — on this device').fill(due);
+  await page.getByRole('button', {name: 'Create habit', exact: true}).click();
+  await expect(page.getByRole('article', {name: 'Stretch', exact: true})).toBeVisible();
+  await go(page, 'Settings', '/app/settings');
+  await names.click();
+  await expect(names).toHaveAttribute('aria-checked', 'true');
+  await expect.poll(() => labelRows(page), {timeout: 10_000}).toEqual([expect.objectContaining({label: 'Stretch', time: due, weekdays: 127})]);
+  // The habit's reminder is in the push schedule too, read through the account vault's durable store, where the habits
+  // now live (a T bug found here: it was left out). Quiet hours away from the reminder, so any hour of the day works.
+  const shift = (clock: string, minutes: number) => { const total = (Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3, 5)) + minutes + 1440) % 1440; return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; };
+  const durable = () => page.evaluate(() => Object.entries(localStorage).some(([k, v]) => k.endsWith('zigoals:habits:v1') && v.includes('zigoals-indexeddb-pointer')));
+  await expect.poll(durable, {timeout: 10_000}).toBe(true);
+  await panel(page).getByLabel('Quiet from').fill(shift(due, 120));
+  await panel(page).getByLabel('Quiet until').fill(shift(due, 180));
+  await panel(page).getByRole('button', {name: 'Save quiet hours', exact: true}).click();
+  await expect.poll(() => calls.at(-1)?.body.schedules, {timeout: 10_000}).toEqual([{time: due, zone: expect.any(String), weekdays: 127}]);
+  expect(JSON.stringify(calls)).not.toContain('Stretch');
+  // A push arrives: the worker shows the name, made here from the table.
+  const cdp = await context.newCDPSession(page);
+  const registrationId = await new Promise<string>(resolve => { cdp.on('ServiceWorker.workerRegistrationUpdated', ({registrations}: {registrations: {registrationId: string; scopeURL: string; isDeleted: boolean}[]}) => { const found = registrations.find(r => !r.isDeleted && r.scopeURL.endsWith('/')); if (found) resolve(found.registrationId); }); void cdp.send('ServiceWorker.enable'); });
+  await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: '{"v":1}'});
+  await expect.poll(() => notificationBodies(page), {timeout: 10_000}).toEqual(['Reminder: Stretch']);
+  // Off again: the table goes; the next push is the generic line.
+  await names.click();
+  await expect(names).toHaveAttribute('aria-checked', 'false');
+  await expect.poll(() => labelRows(page), {timeout: 10_000}).toBeNull();
+  await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: '{"v":1}'});
+  await expect.poll(() => notificationBodies(page), {timeout: 10_000}).toEqual(['A reminder from ZIGoals']);
+  // The worker only reads: with no table it created none.
+  expect(await labelsListed(page)).toBe(false);
+  await panel(page).getByRole('button', {name: 'Turn off and delete from the server', exact: true}).click();
+  await expect(state(page)).toHaveText('Off.');
+});

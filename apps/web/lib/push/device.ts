@@ -44,9 +44,13 @@ export function scheduleNote(derived: Derived, quiet: QuietHours): string {
   return parts.join(' ');
 }
 async function registration(): Promise<ServiceWorkerRegistration | undefined> { return navigator.serviceWorker?.getRegistration(SW_SCOPE); }
-/** Unsubscribes in the browser and unregisters the worker; never throws. */
+/**
+ * Unsubscribes in the browser, unregisters the worker and deletes the opted-in names table (Session V Part 13, loaded
+ * only now); never throws.
+ */
 async function forgetInBrowser(): Promise<void> {
   try { const reg = await registration(); const sub = await reg?.pushManager.getSubscription(); await sub?.unsubscribe(); await reg?.unregister(); } catch { /* nothing left to undo */ }
+  try { await (await import('./labels-sync')).forgetPushLabels(); } catch { /* nothing to delete */ }
 }
 /**
  * From a tap: permission (asked first, inside the gesture), the worker, the browser subscription, the subscribe call
