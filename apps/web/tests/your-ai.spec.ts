@@ -259,6 +259,22 @@ test('the context is only what the page shares: Settings reads nothing, the swit
   expect(captured.every(c => !('authorization' in c.headers))).toBe(true);
 });
 
+test('Today\'s data carries the review week from the weekly review on this device; no Health lines while Health is not shared', async ({page}) => {
+  // Session V (fix found by Part 9's spec): T read the weekly review through the private store, which refused it, so the
+  // review week never reached ZIGi. Read through its own hook, it now shows here, without Health unless the gate is open.
+  await mockLocal(page, () => stream('Sure.'));
+  await seed(page, connectedLocal());
+  await page.goto('/app');
+  await openChat(page);
+  const bar = panel(page).locator('.ai-context-bar');
+  await bar.getByText('What your AI sees').click();
+  const preview = bar.locator('.ai-context-preview pre');
+  await expect(preview).toContainText('This week (for your weekly review)');
+  await expect(preview).toContainText(/Week \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2} · review /);
+  await expect(preview).toContainText(/\d+ habit check-ins · \d+ goal contributions/);
+  expect(await preview.textContent()).not.toMatch(/health entries|meals logged|latest weight|min movement/);
+});
+
 test('hide with Undo, the Settings switch, ⌘K / Ctrl+K and focus back on the launcher', async ({page, isMobile}) => {
   test.skip(isMobile, 'keyboard shortcut and hide pill are desktop behaviours');
   await seed(page, connectedLocal());

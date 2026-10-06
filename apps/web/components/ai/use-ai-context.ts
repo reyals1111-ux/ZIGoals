@@ -1,10 +1,11 @@
 'use client';
-import {useCallback, useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {formatUnits} from '@zigoals/chain-config';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
 import {reviewWindow} from '../../lib/weekly-review/engine';
-import {emptyWeeklyReview, WEEKLY_REVIEW_KEY, weeklyReviewSchema} from '../../lib/weekly-review/schema';
+import {emptyWeeklyReview, WEEKLY_REVIEW_KEY, type WeeklyReview} from '../../lib/weekly-review/schema';
+import {readWeeklyReview} from '../../lib/weekly-review/store';
 import {habitCalendarDay} from '../../lib/habits';
 import {dailyData, healthDay} from '../../lib/health-daily';
 import {coinKey} from '../../lib/portfolio/schema';
@@ -22,7 +23,8 @@ import {aiGates, type Gates} from '../../lib/ai/gates';
 import type {PriceOf, ToolSources} from '../../lib/ai/tools/env';
 import {notesForAi} from '../../lib/ai/memory';
 import {AI_MEMORY, AI_OPTIONS} from '../../lib/ai/store/records';
-import {isShowcase} from '../../lib/showcase-storage';
+import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
+import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {useGoals} from '../goal-provider';
 import {useHabits} from '../habits/use-habits';
 import {useFasting} from '../health/use-fasting';
@@ -47,11 +49,33 @@ import {useHealthConsent} from './use-health-consent';
  */
 export type AiContextState = {area: PageArea; pathname: string; attaches: boolean; consent: Consent; context: PageContext | null; preview: Preview | null; ready: boolean; gates: Gates; toolSources: () => ToolSources | null};
 const NO_REQUESTS: MarketQuoteRequest[] = [];
+/**
+ * The weekly review on this device, read the way Today's review reads it while sync writes are off (the device record,
+ * lib/weekly-review/store). T read it through the private store, which only knows the four journals and refused this key
+ * on every device, so the review week never reached ZIGi (found by Session V Part 9's spec). Read only; read again when
+ * the review changes in this tab (its own event) or in another one, and on an account change. If sync writes are ever
+ * switched on, this read follows the review's own hook instead (ADR-014).
+ */
+const REVIEW_CHANGE = 'zigoals:weekly-review-change';
+function useWeeklyRecord(): {data: WeeklyReview; loaded: boolean; error: string} {
+  const [state, setState] = useState<{data: WeeklyReview; loaded: boolean; error: string}>(() => ({data: emptyWeeklyReview(), loaded: false, error: ''}));
+  useEffect(() => {
+    const read = () => {
+      try { const found = readWeeklyReview(getAppStorage()); setState({data: found.data, loaded: true, error: found.unreadable ? 'unreadable' : ''}); }
+      catch { setState({data: emptyWeeklyReview(), loaded: true, error: 'unreadable'}); }
+    };
+    read();
+    const onStorage = (event: StorageEvent) => { if (!event.key || event.key.endsWith(WEEKLY_REVIEW_KEY)) read(); };
+    window.addEventListener('storage', onStorage); window.addEventListener(REVIEW_CHANGE, read); window.addEventListener(ACCOUNT_CHANGE, read);
+    return () => { window.removeEventListener('storage', onStorage); window.removeEventListener(REVIEW_CHANGE, read); window.removeEventListener(ACCOUNT_CHANGE, read); };
+  }, []);
+  return state;
+}
 export function useAiContext(settings: AiSettings, providerName: string, sensitive: boolean): AiContextState {
   const pathname = usePathname() ?? '/app', area = pageArea(pathname), attaches = attachesContext(pathname);
   const platform = usePlatform(), habits = useHabits(), health = useHealth(), fasting = useFasting(), portfolios = usePortfolios(), legacy = useGoals();
   const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent();
-  const weekly = usePrivateStore(WEEKLY_REVIEW_KEY, weeklyReviewSchema, emptyWeeklyReview);
+  const weekly = useWeeklyRecord();
   // Part 8: the person's notes, only while "Use my notes" is on; the gates decide per path where they may go.
   const memory = useDeviceRecord(AI_MEMORY), options = useDeviceRecord(AI_OPTIONS);
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
