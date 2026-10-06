@@ -161,6 +161,25 @@ ADR-014 "Session decisions" S1–S24 (each the safest option that keeps the brie
 - Look at the gallery ([`review/session-v-screens`](https://github.com/reyals1111-ux/ZIGoals/blob/review/session-v-screens/index.md)).
 - Decide later: hosted activation ([ZIGI_RELAY_ACTIVATION.md](run11/ZIGI_RELAY_ACTIVATION.md)), the figure set, the Guide overlap (ADR-014), LEGAL_CHECKLIST §8a.
 
+## Follow-up (main merge after #75)
+The owner merged hotfix [#75](https://github.com/reyals1111-ux/ZIGoals/pull/75) into `main` (`8c318af`): the 1c Health-gate fix and the `[TIER 3] (dependencies)` overrides for `source-map-js` (GHSA-68fv-2mgg-jv7q) and `sharp` 0.35.5 (GHSA-wq5f-xc86-pv6w). The audit override above is therefore decided (approved, through `main`), not waiting.
+- **Merge commit:** `f725ade` (merge commit, no rebase, no force-push), `origin/main` `8c318af` into this branch.
+- **Resolved file:** `apps/web/lib/ai/context/builders.test.ts`, both intents kept. 1c is identical on both sides, and `main`'s side of both hunks was empty. This branch's fixtures import and the Part 4 portfolio-currency test are kept. `pnpm-workspace.yaml` and `pnpm-lock.yaml` came in from `main` unchanged; `builders.ts` merged cleanly to this branch's version.
+- **Local checks on `f725ade`:**
+  - frozen install: clean;
+  - `pnpm audit --prod --audit-level high`: "No known vulnerabilities found";
+  - lint and typecheck: clean;
+  - unit: 401 files, 3,689 tests passed (1 expected fail, 35 skipped);
+  - production build: clean;
+  - ZIGi, Today, Settings and Help specs, 32 files on both projects against the production build: 263 passed, 63 skipped, 0 failed.
+- **CI finding on `f725ade`, fixed in the test (`afab28c`):**
+  - The packaged-artifact journey (`scripts/run11/packaged-consumer-journey.mjs`) clicked Wealth under a "Fund your Goal" sheet that had not closed, and timed out after 30 s.
+  - Its wait after "Confirm & fund Goal" looked for "$2,000" in the Goal overview. The overview always shows the target ("of $2,000"), so the wait proved nothing.
+  - It now waits for the sheet to close, the "Goal funded." status and the current value; the old wait stays.
+  - Locally on the packaged build: 5 of 5 before the change, 3 of 3 after. Why the sheet stayed open in CI is not known; a repeat now fails at the save, with the page text in the run's `failure.json`.
+- **CI on `afab28c`:** Milestone quality, [run 37510282006](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37510282006): web checks, with the `pnpm audit` step **green** for the first time since `ba8a13e`. Also green: integration (including the packaged journey), contract, all three browser shards and the "web" summary. Canonical reproducibility, [run 37510281998](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37510281998): success. (Actions API)
+- **This section's commit:** its CI is on the PR.
+
 # Alpha deploy #29 — 2026-10-05 evening, `c97edbe` live
 Recorded by Session V at the owner's request (2026-10-06).
 - **Source:** `c97edbe15c8135c2ae6e50624c5ca6e02684ab43`, `main` after [PR #73](https://github.com/reyals1111-ux/ZIGoals/pull/73) (Merge #73, which contains #74).
