@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "Single source for the origins the app may connect to and for the Permissions-Policy values (Session T, ADR-012). security-policy.ts, next.config.ts, lib/ai/providers.ts and the deployment checks read this file; no literal copies elsewhere.",
+  "note": "Single source for the origins the app may connect to and for the Permissions-Policy values (Session T, ADR-012). security-policy.ts, next.config.ts, lib/ai/providers.ts and the deployment checks read this file, through lib/csp-compose.mjs for the policies (Session W); no literal copies elsewhere.",
   "chainOrigins": [
     "https://testnet-api.zigchain.com",
     "https://testnet-rpc.zigchain.com"
@@ -19,6 +19,11 @@
   "serverOnly": {
     "note": "Origins only the app's own server code reaches, never the browser: none of them enters connect-src (ADR-014 S2). Each is a secret on the app Worker, unset in every committed config.",
     "zigiRelay": "ZIGOALS_ZIGI_RELAY_ORIGIN: ZIGoals hosted's relay (workers/zigi-relay), reached only by /api/zigi (lib/server/zigi-route.ts); off by default"
+  },
+  "csp": {
+    "note": "Session W Part 1e: extra connect-src, img-src and frame-src sources per document class ('app' is /app and everything under it, 'site' every other document), in the order they are sent. lib/csp-compose.mjs builds the one policy the app and every check use. Empty lists keep the policy every build since Session V sends: connect-src is 'self' plus the origins above, img-src 'self' data: blob:, frame-src 'none'.",
+    "app": { "connect": [], "img": [], "frame": [] },
+    "site": { "connect": [], "img": [], "frame": [] }
   },
   "permissionsPolicy": {
     "global": "camera=(), microphone=(), geolocation=()",

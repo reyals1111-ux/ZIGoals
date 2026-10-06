@@ -17,6 +17,8 @@ if (!output) throw Error('Provide a new evidence output directory.');
 await mkdir(output);
 // Session T (ADR-012): the reviewed connect-src comes from the app's own data file, never a copy.
 const egressPolicy = JSON.parse(await readFile(new URL('../apps/web/lib/egress-policy.json', import.meta.url), 'utf8'));
+// Session W Part 1e: the reviewed sources come from the app's own composer.
+const { connectSources, frameSources } = await import('../apps/web/lib/csp-compose.mjs');
 const alpha = 'https://alpha.zigoals.app';
 const fallback = 'https://zigoals-alpha.reyals1111.workers.dev';
 const apex = 'https://zigoals.app';
@@ -63,8 +65,9 @@ try {
         const csp=headers['content-security-policy'];
         assert.match(csp,/script-src 'self' 'nonce-[A-Za-z0-9+/]+=*' 'strict-dynamic'/);
         assert.doesNotMatch(csp.split(';').find(s=>s.includes('script-src')),/unsafe-inline|unsafe-eval/);
-        assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), ["'self'", ...egressPolicy.chainOrigins, ...Object.values(egressPolicy.aiProviderOrigins), ...egressPolicy.localModelSources].sort());
-        for (const d of ['object-src','frame-src','frame-ancestors','base-uri']) assert(csp.includes(`${d} 'none'`));
+        assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), connectSources(egressPolicy,'app').sort());
+        for (const d of ['object-src','frame-ancestors','base-uri']) assert(csp.includes(`${d} 'none'`));
+        assert(csp.split(';').map(s=>s.trim()).includes(`frame-src ${frameSources(egressPolicy,'app').join(' ')}`),'frame-src must be exactly the reviewed sources');
         assert(csp.includes("form-action 'self'"));
         // Session V Part 19 (docs/security/TRUSTED_TYPES.md): Trusted Types enforced, with the default policy only.
         assert(csp.split(';').map(s=>s.trim()).includes("require-trusted-types-for 'script'"),'Trusted Types must be enforced');

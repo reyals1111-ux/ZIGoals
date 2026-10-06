@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { navLink } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
+import { connectSources } from "../lib/csp-compose.mjs";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
 
 test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
@@ -57,7 +58,7 @@ test("egress capture detects a sentinel carried only in an HttpOnly cookie", asy
 });
 // Permissions-Policy per route (Session T, ADR-012): read from the one data file next.config.ts reads, so the spec
 // proves the effective headers of the running build (next start, and the OpenNext artifact in the integration job).
-const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as {permissionsPolicy: {global: string; app: string; health: string}; chainOrigins: string[]; aiProviderOrigins: Record<string, string>; localModelSources: string[]};
+const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as Parameters<typeof connectSources>[0];
 test("the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere", async ({request}) => {
   for (const [path, expected] of [["/app", egress.permissionsPolicy.app], ["/app/habits", egress.permissionsPolicy.app], ["/app/health", egress.permissionsPolicy.health]] as const) {
     const response = await request.get(path);
@@ -70,7 +71,8 @@ test("the effective Permissions-Policy: the microphone on the app pages, the cam
   expect([200, 307, 308]).toContain(root.status());
   expect(root.headers()["permissions-policy"]).toBe(egress.permissionsPolicy.global);
   const app = await request.get("/app");
-  expect(app.headers()["content-security-policy"]).toContain(`connect-src 'self' ${[...egress.chainOrigins, ...Object.values(egress.aiProviderOrigins), ...egress.localModelSources].join(" ")}`);
+  // Session W Part 1e: the reviewed connect-src from the app's own composer.
+  expect(app.headers()["content-security-policy"]).toContain(`connect-src ${connectSources(egress, "app").join(" ")};`);
 });
 test("strict production headers, fresh nonce, navigation and script rejection", async ({page,request}) => {
   const errors:string[]=[]; page.on("pageerror",e=>errors.push(e.message));

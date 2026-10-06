@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {hermeticWorkerOptions} from './hermetic-wrangler.mjs';
+import {connectSources,permissionsPolicyFor} from '../../apps/web/lib/csp-compose.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{unstable_getMiniflareWorkerOptions}=require('wrangler');
 const root=new URL('../../',import.meta.url).pathname;
@@ -30,17 +31,17 @@ async function alpha(){
 test.runIf(enabled)('the packaged Alpha answers every app route with the reviewed Permissions-Policy and connect-src',async()=>{
  const mf=await alpha();
  try{
-  for(const [path,expected] of [['/app',egress.permissionsPolicy.app],['/app/habits',egress.permissionsPolicy.app],['/app/health',egress.permissionsPolicy.health],['/app/settings',egress.permissionsPolicy.app]]){
+  for(const [path,expected] of ['/app','/app/habits','/app/health','/app/settings'].map(path=>[path,permissionsPolicyFor(egress,path)])){
    const response=await mf.dispatchFetch(`https://alpha.zigoals.app${path}`,{headers:{'cf-connecting-ip':'192.0.2.44'}});
    expect(response.status,path).toBe(200);
    expect(response.headers.get('permissions-policy'),path).toBe(expected);
    const connect=(response.headers.get('content-security-policy')??'').split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src '));
-   expect(connect,path).toBe(`connect-src ${["'self'",...egress.chainOrigins,...Object.values(egress.aiProviderOrigins),...egress.localModelSources].join(' ')}`);
+   expect(connect,path).toBe(`connect-src ${connectSources(egress,'app').join(' ')}`);
   }
   // The root redirects to /app; the global policy is asserted on the root's own response, not on the page it leads to.
   const root_=await mf.dispatchFetch('https://alpha.zigoals.app/',{headers:{'cf-connecting-ip':'192.0.2.44'},redirect:'manual'});
   expect([200,307,308]).toContain(root_.status);
-  expect(root_.headers.get('permissions-policy')).toBe(egress.permissionsPolicy.global);
+  expect(root_.headers.get('permissions-policy')).toBe(permissionsPolicyFor(egress,'/'));
  }finally{await mf.dispose();}
 },60000);
 test('the data file names exactly the reviewed values (runs without the artifact)',()=>{

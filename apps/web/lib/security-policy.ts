@@ -1,4 +1,5 @@
 import egress from "./egress-policy.json";
+import { TRUSTED_TYPES, composeCsp, connectSources } from "./csp-compose.mjs";
 
 /**
  * Every origin the app may connect to, in one place (egress-policy.json): itself, the two Testnet endpoints, the AI
@@ -8,29 +9,16 @@ import egress from "./egress-policy.json";
  * request. The exfiltration trade-off (a same-origin script could post data to a listed provider with a key of its
  * own) is recorded in docs/security/THREAT_MODEL.md; CSP never stops exfiltration by navigation anyway.
  */
-export const CONNECT_SOURCES: readonly string[] = ["'self'", ...egress.chainOrigins, ...Object.values(egress.aiProviderOrigins), ...egress.localModelSources];
+export const CONNECT_SOURCES: readonly string[] = connectSources(egress, "app");
 
-/** Web Crypto only: runs in Next's edge middleware and workerd. */
-export function securityPolicy(development: boolean, https: boolean) {
+/**
+ * Web Crypto only: runs in Next's edge middleware and workerd. The policy itself comes from lib/csp-compose.mjs (Session
+ * W Part 1e), the same composer every deployment check uses; `pathname` picks the document class ("app" for /app and
+ * below, "site" otherwise), and with no class-specific sources both classes send the policy of every build since Session V.
+ */
+export function securityPolicy(development: boolean, https: boolean, pathname = "/app") {
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
-  const csp = [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
-    // The push-only service worker (public/push-sw.js, ADR-010): under 'strict-dynamic' a worker URL carries no nonce,
-    // so workers need their own same-origin directive. Nothing else runs in a worker.
-    "worker-src 'self'",
-    // React progress bars use style attributes. This exception never authorizes scripts.
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:", "font-src 'self'",
-    `connect-src ${CONNECT_SOURCES.join(" ")}${development ? " ws://127.0.0.1:3100" : ""}`,
-    "object-src 'none'", "frame-src 'none'", "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
-    // Session V Part 19: Trusted Types enforced in every production build (docs/security/TRUSTED_TYPES.md). No string
-    // reaches an HTML or script sink; script URLs pass only the default policy (lib/trusted-types.ts). The development
-    // server keeps its eval-based refresh, so it stays unenforced.
-    ...(development ? [] : TRUSTED_TYPES.split("; ")),
-    ...(https ? ["upgrade-insecure-requests"] : []),
-  ].join("; ");
-  return { nonce, csp };
+  return { nonce, csp: composeCsp(egress, { nonce, development, https, pathname }) };
 }
 /**
  * The Trusted Types directives. Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04) built them as a report-only trial;
@@ -39,7 +27,7 @@ export function securityPolicy(development: boolean, https: boolean) {
  * regression can be measured the same way: a trial run sends the same directives report-only to a local collector
  * (middleware.ts, with ZIGOALS_TRUSTED_TYPES_TRIAL set to a loopback URL), which also covers the development server.
  */
-export const TRUSTED_TYPES = "require-trusted-types-for 'script'; trusted-types default";
+export { TRUSTED_TYPES };
 export const TRUSTED_TYPES_TRIAL = TRUSTED_TYPES;
 const LOOPBACK_HOSTS = ["127.0.0.1", "localhost"];
 /**

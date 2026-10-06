@@ -3,7 +3,7 @@ import { securityPolicy, trustedTypesTrialHeader } from "./lib/security-policy";
 // Legacy edge middleware is intentional: OpenNext cannot run Node proxy yet.
 export function middleware(request: NextRequest) {
   const https = request.nextUrl.protocol === "https:";
-  const {nonce, csp} = securityPolicy(process.env.NODE_ENV === "development", https);
+  const {nonce, csp} = securityPolicy(process.env.NODE_ENV === "development", https, request.nextUrl.pathname);
   const headers = new Headers(request.headers);
   headers.set("x-nonce", nonce);
   headers.set("x-zigoals-origin", request.nextUrl.origin);
