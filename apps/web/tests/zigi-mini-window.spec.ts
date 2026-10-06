@@ -1,4 +1,4 @@
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type Locator, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -40,6 +40,14 @@ async function bestPictureInPicture(page: Page) {
   await pictureInPicture(page, real ? 'real' : 'stand-in');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
+/**
+ * A click on a control that closes the mini window it sits in. Real Chrome can close the window before Playwright's click
+ * returns ("Target page, context or browser has been closed", CI on d157fbc), so the click and the window's close are
+ * awaited together; a click error counts only while the window is still open.
+ */
+async function clickThatCloses(mini: Page, target: Locator) {
+  await Promise.all([mini.waitForEvent('close'), target.click().catch(error => { if (!mini.isClosed()) throw error; })]);
+}
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi|Close ZIGi, your AI/});
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
@@ -102,7 +110,7 @@ test('the same chat goes on in the mini window; "Back to tab" and ZIGi\'s button
   await page.locator('dialog.wealth-sheet[open]').getByRole('button', {name: 'Close dialog'}).click();
   await expect(mini.getByText('Paused while a private screen is open in the tab')).toHaveCount(0);
   // "Back to tab": the window closes and the panel opens in the tab with the same conversation.
-  await chat.getByRole('button', {name: 'Back to the tab'}).click();
+  await clickThatCloses(mini, chat.getByRole('button', {name: 'Back to the tab'}));
   await expect.poll(() => mini.isClosed()).toBe(true);
   await expect(panel(page)).toBeVisible();
   await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(2);
@@ -118,7 +126,7 @@ test('the same chat goes on in the mini window; "Back to tab" and ZIGi\'s button
   const third = context.waitForEvent('page');
   await panel(page).getByRole('button', {name: 'Pop out ZIGi into a mini window'}).click();
   const last = await third;
-  await last.locator('section.ai-chat-pip').getByRole('button', {name: 'Close ZIGi', exact: true}).click();
+  await clickThatCloses(last, last.locator('section.ai-chat-pip').getByRole('button', {name: 'Close ZIGi', exact: true}));
   await expect.poll(() => last.isClosed()).toBe(true);
   await expect(panel(page)).toHaveCount(0);
 });
