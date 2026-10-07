@@ -53,6 +53,11 @@ https://docs.coingecko.com/demo/reference/coins-markets (fields nullable; refres
 details are admitted and charged exactly like insights (the same cost key), so the private `MARKET_POLICY` is unchanged;
 COST_MODEL (Part 25) gives the extra coordinator load.
 
+## Shared with Markets (Part 16)
+The table, the change (always with its sign), the 7-day sparkline and the filter chips live in `components/markets/` and
+are shared by Portfolio's holdings and Markets' table view (Markets: Cards / Table; cards stay the default). Only the
+table view asks for market details.
+
 ## Showcase
 The Showcase asks no market service: a labelled fixture line per coin ends at its fixture price and gives its changes,
 sparklines and chart; its market sizes are round fixtures ("Showcase fixture figures, not market data").

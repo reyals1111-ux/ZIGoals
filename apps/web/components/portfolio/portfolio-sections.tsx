@@ -10,20 +10,15 @@ import {coinKey, type Portfolio, type PortfolioCoin, type PortfolioCurrency, typ
 import {ordered, valueHolding, type Holding} from '../../lib/portfolio/math';
 import {allocation, type AllTimeResult, type DayChange} from '../../lib/portfolio/performance';
 import {FEATURED_COINS} from './coin-picker';
+import {Change, compactAmount, compactMoney, direction, percent} from '../markets/market-format';
+import '../markets/data-table.css';
+export {Change, percent};
 import type {CoinMarket, Price, Sizes} from './use-portfolio-market';
 
 /** Session W Part 15: the pieces of Portfolio v2 and its coin page. Unknown is written as unknown, never as 0. */
 export const KIND_LABEL = {real: 'Real holdings', hypothetical: 'Hypothetical'} as const;
 export const TX_LABEL: Record<PortfolioTransaction['kind'], string> = {buy: 'Buy', sell: 'Sell', 'transfer-in': 'Transfer in', 'transfer-out': 'Transfer out'};
-export const percent = (value: string) => `${value.startsWith('-') ? '−' : '+'}${formatNumber(Math.abs(Number(value)), {maximumFractionDigits: 2})}%`;
-const direction = (value: string | null | undefined) => value == null ? 'unknown' : Number(value) > 0 ? 'up' : Number(value) < 0 ? 'down' : 'flat';
-/** Large figures in short form ("$1.2T"); the exact figure is in the title and in "Exact figures". Display only. */
-export const compactMoney = (value: string, currency: string) => formatNumber(Number(value), {style: 'currency', currency, notation: 'compact', maximumFractionDigits: 2});
-export const compactAmount = (value: string) => formatNumber(Number(value), {notation: 'compact', maximumFractionDigits: 2});
 export const coinHref = (coin: {ref: {id: string}}, portfolioId?: string) => `/app/portfolio/coin/${encodeURIComponent(coin.ref.id)}${portfolioId ? `?portfolio=${encodeURIComponent(portfolioId)}` : ''}`;
-export function Change({value, label}: {value: string | null; label: string}) {
-  return <span className="portfolio-change" data-direction={direction(value)}>{value === null ? <span className="portfolio-unknown">Not provided</span> : percent(value)}<span className="sr-only"> {label}</span></span>;
-}
 
 export type Row = {holding: Holding; coin: PortfolioCoin; market: CoinMarket; value?: string; unrealized?: string; unrealizedPct?: string};
 export function rowsFor(portfolio: Portfolio, holdingsByCoin: Map<string, Holding>, marketOf: (coin: PortfolioCoin) => CoinMarket): Row[] {
@@ -52,21 +47,21 @@ export function HoldingsTable({portfolio, rows, sort, onSort}: {portfolio: Portf
   const sorted = [...rows].sort((a, b) => sort === 'name' ? a.coin.name.localeCompare(b.coin.name) : Number((sort === 'value' ? b.value : b.unrealized) ?? -Infinity) - Number((sort === 'value' ? a.value : a.unrealized) ?? -Infinity) || a.coin.name.localeCompare(b.coin.name));
   return <section className="portfolio-holdings-section" aria-labelledby={`holdings-${portfolio.id}`}>
     <header className="portfolio-section-head"><h3 id={`holdings-${portfolio.id}`}>Holdings</h3><label className="field portfolio-sort"><span>Sort holdings</span><select value={sort} onChange={event => onSort(event.target.value as typeof sort)}><option value="value">By value</option><option value="result">By result</option><option value="name">By name</option></select></label></header>
-    <div className="portfolio-table-wrap" role="region" aria-label={`${portfolio.name} holdings, scrolls sideways`} tabIndex={0}>
-      <table className="portfolio-table" aria-label={`${portfolio.name} holdings`}>
-        <thead><tr><th scope="col">Coin</th><th scope="col" className="portfolio-col-wide">Price</th><th scope="col" className="portfolio-col-optional">1h</th><th scope="col">24h</th><th scope="col" className="portfolio-col-optional">7d</th><th scope="col" className="portfolio-col-optional">Last 7 days</th><th scope="col" className="portfolio-col-wide">Holdings</th><th scope="col">Value</th><th scope="col" className="portfolio-col-optional">Average cost</th><th scope="col">Result</th></tr></thead>
+    <div className="data-table-wrap" role="region" aria-label={`${portfolio.name} holdings, scrolls sideways`} tabIndex={0}>
+      <table className="data-table" aria-label={`${portfolio.name} holdings`}>
+        <thead><tr><th scope="col">Coin</th><th scope="col" className="data-col-wide">Price</th><th scope="col" className="data-col-optional">1h</th><th scope="col">24h</th><th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th><th scope="col" className="data-col-wide">Holdings</th><th scope="col">Value</th><th scope="col" className="data-col-optional">Average cost</th><th scope="col">Result</th></tr></thead>
         <tbody>{sorted.map(row => {
           const held = Number(row.holding.quantity) > 0;
           return <tr key={row.holding.coin} data-closed={!held || undefined}>
-            <th scope="row"><Link className="portfolio-coin-link" href={coinHref(row.coin, portfolio.id)}><AssetIcon symbol={row.coin.symbol} logoUrl={row.market.logoUrl} /><span><strong>{row.coin.name}</strong><small>{row.coin.symbol}</small></span></Link></th>
-            <td className="portfolio-col-wide"><PriceCell price={row.market.price} currency={currency} /></td>
-            <td className="portfolio-col-optional"><Change value={row.market.change1h} label="in 1 hour" /></td>
+            <th scope="row"><Link className="data-coin-link" href={coinHref(row.coin, portfolio.id)}><AssetIcon symbol={row.coin.symbol} logoUrl={row.market.logoUrl} /><span><strong>{row.coin.name}</strong><small>{row.coin.symbol}</small></span></Link></th>
+            <td className="data-col-wide"><PriceCell price={row.market.price} currency={currency} /></td>
+            <td className="data-col-optional"><Change value={row.market.change1h} label="in 1 hour" /></td>
             <td><Change value={row.market.change24h} label="in 24 hours" /></td>
-            <td className="portfolio-col-optional"><Change value={row.market.change7d} label="in 7 days" /></td>
-            <td className="portfolio-col-optional">{row.market.sparkline ? <Sparkline prices={row.market.sparkline} label={sparklineWords(row.coin.name, row.market.sparkline, text => formatPrice(text, currency))} /> : <span className="portfolio-unknown">Not provided</span>}</td>
-            <td className="portfolio-col-wide">{formatExactNumber(row.holding.quantity)} {row.coin.symbol}</td>
+            <td className="data-col-optional"><Change value={row.market.change7d} label="in 7 days" /></td>
+            <td className="data-col-optional">{row.market.sparkline ? <Sparkline prices={row.market.sparkline} label={sparklineWords(row.coin.name, row.market.sparkline, text => formatPrice(text, currency))} /> : <span className="data-unknown">Not provided</span>}</td>
+            <td className="data-col-wide">{formatExactNumber(row.holding.quantity)} {row.coin.symbol}</td>
             <td>{row.value === undefined ? held ? 'Value unknown' : '—' : formatMoney(row.value, currency)}</td>
-            <td className="portfolio-col-optional">{row.holding.averageCost === undefined ? held ? 'Unknown' : '—' : formatPrice(row.holding.averageCost, currency)}</td>
+            <td className="data-col-optional">{row.holding.averageCost === undefined ? held ? 'Unknown' : '—' : formatPrice(row.holding.averageCost, currency)}</td>
             <td data-direction={direction(row.unrealized)}>{!held ? 'Closed' : row.unrealized === undefined ? <>Unknown<small>{row.holding.cost === undefined ? 'cost unknown' : 'no price'}</small></> : <>{formatSignedMoney(row.unrealized, currency)}{row.unrealizedPct ? <small>{percent(row.unrealizedPct)}</small> : null}</>}</td>
           </tr>;
         })}</tbody>

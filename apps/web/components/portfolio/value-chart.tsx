@@ -6,7 +6,8 @@ import {coinKey, type Portfolio} from '../../lib/portfolio/schema';
 import {PortfolioDecimal} from '../../lib/portfolio/math';
 import {VALUE_RANGES, coinsInWindow, rangeWindow, valueSeries, type PricePoint, type ValueRange} from '../../lib/portfolio/performance';
 import {showcasePrices} from '../../lib/portfolio/showcase';
-import {percent} from './portfolio-sections';
+import {percent} from '../markets/market-format';
+import {FilterChips} from '../markets/filter-chips';
 import './value-chart.css';
 
 const cache = createMarketHistoryCache((request, refresh) => fetchPublicMarketHistory(request, refresh));
@@ -69,7 +70,7 @@ export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio
   if (!portfolio.transactions.length) return null;
   return <section className="portfolio-value-chart" aria-labelledby={`${id}-title`}>
     <header className="portfolio-section-head"><h3 id={`${id}-title`}>Value over time</h3>
-      <div className="portfolio-ranges" role="group" aria-label="Chart range">{VALUE_RANGES.map(r => <button key={r} type="button" aria-pressed={range === r} onClick={() => { setRange(r); setInspect(null); setNow(Date.now()); }}>{LABEL[r]}</button>)}</div>
+      <FilterChips className="portfolio-ranges" label="Chart range" options={VALUE_RANGES.map(r => ({value: r, label: LABEL[r]}))} value={range} onChange={r => { setRange(r); setInspect(null); setNow(Date.now()); }} />
     </header>
     {tooMany ? <p className="fine" role="note">The chart covers portfolios of up to {MAX_CHART_COINS} coins in a range; this one has {coins.length}. Each coin&rsquo;s own chart is on its page.</p> : <>
       {shown && shown.value !== null && <p className="portfolio-chart-quote"><strong>{formatMoney(shown.value, currency)}</strong> <span><time dateTime={new Date(shown.at).toISOString()}>{formatDateTime(new Date(shown.at).toISOString())}</time>{change !== null && inspect === null ? <> · <span data-direction={Number(change) > 0 ? 'up' : Number(change) < 0 ? 'down' : 'flat'}>{formatSignedMoney(change, currency)}{changePct !== null ? ` (${percent(changePct)})` : ''}</span> in this range, buys and sells included</> : null}</span></p>}
