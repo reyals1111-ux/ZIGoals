@@ -16,7 +16,8 @@ vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchron
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async()=>({}),applyData:(...args:any[])=>h.apply(...args)}));
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
 import {announceSyncedChanges,LocalRecordsChangedDuringSync} from './vault/account-data';
-import {VaultSyncProvider,VaultSyncControls} from '../components/vault-sync-controls';
+import {VaultSyncProvider} from '../components/vault-sync-controls';
+import {VaultSyncControls} from '../components/vault-sync-panel';
 const A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';let root:Root,element:HTMLDivElement;
 function deferred(){let resolve!:()=>void;const promise=new Promise<void>(yes=>{resolve=yes;});return {promise,resolve};}
 const settled=()=>({data:{},commit:async()=>{}});

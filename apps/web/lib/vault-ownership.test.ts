@@ -18,7 +18,8 @@ vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[]}}));
 vi.mock('./vault/local-attach',()=>({planLocalAttach:()=>({data:{},domains:['habits'],inventory:[]}),assertAttachSourceUnchanged:()=>{}}));
 vi.mock('./vault/backup',()=>({encryptBackup:async()=>({file:'fictional ciphertext',recovery:'fictional secret'})}));
 vi.mock('./vault/domain-lifecycle',()=>({prepareDomainReview:async(kind:string,domain:string)=>({kind,domain,local:{}}),deleteCloudDomain:async()=>{},acceptDomainRestore:(...args:any[])=>h.restore(...args)}));
-import {VaultSyncProvider,VaultSyncControls} from '../components/vault-sync-controls';
+import {VaultSyncProvider} from '../components/vault-sync-controls';
+import {VaultSyncControls} from '../components/vault-sync-panel';
 const A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',B='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';let root:Root,element:HTMLDivElement;
 function deferred<T>(){let resolve!:(v:T)=>void,reject!:(e:Error)=>void;const promise=new Promise<T>((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
 beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('navigator',{locks:{request:async(_key:string,work:()=>unknown)=>work()}});h.restore.mockReset().mockResolvedValue(undefined);h.apply.mockReset().mockResolvedValue(undefined);h.journalWrite.mockReset().mockResolvedValue(undefined);element=document.createElement('div');document.body.append(element);root=createRoot(element);await act(async()=>root.render(createElement(VaultSyncProvider,null,createElement(VaultSyncControls))));});

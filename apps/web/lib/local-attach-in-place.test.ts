@@ -15,7 +15,8 @@ vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchron
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async(storage:Storage,domains:string[])=>storage===window.localStorage?Object.fromEntries(domains.map(d=>[d,h.local[d]]).filter(([,v])=>v!==undefined)):{},applyData:async()=>{}}));
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
 import {LocalAccountAttach} from '../components/local-account-attach';
-import {VaultSyncProvider,VaultSyncControls} from '../components/vault-sync-controls';
+import {VaultSyncProvider} from '../components/vault-sync-controls';
+import {VaultSyncControls} from '../components/vault-sync-panel';
 import {presetSettings} from './dashboard-settings';
 
 /**

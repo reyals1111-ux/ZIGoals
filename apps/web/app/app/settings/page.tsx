@@ -4,7 +4,7 @@ import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
 import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
-import {VaultSyncControls} from "../../../components/vault-sync-controls";
+import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
 import {MotionPreference} from "../../../components/motion-preference";
 import {ShowcaseControls} from "../../../components/showcase-controls";
