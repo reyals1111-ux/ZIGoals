@@ -33,13 +33,14 @@ import { useSheetDrag } from "./use-sheet-drag";
  * phone-shell.css). Server-rendered for phones; removed after hydration everywhere else.
  */
 // The tabs are the first four visible pages and More holds the rest (Session W Part 2); with nothing hidden, the first
-// four destinations and the other seven, as before.
+// four destinations and the other seven, as before (eight with Chess, Session W Part 14, once it is shown).
 const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
   "/app/markets": "Prices you follow · watch-only",
   "/app/staking": "Public ZIG staking and positions · read-only",
   "/app/portfolio": "Coins you hold or plan · on this device",
   "/app/ecosystem": "ZIGChain projects · research only",
+  "/app/chess": "Your chess ratings and games · public data",
   "/app/activity": "Your recent steps, in order",
   "/app/settings": "Backups, privacy, motion and Showcase",
 };

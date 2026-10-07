@@ -6,6 +6,8 @@ import {isPhone, mainNav, openMore} from './phone-nav';
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 const SETTINGS = 'zigoals:settings:v1', MIRROR = 'zigoals:pages-view:v1', AT = '2026-10-07T09:00:00.000Z';
 const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
+/** Every page, Chess included (Session W Part 14): what "Show everything again" and the Showcase show. */
+const EVERY = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings'];
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
 const settingsWith = (p?: object) => ({...presetSettings('balanced'), onboarded: true, ...(p ? {schemaVersion: 3, pages: p} : {})});
 async function seed(page: Page, records: Record<string, unknown>) {
@@ -143,7 +145,7 @@ test('"Show everything again" asks first: Cancel changes nothing; confirming sho
   const record = await stored(page, SETTINGS);
   for (const id of [...AVAILABLE_PAGES, ...AVAILABLE_BUTTONS]) expect(record.pages.items[id].v).toBe('shown');
   expect(record.pages.start.id).toBe('habits');
-  await expectNav(page, ALL);
+  await expectNav(page, EVERY);
 });
 
 test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide everywhere; switching ZIGi on brings it back', async ({page}) => {
@@ -173,12 +175,12 @@ test('Showcase shows every page and keeps a choice in the tab, never in this dev
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await expectNav(page, ALL);
+  await expectNav(page, EVERY);
   await page.goto('/app/settings');
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await section(page).getByRole('switch', {name: 'Activity', exact: true}).click();
   await expect(section(page)).toContainText('In Showcase these choices last for this tab only.');
-  await expectNav(page, ALL.filter(label => label !== 'Activity'));
+  await expectNav(page, EVERY.filter(label => label !== 'Activity'));
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
 });
 

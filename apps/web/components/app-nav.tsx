@@ -26,6 +26,7 @@ export const NAV_GROUPS = [
   ],
   [
     ["/app/ecosystem", "Ecosystem", "ecosystem"],
+    ["/app/chess", "Chess", "chess"],
     ["/app/activity", "Activity", "activity"],
     ["/app/settings", "Settings", "settings"],
   ],

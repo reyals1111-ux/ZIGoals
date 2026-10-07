@@ -21,9 +21,10 @@ test("production policy has per-request unpredictable nonces and exact connectio
     for (const source of sources.filter(s => s.includes("*"))) expect(egress.localModelSources, directive).toContain(source);
   }
   // connect-src comes from one data file: self, the two Testnet endpoints, the AI providers a person may connect (their
-  // own key, browser-direct), and the loopback names. Exactly these, in this order, and nothing else.
+  // own key, browser-direct), the loopback names and, on /app documents, chess.com's and Lichess's public APIs (Session W
+  // Part 14, with the username only). Exactly these, in this order, and nothing else.
   expect(a.csp).toContain(`connect-src ${CONNECT_SOURCES.join(" ")}`);
-  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*"]);
+  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org"]);
   for (const origin of Object.values(egress.aiProviderOrigins)) expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+$/);
   expect(a.csp).toContain("frame-ancestors 'none'");
   expect(a.csp).toContain("worker-src 'self'");

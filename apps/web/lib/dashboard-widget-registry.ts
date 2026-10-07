@@ -13,6 +13,8 @@ export const WIDGET_GROUPS=[
  {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry','exercise','sleep','meditation']},
  {id:'wealth',label:'Wealth & Positions',icon:'wallet',kinds:['wealth','asset','staking','allocation','holding-share']},
  {id:'ecosystem',label:'Ecosystem',icon:'ecosystem',kinds:['ecosystem']},
+ // Session W Part 14: skills ZIGoals follows from a public source; Chess first.
+ {id:'skills',label:'Skills',icon:'chess',kinds:['chess']},
 ] as const satisfies readonly {id:string;label:string;icon:string;kinds:readonly WidgetKind[]}[];
 
 export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={

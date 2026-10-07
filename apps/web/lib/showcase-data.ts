@@ -15,10 +15,11 @@ import {DEFAULT_COUNTERS} from './health-counters';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings} from './dashboard-settings';
 import {SYNC_WRITES} from './vault/sync-writes';
 import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vault/sync-homes';
-import {withHealthGroup} from './vault/w-homes';
+import {withHealthGroup,withSettingsGroup} from './vault/w-homes';
 import {showcaseSleep} from './sleep/showcase';
-import {ACCOUNTS_KEY} from './w-device-keys';
+import {ACCOUNTS_KEY,CHESS_CACHE_KEY} from './w-device-keys';
 import {showcaseAccounts} from './accounts/showcase';
+import {showcaseChess} from './skills/chess/showcase';
 import {showcaseMeditation} from './meditation/showcase';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -101,5 +102,7 @@ export function buildShowcase(day:string){
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false),'meditation',showcaseMeditation(day),false)));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
+ // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
+ {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  return {day,records};
 }

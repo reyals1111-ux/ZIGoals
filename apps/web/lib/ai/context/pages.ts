@@ -7,7 +7,8 @@ import type {PageArea} from '../settings';
  */
 export function pageArea(pathname: string): PageArea {
   const path = pathname.replace(/\/+$/, '') || '/';
-  if (path === '/app' || path === '/app/activity' || path === '/app/welcome') return 'today';
+  // Session W Part 14: Chess, a skill, gets Today's overview (its tools come with Part 21).
+  if (path === '/app' || path === '/app/activity' || path === '/app/welcome' || path === '/app/chess') return 'today';
   if (path === '/app/goals' || path.startsWith('/app/goals/')) return 'goals';
   if (path === '/app/habits' || path.startsWith('/app/habits/')) return 'habits';
   if (path === '/app/health' || path.startsWith('/app/health/')) return 'health';

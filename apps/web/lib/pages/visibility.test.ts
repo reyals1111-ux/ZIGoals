@@ -13,13 +13,17 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
   test('nothing chosen: exactly today\'s navigation, Chess and the music player hidden; Showcase shows everything', () => {
     expect(viewOf(undefined)).toEqual({version: 1, hidden: ['chess', 'music']});
     expect(viewOf(undefined, true)).toEqual({version: 1, hidden: []});
-    expect(nav(undefined)).toEqual(NAV_ITEMS);
+    // Session W Part 14: Chess is a page now; hidden by default, so the default navigation is exactly the one before it.
+    const everyday = NAV_ITEMS.filter(([href]) => href !== '/app/chess');
+    expect(everyday).toHaveLength(NAV_ITEMS.length - 1);
+    expect(nav(undefined)).toEqual(everyday);
     expect(nav(undefined, true)).toEqual(NAV_ITEMS);
     expect(groupStarts(NAV_ITEMS, navGroupOf)).toEqual(NAV_GROUP_START);
-    const {tabs, more} = phoneTabs(NAV_ITEMS);
+    const {tabs, more} = phoneTabs(everyday);
     expect(labels(tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health']);
     expect(labels(more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings']);
     expect(groupStarts(more, navGroupOf)).toEqual(new Map([['/app/markets', 2], ['/app/ecosystem', 3]]));
+    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings']);
     expect(startHref(viewOf(undefined))).toBe('/app');
     expect(homeHref(viewOf(undefined))).toBe('/app');
   });
@@ -61,11 +65,12 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(startHref(viewOf(pages))).toBe('/app/settings');
     expect(homeHref(viewOf(pages))).toBe('/app/settings');
   });
-  test('Settings and every address that is no page always show; pages this build lacks never do', () => {
+  test('Settings and every address that is no page always show; Chess shows once switched on (Part 14)', () => {
     const view = viewOf(hide(...AVAILABLE_PAGES));
     for (const href of ['/app/settings', '/app/help', '/app/welcome', '/app/zigi']) expect(hrefShown(view, href)).toBe(true);
-    expect(hrefShown(viewOf(withChoice(empty(), 'chess', true, AT)), '/app/chess')).toBe(false);
-    expect(() => withStart(empty(), 'chess', AT)).toThrow('Choose a page ZIGoals has.');
+    expect(hrefShown(viewOf(empty()), '/app/chess')).toBe(false);
+    expect(hrefShown(viewOf(withChoice(empty(), 'chess', true, AT)), '/app/chess')).toBe(true);
+    expect(withStart(empty(), 'chess', AT).start).toEqual({id: 'chess', at: AT});
     expect(() => withChoice(empty(), 'settings' as never, false, AT)).toThrow('Choose a page or button ZIGoals has.');
   });
   test('"Show everything again" shows every page and button this build has, keeping the start page', () => {
@@ -74,7 +79,8 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     for (const id of [...AVAILABLE_PAGES, ...AVAILABLE_BUTTONS]) expect(shown.items[id]).toEqual({v: 'shown', at: LATER});
     expect(shown.start).toEqual({id: 'health', at: AT});
     expect(pagesSchema.parse(shown)).toEqual(shown);
-    expect(viewOf(shown).hidden).toEqual(['chess', 'music']);
+    // The music player arrives with Part 20; Chess is shown with everything else since Part 14.
+    expect(viewOf(shown).hidden).toEqual(['music']);
   });
   test('buttons: each switch is its own; the stored choice is stamped', () => {
     const pages = hide('quick-add', 'zigi');

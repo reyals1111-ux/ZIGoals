@@ -1,7 +1,11 @@
 'use client';
 import {TodayWeek} from '../bottom-sections';
 import Link from 'next/link';
-import {useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {Suspense,lazy,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {CHESS_CACHE} from '../../lib/skills/chess/schema';
+/** Session W Part 14: what asks chess.com and Lichess again, loaded only while a Chess widget is on Today. */
+const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 import {OrbitSlogan} from '../orbit-slogan';
 import {NebulaFlow} from '../nebula-flow';
 import {JourneyBanner} from '../journey-banner';
@@ -92,7 +96,8 @@ export function TodayDashboard(){
  const domains=visibleDomains(settings.data),financial=domains.includes('wealth')||domains.includes('goals');
  const market=useMarketQuotes(settings.loaded&&financial?wealthMarketRequests(platform.data):false),now=useEvidenceNow(platform.data,market.now);
  const goals=unifiedGoalSummaries(legacy.goals,legacy.metadata?.goals??{},platform.data,market.quotes,now,legacy.mode==='local'?'Local simulation':'Future Goal Manager').filter(g=>!g.key.startsWith('legacy:')||!platform.data.legacyGoalUi?.[`${legacy.chain}:${legacy.owner}:${g.id}`]?.archived);
- const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone)};
+ const chessCache=useDeviceRecord(CHESS_CACHE);
+ const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
@@ -144,6 +149,7 @@ export function TodayDashboard(){
    <span className="dashboard-widget-art" aria-hidden="true"><AppIcon name={domain==='wealth'?'wallet':domain} size={82} luminous/></span>
    <div className="dashboard-widget-heading"><AppIcon name={domain==='wealth'?'wallet':domain} luminous/><h3>{metric.title}</h3>{w.hidden&&<span className="pill">Hidden</span>}</div>
    {!loaded(domain)?<p role="status">Loading records…</p>:domainError(domain)?<p role="alert">This data needs attention. Open Settings to recover it.</p>:w.kind==='habits'?<HabitsToday/>:<><Metric metric={metric} identity={w.id} flow={w.kind==='wealth'&&!metric.missing}/>{habit&&w.metric==='today'&&<HabitCompletion habit={habit} store={habits} compact/>}{w.kind==='goals'&&<ul className="dashboard-goal-links">{active.slice(0,3).map(g=><li key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul>}</>}
+   {w.kind==='chess'&&!w.hidden&&<Suspense fallback={null}><ChessTodayRefresh/></Suspense>}
    <CardOptions label={metric.title}><AskZigiItem kind={w.kind} metric={w.metric} name={habit?.title??(w.entity?goals.find(g=>g.key===w.entity)?.name:undefined)}/><button type="button" disabled={busy} onClick={()=>setEditor(w)}>Edit widget</button><button type="button" disabled={busy} onClick={()=>apply(s=>saveWidget(s,{...w,hidden:!w.hidden},w.revision))}>{w.hidden?'Show widget':'Hide widget'}</button><button type="button" aria-label={`Move ${metric.title} up`} disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,metric.title)}>Move earlier</button><button type="button" aria-label={`Move ${metric.title} down`} disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,metric.title)}>Move later</button><button type="button" onClick={()=>moveLane(ref,region,metric.title)} disabled={busy}>Move to {region==='main'?'rail':'main'}</button><button type="button" disabled={busy||w.size==='compact'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'compact'},w.revision),'Compact size saved.')}>Compact size</button><button type="button" disabled={busy||w.size==='wide'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'wide'},w.revision),'Wide size saved.')}>Wide size</button><button type="button" disabled={busy} onClick={()=>apply(s=>removeWidget(s,w.id),'Widget removed. Your underlying record was kept.')}>Remove widget</button></CardOptions>
   </article>;
  }

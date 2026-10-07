@@ -52,10 +52,11 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  await showcase(page);
  const nav=page.getByRole('navigation',{name:'Main navigation'});
  if(await isPhone(page)){
-  // Phone experience (Session E): four tabs, then the More sheet with the other six, in the same order.
+  // Phone experience (Session E): four tabs, then the More sheet with the others, in the same order (the Showcase shows
+  // Chess since Session W Part 14).
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health']);
   await openMore(page);
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Activity','Settings']);
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings']);
   await page.keyboard.press('Escape');
   // The active tab's pill glides to the new tab (a running transform transition), then settles.
   const pill=page.locator('.phone-tab-pill'),habits=nav.getByRole('link',{name:'Habits',exact:true});
@@ -77,7 +78,8 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   await expect(nav.getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current','page');
   return;
  }
- expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Activity','Settings']);
+ // The Showcase's visible set (Chess included, Session W Part 14) applies once the page knows it is the Showcase.
+ await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
  // Session U Part 4: the glide's moving state and the nav's data-gliding are recorded from before the click (a
  // MutationObserver), so a glide that ends before the first check on a loaded runner is still seen.

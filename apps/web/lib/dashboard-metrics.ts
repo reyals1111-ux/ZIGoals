@@ -19,7 +19,10 @@ import {healthGroupIn} from './vault/w-homes';
 import {asleep as sleepAsleep, dailySeries as sleepDailySeries, nightDay as sleepNightDay, summary as sleepSummary} from './sleep/engine';
 import {formatMinutes} from './zone-time';
 import {meditationSummary, minutesOn as meditationMinutesOn, minutesText as meditationMinutesText} from './meditation/stats';
-export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string};
+import {CONTROL_NAME, SITE_NAME, currentRatings} from './skills/chess/engine';
+import type {ChessCache} from './skills/chess/schema';
+/** `chess` (Session W Part 14): this device's chess cache, when the page reads it (the Chess widget). */
+export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string;chess?:ChessCache};
 export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean;facts?:{label:string;value:string}[]};
 const labels:Record<string,string>={'last-night':'Last night',kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',history:'30-day nutrition rhythm','history-USD':'Recorded USD wealth','history-EUR':'Recorded EUR wealth',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary',next:'Next milestone',best:'Best current streak',week:'Last 7 days',top:'Largest holding',counts:'Counts today','macros-ring':'Calories and macros'};
 // Session W Part 5: a metric id that means something else for one kind (Meditation's "today" and "week").
@@ -55,6 +58,13 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const summary=m?meditationSummary(m,s.healthDate):null;
   if(!summary||!summary.sessions)return {...defaults,title,value:'No sessions yet',detail:'Begin one in Meditation, or log minutes you did elsewhere.',href};
   return {...defaults,title,value:`${meditationMinutesText(summary.thisWeek)} this week`,detail:`${summary.goal?`Your goal: ${meditationMinutesText(summary.goal)} a week · `:''}Monday to Sunday`,href};
+ }
+ // Session W Part 14: chess ratings from this device's cache (the sites' own numbers); this card asks no site itself.
+ if(widget.kind==='chess'){
+  const title=widget.title||'Chess ratings',href='/app/chess',ratings=s.chess?currentRatings(s.chess):[];
+  if(!ratings.length)return {...defaults,title,value:'No ratings yet',detail:'Add your chess.com or Lichess username in Settings, under Chess.',href};
+  const top=ratings.slice(0,3);
+  return {...defaults,title,value:top.map(r=>`${CONTROL_NAME[r.control]} ${formatNumber(r.rating)}`).join(' · '),detail:`${[...new Set(top.map(r=>SITE_NAME[r.site]))].join(' and ')} · the sites' own ratings`,href,facts:ratings.map(r=>({label:`${SITE_NAME[r.site]} · ${CONTROL_NAME[r.control]}`,value:formatNumber(r.rating)}))};
  }
  // UI design pass widgets: real records only; units and currencies stay separate; no entry is never zero.
  if(widget.kind==='milestone'){
