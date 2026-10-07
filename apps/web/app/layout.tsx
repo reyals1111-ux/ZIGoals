@@ -31,6 +31,12 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: { icon: { url: "/icon.svg", type: "image/svg+xml", sizes: "any" }, apple: { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" } },
     // The name under the Home Screen icon (otherwise the page title); title only, no capability meta (Session L).
     appleWebApp: { title: "ZIGoals", capable: false },
+    // The installed app's manifest (Session L) is a static file since Session X Part 5a, public/manifest.webmanifest, at
+    // the same address with byte-identical JSON (name, icons, colours, id, start page, scope, standalone display; no
+    // service worker or offline cache), so the asset layer answers it without a Worker call and saved Home Screen apps
+    // keep their identity. The icons are the origami Z on the deep-navy background (--cosmic-dark); Safari asks for an
+    // opaque full-bleed maskable icon at 1024 px (Safari 17.2 release notes); the iPhone uses /apple-touch-icon.png.
+    manifest: "/manifest.webmanifest",
     robots: { index: false, follow: false, nocache: true },
     openGraph: {
       title: "ZIGoals Alpha",

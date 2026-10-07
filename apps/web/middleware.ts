@@ -31,6 +31,7 @@ export function middleware(request: NextRequest) {
 }
 export const config = {
   // Public files and reserved Next asset endpoints only. Missing favicon.ico
-  // is HTML (404), so it deliberately retains the nonce policy.
-  matcher: ["/((?!_next/static(?:/|$)|_next/image$|(?:icon\\.svg|apple-touch-icon\\.png|robots\\.txt|social-card\\.svg|social-card\\.png)$).*)"],
+  // is HTML (404), so it deliberately retains the nonce policy. The web app manifest is a public file since Session X
+  // Part 5a (one Worker call less on every page load).
+  matcher: ["/((?!_next/static(?:/|$)|_next/image$|(?:icon\\.svg|apple-touch-icon\\.png|robots\\.txt|social-card\\.svg|social-card\\.png|manifest\\.webmanifest)$).*)"],
 };

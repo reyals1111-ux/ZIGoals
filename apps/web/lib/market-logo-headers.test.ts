@@ -35,7 +35,6 @@ test.each([
   '/api/health-link',
   '/app',
   '/app/markets',
-  '/manifest.webmanifest',
 ])('every other path keeps the page policy and no-store: %s', path => {
   const response = middleware(new NextRequest(`https://alpha.zigoals.app${path}`, {headers: attacker}));
   expect(response.headers.get('Content-Security-Policy')).toContain("'strict-dynamic'");

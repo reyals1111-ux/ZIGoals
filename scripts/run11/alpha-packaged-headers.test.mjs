@@ -126,3 +126,21 @@ test.runIf(enabled)('the packaged Alpha serves market logos with their own sandb
   await page.arrayBuffer();
  }finally{await mf.dispose();}
 },60000);
+// Session X Part 5a ([TIER 3] (PWA/headers)): the web app manifest is a static asset now. The asset layer answers it at
+// the same address with exactly the bytes main 72ad872's metadata route served (so saved Home Screen apps keep their id,
+// start page, scope and icons), as application/manifest+json, with the static headers and no Worker policy.
+test.runIf(enabled)('the packaged Alpha serves the web app manifest from the assets, byte for byte',async()=>{
+ const {createHash}=await import('node:crypto');
+ const mf=await alpha();
+ try{
+  const response=await mf.dispatchFetch('https://alpha.zigoals.app/manifest.webmanifest');
+  expect(response.status).toBe(200);
+  expect(response.headers.get('content-type')).toMatch(/^application\/manifest\+json/);
+  expect(response.headers.get('content-security-policy')).toBeNull();
+  expect(response.headers.get('x-zigoals-build')).toBeNull();
+  expect(response.headers.get('cache-control')??'').not.toContain('no-store');
+  expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+  expect(response.headers.get('x-frame-options')).toBe('DENY');
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92');
+ }finally{await mf.dispose();}
+},60000);
