@@ -394,6 +394,8 @@ test('Showcase: keys are session-only and the chat lives in the tab', async ({pa
   await seed(page, null);
   await page.goto('/app/settings');
   await page.getByRole('button', {name: /Load Showcase/}).click();
+  // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
+  await page.waitForURL('**/app');
   await expect(page.getByText(/Showcase/).first()).toBeVisible();
   await page.goto('/app/settings#your-ai');
   const section = page.locator('#your-ai');
