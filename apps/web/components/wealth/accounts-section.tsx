@@ -6,6 +6,7 @@ import {parseAmountInput} from '../../lib/amount-input';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {useDeviceRecord} from '../ai/use-device-record';
+import type {LayoutAttrs} from '../layout-edit';
 import {usePlatform} from '../platform/use-platform';
 import './accounts.css';
 
@@ -19,17 +20,17 @@ import './accounts.css';
 const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
 const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); if (value < 0n) throw Error('Enter the amount as a positive number; a debt\'s balance is what is owed.'); return {value, decimals: 2, date}; };
-export function AccountsSection() {
+export function AccountsSection(layout: LayoutAttrs) {
   const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate();
   const [adding, setAdding] = useState(false), [open, setOpen] = useState<{id: string; mode: 'balance' | 'payment' | 'edit'} | null>(null), [message, setMessage] = useState(''), [error, setError] = useState('');
   function change(fn: (current: Accounts) => Accounts, words: string) {
     try { accounts.update(fn); setMessage(words); setError(''); return true; } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved on this device.'); return false; }
   }
-  if (!accounts.loaded) return null;
-  if (accounts.unreadable) return <section className="panel accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p role="alert">Your accounts on this device could not be read. Their bytes are kept; nothing was changed.</p></section>;
+  if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
+  if (accounts.unreadable) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p role="alert">Your accounts on this device could not be read. Their bytes are kept; nothing was changed.</p></section>;
   const items = accounts.data.items, worth = netWorth(accounts.data, today, platform.data.positions), history = netWorthHistory(accounts.data, today);
   const active = items.filter(a => !a.archivedAt), archived = items.filter(a => a.archivedAt);
-  return <section className="panel accounts-section" aria-labelledby="accounts-title">
+  return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts stay on this device until account sync carries them.</p></div>
       <button type="button" className="secondary" aria-expanded={adding} onClick={() => { setAdding(o => !o); setMessage(''); setError(''); }}>{adding ? 'Close' : 'Add an account or debt'}</button></header>
     {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} />}
