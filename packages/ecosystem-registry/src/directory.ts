@@ -1,5 +1,5 @@
-import records from './providers.json';
-import {isSafeReferenceUrl,parseProvider,type EcosystemProvider} from './index';
+import {isSafeReferenceUrl,type EcosystemProvider} from './index';
+import {ecosystemProviders} from './records';
 export const directoryReviewedAt='2026-09-23';
 export const directoryCategories=['All','Staking & vaults','Trading','Lending & real assets','Institutional infrastructure','Network tools','Funding rails'] as const;
 export type DirectoryCategory=typeof directoryCategories[number];
@@ -50,7 +50,7 @@ const summaries:Record<string,{category:DirectoryCategory;description:string;sou
  'zigscan':{category:'Network tools',description:'A ZIGChain block explorer linked by the official network documentation. Existing known-record links remain separate from receipt verification.',source:'https://docs.zigchain.com/users/tools/block-explorers',listed:true,dynamic:true},
  'zigchain-hub':{category:'Network tools',description:'ZIGChain’s own network, validator and governance interface. Check the network selected by the external app.',source:official,listed:true,dynamic:true},
 };
-export const directoryEntries:DirectoryEntry[]=records.map(parseProvider).map(provider=>{
+export const directoryEntries:DirectoryEntry[]=ecosystemProviders.map(provider=>{
  const summary=summaries[provider.id];if(!summary)throw new Error(`Missing directory evidence for ${provider.id}`);
  const descriptionSource=summary.source??provider.website;
  const actions:DirectoryAction[]=summary.unavailable?[]:[{kind:provider.id==='wme'?'Docs':'Website',url:provider.website,evidence:summary.listed?official:descriptionSource},...(summary.actions??[])];

@@ -1,5 +1,5 @@
 import "../../../components/life-pages.css";
-import { explorers, hubLinks } from "@zigoals/ecosystem-registry";
+import { explorers, hubLinks } from "@zigoals/ecosystem-registry/links";
 import { EcosystemDirectory } from "../../../components/ecosystem-directory";
 import { idleStrategy } from "@zigoals/strategy-types";
 import { StrategyTransparency } from "../../../components/strategy-transparency";

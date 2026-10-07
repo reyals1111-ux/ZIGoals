@@ -11,7 +11,7 @@ import {
   shortAccount,
   type Diagnostics,
 } from "../lib/diagnostics";
-import { explorers } from "@zigoals/ecosystem-registry";
+import { explorers } from "@zigoals/ecosystem-registry/links";
 import { formatPlainDecimal } from "../lib/visual-format";
 export function ConnectionDiagnostics({
   chain,

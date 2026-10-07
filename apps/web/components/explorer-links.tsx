@@ -2,7 +2,7 @@ import {
   buildExplorerUrl,
   explorers,
   type ExplorerKind,
-} from "@zigoals/ecosystem-registry";
+} from "@zigoals/ecosystem-registry/links";
 /** External navigation only. A link is never confirmation evidence. */
 export function ExplorerLinks({
   chainId,

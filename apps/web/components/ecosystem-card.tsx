@@ -1,7 +1,7 @@
 'use client';
 import {useId} from 'react';
 import Image from 'next/image';
-import {isSafeReferenceUrl} from '@zigoals/ecosystem-registry';
+import {isSafeReferenceUrl} from '@zigoals/ecosystem-registry/links';
 import type {DirectoryEntry} from '@zigoals/ecosystem-registry/providers';
 import {PinToToday} from './pin-to-today';
 import {AppIcon} from './app-icon';
