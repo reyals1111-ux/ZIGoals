@@ -26,8 +26,9 @@ const PATHS: Record<Exclude<LinkIcon, 'monogram'>, string[]> = {
 const FILLED: Partial<Record<LinkIcon, number[]>> = {chesscom: [3, 4]};
 export function LinkGlyph({icon, label, size = 22}: {icon: LinkIcon; label: string; size?: number}) {
   if (icon === 'monogram') {
+    // The letter is drawn by CSS (attr()), so it never becomes part of a link's text or name: the label says it once.
     const letter = [...label.trim()][0]?.toUpperCase() ?? '•';
-    return <svg className="link-glyph" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.6" /><text x="12" y="16.2" textAnchor="middle" fontSize="11" fontWeight="700" fill="currentColor">{letter}</text></svg>;
+    return <span className="link-glyph link-monogram" data-letter={letter} aria-hidden="true" {...(size !== 22 ? {style: {width: size, height: size}} : {})} />;
   }
   return <svg className="link-glyph" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     {PATHS[icon].map((d, i) => <path key={i} d={d} {...(FILLED[icon]?.includes(i) ? {fill: 'currentColor', stroke: 'none', opacity: 0.55} : {})} />)}

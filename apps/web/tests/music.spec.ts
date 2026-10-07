@@ -12,7 +12,8 @@ const TRACK = {device: {id: 'dev-1', name: 'Kitchen speaker', type: 'Speaker', i
 
 async function start(page: Page, {config = true, logo = true}: {config?: boolean; logo?: boolean} = {}) {
   await page.addInitScript(() => { try { localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); } catch { /* storage denied */ } });
-  await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+  // The app's own /api only (Spotify's token endpoint is /api/token on its own host, answered by mockSpotify).
+  await page.route(url => /^(127\.0\.0\.1|localhost)$/.test(url.hostname) && url.pathname.startsWith('/api/'), route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.route('**/api/music-config', route => config ? route.fulfill({json: {version: 1, spotify: {clientId: CLIENT}}}) : route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.route('**/brand/spotify/logo.svg', route => logo ? route.fulfill({contentType: 'image/svg+xml', body: LOGO}) : route.fulfill({status: 404, body: 'missing'}));
   await page.context().route('https://i.scdn.co/**', route => route.fulfill({contentType: 'image/png', body: PNG}));
@@ -54,13 +55,20 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
   await page.waitForTimeout(600);
   await expect(page.getByRole('button', {name: 'Open the music player'})).toHaveCount(0);
   await showPlayer(page);
-  const button = page.getByRole('button', {name: 'Open the music player'}), box = (await button.boundingBox())!, viewport = page.viewportSize()!;
+  // On Today, where ZIGi's launcher shows too: the music button sits on the other side and the two never overlap.
+  await page.goto('/app');
+  const button = page.getByRole('button', {name: 'Open the music player'}), launcher = page.getByTestId('ai-launcher');
+  await expect(button).toBeVisible(); await expect(launcher).toBeVisible();
+  const box = (await button.boundingBox())!, zigi = (await launcher.boundingBox())!, viewport = page.viewportSize()!;
   expect(box.x + box.width / 2).toBeLessThan(viewport.width / 2);
   expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
-  const zigi = await page.getByTestId('ai-launcher').boundingBox();
-  if (zigi) expect(box.x + box.width <= zigi.x || zigi.x + zigi.width <= box.x || box.y + box.height <= zigi.y || zigi.y + zigi.height <= box.y).toBe(true);
+  expect(box.x + box.width <= zigi.x || zigi.x + zigi.width <= box.x || box.y + box.height <= zigi.y || zigi.y + zigi.height <= box.y).toBe(true);
   // The switch under Your pages & buttons is the same one, and hides it everywhere again.
-  await page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Music player'}).uncheck();
+  await page.goto('/app/settings');
+  // Saved like every page switch (a click, then the stored choice re-renders it), as pages-visibility.spec does.
+  const toggle = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Music player'});
+  await toggle.click();
+  await expect(toggle).not.toBeChecked();
   await expect(button).toHaveCount(0);
 });
 
@@ -188,11 +196,13 @@ test('the mini-bar takes the button\'s place on this device; the phone\'s More s
 
 test('the Showcase shows the player and connects nothing: no Spotify request, no music configuration asked', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  const asked: string[] = [];
-  page.on('request', r => { const url = new URL(r.url()); if (/spotify|scdn/.test(url.hostname) || url.pathname === '/api/music-config') asked.push(r.url()); });
+  // Counted from the moment the Showcase is loaded (the Settings visit before it is an ordinary Local Demo page).
+  const asked: string[] = []; let showcase = false;
+  page.on('request', r => { const url = new URL(r.url()); if (showcase && (/spotify|scdn/.test(url.hostname) || url.pathname === '/api/music-config')) asked.push(r.url()); });
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
+  showcase = true;
   await page.getByRole('button', {name: 'Open the music player'}).click();
   await panel(page).getByRole('group', {name: 'Play from'}).getByRole('button', {name: 'Spotify'}).click();
   await expect(panel(page)).toContainText('The Showcase connects nothing.');

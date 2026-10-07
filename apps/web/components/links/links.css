@@ -1,5 +1,7 @@
 /* Session W Part 19: My links — Settings card and Today buttons. 44 px targets; the glyphs are ZIGoals' own. */
 .link-glyph { flex: 0 0 auto; color: #cfe0ff; }
+.link-monogram { display: inline-grid; place-items: center; width: 22px; height: 22px; }
+.link-monogram::before { content: attr(data-letter); display: grid; place-items: center; box-sizing: border-box; width: 76%; height: 76%; border: 1.5px solid currentColor; border-radius: 50%; font-size: 10px; font-weight: 700; line-height: 1; }
 .links-settings { display: grid; gap: 12px; }
 .links-settings h2 { margin: 0; }
 .links-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }

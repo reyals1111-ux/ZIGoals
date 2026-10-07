@@ -25,8 +25,8 @@ export default function MusicMini({phone, onOpen, expanded}: {phone: boolean; on
   const label = source === 'ambient' ? (ambient.playing ? AMBIENT_LABELS[ambient.sound] : `Focus sounds · ${AMBIENT_LABELS[sound]}`) : source === 'spotify' ? 'Spotify' : 'Apple Music';
   const playing = source === 'ambient' ? ambient.playing : source === 'spotify' ? !!spotify.playback?.playing : false;
   return <div className={`music-mini${phone ? ' music-mini-phone' : ''}`} role="group" aria-label="Music player">
-    <button type="button" className="music-mini-open" aria-haspopup="dialog" aria-expanded={expanded} onClick={onOpen}>
-      <Disc small spinning={playing}/><span className="music-mini-title">{label}</span><span className="sr-only">: open the music player</span>
+    <button type="button" className="music-mini-open" aria-haspopup="dialog" aria-expanded={expanded} aria-label={`${label}: open the music player`} onClick={onOpen}>
+      <Disc small spinning={playing}/><span className="music-mini-title">{label}</span>
     </button>
     {source === 'apple' ? <a className="music-mini-play" href={APPLE_MUSIC_HOME} target="_blank" rel="noopener noreferrer" aria-label="Open Apple Music">↗</a>
       : source === 'spotify' && !(spotify.available && spotify.connected) ? null
