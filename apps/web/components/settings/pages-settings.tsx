@@ -1,5 +1,6 @@
 'use client';
 import './pages-settings.css';
+import Link from 'next/link';
 import {useRef, useState} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {useShowcase} from '../showcase-controls';
@@ -84,7 +85,7 @@ export function PagesSettings() {
           <button type="button" className="quiet" onClick={() => { setConfirming(false); requestAnimationFrame(() => resetButton.current?.focus()); }}>Cancel</button>
         </div>
       </div> : <button ref={resetButton} type="button" className="secondary" onClick={() => setConfirming(true)}>Show everything again</button>}
-      {showcase && <p className="fine">In Showcase these choices last for this tab only.</p>}
+      {showcase ? <p className="fine">In Showcase these choices last for this tab only.</p> : <p className="fine"><Link className="text-link" href="/app/welcome">Run the welcome again</Link> to pick what you want to improve and a few starters; nothing you have is added twice.</p>}
     </>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
   </section>;
