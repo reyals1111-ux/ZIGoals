@@ -1,4 +1,5 @@
-/* Sleep (Session W Part 4): the Health card, the full view, its forms and charts. Bars #6f7ff5 and goal #c45bb0 were
+/* Sleep (Session W Part 4): the Health card, the full view, its forms and charts (the chart and stat-tile rules are
+   shared with Meditation, Part 5). Bars #6f7ff5 and goal #c45bb0 were
    validated on the dark surface (#0d1629); text stays in the text tokens, never the series colour. */
 .sleep-card .sleep-last { margin: 0; font-size: 16px; }
 .sleep-card .sleep-last strong { font-size: 22px; }

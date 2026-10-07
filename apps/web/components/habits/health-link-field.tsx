@@ -31,7 +31,7 @@ export function healthLinkFromDraft(draft: HealthLinkDraft, waterUnit: 'ml' | 'f
     try { hours = readFormNumber(draft.target, {min: 0, max: 24}); } catch { throw Error('Enter the hours of sleep, for example 7.5.'); }
     target = Math.round(hours * 60);
   } else if (rule === 'at-least') {
-    try { target = readFormNumber(draft.target, {min: 0, max: 1_000_000_000, whole: draft.measure === 'steps' || draft.measure === 'exercise'}); } catch { throw Error('Enter a target above zero.'); }
+    try { target = readFormNumber(draft.target, {min: 0, max: 1_000_000_000, whole: draft.measure === 'steps' || draft.measure === 'exercise' || draft.measure === 'meditationMinutes'}); } catch { throw Error('Enter a target above zero.'); }
     if (draft.measure === 'water' && waterUnit === 'fl-oz-us') target = Math.round(target * FL_OZ * 1000) / 1000;
   }
   const link: HabitHealthLink = {version: 1, measure: draft.measure, rule, ...(target === undefined ? {} : {target}), ...(draft.measure === 'exercise' && draft.exerciseId ? {exerciseId: draft.exerciseId} : {}), updatedAt: now.toISOString()};
@@ -58,15 +58,16 @@ export function HealthLinkField({draft, onChange, counters, waterUnit, unreadabl
       <label className="field">Done automatically when<select value={selected} onChange={event => choose(event.target.value)}>
         <option value="">Nothing · I tick it off myself</option><option value="water">Water</option><option value="steps">Steps</option><option value="activeMinutes">Active minutes</option><option value="weight">A weight reading</option>
         {counters.map(counter => <option key={counter.id} value={`exercise:${counter.id}`}>Exercise counter: {counter.name}</option>)}
-        {SYNC_WRITES && <><option value="sleepMinutes">Time asleep</option><option value="bedtimeBy">In bed by a time</option></>}
+        {SYNC_WRITES && <><option value="sleepMinutes">Time asleep</option><option value="bedtimeBy">In bed by a time</option><option value="meditationMinutes">Mindful minutes</option></>}
       </select></label>
       {draft.measure === 'weight' && <p className="fine">When a weight reading is recorded that day.</p>}
       {draft.measure === 'bedtimeBy' && <label className="field habit-health-link-time">In bed by<input type="time" value={draft.target} onChange={event => onChange({...draft, target: event.target.value})} /></label>}
       {(draft.measure === 'sleepMinutes' || draft.measure === 'bedtimeBy') && <p className="fine">Counts the night that ended that day, from your sleep log (Health → Sleep).</p>}
+      {draft.measure === 'meditationMinutes' && <p className="fine">Counts the sessions that began that day, from your meditation log (Health → Meditation).</p>}
       {draft.measure && draft.measure !== 'weight' && draft.measure !== 'bedtimeBy' && <div className="habit-health-link-rule" role="radiogroup" aria-label="Rule">
         <label><input type="radio" name="health-link-rule" value="at-least" checked={draft.rule === 'at-least'} onChange={() => onChange({...draft, rule: 'at-least'})} /><span>the day reaches at least</span>
           <input type="text" inputMode="decimal" autoComplete="off" aria-label="Target" disabled={draft.rule !== 'at-least'} value={draft.target} onChange={event => onChange({...draft, target: event.target.value})} /><span>{UNITS[draft.measure](waterUnit)}</span></label>
-        <label><input type="radio" name="health-link-rule" value="recorded" checked={draft.rule === 'recorded'} onChange={() => onChange({...draft, rule: 'recorded'})} /><span>{draft.measure === 'sleepMinutes' ? 'a night is logged' : 'anything is recorded'}</span></label>
+        <label><input type="radio" name="health-link-rule" value="recorded" checked={draft.rule === 'recorded'} onChange={() => onChange({...draft, rule: 'recorded'})} /><span>{draft.measure === 'sleepMinutes' ? 'a night is logged' : draft.measure === 'meditationMinutes' ? 'a session is logged' : 'anything is recorded'}</span></label>
       </div>}
       {draft.measure && <p className="fine">ZIGoals checks your Health journal when you open Today, Habits or Health, and ticks this habit off once per day. A tap always wins; Undo keeps it off for that day. {SYNC_WRITES ? 'Kept with your Health records.' : 'Kept on this device.'}</p>}
     </>}

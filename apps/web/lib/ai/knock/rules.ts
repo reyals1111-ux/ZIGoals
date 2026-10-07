@@ -9,7 +9,7 @@ import type {ZigiKnock, ZigiPrefs} from '../store/records';
  * screens and a hidden ZIGi are the component's to check. The counts live in `zigoals:zigi-knock:v1`, written only when
  * a knock shows or is snoozed; two weeks of dates are kept.
  */
-export type KnockKind = 'habit' | 'water' | 'goal' | 'wealth' | 'pack' | 'wind-down';
+export type KnockKind = 'habit' | 'water' | 'goal' | 'wealth' | 'pack' | 'wind-down' | 'meditation-time';
 export type KnockCandidate = {id: string; kind: KnockKind; title: string; time: string; day: string; href: string};
 export type KnockPrefs = ZigiPrefs['knock'];
 const KEEP_DAYS = 14;
@@ -61,5 +61,7 @@ export function knockLines(candidate: KnockCandidate): {title: string; line: str
     case 'pack': return {title: 'A new context pack', line: `Your weekly refresh for your AI · ${candidate.time}`, action: 'Make the pack'};
     // Session W Part 4: the wind-down time set on this device (quiet hours apply as for every knock).
     case 'wind-down': return {title: 'Wind-down time', line: `Your wind-down time · ${candidate.time}`, action: 'Open Sleep'};
+    // Session W Part 5: the meditation time set on this device, until a session is logged that day.
+    case 'meditation-time': return {title: 'Time to meditate', line: `Your meditation time · ${candidate.time}`, action: 'Open Meditation'};
   }
 }

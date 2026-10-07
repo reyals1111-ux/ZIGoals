@@ -6,6 +6,7 @@ import {countOn, exerciseData} from '../health-counters';
 import type {AppliedCheckInV4, HabitHealthLinkV4, HabitHealthLinksV4, HealthMeasureV4} from './schema';
 import {healthGroupIn} from '../vault/w-homes';
 import {asleep, bedClock, nightDay} from '../sleep/engine';
+import {minutesOn as meditationMinutesOn} from '../meditation/stats';
 import type {SleepNight} from '../sleep/schema';
 
 /** The ended nights (not naps) of a Health day: the nights that ended on it, by their own zone (Session W Part 4). */
@@ -24,8 +25,8 @@ export function measureValue(health: HealthData, healthDate: string, link: Habit
     // Session W Part 4: time asleep over the nights that ended on the day; the bedtime of the longest of them.
     case 'sleepMinutes': { const nights = nightsEnding(health, healthDate); return nights.length ? nights.reduce((t, n) => t + asleep(n)!.minutes, 0) : null; }
     case 'bedtimeBy': { const nights = nightsEnding(health, healthDate); if (!nights.length) return null; const main = nights.reduce((a, b) => Date.parse(b.end!) - Date.parse(b.start) > Date.parse(a.end!) - Date.parse(a.start) ? b : a); return bedClock(main); }
-    // Part 5 brings meditation sessions; until then there is nothing recorded.
-    case 'meditationMinutes': return null;
+    // Session W Part 5: the minutes of the sessions that began on the day, each by its own zone.
+    case 'meditationMinutes': { const m = healthGroupIn(health, 'meditation'); return m ? meditationMinutesOn(m, healthDate) : null; }
   }
 }
 /** Nothing recorded never satisfies a rule; "recorded" needs a value above zero; "at least" needs the target. */

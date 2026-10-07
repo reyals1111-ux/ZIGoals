@@ -10,6 +10,7 @@ import {buildShowcase} from '../../showcase-data';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import {homeRecordsIn} from '../../sync-homes-store';
 import {emptySleep, sleepSchema} from '../../sleep/schema';
+import {emptyMeditation, meditationSchema} from '../../meditation/schema';
 import {healthGroupIn, withHealthGroup} from '../../vault/w-homes';
 import {addLocalDays} from '../../local-date';
 import {aiGates, type Gates} from '../gates';
@@ -29,9 +30,11 @@ export const SENTINEL = {
   note: 'SENTINEL_HEALTH_NOTE_a71b', kcal: 7919, steps: 77131, waterMl: 4111, habitValue: 61007, weightKg: '59.2',
   // Session W Part 4: a night in Health v4 `sleep` with a sentinel tag and note.
   sleepTag: 'SENTINEL_SLEEP_6b2f', sleepNote: 'SENTINEL_SLEEP_NOTE_d81e',
+  // Session W Part 5: a meditation session with a sentinel note.
+  meditationNote: 'SENTINEL_MEDITATION_NOTE_47ac',
 } as const;
 /** Every sentinel as text, for "contains none of these" checks. */
-export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote];
+export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote];
 export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
 
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
@@ -64,6 +67,8 @@ export function withSentinels(sources: ToolSources): ToolSources {
   // A night ending on the healthDay's morning four days back (a night the Showcase leaves unlogged), tagged and noted.
   const sleep = healthGroupIn(health, 'sleep') ?? emptySleep(), wake = addLocalDays(day, -4);
   health = withHealthGroup(health, 'sleep', sleepSchema.parse({...sleep, nights: [...sleep.nights, {id: 'health_sleep-sentinel-0001', kind: 'night', start: `${addLocalDays(wake, -1)}T21:30:00.000Z`, end: `${wake}T05:10:00.000Z`, timeZone: 'UTC', latencyMin: 12, awakeMin: 9, quality: 3, tags: [SENTINEL.sleepTag], note: SENTINEL.sleepNote, source: 'manual', createdAt: stamp, updatedAt: stamp}]}), false);
+  const meditation = healthGroupIn(health, 'meditation') ?? emptyMeditation();
+  health = withHealthGroup(health, 'meditation', meditationSchema.parse({...meditation, sessions: [...meditation.sessions, {id: 'health_med-sentinel-0001', startedAt: `${day}T06:00:00.000Z`, seconds: 600, kind: 'timer', note: SENTINEL.meditationNote, timeZone: 'UTC', source: 'timer', createdAt: stamp, updatedAt: stamp}]}), false);
   const walk = sources.habits.habits.find(h => h.title === 'Walk');
   const habits = walk ? habitDataSchema.parse({...sources.habits, schemaVersion: 3, habits: sources.habits.habits.map(h => h.id !== walk.id ? h : {...h, entries: h.entries.map(e => e.date === day ? {...e, count: SENTINEL.habitValue, source: 'health'} : e)})}) as HabitData : sources.habits;
   const notes = [{text: SENTINEL.note, category: 'health'}, {text: 'Prefers short answers in the morning', category: 'preferences'}];

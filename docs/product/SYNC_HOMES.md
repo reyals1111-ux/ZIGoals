@@ -164,6 +164,10 @@ a module moves up only when one of these groups first gets content, and never go
   goal, a deletion; the welcome's optional sleep goal) and `habitLinks` holding `sleepMinutes` or `bedtimeBy` (the habit
   editor's "Done automatically from Health"); a settings v3 Today widget of kind `sleep`. The wind-down time is
   device-only (`zigoals:w-reminders:v1`). Sleep syncs only with Health, under the same consent.
+- Part 5: Health v4 `meditation` (Health → Meditation: a saved sitting or breathing session, mindful minutes typed
+  by hand, an edit or a deletion, the weekly goal, the bell) and `habitLinks` holding `meditationMinutes`; a settings v3
+  Today widget of kind `meditation`. The running session (`zigoals:meditation-run:v1`) and the meditation reminder time
+  (`zigoals:w-reminders:v1`) stay on the device.
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in

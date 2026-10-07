@@ -10,7 +10,7 @@ import {plural} from './plural';
 export const WIDGET_GROUPS=[
  {id:'goals',label:'Goals',icon:'goals',kinds:['goals','goal','milestone']},
  {id:'habits',label:'Habits',icon:'habits',kinds:['habits','habit','streak','checkins']},
- {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry','exercise','sleep']},
+ {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry','exercise','sleep','meditation']},
  {id:'wealth',label:'Wealth & Positions',icon:'wallet',kinds:['wealth','asset','staking','allocation','holding-share']},
  {id:'ecosystem',label:'Ecosystem',icon:'ecosystem',kinds:['ecosystem']},
 ] as const satisfies readonly {id:string;label:string;icon:string;kinds:readonly WidgetKind[]}[];

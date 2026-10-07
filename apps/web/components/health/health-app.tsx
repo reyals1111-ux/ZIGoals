@@ -45,9 +45,13 @@ import { plural } from "../../lib/plural";
 import { updateRefusalMessage } from "../../lib/storage-error-copy";
 import { SleepCard } from "./sleep/sleep-card";
 import { healthGroupIn } from "../../lib/vault/w-homes";
+import { MeditationCard } from "./meditation/meditation-card";
+import { useDeviceRecord } from "../ai/use-device-record";
+import { MEDITATION_RUN } from "../../lib/meditation/schema";
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
+const MeditationView = lazy(() => import("./meditation/meditation-view"));
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
@@ -91,6 +95,7 @@ export function HealthApp() {
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
   if (view === "sleep") return <Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense>;
+  if (view === "meditation") return <Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 
@@ -101,6 +106,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const fasting = useFasting();
   // Session W Part 4: on a phone the Sleep card folds like the fasting timer, and stays open while a night runs.
   const sleepRunning = (healthGroupIn(data, "sleep")?.nights ?? []).some(n => n.end === null);
+  // Session W Part 5: the Meditation card folds the same way, open while a session runs on this device.
+  const meditationRunning = !!useDeviceRecord(MEDITATION_RUN).data.run;
   // I1: meals from a nutrition CSV (phone: a sheet; desktop: inside the Diary details), with this device's undo ledger.
   const [importingCsv, setImportingCsv] = useState(false), imports = useImportUndo();
   const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
@@ -181,6 +188,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     </fieldset>
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
+    {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} />},

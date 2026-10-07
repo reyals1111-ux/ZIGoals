@@ -9,6 +9,9 @@ import {dueReminders} from '../../lib/reminders/due';
 import {dismissForToday} from '../../lib/reminders/store';
 import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
 import {W_REMINDERS} from '../../lib/reminders/w-schema';
+import {dismissMeditationTime, meditationDue} from '../../lib/reminders/meditation-time';
+import {MEDITATION_RUN} from '../../lib/meditation/schema';
+import {sessionDay} from '../../lib/meditation/stats';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import {isShowcase} from '../../lib/showcase-storage';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -34,7 +37,7 @@ const KnockCheckIn = lazy(() => import('./knock-check-in'));
 const TICK_MS = 30_000, REST_MS = 10 * 60_000, RIPPLE_MS = 1200;
 export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; side: 'right' | 'left'}) {
   const reminders = useReminders(), habits = useHabits(), health = useHealth(), platform = usePlatform(), legacy = useGoals();
-  const zigi = useDeviceRecord(ZIGI), knock = useDeviceRecord(ZIGI_KNOCK), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), wReminders = useDeviceRecord(W_REMINDERS);
+  const zigi = useDeviceRecord(ZIGI), knock = useDeviceRecord(ZIGI_KNOCK), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
   const pathname = usePathname() ?? '', router = useRouter(), titleId = useId();
   const [now, setNow] = useState<Date | null>(null), [current, setCurrent] = useState<KnockCandidate | null>(null), [mode, setMode] = useState<'ask' | 'snooze' | 'check-in'>('ask'), [note, setNote] = useState('');
   const restUntil = useRef(0);
@@ -56,8 +59,10 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     try { base = dueReminders({reminders: reminders.data, habits: habits.data, health: health.data, now}); } catch { base = []; }
     // Session W Part 4: the wind-down time, until a night is running.
     const running = (healthGroupIn(health.data, 'sleep')?.nights ?? []).some(n => n.end === null), windDown = wReminders.unreadable ? null : windDownDue({w: wReminders.data, running, now});
-    return [...base, ...zigiDue({reminders: zigiReminders.data, goal: goalRefs(platform.data, legacyNames), now}), ...(windDown ? [windDown] : [])].sort((a, b) => a.time.localeCompare(b.time));
-  }, [now, ready, reminders.data, habits.data, health.data, zigiReminders.data, wReminders.data, wReminders.unreadable, platform.data, legacyNames]);
+    // Session W Part 5: the meditation time, until a session is logged today or one runs.
+    const doneToday = (healthGroupIn(health.data, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), meditation = wReminders.unreadable ? null : meditationDue({w: wReminders.data, doneToday, running: !!meditationRun.data.run, now});
+    return [...base, ...zigiDue({reminders: zigiReminders.data, goal: goalRefs(platform.data, legacyNames), now}), ...(windDown ? [windDown] : []), ...(meditation ? [meditation] : [])].sort((a, b) => a.time.localeCompare(b.time));
+  }, [now, ready, reminders.data, habits.data, health.data, zigiReminders.data, wReminders.data, wReminders.unreadable, meditationRun.data.run, platform.data, legacyNames]);
   const prefs = zigiPrefs(zigi.data).knock;
   // Today shows every due reminder as its own card, so ZIGi never knocks there.
   const next = useMemo(() => {
@@ -90,6 +95,7 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     try {
       if (current.kind === 'habit' || current.kind === 'water') reminders.update(current.day, r => dismissForToday(r, current.id, current.day));
       else if (current.kind === 'wind-down') wReminders.update(r => dismissWindDown(r, current.day));
+      else if (current.kind === 'meditation-time') wReminders.update(r => dismissMeditationTime(r, current.day));
       else zigiReminders.update(r => dismissZigiReminder(r, current.id, current.day));
       close();
     } catch { setNote('This could not be saved on this device; the reminder stays for now.'); }

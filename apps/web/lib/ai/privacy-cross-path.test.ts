@@ -78,6 +78,11 @@ test('Session W Part 4: the sentinel night is in the Health journal the paths re
   const shut = everythingSent(false);
   for (const {path, text} of shut) { expect(text, path).not.toContain(SENTINEL.sleepNote); expect(text, path).not.toContain(SENTINEL.sleepTag); }
 });
+test('Session W Part 5: the sentinel meditation session is in the journal too, and never leaves with the gate closed', () => {
+  // Meditation reaches ZIGi only under the Health gate (W7); its tools and their open-gate control come with Part 21.
+  expect(JSON.stringify(sources().health)).toContain(SENTINEL.meditationNote);
+  for (const {path, text} of everythingSent(false)) expect(text, path).not.toContain(SENTINEL.meditationNote);
+});
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};
   const variants = {

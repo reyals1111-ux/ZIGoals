@@ -1,5 +1,6 @@
 'use client';
-import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
+import {useState, type ReactNode} from 'react';
+import {useChartWidth} from '../../charts/use-chart-width';
 import type {DayPoint} from '../../../lib/sleep/engine';
 import {clockFromNoon, clockFromMidnight} from '../../../lib/sleep/engine';
 import {formatMinutes} from '../../../lib/zone-time';
@@ -14,20 +15,6 @@ import {formatMinutes} from '../../../lib/zone-time';
 // Drawn at the width it is shown (measured), so labels keep their real 14 px on every screen.
 const H = 180, PAD = {top: 14, right: 10, bottom: 26, left: 44};
 const plotH = H - PAD.top - PAD.bottom;
-function useChartWidth(): [React.RefObject<HTMLDivElement | null>, number] {
-  const ref = useRef<HTMLDivElement>(null), [width, setWidth] = useState(320);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => setWidth(Math.max(260, Math.round(el.getBoundingClientRect().width)));
-    measure();
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, width];
-}
 const dayLabel = (date: string, count: number, i: number) => count <= 7 ? new Date(`${date}T12:00:00Z`).toLocaleDateString('en', {weekday: 'short', timeZone: 'UTC'}).slice(0, 2) : i % 5 === 0 || i === count - 1 ? date.slice(8) : '';
 const longDate = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en', {weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC'});
 /** A bar with its data end rounded (4 px) and its base square on the baseline. */

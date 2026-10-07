@@ -18,10 +18,13 @@ import {splitWealthTotals} from './wealth-total';
 import {healthGroupIn} from './vault/w-homes';
 import {asleep as sleepAsleep, dailySeries as sleepDailySeries, nightDay as sleepNightDay, summary as sleepSummary} from './sleep/engine';
 import {formatMinutes} from './zone-time';
+import {meditationSummary, minutesOn as meditationMinutesOn, minutesText as meditationMinutesText} from './meditation/stats';
 export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string};
 export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean;facts?:{label:string;value:string}[]};
 const labels:Record<string,string>={'last-night':'Last night',kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',history:'30-day nutrition rhythm','history-USD':'Recorded USD wealth','history-EUR':'Recorded EUR wealth',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary',next:'Next milestone',best:'Best current streak',week:'Last 7 days',top:'Largest holding',counts:'Counts today','macros-ring':'Calories and macros'};
-export const widgetMetricLabel=(metric:string)=>labels[metric]??metric;
+// Session W Part 5: a metric id that means something else for one kind (Meditation's "today" and "week").
+const kindLabels:Record<string,Record<string,string>>={meditation:{today:'Mindful minutes today',week:'This week (Monday to Sunday)'}};
+export const widgetMetricLabel=(metric:string,kind?:string)=>(kind?kindLabels[kind]?.[metric]:undefined)??labels[metric]??metric;
 export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
  const habitToday=s.habits.timeZone?habitCalendarDay(s.habits,new Date(s.now)):s.today;
@@ -40,6 +43,18 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   if(!last)return {...defaults,title,value:'No night logged yet',detail:'Log a night or tap “I’m going to bed” in Sleep.',href};
   const slept=sleepAsleep(last)!;
   return {...defaults,title,value:`${formatMinutes(slept.minutes)} asleep`,detail:`Night ending ${sleepNightDay(last)}${slept.estimated?' · estimated':''}${last.quality?` · quality ${last.quality}/5`:''}`,href};
+ }
+ // Session W Part 5: Meditation from Health v4's own sessions; a day without one says so, never zero.
+ if(widget.kind==='meditation'){
+  const m=healthGroupIn(s.health,'meditation'),title=widget.title||'Meditation',href='/app/health?view=meditation';
+  if(widget.metric==='today'){
+   const today=m?meditationMinutesOn(m,s.healthDate):null;
+   if(today===null)return {...defaults,title,value:'No session today',detail:'Begin one in Meditation, or log minutes you did elsewhere.',href};
+   return {...defaults,title,value:`${meditationMinutesText(today)} today`,detail:s.healthDate,href};
+  }
+  const summary=m?meditationSummary(m,s.healthDate):null;
+  if(!summary||!summary.sessions)return {...defaults,title,value:'No sessions yet',detail:'Begin one in Meditation, or log minutes you did elsewhere.',href};
+  return {...defaults,title,value:`${meditationMinutesText(summary.thisWeek)} this week`,detail:`${summary.goal?`Your goal: ${meditationMinutesText(summary.goal)} a week · `:''}Monday to Sunday`,href};
  }
  // UI design pass widgets: real records only; units and currencies stay separate; no entry is never zero.
  if(widget.kind==='milestone'){
