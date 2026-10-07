@@ -8,7 +8,7 @@ import {configured,invited,lastBoundary,metered,paused,upstreamBody,usageIn} fro
 import {LIMITS} from '../../workers/zigi-relay/limits.mjs';
 
 const OPENAI=new URL('https://api.openai.com/v1/chat/completions'),OTHER=new URL('https://api.example.test/v1/chat/completions');
-const ENV={AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public',APP_ORIGIN:'https://app.test',ZIGI_UPSTREAM_URL:OPENAI.href,ZIGI_UPSTREAM_KEY:'sk-test-FAKE',ZIGI_PROVIDER_NAME:'OpenAI',ZIGI_MODEL:'gpt-6-luna',ZIGI_DAILY_REQUESTS:'40',ZIGI_DAILY_TOKENS:'150000',ZIGI_GLOBAL_DAILY_TOKENS:'1500000'};
+const ENV={AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public',APP_ORIGIN:'https://app.test',ZIGI_UPSTREAM_URL:OPENAI.href,ZIGI_UPSTREAM_KEY:['sk','test','FAKE'].join('-'),ZIGI_PROVIDER_NAME:'OpenAI',ZIGI_MODEL:'gpt-6-luna',ZIGI_DAILY_REQUESTS:'40',ZIGI_DAILY_TOKENS:'150000',ZIGI_GLOBAL_DAILY_TOKENS:'1500000'};
 
 test('daily budgets: per account requests and tokens, then the relay\'s own total; what is left is the smaller of the two',()=>{
  const policy=/** @type {NonNullable<ReturnType<typeof dailyPolicy>>} */(dailyPolicy(ENV));

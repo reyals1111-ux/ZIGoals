@@ -4,7 +4,7 @@
 // usage the stream reports, the circuit breaker, the size caps, and no message or reply in any log line. The budget
 // object's fixture clock drives the days and the cool-downs; nothing here waits for real time.
 import {expect,test} from 'vitest';
-import {APP_ORIGIN,INVITED,OTHER,PROBE_LINE,STRANGER,UPSTREAM,delta,relayRuntime,sse,usage} from './zigi-relay-fixture.mjs';
+import {APP_ORIGIN,INVITED,OTHER,PROBE_LINE,RELAY_KEY,STRANGER,UPSTREAM,delta,relayRuntime,sse,usage} from './zigi-relay-fixture.mjs';
 
 const NOON=Date.UTC(2026,9,6,12,0);
 const ask=(text='How many minutes did I meditate this month?',extra={})=>({messages:[{role:'system',content:'You are ZIGi.'},{role:'user',content:text}],max_completion_tokens:1000,...extra});
@@ -67,7 +67,7 @@ test('streaming passthrough: the provider\'s stream arrives as it is; the provid
   expect(await res.text()).toBe(expected);
   expect(r.upstream.requests).toHaveLength(1);
   const [sent]=r.upstream.requests;
-  expect(sent.headers.authorization).toBe('Bearer sk-test-FAKE-relay-key');
+  expect(sent.headers.authorization).toBe(`Bearer ${RELAY_KEY}`);
   expect(sent.body).toEqual({model:'gpt-6-luna',stream:true,stream_options:{include_usage:true},max_completion_tokens:4096,store:false,messages:ask().messages,tools:[tool]});
   // Nothing about the person beyond the conversation: no account, session or address goes to the provider.
   expect(JSON.stringify(sent)).not.toContain(INVITED);expect(Object.keys(sent.headers)).not.toContain('x-zigoals-account');expect(Object.keys(sent.headers)).not.toContain('cookie');
@@ -161,6 +161,6 @@ test('nothing is logged: no question, reply, account or key in any log line (the
   await r.call('/v1/chat',{body:ask(QUESTION)});
   await r.probe();
   await expect.poll(()=>r.logs.some(line=>line.includes(PROBE_LINE))).toBe(true);
-  for(const line of r.logs)for(const secret of [QUESTION,REPLY,'SENTINEL_PROVIDER_ERROR',INVITED,STRANGER,'sk-test-FAKE-relay-key',APP_ORIGIN,UPSTREAM])expect(line).not.toContain(secret);
+  for(const line of r.logs)for(const secret of [QUESTION,REPLY,'SENTINEL_PROVIDER_ERROR',INVITED,STRANGER,RELAY_KEY,APP_ORIGIN,UPSTREAM])expect(line).not.toContain(secret);
  }finally{await r.dispose();}
 },60_000);

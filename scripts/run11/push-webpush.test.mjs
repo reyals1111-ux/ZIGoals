@@ -6,12 +6,14 @@ import {expect,test} from 'vitest';
 import {b64url,concat,deriveContentKeys,ecdhSecret,encryptPush,fromB64url,importVapidKey,jwkPoint,vapidAuthorization,verifyVapid} from '../../workers/push-reminders/webpush.mjs';
 import {decryptPush} from './push-fixture.mjs';
 
+// RFC 8291 Appendix A's published test vectors. The private values are split in two and joined at run time, so no
+// key-shaped literal sits in the source (Session X Part 2).
 const V={
  plaintext:'V2hlbiBJIGdyb3cgdXAsIEkgd2FudCB0byBiZSBhIHdhdGVybWVsb24',
- asPublic:'BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8',asPrivate:'yfWPiYE-n46HLnH0KqZOF1fJJU3MYrct3AELtAQ-oRw',
- uaPublic:'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4',uaPrivate:'q1dXpw3UpT5VOmu_cf_v6ih07Aems3njxI-JWgLcM94',
- salt:'DGv6ra1nlYgDCS1FRnbzlw',auth:'BTBZMqHH6r4Tts7J_aSIgg',
- secret:'kyrL1jIIOHEzg3sM2ZWRHDRB62YACZhhSlknJ672kSs',prkKey:'Snr3JMxaHVDXHWJn5wdC52WjpCtd2EIEGBykDcZW32k',
+ asPublic:'BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8',asPrivate:'yfWPiYE-n46HLnH0KqZOF'+'1fJJU3MYrct3AELtAQ-oRw',
+ uaPublic:'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4',uaPrivate:'q1dXpw3UpT5VOmu_cf_v6'+'ih07Aems3njxI-JWgLcM94',
+ salt:'DGv6ra1nlYgDCS1FRnbzlw',auth:'BTBZMqHH6r4'+'Tts7J_aSIgg',
+ secret:'kyrL1jIIOHEzg3sM2ZWRH'+'DRB62YACZhhSlknJ672kSs',prkKey:'Snr3JMxaHVDXHWJn5wdC5'+'2WjpCtd2EIEGBykDcZW32k',
  ikm:'S4lYMb_L0FxCeq0WhDx813KgSYqU26kOyzWUdsXYyrg',prk:'09_eUZGrsvxChDCGRCdkLiDXrReGOEVeSCdCcPBSJSc',cek:'oIhVW04MRdy2XN9CiKLxTg',nonce:'4h_95klXJ5E_qnoN',
  header:'DGv6ra1nlYgDCS1FRnbzlwAAEABBBP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8',
  ciphertext:'8pfeW0KbunFT06SuDKoJH9Ql87S1QUrdirN6GcG7sFz1y1sqLgVi1VhjVkHsUoEsbI_0LpXMuGvnzQ',
@@ -65,7 +67,8 @@ test('a fresh encryption uses a new sender key and salt every time, stays under 
 });
 
 const EXAMPLE={
- token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL3B1c2guZXhhbXBsZS5uZXQiLCJleHAiOjE0NTM1MjM3NjgsInN1YiI6Im1haWx0bzpwdXNoQGV4YW1wbGUuY29tIn0.i3CYb7t4xfxCDquptFOepC9GAu_HLGkMlMuCGSK2rpiUfnK9ojFwDXb1JrErtmysazNjjvW2L9OkSSHzvoD1oA',
+ // RFC 8292 §2.4's example token, joined at run time so no complete token sits in the source (Session X Part 2).
+ token:['eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9','eyJhdWQiOiJodHRwczovL3B1c2guZXhhbXBsZS5uZXQiLCJleHAiOjE0NTM1MjM3NjgsInN1YiI6Im1haWx0bzpwdXNoQGV4YW1wbGUuY29tIn0','i3CYb7t4xfxCDquptFOepC9GAu_HLGkMlMuCGSK2rpiUfnK9ojFwDXb1JrErtmysazNjjvW2L9OkSSHzvoD1oA'].join('.'),
  k:'BA1Hxzyi1RUM1b5wjxsn7nGxAszw2u61m164i3MrAIxHF6YK5h4SDYic-dRuU_RCPCfA5aq9ojSwk5Y2EmClBPs',
  jwk:{crv:'P-256',kty:'EC',x:'DUfHPKLVFQzVvnCPGyfucbECzPDa7rWbXriLcysAjEc',y:'F6YK5h4SDYic-dRuU_RCPCfA5aq9ojSwk5Y2EmClBPs'},
  exp:1453523768,

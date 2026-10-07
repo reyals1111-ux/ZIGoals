@@ -1,7 +1,7 @@
 import {test} from 'vitest';
 import assert from 'node:assert/strict';
 import {emailCodeOperation,validateEmailTarget} from './pre-run11-email.mjs';
-const config={origin:'https://projectabc.supabase.co',allowedOrigin:'https://projectabc.supabase.co',key:'sb_publishable_privatevalue',recipients:['owner@test.invalid']};
+const config={origin:'https://projectabc.supabase.co',allowedOrigin:'https://projectabc.supabase.co',key:['sb','publishable','privatevalue'].join('_'),recipients:['owner@test.invalid']};
 
 test('one request posts the expected email payload',async()=>{
  let calls=0;const r=await emailCodeOperation('request',config,'owner@test.invalid',null,async(url,init)=>{calls++;assert.equal(url,'https://projectabc.supabase.co/auth/v1/otp');assert.deepEqual(JSON.parse(init.body),{email:'owner@test.invalid',create_user:false});return new Response('{}',{status:200});});
@@ -33,7 +33,7 @@ test('fixture secrets do not occur in status output',async()=>{
 });
 const jwt=role=>`${Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')}.${Buffer.from(JSON.stringify({role,iss:'supabase'})).toString('base64url')}.signature`;
 test('privileged and unknown key classes never reach provider',async()=>{
- let calls=0;for(const key of [jwt('service_role'),jwt('supabase_admin'),jwt('authenticated'),'a.b.c','random-key','sb_secret_value']){
+ let calls=0;for(const key of [jwt('service_role'),jwt('supabase_admin'),jwt('authenticated'),'a.b.c','random-key',['sb','secret','value'].join('_')]){
   const result=await emailCodeOperation('request',{...config,key},'owner@test.invalid',null,async()=>{calls++;return new Response('{}');});
   assert.equal(result,'PUBLIC_KEY_REQUIRED');
  }assert.equal(calls,0);

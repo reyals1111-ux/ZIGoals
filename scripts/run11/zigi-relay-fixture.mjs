@@ -11,6 +11,8 @@ import {join} from 'node:path';
 import {fixtureToken} from './private-runtime.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
+// A fictional provider key, joined at run time so no key-shaped literal sits in the source (Session X Part 2).
+export const RELAY_KEY=['sk','test','FAKE-relay-key'].join('-');
 export const APP_ORIGIN='https://app.test',UPSTREAM='https://api.openai.com/v1/chat/completions',PROBE_LINE='LOG_PROBE_7f3a_capture_works';
 export const INVITED='11111111-1111-4111-8111-111111111111',OTHER='22222222-2222-4222-8222-222222222222',STRANGER='33333333-3333-4333-8333-333333333333';
 let bundled;
@@ -36,7 +38,7 @@ export async function relayRuntime({bindings={},omit=[]}={}){
   return new Response('unexpected host',{status:599});
  };
  /** @type {Record<string,string>} */
- const vars={AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN,ZIGI_UPSTREAM_URL:UPSTREAM,ZIGI_UPSTREAM_KEY:'sk-test-FAKE-relay-key',ZIGI_PROVIDER_NAME:'OpenAI',ZIGI_MODEL:'gpt-6-luna',ZIGI_ALLOWLIST:`${INVITED}, ${OTHER}`,ZIGI_KILL_SWITCH:'off',ZIGI_DAILY_REQUESTS:'5',ZIGI_DAILY_TOKENS:'20000',ZIGI_GLOBAL_DAILY_TOKENS:'30000',ISOLATED_FIXTURE:'true',...bindings};
+ const vars={AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public-fixture',APP_ORIGIN,ZIGI_UPSTREAM_URL:UPSTREAM,ZIGI_UPSTREAM_KEY:RELAY_KEY,ZIGI_PROVIDER_NAME:'OpenAI',ZIGI_MODEL:'gpt-6-luna',ZIGI_ALLOWLIST:`${INVITED}, ${OTHER}`,ZIGI_KILL_SWITCH:'off',ZIGI_DAILY_REQUESTS:'5',ZIGI_DAILY_TOKENS:'20000',ZIGI_GLOBAL_DAILY_TOKENS:'30000',ISOLATED_FIXTURE:'true',...bindings};
  for(const name of omit)delete vars[name];
  /** @type {string[]} */const logs=[];
  const persist=await mkdtemp(join(tmpdir(),'zigoals-relay-'));

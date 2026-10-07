@@ -18,7 +18,7 @@ test('every unsafe change is named',()=>{
   [{...deployable,workers_dev:true},'workers_dev must be false.'],
   [{...deployable,tail_consumers:[{service:'x'}]},'No tail consumers: nothing may read the relay\'s requests.'],
   [{...deployable,kv_namespaces:[{binding:'X',id:'y'}]},'No kv_namespaces: the relay stores nothing but counts.'],
-  [{...deployable,vars:{...deployable.vars,ZIGI_UPSTREAM_KEY:'sk-test-FAKE'}},'ZIGI_UPSTREAM_KEY is a secret: set it with wrangler secret put, never in vars.'],
+  [{...deployable,vars:{...deployable.vars,ZIGI_UPSTREAM_KEY:['sk','test','FAKE'].join('-')}},'ZIGI_UPSTREAM_KEY is a secret: set it with wrangler secret put, never in vars.'],
   [{...deployable,vars:{...deployable.vars,ZIGI_ALLOWLIST:'x'}},'ZIGI_ALLOWLIST is a secret: set it with wrangler secret put, never in vars.'],
   [{...deployable,vars:{...deployable.vars,ZIGI_KILL_SWITCH:'false'}},'ZIGI_KILL_SWITCH must be "on" (paused) or "off".'],
   [{...deployable,vars:{...deployable.vars,ZIGI_DAILY_TOKENS:'9999999'}},'One account\'s daily tokens cannot be more than the relay\'s own daily tokens.'],
