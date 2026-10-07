@@ -3,6 +3,7 @@ import "./platform/run92-product.css";
 import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
+import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { setJournalTimeZone } from "../lib/journal-zone";
@@ -153,7 +154,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
         <div className="actions">
           <button type="button" className="secondary" onClick={retryPrivateReads}>Retry</button>
-          {settingsPending?<span className="fine">Your backups are in Settings once your data opens.</span>:<Link className="text-link" href="/app/settings#privacy">Backups in Settings →</Link>}
+          {settingsPending?<span className="fine">Your backups are in Settings once your data opens.</span>:<Link className="text-link" href="/app/settings#privacy" prefetch={navPrefetch("/app/settings#privacy")}>Backups in Settings →</Link>}
         </div>
       </section>}
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded||startHold} style={{visibility:selection.ready&&preferences.loaded&&!startHold?undefined:"hidden"}}>
