@@ -124,7 +124,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.route("https://testnet-**.zigchain.com/**",async route=>{
     const url=route.request().url();
     expect(route.request().method()).toBe("GET");
-    const json=url.endsWith("/status")?{result:{node_info:{network:"zig-test-2"},sync_info:{catching_up:false,latest_block_height:"77",latest_block_time:new Date().toISOString()}}}:url.includes("node_info")?{default_node_info:{network:"zig-test-2"},application_version:{version:"v5.0.0-patch-1"}}:url.includes("staking")?{params:{bond_denom:"azig"}}:url.includes("balances")?{balance:{denom:"azig",amount:"0"}}:{metadata:{base:"azig",display:"ZIG",denom_units:[{denom:"ZIG",exponent:18}]}};
+    const json=url.endsWith("/status")?{result:{node_info:{network:"zig-test-2"},sync_info:{catching_up:false,latest_block_height:"77",latest_block_time:new Date().toISOString()}}}:url.includes("node_info")?{default_node_info:{network:"zig-test-2"},application_version:{version:"v5.1.0"}}:url.includes("staking")?{params:{bond_denom:"azig"}}:url.includes("balances")?{balance:{denom:"azig",amount:"0"}}:{metadata:{base:"azig",display:"ZIG",denom_units:[{denom:"ZIG",exponent:18}]}};
     await route.fulfill({json});
   });
   // App injection boundary only: addInitScript bypasses CSP and is not proof of real extension compatibility.

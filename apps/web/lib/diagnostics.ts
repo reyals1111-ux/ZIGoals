@@ -1,7 +1,11 @@
 import type { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { deployedManifest } from "./deployment-config";
 import { verifyContractEvidence } from "./contract-evidence";
-import { TESTNET, verifyNetwork } from "@zigoals/chain-config";
+import {
+  REVIEWED_TESTNET_VERSIONS,
+  TESTNET,
+  verifyNetwork,
+} from "@zigoals/chain-config";
 export function shortAccount(address: string) {
   return !address
     ? "Disconnected"
@@ -56,15 +60,16 @@ export async function readDiagnostics(
     })(),
     (async (): Promise<Health> => {
       try {
-        await verifyNetwork(TESTNET, fetcher, "v5.0.0-patch-1");
-        const node = await read(
-          `${TESTNET.restUrl}/cosmos/base/tendermint/v1beta1/node_info`,
+        // Session X Part 1: one of the reviewed versions (zig-test-2 runs zigchaind v5.1.0 since 2026-09-25); the
+        // detail names the version the node reported, which is always one of that list.
+        const version = await verifyNetwork(
+          TESTNET,
+          fetcher,
+          REVIEWED_TESTNET_VERSIONS,
         );
-        if (node.application_version?.version !== "v5.0.0-patch-1")
-          throw Error("Version changed");
         return {
           ok: true,
-          detail: "Verified zig-test-2 · azig · 18 decimals · v5.0.0-patch-1",
+          detail: `Verified zig-test-2 · azig · 18 decimals · ${version}`,
         };
       } catch {
         return {

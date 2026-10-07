@@ -1,0 +1,30 @@
+# ADR-016: Session X-Cloud, "The giant leap": session decisions
+
+Status: **In progress** on `feature/session-x-cloud`, from `main` `72ad872` (Merge #77, Session W; live as Alpha deploy
+#32). This record holds every decision Session X-Cloud took without asking the owner (the brief asks for the safest option
+that keeps every rule), and the owner's own decisions. A parallel lane, X-LOCAL (`feature/session-x-local-zigi`), owns
+ZIGi; the two lanes talk through `docs/handoff/X_CLOUD_TO_LOCAL.md` and `docs/handoff/X_LOCAL_TO_CLOUD.md`.
+
+## Owner decisions (2026-10-07)
+- **The brief:** sixteen parts (chain v5.1.0, secret hygiene, audit, the logo route's headers, performance, CI stability,
+  the Session W sweep, push and relay readiness, the roadmap sweep, the friends pack, WCAG 2.2 AA, the data-safety drill,
+  the human-style test, Gate D, STATUS); one PR, merge commits only, Tier 3 in its own commits; never merge, deploy,
+  dispatch, log in or handle secrets; no new dependency except a braces override if a patched release exists.
+- **Plan revision 2 (approved):** (1) Part 11's first-week polish moves into Part 14's fix loop; (2) Part 14 starts with a
+  charter of at least 250 journeys on 1440/1024/390 and data states, a coverage table with time spent, then at least 60
+  journeys on the live Alpha with fictional in-browser data, polite pacing and modest market requests; (3) two-way
+  handoff: read X-LOCAL's `X_LOCAL_TO_CLOUD.md` at every gate and before Part 16 and do every in-lane item; (4) a stale
+  secret-allowlist entry warns, never fails CI; (5) Q-SYNC-04/05 only if behaviour-preserving, each in its own
+  `[TIER 3] (auth/sync)` commit, never with 5b; (6) the static manifest keeps exactly `/manifest.webmanifest` with
+  byte-identical JSON, pinned by a test, content-type and cache checked in the packaged test; (7) the relay's Anthropic
+  example uses a cost-safe current model verified on the official models page, extended thinking off by default, the same
+  output cap, usage counted exactly from `message_start`/`message_delta`, the default template unchanged unless its model
+  is retired; (8) the draft PR's description is updated at every gate; (9) ROADMAP_SWEEP_X lists every open item with
+  its source, including every remaining Session Q FIX_PLAN item.
+
+## Session decisions
+| # | Part | Decision | Why it is the safest option |
+|---|---|---|---|
+| X1 | 1 | The node version is checked against a reviewed list, `REVIEWED_TESTNET_VERSIONS = ["v5.1.0", "v5.1.1", "v5.1.2"]`, not one exact version. The official testnet REST name answers from a v5.1.0 node and a v5.1.2 node (12 reads on 2026-10-07: 5 and 7), and ZIGChain's networks repository recommends v5.1.1 for zig-test-2; all three are published v5.1 patch releases of the v5 state machine. | A single pin would fail about half the time and again at the next patch swap; a list keeps "unknown version fails closed" for anything not reviewed. |
+| X2 | 1 | The repository's prepared manifest (`apps/web/config/deployment.json`, prepared 2026-09-13 on v5.0.0-patch-1) is not rewritten; the schema accepts its version and the reviewed ones, and a new preparation records the version the node reported. The financial preflight keeps its exact-match rule against the deployed manifest. | The manifest is evidence of what was read when it was prepared; signing rules stay as strict as before (nothing is deployed, so nothing signs). The exact-match rule versus two node versions is recorded as an owner note for the deployment. |
+| X3 | 1 | `verify-hosted-alpha.mjs` reads the build commit Settings shows (the exact `EXPECTED_COMMIT` when given, else any full 40-hex commit) instead of M5's `3645b48`, which made it fail on every deploy since M5. | The owner's read-only verifier must pass on the current Alpha (the brief expects it to after Part 1); with `EXPECTED_COMMIT` it is stricter than before. |

@@ -1,0 +1,152 @@
+{
+  "testnet": {
+    "blocksLatest": {
+      "status": 200,
+      "chainId": "zig-test-2",
+      "height": "8122979"
+    },
+    "nodeInfo": {
+      "status": 200,
+      "network": "zig-test-2",
+      "app": "zigchaind",
+      "version": "v5.1.2",
+      "echoedHeight": "8122979"
+    },
+    "stakingParams": {
+      "status": 200,
+      "bondDenom": "azig",
+      "echoedHeight": "8122979"
+    },
+    "denomMetadata": {
+      "status": 200,
+      "base": "azig",
+      "display": "zig",
+      "units": [
+        "azig:0",
+        "zig:18"
+      ],
+      "echoedHeight": "8122979"
+    },
+    "balanceByDenom": {
+      "status": 200,
+      "balance": {
+        "denom": "azig",
+        "amount": "0"
+      },
+      "echoedHeight": "8122979"
+    },
+    "delegations": {
+      "status": 200,
+      "count": 0,
+      "echoedHeight": "8122979"
+    },
+    "unbonding": {
+      "status": 200,
+      "count": 0,
+      "echoedHeight": "8122979"
+    },
+    "rewards": {
+      "status": 200,
+      "total": [],
+      "echoedHeight": "8122979"
+    },
+    "validator": {
+      "status": 200,
+      "hasOperator": true,
+      "echoedHeight": "8122979"
+    },
+    "wasmParams": {
+      "status": 200,
+      "uploadPermission": "AnyOfAddresses",
+      "uploaders": 34,
+      "instantiateDefault": "Everybody"
+    },
+    "nodeConfig": {
+      "status": 200,
+      "minimumGasPrice": "2500000000.000000000000000000azig"
+    }
+  },
+  "mainnet": {
+    "blocksLatest": {
+      "status": 200,
+      "chainId": "zigchain-1",
+      "height": "12746566"
+    },
+    "nodeInfo": {
+      "status": 200,
+      "network": "zigchain-1",
+      "app": "zigchaind",
+      "version": "v5.1.2",
+      "echoedHeight": "12746566"
+    },
+    "stakingParams": {
+      "status": 200,
+      "bondDenom": "azig",
+      "echoedHeight": "12746566"
+    },
+    "denomMetadata": {
+      "status": 200,
+      "base": "azig",
+      "display": "zig",
+      "units": [
+        "azig:0",
+        "zig:18"
+      ],
+      "echoedHeight": "12746566"
+    },
+    "balanceByDenom": {
+      "status": 200,
+      "balance": {
+        "denom": "azig",
+        "amount": "0"
+      },
+      "echoedHeight": "12746566"
+    },
+    "delegations": {
+      "status": 200,
+      "count": 0,
+      "echoedHeight": "12746566"
+    },
+    "unbonding": {
+      "status": 200,
+      "count": 0,
+      "echoedHeight": "12746566"
+    },
+    "rewards": {
+      "status": 200,
+      "total": [],
+      "echoedHeight": "12746566"
+    },
+    "validator": {
+      "status": 200,
+      "hasOperator": true,
+      "echoedHeight": "12746566"
+    },
+    "wasmParams": {
+      "status": 200,
+      "uploadPermission": "AnyOfAddresses",
+      "uploaders": 15,
+      "instantiateDefault": "Everybody"
+    },
+    "nodeConfig": {
+      "status": 200,
+      "minimumGasPrice": "2500000000.000000000000000000azig"
+    }
+  },
+  "readAt": "2026-10-07T21:38:08.356Z",
+  "about": "Session X Part 1: read-only GETs of the watch-only staking paths (apps/web/lib/native-positions.ts order) on the official REST endpoints, for a fictional address that holds nothing (bech32 of twenty 0x07 bytes). No account, key or personal data. Each later read pinned to the latest height with x-cosmos-block-height, echoed by the node.",
+  "nodeSamples": {
+    "endpoint": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
+    "readAt": "2026-10-07T21:39Z",
+    "samples": 12,
+    "versions": {
+      "v5.1.0 (git 3dd8a7e, moniker znode04-testnet)": 5,
+      "v5.1.2 (git 2de3c0f, moniker znode05-testnet)": 7
+    },
+    "otherTestnetApis": {
+      "public-zigchain-testnet-lcd.numia.xyz": "v5.1.0",
+      "zigchain-testnet-api.polkachu.com": "v5.1.0",
+      "api-t.zigchain.nodestake.org": "v5.1.0"
+    }
+  }
+}
