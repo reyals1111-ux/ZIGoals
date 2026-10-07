@@ -6,11 +6,12 @@ import {expect, test} from '@playwright/test';
 const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
   ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'], ['questions', 'Good to know about the Alpha'],
-  ['whats-new-alpha', 'New in this Alpha, in your own words'], ['feedback', 'Tell us what you think'],
+  // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
+  ['whole-life', 'Sleep, mind, music, chess, links and more'], ['whats-new-alpha', 'New in this Alpha, in your own words'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your AI', 'Questions', 'What\'s new', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your AI', 'Questions', 'New: your whole life', 'What\'s new', 'Send feedback'];
 
-test('Help has one title and nine topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and ten topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -142,4 +143,23 @@ test('at phone width the top bar names Help and steps back to Settings', async (
   await expect(back).toBeVisible();
   await back.click();
   await expect(page).toHaveURL(/\/app\/settings$/);
+});
+
+// Session W Part 24: every new feature has a linkable answer under "New: your whole life"; a hash opens it.
+test('New: your whole life: nineteen linkable questions; a hash opens its answer and writes nothing', async ({page}) => {
+  await page.goto('/app/help');
+  const section = page.getByRole('region', {name: 'Sleep, mind, music, chess, links and more', exact: true});
+  const ids = ['w-pages', 'w-welcome', 'w-sleep', 'w-meditation', 'w-sounds', 'w-import', 'w-devices', 'w-quick', 'w-habits', 'w-goals', 'w-wealth', 'w-wrapup', 'w-chess', 'w-portfolio', 'w-links', 'w-music', 'w-signout', 'w-newer-section', 'w-web-limits'];
+  await expect(section.locator('details.help-question')).toHaveCount(ids.length);
+  for (const id of ids) await expect(section.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(section.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  await page.goto('/app/help#help-w-sleep');
+  const sleep = page.locator('#help-w-sleep');
+  await expect(sleep).toHaveAttribute('open', '');
+  await expect(sleep).toContainText('Sleep debt is, for each logged night of the last 7 days, your goal minus the time you slept');
+  await expect(sleep).toContainText('This is not medical advice');
+  await page.goto('/app/help#help-w-music');
+  await expect(page.locator('#help-w-music')).toContainText('only up to five accounts the owner lists can connect');
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });

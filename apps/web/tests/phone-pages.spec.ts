@@ -50,7 +50,9 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  const list=page.getByRole('navigation',{name:'Settings sections'});await expect(list).toBeVisible();
  await expect(page.locator('.settings-sections')).toBeHidden();
  // 13 rows before Session P; PR 3 adds "Export everything" and "Weekly review day"; PR 4 "Reminders when closed" and "Guide on this device"; Session T "ZIGi · your AI".
- const rows=list.getByRole('link');expect(await rows.count()).toBe(18);
+ // Session W Part 24 (deliberate): six groups like the page's, and seven rows for its new sections (import, pages, time zone, wrap-up, music, links, chess).
+ const rows=list.getByRole('link');expect(await rows.count()).toBe(25);
+ expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Data & privacy','Your app','Your areas','Account & devices','ZIGi','Help & diagnostics']);
  await expect(list.getByRole('link',{name:'Show the welcome again',exact:true})).toHaveAttribute('href','/app/welcome');
  for(const link of await rows.all()){
   const href=(await link.getAttribute('href'))!;if(href==='/app/welcome')continue;expect(href).toMatch(/^#[a-z-]+$/);

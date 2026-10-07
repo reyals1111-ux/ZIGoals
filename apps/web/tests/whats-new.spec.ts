@@ -2,7 +2,7 @@ import {expect, test} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
-import {WHATS_NEW_LINKS} from '../components/for-you/whats-new-card';
+import {EARLIER_LINKS, WHATS_NEW_LINKS} from '../components/for-you/whats-new-card';
 
 // The one-time "What's new" card (Session P, owner addition 4): once per device, never during onboarding, links to Help.
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
@@ -40,10 +40,22 @@ test('after onboarding the card lists the Help entries, is dismissed once per de
   await expect(page.getByRole('region', {name: 'A few new things.'})).toHaveCount(0);
 });
 
-test('a link opens its Help answer', async ({page}) => {
+test('a link opens its Help answer; the earlier release\'s links wait under "Earlier updates"', async ({page}) => {
   await seed(page);
   await page.goto('/app');
-  await page.getByRole('region', {name: 'A few new things.'}).getByRole('link', {name: 'Habits that tick themselves off from Health'}).click();
+  const card = page.getByRole('region', {name: 'A few new things.'});
+  // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
+  await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
+  await expect(card).not.toContainText('stays on this device');
+  await card.getByRole('link', {name: 'Sleep and sleep debt'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-w-sleep$/);
+  await expect(page.locator('#help-w-sleep')).toHaveAttribute('open', '');
+  await page.goto('/app');
+  await expect(card.getByRole('link', {name: 'Habits that tick themselves off from Health'})).toHaveCount(0);
+  await card.getByText('Earlier updates', {exact: true}).click();
+  const earlier = card.locator('.whats-new-earlier').getByRole('link');
+  await expect(earlier).toHaveCount(EARLIER_LINKS.length);
+  await card.getByRole('link', {name: 'Habits that tick themselves off from Health'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-auto-checkins$/);
   await expect(page.locator('#help-auto-checkins')).toHaveAttribute('open', '');
   await expect(page.locator('#help-auto-checkins')).toContainText('Tapping the habit yourself always wins');
