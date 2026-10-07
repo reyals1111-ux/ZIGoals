@@ -1,6 +1,6 @@
 import {DurableMarketAccount,marketPolicyWindowEnds,type AtomicMarketStorage} from '../../apps/web/lib/server/durable-market-account';
 import {WorkerEntrypoint} from 'cloudflare:workers';
-import {durableCatalog,durableHistory,durableInsights,parseDurableMarketBody} from '../../apps/web/lib/server/market-durable-data';
+import {durableCatalog,durableDetails,durableHistory,durableInsights,parseDurableMarketBody} from '../../apps/web/lib/server/market-durable-data';
 import {boundedQuoteText} from '../../apps/web/lib/market-quotes';
 import {CATALOG_FRESH_MS} from '../../apps/web/lib/market-assets';
 import {dispatchDurableQuotes} from '../../apps/web/lib/server/durable-quote-dispatch';
@@ -53,7 +53,7 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   const headers={'cache-control':'no-store','content-type':'application/json'};
   if(this.env.MARKET_QUOTE_DISPATCH!=='durable-v1'||!this.env.MARKET_ACCOUNT_ID||!/^[a-zA-Z0-9_-]{1,80}$/.test(this.env.MARKET_ACCOUNT_ID))return Response.json({error:'MARKET_SETUP_REQUIRED'},{status:503,headers});
   const path=new URL(request.url).pathname;
-  if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights','/cancel','/status'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
+  if(request.method!=='POST'||!['/quotes','/catalog','/history','/insights','/insights-detail','/cancel','/status'].includes(path)||new URL(request.url).search)return new Response(null,{status:404,headers});
   const stub=this.env.MARKETS.get(this.env.MARKETS.idFromName(this.env.MARKET_ACCOUNT_ID));
   // The app's address group for per-client limits. It is passed to the account, which stores only a keyed hash
   // bucket; it is never logged or returned. Checked before every path, cancellation included (Session S).
@@ -80,7 +80,7 @@ export class QuoteService extends WorkerEntrypoint<QuoteEnv>{
   const send=async(command:unknown)=>{const action=String((command as {action?:string}).action);const response=await stub.fetch(new Request('https://coordinator.internal',{method:'POST',headers:{'x-market-caller':caller,...(evidenceCommands.includes(action)?{'x-market-payload':'evidence'}:{})},body:JSON.stringify(command)}));if(!response.ok)throw Error('Coordinator unavailable.');return JSON.parse(await boundedQuoteText(response,['acquire','follow','poll','acquire-many','poll-many'].includes(action)?17*1024*1024:1024*1024)) as Record<string,unknown>;};
   const command=cached?isolateCache.wrap(send):send;
   const context={command,key:this.env.COINGECKO_DEMO_API_KEY,signal:request.signal,cancelToken,client};
-  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request as HistoryRequest,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests as QuoteRequests,context):await durableInsights(body.requests as QuoteRequests,context):null;
+  const result=path==='/catalog'?await durableCatalog(context):'request' in body?await durableHistory(body.request as HistoryRequest,context):'requests' in body?path==='/quotes'?await dispatchDurableQuotes(body.requests as QuoteRequests,context):path==='/insights-detail'?await durableDetails(body.requests as QuoteRequests,context):await durableInsights(body.requests as QuoteRequests,context):null;
   if(path==='/catalog'&&cached&&result&&'assets' in result&&!result.error&&result.fetchedAt){const text=JSON.stringify(result);if(text.length<=16*1024*1024)catalogText={text,fetchedAt:Date.parse(result.fetchedAt)};return new Response(text,{headers});}
   return Response.json(result,{headers});
  }

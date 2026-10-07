@@ -8,9 +8,10 @@ import { formatDateTime, formatPlainDecimal } from '../../lib/visual-format';
 const cache=createMarketHistoryCache((request,refresh)=>fetchPublicMarketHistory(request,refresh));
 const labels:Record<ChartHistoryRange,string>={'1d':'24H','7d':'7D','30d':'30D','90d':'90D','1y':'1Y',all:'Available'};
 const EMPTY_POINTS:HistoryPoint[]=[];
-export type PriceChartProps={marketRef:MarketAssetRef;currency:'USD'|'EUR';localPoints?:HistoryPoint[];title?:string};
+/** `offline` (Session W Part 15, the Showcase's coin page): only `localPoints` (labelled fixture prices) are shown and nothing is asked. */
+export type PriceChartProps={marketRef:MarketAssetRef;currency:'USD'|'EUR';localPoints?:HistoryPoint[];title?:string;offline?:boolean};
 /** localPoints are dated unit prices in currency, never holding totals. They remain in this component only. */
-export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='Price history'}:PriceChartProps){
+export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='Price history',offline=false}:PriceChartProps){
  const id=useId();
  // One historical window per opened asset. Range controls filter real observations locally.
  const requestText=JSON.stringify({marketRef,currency,range:'90d'});
@@ -24,11 +25,11 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),30000);return ()=>clearInterval(timer);},[]);
  useEffect(()=>{
   activeRequest.current=requestText;
-  if(request.marketRef.kind==='rwa')return;
+  if(request.marketRef.kind==='rwa'||offline)return;
   let active=true;
   cache.load(request).then(result=>{if(active)setState({key:requestText,result});});
   return ()=>{active=false;activeRequest.current=null;};
- },[request,requestText]);
+ },[request,requestText,offline]);
  const result=state?.key===requestText?state.result:null;
  const history=result?.history??null;
  const local=useMemo(()=>validLocalHistory(localPoints,now),[localPoints,now]);
@@ -37,9 +38,9 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
  const points=historyPointsForRange(observed,selectedRange);
  const entrance=useEntrance<HTMLElement>(`price:${JSON.stringify(marketRef)}:${currency}`,points.length>1);
  const current=points.find(p=>p.at===inspectedAt)??points[points.length-1];
- const source=history?'CoinGecko':marketRef.kind==='rwa'?'CoinGecko tokenized RWA reference':'Saved local price observations';
+ const source=offline?'Showcase fixture prices':history?'CoinGecko':marketRef.kind==='rwa'?'CoinGecko tokenized RWA reference':'Saved local price observations';
  const isStale=Boolean(history&&historyIsStale(history,now));
- const loading=loadingKey===requestText||(!result&&marketRef.kind==='coin');
+ const loading=!offline&&(loadingKey===requestText||(!result&&marketRef.kind==='coin'));
  const refreshAllowed=!loading&&now>=(result?.nextAttemptAt??0);
  const decimals=Math.max(0,...points.map(p=>p.decimals));
  const units=points.map(p=>BigInt(p.value)*10n**BigInt(decimals-p.decimals));
@@ -63,7 +64,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
   if(nearest)setInspectedAt(nearest.at);
  };
  return <figure ref={entrance} className="price-chart" aria-label={title}>
-  <div className="price-chart-heading"><div><span className="price-chart-eyebrow">Market perspective</span><h3>{title}</h3></div>{marketRef.kind==='coin'&&<button type="button" className="price-chart-refresh" disabled={!refreshAllowed} onClick={()=>void refresh()}>{loading?'Loading…':!refreshAllowed?'Refresh available soon':'Refresh chart'}</button>}</div>
+  <div className="price-chart-heading"><div><span className="price-chart-eyebrow">Market perspective</span><h3>{title}</h3></div>{marketRef.kind==='coin'&&!offline&&<button type="button" className="price-chart-refresh" disabled={!refreshAllowed} onClick={()=>void refresh()}>{loading?'Loading…':!refreshAllowed?'Refresh available soon':'Refresh chart'}</button>}</div>
   <div className="price-chart-source"><span className={`price-chart-dot ${isStale?'is-stale':''}`} aria-hidden="true"/>{source}{history&&<span className={isStale?'price-chart-stale':''}>{isStale?'Saved market history':'Recently fetched history'}</span>}</div>
   {current&&<div className="price-chart-quote"><div><strong>{formatPlainDecimal(formatHistoryValue(current))} <small>{currency}</small></strong><span><time dateTime={current.at}>{formatDateTime(current.at)}</time> · observed price</span></div>{changeText&&<div className={`price-chart-change ${change!<0n?'is-negative':''}`}><strong>{changeText}</strong><span>Between shown observations</span></div>}</div>}
   {ranges.length>0&&<div className="price-chart-ranges" role="group" aria-label="Chart range">{ranges.map(value=><button type="button" key={value} aria-pressed={selectedRange===value} onClick={()=>{setRange(value);setInspectedAt(null);}}>{labels[value]}</button>)}</div>}
@@ -82,7 +83,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
   </>:<div className="price-chart-empty"><span aria-hidden="true">◌</span><h4>{loading?'Loading observed prices':'Your price history starts here'}</h4><p>{loading?'Checking available market history.':'Prices will appear as verified observations become available. Earlier performance is not assumed.'}</p></div>}
   <figcaption>
    {points.length>1&&<span>Connecting lines are illustrative; gaps longer than seven days remain open. The vertical scale fits observed prices, not a zero baseline. This is market context, not your portfolio return.</span>}
-   {marketRef.kind==='rwa'?RWA_HISTORY_UNAVAILABLE:history?'Dated market observations. Lines connect observed prices; values between them are not recorded prices.':'Saved local price observations. Market history is currently unavailable.'}
+   {offline?'Showcase fixture prices, not market data.':marketRef.kind==='rwa'?RWA_HISTORY_UNAVAILABLE:history?'Dated market observations. Lines connect observed prices; values between them are not recorded prices.':'Saved local price observations. Market history is currently unavailable.'}
    {history&&<span>Fetched <time dateTime={history.fetchedAt}>{formatDateTime(history.fetchedAt)}</time> · {currency} per asset unit.</span>}
    {result?.error&&marketRef.kind==='coin'&&<span className="price-chart-limitation" role="status">{result.error}</span>}
   </figcaption>

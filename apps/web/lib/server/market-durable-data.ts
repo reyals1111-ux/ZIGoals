@@ -2,6 +2,7 @@ import {z} from 'zod';
 import {marketRequestsSchema,marketRequestKey,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
 import {historyRequestSchema,HISTORY_DAYS,HISTORY_UNAVAILABLE,RWA_HISTORY_UNAVAILABLE,parseCoinHistory,type MarketHistoryRequest,type MarketHistory} from '../market-history';
 import {parseMarketInsights,INSIGHTS_UNAVAILABLE,MAX_INSIGHT_PAIRS,insightIsStale,type MarketInsight} from '../market-insights';
+import {DETAIL_NOT_PROVIDED,DETAIL_UNAVAILABLE,MAX_DETAIL_PAIRS,detailIsStale,marketDetailUrl,parseMarketDetails,type MarketDetail} from '../market-detail';
 import {providerText,providerFailure,type MarketCommand,type ChargedOperation} from './market-charged-read';
 import {runMarketBatch,type MarketGroup,type MarketItem,type MarketRead} from './market-batch';
 import type {PublicMarketWork} from './market-coordinator';
@@ -46,5 +47,18 @@ export async function durableInsights(raw:readonly MarketQuoteRequest[],c:Contex
  const answers=new Map(pairs.map((pair,index)=>[marketRequestKey(pair),items[index]!]));
  const entries=items.flatMap(i=>i.value?[i.value as MarketInsight]:[]),results=Object.fromEntries(requests.map(pair=>{const item=answers.get(marketRequestKey(pair));return [marketRequestKey(pair),{insight:item?.value??null,error:!item||failed(item)||!item.fresh?INSIGHTS_UNAVAILABLE:null,stale:!item?.value||insightIsStale(item.value as MarketInsight,now(c))}];}));
  return {entries,results,error:requests.some(pair=>{const item=answers.get(marketRequestKey(pair));return !item||failed(item)||!item.fresh;})?INSIGHTS_UNAVAILABLE:null};
+}
+/** Session W Part 15 (QuoteService /insights-detail): coins' market details, one provider read per currency, admitted
+ * and charged exactly as insights are (the `insights` charge: its cost, priority, endpoint, breakers and the public
+ * cold-work cap), cached under the `detail` work key so insights rows stay as they were. A tokenized RWA is not read. */
+export async function durableDetails(raw:readonly MarketQuoteRequest[],c:Context){
+ const requests=uniqueMarketRequests(raw),miss=(error:string)=>({detail:null,error,stale:true});
+ if(requests.length>MAX_DETAIL_PAIRS)return {results:Object.fromEntries(requests.map(pair=>[marketRequestKey(pair),miss(DETAIL_UNAVAILABLE)])),error:DETAIL_UNAVAILABLE};
+ const pairs=requests.filter(pair=>pair.marketRef.kind==='coin'),works:PublicMarketWork[]=pairs.map(pair=>({operation:'detail',pair}));
+ const groups:MarketGroup[]=keyed(c)?(['USD','EUR'] as const).map(currency=>({charge:'insights' as const,members:pairs.flatMap((pair,index)=>pair.currency===currency?[index]:[])})).filter(group=>group.members.length>0):[];
+ const items=await runMarketBatch(works,groups,reader(owners=>marketDetailUrl(pairs[owners[0]!]!.currency,owners.map(i=>pairs[i]!.marketRef.id)),'insights',4*1024*1024,works,c,(text,owners)=>{const members=owners.map(i=>pairs[i]!);return parseMarketDetails(text,members,now(c)).map(value=>({index:owners[members.findIndex(member=>marketRequestKey(member)===marketRequestKey(value))]!,value}));}),c);
+ const answers=new Map(pairs.map((pair,index)=>[marketRequestKey(pair),items[index]!]));
+ const results=Object.fromEntries(requests.map(pair=>{const key=marketRequestKey(pair);if(pair.marketRef.kind!=='coin')return [key,miss(DETAIL_NOT_PROVIDED)];const item=answers.get(key);return [key,{detail:item?.value??null,error:!item||failed(item)||!item.fresh?DETAIL_UNAVAILABLE:null,stale:!item?.value||detailIsStale(item.value as MarketDetail,now(c))}];}));
+ return {results,error:pairs.some(pair=>{const item=answers.get(marketRequestKey(pair));return !item||failed(item)||!item.fresh;})?DETAIL_UNAVAILABLE:null};
 }
 export function parseDurableMarketBody(path:string,raw:unknown){return path==='/catalog'?z.object({version:z.literal(1)}).strict().parse(raw):path==='/history'?z.object({version:z.literal(1),request:historyRequestSchema}).strict().parse(raw):z.object({version:z.literal(1),requests:marketRequestsSchema}).strict().parse(raw);}

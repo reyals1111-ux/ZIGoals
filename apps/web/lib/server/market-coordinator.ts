@@ -11,6 +11,8 @@ import type {ProviderFailureCategory} from './provider-failure';
 export const publicMarketWorkSchema=z.discriminatedUnion('operation',[
  z.object({operation:z.literal('quote'),pair:marketRequestSchema}).strict(),
  z.object({operation:z.literal('insights'),pair:marketRequestSchema}).strict(),
+ // Session W Part 15: a coin's market details (/insights-detail), cached under its own key so `insights` rows are unchanged.
+ z.object({operation:z.literal('detail'),pair:marketRequestSchema}).strict(),
  z.object({operation:z.literal('history'),pair:marketRequestSchema,range:historyRequestSchema.shape.range}).strict(),
  z.object({operation:z.literal('catalog'),provider:z.literal('coingecko'),kind:z.enum(['coin','rwa'])}).strict(),
 ]);

@@ -292,7 +292,8 @@ async function acquireMany(run:Run,command:Extract<Command,{action:'acquire-many
 function chargeFits(name:z.infer<typeof charge>,items:PublicMarketWork[]){
  if(!items.length)return false;
  if(name==='quote')return items.every(item=>item.operation==='quote')&&new Set(items.map(item=>item.operation==='quote'?item.pair.marketRef.kind:'')).size===1;
- return items.every(item=>item.operation===name)&&(name!=='history'||items.length===1)&&(name!=='catalog'||items.length===1);
+ // Session W Part 15: market details are read like insights (same endpoint, cost, priority and breakers), never mixed with them.
+ return (items.every(item=>item.operation===name)||name==='insights'&&items.every(item=>item.operation==='detail'))&&(name!=='history'||items.length===1)&&(name!=='catalog'||items.length===1);
 }
 type Charge={cost:number|undefined;priority:MarketPriority;kind:'request'|'fallback';endpoint:string;operation:string;pool?:'history'};
 function chargeOf(config:Config,name:z.infer<typeof charge>|'token',items:PublicMarketWork[]):Charge{

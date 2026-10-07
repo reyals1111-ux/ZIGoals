@@ -5,6 +5,7 @@ import * as cancel from '../../app/api/market-quotes/cancel/route';
 import * as assets from '../../app/api/market-assets/route';
 import * as history from '../../app/api/market-history/route';
 import * as insights from '../../app/api/market-insights/route';
+import * as detail from '../../app/api/market-detail/route';
 import * as status from '../../app/api/market-status/route';
 vi.mock('@opennextjs/cloudflare',()=>({getCloudflareContext:vi.fn()}));
 afterEach(()=>{vi.unstubAllEnvs();vi.restoreAllMocks();});
@@ -31,6 +32,8 @@ const routes:[string,()=>Promise<Response>][]=[
  ['GET /api/market-assets',()=>assets.GET(new Request('https://alpha.test/api/market-assets',{headers}))],
  ['POST /api/market-history',()=>history.POST(post('/api/market-history',{request:{...btc,range:'7d'}}))],
  ['POST /api/market-insights',()=>insights.POST(post('/api/market-insights',{requests:[btc]}))],
+ // Session W Part 15: coins' market details reach the coordinator's /insights-detail the same way.
+ ['POST /api/market-detail',()=>detail.POST(post('/api/market-detail',{requests:[btc]}))],
  ['GET /api/market-status',()=>status.GET(new Request('https://alpha.test/api/market-status',{headers}))],
 ];
 test.each(routes)('%s sends the edge client group, never the caller\'s header',async(_label,call)=>{
@@ -53,4 +56,15 @@ test('65 insight pairs never reach the coordinator; 65 quote pairs reach it once
  // market-request-cost.test.ts, 65 pairs). The app sends the batch once, with the client, and never fans it out.
  const quote=await quotes.POST(post('/api/market-quotes',{requests:many}));expect(quote.status).toBe(503);await quote.text();
  expect(seen).toEqual([{path:'/quotes',client:'v4:198.51.100.23',caller:'public'}]);
+});
+test('65 detail pairs never reach the coordinator; an older coordinator (404) makes every pair "not provided"',async()=>{
+ const seen=bound(),many=Array.from({length:65},(_,i)=>({marketRef:{provider:'coingecko',kind:'coin',id:`coin-${i}`},currency:'USD'}));
+ const refused=await detail.POST(post('/api/market-detail',{requests:many}));expect(refused.status).toBe(400);await refused.text();
+ expect(seen).toEqual([]);
+ const older:string[]=[];
+ vi.mocked(getCloudflareContext).mockResolvedValue({env:{ZIGOALS_MARKET_QUOTES_MODE:'durable-v1',MARKET_QUOTES:{fetch:async(request:Request)=>{older.push(new URL(request.url).pathname);await request.text();return new Response(null,{status:404});}}}} as never);
+ const answered=await detail.POST(post('/api/market-detail',{requests:[btc]}));
+ expect(answered.status).toBe(200);
+ expect(await answered.json()).toEqual({results:{'coingecko:coin:bitcoin:USD':{detail:null,error:'This market service does not provide these details yet.',stale:true}},error:'This market service does not provide these details yet.'});
+ expect(older).toEqual(['/insights-detail']);
 });

@@ -37,7 +37,8 @@ test('create a portfolio and record transactions; without prices values stay unk
   await form.getByLabel('Date').fill('2026-09-01');
   await form.getByRole('button', {name: 'Save transaction'}).click();
   await expect(page.getByRole('status').filter({hasText: 'Buy of BTC recorded.'})).toBeVisible();
-  const holding = page.getByRole('list', {name: 'Fictional coins holdings'}).getByRole('listitem').first();
+  // Session W Part 15: the holdings are a table (one row per coin); the row says the same things, exactly.
+  const holding = page.getByRole('table', {name: 'Fictional coins holdings'}).getByRole('row').filter({hasText: 'Bitcoin'});
   await expect(holding).toContainText('0.5 BTC');
   await expect(holding).toContainText('Value unknown');
   await expect(holding).toContainText('No price yet');
