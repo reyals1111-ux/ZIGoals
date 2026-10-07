@@ -2,7 +2,6 @@
 import {useState} from 'react';
 import {getAppStorage, isShowcase} from '../lib/showcase-storage';
 import {localDate} from '../lib/local-date';
-import {buildEverythingZip, collectEverything, readEverything} from '../lib/export/everything';
 import './export-everything.css';
 
 /**
@@ -15,6 +14,8 @@ export function ExportEverything() {
   async function run() {
     setBusy(true); setError(''); setStatus(''); setNotes([]);
     try {
+      // The export code (every module's reader and the ZIP writer) loads with this tap, not with Settings (Session X Part 5).
+      const {buildEverythingZip, collectEverything, readEverything} = await import('../lib/export/everything');
       const storage = getAppStorage(), now = new Date();
       const {texts, localSimulation} = await readEverything(storage);
       // ZIGi's conversations (ADR-012) ride along; its provider keys live in a key store the export never opens.

@@ -2,6 +2,9 @@ import type {ImportFormat} from '../batches-schema';
 import {STOPPED} from './common';
 import type {ReadOutcome} from './read';
 
+// The page that starts a read tells a stop from a failure by this text (components/import/switch-import.tsx).
+export {STOPPED};
+
 /**
  * Starts reading an export (Session W Part 7): in the bundled Web Worker where the browser has one, otherwise on the page
  * (the same code). Stopping terminates the worker at once; nothing has been written by then, because reading only ever
