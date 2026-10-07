@@ -199,6 +199,15 @@ a module moves up only when one of these groups first gets content, and never go
 - Part 9: Health v4 `quick` (pinned items and the person's own water buttons; the first writer of `quick`). "Copy
   yesterday's …", "Repeat yesterday" and the one-tap chips write ordinary diary entries; Quick add's "slept 7h30" writes
   a Health v4 `sleep` night (it wrote an activity line before).
+- Part 19: settings v3 `links` (Settings → My links; the first writer of `links`; every change stamped).
+- Part 20: whether the music player shows is settings v3 `pages` (the `music` button, like any page switch); its own
+  choices (source, mini-bar, volume, the focus sound) stay in `zigoals:music:v1`; the Spotify sign-in is sealed in
+  `zigoals-link-tokens-v1` (never exported or synced). Nothing about what plays is stored.
+- Part 21: ZIGi's new cards write ordinary records on the person's confirmation (a night in Health v4 `sleep`, mindful
+  minutes in `meditation`, a milestone in the goal at finance v4, a challenge as the habit's end date). The balance
+  hand-off lives only in the tab's session storage (`zigoals:ai:balance-prefill:v1`, read once, ten minutes) and writes
+  nothing until the person saves the balance in Wealth (`zigoals:accounts:v1`, device).
+- Part 24: nothing new. The "What's new" flag stays device-only (`zigoals:whats-new:v1`).
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in
