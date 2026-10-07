@@ -1,44 +1,43 @@
 'use client';
-import {useSyncExternalStore} from 'react';
-import {filesFor, skinOf, ZIGI_MANIFEST, type Manifest, type SizeName, type ZigiState} from './manifest';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {filesFor, skinOf, ZIGI_MANIFEST, type Manifest, type SizeName, type StateFiles, type ZigiState} from './manifest';
+import {motionAllowed, supportsAnimatedWebp, watchMotion} from './motion';
+import {ZigiImage} from './zigi-image';
 import './zigi.css';
 
 export {ZIGI_MANIFEST, ZIGI_STATES, type ZigiState} from './manifest';
 /**
- * The ZIGi figure (ADR-012; Session V Part 12): a state of a skin from the static manifest, at any size. A state the
- * skin has no file for shows its fallback's file, down to the skin's base frame (the placeholder, today, for every
- * state); each state also has a small CSS motion of its own (zigi.css). An animated file, once a skin has one, plays
- * only while motion is allowed: never under the device's reduced motion, the app's Motion Off or ZIGi's animation Off,
- * where the state's still frame shows instead.
+ * The ZIGi figure (ADR-012; Session V Part 12; Session X-Local Part 1): a state of a skin from the static manifest, at any
+ * size. The state's still frame (its poster) shows first; its animated clip is fetched and swapped in only while motion
+ * is allowed (never under the device's reduced motion, the app's Motion Off or ZIGi's animation Off) and the figure is
+ * on screen. A state without its own clip wears a delivered one (the manifest's `wears`); a state the skin has no files
+ * for shows its fallback's, down to the skin's base frame. Each state also has a small CSS motion of its own (zigi.css).
  */
-type Picked = {src: string; srcSet?: string; width: number; height: number};
+export type Picked = {src: string; srcSet?: string; width: number; height: number; animated: string | null; files: StateFiles | null};
 /** The image for a state of a skin at a CSS size (pure; the manifest test checks every state of every skin). */
-export function frameFor(skinName: string | null | undefined, state: string, size: number, motion: boolean, manifest: Manifest = ZIGI_MANIFEST): Picked {
+export function frameFor(skinName: string | null | undefined, state: string, size: number, motion: boolean, manifest: Manifest = ZIGI_MANIFEST, apng = false): Picked {
   const skin = skinOf(skinName, manifest), sizes = skin.sizes;
   const base: SizeName = size > sizes['2x'].width ? 'large' : '1x', proportion = sizes[base].height / sizes[base].width;
   const height = Math.round(size * proportion), {files} = filesFor(skin, state, manifest);
-  if (files?.animated && motion) return {src: files.animated, width: size, height};
+  const animated = motion ? (apng ? files?.animatedFallback : files?.animated) ?? null : null;
   const one = files?.['1x'] ?? sizes['1x'].file, two = files?.['2x'] ?? sizes['2x'].file, large = files?.large ?? sizes.large.file;
-  return base === '1x' ? {src: one, srcSet: `${one} 1x, ${two} 2x`, width: size, height} : {src: large, width: size, height};
-}
-/** Motion for ZIGi's own animated files: off under reduced motion, Motion Off or ZIGi's animation Off. */
-function motionAllowed(): boolean {
-  const root = document.documentElement.dataset;
-  return root.appMotion !== 'off' && root.zigiMotion !== 'off' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-}
-function watchMotion(change: () => void): () => void {
-  const observer = new MutationObserver(change), query = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-  observer.observe(document.documentElement, {attributes: true, attributeFilter: ['data-app-motion', 'data-zigi-motion']});
-  query?.addEventListener('change', change);
-  return () => { observer.disconnect(); query?.removeEventListener('change', change); };
+  return base === '1x' ? {src: one, srcSet: `${one} 1x, ${two} 2x`, width: size, height, animated, files} : {src: large, width: size, height, animated, files};
 }
 const still = () => false;
-export function ZigiAvatar({state = 'idle', size = 56, className = '', decorative = false, skin}: {state?: ZigiState; size?: number; className?: string; decorative?: boolean; skin?: string}) {
+let apngNeeded = false;
+void supportsAnimatedWebp().then(ok => { apngNeeded = !ok; });
+export function ZigiAvatar({state = 'idle', size = 56, className = '', decorative = false, skin, play = true}: {state?: ZigiState; size?: number; className?: string; decorative?: boolean; skin?: string; play?: boolean}) {
   const motion = useSyncExternalStore(watchMotion, motionAllowed, still);
-  const spec = ZIGI_MANIFEST.states[state] ?? ZIGI_MANIFEST.states.idle!, frame = frameFor(skin, state, size, motion);
-  return <span className={`zigi zigi-${state}${className ? ` ${className}` : ''}`} data-state={state} data-code={spec.code} style={{width: size, height: frame.height}}>
-    {/* A static figure from /public, like the brand mark: no optimizer, no loader, nothing fetched beyond the file. */}
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={frame.src} srcSet={frame.srcSet} width={size} height={frame.height} alt={decorative ? '' : ZIGI_MANIFEST.alt} aria-hidden={decorative || undefined} draggable={false} decoding="async"/>
+  const box = useRef<HTMLSpanElement>(null), [onScreen, setOnScreen] = useState(true);
+  // A figure scrolled out of view (Meet ZIGi's long page) keeps its poster; the clip loads when it comes back.
+  useEffect(() => {
+    const el = box.current; if (!el || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(!!entry?.isIntersecting));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const spec = ZIGI_MANIFEST.states[state] ?? ZIGI_MANIFEST.states.idle!, frame = frameFor(skin, state, size, motion && play && onScreen, ZIGI_MANIFEST, apngNeeded);
+  return <span ref={box} className={`zigi zigi-${state}${className ? ` ${className}` : ''}`} data-state={state} data-code={spec.code} data-wears={frame.files?.wears} data-own={frame.files && !frame.files.wears ? '' : undefined} style={{width: size, height: frame.height}}>
+    <ZigiImage poster={{src: frame.src, srcSet: frame.srcSet}} animated={frame.animated} width={size} height={frame.height} alt={ZIGI_MANIFEST.alt} decorative={decorative}/>
   </span>;
 }

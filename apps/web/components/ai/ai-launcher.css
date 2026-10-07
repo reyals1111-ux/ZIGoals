@@ -1,10 +1,12 @@
 /* ZIGi · your AI (ADR-012): the launcher shell, shipped on every app page; everything else lives in ai.css and loads with the chat. */
 /* ---- Launcher ---- */
 /* Session V Part 12: pill, circle and chevron as one control; side and size from Customize; the figure on its optical
-   centre (the manifest's offset for the original skin: --zigi-ox/--zigi-oy, fractions of the figure's box). */
-.ai-launcher{--zigi-circle:56px;--zigi-figure:44px;--zigi-ox:-.041;--zigi-oy:.001;position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(4px,env(safe-area-inset-bottom,0px));z-index:46;display:flex;align-items:flex-start;gap:8px}
-.ai-launcher[data-size=s]{--zigi-circle:48px;--zigi-figure:38px}
-.ai-launcher[data-size=l]{--zigi-circle:64px;--zigi-figure:52px}
+   centre (the manifest's offset for the original skin: --zigi-ox/--zigi-oy, fractions of the figure's box).
+   Session X-Local Part 1: the studio's figure fills 83 % of its frame (feet 2 % above the bottom, room for the hop and the
+   raised arms), so the box is 1.18× the placeholder's (52 px for the 56 px circle) and the figure reads the same size. */
+.ai-launcher{--zigi-circle:56px;--zigi-figure:52px;--zigi-ox:.023;--zigi-oy:-.09;position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(4px,env(safe-area-inset-bottom,0px));z-index:46;display:flex;align-items:flex-start;gap:8px}
+.ai-launcher[data-size=s]{--zigi-circle:48px;--zigi-figure:45px}
+.ai-launcher[data-size=l]{--zigi-circle:64px;--zigi-figure:61px}
 .ai-launcher[data-side=left]{right:auto;left:max(20px,env(safe-area-inset-left,0px));flex-direction:row-reverse}
 /* On a computer the sidebar holds the left edge: a left-side ZIGi sits just past it. */
 @media (min-width:901px){.ai-launcher[data-side=left]:not(.ai-launcher-phone){left:calc(var(--sidebar-width,216px) + 20px)}.ai-edge-tab[data-side=left]:not(.ai-edge-tab-phone){left:var(--sidebar-width,216px)}}
@@ -26,6 +28,8 @@
 @keyframes zigi-breath-full{0%,100%{transform:translateY(0) scale(1) rotate(0)}30%{transform:translateY(-2px) scale(1.04) rotate(-1.5deg)}65%{transform:translateY(-1px) scale(1.02) rotate(1deg)}}
 .ai-launcher-button[data-state=idle] .zigi img{animation:zigi-breath 5.6s ease-in-out infinite}
 :root[data-zigi-motion=full] .ai-launcher-button[data-state=idle] .zigi img{animation:zigi-breath-full 3.6s ease-in-out infinite}
+/* Session X-Local Part 1: the idle clip breathes by itself; the CSS breath covers the poster until the clip plays. */
+.ai-launcher .zigi[data-own] img[data-playing]{animation:none!important}
 :root[data-zigi-motion=off] .ai-launcher .zigi img,:root[data-app-motion=off] .ai-launcher .zigi img{animation:none!important}
 @media (prefers-reduced-motion:reduce){.ai-launcher .zigi img{animation:none!important}}
 .ai-launcher-pill{font-size:14px;line-height:1;padding:12px 16px;min-height:44px;margin-top:calc((var(--zigi-circle) - 44px) / 2);display:inline-flex;align-items:center;border-radius:999px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);background:radial-gradient(120% 220% at 30% 20%,#2b2a6e,#0d1230 70%);box-shadow:0 14px 34px -14px rgba(60,40,160,.8),0 0 0 1px rgba(255,255,255,.04) inset;color:var(--text,#eef1ff);text-decoration:none;white-space:nowrap}
@@ -42,7 +46,7 @@
 .ai-launcher[data-side=left] .ai-launcher-hide::after{right:auto;left:calc(100% + 4px)}
 .ai-launcher-hide:hover::after,.ai-launcher-hide:focus-visible::after{opacity:1}
 /* While ZIGi is hidden: a small tab at the screen's edge, on ZIGi's side, brings it back. */
-.ai-edge-tab{--zigi-figure:30px;position:fixed;right:0;bottom:max(28px,env(safe-area-inset-bottom,0px));z-index:46;width:44px;height:52px;padding:0 0 0 4px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);border-right:0;border-radius:16px 0 0 16px;background:radial-gradient(140% 120% at 30% 20%,#2b2a6e,#0d1230 75%);box-shadow:0 10px 26px -12px rgba(60,40,160,.8);cursor:pointer;overflow:hidden}
+.ai-edge-tab{--zigi-figure:35px;position:fixed;right:0;bottom:max(28px,env(safe-area-inset-bottom,0px));z-index:46;width:44px;height:52px;padding:0 0 0 4px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);border-right:0;border-radius:16px 0 0 16px;background:radial-gradient(140% 120% at 30% 20%,#2b2a6e,#0d1230 75%);box-shadow:0 10px 26px -12px rgba(60,40,160,.8);cursor:pointer;overflow:hidden}
 .ai-edge-tab[data-side=left]{right:auto;left:0;padding:0 4px 0 0;border-right:1px solid color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);border-left:0;border-radius:0 16px 16px 0}
 .ai-edge-tab-phone{bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 14px)}
 .ai-edge-tab:hover,.ai-edge-tab:focus-visible{border-color:color-mix(in srgb,var(--cyan,#6fd3ff) 60%,transparent)}

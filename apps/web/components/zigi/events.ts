@@ -81,13 +81,22 @@ function handle(event: ZigiEvent): void {
   const after = oneShotMs(next);
   if (after) rest = window.setTimeout(() => { rest = null; zigiState.set(restState(context())); armSleepy(); }, after);
 }
+/**
+ * Starts ZIGi's state machine on this page (Session X-Local Part 1: the alive chunk starts it on every app page; the chat
+ * panel's hook below still does, harmlessly, on the first open). One listener per page whoever starts it: the bus
+ * holds listeners in a set, so a second start adds nothing, and the last stop removes it.
+ */
+let runners = 0;
+export function startZigiMachine(): () => void {
+  runners++;
+  const off = zigiEvents.on(handle);
+  const onOffline = () => zigiEvents.emit('offline'), onOnline = () => zigiEvents.emit('online');
+  window.addEventListener('offline', onOffline); window.addEventListener('online', onOnline);
+  if (navigator.onLine === false && !offline) zigiEvents.emit('offline');
+  let stopped = false;
+  return () => { if (stopped) return; stopped = true; runners--; window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); if (!runners) off(); };
+}
 /** Runs ZIGi's state machine while the chat chunk is on the page (mounted once, in the chat panel). */
 export function useZigiMachine(): void {
-  useEffect(() => {
-    const off = zigiEvents.on(handle);
-    const onOffline = () => zigiEvents.emit('offline'), onOnline = () => zigiEvents.emit('online');
-    window.addEventListener('offline', onOffline); window.addEventListener('online', onOnline);
-    if (navigator.onLine === false && !offline) zigiEvents.emit('offline');
-    return () => { off(); window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); };
-  }, []);
+  useEffect(() => startZigiMachine(), []);
 }

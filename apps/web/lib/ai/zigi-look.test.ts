@@ -8,19 +8,22 @@ import {DEFAULT_LOOK, readZigiLook} from './zigi-look';
 // unreadable reads as the defaults (Calm, right, medium, the edge tab on) without a write.
 const store = (value: string | null) => { const writes: string[] = []; return {getItem: (k: string) => k === ZIGI_KEY ? value : null, setItem: (k: string) => { writes.push(k); }, removeItem: (k: string) => { writes.push(k); }, writes}; };
 test('defaults: nothing stored, unreadable bytes, another version, or storage that refuses', () => {
-  expect(DEFAULT_LOOK).toEqual({animation: 'calm', side: 'right', size: 'm', edgeTab: true, knock: false});
+  expect(DEFAULT_LOOK).toEqual({animation: 'calm', side: 'right', size: 'm', edgeTab: true, knock: false, skin: null});
   for (const raw of [null, '{', '[]', 'null', JSON.stringify({version: 2, animation: 'full'}), JSON.stringify({animation: 'full'})]) expect(readZigiLook(store(raw)), String(raw)).toEqual(DEFAULT_LOOK);
   expect(readZigiLook({getItem: () => { throw new Error('denied'); }})).toEqual(DEFAULT_LOOK);
 });
 test('each field falls back alone; the edge tab is off only when switched off', () => {
-  expect(readZigiLook(store(JSON.stringify({version: 1, animation: 'full', side: 'up', size: 'xl', edgeTab: 'no', knock: {enabled: 'yes'}})))).toEqual({animation: 'full', side: 'right', size: 'm', edgeTab: true, knock: false});
-  expect(readZigiLook(store(JSON.stringify({version: 1, edgeTab: false, side: 'left', size: 's', animation: 'off', knock: {enabled: true}})))).toEqual({animation: 'off', side: 'left', size: 's', edgeTab: false, knock: true});
+  expect(readZigiLook(store(JSON.stringify({version: 1, animation: 'full', side: 'up', size: 'xl', edgeTab: 'no', knock: {enabled: 'yes'}})))).toEqual({animation: 'full', side: 'right', size: 'm', edgeTab: true, knock: false, skin: null});
+  expect(readZigiLook(store(JSON.stringify({version: 1, edgeTab: false, side: 'left', size: 's', animation: 'off', knock: {enabled: true}})))).toEqual({animation: 'off', side: 'left', size: 's', edgeTab: false, knock: true, skin: null});
+  // Session X-Local Part 1: the look's name travels to the alive chunk; a malformed one reads as the default skin.
+  expect(readZigiLook(store(JSON.stringify({version: 1, skin: 'origami-nebula'}))).skin).toBe('origami-nebula');
+  expect(readZigiLook(store(JSON.stringify({version: 1, skin: 'Not A Skin!'}))).skin).toBeNull();
 });
 test('the shell reads what the full record holds, for every valid choice, and a read never writes', () => {
   for (const animation of ['full', 'calm', 'off'] as const) for (const side of ['right', 'left'] as const) for (const size of ['s', 'm', 'l'] as const) for (const edgeTab of [true, false]) for (const enabled of [true, false]) {
     const s = store(JSON.stringify({version: 1, animation, side, size, edgeTab, knock: {enabled}, someLaterField: 1}));
     const full = zigiPrefs(readDeviceRecord(s, ZIGI).data);
-    expect(readZigiLook(s)).toEqual({animation: full.animation, side: full.side, size: full.size, edgeTab: full.edgeTab, knock: full.knock.enabled});
+    expect(readZigiLook(s)).toEqual({animation: full.animation, side: full.side, size: full.size, edgeTab: full.edgeTab, knock: full.knock.enabled, skin: null});
     expect(s.writes).toEqual([]);
   }
 });

@@ -1,8 +1,9 @@
 # ZIGi — figure, states, skins and motion (asset spec)
 
-Session V Part 12 (ADR-014). This file is the reference for anyone drawing or animating ZIGi, and for the code
-that shows it. It replaces the "ZIGi states", "Assets and budgets" and "Motion" sections of `YOUR_AI_V1.md`, which
-stay there for history.
+Session V Part 12 (ADR-014); Studio-2 art, the mapped states and the Studio-4 slots since Session X-Local Parts 1–2
+([ADR-017](../architecture/ADR-017-session-x-local.md)). This file is the reference for anyone drawing or animating
+ZIGi, and for the code that shows it. It replaces the "ZIGi states", "Assets and budgets" and "Motion" sections of
+`YOUR_AI_V1.md`, which stay there for history.
 
 ## What ZIGi is made of
 
@@ -17,11 +18,18 @@ stay there for history.
 - **The figure** is `components/zigi/zigi-avatar.tsx`. It shows one state of one skin at any CSS size, and loads with
   the chat, Settings and Meet ZIGi.
 - **The launcher shell** ships on every app page and never imports the manifest. It carries one constant frame
-  (`components/zigi/zigi-figure.tsx`, `lib/ai/zigi-look.ts` `SHELL_FRAME`) and the optical offset as two CSS numbers
-  (`components/ai/ai-launcher.css`, `--zigi-ox` / `--zigi-oy`). The manifest test keeps both equal to the default skin.
-- **The state machine** is `components/zigi/events.ts`, a pure `transition` function plus timers. It loads with the
-  chat chunk. The shell carries only the tiny event bus and state store (`components/zigi/bus.ts`). Events emitted
-  before the machine starts are delivered to it when it does.
+  (`components/zigi/zigi-figure.tsx`, `lib/ai/zigi-look.ts` `SHELL_FRAME`: the original skin's idle still) and the
+  optical offset as two CSS numbers (`components/ai/ai-launcher.css`, `--zigi-ox` / `--zigi-oy`). The manifest test
+  keeps both equal to the default skin's base frame.
+- **The alive chunk** (`components/zigi/alive.ts`, Session X-Local Part 1, ADR-017 S7) loads lazily on every app page
+  once ZIGi is on screen and the browser is idle, never as part of the shell. It runs the state machine on every page and
+  publishes to the bus which files show each state (`zigiFrames`): the poster, and the animated clip while motion is
+  allowed. The shell figure reads the bus; the chat's avatar reads the manifest directly.
+- **The state machine** is `components/zigi/events.ts`, a pure `transition` function plus timers (started by the alive
+  chunk, and by the chat chunk on the first open; one listener per page). The shell carries only the tiny event bus and
+  the stores (`components/zigi/bus.ts`). Events emitted before the machine starts are delivered to it when it does.
+- **One picture** is `components/zigi/zigi-image.tsx`: the poster shows at once; the animated file is fetched and decoded
+  off screen and swapped in only once it can play. Nothing large is on the critical path.
 
 ## States
 
@@ -57,6 +65,29 @@ the chain to the skin's base frame. Every chain ends at idle; the manifest test 
 | peek | F022 | loop | 4 s | idle | the "Show ZIGi" edge tab while ZIGi is hidden; the knock (Part 13) |
 | loading-model | F023 | loop | 1.6 s | thinking | Chrome's on-device model loads (Part 15) |
 
+### The art each state wears (Studio-2, Session X-Local Part 1)
+
+Studio-2 delivered clips for eleven states. The other fourteen wear a delivered clip (the manifest's `wears`), chosen after
+watching every clip on the studio's review page, and keep their own small CSS move (`zigi.css`) on top. Studio-4 slots
+(below) replace some of them when their files land.
+
+| State | Wears | Why | Replaced by a Studio-4 slot |
+|---|---|---|---|
+| reading-your-data | thinking (T001) | the thinker pose and the index taps read as "looking something up"; the CSS scan adds the left–right glance | — |
+| writing-proposal | speaking (F005) | open-handed gestures while a card streams in; the CSS nod stays | — |
+| success | insight (F003) | a calm "got it" (the eye snaps bright, the index goes up), not a hop: ordinary successes stay small (ADR-017 S17) | — |
+| proud | celebrate (F009) | the hop and the fists, for a streak milestone the engine counted | — |
+| curious | listening (F004) | the lean-in and the eye that follows: ZIGi asks which one | — |
+| surprised | insight (F003) | the eye snapping wide on frame 31; the CSS pop adds the lift | — |
+| confused | error (E001) | the glance aside and the shrug, without error's desaturation | — |
+| empathetic | listening (F004) | the gentle lean-in and the slow blink | — |
+| encouraging | speaking (F005) | warm open-hand gestures; the CSS double nod | — |
+| wave-goodbye | idle (F001) | greeting's wave starts with a walk-in from screen-left, wrong for a goodbye; idle's still with the CSS wave until the in-place greeting lands | `transitions.greetingInPlace` (X001) |
+| reminder | attention (F007) | the knock itself | — |
+| offline | sleepy (F008) | resting; the CSS dim and desaturation say "offline" | — |
+| peek | listening (F004) | a quiet lean-in at the screen's edge, eye alive (attention's endless knock would be noise on the edge tab) | `gaze.viewer` (X021) |
+| loading-model | thinking (T001) | the thinker pose; the CSS dim says "loading" | — |
+
 Three rules are never broken:
 
 - **Celebrate and proud follow the app, not the AI.** Celebrate follows only `action-applied`, which the proposal
@@ -70,16 +101,17 @@ Three rules are never broken:
 
 | Skin | Label | Status |
 |---|---|---|
-| `origami-nebula` | Original | the default; today the placeholder frame for every state |
+| `origami-nebula` | Original | the default; Studio-2 art (eleven clips, the other states wear one of them) |
 
 Customize also shows `comingSoon` (3) "Coming soon" silhouette tiles. They are not selectable: they are honest
 placeholders for looks being drawn. Unknown skin names, such as a skin chosen in a later build, show the default.
 
 To add a skin:
 
-1. Put its files under `apps/web/public/brand/figures/zigi/<skin>/`.
+1. Put its files under `apps/web/public/brand/figures/zigi/<skin>/` (`scripts/zigi/import-studio.mjs --skin <skin>`
+   copies a studio delivery there and fills the manifest, Part 2).
 2. Add a `skins.<skin>` entry: `label`, `placeholder: false`, `opticalOffset` (measure it; see below), `sizes`, and
-   `states` with the per-state files it has.
+   `states` with the per-state files it has, plus `extras` (the Studio-4 slots).
 3. Lower `comingSoon` by one.
 4. The Customize picker lists it automatically.
 
@@ -97,20 +129,33 @@ To add a skin:
   | animated | 192 × 253 | one file per state, every size up to 192 px | 400 KB |
 
   The manifest test enforces these against the files on disk.
-- **Naming:**
+- **Naming (the studio's names, kept exactly so that a later delivery is a pure file swap, ADR-017 S2):**
   - `<code>-<state>.webp`, `<code>-<state>-2x.webp`, `<code>-<state>-large.webp`;
-  - an animated state adds `<code>-<state>-anim.webp`.
-- **Brand inventory test:** `lib/brand-assets.test.ts` pins the number of `-2x` files and exempts `-large` frames.
-  The commit that adds the first drawings updates that count, and adds the same exemption for `-anim` files.
-- **Per-state entries:** `skins.<skin>.states.<state>` = `{"1x": …, "2x": …, "large": …, "animated": …}`. Any field may
-  be missing; a missing one falls back as above.
+  - an animated state adds `<code>-<state>.anim.webp` and its APNG fallback `<code>-<state>.anim.png` (96 × 126,
+    12 fps, a 255-colour palette with binary alpha: shown only where a browser cannot play animated WebP);
+  - Studio-4 extras follow the same shape with their own codes: `X001-greeting-in-place…`, `X010-idle-glance…`,
+    `X020-gaze-chat-input…`, `R001-…` to `R013-…`.
+- **Brand inventory test:** `lib/brand-assets.test.ts` pins the number of `-2x` files (28) and exempts `-large` frames
+  and `.anim.webp` clips. `lib/ai/zigi-assets.test.ts` checks every delivered file mechanically: the format from its bytes,
+  the pixel size, the byte budget, the loop count (loops loop, one-shots play once), every state resolvable, every
+  fallback chain ending in an existing file, and the Studio-4 slots present and empty.
+- **Per-state entries:** `skins.<skin>.states.<state>` = `{"1x": …, "2x": …, "large": …, "animated": …,
+  "animatedFallback": …, "wears"?: <state>}`. Any field may be missing; a missing one falls back as above.
+- **The Studio-4 slots** (`skins.<skin>.extras`, data only, `null` until the files land): `reactions` R001–R013,
+  `idleVariants` (X010, X011), `transitions` (`greetingInPlace` X001, `chain`), `gaze` (`chatInput` X020, `viewer` X021,
+  `target` X022). `reactionTriggers` at the top level names the semantic event each reaction answers; it stays `null`
+  until Studio-4 or the owner names it (ADR-017 S11). The importer fills the slots; no code changes for a swap.
+- **The receipt:** every delivered file's SHA-256 is in `docs/verification/x-local/STUDIO2_RECEIPT.md`; the importer
+  verifies a new delivery against a receipt of that shape (or a `SHA256SUMS`) and refuses anything unlisted.
 - **Animated files:**
-  - The first frame is the still pose.
-  - Loops loop seamlessly; one-shots end on the still pose within the state's duration.
+  - The first frame is the still pose (NEUTRAL).
+  - Loops loop seamlessly; one-shots end on the still pose within the state's duration and hold it until ZIGi rests.
   - An animated file plays only while motion is allowed. Under reduced motion, Motion Off or ZIGi's animation Off,
-    the still file shows instead (`frameFor` in `zigi-avatar.tsx`).
-- **Pose:** the figure stands on the baseline of its box (`object-fit: contain`). The drop shadow is CSS, not part of
-  the file.
+    the still file shows instead (`frameFor` in `zigi-avatar.tsx`; the alive chunk publishes no clip to the shell).
+  - The poster shows first; the clip is fetched only when its state shows and ZIGi is on screen, decoded off screen,
+    then swapped in (`zigi-image.tsx`). Nothing preloads every clip.
+- **Pose:** the figure stands on the baseline of its box (`object-fit: contain`) and fills 83 % of the frame's height
+  (feet 2 % above the bottom: room for the hop and the raised arms). The drop shadow is CSS, not part of the file.
 
 ## Optical centre
 
@@ -118,8 +163,11 @@ ZIGi is not symmetric, so centring its box in the launcher's circle leaves the f
 carries `opticalOffset {x, y}`. This is how far to move the figure so that its **alpha-weighted centre** (each pixel
 weighted by its opacity) lands on the circle's centre. The values are fractions of the figure's box width and height.
 
-- **The original skin:** x −0.041, y +0.001, measured from the placeholder in Chromium on 2026-10-06. The figure's
-  visual centre sits at 0.541 / 0.499 of its box.
+- **The original skin:** x +0.023, y −0.090, measured from `F001-idle.webp` (1×, 2× and large agree to 0.002) in
+  Chrome on 2026-10-07. The figure's visual centre sits at 0.477 / 0.589 of its box, low because the figure keeps
+  headroom; the offset lifts it onto the circle's centre. (The placeholder measured x −0.041, y +0.001.)
+- **The box:** the launcher's figure box is 1.18× the placeholder's (52 px in the 56 px circle; 45 px for S, 61 px for
+  L; 35 px on the edge tab), so the smaller fill reads as the same size as before.
 - **The check:** `tests/zigi-alive.spec.ts` measures it in the page, from the very file the browser chose, at S, M and
   L (48, 56 and 64 px circles; 38, 44 and 52 px figures) and at 1× and 2× density. It asserts the visual centre is
   within 0.75 px of the circle's centre, and that the manifest's offset matches the measurement.

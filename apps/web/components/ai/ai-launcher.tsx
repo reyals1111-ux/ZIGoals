@@ -87,10 +87,20 @@ export function AiLauncher() {
   // Session V Part 9: the page's "Ask ZIGi" affordances show only while this button does (CSS reads the root's mark).
   const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !hidden && !sensitive;
   useEffect(() => { const root = document.documentElement; if (shown) root.dataset[LAUNCHER_SHOWN_ATTRIBUTE] = 'shown'; else delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; return () => { delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; }; }, [shown]);
+  const visible = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && !hidden && !sensitive;
+  const edgeTab = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive;
+  // Session X-Local Part 1 (ADR-017 S7): once ZIGi is on screen and the browser is idle, the small alive chunk loads: the
+  // state machine on every page and the frames each state shows. Never in the shell, never before ZIGi is visible.
+  useEffect(() => {
+    if (!visible && !edgeTab) return;
+    let cancelled = false;
+    const load = () => { if (!cancelled) void import('../zigi/alive').then(m => { if (!cancelled) m.startZigiAlive(); }).catch(() => undefined); };
+    // Safari has no requestIdleCallback: a short timer stands in.
+    const idle = typeof window.requestIdleCallback === 'function', handle = idle ? window.requestIdleCallback(load, {timeout: 2000}) : window.setTimeout(load, 800);
+    return () => { cancelled = true; if (idle) window.cancelIdleCallback(handle); else window.clearTimeout(handle); };
+  }, [visible, edgeTab]);
   if (!mounted || !pathname.startsWith('/app')) return null;
-  const app = launcherApp(launcher.record);
-  const visible = launcher.loaded && lookLoaded && !hidden && !sensitive;
-  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive, agents = agentsOffered();
+  const app = launcherApp(launcher.record), agents = agentsOffered();
   return <>
     {visible && <div className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}

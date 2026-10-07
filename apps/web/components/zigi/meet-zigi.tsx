@@ -27,13 +27,13 @@ function StateCard({state, skin}: {state: ZigiState; skin: string}) {
   return <article ref={card} className="meet-zigi-card" aria-labelledby={`zigi-state-${state}`}>
     <header><h3 id={`zigi-state-${state}`}>{spec.label}</h3><p className="meet-zigi-meta"><span>{spec.code}</span> · <span>{spec.kind === 'loop' ? 'Loops while it lasts' : `Plays once · ${(spec.durationMs / 1000).toLocaleString('en-US')} s`}</span></p></header>
     <div className="meet-zigi-sizes" key={play}>{SIZES.map(size => <figure key={size.name}><ZigiAvatar state={state} size={size.px} skin={skin} className="zigi-play" decorative/><figcaption>{size.name}</figcaption></figure>)}</div>
-    <p className="meet-zigi-meta">{files.from ? files.from === state ? 'Its own drawing.' : `Shows the ${ZIGI_MANIFEST.states[files.from]?.label.toLowerCase()} drawing for now.` : ZIGI_MANIFEST.skins[skin]?.placeholder ? 'The placeholder figure, with this state’s own move.' : 'The skin’s base drawing.'}{spec.fallback ? ` Falls back to ${ZIGI_MANIFEST.states[spec.fallback]?.label.toLowerCase()}.` : ''}</p>
+    <p className="meet-zigi-meta">{files.files?.wears ? `Wears the ${ZIGI_MANIFEST.states[files.files.wears]?.label.toLowerCase()} clip for now, with this state’s own move.` : files.from ? files.from === state ? 'Its own clip.' : `Shows the ${ZIGI_MANIFEST.states[files.from]?.label.toLowerCase()} drawing for now.` : ZIGI_MANIFEST.skins[skin]?.placeholder ? 'The placeholder figure, with this state’s own move.' : 'The skin’s base drawing.'}{spec.fallback ? ` Falls back to ${ZIGI_MANIFEST.states[spec.fallback]?.label.toLowerCase()}.` : ''}</p>
     {spec.kind === 'one-shot' && <button type="button" className="secondary" onClick={() => setPlay(n => n + 1)} aria-label={`Play ${spec.label} again`}>Play again</button>}
   </article>;
 }
 export function MeetZigi() {
   return <div className="meet-zigi">
-    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · your AI" title="Meet ZIGi." lede="Every state ZIGi can be in, as it looks today. A placeholder figure stands in until the finished drawings land; each state already has its own small move."/>
+    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · your AI" title="Meet ZIGi." lede="Every state ZIGi can be in, as drawn by the studio. Eleven states have their own clip; the others wear one of them for now, each with its own small move on top."/>
     <p className="help-back"><Link className="text-link" href="/app/settings#zigi-look">← Back to Settings</Link></p>
     <section className="panel meet-zigi-motion" aria-labelledby="meet-zigi-motion"><h2 id="meet-zigi-motion">How much ZIGi moves</h2><AnimationChoice/><p className="ai-note">Your device&rsquo;s reduced-motion setting and Motion Off in Settings always come first: then every figure here holds still.</p></section>
     {Object.entries(ZIGI_MANIFEST.skins).map(([id, skin]) => <section key={id} className="panel meet-zigi-skin" aria-labelledby={`meet-zigi-skin-${id}`}>
