@@ -237,6 +237,7 @@ Filled in part by part as Session W lands. Re-run step 2 at your release SHA; th
 | health-link Worker (new, `workers/health-link`) | not part of the acceptance stack and not deployed by this redeploy; activation only per HEALTH_LINK_ACTIVATION.md | **no** |
 | acceptance app (OpenNext) | Part 9, quick logging on Health's diary: "Copy yesterday's …" and "Repeat yesterday" (ordinary diary entries), one-tap chips for pinned and usual items, the person's own water buttons (pins and button sizes in Health v4 `quick`); Quick add's "slept 7h30" asks for the wake time and saves a night in Sleep (Health v4) instead of a movement line | same |
 | acceptance app (OpenNext) | Part 10, Habits v2: habit ideas (a habit or a 30-day challenge in one tap), challenges as a habit's end date (synced with Habits like any edit), stacks shown together with an optional chained reminder on this device, a habit's patterns by weekday and week | same |
+| acceptance app (OpenNext) | Part 11, Goals v2: milestones with a value and a date (the value in the Goal, synced; the date on this device), marks on the progress bar and one calm note when reached; "On track?" with zero return and the person's own "what if" (never stored); ideas in the Goal creator | same |
 
 **What syncs now that did not before:** with the switch on, fasting sessions (Health v2), health goals, habit-health links
 with their automatic check-in markers and the weekly review's Health note (Health v3, under the Health consent), and the

@@ -25,6 +25,7 @@ import {allocate,allocationBalance,assetMatches,contributionSchema,goalProgress,
 import {availableNativeStake,quickAllocateStake,watchScope} from '../lib/owner-preview';
 import {contributionTemplate} from '../lib/contribution-habit';
 import {createHabit} from '../lib/habits';
+import {GOAL_IDEAS} from '../lib/templates/goals';
 import {localDate} from '../lib/local-date';
 type Funding='wealth'|'future'|'local'|'project';
 export function UnifiedGoalWizard({positionId}:{positionId?:string}){
@@ -119,6 +120,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  <div className="wizard-story" aria-hidden="true"><SceneArt scene={category==='Travel'?'mountains':category==='First Home'?'home':'horizon'}/><div><small>YOUR NEXT CHAPTER</small><strong>{name||'It starts with a destination.'}</strong><span>One clear plan. A little progress, often.</span></div></div>
  <div className="wizard-content"><p className="eyebrow">Step {step+1} of 4</p>
  {step===0&&<><h2>What are you working toward?</h2><div className="form-grid">
+ <fieldset className="goal-ideas span-two"><legend>Start from an idea (optional)</legend><div className="goal-ideas-list">{GOAL_IDEAS.map(idea=><button type="button" key={idea.id} className="quiet goal-idea" aria-label={`Start from the idea: ${idea.label}`} onClick={()=>{if(type!==idea.type)changeType(idea.type);setName(idea.name);setCategory(idea.category);if(idea.milestones)setMilestones(idea.milestones.join('\n'));setError('');}}><strong>{idea.label}</strong><small>{idea.note}</small></button>)}<Link className="quiet goal-idea" href="/app/goals#goals-health"><strong>A weight goal</strong><small>Lives with your Health goals: a weight you choose, from your Health journal.</small></Link></div></fieldset>
  <label className="span-two">Goal name<input value={name} onChange={e=>setName(e.target.value)} maxLength={80} required/></label>
  <fieldset className="goal-type-cards span-two"><legend>What kind of progress matters?</legend>{([
  ['QUANTITY','Quantity','Build a quantity of an asset you choose.'],['VALUE','Value','Track allocated wealth toward a currency target.'],['REWARD','Reward','Track rewards that remain unclaimed.'],['PROJECT','Project','Move forward through meaningful milestones.']

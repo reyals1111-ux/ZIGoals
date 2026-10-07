@@ -12,3 +12,9 @@
 .goal-optional .goal-choice-tiles{max-height:260px;overflow:auto;padding:.2rem}
 .goal-optional>label{display:grid;gap:.5rem}
 .unified-wizard .wizard-actions{flex-wrap:wrap}
+/* Session W Part 11: goal ideas in the creator. */
+.goal-ideas { border: 0; padding: 0; margin: 0; }
+.goal-ideas legend { margin-bottom: 8px; }
+.goal-ideas-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.goal-idea { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid #a6c1fa26; border-radius: 14px; text-decoration: none; }
+.goal-idea small { opacity: .85; }

@@ -184,6 +184,10 @@ a module moves up only when one of these groups first gets content, and never go
   (`sessionStorage` `zigoals:link-synced:v1`).
 - Part 10: a challenge is the habit's own end date (Habits, synced as before); the chained reminders
   (`zigoals:w-reminders:v1` `chained`) and the challenge's one-time note (`zigoals:celebrations:v1`) stay on the device.
+- Part 11: a milestone's title, done and value stay in the Goal (finance v4's existing fields, synced as before; never
+  written at v5); its target date stays on the device in `zigoals:milestone-dates:v1` until the later switch PR moves it
+  to finance v5's milestone `targetDate`; the one-time milestone note is `zigoals:celebrations:v1` (device). "What if it
+  grew?" is never stored.
 - Part 9: Health v4 `quick` (pinned items and the person's own water buttons; the first writer of `quick`). "Copy
   yesterday's …", "Repeat yesterday" and the one-tap chips write ordinary diary entries; Quick add's "slept 7h30" writes
   a Health v4 `sleep` night (it wrote an activity line before).
