@@ -43,6 +43,11 @@ export function endNight(s: Sleep, id: string, at: Date): Sleep {
   const now = at.toISOString();
   return parse({...s, nights: s.nights.map(n => n.id === id ? {...n, end: now, updatedAt: now} : n)});
 }
+/** A daytime sleep shorter than three hours (starting 09:00–19:59 where it was lived) is a nap; anything else a night. */
+export function napOrNight(startMs: number, endMs: number, zone: string): 'night' | 'nap' {
+  const hour = Math.floor(wallClock(startMs, zone).minutes / 60);
+  return endMs - startMs < 3 * 3_600_000 && hour >= 9 && hour < 20 ? 'nap' : 'night';
+}
 export type NightInput = {id?: string; kind: 'night' | 'nap'; start: number; end: number; timeZone: string; latencyMin?: number; awakenings?: number; awakeMin?: number; quality?: number; tags?: string[]; note?: string};
 const overlaps = (a: {start: number; end: number}, b: {start: number; end: number}) => a.start < b.end && b.start < a.end;
 /** Adds a night or nap the person typed, or edits one (an edit keeps where it came from). Overlapping nights are refused. */

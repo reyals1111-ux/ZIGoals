@@ -7,7 +7,7 @@ import {dailyData} from '../lib/health-daily';
 import {latestHabitRule} from '../lib/habits';
 import {parse, type QuickAddContext, type QuickAddKnown, type QuickAddResult} from '../lib/quick-add/parse';
 import {describeChoice, describeQuickAdd, savedLine} from '../lib/quick-add/describe';
-import {applyQuickAdd} from '../lib/quick-add/save';
+import {applyQuickAdd, type QuickAddStores, type QuickAddWrite} from '../lib/quick-add/save';
 import {storageMessageOr} from '../lib/storage-error-copy';
 
 /**
@@ -34,9 +34,11 @@ export function QuickAddLine() {
     setBusy(true); setError('');
     try {
       const now = new Date();
-      const write = applyQuickAdd(item, {health: health.data, habits: habits.data}, now);
-      if (write.health) await health.update(current => applyQuickAdd(item, {health: current, habits: habits.data}, now).health!);
-      if (write.habits) await habits.update(current => applyQuickAdd(item, {health: health.data, habits: current}, now).habits!);
+      // A night's code (Sleep) loads only when a sleep line is saved (Session W Part 9).
+      const apply = item.kind === 'sleep' ? (await import('../lib/quick-add/sleep')).applyQuickAddSleep as (item: QuickAddKnown, stores: QuickAddStores, now: Date) => QuickAddWrite : applyQuickAdd;
+      const write = apply(item, {health: health.data, habits: habits.data}, now);
+      if (write.health) await health.update(current => apply(item, {health: current, habits: habits.data}, now).health!);
+      if (write.habits) await habits.update(current => apply(item, {health: health.data, habits: current}, now).habits!);
       setSaved(savedLine(item, write.habitTotal)); setResult(null); setChosen(null); setText(''); setWake('');
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : '';

@@ -3,6 +3,7 @@ import {sleepNightSchema, type SleepNight, type SleepSource} from '../../sleep/s
 import {meditationSessionSchema, type MeditationSession} from '../../meditation/schema';
 import {vitalDaySchema, type VitalDay, type VitalSource} from '../../vitals/schema';
 import {wallClock, zoneOffsetMinutes} from '../../zone-time';
+import {napOrNight} from '../../sleep/engine';
 import type {ImportFormat} from '../batches-schema';
 import type {ActivityLine, ImportItems, ImportPlan, WeightLine} from './apply';
 
@@ -96,11 +97,7 @@ export class LastOfDay {
   get size() { return this.days.size; }
 }
 
-/** A daytime sleep shorter than three hours (starting 09:00–19:59 where it was lived) is a nap; anything else a night. */
-export function napOrNight(startMs: number, endMs: number, zone: string): 'night' | 'nap' {
-  const hour = Math.floor(wallClock(startMs, zone).minutes / 60);
-  return endMs - startMs < 3 * 3_600_000 && hour >= 9 && hour < 20 ? 'nap' : 'night';
-}
+export {napOrNight};
 const minutes = (ms: number) => Math.max(0, Math.round(ms / 60_000));
 /**
  * A night as the journal keeps it. When the source says how long the person slept, time awake is what is left of the
