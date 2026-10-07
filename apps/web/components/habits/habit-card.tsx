@@ -21,6 +21,9 @@ import { habitCheckIn, type HabitCardStore } from "./use-habits";
 import { formatDate, formatDateTime, formatPlainDecimal } from "../../lib/visual-format";
 import { unitFor } from "../../lib/plural";
 import { checkInFailureMessage, storageMessageOr } from "../../lib/storage-error-copy";
+import { ChallengeControls, ChallengeFinished, ChallengeLine } from "./habit-challenge";
+import { HabitPatterns } from "./habit-patterns";
+import { habitsZone } from "../../lib/habits-v2/stats";
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
@@ -131,12 +134,13 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
   </div>;
 }
 
-function HabitInsights({ habit, today }: { habit: Habit; today: string }) {
+function HabitInsights({ habit, today, zone }: { habit: Habit; today: string; zone: string }) {
   const stats = habitStats(habit, today); const trends = habitTrends(habit, today);
   return <div className="habit-insights" role="group" aria-label={`${habit.title} insights`}>
     <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
     <div className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><GlassBar identity={`habit-trends:${habit.id}:${trend.period}`} className="habit-trend-track" aria-hidden="true" value={trend.percentage / 100} /><strong>{trend.percentage}%</strong></div>)}</div>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
+    <HabitPatterns habit={habit} today={today} zone={zone} />
   </div>;
 }
 
@@ -152,13 +156,13 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch (error) { setError(storageMessageOr(error, "The habit was not changed. Try again.")); } finally { setBusy(false); } }
   return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
     <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><button className="quiet ai-ask-link" onClick={() => askZigi(`About my habit "${habit.title}": `)} aria-label={`Ask ZIGi about ${habit.title}`}>Ask ZIGi</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
-    {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}
+    {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}<ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {unitFor(planned.target, measurementUnit(planned))} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
     <HabitCompletion habit={habit} store={store} />
     <HabitTimer habit={habit} store={store}/>
     {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
     {onViewStack&&stackNext?.map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
-    <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} /></details>
+    <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <ChallengeControls habit={habit} store={store} />}
     <div className="habit-cadence" role="img" aria-label={`Last 28 days of ${habit.title}. Open History to review each day.`}>{Array.from({ length: 28 }, (_, index) => { const date = addLocalDays(store.today, index - 27); const result = habitDay(habit, date, store.today); return <span key={date} className={`habit-dot habit-day-${result.status}`} title={`${date}: ${statusLabel[result.status]}`} />; })}</div>
     {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}
     <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>

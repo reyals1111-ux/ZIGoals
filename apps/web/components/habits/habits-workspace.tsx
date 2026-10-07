@@ -31,6 +31,8 @@ import { HealthLinkContext } from "./health-link-context";
 import { setHabitHealthLink } from "../../lib/habit-health-links/store";
 import { exerciseData } from "../../lib/health-counters";
 import { dailyData } from "../../lib/health-daily";
+import { HabitIdeas } from "./habit-ideas";
+import { HabitStacks } from "./habit-stacks";
 
 /** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
 function useStackSuggestions(data: HabitData, today: string) {
@@ -65,6 +67,7 @@ export function HabitsWorkspace() {
   const [filter, setFilter] = useState<Filter>("Today");
   const [editor, setEditor] = useState<string | null>(null);
   const [vacation, setVacation] = useState(false);
+  const [ideas, setIdeas] = useState(false);
   // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
   const [focusTarget, setFocusTarget] = useState<string | null>(null);
   const newHabitButton = useRef<HTMLButtonElement>(null);
@@ -119,7 +122,7 @@ export function HabitsWorkspace() {
             if (healthLink !== undefined && !links.unreadable && linkFields(links.data.links[id] ?? null) !== linkFields(healthLink)) { try { await links.update(current => setHabitHealthLink(current, id, healthLink, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch (error) { saved += ` The Health link was not saved on this device. ${deviceSettingFailureMessage(error)}`; } }
             setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="habits"><div className="habits-workspace">
-    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>{!phone && <button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button>}<Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
+    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>{!phone && <button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button>}{!phone && <button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button>}<Link className="text-link" href="/app/settings">Back up private data ↗</Link></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
@@ -132,6 +135,9 @@ export function HabitsWorkspace() {
             ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
             : habitEditor)}
           {vacation && (() => { const panel = <VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} />; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {ideas && (() => { const panel = <HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} />; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
+          <HabitStacks data={store.data} today={store.today} onView={viewStack} />
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map((habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;
