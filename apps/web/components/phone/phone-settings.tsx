@@ -62,7 +62,7 @@ export function PhoneSettingsList() {
         {group.rows.map(([label, note, target]) => {
           const content = <><span className="phone-settings-copy"><strong>{label}</strong><small>{note}</small></span><span className="phone-settings-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span></>;
           // Section rows jump within the page; the welcome row opens its own page (phones only, by the owner's choice).
-          return <li key={target}>{target.startsWith("/") ? <Link href={target} aria-label={label}>{content}</Link> : <a href={`#${target}`} aria-label={label}>{content}</a>}</li>;
+          return <li key={`${target}:${label}`}>{target.startsWith("/") ? <Link href={target} aria-label={label}>{content}</Link> : <a href={`#${target}`} aria-label={label}>{content}</a>}</li>;
         })}
       </ul>
     </section>)}

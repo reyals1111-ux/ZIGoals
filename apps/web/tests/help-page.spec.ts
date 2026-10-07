@@ -97,6 +97,9 @@ test('feedback opens an email to the Alpha address with a short template, and se
 });
 
 test('viewing Help asks no server and writes nothing', async ({page}) => {
+  // Session W Part 24: 61 answers are opened one by one (19 new); on the phone project, with tracing, that takes about a
+  // minute, so the test has two. Every check below is unchanged.
+  test.setTimeout(120_000);
   // Reduced motion keeps the shell's once-per-session logo intro (and its sessionStorage flag) out of the comparison,
   // and so does its session flag, set up front (Session P, as in install-guide.spec.ts: a media emulation the browser
   // applies late once let the intro write that flag under reduced motion in CI).
