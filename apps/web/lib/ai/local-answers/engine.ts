@@ -63,7 +63,8 @@ const HEALTH = {
 const NUTRIENT_WORDS: [RegExp, NutrientName][] = [[/\b(calories|calorie|kcal|energy)\b/, 'kcal'], [/\bprotein\b/, 'protein'], [/\b(carbs?|carbohydrates?)\b/, 'carbs'], [/\bsaturated fats?\b/, 'saturated_fat'], [/\bfats?\b/, 'fat'], [/\bfib(?:er|re)s?\b/, 'fiber'], [/\bsugars?\b/, 'sugar'], [/\b(sodium|salt)\b/, 'sodium'], [/\bpotassium\b/, 'potassium'], [/\bcalcium\b/, 'calcium'], [/\biron\b/, 'iron']];
 const WEALTH_TOTAL = /\b(net worth|my wealth|total wealth|wealth total|everything i (?:own|hold)|all my holdings|how much (?:is|am) i worth)\b/;
 // Session W Part 21 (W7): the areas Session W added.
-const OWE = /\b(what do i owe|how much do i owe|my debts?|my loans?|my mortgage|my credit cards?|my accounts|accounts and debts)\b/;
+// Session X-Local Part 6b: "how much debt", "list my accounts" and "show my debts" ask the same (never "sleep debt").
+const OWE = /\b(what do i owe|how much do i owe|how much debt|my debts?|my loans?|my mortgage|my credit cards?|my accounts|accounts and debts|(?:list|show)(?: me)?(?: my| the)? (?:accounts|debts|loans))\b/;
 const CHESS = /\b(chess|lichess|chess\.com|elo)\b/;
 const CHESS_SITE = /\b(ratings?|rated|elo|lichess|chess\.com|games?|won|wins?|lost|loss(?:es)?|draws?|results?)\b/;
 const CHESS_GAMES = /\b(games?|won|wins?|lost|loss(?:es)?|draws?|results?|play(?:ed)?)\b/;
@@ -77,7 +78,8 @@ const W_HEALTH = {
   devices: /\b(my devices|which devices|connected devices|linked (?:services|accounts|devices)|devices and imports|where (?:do|did) my (?:health )?records come from)\b/,
 };
 const HOLD = /\b(hold|holding|holdings|own|owned|have|got|total)\b/;
-const GOAL_PROGRESS = /\b(how far|progress|left|remaining|to go|reach(?:ed)?|percent|how close|how much more|status|funded|saved)\b|%/;
+const FUTURE = /\b(next (?:week|month|year)|coming (?:week|month|year)|tomorrow|volgende (?:week|maand)|komende (?:week|maand)|morgen|la semaine prochaine|le mois prochain|demain|nächste woche|nächsten monat)\b/;
+const GOAL_PROGRESS = /\b(how far|progress|left|remaining|to go|reach(?:ed)?|percent|how close|how much more|status|funded|saved|how is|how are|doing|going|coming along)\b|%/;
 const CONTRIBUTION = /\b(contribut\w*|deposit\w*|withdr\w*|put (?:in|into|aside)|set aside)\b/;
 const ASSET_NAMES: Record<string, string> = {bitcoin: 'BTC', bitcoins: 'BTC', ethereum: 'ETH', ether: 'ETH', zigchain: 'ZIG', gold: 'GOLD', silver: 'SILVER'};
 const MIN_UNITS = new Set(['minutes', 'minute', 'min', 'mins']);
@@ -145,8 +147,16 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (ADVICE.test(q)) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
-  const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q));
-  if (!W.lookup.test(q) && !asked && !subject && !W_HEALTH.devices.test(q)) return NONE;
+  const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q) || WEALTH_TOTAL.test(q) || OWE.test(q));
+  // Session X-Local Part 6b: "list my accounts" and "show my debts" are lookups said as a request.
+  const listed = /^(?:list|show)\b/.test(q) && OWE.test(q);
+  // "How is my Japan goal doing?" names a goal and asks after its progress; "How is my fasting going?" names none and
+  // stays an open question for the person's AI (T's own rule).
+  const goalDoing = /\bhow (?:is|are)\b/.test(q) && GOAL_PROGRESS.test(q) && mentionedGoals(env, q).length > 0;
+  if (!W.lookup.test(q) && !asked && !listed && !goalDoing && !subject && !W_HEALTH.devices.test(q)) return NONE;
+  // Session X-Local Part 6b: a question about a range still ahead is refused in words, never answered with today's
+  // range instead (findRanges drops a refused range, and the default would have stood in for it).
+  if (FUTURE.test(q)) return {kind: 'refusal', text: 'That is still ahead: ZIGi reads only what is recorded up to today.', calls: []};
   const ranges = (today: string) => findRanges(q, today);
   // Wealth first: a coin or asset the person holds, or the wealth total.
   const asset = mentionedAsset(env, q);

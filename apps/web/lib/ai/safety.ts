@@ -14,7 +14,7 @@ export const RISK_TOPICS: readonly RiskTopic[] = ['self-harm', 'eating-disorder'
 const SELF_HARM = [
   /\b(kill|hurt|harm|cut|injure)(ing)? myself\b/, /\bend (it all|my life|things)\b/, /\bsuicid(e|al)\b/, /\bself[- ]?harm/, /\b(want|wanting|wish) to die\b/,
   /\bdon'?t want to (live|be alive|be here)\b/, /\bwish i (was|were) dead\b/, /\bno reason to live\b/, /\bbetter off (dead|without me)\b/,
-  /\bzelfmoord\b/, /\bdood willen\b/, /\bme suicider\b/, /\benvie de mourir\b/, /\bselbstmord\b/, /\bmich umbringen\b/, /\bsterben wollen\b/,
+  /\bzelfmoord\b/, /\bdood willen\b/, /\bme suicider\b/, /\benvie de mourir\b/, /\bselbstmord\b/, /\bmich umbringen\b/, /\bsterben wollen\b/, /\bnicht mehr leben\b/, /\bniet meer leven\b/, /\bplus envie de vivre\b/,
 ];
 const EATING_DISORDER = [
   /\banorexi[ac]?\b/, /\bbulimi[ac]?\b/, /\bpurg(e|ed|es|ing)\b/, /\b(throw|throwing|threw) up after (eating|meals?|food|dinner|lunch|breakfast)\b/,
@@ -32,9 +32,10 @@ const WORD_NUMBERS: Record<string, number> = {a: 1, an: 1, one: 1, two: 2, three
 const amount = (v: string) => WORD_NUMBERS[v] ?? Number(v.replace(',', '.'));
 /** "lose 10 kg in 2 weeks", "drop 15 pounds in a week": more than about 1 kg (2 lb) a week. */
 function rapidWeightLoss(text: string): boolean {
-  const m = /\b(?:lose|losing|drop|dropping|shed|shedding|cut)\s+(\d+(?:[.,]\d+)?|a|one|two|three|four|five|six|seven|ten)\s*(kg|kgs|kilos?|kilograms?|lbs?|pounds?|stone)\s+(?:in|within|by)\s+(?:(\d+|a|an|one|two|three|four|five|six|seven|ten)\s+)?(days?|weeks?|months?)\b/.exec(text);
+  // Session X-Local Part 6b: "this week", "per week", "a week", "every week" are a one-week span too.
+  const m = /\b(?:lose|losing|drop|dropping|shed|shedding|cut)\s+(\d+(?:[.,]\d+)?|a|one|two|three|four|five|six|seven|ten)\s*(kg|kgs|kilos?|kilograms?|lbs?|pounds?|stone)\s+(?:(?:in|within|by)\s+(?:(\d+|a|an|one|two|three|four|five|six|seven|ten)\s+)?(days?|weeks?|months?)|(?:this|per|a|every|each)\s+(week|day|month))\b/.exec(text);
   if (!m) return false;
-  const lost = amount(m[1]!), unit = m[2]!, count = m[3] ? amount(m[3]) : 1, span = m[4]!;
+  const lost = amount(m[1]!), unit = m[2]!, count = m[3] ? amount(m[3]) : 1, span = m[4] ?? m[5]!;
   const kg = unit.startsWith('lb') || unit.startsWith('pound') ? lost * 0.4536 : unit === 'stone' ? lost * 6.35 : lost;
   const weeks = span.startsWith('day') ? count / 7 : span.startsWith('month') ? count * 4.35 : count;
   return weeks > 0 && kg / weeks > 1;
