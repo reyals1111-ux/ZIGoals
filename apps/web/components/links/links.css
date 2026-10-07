@@ -11,6 +11,7 @@
 .links-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .links-actions button { min-height: 44px; min-width: 44px; }
 .links-form { display: grid; gap: 12px; }
+.links-icon-field { display: grid; gap: 8px; }
 .links-icon-choice { display: flex; align-items: center; gap: 10px; }
 .links-icon-choice select { flex: 1 1 auto; min-height: 44px; }
 .links-form .actions, .links-confirm .actions { display: flex; flex-wrap: wrap; gap: 8px; }

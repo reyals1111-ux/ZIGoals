@@ -1,5 +1,5 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {useId, useState, type FormEvent} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {LinkGlyph, ICON_NAME} from './link-glyph';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, type DashboardSettings} from '../../lib/dashboard-settings';
@@ -44,7 +44,7 @@ export function LinksSettings() {
 }
 
 function LinkForm({initial, onSave, onCancel}: {initial?: PersonalLink; onSave: (input: LinkInput) => Promise<boolean>; onCancel: () => void}) {
-  const [label, setLabel] = useState(initial?.label ?? ''), [url, setUrl] = useState(initial?.url ?? 'https://'), [icon, setIcon] = useState<LinkIcon>(initial?.icon ?? 'monogram'), [chosen, setChosen] = useState(!!initial), [problem, setProblem] = useState('');
+  const iconId = useId(), [label, setLabel] = useState(initial?.label ?? ''), [url, setUrl] = useState(initial?.url ?? 'https://'), [icon, setIcon] = useState<LinkIcon>(initial?.icon ?? 'monogram'), [chosen, setChosen] = useState(!!initial), [problem, setProblem] = useState('');
   function submit(event: FormEvent) {
     event.preventDefault();
     const input = {label, url, icon}, issue = linkInputIssue(input);
@@ -55,7 +55,8 @@ function LinkForm({initial, onSave, onCancel}: {initial?: PersonalLink; onSave: 
     <label className="field"><span>Name</span><input value={label} maxLength={40} autoComplete="off" onChange={event => setLabel(event.target.value)} /></label>
     {/* The address suggests a picture until the person picks one; nothing is fetched to decide. */}
     <label className="field"><span>Address (https://)</span><input type="url" inputMode="url" value={url} autoComplete="off" autoCapitalize="none" spellCheck={false} onChange={event => { setUrl(event.target.value); if (!chosen) setIcon(suggestedIcon(event.target.value)); }} /></label>
-    <label className="field links-icon-field"><span>Icon</span><span className="links-icon-choice"><LinkGlyph icon={icon} label={label || '?'} /><select value={icon} onChange={event => { setIcon(event.target.value as LinkIcon); setChosen(true); }}>{LINK_ICONS.map(value => <option key={value} value={value}>{ICON_NAME[value]}</option>)}</select></span></label>
+    {/* Its own label (not wrapped around the list), so the icon list is named "Icon" only, not by every choice in it. */}
+    <div className="links-icon-field"><label className="field" htmlFor={iconId}><span>Icon</span></label><span className="links-icon-choice"><LinkGlyph icon={icon} label={label || '?'} /><select id={iconId} value={icon} onChange={event => { setIcon(event.target.value as LinkIcon); setChosen(true); }}>{LINK_ICONS.map(value => <option key={value} value={value}>{ICON_NAME[value]}</option>)}</select></span></div>
     {problem && <p role="alert">{problem}</p>}
     <div className="actions"><button className="primary" type="submit">{initial ? 'Save link' : 'Add link'}</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></div>
   </form>;

@@ -10,8 +10,9 @@ const id = (n: number) => `96000000-0000-4000-8000-00000000000${n}`;
 const base = () => emptyDashboardSettings();
 
 test('the first link raises Today\'s settings to v3; an unused feature changes nothing', () => {
+  // Today's starting record is the preset's settings v1; the first link raises it straight to v3.
   const before = base();
-  expect(before.schemaVersion).toBe(2);
+  expect(before.schemaVersion).toBe(1);
   expect(removeLink(before, id(1))).toBe(before);
   const after = addLink(before, {label: ' Running club ', url: ' https://www.example.com/club?ref=me ', icon: 'strava'}, id(1), T1);
   expect(after.schemaVersion).toBe(3);
