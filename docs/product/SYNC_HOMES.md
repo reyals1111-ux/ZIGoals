@@ -170,6 +170,11 @@ a module moves up only when one of these groups first gets content, and never go
   (`zigoals:w-reminders:v1`) stay on the device.
 - Part 6: nothing synced. The focus sounds' choices (sound, volume, timer, stop when leaving) live in the device
   key `zigoals:music:v1`, a display preference.
+- Part 7: an import (Settings → Switch to ZIGoals) writes ordinary records: Health v4 `sleep`, `meditation` and `vitals`
+  (the first writer of `vitals`), and steps, workouts and weights in Health's `activity` and `weights` lists (which raise
+  nothing on their own); Loop Habit Tracker writes habits at the module's current version. Deterministic ids mean the
+  same export imported on two devices merges to one record. The import's undo note (`zigoals:import-batches:v1`) stays
+  on the device.
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in

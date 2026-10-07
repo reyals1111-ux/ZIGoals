@@ -1,3 +1,6 @@
+import {previewImport, emptyItems} from '../../import/switch/apply';
+import {activityImportId} from '../../import/switch/ids';
+import {vitalDaySchema} from '../../vitals/schema';
 import {saveMeasurement} from '../../body-measurements';
 import type {Fasting} from '../../fasting/schema';
 import {habitDataSchema, type HabitData} from '../../habits';
@@ -32,9 +35,11 @@ export const SENTINEL = {
   sleepTag: 'SENTINEL_SLEEP_6b2f', sleepNote: 'SENTINEL_SLEEP_NOTE_d81e',
   // Session W Part 5: a meditation session with a sentinel note.
   meditationNote: 'SENTINEL_MEDITATION_NOTE_47ac',
+  // Session W Part 7: a day's steps and active energy brought in by an import (Apple Health), with distinctive values.
+  importSteps: 86_531, importKcal: 4127,
 } as const;
 /** Every sentinel as text, for "contains none of these" checks. */
-export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote];
+export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal)];
 export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
 
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
@@ -69,6 +74,11 @@ export function withSentinels(sources: ToolSources): ToolSources {
   health = withHealthGroup(health, 'sleep', sleepSchema.parse({...sleep, nights: [...sleep.nights, {id: 'health_sleep-sentinel-0001', kind: 'night', start: `${addLocalDays(wake, -1)}T21:30:00.000Z`, end: `${wake}T05:10:00.000Z`, timeZone: 'UTC', latencyMin: 12, awakeMin: 9, quality: 3, tags: [SENTINEL.sleepTag], note: SENTINEL.sleepNote, source: 'manual', createdAt: stamp, updatedAt: stamp}]}), false);
   const meditation = healthGroupIn(health, 'meditation') ?? emptyMeditation();
   health = withHealthGroup(health, 'meditation', meditationSchema.parse({...meditation, sessions: [...meditation.sessions, {id: 'health_med-sentinel-0001', startedAt: `${day}T06:00:00.000Z`, seconds: 600, kind: 'timer', note: SENTINEL.meditationNote, timeZone: 'UTC', source: 'timer', createdAt: stamp, updatedAt: stamp}]}), false);
+  // An import's records, through the importer's own apply step: steps on a day before the Showcase's 30 (one source a
+  // day would keep them out of a day that has steps) and the vitals of two days back.
+  const stepsDay = addLocalDays(day, -40), vitalsDay = addLocalDays(day, -2);
+  health = previewImport(health, {...emptyItems(), activity: [{id: activityImportId('apple-health', `steps|${stepsDay}`), date: stepsDay, name: 'Steps · Apple Health', steps: SENTINEL.importSteps, minutes: 0}],
+    vitals: [vitalDaySchema.parse({id: `health_vital-apple-health-${vitalsDay}`, date: vitalsDay, source: 'apple-health', activeKcal: SENTINEL.importKcal, updatedAt: stamp})]}, stamp).next;
   const walk = sources.habits.habits.find(h => h.title === 'Walk');
   const habits = walk ? habitDataSchema.parse({...sources.habits, schemaVersion: 3, habits: sources.habits.habits.map(h => h.id !== walk.id ? h : {...h, entries: h.entries.map(e => e.date === day ? {...e, count: SENTINEL.habitValue, source: 'health'} : e)})}) as HabitData : sources.habits;
   const notes = [{text: SENTINEL.note, category: 'health'}, {text: 'Prefers short answers in the morning', category: 'preferences'}];

@@ -121,6 +121,14 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     setHandledIntent(addIntent);
     if (addIntent) setView("Diary");
   }
+  // Session W Part 7: Settings → Switch to ZIGoals sends MyFitnessPal and Cronometer files here (?import=meals).
+  const importIntent = searchParams.get("import") === "meals";
+  const [handledImport, setHandledImport] = useState(false);
+  if (importIntent !== handledImport) {
+    setHandledImport(importIntent);
+    if (importIntent) { setView("Diary"); setImportingCsv(true); }
+  }
+  useEffect(() => { if (importIntent) document.getElementById("import-meals")?.scrollIntoView({ block: "start", behavior: "instant" }); }, [importIntent]);
   useEffect(() => {
     if (!addIntent) return;
     const entry = document.getElementById("health-entry-action");
@@ -177,7 +185,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
+      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}

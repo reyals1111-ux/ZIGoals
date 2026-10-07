@@ -78,7 +78,7 @@ No new motion. The file input, selects and table are native; the summary line is
 No W3 fixture (importing into the Showcase portfolio would change its labelled history); the Showcase example import is I1's. The entry points show in Showcase and work on the tab's session storage.
 
 ## Help entry (`help-imports`, shared with I1)
-**Can I import a CSV from another app?** Yes, from any spreadsheet or export that has a header row: choose the file, match its columns, check the preview and confirm. Transactions go into a Portfolio, holdings into Wealth, meals into Health's diary. The file is read on this device and never uploaded; blank cells stay unknown rather than becoming zero; a coin that isn't recognised is yours to choose or skip. One tap undoes an import until you change any of the records it added. There is no MyFitnessPal preset yet: its export format could not be verified.
+**Can I import a CSV from another app?** Yes, from any spreadsheet or export that has a header row: choose the file, match its columns, check the preview and confirm. Transactions go into a Portfolio, holdings into Wealth, meals into Health's diary. The file is read on this device and never uploaded; blank cells stay unknown rather than becoming zero; a coin that isn't recognised is yours to choose or skip. One tap undoes an import until you change any of the records it added. A MyFitnessPal or Cronometer file is recognised and its columns are matched for you to check. Whole exports from Apple Health, Fitbit / Google Health, Samsung Health, Oura and Loop Habit Tracker come in from Settings → Switch to ZIGoals. (Updated in Session W Part 7.)
 
 ## Tests
 Unit (`lib/csv/*.test.ts`, `lib/import/holdings.test.ts`):

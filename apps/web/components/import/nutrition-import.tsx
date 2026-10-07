@@ -4,7 +4,8 @@ import {HEALTH_MEALS, formatHealthGrams, formatNutrient, type HealthData} from '
 import {NUTRITION_FIELDS, applyNutritionImport, distinctMeals, guessMeal, planNutritionImport, type Meal, type NutritionBasis} from '../../lib/import/nutrition';
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import {localDate} from '../../lib/local-date';
-import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
+import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, withGuesses, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
+import {detectNutritionPreset, type NutritionPreset} from '../../lib/import/nutrition-presets';
 import type {ImportUndoStore} from './use-import-undo';
 
 const OPTIONS: SetupOptions = {fields: NUTRITION_FIELDS, numberFields: ['quantity', 'servingAmount', 'kcal', 'protein', 'carbs', 'fat'], dateField: 'date'};
@@ -12,12 +13,14 @@ const REQUIRED = ['date', 'food'];
 const PREVIEW_ID = 'preview', PREVIEW_AT = '2000-01-01T00:00:00.000Z';
 /**
  * I1: meals from a nutrition CSV into Health's diary. Blank stays unknown; a food joins the library only when the file
- * says what a serving weighs or measures; the apply is one validated Health write. No MyFitnessPal preset (UNVERIFIED).
+ * says what a serving weighs or measures; the apply is one validated Health write. Session W Part 7: a MyFitnessPal or
+ * Cronometer file is recognised by its header and its column matches are pre-filled, flagged as community-documented,
+ * for the person to check in the same step.
  */
 export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: HealthData; update: (fn: (d: HealthData) => HealthData) => Promise<unknown>; imports: ImportUndoStore; onUndo: (record: ImportRecord) => Promise<void>; onClose: () => void}) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1), [file, setFile] = useState<CsvFile | null>(null), [setup, setSetup] = useState<CsvSetup | null>(null);
   const [basis, setBasis] = useState<NutritionBasis>('serving'), [mealMap, setMealMap] = useState<Record<string, Meal>>({});
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [done, setDone] = useState<{entries: number; foods: number; note: string} | null>(null);
+  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [done, setDone] = useState<{entries: number; foods: number; note: string} | null>(null), [preset, setPreset] = useState<NutritionPreset | null>(null);
   const today = localDate();
   const meals = useMemo(() => setup ? distinctMeals(setup.parsed.rows, setup.mapping) : [], [setup]);
   const plan = useMemo(() => setup ? planNutritionImport({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, basis, mealMap, today, importId: PREVIEW_ID, at: PREVIEW_AT}) : null, [setup, basis, mealMap, today]);
@@ -43,9 +46,9 @@ export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: 
   </section>;
   return <section className="import-panel" aria-label="Import meals">
     <h2>Import meals</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setSetup(next); setFile(f); setMealMap({}); setBasis('serving'); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { let next = setupFromText(f.text, OPTIONS); const found = detectNutritionPreset(next.parsed.header); if (found) next = withGuesses({...next, mapping: found.mapping}, OPTIONS, {numbers: true, dates: true}); setPreset(found); setSetup(next); setFile(f); setMealMap({}); setBasis('serving'); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
       <RecentImports imports={imports} kind="nutrition" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
-    {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
+    {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" />{preset && <p className="notice import-preset" role="status">{preset.note}</p>}<MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-basis"><legend>Nutrient values are per</legend>
         <label><input type="radio" name="import-basis" checked={basis === 'serving'} onChange={() => setBasis('serving')} />the row’s serving</label>
         <label><input type="radio" name="import-basis" checked={basis === 'per-100g'} onChange={() => setBasis('per-100g')} />100 g</label>

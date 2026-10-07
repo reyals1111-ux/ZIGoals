@@ -83,6 +83,12 @@ test('Session W Part 5: the sentinel meditation session is in the journal too, a
   expect(JSON.stringify(sources().health)).toContain(SENTINEL.meditationNote);
   for (const {path, text} of everythingSent(false)) expect(text, path).not.toContain(SENTINEL.meditationNote);
 });
+test('Session W Part 7: records an import added (a day\'s steps, a day\'s vitals) are Health like the rest, and never leave with the gate closed', () => {
+  const health = sources().health;
+  expect(JSON.stringify(health)).toContain(String(SENTINEL.importSteps));
+  expect(JSON.stringify(health)).toContain(String(SENTINEL.importKcal));
+  for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(String(SENTINEL.importSteps)); expect(text, path).not.toContain(String(SENTINEL.importKcal)); }
+});
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};
   const variants = {

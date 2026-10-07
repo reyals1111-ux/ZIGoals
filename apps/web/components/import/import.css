@@ -49,3 +49,28 @@
 .import-entry summary { display: flex; align-items: center; cursor: pointer; font-size: 15px; }
 .import-entry p { margin: 0; font-size: 15px; }
 @media (max-width: 767.98px) { .import-panel input, .import-panel select, .import-panel textarea { font-size: 16px; } .import-fields { grid-template-columns: 1fr; } }
+/* Session W Part 7: Settings → Switch to ZIGoals. */
+.switch-import { display: grid; gap: 12px; }
+.switch-import h3 { margin: 0; font-size: 1.1rem; }
+.switch-import h4 { margin: 0; font-size: 15px; }
+.switch-choose { display: grid; gap: 12px; }
+.switch-reading { display: grid; gap: 8px; }
+.switch-reading p { margin: 0; }
+.switch-reading progress { width: 100%; height: 10px; accent-color: #6f7ff5; }
+.switch-preview, .switch-done, .switch-refused { display: grid; gap: 10px; }
+.switch-preview .import-preview td.num { text-align: right; }
+.switch-sample ul, .switch-summarised ul { margin: 0; }
+.switch-summarised ul { padding-left: 20px; display: grid; gap: 4px; font-size: 15px; }
+.switch-size { display: grid; gap: 8px; }
+.switch-size p { margin: 0; }
+.switch-window { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; }
+.switch-window legend { font-size: 15px; margin-bottom: 4px; }
+.switch-window label, .switch-agree { min-height: 44px; font-size: 15px; align-items: center; gap: 10px; }
+.switch-undo { display: grid; gap: 6px; width: 100%; }
+.switch-undo p { margin: 0; }
+.switch-formats summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.switch-formats ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.switch-formats li { display: grid; gap: 2px; padding-top: 8px; border-top: 1px solid rgba(171, 144, 211, .15); }
+.switch-formats li p { margin: 0; font-size: 15px; }
+.switch-off { color: #ffd9a0; }
+.import-preset { margin: 0; }

@@ -10,6 +10,7 @@ import {MotionPreference} from "../../../components/motion-preference";
 import {ShowcaseControls} from "../../../components/showcase-controls";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
+import { SwitchImport } from "../../../components/import/switch-import";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
 import { GuideSettings } from "../../../components/coach/guide-settings";
@@ -77,6 +78,7 @@ export default function Settings() {
       <AiSettingsSection/>
       <PrivateBackups/>
       <ExportEverything/>
+      <SwitchImport/>
       <div className="detail-grid">
         <section className="panel">
           <h2>Export Goal Data</h2>
