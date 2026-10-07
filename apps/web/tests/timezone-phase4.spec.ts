@@ -38,7 +38,8 @@ test('Settings → Your time zone: saving writes it once (settings v2), Habits f
   expect(await stored(page, SETTINGS)).toMatchObject({schemaVersion: 2, journalTimeZone: 'Asia/Tokyo'});
   await expect(section).toContainText('Your days follow Asia/Tokyo.');
   await page.goto('/app/habits');
-  await expect(page.locator('.habit-privacy')).toContainText('Days use Asia/Tokyo, your time zone.');
+  // In #main: while the streamed page swaps in, React's hidden server copy (div#S:0) can briefly hold a second one.
+  await expect(page.locator('#main .habit-privacy')).toContainText('Days use Asia/Tokyo, your time zone.');
 });
 
 test('a plan shows its zone: "Dates use UTC" for a zone-less plan, a new zone kept on save (finance v4), a new plan prefilled with the journal zone', async ({page}) => {
