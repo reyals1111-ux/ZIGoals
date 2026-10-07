@@ -32,6 +32,11 @@ Status: **In progress; implemented in Session X-Local on the owner's Mac (branch
 - Optical centre re-measured in Chrome from the idle art: x +0.023, y −0.090 (the placeholder: −0.041, +0.001); the figure box is 1.18× the placeholder's (the studio's figure fills 83 % of its frame) so ZIGi reads the same size.
 - Tests: `lib/ai/zigi-assets.test.ts` (names, formats from the bytes, pixel sizes, budgets, loop counts, every state resolvable, every chain ending in a file, the slots empty, the placeholders gone); the manifest, look and brand tests updated; `tests/zigi-alive.spec.ts` on the real files (the optical centre at 1× and 2×, the clip semantics of the motion test).
 
+### 2. Studio-4 is a pure file swap (Part 2)
+- The manifest (data) gains per skin `extras`: `reactions` R001–R013, `idleVariants` (X010, X011), `transitions` (`greetingInPlace` X001, `chain`), `gaze` (`chatInput` X020, `viewer` X021, `target` X022), each `null` until its files land; and `reactionTriggers` at the top level (reaction code → semantic event), `null` until named. `manifest.ts` reads them (`extrasOf`, `idleVariantsOf`, `reactionOf`): a reaction plays only with both its files and a name.
+- `scripts/zigi/import-studio.mjs <encoded/app folder> --receipt <file> [--skin] [--apply] [--allow-unlisted]`: takes only contract names (codes F/T/E/X/R, `-2x`, `-large`, `.anim.webp`, `.anim.png`), verifies every file's SHA-256 against the receipt (the checkpoint table or a `SHA256SUMS`; unlisted files refused unless `--allow-unlisted`, then announced), its byte budget by role, its format from the bytes, its pixel size and its loop count (loops loop, one-shots play once), refuses everything else (review folders, large animations, videos, unknown names), prints the diff (new, identical, changed, orphaned), and with `--apply` copies byte for byte and fills the manifest's slots; a delivery's `reactions.json` names the triggers. Exit 0 only when every file verified.
+- The fixture `scripts/zigi/fixtures/studio4/` (built by `make-studio4.mjs`): 150 tiny real images in the contract's shape (solid-colour VP8L stills, two-frame animated WebPs with the contract's loop counts, two-frame APNGs; each decodes in Chrome at its documented size), a `SHA256SUMS` and a `reactions.json`. `import-studio.test.mjs` drops it into a scratch copy of the repository and proves the slots fill with no code change (the app's own reader finds the idle variants, the gaze set, the in-place greeting and the named reactions), that a dry run writes nothing, and that a tampered file, an over-budget file, a wrong size, a still in a clip's place, a non-contract file, an unlisted file and a missing receipt are each refused.
+- Dry-run on the real Studio-2 delivery: 55 identical, 0 changed; on `app-large-anim`: refused (hash, bytes, budget, pixel size).
 
 ## Session decisions (taken without asking, the safest option that keeps every promise)
 
@@ -69,6 +74,8 @@ Status: **In progress; implemented in Session X-Local on the owner's Mac (branch
 - **Keeping the placeholder frames as the base frame:** every fallback chain now ends in the idle art, and nothing outside the lane referenced them (repo-wide grep, Part 0).
 - **`<picture>` with a `type` source for the APNG fallback:** a per-page probe is one decision, testable, and never downloads both files.
 - **Shipping the manifest in the launcher shell** so the launcher could pick its own files: the shell stays the size it was; the frames arrive as data on the bus from a lazy chunk.
+- **Guessing reaction semantics** (a default R001–R013 → event table): a reaction with no name never plays; names come from the delivery's `reactions.json` or the owner (Part 2, S11).
+- **Committing the Studio-2 clips as the importer's fixture:** 6.9 MB of binaries in `scripts/` for a parser test; the synthetic fixture is 70 kB and decodes as real images.
 
 ## Consequences
 (Filled in at the gate.)
