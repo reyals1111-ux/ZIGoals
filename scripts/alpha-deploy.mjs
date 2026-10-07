@@ -62,6 +62,7 @@ function checkBuild() {
   const build = read(resolve(root, "apps/web/.open-next/alpha-build.json"));
   assertBuild(build, env.EXPECTED_COMMIT, read(resolve(root, "apps/web/package.json")).version);
   assert(existsSync(resolve(root, "apps/web/.open-next/worker.js")), "Built Alpha Worker missing");
+  assert(existsSync(resolve(root, "apps/web/alpha/worker.mjs")), "Alpha Worker entry missing");
   save("alpha-build.json", build);
 }
 function cloudflare(path) {

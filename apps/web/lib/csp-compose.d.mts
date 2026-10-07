@@ -8,6 +8,7 @@ export type EgressPolicy = {
 export type CspOptions = {nonce: string; development?: boolean; https?: boolean; pathname?: string};
 export declare const SVG_CSP: string;
 export declare const TRUSTED_TYPES: string;
+export declare const STATIC_MISS_CSP: string;
 export declare function documentClass(pathname: string): DocumentClass;
 export declare function connectSources(egress: EgressPolicy, cls?: DocumentClass): string[];
 export declare function imgSources(egress: EgressPolicy, cls?: DocumentClass): string[];
@@ -15,4 +16,6 @@ export declare function frameSources(egress: EgressPolicy, cls?: DocumentClass):
 export declare function cspDirectives(egress: EgressPolicy, options: CspOptions): [string, string[]][];
 export declare function composeCsp(egress: EgressPolicy, options: CspOptions): string;
 export declare function permissionsPolicyFor(egress: EgressPolicy, pathname: string): string;
+export declare function globalStaticHeaders(egress: EgressPolicy): [string, string][];
 export declare function staticHeaders(egress: EgressPolicy): string;
+export declare function staticMissHeaders(egress: EgressPolicy): [string, string][];

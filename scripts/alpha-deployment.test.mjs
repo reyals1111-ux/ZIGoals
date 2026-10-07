@@ -155,6 +155,8 @@ test.each([
   c => { c.vars.COINGECKO_DEMO_API_KEY = "x"; }, c => { delete c.vars; },
   c => { c.durable_objects = { bindings: [] }; }, c => { c.workers_dev = false; },
   c => { c.assets.run_worker_first = true; }, c => { c.observability.enabled = true; },
+  // Session W Part 23 (Session Q D2): OpenNext's own entry would skip the static-miss answer.
+  c => { c.main = ".open-next/worker.js"; },
 ])("manual publishing rejects target, route, resource or policy drift %#", mutate => {
   const config = alphaConfig(); mutate(config);
   expect(() => assertAlphaConfig(config)).toThrow();

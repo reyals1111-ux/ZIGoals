@@ -1,9 +1,9 @@
 import {test,expect,beforeAll} from 'vitest';
 import {createRequire} from 'node:module';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {hermeticWorkerOptions} from './hermetic-wrangler.mjs';
-import {connectSources,permissionsPolicyFor} from '../../apps/web/lib/csp-compose.mjs';
+import {connectSources,permissionsPolicyFor,staticMissHeaders} from '../../apps/web/lib/csp-compose.mjs';
 const require=createRequire(new URL('../../apps/web/node_modules/wrangler/package.json',import.meta.url));
 const {Miniflare,convertV4MiniflareOptions}=require('miniflare'),{unstable_getMiniflareWorkerOptions}=require('wrangler');
 const root=new URL('../../',import.meta.url).pathname;
@@ -60,5 +60,31 @@ test.runIf(enabled)('the packaged Alpha names its exact source commit on every a
    expect(response.status,path).toBe(200);
    expect(response.headers.get('x-zigoals-build'),path).toBe(commit);
   }
+ }finally{await mf.dispose();}
+},60000);
+// Session W Part 23 (Session Q D2, [TIER 3] (deploy config)): a /_next/static/ file that does not exist gets the plain 404
+// of alpha/worker.mjs (no HTML, nothing from the request, a policy that allows nothing, the static assets' headers) instead
+// of Next's HTML 404 page without a policy; a file that exists still comes from the asset layer; pages keep their policy.
+test.runIf(enabled)('the packaged Alpha answers a missing /_next/static/ file with a plain 404, and a real one from the assets',async()=>{
+ const mf=await alpha();
+ try{
+  const expected=Object.fromEntries(staticMissHeaders(egress).map(([name,value])=>[name.toLowerCase(),value]));
+  for(const path of ['/_next/static/chunks/does-not-exist.js?x=<b>hi</b>','/_next/static/','/_next/static']){
+   const response=await mf.dispatchFetch(`https://alpha.zigoals.app${path}`,{headers:{'cf-connecting-ip':'192.0.2.44','x-zigoals-origin':'https://evil.example'}});
+   expect(response.status,path).toBe(404);
+   // Transport headers aside (content-length, transfer-encoding, and Miniflare's own mf-*), exactly the reviewed set.
+   const headers=Object.fromEntries([...response.headers].filter(([name])=>!['content-length','transfer-encoding'].includes(name)&&!name.startsWith('mf-')));
+   expect(headers,path).toEqual(expected);
+   expect(await response.text(),path).toBe('Not found\n');
+  }
+  const chunk=(await readdir(resolve(root,'apps/web/.open-next/assets/_next/static/chunks'))).find(name=>name.endsWith('.js'));
+  const real=await mf.dispatchFetch(`https://alpha.zigoals.app/_next/static/chunks/${chunk}`);
+  expect(real.status).toBe(200);
+  expect(real.headers.get('content-type')).toMatch(/javascript/);
+  await real.arrayBuffer();
+  const page=await mf.dispatchFetch('https://alpha.zigoals.app/app',{headers:{'cf-connecting-ip':'192.0.2.44'}});
+  expect(page.status).toBe(200);
+  expect(page.headers.get('content-security-policy')).toContain("'strict-dynamic'");
+  await page.arrayBuffer();
  }finally{await mf.dispose();}
 },60000);

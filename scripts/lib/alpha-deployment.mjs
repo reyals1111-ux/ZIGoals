@@ -90,7 +90,8 @@ export function assertAlphaConfig(config) {
   // deployment envelope requires a code review, even for an Alpha-only route.
   const reviewed = {
     $schema: "node_modules/wrangler/config-schema.json", name: WORKER,
-    main: ".open-next/worker.js", compatibility_date: "2026-09-13",
+    // Session W Part 23 (Session Q D2): the thin entry in front of OpenNext's Worker (static misses get a plain 404).
+    main: "alpha/worker.mjs", compatibility_date: "2026-09-13",
     compatibility_flags: ["nodejs_compat", "global_fetch_strictly_public"],
     workers_dev: true, preview_urls: false,
     assets: { directory: ".open-next/assets", binding: "ASSETS", run_worker_first: false },

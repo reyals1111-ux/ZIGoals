@@ -11,6 +11,8 @@
  */
 export const SVG_CSP = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox";
 export const TRUSTED_TYPES = "require-trusted-types-for 'script'; trusted-types default";
+/** Session W Part 23 (Session Q D2): a /_next/static/ file that does not exist (lib/static-miss.mjs) loads, frames and submits nothing. */
+export const STATIC_MISS_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; sandbox";
 /** The development server's own refresh socket (next dev on its usual port). */
 const DEV_SOCKET = "ws://127.0.0.1:3100";
 export function documentClass(pathname) { return pathname === "/app" || pathname.startsWith("/app/") ? "app" : "site"; }
@@ -48,12 +50,22 @@ export function composeCsp(egress, options) { return cspDirectives(egress, optio
 export function permissionsPolicyFor(egress, pathname) {
   return pathname === "/app/health" ? egress.permissionsPolicy.health : documentClass(pathname) === "app" ? egress.permissionsPolicy.app : egress.permissionsPolicy.global;
 }
+/** The headers every static asset carries (public/_headers' "/*" block), as [name, value] pairs. */
+export function globalStaticHeaders(egress) {
+  return [
+    ["X-Frame-Options", "DENY"], ["Cross-Origin-Opener-Policy", "same-origin"], ["X-Content-Type-Options", "nosniff"], ["Referrer-Policy", "no-referrer"],
+    ["Permissions-Policy", egress.permissionsPolicy.global], ["Strict-Transport-Security", "max-age=31536000"], ["X-Robots-Tag", "noindex, nofollow, noarchive"],
+  ];
+}
 /** public/_headers, the headers Cloudflare's static assets carry (checked byte for byte by csp-compose.test.ts). */
 export function staticHeaders(egress) {
   return [
-    "/*", "  X-Frame-Options: DENY", "  Cross-Origin-Opener-Policy: same-origin", "  X-Content-Type-Options: nosniff", "  Referrer-Policy: no-referrer",
-    `  Permissions-Policy: ${egress.permissionsPolicy.global}`, "  Strict-Transport-Security: max-age=31536000", "  X-Robots-Tag: noindex, nofollow, noarchive", "",
+    "/*", ...globalStaticHeaders(egress).map(([name, value]) => `  ${name}: ${value}`), "",
     "/_next/static/*", "  Cache-Control: public, max-age=31536000, immutable", "",
     "/*.svg", `  Content-Security-Policy: ${SVG_CSP}`, "",
   ].join("\n");
+}
+/** A static miss (lib/static-miss.mjs): plain text, never stored, a policy that allows nothing, then the static assets' own headers. */
+export function staticMissHeaders(egress) {
+  return [["Content-Type", "text/plain; charset=utf-8"], ["Cache-Control", "no-store"], ["Content-Security-Policy", STATIC_MISS_CSP], ...globalStaticHeaders(egress)];
 }
