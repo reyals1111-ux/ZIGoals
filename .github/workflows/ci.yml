@@ -177,6 +177,10 @@ jobs:
         run: |
           pnpm --filter @zigoals/web exec wrangler deploy --config wrangler.alpha.jsonc --dry-run --outdir /tmp/zigoals-alpha-dry
           ALPHA_PACKAGED=1 ALPHA_PACKAGE_BUNDLE=/tmp/zigoals-alpha-dry/worker.js pnpm exec vitest run scripts/run11/alpha-packaged-prices.test.mjs --reporter=verbose
+      # Session W Part 27: the same dry-run bundle's effective headers, hermetic as above: Permissions-Policy and connect-src
+      # per app route, the build identity (X-ZIGoals-Build), and a missing /_next/static/ file's plain 404 (alpha/worker.mjs).
+      - name: Alpha artifact headers (packaged)
+        run: ALPHA_PACKAGED=1 ALPHA_PACKAGE_BUNDLE=/tmp/zigoals-alpha-dry/worker.js pnpm exec vitest run scripts/run11/alpha-packaged-headers.test.mjs --reporter=verbose
       - name: Full generated Run11 package and local service topology
         run: |
           node scripts/run11/activation-check.mjs --source "$GITHUB_SHA" --dry-run
