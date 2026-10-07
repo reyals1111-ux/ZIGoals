@@ -6,6 +6,7 @@ import {usePhoneActive} from '../phone/use-phone-layout';
 import {usePhoneShowAll} from '../phone/phone-show-all';
 import {plural} from '../../lib/plural';
 import {phoneOrder} from '../phone/phone-order';
+import {AccountsSection} from '../wealth/accounts-section';
 /** On a phone the holdings come right after the total, then the shape of the portfolio and the favourites. */
 const PHONE_ORDER=['wealth:pulse','wealth:holdings','wealth:composition','wealth:mix','wealth:watchlist'];
 import {entityLayoutId} from '../../lib/page-layout';
@@ -76,6 +77,7 @@ export function WealthView(){
   {id:'wealth:changes',label:'Explain recorded wealth change',node:<WealthChanges data={store.data}/>},
   {id:'wealth:evidence',label:'Evidence and returns',node:<PhoneFold label="Evidence & returns"><FinancialEvidence data={store.data} update={store.update}/></PhoneFold>},
   store.data.positions.some(p=>p.archivedAt)&&{id:'wealth:archived',label:'Archived assets',node:<details className="panel"><summary>Archived assets</summary><p>Historical evidence is retained. Restoring an asset adds it back to current wealth without recreating allocations.</p>{store.data.positions.filter(p=>p.archivedAt).map(p=><div className="archived-row" key={p.id}><span>{p.providerId}</span><button className="secondary" onClick={()=>void store.update(s=>restoreAsset(s,p.id)).catch(e=>setError(String(e)))}>Restore {p.providerId}</button></div>)}</details>},
+ {id:'wealth:accounts',label:'Accounts, debts & net worth',node:<PhoneFold label="Accounts, debts & net worth"><AccountsSection/></PhoneFold>},
  {id:'wealth:allocation',label:'Allocation and coverage',node:<PhoneFold label="Allocation and coverage"><WealthAllocationSection overview={overview}/></PhoneFold>},
  ],PHONE_ORDER)}/>
 {error&&<p role="alert">{error}</p>}{adding&&<Sheet title={importing?'Import holdings':'Add to your wealth'} onClose={()=>{setAdding(false);setImporting(false);}}>{importing?<HoldingsImportPanel platform={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={()=>setImporting(false)}/>:<><ManualSourceCards update={store.update} onSaved={()=>setAdding(false)}/><section className="manual-source-selector import-entry" aria-label="Import from a file"><p>Have a spreadsheet of what you own? Read on this device only.</p><button type="button" className="secondary" onClick={()=>setImporting(true)}>Import from a CSV file</button></section></>}</Sheet>}

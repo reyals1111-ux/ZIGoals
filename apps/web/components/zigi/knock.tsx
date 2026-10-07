@@ -11,6 +11,7 @@ import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
 import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {dismissMeditationTime, meditationDue} from '../../lib/reminders/meditation-time';
 import {chainedDue, dismissChained} from '../../lib/habits-v2/stacks';
+import {contributionDue, dismissContribution} from '../../lib/reminders/contribution-due';
 import {habitCalendarDay} from '../../lib/habits';
 import {localClock} from '../../lib/reminders/due';
 import {MEDITATION_RUN} from '../../lib/meditation/schema';
@@ -67,6 +68,8 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
     let chained: KnockCandidate[] = [];
     try { chained = wReminders.unreadable ? [] : chainedDue(wReminders.data, habits.data, habitCalendarDay(habits.data, now), localClock(now)); } catch { chained = []; }
+    // Session W Part 12: a contribution plan's reminder on a day an amount is due.
+    try { if (!wReminders.unreadable) chained = [...chained, ...contributionDue(wReminders.data, platform.data, now)]; } catch { /* the other reminders still knock */ }
     return [...base, ...zigiDue({reminders: zigiReminders.data, goal: goalRefs(platform.data, legacyNames), now}), ...(windDown ? [windDown] : []), ...(meditation ? [meditation] : []), ...chained].sort((a, b) => a.time.localeCompare(b.time));
   }, [now, ready, reminders.data, habits.data, health.data, zigiReminders.data, wReminders.data, wReminders.unreadable, meditationRun.data.run, platform.data, legacyNames]);
   const prefs = zigiPrefs(zigi.data).knock;
@@ -103,6 +106,7 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
       else if (current.kind === 'wind-down') wReminders.update(r => dismissWindDown(r, current.day));
       else if (current.kind === 'meditation-time') wReminders.update(r => dismissMeditationTime(r, current.day));
       else if (current.kind === 'stack-next') wReminders.update(r => dismissChained(r, current.id.replace(/^chained:/, ''), current.day));
+      else if (current.kind === 'contribution-due') wReminders.update(r => dismissContribution(r, current.id.replace(/^contribution:/, ''), current.day));
       else zigiReminders.update(r => dismissZigiReminder(r, current.id, current.day));
       close();
     } catch { setNote('This could not be saved on this device; the reminder stays for now.'); }

@@ -17,6 +17,8 @@ import {SYNC_WRITES} from './vault/sync-writes';
 import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vault/sync-homes';
 import {withHealthGroup} from './vault/w-homes';
 import {showcaseSleep} from './sleep/showcase';
+import {ACCOUNTS_KEY} from './w-device-keys';
+import {showcaseAccounts} from './accounts/showcase';
 import {showcaseMeditation} from './meditation/showcase';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -97,5 +99,7 @@ export function buildShowcase(day:string){
  }else Object.assign(records,{[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview)});
  // Session W Part 4: fictional nights and a goal in Health v4's sleep group (lib/sleep/showcase.ts).
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false),'meditation',showcaseMeditation(day),false)));
+ // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
+ records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  return {day,records};
 }

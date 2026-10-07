@@ -188,6 +188,9 @@ a module moves up only when one of these groups first gets content, and never go
   written at v5); its target date stays on the device in `zigoals:milestone-dates:v1` until the later switch PR moves it
   to finance v5's milestone `targetDate`; the one-time milestone note is `zigoals:celebrations:v1` (device). "What if it
   grew?" is never stored.
+- Part 12: accounts and debts stay on the device in `zigoals:accounts:v1` until the later switch PR moves them to
+  finance v5 `accounts` (the section says so); a contribution plan's reminder time is `zigoals:w-reminders:v1`
+  `contributions` (device). "Fund now" writes only what the person confirms in the existing Fund sheet (finance v4).
 - Part 9: Health v4 `quick` (pinned items and the person's own water buttons; the first writer of `quick`). "Copy
   yesterday's …", "Repeat yesterday" and the one-tap chips write ordinary diary entries; Quick add's "slept 7h30" writes
   a Health v4 `sleep` night (it wrote an activity line before).

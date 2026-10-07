@@ -14,6 +14,8 @@ import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
 import {dismissMeditationTime, meditationDue} from '../../lib/reminders/meditation-time';
 import {chainedDue, dismissChained} from '../../lib/habits-v2/stacks';
+import {contributionDue, dismissContribution} from '../../lib/reminders/contribution-due';
+import {usePlatform} from '../platform/use-platform';
 import {habitCalendarDay} from '../../lib/habits';
 import {MEDITATION_RUN} from '../../lib/meditation/schema';
 import {sessionDay} from '../../lib/meditation/stats';
@@ -41,7 +43,7 @@ function useHasZigiReminders(): boolean {
   return has;
 }
 export function ReminderCards({habits, health}: {habits?: HabitData; health?: HealthData}) {
-  const reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
+  const platform = usePlatform(), reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
   useEffect(() => {
     const tick = () => setNow(new Date());
     queueMicrotask(tick);
@@ -61,7 +63,10 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
   let chained: ReturnType<typeof chainedDue> = [];
   try { chained = habits && wReminders.loaded && !wReminders.unreadable ? chainedDue(wReminders.data, habits, habitCalendarDay(habits, now)) : []; } catch { chained = []; }
-  if (!due.length && !windDown && !meditation && !chained.length && !zigi && !error) return null;
+  // Session W Part 12: a contribution plan's reminder on a day an amount is due.
+  let contributions: ReturnType<typeof contributionDue> = [];
+  try { contributions = platform.loaded && wReminders.loaded && !wReminders.unreadable ? contributionDue(wReminders.data, platform.data, now) : []; } catch { contributions = []; }
+  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
@@ -101,6 +106,15 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
       <div className="reminder-card-actions">
         <Link className="secondary" href={next.href}>Open Habits</Link>
         <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissChained(r, next.habitId, next.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
+      </div>
+    </article>)}
+    {contributions.map(c => <article key={c.id} className="panel reminder-card" aria-label={`Reminder: a contribution is due, ${c.title}`}>
+      <p className="eyebrow">Reminder · {c.time} · on this device</p>
+      <h2>A contribution is due: {c.title}</h2>
+      <p>Your plan has an amount for today. “Fund now” opens the form filled in; nothing moves until you confirm it there.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={c.href}>Fund now</Link>
+        <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissContribution(r, c.goalId, c.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
       </div>
     </article>)}
     {zigi && <Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense>}
