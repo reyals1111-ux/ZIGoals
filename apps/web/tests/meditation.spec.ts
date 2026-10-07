@@ -112,9 +112,13 @@ test('a reload in the middle keeps the time; a session that ended while away ask
   await page.reload();
   const session = page.getByRole('region', {name: 'Meditation in progress'});
   // Worked out from the stored start and the page's own clock: exactly what is left.
-  // The page shows what its last one-second tick computed: now's value, or one second more.
-  const [now, tick] = await page.evaluate(key => { const run = JSON.parse(localStorage.getItem(key)!).run; const left = Math.ceil(Math.max(0, run.plannedSec * 1000 - (Date.now() - Date.parse(run.startedAt) - run.pausedMs)) / 1000); const text = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')} left of 3 min`; return [text(left), text(left + 1)]; }, MEDITATION_RUN_KEY);
-  await expect(session.locator('.meditation-left')).toHaveText(new RegExp(`^(${now}|${tick})$`));
+  // The page shows what its last one-second tick computed: now's value, or one second more. Read and computed in the
+  // same instant in the page (a value worked out first and compared later goes stale while the clock runs).
+  await expect.poll(() => session.locator('.meditation-left').evaluate((el, key) => {
+    const run = JSON.parse(localStorage.getItem(key)!).run, left = Math.ceil(Math.max(0, run.plannedSec * 1000 - (Date.now() - Date.parse(run.startedAt) - run.pausedMs)) / 1000);
+    const text = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')} left of 3 min`;
+    return [text(left), text(left + 1)].includes(el.textContent ?? '') ? 'as computed' : `"${el.textContent}" while ${text(left)} is left`;
+  }, MEDITATION_RUN_KEY)).toBe('as computed');
   // After a reload the browser keeps sound off until a tap; the session says so, and one tap brings the bells back.
   await expect(session).toContainText('The bells are quiet until you tap “Turn on the bells”');
   await session.getByRole('button', {name: 'Turn on the bells', exact: true}).click();
