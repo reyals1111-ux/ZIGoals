@@ -18,7 +18,8 @@
   ],
   "serverOnly": {
     "note": "Origins only the app's own server code reaches, never the browser: none of them enters connect-src (ADR-014 S2). Each is a secret on the app Worker, unset in every committed config.",
-    "zigiRelay": "ZIGOALS_ZIGI_RELAY_ORIGIN: ZIGoals hosted's relay (workers/zigi-relay), reached only by /api/zigi (lib/server/zigi-route.ts); off by default"
+    "zigiRelay": "ZIGOALS_ZIGI_RELAY_ORIGIN: ZIGoals hosted's relay (workers/zigi-relay), reached only by /api/zigi (lib/server/zigi-route.ts); off by default",
+    "healthLink": "ZIGOALS_HEALTH_LINK_ORIGIN: the health-link Worker (workers/health-link), reached only by /api/health-link (lib/server/health-link-route.ts); off by default"
   },
   "csp": {
     "note": "Session W Part 1e: extra connect-src, img-src and frame-src sources per document class ('app' is /app and everything under it, 'site' every other document), in the order they are sent. lib/csp-compose.mjs builds the one policy the app and every check use. Empty lists keep the policy every build since Session V sends: connect-src is 'self' plus the origins above, img-src 'self' data: blob:, frame-src 'none'.",
