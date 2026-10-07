@@ -29,7 +29,8 @@ test("production policy has per-request unpredictable nonces and exact connectio
   expect(a.csp).toContain("worker-src 'self'");
 });
 test("Permissions-Policy: denied everywhere, the microphone on the app's own pages, the camera only on Health; the entries are ordered so the last match wins", async () => {
-  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=()", app: "camera=(), microphone=(self), geolocation=()", health: "camera=(self), microphone=(self), geolocation=()" });
+  // Session W Part 8: Web Bluetooth (heart-rate monitors, scales) only on Health; denied on every other document.
+  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=(), bluetooth=()", app: "camera=(), microphone=(self), geolocation=(), bluetooth=()", health: "camera=(self), microphone=(self), geolocation=(), bluetooth=(self)" });
   const entries = await nextConfig.headers!();
   const permission = (source: string) => entries.find(e => e.source === source)?.headers.find(h => h.key === "Permissions-Policy")?.value;
   expect(permission("/(.*)")).toBe(egress.permissionsPolicy.global);

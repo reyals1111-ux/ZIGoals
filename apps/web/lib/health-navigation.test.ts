@@ -1,5 +1,5 @@
 import {test,expect} from 'vitest';
-import {healthNavigation,documentAllowsCamera,type HealthNavigationInput} from './health-navigation';
+import {healthNavigation,documentAllowsCamera,type HealthNavigationInput,documentAllowsFeature} from './health-navigation';
 // Session U Part 3: when a click into Health becomes a full page load (so Health's own camera permission applies).
 const base:HealthNavigationInput={href:'https://alpha.test/app/health',origin:'https://alpha.test',cameraAllowed:false,accountOpen:false,button:0,modified:false,target:'',download:false};
 const decide=(change:Partial<HealthNavigationInput>)=>healthNavigation({...base,...change});
@@ -26,4 +26,11 @@ test('the document policy is read where the browser exposes it; otherwise the ca
  expect(documentAllowsCamera(doc({permissionsPolicy:{allowsFeature:()=>true},featurePolicy:{allowsFeature:()=>false}}))).toBe(true);
  expect(documentAllowsCamera(doc({}))).toBe(false);
  expect(documentAllowsCamera(doc({featurePolicy:{allowsFeature:()=>{throw Error('blocked');}}}))).toBe(false);
+});
+test('Session W Part 8: Bluetooth is read from the same policy, feature by feature', () => {
+ const doc = (policy: object) => policy as unknown as Document;
+ const health = doc({permissionsPolicy: {allowsFeature: (f: string) => f === 'camera' || f === 'bluetooth'}}), elsewhere = doc({permissionsPolicy: {allowsFeature: (f: string) => f === 'microphone'}});
+ expect([documentAllowsFeature(health, 'bluetooth'), documentAllowsFeature(health, 'camera')]).toEqual([true, true]);
+ expect([documentAllowsFeature(elsewhere, 'bluetooth'), documentAllowsFeature(elsewhere, 'camera')]).toEqual([false, false]);
+ expect(documentAllowsFeature(doc({}), 'bluetooth')).toBe(false);
 });

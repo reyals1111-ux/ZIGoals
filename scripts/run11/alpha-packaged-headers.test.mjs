@@ -45,7 +45,7 @@ test.runIf(enabled)('the packaged Alpha answers every app route with the reviewe
  }finally{await mf.dispose();}
 },60000);
 test('the data file names exactly the reviewed values (runs without the artifact)',()=>{
- expect(egress.permissionsPolicy).toEqual({global:'camera=(), microphone=(), geolocation=()',app:'camera=(), microphone=(self), geolocation=()',health:'camera=(self), microphone=(self), geolocation=()'});
+ expect(egress.permissionsPolicy).toEqual({global:'camera=(), microphone=(), geolocation=(), bluetooth=()',app:'camera=(), microphone=(self), geolocation=(), bluetooth=()',health:'camera=(self), microphone=(self), geolocation=(), bluetooth=(self)'});
  expect(egress.localModelSources).toEqual(['http://localhost:*','http://127.0.0.1:*']);
  expect(Object.keys(egress.aiProviderOrigins)).toEqual(['openai','anthropic','gemini','xai','openrouter']);
 });
