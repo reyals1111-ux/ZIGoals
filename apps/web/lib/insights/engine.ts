@@ -5,7 +5,7 @@ import {latestWeightObservation} from '../body-measurements';
 import {exerciseData} from '../health-counters';
 import {addLocalDays, localWeekday} from '../local-date';
 import {formatNumber} from '../visual-format';
-import type {HabitHealthLinks} from '../habit-health-links/schema';
+import type {HabitHealthLinksV4 as HabitHealthLinks} from '../habit-health-links/schema';
 
 export const WINDOW_DAYS = 60, MIN_DAYS = 14, MIN_SIDE = 5, MAX_SHOWN = 2;
 /** Words an insight sentence never uses: it observes a pairing in counts and claims nothing (checked by tests and the browser copy guard). */

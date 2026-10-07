@@ -9,6 +9,10 @@ import type {HealthData} from '../../lib/health';
 import {dueReminders, type DueReminder} from '../../lib/reminders/due';
 import {dismissForToday} from '../../lib/reminders/store';
 import {useReminders} from './use-reminders';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {W_REMINDERS} from '../../lib/reminders/w-schema';
+import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
+import {healthGroupIn} from '../../lib/vault/w-homes';
 import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 
@@ -31,7 +35,7 @@ function useHasZigiReminders(): boolean {
   return has;
 }
 export function ReminderCards({habits, health}: {habits?: HabitData; health?: HealthData}) {
-  const reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders();
+  const reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS);
   useEffect(() => {
     const tick = () => setNow(new Date());
     queueMicrotask(tick);
@@ -44,7 +48,9 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   }, []);
   if (!reminders.loaded || !now) return null;
   const due = dueReminders({reminders: reminders.data, habits, health, now});
-  if (!due.length && !zigi && !error) return null;
+  // Session W Part 4: the wind-down time, until a night is running (Health → Sleep).
+  const windDown = wReminders.loaded && !wReminders.unreadable ? windDownDue({w: wReminders.data, running: !!health && (healthGroupIn(health, 'sleep')?.nights ?? []).some(n => n.end === null), now}) : null;
+  if (!due.length && !windDown && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
@@ -59,6 +65,15 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
         <button type="button" className="quiet" onClick={() => dismiss(reminder)}>Dismiss for today</button>
       </div>
     </article>)}
+    {windDown && <article className="panel reminder-card" aria-label="Reminder: Wind-down time">
+      <p className="eyebrow">Reminder · {windDown.time} · on this device</p>
+      <h2>Time to wind down</h2>
+      <p>Your wind-down time. When you go to bed, tap “I’m going to bed” in Sleep.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={windDown.href}>Open Sleep</Link>
+        <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissWindDown(r, windDown.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not tonight</button>
+      </div>
+    </article>}
     {zigi && <Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense>}
     {error && <p role="alert" className="notice">{error}</p>}
   </section>;

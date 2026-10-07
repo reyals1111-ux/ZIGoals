@@ -69,6 +69,15 @@ test('the checks can see the sentinels: with the gate open they appear on the He
   for (const value of [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue)]) expect(found, value).toContain(value);
   expect(sent.find(s => s.path === 'page context /app/health')!.text).toContain(SENTINEL.food);
 });
+test('Session W Part 4: the sentinel night is in the Health journal the paths read, so the closed-gate checks above cover sleep', () => {
+  // Sleep reaches ZIGi only under the Health gate (W7); its own tools and their open-gate control come with Part 21.
+  const health = sources().health;
+  expect(health.schemaVersion).toBe(4);
+  expect(JSON.stringify(health)).toContain(SENTINEL.sleepNote);
+  expect(JSON.stringify(health)).toContain(SENTINEL.sleepTag);
+  const shut = everythingSent(false);
+  for (const {path, text} of shut) { expect(text, path).not.toContain(SENTINEL.sleepNote); expect(text, path).not.toContain(SENTINEL.sleepTag); }
+});
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};
   const variants = {

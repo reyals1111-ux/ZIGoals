@@ -158,6 +158,13 @@ a module moves up only when one of these groups first gets content, and never go
 | Settings | **v3** | yes, lazily | `pages` (shown/hidden per page or button, each stamped; the start page, `null` for the first visible page), `links` (My links), `chess` (usernames, rating goals, the chess habit and its markers), `wrapUp` (on/off, time, the day's intention); Today widgets of kinds `sleep`, `meditation`, `chess`, `links`, `music` | `lib/dashboard-settings.ts` `dashboardSettingsV3Schema` |
 | Finance | **v5** | **no: read support only** | `accounts` (accounts and debts), a milestone's `targetDate` | `lib/positions.ts` `platformV5` |
 
+**What writes them so far** (updated as each part lands):
+- Part 2: settings v3 `pages` (Settings → Your pages & buttons, the welcome's pillars).
+- Part 4: Health v4 `sleep` (Health → Sleep: a logged or edited night or nap, "I'm going to bed" / "I woke up", the
+  goal, a deletion; the welcome's optional sleep goal) and `habitLinks` holding `sleepMinutes` or `bedtimeBy` (the habit
+  editor's "Done automatically from Health"); a settings v3 Today widget of kind `sleep`. The wind-down time is
+  device-only (`zigoals:w-reminders:v1`). Sleep syncs only with Health, under the same consent.
+
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in
 the device key `zigoals:accounts:v1` and milestone target dates in `zigoals:milestone-dates:v1`, each with exactly its

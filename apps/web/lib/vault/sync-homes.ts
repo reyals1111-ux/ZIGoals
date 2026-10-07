@@ -3,7 +3,7 @@ import type {HealthData} from '../health';
 import type {DashboardSettings} from '../dashboard-settings';
 import {emptyFasting, type Fasting} from '../fasting/schema';
 import {emptyHealthGoals, type HealthGoal, type HealthGoals} from '../health-goals/schema';
-import {emptyHabitHealthLinks, usesV4Measures, type AppliedCheckIn, type HabitHealthLink, type HabitHealthLinks} from '../habit-health-links/schema';
+import {emptyHabitHealthLinks, usesV4Measures, type AppliedCheckInV4 as AppliedCheckIn, type HabitHealthLinkV4 as HabitHealthLink, type HabitHealthLinksV4 as HabitHealthLinks} from '../habit-health-links/schema';
 import type {Review, WeeklyReview} from '../weekly-review/schema';
 
 /**

@@ -8,7 +8,7 @@ import {readPrivateStore, updatePrivateStore} from './private-storage';
 import {isDurableMarker, readDurableStore, updateDurableStore} from './vault/local';
 import {FASTING_KEY, emptyFasting, fastingSchema, type Fasting} from './fasting/schema';
 import {HEALTH_GOALS_KEY, emptyHealthGoals, healthGoalsSchema, type HealthGoals} from './health-goals/schema';
-import {HABIT_HEALTH_LINKS_KEY, emptyHabitHealthLinks, habitHealthLinksSchema, type HabitHealthLinks} from './habit-health-links/schema';
+import {HABIT_HEALTH_LINKS_KEY, emptyHabitHealthLinks, habitHealthLinksSchema, habitHealthLinksV4Schema, type HabitHealthLinksV4} from './habit-health-links/schema';
 import {WEEKLY_REVIEW_KEY, emptyWeeklyReview, weeklyReviewSchema, type WeeklyReview} from './weekly-review/schema';
 import {readFasting, updateFasting} from './fasting/store';
 import {readHealthGoals, updateHealthGoals} from './health-goals/store';
@@ -26,7 +26,7 @@ import {
  * storage or the durable database, each under its storage lock, a version raise keeping a recovery copy), and an
  * announcement afterwards, so open views refresh and account sync schedules an upload.
  */
-export type HomeRecords = {fasting: Fasting; healthGoals: HealthGoals; habitLinks: HabitHealthLinks; weeklyReview: WeeklyReview};
+export type HomeRecords = {fasting: Fasting; healthGoals: HealthGoals; habitLinks: HabitHealthLinksV4; weeklyReview: WeeklyReview};
 export type HomeKind = keyof HomeRecords;
 const DEVICE = {
   fasting: {key: FASTING_KEY, schema: fastingSchema, read: readFasting, update: updateFasting},
@@ -78,7 +78,9 @@ const REVIEW_LOCK = 'zigoals:weekly-review-home';
  */
 export async function updateHome<K extends HomeKind>(kind: K, change: (current: HomeRecords[K]) => HomeRecords[K], {storage = getAppStorage(), syncWrites = SYNC_WRITES}: {storage?: Storage; syncWrites?: boolean} = {}): Promise<HomeRecords[K]> {
   if (!syncWrites) return (DEVICE[kind].update as unknown as (s: Storage, c: typeof change) => HomeRecords[K])(storage, change);
-  const schema = DEVICE[kind].schema as unknown as z.ZodType<HomeRecords[K]>;
+  // In Health the links may use Session W's measures (sleep, bedtime, meditation; Health v4 only), so they are checked
+  // with the v4 schema there; the device key above never holds them (its own schema refuses them).
+  const schema = (kind === 'habitLinks' ? habitHealthLinksV4Schema : DEVICE[kind].schema) as unknown as z.ZodType<HomeRecords[K]>;
   if (kind !== 'weeklyReview') {
     const project = (kind === 'fasting' ? fastingIn : kind === 'healthGoals' ? healthGoalsIn : habitLinksIn) as unknown as (h: HealthData) => HomeRecords[K];
     const write = (kind === 'fasting' ? withFasting : kind === 'healthGoals' ? withHealthGoals : withHabitLinks) as unknown as (h: HealthData, r: HomeRecords[K]) => HealthData;

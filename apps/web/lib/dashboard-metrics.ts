@@ -15,15 +15,32 @@ import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
 import {nutritionDashboard,habitConsistency} from './life-intelligence';
 import {countOn,exerciseData} from './health-counters';
 import {splitWealthTotals} from './wealth-total';
+import {healthGroupIn} from './vault/w-homes';
+import {asleep as sleepAsleep, dailySeries as sleepDailySeries, nightDay as sleepNightDay, summary as sleepSummary} from './sleep/engine';
+import {formatMinutes} from './zone-time';
 export type DashboardSources={platform:Platform;goals:GoalSummary[];habits:HabitData;health:HealthData;quotes:readonly MarketQuote[];now:number;today:string;healthDate:string};
 export type WidgetMetric={title:string;value:string;detail:string;href:string;warning?:string;missing?:boolean;percent?:string;complete?:boolean;facts?:{label:string;value:string}[]};
-const labels:Record<string,string>={kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',history:'30-day nutrition rhythm','history-USD':'Recorded USD wealth','history-EUR':'Recorded EUR wealth',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary',next:'Next milestone',best:'Best current streak',week:'Last 7 days',top:'Largest holding',counts:'Counts today','macros-ring':'Calories and macros'};
+const labels:Record<string,string>={'last-night':'Last night',kcal:'Meals today',macros:'Macros today',water:'Water today',weight:'Latest weight',steps:'Steps today',activity:'Activity today',history:'30-day nutrition rhythm','history-USD':'Recorded USD wealth','history-EUR':'Recorded EUR wealth',progress:'Goal progress','next-contribution':'Next contribution',today:'Habit today',streak:'Habit streak',quantity:'Quantity',value:'Current value',available:'Available quantity',allocation:'Allocation summary',next:'Next milestone',best:'Best current streak',week:'Last 7 days',top:'Largest holding',counts:'Counts today','macros-ring':'Calories and macros'};
 export const widgetMetricLabel=(metric:string)=>labels[metric]??metric;
 export function stakingWidgetSource(p:Position){return ['NATIVE_STAKING','NATIVE_REWARDS','NATIVE_UNBONDING'].includes(p.sourceType)&&p.verification==='VERIFIED_READ_ONLY';}
 export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMetric{
  const habitToday=s.habits.timeZone?habitCalendarDay(s.habits,new Date(s.now)):s.today;
  const defaults={title:widget.title||WIDGET_CATALOG[widget.kind].label,value:'Unavailable',detail:'',href:'/app/settings'};
  const unavailable=(href:string,detail:string)=>({...defaults,value:'Record unavailable',detail,href,missing:true});
+ // Session W Part 4: Sleep from Health v4's own nights; a week without a logged night says so, never zero.
+ if(widget.kind==='sleep'){
+  const sleep=healthGroupIn(s.health,'sleep'),title=widget.title||'Sleep',href='/app/health?view=sleep';
+  const nights=(sleep?.nights??[]).filter(n=>n.kind==='night'&&n.end!==null);
+  if(widget.metric==='week'){
+   const week=sleep?sleepSummary(sleepDailySeries(sleep,s.healthDate,7)):null;
+   if(!week)return {...defaults,title,value:'No nights this week',detail:'Log a night or tap “I’m going to bed” in Sleep.',href};
+   return {...defaults,title,value:`${formatMinutes(week.asleep)} a night`,detail:`Average over ${week.nights} logged ${week.nights===1?'night':'nights'} in the last 7 days${week.estimated?' (estimated)':''}${sleep?.goal?` · goal ${formatMinutes(sleep.goal.minutes)}`:''}`,href};
+  }
+  const last=[...nights].sort((a,b)=>b.end!.localeCompare(a.end!))[0];
+  if(!last)return {...defaults,title,value:'No night logged yet',detail:'Log a night or tap “I’m going to bed” in Sleep.',href};
+  const slept=sleepAsleep(last)!;
+  return {...defaults,title,value:`${formatMinutes(slept.minutes)} asleep`,detail:`Night ending ${sleepNightDay(last)}${slept.estimated?' · estimated':''}${last.quality?` · quality ${last.quality}/5`:''}`,href};
+ }
  // UI design pass widgets: real records only; units and currencies stay separate; no entry is never zero.
  if(widget.kind==='milestone'){
   const next=s.goals.filter(g=>g.status==='active'&&g.targetDate&&g.targetDate>=s.today).sort((a,b)=>a.targetDate!.localeCompare(b.targetDate!)||a.name.localeCompare(b.name))[0];

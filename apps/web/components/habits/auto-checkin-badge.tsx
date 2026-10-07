@@ -1,6 +1,6 @@
 'use client';
 import {formatMeasureValue, measureSource} from '../../lib/habit-health-links/engine';
-import type {AppliedCheckIn, HabitHealthLink} from '../../lib/habit-health-links/schema';
+import type {AppliedCheckInV4 as AppliedCheckIn, HabitHealthLinkV4 as HabitHealthLink} from '../../lib/habit-health-links/schema';
 import {isShowcase} from '../../lib/showcase-storage';
 import {useHealthLinkContext} from './health-link-context';
 import {useAutoCheckInNotice} from './use-auto-checkins';

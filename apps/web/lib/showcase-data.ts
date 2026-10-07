@@ -15,6 +15,8 @@ import {DEFAULT_COUNTERS} from './health-counters';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings} from './dashboard-settings';
 import {SYNC_WRITES} from './vault/sync-writes';
 import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vault/sync-homes';
+import {withHealthGroup} from './vault/w-homes';
+import {showcaseSleep} from './sleep/showcase';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
 const rwa=(id:string,assetType:'stock'|'etf'|'commodity'):MarketAssetRef=>({provider:'coingecko',kind:'rwa',id,assetType});
@@ -92,5 +94,7 @@ export function buildShowcase(day:string){
   const homed=withWeeklyReview(emptyDashboardSettings(),withHabitLinks(withHealthGoals(withFasting(healthSchema.parse(health),fasting),healthGoals),habitHealthLinks),weeklyReview);
   records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(homed.health));records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(homed.settings));
  }else Object.assign(records,{[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview)});
+ // Session W Part 4: fictional nights and a goal in Health v4's sleep group (lib/sleep/showcase.ts).
+ records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false)));
  return {day,records};
 }

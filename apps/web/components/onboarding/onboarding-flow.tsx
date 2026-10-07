@@ -27,7 +27,10 @@ import { createHabit } from "../../lib/habits";
 import { setHealthTargets } from "../../lib/health";
 import { dailyData, saveHealthPreferences } from "../../lib/health-daily";
 import { GOAL_TEMPLATES } from "../../lib/templates/goals";
-import { STEP_TARGETS, WATER_TARGETS_ML } from "../../lib/templates/health";
+import { SLEEP_GOALS, STEP_TARGETS, WATER_TARGETS_ML } from "../../lib/templates/health";
+import { setSleepGoal } from "../../lib/sleep/engine";
+import { formatMinutes } from "../../lib/zone-time";
+import { updateHealthGroup } from "../../lib/w-homes-store";
 import { HABIT_GROUP_LABEL, habitTemplateInputOf, hasHabitLike } from "../../lib/templates/habits";
 import { PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits, type Pillar } from "../../lib/templates/pillars";
 import { PAGE_LABEL, startHref, viewOf } from "../../lib/pages/visibility";
@@ -82,7 +85,7 @@ export function OnboardingFlow() {
   const [step, setStep] = useState<Step>("welcome"), [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [pillars, setPillars] = useState<Pillar[]>([]), [habitIds, setHabitIds] = useState<string[]>([]);
   const [draft, setDraft] = useState<GoalDraft>(NO_GOAL), [goal, setGoal] = useState<PrivateGoal | null>(null);
-  const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null);
+  const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null), first = useRef(true), id = useId();
   const index = STEPS.indexOf(step);
@@ -99,7 +102,7 @@ export function OnboardingFlow() {
   const pickedHabits = starters.filter(t => habitIds.includes(t.id) && !hasHabitLike(existingTitles, t));
   const shown = pagesShownFor(pillars, currentPages);
   const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages) !== null;
-  const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind");
+  const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind");
   function go(next: Step) { setError(""); setStep(next); }
   function skip() { markOnboardingSeen(window.localStorage); router.push("/app"); }
   const toggle = <T,>(list: T[], value: T) => list.includes(value) ? list.filter(v => v !== value) : [...list, value];
@@ -143,6 +146,8 @@ export function OnboardingFlow() {
         if (water !== null) next = saveHealthPreferences(next, {...dailyData(next).preferences, waterTargetMl: water});
         return next;
       });
+      // Session W Part 4: the sleep goal, in Health v4's sleep group (written only when one was chosen).
+      if (showSleep && sleepGoal !== null) { const minutes = sleepGoal; await updateHealthGroup("sleep", current => setSleepGoal(current, {minutes, ...(current.goal?.bedFrom && current.goal.bedTo ? {bedFrom: current.goal.bedFrom, bedTo: current.goal.bedTo} : {})}, new Date())); }
       markOnboardingSeen(window.localStorage);
       const target = syncNext ? "/app/settings#encrypted-sync" : startHref(viewOf(pagesAfter));
       let accountOpen: boolean;
@@ -170,6 +175,7 @@ export function OnboardingFlow() {
     goal && `Your goal “${goal.name}”.`,
     showHealth && steps !== null && `A daily step target of ${steps.toLocaleString("en")}.`,
     showHealth && water !== null && `A daily water target of ${litres(water)}.`,
+    showSleep && sleepGoal !== null && `A sleep goal of ${formatMinutes(sleepGoal)}.`,
   ].filter((line): line is string => typeof line === "string");
 
   return <section className="onboarding panel" aria-labelledby={`${id}-title`} data-step={step}>
@@ -230,6 +236,13 @@ export function OnboardingFlow() {
             {WATER_TARGETS_ML.map(ml => <Choice key={ml} type="radio" name="onboarding-water" checked={water === ml} onChange={() => setWater(ml)} label={`${litres(ml)} of water a day`} />)}
           </div>
           <p className="fine">Common starting points, not advice. Calorie, weight and nutrient targets are yours to set on the Health page if you want them.</p>
+        </fieldset>}
+        {showSleep && <fieldset className="onboarding-targets"><legend>A sleep goal (optional)</legend>
+          <div className="onboarding-choices" role="radiogroup" aria-label="Sleep goal">
+            <Choice type="radio" name="onboarding-sleep" checked={sleepGoal === null} onChange={() => setSleepGoalChoice(null)} label="No sleep goal" />
+            {SLEEP_GOALS.map(m => <Choice key={m} type="radio" name="onboarding-sleep" checked={sleepGoal === m} onChange={() => setSleepGoalChoice(m)} label={`${formatMinutes(m)} asleep`} />)}
+          </div>
+          <p className="fine">Your own aim for Health → Sleep, where you can add a bedtime window. Not advice.</p>
         </fieldset>}
         {error && <p role="alert">{error}</p>}
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => { if (checkGoal()) go("tour"); }}>Continue</button>{back("pillars")}</div>

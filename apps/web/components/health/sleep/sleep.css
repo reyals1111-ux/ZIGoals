@@ -1,0 +1,83 @@
+/* Sleep (Session W Part 4): the Health card, the full view, its forms and charts. Bars #6f7ff5 and goal #c45bb0 were
+   validated on the dark surface (#0d1629); text stays in the text tokens, never the series colour. */
+.sleep-card .sleep-last { margin: 0; font-size: 16px; }
+.sleep-card .sleep-last strong { font-size: 22px; }
+.sleep-tonight { display: grid; gap: 10px; justify-items: start; margin: 8px 0; }
+.sleep-tonight > button { min-height: 44px; }
+.sleep-running { margin: 0; font-size: 16px; color: var(--text); }
+.sleep-end-at { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #c45bb059; border-radius: 16px; background: #150f2ab3; }
+.sleep-end-at p { margin: 0; }
+.sleep-view { display: grid; gap: 18px; }
+.sleep-view .page-heading { margin-bottom: 0; }
+.sleep-back { display: inline-flex; align-items: center; min-height: 44px; }
+.sleep-note { margin: 0; }
+.sleep-gentle p { margin: 0; font-size: 16px; line-height: 1.55; }
+.sleep-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 0; }
+.sleep-stats > div { display: grid; gap: 2px; align-content: start; padding: 12px 14px; border: 1px solid #7fc8ff1f; border-radius: 16px; background: #0a1123b3; }
+.sleep-stats dt { font-size: .875rem; color: #cbd9f2; }
+.sleep-stats dd { margin: 0; font-size: 20px; font-weight: 700; color: var(--text); }
+.sleep-stats small { font-size: .875rem; line-height: 1.45; color: #bccae0; }
+.sleep-charts-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.sleep-charts-head h2 { margin: 0; }
+.sleep-range { display: flex; gap: 8px; }
+.sleep-range button { min-height: 44px; }
+.sleep-range button[aria-pressed="true"] { border-color: #7fdcff; box-shadow: 0 0 0 1px #7fdcff; }
+.sleep-chart { margin: 16px 0 0; }
+.sleep-chart figcaption { margin-bottom: 6px; font-size: .9375rem; font-weight: 600; color: var(--text); }
+.sleep-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 8px; padding: 0; list-style: none; font-size: .875rem; color: #cbd9f2; }
+.sleep-key li { display: inline-flex; align-items: center; gap: 8px; }
+.sleep-key i { display: inline-block; flex: none; }
+.sleep-key-goal { width: 18px; height: 0; border-top: 2px dashed #c45bb0; }
+.sleep-key-window { width: 16px; height: 10px; border: 1px solid #c45bb080; border-radius: 2px; background: #c45bb02e; }
+.sleep-key-estimated { width: 12px; height: 12px; border: 1.5px solid #6f7ff5; border-radius: 3px; background: #6f7ff56b; }
+.sleep-chart-plot { position: relative; }
+.sleep-chart svg { display: block; overflow: visible; }
+.sleep-grid line { stroke: #7fc8ff1f; stroke-width: 1; }
+.sleep-grid text, .sleep-axis { fill: #bccae0; font-size: 14px; }
+.sleep-bar { fill: #6f7ff5; stroke: #0d1629; stroke-width: 1; }
+/* An estimated night (no fall-asleep or awake minutes): the same hue, lighter, with an outline; texture stays opt-in. */
+.sleep-bar.estimated { fill-opacity: .42; stroke: #6f7ff5; stroke-width: 1.5; }
+.sleep-hit { fill: transparent; cursor: default; }
+.sleep-hit:hover { fill: #ffffff0d; }
+.sleep-goal line { stroke: #c45bb0; stroke-width: 2; stroke-dasharray: 5 4; }
+.sleep-window rect { fill: #c45bb02e; }
+.sleep-line { fill: none; stroke: #6f7ff5; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.sleep-dot { fill: #6f7ff5; stroke: #0d1629; stroke-width: 2; }
+.sleep-chart-tip { position: absolute; top: 0; left: 50%; transform: translateX(-50%); margin: 0; max-width: 92%; padding: 6px 10px; border: 1px solid #7fc8ff40; border-radius: 10px; background: #081329f2; font-size: .875rem; color: var(--text); pointer-events: none; }
+.sleep-chart-table summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .9375rem; }
+.sleep-table-wrap { overflow-x: auto; }
+.sleep-table-wrap table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.sleep-table-wrap :is(th, td) { padding: 6px 8px; text-align: left; border-bottom: 1px solid #7fc8ff1a; }
+.sleep-patterns ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.sleep-patterns li { padding: 12px 14px; border: 1px solid #7fc8ff1f; border-radius: 16px; background: #0a1123b3; }
+.sleep-patterns li p { margin: 0; font-size: 16px; line-height: 1.5; }
+.sleep-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.sleep-form { display: grid; gap: 12px; }
+.sleep-form :is(input, select, textarea) { font-size: 16px; min-height: 44px; }
+.sleep-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.sleep-form fieldset { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sleep-form legend { width: 100%; margin-bottom: 6px; font-size: .9375rem; }
+.sleep-form fieldset > label:not(.field) { position: relative; display: inline-flex; }
+.sleep-form fieldset > label:not(.field) input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.sleep-form fieldset > label:not(.field) span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #3a4c6e; border-radius: 14px; background: #0f192d; font-size: .9375rem; }
+.sleep-form fieldset > label:not(.field) input:checked + span { border-color: #7fe3f3; box-shadow: 0 0 0 1px #7fe3f3; }
+.sleep-form fieldset > label:not(.field) input:focus-visible + span { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.sleep-other-tags { width: 100%; }
+.sleep-wind-down { display: grid; gap: 8px; max-width: 460px; margin-top: 10px; padding-top: 12px; border-top: 1px solid #7fc8ff1a; }
+.sleep-wind-down input { font-size: 16px; min-height: 44px; }
+.sleep-nights { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.sleep-nights > li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 1px solid #7fc8ff1f; border-radius: 16px; background: #0a1123b3; }
+.sleep-nights > li > div:first-child { display: grid; gap: 2px; }
+.sleep-nights > li > div:first-child span { font-size: .9375rem; }
+.sleep-privacy { margin: 0; }
+@media (max-width: 767.98px) {
+  .sleep-columns { grid-template-columns: 1fr; } .sleep-nights > li { align-items: stretch; }
+  /* Phones: the four short figures two by two; the two with their formula full width. */
+  .sleep-stats { grid-template-columns: 1fr 1fr; gap: 10px; } .sleep-stats > .sleep-stat-wide { grid-column: 1 / -1; }
+  .sleep-stats > div { padding: 10px 12px; } .sleep-stats dd { font-size: 18px; }
+}
+@media (forced-colors: active) {
+  .sleep-bar, .sleep-dot { fill: CanvasText; } .sleep-goal line, .sleep-line { stroke: CanvasText; }
+  .sleep-bar.estimated { fill: Canvas; fill-opacity: 1; stroke: CanvasText; stroke-width: 2; }
+  .sleep-key-goal { border-top-color: CanvasText; } .sleep-key-window, .sleep-key-estimated { border-color: CanvasText; background: Canvas; }
+}

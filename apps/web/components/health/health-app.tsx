@@ -7,7 +7,7 @@ import { NebulaFlow } from "../nebula-flow";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
+import { Suspense, lazy, useState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
 import {
   HEALTH_MEALS,foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
   logHealthItem, newHealthId, parseHealthNumber, recipeNutrition,
@@ -43,6 +43,11 @@ import { PhoneFold } from "../phone/phone-fold";
 import { formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
 import { updateRefusalMessage } from "../../lib/storage-error-copy";
+import { SleepCard } from "./sleep/sleep-card";
+import { healthGroupIn } from "../../lib/vault/w-homes";
+
+/** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
+const SleepView = lazy(() => import("./sleep/sleep-view"));
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
@@ -82,8 +87,10 @@ export function HealthApp() {
   // H7: linked habits tick themselves off from this journal while it is open.
   const habits = useHabits();
   useAutoCheckIns({ habits, health: store });
+  const view = useSearchParams().get("view");
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
+  if (view === "sleep") return <Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 
@@ -92,6 +99,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const router = useRouter(), phone = usePhoneActive();
   // HE6: the fasting timer, this device's own record.
   const fasting = useFasting();
+  // Session W Part 4: on a phone the Sleep card folds like the fasting timer, and stays open while a night runs.
+  const sleepRunning = (healthGroupIn(data, "sleep")?.nights ?? []).some(n => n.end === null);
   // I1: meals from a nutrition CSV (phone: a sheet; desktop: inside the Diary details), with this device's undo ledger.
   const [importingCsv, setImportingCsv] = useState(false), imports = useImportUndo();
   const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
@@ -113,7 +122,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       ?? entry?.querySelector<HTMLElement>("select, input, button");
     entryControl?.focus({ preventScroll: true });
     if (window.matchMedia(PHONE_QUERY).matches) setLogging(true);
-    router.replace("/app/health", { scroll: false });
+    // Only the Quick Add intent leaves the address; any other part of it (a date, a view) stays.
+    const url = new URL(window.location.href); url.searchParams.delete("add");
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [addIntent, router]);
   const today = useHealthToday(dailyData(data).preferences.timezone);
   const [date, setDate] = useState(() => pinnedDate.success?pinnedDate.data:today);
@@ -169,6 +180,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Targets" && <TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} />}
     </fieldset>
     </div>},
+    {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} />},

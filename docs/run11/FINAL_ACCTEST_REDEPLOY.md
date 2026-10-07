@@ -229,14 +229,16 @@ Filled in part by part as Session W lands. Re-run step 2 at your release SHA; th
 | acceptance app (OpenNext) | Part 1b–1e: Health v4 / settings v3 read and written lazily (finance v5 read only), `X-ZIGoals-Build` on every app answer, one CSP composer (byte-identical headers), dependency fixes | same deploy |
 | acceptance app (OpenNext) | Part 17, timezone phase 4: a chosen journal zone is written to settings v2 (`journalTimeZone`) and a plan zone to finance v4 (`timeZone`); both are read by #29 and later. An instalment is "due today" until its day ends in the plan's zone | same deploy |
 | acceptance app (OpenNext) | Part 2, Your pages & buttons: hiding a page or button, or choosing a start page, writes settings v3 `pages` (stamped choices; the newer one wins between devices); the device keeps a display mirror (`zigoals:pages-view:v1`, never synced) | same deploy |
+| acceptance app (OpenNext) | Part 4, Sleep (a view of Health, `/app/health?view=sleep`): a night, a nap, the goal, "I'm going to bed" or the welcome's sleep goal writes Health v4 `sleep`; a habit linked to time asleep or a bedtime writes Health v4 `habitLinks`; a Today Sleep widget writes settings v3. The wind-down time stays on the device. Also the Part 1 fix (`3879b65`): no blank page when a remembered device reopens while Settings verifies the session | same deploy |
 
 **What syncs now that did not before:** with the switch on, fasting sessions (Health v2), health goals, habit-health links
 with their automatic check-in markers and the weekly review's Health note (Health v3, under the Health consent), and the
-weekly review (settings v2). "Also sync my Portfolio (optional)" appears under account sync, unticked.
+weekly review (settings v2). Session W adds the pages choice (settings v3) and sleep (Health v4, under the Health consent). "Also sync my Portfolio (optional)" appears under account sync, unticked.
 
 **Rollback, Session W specifics:**
 - The Alpha's rollback floor is **#29** (the first build that reads Health v3): never roll back past it.
 - A person who used Your pages & buttons has settings v3: on #29–#31 their Today layout and preferences read as unreadable (bytes and recovery copies kept, every page shown) until the roll-forward reads them again.
+- A person who logged sleep (or linked a habit to sleep) has Health v4: on #29–#31 their whole Health page reads as unreadable (bytes and recovery copies kept) until the roll-forward reads it again. A Today Sleep widget raises settings v3, as above.
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.
