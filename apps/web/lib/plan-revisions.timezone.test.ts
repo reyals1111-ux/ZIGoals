@@ -7,7 +7,7 @@ import {earliestPlanChange,planFingerprint,reviseGoalPlan,revisionInstallments} 
 // Timezone project, phase 1 (Session N). Part 1 locks today's plan-revision days, which are UTC on every device.
 // Part 2 states the decided future (TIMEZONE_DESIGN.md: T1 and "A zone change is a new plan revision, effective
 // from the next day in the old zone"), registered in docs/testing/SKIPPED_TESTS.md as Z14-Z16. Z14-Z15 flipped in
-// phase 3 (R1 reads `timeZone`; Session P, PR 2) and are plain tests; Z16 flips in phase 4 (R2 adds the default).
+// phase 3 (R1 reads `timeZone`; Session P, PR 2) and are plain tests; Z16 flipped in phase 4 (Session W Part 17).
 
 const deviceZone=process.env.TZ;
 afterEach(()=>{process.env.TZ=deviceZone;});
@@ -66,13 +66,13 @@ describe('guards for the rows below (plain tests; G2 and G3 updated in phase 3, 
   // Z14's twin.
   expect(earliestPlanChange(planned().goals[0]!,now)).toBe('2026-10-17');
  });
- test('no default plan zone exists yet',()=>{
-  // Z16 fails for this reason until R2 adds the journal-zone default. R2 updates this guard in the same PR.
-  expect('defaultPlanTimeZone' in revisions).toBe(false);
+ test('G4 since phase 4 the default plan zone exists (Session W Part 17)',()=>{
+  // Until Session W this guard pinned the opposite (no `defaultPlanTimeZone`), the reason Z16 failed.
+  expect(typeof revisions.defaultPlanTimeZone).toBe('function');
  });
 });
 
-describe('decided: plan-revision days follow the plan\'s zone (Z14-Z15 plain since phase 3; Z16 expected to fail until phase 4)',()=>{
+describe('decided: plan-revision days follow the plan\'s zone (Z14-Z15 plain since phase 3; Z16 since phase 4)',()=>{
  const now=Date.parse('2026-10-16T01:30:00.000Z');
  // Z14 At 21:30 on 15 October in New York, the next day in the plan's zone is the 16th.
  test('Z14 the earliest change is the next day in the plan\'s zone',()=>{
@@ -90,8 +90,8 @@ describe('decided: plan-revision days follow the plan\'s zone (Z14-Z15 plain sin
   expect(next.schemaVersion).toBe(4);
   expect(revisionInstallments(next.goals[0]!,'2026-09-20','2026-10-15')).toEqual(before);
  });
- // Z16 (T1) A new plan's zone defaults to the journal zone, else UTC.
- test.fails('Z16 a new plan defaults to the journal zone, else UTC',()=>{
+ // Z16 (T1) A new plan's zone defaults to the journal zone, else UTC. Plain since phase 4 (Session W Part 17).
+ test('Z16 a new plan defaults to the journal zone, else UTC',()=>{
   const defaultPlanTimeZone=(revisions as Record<string,unknown>).defaultPlanTimeZone as ((journalTimeZone?:string)=>string)|undefined;
   expect(defaultPlanTimeZone?.('Europe/Brussels')).toBe('Europe/Brussels');
   expect(defaultPlanTimeZone?.(undefined)).toBe('UTC');

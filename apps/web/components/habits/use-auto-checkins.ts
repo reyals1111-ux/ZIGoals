@@ -5,6 +5,7 @@ import type {HabitsStore} from './use-habits';
 import {useHabitHealthLinks} from './use-habit-health-links';
 import {applyAutoCompletion, autoCheckInMarker, autoCompletions} from '../../lib/habit-health-links/engine';
 import {recordAutoCheckIn} from '../../lib/habit-health-links/store';
+import {useJournalZone} from '../use-journal-zone';
 
 // A refused automatic check-in is said once on its habit's card and retried on the next run (H7, "Hook").
 const notices = new Map<string, string>();
@@ -40,8 +41,10 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
   const {data: linkData, loaded: linksLoaded, unreadable, update: updateLinks} = links;
   const {data: habitData, loaded: habitsLoaded, error: habitsError, update: updateHabits} = habits;
   const {data: healthData, loaded: healthLoaded, error: healthError} = health;
+  // Session W Part 17: days may follow the journal zone, so nothing is ticked off before the settings say which it is.
+  const {zone: journalZone, ready: journalReady} = useJournalZone();
   useEffect(() => {
-    if (!habitsLoaded || habitsError || !healthLoaded || healthError || !linksLoaded || unreadable || running.current) return;
+    if (!journalReady || !habitsLoaded || habitsError || !healthLoaded || healthError || !linksLoaded || unreadable || running.current) return;
     const items = autoCompletions({links: linkData, habits: habitData, health: healthData, now: new Date()});
     if (!items.length) return;
     running.current = true;
@@ -57,6 +60,6 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
         }
       }
     })().finally(() => { running.current = false; });
-  }, [tick, linkData, linksLoaded, unreadable, updateLinks, habitData, habitsLoaded, habitsError, updateHabits, healthData, healthLoaded, healthError]);
+  }, [tick, linkData, linksLoaded, unreadable, updateLinks, habitData, habitsLoaded, habitsError, updateHabits, healthData, healthLoaded, healthError, journalReady, journalZone]);
   return links;
 }

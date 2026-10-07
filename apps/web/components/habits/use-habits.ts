@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useJournalZone } from "../use-journal-zone";
 import { usePrivateStore } from "../use-private-store";
 import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
 import { shareHabitData } from "../../lib/habit-sharing";
@@ -42,13 +43,15 @@ export function useHabits() {
   const data = useSharedHabitData(store.data);
   const [today, setToday] = useState(localDate);
   const timeZone=data.timeZone;
+  // Session W Part 17: with no Habits zone, the journal zone decides the day; a change to it refreshes the day at once.
+  const journal=useJournalZone().zone;
   useEffect(() => {
     const refreshDate = () => setToday(habitCalendarDay({timeZone}));
     refreshDate();
     const timer = window.setInterval(refreshDate, 30000);
     window.addEventListener("focus", refreshDate);
     return () => { window.clearInterval(timer); window.removeEventListener("focus", refreshDate); };
-  }, [timeZone]);
+  }, [timeZone, journal]);
   // Actions depend only on the store's update, so their identity is stable once the store has loaded.
   const update = store.update;
   const actions = useMemo(() => ({

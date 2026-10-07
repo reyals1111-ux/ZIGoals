@@ -2,6 +2,8 @@ import {createHash} from 'node:crypto';
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {emptyPlatform,privateGoalSchema,type ContributionPlan,type Platform} from './positions';
 import {fundingHealth,recordGoalChanges} from './goal-intelligence';
+// Session W Part 17 (T6-B): compared as the earlier due-day rule gave it (funding-before-t6.ts); the digest is main's.
+import {fundingBeforeT6} from './funding-before-t6';
 import {earliestPlanChange,revisionInstallments} from './plan-revisions';
 
 // Timezone project, phase 2 (Session N): the edges of the parity proof. Instants no device clock produces (not a
@@ -35,7 +37,7 @@ function rows(){
  const out:string[]=[];
  for(const [name,build] of Object.entries(FIXTURES)){
   ids=0;const s=build(),g=s.goals[0]!;
-  for(const now of EDGES)out.push(canonical({name,now:String(now),funding:safe(()=>fundingHealth(s,'1',now)),earliest:safe(()=>earliestPlanChange(g,now))}));
+  for(const now of EDGES)out.push(canonical({name,now:String(now),funding:safe(()=>fundingBeforeT6(fundingHealth(s,'1',now))),earliest:safe(()=>earliestPlanChange(g,now))}));
   out.push(canonical({name,installments:safe(()=>revisionInstallments(g,'1850-01-01','2026-12-31').map(x=>[x.id,x.date]))}));
  }
  return out;

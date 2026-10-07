@@ -122,6 +122,16 @@ export const dashboardSettingsV3Schema=z.object({schemaVersion:z.literal(3),...s
 /** One wide type for every version this build reads (v1 and v2 records are v3 records without the newer groups). */
 export type DashboardSettings=Omit<z.infer<typeof dashboardSettingsV3Schema>,'schemaVersion'>&{schemaVersion:1|2|3};
 export const dashboardSettingsSchema:z.ZodType<DashboardSettings>=z.union([dashboardSettingsV3Schema,dashboardSettingsV2Schema,dashboardSettingsV1Schema]);
+/**
+ * Timezone phase 4 (Session W Part 17, T2-A): writes the person's journal zone (settings v2 at least, never down), or
+ * removes it (null; the record keeps its version). The same object when nothing changes, so a store writes nothing.
+ */
+export function withJournalZone(s:DashboardSettings,zone:string|null):DashboardSettings{
+ const next=zone===null?null:timeZoneSchema.parse(zone);
+ if((s.journalTimeZone??null)===next)return s;
+ const {journalTimeZone:_previous,...rest}=s;void _previous;
+ return dashboardSettingsSchema.parse(next===null?rest:{...rest,schemaVersion:Math.max(s.schemaVersion,2),journalTimeZone:next});
+}
 const binding=(w:DashboardWidget)=>JSON.stringify([w.kind,w.entity??'',w.metric]);
 export function presetSettings(preset:DashboardPreset):DashboardSettings{
  const specs:Record<DashboardPreset,[WidgetKind,string][]>= {balanced:[['goals','overview'],['habits','overview'],['health','kcal'],['wealth','USD']],wealth:[['wealth','USD'],['wealth','EUR'],['goals','overview'],['ecosystem','directory']],'habits-health':[['habits','overview'],['health','kcal'],['health','water'],['health','activity']],health:[['health','kcal'],['health','water'],['health','weight'],['health','steps']]};

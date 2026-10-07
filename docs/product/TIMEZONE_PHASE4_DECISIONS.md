@@ -1,5 +1,7 @@
 # Timezone phase 4 (R2): the decisions before it starts
 
+> **Implemented in Session W Part 17 (2026-10-06), owner decision W2: "timezone phase 4 per TIMEZONE_PHASE4_DECISIONS recommendations".** T1-B (the zone in the plan's summary line and the plan form, a new plan prefilled with the journal zone, else UTC), T2-A (Settings → "Your time zone" with the Habits and Health zones as overrides, and a one-time "write it down" card on Today), T6-B (due today until the day ends in the plan's zone; what is funded counts at once) and QA-24-B (Today's Health day follows the Health zone, then the journal zone, then the device, and says the zone when it differs). The decision sheet below is kept as it was written.
+
 > Session U Part 9, 2026-10-05. A decision sheet only: nothing here is implemented, and no stored format changes. Phase 4
 > is "writes and UI" in [TIMEZONE_DESIGN.md](TIMEZONE_DESIGN.md) ("What this means for the phases"). It may start once the
 > T4 preconditions hold (the earliest day is 2026-10-11; see SYNC_HOMES.md, "The write switch", for where they stand).

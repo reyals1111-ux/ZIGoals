@@ -4,7 +4,8 @@ import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { setJournalTimeZone } from "../lib/journal-zone";
 import { useDisplayLocaleKey } from "./display-locale";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
@@ -60,6 +61,11 @@ export function Shell({ children }: { children: ReactNode }) {
   // A private read that is still pending after a while gets an honest notice instead of an endless blank page.
   // The page stays unrendered and writes stay blocked until a read succeeds; a late read renders normally.
   const slowRead=usePrivateReadDelay(),settingsPending=!preferences.loaded;
+  // Session W Part 17 (T2-A): the journal zone for every Habits and Health day, set before any effect of this commit runs
+  // (layout effects run before passive ones), so a day-dependent write never uses the device zone by mistake. An
+  // unreadable settings record leaves no journal zone: days follow each module's zone, then the device's, as before.
+  const journalZone=preferences.loaded&&!preferences.error?preferences.data.journalTimeZone??null:null;
+  useLayoutEffect(()=>{setJournalTimeZone(journalZone,preferences.loaded);},[journalZone,preferences.loaded]);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();

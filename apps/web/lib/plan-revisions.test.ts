@@ -15,7 +15,8 @@ describe('immutable plans and Goal milestones',()=>{
   expect(s.goals[0]!.planRevisions).toHaveLength(1);
   expect(next.goals[0]!.planRevisions?.[0]).toEqual(s.goals[0]!.planRevisions?.[0]);
   expect(revisionInstallments(next.goals[0]!,'2026-09-20','2026-10-04').map(x=>[x.date,x.amount])).toEqual([['2026-09-20','10000'],['2026-09-27','20000'],['2026-10-04','20000']]);
-  expect(fundingHealth(next,'1',now).plannedThroughToday).toBe('10000');
+  // The day's instalment keeps the earlier terms (10,000); on its own day it is still due (T6-B, Session W Part 17).
+  expect(fundingHealth(next,'1',now)).toMatchObject({plannedThroughToday:'0',dueToday:'10000'});
   expect(privateGoalSummary(next,next.goals[0]!,[],now).metadata.find(x=>x.label==='Contribution plan')?.value).toBe('$100.00 / weekly');
   expect(next.allocations).toEqual(s.allocations);
  });

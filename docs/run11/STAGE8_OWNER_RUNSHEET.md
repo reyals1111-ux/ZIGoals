@@ -36,6 +36,7 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 ### Session W changes (what you will notice)
 - **Sync writes are on:** row 15 and 15c run as written; row 15d covers sleep, meditation, your links and your pages.
 - **New sections in the synced data, written only when you use the feature:** Health v4 (sleep, meditation, daily vitals, quick-log buttons, the wrap-up mood) and settings v3 (your pages, links, chess usernames, the wrap-up). Accounts, debts and milestone dates stay on each device in this release.
+- **Timezone phase 4 (Part 17):** Settings → "Your time zone" is written to settings v2 and a Goal plan's zone to finance v4 (both read by #29 and later). Re-run rows B2, B4 and B5 on two devices in different zones with a time zone saved on one of them: the other device follows it after a sync, a plan keeps its own zone, and on a plan's due day Goals says "due today", not behind.
 - **New outside services, only on your action:** chess.com and Lichess (only the username you type), Spotify (only once ZIGoals has a Spotify app, MUSIC_ACTIVATION.md). The health-link Worker and the market coordinator's new path are **not** part of this stack (FINAL_ACCTEST_REDEPLOY.md, "Session W changes").
 
 ## Before Stage 8 — owner hardening · about 75 min

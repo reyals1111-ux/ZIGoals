@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
+import { journalTimeZone } from "./journal-zone";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -136,12 +137,16 @@ function migrateV1(data: z.infer<typeof habitDataV1Schema>): HabitData {
   })) });
 }
 export const habitDataSchema: z.ZodType<HabitData> = z.union([habitDataV3Schema, habitDataV2Schema, habitDataV1Schema]).transform((data) => data.schemaVersion === 1 ? migrateV1(data) : data);
+/** The Habit journal's day: the Habits zone (an override), then the journal zone (Session W Part 17, T2-A), then the device's. */
 export function habitCalendarDay(data:Pick<HabitData,'timeZone'>,now=new Date()):string{
- if(!data.timeZone)return localDate(now);
- const parts=new Intl.DateTimeFormat('en',{timeZone:timezoneSchema.parse(data.timeZone),year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;
+ const zone=data.timeZone??journalTimeZone();
+ if(!zone)return localDate(now);
+ const parts=new Intl.DateTimeFormat('en',{timeZone:timezoneSchema.parse(zone),year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),get=(type:string)=>parts.find(p=>p.type===type)!.value;
  return dateSchema.parse(`${get('year')}-${get('month')}-${get('day')}`);
 }
 export function saveHabitTimezone(data:HabitData,timeZone:string):HabitData{return habitDataSchema.parse({...data,timeZone:timezoneSchema.parse(timeZone)});}
+/** Session W Part 17 (T2-A): Habits follow the journal zone again (the override removed); past entries keep their dates. */
+export function clearHabitTimezone(data:HabitData):HabitData{if(data.timeZone===undefined)return data;const {timeZone:_zone,...rest}=data;void _zone;return habitDataSchema.parse(rest);}
 export function emptyHabitData(): HabitData { return { schemaVersion: 2, kind: "zigoals-habits", habits: [] }; }
 export function habitRuleOn(habit: Habit, date: string): HabitRule | undefined { for (let index = habit.rules.length - 1; index >= 0; index--) if (habit.rules[index]!.from <= date) return habit.rules[index]; return undefined; }
 export function latestHabitRule(habit: Habit): HabitRule { return habit.rules[habit.rules.length - 1]!; }

@@ -1,5 +1,6 @@
 "use client";
 import { HabitRhythmSection } from "../bottom-sections";
+import { useJournalZone } from "../use-journal-zone";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -51,6 +52,8 @@ type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening
 const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm"];
 export function HabitsWorkspace() {
   const store = useHabits();
+  // Session W Part 17: with no Habits zone, days follow the journal zone (Settings → Your time zone).
+  const journalZone = useJournalZone().zone;
   // H7: the Health journal for the link choices, and the automatic check-ins applied on this page (the hook returns this device's links).
   const health = useHealth();
   const links = useAutoCheckIns({ habits: store, health });
@@ -142,7 +145,7 @@ export function HabitsWorkspace() {
       <p className="fine habit-semantics">Streaks count scheduled successful days or completed target periods. Non-scheduled and paused dates do not count against consistency. Skips and failures remain distinct. Saved timers retain timestamps across reloads and require review before logging; browser-closed reminders are not promised.</p>
     </>}
     <section className="habit-journal-settings" aria-label="Habit journal settings">
-      <p className="fine habit-privacy">Private Habit records · No wallet required · Days use {store.data.timeZone??"this device’s timezone until you save a shared journal timezone"}.</p>
+      <p className="fine habit-privacy">Private Habit records · No wallet required · Days use {store.data.timeZone??(journalZone?`${journalZone}, your time zone`:"this device’s timezone until you save your time zone in Settings")}.</p>
       {store.loaded&&!store.error&&<details className="panel habit-timezone"><summary>Habit journal timezone</summary><form onSubmit={async e=>{e.preventDefault();const zone=String(new FormData(e.currentTarget).get('timezone'));try{await store.update(data=>saveHabitTimezone(data,zone));setZoneMessage('Habit timezone saved. Existing date-only entries and saved timer timestamps remain unchanged.');}catch{setZoneMessage('Choose a valid IANA timezone, such as Europe/Brussels.');}}}><label className="field">Habit timezone<input name="timezone" required maxLength={100} defaultValue={store.data.timeZone??Intl.DateTimeFormat().resolvedOptions().timeZone}/></label><button className="secondary" type="submit">Save Habit timezone</button><p className="fine">This journal setting travels with your private data. Old dates stay as recorded. A timer started under another timezone requires explicit review.</p>{zoneMessage&&<p role="status">{zoneMessage}</p>}</form></details>}
     </section>
   </div></LayoutPage></HealthLinkContext.Provider>;
