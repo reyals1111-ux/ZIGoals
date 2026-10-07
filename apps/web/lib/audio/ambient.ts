@@ -1,4 +1,4 @@
-import type {AmbientSound} from '../music/schema';
+import {AMBIENT_SOUNDS, type AmbientSound} from '../music/schema';
 import {audioContext, type AudioLike} from './context';
 import {setAmbientState} from './ambient-state';
 
@@ -131,5 +131,7 @@ export function setAmbientVolume(volume: number): void {
   const gain = entry.graph.master.gain, t = entry.ctx.currentTime;
   if (gain.setTargetAtTime) gain.setTargetAtTime(ambientGain(volume), t, 0.15); else gain.setValueAtTime(ambientGain(volume), t);
 }
+/** The sound before or after this one, in the player's order (the music panel's previous and next). */
+export const stepSound = (sound: AmbientSound, step: 1 | -1): AmbientSound => AMBIENT_SOUNDS[(AMBIENT_SOUNDS.indexOf(sound) + step + AMBIENT_SOUNDS.length) % AMBIENT_SOUNDS.length]!;
 /** Tests only. */
 export function resetAmbientForTests(): void { playing = null; setAmbientState({playing: false}); }

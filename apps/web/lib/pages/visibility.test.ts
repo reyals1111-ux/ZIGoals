@@ -79,8 +79,8 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     for (const id of [...AVAILABLE_PAGES, ...AVAILABLE_BUTTONS]) expect(shown.items[id]).toEqual({v: 'shown', at: LATER});
     expect(shown.start).toEqual({id: 'health', at: AT});
     expect(pagesSchema.parse(shown)).toEqual(shown);
-    // The music player arrives with Part 20; Chess is shown with everything else since Part 14.
-    expect(viewOf(shown).hidden).toEqual(['music']);
+    // Chess is shown with everything else since Part 14, the music player since Part 20: nothing stays hidden.
+    expect(viewOf(shown).hidden).toEqual([]);
   });
   test('buttons: each switch is its own; the stored choice is stamped', () => {
     const pages = hide('quick-add', 'zigi');

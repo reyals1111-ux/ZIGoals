@@ -15,6 +15,8 @@ export const WIDGET_GROUPS=[
  {id:'ecosystem',label:'Ecosystem',icon:'ecosystem',kinds:['ecosystem']},
  // Session W Part 14: skills ZIGoals follows from a public source; Chess first.
  {id:'skills',label:'Skills',icon:'chess',kinds:['chess']},
+ // Session W Part 20: the music player's widget.
+ {id:'music',label:'Music',icon:'music',kinds:['music']},
 ] as const satisfies readonly {id:string;label:string;icon:string;kinds:readonly WidgetKind[]}[];
 
 export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={

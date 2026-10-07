@@ -16,6 +16,7 @@ const NOTES: Partial<Record<VisibilityId, string>> = {
   'quick-add': 'In the sidebar, the phone top bar and on Today.',
   zigi: 'The ZIGi button and ⌘K / Ctrl+K, on every device you sync.',
   'wealth-shortcut': 'The wallet button next to Settings in the phone top bar, while Wealth shows.',
+  music: 'A round button opposite ZIGi’s, a row in the phone’s More sheet and a Today widget.',
 };
 /**
  * Settings → "Your pages & buttons" (Session W Part 2, owner decision W4): a switch per page and button, the start page,

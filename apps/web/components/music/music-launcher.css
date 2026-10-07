@@ -1,0 +1,11 @@
+/* Session W Part 20: the music button, at the bottom on the side opposite ZIGi's (the root's data-zigi-side). */
+.music-launcher{position:fixed;left:max(20px,env(safe-area-inset-left,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:45;display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);background:radial-gradient(120% 120% at 30% 20%,#173a5e,#0b1430 70%);color:var(--text,#eef1ff);box-shadow:0 14px 34px -14px rgba(20,120,200,.75);cursor:pointer}
+@media (min-width:901px){.music-launcher:not(.music-launcher-phone){left:calc(var(--sidebar-width,216px) + 20px)}}
+:root[data-zigi-side=left] .music-launcher{left:auto;right:max(20px,env(safe-area-inset-right,0px))}
+.music-launcher-phone{left:calc(var(--safe-left,0px) + 12px);bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 8px)}
+:root[data-zigi-side=left] .music-launcher-phone{left:auto;right:calc(var(--safe-right,0px) + 12px)}
+.music-launcher[data-playing]::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid #7fe3f3;opacity:.75;pointer-events:none}
+.music-launcher:hover{border-color:#7fe3f3}
+.music-launcher:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:3px}
+:root[data-keyboard=open] .music-launcher,:root[data-keyboard=open] .music-mini,:root[data-keyboard=open] .music-panel{display:none}
+@media (forced-colors:active){.music-launcher{border-color:CanvasText}}

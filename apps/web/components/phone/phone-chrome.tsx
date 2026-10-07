@@ -19,6 +19,7 @@ import { AppIcon } from "../app-icon";
 import { LEGACY_STAKING_PATH, NAV_ITEMS, isNavActive, navGroupOf, useFocusRescue, useVisibleNav } from "../app-nav";
 import { groupStarts, homeHref, isShown, phoneTabs } from "../../lib/pages/visibility";
 import { AiMoreRow } from "../ai/ai-more-row";
+import { MusicMoreRow } from "../music/music-more-row";
 import { LogoMark, Wordmark } from "../brand-mark";
 import { LogoIntro } from "../logo-intro";
 import { QuickAdd } from "../quick-add";
@@ -54,6 +55,8 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/welcome") return { title: "Welcome" };
   if (path === "/app/help") return { title: "Help", back: { href: "/app/settings", label: "Settings" } };
   if (path === "/app/zigi") return { title: "Meet ZIGi", back: { href: "/app/settings", label: "Settings" } };
+  // Session W Part 20: where Spotify sends the person back after connecting.
+  if (path === "/app/music/spotify") return { title: "Spotify", back: { href: "/app/settings", label: "Settings" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : "ZIGoals" };
 }
@@ -208,6 +211,7 @@ export function PhoneTabBar() {
             </Link></li>;
           })}
           <AiMoreRow onNavigate={() => setOpen(false)} />
+          <MusicMoreRow onNavigate={() => setOpen(false)} />
         </ul>
         <div className="phone-more-signature">
           <p className="phone-more-descriptor">Your Financial Orbit</p>

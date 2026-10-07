@@ -27,6 +27,7 @@ import { TimeZoneSettings } from "../../../components/settings/time-zone-setting
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
 import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
+import { MusicSettings } from "../../../components/music/music-settings";
 import { PagesSettings } from "../../../components/settings/pages-settings";
 export default function Settings() {
   const s = useGoals();
@@ -74,6 +75,7 @@ export default function Settings() {
       <WrapUpSettings/>
       <ChessSettings/>
       <LinksSettings/>
+      <MusicSettings/>
       <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health & targets →</Link></section></div>
       <PushRemindersPanel/>
       <section className="privacy-intro" id="privacy"><p className="eyebrow">DATA & PRIVACY</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>

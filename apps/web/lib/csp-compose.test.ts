@@ -15,9 +15,11 @@ const BEFORE: Record<string, string> = {
 const modes = {'prod-https': [false, true], 'prod-http': [false, false], 'dev-https': [true, true], 'dev-http': [true, false]} as const;
 // Session W Part 14 (Chess, [TIER 3] (egress connect-src + frame-src)): /app documents add chess.com's and Lichess's
 // APIs after the shared origins and frame exactly their four pages; every other document keeps main's policy.
-const CHESS_CONNECT = ' https://api.chess.com https://lichess.org', CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/';
-const APP_AFTER = (mode: string) => BEFORE[mode]!.replace(/(connect-src [^;]*?http:\/\/127\.0\.0\.1:\*)/, `$1${CHESS_CONNECT}`).replace("frame-src 'none'", CHESS_FRAMES);
-test('every mode sends main 1063765\'s policy on every site document, and on /app documents that policy with the Part 14 sources only', () => {
+// Session W Part 20 (Music, [TIER 3] (egress + tokens)): then Spotify's accounts service and Web API, and Spotify's
+// artwork host in img-src, on /app documents only.
+const APP_CONNECT = ' https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com', CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/';
+const APP_AFTER = (mode: string) => BEFORE[mode]!.replace(/(connect-src [^;]*?http:\/\/127\.0\.0\.1:\*)/, `$1${APP_CONNECT}`).replace("frame-src 'none'", CHESS_FRAMES).replace("img-src 'self' data: blob:", "img-src 'self' data: blob: https://i.scdn.co");
+test('every mode sends main 1063765\'s policy on every site document, and on /app documents that policy with the Part 14 and Part 20 sources only', () => {
   for (const [mode, [development, https]] of Object.entries(modes)) {
     expect(APP_AFTER(mode), mode).not.toBe(BEFORE[mode]);
     for (const pathname of ['/app', '/app/health', '/app/settings', '/app/chess', '/', '/manifest.webmanifest', '/missing']) {

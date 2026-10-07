@@ -66,6 +66,8 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const top=ratings.slice(0,3);
   return {...defaults,title,value:top.map(r=>`${CONTROL_NAME[r.control]} ${formatNumber(r.rating)}`).join(' · '),detail:`${[...new Set(top.map(r=>SITE_NAME[r.site]))].join(' and ')} · the sites' own ratings`,href,facts:ratings.map(r=>({label:`${SITE_NAME[r.site]} · ${CONTROL_NAME[r.control]}`,value:formatNumber(r.rating)}))};
  }
+ // Session W Part 20: the music player's widget opens the player (Today draws it); it asks no service.
+ if(widget.kind==='music')return {...defaults,title:widget.title||'Your soundtrack',value:'Your soundtrack',detail:'Focus sounds made on this device, or Spotify, from the music player.',href:'/app/settings#music'};
  // UI design pass widgets: real records only; units and currencies stay separate; no entry is never zero.
  if(widget.kind==='milestone'){
   const next=s.goals.filter(g=>g.status==='active'&&g.targetDate&&g.targetDate>=s.today).sort((a,b)=>a.targetDate!.localeCompare(b.targetDate!)||a.name.localeCompare(b.name))[0];

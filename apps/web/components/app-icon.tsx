@@ -10,6 +10,8 @@ const paths: Record<string, string> = {
   activity: "M4 19V9m5 10V4m5 15v-7m5 7V7",
   // Session W Part 14: an original pawn for Chess (no site's piece set).
   chess: "M14.5 6a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0M10 9.5h4M10.5 9.5 9 17h6l-1.5-7.5M7 20.5h10M8 17h8",
+  // Session W Part 20: two beamed notes for the music player.
+  music: "M9 18V6l11-2v12M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0m11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M9 10l11-2",
   settings: "M9 4h6l1 3 3 1v8l-3 1-1 3H9l-1-3-3-1V8l3-1zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0",
   arrow: "M5 12h14m-5-5 5 5-5 5",
   wallet: "M19 8V5H5a2 2 0 0 0 0 4h16v11H5a2 2 0 0 1-2-2V7m18 6h-6v4h6m-3-2h.01",
