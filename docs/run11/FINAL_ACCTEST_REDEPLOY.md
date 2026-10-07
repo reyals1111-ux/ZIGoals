@@ -228,6 +228,7 @@ Filled in part by part as Session W lands. Re-run step 2 at your release SHA; th
 | acceptance app (OpenNext) | the sync-writes switch on (Part 1): Session P's four records live in Health v2/v3 and settings v2, and the opt-in Portfolio sync appears | **yes**, last |
 | acceptance app (OpenNext) | Part 1b–1e: Health v4 / settings v3 read and written lazily (finance v5 read only), `X-ZIGoals-Build` on every app answer, one CSP composer (byte-identical headers), dependency fixes | same deploy |
 | acceptance app (OpenNext) | Part 17, timezone phase 4: a chosen journal zone is written to settings v2 (`journalTimeZone`) and a plan zone to finance v4 (`timeZone`); both are read by #29 and later. An instalment is "due today" until its day ends in the plan's zone | same deploy |
+| acceptance app (OpenNext) | Part 2, Your pages & buttons: hiding a page or button, or choosing a start page, writes settings v3 `pages` (stamped choices; the newer one wins between devices); the device keeps a display mirror (`zigoals:pages-view:v1`, never synced) | same deploy |
 
 **What syncs now that did not before:** with the switch on, fasting sessions (Health v2), health goals, habit-health links
 with their automatic check-in markers and the weekly review's Health note (Health v3, under the Health consent), and the
@@ -235,6 +236,7 @@ weekly review (settings v2). "Also sync my Portfolio (optional)" appears under a
 
 **Rollback, Session W specifics:**
 - The Alpha's rollback floor is **#29** (the first build that reads Health v3): never roll back past it.
+- A person who used Your pages & buttons has settings v3: on #29–#31 their Today layout and preferences read as unreadable (bytes and recovery copies kept, every page shown) until the roll-forward reads them again.
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.

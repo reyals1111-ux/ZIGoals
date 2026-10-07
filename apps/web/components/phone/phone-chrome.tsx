@@ -16,7 +16,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { AppIcon } from "../app-icon";
-import { LEGACY_STAKING_PATH, NAV_GROUP_START, NAV_ITEMS, isNavActive } from "../app-nav";
+import { LEGACY_STAKING_PATH, NAV_ITEMS, isNavActive, navGroupOf, useFocusRescue, useVisibleNav } from "../app-nav";
+import { groupStarts, homeHref, isShown, phoneTabs } from "../../lib/pages/visibility";
 import { AiMoreRow } from "../ai/ai-more-row";
 import { LogoMark, Wordmark } from "../brand-mark";
 import { LogoIntro } from "../logo-intro";
@@ -31,7 +32,8 @@ import { useSheetDrag } from "./use-sheet-drag";
  * sheet holds the other destinations. The desktop sidebar and the honesty banners stay the same elements (restyled in
  * phone-shell.css). Server-rendered for phones; removed after hydration everywhere else.
  */
-const TABS = NAV_ITEMS.slice(0, 4), MORE = NAV_ITEMS.slice(4);
+// The tabs are the first four visible pages and More holds the rest (Session W Part 2); with nothing hidden, the first
+// four destinations and the other seven, as before.
 const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
   "/app/markets": "Prices you follow · watch-only",
@@ -127,18 +129,20 @@ export function PhoneTopBar() {
   useVisualViewportInsets(active);
   usePressFeedback(active);
   useTitleOnScroll(active, bar, path);
+  const { view } = useVisibleNav();
   if (!show) return null;
   const route = phoneRoute(path), onSettings = path === "/app/settings", onWealth = isNavActive(path, "/app/wealth");
+  const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
   return <div ref={bar} className="phone-topbar">
     <div className="phone-topbar-row">
       {route.back
         ? <Link className="phone-back" href={route.back.href} aria-label={`Back to ${route.back.label}`}><AppIcon name="back" size={22} /><span aria-hidden="true">{route.back.label}</span></Link>
-        : <Link className="phone-home" href="/app" aria-label="ZIGoals home"><LogoMark /><LogoIntro host="phone" /></Link>}
+        : <Link className="phone-home" href={homeHref(view)} aria-label="ZIGoals home"><LogoMark /><LogoIntro host="phone" /></Link>}
       <p className="phone-title" aria-hidden="true">{route.title}</p>
       <div className="phone-actions">
-        <QuickAdd triggerClassName="phone-quick-add" />
+        {isShown(view, "quick-add") && <QuickAdd triggerClassName="phone-quick-add" />}
         {/* Wealth and Settings are one tap away in the bar as well as in More (CI journeys open them by these names). */}
-        <Link className="phone-wealth" href="/app/wealth" aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>
+        {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
         <Link className="phone-settings" href="/app/settings" aria-label="Settings" aria-current={onSettings ? "page" : undefined}><AppIcon name="settings" size={22} luminous={onSettings} /></Link>
       </div>
     </div>
@@ -163,7 +167,9 @@ function useTabArrival(tabs: RefObject<HTMLDivElement | null>, path: string) {
 
 export function PhoneTabBar() {
   const show = usePhoneChrome(), path = usePathname(), sheet = useRef<HTMLDialogElement>(null), tabs = useRef<HTMLDivElement>(null), titleId = useId(), [open, setOpen] = useState(false);
+  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items), moreStarts = groupStarts(MORE, navGroupOf);
   useTabArrival(tabs, path);
+  useFocusRescue(tabs, TABS.map(([href]) => href).join(" "));
   useSheetDrag(show);
   // Arriving on a page closes More, whatever started the navigation.
   useEffect(() => { setOpen(false); }, [path]);
@@ -175,9 +181,9 @@ export function PhoneTabBar() {
   }, [open]);
   if (!show) return null;
   const tab = TABS.findIndex(([href]) => isNavActive(path, href)), moreCurrent = MORE.some(([href]) => isNavActive(path, href));
-  const index = tab >= 0 ? tab : moreCurrent ? 4 : -1;
+  const index = tab >= 0 ? tab : moreCurrent ? TABS.length : -1;
   return <nav className="phone-tabbar" aria-label="Main navigation">
-    <div ref={tabs} className="phone-tabs" data-active={index >= 0 || undefined} style={index >= 0 ? { "--tab-index": index } as CSSProperties : undefined}>
+    <div ref={tabs} className="phone-tabs" data-active={index >= 0 || undefined} style={{ ...(index >= 0 ? { "--tab-index": index } : {}), ...(TABS.length !== 4 ? { "--tab-count": TABS.length + 1 } : {}) } as CSSProperties}>
       <span className="phone-tab-pill" aria-hidden="true" />
       {TABS.map(([href, label, icon]) => {
         const current = isNavActive(path, href);
@@ -194,7 +200,7 @@ export function PhoneTabBar() {
             const current = isNavActive(path, href);
             // The one-line note is drawn by CSS, so the link's text and name stay exactly the destination's label.
             // The same groups as the sidebar (Session I): Wealth, then the money tools, then the rest, separated by space.
-            return <li key={href} data-group-start={NAV_GROUP_START.get(href)}><Link href={href} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
+            return <li key={href} data-group-start={moreStarts.get(href)}><Link href={href} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
               <span className="icon-medallion"><AppIcon name={icon} size={22} luminous /></span>
               <span className="phone-more-copy" data-note={MORE_NOTES[href]}><strong>{label}</strong></span>
               <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>

@@ -18,7 +18,9 @@ export const visibilityChoiceSchema = z.strictObject({v: z.enum(['shown', 'hidde
 export const pagesSchema = z.strictObject({
   version: z.literal(1),
   items: z.partialRecord(z.enum([...PAGE_IDS, ...BUTTON_IDS]), visibilityChoiceSchema),
-  start: z.strictObject({id: z.enum(PAGE_IDS), at: stamp}).optional(),
+  // The page ZIGoals opens on; `id: null` is "the first visible page" (the default), so returning to the default is a
+  // stamped choice too and two devices never disagree over a removed field.
+  start: z.strictObject({id: z.enum(PAGE_IDS).nullable(), at: stamp}).optional(),
 });
 export type Pages = z.infer<typeof pagesSchema>;
 export const emptyPages = (): Pages => ({version: 1, items: {}});

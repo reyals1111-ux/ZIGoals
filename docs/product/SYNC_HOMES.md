@@ -155,7 +155,7 @@ a module moves up only when one of these groups first gets content, and never go
 | Module | Version | Written in W? | Groups | Where in the code |
 |---|---|---|---|---|
 | Health | **v4** | yes, lazily | `sleep` (nights and naps; a running night is `end: null`), `meditation` (sessions, weekly goal, bells), `vitals` (one record per day and source), `quick` (water buttons, pinned items), `moods` (the wrap-up's mood, per day); `habitLinks` may hold `sleepMinutes`, `bedtimeBy`, `meditationMinutes` (v4 only) | `lib/health.ts` `healthV4Schema` |
-| Settings | **v3** | yes, lazily | `pages` (shown/hidden per page or button, start page), `links` (My links), `chess` (usernames, rating goals, the chess habit and its markers), `wrapUp` (on/off, time, the day's intention); Today widgets of kinds `sleep`, `meditation`, `chess`, `links`, `music` | `lib/dashboard-settings.ts` `dashboardSettingsV3Schema` |
+| Settings | **v3** | yes, lazily | `pages` (shown/hidden per page or button, each stamped; the start page, `null` for the first visible page), `links` (My links), `chess` (usernames, rating goals, the chess habit and its markers), `wrapUp` (on/off, time, the day's intention); Today widgets of kinds `sleep`, `meditation`, `chess`, `links`, `music` | `lib/dashboard-settings.ts` `dashboardSettingsV3Schema` |
 | Finance | **v5** | **no: read support only** | `accounts` (accounts and debts), a milestone's `targetDate` | `lib/positions.ts` `platformV5` |
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,

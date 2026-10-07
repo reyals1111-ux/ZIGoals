@@ -23,6 +23,7 @@ import { loadMetadata } from "../../../lib/storage";
 import { NebulaFlow } from "../../../components/nebula-flow";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
+import { PagesSettings } from "../../../components/settings/pages-settings";
 export default function Settings() {
   const s = useGoals();
   const [backup, setBackup] = useState("");
@@ -64,6 +65,7 @@ export default function Settings() {
         <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain Testnet.</h2><p>zig-test-2 · ZIG (18 decimals)</p><span className="badge">Testnet Alpha</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
         <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Financial execution is disabled in the public Alpha.</p></section>
       </div>
+      <PagesSettings/>
       <TimeZoneSettings/>
       <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health & targets →</Link></section></div>
       <PushRemindersPanel/>
