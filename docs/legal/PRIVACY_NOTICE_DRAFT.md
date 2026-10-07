@@ -86,6 +86,16 @@ ZIGi is a chat inside the app that uses an AI provider **you** choose and pay: a
 - **Reminder names.** If you turn on "Show what a reminder is for in notifications", a habit's name can show in a reminder notification. It is written on your device; our push server never receives it.
 - **ZIGoals hosted** (not available yet; only for invited accounts, and only after you agree). Your messages and the records ZIGi attaches pass through our server to the AI provider we name there, which writes the reply. We store none of it and log none of it; we keep counts of requests and tokens per day (with your account id, for one extra day) to hold the daily limit. Health goes only if you tick its own box. You can stop using it at any time.
 
+*Added 2026-10-07 (Session W, [ADR-015](../architecture/ADR-015-session-w.md)); draft for counsel, not yet in force:*
+- **Sleep, meditation and vitals.** Nights, naps, sleep quality and tags, meditation sessions (with your mood before and after, notes and, if you use a heart-rate monitor, a three-number heart-rate summary), resting heart rate and active energy from imports or devices, and the evening wrap-up's mood are health data. They stay in your Health journal on your device and travel only with Health's own sync consent, encrypted.
+- **Bringing your data from other apps.** An export you choose (Apple Health, Fitbit or Google Takeout, Samsung Health, Oura, Loop Habit Tracker) is read in your browser and never uploaded; you see what fits before anything is kept, and each import can be undone.
+- **Bluetooth devices.** A heart-rate monitor or scale you pair sends its readings to this page only. Nothing is kept unless you save it.
+- **Chess.** If you enter a chess.com or Lichess username, your browser asks that site for its public data, one request at a time, without cookies or referrer. Each site's own terms and privacy notice apply.
+- **Spotify** (once we register it). If you connect Spotify, you sign in at Spotify; your browser then talks to Spotify directly to show what plays and to send your controls. The sign-in is sealed on your device and removed when you disconnect, sign out or erase. Spotify's terms and privacy policy apply.
+- **Health services** (Oura, Withings, Polar, Strava; not available until we register with each). If you connect one, the sign-in is sealed on your device and your data is fetched through our health-link service, which forwards your request to that provider and keeps only counts of requests, not your data.
+- **Accounts and debts.** Names, kinds and balances you enter stay on your device in this release; nothing links to a bank.
+- **My links.** The names and addresses you add are kept with your settings (and synced with them, encrypted, if sync is on). ZIGoals never opens or fetches them; a link opens in a new tab without a referrer.
+
 ## 4. Hosting
 
 Our host, **Cloudflare**, receives ordinary web requests. That includes your IP address, browser details and the page addresses you visit; a goal page's address contains that goal's identifier, but not its name or amounts. Cloudflare keeps infrastructure logs and aggregate statistics under its own terms. Cloudflare may add network error-reporting headers, which are separate from ZIGoals. We add no tracker. [Lawyer: Cloudflare's role and terms.]

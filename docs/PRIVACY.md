@@ -80,3 +80,15 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
 - **Reminder names** in notifications are opt-in and composed on your device; the push server never sees them.
 - **ZIGoals hosted** is the one path through ZIGoals' servers. It is off by default and not deployed; it is only for invited accounts after a disclosure. It forwards your message and attached records to the named provider, stores and logs none of it, and keeps only daily counts.
 - **New device keys** (all in "Export everything", never synced): ZIGi's options, usage counts, notes, actions log, look and feel, reminders and knock counts, and Today's folded rows.
+
+**Session W, "Your whole life, one app"** ([ADR-015](architecture/ADR-015-session-w.md), 2026-10-07). What each new flow sends, and to whom:
+- **On this device, sending nothing:** sleep, meditation, focus sounds (made in the browser), the quick diary buttons, habit challenges and stacks, milestones and "On track?", accounts and debts (device key `zigoals:accounts:v1`, not synced in this release), the evening wrap-up, the importers (Apple Health, Fitbit/Google Takeout, Samsung Health, Oura, Loop Habit Tracker: files are read in the browser and never uploaded) and Bluetooth heart-rate monitors and scales (readings go from the device to this page only).
+- **Health category:** sleep, meditation (moods, notes, heart-rate summaries), vitals, the wrap-up's mood and imported Health records live in the Health journal: the same Health consent, the same ZIGi Health gate, and synced only with Health's own sync consent.
+- **Synced with your settings (encrypted, when account sync is on):** your pages and buttons, My links (names and addresses; nothing is fetched from them), chess usernames and rating goals, the wrap-up's switch and intentions.
+- **Sent by your browser to a third party, only when you use the feature:**
+  - **chess.com and Lichess:** the usernames you entered, each to its own site, one request at a time, for public data; puzzles and TV load only when you tap; no cookie or referrer is sent.
+  - **Spotify** (only once this site's owner registers it): the sign-in at Spotify, then playback commands and the current track, straight between your browser and Spotify. The sign-in is sealed on this device (encrypted, never exported or synced) and removed on Disconnect, sign-out and erase.
+  - **Oura, Withings, Polar and Strava** (built, off until the owner registers ZIGoals with each): through ZIGoals' stateless health-link Worker, which keeps only counts; the sign-in is sealed on this device.
+- **Market figures for Portfolio and Markets** (market cap, volume, supplies, 1h/7d changes) come from CoinGecko through ZIGoals' market service, like prices: public asset identities only.
+- **New device keys** (in "Export everything", never synced unless SYNC_HOMES says so): accounts and debts, milestone dates, import batches (for Undo), Session W's reminders, chess cache, celebrations shown, a running meditation, music choices and the page-visibility mirror. The Spotify and health-link sign-ins live in the sealed `zigoals-link-tokens-v1` store, which is never exported.
+
