@@ -10,18 +10,19 @@ export function describeQuickAdd(result: QuickAddKnown): string {
     case 'weight': return `Weight · ${n(result.shown.amount)} ${result.shown.unit}`;
     case 'steps': return `Walk · ${n(result.steps)} steps${result.minutes ? ` · ${n(result.minutes)} min` : ''}`;
     case 'activity': return `${result.name}${result.distanceKm !== undefined ? ` · ${n(result.distanceKm)} km` : ''} · ${n(result.minutes)} min`;
-    case 'sleep': { const hours = Math.floor(result.minutes / 60), minutes = result.minutes - hours * 60; return `Sleep · ${hours} h${minutes ? ` ${n(minutes)} min` : ''}`; }
+    case 'sleep': { const hours = Math.floor(result.minutes / 60), minutes = result.minutes - hours * 60; return `Sleep · ${hours} h${minutes ? ` ${n(minutes)} min` : ''}${result.wake ? ` · woke ${result.wake}` : ''}`; }
     case 'exercise': return `${result.name} · +${n(result.count)} reps`;
     case 'habit': return `${result.title} · +${n(result.value)} ${unitWord(result.unit, result.value)}`;
   }
 }
 /** A short name for a choice button when a line could mean two things. */
 export function describeChoice(result: QuickAddKnown): string {
-  return result.kind === 'habit' ? `${result.title} (habit)` : result.kind === 'exercise' ? `${result.name} (counter)` : describeQuickAdd(result).split(' · ')[0]! + ` (${result.kind === 'water' ? 'water journal' : result.kind === 'weight' ? 'weight' : 'activity'})`;
+  return result.kind === 'habit' ? `${result.title} (habit)` : result.kind === 'exercise' ? `${result.name} (counter)` : describeQuickAdd(result).split(' · ')[0]! + ` (${result.kind === 'water' ? 'water journal' : result.kind === 'weight' ? 'weight' : result.kind === 'sleep' ? 'a night in Sleep' : 'activity'})`;
 }
 /** After Save: what was written, in plain words. */
 export function savedLine(result: QuickAddKnown, habitTotal?: {value: number; target: number; unit: string}): string {
   if (result.kind === 'habit' && habitTotal) return `Saved: ${result.title} · ${n(habitTotal.value)} of ${n(habitTotal.target)} ${unitWord(habitTotal.unit, habitTotal.target)} ${result.day}`;
   if (result.kind === 'water') return `Saved: Water · ${n(result.millilitres)} mL · ${result.day}`;
+  if (result.kind === 'sleep') return `Saved to Sleep: ${describeQuickAdd(result).replace(/^Sleep · /, '')} · ${result.day}`;
   return `Saved: ${describeQuickAdd(result)} · ${result.day}`;
 }

@@ -97,6 +97,11 @@ test('Session W Part 8: a linked service\'s record and a meditation\'s heart-rat
   for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(SENTINEL.linkedWorkout); expect(text, path).not.toMatch(heart); }
   expect(everythingSent(true).some(s => s.text.includes(SENTINEL.linkedWorkout))).toBe(true);
 });
+test('Session W Part 9: quick logging\'s own group (a pinned food, the water buttons) is Health, and never leaves with the gate closed', () => {
+  const health = sources().health, size = new RegExp(`\\b${SENTINEL.quickWaterMl}\\b`);
+  expect(healthGroupIn(health, 'quick')).toMatchObject({waterSizesMl: [250, SENTINEL.quickWaterMl], pinned: [{sourceId: 'health_food-sentinel-1', sourceKind: 'food'}]});
+  for (const {path, text} of everythingSent(false)) expect(text, path).not.toMatch(size);
+});
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};
   const variants = {

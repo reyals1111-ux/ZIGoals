@@ -182,6 +182,9 @@ a module moves up only when one of these groups first gets content, and never go
   to one record. Never synced or exported: the sealed tokens (IndexedDB `zigoals-link-tokens-v1`), the live heart rate
   (memory only), the pending sign-in (`sessionStorage` `zigoals:link-pending:v1`) and the hourly sync note
   (`sessionStorage` `zigoals:link-synced:v1`).
+- Part 9: Health v4 `quick` (pinned items and the person's own water buttons; the first writer of `quick`). "Copy
+  yesterday's …", "Repeat yesterday" and the one-tap chips write ordinary diary entries; Quick add's "slept 7h30" writes
+  a Health v4 `sleep` night (it wrote an activity line before).
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in

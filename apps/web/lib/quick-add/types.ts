@@ -20,7 +20,7 @@ export type QuickAddKnown =
   | {kind: 'weight'; grams: number; shown: {amount: number; unit: 'kg' | 'lb'}; day: QuickAddDay}
   | {kind: 'steps'; steps: number; minutes?: number; day: QuickAddDay}
   | {kind: 'activity'; name: ActivityName; minutes: number; distanceKm?: number; day: QuickAddDay}
-  | {kind: 'sleep'; minutes: number; day: QuickAddDay}
+  | {kind: 'sleep'; minutes: number; day: QuickAddDay; wake?: string}
   | {kind: 'exercise'; counterId: string; name: string; count: number; day: QuickAddDay}
   | {kind: 'habit'; habitId: string; title: string; value: number; unit: string; day: QuickAddDay};
 export type QuickAddResult = QuickAddKnown | {kind: 'ambiguous'; choices: QuickAddKnown[]} | {kind: 'needs-more'; hint: string} | {kind: 'unknown'; examples: [string, string, string]};

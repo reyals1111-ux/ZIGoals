@@ -245,3 +245,12 @@
 @media (max-width: 900px) { .health-page .health-date .field input { font-size:16px; } }
 /* Session U Part 3: the remaining wait after a food lookup 429 (plain text, no animation). */
 .barcode-wait { margin-inline-start: 12px; font-size: .875rem; color: var(--health-muted); font-variant-numeric: tabular-nums; }
+/* Session W Part 9: quick logging on the diary (copy the day before, one-tap chips, the water buttons' sizes). */
+.health-repeat-day { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin: 0 0 16px; padding: 14px 16px; border: 1px dashed #a6c1fa40; border-radius: 16px; }
+.health-repeat-day p { margin: 0; }
+.health-meal-quick { display: grid; gap: 10px; margin-top: 12px; }
+.health-meal-quick > .secondary { justify-self: start; }
+.health-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.health-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.health-chip small { opacity: .8; }
+.health-water-buttons { margin-top: 8px; }

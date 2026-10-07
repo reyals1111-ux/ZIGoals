@@ -16,6 +16,8 @@ import {emptySleep, sleepSchema} from '../../sleep/schema';
 import {emptyMeditation, meditationSchema} from '../../meditation/schema';
 import {healthGroupIn, withHealthGroup} from '../../vault/w-homes';
 import {addLocalDays} from '../../local-date';
+import {quickIn, setPinned} from '../../health-quick/quick';
+import {healthQuickSchema} from '../../health-quick/schema';
 import {aiGates, type Gates} from '../gates';
 import {defaultAiSettings, type AiSettings, type PageArea} from '../settings';
 import type {ToolSources} from './env';
@@ -40,6 +42,8 @@ export const SENTINEL = {
   // Session W Part 8: a workout a linked service brought (the name is the sentinel; a real one carries the sport) and
   // the heart-rate summary a meditation session keeps from a Bluetooth monitor.
   linkedWorkout: 'SENTINEL_LINKED_WORKOUT_2c9e', heartRate: {avg: 187, min: 173, max: 199},
+  // Session W Part 9: a water button of the person's own size (Health v4 `quick`, with the sentinel food pinned).
+  quickWaterMl: 4093,
 } as const;
 /** Every sentinel as text, for "contains none of these" checks. */
 export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal), SENTINEL.linkedWorkout];
@@ -82,6 +86,9 @@ export function withSentinels(sources: ToolSources): ToolSources {
   const stepsDay = addLocalDays(day, -40), vitalsDay = addLocalDays(day, -2);
   health = previewImport(health, {...emptyItems(), activity: [{id: activityImportId('apple-health', `steps|${stepsDay}`), date: stepsDay, name: 'Steps · Apple Health', steps: SENTINEL.importSteps, minutes: 0}],
     vitals: [vitalDaySchema.parse({id: `health_vital-apple-health-${vitalsDay}`, date: vitalsDay, source: 'apple-health', activeKcal: SENTINEL.importKcal, updatedAt: stamp})]}, stamp).next;
+  // Quick logging's own group: the sentinel food pinned, and a water button of a sentinel size.
+  const pinned = setPinned(health, 'food', 'health_food-sentinel-1', true, stamp);
+  health = withHealthGroup(pinned, 'quick', healthQuickSchema.parse({...quickIn(pinned)!, waterSizesMl: [250, SENTINEL.quickWaterMl], updatedAt: stamp}), false);
   // A linked service's workout on the day, through the same apply step a sync uses.
   health = previewImport(health, {...emptyItems(), activity: [{id: activityImportId('strava-link', 'workout|9001'), date: day, name: SENTINEL.linkedWorkout, steps: 0, minutes: 33}]}, stamp).next;
   const walk = sources.habits.habits.find(h => h.title === 'Walk');

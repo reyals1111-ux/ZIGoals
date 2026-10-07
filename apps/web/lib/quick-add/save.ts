@@ -1,5 +1,10 @@
-import {newHealthId, saveActivity, saveWeight, type HealthData} from '../health';
-import {addWater, dailyData, healthDay} from '../health-daily';
+import {healthSchema, newHealthId, saveActivity, saveWeight, type HealthData} from '../health';
+import {addWater, dailyData, healthDay, healthZone} from '../health-daily';
+import {saveNight} from '../sleep/engine';
+import {emptySleep} from '../sleep/schema';
+import {napOrNight} from '../import/switch/common';
+import {healthGroupIn, withHealthGroup} from '../vault/w-homes';
+import {instantAt} from '../zone-time';
 import {changeCount} from '../health-counters';
 import {habitCalendarDay, logHabitValue, type HabitData} from '../habits';
 import {addLocalDays} from '../local-date';
@@ -9,7 +14,11 @@ import type {QuickAddKnown} from './types';
  * What a Quick-add result writes (A2): exactly one ordinary record through an existing mutator, on the journal's own
  * day (Health's zone for Health records, the Habits zone for a habit entry); "yesterday" is one day earlier in each.
  * Pure: the caller passes the stores and the instant and writes what comes back.
+ * Session W Part 9: "slept 7h30" is a night in Health → Sleep (it was an activity line, counted as movement): the person
+ * says when they woke up, the night ends then on the day it names and starts that long before; time to fall asleep and
+ * time awake stay unknown, so Sleep marks it estimated. A night that overlaps one already logged is refused.
  */
+export const QUICK_ADD_WAKE = 'Add when you woke up, so the night can be placed.';
 export type QuickAddStores = {health: HealthData; habits: HabitData};
 export type QuickAddWrite = {health?: HealthData; habits?: HabitData; habitTotal?: {value: number; target: number; unit: string}};
 export function quickAddDays(stores: QuickAddStores, now: Date): {health: string; habits: string} {
@@ -24,7 +33,12 @@ export function applyQuickAdd(result: QuickAddKnown, stores: QuickAddStores, now
     case 'weight': return {health: saveWeight(stores.health, {id, date: healthDate, grams: result.grams}, at)};
     case 'steps': return {health: saveActivity(stores.health, {id, date: healthDate, name: 'Walk', steps: result.steps, minutes: Math.round(result.minutes ?? 0)}, at)};
     case 'activity': return {health: saveActivity(stores.health, {id, date: healthDate, name: result.distanceKm !== undefined ? `${result.name} · ${result.distanceKm} km` : result.name, steps: 0, minutes: Math.round(result.minutes)}, at)};
-    case 'sleep': return {health: saveActivity(stores.health, {id, date: healthDate, name: 'Sleep', steps: 0, minutes: Math.round(result.minutes)}, at)};
+    case 'sleep': {
+      if (!result.wake || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(result.wake)) throw Error(QUICK_ADD_WAKE);
+      const zone = healthZone(dailyData(stores.health).preferences.timezone), end = instantAt(healthDate, result.wake, zone), start = end - Math.round(result.minutes) * 60_000;
+      const sleep = saveNight(healthGroupIn(stores.health, 'sleep') ?? emptySleep(), {kind: napOrNight(start, end, zone), start, end, timeZone: zone}, now);
+      return {health: healthSchema.parse(withHealthGroup(stores.health, 'sleep', sleep, false))};
+    }
     case 'exercise': return {health: changeCount(stores.health, result.counterId, healthDate, result.count)};
     case 'habit': {
       const habits = logHabitValue(stores.habits, result.habitId, habitDate, result.value, {mode: 'add'}, now);
