@@ -144,9 +144,11 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await expect(page.getByRole("heading",{name:sentinel})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
-  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
+  // Each simulation finishes (its review closes) before the next step, as goals.spec waits for its result: filling the
+  // amount behind a review that is still open would miss, and the finished action then resets the form.
+  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
-  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
+  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   await (await navLink(page,"Settings")).click();
   const downloaded=page.waitForEvent("download"); await page.getByRole("button",{name:"Export Goal Data"}).click(); await downloaded;
   const backup=await page.evaluate(()=>localStorage.getItem("zigoals:metadata:v1:local-simulation:local-demo-user")!);
@@ -158,7 +160,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   const safe=page.getByLabel("Safe diagnostic summary"); await expect(safe).toBeVisible(); expect(await safe.inputValue()).not.toContain(sentinel);
   await page.getByRole("button",{name:"Copy reviewed diagnostics"}).click();
   await page.goto("/app/goals/1"); await expect(page.getByRole("heading",{name:sentinel+"_EDIT"})).toBeVisible();
-  await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
+  await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   await page.getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   expect(await page.evaluate(()=>Reflect.get(window,"signerCalls"))).toBe(0);
   await page.waitForLoadState("networkidle");
