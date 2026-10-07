@@ -33,3 +33,14 @@ The advisory names braces ≥3.0.4 as patched, but **no such release exists**: t
 
 ## Checks (local, this branch)
 Full unit suite (406 files, 3,728 tests); `next build` (`PUBLIC_ALPHA_UNDEPLOYED`); `build:alpha` (OpenNext); `check:alpha-artifact`; `wrangler deploy --config wrangler.alpha.jsonc --dry-run`; `ALPHA_PACKAGED=1` packaged prices and headers tests (8/8); `check:deploy-configs`; the Miniflare suites in the unit run (miniflare with sharp 0.35.5). CI runs the same on the PR.
+
+## Session X Part 3 re-check (2026-10-07)
+Read-only, local; nothing changed (no override, no lockfile change, so no Tier 3 commit).
+- `pnpm audit` (full, 2026-10-07 21:49 UTC): **1 high, braces 3.0.3** (GHSA-vfj7-8cjw-p6xm), the same development-only
+  path (`eslint-config-next › @next/eslint-plugin-next › fast-glob › micromatch › braces`); 848 dependencies.
+- `pnpm audit --prod`: **No known vulnerabilities found**.
+- **braces: no fix released, 2026-10-07.** The npm registry still lists only 2.3.2 and 3.0.0–3.0.3 (`latest` 3.0.3);
+  micromatch's latest still declares `^3.0.3` and fast-glob's latest `^4.0.8`, so no in-range override can reach a fixed
+  copy. Option 1 above stands: add `"micromatch>braces": ^3.0.4` once 3.0.4 is published.
+- **The earlier fixes hold** (lockfile, 2026-10-07): `proxy-addr@2.0.8` only; `source-map-js@1.2.2` only; `sharp@0.35.5`
+  only (next's and miniflare's copies share it). Wrangler stays 4.147.0 and pnpm 11.19.0.
