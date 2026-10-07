@@ -82,7 +82,7 @@ Status: **In progress; implemented in Session X-Local on the owner's Mac (branch
 | S17 | 4 | Calm celebrations (D5): the list and a daily cap of 3 on top of the ≥8 s reaction rate limit. | Owner decision. |
 | S18 | 4 | The emotion hint is stripped at one choke point (`lib/ai/emotion-hint.ts`) before every stored or outbound path (D7). | One place to test. |
 | S19 | 6 | The 91 golden cases are immutable (D6). | Owner decision. |
-| S20 | 6 | Home-GPU support is research and a handoff recommendation only (D8). | CSP is X-Cloud's lane. |
+| S20 | 6 | Home-GPU support is research and a handoff recommendation only (D8): by `.local` name, Chrome 142+ (Local Network Access + `targetAddressSpace: 'local'`), `connect-src http://*.local:*`; raw private IPs, an HTTPS proxy on the box and a ZIGoals relay are not recommended. Sources and reasoning: `docs/handoff/X_LOCAL_TO_CLOUD.md`. | CSP is X-Cloud's lane. |
 
 ## Assertions changed (deliberate, listed)
 - `lib/brand-assets.test.ts` (Part 1): the `-2x` twin count 18 → 28 (eleven delivered states); `.anim.webp` clips exempt from the twin rule like `-large` frames; the name character class allows uppercase letters (`[A-Za-z0-9/_.-]`): the studio's codes are `F001`, `T001`, `E001`, and Workers Assets re-spells only characters that need percent-encoding (the test's reason), which letters never do.

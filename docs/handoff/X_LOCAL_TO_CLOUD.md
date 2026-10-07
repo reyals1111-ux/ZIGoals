@@ -6,3 +6,42 @@ Items in X-Cloud's lane that X-Local needs or found. X-Local never edits those a
 - Nothing yet. X-Local's lane: `apps/web/components/zigi/**`, `apps/web/lib/ai/**`, `apps/web/public/brand/figures/zigi/**` (+ the old `zigi-placeholder*` files), the manifest, the ZIGi docs/specs/golden set, Settings → ZIGi groups, Help's ZIGi topic, Meet ZIGi, `/api/zigi` client side.
 - **Lane note:** ZIGi's chat, launcher, proposals and Customize live in `apps/web/components/ai/**`; X-Local treats them as ZIGi's (they are the surfaces the brief's Parts 4–6 change) and keeps launcher-shell edits minimal (one lazy import of `components/zigi/alive.ts`, the figure box size and the optical offset in `ai-launcher.css`). If X-Cloud's performance work touches `components/ai/ai-launcher.tsx` or `ai-launcher.css`, whoever merges second resolves; nothing else in the shell is edited by X-Local.
 - Shared files X-Local will touch minimally: `docs/STATUS.md` (its own entry only), What's new (ZIGi section, one release-id bump, see below), `scripts/weight-budgets.json` (ZIGi entries only, with reasons). X-Local never records deploy #32 or the coordinator.
+
+## 2026-10-08 — A person's own Ollama on their home network (owner addition 12): research and a recommendation
+**Status:** research only; no CSP, middleware or `normalizeLocalBaseUrl` change in X-Local (ADR-017 S20). The CSP and
+middleware lines are X-Cloud's; the setup code (`apps/web/lib/ai/providers.ts` `normalizeLocalBaseUrl`, the adapters' fetch)
+is X-Local's and would follow once the policy side exists.
+
+**What the sources say (read 2026-10-08):**
+- Ollama FAQ (<https://docs.ollama.com/faq>): "Ollama binds 127.0.0.1 port 11434 by default. Change the bind address with
+  the `OLLAMA_HOST` environment variable" (`OLLAMA_HOST="0.0.0.0:11434"` listens on the LAN); "Ollama allows cross-origin
+  requests from `127.0.0.1` and `0.0.0.0` by default. Additional origins can be configured with `OLLAMA_ORIGINS`"; it runs
+  plain HTTP and "can be exposed using a proxy server such as Nginx" for TLS. No TLS of its own.
+- MDN, Mixed content (<https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content>): `fetch()` from an HTTPS page to
+  an `http://` address is *blockable* mixed content and is blocked; "content accessed from loopback addresses such as
+  `http://127.0.0.1/` or `http://localhost/`" counts as a secure origin (why today's local setup works from the Alpha).
+- Chrome, Local Network Access (<https://developer.chrome.com/blog/local-network-access>): the permission prompt "is launching
+  in Chrome 142"; it covers RFC1918 ranges, link-local, loopback and `.local` names; "the ability to request this permission
+  is restricted to secure contexts"; mixed content is exempted when Chrome can tell the destination is local: a private IP
+  literal, a `.local` name, or the fetch option `targetAddressSpace: "local"` ("flags that the request will go to the local
+  network, and is thus exempt from mixed content"). Firefox and Safari have no equivalent (no signal; mixed content stays blocked).
+
+**What it means for ZIGoals (the Alpha at `https://alpha.zigoals.app`, Trusted Types and CSP enforced):**
+1. From the Alpha, a fetch to `http://192.168.1.20:11434` is blocked by mixed content in every browser, except Chrome 142+
+   when the request carries `targetAddressSpace: 'local'` and the person allows the one-time Local Network Access prompt.
+2. CSP `connect-src` cannot name an IP range; it can name a scheme (`http:`, far too wide) or a host pattern whose wildcard
+   is the leftmost DNS label. `http://*.local:*` is expressible and matches mDNS names such as `reyals-pc.local`.
+3. Ollama on the PC needs `OLLAMA_HOST=0.0.0.0:11434` and `OLLAMA_ORIGINS=https://alpha.zigoals.app` (the FAQ's own
+   mechanism); the setup's error steps already tell people to set `OLLAMA_ORIGINS` for the hosted page.
+
+**Recommendation (an owner decision; for X-Cloud's lane if accepted):**
+- Support a home GPU box **by `.local` name only** (`http://<name>.local:<port>`), Chrome 142+ only, with a plain explanation
+  in the setup ("Safari and Firefox cannot reach a computer on your network from a website; use the same computer, or Chrome").
+- X-Cloud: `lib/egress-policy.json` `aiProviderOrigins`/`connect-src` gains `http://*.local:*` (app documents only), and the
+  Permissions-Policy line for `local-network-access` is checked (the feature's policy name is not stated on the Chrome page;
+  verify in the spec before adding).
+- X-Local (later): `normalizeLocalBaseUrl` accepts `*.local` hosts; the Ollama and OpenAI-compatible adapters pass
+  `targetAddressSpace: 'local'` on those fetches (a no-op elsewhere); the setup chooser gains the option with its caveats;
+  a Playwright test with a mocked `.local` host.
+- Not recommended: raw private IPs (no CSP allowlist short of `http:`), an HTTPS proxy on the PC (self-signed certificates on
+  phones; a support burden), or relaying through ZIGoals' servers (breaks "private by design").
