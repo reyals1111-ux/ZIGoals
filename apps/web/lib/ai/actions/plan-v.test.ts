@@ -7,6 +7,7 @@ import {countOn} from '../../health-counters';
 import {platformSchema, type Platform} from '../../positions';
 import {homeRecordsIn} from '../../sync-homes-store';
 import {emptyReminders} from '../../reminders/schema';
+import {presetSettings} from '../../dashboard-settings';
 import {reviewFor} from '../../weekly-review/store';
 import type {Handle} from '../context/types';
 import {applyBatch, undoBatch} from './batch';
@@ -23,7 +24,7 @@ const stores: Stores = {
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: homeRecordsIn(records).fasting,
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1}, settings: {...presetSettings('balanced'), onboarded: true},
 };
 const habitNamed = (title: string) => stores.habits.habits.find(h => h.title === title)!;
 const handles: Handle[] = [

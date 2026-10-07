@@ -25,7 +25,11 @@ const planOf = (item: ProposalItem): Plan | null => item.result.ok ? item.result
 const proud = (plan: Plan, before: Stores['habits'], after: Stores['habits']) => { try { return streakMilestone(plan, before, after) !== null; } catch { return false; } };
 /** Session V Part 7: the habits this reply creates get their ids now, so a reminder card of the same reply can name them. */
 const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a => a.kind === 'create-habit' && a.ref ? [[a.ref, {id: crypto.randomUUID(), title: a.title}] as const] : []));
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean}) {
+/**
+ * `replaced` (Session X-Local Part 5a): a later reply carried "revise": true, so whatever is still pending here is marked
+ * "Replaced" and can no longer be added; what was already added, undone or dismissed keeps its state.
+ */
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean}) {
   const [refs] = useState(() => replyRefs(proposals));
   const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => ({id: `p${i + 1}`, action, result: runner.plan(action, handles, refs), status: 'proposed', error: null, after: null})));
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
@@ -36,6 +40,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     return () => window.clearInterval(timer);
   }, [live]);
   const patch = useCallback((id: string, change: Partial<ProposalItem>) => setItems(current => current.map(item => item.id === id ? {...item, ...change} : item)), []);
+  useEffect(() => { if (replaced) setItems(current => current.some(item => item.status === 'proposed') ? current.map(item => item.status === 'proposed' ? {...item, status: 'replaced'} : item) : current); }, [replaced]);
   const announce = useCallback((text: string) => { setNote(text); onChange?.(text); }, [onChange]);
   const add = useCallback(async (item: ProposalItem) => {
     const plan = planOf(item); if (!plan) return;

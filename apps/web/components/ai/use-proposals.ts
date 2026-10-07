@@ -18,6 +18,8 @@ import {useDeviceRecord} from './use-device-record';
 import {AI_MEMORY, forgetAction, recordAction, ZIGI_REMINDERS} from '../../lib/ai/store/records';
 import {AI_ACTIONS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {usePrivateStore} from '../use-private-store';
+import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 
 /**
  * Runs confirmed proposals through the same save paths as the forms (ADR-012, Part 5): usePrivateStore.update for
@@ -28,6 +30,8 @@ import {getAppStorage} from '../../lib/showcase-storage';
  * Session V Part 7: reminders, ZIGi's own reminder kinds and the weekly review are written through their own hooks too,
  * and every confirmed card is noted in `zigoals:ai-actions:v1` for Activity's "Actions by ZIGi" (its Undo removes the note).
  * Part 8: a confirmed "Remember this?" card writes the person's notes (`zigoals:ai-memory:v1`) through the same record hook.
+ * Session X-Local Part 5a: Today's settings (`zigoals:settings:v1`, a link or a widget) are written through the same
+ * private store Today and Settings use.
  */
 export const UNDO_REFUSED = 'Something changed since, so this undo was not applied. Your records are as they are now.';
 export class UndoRefused extends Error { constructor() { super(UNDO_REFUSED); this.name = 'UndoRefused'; } }
@@ -49,8 +53,9 @@ export type ProposalRunner = {
 export function useProposals(): ProposalRunner {
   const health = useHealth(), habits = useHabits(), fasting = useFasting(), platform = usePlatform(), router = useRouter();
   const reminders = useReminders(), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), weekly = useWeeklyReview(), memory = useDeviceRecord(AI_MEMORY);
-  const stores = useMemo<Stores>(() => ({health: health.data, habits: habits.data, fasting: fasting.data, platform: platform.data, reminders: reminders.data, zigiReminders: zigiReminders.data, weekly: weekly.data, memory: memory.data}), [health.data, habits.data, fasting.data, platform.data, reminders.data, zigiReminders.data, weekly.data, memory.data]);
-  const ready = health.loaded && habits.loaded && fasting.loaded && platform.loaded && reminders.loaded && zigiReminders.loaded && weekly.loaded && memory.loaded && !health.error && !habits.error && !platform.error && !fasting.unreadable;
+  const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
+  const stores = useMemo<Stores>(() => ({health: health.data, habits: habits.data, fasting: fasting.data, platform: platform.data, reminders: reminders.data, zigiReminders: zigiReminders.data, weekly: weekly.data, memory: memory.data, settings: settings.data}), [health.data, habits.data, fasting.data, platform.data, reminders.data, zigiReminders.data, weekly.data, memory.data, settings.data]);
+  const ready = health.loaded && habits.loaded && fasting.loaded && platform.loaded && reminders.loaded && zigiReminders.loaded && weekly.loaded && memory.loaded && settings.loaded && !health.error && !habits.error && !platform.error && !fasting.unreadable && !settings.error;
   const days = useCallback((now: Date) => {
     let day = now.toISOString().slice(0, 10), habitDay = day;
     try { day = healthDay(dailyData(health.data).preferences.timezone, now); } catch { /* an unknown zone falls back to the UTC date */ }
@@ -84,9 +89,10 @@ export function useProposals(): ProposalRunner {
       case 'zigiReminders': return through('zigiReminders', zigiReminders.update, change);
       case 'weekly': return through('weekly', weekly.update, change);
       case 'memory': return through('memory', memory.update, change);
+      case 'settings': return through('settings', settings.update, change);
       case 'form': return Promise.resolve(stores);
     }
-  }, [through, health.update, habits.update, platform.update, fasting.update, reminders, zigiReminders.update, weekly.update, memory.update, days, stores]);
+  }, [through, health.update, habits.update, platform.update, fasting.update, reminders, zigiReminders.update, weekly.update, memory.update, settings.update, days, stores]);
   const apply = useCallback(async (p: Plan) => { const after = await run(p, base => ({...base, ...p.write(base)})); note(p, true); return after; }, [note, run]);
   const applyAll = useCallback(async (plans: readonly Plan[]) => {
     const after: Stores[] = [];

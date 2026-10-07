@@ -17,6 +17,7 @@ and [ZIGI_REAL_MODEL_TEST.md](../verification/x-local/ZIGI_REAL_MODEL_TEST.md). 
 | The AI's hint | Your AI may suggest one mood per reply from a fixed list; the app checks it and never lets it celebrate or knock | the chat |
 | Studio-4 ready | Reactions R001–R013, idle variants, the in-place greeting and the gaze set have their slots; one command swaps the files in | `scripts/zigi/import-studio.mjs` |
 | Meet ZIGi | Every state with the real art and what it means in plain words | Settings → ZIGi · your AI → Meet ZIGi |
+| Create anything | Six more card kinds (a stack, a habit change, a goal change, the mood, a link, a widget), the four goal types, batch plans and corrections | the chat, every page |
 
 ## The state and emotion table
 
@@ -62,6 +63,25 @@ every pick; never the same variation twice in a row; an accent at most once per 
 visible, ZIGi is idle, motion is allowed and nobody has typed for 3 s. **Calm** (the default) plays the idle clip only.
 **Off**, reduced motion and Motion Off show a still. Sleepy comes only from the 90 s inactivity rule. The Studio-4 idle
 variants (X010, X011) join the pool when their files land.
+
+## What ZIGi can create (Part 5a)
+
+Every card is a proposal: nothing is written until you tap **Add**, every card has **Edit** for its plain fields, and
+whatever was added together has one **Undo** for ten seconds that puts the records back exactly as they were. The
+kinds, by page:
+
+| Page | Kinds (the words you can use) | What is written |
+|---|---|---|
+| Today | a mood for the evening wrap-up (1 to 5, a note); a link for *My links* (https only); a widget (a habit's streak, a goal's progress, water, steps…); a weekly intention; "remember this" | the wrap-up's answer, your links, Today's widgets, the review's intention, *What ZIGi knows about me* |
+| Habits | a check-in or a partial one, a skip, a new habit, a stack ("put stretching after my coffee"), a change to a habit (title, target, time of day, type, measurement, schedule, description, category), a challenge, a reminder | the habit journal, stacks, reminders |
+| Goals | a goal of any of the four types (value, quantity, reward, project with milestones), a note, a milestone, a change to a goal (name, target, date, notes, category), a weekly check-in reminder | your goals; never their funding, plan, milestones' ticks or lock |
+| Health | water, weight, steps, a food (your own or an AI estimate), a measurement, a new food or recipe, a planned meal, groceries, a counter, a night or nap, mindful minutes, a fast | the diary, foods and recipes, planning, sleep, meditation, the fasting timer |
+| Wealth | pre-fill the add-asset form or an account's balance form | nothing: the form opens filled in and you save it yourself |
+
+- **Several at once.** "Two eggs, toast and a coffee, 30 minutes of meditation and two glasses of water" is five cards with **Add all** and one Undo. "Plan my week" can be a goal draft, its habits, their reminders and a rest-day skip, each its own card.
+- **Corrections.** Say "make it 20 minutes, not 30": the corrected cards arrive and the earlier ones are marked *Replaced by the next reply*. Nothing is written by a correction.
+- **Edits stay within the form.** A card can change only what the page's own form offers; a goal's money, a habit's history and anything locked stay as they are. Money never moves.
+- **Accepted means correct.** Every kind is checked in the browser suite: the stored record field by field (units, dates, times in your zone), then Undo, in UTC, Brussels and Tokyo time (`tests/zigi-accept-correct.spec.ts`).
 
 ## Auto-accept (Part 5b)
 _(filled in with Part 5)_

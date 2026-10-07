@@ -31,8 +31,11 @@ export function forgetAction(storage: ReadWrite, activityId: string): AiActions 
 }
 /** Where a ZIGi action's records live, for Activity's category, icon and link. */
 export function actionPlace(kind: string): {category: 'HEALTH' | 'HABIT' | 'GOAL' | 'ZIGI'; href: string} {
-  if (/^(check-in|skip|create-habit|start-challenge)$/.test(kind)) return {category: 'HABIT', href: '/app/habits'};
-  if (/^(create-goal|add-goal-note|add-milestone)$/.test(kind)) return {category: 'GOAL', href: '/app/goals'};
+  if (/^(check-in|skip|create-habit|start-challenge|stack-habit|edit-habit)$/.test(kind)) return {category: 'HABIT', href: '/app/habits'};
+  if (/^(create-goal|add-goal-note|add-milestone|edit-goal)$/.test(kind)) return {category: 'GOAL', href: '/app/goals'};
+  // Session X-Local Part 5a: the wrap-up's mood is Health's and is answered on Today; a link or a widget is Today's.
+  if (kind === 'log-mood') return {category: 'HEALTH', href: '/app'};
+  if (/^(add-link|add-widget)$/.test(kind)) return {category: 'ZIGI', href: '/app'};
   // Session W Part 21: a night and mindful minutes are Health's (below); the views open on Sleep and Meditation.
   if (kind === 'log-sleep') return {category: 'HEALTH', href: '/app/health?view=sleep'};
   if (kind === 'log-meditation') return {category: 'HEALTH', href: '/app/health?view=meditation'};

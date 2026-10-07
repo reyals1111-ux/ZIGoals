@@ -12,12 +12,15 @@ import {COMPOSITE_KINDS, KIND_ALIASES, MAX_PROPOSALS, actionSchema, compositeSch
  * and its supporting habits; a habit and its reminder), each validated like any other proposal.
  */
 export type Rejected = {raw: string; reason: string};
-export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]};
+/** `revise` (Session X-Local Part 5a): a block carried "revise": true, so the previous reply's still-pending cards are replaced by this reply's. */
+export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean};
 const FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]*\n([\s\S]*?)\n[^\S\n]*\1[^\S\n]*(?=\n|$)/gi;
 const firstIssue = (error: {issues: {path: PropertyKey[]; message: string}[]}) => { const issue = error.issues[0]; return issue ? `${issue.path.length ? `${issue.path.map(String).join('.')}: ` : ''}${issue.message}` : 'invalid'; };
-function normalise(value: unknown): unknown {
+function normalise(value: unknown, flags: {revise: boolean}): unknown {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
   const record = {...(value as Record<string, unknown>)};
+  // Session X-Local Part 5a: "revise": true marks a correction of the previous reply; it is never a field of a card.
+  if ('revise' in record) { if (record.revise === true) flags.revise = true; delete record.revise; }
   if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase(); record.kind = KIND_ALIASES[kind] ?? kind; }
   if (record.kind === 'log-measurement' && record.kind_of === undefined && typeof record.measurement === 'string') { record.kind_of = record.measurement; delete record.measurement; }
   if (record.kind === 'check-in' && typeof record.partial === 'number') { record.value = record.partial; delete record.partial; }
@@ -29,7 +32,7 @@ const OPEN_FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]
 /** The calm note the cards area shows for anything that could not become an entry. */
 export const NOT_AN_ENTRY = 'I couldn\u2019t turn that into an entry.';
 export function parseReply(reply: string): ParsedReply {
-  const proposals: Action[] = [], rejected: Rejected[] = [], seen = new Set<string>();
+  const proposals: Action[] = [], rejected: Rejected[] = [], seen = new Set<string>(), flags = {revise: false};
   // New habits a reply names itself (new1, new2) keep their numbers; an expanded "build-habit" takes the next free one.
   let source = reply, refs = Math.max(0, ...[...reply.matchAll(/\bnew(\d{1,2})\b/gi)].map(m => Number(m[1])));
   const nextRef = () => `new${++refs}`;
@@ -50,7 +53,7 @@ export function parseReply(reply: string): ParsedReply {
     const items = Array.isArray(unwrapped) ? unwrapped : [unwrapped];
     for (const item of items) {
       if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
-      const normalised = normalise(item) as Record<string, unknown>;
+      const normalised = normalise(item, flags) as Record<string, unknown>;
       let parts: unknown[] = [normalised];
       if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
         const composite = compositeSchema.safeParse(normalised);
@@ -68,7 +71,7 @@ export function parseReply(reply: string): ParsedReply {
     }
     void block; return '';
   }).replace(/\n{3,}/g, '\n\n').trim();
-  return {text, proposals, rejected};
+  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {})};
 }
 /** Whether a reply still has an open proposal fence (streaming): nothing is parsed before it closes. */
 export function hasOpenFence(partial: string): boolean { const opens = partial.match(new RegExp(`(\`\`\`+|~~~+)[^\\S\\n]*(?:json[^\\S\\n]+)?${ACTION_FENCE.replace('-', '[-_ ]?')}`, 'gi'))?.length ?? 0; return opens > (partial.match(FENCE)?.length ?? 0); }

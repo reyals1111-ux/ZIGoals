@@ -1,6 +1,8 @@
 import {z} from 'zod';
 import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
 import {MAX_NOTE_CHARS, MEMORY_CATEGORIES} from '../store/records';
+import {LINK_ICONS} from '../../links/schema';
+import {WIDGET_KINDS_V1, WIDGET_KINDS_V3_ONLY} from '../../dashboard-settings';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -30,14 +32,30 @@ const nutrients = z.strictObject({kcal: z.number().finite().min(0).max(100_000).
 /** How far ahead a meal may be planned, in days. */
 export const PLAN_AHEAD_DAYS = 62;
 export const REMINDER_FOR = ['habit', 'water', 'goal', 'wealth', 'pack'] as const;
+const habitType = z.enum(['build', 'quit', 'limit']), habitMeasurement = z.union([z.enum(['done', 'count', 'minutes', 'hours']), z.strictObject({unit: text(24)})]);
+const habitSchedule = z.union([z.literal('daily'), z.strictObject({weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7)}), z.strictObject({timesPerWeek: z.number().int().min(1).max(7)}), z.strictObject({everyDays: z.number().int().min(2).max(365)})]);
+const habitTimeOfDay = z.enum(['anytime', 'morning', 'afternoon', 'evening']), habitTarget = z.number().finite().min(0).max(1_000_000_000);
 const habitFields = {
-  title: text(100), type: z.enum(['build', 'quit', 'limit']).default('build'),
-  measurement: z.union([z.enum(['done', 'count', 'minutes', 'hours']), z.strictObject({unit: text(24)})]).default('done'),
-  target: z.number().finite().min(0).max(1_000_000_000).optional(),
-  schedule: z.union([z.literal('daily'), z.strictObject({weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7)}), z.strictObject({timesPerWeek: z.number().int().min(1).max(7)}), z.strictObject({everyDays: z.number().int().min(2).max(365)})]).default('daily'),
-  timeOfDay: z.enum(['anytime', 'morning', 'afternoon', 'evening']).default('anytime'), description: z.string().trim().max(500).default(''), category: text(50).optional(),
+  title: text(100), type: habitType.default('build'),
+  measurement: habitMeasurement.default('done'),
+  target: habitTarget.optional(),
+  schedule: habitSchedule.default('daily'),
+  timeOfDay: habitTimeOfDay.default('anytime'), description: z.string().trim().max(500).default(''), category: text(50).optional(),
 };
-const goalFields = {name: text(100), type: z.enum(['VALUE', 'QUANTITY']).default('VALUE'), target: positive.max(1e15), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{2,10}$/), targetDate: isoDay.optional(), category: z.enum(GOAL_CATEGORIES).optional(), notes: z.string().trim().max(2000).default('')};
+/**
+ * Session X-Local Part 5a: the four goal types Goals itself offers. A project counts its milestones (at least one, no
+ * amount); the other three need a target and a currency or asset. Checked by `goalRules` on both the card and the composite.
+ */
+export const GOAL_TYPES = ['VALUE', 'QUANTITY', 'REWARD', 'PROJECT'] as const;
+const currency = z.string().trim().toUpperCase().regex(/^[A-Z]{2,10}$/);
+const goalFields = {name: text(100), type: z.enum(GOAL_TYPES).default('VALUE'), target: positive.max(1e15).optional(), currency: currency.optional(), targetDate: isoDay.optional(), category: z.enum(GOAL_CATEGORIES).optional(), notes: z.string().trim().max(2000).default('')};
+const goalRules = (a: {type: (typeof GOAL_TYPES)[number]; target?: number; currency?: string; milestones?: string[]}, ctx: z.core.$RefinementCtx) => {
+  if (a.type === 'PROJECT') { if (!a.milestones?.length) ctx.addIssue({code: 'custom', path: ['milestones'], message: 'A project needs at least one milestone.'}); return; }
+  if (a.target === undefined) ctx.addIssue({code: 'custom', path: ['target'], message: 'Give the goal a target amount.'});
+  if (a.currency === undefined) ctx.addIssue({code: 'custom', path: ['currency'], message: 'Give the goal a currency or asset (EUR, USD, ZIG).'});
+};
+/** Today's widget kinds (lib/dashboard-settings.ts): the catalogue is the whitelist. */
+export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as const;
 export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-water'), millilitres: positive.max(10_000).optional(), glasses: positive.max(40).optional(), day: daySchema}).refine(a => a.millilitres !== undefined || a.glasses !== undefined, 'Say how much water: millilitres or glasses.'),
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
@@ -53,7 +71,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('create-habit'), ...habitFields, ref: refSchema.optional()}),
   z.strictObject({kind: z.literal('start-fast'), targetHours: z.number().int().min(1).max(MAX_CUSTOM_HOURS)}),
   z.strictObject({kind: z.literal('stop-fast')}),
-  z.strictObject({kind: z.literal('create-goal'), ...goalFields, milestones: z.array(text(100)).max(10).optional()}),
+  z.strictObject({kind: z.literal('create-goal'), ...goalFields, milestones: z.array(text(100)).max(10).optional()}).superRefine(goalRules),
   z.strictObject({kind: z.literal('add-goal-note'), goal: handleSchema, note: text(2000)}),
   z.strictObject({kind: z.literal('prefill-holding'), category: z.enum(HOLDING_CATEGORIES), name: text(100), quantity: z.union([positive.max(1e15), z.string().trim().regex(/^\d+(\.\d+)?$/)]), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default('USD'), value: positive.max(1e15).optional(), symbol: z.string().trim().max(30).optional(), notes: z.string().trim().max(2000).optional()}),
   // ---- Session V Part 7 ----
@@ -84,19 +102,29 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('update-account-balance'), account: text(80), balance: z.union([z.number().finite().min(0).max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]),
     currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('start-challenge'), habit: handleSchema, days: z.number().int().min(7).max(365).default(30)}),
+  // ---- Session X-Local Part 5a: stacks, edits of plain fields, the wrap-up's mood, a link and a widget for Today ----
+  z.strictObject({kind: z.literal('stack-habit'), habit: z.union([handleOf('h', 'h2'), refSchema]), after: z.union([handleOf('h', 'h1'), refSchema])}).refine(a => a.habit !== a.after, 'A habit cannot follow itself.'),
+  z.strictObject({kind: z.literal('edit-habit'), habit: handleOf('h', 'h2'), title: text(100).optional(), type: habitType.optional(), measurement: habitMeasurement.optional(), target: habitTarget.optional(), schedule: habitSchedule.optional(),
+    timeOfDay: habitTimeOfDay.optional(), description: z.string().trim().max(500).optional(), category: text(50).optional()}).refine(a => Object.keys(a).some(k => k !== 'kind' && k !== 'habit'), 'Say what to change about the habit.'),
+  z.strictObject({kind: z.literal('edit-goal'), goal: handleOf('g', 'g1'), name: text(100).optional(), target: positive.max(1e15).optional(), targetDate: isoDay.nullable().optional(), notes: z.string().trim().max(2000).optional(), category: z.enum(GOAL_CATEGORIES).optional()})
+    .refine(a => Object.keys(a).some(k => k !== 'kind' && k !== 'goal'), 'Say what to change about the goal.'),
+  z.strictObject({kind: z.literal('log-mood'), mood: z.number().int().min(1).max(5), note: z.string().trim().max(280).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('add-link'), label: text(40), url: z.string().trim().min(1).max(500).regex(/^https:\/\//i, 'Only a full https:// address can be added.'), icon: z.enum(LINK_ICONS).optional()}),
+  z.strictObject({kind: z.literal('add-widget'), widget: z.enum(WIDGET_KINDS), metric: z.string().trim().min(1).max(40).optional(), habit: handleOf('h', 'h2').optional(), goal: handleOf('g', 'g1').optional(), size: z.enum(['compact', 'wide']).default('compact'), title: z.string().trim().max(80).optional()}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
 export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food', 'log-measurement', 'check-in', 'skip', 'create-habit', 'start-fast', 'stop-fast', 'create-goal', 'add-goal-note', 'prefill-holding',
   'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'counter', 'create-reminder', 'review-intention', 'remember',
-  'log-sleep', 'log-meditation', 'add-milestone', 'update-account-balance', 'start-challenge'] as const satisfies readonly ActionKind[];
+  'log-sleep', 'log-meditation', 'add-milestone', 'update-account-balance', 'start-challenge',
+  'stack-habit', 'edit-habit', 'edit-goal', 'log-mood', 'add-link', 'add-widget'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
  * parser expands them before validation; they never reach the planner themselves.
  */
 export const compositeSchema = z.discriminatedUnion('kind', [
-  z.strictObject({kind: z.literal('plan-goal'), ...goalFields, milestones: z.array(text(100)).max(10).default([]), habits: z.array(z.strictObject(habitFields)).max(3).default([])}),
+  z.strictObject({kind: z.literal('plan-goal'), ...goalFields, milestones: z.array(text(100)).max(10).default([]), habits: z.array(z.strictObject(habitFields)).max(3).default([])}).superRefine(goalRules),
   z.strictObject({kind: z.literal('build-habit'), ...habitFields, reminder: clock.optional()}),
 ]);
 export type Composite = z.infer<typeof compositeSchema>;
@@ -122,4 +150,11 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   // Session W Part 21
   sleep: 'log-sleep', 'log_sleep': 'log-sleep', night: 'log-sleep', meditation: 'log-meditation', 'log_meditation': 'log-meditation', 'mindful-minutes': 'log-meditation', 'mindful_minutes': 'log-meditation',
   milestone: 'add-milestone', 'add_milestone': 'add-milestone', 'account-balance': 'update-account-balance', 'update_account_balance': 'update-account-balance', balance: 'update-account-balance',
-  challenge: 'start-challenge', 'start_challenge': 'start-challenge'};
+  challenge: 'start-challenge', 'start_challenge': 'start-challenge',
+  // Session X-Local Part 5a
+  stack: 'stack-habit', 'stack_habit': 'stack-habit', 'add-to-stack': 'stack-habit', 'add_to_stack': 'stack-habit', 'create-stack': 'stack-habit', 'create_stack': 'stack-habit',
+  'edit_habit': 'edit-habit', 'update-habit': 'edit-habit', 'update_habit': 'edit-habit', 'change-habit': 'edit-habit', 'rename-habit': 'edit-habit',
+  'edit_goal': 'edit-goal', 'update-goal': 'edit-goal', 'update_goal': 'edit-goal', 'change-goal': 'edit-goal', 'rename-goal': 'edit-goal',
+  mood: 'log-mood', 'log_mood': 'log-mood', 'add-mood': 'log-mood',
+  link: 'add-link', 'add_link': 'add-link', 'create-link': 'add-link', 'my-link': 'add-link',
+  widget: 'add-widget', 'add_widget': 'add-widget', 'pin-widget': 'add-widget', 'pin-to-today': 'add-widget', 'create-widget': 'add-widget'};

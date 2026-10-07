@@ -5,6 +5,7 @@ import {healthSchema, type HealthData} from '../health';
 import {platformSchema, type Platform} from '../positions';
 import {homeRecordsIn} from '../sync-homes-store';
 import {emptyReminders} from '../reminders/schema';
+import {presetSettings} from '../dashboard-settings';
 import {applyEdits, editableFields} from './actions/edit';
 import {parseReply} from './actions/parse';
 import {applyPlan, planAction, type Env, type Plan, type Stores} from './actions/plan';
@@ -139,7 +140,7 @@ const stores: Stores = {
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: homeRecordsIn(records).fasting,
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1}, settings: {...presetSettings('balanced'), onboarded: true},
 };
 let counter = 0;
 const env = (overrides: Partial<Env> = {}): Env => ({stores, handles: [], now, habitDay: DAY, healthDay: DAY, timeZone: 'UTC', newNoteId: () => `note_test-${++counter}`, ...overrides});

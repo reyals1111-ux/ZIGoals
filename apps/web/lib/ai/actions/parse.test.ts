@@ -51,3 +51,9 @@ test('hasOpenFence tells a streaming reply with an unfinished block from a finis
   expect(hasOpenFence(`Sure.\n${block('{"kind":"stop-fast"}')}`)).toBe(false);
   expect(hasOpenFence('No blocks here')).toBe(false);
 });
+test('Session X-Local Part 5a: "revise": true is read off a block and flagged, never kept as a field', () => {
+  const corrected = parseReply('Twenty minutes, then.\n\n```zigoals-action\n{"kind":"log-water","glasses":1,"revise":true}\n```');
+  expect(corrected).toEqual({text: 'Twenty minutes, then.', proposals: [{kind: 'log-water', glasses: 1, day: 'today'}], rejected: [], revise: true});
+  expect(parseReply('```zigoals-action\n{"kind":"log-water","glasses":1,"revise":false}\n```').revise).toBeUndefined();
+  expect(parseReply('```zigoals-action\n{"kind":"log-water","glasses":1}\n```').revise).toBeUndefined();
+});
