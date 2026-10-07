@@ -31,8 +31,11 @@ export function forgetAction(storage: ReadWrite, activityId: string): AiActions 
 }
 /** Where a ZIGi action's records live, for Activity's category, icon and link. */
 export function actionPlace(kind: string): {category: 'HEALTH' | 'HABIT' | 'GOAL' | 'ZIGI'; href: string} {
-  if (/^(check-in|skip|create-habit)$/.test(kind)) return {category: 'HABIT', href: '/app/habits'};
-  if (/^(create-goal|add-goal-note)$/.test(kind)) return {category: 'GOAL', href: '/app/goals'};
+  if (/^(check-in|skip|create-habit|start-challenge)$/.test(kind)) return {category: 'HABIT', href: '/app/habits'};
+  if (/^(create-goal|add-goal-note|add-milestone)$/.test(kind)) return {category: 'GOAL', href: '/app/goals'};
+  // Session W Part 21: a night and mindful minutes are Health's (below); the views open on Sleep and Meditation.
+  if (kind === 'log-sleep') return {category: 'HEALTH', href: '/app/health?view=sleep'};
+  if (kind === 'log-meditation') return {category: 'HEALTH', href: '/app/health?view=meditation'};
   if (/^(create-reminder|review-intention)$/.test(kind)) return {category: 'ZIGI', href: '/app'};
   if (kind === 'remember') return {category: 'ZIGI', href: '/app/settings#zigi-notes'};
   return {category: 'HEALTH', href: '/app/health'};

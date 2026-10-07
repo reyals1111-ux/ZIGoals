@@ -62,6 +62,20 @@ const HEALTH = {
 };
 const NUTRIENT_WORDS: [RegExp, NutrientName][] = [[/\b(calories|calorie|kcal|energy)\b/, 'kcal'], [/\bprotein\b/, 'protein'], [/\b(carbs?|carbohydrates?)\b/, 'carbs'], [/\bsaturated fats?\b/, 'saturated_fat'], [/\bfats?\b/, 'fat'], [/\bfib(?:er|re)s?\b/, 'fiber'], [/\bsugars?\b/, 'sugar'], [/\b(sodium|salt)\b/, 'sodium'], [/\bpotassium\b/, 'potassium'], [/\bcalcium\b/, 'calcium'], [/\biron\b/, 'iron']];
 const WEALTH_TOTAL = /\b(net worth|my wealth|total wealth|wealth total|everything i (?:own|hold)|all my holdings|how much (?:is|am) i worth)\b/;
+// Session W Part 21 (W7): the areas Session W added.
+const OWE = /\b(what do i owe|how much do i owe|my debts?|my loans?|my mortgage|my credit cards?|my accounts|accounts and debts)\b/;
+const CHESS = /\b(chess|lichess|chess\.com|elo)\b/;
+const CHESS_SITE = /\b(ratings?|rated|elo|lichess|chess\.com|games?|won|wins?|lost|loss(?:es)?|draws?|results?)\b/;
+const CHESS_GAMES = /\b(games?|won|wins?|lost|loss(?:es)?|draws?|results?|play(?:ed)?)\b/;
+const LINKS = /\b(my links|how many links)\b/;
+const CHALLENGE = /\bchallenges?\b/;
+const MILESTONE = /\bmilestones?\b/;
+const MINDFUL = /\b(mindful(?:ness)? minutes|breathing sessions?)\b/;
+const W_HEALTH = {
+  sleep: /\b(sleep|slept|sleeping|bedtime|bed time|woke|waking|naps?)\b/, debt: /\bsleep debt\b/, steady: /\b(consisten\w*|regular|steady)\b/, lastNight: /\blast night\b/,
+  meditation: /\bmeditat\w*\b/, vitals: /\b(resting heart rate|heart rate|resting hr|active energy|resting energy|vitals)\b/,
+  devices: /\b(my devices|which devices|connected devices|linked (?:services|accounts|devices)|devices and imports|where (?:do|did) my (?:health )?records come from)\b/,
+};
 const HOLD = /\b(hold|holding|holdings|own|owned|have|got|total)\b/;
 const GOAL_PROGRESS = /\b(how far|progress|left|remaining|to go|reach(?:ed)?|percent|how close|how much more|status|funded|saved)\b|%/;
 const CONTRIBUTION = /\b(contribut\w*|deposit\w*|withdr\w*|put (?:in|into|aside)|set aside)\b/;
@@ -99,17 +113,23 @@ function strongestHabits(hits: HabitHit[], q: string): HabitHit[] {
  */
 export type Subjects = {
   habits: Habit[]; goals: ReturnType<typeof summaries>; asset: string | null; wealthTotal: boolean; contributions: boolean;
-  health: {nutrient: NutrientName | null; water: boolean; steps: boolean; active: boolean; weight: boolean; measurement: boolean; fasting: boolean; diary: boolean; counter: string | true | null};
+  health: {nutrient: NutrientName | null; water: boolean; steps: boolean; active: boolean; weight: boolean; measurement: boolean; fasting: boolean; diary: boolean; counter: string | true | null; sleep: boolean; meditation: boolean; vitals: boolean; devices: boolean};
+  /** Session W Part 21: the other areas Session W added. */
+  life: {accounts: boolean; chess: boolean; links: boolean; challenges: boolean; milestones: boolean};
   ranges: (DayRange & {phrase?: string})[];
 };
 export function detectSubjects(question: string, env: ToolEnv): Subjects {
   const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   const hits = strongestHabits(habitHits(env, q), q), counters = env.health ? exerciseData(env.health).counters.map(c => c.name) : [];
   const counter = counters.find(name => new RegExp(`\\b${normalise(name).replace(/ /g, '[ -]?')}\\b`).test(normalise(q))) ?? (HEALTH.counter.test(q) ? true : null);
+  // A habit the question names keeps sleep and meditation words for itself, as in the local answers.
+  const named = hits.some(h => h.strength !== 'partial');
   return {
     habits: hits.filter(h => h.strength !== 'partial' || hits.length === 1).map(h => h.habit).slice(0, 3),
     goals: mentionedGoals(env, q).slice(0, 2), asset: mentionedAsset(env, q), wealthTotal: WEALTH_TOTAL.test(q), contributions: CONTRIBUTION.test(q),
-    health: {nutrient: NUTRIENT_WORDS.find(([re]) => re.test(q))?.[1] ?? null, water: HEALTH.water.test(q), steps: HEALTH.steps.test(q), active: HEALTH.active.test(q), weight: HEALTH.weight.test(q), measurement: HEALTH.measurement.test(q), fasting: HEALTH.fasting.test(q), diary: HEALTH.diary.test(q), counter},
+    health: {nutrient: NUTRIENT_WORDS.find(([re]) => re.test(q))?.[1] ?? null, water: HEALTH.water.test(q), steps: HEALTH.steps.test(q), active: HEALTH.active.test(q), weight: HEALTH.weight.test(q), measurement: HEALTH.measurement.test(q), fasting: HEALTH.fasting.test(q), diary: HEALTH.diary.test(q), counter,
+      sleep: !named && W_HEALTH.sleep.test(q), meditation: MINDFUL.test(q) || (!named && W_HEALTH.meditation.test(q)), vitals: W_HEALTH.vitals.test(q), devices: W_HEALTH.devices.test(q)},
+    life: {accounts: OWE.test(q) || /\b(debts?|loans?|mortgage|savings account|pension)\b/.test(q), chess: CHESS.test(q), links: LINKS.test(q), challenges: CHALLENGE.test(q), milestones: MILESTONE.test(q)},
     ranges: findRanges(q, env.healthDay),
   };
 }
@@ -126,12 +146,21 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
   const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q));
-  if (!W.lookup.test(q) && !asked && !subject) return NONE;
+  if (!W.lookup.test(q) && !asked && !subject && !W_HEALTH.devices.test(q)) return NONE;
   const ranges = (today: string) => findRanges(q, today);
   // Wealth first: a coin or asset the person holds, or the wealth total.
   const asset = mentionedAsset(env, q);
   if (WEALTH_TOTAL.test(q)) return wealthTotal(env);
   if (asset && HOLD.test(q) && !CONTRIBUTION.test(q)) return holding(env, asset);
+  // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
+  // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
+  // called Chess, and "meditation" with a habit called Meditate, stay habit answers.
+  if (OWE.test(q)) return accountsAnswer(env, q);
+  if (CHESS.test(q) && (CHESS_SITE.test(q) || !strongestHabits(habitHits(env, q), q).some(h => h.strength === 'strong'))) return chessAnswer(env, q, ranges(env.habitDay));
+  if (LINKS.test(q)) return linksAnswer(env);
+  if (CHALLENGE.test(q)) return challengesAnswer(env);
+  if (MILESTONE.test(q)) return milestonesAnswer(env, q);
+  if (MINDFUL.test(q)) return meditationAnswer(env, ranges(env.healthDay));
   // Goals: a goal named in the question, or "goal" with progress words and no Health measure.
   const healthWord = Object.values(HEALTH).some(re => re.test(q)) || NUTRIENT_WORDS.some(([re]) => re.test(q));
   if (subject?.kind === 'goal') return goalProgress(env, subject.id, q);
@@ -146,7 +175,7 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const strong = hits.filter(h => h.strength === 'strong');
   if (strong.length === 1) return habitAnswer(env, strong[0]!.habit, q, ranges(env.habitDay));
   if (strong.length > 1) return choicesFor(strong.map(h => h.habit));
-  const health = healthIntent(env, q);
+  const health = healthIntent(env, q, hits.some(h => h.strength !== 'partial'));
   if (health) {
     if (!env.health) return {kind: 'refusal', text: HEALTH_CLOSED, calls: [], ...(hits.length ? {choices: hits.map(h => ({label: `${clean(h.habit.title, 50)} (habit)`, subject: {kind: 'habit' as const, id: h.habit.id}}))} : {})};
     return health(ranges(env.healthDay));
@@ -239,7 +268,13 @@ function defaultRange(today: string, label: 'today' | 'this month' | 'the last 7
 const clampYear = (range: DayRange, today: string): DayRange => { const earliest = new Date(Date.parse(`${today}T00:00:00Z`) - 365 * 86_400_000).toISOString().slice(0, 10); return range.from < earliest ? {...range, from: earliest} : range; };
 
 type HealthAnswer = (found: DayRange[]) => LocalReply;
-function healthIntent(env: ToolEnv, q: string): HealthAnswer | null {
+function healthIntent(env: ToolEnv, q: string, habitNamed = false): HealthAnswer | null {
+  // Session W Part 21: vitals and devices first ("active energy" is not food energy); sleep and meditation only when no
+  // habit is named, so a habit called Meditate or Sleep early keeps answering for itself.
+  if (W_HEALTH.vitals.test(q)) return found => vitalsAnswer(env, found);
+  if (W_HEALTH.devices.test(q)) return () => devicesAnswer(env);
+  if (!habitNamed && W_HEALTH.sleep.test(q)) return found => sleepAnswer(env, q, found);
+  if (!habitNamed && W_HEALTH.meditation.test(q)) return found => meditationAnswer(env, found);
   const nutrient = NUTRIENT_WORDS.find(([re]) => re.test(q))?.[1];
   const counterNames = env.health ? exerciseData(env.health).counters.map(c => c.name) : [];
   const counter = counterNames.find(name => new RegExp(`\\b${normalise(name).replace(/ /g, '[ -]?')}\\b`).test(normalise(q)));
@@ -403,10 +438,114 @@ function holding(env: ToolEnv, asset: string): LocalReply {
   }
   return {kind: 'answer', text: lines(`You hold ${grouped(quantity)} ${asset} in Wealth (${plural(rows.length, 'holding')}), ${worth}.`, [sources.length > 0 && `Prices: ${sources.join('; ')}`, unpriced > 0 && values.size > 0 && `${plural(unpriced, 'holding')} without a price ${unpriced === 1 ? 'is' : 'are'} not counted in the value`, values.size > 1 && 'One total per currency, never converted', ...extra]), calls};
 }
+/** "2430.00 USD" as a local answer writes money: "2,430.00 USD". */
+const money = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? amount(text.slice(0, i), text.slice(i + 1)) : text; };
+/** Session W Part 21: with accounts and debts on this device, net worth per currency joins the wealth answer. */
+function netWorthLine(env: ToolEnv): {line: string | null; record: ToolCallRecord | null} {
+  if (!(env.accounts?.items ?? []).some(a => !a.archivedAt)) return {line: null, record: null};
+  const w = call(env, 'net_worth', {});
+  if (!w.result.ok) return {line: null, record: w.record};
+  const rows = dataOf(w.result).perCurrency as {netWorth: string; assets: string; debts: string; holdingsWithAValue: string}[];
+  const parts = (r: (typeof rows)[number]) => ([['accounts', r.assets], ['holdings with a value', r.holdingsWithAValue], ['debts', r.debts]] as const).filter(([, v]) => !/^0(?:\.0+)? /.test(v)).map(([k, v]) => `${k} ${money(v)}`).join(', ');
+  return {line: rows.length ? `With your accounts and debts, your net worth is ${rows.map(r => `${money(r.netWorth)} (${parts(r) || 'nothing recorded'})`).join(' and ')}, never converted between currencies` : null, record: w.record};
+}
 function wealthTotal(env: ToolEnv): LocalReply {
   const r = call(env, 'totals_per_currency', {}), refused = refusalOf([r]); if (refused) return refused;
-  const d = dataOf(r.result), totals = d.totals as {currency: string; total: string}[];
-  if (!totals.length) return {kind: 'answer', text: d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : 'No holdings are tracked in Wealth yet.', calls: [r.record]};
+  const d = dataOf(r.result), totals = d.totals as {currency: string; total: string}[], worth = netWorthLine(env), extra = worth.record ? [worth.record] : [];
+  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : 'No holdings are tracked in Wealth yet.', [worth.line]), calls: [r.record, ...extra]};
   const observed = (text: string) => { const [a, b] = text.split(' to '); return !a || a === 'unknown' ? 'time unknown' : b && b !== a ? `observed from ${instantText(a, env.habitDay)} to ${instantText(b, env.habitDay)}` : `observed ${instantText(a, env.habitDay)}`; };
-  return {kind: 'answer', text: lines(`Your tracked wealth, one total per currency (never converted): ${totals.map(t => amount(t.total, t.currency)).join(' and ')}.`, [d.withoutPrice > 0 && `${plural(d.withoutPrice, 'holding')} without a price ${d.withoutPrice === 1 ? 'is' : 'are'} not counted`, ...(d.prices as {source: string; observed: string}[]).map(p => `Values from ${p.source}, ${observed(p.observed)}`)]), calls: [r.record]};
+  return {kind: 'answer', text: lines(`Your tracked wealth, one total per currency (never converted): ${totals.map(t => amount(t.total, t.currency)).join(' and ')}.`, [d.withoutPrice > 0 && `${plural(d.withoutPrice, 'holding')} without a price ${d.withoutPrice === 1 ? 'is' : 'are'} not counted`, ...(d.prices as {source: string; observed: string}[]).map(p => `Values from ${p.source}, ${observed(p.observed)}`), worth.line]), calls: [r.record, ...extra]};
+}
+
+// ---- Session W Part 21 (W7): answers from the new tools, in the same plain words; unknown stays unknown, no advice ----
+function sleepAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
+  if (W_HEALTH.debt.test(q) || W_HEALTH.steady.test(q)) {
+    const r = call(env, 'sleep_summary', {}), refused = refusalOf([r]); if (refused) return refused;
+    const d = dataOf(r.result), debt = d.sleepDebt, steady = d.bedtimeConsistency;
+    return {kind: 'answer', text: lines(W_HEALTH.debt.test(q) ? (typeof debt === 'object' ? `Over the last 7 days your sleep came to ${debt.total}, across ${plural(debt.nights, 'logged night')} (your goal minus the time asleep, night by night).` : `Sleep debt ${debt === 'no night logged in the last 7 days' ? 'needs a logged night in the last 7 days' : 'needs your own sleep goal, in Health → Sleep'}.`)
+      : typeof steady === 'object' ? `Your bedtimes over the last 14 days vary by about ${steady.spread} (the standard deviation of ${plural(steady.nights, 'night')}).` : 'Bedtime consistency needs at least 4 logged nights in the last 14 days.', [typeof d.yourGoal === 'string' && d.yourGoal !== 'none set' && `Your goal: ${d.yourGoal}`]), calls: [r.record]};
+  }
+  if (W_HEALTH.lastNight.test(q)) {
+    const r = call(env, 'sleep_nights', {range: 'today'}), refused = refusalOf([r]); if (refused) return refused;
+    const night = (dataOf(r.result).nights as {woke: string; bedtime: string; wake: string; inBed: string; asleep: string; quality: number | string}[]).at(-1);
+    return {kind: 'answer', text: night ? lines(`Last night: ${night.asleep} asleep, ${night.inBed} in bed, from ${night.bedtime} to ${night.wake}.`, [typeof night.quality === 'number' && `You rated it ${night.quality} of 5`]) : 'No night is logged that ended today.', calls: [r.record]};
+  }
+  if (found[0]) {
+    const range = found[0], r = call(env, 'sleep_nights', {range: rangeArg(range)}), refused = refusalOf([r]); if (refused) return refused;
+    const nights = dataOf(r.result).nights as {woke: string; asleep: string; bedtime: string; wake: string}[], when = span(range, env.healthDay);
+    if (!nights.length) return {kind: 'answer', text: `No night is logged ${when}.`, calls: [r.record]};
+    return {kind: 'answer', text: lines(`${capital(plural(nights.length, 'night'))} logged ${when}:`, nights.slice(-7).map(x => `${dayText(x.woke, env.healthDay.slice(0, 4))}: ${x.asleep} asleep, ${x.bedtime} to ${x.wake}`)), calls: [r.record]};
+  }
+  const r = call(env, 'sleep_summary', {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), week = d.last7Days;
+  if (typeof week === 'string') return {kind: 'answer', text: 'No night is logged in the last 7 days.', calls: [r.record]};
+  return {kind: 'answer', text: lines(`Over the last 7 days: ${plural(week.nightsLogged, 'night')} logged, ${week.averageAsleep} asleep on average, usually from ${week.usualBedtime} to ${week.usualWake}.`, [d.yourGoal !== 'none set' && `Your goal: ${d.yourGoal}`]), calls: [r.record]};
+}
+function meditationAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
+  if (found[0]) {
+    const range = found[0], r = call(env, 'meditation_sessions', {range: rangeArg(range)}), refused = refusalOf([r]); if (refused) return refused;
+    const d = dataOf(r.result), when = span(range, env.healthDay);
+    return {kind: 'answer', text: d.count ? `${d.totalMinutes} min of meditation ${when}, over ${plural(d.count, 'session')}.` : `No meditation session is logged ${when}.`, calls: [r.record]};
+  }
+  const r = call(env, 'meditation_summary', {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result);
+  if (!d.sessions) return {kind: 'answer', text: 'No meditation session is logged yet.', calls: [r.record]};
+  return {kind: 'answer', text: lines(`This week: ${d.thisWeek} of meditation${d.yourWeeklyGoal !== 'none set' ? ` (your goal: ${d.yourWeeklyGoal} a week)` : ''}.`, [`${plural(d.sessions, 'session')} in all, ${d.totalMinutes}`, d.daysInARow > 1 && `${d.daysInARow} days in a row`]), calls: [r.record]};
+}
+function vitalsAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
+  const range = found[0] ?? defaultRange(env.healthDay, 'the last 7 days'), r = call(env, 'vitals', {range: rangeArg(range)}), refused = refusalOf([r]); if (refused) return refused;
+  const days = dataOf(r.result).days as {date: string; source: string; restingHeartRateBpm?: number; activeKcal?: number}[], when = span(range, env.healthDay);
+  if (!days.length) return {kind: 'answer', text: `No vitals are recorded ${when}; they arrive with an import or a linked device.`, calls: [r.record]};
+  const resting = days.filter(x => x.restingHeartRateBpm !== undefined).at(-1), active = days.filter(x => x.activeKcal !== undefined).at(-1);
+  return {kind: 'answer', text: lines(`${capital(plural(days.length, 'day'))} of vitals ${when}.`, [resting && `Resting heart rate on ${dayText(resting.date, env.healthDay.slice(0, 4))}: ${resting.restingHeartRateBpm} bpm (${resting.source})`, active && `Active energy on ${dayText(active.date, env.healthDay.slice(0, 4))}: ${active.activeKcal} kcal (${active.source})`]), calls: [r.record]};
+}
+function devicesAnswer(env: ToolEnv): LocalReply {
+  const r = call(env, 'devices', {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), sources = d.sources as {source: string}[];
+  return {kind: 'answer', text: sources.length ? lines('Your Health records came from these besides your own entries:', sources.map(s => s.source)) : d.note, calls: [r.record]};
+}
+function accountsAnswer(env: ToolEnv, q: string): LocalReply {
+  const r = call(env, 'accounts', {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), accounts = d.accounts as {name: string; debt: boolean; currency: string; latest: string; asOf?: string}[];
+  if (!accounts.length) return {kind: 'answer', text: d.note, calls: [r.record]};
+  const row = (a: (typeof accounts)[number]) => `${a.name}: ${a.asOf ? `${money(a.latest)}${a.debt ? ' owed' : ''} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : a.latest}`;
+  const owned = accounts.filter(a => !a.debt), owed = accounts.filter(a => a.debt);
+  // "What do I owe?": the debts' latest balances, one total per currency; a debt without a balance is named, never zero.
+  if (/\b(owe|debts?|loans?|mortgage|credit cards?)\b/.test(q) && !/\baccounts?\b/.test(q)) {
+    if (!owed.length) return {kind: 'answer', text: 'No debts are kept in Wealth\'s accounts on this device.', calls: [r.record]};
+    const totals = new Map<string, {sum: Decimal; places: number}>();
+    for (const a of owed) if (a.asOf) { const value = a.latest.split(' ')[0]!, t = totals.get(a.currency); totals.set(a.currency, {sum: (t?.sum ?? new Decimal(0)).plus(value), places: Math.max(t?.places ?? 0, (value.split('.')[1] ?? '').length)}); }
+    const unknown = owed.filter(a => !a.asOf).length, sum = [...totals].sort(([x], [y]) => x.localeCompare(y)).map(([c, t]) => amount(t.sum.toFixed(t.places), c)).join(' and ');
+    return {kind: 'answer', text: lines(totals.size ? `You owe ${sum} across ${plural(owed.length - unknown, 'debt')}, as entered on this device:` : 'None of your debts has a balance entered yet:', [...owed.map(row), unknown > 0 && totals.size > 0 && `${plural(unknown, 'debt')} without a balance ${unknown === 1 ? 'is' : 'are'} not counted`, totals.size > 1 && 'One total per currency, never converted']), calls: [r.record]};
+  }
+  return {kind: 'answer', text: lines(`Your accounts and debts on this device (${plural(accounts.length, 'account')}):`, [...owned.map(row), ...owed.map(row), 'Each in its own currency, never converted']), calls: [r.record]};
+}
+function chessAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
+  const r = call(env, 'chess_ratings', {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), ratings = d.ratings as {site: string; control: string; rating: number; readOn: string}[], goals = d.yourGoals as {site: string; control: string; yourTarget: number; left?: number; reached: boolean}[];
+  if (CHESS_GAMES.test(q)) {
+    const range = found[0] ?? defaultRange(env.habitDay, 'the last 30 days'), g = call(env, 'chess_games', {range: rangeArg(range)}), gr = refusalOf([r, g]); if (gr) return gr;
+    const gd = dataOf(g.result), t = gd.results.total as {win: number; draw: number; loss: number}, when = span(range, env.habitDay);
+    return {kind: 'answer', text: gd.count ? `${capital(plural(gd.count, 'game'))} ${when}, as the sites list them: ${plural(t.win, 'win')}, ${plural(t.draw, 'draw')}, ${plural(t.loss, 'loss', 'losses')}.` : `No game ${when}, as far as this device last read.`, calls: [r.record, g.record]};
+  }
+  if (!ratings.length) return {kind: 'answer', text: d.note, calls: [r.record]};
+  return {kind: 'answer', text: lines(`Your ratings, as the sites published them: ${ratings.map(x => `${x.site} ${x.control} ${x.rating}`).join(', ')}.`, goals.map(x => `Your goal ${x.site} ${x.control} ${x.yourTarget}: ${x.reached ? 'reached' : x.left !== undefined ? `${x.left} to go` : 'no rating yet'}`)), calls: [r.record]};
+}
+function linksAnswer(env: ToolEnv): LocalReply {
+  const r = call(env, 'links_count', {}), refused = refusalOf([r]); if (refused) return refused;
+  const count = dataOf(r.result).count as number;
+  return {kind: 'answer', text: count ? `You keep ${plural(count, 'link')} in My links (Settings → My links).` : 'No links in My links yet (Settings → My links).', calls: [r.record]};
+}
+function challengesAnswer(env: ToolEnv): LocalReply {
+  const r = call(env, 'challenges', {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), rows = d.challenges as {habit: string; today: string; doneSoFar: string; ends: string}[];
+  if (!rows.length) return {kind: 'answer', text: d.note, calls: [r.record]};
+  return {kind: 'answer', text: lines(`${capital(plural(rows.length, 'challenge'))} running:`, rows.map(x => `${x.habit}: ${x.today}${x.doneSoFar.startsWith('0 of 0 ') ? '' : `, ${x.doneSoFar} done so far`} (until ${dayText(x.ends, env.habitDay.slice(0, 4))})`)), calls: [r.record]};
+}
+function milestonesAnswer(env: ToolEnv, q: string): LocalReply {
+  const named = mentionedGoals(env, q), r = call(env, 'milestones', named.length === 1 ? {goal: clean(named[0]!.name, 120)} : {}), refused = refusalOf([r]); if (refused) return refused;
+  const d = dataOf(r.result), goals = d.goals as {goal: string; done: number; total: number; milestones: {title: string; state: string; targetDate?: string}[]}[];
+  if (!goals.length) return {kind: 'answer', text: d.note, calls: [r.record]};
+  const next = (g: (typeof goals)[number]) => g.milestones.filter(m => m.state === 'open').slice(0, 3).map(m => `${m.title}${m.targetDate ? ` (by ${dayText(m.targetDate, env.habitDay.slice(0, 4))})` : ''}`);
+  return {kind: 'answer', text: lines('Your milestones:', goals.map(g => `${g.goal}: ${g.done} of ${g.total} done${next(g).length ? `; next: ${next(g).join(', ')}` : ''}`)), calls: [r.record]};
 }

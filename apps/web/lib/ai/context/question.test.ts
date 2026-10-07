@@ -43,7 +43,9 @@ test('advice questions still bring the records they name; lookups bring their ow
   expect(questionContext('Help me meditate more this month', showcaseSources(), gates)!.sources.map(s => s.label)).toEqual(['Meditate · this month']);
   expect(questionContext('Should I read more than last week?', showcaseSources(), gates)!.sources.map(s => s.label)).toEqual(['Read · last week']);
   expect(questionContext('Any tips to reach my Japan goal sooner?', showcaseSources(), gates)!.sources.map(s => s.label)).toEqual(['Goal · Japan adventure']);
-  expect(questionCalls('What is my net worth?', showcaseSources(), gates).map(c => c.tool)).toEqual(['totals_per_currency']);
+  // Session W Part 21 (deliberate): with accounts and debts on the device (the Showcase has them), net worth joins the total.
+  expect(questionCalls('What is my net worth?', showcaseSources(), gates).map(c => c.tool)).toEqual(['totals_per_currency', 'net_worth']);
+  expect(questionCalls('What is my net worth?', showcaseSources(undefined, {accounts: null}), gates).map(c => c.tool)).toEqual(['totals_per_currency']);
   expect(questionContext('Hello there', showcaseSources(), gates)).toBeNull();
 });
 test('Health stays out when its gate is closed: listed as not included, no sentinel anywhere', () => {
@@ -73,4 +75,21 @@ test('a removed chip leaves the payload; Settings, sensitive screens and a disco
   // An area whose switch is off is left out and said so.
   const noHabits = gatesFor(true, 'today', '/app', {settings: settingsWith(true, {pageShare: {...settingsWith(true).pageShare, habits: false}})});
   expect(questionContext(OWNER, s, noHabits)!.withheld[0]).toMatch(/^Habits isn't shared with ZIGi here/);
+});
+
+test('Session W Part 21: the new areas bring their own records; Health ones only through the Health gate', () => {
+  const s = withHandHealth(withSentinels(showcaseSources())), open = healthPage(true), closed = healthPage(false), today = gatesFor(false, 'today', '/app');
+  // Advice questions are not lookups, so the records they name come from the question's subjects.
+  const sleep = questionContext('Any tips to sleep better this week?', s, open)!;
+  expect(sleep.sources.map(x => x.call.tool)).toContain('sleep_summary');
+  const shut = questionContext('Any tips to sleep better this week?', s, closed)!;
+  expect(shut.sources.map(x => x.call.tool)).not.toContain('sleep_summary'); expect(shut.withheld).toContain(HEALTH_CLOSED);
+  expect(sentinelsIn(JSON.stringify(shut)), 'sleep with the gate closed').toEqual([]);
+  // A habit the question names keeps "meditate" for itself; mindful minutes are Health's.
+  expect(questionCalls('Help me meditate more this month', s, open).map(c => c.tool)).toEqual(['habit_stats']);
+  expect(questionCalls('Help me get more mindful minutes', s, open).map(c => c.tool)).toEqual(['meditation_summary']);
+  expect(questionCalls('Should I pay off my debts sooner?', s, today).map(c => c.tool)).toEqual(['net_worth']);
+  expect(questionCalls('Any tips for my chess?', s, today).map(c => c.tool)).toEqual(['chess_ratings']);
+  expect(questionCalls('Help me with my challenges', s, today).map(c => c.tool)).toEqual(['challenges']);
+  expect(questionCalls('Should I add milestones to my Japan goal?', s, today).map(c => c.tool)).toEqual(['goal_progress', 'milestones']);
 });

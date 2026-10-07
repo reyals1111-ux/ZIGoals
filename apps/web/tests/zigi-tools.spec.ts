@@ -66,7 +66,8 @@ test('the AI asks for records: ZIGi runs the tools here and sends the results ba
   // Offered: the read tools this page's switches allow; no Health tool while Health is not shared.
   const offered = bodies[0]!.tools!.map(t => t.function.name);
   expect(offered).toEqual(expect.arrayContaining(['habit_stats', 'list_habits', 'list_goals', 'holdings', 'today_summary']));
-  for (const health of ['water', 'steps', 'weight', 'diary_entries', 'nutrient_totals', 'fasting', 'counters', 'search_foods']) expect(offered).not.toContain(health);
+  // Session W Part 21: the new Health tools (sleep, mindful minutes, vitals, devices) stay out the same way.
+  for (const health of ['water', 'steps', 'weight', 'diary_entries', 'nutrient_totals', 'fasting', 'counters', 'search_foods', 'sleep_nights', 'sleep_summary', 'meditation_sessions', 'meditation_summary', 'vitals', 'devices']) expect(offered).not.toContain(health);
   expect(bodies[0]!.messages[0]!.content).toContain('You may also call the read-only tools ZIGoals provides');
   // The second request: the AI's calls, then one result per call, the Health one refused without reading.
   const second = bodies[1]!.messages, assistant = second.find(m => m.role === 'assistant' && m.tool_calls)!;

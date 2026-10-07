@@ -3,6 +3,7 @@ import {DATA_CLOSE, DATA_OPEN, escapeData} from '../context/specialists';
 import {localAnswer} from '../local-answers/engine';
 import {detectRisk} from '../safety';
 import {createHabit} from '../../habits';
+import {startChallenge} from '../../habits-v2/challenge';
 import type {ToolEnv, ToolSources} from '../tools/env';
 import {GOLDEN_CATEGORIES, type GoldenCase, type GoldenCategory} from './golden-set';
 
@@ -38,10 +39,15 @@ function check(c: GoldenCase, envs: {open: ToolEnv; closed: ToolEnv}): string | 
     }
   }
 }
-/** The golden set's records: the given ones plus two "Stretch" habits and a second "fund" goal, for real ambiguities. */
+/**
+ * The golden set's records: the given ones plus two "Stretch" habits and a second "fund" goal, for real ambiguities.
+ * Session W Part 21: "Stretch morning" runs as a 30-day challenge (a habit with its own end date), for the challenge case.
+ */
 export function goldenSources(base: ToolSources): ToolSources {
   let habits = base.habits;
   for (const title of ['Stretch morning', 'Stretch evening']) habits = createHabit(habits, {title, category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, base.now);
+  const stretch = habits.habits.find(h => h.title === 'Stretch morning');
+  if (stretch) habits = startChallenge(habits, stretch.id, 30, base.now);
   const fund = base.platform.goals.find(g => g.name === 'Emergency fund');
   const goals = fund ? [...base.platform.goals, {...fund, id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Holiday fund'}] : base.platform.goals;
   return {...base, habits, platform: {...base.platform, goals}};

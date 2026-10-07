@@ -75,11 +75,21 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('review-intention'), intention: text(2000)}),
   // ---- Session V Part 8: "Remember this?", a note for What ZIGi knows about me (the planner refuses Health notes) ----
   z.strictObject({kind: z.literal('remember'), text: text(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES).default('other')}),
+  // ---- Session W Part 21 (W7): a night, mindful minutes, a milestone, an account's balance (pre-fill only), a challenge ----
+  z.strictObject({kind: z.literal('log-sleep'), wake: clock, bedtime: clock.optional(), hours: z.number().finite().positive().max(24).optional(), minutes: z.number().int().min(1).max(1440).optional(),
+    quality: z.number().int().min(1).max(5).optional(), nap: z.boolean().optional(), day: daySchema})
+    .refine(a => (a.bedtime !== undefined) !== (a.hours !== undefined || a.minutes !== undefined), 'Give the bedtime or how long the night was (hours or minutes), one of the two.'),
+  z.strictObject({kind: z.literal('log-meditation'), minutes: z.number().int().min(1).max(1440), time: clock.optional(), note: z.string().trim().max(500).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('add-milestone'), goal: handleOf('g', 'g1'), title: text(100), value: positive.max(1e15).optional()}),
+  z.strictObject({kind: z.literal('update-account-balance'), account: text(80), balance: z.union([z.number().finite().min(0).max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]),
+    currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('start-challenge'), habit: handleSchema, days: z.number().int().min(7).max(365).default(30)}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
 export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food', 'log-measurement', 'check-in', 'skip', 'create-habit', 'start-fast', 'stop-fast', 'create-goal', 'add-goal-note', 'prefill-holding',
-  'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'counter', 'create-reminder', 'review-intention', 'remember'] as const satisfies readonly ActionKind[];
+  'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'counter', 'create-reminder', 'review-intention', 'remember',
+  'log-sleep', 'log-meditation', 'add-milestone', 'update-account-balance', 'start-challenge'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -102,9 +112,14 @@ export function expandComposite(composite: Composite, next: () => string): Recor
   const ref = next();
   return [{kind: 'create-habit', ...habit, ref}, {kind: 'create-reminder', for: 'habit', habit: ref, time: reminder}];
 }
-/** Kinds that write a record on confirmation; the pre-fill only opens a form the person submits. */
-export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => k !== 'prefill-holding');
+/** Kinds that write a record on confirmation; the pre-fills only open a form the person submits (a holding, an account's balance). */
+export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-account-balance'];
+export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PREFILL_KINDS.includes(k));
 /** Aliases the AI may use; mapped before validation (a partial check-in is a check-in with a value). */
 export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
   'create_food': 'create-food', 'create_recipe': 'create-recipe', recipe: 'create-recipe', 'plan_meal': 'plan-meal', 'meal-plan': 'plan-meal', 'grocery': 'grocery-item', 'grocery_item': 'grocery-item', groceries: 'grocery-item', 'counter-increment': 'counter', 'create_reminder': 'create-reminder', reminder: 'create-reminder', 'review_intention': 'review-intention', intention: 'review-intention', 'plan_goal': 'plan-goal', 'build_habit': 'build-habit',
-  'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember'};
+  'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember',
+  // Session W Part 21
+  sleep: 'log-sleep', 'log_sleep': 'log-sleep', night: 'log-sleep', meditation: 'log-meditation', 'log_meditation': 'log-meditation', 'mindful-minutes': 'log-meditation', 'mindful_minutes': 'log-meditation',
+  milestone: 'add-milestone', 'add_milestone': 'add-milestone', 'account-balance': 'update-account-balance', 'update_account_balance': 'update-account-balance', balance: 'update-account-balance',
+  challenge: 'start-challenge', 'start_challenge': 'start-challenge'};

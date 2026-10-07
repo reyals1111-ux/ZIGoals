@@ -42,6 +42,12 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'review-intention': [text('intention', 'Intention', false, true)],
   // Session V Part 8: the note and its kind (never Health: ZIGi's cards keep no notes about health conditions).
   remember: [text('text', 'Note (up to 500 characters)', false, true), {key: 'category', label: 'Kind of note', type: 'select', options: REMEMBER_CATEGORIES, labels: CATEGORY_LABELS}],
+  // Session W Part 21. A goal or habit is not changed here (ask again); a night's times are HH:MM where it was slept.
+  'log-sleep': [{key: 'wake', label: 'Woke up at (HH:MM)', type: 'text'}, {key: 'bedtime', label: 'Went to bed at (HH:MM)', type: 'text', optional: true}, num('hours', 'Or: hours in bed', true), int('minutes', 'Or: minutes in bed', true), int('quality', 'Quality (1 to 5)', true), DAY],
+  'log-meditation': [int('minutes', 'Minutes'), {key: 'time', label: 'Started at (HH:MM)', type: 'text', optional: true}, text('note', 'Note', true, true), DAY],
+  'add-milestone': [text('title', 'Milestone'), num('value', 'Value in the goal\'s currency', true)],
+  'update-account-balance': [text('account', 'Account (its name in Wealth)'), text('balance', 'Balance'), text('currency', 'Currency', true), DAY],
+  'start-challenge': [int('days', 'Days (7 to 365)')],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];
 const read = (record: unknown, path: string): unknown => path.split('.').reduce<unknown>((value, part) => value && typeof value === 'object' ? (value as Record<string, unknown>)[part] : undefined, record);

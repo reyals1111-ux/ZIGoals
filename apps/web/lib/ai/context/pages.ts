@@ -7,7 +7,8 @@ import type {PageArea} from '../settings';
  */
 export function pageArea(pathname: string): PageArea {
   const path = pathname.replace(/\/+$/, '') || '/';
-  // Session W Part 14: Chess, a skill, gets Today's overview (its tools come with Part 21).
+  // Session W Part 14: Chess, a skill, gets Today's overview; its tools (chess_ratings, chess_games, Part 21) are Today's.
+  // The Spotify sign-in page (/app/music/spotify, Part 20) stays Help's: a callback attaches nothing.
   if (path === '/app' || path === '/app/activity' || path === '/app/welcome' || path === '/app/chess') return 'today';
   if (path === '/app/goals' || path.startsWith('/app/goals/')) return 'goals';
   if (path === '/app/habits' || path.startsWith('/app/habits/')) return 'habits';

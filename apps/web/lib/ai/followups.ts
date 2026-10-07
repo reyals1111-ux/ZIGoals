@@ -19,6 +19,15 @@ function forCall(call: FollowupCall): string[] {
     case 'nutrient_totals': return ['Did I hit my protein target this week?', 'What did I eat yesterday?'];
     case 'diary_entries': return [range.includes('yesterday') ? 'What did I eat today?' : 'What did I eat yesterday?'];
     case 'holdings': case 'totals_per_currency': return ['What is my net worth?'];
+    // Session W Part 21: the new tools' follow-ups, each answered on the device from the same records.
+    case 'sleep_nights': return ['What is my sleep debt?', range.includes('this week') ? 'How did I sleep last night?' : 'How did I sleep this week?'];
+    case 'sleep_summary': return ['How did I sleep last night?', 'How consistent is my bedtime?'];
+    case 'meditation_sessions': case 'meditation_summary': return [range.includes('this week') ? 'How many mindful minutes this month?' : 'How many mindful minutes this week?'];
+    case 'vitals': return [range.includes('this week') ? 'What was my resting heart rate this month?' : 'What was my resting heart rate this week?'];
+    case 'net_worth': return ['What do I owe?'];
+    case 'milestones': return ['How far am I on my goals?'];
+    case 'chess_ratings': return ['How many chess games did I play this month?'];
+    case 'chess_games': return ['What are my chess ratings?'];
     default: return [];
   }
 }

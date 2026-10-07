@@ -1,5 +1,6 @@
 'use client';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
 import {ACCOUNTS, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
 import {add, addAccount, balanceOn, editAccount, moneyText, netWorth, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
 import {parseAmountInput} from '../../lib/amount-input';
@@ -23,6 +24,24 @@ const toMoney = (text: string, date: string): Money & {date: string} => { const 
 export function AccountsSection(layout: LayoutAttrs) {
   const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate();
   const [adding, setAdding] = useState(false), [open, setOpen] = useState<{id: string; mode: 'balance' | 'payment' | 'edit'} | null>(null), [message, setMessage] = useState(''), [error, setError] = useState('');
+  // Session W Part 21: ZIGi's balance hand-off, read once (on arrival, or when told while Wealth is already open); the
+  // named account's balance form opens filled in, and the person saves it.
+  const [handed, setHanded] = useState(takeBalancePrefill), [prefill, setPrefill] = useState<{id: string; amount: string; date: string} | null>(null);
+  useEffect(() => {
+    const pick = () => { const next = takeBalancePrefill(); if (next) setHanded(next); };
+    window.addEventListener(BALANCE_PREFILL_EVENT, pick);
+    return () => window.removeEventListener(BALANCE_PREFILL_EVENT, pick);
+  }, []);
+  useEffect(() => {
+    if (!handed || !accounts.loaded || accounts.unreadable) return;
+    const account = accountForPrefill(accounts.data.items, handed.account);
+    queueMicrotask(() => {
+      setHanded(null); // used once: saving the balance later never reopens the form
+      if (!account) { setMessage(`ZIGi's balance names “${handed.account}”, which is not exactly one of your accounts here. Choose the account below and enter it; nothing was saved.`); return; }
+      setOpen({id: account.id, mode: 'balance'}); setPrefill({id: account.id, amount: handed.balance, date: handed.date});
+      setMessage(`Pre-filled from your chat with ZIGi: ${account.name}'s balance${handed.currency && handed.currency !== account.currency ? ` (ZIGi said ${handed.currency}; this account is in ${account.currency})` : ''}. Check it, then save; nothing is saved until you do.`);
+    });
+  }, [handed, accounts.loaded, accounts.unreadable, accounts.data.items]);
   function change(fn: (current: Accounts) => Accounts, words: string) {
     try { accounts.update(fn); setMessage(words); setError(''); return true; } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved on this device.'); return false; }
   }
@@ -47,7 +66,7 @@ export function AccountsSection(layout: LayoutAttrs) {
     {history.length > 1 && <details className="accounts-history"><summary>Net worth over time (accounts only)</summary><table><caption>Month-end net worth from your accounts and debts</caption><thead><tr><th scope="col">Date</th><th scope="col">Currency</th><th scope="col">Net worth</th><th scope="col">Accounts counted</th></tr></thead>
       <tbody>{history.map(h => <tr key={`${h.date}-${h.currency}`}><th scope="row">{h.date}</th><td>{h.currency}</td><td>{show(h.net, h.currency)}</td><td>{h.counted}</td></tr>)}</tbody></table></details>}
     {active.length === 0 && !adding && <p>No accounts yet. Add a savings account, a pension, a loan or a credit card to see your net worth here.</p>}
-    {(['assets', 'debts'] as const).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => setOpen(mode ? {id: a.id, mode} : null)} change={change} />)}</ul></div>; })}
+    {(['assets', 'debts'] as const).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} />)}</ul></div>; })}
     {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} restored.`)}>Restore</button><button type="button" className="quiet" onClick={() => change(g => removeAccount(g, a.id), `${a.name} removed from this device.`)}>Remove</button></div></li>)}</ul></details>}
     {message && <p role="status">{message}</p>}
     {error && <p role="alert">{error}</p>}
@@ -77,7 +96,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
     {error && <p role="alert">{error}</p>}
   </form>;
 }
-function AccountRow({account: a, today, open, setOpen, change}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string) => boolean}) {
+function AccountRow({account: a, today, open, setOpen, change, prefill}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string) => boolean; prefill?: {amount: string; date: string}}) {
   const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), [error, setError] = useState('');
   const monthlyNumber = monthly.trim() ? Number(monthly.replace(',', '.')) : usual ? Number(moneyText(usual)) : NaN;
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
@@ -86,9 +105,9 @@ function AccountRow({account: a, today, open, setOpen, change}: {account: Accoun
     <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small></div>
     <div className="accounts-row-balance">{b ? <><strong>{show(b, a.currency)}</strong><small>{debt ? 'owed' : 'balance'} on {b.date}</small></> : <small>No balance yet</small>}</div>
     <div className="actions"><button type="button" className="quiet" aria-label={`Update the balance of ${a.name}`} onClick={() => setOpen(open === 'balance' ? null : 'balance')}>Update balance</button>{debt && <button type="button" className="quiet" aria-label={`Record a payment on ${a.name}`} onClick={() => setOpen(open === 'payment' ? null : 'payment')}>Record a payment</button>}<button type="button" className="quiet" aria-label={`Edit ${a.name}`} onClick={() => setOpen(open === 'edit' ? null : 'edit')}>Edit</button></div>
-    {open && open !== 'edit' && <form className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today)); if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${m.date}.` : `${a.name}: payment recorded for ${m.date}. Enter the new balance when your statement shows it.`)) setOpen(null); setError(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the amount.'); } }}>
-      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" required /></label>
-      <label className="field">On<input name="date" type="date" defaultValue={today} max={today} /></label>
+    {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today)); if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${m.date}.` : `${a.name}: payment recorded for ${m.date}. Enter the new balance when your statement shows it.`)) setOpen(null); setError(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the amount.'); } }}>
+      <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" required defaultValue={open === 'balance' ? prefill?.amount : undefined} /></label>
+      <label className="field">On<input name="date" type="date" defaultValue={open === 'balance' && prefill ? prefill.date : today} max={today} /></label>
       <button type="submit" className="secondary">Save</button>
       {error && <p role="alert">{error}</p>}
     </form>}

@@ -1,6 +1,9 @@
 import {habitDay, habitStats, latestHabitRule} from '../../habits';
 import {waterSummary} from '../../health-daily';
 import {addLocalDays} from '../../local-date';
+import {asleep, nightDay} from '../../sleep/engine';
+import {healthGroupIn} from '../../vault/w-homes';
+import {formatMinutes} from '../../zone-time';
 import type {ToolEnv} from '../tools/env';
 import {summaries} from '../tools/goals';
 import {listNames, shortName} from './calm';
@@ -27,6 +30,12 @@ export function morningBrief(env: ToolEnv): Brief | null {
   let win: string | null = run ? `From yesterday: ${shortName(run.h.title)}, ${run.s.currentStreak} days in a row.`
     : done.length ? `From yesterday: ${done.length === 1 ? `${shortName(done[0]!.title)} checked in` : `${done.length} habits checked in`}.` : null;
   if (!win && env.health) { const water = waterSummary(env.health, yesterday); if (water.entries > 0) win = `From yesterday: ${fmtLitres(water.millilitres)} of water logged.`; }
+  // Session W Part 21: else the night that ended this morning, from Health's Sleep (estimated when it says so).
+  if (!win && env.health) {
+    const night = (healthGroupIn(env.health, 'sleep')?.nights ?? []).filter(n => n.kind === 'night' && n.end !== null && nightDay(n) === today).sort((a, b) => b.end!.localeCompare(a.end!))[0];
+    const slept = night ? asleep(night) : null;
+    if (slept) win = `From yesterday: ${formatMinutes(slept.minutes)} of sleep logged for last night${slept.estimated ? ' (estimated)' : ''}.`;
+  }
   // One thing to start with: the open habit with the longest run so far, else the goal with the nearest planned date this week.
   const lead = open.map(h => ({h, s: streaks.get(h.id)!})).sort((a, b) => b.s.currentStreak - a.s.currentStreak || a.h.title.localeCompare(b.h.title))[0];
   let focus: string | null = lead ? `One to start with: ${shortName(lead.h.title)}${lead.s.streakUnit === 'days' && lead.s.currentStreak >= 2 ? ` (${lead.s.currentStreak} days in a row so far)` : ''}.` : null;

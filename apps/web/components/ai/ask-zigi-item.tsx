@@ -7,7 +7,7 @@ import {askZigi, launcherShown} from './ask';
  * while the ZIGi launcher does, and on click hands ZIGi a question and the records behind the number as a removable
  * chip; nothing is sent before Send. The question table loads on the click.
  */
-const KINDS = new Set(['goal', 'milestone', 'goals', 'habit', 'habits', 'streak', 'checkins', 'health', 'meal', 'food-entry', 'exercise', 'wealth', 'habit-history']);
+const KINDS = new Set(['goal', 'milestone', 'goals', 'habit', 'habits', 'streak', 'checkins', 'health', 'meal', 'food-entry', 'exercise', 'wealth', 'habit-history', 'sleep', 'meditation', 'chess']);
 /** A goal's or a habit's question names it; without its name there is no item (a habit card keeps T's own "Ask ZIGi"). */
 const NEEDS_NAME = new Set(['goal', 'milestone', 'habit']);
 export function AskZigiItem({kind, metric, name}: {kind: string; metric: string; name?: string}) {

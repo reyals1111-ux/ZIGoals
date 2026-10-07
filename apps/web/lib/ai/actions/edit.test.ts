@@ -15,6 +15,9 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     'create-reminder': {kind: 'create-reminder', for: 'water', time: '10:00'}, 'review-intention': {kind: 'review-intention', intention: 'Walk after lunch'},
     // Session V Part 8
     remember: {kind: 'remember', text: 'Prefers morning workouts', category: 'preferences'},
+    // Session W Part 21
+    'log-sleep': {kind: 'log-sleep', wake: '07:00', bedtime: '23:00'}, 'log-meditation': {kind: 'log-meditation', minutes: 10}, 'add-milestone': {kind: 'add-milestone', goal: 'g1', title: 'Halfway'},
+    'update-account-balance': {kind: 'update-account-balance', account: 'Savings', balance: '100'}, 'start-challenge': {kind: 'start-challenge', habit: 'h1', days: 30},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);

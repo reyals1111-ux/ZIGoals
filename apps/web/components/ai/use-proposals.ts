@@ -5,6 +5,7 @@ import {habitCalendarDay} from '../../lib/habits';
 import {dailyData, healthDay} from '../../lib/health-daily';
 import {planAction, type Env, type Plan, type PlanResult, type Stores} from '../../lib/ai/actions/plan';
 import {PREFILL_ROUTE, stashPrefill} from '../../lib/ai/actions/prefill';
+import {BALANCE_PREFILL_EVENT, BALANCE_PREFILL_ROUTE, stashBalancePrefill} from '../../lib/ai/actions/balance-prefill';
 import type {Action} from '../../lib/ai/actions/schema';
 import type {Handle} from '../../lib/ai/context/types';
 import {useFasting} from '../health/use-fasting';
@@ -106,6 +107,14 @@ export function useProposals(): ProposalRunner {
     return null;
   }, [note, run, stores]);
   const openForm = useCallback((p: Plan) => {
+    // Session W Part 21: an account's balance goes to Wealth's own balance form the same way. Already on Wealth, the hash
+    // is set directly so its accounts' fold opens on a phone (a router push changes no hash event).
+    if (p.balance) {
+      const stashed = stashBalancePrefill(p.balance);
+      if (stashed) window.dispatchEvent(new Event(BALANCE_PREFILL_EVENT));
+      if (window.location.pathname === '/app/wealth') window.location.hash = BALANCE_PREFILL_ROUTE.split('#')[1]!; else router.push(BALANCE_PREFILL_ROUTE);
+      return stashed;
+    }
     if (!p.prefill) return false;
     const {category, name, quantity, currency, value, symbol, notes} = p.prefill;
     const stashed = stashPrefill({category, name, quantity, currency, value, symbol, notes});
