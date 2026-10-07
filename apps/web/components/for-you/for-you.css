@@ -7,3 +7,11 @@
 
 /* Compact on every size: the area must not grow Today by more than a little (owner addition 2). */
 .for-you .for-you-card.panel { padding: 14px 16px; }.for-you-card .eyebrow { margin: 0 0 2px; }.for-you-card h2 { font-size: 1.15rem; margin: 2px 0 6px; }.for-you-card .actions { margin: 6px 0 0; gap: 8px; }
+/* Session W Part 13: the evening wrap-up card and the next day's intention line. */
+.for-you-intention { margin: 0 0 12px; overflow-wrap: anywhere; }
+.for-you-intention span { display: block; font-size: .8125rem; color: #b5c6db; }
+.wrap-up-facts { margin: 8px 0 12px; padding-left: 18px; }
+.wrap-up-mood { border: 0; padding: 0; margin: 12px 0; min-width: 0; }
+.wrap-up-mood legend { font-weight: 650; margin-bottom: 8px; }
+.wrap-up-mood-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.wrap-up-form { display: grid; gap: 10px; }

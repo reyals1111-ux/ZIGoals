@@ -9,7 +9,7 @@ import {aiGates, healthGate} from './gates';
 import {Handles} from './handles';
 import type {PageArea} from './settings';
 import {toolEnv, type ToolSources} from './tools/env';
-import {gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
+import {DAY, gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
 import {availableTools, runTool, TOOLS, toolText} from './tools/registry';
 import {localAnswer} from './local-answers/engine';
 import {recordsForAi} from './local-answers/more';
@@ -101,6 +101,11 @@ test('Session W Part 9: quick logging\'s own group (a pinned food, the water but
   const health = sources().health, size = new RegExp(`\\b${SENTINEL.quickWaterMl}\\b`);
   expect(healthGroupIn(health, 'quick')).toMatchObject({waterSizesMl: [250, SENTINEL.quickWaterMl], pinned: [{sourceId: 'health_food-sentinel-1', sourceKind: 'food'}]});
   for (const {path, text} of everythingSent(false)) expect(text, path).not.toMatch(size);
+});
+test('Session W Part 13: the evening wrap-up\'s mood is Health, in the journal the paths read, and never leaves with the gate closed', () => {
+  const health = sources().health;
+  expect(healthGroupIn(health, 'moods')?.days[DAY]).toMatchObject({mood: 2, note: SENTINEL.moodNote});
+  for (const {path, text} of everythingSent(false)) expect(text, path).not.toContain(SENTINEL.moodNote);
 });
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};

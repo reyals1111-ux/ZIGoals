@@ -191,6 +191,8 @@ a module moves up only when one of these groups first gets content, and never go
 - Part 12: accounts and debts stay on the device in `zigoals:accounts:v1` until the later switch PR moves them to
   finance v5 `accounts` (the section says so); a contribution plan's reminder time is `zigoals:w-reminders:v1`
   `contributions` (device). "Fund now" writes only what the person confirms in the existing Fund sheet (finance v4).
+- Part 13: the evening wrap-up's switch, time and intentions in settings v3 `wrapUp` (stamped, newer wins; the first
+  writer of `wrapUp`); the day's mood in Health v4 `moods` (stamped per day; under the Health consent).
 - Part 9: Health v4 `quick` (pinned items and the person's own water buttons; the first writer of `quick`). "Copy
   yesterday's …", "Repeat yesterday" and the one-tap chips write ordinary diary entries; Quick add's "slept 7h30" writes
   a Health v4 `sleep` night (it wrote an activity line before).

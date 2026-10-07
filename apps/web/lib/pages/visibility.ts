@@ -38,6 +38,17 @@ export function viewOf(pages: Pages | undefined, showcase = false): PagesView {
 }
 export const sameView = (a: PagesView, b: PagesView) => a.start === b.start && a.hidden.length === b.hidden.length && a.hidden.every((id, i) => b.hidden[i] === id);
 export const isShown = (view: PagesView, id: VisibilityId) => !view.hidden.includes(id);
+/**
+ * Today's items that belong to a page (Session W Part 13): a widget of a hidden area, and the built-in sections of one,
+ * leave Today while the page is hidden and come back with it; nothing is deleted. Wealth widgets follow Wealth, and
+ * the cross-area summaries (whole life, the selected widgets) stay.
+ */
+const WIDGET_AREA: Readonly<Record<string, VisibilityId>> = {goals: 'goals', habits: 'habits', health: 'health', wealth: 'wealth', chess: 'chess', links: 'links', music: 'music'};
+const BUILTIN_PAGE: Readonly<Record<string, PageId>> = {goals: 'goals', progress: 'goals', 'next-action': 'goals', destination: 'goals', attention: 'goals', funding: 'goals', 'needs-attention': 'goals', habits: 'habits', health: 'health', staking: 'staking', wallet: 'staking', activity: 'activity', watchlist: 'markets'};
+export function todayItemShown(view: PagesView, item: {widgetDomain: string} | {builtin: string}): boolean {
+  const id = 'widgetDomain' in item ? WIDGET_AREA[item.widgetDomain] : BUILTIN_PAGE[item.builtin];
+  return !id || isShown(view, id);
+}
 
 /** The page a path belongs to (the navigation's own rule: Today is exactly /app; the old Staking address is Staking's). */
 export function pageIdForPath(path: string): PageId | null {

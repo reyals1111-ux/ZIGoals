@@ -21,6 +21,7 @@ import {healthQuickSchema} from '../../health-quick/schema';
 import {aiGates, type Gates} from '../gates';
 import {defaultAiSettings, type AiSettings, type PageArea} from '../settings';
 import type {ToolSources} from './env';
+import {emptyMoods, moodsSchema} from '../../moods/schema';
 
 /**
  * Fixtures for ZIGi's tools and for every path that reads them (Session V; used by unit tests only, nothing in the app
@@ -44,9 +45,11 @@ export const SENTINEL = {
   linkedWorkout: 'SENTINEL_LINKED_WORKOUT_2c9e', heartRate: {avg: 187, min: 173, max: 199},
   // Session W Part 9: a water button of the person's own size (Health v4 `quick`, with the sentinel food pinned).
   quickWaterMl: 4093,
+  // Session W Part 13: the evening wrap-up's mood of the day (Health v4 `moods`), with a sentinel note.
+  moodNote: 'SENTINEL_MOOD_NOTE_5e3a',
 } as const;
 /** Every sentinel as text, for "contains none of these" checks. */
-export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal), SENTINEL.linkedWorkout];
+export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal), SENTINEL.linkedWorkout, SENTINEL.moodNote];
 export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
 
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
@@ -89,6 +92,9 @@ export function withSentinels(sources: ToolSources): ToolSources {
   // Quick logging's own group: the sentinel food pinned, and a water button of a sentinel size.
   const pinned = setPinned(health, 'food', 'health_food-sentinel-1', true, stamp);
   health = withHealthGroup(pinned, 'quick', healthQuickSchema.parse({...quickIn(pinned)!, waterSizesMl: [250, SENTINEL.quickWaterMl], updatedAt: stamp}), false);
+  // The day's mood from the evening wrap-up, with a note.
+  const moods = healthGroupIn(health, 'moods') ?? emptyMoods();
+  health = withHealthGroup(health, 'moods', moodsSchema.parse({...moods, days: {...moods.days, [day]: {mood: 2, note: SENTINEL.moodNote, at: stamp}}}), false);
   // A linked service's workout on the day, through the same apply step a sync uses.
   health = previewImport(health, {...emptyItems(), activity: [{id: activityImportId('strava-link', 'workout|9001'), date: day, name: SENTINEL.linkedWorkout, steps: 0, minutes: 33}]}, stamp).next;
   const walk = sources.habits.habits.find(h => h.title === 'Walk');

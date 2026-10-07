@@ -37,6 +37,12 @@ import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {dailyData} from '../../lib/health-daily';
 import {deviceTimeZone} from '../../lib/journal-zone';
 import {JournalZoneCard} from './journal-zone-card';
+import {WrapUpCard} from './wrap-up-card';
+import {intentionFrom, wrapUpDay, wrapUpDue} from '../../lib/wrap-up/engine';
+import {localClock} from '../../lib/reminders/due';
+import {addLocalDays} from '../../lib/local-date';
+import {usePagesView} from '../pages/use-pages-view';
+import {isShown} from '../../lib/pages/visibility';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
 const JOURNAL_ZONE_PROMPT = 'journal-zone';
@@ -58,6 +64,9 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const [whatsNew, setWhatsNew] = useState<boolean | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const launcher = useLauncherRecord(), [brief, setBrief] = useState<DayBrief | null>(null);
+  // Session W Part 13: the evening wrap-up follows this device's clock, checked every half minute.
+  const pagesView = usePagesView(), [clock, setClock] = useState<Date | null>(null);
+  useEffect(() => { const tick = () => setClock(new Date()); queueMicrotask(tick); const id = setInterval(tick, 30_000); return () => clearInterval(id); }, []);
   const zigiOn = launcher.loaded && launcher.record.enabled && !launcher.record.launcherHidden;
   useEffect(() => { let active = true; queueMicrotask(() => { if (!active) return; try { setWhatsNew(!whatsNewSeen(getAppStorage())); } catch { setWhatsNew(false); } }); return () => { active = false; }; }, [showcase]);
   const dismissNew = useCallback(() => { let ok = false; try { ok = dismissWhatsNew(getAppStorage()); } catch { ok = false; } if (ok) setWhatsNew(false); return ok; }, []);
@@ -83,5 +92,9 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const zoneMatters = habits.habits.length > 0 || health.diary.length > 0 || health.weights.length > 0 || health.activity.length > 0 || dailyData(health).water.length > 0;
   if (!showcase && zoneMatters && settings.loaded && !settings.error && !settings.data.journalTimeZone && !habits.timeZone && !dailyData(health).preferences.timezone && zonePrompt.loaded && !zonePrompt.unreadable && !zonePrompt.data.dismissed[JOURNAL_ZONE_PROMPT])
     cards.push({id: 'journal-zone', priority: 8, node: <JournalZoneCard zone={deviceTimeZone()} onUse={() => settings.update(current => withJournalZone(current, deviceTimeZone())).then(() => undefined)} onLater={() => { try { zonePrompt.update(r => ({...r, dismissed: {...r.dismissed, [JOURNAL_ZONE_PROMPT]: today}})); return true; } catch { return false; } }} />});
-  return <>{zigiOn && <Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense>}<ForYou cards={cards} status={reviewNote} /></>;
+  // Session W Part 13: the evening wrap-up, once its time has come and until the day is wrapped up; below the open card.
+  if (settings.loaded && !settings.error && clock && wrapUpDue(settings.data, today, localClock(clock)))
+    cards.push({id: 'wrap-up', priority: 9, node: <WrapUpCard habits={habits} health={health} now={clock.getTime()} showHabits={isShown(pagesView, 'habits')} showHealth={isShown(pagesView, 'health')} onWrap={intention => settings.update(current => wrapUpDay(current, today, intention, new Date().toISOString())).then(() => true, () => false)} />});
+  const intention = settings.loaded && !settings.error ? intentionFrom(settings.data, addLocalDays(today, -1)) : null;
+  return <>{zigiOn && <Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense>}<ForYou cards={cards} status={reviewNote} note={intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null} /></>;
 }
