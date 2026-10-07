@@ -22,6 +22,16 @@ import {gatesFor, settingsWith, showcaseSources} from './tools/fixtures';
 import {HEALTH_CLOSED} from './tools/format';
 import {availableTools, runTool, toolText} from './tools/registry';
 
+/**
+ * Session X-Local (X-Cloud handoff item): the fake keys these tests feed to the secret check are assembled at run time
+ * from pieces, so a secret scanner never matches a key-shaped literal in the repository. Their meaning is unchanged:
+ * each still has the shape the check must refuse.
+ */
+const FAKE_OPENAI = ['sk', 'proj', 'abcdefghijklmnopqrstuvwxyz012345'].join('-');
+const FAKE_GOOGLE = ['AIza', 'SyA1234567890abcdefghijklmnopqrstuv'].join('');
+const FAKE_XAI = ['xai', 'abcdefghijklmnopqrstuvwxyz'].join('-');
+const FAKE_BEARER = ['Bearer', 'abcdefghijklmnopqrstuvwxyz123'].join(' ');
+
 // Session V Part 8, "What ZIGi knows about me": the person's own notes, kept only when they write or confirm them, sent
 // only while "Use my notes" is on (health and diet notes only through the Health gate), never kept when secret-shaped.
 const t0 = new Date('2026-10-05T10:00:00.000Z'), t1 = new Date('2026-10-06T08:00:00.000Z');
@@ -46,7 +56,7 @@ test('notes are added, edited, deleted and put back; duplicates, the 500-charact
   expect(noteProblem('One more', full)).toBe('You have 100 notes, the most ZIGi keeps. Delete one in What ZIGi knows about me first.');
   expect(() => restoreNote(full, {...removed, id: 'note_extra', text: 'Another one'})).toThrow('You have 100 notes, the most ZIGi keeps.');
   // Keys, private keys and labelled passwords or recovery phrases are never kept; ordinary words are.
-  for (const secret of ['My key is sk-proj-abcdefghijklmnopqrstuvwxyz012345', 'AIzaSyA1234567890abcdefghijklmnopqrstuv', 'xai-abcdefghijklmnopqrstuvwxyz', `0x${'ab'.repeat(32)}`, 'password: hunter22', 'My recovery phrase is apple banana cherry', 'pin = 1234', 'Bearer abcdefghijklmnopqrstuvwxyz123']) {
+  for (const secret of [`My key is ${FAKE_OPENAI}`, FAKE_GOOGLE, FAKE_XAI, `0x${'ab'.repeat(32)}`, 'password: hunter22', 'My recovery phrase is apple banana cherry', 'pin = 1234', FAKE_BEARER]) {
     expect(looksSecret(secret), secret).toBe(true); expect(noteProblem(secret, {version: 1}), secret).toBe(SECRET_REFUSAL);
   }
   for (const plain of ['I use a task-tracker app', 'I pin my favourite goals', 'Prefers kilograms', 'My skis are in the attic', 'Passwords are hard for me to remember', 'Wallet 0x12ab is watch-only']) expect(looksSecret(plain), plain).toBe(false);
@@ -155,7 +165,7 @@ test('"Remember this?": a confirmed card keeps the note as ZIGi\'s, Undo forgets
   // A diet note says Health must be shared too.
   expect(plan({kind: 'remember', text: 'Vegetarian', category: 'diet'}).card.lines[2]).toBe('On this device only; it goes to your AI with your messages while "Use my notes" is on and Health is shared with ZIGi');
   expect(refusal({kind: 'remember', text: 'Has type 2 diabetes', category: 'health'})).toBe('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · your AI → What ZIGi knows about me.');
-  expect(refusal({kind: 'remember', text: 'My OpenAI key is sk-proj-abcdefghijklmnopqrstuvwxyz012345'})).toBe(SECRET_REFUSAL);
+  expect(refusal({kind: 'remember', text: `My OpenAI key is ${FAKE_OPENAI}`})).toBe(SECRET_REFUSAL);
   expect(refusal({kind: 'remember', text: 'prefers MORNING workouts'}, env({stores: after}))).toBe('This is already in What ZIGi knows about me.');
   let full: AiMemory = {version: 1};
   for (let i = 0; i < MAX_NOTES; i++) full = addNote(full, {text: `Note ${i}`, category: 'other', source: 'person'}, now, `note_${i}`);
