@@ -168,6 +168,8 @@ a module moves up only when one of these groups first gets content, and never go
   by hand, an edit or a deletion, the weekly goal, the bell) and `habitLinks` holding `meditationMinutes`; a settings v3
   Today widget of kind `meditation`. The running session (`zigoals:meditation-run:v1`) and the meditation reminder time
   (`zigoals:w-reminders:v1`) stay on the device.
+- Part 6: nothing synced. The focus sounds' choices (sound, volume, timer, stop when leaving) live in the device
+  key `zigoals:music:v1`, a display preference.
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in

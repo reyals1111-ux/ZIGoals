@@ -1,0 +1,19 @@
+/* Ambient focus sounds (Session W Part 6): the player (in Meditation; Part 20's music panel embeds it) and the Stop pill. */
+.ambient-player { display: grid; gap: 12px; }
+.ambient-player h3 { margin: 0; }
+.ambient-sounds { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.ambient-sounds legend { width: 100%; margin-bottom: 6px; font-size: .9375rem; }
+.ambient-chip { min-height: 44px; padding: 0 14px; border: 1px solid #3a4c6e; border-radius: 14px; background: #0f192d; color: var(--text); font-size: .9375rem; cursor: pointer; }
+.ambient-chip[aria-pressed="true"] { border-color: #7fe3f3; box-shadow: 0 0 0 1px #7fe3f3; }
+.ambient-volume input { width: 100%; max-width: 360px; min-height: 44px; accent-color: #6f7ff5; }
+.ambient-row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 20px; }
+.ambient-row select { min-height: 44px; font-size: 16px; }
+.ambient-check { min-height: 44px; font-size: .9375rem; }
+.ambient-check input { width: 20px; height: 20px; }
+.ambient-player .actions { margin: 4px 0 0; }
+.ambient-player .actions > button { flex: 0 0 auto; min-width: 160px; min-height: 48px; }
+.ambient-status { margin: 0; color: #cbd9f2; }
+.ambient-pill { position: fixed; left: calc(var(--sidebar-width, 0px) + 20px); bottom: 16px; z-index: 45; display: inline-flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; border: 1px solid #7fc8ff40; border-radius: 999px; background: #081329f2; color: var(--text); font-size: .9375rem; box-shadow: 0 10px 26px -12px #000c; }
+.ambient-pill button { min-height: 36px; padding: 0 14px; border: 1px solid #7fe3f3; border-radius: 999px; background: transparent; color: var(--text); font-weight: 600; cursor: pointer; }
+@media (max-width: 767.98px) { .ambient-pill { left: calc(var(--safe-left, 0px) + 12px); bottom: calc(var(--phone-tabs, 60px) + var(--safe-bottom, 0px) + 8px); } .ambient-pill button { min-height: 44px; } }
+@media (forced-colors: active) { .ambient-chip[aria-pressed="true"] { outline: 2px solid Highlight; } .ambient-pill { border-color: CanvasText; } }

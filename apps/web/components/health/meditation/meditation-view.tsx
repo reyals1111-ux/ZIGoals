@@ -12,6 +12,7 @@ import {BeginForm, BellsForm, ManualForm, MeditationGoalForm} from './meditation
 import {MeditationSession} from './meditation-session';
 import {MeditationReminderSetting} from './meditation-reminder';
 import {useMeditation} from './use-meditation';
+import {AmbientPlayer} from '../../audio/ambient-player';
 import '../sleep/sleep.css';
 import './meditation.css';
 
@@ -65,6 +66,7 @@ export default function MeditationView() {
       <section className="panel" aria-labelledby="meditation-manual-title"><h2 id="meditation-manual-title">Log mindful minutes</h2><ManualForm key={`manual-${saves}`} store={store} onDone={done}/></section>
       <section className="panel" aria-labelledby="meditation-goal-title"><h2 id="meditation-goal-title">Your weekly goal</h2><MeditationGoalForm key={`goal-${meditation.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/><MeditationReminderSetting/></section>
     </div>
+    <div className="panel meditation-sounds"><AmbientPlayer/></div>
     <section className="panel" aria-labelledby="meditation-bell-title"><h2 id="meditation-bell-title">Your bell</h2><BellsForm key={`bell-${meditation.bells?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
     <section className="panel" aria-labelledby="meditation-recent-title">
       <h2 id="meditation-recent-title">Recent sessions</h2>
