@@ -1,1 +1,5 @@
 .market-pagination{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 20px;margin:18px 0;font-size:1rem;color:#c9d8ed}.market-pagination p{margin:0}.market-pagination nav{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.market-pagination nav span{font-size:.875rem}
+/* Session W Part 16: the layout switch and the table's sort sit on one row under the views. */
+.market-layout-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.market-explorer .market-sort { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.market-sort select { min-height: 44px; }

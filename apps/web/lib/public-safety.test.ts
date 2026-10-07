@@ -21,15 +21,18 @@ test("production policy has per-request unpredictable nonces and exact connectio
     for (const source of sources.filter(s => s.includes("*"))) expect(egress.localModelSources, directive).toContain(source);
   }
   // connect-src comes from one data file: self, the two Testnet endpoints, the AI providers a person may connect (their
-  // own key, browser-direct), and the loopback names. Exactly these, in this order, and nothing else.
+  // own key, browser-direct), the loopback names and, on /app documents, chess.com's and Lichess's public APIs (Session W
+  // Part 14, with the username only) and Spotify's accounts service and Web API (Part 20, once the person connects
+  // Spotify). Exactly these, in this order, and nothing else.
   expect(a.csp).toContain(`connect-src ${CONNECT_SOURCES.join(" ")}`);
-  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*"]);
+  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com"]);
   for (const origin of Object.values(egress.aiProviderOrigins)) expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+$/);
   expect(a.csp).toContain("frame-ancestors 'none'");
   expect(a.csp).toContain("worker-src 'self'");
 });
 test("Permissions-Policy: denied everywhere, the microphone on the app's own pages, the camera only on Health; the entries are ordered so the last match wins", async () => {
-  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=()", app: "camera=(), microphone=(self), geolocation=()", health: "camera=(self), microphone=(self), geolocation=()" });
+  // Session W Part 8: Web Bluetooth (heart-rate monitors, scales) only on Health; denied on every other document.
+  expect(egress.permissionsPolicy).toEqual({ global: "camera=(), microphone=(), geolocation=(), bluetooth=()", app: "camera=(), microphone=(self), geolocation=(), bluetooth=()", health: "camera=(self), microphone=(self), geolocation=(), bluetooth=(self)" });
   const entries = await nextConfig.headers!();
   const permission = (source: string) => entries.find(e => e.source === source)?.headers.find(h => h.key === "Permissions-Policy")?.value;
   expect(permission("/(.*)")).toBe(egress.permissionsPolicy.global);
@@ -70,6 +73,17 @@ test("HTTPS middleware overwrites attacker nonce/origin and sends non-cacheable 
   expect(response.headers.get("Cache-Control")).toContain("no-store");
 });
 
+test("Session W Part 1d: every app answer names its exact build (the public 40-character commit), and nothing else", () => {
+  const before = process.env.NEXT_PUBLIC_APP_COMMIT;
+  try {
+    process.env.NEXT_PUBLIC_APP_COMMIT = "0123456789abcdef0123456789abcdef01234567";
+    expect(middleware(new NextRequest("https://alpha.zigoals.app/app")).headers.get("x-zigoals-build")).toBe("0123456789abcdef0123456789abcdef01234567");
+    for (const commit of ["Unknown", "", "0123456", "0123456789ABCDEF0123456789ABCDEF01234567", "0123456789abcdef0123456789abcdef01234567\nx"]) {
+      process.env.NEXT_PUBLIC_APP_COMMIT = commit;
+      expect(middleware(new NextRequest("https://alpha.zigoals.app/app")).headers.get("x-zigoals-build"), commit).toBeNull();
+    }
+  } finally { if (before === undefined) delete process.env.NEXT_PUBLIC_APP_COMMIT; else process.env.NEXT_PUBLIC_APP_COMMIT = before; }
+});
 test("HSTS and crawler headers avoid middleware duplication while covering Next and static assets", () => {
   const nextConfig = readFileSync(
     new URL("../next.config.ts", import.meta.url),

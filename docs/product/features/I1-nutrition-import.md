@@ -9,7 +9,7 @@ Honest numbers (blank ≠ zero: a missing nutrient is `null`, shown as "Unknown"
 ## Scope in PR 3
 - `lib/import/nutrition.ts` on top of `lib/csv/` (W3): mapping for 16 fields, the per-row plan, the atomic apply into Health, undo.
 - Entry point in Health's Diary; Help entry (shared with W3); the Showcase example import.
-- **No MyFitnessPal preset.** UNVERIFIED: the MyFitnessPal export documentation at `https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs` answered HTTP 403 from the sandbox on 2026-10-03 (as in Session O), so its column names and units could not be confirmed. The generic import with explicit mapping covers such a file once the person matches the columns; a preset may follow when the format is verified from a real export.
+- **No MyFitnessPal preset** (superseded in Session W Part 7: the owner's Session W brief asks for MyFitnessPal and Cronometer presets flagged community-documented; see `docs/product/IMPORT_FORMATS.md` and ADR-015 S61. The original note follows.) UNVERIFIED: the MyFitnessPal export documentation at `https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Data-Export-FAQs` answered HTTP 403 from the sandbox on 2026-10-03 (as in Session O), so its column names and units could not be confirmed. The generic import with explicit mapping covers such a file once the person matches the columns; a preset may follow when the format is verified from a real export.
 
 Out of scope: recipes, saved meals and plans from a file; water, weight or activity columns (W3 and A2 cover other entries; a later import may add them); images; barcode lookups during import; merging with existing foods by name (an imported food is always new, labelled "imported").
 

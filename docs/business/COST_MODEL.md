@@ -56,6 +56,13 @@
   - Set the provider's own monthly spending limit below what ZIGoals accepts losing. The relay's budgets are the second line, not the first.
 - **ZIGi through the person's own AI** (the default, unchanged since Session T): costs ZIGoals nothing. The person pays their provider. ZIGi shows the token counts the provider reports, and money only as an estimate from prices the person enters (Session V Part 6).
 
+- **Session W** (added 2026-10-07, [ADR-015](../architecture/ADR-015-session-w.md)). No new paid service; the drivers:
+  - **Market detail (Portfolio v2 and Markets' table).** One more coordinator path, `/insights-detail`, served from the same CoinGecko `/coins/markets` call as insights, admitted and charged like insights under the same budget and breakers, with its own cache rows. Credits per call: **unknown** until the owner confirms the endpoint's credit cost. A value-over-time chart asks for dated history one coin after another, at most 10 coins per range.
+  - **Worker invocations per page view.** Part 22 measured locally (not production): a warm page render is about 30 ms of local wall time, a cold Worker's first request about 285–370 ms; a page view may also cause link prefetches, the web app manifest and uncached logo-proxy calls ([SESSION_W_PERFORMANCE.md](../performance/SESSION_W_PERFORMANCE.md)). Production CPU per version is the owner's to read.
+  - **Health links (off until the owner activates them).** Per "Sync now" or opening Health with a provider connected: one session check and a few allowlisted provider requests through the health-link Worker, under its per-account and global daily budgets, plus a few Durable Object rows of counts. Each provider's own API price and limits: **unknown** here (read each developer page at activation).
+  - **Browser-direct, no server cost to ZIGoals:** chess.com and Lichess (public APIs), Spotify (the person's Premium account; Spotify's quota rules apply), the importers and Bluetooth (on the device).
+  - **Sync size.** Sleep, meditation, vitals and imports make the encrypted Health record larger, so a synced device uploads and stores more per Health change. Imports are capped below the Health module's limit (2 MB in browser storage, aiming at 75%); the effect on Durable Object storage and egress is **unknown** until measured after activation.
+
 ## Scenarios at the 4.99 one-time price
 **Assumptions (explicit):**
 - **A1.** Every person is active every day and makes 20 private edits. This is the Run11 planning example and an upper bound.

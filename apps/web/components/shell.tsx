@@ -4,7 +4,14 @@ import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { setJournalTimeZone } from "../lib/journal-zone";
+import { setSyncedPages } from "../lib/pages/view-store";
+import { homeHref, isShown, pageIdForPath } from "../lib/pages/visibility";
+import { settingsGroupIn } from "../lib/vault/w-homes";
+import { usePagesView } from "./pages/use-pages-view";
+import { useStartPage } from "./pages/use-start-page";
+import { HiddenPageBanner } from "./pages/hidden-page-banner";
 import { useDisplayLocaleKey } from "./display-locale";
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { useGoals } from "./goal-provider";
@@ -26,6 +33,8 @@ import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
 import { AiLauncher } from "./ai/ai-launcher";
+import { AmbientPill } from "./audio/ambient-pill";
+import { MusicLauncher } from "./music/music-launcher";
 import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
@@ -60,6 +69,18 @@ export function Shell({ children }: { children: ReactNode }) {
   // A private read that is still pending after a while gets an honest notice instead of an endless blank page.
   // The page stays unrendered and writes stay blocked until a read succeeds; a late read renders normally.
   const slowRead=usePrivateReadDelay(),settingsPending=!preferences.loaded;
+  // Session W Part 17 (T2-A): the journal zone for every Habits and Health day, set before any effect of this commit runs
+  // (layout effects run before passive ones), so a day-dependent write never uses the device zone by mistake. An
+  // unreadable settings record leaves no journal zone: days follow each module's zone, then the device's, as before.
+  const journalZone=preferences.loaded&&!preferences.error?preferences.data.journalTimeZone??null:null;
+  useLayoutEffect(()=>{setJournalTimeZone(journalZone,preferences.loaded);},[journalZone,preferences.loaded]);
+  // Session W Part 2: the pages and buttons that show, from the same settings read, for the whole shell at once (a
+  // layout effect, so the sidebar and tab bar change in the same frame as the settings arrive); unreadable settings show
+  // every page. A bare /app may move to the person's start page before Today renders (use-start-page.ts).
+  const pagesState=preferences.loaded?(preferences.error?"unreadable":"ready"):"pending",pagesGroup=pagesState==="ready"?settingsGroupIn(preferences.data,"pages"):undefined;
+  useLayoutEffect(()=>{setSyncedPages(pagesState==="ready"?{state:"ready",pages:pagesGroup}:{state:pagesState});},[pagesState,pagesGroup]);
+  const pagesView=usePagesView(),startHold=useStartPage(pagesState,pagesView),pathname=usePathname();
+  const hiddenPage=pagesState==="ready"?pageIdForPath(pathname):null,showQuickAdd=isShown(pagesView,"quick-add");
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
@@ -73,7 +94,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </a>
       <PhoneTopBar />
       <aside className="app-sidebar" aria-label="Application sidebar">
-        <Link href="/app" className="brand" aria-label="ZIGoals home">
+        <Link href={homeHref(pagesView)} className="brand" aria-label="ZIGoals home">
           <LogoMark />
           <LogoIntro host="sidebar" />
           <Wordmark />
@@ -81,7 +102,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <p className="product-descriptor">Your Financial Orbit</p>
         <AppNav />
         {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
-        <div className="sidebar-actions"><QuickAdd/></div>
+        <div className="sidebar-actions">{showQuickAdd&&<QuickAdd/>}</div>
         {/* Above the planet: this page's mark, or the wordmark (Session I). The "Shape & Fold" tagline now lives in the Today swan's artwork. */}
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
@@ -135,7 +156,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {settingsPending?<span className="fine">Your backups are in Settings once your data opens.</span>:<Link className="text-link" href="/app/settings#privacy">Backups in Settings →</Link>}
         </div>
       </section>}
-      <div className="workspace" aria-busy={!selection.ready||!preferences.loaded} style={{visibility:selection.ready&&preferences.loaded?undefined:"hidden"}}>
+      <div className="workspace" aria-busy={!selection.ready||!preferences.loaded||startHold} style={{visibility:selection.ready&&preferences.loaded&&!startHold?undefined:"hidden"}}>
         <ShowcaseBanner/>
         <WorkspaceStatus/>
         {/* The status row: the mode strip (an honesty label) and, on pages that can be rearranged, the layout lock right after the demo balance. The row keeps the lock's place when the strip is hidden. */}
@@ -223,7 +244,8 @@ export function Shell({ children }: { children: ReactNode }) {
           </section>
         )}
         <OfflineNotice />
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><AiLauncher />
+        {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
+        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><AiLauncher /><AmbientPill /><MusicLauncher />
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>

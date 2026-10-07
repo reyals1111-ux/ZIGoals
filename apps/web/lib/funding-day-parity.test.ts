@@ -6,6 +6,7 @@ import {emptyPlatform,positionSchema,privateGoalSchema,type ContributionPlan,typ
 import {appendContribution,captureValuations,fundingHealth,recordGoalChanges} from './goal-intelligence';
 import {earliestPlanChange,planFingerprint,reviseGoalPlan} from './plan-revisions';
 import {privateGoalSummary} from './goal-summary';
+import {fundingBeforeT6} from './funding-before-t6';
 
 // Timezone project, phase 2 (Session N): wiring the time helpers into funding and plan days with zone "UTC" must change
 // nothing. Two proofs:
@@ -103,7 +104,11 @@ function fixtureDigest(name:string):{digest:string;instants:number} {
  for(const [i,now] of instantsNear(fixture.anchor,name.length*7919+name.charCodeAt(0)).entries()){
   ids=1000;
   const g=s.goals[0]!;
-  const row:Record<string,unknown>={now,funding:safe(()=>fundingHealth(s,'1',now)),earliest:safe(()=>earliestPlanChange(g,now)),summary:safe(()=>privateGoalSummary(s,g,[],now))};
+  // Session W Part 17 (T6-B): the output as the earlier due-day rule gave it; any other change still changes the digest.
+  const before=safe(()=>fundingBeforeT6(fundingHealth(s,'1',now)));
+  // The summary's funding label is the funding status (goal-summary.ts), so it is read through the same earlier rule.
+  const summary=safe(()=>{const v=privateGoalSummary(s,g,[],now);return 'ok' in before&&g.type!=='PROJECT'?{...v,fundingHealth:(before.ok as {status:string}).status.replaceAll('_',' ')}:v;});
+  const row:Record<string,unknown>={now,funding:before,earliest:safe(()=>earliestPlanChange(g,now)),summary};
   if(i%10===0){ids=2000;row.capture=safe(()=>{const c=captureValuations({...s,positions:s.positions.length?s.positions:[manual('80000')],allocations:s.allocations.length?s.allocations:[{goalId:'1',positionId:'p',quantity:'1'}]},[],now);return {days:c.historyCaptureDays,snapshots:c.valuationSnapshots.map(v=>v.capturedAt),history:c.goalHistory.map(h=>[h.kind,h.capturedAt])};});}
   hash.update(canonical(row));hash.update('\n');count++;
  }
@@ -126,6 +131,9 @@ const GOLDEN:Record<string,string>={
 };
 
 describe('2. funding, plan, summary and capture outputs are unchanged (golden digest)',()=>{
+ // Session W Part 17 (owner decision W2, T6-B): today's instalment now counts as planned only once its day has ended in
+ // the plan's zone (or as far as it is funded). The digests below are untouched; they are compared with the output
+ // mapped back through exactly that rule (funding-before-t6.ts), and the test after this block proves where the two differ.
  for(const zone of ['UTC','America/New_York','Asia/Kolkata']){
   test(`${Object.keys(FIXTURES).length * PER_FIXTURE} instants on a ${zone} device`,()=>{
    process.env.TZ=zone;
@@ -133,6 +141,28 @@ describe('2. funding, plan, summary and capture outputs are unchanged (golden di
    for(const name of Object.keys(FIXTURES)){const r=fixtureDigest(name);digests[name]=r.digest;total+=r.instants;}
    expect(total).toBeGreaterThanOrEqual(10_000);
    expect(digests).toEqual(GOLDEN);
+  },120_000);
+ }
+});
+
+describe('3. T6-B (Session W Part 17): the due-day rule changes the output on due days only, by what is still due today',()=>{
+ for(const zone of ['UTC','America/New_York']){
+  test(`every fixture instant on a ${zone} device`,()=>{
+   process.env.TZ=zone;let due=0,checked=0;
+   for(const name of Object.keys(FIXTURES)){
+    const fixture=FIXTURES[name]!;ids=0;const s=fixture.build();
+    for(const now of instantsNear(fixture.anchor,name.length*7919+name.charCodeAt(0))){
+     let h:ReturnType<typeof fundingHealth>;try{h=fundingHealth(s,'1',now);}catch{continue;}
+     checked++;
+     if(h.dueToday==='0')continue;
+     due++;
+     // Something is due only on a plan day that is an instalment date of the effective terms, with an unfunded part.
+     expect(h.nextDate,`${name} ${new Date(now).toISOString()}`).toBe(new Date(now).toISOString().slice(0,10));
+     expect(BigInt(h.dueToday)>0n).toBe(true);
+     expect(h.overdue).toBe(BigInt(h.variance)<0n);
+    }
+   }
+   expect(checked).toBeGreaterThan(5_000);expect(due).toBeGreaterThan(50);
   },120_000);
  }
 });

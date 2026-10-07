@@ -119,6 +119,8 @@ test('with a MOCK provider: lookups stay local, "Ask my AI for more" sends the q
 test('Showcase: the same answers over the fictional records, labelled fictional, kept in the tab', async ({page}) => {
   await seed(page, null);
   await page.getByRole('button', {name: /Load Showcase/}).click();
+  // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
+  await page.waitForURL('**/app');
   await expect(page.getByText(/Showcase/).first()).toBeVisible();
   await page.goto('/app');
   await openChat(page);

@@ -9,8 +9,9 @@ import type {ZigiKnock, ZigiPrefs} from '../store/records';
  * screens and a hidden ZIGi are the component's to check. The counts live in `zigoals:zigi-knock:v1`, written only when
  * a knock shows or is snoozed; two weeks of dates are kept.
  */
-export type KnockKind = 'habit' | 'water' | 'goal' | 'wealth' | 'pack';
-export type KnockCandidate = {id: string; kind: KnockKind; title: string; time: string; day: string; href: string};
+export type KnockKind = 'habit' | 'water' | 'goal' | 'wealth' | 'pack' | 'wind-down' | 'meditation-time' | 'stack-next' | 'contribution-due';
+/** `after`: for 'stack-next' (Session W Part 10), the habit before it in the stack, done today. */
+export type KnockCandidate = {id: string; kind: KnockKind; title: string; time: string; day: string; href: string; after?: string};
 export type KnockPrefs = ZigiPrefs['knock'];
 const KEEP_DAYS = 14;
 /** Whether a clock time ("HH:MM") falls in the quiet window; a window may cross midnight; an empty one never does. */
@@ -59,5 +60,13 @@ export function knockLines(candidate: KnockCandidate): {title: string; line: str
     case 'goal': return {title: `Weekly check-in: ${candidate.title}`, line: `Your weekly look at this goal · ${candidate.time}`, action: 'Open goal'};
     case 'wealth': return {title: 'A look at Wealth', line: `Your weekly look · ${candidate.time}`, action: 'Open Wealth'};
     case 'pack': return {title: 'A new context pack', line: `Your weekly refresh for your AI · ${candidate.time}`, action: 'Make the pack'};
+    // Session W Part 4: the wind-down time set on this device (quiet hours apply as for every knock).
+    case 'wind-down': return {title: 'Wind-down time', line: `Your wind-down time · ${candidate.time}`, action: 'Open Sleep'};
+    // Session W Part 5: the meditation time set on this device, until a session is logged that day.
+    case 'meditation-time': return {title: 'Time to meditate', line: `Your meditation time · ${candidate.time}`, action: 'Open Meditation'};
+    // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
+    case 'stack-next': return {title: `Next in your stack: ${candidate.title}`, line: candidate.after ? `After ${candidate.after}, done today` : 'Next in your stack', action: 'Open Habits'};
+    // Session W Part 12: a contribution plan's reminder on a day an amount is due; "Fund now" opens the filled-in form.
+    case 'contribution-due': return {title: `A contribution is due: ${candidate.title}`, line: `Your plan's amount for today · ${candidate.time}`, action: 'Fund now'};
   }
 }

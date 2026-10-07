@@ -1,3 +1,234 @@
+# Session W — "Your whole life, one app" (ADR-015) (2026-10-06/07, [PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77), not merged or deployed)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox.
+  - Toolchain: Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`.
+  - Playwright's Chromium stands in for Chrome (CLAUDE.md), so the brand-film specs (`logo-quickadd-goals-header.spec.ts:53`, `:79`) fail here by design and pass in CI; a few 320 px and Showcase-height checks also differ only here (listed under Tests).
+  - Browser runs: a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`), 2 workers, never two suites at once.
+- **MOCK:** every third party (chess.com, Lichess, Spotify, the health services, Bluetooth devices, AI providers) answered from `page.route`, fixtures or a mocked `navigator.bluetooth`. No real third party was called by a test.
+- **Miniflare:** the health-link Worker, the market coordinator's new path and the Alpha artifact's packaged tests, in workerd, outbound refused.
+- **source:** official documentation, read 2026-10-06/07, cited with dates in the part's docs (ADR-015 names them).
+- **CI:** Milestone quality and Canonical reproducibility on the PR (Actions API).
+- **physical device:** none. The owner checklist ([WHOLE_LIFE_W.md](product/WHOLE_LIFE_W.md)) covers a Mac, an iPhone and two devices.
+
+Nothing was deployed. No session logged into Cloudflare, Supabase, Spotify, chess.com, Lichess, a health service or any AI provider, or sent them personal data; third-party contact was limited to reading official documentation and header-only requests to public endpoints (recorded in the part docs, for example [CHESS.md](product/CHESS.md)). No new dependency (Part 1c moved existing packages to fixed versions, owner addition A).
+
+**Base:** `main` `1063765` (Merge #76, Session V; Alpha deploy #31). `main` did not move during the session (checked again before this entry).
+
+## Parts
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 1 | Sync writes on (W1, floor #29), acceptance docs; fix: no blank page when the account locks during a device merge | `90a4b00`, `3879b65` | local, CI |
+| 1b | Formats foundation: Health v4 and settings v3 written lazily, finance v5 read only; frozen #29–#31 readers and schema digests; nine device keys, six export CSVs, the sealed link-token store | `c51618b` | local |
+| 1c | Dependency alerts (owner A): proxy-addr 2.0.8, source-map-js 1.2.2, sharp 0.35.5; braces 3.0.3 cannot be fixed (no patched release) | `6b81f0c` | local, CI |
+| 1d | The post-upload smoke waits for the new build (`X-ZIGoals-Build`, owner B) | `aed6e20` | local, Miniflare |
+| 1e | One composer for CSP, Permissions-Policy and `public/_headers` (byte-identical headers) | `5367eb8` | local |
+| 17 | Timezone phase 4 (W2): journal zone, plan zones, T6-B "due today" | `e5a1554`, `44e96e1` | local, CI |
+| 2 | Your pages & buttons (W4); fix: each switch beside its name at its full size | `261a2b5`, `5d6a3b4` | local |
+| 3 | First run v2 | `71c51cc` | local |
+| 4 | Sleep | `43f80a8`, `247d232` | local, CI |
+| 5 | Meditation (W5) | `23cb248`, `c58f573` | local |
+| 6 | Ambient focus sounds | `628c04b` | local |
+| 7 | Switch to ZIGoals: importers (owner D) | `c873fd8` | local |
+| 8 | Health → Devices: Bluetooth; Oura, Withings, Polar, Strava built and off; the health-link Worker (W6) | `960f383`, `dc8f3e0`, `08c5cc4` | local, Miniflare, MOCK |
+| 9 | Health quick logging | `c9c6f21`, `dd950fa`, `c63c1b4` | local, CI |
+| Gate A | On `dd950fa` (recorded in the PR) | — | local |
+| 10 | Habits v2 | `e94a8ed` | local |
+| 11 | Goals v2 | `2fc054c` | local |
+| 12 | Wealth v2: accounts, debts, net worth | `5ba4aaa`, `aaf32bc` | local, CI |
+| 13 | Today v2: the evening wrap-up | `1b188bb` | local |
+| 14 | Chess | `56e55cc` | local, MOCK |
+| 15 | Portfolio v2 and the coordinator's `/insights-detail` | `561016e` | local, Miniflare |
+| 16 | Markets polish | `22a2874` | local |
+| 18 | Sign out all other devices (W3) | `69ca6ea`, `c545c99` | local, CI |
+| Gate B | On `c545c99` (recorded in the PR) | — | local |
+| 19 | My links | `8ae1bfe`, `aaa2f6f`, `296605b` | local |
+| 20 | Music "Your soundtrack" (owner F) | `bab31b3`, `296605b` | local, MOCK |
+| 21 | ZIGi for the new areas (W7) | `417a382` | local, MOCK |
+| 22 | Performance (owner E): the Showcase builder on use, page weight budgets in CI, the CPU question | `030fdc0`, `8e182b0`, `5948120` | local, Miniflare, CI |
+| 24 | Help, What's new, Settings in six groups | `98060dc`, `160199b` | local |
+| 25 | Legal, privacy, cost | `8ea5727` | source |
+| 26 | Owner docs and the screens gallery | `cd38a0b` | local |
+| 23 | Session Q D2: a plain 404 for missing static files; THREAT_MODEL "Session W changes" | `06de700` | local, Miniflare |
+| Gate C | On `06de700` (below) | — | local |
+| 27 | Final hardening: Gate C evidence, revert gate, ADR-015 complete; CI runs the packaged header checks; fix: the Alpha lifecycle test waits for each simulation | `5b00de4` `[TIER 3] (CI)`, `b3ec0d9`, `02e0df7`, `829f050` | local, CI |
+| 28 | This entry, the #30 and #31 records, Release identity, PR ready | this commit | — |
+
+## Tier 3, in plain words (risk → rollback)
+- **`90a4b00`, `3879b65` sync writes on (W1).**
+  - Risk: for people who use sync, fasting, health goals, habit–Health links and the review's Health note (Health v2/v3, under the Health consent) and the weekly review (settings v2) now leave the device.
+  - Rollback: revert; the switch goes off and what already synced stays readable by every build since #29. Never roll the Alpha back past #29.
+- **`c51618b` formats foundation.**
+  - Risk: Health v4 and settings v3 exist; #29–#31 refuse a newer section as a whole (bytes and recovery copies kept). Nothing writes them until a later part's feature is used.
+  - Rollback: revert together with the later format parts, newest first.
+- **`6b81f0c` dependency versions.**
+  - Risk: a patch-level change in proxy-addr, source-map-js (development copy) or sharp (miniflare's copy).
+  - Rollback: revert (lockfile and overrides).
+- **`aed6e20` the smoke waits for the new build.**
+  - Risk: an edge that never serves the new build ends the deployment in NEEDS_OWNER_REVIEW after about a minute; still no upload retry and no automatic rollback.
+  - Rollback: revert; the smoke checks at once again.
+- **`5367eb8` egress composer.**
+  - Risk: none found (headers byte-identical on 17 routes and in every check).
+  - Rollback: revert.
+- **`e5a1554`, `44e96e1` timezone phase 4 (W2).**
+  - Risk: a chosen journal zone (settings v2) and plan zone (finance v4) are written; #29 and later read both. On its due day an instalment reads "due today".
+  - Rollback: revert; saved zones stay readable and unused.
+- **`261a2b5` pages (settings v3), `1b188bb` wrap-up and moods, `56e55cc` chess usernames, Part 19's links.**
+  - Risk: a person who uses one writes settings v3; on #29–#31 Today's layout and preferences read as unreadable until the roll-forward (bytes and recovery copies kept, every page shown).
+  - Rollback: revert newest first; choices stay stored for the roll-forward.
+- **`43f80a8` Sleep, `23cb248` Meditation, `c9c6f21` quick logging, `1b188bb` moods.**
+  - Risk: a person who uses one writes Health v4; on #29–#31 their Health page reads as unreadable until the roll-forward (bytes kept).
+  - Rollback: revert newest first.
+- **`960f383` Bluetooth only on Health.**
+  - Risk: other pages can no longer ask for a Bluetooth device (none does).
+  - Rollback: revert.
+- **`dc8f3e0` linked services, built and off.**
+  - Risk: none while off: `/api/health-link` answers 503 and no build shows Connect.
+  - Rollback: revert, or keep the Worker undeployed.
+- **`2fc054c` Goals v2.**
+  - Risk: none for older builds: milestone values are finance v4's own field, dates a device key.
+  - Rollback: revert; the dates key is ignored.
+- **`5ba4aaa` accounts and debts.**
+  - Risk: a new personal device key (exported, never synced).
+  - Rollback: revert; the key stays for the roll-forward.
+- **`56e55cc` chess egress.**
+  - Risk: two connect origins and four framed pages on `/app` documents.
+  - Rollback: revert; the policy returns to the previous one.
+- **`561016e` market Worker.**
+  - Risk: a new coordinator path and cache work kind; an older coordinator answers it 404 ("Not provided").
+  - Rollback: revert; an older coordinator never reads `detail` rows.
+- **`69ca6ea`, `c545c99` sign out all other devices (W3).**
+  - Risk: the control moved and works without listing sessions first; same request and server path.
+  - Rollback: revert both.
+- **`bab31b3` music egress and tokens.**
+  - Risk: Spotify requests from the browser once a person connects; two connect origins and one image host on `/app` documents.
+  - Rollback: revert, or remove `SPOTIFY_CLIENT_ID` to turn Spotify off without a build.
+- **`8e182b0` weight budgets in CI.**
+  - Risk: a budget set too tight fails CI on a harmless change (about 5 kB of room).
+  - Rollback: remove the step.
+- **`5948120` tests wait for the Showcase.**
+  - Risk: none to the product.
+  - Rollback: revert.
+- **`06de700` the Alpha's Worker entry.**
+  - Risk: a request the asset layer should serve but misses (none known) would get the plain 404.
+  - Rollback: `main` back to `.open-next/worker.js` and the three pins (or revert); the next Alpha deploy answers as before.
+- **`5b00de4` packaged header checks in CI.**
+  - Risk: CI's integration job also runs `alpha-packaged-headers` on the dry-run bundle (about 3 s); a header drift in the Alpha artifact now fails CI before any deploy.
+  - Rollback: remove the step.
+
+## Storage, sync and rollback
+- **Written now, only when a person uses the feature:** Health v4 (`sleep`, `meditation`, `vitals`, `quick`, `moods`, and habit links' new measures) and settings v3 (`pages`, `links`, `chess`, `wrapUp`, the new Today widgets). Finance stays at v4 (plan zones, milestone values); finance v5 ships as read support only.
+- **Device keys** (features/README rules 1–8; in "Export everything", never synced; Showcase in the tab): personal `zigoals:accounts:v1`, `zigoals:milestone-dates:v1`, `zigoals:import-batches:v1`, `zigoals:w-reminders:v1`, `zigoals:chess-cache:v1`, `zigoals:celebrations:v1`, `zigoals:meditation-run:v1`; display `zigoals:music:v1`, `zigoals:pages-view:v1`. Not localStorage: IndexedDB `zigoals-link-tokens-v1` (sealed, never exported or synced) and the tab-only `zigoals:ai:balance-prefill:v1`.
+- **Sync (W1 on):** Session W's groups merge by their stamps (newer wins; chess markers union); everything else merges as before; a version raised by sync keeps a recovery copy.
+- **Rollback:** never past #29. Below this release, a person who used a new Health feature sees Health unreadable, and one who used a new settings feature sees Today's layout unreadable, until the roll-forward (bytes and recovery copies kept). Everyone else is unaffected. Accounts, debts and milestone dates move into finance v5 only with the later switch PR ([SYNC_HOMES.md](product/SYNC_HOMES.md)).
+
+## Egress, CSP, Permissions-Policy
+- **`/app` documents:** `connect-src` + `https://api.chess.com https://lichess.org` (Part 14) and `https://accounts.spotify.com https://api.spotify.com` (Part 20); `img-src` + `https://i.scdn.co` (Part 20); `frame-src` the four exact chess pages (was `'none'`, Part 14). Site documents are unchanged.
+- **Permissions-Policy:** `bluetooth=()` globally and on app pages, `bluetooth=(self)` on `/app/health` only (Part 8).
+- **Server-only:** the health-link Worker's provider origins (Oura, Withings, Polar, Strava), off (Part 8).
+- **Static misses:** `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; sandbox` (Part 23).
+- One source, `lib/egress-policy.json`, composed by `lib/csp-compose.mjs` for the app and every check (Part 1e); Trusted Types stay enforced; no string HTML sinks.
+
+## Workers
+- **health-link** (new, `workers/health-link`): built and off; not deployed, not in the acceptance stack ([HEALTH_LINK_ACTIVATION.md](run11/HEALTH_LINK_ACTIVATION.md)).
+- **market coordinator:** `/insights-detail` (Part 15); redeploy it before the app.
+- **public Alpha app:** the entry `apps/web/alpha/worker.mjs` (Part 23); the Manual Alpha workflow is unchanged.
+- Every other Worker is unchanged.
+
+## Weight (gzip -6, production builds, Gate C)
+Every page and the shell are within `scripts/weight-budgets.json` (budget = this release's measurement + about 5 kB; CI's integration job checks them). Raw numbers: [PAGE_WEIGHT.json](verification/w-gatec/PAGE_WEIGHT.json).
+
+| Page | main `1063765` | branch | Δ |
+|---|---:|---:|---:|
+| `/app` | 616.9 kB | 646.1 kB | +29.2 kB |
+| `/app/goals` | 515.1 kB | 519.6 kB | +4.5 kB |
+| `/app/habits` | 525.6 kB | 543.4 kB | +17.8 kB |
+| `/app/health` | 550.8 kB | 567.7 kB | +16.9 kB |
+| `/app/wealth` | 542.5 kB | 556.1 kB | +13.6 kB |
+| `/app/markets` | 512.3 kB | 523.2 kB | +10.9 kB |
+| `/app/portfolio` | 515.8 kB | 545.7 kB | +29.9 kB |
+| `/app/staking` | 534.7 kB | 548.4 kB | +13.7 kB |
+| `/app/activity` | 497.6 kB | 503.6 kB | +6.0 kB |
+| `/app/settings` | 525.9 kB | 570.6 kB | +44.7 kB |
+| `/app/help` | 493.6 kB | 499.7 kB | +6.1 kB |
+| `/app/chess` | — | 508.1 kB | new |
+| shell (every app page) | 491.6 kB | 497.7 kB | **+6.1 kB** |
+
+The plan's +3 kB for the shell is **not met** (ADR-015 S132–S133): what remains is the sync homes' stores and the new formats' schemas that every page's sync merge reads, and the pages' visibility logic; moving them is a sync-path change left for its own review ([SESSION_W_PERFORMANCE.md](performance/SESSION_W_PERFORMANCE.md)). The packaged Worker: 17,807.73 KiB (gzip 3,675.69 KiB) in the Wrangler dry run, against main's 16,306 KiB (3,311 KiB gzip).
+
+## Tests (counts are not summed across overlapping runs)
+| Run | Result | Evidence |
+|---|---|---|
+| Unit, full suite (tree of `06de700`) | 447 files passed, 17 skipped; 4,082 tests passed, 37 skipped | local |
+| Browser, full suite, both projects (build of `06de700`, 61 min) | desktop 745 passed, 64 skipped, 9 failed; phone 730 passed, 82 skipped, 6 failed (one timed out) | local |
+| — of those, real | `run9-2-life.spec.ts:95` on both projects (the 13 px Settings group titles): fixed in `ff5042b`; `run9-2-life` and `settings-groups` 20 passed on its build | local, CI |
+| — of those, local-only (identical on main's build, green in CI) | the brand film ×4; the 320 px checks `coherence:25`, `owner-polish:31`, `phone-pages:10` ×2, `run9-2-product:41`; `today-screens:23` ×2; `run11-goal-options-pointer:5` (phone) | local |
+| — under the full suite's load only | `ui-design-pass.spec.ts:335` (glass hover intent): 5/5 alone, green in CI | local |
+| Freeze check, main vs `ff5042b` (fresh captures, 155 each) | 24 identical, 131 different, every one in the authorized table; 0 page errors | local ([GATE_C.md](verification/w-gatec/GATE_C.md)) |
+| Packaged Alpha (Miniflare) | `alpha-packaged-headers` 4, `alpha-packaged-prices` 6; the static-miss revert proof | local, Miniflare |
+| `preview:alpha` security gate | `public-alpha` + `diagnostics` 16 passed (again with `02e0df7`'s and `829f050`'s test) | local |
+| `build:alpha`, `check:alpha`, `check:alpha-artifact`, `check:deploy-configs` | pass | local |
+| Gates A and B | recorded in the PR description (freeze 72 and 131 authorized differences; full suites with only the local-only failures) | local |
+| Per part | each part's focused unit and browser specs, both projects (the PR description lists them) | local |
+
+## Assertions changed (none weakened)
+Every deliberate change is listed with its reason in [ADR-015](architecture/ADR-015-session-w.md) "Assertions changed": "next unknown version" pins that moved because this build reads one more version, CSP and navigation pins that now name the listed sources and entries exactly, the T6-B due-day locks (W2), Help's topic counts and the Settings pins. No check was deleted or loosened; several became stricter.
+
+## Revert gate (local)
+A scratch worktree at `ff5042b` with every workspace `node_modules` linked; `git revert -n` of each part's commits, newest part first, then the repository's typecheck (app and Workers). The baseline typechecks.
+
+| Revert | Applies cleanly | Typechecks |
+|---|---|---|
+| **Newest part first, cumulatively: 24 fix (`ff5042b`) → 23 → … → 1b → 1** (44 steps) | **yes, every step** | **yes, every step** |
+
+- **What this means for rollback:** any newest-first suffix of this PR reverts cleanly and typechecks, down to `main`'s code. The steps are in [GATE_C.md](verification/w-gatec/GATE_C.md).
+- Part 27's four commits (`829f050`, `02e0df7`, `b3ec0d9`, `5b00de4`), reverted newest first from this branch, give exactly `ff5042b`'s tree, so the chain above continues from there. Part 28 is this entry.
+
+## CI
+- **On `02e0df7` (Part 27's fix, the last change before this entry):** Milestone quality #584 ([run 37666079142](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37666079142)), attempt 1: all seven jobs green: web checks (lint, types, unit, build, audit, secret scan), contract, integration (page weight budgets, `build:alpha`, `check:alpha`, the packaged price and header steps, the Run11 package and the Public Alpha Workers security gate on `preview:alpha`), the three browser shards (real Chrome, Trusted Types enforced) and the `web` summary. Canonical reproducibility #507 ([run 37666079369](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37666079369)): both builds and `compare` green. (Actions API) After it, `829f050` changes one test comment.
+- **On `ff5042b`:** Milestone quality [run 37656929324](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37656929324): web checks, contract and all three browser shards (real Chrome, Trusted Types enforced) green; integration green on its one re-run (the known `account-browser` timeout). Canonical reproducibility [run 37656930881](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37656930881): green.
+- **Red runs, each root-caused and fixed in this PR:** [37557560322](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37557560322) (a blank page when the account locked during a device merge: `3879b65`); [37551385783](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37551385783) and [37555158234](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37555158234) (React #418, the zone rendered on the server: `44e96e1`; the second also failed `timezone-phase4:26`, two copies of the Habits note, green since `44e96e1`, and `push-reminders:210`, see Known CI intermittents); [37567040077](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37567040077), [37570216078](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37570216078) and [37571800241](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37571800241) (Health's card order pin: `247d232`); [37585468229](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37585468229) (the wearables pins, quick picks, meal form: `c63c1b4`); [37600768685](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37600768685) (Accounts' layout markers: `aaf32bc`); [37615009074](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37615009074) (the account test's old control: `c545c99`); [37635895908](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37635895908) and [37643104112](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37643104112) (tests that left before the Showcase finished loading: `5948120`); [37647165195](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37647165195) (the 13 px Settings group titles: `ff5042b`); [37663282444](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37663282444) (the Alpha lifecycle test, root cause not established: `02e0df7`, see Known CI intermittents). On `b3ec0d9` the new packaged header step, web checks, contract, reproducibility and browser shard 2 passed; shards 1 and 3 were cancelled by the next push.
+- Runs cancelled by a newer push are not failures, but the real failures inside them are listed too: 37555158234, 37570216078 and 37643104112 above, 37604132447 and 37663282444 under Known CI intermittents. The other cancelled runs had no failing job. **This entry's own commit:** its CI is on the PR.
+
+## Known CI intermittents (table below updated)
+- **`scripts/run10/account-browser.test.mjs`** (a-first reconnect) hit its 90 s timeout on `ff5042b` (a one-line CSS change), as recorded under an earlier session; it passed on `06de700`. One re-run: the re-run passed (run 37656929324, attempt 2).
+- **`tests/run11-route-mobile-acceptance.spec.ts:4`** (desktop) hit its 45 s budget once on `06de700` (run 37647165195). It visits up to 30 routes in one test: 22–24 s alone on both main's build and this branch's, so Session W did not slow it. Passed on `ff5042b`.
+- **`tests/push-reminders.spec.ts:210`** failed twice: on `8e182b0` (desktop, run 37635895908) and earlier on `261a2b5` (phone, run 37555158234, a run later cancelled by the next push, beside the React #418 errors fixed in `44e96e1`). Both times no notification came within 10 s after a push delivered through CDP. The service worker and push code it checks are unchanged in this PR (the Settings and Habits pages it passes through did change). It passed 8/8 locally and on every later run.
+- **`scripts/run11/market-disconnect.test.mjs`:** its `beforeAll` (the Chrome launch) hit the 45 s hook timeout once on `56e55cc` (run 37604132447, web checks; the run was then cancelled by the next push), like the earlier sightings in the table below. It passed on every later run.
+- **Canonical reproducibility** on `5d6a3b4` (run 37642196583): both builds green, but the `compare` job was never created (no failed job). Every later run of the workflow is green.
+- **`tests/public-alpha.spec.ts:119`** (phone, the Public Alpha Workers gate on `preview:alpha`) timed out once on `b3ec0d9`, waiting for "Confirm simulation" after "Withdraw". It passed on `06de700` and `ff5042b` (`b3ec0d9` changed no app code), 8/8 locally and 4/4 with the page's CPU throttled 8×. **Root cause not established** (that job keeps no trace). The test was the one place that clicked Withdraw straight after confirming a deposit, without waiting for it to finish (goals.spec waits for the result). Since `02e0df7` it waits for each review to close, every check unchanged, and it passed in CI on `02e0df7`. That commit's message and comment said the finished deposit resets the form. It does not (the amount field keeps its value), so that explanation is withdrawn; `829f050` corrects the comment.
+- **Local only:** `ui-design-pass.spec.ts:335` failed once under the full suite's load (5/5 alone).
+
+## Decisions made without the owner
+ADR-015 "Session decisions" S1–S145, each the safest option that keeps the brief's promises. Deviations from the plan, each recorded there: the shell's weight is +6.1 kB over main, not the planned +3 kB (S132–S133); Settings puts Data & privacy first (S137); finance v5 ships as read support only (S2).
+
+## Owner items
+- Review the PR; merging and deploying stay yours.
+- **Acceptance redeploy:** the market coordinator first, then the app ([FINAL_ACCTEST_REDEPLOY.md](run11/FINAL_ACCTEST_REDEPLOY.md), "Session W changes"); then the Alpha from `main` through the Manual Alpha workflow, and the one curl for Part 23.
+- **Test:** [WHOLE_LIFE_W.md](product/WHOLE_LIFE_W.md)'s 20 rows (Mac, iPhone, two devices after the redeploy); the gallery [`review/session-w-screens`](https://github.com/reyals1111-ux/ZIGoals/blob/review/session-w-screens/index.md).
+- **Optional:** Spotify ([MUSIC_ACTIVATION.md](product/MUSIC_ACTIVATION.md)); Oura, Withings, Polar, Strava and the health-link Worker; Apple Music (a developer membership).
+- **Later:** the finance-homes switch PR (at least seven days after the W deploy, with the rollback target at or after W).
+- **Decide:** the performance options ([SESSION_W_PERFORMANCE.md](performance/SESSION_W_PERFORMANCE.md)); the braces advisory ([AUDIT_FIXES_2026-10-06.md](dependencies/AUDIT_FIXES_2026-10-06.md)); LEGAL_CHECKLIST §9 for counsel; two pre-existing findings left as they are (Export everything's consent checkbox layout, ADR-015 S141; `/api/market-logo`'s headers replaced by middleware).
+
+## Alpha deploys #30 and #31
+Recorded in their own entries below (owner-reported values; runs verified through the Actions API); Release identity now shows #31 live and #30 as the previous.
+
+# Alpha deploy #31 — 2026-10-06 evening, `1063765` live
+Recorded by Session W at the owner's request (2026-10-07).
+- **Source:** `1063765e312eb02e736e51d95e7cddcdabef8479`, `main` after [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76) (Merge #76, Session V).
+- **CI:** Milestone quality #550 ([run 37517013114](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37517013114)) on `1063765`: success on attempt 2. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 33 ([run 37523679885](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37523679885)), dispatched 2026-10-06 20:04 UTC from `main`, exact source `1063765`: **red**, only because the post-upload smoke ran before propagation ("CSP directive set changed": an edge still answered with #30's policy, without the Trusted Types directives). Verified: Actions API. Session W Part 1d makes the smoke wait for the new build.
+- **Result:** `VERIFIED` (owner-reported, manual): the dashboard shows version `fd1ea000-c02a-4b5e-89bf-cb279253bffe` at 100 %; a later `/app` curl shows `require-trusted-types-for 'script'`; iPhone app pages, the ZIGi launcher and panel, Goal funding and Settings → ZIGi's groups work.
+- **Alpha Worker `zigoals-alpha`:** live version `fd1ea000-c02a-4b5e-89bf-cb279253bffe`; rollback `064dd44b` (#30). Owner-reported. Median CPU about 737 ms per request (owner-reported; explained in Session W Part 22).
+- **What went live:** Session V (ZIGi · your AI v2, ADR-014).
+
+# Alpha deploy #30 — 2026-10-06, `8c318af` (hotfix #75)
+Recorded by Session W at the owner's request (2026-10-07).
+- **Source:** `8c318af950b6fe390326898414e84d209d036df7`, `main` after [PR #75](https://github.com/reyals1111-ux/ZIGoals/pull/75) (Merge #75: ZIGi's Today context respects the Health gate, and two dependency advisories).
+- **CI:** Milestone quality #546 ([run 37499721546](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37499721546)) on `8c318af`: success on attempt 2. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 32 ([run 37507146262](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37507146262)), dispatched 2026-10-06 17:54 UTC from `main`, exact source `8c318af`: success. Verified: Actions API.
+- **Alpha Worker `zigoals-alpha`:** version `064dd44b`; rollback `94f25ee7-28d3-4901-9b1f-8b8d1e0f13a3` (#29). Owner-reported.
+
 # Session V — ZIGi · your AI v2 (ADR-014) (2026-10-05/06, [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76), not merged or deployed)
 
 **Evidence labels:**
@@ -4700,6 +4931,12 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Miniflare object proxies (17 run10/run11 files, the "possible intermittent" Session S noted) | Session S (local) | web checks (unit) | **Fixed in Session U** (`9cd9fd5`, test-only): a probe Worker on its own loopback socket, as Session S did for the erase test. 17 files × 20 runs clean |
 | `sync-inflight-edit-browser` / `sync-self-conflict-browser` "Sync was not confirmed" (the Monitor row above) | as above; local 4/10 and 3/21 with Session U's uncommitted logging | web integration job | **Root cause found and fixed in Session U** (`86c6106`, test harness only): the harness held the Worker's answer across an await, and undici cancels a body whose Response is collected unread; the relay then read 0 bytes. The harnesses read the answer at once; the relay is unchanged. 20/20 and 20/20 locally |
 | `brand-nav-polish.spec.ts:101` (phone) "reduced motion and the Off preference …" | CI: #74 (run 37255944690) | web browser suite | **Not an intermittent: Session U Part 3** made the Health link a full page load; the spec now waits for the load and for Motion Off (`7417cdc`, `4068a83`). 20/20 locally |
+| `account-browser` (a-first reconnect) 90 s vitest timeout (the row fixed in #46) | CI: once on #77 (`ff5042b`, run 37656929324 attempt 1); its one re-run passed | web integration job | Monitor |
+| `run11-route-mobile-acceptance.spec.ts:4` (desktop) 45 s test timeout: up to 30 routes in one test | CI: once on #77 (`06de700`, run 37647165195); 22–24 s alone on main's build and on #77's | web browser suite | Monitor |
+| `push-reminders.spec.ts:210`: no notification within 10 s after a push delivered through CDP | CI: twice on #77 (`261a2b5` phone, run 37555158234, beside React #418 errors; `8e182b0` desktop, run 37635895908); 8/8 locally | web browser suite | Monitor |
+| `market-disconnect.test.mjs` `beforeAll` 45 s hook timeout (the row above) | CI: once on #77 (`56e55cc`, run 37604132447) | web checks (unit) | Monitor |
+| `public-alpha.spec.ts:119` (phone): "Confirm simulation" never appeared after Withdraw | CI: once on #77 (`b3ec0d9`, run 37663282444, the Public Alpha Workers gate); 8/8 locally, 4/4 with the page's CPU throttled 8× | web integration job | The test waits for each simulation's review to close since `02e0df7` (#77); the cause is not established (that job keeps no trace). Monitor |
+| Canonical reproducibility: the `compare` job never created, both builds green | CI: once on #77 (`5d6a3b4`, run 37642196583) | reproducibility workflow | Monitor (infrastructure) |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
@@ -4830,7 +5067,19 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-06 for the [Alpha deploy #29](#alpha-deploy-29--2026-10-05-evening-c97edbe-live) record near the top of this file (recorded by Session V at the owner's request).
+Updated 2026-10-07 for the [Alpha deploy #31](#alpha-deploy-31--2026-10-06-evening-1063765-live) record near the top of this file (recorded by Session W at the owner's request).
+- Deployed source `1063765e312eb02e736e51d95e7cddcdabef8479`, `main` after [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76) (Merge #76, Session V). Verified: Actions API.
+- CI: Milestone quality #550 ([run 37517013114](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37517013114)) on `1063765`: success (attempt 2). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 33 ([run 37523679885](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37523679885)), exact source `1063765`: red only because its post-upload smoke ran before propagation; `VERIFIED` by the owner afterwards (owner-reported, manual). Verified: Actions API for the run.
+- Alpha Worker `zigoals-alpha`: live version `fd1ea000-c02a-4b5e-89bf-cb279253bffe`; rollback `064dd44b` (#30). Owner-reported.
+
+Previous release identity (#30, hotfix Merge #75, 2026-10-06, recorded by Session W):
+- Deployed source `8c318af950b6fe390326898414e84d209d036df7`, `main` after [PR #75](https://github.com/reyals1111-ux/ZIGoals/pull/75). Verified: Actions API.
+- CI: Milestone quality #546 ([run 37499721546](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37499721546)) on `8c318af`: success (attempt 2). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 32 ([run 37507146262](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37507146262)), exact source `8c318af`: success. Verified: Actions API.
+- Alpha Worker `zigoals-alpha`: version `064dd44b`; rollback `94f25ee7-28d3-4901-9b1f-8b8d1e0f13a3` (#29). Owner-reported.
+
+Previous release identity (#29, 2026-10-05 evening, recorded by Session V):
 - Deployed source `c97edbe15c8135c2ae6e50624c5ca6e02684ab43`, `main` after [PR #73](https://github.com/reyals1111-ux/ZIGoals/pull/73) (Merge #73, contains #74). Verified: Actions API.
 - CI: Milestone quality #518 ([run 37347264034](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37347264034)) on `c97edbe`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 31 ([run 37350713564](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37350713564)), exact source `c97edbe`: success; `VERIFIED` (owner-reported). Verified: Actions API for the run.

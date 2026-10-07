@@ -5,9 +5,8 @@ import {foodSchema, healthSchema, logHealthItem, saveFood, saveRecipe, type Heal
 import {dailyData, saveMealFromRecipe} from '../../health-daily';
 import {countOn} from '../../health-counters';
 import {platformSchema, type Platform} from '../../positions';
-import {fastingSchema, FASTING_KEY} from '../../fasting/schema';
+import {homeRecordsIn} from '../../sync-homes-store';
 import {emptyReminders} from '../../reminders/schema';
-import {weeklyReviewSchema} from '../../weekly-review/schema';
 import {reviewFor} from '../../weekly-review/store';
 import type {Handle} from '../context/types';
 import {applyBatch, undoBatch} from './batch';
@@ -23,8 +22,8 @@ const stores: Stores = {
   habits: habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData,
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
-  fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1']!)), memory: {version: 1},
+  fasting: homeRecordsIn(records).fasting,
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
 };
 const habitNamed = (title: string) => stores.habits.habits.find(h => h.title === title)!;
 const handles: Handle[] = [

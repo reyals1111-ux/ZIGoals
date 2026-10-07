@@ -39,7 +39,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   const announce = useCallback((text: string) => { setNote(text); onChange?.(text); }, [onChange]);
   const add = useCallback(async (item: ProposalItem) => {
     const plan = planOf(item); if (!plan) return;
-    if (plan.target === 'form') { const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce('The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
+    if (plan.target === 'form') { const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
     try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiEvents.emit(proud(plan, before, after.habits) ? 'streak-milestone' : 'action-applied'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }

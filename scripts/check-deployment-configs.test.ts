@@ -104,6 +104,14 @@ test.each([
   );
 });
 
+// Session W Part 23 (Session Q D2): the Alpha's entry is the thin one in front of OpenNext's generated Worker.
+test("the Alpha's entry is alpha/worker.mjs, not OpenNext's own Worker", () => {
+  const configs = pair();
+  expect(configs.alpha.main).toBe("alpha/worker.mjs");
+  configs.alpha.main = ".open-next/worker.js";
+  expect(validateDeploymentConfigs({ ...configs, root: repositoryRoot })).toContain('Alpha main must be "alpha/worker.mjs"');
+});
+
 test("the Alpha self-reference must bind back to zigoals-alpha", () => {
   const configs = pair();
   configs.alpha.services[0].service = "zigoals";

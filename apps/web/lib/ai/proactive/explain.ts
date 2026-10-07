@@ -34,6 +34,10 @@ export function explainFor(kind: string, metric: string, name?: string): Explain
     case 'exercise': return {question: 'What did I count today?', about: call('counters', {range: 'today'}, 'Counters · today')};
     case 'wealth': return {question: 'What is my net worth?', about: call('totals_per_currency', {}, 'Wealth totals')};
     case 'habit-history': return {question: 'How many check-ins did I make in the last 30 days?', about: call('list_habits', {}, 'Your habits')};
+    // Session W Part 21: the new Today widgets (Sleep and Meditation behind the Health gate, as every Health card).
+    case 'sleep': return metric === 'week' ? {question: 'How did I sleep this week?', about: call('sleep_nights', {range: 'this week'}, 'Sleep · this week')} : {question: 'How did I sleep last night?', about: call('sleep_nights', {range: 'today'}, 'Sleep · last night')};
+    case 'meditation': return metric === 'today' ? {question: 'How many mindful minutes today?', about: call('meditation_sessions', {range: 'today'}, 'Meditation · today')} : {question: 'How many mindful minutes this week?', about: call('meditation_sessions', {range: 'this week'}, 'Meditation · this week')};
+    case 'chess': return {question: 'What are my chess ratings?', about: call('chess_ratings', {}, 'Chess ratings')};
     default: return null;
   }
 }

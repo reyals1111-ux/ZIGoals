@@ -19,13 +19,15 @@ Facts below were read from the source at `7fdea68` (main, 2026-09-28).
   - In the app, the value only chooses between a 502 and a 503 message (`apps/web/app/api/market-quotes/route.ts:31`).
 
 ## 2. Target `apps/web/wrangler.alpha.jsonc`
+Session W Part 23 (Session Q D2): `main` is the thin entry `apps/web/alpha/worker.mjs` in front of OpenNext's generated `.open-next/worker.js` (a missing `/_next/static/` file gets a plain 404); keep it when this target is applied.
+
 Replace the angle-bracket names with the reviewed nonproduction Worker names chosen in Stage 4. The file must stay strict JSON, with no comments or trailing commas, because `check-deployment-configs.mjs:126` uses `JSON.parse`.
 
 ```json
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "zigoals-alpha",
-  "main": ".open-next/worker.js",
+  "main": "alpha/worker.mjs",
   "compatibility_date": "2026-09-13",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,

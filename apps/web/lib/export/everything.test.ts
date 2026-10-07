@@ -14,7 +14,7 @@ const lines = (text: string) => text.split('\r\n');
 const memoryStorage = (values: Record<string, string>): Storage => { const map = new Map(Object.entries(values)); return {getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); }, removeItem: (k: string) => { map.delete(k); }, clear: () => map.clear(), key: (i: number) => [...map.keys()][i] ?? null, get length() { return map.size; }} as Storage; };
 
 describe('T4 export everything', () => {
-  test('an empty device gives an empty JSON and nine header-only CSVs', () => {
+  test('an empty device gives an empty JSON and header-only CSVs', () => {
     const collected = collectEverything({}, APP);
     expect(collected.json).toMatchObject({format: 'zigoals-everything', version: 1, exportedAt: NOW.toISOString(), app: {version: '0.0.0-test', commit: 'abc1234'}, modules: {}, device: {}, unreadable: []});
     expect(collected.json.portfolio).toBeUndefined(); expect(collected.json.localSimulation).toBeUndefined();

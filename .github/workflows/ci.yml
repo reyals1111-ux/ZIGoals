@@ -120,7 +120,8 @@ jobs:
     # Measured locally on 4 vCPUs: the whole step takes 185 s, about 35 s
     # more than in parallel, so the job stays well inside 15 min.
     # Session U adds the packaged price contract: a second Alpha dry run and
-    # six workerd tests, about 30 s locally.
+    # six workerd tests, about 30 s locally. Session W Part 22 adds the page
+    # weight check against the served build, a few seconds.
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: "1"
@@ -164,6 +165,10 @@ jobs:
             sleep 1
           done
           pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-lost-ack-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs scripts/run11/packaged-runtime.test.mjs scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs scripts/run11/stage8-rehearsal/lock-switch-browser.test.mjs scripts/run11/stage8-rehearsal/health-consent-cloud-browser.test.mjs scripts/run11/stage8-rehearsal/replay-browser.test.mjs scripts/run11/stage8-rehearsal/camera-browser.test.mjs scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs --no-file-parallelism --reporter=verbose
+      # Session W Part 22: page weight (gzip of the scripts each page loads) for every app page and the shell they
+      # share, against scripts/weight-budgets.json, on the production build served above. A few seconds, loopback only.
+      - name: Page weight budgets
+        run: node scripts/check-weight-budget.mjs http://127.0.0.1:3100
       - run: pnpm --filter @zigoals/web build:alpha
       - run: pnpm --filter @zigoals/web check:alpha
       # Session U Part 2c: the generated Alpha artifact's live-price contract (Session S Part 8) on every change.
@@ -172,6 +177,10 @@ jobs:
         run: |
           pnpm --filter @zigoals/web exec wrangler deploy --config wrangler.alpha.jsonc --dry-run --outdir /tmp/zigoals-alpha-dry
           ALPHA_PACKAGED=1 ALPHA_PACKAGE_BUNDLE=/tmp/zigoals-alpha-dry/worker.js pnpm exec vitest run scripts/run11/alpha-packaged-prices.test.mjs --reporter=verbose
+      # Session W Part 27: the same dry-run bundle's effective headers, hermetic as above: Permissions-Policy and connect-src
+      # per app route, the build identity (X-ZIGoals-Build), and a missing /_next/static/ file's plain 404 (alpha/worker.mjs).
+      - name: Alpha artifact headers (packaged)
+        run: ALPHA_PACKAGED=1 ALPHA_PACKAGE_BUNDLE=/tmp/zigoals-alpha-dry/worker.js pnpm exec vitest run scripts/run11/alpha-packaged-headers.test.mjs --reporter=verbose
       - name: Full generated Run11 package and local service topology
         run: |
           node scripts/run11/activation-check.mjs --source "$GITHUB_SHA" --dry-run

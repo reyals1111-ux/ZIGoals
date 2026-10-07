@@ -5,7 +5,7 @@ import {
   assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig,
   currentDeployment, deployedVersion, performDeployment,
 } from "./lib/alpha-deployment.mjs";
-import { assertHtml, smokeAlpha } from "./lib/alpha-smoke.mjs";
+import { ALPHA_ROUTES, assertHtml, readHostedBuilds, smokeAlpha } from "./lib/alpha-smoke.mjs";
 import { securityPolicy } from "../apps/web/lib/security-policy.ts";
 import egress from "../apps/web/lib/egress-policy.json";
 
@@ -155,6 +155,8 @@ test.each([
   c => { c.vars.COINGECKO_DEMO_API_KEY = "x"; }, c => { delete c.vars; },
   c => { c.durable_objects = { bindings: [] }; }, c => { c.workers_dev = false; },
   c => { c.assets.run_worker_first = true; }, c => { c.observability.enabled = true; },
+  // Session W Part 23 (Session Q D2): OpenNext's own entry would skip the static-miss answer.
+  c => { c.main = ".open-next/worker.js"; },
 ])("manual publishing rejects target, route, resource or policy drift %#", mutate => {
   const config = alphaConfig(); mutate(config);
   expect(() => assertAlphaConfig(config)).toThrow();
@@ -185,8 +187,12 @@ function runtime({
   wrangler = output(),
   smokeFailures = 0,
   smokeAttempts,
+  // Session W Part 1d: what each read of the routes sees (one entry per read; the last repeats), and how many reads in a row must confirm.
+  builds = [sha],
+  buildConfirmations = 1,
+  buildRounds,
 } = {}) {
-  const calls = []; const reports = []; let liveReads = 0; let smokeReads = 0;
+  const calls = []; const reports = []; let liveReads = 0; let smokeReads = 0; let buildReads = 0;
   const io = {
     checkSource: async () => { calls.push("source"); if (fail === "source") throw Error("main moved"); },
     current: async () => {
@@ -205,16 +211,25 @@ function runtime({
     },
     sleep: async () => { calls.push("sleep"); },
     smokeDelayMs: 0,
+    expectedCommit: sha,
+    hostedBuilds: async () => {
+      calls.push("builds");
+      const seen = builds[Math.min(buildReads++, builds.length - 1)];
+      return ["/app", "/app/health", "/app/settings"].map((route, i) => ({ route, status: 200, build: Array.isArray(seen) ? seen[i] : seen }));
+    },
+    buildConfirmations, buildDelayMs: 0,
     save: report => { reports.push(structuredClone(report)); },
   };
   if (smokeAttempts !== undefined) io.smokeAttempts = smokeAttempts;
+  if (buildRounds !== undefined) io.buildRounds = buildRounds;
   return { calls, reports, io };
 }
 const rollback = () => ({ deploymentId: oldDeployment, versionId: oldVersion });
 test("deploys once, verifies emitted version at 100%, smokes, then checks live state again", async () => {
   const r = runtime();
   const report = await performDeployment(rollback(), r.io);
-  expect(r.calls).toEqual(["source", "current", "source", "publish", "current", "smoke", "current"]);
+  // Session W Part 1d: the routes are read for the new build's identity between the live-version check and the smoke.
+  expect(r.calls).toEqual(["source", "current", "source", "publish", "current", "builds", "smoke", "current"]);
   expect(report).toMatchObject({ status: "VERIFIED", rollbackVersionId: oldVersion, newVersionId: newVersion });
 });
 test("retries only the hosted exact-source propagation mismatch", async () => {
@@ -291,6 +306,8 @@ function htmlResponse(nonce = "A".repeat(43) + "=",path="/app") {
     "cross-origin-opener-policy": "same-origin",
     "x-frame-options": "DENY", "x-content-type-options": "nosniff", "x-robots-tag": "noindex, nofollow, noarchive, noindex, nofollow, noarchive",
     "referrer-policy": "no-referrer", "permissions-policy": path==='/app/health'?egress.permissionsPolicy.health:egress.permissionsPolicy.app,
+    // Session W Part 1d: the new build names itself (apps/web/middleware.ts).
+    "x-zigoals-build": sha,
   } });
 }
 test("smoke accepts strong nonce security and existing duplicate HSTS/robots values", async () => {
@@ -538,4 +555,85 @@ test("only the rollback capture uses the floor; the post-upload smoke stays exac
   expect(script).toContain("const smoke = await smokeAlpha({ baseline: true });");
   expect(script).toContain("smoke: () => smokeAlpha({ expectedCommit: env.EXPECTED_COMMIT, marketProbe: true }),");
   expect(script.match(/baseline: true/g)).toHaveLength(1);
+});
+
+// Session W Part 1d ([TIER 3] (deploy workflow), owner addition B): the post-upload smoke first waits, bounded, for the
+// new build on every route, then applies the exact checks. Run 37523679885 (deploy #31) failed only because an edge still
+// answered from #30, whose policy had no Trusted Types: "CSP directive set changed".
+const previous = "1063765e312eb02e736e51d95e7cddcdabef8479".replace(/^./, "0");
+test("the propagation race of run 37523679885: the previous build answers first, then the new one on every route; verified, upload once", async () => {
+  const r = runtime({ builds: [null, [sha, null, sha], previous, sha, sha, sha], buildConfirmations: 3 });
+  const report = await performDeployment(rollback(), r.io);
+  expect(report).toMatchObject({ status: "VERIFIED", newVersionId: newVersion, propagation: { expectedCommit: sha, confirmations: 3, confirmedAfterReads: 6 } });
+  expect(r.calls.filter(call => call === "builds")).toHaveLength(6);
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+  // The exact smoke runs only after the confirmations, once.
+  expect(r.calls.indexOf("smoke")).toBeGreaterThan(r.calls.lastIndexOf("builds"));
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(1);
+  expect(report.propagation.log.map(read => read.pending)).toEqual([["/app", "/app/health", "/app/settings"], ["/app/health"], ["/app", "/app/health", "/app/settings"], [], [], []]);
+});
+test("mixed answers never count: one route on the previous build resets the confirmations", async () => {
+  const r = runtime({ builds: [sha, sha, [sha, previous, sha], sha, sha, sha], buildConfirmations: 3 });
+  const report = await performDeployment(rollback(), r.io);
+  expect(report.propagation.confirmedAfterReads).toBe(6);
+});
+test("a new version that never answers ends in NEEDS_OWNER_REVIEW with a plain reason; the upload is not retried and nothing is rolled back", async () => {
+  const r = runtime({ builds: [previous], buildConfirmations: 3, buildRounds: 12 });
+  const error = await performDeployment(rollback(), r.io).catch(e => e);
+  expect(error.message).toMatch(/^The new version did not answer on every Alpha route in time: after 10 reads 0 s apart, \/app answered from build 0063765e312e; \/app\/health answered from build 0063765e312e; \/app\/settings answered from build 0063765e312e\. The upload was not retried and nothing was rolled back/);
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+  expect(r.calls).not.toContain("smoke");
+  expect(r.calls).not.toContain("rollback");
+  expect(r.reports.at(-1)).toMatchObject({ status: "NEEDS_OWNER_REVIEW", rollbackVersionId: oldVersion, newVersionId: newVersion, propagation: { expectedCommit: sha } });
+  // Reads stop as soon as three confirmations can no longer fit in the 12 allowed.
+  expect(r.calls.filter(call => call === "builds")).toHaveLength(10);
+});
+test("an answer that names no build (a version before Session W) is waited for, never accepted", async () => {
+  const r = runtime({ builds: [null], buildConfirmations: 1, buildRounds: 4 });
+  await expect(performDeployment(rollback(), r.io)).rejects.toThrow(/\/app named no build \(a version before Session W\)/);
+  expect(r.calls.filter(call => call === "builds")).toHaveLength(4);
+  expect(r.reports.at(-1)).toMatchObject({ status: "NEEDS_OWNER_REVIEW" });
+});
+test("the live Worker version changing while waiting stops at once, for owner review", async () => {
+  const r = runtime({ builds: [previous, sha], buildConfirmations: 1 });
+  let reads = 0; const base = r.io.current;
+  r.io.current = async () => { reads++; return reads >= 3 ? { deploymentId: oldDeployment, versionId: oldVersion } : base(); };
+  await expect(performDeployment(rollback(), r.io)).rejects.toThrow(/Alpha changed while waiting for the new version/);
+  expect(r.calls).not.toContain("smoke");
+  expect(r.reports.at(-1)).toMatchObject({ status: "NEEDS_OWNER_REVIEW" });
+});
+test("the smoke checks the build first: the previous build's answer is a propagation mismatch (retried, bounded), not a CSP failure", async () => {
+  // The previous build's policy: everything as reviewed, but no Trusted Types (#30) and no build header.
+  const old = (path = "/app") => { const response = htmlResponse(undefined, path); const headers = new Headers(response.headers); headers.delete("x-zigoals-build"); headers.set("content-security-policy", headers.get("content-security-policy").replace(/; ?require-trusted-types-for 'script'/, "").replace(/; ?trusted-types default/, "")); return new Response(response.body, { headers }); };
+  await expect(smokeAlpha({ expectedCommit: sha, fetcher: async url => old(new URL(url).pathname) })).rejects.toThrow(/^Hosted build commit differs from reviewed source$/);
+  // Without the identity check first, the same answer fails on its policy (the failure of run 37523679885).
+  await expect(smokeAlpha({ fetcher: async url => old(new URL(url).pathname) })).rejects.toThrow(/CSP directive set changed/);
+  // Through the deployment: the previous build's answers twice, then the new build's: retried, bounded, verified.
+  const r = runtime();
+  let answers = 0, nonces = 0;
+  const fresh = path => htmlResponse(String(++nonces).padStart(43, "A") + "=", path);
+  r.io.smoke = async () => { r.calls.push("smoke"); const current = answers++ < 2 ? old : fresh; return smokeAlpha({ expectedCommit: sha, fetcher: async url => current(new URL(url).pathname) }); };
+  const report = await performDeployment(rollback(), r.io);
+  expect(report.status).toBe("VERIFIED");
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(3);
+  expect(r.calls.filter(call => call === "publish")).toHaveLength(1);
+});
+test("the new build's answers still face every exact check: a weakened header fails and is never retried", async () => {
+  const weak = path => { const response = htmlResponse(undefined, path); const headers = new Headers(response.headers); headers.set("referrer-policy", "origin"); return new Response(response.body, { headers }); };
+  await expect(smokeAlpha({ expectedCommit: sha, fetcher: async url => weak(new URL(url).pathname) })).rejects.toThrow(/Referrer policy changed/);
+  const r = runtime();
+  r.io.smoke = async () => { r.calls.push("smoke"); return smokeAlpha({ expectedCommit: sha, fetcher: async url => weak(new URL(url).pathname) }); };
+  await expect(performDeployment(rollback(), r.io)).rejects.toThrow(/Referrer policy changed/);
+  expect(r.calls.filter(call => call === "smoke")).toHaveLength(1);
+});
+test("readHostedBuilds reads every app route on the Alpha only, without credentials, and keeps only a full SHA", async () => {
+  const seen = [];
+  const builds = await readHostedBuilds({ fetcher: async (url, options) => {
+    seen.push({ url, options });
+    return new Response("x", { headers: { "x-zigoals-build": url.endsWith("/app/health") ? "not-a-sha" : sha } });
+  } });
+  expect(seen.map(c => c.url)).toEqual(ALPHA_ROUTES.map(route => `https://alpha.zigoals.app${route}`));
+  for (const call of seen) { expect(call.options.redirect).toBe("manual"); expect(Object.keys(call.options.headers).sort()).toEqual(["Cache-Control", "User-Agent"]); }
+  expect(builds.find(b => b.route === "/app/health").build).toBeNull();
+  expect(builds.filter(b => b.build === sha)).toHaveLength(ALPHA_ROUTES.length - 1);
 });

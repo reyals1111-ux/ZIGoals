@@ -34,6 +34,11 @@ import {useMarketQuotes} from '../platform/use-market-quotes';
 import {usePortfolios} from '../portfolio/use-portfolios';
 import {usePrivateStore} from '../use-private-store';
 import {useDeviceRecord} from './use-device-record';
+import {ACCOUNTS} from '../../lib/accounts/schema';
+import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
+import {CHESS_CACHE} from '../../lib/skills/chess/schema';
+import {chessOf} from '../../lib/skills/chess/engine';
+import {linksOf} from '../../lib/links/engine';
 import {useHealthConsent} from './use-health-consent';
 
 /**
@@ -78,6 +83,8 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
   const weekly = useWeeklyRecord();
   // Part 8: the person's notes, only while "Use my notes" is on; the gates decide per path where they may go.
   const memory = useDeviceRecord(AI_MEMORY), options = useDeviceRecord(AI_OPTIONS);
+  // Session W Part 21: the device records ZIGi's new tools read (accounts, milestone dates, chess); each tool keeps its area's switch.
+  const accounts = useDeviceRecord(ACCOUNTS), milestoneDates = useDeviceRecord(MILESTONE_DATES), chessCache = useDeviceRecord(CHESS_CACHE);
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
   const gates = useMemo(() => consent({settings, area, pathname, layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted}), [settings, area, pathname, layoutHasHealth, healthConsent.accountActive, healthConsent.accountHealthPermitted]);
   const ready = platform.loaded && habits.loaded && health.loaded && fasting.loaded && portfolios.loaded && legacy.loaded && dashboard.loaded && healthConsent.loaded;
@@ -130,7 +137,10 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       return quote ? {price: formatUnits(quote.price, quote.priceDecimals), source: quote.source, observedAt: quote.observedAt ?? quote.fetchedAt ?? null} : undefined;
     };
     return {now, habitDay, healthDay: hDay, habitZone, healthZone, habits: habits.data, health: health.data, fasting: fasting.data, platform: platform.data, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, quotes: market.quotes,
-      localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: notesForAi(options.data, memory.data), showcase: isShowcase()};
-  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded]);
+      localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: notesForAi(options.data, memory.data),
+      accounts: accounts.loaded && !accounts.unreadable ? accounts.data : null, milestoneDates: milestoneDates.loaded && !milestoneDates.unreadable ? milestoneDates.data : null,
+      chess: chessCache.loaded && !chessCache.unreadable ? {settings: dashboard.loaded && !dashboard.error ? chessOf(dashboard.data) ?? null : null, cache: chessCache.data} : null,
+      linksCount: dashboard.loaded && !dashboard.error ? linksOf(dashboard.data).items.length : null, showcase: isShowcase()};
+  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};
 }

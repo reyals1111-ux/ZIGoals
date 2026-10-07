@@ -144,3 +144,26 @@ test('without an AI: examples made from the person\'s records, each one answerab
   expect(examplesReply(env)).toMatchObject({kind: 'examples', text: 'I answer questions about your own records right here, on this device, without any AI. For example:'});
   expect(examplesFor(null)).toEqual(['How many minutes did I meditate this month?', 'How far am I on my goals?', 'What is my net worth?']);
 });
+test('Session W Part 21: the new areas answer here, in calm words; a habit the question names keeps its answer', () => {
+  // Health's sleep and mindful minutes, from the Showcase's fictional nights and sessions.
+  expect(textOf(ask('How did I sleep last night?'))).toMatch(/^Last night: \d+ h \d+ min asleep, \d+ h \d+ min in bed, from \d\d:\d\d to \d\d:\d\d\./);
+  expect(textOf(ask('What is my sleep debt?'))).toMatch(/^Over the last 7 days your sleep came to .+, across \d+ logged nights? \(your goal minus the time asleep, night by night\)\./);
+  expect(textOf(ask('How many mindful minutes this week?'))).toMatch(/^\d+ min of meditation this week \(Mon 5 Oct\), over \d+ sessions?\.$/);
+  // "meditation" still means the habit called Meditate (Session V's pins); a habit called Chess keeps "play chess".
+  expect(textOf(ask('What is my meditation streak?'))).toMatch(/^Your current Meditate streak is \d+ days?/);
+  const chessHabit = createHabit(sources().habits, {title: 'Chess', category: 'Learning', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date(`${DAY}T08:00:00Z`));
+  const withChess = open({...sources(), habits: chessHabit});
+  expect(ask('How often did I play chess this month?', withChess).kind === 'answer' && (ask('How often did I play chess this month?', withChess) as {calls: {tool: string}[]}).calls.map(c => c.tool)).toEqual(['habit_stats']);
+  expect(textOf(ask('What are my chess ratings?', withChess))).toMatch(/^Your ratings, as the sites published them: /);
+  // Debts: one total per currency from the person's own balances; the accounts question lists everything.
+  expect(textOf(ask('What do I owe?'))).toMatch(/^You owe [\d,]+\.\d\d USD across 2 debts, as entered on this device:\n- Car loan: /);
+  expect(textOf(ask('What are my accounts and debts?'))).toMatch(/^Your accounts and debts on this device \(5 accounts\):/);
+  expect(textOf(ask('What is my net worth?'))).toMatch(/\n- With your accounts and debts, your net worth is .+, never converted between currencies$/);
+  // With Health closed the Health ones refuse before anything is read; the others still answer.
+  for (const q of ['How did I sleep last night?', 'What is my sleep debt?', 'What was my resting heart rate this week?', 'Which devices do my records come from?']) expect(ask(q, shut()), q).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED, calls: []});
+  expect(ask('How many mindful minutes this week?', shut())).toMatchObject({kind: 'refusal', text: HEALTH_CLOSED});
+  expect(ask('What do I owe?', shut()).kind).toBe('answer');
+  // Not lookups: logging, statements and advice go to the person's AI.
+  for (const q of ['Log 7 hours of sleep for last night', 'I slept badly last night', 'Should I go to bed earlier?', 'How can I improve my chess rating?', 'Start a 30 day reading challenge']) expect(ask(q).kind, q).toBe('none');
+  for (const q of ['How did I sleep this week?', 'How consistent is my bedtime?', 'What do I owe?', 'How many chess games did I play this month?', 'How many links do I have?', 'What are my milestones?']) expect(textOf(ask(q)), q).not.toMatch(TONE_FORBIDDEN);
+});

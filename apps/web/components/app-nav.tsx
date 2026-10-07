@@ -1,9 +1,11 @@
 'use client';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import { AppIcon } from "./app-icon";
 import { entranceAllowed } from "./use-entrance";
+import { usePagesView } from "./pages/use-pages-view";
+import { groupStarts, hrefShown } from "../lib/pages/visibility";
 
 /**
  * The single source of navigation order and grouping, for the desktop sidebar, the tablet header and the phone More sheet
@@ -24,6 +26,7 @@ export const NAV_GROUPS = [
   ],
   [
     ["/app/ecosystem", "Ecosystem", "ecosystem"],
+    ["/app/chess", "Chess", "chess"],
     ["/app/activity", "Activity", "activity"],
     ["/app/settings", "Settings", "settings"],
   ],
@@ -31,6 +34,17 @@ export const NAV_GROUPS = [
 export const NAV_ITEMS = NAV_GROUPS.flat();
 /** The group a destination opens (2 or 3), for the space before it; the first group needs none. */
 export const NAV_GROUP_START: ReadonlyMap<string, number> = new Map(NAV_GROUPS.slice(1).map((group, index) => [group[0][0], index + 2]));
+/** The group (1-3) a destination belongs to. */
+export const navGroupOf = (href: string) => NAV_GROUPS.findIndex(group => group.some(([h]) => h === href)) + 1;
+/**
+ * The destinations that show (Session W Part 2, "Your pages & buttons"), in the same order, and the space before each
+ * group's first visible one; with nothing hidden this is exactly NAV_ITEMS and NAV_GROUP_START.
+ */
+export function useVisibleNav() {
+  const view = usePagesView();
+  const items = NAV_ITEMS.filter(([href]) => hrefShown(view, href));
+  return { items, starts: groupStarts(items, navGroupOf), view };
+}
 /** The Staking page's former address (until Session I it sat under Goals); it now redirects to /app/staking. */
 export const LEGACY_STAKING_PATH = "/app/goals/positions";
 /** The active item's own box styles, copied onto the glide so it looks identical at every breakpoint. */
@@ -49,10 +63,36 @@ export function isNavActive(path: string, href: string) {
   return path === href || path.startsWith(`${href}/`);
 }
 
+/**
+ * A focused destination that disappears (a page hidden from another device while its link had focus) hands focus to the
+ * page's main region, never to <body>; `key` changes whenever the list of destinations does.
+ */
+export function useFocusRescue(container: RefObject<HTMLElement | null>, key: string) {
+  const focused = useRef<Element | null>(null);
+  useEffect(() => {
+    const el = container.current;
+    if (!el) return;
+    const onFocus = (event: FocusEvent) => { focused.current = event.target instanceof Element ? event.target : null; };
+    el.addEventListener("focusin", onFocus);
+    return () => el.removeEventListener("focusin", onFocus);
+  }, [container]);
+  useLayoutEffect(() => {
+    const last = focused.current;
+    if (!last || last.isConnected) return;
+    focused.current = null;
+    if (document.activeElement && document.activeElement !== document.body) return;
+    const main = document.getElementById("main");
+    if (!main) return;
+    if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+    main.focus({ preventScroll: true });
+  }, [key]);
+}
+
 export function AppNav() {
-  const path = usePathname();
+  const path = usePathname(), { items, starts } = useVisibleNav();
   const isActive = (href: string) => isNavActive(path, href);
   const nav = useRef<HTMLElement>(null), glide = useRef<HTMLSpanElement>(null), previous = useRef<Box | null>(null);
+  useFocusRescue(nav, items.map(([href]) => href).join(" "));
   // The highlight travels from the previous item to the new one; aria-current and focus move immediately.
   useLayoutEffect(() => {
     const el = nav.current, layer = glide.current, active = el?.querySelector('a[aria-current="page"]');
@@ -98,9 +138,9 @@ export function AppNav() {
   }, []);
   return (
     <nav ref={nav} className="app-nav" aria-label="Main navigation">
-      {NAV_ITEMS.map(([href, label, icon]) => (
+      {items.map(([href, label, icon]) => (
         <Link key={href} href={href}
-          data-group-start={NAV_GROUP_START.get(href)}
+          data-group-start={starts.get(href)}
           aria-current={isActive(href) ? "page" : undefined}>
           <AppIcon name={icon} luminous={isActive(href)} /><span>{label}</span>
         </Link>

@@ -8,6 +8,8 @@ import {useZigiState, zigiEvents, zigiState} from '../zigi/bus';
 import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
 import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
+import {usePagesView} from '../pages/use-pages-view';
+import {isShown} from '../../lib/pages/visibility';
 import './ai-launcher.css';
 
 /**
@@ -40,6 +42,9 @@ function greetOnce(): void {
 export function AiLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false), [undoUntil, setUndoUntil] = useState<number | null>(null);
   const launcher = useLauncherRecord(), {look, loaded: lookLoaded} = useZigiLook(), sensitive = useSensitiveScreen(), phone = usePhoneActive(), pathname = usePathname() ?? '', zigi = useZigiState();
+  // Session W Part 2: the synced "ZIGi button" switch (Your pages & buttons) hides it on every device, edge tab and ⌘K
+  // included; the chevron below the button stays this device's own hide.
+  const switchedOff = !isShown(usePagesView(), 'zigi'), hidden = launcher.record.launcherHidden || switchedOff;
   const button = useRef<HTMLButtonElement>(null), timer = useRef<number | null>(null), warmed = useRef(false);
   useEffect(() => { setMounted(true); }, []);
   useAccountCleanup(useCallback(() => setOpen(false), []));
@@ -54,15 +59,15 @@ export function AiLauncher() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return;
-      if (launcher.record.launcherHidden || sensitive) return;
+      if (hidden || sensitive) return;
       event.preventDefault(); toggle();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [sensitive, launcher.record.launcherHidden, toggle]);
-  useEffect(() => { if (sensitive && open) setOpen(false); }, [sensitive, open]);
+  }, [sensitive, hidden, toggle]);
+  useEffect(() => { if ((sensitive || switchedOff) && open) setOpen(false); }, [sensitive, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
-  useEffect(() => { const onAsk = () => { if (!launcher.record.launcherHidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [launcher.record.launcherHidden, sensitive]);
+  useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -80,12 +85,12 @@ export function AiLauncher() {
   // The focus moves to ZIGi once the edge tab brought it back (the tab itself is gone by then).
   const showAgain = () => { launcher.setLauncherHidden(false); setUndoUntil(null); requestAnimationFrame(() => requestAnimationFrame(() => button.current?.focus({preventScroll: true}))); };
   // Session V Part 9: the page's "Ask ZIGi" affordances show only while this button does (CSS reads the root's mark).
-  const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !launcher.record.launcherHidden && !sensitive;
+  const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !hidden && !sensitive;
   useEffect(() => { const root = document.documentElement; if (shown) root.dataset[LAUNCHER_SHOWN_ATTRIBUTE] = 'shown'; else delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; return () => { delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; }; }, [shown]);
   if (!mounted || !pathname.startsWith('/app')) return null;
   const app = launcherApp(launcher.record);
-  const visible = launcher.loaded && lookLoaded && !launcher.record.launcherHidden && !sensitive;
-  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && look.edgeTab && !sensitive, agents = agentsOffered();
+  const visible = launcher.loaded && lookLoaded && !hidden && !sensitive;
+  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive, agents = agentsOffered();
   return <>
     {visible && <div className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}

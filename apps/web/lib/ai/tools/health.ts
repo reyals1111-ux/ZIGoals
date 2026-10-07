@@ -21,17 +21,18 @@ import type {ToolDefinition, ToolRefusal} from './types';
  * fasts, nothing more (HE6 and P5: no totals, no streaks, no longest fast), with HE6's safety note.
  */
 type Gated = {ok: true; health: HealthData} | ToolRefusal;
-function gated(env: ToolEnv, tool: string, label: string): Gated {
+/** Shared with Session W's Health tools (health-w.ts), which follow the same gate and range rules. */
+export function gated(env: ToolEnv, tool: string, label: string): Gated {
   return env.health && env.areas.health ? {ok: true, health: env.health} : refuse(tool, label, 'gate', HEALTH_CLOSED);
 }
-function rangeFor(env: ToolEnv, raw: string | undefined, fallback: string, tool: string, label: string, future = false): DayRange | ToolRefusal {
+export function rangeFor(env: ToolEnv, raw: string | undefined, fallback: string, tool: string, label: string, future = false): DayRange | ToolRefusal {
   const range = parseRange(raw?.trim() || fallback, env.healthDay, {future});
   return range.ok ? {from: range.from, to: range.to, label: range.label} : refuse(tool, label, 'range', range.message);
 }
-const isRefusal = (value: unknown): value is ToolRefusal => typeof value === 'object' && value !== null && (value as {ok?: unknown}).ok === false;
-const where = (env: ToolEnv, subject: string | null, range: DayRange | null) => provenance(env, 'Health journal', subject, range, env.healthZone);
-const rangeArg = z.string().trim().max(80).optional();
-const RANGE = (fallback: string) => ({type: 'string', description: `A period such as "today", "yesterday", "this week", "last month", "the last 14 days", "since 2026-09-01" or "2026-09-01..2026-09-15". Default: ${fallback}.`} as const);
+export const isRefusal = (value: unknown): value is ToolRefusal => typeof value === 'object' && value !== null && (value as {ok?: unknown}).ok === false;
+export const where = (env: ToolEnv, subject: string | null, range: DayRange | null) => provenance(env, 'Health journal', subject, range, env.healthZone);
+export const rangeArg = z.string().trim().max(80).optional();
+export const RANGE = (fallback: string) => ({type: 'string', description: `A period such as "today", "yesterday", "this week", "last month", "the last 14 days", "since 2026-09-01" or "2026-09-01..2026-09-15". Default: ${fallback}.`} as const);
 const grams = (mg: number | null | undefined) => typeof mg === 'number' ? num(mg / 1000, 1) : 'unknown';
 
 /** Nutrients by the names people use; `scale` turns the stored value into the unit shown. */

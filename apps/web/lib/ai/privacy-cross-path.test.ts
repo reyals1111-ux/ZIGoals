@@ -1,5 +1,6 @@
 import {expect, test} from 'vitest';
 import {emptyWeeklyReview} from '../weekly-review/schema';
+import {healthGroupIn} from '../vault/w-homes';
 import {bridgePrompt} from './bridge';
 import {buildPageContext, type BuilderInput} from './context/builders';
 import {consent} from './context/consent';
@@ -8,7 +9,7 @@ import {aiGates, healthGate} from './gates';
 import {Handles} from './handles';
 import type {PageArea} from './settings';
 import {toolEnv, type ToolSources} from './tools/env';
-import {gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
+import {DAY, gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from './tools/fixtures';
 import {availableTools, runTool, TOOLS, toolText} from './tools/registry';
 import {localAnswer} from './local-answers/engine';
 import {recordsForAi} from './local-answers/more';
@@ -68,6 +69,56 @@ test('the checks can see the sentinels: with the gate open they appear on the He
   const sent = everythingSent(true), found = new Set(sent.flatMap(s => sentinelsIn(s.text)));
   for (const value of [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue)]) expect(found, value).toContain(value);
   expect(sent.find(s => s.path === 'page context /app/health')!.text).toContain(SENTINEL.food);
+});
+test('Session W Part 4: the sentinel night is in the Health journal the paths read, so the closed-gate checks above cover sleep', () => {
+  // Sleep reaches ZIGi only under the Health gate (W7); its own tools and their open-gate control come with Part 21.
+  const health = sources().health;
+  expect(health.schemaVersion).toBe(4);
+  expect(JSON.stringify(health)).toContain(SENTINEL.sleepNote);
+  expect(JSON.stringify(health)).toContain(SENTINEL.sleepTag);
+  const shut = everythingSent(false);
+  for (const {path, text} of shut) { expect(text, path).not.toContain(SENTINEL.sleepNote); expect(text, path).not.toContain(SENTINEL.sleepTag); }
+});
+test('Session W Part 5: the sentinel meditation session is in the journal too, and never leaves with the gate closed', () => {
+  // Meditation reaches ZIGi only under the Health gate (W7); its tools and their open-gate control come with Part 21.
+  expect(JSON.stringify(sources().health)).toContain(SENTINEL.meditationNote);
+  for (const {path, text} of everythingSent(false)) expect(text, path).not.toContain(SENTINEL.meditationNote);
+});
+test('Session W Part 7: records an import added (a day\'s steps, a day\'s vitals) are Health like the rest, and never leave with the gate closed', () => {
+  const health = sources().health;
+  expect(JSON.stringify(health)).toContain(String(SENTINEL.importSteps));
+  expect(JSON.stringify(health)).toContain(String(SENTINEL.importKcal));
+  for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(String(SENTINEL.importSteps)); expect(text, path).not.toContain(String(SENTINEL.importKcal)); }
+});
+test('Session W Part 8: a linked service\'s record and a meditation\'s heart-rate summary are Health like the rest, and never leave with the gate closed', () => {
+  const health = sources().health, {avg, min, max} = SENTINEL.heartRate, heart = new RegExp(`\\b(?:${avg}|${min}|${max})\\b`);
+  expect(health.activity.find(a => a.name === SENTINEL.linkedWorkout)?.id).toMatch(/^health_imp-strava-link-[0-9a-f]{16}$/);
+  expect(healthGroupIn(health, 'meditation')?.sessions.find(m => m.id === 'health_med-sentinel-0001')?.heartRate).toEqual({avg, min, max});
+  for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(SENTINEL.linkedWorkout); expect(text, path).not.toMatch(heart); }
+  expect(everythingSent(true).some(s => s.text.includes(SENTINEL.linkedWorkout))).toBe(true);
+});
+test('Session W Part 9: quick logging\'s own group (a pinned food, the water buttons) is Health, and never leaves with the gate closed', () => {
+  const health = sources().health, size = new RegExp(`\\b${SENTINEL.quickWaterMl}\\b`);
+  expect(healthGroupIn(health, 'quick')).toMatchObject({waterSizesMl: [250, SENTINEL.quickWaterMl], pinned: [{sourceId: 'health_food-sentinel-1', sourceKind: 'food'}]});
+  for (const {path, text} of everythingSent(false)) expect(text, path).not.toMatch(size);
+});
+test('Session W Part 13: the evening wrap-up\'s mood is Health, in the journal the paths read, and never leaves with the gate closed', () => {
+  const health = sources().health;
+  expect(healthGroupIn(health, 'moods')?.days[DAY]).toMatchObject({mood: 2, note: SENTINEL.moodNote});
+  for (const {path, text} of everythingSent(false)) expect(text, path).not.toContain(SENTINEL.moodNote);
+});
+test('Session W Part 21: with the gate open, the new Health tools carry their sentinels (sleep tag and note, the meditation note and heart rate, imported energy), so the closed-gate checks above can see them', () => {
+  const open = everythingSent(true), text = (tool: string) => open.find(s => s.path === `tool ${tool} on /app/health`)!.text, {avg, min, max} = SENTINEL.heartRate;
+  expect(text('sleep_nights')).toContain(SENTINEL.sleepTag);
+  expect(text('sleep_nights')).toContain(SENTINEL.sleepNote);
+  expect(text('meditation_sessions')).toContain(SENTINEL.meditationNote);
+  expect(text('meditation_sessions')).toMatch(new RegExp(`\\b${avg}\\b[\\s\\S]*\\b${min}\\b[\\s\\S]*\\b${max}\\b`));
+  expect(text('vitals')).toContain(String(SENTINEL.importKcal));
+  expect(text('devices')).toMatch(/Strava \(linked\)/);
+  // The same tools refuse with the gate closed, on every page, before reading anything.
+  for (const {path, text: shut} of everythingSent(false).filter(s => /^tool (sleep_nights|sleep_summary|meditation_sessions|meditation_summary|vitals|devices) on /.test(s.path))) expect(JSON.parse(shut).refused, path).toBeTruthy();
+  // Moods (the wrap-up) and the quick-logging buttons have no tool: nothing reads them for ZIGi.
+  for (const {path, text: any} of open.filter(s => s.path.startsWith('tool '))) { expect(any, path).not.toContain(SENTINEL.moodNote); expect(any, path).not.toMatch(new RegExp(`\\b${SENTINEL.quickWaterMl}\\b`)); }
 });
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};
@@ -149,8 +200,10 @@ test('Part 6: native tool calls carry no Health with the gate closed: no Health 
   // returns is checked (a broad search finds the sentinel food when Health is readable).
   const argsFor = (name: string): Record<string, unknown> => name === 'habit_stats' || name === 'habit_checkins' ? {habit: 'Walk', range: 'today'} : name === 'search_foods' ? {query: 'SENTINEL'} : name === 'goal_progress' ? {goal: 'Japan'} : {};
   // A MOCK model that asks for every one of ZIGi's tools, eight per round, then answers.
-  const sent = async (health: boolean, area: PageArea, pathname: string) => {
-    const requests: ChatRequest[] = [], batches = [TOOLS.slice(0, 8), TOOLS.slice(8, 16), TOOLS.slice(16, 24), TOOLS.slice(24)];
+  // Session W Part 21: ZIGi has more tools than one exchange may call (4 rounds of 8), so they go in exchanges of at most
+  // 32, and every tool is called (checked below).
+  const exchange = async (health: boolean, area: PageArea, pathname: string, tools: readonly (typeof TOOLS)[number][]) => {
+    const requests: ChatRequest[] = [], batches = Array.from({length: Math.ceil(tools.length / 8)}, (_, i) => tools.slice(i * 8, i * 8 + 8));
     const stream = async function* (request: ChatRequest): AsyncGenerator<ChatEvent> {
       requests.push(request);
       const batch = batches[requests.length - 1] ?? [];
@@ -163,6 +216,12 @@ test('Part 6: native tool calls carry no Health with the gate closed: no Health 
     for await (const event of runWithTools({provider: 'openai', model: 'mock', system, messages: [{role: 'user', content: 'Tell me everything'}], maxOutputTokens: 256, key: null, env, stream, answerChars: 1_000_000})) void event;
     return {requests, offered: toolsFor(env).map(t => t.name)};
   };
+  const sent = async (health: boolean, area: PageArea, pathname: string) => {
+    const parts = Array.from({length: Math.ceil(TOOLS.length / 32)}, (_, i) => TOOLS.slice(i * 32, i * 32 + 32)), runs = [];
+    for (const part of parts) runs.push(await exchange(health, area, pathname, part));
+    const requests = runs.flatMap(r => r.requests), called = new Set(requests.flatMap(r => r.messages.flatMap(m => m.role === 'tool' ? [m.name] : [])));
+    return {requests, offered: runs[0]!.offered, called};
+  };
   for (const [area, pathname] of PAGES) {
     const {requests, offered} = await sent(false, area, pathname);
     expect(offered.filter(name => TOOLS.find(t => t.name === name)?.area === 'health'), pathname).toEqual([]);
@@ -173,6 +232,8 @@ test('Part 6: native tool calls carry no Health with the gate closed: no Health 
   // The control: with the gate open on Health, the same exchange carries the sentinels.
   const open = await sent(true, 'health', '/app/health');
   expect(sentinelsIn(JSON.stringify(open.requests)).length).toBeGreaterThan(3);
+  // Every one of ZIGi's tools was asked for and answered (Session W Part 21's tools included).
+  expect([...open.called].sort()).toEqual(TOOLS.map(t => t.name).sort());
 });
 test('Part 8: the person\'s notes: a health or diet note never leaves with the gate closed, and no note leaves while "Use my notes" is off', () => {
   // The sources carry a health-tagged sentinel note and an ordinary one (fixtures.ts).
@@ -248,7 +309,7 @@ test('Part 16: browser AI agents (WebMCP): no Health tool offered, every result 
   for (const [area, pathname] of PAGES) {
     const handles = new Handles(), env = toolEnv(s, gatesFor(false, area, pathname), 'provider', handles);
     const offered = readTools(availableTools(env), agentRunner(() => env, call => seen.push(call)));
-    expect(offered.some(t => /water|steps|weight|nutrient|diary|fasting|counters|recipes|meal_plan|groceries|search_foods|body_measurements/.test(t.name)), pathname).toBe(false);
+    expect(offered.some(t => /water|steps|weight|nutrient|diary|fasting|counters|recipes|meal_plan|groceries|search_foods|body_measurements|sleep|meditation|vitals|devices/.test(t.name)), pathname).toBe(false);
     expect(sentinelsIn(JSON.stringify(offered.map(t => [t.name, t.title, t.description, t.inputSchema]))), pathname).toEqual([]);
     // Every tool, offered or not, called the way an agent would: the gate refuses the Health ones without reading.
     const all = readTools(TOOLS, agentRunner(() => env, call => seen.push(call)));

@@ -1,0 +1,28 @@
+/* Session W Part 19: My links — Settings card and Today buttons. 44 px targets; the glyphs are ZIGoals' own. */
+.link-glyph { flex: 0 0 auto; color: #cfe0ff; }
+.link-monogram { display: inline-grid; place-items: center; width: 22px; height: 22px; }
+.link-monogram::before { content: attr(data-letter); display: grid; place-items: center; box-sizing: border-box; width: 76%; height: 76%; border: 1.5px solid currentColor; border-radius: 50%; font-size: 10px; font-weight: 700; line-height: 1; }
+.links-settings { display: grid; gap: 12px; }
+.links-settings h2 { margin: 0; }
+.links-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.links-list > li { display: grid; gap: 10px; padding: 10px 12px; border: 1px solid #7fc8ff24; border-radius: 14px; background: #0f1a30cc; }
+.links-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.links-item { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.links-item > span { display: grid; min-width: 0; }
+.links-item small { color: #c4d3e6; font-size: 14px; overflow-wrap: anywhere; }
+.links-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.links-actions button { min-height: 44px; min-width: 44px; }
+.links-form { display: grid; gap: 12px; }
+.links-icon-field { display: grid; gap: 8px; }
+.links-icon-choice { display: flex; align-items: center; gap: 10px; }
+.links-icon-choice select { flex: 1 1 auto; min-height: 44px; }
+.links-form .actions, .links-confirm .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.links-form .actions button, .links-confirm button, .links-settings > button { min-height: 44px; }
+.links-settings > button { justify-self: start; }
+.today-links { display: grid; gap: 12px; }
+.today-links-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; background: none; text-align: start; }
+.today-links-head h2 { margin: 0; font-size: 19px; }
+.today-links-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.today-links-list a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid #7fc8ff33; border-radius: 999px; background: #10203acc; color: inherit; text-decoration: none; font-size: 15px; }
+.today-links-list a:hover, .today-links-list a:focus-visible { border-color: #6fdcff; }
+@media (max-width: 767.98px) { .links-settings input, .links-settings select { font-size: 16px; } }

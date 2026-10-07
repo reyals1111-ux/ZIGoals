@@ -64,10 +64,13 @@ export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:rea
  timestamp(now);
  const zone=planZone(g),today=planDay(now,zone),tomorrow=zone==='UTC'?planDay(now+86400000):shiftPlanDay(today,1),horizon=scenarioHorizon(today,g.targetDate);
  const progress=goalProgress(s,goalId,now,quotes),totals=contributionTotals(s,goalId,now);
- let plannedThroughToday='0',plannedFuture='0',dates:string[]=[],nextDate:string|null=null,completionDate:string|null=BigInt(progress.current)>=BigInt(progress.target)&&!progress.requiresReview?today:null,planWarning=false;
+ let plannedThroughToday='0',dueToday='0',plannedFuture='0',dates:string[]=[],nextDate:string|null=null,completionDate:string|null=BigInt(progress.current)>=BigInt(progress.target)&&!progress.requiresReview?today:null,planWarning=false;
  if(g.planRevisions?.length&&g.type!=='PROJECT')try {
   const installments=revisionInstallments(g,g.planRevisions[0]!.effectiveFrom,horizon,s.contributions,now);
-  plannedThroughToday=installments.filter(x=>x.date<=today).reduce((n,x)=>n+BigInt(x.amount),0n).toString();
+  // T6-B (Session W Part 17): today's instalment counts as planned only once its day has ended in the plan's zone, or as
+  // far as it is already funded; until then the plan says "due today", so nobody is behind on the day they are meant to fund.
+  dueToday=installments.filter(x=>x.date===today).reduce((n,x)=>n+BigInt(x.remaining),0n).toString();
+  plannedThroughToday=(installments.filter(x=>x.date<=today).reduce((n,x)=>n+BigInt(x.amount),0n)-BigInt(dueToday)).toString();
   const future=installments.filter(x=>x.date>today&&BigInt(x.remaining)>0n);
   plannedFuture=future.reduce((n,x)=>n+BigInt(x.remaining),0n).toString();dates=future.map(x=>x.date);
   nextDate=installments.find(x=>x.date>=today&&BigInt(x.remaining)>0n)?.date??null;
@@ -76,7 +79,9 @@ export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:rea
  else if(g.plan&&g.type!=='PROJECT')try {
   const credits=scheduledFundingCredits(s,g,now);
   nextDate=planScenario(g,progress.current,g.plan,horizon,today,credits).dates[0]??null;
-  plannedThroughToday=planScenario(g,'0',g.plan,today,g.createdAt.slice(0,10)).contributions;
+  // T6-B, as above: what is still due today (after its funding links) is not yet planned through today.
+  dueToday=planScenario(g,'0',g.plan,today,today,credits).contributions;
+  plannedThroughToday=(BigInt(planScenario(g,'0',g.plan,today,g.createdAt.slice(0,10)).contributions)-BigInt(dueToday)).toString();
   const future=planScenario(g,progress.current,g.plan,horizon,tomorrow,credits);plannedFuture=future.contributions;dates=future.dates;if(!progress.requiresReview&&completionDate===null)completionDate=future.completionDate;
  }catch{planWarning=true;}
  const variance=BigInt(totals.net)-BigInt(plannedThroughToday),projected=BigInt(progress.current)+BigInt(plannedFuture),target=BigInt(progress.target);
@@ -84,7 +89,7 @@ export function fundingHealth(s:Platform,goalId:string,now=Date.now(),quotes:rea
  const allocatedLiquidity=s.allocations.filter(a=>a.goalId===goalId&&BigInt(a.quantity)>0n).map(a=>s.positions.find(p=>p.id===a.positionId)?.liquidity);
  const liquidityWarning=allocatedLiquidity.some(l=>l!==undefined&&l!=='LIQUID'&&l!=='UNKNOWN'),liquidityUnknown=allocatedLiquidity.includes('UNKNOWN');
  const warnings=[...(g.planRevisions?.[0]?.priorHistory==='unknown'?['Earlier plan terms are unknown; planned totals start at the first recorded revision. Lifetime actual contributions and this partial plan history cannot establish complete historical pace.']:[]),...(g.planRevisions?.length&&s.contributions.some(e=>e.goalId===g.id&&e.goalScope==='private'&&e.scheduledDate&&!e.installmentId)?['Older date-only funding links are retained as unmatched history; no revision match is assumed.']:[]),...(liquidityWarning?['Some allocated wealth is not liquid.']:[]),...(liquidityUnknown?['The liquidity of some allocated wealth is unknown.']:[]),...(progress.requiresReview?['Stale, missing or incomplete valuation/quantity evidence needs review.']:[]),...(planWarning?['Plan requires a compatible price assumption.']:[]),...(totals.unvaluedCount?['Some recorded events have no value in this Goal’s unit.']:[])];
- return {current:progress.current,target:progress.target,remaining:progress.remaining,actual:totals.net,rewardIncome:totals.rewardIncome,plannedThroughToday,variance:variance.toString(),plannedFuture,requiredRecurring:dates.length?((BigInt(progress.remaining)+BigInt(dates.length)-1n)/BigInt(dates.length)).toString():null,completionDate,nextDate,overdue:variance<0n,latest:totals.latest,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),warnings,status:progress.requiresReview||planWarning||g.planRevisions?.[0]?.priorHistory==='unknown'?'REVIEW':BigInt(progress.current)>=target?'COMPLETED':!effectiveContributionPlan(g,today)?.active&&plannedFuture==='0'?'NO_PLAN':variance<0n?'BEHIND':variance>0n?'AHEAD':projected>=target?'ON_TRACK':'BEHIND',horizon};
+ return {current:progress.current,target:progress.target,remaining:progress.remaining,actual:totals.net,rewardIncome:totals.rewardIncome,plannedThroughToday,dueToday,planZone:zone,variance:variance.toString(),plannedFuture,requiredRecurring:dates.length?((BigInt(progress.remaining)+BigInt(dates.length)-1n)/BigInt(dates.length)).toString():null,completionDate,nextDate,overdue:variance<0n,latest:totals.latest,shortfall:max(0n,target-projected).toString(),surplus:max(0n,projected-target).toString(),warnings,status:progress.requiresReview||planWarning||g.planRevisions?.[0]?.priorHistory==='unknown'?'REVIEW':BigInt(progress.current)>=target?'COMPLETED':!effectiveContributionPlan(g,today)?.active&&plannedFuture==='0'?'NO_PLAN':variance<0n?'BEHIND':variance>0n?'AHEAD':projected>=target?'ON_TRACK':'BEHIND',horizon};
 }
 export type GoalTimelineEvent={id:string;goalId:string;at:string;kind:string;label:string;provenance:string;quantity?:string;asset?:string;decimals?:number};
 export function goalTimeline(s:Platform,goalId:string,scope:'private'|'local'='private'):GoalTimelineEvent[] {

@@ -1,7 +1,7 @@
 import type {AtomicMarketStorage} from './durable-market-account';
 import {publicMarketWorkKey,type PublicMarketWork} from './market-coordinator';
 import type {BreakerPolicy,BreakerScope,BreakerState} from './market-breaker';
-export const workEndpoint=(work:PublicMarketWork)=>work.operation==='quote'?`quote:${work.pair.marketRef.kind}`:work.operation==='catalog'?`catalog:${work.kind}`:`${work.operation}:shared`;
+export const workEndpoint=(work:PublicMarketWork)=>work.operation==='quote'?`quote:${work.pair.marketRef.kind}`:work.operation==='catalog'?`catalog:${work.kind}`:work.operation==='detail'?'insights:shared':`${work.operation}:shared`;
 export const pairScope=(endpoint:string,work:PublicMarketWork):BreakerScope=>({kind:'pair',workKey:JSON.stringify([endpoint,publicMarketWorkKey(work)])});
 export const breakerKey=(scope:BreakerScope)=>'breaker:'+JSON.stringify(scope);
 /** This read never issues a recovery permit. Admission after a real budget hold

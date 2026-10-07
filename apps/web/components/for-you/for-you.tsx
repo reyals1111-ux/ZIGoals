@@ -12,12 +12,14 @@ export const FOR_YOU_OPEN = {phone: 1, wide: 2} as const;
  * the rest behind one "Show more" row on every size (the folded-section pattern of components/phone/phone-fold.tsx). Nothing here is
  * written on view; a card writes only its own key when dismissed or finished.
  */
-export function ForYou({cards, status = ''}: {cards: ForYouCard[]; status?: string}) {
+/** `note` (Session W Part 13): one line under the eyebrow, such as the intention written at last night's wrap-up. */
+export function ForYou({cards, status = '', note = null}: {cards: ForYouCard[]; status?: string; note?: ReactNode}) {
   const [open, setOpen] = useState(false), id = useId(), limit = usePhoneActive() ? FOR_YOU_OPEN.phone : FOR_YOU_OPEN.wide;
   const ordered = [...cards].sort((a, b) => a.priority - b.priority), shown = ordered.slice(0, limit), folded = ordered.slice(limit);
-  if (!ordered.length && !status) return null;
+  if (!ordered.length && !status && !note) return null;
   return <section className="for-you" aria-label="For you">
     <p className="eyebrow for-you-eyebrow">For you</p>
+    {note}
     {status && <p role="status" className="fine for-you-status">{status}</p>}
     {shown.map(card => <div key={card.id} className="for-you-slot" data-card={card.id}>{card.node}</div>)}
     {folded.length > 0 && <div className="phone-fold for-you-fold" data-open={open || undefined}>

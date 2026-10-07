@@ -7,7 +7,7 @@ import { NebulaFlow } from "../nebula-flow";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
+import { Suspense, lazy, useState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
 import {
   HEALTH_MEALS,foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
   logHealthItem, newHealthId, parseHealthNumber, recipeNutrition,
@@ -33,6 +33,7 @@ import {additionalNutrients} from "../../lib/health";
 import {BodyMeasurements} from "./body-measurements";
 import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
+import { MealQuick, RepeatDay } from "./quick-log";
 import { bodyWeightGrams, dailyData, servingsFromMeasure } from "../../lib/health-daily";
 import { EvidenceChart } from "../platform/evidence-chart";
 import {healthDateSchema} from "../../lib/health";
@@ -43,6 +44,19 @@ import { PhoneFold } from "../phone/phone-fold";
 import { formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
 import { updateRefusalMessage } from "../../lib/storage-error-copy";
+import { SleepCard } from "./sleep/sleep-card";
+import { healthGroupIn } from "../../lib/vault/w-homes";
+import { MeditationCard } from "./meditation/meditation-card";
+import { useDeviceRecord } from "../ai/use-device-record";
+import { MEDITATION_RUN } from "../../lib/meditation/schema";
+
+/** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
+const SleepView = lazy(() => import("./sleep/sleep-view"));
+const MeditationView = lazy(() => import("./meditation/meditation-view"));
+const DevicesView = lazy(() => import("./devices/devices-view"));
+/** Session W Part 7: an activity line an import or a device link brought in (its id names the source). */
+const SOURCE_NAMES: Record<string, string> = {"apple-health": "Apple Health", fitbit: "Fitbit / Google Health", samsung: "Samsung Health", oura: "Oura", garmin: "Garmin", "oura-link": "Oura (linked)", "withings-link": "Withings (linked)", "polar-link": "Polar (linked)", "strava-link": "Strava (linked)"};
+function importedFrom(id: string): string | null { const m = /^health_imp-([a-z]+(?:-[a-z]+)?)-[0-9a-f]{16}$/.exec(id); return m ? SOURCE_NAMES[m[1]!] ?? null : null; }
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
@@ -82,8 +96,15 @@ export function HealthApp() {
   // H7: linked habits tick themselves off from this journal while it is open.
   const habits = useHabits();
   useAutoCheckIns({ habits, health: store });
+  const params = useSearchParams();
+  // Session W Part 8: a linked service sends the person back to /app/health with its code (or refusal) and the state;
+  // the Devices view reads and removes them.
+  const view = params.get("view") ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
+  if (view === "sleep") return <Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense>;
+  if (view === "meditation") return <Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense>;
+  if (view === "devices") return <Suspense fallback={<section className="panel"><h1>Devices</h1><p>Opening Devices…</p></section>}><DevicesView /></Suspense>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 
@@ -92,6 +113,10 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const router = useRouter(), phone = usePhoneActive();
   // HE6: the fasting timer, this device's own record.
   const fasting = useFasting();
+  // Session W Part 4: on a phone the Sleep card folds like the fasting timer, and stays open while a night runs.
+  const sleepRunning = (healthGroupIn(data, "sleep")?.nights ?? []).some(n => n.end === null);
+  // Session W Part 5: the Meditation card folds the same way, open while a session runs on this device.
+  const meditationRunning = !!useDeviceRecord(MEDITATION_RUN).data.run;
   // I1: meals from a nutrition CSV (phone: a sheet; desktop: inside the Diary details), with this device's undo ledger.
   const [importingCsv, setImportingCsv] = useState(false), imports = useImportUndo();
   const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
@@ -105,15 +130,26 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     setHandledIntent(addIntent);
     if (addIntent) setView("Diary");
   }
+  // Session W Part 7: Settings → Switch to ZIGoals sends MyFitnessPal and Cronometer files here (?import=meals).
+  const importIntent = searchParams.get("import") === "meals";
+  const [handledImport, setHandledImport] = useState(false);
+  if (importIntent !== handledImport) {
+    setHandledImport(importIntent);
+    if (importIntent) { setView("Diary"); setImportingCsv(true); }
+  }
+  useEffect(() => { if (importIntent) document.getElementById("import-meals")?.scrollIntoView({ block: "start", behavior: "instant" }); }, [importIntent]);
   useEffect(() => {
     if (!addIntent) return;
     const entry = document.getElementById("health-entry-action");
-    entry?.scrollIntoView({ block: "center", behavior: "instant" });
+    // The form itself is brought to the middle: the quick picks above it can make the section taller than the screen.
+    (entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"]') ?? entry)?.scrollIntoView({ block: "center", behavior: "instant" });
     const entryControl = entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"] select')
       ?? entry?.querySelector<HTMLElement>("select, input, button");
     entryControl?.focus({ preventScroll: true });
     if (window.matchMedia(PHONE_QUERY).matches) setLogging(true);
-    router.replace("/app/health", { scroll: false });
+    // Only the Quick Add intent leaves the address; any other part of it (a date, a view) stays.
+    const url = new URL(window.location.href); url.searchParams.delete("add");
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [addIntent, router]);
   const today = useHealthToday(dailyData(data).preferences.timezone);
   const [date, setDate] = useState(() => pinnedDate.success?pinnedDate.data:today);
@@ -159,7 +195,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><DiaryView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
+      {view === "Diary" && <><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
@@ -169,7 +205,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Targets" && <TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} />}
     </fieldset>
     </div>},
-    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your wearables</strong><p>Apple Health, Health Connect, Fitbit &amp; Garmin are planned.</p><b>Planned · Not connected</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
+    {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
+    {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
+    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a></p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} />},
     ]}/>
@@ -194,7 +232,7 @@ function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs 
   </section>;
 }
 
-function DiaryView({ data, date, choice, perform, invalid, onLibrary, phone, error, logging, setLogging }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void; phone: boolean; error: string; logging: boolean; setLogging: (open: boolean) => void }) {
+function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, phone, error, logging, setLogging }: { data: HealthData; date: string; today: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void; onLibrary: () => void; phone: boolean; error: string; logging: boolean; setLogging: (open: boolean) => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [source, setSource] = useState("");
   const [servings, setServings] = useState("1");
@@ -221,13 +259,13 @@ function DiaryView({ data, date, choice, perform, invalid, onLibrary, phone, err
     <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><label className="field"><span>Quantity unit</span><select aria-label="Quantity unit" value={entryUnit} onChange={e => { setEntryUnit(e.target.value); setServings(""); logOperation.current = null; }}><option value="servings">Servings</option><option value="grams">Grams</option><option value="millilitres">Millilitres</option></select></label><NumberField label={entryUnit === "grams" ? "Food weight (g)" : entryUnit==="millilitres"?"Food volume (mL)":"Servings"} value={servings} onChange={v => { setServings(v); logOperation.current = null; }} step="0.001" /></div>{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {date}. Measured entries use the saved serving unit, rounded to 0.001 serving. Weight and volume never convert without density evidence.</p>
   </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}</>;
   const logForm = <>{quickPicks}{mealForm}</>;
-  return <div className="health-diary-layout"><div className="health-meals">{HEALTH_MEALS.map(mealName => {
+  return <div className="health-diary-layout"><div className="health-meals"><RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const mealSummary=dailyHealthSummary({...data,diary:entries},date);
     return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{nutritionSummaryText(mealSummary,"kcal","kcal")}</span><PinToToday label={`${mealName} today`} choices={[{kind:'meal',entity:mealName,metric:'kcal',label:`${mealName} today calories`},{kind:'meal',entity:mealName,metric:'macros',label:`${mealName} today macros`}]}/></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" id={`entry-${entry.id}`} key={entry.id}>
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)}{` ${plural(entry.quantityMilli / 1000, "serving")} · `}{formatServingMeasure(entry.snapshot,entry.quantityMilli)}{entry.snapshot.recipeVersion?` · Recipe version ${entry.snapshot.recipeVersion}`:""}</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
-    </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}</section>;
+    </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}<MealQuick data={data} date={date} today={today} meal={mealName} perform={perform} /></section>;
   })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone && sourceItems.length > 0 ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
 }
 
@@ -319,7 +357,7 @@ function ActivityView({ data, date, choice, perform, invalid }: { data: HealthDa
   const [editing, setEditing] = useState<string | null>(null);
   const current = entries.find(a => a.id === editing);
   const operation = useRef<string | null>(null);
-  return <div className="health-two-columns"><section className="panel health-activity-overview"><PinToToday label="Movement" choices={[{kind:'health',metric:'steps',label:'Steps today'},{kind:'health',metric:'activity',label:'Activity today'}]}/><p className="eyebrow">MOVE AT YOUR PACE</p><h2>Your movement, recorded.</h2><div className="health-weight-stats"><div><span>Steps</span><strong>{formatNumber(summary.steps)}</strong></div><div><span>Minutes</span><strong>{formatNumber(summary.minutes)}</strong></div><div><span>Your step target</span><strong>{data.targets.steps == null ? "Not set" : formatNumber(data.targets.steps)}</strong></div></div><p className="fine">Manual entries for {date}. Movement never changes your calorie target. These entries are not imported or device-synced observations.</p>{entries.length ? entries.map(a => <article className="health-library-row" key={a.id}><div><h3>{a.name}</h3><p>{formatNumber(a.steps)}{` ${plural(a.steps, "step")} · `}{a.minutes}{` ${plural(a.minutes, "minute")}`}</p><p className="fine">Manual · corrected {a.updatedAt.slice(0, 10)}</p></div><div className="health-row-actions"><button className="quiet" aria-label={`Edit activity ${a.name}`} onClick={() => { setEditing(a.id); operation.current = null; }}>Edit</button><button className="quiet" aria-label={`Remove activity ${a.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "activity", a.id), "Activity removed.")}>Remove</button></div></article>) : <p className="health-empty-inline">No movement logged for this day.</p>}</section><section className="panel health-fit-panel"><h2>{current ? "Correct movement." : "Add movement."}</h2><FormBox key={`${choice}:${current?.id ?? "new"}`} title="Manual activity" onSubmit={e => { e.preventDefault(); try { const form = e.currentTarget; const values = new FormData(form); operation.current ??= newHealthId(); const draft = { id: current?.id ?? operation.current, date, name: visibleName(formString(values, "name")), steps: formNumber(values, "steps", 1, 0, 1_000_000), minutes: formNumber(values, "minutes", 1, 0, 1440) }; if (!draft.steps && !draft.minutes) return invalid(); void perform(latest => saveActivity(latest, draft, new Date().toISOString()), current ? "Activity corrected." : "Activity saved.", () => { form.reset(); setEditing(null); operation.current = null; }); } catch (cause) { invalid(cause); } }}><label className="field"><span>Activity name</span><input name="name" required maxLength={120} placeholder="For example, a walk or strength session" defaultValue={current?.name ?? ""} /></label><div className="health-form-grid"><label className="field"><span>Steps</span><input name="steps" type="text" inputMode="numeric" autoComplete="off" required defaultValue={current?.steps ?? 0} /></label><label className="field"><span>Minutes</span><input name="minutes" type="text" inputMode="numeric" autoComplete="off" required defaultValue={current?.minutes ?? 0} /></label></div><div className="actions"><button className="primary" type="submit">{current ? "Save correction" : "Save activity"}</button>{current && <button className="quiet" type="button" onClick={() => { setEditing(null); operation.current = null; }}>Cancel correction</button>}</div><p className="fine">Enter steps, minutes, or both. New entries are added together; correcting one replaces only that record. No calorie expenditure is estimated.</p></FormBox></section></div>;
+  return <div className="health-two-columns"><section className="panel health-activity-overview"><PinToToday label="Movement" choices={[{kind:'health',metric:'steps',label:'Steps today'},{kind:'health',metric:'activity',label:'Activity today'}]}/><p className="eyebrow">MOVE AT YOUR PACE</p><h2>Your movement, recorded.</h2><div className="health-weight-stats"><div><span>Steps</span><strong>{formatNumber(summary.steps)}</strong></div><div><span>Minutes</span><strong>{formatNumber(summary.minutes)}</strong></div><div><span>Your step target</span><strong>{data.targets.steps == null ? "Not set" : formatNumber(data.targets.steps)}</strong></div></div><p className="fine">Entries for {date}: yours, and any an import brought in (marked). Movement never changes your calorie target.</p>{entries.length ? entries.map(a => <article className="health-library-row" key={a.id}><div><h3>{a.name}</h3><p>{formatNumber(a.steps)}{` ${plural(a.steps, "step")} · `}{a.minutes}{` ${plural(a.minutes, "minute")}`}</p><p className="fine">{importedFrom(a.id) ? `Imported from ${importedFrom(a.id)}` : `Manual · corrected ${a.updatedAt.slice(0, 10)}`}</p></div><div className="health-row-actions"><button className="quiet" aria-label={`Edit activity ${a.name}`} onClick={() => { setEditing(a.id); operation.current = null; }}>Edit</button><button className="quiet" aria-label={`Remove activity ${a.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "activity", a.id), "Activity removed.")}>Remove</button></div></article>) : <p className="health-empty-inline">No movement logged for this day.</p>}</section><section className="panel health-fit-panel"><h2>{current ? "Correct movement." : "Add movement."}</h2><FormBox key={`${choice}:${current?.id ?? "new"}`} title="Manual activity" onSubmit={e => { e.preventDefault(); try { const form = e.currentTarget; const values = new FormData(form); operation.current ??= newHealthId(); const draft = { id: current?.id ?? operation.current, date, name: visibleName(formString(values, "name")), steps: formNumber(values, "steps", 1, 0, 1_000_000), minutes: formNumber(values, "minutes", 1, 0, 1440) }; if (!draft.steps && !draft.minutes) return invalid(); void perform(latest => saveActivity(latest, draft, new Date().toISOString()), current ? "Activity corrected." : "Activity saved.", () => { form.reset(); setEditing(null); operation.current = null; }); } catch (cause) { invalid(cause); } }}><label className="field"><span>Activity name</span><input name="name" required maxLength={120} placeholder="For example, a walk or strength session" defaultValue={current?.name ?? ""} /></label><div className="health-form-grid"><label className="field"><span>Steps</span><input name="steps" type="text" inputMode="numeric" autoComplete="off" required defaultValue={current?.steps ?? 0} /></label><label className="field"><span>Minutes</span><input name="minutes" type="text" inputMode="numeric" autoComplete="off" required defaultValue={current?.minutes ?? 0} /></label></div><div className="actions"><button className="primary" type="submit">{current ? "Save correction" : "Save activity"}</button>{current && <button className="quiet" type="button" onClick={() => { setEditing(null); operation.current = null; }}>Cancel correction</button>}</div><p className="fine">Enter steps, minutes, or both. New entries are added together; correcting one replaces only that record. No calorie expenditure is estimated.</p></FormBox></section></div>;
 }
 
 const targetFields = [

@@ -4,6 +4,7 @@ import {financialEvidenceFields,financialEvidenceIssues,assertFinancialEvidenceA
 import {marketQuoteSchema,quoteIsStale,quoteValue,quoteMatchesPosition,type MarketQuote,type ValuationEvidence} from './market-quotes';
 import {marketAssetRefSchema} from './market-assets';
 import {timeZoneSchema} from './time-zone-schema';
+import {accountsSchema} from './accounts/schema';
 export const PLATFORM_KEY = 'zigoals:platform:v1';
 export const units = z.string().regex(/^(0|[1-9]\d*)$/).max(78);
 const id = z.string().min(1).max(250);
@@ -101,16 +102,30 @@ export type HealthGoal=z.infer<typeof healthGoalSchema>;
  * before it can read it (the two-release rule, TIMEZONE_DESIGN.md).
  */
 const platformV4=platformBase.extend({schemaVersion:z.literal(4),healthGoals:z.array(healthGoalSchema).max(200).optional()});
+/**
+ * Finance v5 (Session W, read support only; docs/product/SYNC_HOMES.md): v4 plus the synced homes of two device-only
+ * records of this release, written by a later switch PR and by nothing here: a milestone's own `targetDate`
+ * (`zigoals:milestone-dates:v1`) and `accounts`, the person's accounts and debts (`zigoals:accounts:v1`). Builds #27–#31
+ * refuse v5 and keep its bytes; this build reads it, keeps it at v5 and never writes it down to v4.
+ */
+export const milestoneV5Schema=z.object({id,title:z.string().min(1).max(100),done:z.boolean(),target:units.optional(),targetDate:date.optional()}).strict();
+export const privateGoalV5Schema=privateGoalSchema.extend({milestones:z.array(milestoneV5Schema).max(100)});
+const platformV5=platformV4.extend({schemaVersion:z.literal(5),goals:z.array(privateGoalV5Schema).max(200),accounts:accountsSchema.optional()});
 /** True when any plan or plan revision carries a zone: such a record is finance v4. */
 export function hasPlanZone(s:{goals:readonly {plan?:{timeZone?:string};planRevisions?:readonly {terms:{timeZone?:string}|null}[]}[]}):boolean{
  return s.goals.some(g=>g.plan?.timeZone!==undefined||g.planRevisions?.some(r=>r.terms?.timeZone!==undefined));
 }
 /** The version a record must carry: 4 once it is v4 or carries a zone or health goals, else its own. */
-export function financeVersion(s:{schemaVersion:3|4;goals:Platform['goals'];healthGoals?:unknown[]}):3|4{return s.schemaVersion===4||hasPlanZone(s)||!!s.healthGoals?.length?4:3;}
-export const platformSchema = z.union([platformV4,platformBase,platformV2.transform(s=>({...s,schemaVersion:3 as const,watchlist:[],assetEvents:[]})),platformV1.transform(s=>({...s,schemaVersion:3 as const,contributions:[],valuationSnapshots:[],goalHistory:[],watchlist:[],assetEvents:[]}))]).superRefine((s,c)=>{
+/**
+ * The version a record must carry: never below its own (a v5 record stays v5: Session W's writers only ever raise), 4 once
+ * a plan carries a zone or health goals exist, else 3.
+ */
+export function financeVersion(s:{schemaVersion:3|4|5;goals:Platform['goals'];healthGoals?:unknown[]}):3|4|5{return s.schemaVersion===5?5:s.schemaVersion===4||hasPlanZone(s)||!!s.healthGoals?.length?4:3;}
+/** Every check a finance record of any version must pass (Session W: one function, so the readers of each release share it). */
+const platformIssues=(s:z.output<typeof platformV5>|z.output<typeof platformV4>|z.output<typeof platformBase>,c:z.core.$RefinementCtx)=>{
  const issue=(message:string)=>c.addIssue({code:'custom',message});
  if(s.schemaVersion===3&&hasPlanZone(s))issue('A plan time zone needs finance version 4.');
- if(s.schemaVersion===4&&s.healthGoals&&new Set(s.healthGoals.map(g=>g.id)).size!==s.healthGoals.length)issue('Duplicate health goal identifier.');
+ if(s.schemaVersion>=4&&'healthGoals' in s&&s.healthGoals&&new Set(s.healthGoals.map(g=>g.id)).size!==s.healthGoals.length)issue('Duplicate health goal identifier.');
  for(const message of financialEvidenceIssues(s as Platform))issue(message);
  for(const event of (s as Platform).financialEvents??[]){if(event.relatedPositionId&&!s.positions.some(p=>p.id===event.relatedPositionId))issue('Unknown related Position.');if(event.relatedContributionId&&!s.contributions.some(e=>e.id===event.relatedContributionId))issue('Unknown related contribution.');if(event.relatedPlanRevisionId&&!s.goals.some(g=>g.planRevisions?.some(r=>r.id===event.relatedPlanRevisionId)))issue('Unknown related plan revision.');}
  for(const list of [s.positions,s.goals,s.contributions,s.valuationSnapshots,s.goalHistory]) if(new Set(list.map(i=>i.id)).size!==list.length) issue('Duplicate identifier.');
@@ -140,8 +155,12 @@ export const platformSchema = z.union([platformV4,platformBase,platformV2.transf
   if(p.sourceType==='MANUAL'&&p.verification!=='MANUAL') issue('Manual positions cannot be verified.');
   if(p.principal && p.sourceType==='NATIVE_STAKING' && p.principal!==p.quantity) issue('Stake principal mismatch.');
  }
-}).transform(reconcileGoalStatuses);
-export type Platform = z.infer<typeof platformV4>|z.infer<typeof platformBase>;
+};
+const legacyFinance=[platformV4,platformBase,platformV2.transform(s=>({...s,schemaVersion:3 as const,watchlist:[],assetEvents:[]})),platformV1.transform(s=>({...s,schemaVersion:3 as const,contributions:[],valuationSnapshots:[],goalHistory:[],watchlist:[],assetEvents:[]}))] as const;
+/** The finance readers of builds #27–#31 (v4, v3, and v2/v1 through their transforms), kept for the old-reads-new proofs of v5. */
+export const platformR4Schema = z.union([...legacyFinance]).superRefine(platformIssues).transform(reconcileGoalStatuses);
+export const platformSchema = z.union([platformV5,...legacyFinance]).superRefine(platformIssues).transform(reconcileGoalStatuses);
+export type Platform = z.infer<typeof platformV5>|z.infer<typeof platformV4>|z.infer<typeof platformBase>;
 /** Derived on every read/import; next explicit edit persists the correction.
  * Closed state and every observation/allocation remain intact. */
 export function reconcileGoalStatuses(s:Platform):Platform {

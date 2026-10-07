@@ -6,9 +6,10 @@ import {PROVIDER_USER_AGENT} from './provider-user-agent';
 import {marketPairEnvelope,type PairFailure} from './market-pair-result';
 import {beginPendingWork,ownPendingWork,waitForPendingWork,workIsPending,createRequestAdmission,type PendingWork} from '../pending-work';
 /** Server adapter. Only API route modules import this module; never import it from a client component. */
-import {CATALOG_FRESH_MS,MARKET_RETRY_MS,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
+import {CATALOG_FRESH_MS,MARKET_RETRY_MS,marketRequestKey,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
 import {HISTORY_DAYS,historyRequestSchema,parseCoinHistory,RWA_HISTORY_UNAVAILABLE,type MarketHistoryRequest} from '../market-history';
 import {parseMarketInsights,INSIGHTS_UNAVAILABLE,type MarketInsightsLoadResult} from '../market-insights';
+import {DETAIL_NOT_PROVIDED,DETAIL_UNAVAILABLE,marketDetailUrl,parseMarketDetails,type MarketDetailAnswer} from '../market-detail';
 import {boundedQuoteText,cleanupMarketBody,parseCoinQuotes,parseCoinTokenQuote,parseRwaQuotes,type MarketQuote} from '../market-quotes';
 export const PROVIDER_REQUESTS_PER_MINUTE=12;
 export const PROVIDER_MAX_IN_FLIGHT=2;
@@ -102,5 +103,16 @@ export function createCoinGeckoProvider({key,fetcher=fetch,clock=()=>Date.now()}
  try{const text=await read(url.toString(),4*1024*1024);const entries=parseProviderEvidence(()=>parseMarketInsights(text,members,clock()));result.entries.push(...entries);if(entries.length!==members.length)result.error=INSIGHTS_UNAVAILABLE;}catch{result.error=INSIGHTS_UNAVAILABLE;}
  }}return result;
  }
- return {quotes,quoteResults,catalog,history,insights};
+ /** Session W Part 15, direct development only: coins' market details, one read per currency and 250 coins. */
+ async function details(raw:readonly MarketQuoteRequest[]):Promise<MarketDetailAnswer>{
+ const requests=uniqueMarketRequests(raw),answer:MarketDetailAnswer={results:{},error:null};
+ for(const request of requests)if(request.marketRef.kind!=='coin')answer.results[marketRequestKey(request)]={detail:null,error:DETAIL_NOT_PROVIDED,stale:true};
+ for(const currency of ['USD','EUR'] as const){
+ const selected=requests.filter(r=>r.marketRef.kind==='coin'&&r.currency===currency),ids=[...new Set(selected.map(r=>r.marketRef.id))];
+ for(let offset=0;offset<ids.length;offset+=250){const chunk=ids.slice(offset,offset+250),members=selected.filter(r=>chunk.includes(r.marketRef.id));
+ let entries:ReturnType<typeof parseMarketDetails>=[];try{const text=await read(marketDetailUrl(currency,chunk).toString(),4*1024*1024);entries=parseProviderEvidence(()=>parseMarketDetails(text,members,clock()));}catch{answer.error=DETAIL_UNAVAILABLE;}
+ for(const member of members){const key=marketRequestKey(member),detail=entries.find(entry=>marketRequestKey(entry)===key)??null;answer.results[key]={detail,error:detail?null:DETAIL_UNAVAILABLE,stale:!detail};if(!detail)answer.error=DETAIL_UNAVAILABLE;}
+ }}return answer;
+ }
+ return {quotes,quoteResults,catalog,history,insights,details};
 }

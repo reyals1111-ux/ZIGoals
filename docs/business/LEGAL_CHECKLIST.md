@@ -264,6 +264,35 @@ Facts to start from:
     - Do Apple's and Google's push services see anything new? (The payload is unchanged, `{"v":1}`.)
 20. **Notes ZIGi keeps.** "What ZIGi knows about me" holds up to 100 notes the person writes or confirms (health and diet notes only through the Health gate). Any duty beyond deletion, export and the note on what they are used for?
 
+## 9. Session W: your whole life (added 2026-10-07, [ADR-015](../architecture/ADR-015-session-w.md); questions, not answers)
+
+Facts to start from:
+- New health data on the device: sleep (nights, naps, quality, tags, stages from imports), meditation (moods, notes, an optional heart-rate summary), vitals (resting heart rate, active energy from imports or devices) and the wrap-up's mood. All of it lives in the Health journal, under the existing Health consent and ZIGi's Health gate, and syncs only with Health's own sync consent.
+- Imports read another app's export in the browser and never upload it. Bluetooth readings go from the device to the page only.
+- Third parties reached from the browser, only on use: chess.com's Published-Data API and Lichess (usernames, public data), Spotify (Authorization Code with PKCE; playback control only, no audio in the page). Oura, Withings, Polar and Strava are built behind a stateless health-link Worker and off until the owner registers ZIGoals with each.
+- No network logo is shipped: My links uses plain generic pictures; Spotify's logo is added by the owner from Spotify's official file before Spotify content shows.
+
+21. **Health data under GDPR Art. 9.** Sleep, heart rate, meditation moods and imported vitals are special-category data.
+    - Is the existing Health consent (its own box, the ZIGi gate, Health's own sync consent) explicit enough for these new kinds, or does each need its own wording?
+    - Does importing a whole Apple Health export, read on the device, change our role or duties? We keep only what the person confirms in the preview.
+    - Is a mood note health data?
+22. **Imports and other apps' terms.** Reading Apple Health, Fitbit (Google Takeout), Samsung Health, Oura and Loop exports that the person downloaded themselves: any restriction from those apps' terms, given GDPR Art. 20 portability? Is naming the apps in the UI a trademark issue (nominative use)?
+23. **Spotify.** The Developer Terms and Design Guidelines require Spotify's logo next to its content, a link back, artwork shown uncropped, no mixing with other services' content, and limits: in development mode at most five Spotify users the owner lists, and extended quota only for an established business (Spotify's quota-modes page as recorded in [MUSIC_ACTIVATION.md](../product/MUSIC_ACTIVATION.md)).
+    - Does our design (no Spotify content without the official logo file; only one source shown at a time; a link back to Spotify) meet the guidelines?
+    - May a one-time-paid app use the Web API for playback control, and who may be listed in development mode?
+    - Is the Spotify sign-in, sealed on the device, personal data we process, and what must the notice say?
+24. **Apple Music.** Only an "Open Apple Music" link exists. Playing inside ZIGoals needs an Apple Developer membership and a MusicKit developer token. Anything to settle before the owner enrolls?
+25. **chess.com and Lichess.** chess.com's Published-Data API is public and its daily-puzzle embed asks for a visible credit link (kept). Lichess's API and embeds are public with rate limits we respect (one request at a time; a 429 waits 60 seconds).
+    - Are there attribution or commercial-use limits we must show or observe?
+    - Are usernames and public game data personal data we process when the browser fetches them for the person?
+26. **Health OAuth providers (Oura, Withings, Polar, Strava).** Each has its own developer agreement (data-use limits, display rules, deletion on disconnect, rate limits per app).
+    - Which terms bind us before activation, and what must the in-app text say?
+    - With the health-link Worker in the path (stateless, counts only), are we a processor or a controller for these flows, and which DPA applies with each provider and with Cloudflare?
+27. **Bluetooth.** Readings from a heart-rate monitor or scale stay on the device unless saved. Any duty beyond the Health consent (for example a notice when pairing)?
+28. **Brand glyphs and names.** My links draws plain generic pictures (a camera, a play button, a briefcase…) and the person's own label; no network's logo, shape or colour. Is that safe, and is naming networks in the icon list nominative use?
+29. **Accounts, debts and net worth.** Personal financial records the person enters by hand, on the device only in this release; no bank linking, no advice, payoff dates only from the person's own rate. Any consumer-credit or financial-promotion question in showing a payoff date or a net worth?
+30. **Sleep and meditation wording.** Sleep debt and bedtime consistency show their formulas and say "not medical advice; if poor sleep goes on, talk to a doctor". Is that adequate, and could any figure be read as a health claim or a medical-device function?
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);

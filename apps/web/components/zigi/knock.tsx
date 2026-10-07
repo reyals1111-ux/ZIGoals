@@ -7,6 +7,16 @@ import {ZIGI, ZIGI_KNOCK, ZIGI_REMINDERS, zigiPrefs} from '../../lib/ai/store/re
 import {localDate} from '../../lib/local-date';
 import {dueReminders} from '../../lib/reminders/due';
 import {dismissForToday} from '../../lib/reminders/store';
+import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
+import {W_REMINDERS} from '../../lib/reminders/w-schema';
+import {dismissMeditationTime, meditationDue} from '../../lib/reminders/meditation-time';
+import {chainedDue, dismissChained} from '../../lib/habits-v2/stacks';
+import {contributionDue, dismissContribution} from '../../lib/reminders/contribution-due';
+import {habitCalendarDay} from '../../lib/habits';
+import {localClock} from '../../lib/reminders/due';
+import {MEDITATION_RUN} from '../../lib/meditation/schema';
+import {sessionDay} from '../../lib/meditation/stats';
+import {healthGroupIn} from '../../lib/vault/w-homes';
 import {isShowcase} from '../../lib/showcase-storage';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useGoals} from '../goal-provider';
@@ -31,7 +41,7 @@ const KnockCheckIn = lazy(() => import('./knock-check-in'));
 const TICK_MS = 30_000, REST_MS = 10 * 60_000, RIPPLE_MS = 1200;
 export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; side: 'right' | 'left'}) {
   const reminders = useReminders(), habits = useHabits(), health = useHealth(), platform = usePlatform(), legacy = useGoals();
-  const zigi = useDeviceRecord(ZIGI), knock = useDeviceRecord(ZIGI_KNOCK), zigiReminders = useDeviceRecord(ZIGI_REMINDERS);
+  const zigi = useDeviceRecord(ZIGI), knock = useDeviceRecord(ZIGI_KNOCK), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
   const pathname = usePathname() ?? '', router = useRouter(), titleId = useId();
   const [now, setNow] = useState<Date | null>(null), [current, setCurrent] = useState<KnockCandidate | null>(null), [mode, setMode] = useState<'ask' | 'snooze' | 'check-in'>('ask'), [note, setNote] = useState('');
   const restUntil = useRef(0);
@@ -46,13 +56,22 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     return () => { window.clearInterval(timer); navigator.serviceWorker?.removeEventListener('message', onMessage); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
   const legacyNames = useMemo(() => Object.fromEntries(legacy.goals.map(g => [g.id, legacy.metadata?.goals?.[g.id]?.name ?? `Goal #${g.id}`])), [legacy.goals, legacy.metadata]);
-  const ready = reminders.loaded && zigi.loaded && knock.loaded && zigiReminders.loaded;
+  const ready = reminders.loaded && zigi.loaded && knock.loaded && zigiReminders.loaded && wReminders.loaded;
   const candidates = useMemo<KnockCandidate[]>(() => {
     if (!now || !ready) return [];
     let base: KnockCandidate[] = [];
     try { base = dueReminders({reminders: reminders.data, habits: habits.data, health: health.data, now}); } catch { base = []; }
-    return [...base, ...zigiDue({reminders: zigiReminders.data, goal: goalRefs(platform.data, legacyNames), now})].sort((a, b) => a.time.localeCompare(b.time));
-  }, [now, ready, reminders.data, habits.data, health.data, zigiReminders.data, platform.data, legacyNames]);
+    // Session W Part 4: the wind-down time, until a night is running.
+    const running = (healthGroupIn(health.data, 'sleep')?.nights ?? []).some(n => n.end === null), windDown = wReminders.unreadable ? null : windDownDue({w: wReminders.data, running, now});
+    // Session W Part 5: the meditation time, until a session is logged today or one runs.
+    const doneToday = (healthGroupIn(health.data, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), meditation = wReminders.unreadable ? null : meditationDue({w: wReminders.data, doneToday, running: !!meditationRun.data.run, now});
+    // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
+    let chained: KnockCandidate[] = [];
+    try { chained = wReminders.unreadable ? [] : chainedDue(wReminders.data, habits.data, habitCalendarDay(habits.data, now), localClock(now)); } catch { chained = []; }
+    // Session W Part 12: a contribution plan's reminder on a day an amount is due.
+    try { if (!wReminders.unreadable) chained = [...chained, ...contributionDue(wReminders.data, platform.data, now)]; } catch { /* the other reminders still knock */ }
+    return [...base, ...zigiDue({reminders: zigiReminders.data, goal: goalRefs(platform.data, legacyNames), now}), ...(windDown ? [windDown] : []), ...(meditation ? [meditation] : []), ...chained].sort((a, b) => a.time.localeCompare(b.time));
+  }, [now, ready, reminders.data, habits.data, health.data, zigiReminders.data, wReminders.data, wReminders.unreadable, meditationRun.data.run, platform.data, legacyNames]);
   const prefs = zigiPrefs(zigi.data).knock;
   // Today shows every due reminder as its own card, so ZIGi never knocks there.
   const next = useMemo(() => {
@@ -84,6 +103,10 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
   const notToday = () => {
     try {
       if (current.kind === 'habit' || current.kind === 'water') reminders.update(current.day, r => dismissForToday(r, current.id, current.day));
+      else if (current.kind === 'wind-down') wReminders.update(r => dismissWindDown(r, current.day));
+      else if (current.kind === 'meditation-time') wReminders.update(r => dismissMeditationTime(r, current.day));
+      else if (current.kind === 'stack-next') wReminders.update(r => dismissChained(r, current.id.replace(/^chained:/, ''), current.day));
+      else if (current.kind === 'contribution-due') wReminders.update(r => dismissContribution(r, current.id.replace(/^contribution:/, ''), current.day));
       else zigiReminders.update(r => dismissZigiReminder(r, current.id, current.day));
       close();
     } catch { setNote('This could not be saved on this device; the reminder stays for now.'); }

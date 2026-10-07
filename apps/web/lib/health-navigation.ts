@@ -18,7 +18,12 @@ export function healthNavigation({href,origin,cameraAllowed,accountOpen,button,m
  return cameraAllowed||accountOpen?'client':'document';
 }
 /** Whether this document may use the camera, where the browser can tell; otherwise false. */
-export function documentAllowsCamera(doc:Document):boolean{
+export function documentAllowsCamera(doc:Document):boolean{return documentAllowsFeature(doc,'camera');}
+/**
+ * Whether this document may use a policy-controlled feature, where the browser can tell; otherwise false. Session W
+ * Part 8: Web Bluetooth follows the camera's rule (`bluetooth=(self)` only on a document loaded as /app/health).
+ */
+export function documentAllowsFeature(doc:Document,feature:'camera'|'bluetooth'):boolean{
  const policy=(doc as Document&{permissionsPolicy?:{allowsFeature:(feature:string)=>boolean};featurePolicy?:{allowsFeature:(feature:string)=>boolean}});
- try{return (policy.permissionsPolicy??policy.featurePolicy)?.allowsFeature('camera')??false;}catch{return false;}
+ try{return (policy.permissionsPolicy??policy.featurePolicy)?.allowsFeature(feature)??false;}catch{return false;}
 }

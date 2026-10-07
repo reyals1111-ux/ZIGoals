@@ -10,9 +10,13 @@ import {plural} from './plural';
 export const WIDGET_GROUPS=[
  {id:'goals',label:'Goals',icon:'goals',kinds:['goals','goal','milestone']},
  {id:'habits',label:'Habits',icon:'habits',kinds:['habits','habit','streak','checkins']},
- {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry','exercise']},
+ {id:'health',label:'Health',icon:'health',kinds:['health','meal','food-entry','exercise','sleep','meditation']},
  {id:'wealth',label:'Wealth & Positions',icon:'wallet',kinds:['wealth','asset','staking','allocation','holding-share']},
  {id:'ecosystem',label:'Ecosystem',icon:'ecosystem',kinds:['ecosystem']},
+ // Session W Part 14: skills ZIGoals follows from a public source; Chess first.
+ {id:'skills',label:'Skills',icon:'chess',kinds:['chess']},
+ // Session W Part 20: the music player's widget.
+ {id:'music',label:'Music',icon:'music',kinds:['music']},
 ] as const satisfies readonly {id:string;label:string;icon:string;kinds:readonly WidgetKind[]}[];
 
 export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={
@@ -25,6 +29,9 @@ export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={
  milestone:'The nearest saved target date across active Goals',streak:'Your longest current streak across Habits',
  checkins:'Recorded check-ins over the last 7 days','holding-share':'Your largest holding within its own currency',
  exercise:'Today’s quick exercise counters, each in its own count',
+ // Session W kinds (settings v3 only); each joins WIDGET_GROUPS in the part that builds its card.
+ sleep:'Last night’s sleep or your week of nights',meditation:'Mindful minutes today or this week',
+ chess:'Your chess.com and Lichess ratings',links:'Your own links as buttons',music:'Your soundtrack: ambient sounds or your music app',
 };
 
 export function eligibleWidgetSources(kind:WidgetKind,s:DashboardSources):{id:string;label:string}[]{

@@ -171,8 +171,9 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
   if (landing?.preview_urls !== false) {
     errors.push("landing preview_urls must be false");
   }
-  if (alpha?.main !== ".open-next/worker.js") {
-    errors.push('Alpha main must be ".open-next/worker.js"');
+  // Session W Part 23 (Session Q D2): the thin entry in front of OpenNext's generated Worker.
+  if (alpha?.main !== "alpha/worker.mjs") {
+    errors.push('Alpha main must be "alpha/worker.mjs"');
   }
   if (alpha?.assets?.directory !== ".open-next/assets") {
     errors.push('Alpha assets.directory must be ".open-next/assets"');

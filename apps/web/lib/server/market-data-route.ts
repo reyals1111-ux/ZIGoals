@@ -1,10 +1,11 @@
 import 'server-only';
 import {z} from 'zod';
-import {marketAssetRefSchema,type MarketQuoteRequest} from '../market-assets';
+import {MARKET_REQUEST_CHUNK,marketAssetRefSchema,uniqueMarketRequests,type MarketQuoteRequest} from '../market-assets';
 import {boundedQuoteText} from '../market-quotes';
 import {HISTORY_UNAVAILABLE,historyIsStale,verifiedMarketHistory,type MarketHistoryRequest} from '../market-history';
 import {fetchPublicMarketInsights} from '../market-insights-client';
 import {INSIGHTS_UNAVAILABLE} from '../market-insights';
+import {DETAIL_NOT_PROVIDED,DETAIL_UNAVAILABLE,detailAnswerFor,verifiedDetailAnswer,type MarketDetailAnswer} from '../market-detail';
 import {marketRuntime,marketBindingHeaders} from './market-runtime';
 const catalogSchema=z.object({assets:z.array(z.object({ref:marketAssetRefSchema,name:z.string().min(1).max(300),symbol:z.string().max(100),platforms:z.record(z.string(),z.string()).optional()}).strict()).max(50000),error:z.string().max(300).nullable(),fetchedAt:z.iso.datetime().nullable(),stale:z.boolean()}).strict();
 /** Each function's `client` is the edge address group from marketClientGroup, sent as `x-market-client`; an incoming
@@ -48,4 +49,22 @@ export async function configuredDurableInsights(requests:readonly MarketQuoteReq
   const body=JSON.parse(String(init?.body));
   return runtime.binding.fetch(new Request('https://market.internal/insights',{method:'POST',signal,headers:marketBindingHeaders(runtime.caller,client),body:JSON.stringify({version:1,requests:body.requests})}));
  });
+}
+/** Session W Part 15: coins' market details from QuoteService /insights-detail, at most 32 pairs per coordinator request
+ * (a client's share, as for insights). A coordinator built before Part 15 answers 404: every pair is then "not provided"
+ * until the owner redeploys it; any other failure is "unavailable". Null in direct development (the route asks itself). */
+export async function configuredDurableDetails(raw:readonly MarketQuoteRequest[],signal?:AbortSignal,client?:string|null):Promise<MarketDetailAnswer|null>{
+ const runtime=await marketRuntime();if(runtime.mode==='development')return null;
+ const requests=uniqueMarketRequests(raw);if(runtime.mode!=='durable')return detailAnswerFor(requests,DETAIL_UNAVAILABLE);
+ const answer:MarketDetailAnswer={results:{},error:null};
+ for(let offset=0;offset<requests.length;offset+=MARKET_REQUEST_CHUNK){
+  const batch=requests.slice(offset,offset+MARKET_REQUEST_CHUNK);let part:MarketDetailAnswer;
+  try{
+   const response=await runtime.binding.fetch(new Request('https://market.internal/insights-detail',{method:'POST',signal,headers:marketBindingHeaders(runtime.caller,client),body:JSON.stringify({version:1,requests:batch})}));
+   if(!response.ok){await response.body?.cancel();part=detailAnswerFor(batch,response.status===404?DETAIL_NOT_PROVIDED:DETAIL_UNAVAILABLE);}
+   else part=verifiedDetailAnswer(JSON.parse(await boundedQuoteText(response,4*1024*1024)),batch);
+  }catch{part=detailAnswerFor(batch,DETAIL_UNAVAILABLE);}
+  Object.assign(answer.results,part.results);if(part.error&&answer.error!==DETAIL_UNAVAILABLE)answer.error=part.error;
+ }
+ return answer;
 }

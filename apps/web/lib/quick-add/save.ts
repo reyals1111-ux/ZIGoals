@@ -9,7 +9,10 @@ import type {QuickAddKnown} from './types';
  * What a Quick-add result writes (A2): exactly one ordinary record through an existing mutator, on the journal's own
  * day (Health's zone for Health records, the Habits zone for a habit entry); "yesterday" is one day earlier in each.
  * Pure: the caller passes the stores and the instant and writes what comes back.
+ * Session W Part 9: "slept 7h30" is a night in Health → Sleep (it was an activity line, counted as movement), written by
+ * applyQuickAddSleep in ./sleep.ts, which the Quick-add line loads only when it saves such a line.
  */
+export const QUICK_ADD_WAKE = 'Add when you woke up, so the night can be placed.';
 export type QuickAddStores = {health: HealthData; habits: HabitData};
 export type QuickAddWrite = {health?: HealthData; habits?: HabitData; habitTotal?: {value: number; target: number; unit: string}};
 export function quickAddDays(stores: QuickAddStores, now: Date): {health: string; habits: string} {
@@ -24,7 +27,7 @@ export function applyQuickAdd(result: QuickAddKnown, stores: QuickAddStores, now
     case 'weight': return {health: saveWeight(stores.health, {id, date: healthDate, grams: result.grams}, at)};
     case 'steps': return {health: saveActivity(stores.health, {id, date: healthDate, name: 'Walk', steps: result.steps, minutes: Math.round(result.minutes ?? 0)}, at)};
     case 'activity': return {health: saveActivity(stores.health, {id, date: healthDate, name: result.distanceKm !== undefined ? `${result.name} · ${result.distanceKm} km` : result.name, steps: 0, minutes: Math.round(result.minutes)}, at)};
-    case 'sleep': return {health: saveActivity(stores.health, {id, date: healthDate, name: 'Sleep', steps: 0, minutes: Math.round(result.minutes)}, at)};
+    case 'sleep': throw Error('A night is saved by applyQuickAddSleep (lib/quick-add/sleep.ts).');
     case 'exercise': return {health: changeCount(stores.health, result.counterId, healthDate, result.count)};
     case 'habit': {
       const habits = logHabitValue(stores.habits, result.habitId, habitDate, result.value, {mode: 'add'}, now);

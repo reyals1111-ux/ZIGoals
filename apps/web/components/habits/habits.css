@@ -101,3 +101,33 @@
  * its one row ("+ New habit" and the backup link) and the first screen still ends with the rhythm figure and its arrival
  * shine (tests/motion-arrival.spec.ts). Desktop keeps the button in the hero. */
 .habit-overview-actions { margin: 0; }.habit-overview-actions .habit-vacation-button { min-height: 44px; }
+/* Session W Part 10: habit ideas, stacks shown together, challenges and patterns. */
+.habit-ideas-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.habit-ideas-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 0; }
+.habit-ideas-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 0; border-top: 1px solid #a6c1fa20; }
+.habit-ideas-list li > div:first-child { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.habit-ideas-list .actions { margin: 0; }
+.habit-idea-added { margin: 0; }
+.habit-stacks { margin-bottom: 16px; }
+.habit-stack-chain { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 6px; }
+.habit-stack-chain li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; }
+.habit-stack-chain li > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+.habit-stack-name { text-align: left; }
+.habit-challenge-line { margin: 6px 0 0; }
+.habit-challenge-done { margin: 12px 0; padding: 12px 14px; border: 1px solid #a6c1fa33; border-radius: 14px; }
+.habit-challenge-done p { margin: 0 0 8px; }
+.habit-challenge-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; }
+.habit-challenge-form .field { max-width: 120px; }
+.habit-challenge-form .fine { flex-basis: 100%; margin: 0; }
+.habit-patterns h3 { font-size: .95rem; margin: 16px 0 8px; }
+.habit-weekdays { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.habit-weekdays li { display: grid; gap: 2px; text-align: center; font-size: .85rem; }
+.habit-weekdays strong { font-size: .8rem; font-weight: 600; }
+.habit-weeks { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; align-items: end; height: 64px; }
+.habit-weeks span { display: flex; align-items: flex-end; height: 100%; background: #a6c1fa14; border-radius: 4px; overflow: hidden; }
+.habit-weeks i { display: block; width: 100%; background: currentColor; opacity: .75; border-radius: 4px 4px 0 0; min-height: 2px; }
+.habit-weeks i[data-empty] { opacity: 0; }
+.habit-weeks-table table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.habit-weeks-table th, .habit-weeks-table td { text-align: left; padding: 4px 8px; border-top: 1px solid #a6c1fa1f; }
+/* Session W Part 10: on a phone "Habit ideas" sits above the list, so the hero keeps its two buttons and its title width. */
+.habit-phone-ideas { display: flex; justify-content: flex-end; margin: 0 0 8px; }

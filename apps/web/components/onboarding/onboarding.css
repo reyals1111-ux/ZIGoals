@@ -44,11 +44,30 @@
 .onboarding-currency input:focus-visible + span { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
 .onboarding-saved { margin: 0; padding: 16px; border: 1px solid #82eacb40; border-radius: 16px; background: #0d2a2466; color: #d8f5ec; font-size: 16px; line-height: 1.5; }
 .onboarding-escape { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 10px; border-top: 1px solid #7fc8ff1a; }
+/* Session W Part 3: ZIGi's hello, the starters' groups, the tour cards and the summary before Finish. */
+.onboarding-zigi { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid #8f7dff40; border-radius: 18px; background: radial-gradient(at 0% 50%, #3b2a6b66, transparent 70%), #0a1123b3; }
+.onboarding-zigi .zigi-figure img { display: block; width: 72px; height: auto; }
+.onboarding-zigi p { margin: 0; color: #e3ecf8; font-size: 16px; line-height: 1.55; }
+.onboarding-zigi strong { color: var(--text); }
+.onboarding-step > fieldset > legend, .onboarding-goal > legend, .onboarding-targets > legend { margin-bottom: 10px; padding: 0; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: #cbd9f2; }
+.onboarding-goal, .onboarding-targets { display: grid; gap: 12px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.onboarding-targets .onboarding-choices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.onboarding-choice input:disabled + span { opacity: .7; cursor: default; }
+.onboarding-shown { margin: 0; }
+.onboarding-tour-card { display: grid; gap: 6px; padding: 18px 20px; border: 1px solid #6fdcff40; border-radius: 18px; background: #0a1123b3; }
+.onboarding-tour-card h2 { margin: 0; font-size: 24px; }
+.onboarding-tour-card p { margin: 0; color: #d6e2f3; font-size: 16px; line-height: 1.55; }
+.onboarding-tour-card .eyebrow { color: #cbd9f2; }
+.onboarding-sync > span { min-height: 0; }
+.onboarding-summary { padding: 14px 16px; border: 1px dashed #7fc8ff40; border-radius: 16px; }
+.onboarding-summary h2 { margin: 0 0 6px; font-size: 18px; }
+.onboarding-summary :is(ul, p) { margin: 0; color: #d6e2f3; font-size: 16px; line-height: 1.55; }
+.onboarding-summary ul { padding-left: 1.2em; }
 
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root .onboarding { margin: 8px 0 20px; padding: 20px 16px; border-radius: 22px; }
   :root .onboarding h1 { font-size: clamp(28px, 8.4vw, 34px); }
-  :root .onboarding-goal-types { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root .onboarding-goal-types, :root .onboarding-targets .onboarding-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   :root .onboarding-welcome { margin: 0 0 14px; padding: 18px 16px; }
   :root .onboarding-actions > :is(.primary, .secondary) { flex: 1 1 auto; }
 }

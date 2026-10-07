@@ -1,4 +1,5 @@
 import { csvSafeCell } from './export/csv-safe';
+import {journalTimeZone} from './journal-zone';
 import {additionalNutrients,groceryEditSchema} from './health';
 import {
   healthSchema, healthDateSchema, healthTimezoneSchema, savedMealSchema, mealItemSchema,
@@ -155,9 +156,13 @@ export function waterSummary(data: HealthData, date: string) {
   const millilitres = Math.round(entries.reduce((sum, w) => sum + w.amountMilli / 1000 * (w.unit === "ml" ? 1 : 29.5735295625), 0) * 1000) / 1000;
   return { entries: entries.length, millilitres, targetMl: dailyData(data).preferences.waterTargetMl };
 }
+/** The Health journal's zone: the Health zone (an override), then the journal zone (Session W Part 17, T2-A), then the device's. */
+export function healthZone(timezone: string | null): string {
+  return healthTimezoneSchema.parse(timezone ?? journalTimeZone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+}
+/** The Health journal's day, in its zone (healthZone). */
 export function healthDay(timezone: string | null, now = new Date()): string {
-  const zone = timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-  healthTimezoneSchema.parse(zone);
+  const zone = healthZone(timezone);
   const parts = new Intl.DateTimeFormat("en", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
   const get = (type: string) => parts.find(p => p.type === type)!.value;
   return healthDateSchema.parse(`${get("year")}-${get("month")}-${get("day")}`);

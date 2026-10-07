@@ -1,4 +1,5 @@
-import {healthSchema} from '../health';
+import {HEALTH_V4_GROUPS,healthSchema} from '../health';
+import {SETTINGS_V3_GROUPS} from '../dashboard-settings';
 import {dailyData} from '../health-daily';
 import {z} from 'zod';
 import {manifestSchema,envelopeSchema,epochSchema,sealRecord,openRecord,type VaultManifest} from './crypto';
@@ -129,11 +130,58 @@ function reconcileWeeklyReviews(base:unknown,local:unknown,remote:unknown){
  const merged=weeks.flatMap(week=>{const value=mergeValue(maps[0]!.get(week),maps[1]!.get(week),maps[2]!.get(week),'settings weekly review');return value===undefined?[]:[value];});
  (local as {weeklyReview:{reviews:unknown[]}}).weeklyReview.reviews=merged;(remote as {weeklyReview:{reviews:unknown[]}}).weeklyReview.reviews=structuredClone(merged);
 }
+/**
+ * Chess's automatic check-in markers (settings v3 `chess.applied`, Session W Part 14): one per day, never edited except to
+ * be undone. Like Health's markers above, two devices merge to the union: the first application of a day is kept, and an
+ * undo on either side stays.
+ */
+function reconcileChessMarkers(base:unknown,local:unknown,remote:unknown){
+ const applied=(v:unknown):unknown[]|undefined=>{const chess=v&&typeof v==='object'?(v as {chess?:unknown}).chess:undefined,list=chess&&typeof chess==='object'?(chess as {applied?:unknown}).applied:undefined;return Array.isArray(list)?list:undefined;};
+ const [prior,left,right]=[base,local,remote].map(applied);if(!left||!right)return;
+ const merged=new Map<string,Record<string,unknown>>();
+ for(const marker of [...(prior??[]),...left,...right]){
+  if(!marker||typeof marker!=='object'||Array.isArray(marker))throw Error('Invalid chess check-in marker.');
+  const m=marker as Record<string,unknown>,key=String(m.date),held=merged.get(key);
+  if(!held){merged.set(key,m);continue;}
+  const first=String(held.appliedAt)<=String(m.appliedAt)?held:m;
+  merged.set(key,held.undone===true||m.undone===true?{...first,undone:true}:first);
+ }
+ const list=[...merged.values()].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ (local as {chess:{applied:unknown[]}}).chess.applied=list;(remote as {chess:{applied:unknown[]}}).chess.applied=structuredClone(list);
+}
+/** Session W's groups (Health v4, settings v3, lib/vault/w-homes.ts): inside these, and only these, stamped values settle by their stamp. */
+export const STAMPED_GROUPS:Partial<Record<Domain,readonly string[]>>={health:HEALTH_V4_GROUPS,settings:SETTINGS_V3_GROUPS};
+const stampOf=(v:unknown):string|null=>{if(!v||typeof v!=='object'||Array.isArray(v))return null;const r=v as Record<string,unknown>;return typeof r.at==='string'?r.at:typeof r.updatedAt==='string'?r.updatedAt:null;};
+/**
+ * Inside Session W's groups a value carries the moment it was set: a choice `{v, at}`, a day's answer `{…, at}`, a record's
+ * `updatedAt`. When both devices changed the same stamped value differently, the later stamp is kept whole, so sync never
+ * stops over a page switch, a mood or an edited night (the generic merge would refuse the conflicting fields). Equal
+ * stamps fall back to a fixed order of the two texts, so every device settles on the same value. A value only one side
+ * changed, and everything outside these groups, is left to the merge below exactly as before.
+ */
+function settleStamped(base:unknown,local:unknown,remote:unknown,put:(winner:unknown)=>void):void{
+ if(same(local,remote))return;
+ const l=stampOf(local),r=stampOf(remote);
+ if(l!==null&&r!==null){if(same(local,base)||same(remote,base))return;put(l>r?local:r>l?remote:JSON.stringify(local)>JSON.stringify(remote)?local:remote);return;}
+ if(Array.isArray(local)&&Array.isArray(remote)){
+  const index=(list:unknown[])=>list.every(v=>identity(v)!==null)?new Map(list.map((v,i)=>[identity(v)!,i] as const)):null;
+  const li=index(local),ri=index(remote),bi=Array.isArray(base)?index(base):new Map<string,number>();if(!li||!ri||!bi)return;
+  for(const [id,i]of li){const j=ri.get(id),k=bi.get(id);if(j===undefined)continue;settleStamped(k===undefined?undefined:(base as unknown[])[k],local[i],remote[j],w=>{local[i]=w;remote[j]=structuredClone(w);});}
+  return;
+ }
+ const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
+ if(object(local)&&object(remote)){const b=object(base)?base:{};for(const name of Object.keys(local))if(name in remote)settleStamped(b[name],local[name],remote[name],w=>{local[name]=w;remote[name]=structuredClone(w);});}
+}
+function reconcileStamped(base:unknown,local:unknown,remote:unknown,groups:readonly string[]){
+ const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
+ if(!object(local)||!object(remote))return;const b=object(base)?base:{};
+ for(const group of groups)if(group in local&&group in remote)settleStamped(b[group],local[group],remote[group],w=>{local[group]=w;remote[group]=structuredClone(w);});
+}
 export function mergePrivateData(base:PrivateData,local:PrivateData,remote:PrivateData):PrivateData{
  const result:PrivateData={};for(const domain of DOMAINS){if(local[domain]===undefined){if(remote[domain]!==undefined)result[domain]=remote[domain];continue;}
   const b=base[domain],l=local[domain],r=remote[domain];if(r===undefined){result[domain]=l;continue;}if(b===undefined){if(l!==r)throw Error('Unlinked local and cloud records differ. Export both before choosing what to keep.');result[domain]=r;continue;}
   if(domain==='finance'){if(l!==b&&r!==b&&l!==r)throw Error('Conflicting financial changes. Local and cloud evidence remain separate; export both before reconciling.');result[domain]=l===b?r:l;}
-  else {const parsed=[b,l,r].map(v=>JSON.parse(v));reconcileVersions(parsed[0],parsed[1],parsed[2]);if(domain==='health'){reconcileHealthReceipts(parsed[0],parsed[1],parsed[2]);reconcileAutoCheckIns(parsed[0],parsed[1],parsed[2]);}if(domain==='settings')reconcileWeeklyReviews(parsed[0],parsed[1],parsed[2]);result[domain]=JSON.stringify(mergeValue(parsed[0],parsed[1],parsed[2],domain));}
+  else {const parsed=[b,l,r].map(v=>JSON.parse(v));reconcileVersions(parsed[0],parsed[1],parsed[2]);if(domain==='health'){reconcileHealthReceipts(parsed[0],parsed[1],parsed[2]);reconcileAutoCheckIns(parsed[0],parsed[1],parsed[2]);}if(domain==='settings'){reconcileWeeklyReviews(parsed[0],parsed[1],parsed[2]);reconcileChessMarkers(parsed[0],parsed[1],parsed[2]);}reconcileStamped(parsed[0],parsed[1],parsed[2],STAMPED_GROUPS[domain]??[]);result[domain]=JSON.stringify(mergeValue(parsed[0],parsed[1],parsed[2],domain));}
  }return result;
 }
 export class RevisionConflict extends Error{constructor(){super('Cloud changed. Local records were preserved. Retry to reconcile.');}}

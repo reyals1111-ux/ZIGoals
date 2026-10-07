@@ -1,7 +1,11 @@
 'use client';
 import {TodayWeek} from '../bottom-sections';
 import Link from 'next/link';
-import {useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {Suspense,lazy,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {CHESS_CACHE} from '../../lib/skills/chess/schema';
+/** Session W Part 14: what asks chess.com and Lichess again, loaded only while a Chess widget is on Today. */
+const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 import {OrbitSlogan} from '../orbit-slogan';
 import {NebulaFlow} from '../nebula-flow';
 import {JourneyBanner} from '../journey-banner';
@@ -54,6 +58,11 @@ import { formatPlainDecimal } from "../../lib/visual-format";
 import {ReminderCards} from '../reminders/reminder-cards';
 import {PhoneFold} from '../phone/phone-fold';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {usePagesView} from '../pages/use-pages-view';
+import {isShown,todayItemShown} from '../../lib/pages/visibility';
+import {linksOf,sortedLinks} from '../../lib/links/engine';
+import {TodayLinks} from '../links/today-links';
+import {TodaySoundtrack} from '../music/today-soundtrack';
 import {isFoldOpen,readTodayFolds,rememberFold,type TodayFolds} from '../../lib/today-folds';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
@@ -80,6 +89,10 @@ export function TodayDashboard(){
  useAutoCheckIns({habits,health});
  const healthLinkContext=useMemo(()=>({counters:exerciseData(health.data).counters,waterUnit:dailyData(health.data).preferences.waterUnit}),[health.data]);
  const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false),phone=usePhoneActive();
+ // Session W Part 2: Quick add and the Health shortcut follow Your pages & buttons.
+ const pagesView=usePagesView(),showQuickAdd=isShown(pagesView,'quick-add'),showHealth=isShown(pagesView,'health');
+ // Session W Part 19: My links' card shows once a link exists, while its button is shown under Your pages & buttons.
+ const myLinks=settings.loaded&&!settings.error?sortedLinks(linksOf(settings.data)):[];
  // The first-run welcome (Session E) appears only for a device that is certainly brand-new: every store read without
  // error, Today not yet chosen, no Showcase, no account, no private record stored and the welcome never seen here.
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
@@ -88,7 +101,8 @@ export function TodayDashboard(){
  const domains=visibleDomains(settings.data),financial=domains.includes('wealth')||domains.includes('goals');
  const market=useMarketQuotes(settings.loaded&&financial?wealthMarketRequests(platform.data):false),now=useEvidenceNow(platform.data,market.now);
  const goals=unifiedGoalSummaries(legacy.goals,legacy.metadata?.goals??{},platform.data,market.quotes,now,legacy.mode==='local'?'Local simulation':'Future Goal Manager').filter(g=>!g.key.startsWith('legacy:')||!platform.data.legacyGoalUi?.[`${legacy.chain}:${legacy.owner}:${g.id}`]?.archived);
- const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone)};
+ const chessCache=useDeviceRecord(CHESS_CACHE);
+ const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
@@ -139,7 +153,8 @@ export function TodayDashboard(){
   return <article id={`dashboard-widget-${w.id}`} className="dashboard-widget panel" data-domain={domain} data-size={w.size} data-hidden={w.hidden?'true':undefined} aria-label={metric.title}>
    <span className="dashboard-widget-art" aria-hidden="true"><AppIcon name={domain==='wealth'?'wallet':domain} size={82} luminous/></span>
    <div className="dashboard-widget-heading"><AppIcon name={domain==='wealth'?'wallet':domain} luminous/><h3>{metric.title}</h3>{w.hidden&&<span className="pill">Hidden</span>}</div>
-   {!loaded(domain)?<p role="status">Loading records…</p>:domainError(domain)?<p role="alert">This data needs attention. Open Settings to recover it.</p>:w.kind==='habits'?<HabitsToday/>:<><Metric metric={metric} identity={w.id} flow={w.kind==='wealth'&&!metric.missing}/>{habit&&w.metric==='today'&&<HabitCompletion habit={habit} store={habits} compact/>}{w.kind==='goals'&&<ul className="dashboard-goal-links">{active.slice(0,3).map(g=><li key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul>}</>}
+   {!loaded(domain)?<p role="status">Loading records…</p>:domainError(domain)?<p role="alert">This data needs attention. Open Settings to recover it.</p>:w.kind==='habits'?<HabitsToday/>:w.kind==='music'?<TodaySoundtrack/>:<><Metric metric={metric} identity={w.id} flow={w.kind==='wealth'&&!metric.missing}/>{habit&&w.metric==='today'&&<HabitCompletion habit={habit} store={habits} compact/>}{w.kind==='goals'&&<ul className="dashboard-goal-links">{active.slice(0,3).map(g=><li key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul>}</>}
+   {w.kind==='chess'&&!w.hidden&&<Suspense fallback={null}><ChessTodayRefresh/></Suspense>}
    <CardOptions label={metric.title}><AskZigiItem kind={w.kind} metric={w.metric} name={habit?.title??(w.entity?goals.find(g=>g.key===w.entity)?.name:undefined)}/><button type="button" disabled={busy} onClick={()=>setEditor(w)}>Edit widget</button><button type="button" disabled={busy} onClick={()=>apply(s=>saveWidget(s,{...w,hidden:!w.hidden},w.revision))}>{w.hidden?'Show widget':'Hide widget'}</button><button type="button" aria-label={`Move ${metric.title} up`} disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,metric.title)}>Move earlier</button><button type="button" aria-label={`Move ${metric.title} down`} disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,metric.title)}>Move later</button><button type="button" onClick={()=>moveLane(ref,region,metric.title)} disabled={busy}>Move to {region==='main'?'rail':'main'}</button><button type="button" disabled={busy||w.size==='compact'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'compact'},w.revision),'Compact size saved.')}>Compact size</button><button type="button" disabled={busy||w.size==='wide'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'wide'},w.revision),'Wide size saved.')}>Wide size</button><button type="button" disabled={busy} onClick={()=>apply(s=>removeWidget(s,w.id),'Widget removed. Your underlying record was kept.')}>Remove widget</button></CardOptions>
   </article>;
  }
@@ -155,7 +170,7 @@ export function TodayDashboard(){
    case 'habits':return domains.includes('habits')?<HabitsToday/>:null;
    case 'health':return domains.includes('health')?<HealthToday/>:null;
    case 'next-action':return financial&&nextGoal?<div className="next-step"><span className="eyebrow">Your next goal action</span><Link href={nextGoal.href} className="text-link">Review {nextGoal.name} →</Link></div>:null;
-   case 'summary':return <WidgetOverview widgets={settings.data.widgets} sources={sources} loaded={settings.loaded} error={settings.error} ready={loaded} domainError={domainError} customizing={customize} onCustomize={()=>setCustomize(x=>!x)}/>;
+   case 'summary':return <WidgetOverview widgets={settings.data.widgets.filter(w=>todayItemShown(pagesView,{widgetDomain:WIDGET_CATALOG[w.kind].domain}))} sources={sources} loaded={settings.loaded} error={settings.error} ready={loaded} domainError={domainError} customizing={customize} onCustomize={()=>setCustomize(x=>!x)}/>;
    case 'wallet':return financial?<section className="account-panel"><div><h2>Your wallet <span className="pill">{legacy.mode==='local'?'Local demo':'Testnet'}</span></h2><strong className="account-value">{formatPlainDecimal(formatUnits(legacy.balance,TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><p>{legacy.mode==='local'?'Simulated balance · this browser':`${legacy.owner.slice(0,10)}…${legacy.owner.slice(-5)}`}</p><Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>:null;
    case 'staking':return financial?<StakingCard/>:null;
    case 'destination':return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">Start with what matters</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">A destination for your next chapter.</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. Give your ZIG a purpose.</p><Link href="/app/goals/new" className="primary">{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
@@ -170,6 +185,9 @@ export function TodayDashboard(){
   if(!content)return null;
   const hidden=ref.kind==='widget'?widget!.hidden:placement.hiddenBuiltins.includes(ref.id as DashboardBuiltinId);
   if(hidden&&!customize)return null;
+  // Session W Part 13: an item of a hidden page leaves Today with it (kept, and back when the page shows again).
+  const withPage=ref.kind==='widget'?todayItemShown(pagesView,{widgetDomain:WIDGET_CATALOG[widget!.kind].domain}):todayItemShown(pagesView,{builtin:ref.id});
+  if(!withPage&&!customize)return null;
   const label=ref.kind==='widget'?widget!.title||WIDGET_CATALOG[widget!.kind].label:builtin!.label;
   // Session U follow-up F3: on a phone each widget card also folds to a row named by the widget and opens in place; the
   // overview ("Your selected widgets") still shows every widget's value at a glance, so nothing is removed. While Today
@@ -177,7 +195,7 @@ export function TodayDashboard(){
   const foldLabel=ref.kind==='widget'?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has(ref.id as DashboardBuiltinId)?PHONE_FOLD_LABEL[ref.id]??label:undefined;
   return <div key={`${ref.kind}:${ref.id}`} id={itemId(ref)} tabIndex={-1} className="placed-module" data-kind={ref.kind} data-module={ref.id} data-size={widget?.size} data-hidden={hidden?'true':undefined}>
    {customize&&ref.kind==='builtin'&&<div className="dashboard-builtin-options"><CardOptions label={label}><button type="button" disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,label)}>Move earlier</button><button type="button" disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,label)}>Move later</button>{builtin!.hideable&&<button type="button" disabled={busy} onClick={()=>apply(s=>setDashboardBuiltinHidden(s,ref.id as DashboardBuiltinId,!hidden,placement.revision))}>{hidden?'Show card':'Hide card'}</button>}</CardOptions></div>}
-   {hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel} {...(ref.kind==='widget'?{remembered:!!folds&&isFoldOpen(folds,ref.id),onToggle:(open:boolean)=>toggleFold(ref.id,open)}:{})}>{content}</PhoneFold>:content}
+   {!withPage?<p className="dashboard-hidden-placeholder">{label} is hidden with its page. Show the page again in Settings, under Your pages &amp; buttons.</p>:hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel} {...(ref.kind==='widget'?{remembered:!!folds&&isFoldOpen(folds,ref.id),onToggle:(open:boolean)=>toggleFold(ref.id,open)}:{})}>{content}</PhoneFold>:content}
    {customize&&<button type="button" className="dashboard-insert-here" disabled={busy||settings.data.widgets.length>=24} onClick={()=>addAfter(ref,region)}>+ Add widget after {label}</button>}
   </div>;
  }
@@ -185,7 +203,7 @@ export function TodayDashboard(){
  if(preset)try{presetPreview=applyDashboardPreset(settings.data,preset);}catch(e){presetError=e instanceof Error?e.message:'This layout cannot be applied without removing a saved widget.';}
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}><div className="today-page personalized-today" data-interests={settings.data.preset}>
   <div className="today-layout"><div className="today-primary">
-   <section className="today-hero" aria-labelledby="dashboard-title"><div className="cosmic-glow ambient-light" aria-hidden="true"/><HeroStar/><LayoutLockButton/><div className="today-hero-copy"><p className="eyebrow page-eyebrow financial-orbit"><NebulaFlow identity="today-eyebrow">YOUR FINANCIAL ORBIT</NebulaFlow></p><h1 id="dashboard-title" className="orbit-slogan"><OrbitSlogan/></h1><p className="page-lede today-lede">Set goals. Build habits. Protect your health.<br/>Make room for a brighter tomorrow.</p><div className="hero-actions">{financial?<QuickAdd triggerClassName="primary"/>:<Link className="primary" href="/app/health">Open Health</Link>}<IntroVideo/></div><p className="hero-truth">{financial?(legacy.mode==='local'?'Testnet Alpha · simulated financial progress · private daily tracking':'Testnet Alpha · watch-only wallet view · private daily tracking'):'Private daily tracking · Health-only layout'}</p></div><div className="hero-pillars" role="group" aria-label="Your connected journey">{(financial?[['goals','Your goals','Give your ZIG a purpose.'],['future','Your future','Build habits. Live well.'],['chain','Onchain','ZIGChain vision · Alpha simulation.']]:[['goals','Your goals','A destination with meaning.'],['habits','Your rhythm','Small steps, your pace.'],['health','Your wellbeing','Care for the everyday.']]).map(([icon,title,detail])=><div key={icon}><span className="icon-medallion"><AppIcon name={icon!} size={30} luminous/></span><span><strong>{title}</strong><small>{detail}</small></span></div>)}</div></section>
+   <section className="today-hero" aria-labelledby="dashboard-title"><div className="cosmic-glow ambient-light" aria-hidden="true"/><HeroStar/><LayoutLockButton/><div className="today-hero-copy"><p className="eyebrow page-eyebrow financial-orbit"><NebulaFlow identity="today-eyebrow">YOUR FINANCIAL ORBIT</NebulaFlow></p><h1 id="dashboard-title" className="orbit-slogan"><OrbitSlogan/></h1><p className="page-lede today-lede">Set goals. Build habits. Protect your health.<br/>Make room for a brighter tomorrow.</p><div className="hero-actions">{financial?showQuickAdd&&<QuickAdd triggerClassName="primary"/>:showHealth&&<Link className="primary" href="/app/health">Open Health</Link>}<IntroVideo/></div><p className="hero-truth">{financial?(legacy.mode==='local'?'Testnet Alpha · simulated financial progress · private daily tracking':'Testnet Alpha · watch-only wallet view · private daily tracking'):'Private daily tracking · Health-only layout'}</p></div><div className="hero-pillars" role="group" aria-label="Your connected journey">{(financial?[['goals','Your goals','Give your ZIG a purpose.'],['future','Your future','Build habits. Live well.'],['chain','Onchain','ZIGChain vision · Alpha simulation.']]:[['goals','Your goals','A destination with meaning.'],['habits','Your rhythm','Small steps, your pace.'],['health','Your wellbeing','Care for the everyday.']]).map(([icon,title,detail])=><div key={icon}><span className="icon-medallion"><AppIcon name={icon!} size={30} luminous/></span><span><strong>{title}</strong><small>{detail}</small></span></div>)}</div></section>
    {habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}
    {settings.loaded&&!settings.error&&(settings.data.onboarded||showcase)&&!brandNew&&storesReady&&<TodayForYou habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase}/>}
    {brandNew&&<WelcomeCard demoAvailable={legacy.mode==='local'} onDismiss={()=>setWelcomeDismissed(true)}/>}
@@ -200,7 +218,8 @@ export function TodayDashboard(){
    </section>
   </div><aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={regionItems('rail')} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside></div>
   <PhoneFold label="How it works"><JourneyBanner/></PhoneFold>
-  {platform.loaded&&habits.loaded&&health.loaded&&<LayoutRegion region="bottom" items={[{id:'today:week',label:'Your week',node:<PhoneFold label="Your week"><TodayWeek today={today} habits={habits.data} health={health.data} platform={platform.data} financial={financial}/></PhoneFold>}]}/>}
+  {/* My links sits above Your week, so the week stays Today's last section. */}
+  {platform.loaded&&habits.loaded&&health.loaded&&<LayoutRegion region="bottom" items={[myLinks.length>0&&isShown(pagesView,'links')&&{id:'today:links',label:'My links',node:<PhoneFold label="My links"><TodayLinks links={myLinks}/></PhoneFold>},{id:'today:week',label:'Your week',node:<PhoneFold label="Your week"><TodayWeek today={today} habits={habits.data} health={health.data} platform={platform.data} financial={financial}/></PhoneFold>}]}/>}
   {editor&&<WidgetEditor key={editor==='new'?'new':editor.id} initial={editor==='new'?undefined:editor} sources={sources} ready={loaded} onRemove={editor==='new'?undefined:()=>change(s=>removeWidget(s,editor.id),'Widget removed. Your underlying record was kept.')} onClose={()=>{setEditor(null);setInsertAt(null);}} onSave={(w,rev)=>change(s=>{const saved=saveWidget(s,w,rev);return editor==='new'&&insertAt?moveDashboardItem(saved,{kind:'widget',id:w.id},{region:insertAt.region,anchor:insertAt.anchor,position:'after'}):saved;},'Widget saved on this device.')}/>}
   {preset&&<Modal title="Choose your Today layout" onClose={()=>setPreset(null)}><fieldset className="dashboard-preset-choices"><legend>Choose a starting point</legend>{PRESETS.map(p=><label key={p.id}><input type="radio" name="dashboard-preset" value={p.id} checked={preset===p.id} onChange={()=>setPreset(p.id)}/><span><strong>{p.label}</strong><small>{p.description}</small></span></label>)}</fieldset><h3>Layout preview</h3>{presetPreview?<><ul>{presetPreview.widgets.filter(w=>!w.hidden).map(w=><li key={w.id}>{w.title||WIDGET_CATALOG[w.kind].label} · {widgetMetricLabel(w.metric)}</li>)}</ul><p>{presetPreview.widgets.filter(w=>w.hidden).length} existing widgets will be kept but hidden. This changes placement and visibility only; Goals, Habits, Health and assets remain saved.</p></>:<p role="alert">{presetError}</p>}<div className="dashboard-actions"><button className="secondary" onClick={()=>setPreset(null)}>Cancel</button><button className="primary" disabled={busy||!presetPreview} onClick={()=>void change(s=>applyDashboardPreset(s,preset),'Preset saved on this device.').then(()=>setPreset(null)).catch(()=>{})}>Apply layout</button></div>{error&&<p role="alert">{error}</p>}</Modal>}
  </div></LayoutPage></HealthLinkContext.Provider>;

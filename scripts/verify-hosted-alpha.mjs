@@ -1,4 +1,4 @@
-// Explicit manual public smoke. Never part of CI, never connects a wallet.
+// Explicit manual public smoke. Never part of CI, never connects a wallet. Optional: EXPECTED_COMMIT=<40-hex SHA> (Session W).
 // Status: PASS (exit 0), FAIL (1), COMPLETED_WITH_FINDINGS (2) or NEEDS_OWNER_REVIEW (3): an answer it could not check, or
 // live prices that are not VERIFIED. The live price check runs first and never stops the rest (Session U Part 2b).
 // Fresh ephemeral context; fictional browser-local data only; no mocks.
@@ -17,10 +17,14 @@ if (!output) throw Error('Provide a new evidence output directory.');
 await mkdir(output);
 // Session T (ADR-012): the reviewed connect-src comes from the app's own data file, never a copy.
 const egressPolicy = JSON.parse(await readFile(new URL('../apps/web/lib/egress-policy.json', import.meta.url), 'utf8'));
+// Session W Part 1e: the reviewed sources come from the app's own composer.
+const { connectSources, frameSources } = await import('../apps/web/lib/csp-compose.mjs');
 const alpha = 'https://alpha.zigoals.app';
 const fallback = 'https://zigoals-alpha.reyals1111.workers.dev';
 const apex = 'https://zigoals.app';
-const report = { observedAt: new Date().toISOString(), evidenceSource: 'INDEPENDENT_HOSTED_SMOKE', review: [], sourceScript: fileURLToPath(import.meta.url), mocks: false, walletInteraction: false, freshEphemeralContext: true, responses: [], requestRecords: [], pageErrors: [], consoleErrors: [], failedRequests: [], httpErrors: [], layouts: [], stages: [], limits: ['Single client and small request sample; not load testing or Core Web Vitals.', 'This automated smoke does not inspect Cloudflare CPU/account metrics or private email settings.', 'No real wallet extension test; owner evidence remains separate.'] };
+// Session W Part 1d: with EXPECTED_COMMIT set to a full SHA, every /app answer must name that build (x-zigoals-build).
+const expectedBuild = /^[a-f0-9]{40}$/.test(process.env.EXPECTED_COMMIT ?? '') ? process.env.EXPECTED_COMMIT : null;
+const report = { observedAt: new Date().toISOString(), evidenceSource: 'INDEPENDENT_HOSTED_SMOKE', expectedBuild, builds: [], review: [], sourceScript: fileURLToPath(import.meta.url), mocks: false, walletInteraction: false, freshEphemeralContext: true, responses: [], requestRecords: [], pageErrors: [], consoleErrors: [], failedRequests: [], httpErrors: [], layouts: [], stages: [], limits: ['Single client and small request sample; not load testing or Core Web Vitals.', 'This automated smoke does not inspect Cloudflare CPU/account metrics or private email settings.', 'No real wallet extension test; owner evidence remains separate.'] };
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', permissions: [] });
 const page = await context.newPage();
@@ -55,11 +59,15 @@ try {
       report.responses.push({url:response.url(), sample, status:response.status(), elapsedMs:Math.round(performance.now()-start), decodedBodyBytes:body.length, headers});
       assert.equal(response.status(),200); assert(response.url().startsWith('https://'));
       if (path === '/app') {
+        // Session W Part 1d: which build answered, recorded always; another build than the expected one is for review.
+        const build=headers['x-zigoals-build']??null; report.builds.push({url:origin+path, sample, build});
+        if (expectedBuild && build!==expectedBuild) throw Error(`This answer came from ${build?`build ${build}`:'a build that names none'}, not the expected ${expectedBuild}`);
         const csp=headers['content-security-policy'];
         assert.match(csp,/script-src 'self' 'nonce-[A-Za-z0-9+/]+=*' 'strict-dynamic'/);
         assert.doesNotMatch(csp.split(';').find(s=>s.includes('script-src')),/unsafe-inline|unsafe-eval/);
-        assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), ["'self'", ...egressPolicy.chainOrigins, ...Object.values(egressPolicy.aiProviderOrigins), ...egressPolicy.localModelSources].sort());
-        for (const d of ['object-src','frame-src','frame-ancestors','base-uri']) assert(csp.includes(`${d} 'none'`));
+        assert.deepEqual(csp.split(';').map(s=>s.trim()).find(s=>s.startsWith('connect-src ')).split(/\s+/).slice(1).sort(), connectSources(egressPolicy,'app').sort());
+        for (const d of ['object-src','frame-ancestors','base-uri']) assert(csp.includes(`${d} 'none'`));
+        assert(csp.split(';').map(s=>s.trim()).includes(`frame-src ${frameSources(egressPolicy,'app').join(' ')}`),'frame-src must be exactly the reviewed sources');
         assert(csp.includes("form-action 'self'"));
         // Session V Part 19 (docs/security/TRUSTED_TYPES.md): Trusted Types enforced, with the default policy only.
         assert(csp.split(';').map(s=>s.trim()).includes("require-trusted-types-for 'script'"),'Trusted Types must be enforced');

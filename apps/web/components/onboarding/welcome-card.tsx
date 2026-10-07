@@ -19,7 +19,7 @@ export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boole
     <p>No wallet or account needed. What you add stays in this browser.</p>
     <div className="onboarding-actions">
       <Link className="primary" href="/app/welcome">Start setup</Link>
-      <button type="button" className="secondary" disabled={!demoAvailable} onClick={() => { markOnboardingSeen(window.localStorage); loadShowcase(); window.location.assign("/app"); }}>Explore the demo</button>
+      <button type="button" className="secondary" disabled={!demoAvailable} onClick={() => { markOnboardingSeen(window.localStorage); void loadShowcase().then(() => window.location.assign("/app"), () => undefined); }}>Explore the demo</button>
       <button type="button" className="text-link" onClick={() => { markOnboardingSeen(window.localStorage); onDismiss(); }}>Not now</button>
     </div>
   </section>;

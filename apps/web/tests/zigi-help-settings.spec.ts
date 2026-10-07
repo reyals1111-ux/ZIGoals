@@ -58,10 +58,12 @@ test('Help: the ZIGi topic answers the v2 questions, each linkable, closed until
 test('What\'s new: the new release shows the card again, its last link opens "Ask ZIGi about your records"', async ({page}) => {
   // A device that dismissed Session T's card sees this release's card once.
   await seed(page, {[WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: ['2026-10-session-t']})});
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-v');
+  // Session W Part 24 (deliberate): this release is Session W's; Session V's links fold under "Earlier updates".
+  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-w');
   await page.goto('/app');
   const card = page.getByRole('region', {name: 'A few new things.'});
   await expect(card).toBeVisible();
+  await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Ask ZIGi about your records, and more from ZIGi'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-your-ai-data$/);
   await expect(page.locator('#help-your-ai-data')).toHaveAttribute('open', '');

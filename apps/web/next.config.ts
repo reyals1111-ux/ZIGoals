@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { execFileSync } from "node:child_process";
 import pkg from "./package.json";
 import egress from "./lib/egress-policy.json";
+import { SVG_CSP } from "./lib/csp-compose.mjs";
 function publicBuildIdentity() {
   try {
     const run = (args: string[]) =>
@@ -41,7 +42,7 @@ const config: NextConfig = {
     return [
       // Session U Part 6 (FIX_PLAN D2, FINDINGS Q-WEB-03): an SVG opened on its own runs no script and loads nothing from
       // elsewhere. The same value as public/_headers' "/*.svg" rule, which serves these files on Cloudflare.
-      { source: "/:file(.*\\.svg)", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox" }] },
+      { source: "/:file(.*\\.svg)", headers: [{ key: "Content-Security-Policy", value: SVG_CSP }] },
       {
         source: "/(.*)",
         headers: [

@@ -38,6 +38,25 @@ Every genuinely new record type lives in its own versioned key through `getAppSt
 | `zigoals:push:v1` (PR 4, ADR-010) | the push panel in Settings, the daily refresh | `{version, subscriptionId, endpointHash, quiet: {from, to}, lastSyncDay}` | yes (a device's push subscription) | stays device-only: it describes this browser's subscription, which no other device can use |
 | `zigoals:guide:v1` (PR 4, ADR-011) | the Guide switch, "Not today" | `{version, enabled, enabledOn?, dismissed: {[nudgeId]: day} ≤ 100}` | yes | stays device-only (a view preference, like insight dismissals) |
 
+**Session W (2026-10-06; `apps/web/lib/w-device-keys.ts`, `lib/w-device-records.ts`).** Same pattern (`lib/device-record.ts`, the generic `components/ai/use-device-record.ts` hook):
+
+| Key | Written by | Personal | Synced home |
+|---|---|---|---|
+| `zigoals:accounts:v1` | Wealth → accounts and debts (Part 12) | yes | finance v5 `accounts` (read support only; a later switch PR moves it) |
+| `zigoals:milestone-dates:v1` | Goals → milestone target dates (Part 11) | yes | finance v5 milestone `targetDate` (same) |
+| `zigoals:import-batches:v1` | Settings → Import (Part 7): what each import created, for "Undo this import" | yes | stays device-only (an undo ledger, like `import-undo`) |
+| `zigoals:w-reminders:v1` | wind-down, meditation, chained and plan reminders (Parts 4, 5, 10, 12) | yes | stays device-only (like reminders) |
+| `zigoals:chess-cache:v1` | Chess (Part 14): rating snapshots, recent games, ETags | yes (the person's username's public data) | stays device-only (a cache) |
+| `zigoals:celebrations:v1` | milestone and challenge celebrations already shown (Parts 10–11) | yes | stays device-only |
+| `zigoals:meditation-run:v1` | a running meditation (Part 5) | yes | stays device-only |
+| `zigoals:music:v1` | the music player's choices (Parts 6, 20) | no | stays device-only (a display preference) |
+| `zigoals:pages-view:v1` | the mirror of the visible pages for the first paint (Part 2) | no | stays device-only (the synced choice is settings v3 `pages`) |
+
+Not in this table because they are not `localStorage` keys: the IndexedDB store `zigoals-link-tokens-v1` (Spotify and
+health-link sign-ins, sealed like AI keys; never exported, synced, logged or put in an address; removed on Disconnect,
+sign-out, erase and "Forget"; Parts 8 and 20) and the tab-only session key `zigoals:ai:balance-prefill:v1` (ZIGi's
+balance hand-off to Wealth, read once, ten minutes; Part 21).
+
 Rules for each key:
 1. **Schema:** `lib/<feature>/schema.ts` exports the key, the zod schema, the type and `empty<Name>()`. Field names and types of a record with a synced home are exactly those of the home's schema (`habitHealthLinkSchema` in `lib/habits.ts`, `healthGoalSchema` in `lib/positions.ts`, `weeklyReviewSchema` in `lib/dashboard-settings.ts`, `fastingSessionSchema` in `lib/health.ts`, all as shipped in PR 2), so the move is a plain copy.
 2. **Read tolerance:** `read<Name>(storage)` returns `{data, unreadable}` as `readReminders` does (`lib/reminders/store.ts:4`). Unreadable bytes are never rewritten by any automatic path. The feature shows one calm notice ("Your saved <things> on this device could not be read. They were not changed.") and disables its own writes. The only way to replace them is the person's explicit "Start over…" with a second confirmation (as Portfolio, `components/portfolio/portfolio-view.tsx:82`), which first copies the old bytes to `<key>:recovery:<uuid>`.

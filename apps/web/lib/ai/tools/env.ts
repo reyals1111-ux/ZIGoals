@@ -7,6 +7,9 @@ import type {MarketQuote} from '../../market-quotes';
 import type {PortfolioData} from '../../portfolio/schema';
 import type {Platform} from '../../positions';
 import type {WeeklyReview} from '../../weekly-review/schema';
+import type {Accounts} from '../../accounts/schema';
+import type {MilestoneDates} from '../../goals/milestone-dates';
+import type {ChessCache, ChessSettings} from '../../skills/chess/schema';
 import type {Gates} from '../gates';
 import {Handles} from '../handles';
 import {HEALTH_NOTE_CATEGORIES} from '../store/records';
@@ -32,6 +35,15 @@ export type ToolSources = {
   weekly: WeeklyReview | null;
   /** The person's own notes for ZIGi, only when "Use my notes" is on (Part 8); health-tagged notes need the Health gate. */
   notes?: readonly MemoryNote[] | null;
+  /**
+   * Session W Part 21: the device records the new tools read (each behind its own area switch, like every tool): the
+   * accounts and debts (Wealth), milestone dates (Goals), chess as this device last read it (Today), and only the number
+   * of My links (their names and addresses never reach a tool).
+   */
+  accounts?: Accounts | null;
+  milestoneDates?: MilestoneDates | null;
+  chess?: {settings: ChessSettings | null; cache: ChessCache} | null;
+  linksCount?: number | null;
   showcase: boolean;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {

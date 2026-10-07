@@ -12,7 +12,7 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 ## Before you start
 - **Stages 1–7 are done** on the isolated acceptance services. Never use the live Alpha.
 - **The final redeploy is done:** [FINAL_ACCTEST_REDEPLOY.md](FINAL_ACCTEST_REDEPLOY.md), once: every changed Worker, the services first and the app last.
-- **The sync-writes switch is on in that build:** before the redeploy, the one-line switch-ON PR ([SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) was merged (PR #74 ships it off). In the app: Settings → account sync shows "Also sync my Portfolio (optional)" once an account is open. If the switch is still off, mark rows 15 and 15c "not run: switch off".
+- **The sync-writes switch is on in that build:** Session W Part 1 switched it on in the Session W PR (owner decision W1, 2026-10-06; [SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)). In the app: Settings → account sync shows "Also sync my Portfolio (optional)". If the release SHA does not carry the switch, mark rows 15, 15c and 15d "not run: switch off".
 - **The market policy window:** the private `MARKET_POLICY` ends at 2026-10-31 16:00 UTC. Around 28 October, install the two-window policy with `node scripts/run11/next-market-policy.mjs` (one policy update and one coordinator deploy); the coordinator takes the next period by itself at the boundary ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period)).
 - **The owner hardening below is done.**
 - **Use fictional data only:** no real names, money or health records.
@@ -26,6 +26,18 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
   - account or session IDs, tokens or keys;
   - private Worker host names or IP addresses;
   - screenshots that show any of these.
+
+### Session V changes (what you will notice)
+- **Trusted Types are enforced** in the app's production build: nothing to do, but if any page shows a blank area or a console error naming "TrustedScriptURL" or "require-trusted-types-for", stop and report the page.
+- **ZIGi keeps its own device records** (options, usage, notes, actions, look and feel, reminders, knocks) and chats can be version 2; none of this syncs.
+- **Push reminder names are opt-in:** the "Show reminder names" choice is off unless you turn it on; Health-linked and water reminders stay generic.
+- **ZIGoals hosted (the relay) is not part of this stack:** it stays off; do not deploy `workers/zigi-relay` for Stage 8.
+
+### Session W changes (what you will notice)
+- **Sync writes are on:** row 15 and 15c run as written; row 15d covers sleep, meditation, your links and your pages.
+- **New sections in the synced data, written only when you use the feature:** Health v4 (sleep, meditation, daily vitals, quick-log buttons, the wrap-up mood) and settings v3 (your pages, links, chess usernames, the wrap-up). Accounts, debts and milestone dates stay on each device in this release.
+- **Timezone phase 4 (Part 17):** Settings → "Your time zone" is written to settings v2 and a Goal plan's zone to finance v4 (both read by #29 and later). Re-run rows B2, B4 and B5 on two devices in different zones with a time zone saved on one of them: the other device follows it after a sync, a plan keeps its own zone, and on a plan's due day Goals says "due today", not behind.
+- **New outside services, only on your action:** chess.com and Lichess (only the username you type), Spotify (only once ZIGoals has a Spotify app, MUSIC_ACTIVATION.md). The health-link Worker and the market coordinator's new path are **not** part of this stack (FINAL_ACCTEST_REDEPLOY.md, "Session W changes").
 
 ## Before Stage 8 — owner hardening · about 75 min
 Session U (owner review change 11). Do these once, before Stage 8, in this order. Every click path is from the vendor's
@@ -162,8 +174,8 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 - **Record:** pass or fail, and the date.
 
 **6c. A revoke also ends the provider session (Session U, A3).**
-- **Do:** sign in with Inbox 1 in two browser profiles. In profile 1, Settings → Devices and sessions → "Revoke other sessions" and confirm. Then, in profile 2, open Settings.
-- **Pass:** profile 1 says "1 session(s) revoked. They were also signed out at the email provider."; profile 2 is signed out (it asks for an email code again).
+- **Do:** sign in with Inbox 1 in two browser profiles. In profile 1, Settings → Devices and sessions → "Sign out all other devices…", then "Sign out all other devices" to confirm (on a build without Session W: "Revoke other sessions" after "Refresh sessions", and confirm). Then, in profile 2, open Settings.
+- **Pass:** profile 1 says "1 session(s) revoked. They were also signed out at the email provider." (a Session W build puts "Signed out all other devices:" before it and "This device stays signed in." after it); profile 2 is signed out (it asks for an email code again).
 - **Record:** pass or fail per line.
 
 ## Part 3: turn on sync from the new offer (Desktop A, Inbox 1) · about 10 min
@@ -295,6 +307,15 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
   - the second round asks on the phone "Choose which one to keep": "Keep the encrypted copy" shows the desktop's buys, and the phone's own Portfolio is kept as a recovery copy;
   - "Delete the Portfolio's encrypted copy…" → "Delete the encrypted copy" on the phone, then "Sync now" on the desktop: the desktop says the copy was deleted on another device and unticks its box; both devices keep their Portfolio.
 - **Record:** pass or fail per line.
+
+**15d. Session W: sleep, meditation, your links and your pages sync (two devices; Session W, needs its PR in the release SHA).**
+- **Before:** both devices have "Sync my Health records" ticked and have synced once.
+- **Do:** on Desktop A: Health → Sleep → log a fictional night (bedtime and wake time, quality 3, the tag "screens"); Health → Meditation → log 5 minutes by hand; Settings → Your pages & buttons → hide Markets and switch Chess on; Settings → My links → add `https://example.com` labelled "Test link". "Sync now" on Desktop A, then on Phone B.
+- **Pass:**
+  - Phone B's Health shows the night (same duration and quality) and the 5-minute session, each once;
+  - Phone B's tab bar and More sheet follow the pages choice (no Markets; Chess in More), and its Today shows the link;
+  - then on Phone B untick "Sync my Health records", log another night on Desktop A and sync both: the phone does not receive it, while a second link added on Desktop A does arrive (links sync with settings, not with Health).
+- **Record:** pass or fail per line. Never the link's address or the night's notes.
 
 **15b. Push reminder with the app closed (C5; only after [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–5) · about 10 min.**
 - **Before:** do it outside the quiet hours (22:00–07:00 on the phone, by default), signed in on the Home Screen app.

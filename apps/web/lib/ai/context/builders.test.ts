@@ -4,7 +4,7 @@ import {habitDataSchema, createHabit, type HabitData} from '../../habits';
 import {healthSchema, type HealthData} from '../../health';
 import {platformSchema, type Platform} from '../../positions';
 import {portfolioDataSchema, PORTFOLIO_KEY} from '../../portfolio/schema';
-import {fastingSchema, FASTING_KEY} from '../../fasting/schema';
+import {homeRecordsIn} from '../../sync-homes-store';
 import {defaultAiSettings} from '../settings';
 import {consent} from './consent';
 import {buildPageContext, habitByTitle, moneyText, resolveHandle, unitsText, type BuilderInput} from './builders';
@@ -19,7 +19,7 @@ const habits = habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) 
 const health = healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData;
 const platform = platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform;
 const portfolio = records[PORTFOLIO_KEY] ? portfolioDataSchema.parse(JSON.parse(records[PORTFOLIO_KEY]!)) : null;
-const fasting = records[FASTING_KEY] ? fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)) : null;
+const fasting = homeRecordsIn(records).fasting;
 const settings = {...defaultAiSettings(), enabled: true, mode: 'api' as const, provider: 'openai' as const, model: 'm', includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}};
 const now = new Date('2026-09-20T19:00:00Z');
 function input(area: BuilderInput['area'], pathname: string, overrides: Partial<BuilderInput> = {}): BuilderInput {

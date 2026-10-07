@@ -132,8 +132,14 @@ export function LiquidGlass() {
       if (lifted.length && !focusSource && !lifted.some(el => el === next.inner || el === next.card)) set(null);
       intent = window.setTimeout(() => { if (!pressed && !dragging()) set(next); }, INTENT_MS);
     };
+    // Where the pointer last was: content moving under a still pointer (focus scrolled the page, a section loaded) fires
+    // pointerover at the same spot, and must not take a keyboard focus lift away from the focused element.
+    let rest: {x: number; y: number} | null = null;
     const onOver = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || !hover.matches || dragging()) return;
+      const resting = !!rest && Math.abs(event.clientX - rest.x) < 1 && Math.abs(event.clientY - rest.y) < 1;
+      rest = {x: event.clientX, y: event.clientY};
+      if (resting && focusSource) return;
       if (!pressed) hoverAt(event.target as Element);
     };
     const onMoveAfterPress = (event: PointerEvent) => {

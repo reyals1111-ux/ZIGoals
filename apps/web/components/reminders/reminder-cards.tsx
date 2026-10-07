@@ -9,6 +9,18 @@ import type {HealthData} from '../../lib/health';
 import {dueReminders, type DueReminder} from '../../lib/reminders/due';
 import {dismissForToday} from '../../lib/reminders/store';
 import {useReminders} from './use-reminders';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {W_REMINDERS} from '../../lib/reminders/w-schema';
+import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
+import {dismissMeditationTime, meditationDue} from '../../lib/reminders/meditation-time';
+import {chainedDue, dismissChained} from '../../lib/habits-v2/stacks';
+import {contributionDue, dismissContribution} from '../../lib/reminders/contribution-due';
+import {usePlatform} from '../platform/use-platform';
+import {habitCalendarDay} from '../../lib/habits';
+import {MEDITATION_RUN} from '../../lib/meditation/schema';
+import {sessionDay} from '../../lib/meditation/stats';
+import {localDate} from '../../lib/local-date';
+import {healthGroupIn} from '../../lib/vault/w-homes';
 import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 
@@ -31,7 +43,7 @@ function useHasZigiReminders(): boolean {
   return has;
 }
 export function ReminderCards({habits, health}: {habits?: HabitData; health?: HealthData}) {
-  const reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders();
+  const platform = usePlatform(), reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
   useEffect(() => {
     const tick = () => setNow(new Date());
     queueMicrotask(tick);
@@ -44,7 +56,17 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   }, []);
   if (!reminders.loaded || !now) return null;
   const due = dueReminders({reminders: reminders.data, habits, health, now});
-  if (!due.length && !zigi && !error) return null;
+  // Session W Part 4: the wind-down time, until a night is running (Health → Sleep).
+  const windDown = wReminders.loaded && !wReminders.unreadable ? windDownDue({w: wReminders.data, running: !!health && (healthGroupIn(health, 'sleep')?.nights ?? []).some(n => n.end === null), now}) : null;
+  // Session W Part 5: the meditation time, until a session is logged today or one runs (Health → Meditation).
+  const meditation = wReminders.loaded && !wReminders.unreadable && meditationRun.loaded ? meditationDue({w: wReminders.data, doneToday: !!health && (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), running: !!meditationRun.data.run, now}) : null;
+  // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
+  let chained: ReturnType<typeof chainedDue> = [];
+  try { chained = habits && wReminders.loaded && !wReminders.unreadable ? chainedDue(wReminders.data, habits, habitCalendarDay(habits, now)) : []; } catch { chained = []; }
+  // Session W Part 12: a contribution plan's reminder on a day an amount is due.
+  let contributions: ReturnType<typeof contributionDue> = [];
+  try { contributions = platform.loaded && wReminders.loaded && !wReminders.unreadable ? contributionDue(wReminders.data, platform.data, now) : []; } catch { contributions = []; }
+  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
@@ -57,6 +79,42 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
       <div className="reminder-card-actions">
         <Link className="secondary" href={reminder.href}>{reminder.kind === 'water' ? 'Open water journal' : 'Open habit'}</Link>
         <button type="button" className="quiet" onClick={() => dismiss(reminder)}>Dismiss for today</button>
+      </div>
+    </article>)}
+    {windDown && <article className="panel reminder-card" aria-label="Reminder: Wind-down time">
+      <p className="eyebrow">Reminder · {windDown.time} · on this device</p>
+      <h2>Time to wind down</h2>
+      <p>Your wind-down time. When you go to bed, tap “I’m going to bed” in Sleep.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={windDown.href}>Open Sleep</Link>
+        <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissWindDown(r, windDown.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not tonight</button>
+      </div>
+    </article>}
+    {meditation && <article className="panel reminder-card" aria-label="Reminder: Time to meditate">
+      <p className="eyebrow">Reminder · {meditation.time} · on this device</p>
+      <h2>Time to meditate</h2>
+      <p>A few quiet minutes, if you like. A rest day is fine too.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={meditation.href}>Open Meditation</Link>
+        <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissMeditationTime(r, meditation.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
+      </div>
+    </article>}
+    {chained.map(next => <article key={next.id} className="panel reminder-card" aria-label={`Reminder: next in your stack, ${next.title}`}>
+      <p className="eyebrow">Next in your stack · on this device</p>
+      <h2>{next.title}</h2>
+      <p>After {next.after}, which is done today.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={next.href}>Open Habits</Link>
+        <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissChained(r, next.habitId, next.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
+      </div>
+    </article>)}
+    {contributions.map(c => <article key={c.id} className="panel reminder-card" aria-label={`Reminder: a contribution is due, ${c.title}`}>
+      <p className="eyebrow">Reminder · {c.time} · on this device</p>
+      <h2>A contribution is due: {c.title}</h2>
+      <p>Your plan has an amount for today. “Fund now” opens the form filled in; nothing moves until you confirm it there.</p>
+      <div className="reminder-card-actions">
+        <Link className="secondary" href={c.href}>Fund now</Link>
+        <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissContribution(r, c.goalId, c.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
       </div>
     </article>)}
     {zigi && <Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense>}

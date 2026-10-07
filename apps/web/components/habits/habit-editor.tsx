@@ -6,7 +6,7 @@ import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import { INVISIBLE_NAME, isInvisibleName } from "../../lib/visible-text";
 import { ReminderTimeField } from "../reminders/reminder-time-field";
 import { HealthLinkField, healthLinkDraft, healthLinkFromDraft } from "./health-link-field";
-import type { HabitHealthLink } from "../../lib/habit-health-links/schema";
+import type { HabitHealthLinkV4 as HabitHealthLink } from "../../lib/habit-health-links/schema";
 import type { ExerciseCounter } from "../../lib/health-counters";
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };

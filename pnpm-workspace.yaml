@@ -19,3 +19,13 @@ overrides:
   # (optional), but `pnpm update sharp --depth Infinity` keeps the locked
   # 0.35.4. Remove once the lock resolves >=0.35.5 without it.
   "next>sharp": ^0.35.5
+  # Session W Part 1c, in-range audit fix (GHSA-jqcg-44mw-7w3h, critical): express
+  # (through @opennextjs/aws) declares proxy-addr ^2.0.7, but
+  # `pnpm update proxy-addr --depth Infinity` keeps the locked 2.0.7. Remove once
+  # the lock resolves >=2.0.8 without it.
+  "express>proxy-addr": ^2.0.8
+  # Session W Part 1c, narrowest audit fix (GHSA-wq5f-xc86-pv6w, librsvg
+  # CVE-2026-96889): miniflare (through wrangler, local and test runtime only)
+  # pins sharp to exactly 0.35.4; the patch release 0.35.5 is the fix. Remove once
+  # miniflare pins >=0.35.5.
+  "miniflare>sharp": 0.35.5

@@ -5,6 +5,8 @@ import { dailyHealthSummary, formatHealthGrams,formatNutrient,nutritionSummaryTe
 import { dailyData } from "../../lib/health-daily";
 import { useHealthToday } from "./use-health-today";
 import { useHealth } from "./use-health";
+import { useJournalZone } from "../use-journal-zone";
+import { useDeviceZone } from "../use-device-zone";
 import { GlassBar } from "../progress/glass-progress";
 import "./health.css";
 import { formatNumber } from "../../lib/visual-format";
@@ -13,10 +15,13 @@ export function HealthToday() {
   const { data, loaded, error } = useHealth();
   // The Health journal's day, as on the Health page (QA-24), not the device's day.
   const today = useHealthToday(dailyData(data).preferences.timezone);
+  // Session W Part 17 (QA-24-B): the Health zone, then the journal zone, then the device's; said when it is not the device's.
+  const journal = useJournalZone().zone, zone = dailyData(data).preferences.timezone ?? journal, device = useDeviceZone();
   const summary = loaded ? dailyHealthSummary(data, today) : null;
   const weight = latestWeightObservation(data,today);
   return <section className="panel health-today" aria-label="Today's health">
     <div className="health-section-heading"><div><p className="eyebrow">HEALTH · PRIVATE</p><h2>Your daily balance.</h2></div><span className="health-symbol" aria-hidden="true">↗</span></div>
+    {loaded && !error && zone && device && zone !== device && <p className="fine health-today-zone">Today in {zone}</p>}
     {!loaded ? <p>Loading your private health entries…</p> : error ? <p>Health data needs attention. Open Health to review it.</p> : summary && summary.entries > 0 ? <>
       <div className="health-today-value"><strong>{formatNutrient(summary.nutrients.kcal)}</strong><span>kcal logged{data.targets.kcal ? ` / ${formatNumber(data.targets.kcal)} target` : ""}</span></div>
       {data.targets.kcal && summary.nutrients.kcal!==null && <GlassBar identity="health-today-kcal" className="health-today-meter" role="progressbar" aria-label="Today's calorie target" aria-valuemin={0} aria-valuemax={data.targets.kcal} aria-valuenow={Math.min(data.targets.kcal, summary.nutrients.kcal)} value={summary.nutrients.kcal / data.targets.kcal}/>}

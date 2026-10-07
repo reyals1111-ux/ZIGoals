@@ -9,3 +9,16 @@
 .goal-detail-overview:has(.goal-actions[open]){overflow:visible}
 .goal-detail-overview .goal-detail-art{overflow:hidden;border-radius:inherit}
 @media(forced-colors:active){.goal-detail-workspace .goal-detail-current{background:none;-webkit-text-fill-color:CanvasText}}
+/* Session W Part 11: milestones with values and dates, their track, the calm note, and "On track?". */
+.goal-milestone-track { position: relative; margin: 12px 0 16px; }
+.goal-milestone-bar { height: 10px; }
+.goal-milestone-mark { position: absolute; top: -3px; width: 2px; height: 16px; margin-left: -1px; background: #a6c1fa66; border-radius: 1px; }
+.goal-milestone-mark[data-done] { background: currentColor; }
+.goal-milestone-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 4px; }
+.goal-milestone-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.goal-milestone-row small { flex: 1 1 160px; }
+.goal-milestone-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid #a6c1fa33; border-radius: 14px; }
+.goal-milestone-note p { margin: 0; }
+.goal-what-if { margin-top: 12px; }
+.goal-what-if-fields { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.goal-what-if-fields .field { flex: 1 1 180px; }

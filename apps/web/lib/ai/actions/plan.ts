@@ -19,6 +19,13 @@ import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
 import {GLASS_ML, PLAN_AHEAD_DAYS, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
+import {healthGroupIn, withHealthGroup} from '../../vault/w-homes';
+import {clockFromMidnight, deleteNight, saveNight, type NightInput} from '../../sleep/engine';
+import {emptySleep} from '../../sleep/schema';
+import {deleteSession, saveManual, type ManualInput} from '../../meditation/engine';
+import {emptyMeditation} from '../../meditation/schema';
+import {challengeOf, startChallenge} from '../../habits-v2/challenge';
+import {formatMinutes, instantAt, wallClock} from '../../zone-time';
 
 /**
  * From a validated proposal to a card and two writes (ADR-012, Part 5). `write` runs at confirm time on the latest
@@ -39,8 +46,10 @@ export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitD
 export type Card = {kind: ActionKind; title: string; lines: string[]; where: string; day: string | null; estimate: boolean; safety?: string};
 export type Undo = {label: string; write: (current: Stores) => Partial<Stores>; unchanged: (afterApply: Stores, current: Stores) => boolean};
 export type HoldingPrefill = {category: (typeof HOLDING_CATEGORIES)[number]; name: string; quantity: string; currency: string; value?: string; symbol?: string; notes?: string};
+/** Session W Part 21: an account's new balance, handed to Wealth's own balance form (the person saves it there). */
+export type BalancePrefill = {account: string; balance: string; currency?: string; date: string};
 /** `activity` (Session V Part 7): the record a confirmed card makes, for Activity's "Actions by ZIGi" (its id there). */
-export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; activity?: {id: string; title: string}};
+export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; activity?: {id: string; title: string}};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -383,6 +392,92 @@ export function planAction(action: Action, env: Env): PlanResult {
         write: s => ({memory: addNote(s.memory, {text: action.text, category: action.category, source: 'zigi'}, env.now, id)}),
         undo: {label: 'Forget this note', write: s => ({memory: deleteNote(s.memory, id)}), unchanged: (after, current) => same(after.memory.notes?.find(n => n.id === id), current.memory.notes?.find(n => n.id === id))},
         activity: {id: `note:${id}`, title: `Remembered: ${action.text.slice(0, 120)}`}}};
+    }
+    // ---- Session W Part 21 (W7) ----
+    case 'log-sleep': {
+      const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const zone = dailyData(stores.health).preferences.timezone ?? env.timeZone, kind = action.nap ? 'nap' : 'night';
+      let input: NightInput;
+      try {
+        const end = instantAt(day.day, action.wake, zone);
+        let start = action.bedtime ? instantAt(day.day, action.bedtime, zone) : end - Math.round((action.hours ?? 0) * 60 + (action.minutes ?? 0)) * 60_000;
+        if (action.bedtime && start >= end) start = instantAt(addLocalDays(day.day, -1), action.bedtime, zone);
+        input = {kind, start, end, timeZone: zone, ...(action.quality ? {quality: action.quality} : {})};
+        saveNight(healthGroupIn(stores.health, 'sleep') ?? emptySleep(), input, env.now);
+      } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'That night could not be placed; check the times.'); }
+      const length = Math.round((input.end - input.start) / 60_000), clock = (ms: number) => clockFromMidnight(wallClock(ms, zone).minutes);
+      let created: string | null = null;
+      const nightOf = (s: Stores) => created ? healthGroupIn(s.health, 'sleep')?.nights.find(n => n.id === created) : undefined;
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: kind === 'nap' ? 'Add a nap' : 'Add a night', lines: [`${clock(input.start)} to ${clock(input.end)} · ${formatMinutes(length)} in bed`, ...(action.quality ? [`Quality ${action.quality} of 5`] : []), 'Time asleep is estimated until you add how long you lay awake, in Health → Sleep'], where: 'Health · Sleep', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => {
+          const current = healthGroupIn(s.health, 'sleep') ?? emptySleep(), before = new Set(current.nights.map(n => n.id)), next = saveNight(current, input, env.now);
+          created = next.nights.find(n => !before.has(n.id))?.id ?? null;
+          return {health: withHealthGroup(s.health, 'sleep', next, false)};
+        },
+        undo: {label: kind === 'nap' ? 'Remove this nap' : 'Remove this night', write: s => created ? {health: withHealthGroup(s.health, 'sleep', deleteNight(healthGroupIn(s.health, 'sleep') ?? emptySleep(), created), false)} : {}, unchanged: (after, current) => same(nightOf(after), nightOf(current))},
+        activity: {id: `sleep:${day.day}:${action.wake}`, title: `${kind === 'nap' ? 'Nap' : 'Night'}: ${formatMinutes(length)} in bed`}}};
+    }
+    case 'log-meditation': {
+      const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const zone = dailyData(stores.health).preferences.timezone ?? env.timeZone;
+      let time = action.time;
+      if (!time) {
+        if (day.day !== env.healthDay) return refuse('Say when it started (HH:MM) for a day other than today.');
+        const start = wallClock(env.now.getTime() - action.minutes * 60_000, zone);
+        if (start.date !== day.day) return refuse('That session would have started yesterday; say the day and the time it started.');
+        time = clockFromMidnight(start.minutes);
+      }
+      const input: ManualInput = {date: day.day, time, minutes: action.minutes, timeZone: zone, ...(action.note ? {note: action.note} : {})};
+      try { saveManual(healthGroupIn(stores.health, 'meditation') ?? emptyMeditation(), input, env.now); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'Those minutes could not be added.'); }
+      let created: string | null = null;
+      const sessionOf = (s: Stores) => created ? healthGroupIn(s.health, 'meditation')?.sessions.find(x => x.id === created) : undefined;
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Add mindful minutes', lines: [`${action.minutes} min from ${time}`, ...(action.note ? [`Note: ${action.note}`] : [])], where: 'Health · Meditation', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => {
+          const current = healthGroupIn(s.health, 'meditation') ?? emptyMeditation(), before = new Set(current.sessions.map(x => x.id)), next = saveManual(current, input, env.now);
+          created = next.sessions.find(x => !before.has(x.id))?.id ?? null;
+          return {health: withHealthGroup(s.health, 'meditation', next, false)};
+        },
+        undo: {label: 'Remove these minutes', write: s => created ? {health: withHealthGroup(s.health, 'meditation', deleteSession(healthGroupIn(s.health, 'meditation') ?? emptyMeditation(), created), false)} : {}, unchanged: (after, current) => same(sessionOf(after), sessionOf(current))},
+        activity: {id: `meditation:${day.day}:${time}`, title: `Mindful minutes: ${action.minutes} min`}}};
+    }
+    case 'add-milestone': {
+      const found = env.handles.find(h => h.handle === action.goal && h.kind === 'goal');
+      if (!found) return refuse('ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.');
+      const goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+      if (!goal) return refuse('Milestones belong to your own goals; a simulation goal keeps its steps on its own page.');
+      if (goal.status === 'closed') return refuse('This goal is closed. Reopen it in Goals before adding a milestone.');
+      if (goal.locked) return refuse('This goal is locked. Unlock it in Goals before adding a milestone.');
+      if (goal.milestones.length >= 100) return refuse('This goal already has 100 milestones.');
+      let target: string | undefined;
+      if (action.value !== undefined) {
+        if (goal.type === 'PROJECT') return refuse('A project counts its milestones, not amounts: add it without a value.');
+        try { target = parseAmountInput(String(action.value), goal.decimals).toString(); } catch { return refuse('The milestone\'s value could not be read.'); }
+        if (BigInt(target) <= 0n || BigInt(target) > BigInt(goal.target)) return refuse('A milestone\'s value is above zero and at most the goal\'s target.');
+      }
+      const id = (env.newHabitId ?? (() => crypto.randomUUID()))(), milestone = {id, title: action.title, done: false, ...(target ? {target} : {})};
+      const mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id)?.milestones.find(m => m.id === id);
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a milestone to "${goal.name}"`, lines: [action.title, ...(action.value !== undefined ? [`At ${action.value.toLocaleString('en-US')} ${goal.asset}`] : []), 'Give it a date in Goals if you like; nothing moves money'], where: 'Goals · Milestones', day: null, estimate: false},
+        write: s => { if (!s.platform.goals.some(g => g.id === goal.id)) throw Error('This goal is no longer here.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: [...g.milestones, milestone]} : g)})}; },
+        undo: {label: 'Remove this milestone', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: g.milestones.filter(m => m.id !== id)} : g)})}), unchanged: (after, current) => same(mine(after), mine(current))},
+        activity: {id: `milestone:${goal.id}:${id}`, title: `Milestone added to ${goal.name}: ${action.title}`}}};
+    }
+    case 'update-account-balance': {
+      const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
+      const balance = typeof action.balance === 'number' ? num(action.balance, 2) : action.balance;
+      const prefill: BalancePrefill = {account: action.account, balance, date: day.day, ...(action.currency ? {currency: action.currency} : {})};
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'Pre-fill an account\'s balance', lines: [`${action.account} · ${balance}${action.currency ? ` ${action.currency}` : ''} on ${day.day}`, 'Nothing is saved here: Wealth opens that account\'s balance form with these values and you review and save it yourself'], where: 'Wealth · Accounts and debts', day: dayLabel(day.day, env.habitDay), estimate: false}, write: () => ({}), undo: null, balance: prefill}};
+    }
+    case 'start-challenge': {
+      const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
+      const habit = found.habit, running = challengeOf(habit, env.habitDay);
+      try { startChallenge(stores.habits, habit.id, action.days, env.now); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'This challenge could not be started.'); }
+      const end = addLocalDays(env.habitDay, action.days - 1);
+      let before: Habit | undefined;
+      const mine = (s: Stores) => s.habits.habits.find(h => h.id === habit.id);
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Start a ${action.days}-day challenge`, lines: [`${habit.title}: today (${env.habitDay}) to ${end}`, ...(running && !running.finished ? [`Replaces its current end date, ${running.end}`] : []), 'Rest days are neutral; after the last day the habit is simply not due'], where: 'Habits', day: null, estimate: false},
+        write: s => { before = mine(s); return {habits: startChallenge(s.habits, habit.id, action.days, env.now)}; },
+        undo: {label: 'Take the challenge off', write: s => before ? {habits: habitDataSchema.parse({...s.habits, habits: s.habits.habits.map(h => h.id === habit.id ? before! : h)})} : {}, unchanged: (after, current) => same(mine(after), mine(current))},
+        activity: {id: `challenge:${habit.id}:${end}`, title: `Challenge: ${habit.title}, ${action.days} days`}}};
     }
   }
 }

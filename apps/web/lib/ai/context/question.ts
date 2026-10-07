@@ -49,6 +49,17 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (h.measurement) add('body_measurements', {range: phrase('the last 90 days')});
   if (h.fasting) add('fasting', {range: phrase('the last 30 days')});
   if (h.counter) add('counters', {range: phrase('the last 7 days'), ...(typeof h.counter === 'string' ? {counter: h.counter} : {})});
+  // Session W Part 21: sleep, meditation, vitals and devices (Health, behind its gate), then the other new areas.
+  if (h.sleep) add('sleep_summary', {});
+  if (h.meditation) add('meditation_summary', {});
+  if (h.vitals) add('vitals', {range: phrase('the last 7 days')});
+  if (h.devices) add('devices', {});
+  const l = s.life;
+  if (l.accounts) add('net_worth', {});
+  if (l.milestones) add('milestones', s.goals.length === 1 ? {goal: clean(s.goals[0]!.name, 120)} : {});
+  if (l.challenges) add('challenges', {});
+  if (l.chess) add('chess_ratings', {});
+  if (l.links) add('links_count', {});
   const seen = new Set<string>();
   return calls.filter(c => { const id = sourceId(c); if (seen.has(id)) return false; seen.add(id); return true; }).slice(0, 8);
 }

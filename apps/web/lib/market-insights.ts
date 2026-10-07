@@ -16,7 +16,7 @@ export function validatedLogoUrl(raw:unknown):string|null{
 export function marketLogoProxyUrl(url:string){const valid=validatedLogoUrl(url);return valid?`/api/market-logo?url=${encodeURIComponent(valid)}`:null;}
 function validProxy(raw:string){try{const url=new URL(raw,'https://local.invalid');return url.origin==='https://local.invalid'&&url.pathname==='/api/market-logo'&&url.searchParams.size===1&&!!validatedLogoUrl(url.searchParams.get('url'))&&raw===marketLogoProxyUrl(url.searchParams.get('url')!);}catch{return false;}}
 const priceSchema=z.object({value:z.string().regex(/^[1-9]\d{0,77}$/),decimals:z.number().int().min(0).max(30)}).strict();
-const exactChange=z.string().max(120).regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/).refine(value=>Number.isFinite(Number(value))&&Number(value)>=-100&&Math.abs(Number(value))<=1e12);
+export const exactChange=z.string().max(120).regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/).refine(value=>Number.isFinite(Number(value))&&Number(value)>=-100&&Math.abs(Number(value))<=1e12);
 export const marketInsightSchema=marketRequestSchema.extend({
  source:z.enum(['CoinGecko','CoinGecko tokenized RWA reference']),marketBasis:z.enum(['coin','tokenized']),logoUrl:z.string().max(1600).refine(validProxy).nullable(),
  change24h:exactChange.nullable(),observedAt:z.iso.datetime().nullable(),fetchedAt:z.iso.datetime(),

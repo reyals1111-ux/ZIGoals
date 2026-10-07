@@ -15,6 +15,11 @@ const earlierShift=(date:string,n:number)=>new Date(Date.parse(`${date}T00:00:00
 export function planDay(now:number,zone='UTC'):string{return now>=FIRST_INSTANT&&now<END_INSTANT?zonedDate(now,zone):earlierDay(now);}
 /** The zone a Goal's plan days are counted in (TIMEZONE_DESIGN.md, "Plan zone"): the plan's own, else UTC. */
 export const planZone=(g:Pick<PrivateGoal,'plan'>|undefined)=>g?.plan?.timeZone??'UTC';
+/**
+ * Timezone phase 4 (Session W Part 17, T1): a new plan's zone is the journal zone when one is written down, else UTC.
+ * Chosen once, when the plan is created or revised; a later journal-zone change never moves existing instalments.
+ */
+export const defaultPlanTimeZone=(journalTimeZone?:string|null):string=>journalTimeZone??'UTC';
 /** A plan date moved by whole calendar days. */
 export function shiftPlanDay(date:string,n:number):string{
  // addDays(date,n) without validating the date twice more: this runs for every plan revision on every render.
@@ -37,7 +42,9 @@ export function capturePlanChanges(before:Platform,after:Platform,now:number):Pl
   if(old&&!revisions.length)revisions.push(revision(old,planDay(now,planZone(old)),now,0,'unknown'));
   revisions.push(revision(g,old?earliestPlanChange(old,now):planDay(now,planZone(g)),now,revisions.length,'known'));
   changed=true;return {...g,planRevisions:revisions};
- });return changed?{...after,goals}:after;
+ });
+ // A new plan may carry a zone (Session W Part 17, T1): the record is then finance v4. Never down (financeVersion keeps v5).
+ return changed?{...after,goals,schemaVersion:financeVersion({...after,goals})}:after;
 }
 export function reviseGoalPlan(s:Platform,goalId:string,plan:ContributionPlan,effectiveFrom:string,now=Date.now(),expected?:string):Platform {
  const g=s.goals.find(g=>g.id===goalId);if(!g||g.status==='closed'||g.locked)throw Error('Choose an unlocked, open Goal.');

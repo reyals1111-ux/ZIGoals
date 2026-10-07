@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { navLink } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
+import { connectSources } from "../lib/csp-compose.mjs";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
 
 test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
@@ -57,7 +58,7 @@ test("egress capture detects a sentinel carried only in an HttpOnly cookie", asy
 });
 // Permissions-Policy per route (Session T, ADR-012): read from the one data file next.config.ts reads, so the spec
 // proves the effective headers of the running build (next start, and the OpenNext artifact in the integration job).
-const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as {permissionsPolicy: {global: string; app: string; health: string}; chainOrigins: string[]; aiProviderOrigins: Record<string, string>; localModelSources: string[]};
+const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as Parameters<typeof connectSources>[0];
 test("the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere", async ({request}) => {
   for (const [path, expected] of [["/app", egress.permissionsPolicy.app], ["/app/habits", egress.permissionsPolicy.app], ["/app/health", egress.permissionsPolicy.health]] as const) {
     const response = await request.get(path);
@@ -65,12 +66,15 @@ test("the effective Permissions-Policy: the microphone on the app pages, the cam
   }
   expect(egress.permissionsPolicy.app).toContain("microphone=(self)"); expect(egress.permissionsPolicy.app).toContain("camera=()");
   expect(egress.permissionsPolicy.health).toContain("camera=(self)"); expect(egress.permissionsPolicy.health).toContain("microphone=(self)");
+  // Session W Part 8: Web Bluetooth only on Health.
+  expect(egress.permissionsPolicy.health).toContain("bluetooth=(self)"); expect(egress.permissionsPolicy.app).toContain("bluetooth=()"); expect(egress.permissionsPolicy.global).toContain("bluetooth=()");
   // The root redirects to /app (307); the global policy is asserted on that response itself, not on the page it leads to.
   const root = await request.get("/", {maxRedirects: 0});
   expect([200, 307, 308]).toContain(root.status());
   expect(root.headers()["permissions-policy"]).toBe(egress.permissionsPolicy.global);
   const app = await request.get("/app");
-  expect(app.headers()["content-security-policy"]).toContain(`connect-src 'self' ${[...egress.chainOrigins, ...Object.values(egress.aiProviderOrigins), ...egress.localModelSources].join(" ")}`);
+  // Session W Part 1e: the reviewed connect-src from the app's own composer.
+  expect(app.headers()["content-security-policy"]).toContain(`connect-src ${connectSources(egress, "app").join(" ")};`);
 });
 test("strict production headers, fresh nonce, navigation and script rejection", async ({page,request}) => {
   const errors:string[]=[]; page.on("pageerror",e=>errors.push(e.message));
@@ -85,6 +89,8 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(h["referrer-policy"]).toBe("no-referrer"); expect(h["cache-control"]).toContain("no-store");
   expect(h["cross-origin-opener-policy"]).toBe("same-origin");
   expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
+  // Session W Part 1d: the build names its exact source commit, the one the page itself shows (Settings, Help).
+  expect(h["x-zigoals-build"]).toMatch(/^[a-f0-9]{40}$/);
   const socialUrl = new URL("/social-card.png", response!.url());
   // NextURL intentionally normalizes loopback addresses to localhost.
   if (socialUrl.hostname === "127.0.0.1") socialUrl.hostname = "localhost";
@@ -138,9 +144,11 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await expect(page.getByRole("heading",{name:sentinel})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
-  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
+  // Each simulation finishes (its review closes) before the next step, as goals.spec waits for its result. Without this
+  // wait, Withdraw's review once never opened in CI (run 37663282444); the cause is not known (STATUS, Session W).
+  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
-  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
+  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   await (await navLink(page,"Settings")).click();
   const downloaded=page.waitForEvent("download"); await page.getByRole("button",{name:"Export Goal Data"}).click(); await downloaded;
   const backup=await page.evaluate(()=>localStorage.getItem("zigoals:metadata:v1:local-simulation:local-demo-user")!);
@@ -152,7 +160,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   const safe=page.getByLabel("Safe diagnostic summary"); await expect(safe).toBeVisible(); expect(await safe.inputValue()).not.toContain(sentinel);
   await page.getByRole("button",{name:"Copy reviewed diagnostics"}).click();
   await page.goto("/app/goals/1"); await expect(page.getByRole("heading",{name:sentinel+"_EDIT"})).toBeVisible();
-  await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click();
+  await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   await page.getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   expect(await page.evaluate(()=>Reflect.get(window,"signerCalls"))).toBe(0);
   await page.waitForLoadState("networkidle");

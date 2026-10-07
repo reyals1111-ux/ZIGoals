@@ -1,5 +1,5 @@
 import {createEmptyHealth} from '../../health';
-import type {HabitHealthLinks} from '../../habit-health-links/schema';
+import type {HabitHealthLinksV4 as HabitHealthLinks} from '../../habit-health-links/schema';
 import {insightCards, MIN_DAYS, MIN_SIDE, WINDOW_DAYS, type InsightCard} from '../../insights/engine';
 import type {ToolEnv} from '../tools/env';
 

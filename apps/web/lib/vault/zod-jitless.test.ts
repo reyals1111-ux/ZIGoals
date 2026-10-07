@@ -10,7 +10,10 @@ import {powerUserRecords} from './power-user-fixture';
 type Schemas=Record<string,z.ZodType>;
 async function load():Promise<Schemas>{
  const [{modules},{localSimulationSchema},crypto,{syncStateSchema,rowSchema,confirmationSchema},shared,{financialEventSchema},{deviceRecordSchema},{aiSettingsSchema},{chatSchema},{sealedKeySchema}]=await Promise.all([import('./account-data'),import('./local-simulation-backup'),import('./crypto'),import('./cloud-sync'),import('@zigoals/shared-types'),import('../financial-events'),import('./device-unlock'),import('../ai/settings'),import('../ai/chats'),import('../ai/keys')]);
- return {finance:modules.finance.schema,habits:modules.habits.schema,health:modules.health.schema,settings:modules.settings.schema,localSimulation:localSimulationSchema,manifest:crypto.manifestSchema,envelope:crypto.envelopeSchema,recordContext:crypto.recordContextSchema,syncState:syncStateSchema,syncRow:rowSchema,syncConfirmation:confirmationSchema,goalBackup:shared.backupSchema,goalMetadata:shared.metadataSchema,financialEvent:financialEventSchema,deviceRecord:deviceRecordSchema,sealedRoot:crypto.sealedRootSchema,aiSettings:aiSettingsSchema,aiChat:chatSchema,aiSealedKey:sealedKeySchema};
+ // Session W: every new device record's schema and the sealed sign-in tokens.
+ const [{W_DEVICE_RECORDS},links]=await Promise.all([import('../w-device-records'),import('../links/token-store')]);
+ const w=Object.fromEntries(W_DEVICE_RECORDS.map(r=>[`w:${r.key}`,r.schema as z.ZodType]));
+ return {finance:modules.finance.schema,habits:modules.habits.schema,health:modules.health.schema,settings:modules.settings.schema,localSimulation:localSimulationSchema,manifest:crypto.manifestSchema,envelope:crypto.envelopeSchema,recordContext:crypto.recordContextSchema,syncState:syncStateSchema,syncRow:rowSchema,syncConfirmation:confirmationSchema,goalBackup:shared.backupSchema,goalMetadata:shared.metadataSchema,financialEvent:financialEventSchema,deviceRecord:deviceRecordSchema,sealedRoot:crypto.sealedRootSchema,aiSettings:aiSettingsSchema,aiChat:chatSchema,aiSealedKey:sealedKeySchema,...w,linkSealedTokens:links.sealedTokensSchema,linkTokens:links.linkTokensSchema};
 }
 const realFunction=globalThis.Function;let compiled=0;
 const counting=new Proxy(realFunction,{construct(target,args,newTarget){compiled++;return Reflect.construct(target,args,newTarget);}});
@@ -45,7 +48,7 @@ const trimmed=(value:unknown):unknown=>Array.isArray(value)?value.slice(0,3).map
 test('JIT-compiled and jitless parsers agree on every stored-data schema: acceptance, output and issues',async()=>{
  const jit=await load();
  z.config({jitless:true});vi.resetModules();const jitless=await load();z.config({jitless:false});
- const {buildShowcase}=await import('../showcase-data'),{financeV4,habitsV3,healthV2,settingsV2}=await import('./format-fixtures'),{createVault,sealRecord,createDeviceKey,unlockVaultForDevice,manifestDigest}=await import('./crypto'),{modules}=await import('./account-data');
+ const {buildShowcase}=await import('../showcase-data'),{financeV4,habitsV3,healthV2,settingsV2,financeV5,healthV4,settingsV3,ACCOUNT}=await import('./format-fixtures'),{createVault,sealRecord,createDeviceKey,unlockVaultForDevice,manifestDigest}=await import('./crypto'),{modules}=await import('./account-data');
  const showcase=buildShowcase('2026-10-01').records,power=powerUserRecords().records,vault=await createVault(crypto.randomUUID());
  const context={vault:vault.manifest.vault,domain:'habits' as const,object:crypto.randomUUID(),revision:1,epoch:1};
  // Session M (ADR-008): the remembered-device record, without its CryptoKey (checked separately).
@@ -54,10 +57,11 @@ test('JIT-compiled and jitless parsers agree on every stored-data schema: accept
  const plans={schemaVersion:1,chainId:'local-simulation',walletAddress:'local-demo-user',goals:{'1':{name:'Trip',category:'Travel',targetValue:'1200',currency:'ZIG',targetDate:'2027-09-15',startingAmount:'0',monthlyContribution:'50',riskPreference:'Conservative',liquidityPreference:'Anytime',deadlineFlexible:false,notes:''}}};
  const seeds:Record<string,unknown[]>={
   // Session P: the fourth seed of each module is the version read ahead of its writer (finance v4, habits v3, health v2, settings v2).
-  finance:[modules.finance.empty(),JSON.parse(showcase['zigoals:platform:v1']!),JSON.parse(power['zigoals:platform:v1']!),financeV4()],
+  finance:[modules.finance.empty(),JSON.parse(showcase['zigoals:platform:v1']!),JSON.parse(power['zigoals:platform:v1']!),financeV4(),financeV5()],
   habits:[modules.habits.empty(),JSON.parse(showcase['zigoals:habits:v1']!),JSON.parse(power['zigoals:habits:v1']!),habitsV3()],
-  health:[modules.health.empty(),JSON.parse(showcase['zigoals:health:v1']!),JSON.parse(power['zigoals:health:v1']!),healthV2()],
-  settings:[modules.settings.empty(),settingsV2()],
+  health:[modules.health.empty(),JSON.parse(showcase['zigoals:health:v1']!),JSON.parse(power['zigoals:health:v1']!),healthV2(),healthV4()],
+  // Session W: each module's newest version (finance v5 read only; Health v4 and settings v3 written lazily).
+  settings:[modules.settings.empty(),settingsV2(),settingsV3()],
   localSimulation:[{schemaVersion:1,kind:'zigoals-local-simulation',ledger:null,plans:JSON.stringify(plans)},{schemaVersion:1,kind:'zigoals-local-simulation',omitted:'damaged'}],
   manifest:[vault.manifest],envelope:[await sealRecord(vault.key,context,{fixture:'jitless'}),vault.manifest.wrapped],recordContext:[context],
   syncState:[{version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null}],
@@ -72,6 +76,18 @@ test('JIT-compiled and jitless parsers agree on every stored-data schema: accept
    {version:1,enabled:true,mode:'local',provider:'local',model:'mock-llama:8b',localServer:'ollama',baseUrl:'http://127.0.0.1:11434',subscriptionApp:null,rememberKey:true,pageShare:{today:true,goals:false,habits:true,health:true,wealth:true,help:true},includeHealth:true,customInstructions:'Be brief.',contextBudgetTokens:8000,maxOutputTokens:512,launcherHidden:true,voice:{transcription:'browser',transcriptionModel:null,language:'en-GB',readAloud:true},connectedOn:'2026-10-04'}],
   aiChat:[{version:1,id:'c1',scope:'local',title:'Water today',provider:'openai',model:'mock-chat-1',createdAt:'2026-10-04T10:00:00.000Z',updatedAt:'2026-10-04T10:01:00.000Z',turns:[{id:'t1',role:'user',text:'How much water today?',at:'2026-10-04T10:00:00.000Z'},{id:'t2',role:'assistant',text:'MOCK answer',at:'2026-10-04T10:01:00.000Z',provider:'openai',model:'mock-chat-1',usage:{input:10,output:2},stopped:'output cap'}]}],
   aiSealedKey:[{version:1,scope:'local',provider:'openai',iv:'A'.repeat(16),ciphertext:'B'.repeat(44),createdAt:'2026-10-04T10:00:00.000Z'}],
+  // Session W's device records (fictional values) and a sealed sign-in (only its ciphertext shape; no real token anywhere).
+  'w:zigoals:accounts:v1':[{version:1,items:[ACCOUNT,{id:'1f2e3d4c-5b6a-4978-8a1b-2c3d4e5f6a7b',kind:'loan',name:'Car loan',currency:'EUR',ratePercent:'4.25',snapshots:[{id:'2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d',date:'2026-09-01',value:'800000',decimals:2}],payments:[{id:'3b4c5d6e-7f8a-4b9c-8d0e-1f2a3b4c5d6e',date:'2026-09-15',value:'25000',decimals:2,note:'September'}],createdAt:'2026-09-01T10:00:00.000Z',updatedAt:'2026-09-15T10:00:00.000Z'}]}],
+  'w:zigoals:milestone-dates:v1':[{version:1,dates:{'1':{m1:'2026-12-01',m2:'2027-03-01'}}}],
+  'w:zigoals:import-batches:v1':[{version:1,batches:[{id:'4c5d6e7f-8a9b-4c0d-9e1f-2a3b4c5d6e7f',format:'apple-health',label:'Apple Health export',at:'2026-10-05T09:00:00.000Z',counts:{sleep:1,vitals:2},summarised:['Heart rate: one summary per day'],refs:{health:{sleep:['health_sleep-apple-health-0a1b2c3d'],vitals:['health_vital-apple-health-2026-10-01']},habits:{habitIds:[],entries:[]}}}]}],
+  'w:zigoals:w-reminders:v1':[{version:1,windDown:{time:'22:00'},meditation:{time:'07:30'},chained:{'5d6e7f8a-9b0c-4d1e-8f2a-3b4c5d6e7f8a':true},contributions:{'1':{time:'09:00'}},dismissed:{'wind-down':'2026-10-01'}}],
+  'w:zigoals:chess-cache:v1':[{version:1,snapshots:[{site:'lichess',control:'blitz',rating:1500,at:'2026-10-05T09:00:00.000Z'}],games:[{site:'lichess',id:'abcd1234',url:'https://lichess.org/abcd1234',endedAt:'2026-10-04T20:00:00.000Z',control:'blitz',color:'white',result:'win',opponentRating:1480,opening:'Italian Game',timeControl:'180+2',rated:true}],etags:{'https://lichess.org/api/user/fixture_player':{etag:'"fixture"',at:'2026-10-05T09:00:00.000Z'}},fetchedAt:{lichess:'2026-10-05T09:00:00.000Z'}}],
+  'w:zigoals:celebrations:v1':[{version:1,seen:{'milestone:1:m1':'2026-10-01'}}],
+  'w:zigoals:meditation-run:v1':[{version:1,run:{startedAt:'2026-10-05T07:00:00.000Z',plannedSec:600,pausedMs:0,kind:'breathing',pattern:'box',moodBefore:3}},{version:1,run:null}],
+  'w:zigoals:music:v1':[{version:1,source:'ambient',mini:true,volume:40,ambient:{sound:'rain',timerMin:30,stopOnHide:true}}],
+  'w:zigoals:pages-view:v1':[{version:1,hidden:['chess','music'],start:'health'}],
+  linkSealedTokens:[{version:1,scope:'local',service:'spotify',iv:'A'.repeat(16),ciphertext:'B'.repeat(44),createdAt:'2026-10-05T09:00:00.000Z'}],
+  linkTokens:[{accessToken:'FAKE-ACCESS',refreshToken:'FAKE-REFRESH',expiresAt:'2026-10-05T10:00:00.000Z',scope:'user-read-playback-state'}],
  };
  const counts:Record<string,{cases:number;accepted:number;threw:number}>={};let total=0;
  globalThis.Function=counting;

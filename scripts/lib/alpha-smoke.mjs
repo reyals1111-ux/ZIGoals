@@ -2,10 +2,33 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 // Session T (ADR-012): the reviewed connect-src and Permissions-Policy values come from the app's own data file, never a copy.
 const egress = JSON.parse(readFileSync(new URL("../../apps/web/lib/egress-policy.json", import.meta.url), "utf8"));
+// Session W Part 1e: the policies themselves come from the app's own composer, the one the middleware uses.
+import { cspDirectives, permissionsPolicyFor } from "../../apps/web/lib/csp-compose.mjs";
 import { probeAlphaMarket } from "./alpha-market-probe.mjs";
 
 export const ALPHA_ORIGIN = "https://alpha.zigoals.app";
 export const ALPHA_ROUTES = ["/app", "/app/habits", "/app/health", "/app/goals", "/app/goals/new", "/app/wealth", "/app/markets", "/app/activity", "/app/ecosystem", "/app/settings"];
+/**
+ * Session W Part 1d ([TIER 3] (deploy workflow), owner addition B): every app answer names the exact source commit of the
+ * build that sent it (apps/web/middleware.ts; the same 40 characters Settings and Help show). Right after an upload, an
+ * edge can still answer from the previous version for a while (run 37523679885: "CSP directive set changed" was the
+ * previous build's policy). The post-upload smoke therefore first confirms the answer is the new build's, and only then
+ * holds it to the new build's exact policy. A build mismatch is the one smoke failure that may be retried (bounded).
+ */
+export const BUILD_HEADER = "x-zigoals-build";
+export const HOSTED_SOURCE_MISMATCH = "Hosted build commit differs from reviewed source";
+const request = { redirect: "manual", headers: { "Cache-Control": "no-cache", "User-Agent": "ZIGoals-Alpha-Smoke" } };
+/** One read of every app route: which build answered each (null when an answer names none, as builds before Session W). */
+export async function readHostedBuilds({ fetcher = fetch, routes = ALPHA_ROUTES } = {}) {
+  const builds = [];
+  for (const route of routes) {
+    const response = await fetcher(`${ALPHA_ORIGIN}${route}`, { ...request, signal: AbortSignal.timeout(20000) });
+    const build = response.headers.get(BUILD_HEADER);
+    await response.body?.cancel?.().catch?.(() => undefined);
+    builds.push({ route, status: response.status, build: build && /^[a-f0-9]{40}$/.test(build) ? build : null });
+  }
+  return builds;
+}
 
 /**
  * Security floor for the LIVE Alpha before an upload (rollback capture). The live version is the previous build, so it
@@ -61,22 +84,29 @@ export function assertHtml(response, html, route="/app", { baseline = false } = 
   }
   const permissions=(h.get("permissions-policy")??"").split(/\s*,\s*/);
   // Session T (ADR-012): the reviewed value per route from the app's own data file (camera only on Health; the microphone only on app pages).
-  const expected=(route==='/app/health'?egress.permissionsPolicy.health:egress.permissionsPolicy.app).split(/\s*,\s*/);
+  const expected=permissionsPolicyFor(egress,route).split(/\s*,\s*/);
   assert.deepEqual(permissions,expected,'Permissions-Policy must be exactly the reviewed value for this route: the camera permission only on Health, the microphone permission only on app pages, everything else denied');
-  assert.deepEqual([...directives.keys()].sort(), ["default-src", "script-src", "worker-src", "style-src", "img-src", "font-src", "connect-src", "object-src", "frame-src", "frame-ancestors", "base-uri", "form-action", "require-trusted-types-for", "trusted-types", "upgrade-insecure-requests"].sort(), "CSP directive set changed");
+  // Session W Part 1e: the reviewed policy of this route, from lib/csp-compose.mjs (the same composer as the middleware).
+  const reviewed = new Map(cspDirectives(egress, { nonce: "", development: false, https: true, pathname: route }));
+  assert.deepEqual([...directives.keys()].sort(), [...reviewed.keys()].sort(), "CSP directive set changed");
   // Session V Part 19 (docs/security/TRUSTED_TYPES.md): Trusted Types enforced, with the default policy only.
   assert.deepEqual(directives.get("require-trusted-types-for"), ["'script'"], "CSP require-trusted-types-for changed");
   assert.deepEqual(directives.get("trusted-types"), ["default"], "CSP trusted-types changed");
-  for (const key of ["object-src", "base-uri", "frame-ancestors", "frame-src"]) {
+  for (const key of ["object-src", "base-uri", "frame-ancestors"]) {
     assert.deepEqual(directives.get(key), ["'none'"], `CSP ${key} changed`);
   }
+  // frame-src: exactly the reviewed sources for this route ('none' unless the data file names frames), never a wildcard or a bare scheme.
+  assert.deepEqual(directives.get("frame-src"), reviewed.get("frame-src"), "CSP frame-src changed");
+  assert((directives.get("frame-src") ?? []).every(source => source === "'none'" || /^https:\/\/[a-z0-9.-]+\/[^\s*]*$/.test(source)), "CSP frame-src allows more than exact https pages");
   assert.deepEqual(directives.get("default-src"), ["'self'"], "CSP default-src changed");
   assert.deepEqual(directives.get("worker-src"), ["'self'"], "CSP worker-src changed");
   assert.deepEqual(directives.get("style-src"), ["'self'", "'unsafe-inline'"], "CSP style-src changed");
-  assert.deepEqual(directives.get("img-src"), ["'self'", "data:", "blob:"], "CSP img-src changed");
+  assert.deepEqual(directives.get("img-src"), reviewed.get("img-src"), "CSP img-src changed");
+  assert.deepEqual((directives.get("img-src") ?? []).slice(0, 3), ["'self'", "data:", "blob:"], "CSP img-src changed");
+  assert((directives.get("img-src") ?? []).slice(3).every(source => /^https:\/\/[a-z0-9.-]+$/.test(source)), "CSP img-src allows more than exact https origins");
   assert.deepEqual(directives.get("font-src"), ["'self'"], "CSP font-src changed");
   assert.deepEqual(directives.get("form-action"), ["'self'"], "CSP form-action changed");
-  assert.deepEqual(directives.get("connect-src"), ["'self'", ...egress.chainOrigins, ...Object.values(egress.aiProviderOrigins), ...egress.localModelSources], "CSP connect-src egress changed");
+  assert.deepEqual(directives.get("connect-src"), reviewed.get("connect-src"), "CSP connect-src egress changed");
   assert.deepEqual(directives.get("upgrade-insecure-requests"), [], "CSP HTTPS upgrade policy changed");
   const scripts = directives.get("script-src") ?? [];
   const nonce = scripts.find(token => /^'nonce-[A-Za-z0-9+/]{43}='$/.test(token))?.slice(7, -1);
@@ -111,11 +141,12 @@ export function assertHealthCamera(header) {
 export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe = false, baseline = false } = {}) {
   const checks = []; let firstNonce;
   for (const route of [...ALPHA_ROUTES, "/app"]) {
-    const response = await fetcher(`${ALPHA_ORIGIN}${route}`, {
-      redirect: "manual", signal: AbortSignal.timeout(20000),
-      headers: { "Cache-Control": "no-cache", "User-Agent": "ZIGoals-Alpha-Smoke" },
-    });
+    const response = await fetcher(`${ALPHA_ORIGIN}${route}`, { ...request, signal: AbortSignal.timeout(20000) });
     const html = await response.text();
+    // Session W Part 1d: the new build's identity before anything else, so a previous version's answer is reported as
+    // such (and waited for) instead of failing on its older security headers. The exact checks below are unchanged.
+    // `assert(…)`, not `assert.equal`: the message must be exactly HOSTED_SOURCE_MISMATCH for the bounded retry to see it.
+    if (expectedCommit && !baseline) assert(response.headers.get(BUILD_HEADER) === expectedCommit, HOSTED_SOURCE_MISMATCH);
     const nonce = assertHtml(response, html, route, { baseline });
     if (route === "/app/health" && !baseline) assertHealthCamera(response.headers.get("permissions-policy"));
     if (checks.length === 0) {
@@ -126,7 +157,7 @@ export async function smokeAlpha({ expectedCommit, fetcher = fetch, marketProbe 
     if (!baseline) assertOpenerPolicy(response.headers.get("cross-origin-opener-policy"));
     if (route === "/app/settings") {
       assert.match(html, /PUBLIC_ALPHA_UNDEPLOYED/, "Public Alpha safety mode missing");
-      if (expectedCommit) assert(html.includes(expectedCommit), "Hosted build commit differs from reviewed source");
+      if (expectedCommit) assert(html.includes(expectedCommit), HOSTED_SOURCE_MISMATCH);
     }
     if (checks.length === ALPHA_ROUTES.length) assert.notEqual(nonce, firstNonce, "Response nonce was reused");
     checks.push({ route, status: response.status, security: "PASS" });

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { HOSTED_SOURCE_MISMATCH } from "./alpha-smoke.mjs";
 
 export const REPOSITORY = "reyals1111-ux/ZIGoals";
 export const OWNER = "reyals1111-ux";
@@ -13,9 +14,14 @@ export const WORKER = "zigoals-alpha";
 export const MARKET_COORDINATOR = "zigoals-acctest-market-coordinator";
 const SHA = /^[a-f0-9]{40}$/;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
-const HOSTED_SOURCE_MISMATCH = "Hosted build commit differs from reviewed source";
 const DEFAULT_PROPAGATION_ATTEMPTS = 12;
 const DEFAULT_PROPAGATION_DELAY_MS = 5_000;
+// Session W Part 1d (owner addition B): before the exact checks, every app route must answer from the new build in
+// three reads in a row, at most 12 reads 5 s apart (about a minute).
+const DEFAULT_BUILD_ROUNDS = 12;
+const DEFAULT_BUILD_DELAY_MS = 5_000;
+const DEFAULT_BUILD_CONFIRMATIONS = 3;
+export const NEW_BUILD_TIMEOUT = "The new version did not answer on every Alpha route in time";
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export function alphaDeploymentEnvironment(source, outputPath) {
@@ -84,7 +90,8 @@ export function assertAlphaConfig(config) {
   // deployment envelope requires a code review, even for an Alpha-only route.
   const reviewed = {
     $schema: "node_modules/wrangler/config-schema.json", name: WORKER,
-    main: ".open-next/worker.js", compatibility_date: "2026-09-13",
+    // Session W Part 23 (Session Q D2): the thin entry in front of OpenNext's Worker (static misses get a plain 404).
+    main: "alpha/worker.mjs", compatibility_date: "2026-09-13",
     compatibility_flags: ["nodejs_compat", "global_fetch_strictly_public"],
     workers_dev: true, preview_urls: false,
     assets: { directory: ".open-next/assets", binding: "ASSETS", run_worker_first: false },
@@ -122,6 +129,40 @@ export function deployedVersion(jsonl) {
   assert.equal(entry.worker_name, WORKER, "Wrangler deployed an unexpected Worker");
   assert.match(entry.version_id ?? "", UUID, "Wrangler did not report a valid version ID");
   return entry.version_id;
+}
+
+/**
+ * Session W Part 1d ([TIER 3] (deploy workflow), owner addition B): waits, bounded, until every app route answers from
+ * the new build (its `x-zigoals-build` header is the reviewed source commit) in `confirmations` reads in a row, checking
+ * between reads that the live Worker version did not change. Only then may the exact security checks run. On a timeout
+ * it throws, and the deployment ends as NEEDS_OWNER_REVIEW: the upload is never retried and nothing is rolled back.
+ */
+async function waitForHostedBuild(live, io, report) {
+  const rounds = io.buildRounds ?? DEFAULT_BUILD_ROUNDS;
+  const delayMs = io.buildDelayMs ?? DEFAULT_BUILD_DELAY_MS;
+  const needed = io.buildConfirmations ?? DEFAULT_BUILD_CONFIRMATIONS;
+  assert(Number.isInteger(needed) && needed >= 1, "Build confirmations must be a positive integer");
+  assert(Number.isInteger(rounds) && rounds >= needed, "Build reads must cover the confirmations");
+  assert(Number.isInteger(delayMs) && delayMs >= 0, "Build read delay must be a non-negative integer");
+  assert.match(io.expectedCommit ?? "", SHA, "The reviewed source commit is required to confirm the new version");
+  const log = []; report.propagation = { expectedCommit: io.expectedCommit, confirmations: needed, log };
+  let streak = 0, last = [];
+  for (let round = 1; round <= rounds; round++) {
+    if (round > 1) {
+      await (io.sleep ?? wait)(delayMs);
+      assert.deepEqual(await io.current(), live, "Alpha changed while waiting for the new version");
+    }
+    last = await io.hostedBuilds();
+    assert(Array.isArray(last) && last.length > 0, "No Alpha route was read");
+    const pending = last.filter(answer => answer.build !== io.expectedCommit).map(answer => answer.route);
+    streak = pending.length ? 0 : streak + 1;
+    log.push({ round, pending });
+    if (streak >= needed) { report.propagation.confirmedAfterReads = round; return report.propagation; }
+    if (rounds - round < needed - streak) break;
+  }
+  const seen = last.filter(answer => answer.build !== io.expectedCommit)
+    .map(answer => `${answer.route} ${answer.build ? `answered from build ${answer.build.slice(0, 12)}` : "named no build (a version before Session W)"}`);
+  throw Error(`${NEW_BUILD_TIMEOUT}: after ${log.length} reads ${delayMs / 1000} s apart, ${seen.join("; ") || "the answers changed between reads"}. The upload was not retried and nothing was rolled back; read deployment.json, check the live version, then run the smoke again.`);
 }
 
 async function smokeAfterPropagation(live, io) {
@@ -180,6 +221,8 @@ export async function performDeployment(rollback, io) {
     report.newDeploymentId = live.deploymentId;
     io.save(report);
     assert.equal(live.versionId, report.newVersionId, "Live version differs from this run's deployed version");
+    await waitForHostedBuild(live, io, report);
+    io.save(report);
     report.smoke = await smokeAfterPropagation(live, io);
     assert.deepEqual(await io.current(), live, "Alpha changed during smoke checks");
     report.status = "VERIFIED";

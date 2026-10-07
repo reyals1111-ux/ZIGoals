@@ -1,4 +1,8 @@
+import {isDebtKind} from '../../accounts/schema';
 import {habitDay, habitStats, latestHabitRule} from '../../habits';
+import {challengeOf} from '../../habits-v2/challenge';
+import {nightsIn} from '../../sleep/engine';
+import {healthGroupIn} from '../../vault/w-homes';
 import {reviewState, reviewWindow} from '../../weekly-review/engine';
 import {SPECIALISTS} from '../context/specialists';
 import type {PageArea} from '../settings';
@@ -31,6 +35,9 @@ function habitChips(env: ToolEnv): Chip[] {
   const open = habits.filter(h => { const day = habitDay(h, env.habitDay, env.habitDay); return day.status === 'due' || day.status === 'partial'; });
   if (open.length > 1) out.push({id: 'open-today', text: `${open.length} habits are still open today — which first?`, action: 'ask'});
   else if (open.length === 1) out.push({id: 'open-today', text: `What's left for ${shortName(open[0]!.title)} today?`, action: 'ask'});
+  // Session W Part 21: a challenge still running (Health-sourced check-ins only through the Health gate, as in the tool).
+  const challenge = habits.map(h => ({h, c: challengeOf(env.health ? h : {...h, entries: h.entries.filter(e => e.source !== 'health')}, env.habitDay)})).filter(x => x.c && !x.c.finished).sort((a, b) => a.c!.end.localeCompare(b.c!.end) || a.h.title.localeCompare(b.h.title))[0];
+  if (challenge) out.push({id: `challenge:${challenge.h.id}`, text: `Day ${challenge.c!.dayNumber} of ${challenge.c!.days} for ${shortName(challenge.h.title)} — how is my challenge going?`, action: 'ask'});
   return out;
 }
 function goalChips(env: ToolEnv): Chip[] {
@@ -41,7 +48,11 @@ function goalChips(env: ToolEnv): Chip[] {
 function healthChips(env: ToolEnv): Chip[] {
   if (!env.health) return [];
   const unknown = env.health.diary.filter(e => e.date === env.healthDay && e.snapshot.nutrients.proteinMg === null).length;
-  return unknown ? [{id: 'protein-unknown', text: `Protein is unknown for ${unknown} ${unknown === 1 ? 'entry' : 'entries'} today — which ones?`, action: 'ask'}] : [];
+  const out: Chip[] = unknown ? [{id: 'protein-unknown', text: `Protein is unknown for ${unknown} ${unknown === 1 ? 'entry' : 'entries'} today — which ones?`, action: 'ask'}] : [];
+  // Session W Part 21: nights logged this week (Health's Sleep).
+  const sleep = healthGroupIn(env.health, 'sleep'), nights = sleep ? nightsIn(sleep, env.healthDay, 7).length : 0;
+  if (nights) out.push({id: 'sleep-week', text: `${nights} ${nights === 1 ? 'night' : 'nights'} logged this week — how did I sleep?`, action: 'ask'});
+  return out;
 }
 function wealthChips(env: ToolEnv, view: ChipView): Chip[] {
   if (!env.areas.wealth) return [];
@@ -53,6 +64,9 @@ function wealthChips(env: ToolEnv, view: ChipView): Chip[] {
   const unpriced = Number(totals?.withoutPrice ?? 0), currencies = Array.isArray(totals?.totals) ? totals.totals.length : 0;
   if (unpriced > 0) out.push({id: 'unpriced', text: `${unpriced} ${unpriced === 1 ? 'holding has' : 'holdings have'} no price — which ${unpriced === 1 ? 'one' : 'ones'}?`, action: 'ask'});
   if (currencies > 1) out.push({id: 'currencies', text: `My wealth is in ${currencies} currencies — what are the totals?`, action: 'ask'});
+  // Session W Part 21: debts kept in Wealth's accounts on this device.
+  const debts = (env.accounts?.items ?? []).filter(a => !a.archivedAt && isDebtKind(a.kind)).length;
+  if (debts) out.push({id: 'owe', text: `${debts} ${debts === 1 ? 'debt' : 'debts'} in your accounts — what do I owe?`, action: 'ask'});
   return out;
 }
 function reviewChip(env: ToolEnv): Chip[] {

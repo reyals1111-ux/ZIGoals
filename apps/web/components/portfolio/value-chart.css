@@ -1,0 +1,16 @@
+/* Session W Part 15: Portfolio's value over time. */
+.portfolio-value-chart{display:grid;gap:10px;}
+.portfolio-ranges{display:flex;flex-wrap:wrap;gap:6px;}
+.portfolio-ranges button{min-height:36px;padding:4px 12px;border-radius:999px;border:1px solid rgba(160,180,255,.22);background:transparent;color:inherit;font:inherit;font-size:.86rem;cursor:pointer;}
+.portfolio-ranges button[aria-pressed="true"]{background:rgba(120,140,255,.22);border-color:rgba(160,180,255,.6);}
+.portfolio-chart-quote{margin:0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;}
+.portfolio-chart-quote strong{font-size:1.5rem;}
+.portfolio-chart-quote span{color:var(--muted,#aab3cf);font-size:.9rem;}
+.portfolio-chart-plot{width:100%;height:auto;display:block;touch-action:pan-y;}
+.portfolio-chart-plot:focus-visible{outline:2px solid #9fb6ff;outline-offset:3px;border-radius:8px;}
+.portfolio-chart-grid{stroke:currentColor;opacity:.1;stroke-dasharray:3 6;}
+.portfolio-chart-line{stroke:#7ea6ff;}
+.portfolio-chart-dot{fill:#eef5ff;stroke:#0d1629;stroke-width:2;}
+.portfolio-chart-axis{display:flex;justify-content:space-between;color:var(--muted,#aab3cf);font-size:.8rem;}
+.portfolio-chart-empty{margin:0;padding:28px 12px;text-align:center;color:var(--muted,#aab3cf);border:1px dashed rgba(160,180,255,.2);border-radius:12px;}
+@media (pointer:coarse){.portfolio-ranges button{min-height:44px;min-width:44px;}}

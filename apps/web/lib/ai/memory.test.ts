@@ -3,9 +3,8 @@ import {buildShowcase} from '../showcase-data';
 import {habitDataSchema, type HabitData} from '../habits';
 import {healthSchema, type HealthData} from '../health';
 import {platformSchema, type Platform} from '../positions';
-import {fastingSchema, FASTING_KEY} from '../fasting/schema';
+import {homeRecordsIn} from '../sync-homes-store';
 import {emptyReminders} from '../reminders/schema';
-import {weeklyReviewSchema} from '../weekly-review/schema';
 import {applyEdits, editableFields} from './actions/edit';
 import {parseReply} from './actions/parse';
 import {applyPlan, planAction, type Env, type Plan, type Stores} from './actions/plan';
@@ -129,8 +128,8 @@ const stores: Stores = {
   habits: habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData,
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
-  fasting: fastingSchema.parse(JSON.parse(records[FASTING_KEY]!)),
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: weeklyReviewSchema.parse(JSON.parse(records['zigoals:weekly-review:v1']!)), memory: {version: 1},
+  fasting: homeRecordsIn(records).fasting,
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
 };
 let counter = 0;
 const env = (overrides: Partial<Env> = {}): Env => ({stores, handles: [], now, habitDay: DAY, healthDay: DAY, timeZone: 'UTC', newNoteId: () => `note_test-${++counter}`, ...overrides});

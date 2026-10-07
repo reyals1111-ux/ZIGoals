@@ -13,11 +13,11 @@
 Written by Session S (2026-10-04) from the Stage 7 lessons. Nothing here was run by a session.
 
 ## 0. Before you start (read only)
-0. **Before the redeploy: the sync-writes switch-ON PR is merged** (Session U follow-up F1). PR #74 ships
-   `SYNC_WRITES = false`; the one-line switch-ON PR ([docs/product/SYNC_WRITES_ON.md](../product/SYNC_WRITES_ON.md)) is
-   merged at least 7 days after the first public Alpha deploy carrying PR #74 and on or after 2026-10-11, and this
-   redeploy's release SHA must contain it. If it is not merged, deploy anyway and mark Stage 8 rows 15 and 15c "not run:
-   switch off".
+0. **The sync-writes switch is on in the release SHA.** Session W Part 1 (2026-10-06) switched `SYNC_WRITES` on in the
+   Session W PR, by owner decision W1 (it overrides SYNC_WRITES_ON.md's "from 2026-10-12" wait). Check that the release
+   SHA contains it: `grep -n "SYNC_WRITES: boolean = true" apps/web/lib/vault/sync-writes.ts` prints one line. If the
+   Session W PR is not merged, the switch commit can be merged alone (it is self-contained); if neither is in the release
+   SHA, deploy anyway and mark Stage 8 rows 15 and 15c and the Session W sync rows "not run: switch off".
 1. **The release SHA:** the full SHA of `main` that you deploy. Main's CI is green on it.
 2. **The Alpha prices rollout is done:** [ALPHA_PRICES_ROLLOUT.md](ALPHA_PRICES_ROLLOUT.md). Note the SHA the market coordinator was deployed from there.
 3. **The market policy window:** the private `MARKET_POLICY` uses an exact window that ends **2026-10-31 16:00 UTC**. Around **28 October** install the two-window policy (the current window and the next), and the coordinator takes the next period by itself at the boundary ([ALPHA_PRICES_ROLLOUT.md, Next policy period](ALPHA_PRICES_ROLLOUT.md#next-policy-period); Session U follow-up F2). If this redeploy runs after that, keep the two-window policy in the private coordinator config.
@@ -206,6 +206,60 @@ error instead of applying them, until it is reloaded.
 - **Private sync back:** the Portfolio copy stays in its keyspace, unread and untouched (older code never lists it); the
   account erase still removes it (it removes every key). Revoked-session records simply stop being swept.
 - **Market coordinator back:** the partition and the public cap disappear; `/status` answers "not reported" to newer apps.
+
+## Session V changes (PR #76, 2026-10-06)
+Session V changed **only the app** for this stack; re-run step 2 at your release SHA to confirm.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| acceptance app (OpenNext) | ZIGi v2 (ADR-014): Trusted Types **enforced** in the production build (`require-trusted-types-for 'script'; trusted-types default`); ZIGi's device keys (`zigoals:ai-options:v1`, `ai-usage`, `ai-memory`, `ai-actions`, `zigi`, `zigi-reminders`, `zigi-knock`); chat records v2 (only with V fields; older builds skip them); push reminder names opt-in (IndexedDB `zigoals-push-labels-v1`, read-only in the service worker) | **yes**, last |
+| ZIGi relay (`workers/zigi-relay`, new) | ZIGoals hosted, off by default | **no**: not part of this stack; it is activated only by ZIGI_RELAY_ACTIVATION.md, never by this redeploy |
+| private sync, lifecycle, market coordinator, push, food lookup, auth admission | nothing by Session V | no |
+
+**Checks after:** step 6's curl of `/app` shows `require-trusted-types-for 'script'` and `trusted-types default` in the
+`content-security-policy`; open ZIGi on a phone and on a computer (Stage 8 has no ZIGi row; the owner test v2,
+docs/product/YOUR_AI_OWNER_TEST.md Part V, covers it).
+
+## Session W changes (Session W PR, 2026-10-06/…)
+Filled in part by part as Session W lands. Re-run step 2 at your release SHA; this is what to expect.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| acceptance app (OpenNext) | the sync-writes switch on (Part 1): Session P's four records live in Health v2/v3 and settings v2, and the opt-in Portfolio sync appears | **yes**, last |
+| acceptance app (OpenNext) | Part 1b–1e: Health v4 / settings v3 read and written lazily (finance v5 read only), `X-ZIGoals-Build` on every app answer, one CSP composer (byte-identical headers), dependency fixes | same deploy |
+| acceptance app (OpenNext) | Part 17, timezone phase 4: a chosen journal zone is written to settings v2 (`journalTimeZone`) and a plan zone to finance v4 (`timeZone`); both are read by #29 and later. An instalment is "due today" until its day ends in the plan's zone | same deploy |
+| acceptance app (OpenNext) | Part 2, Your pages & buttons: hiding a page or button, or choosing a start page, writes settings v3 `pages` (stamped choices; the newer one wins between devices); the device keeps a display mirror (`zigoals:pages-view:v1`, never synced) | same deploy |
+| acceptance app (OpenNext) | Part 4, Sleep (a view of Health, `/app/health?view=sleep`): a night, a nap, the goal, "I'm going to bed" or the welcome's sleep goal writes Health v4 `sleep`; a habit linked to time asleep or a bedtime writes Health v4 `habitLinks`; a Today Sleep widget writes settings v3. The wind-down time stays on the device. Also the Part 1 fix (`3879b65`): no blank page when a remembered device reopens while Settings verifies the session | same deploy |
+| acceptance app (OpenNext) | Part 5, Meditation (a view of Health, `/app/health?view=meditation`): a saved session, mindful minutes, the weekly goal or the bell writes Health v4 `meditation`; a habit linked to mindful minutes writes Health v4 `habitLinks`; a Today Meditation widget writes settings v3. The running session and the reminder time stay on the device. Bells are made in the browser (no new origin) | same deploy |
+| acceptance app (OpenNext) | Part 6, focus sounds (Meditation → Focus sounds; a Stop pill on other pages while one plays): made in the browser, nothing synced, nothing fetched; choices in the device key `zigoals:music:v1` | same deploy |
+| acceptance app (OpenNext) | Part 7, Switch to ZIGoals (Settings → Data & privacy): an Apple Health, Fitbit / Google Health (CSV), Samsung Health or Oura export, after its preview and the Health box, writes ordinary Health records (nights and naps, meditation sessions and days of vitals in Health v4; steps, workouts and weights in the lists every version reads); a Loop Habit Tracker export writes habits. Read on the device in a Web Worker (no request); each import is remembered on that device (`zigoals:import-batches:v1`) for its Undo. MyFitnessPal and Cronometer files get pre-filled columns in Health → Import meals. Garmin and Streaks are not read (IMPORT_FORMATS.md) | same |
+| acceptance app (OpenNext) | Part 8, Health → Devices (`/app/health?view=devices`): a Bluetooth heart-rate monitor or scale in Chrome/Edge (Permissions-Policy `bluetooth=(self)` on `/app/health` only, `bluetooth=()` elsewhere; checked by the post-upload smoke and the hosted verifier like every header); a saved scale reading is an ordinary weight; a meditation saved with the heart-rate box ticked keeps three numbers on that session (Health v4). Linked accounts list "Needs setup by ZIGoals": the build has no `NEXT_PUBLIC_HEALTH_LINK`, and `/api/health-link` answers 503 without `ZIGOALS_HEALTH_LINK_ORIGIN` | same |
+| health-link Worker (new, `workers/health-link`) | not part of the acceptance stack and not deployed by this redeploy; activation only per HEALTH_LINK_ACTIVATION.md | **no** |
+| acceptance app (OpenNext) | Part 9, quick logging on Health's diary: "Copy yesterday's …" and "Repeat yesterday" (ordinary diary entries), one-tap chips for pinned and usual items, the person's own water buttons (pins and button sizes in Health v4 `quick`); Quick add's "slept 7h30" asks for the wake time and saves a night in Sleep (Health v4) instead of a movement line | same |
+| acceptance app (OpenNext) | Part 10, Habits v2: habit ideas (a habit or a 30-day challenge in one tap), challenges as a habit's end date (synced with Habits like any edit), stacks shown together with an optional chained reminder on this device, a habit's patterns by weekday and week | same |
+| acceptance app (OpenNext) | Part 11, Goals v2: milestones with a value and a date (the value in the Goal, synced; the date on this device), marks on the progress bar and one calm note when reached; "On track?" with zero return and the person's own "what if" (never stored); ideas in the Goal creator | same |
+| acceptance app (OpenNext) | Part 12, Wealth v2: accounts and debts with dated balances on this device, net worth per currency (never converted; holdings with a value as their own line), a debt's payoff from the person's own rate and payment; a contribution plan's reminder on this device with "Fund now" opening the filled-in Fund sheet (nothing moves money) | same |
+| acceptance app (OpenNext) | Part 13, Today v2: the evening wrap-up, off until turned on in Settings (settings v3 `wrapUp`; the mood in Health v4 `moods`), the next day's intention line, and Today's items leaving with a hidden page | same |
+| acceptance app (OpenNext) | Part 14, Chess (hidden by default; Settings → Chess, Your pages & buttons): ratings and games read browser-direct from chess.com and Lichess with the username only; `/app` documents' CSP adds `connect-src https://api.chess.com https://lichess.org` and four exact `frame-src` pages (the post-upload smoke and the hosted verifier compare the reviewed policy, so nothing to configure) | same |
+| market coordinator (`MarketAccount`, `QuoteService`) | Part 15: a new QuoteService path `/insights-detail` (coins' 1h/7d change, market cap, 24h volume and supplies from CoinGecko `/coins/markets`), cached under its own `detail` work key and charged as insights (the same cost key: `MARKET_POLICY` is unchanged); `/insights`, its address and its rows are unchanged | **yes** (before the app). Until it is redeployed the app answers these figures "Not provided" (an older coordinator answers 404), and everything else works |
+| acceptance app (OpenNext) | Part 15, Portfolio v2: the header (value, the 24h change of what is held, the all-time result, cost basis), value over time from CoinGecko's dated prices, allocation, the holdings table, every transaction, a coin's page (`/app/portfolio/coin/<id>`), the shared favourites and "Find a coin"; a new route `/api/market-detail`. Portfolio's stored format is unchanged | same deploy |
+| acceptance app (OpenNext) | Part 16, Markets polish: a Cards / Table switch on Markets (cards stay the default); the table shows price, 1h/24h/7d, the 7-day line, market cap and the favourite star, sortable, and asks `/api/market-detail` for coins only (needs the Part 15 coordinator for 1h/7d and market cap; "Not provided" until then) | same deploy |
+| acceptance app (OpenNext) | Part 18, Settings → Devices and sessions: "Sign out all other devices" with its own explanation and confirmation (the same `revoke-others` request and provider sign-out as before; no list needed first); per-session Revoke unchanged. Check it on two devices in the Stage 8 runsheet: the other device can no longer sync and asks to sign in again | same deploy |
+| acceptance app (OpenNext) | Part 19, My links: Settings → My links writes settings v3 `links` (synced); Today shows a "My links" card (a folded row on a phone) once a link exists; a new "My links" switch under Your pages & buttons | same deploy |
+| acceptance app (OpenNext) | Part 20, Music: a "Music player" switch under Your pages & buttons (off by default; synced with the settings), the music button opposite ZIGi, the panel (focus sounds; Spotify says "not set up on this site" until `SPOTIFY_CLIENT_ID` is set, docs/product/MUSIC_ACTIVATION.md; Apple Music is a link), Settings → Music, Today's "Your soundtrack" widget and a new route `/api/music-config`. On two devices: showing the player on one shows it on the other after sync; its own choices (source, mini-bar, volume) stay on each device | same deploy |
+| acceptance app (OpenNext) | Part 21, ZIGi for the new areas: thirteen read-only tools (sleep, mindful minutes, vitals and devices behind the Health gate; accounts and net worth; milestones; challenges; chess; the number of links), five card kinds (log a night, mindful minutes, a milestone, a challenge; an account's balance as a pre-filled form only), on-device answers, chips and the brief. Nothing new is stored or synced (the balance hand-off lives in the tab for ten minutes) | same deploy |
+| acceptance app (OpenNext) | Part 22, performance: no visible change; "Load Showcase Demo", "Reset" and "Explore the demo" load the examples' code on the click (a moment longer the first time), and every page is lighter | same deploy |
+| public Alpha (`zigoals-alpha`, Manual Alpha workflow) | Part 23 (Session Q D2): the Worker entry `apps/web/alpha/worker.mjs` in front of OpenNext's; a missing `/_next/static/` file answers a plain-text 404 with a deny-all policy instead of Next's HTML 404 page. After the Alpha deploy: `curl -sI https://alpha.zigoals.app/_next/static/zigoals-missing.js` shows `404`, `content-type: text/plain; charset=utf-8` and `content-security-policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; sandbox`; a page and a real chunk are unchanged. The acceptance app keeps OpenNext's own entry | with the Alpha deploy |
+| acceptance app (OpenNext) | Part 24, Help and Settings: Help → "New: your whole life" (nineteen answers); What's new shows this release's card once (Session V's links under "Earlier updates"); Settings in six labelled groups, the phone's list with 25 rows. The What's new flag is device-only, so each device shows the card once | same deploy |
+
+**What syncs now that did not before:** with the switch on, fasting sessions (Health v2), health goals, habit-health links
+with their automatic check-in markers and the weekly review's Health note (Health v3, under the Health consent), and the
+weekly review (settings v2). Session W adds the pages choice (settings v3), sleep and meditation (Health v4, under the Health consent), whatever an import brings into Health or Habits (synced with those modules, Health under its consent), a saved scale reading or a meditation's heart-rate summary (Health), and the quick-logging pins and water buttons (Health v4 `quick`). "Also sync my Portfolio (optional)" appears under account sync, unticked.
+
+**Rollback, Session W specifics:**
+- The Alpha's rollback floor is **#29** (the first build that reads Health v3): never roll back past it.
+- A person who used Your pages & buttons has settings v3: on #29–#31 their Today layout and preferences read as unreadable (bytes and recovery copies kept, every page shown) until the roll-forward reads them again.
+- A person who logged sleep or meditation (or linked a habit to either, pinned a food, changed the water buttons or saved a night from Quick add) has Health v4: on #29–#31 their whole Health page reads as unreadable (bytes and recovery copies kept) until the roll-forward reads it again. A Today Sleep or Meditation widget raises settings v3, as above.
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.

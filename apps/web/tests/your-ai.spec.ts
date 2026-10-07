@@ -223,6 +223,37 @@ test('Wealth: money only pre-fills the add-asset form, which the person submits'
   expect(await page.evaluate(() => sessionStorage.getItem('zigoals:ai:prefill:v1'))).toBeNull();
 });
 
+// Session W Part 21: an account's balance is the same kind of pre-fill: ZIGi opens that account's own balance form in
+// Wealth, filled in, and only the person's Save writes it, from another page or with Wealth already open.
+test('Wealth: an account\'s balance only pre-fills that account\'s balance form, which the person saves', async ({page}) => {
+  await mockLocal(page, () => stream('This opens the balance form for your everyday account.', [{kind: 'update-account-balance', account: 'Everyday account', balance: 2512.4, currency: 'USD', day: 'today'}]));
+  await seed(page, connectedLocal());
+  const accounts = () => page.evaluate(() => localStorage.getItem('zigoals:accounts:v1'));
+  const handOff = () => page.evaluate(() => sessionStorage.getItem('zigoals:ai:balance-prefill:v1'));
+  for (const start of ['/app', '/app/wealth']) {
+    await page.goto(start);
+    const before = await accounts();
+    await openChat(page);
+    await send(page, 'My everyday account has 2512.40 dollars now');
+    const card = panel(page).locator('.ai-card').last();
+    await expect(card).toContainText('Nothing is saved here');
+    await card.getByRole('button', {name: 'Open the form'}).click();
+    await expect(page).toHaveURL(/\/app\/wealth#accounts-title$/);
+    const form = page.getByRole('form', {name: 'New balance for Everyday account'});
+    await expect(form, start).toBeVisible();
+    await expect(form.getByLabel('Balance (USD)')).toHaveValue('2512.4');
+    await expect(form.getByLabel('On')).toHaveValue('2026-09-20');
+    await expect(page.getByRole('status').filter({hasText: 'Pre-filled from your chat with ZIGi: Everyday account\'s balance.'})).toBeVisible();
+    // Nothing is written before Save, and the hand-off is gone from the tab once read.
+    expect(await accounts(), start).toBe(before);
+    expect(await handOff(), start).toBeNull();
+    await form.getByRole('button', {name: 'Save'}).click();
+    await expect(page.getByRole('status').filter({hasText: 'Everyday account: balance saved for 2026-09-20.'})).toBeVisible();
+    await expect(form).toHaveCount(0);
+    expect(JSON.parse((await accounts())!).items.find((a: {name: string}) => a.name === 'Everyday account').snapshots.some((b: {date: string; value: string}) => b.date === '2026-09-20' && b.value === '251240')).toBe(true);
+  }
+});
+
 test('prompt injection: a record titled like an instruction can at most become one proposal card', async ({page}) => {
   const {records} = buildShowcase('2026-09-20');
   const data = JSON.parse(records[HABITS_KEY]!) as {habits: {title: string}[]};
@@ -363,6 +394,8 @@ test('Showcase: keys are session-only and the chat lives in the tab', async ({pa
   await seed(page, null);
   await page.goto('/app/settings');
   await page.getByRole('button', {name: /Load Showcase/}).click();
+  // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
+  await page.waitForURL('**/app');
   await expect(page.getByText(/Showcase/).first()).toBeVisible();
   await page.goto('/app/settings#your-ai');
   const section = page.locator('#your-ai');

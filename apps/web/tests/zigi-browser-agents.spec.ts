@@ -92,7 +92,8 @@ test('off by default: the card explains it, nothing is offered until the person 
   await expect.poll(() => names(page)).toContain('zigoals_habit_stats');
   const offered = await names(page);
   expect(offered).toEqual(expect.arrayContaining(['zigoals_list_habits', 'zigoals_habit_checkins', 'zigoals_list_goals', 'zigoals_holdings', 'zigoals_today_summary', 'zigoals_propose_changes']));
-  for (const health of ['water', 'steps', 'weight', 'diary_entries', 'nutrient_totals', 'fasting', 'counters', 'search_foods']) expect(offered).not.toContain(`zigoals_${health}`);
+  // Session W Part 21: the new Health tools (sleep, mindful minutes, vitals, devices) stay out the same way.
+  for (const health of ['water', 'steps', 'weight', 'diary_entries', 'nutrient_totals', 'fasting', 'counters', 'search_foods', 'sleep_nights', 'sleep_summary', 'meditation_sessions', 'meditation_summary', 'vitals', 'devices']) expect(offered).not.toContain(`zigoals_${health}`);
   expect(offered.every(n => /^zigoals_[a-z_]+$/.test(n))).toBe(true);
   expect(await toolInfo(page, 'zigoals_habit_stats')).toMatchObject({annotations: {readOnlyHint: true, untrustedContentHint: true}, inputSchema: {type: 'object'}});
   expect(await toolInfo(page, 'zigoals_propose_changes')).toMatchObject({annotations: {consequentialHint: true}});

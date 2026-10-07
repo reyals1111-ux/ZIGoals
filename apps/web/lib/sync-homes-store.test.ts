@@ -23,12 +23,14 @@ const snapshot=(storage:Storage)=>Object.fromEntries(Array.from({length:storage.
 const json=(storage:Storage,key:string)=>JSON.parse(storage.getItem(key)!);
 const recoveries=(storage:Storage,key:string)=>Object.keys(snapshot(storage)).filter(k=>k.startsWith(`${key}:recovery:`)).map(k=>storage.getItem(k));
 const at=new Date(FIXTURE_AT);
+// #27/#28's Health reader (v1, v2) with the empty record those builds create (a v1 record).
+const emptyR1=createEmptyHealth as ()=>ReturnType<typeof healthR1Schema.parse>;
 const draft=(name:string):HealthGoalDraft=>({name,measure:'water',direction:'at-least',target:{value:'2000',decimals:0},unit:'mL',window:{kind:'rolling',weeks:2}});
 const fast=(id:string)=>(current:Parameters<typeof startFast>[0])=>startFast(current,{id,now:at,targetHours:16,timeZone:'Europe/Brussels'});
 const on={syncWrites:true},off={syncWrites:false};
 beforeEach(()=>{vi.stubGlobal('navigator',{locks:{request:async(_key:string,work:()=>unknown)=>work()}});});
 
-test('this build ships with the switch off (lib/vault/sync-writes.ts; Session U follow-up F1)',()=>{expect(SYNC_WRITES).toBe(false);});
+test('this build ships with the switch on (lib/vault/sync-writes.ts; Session W Part 1, owner decision W1)',()=>{expect(SYNC_WRITES).toBe(true);});
 
 describe('switch off: exactly the device keys, as before',()=>{
  test('each record reads from and writes to its own device key; Health and settings are untouched',async()=>{
@@ -55,7 +57,7 @@ describe('switch on: the homes',()=>{
   expect(recoveries(storage,HEALTH_STORAGE_KEY)).toEqual([v1]);
   for(const key of DEVICE_HOME_KEYS)expect(storage.getItem(key)).toBeNull();
   // #27/#28 still read v2.
-  expect(readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,createEmptyHealth).schemaVersion).toBe(2);
+  expect(readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,emptyR1).schemaVersion).toBe(2);
   await updateHome('fasting',c=>stopFast(c,'fast-on',new Date(Date.parse(FIXTURE_AT)+3_600_000)),{storage,...on});
   expect((await readHome('fasting',{storage,...on})).sessions[0]!.endedAt).not.toBeNull();expect(recoveries(storage,HEALTH_STORAGE_KEY)).toEqual([v1]);
  });
@@ -69,7 +71,7 @@ describe('switch on: the homes',()=>{
    await write(storage);
    expect(json(storage,HEALTH_STORAGE_KEY).schemaVersion).toBe(3);expect(recoveries(storage,HEALTH_STORAGE_KEY)).toEqual([v1]);
    const before=snapshot(storage);
-   expect(()=>readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,createEmptyHealth)).toThrow('Private data is invalid or uses an unsupported version. Original data was preserved.');
+   expect(()=>readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,emptyR1)).toThrow('Private data is invalid or uses an unsupported version. Original data was preserved.');
    expect(snapshot(storage)).toEqual(before);
    for(const key of DEVICE_HOME_KEYS)expect(storage.getItem(key)).toBeNull();
   }
@@ -122,7 +124,7 @@ describe('the device keys merge in once, and are never rewritten',()=>{
   await updateHome('healthGoals',c=>addHealthGoal(c,draft('Only here'),at,'0b6f6c3e-58f3-4a77-9d2a-0f2c4f8f1a01'),{storage,...on});
   // #28: Health v3 is refused and kept as it is; the goals screen reads and writes its device key.
   const v3=storage.getItem(HEALTH_STORAGE_KEY);
-  expect(()=>readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,createEmptyHealth)).toThrow('unsupported version');
+  expect(()=>readPrivateStore(storage,HEALTH_STORAGE_KEY,healthR1Schema,emptyR1)).toThrow('unsupported version');
   await expect(importPrivateStore(memoryStorage(),HEALTH_STORAGE_KEY,healthR1Schema,v3!)).rejects.toThrow('unsupported version');
   await updateHome('healthGoals',c=>addHealthGoal(c,draft('Made on #28'),at,'0b6f6c3e-58f3-4a77-9d2a-0f2c4f8f1a02'),{storage,...off});
   expect(storage.getItem(HEALTH_STORAGE_KEY)).toBe(v3);

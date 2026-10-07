@@ -28,18 +28,21 @@ function planned(plan:ContributionPlan=MONTHLY,created='2026-09-20T12:00:00Z'):P
 function zoned(s:Platform,timeZone:string):Platform {
  return platformSchema.parse({...s,schemaVersion:4,goals:s.goals.map(g=>({...g,plan:g.plan&&{...g.plan,timeZone},planRevisions:g.planRevisions?.map(r=>({...r,terms:r.terms&&{...r.terms,timeZone}}))}))});
 }
-const funding=(s:Platform,now:number)=>{const h=fundingHealth(s,'1',now);return {plannedThroughToday:h.plannedThroughToday,nextDate:h.nextDate,overdue:h.overdue,status:h.status};};
+const funding=(s:Platform,now:number)=>{const h=fundingHealth(s,'1',now);return {plannedThroughToday:h.plannedThroughToday,dueToday:h.dueToday,nextDate:h.nextDate,overdue:h.overdue,status:h.status};};
 
 describe.each(HOST_ZONES)('today, on a %s device: funding, plan and capture days are UTC',zone=>{
  test('funding health around a UTC midnight and at QA-04\'s 21:30 New York',()=>{
   process.env.TZ=zone;
   const s=planned();
   // One millisecond before the due day in UTC: nothing is due yet.
-  expect(funding(s,Date.parse('2026-10-14T23:59:59.999Z'))).toEqual({plannedThroughToday:'0',nextDate:'2026-10-15',overdue:false,status:'ON_TRACK'});
-  // The due day starts at 00:00 UTC: the instalment counts as planned through today.
-  expect(funding(s,Date.parse('2026-10-15T00:00:00.000Z'))).toEqual({plannedThroughToday:'50000',nextDate:'2026-10-15',overdue:true,status:'BEHIND'});
-  // QA-04 (owner decision: stays UTC for now): 21:30 in New York is already 16 October in UTC.
-  expect(funding(s,Date.parse('2026-10-16T01:30:00.000Z'))).toEqual({plannedThroughToday:'50000',nextDate:'2026-11-15',overdue:true,status:'BEHIND'});
+  expect(funding(s,Date.parse('2026-10-14T23:59:59.999Z'))).toEqual({plannedThroughToday:'0',dueToday:'0',nextDate:'2026-10-15',overdue:false,status:'ON_TRACK'});
+  // The due day starts at 00:00 UTC: the instalment is due today. Since phase 4 (Session W Part 17, T6-B) it counts as
+  // planned only once that day has ended, so nobody is behind on the day they are meant to fund.
+  expect(funding(s,Date.parse('2026-10-15T00:00:00.000Z'))).toEqual({plannedThroughToday:'0',dueToday:'50000',nextDate:'2026-10-15',overdue:false,status:'ON_TRACK'});
+  // The last millisecond of the due day in UTC: still due today.
+  expect(funding(s,Date.parse('2026-10-15T23:59:59.999Z'))).toEqual({plannedThroughToday:'0',dueToday:'50000',nextDate:'2026-10-15',overdue:false,status:'ON_TRACK'});
+  // QA-04 with a UTC plan: 21:30 in New York is already 16 October in UTC, so the 15th has ended and is behind.
+  expect(funding(s,Date.parse('2026-10-16T01:30:00.000Z'))).toEqual({plannedThroughToday:'50000',dueToday:'0',nextDate:'2026-11-15',overdue:true,status:'BEHIND'});
  });
  test('a valuation is captured once per UTC day',()=>{
   process.env.TZ=zone;
@@ -84,7 +87,7 @@ describe('guards for the rows below (plain tests; G1 updated in phase 3, Session
   expect(funding(planned(),Date.parse('2026-10-16T01:30:00.000Z')).nextDate).toBe('2026-11-15');
   expect(funding(planned(),Date.parse('2026-10-14T10:05:00.000Z')).plannedThroughToday).toBe('0');
   expect(funding(planned({...MONTHLY,nextDate:'2026-03-29'},'2026-03-01T12:00:00Z'),Date.parse('2026-03-28T23:30:00.000Z')).plannedThroughToday).toBe('0');
-  expect(funding(planned({...MONTHLY,nextDate:'2026-09-06'},'2026-08-20T12:00:00Z'),Date.parse('2026-09-06T03:59:59.999Z')).plannedThroughToday).toBe('50000');
+  expect(funding(planned({...MONTHLY,nextDate:'2026-09-06'},'2026-08-20T12:00:00Z'),Date.parse('2026-09-06T03:59:59.999Z')).dueToday).toBe('50000');
   expect(funding(planned({...MONTHLY,nextDate:'2026-09-06'},'2026-08-20T12:00:00Z'),Date.parse('2026-09-07T02:30:00.000Z')).nextDate).toBe('2026-10-06');
   expect(funding(planned(),Date.parse('2026-10-15T22:30:00.000Z')).nextDate).toBe('2026-10-15');
  });
@@ -92,28 +95,29 @@ describe('guards for the rows below (plain tests; G1 updated in phase 3, Session
 
 // Decided behaviour (T1-T4, TIMEZONE_DESIGN.md): a plan's days are calendar dates in the plan's own zone.
 // Each row: plan zone, the instant, what the plan's zone says, and the field that shows it. Plain tests since phase 3.
+// Since phase 4 (Session W Part 17, T6-B), a row on the due day shows it as due today (`dueToday`), not yet planned.
 describe('decided: funding days follow the plan\'s zone (phase 3, R1)',()=>{
  const due15={plan:MONTHLY,created:'2026-09-20T12:00:00Z'};
  test.each([
   // Z1 QA-04: 21:30 in New York on the due day. The instalment is due today, not last month's.
   ['Z1 America/New_York, 21:30 on the due day',due15,'America/New_York','2026-10-16T01:30:00.000Z',{nextDate:'2026-10-15'}],
   // Z2 UTC+14: five past midnight on the due day, which UTC still calls the 14th.
-  ['Z2 Pacific/Kiritimati (UTC+14), 00:05 on the due day',due15,'Pacific/Kiritimati','2026-10-14T10:05:00.000Z',{plannedThroughToday:'50000'}],
+  ['Z2 Pacific/Kiritimati (UTC+14), 00:05 on the due day',due15,'Pacific/Kiritimati','2026-10-14T10:05:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
   // Z3 UTC-12: five to midnight on the due day, which UTC already calls the 16th.
   ['Z3 Etc/GMT+12 (UTC-12), 23:55 on the due day',due15,'Etc/GMT+12','2026-10-16T11:55:00.000Z',{nextDate:'2026-10-15'}],
   // Z4 DST gap: 02:00-03:00 is skipped in Brussels on 29 March 2026.
-  ['Z4 Europe/Brussels, 00:30 on the spring-forward day',{plan:{...MONTHLY,nextDate:'2026-03-29'},created:'2026-03-01T12:00:00Z'},'Europe/Brussels','2026-03-28T23:30:00.000Z',{plannedThroughToday:'50000'}],
+  ['Z4 Europe/Brussels, 00:30 on the spring-forward day',{plan:{...MONTHLY,nextDate:'2026-03-29'},created:'2026-03-01T12:00:00Z'},'Europe/Brussels','2026-03-28T23:30:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
   // Z5 DST overlap: 02:00-03:00 happens twice in Brussels on 25 October 2026.
-  ['Z5 Europe/Brussels, 00:30 on the fall-back day',{plan:{...MONTHLY,nextDate:'2026-10-25'},created:'2026-09-20T12:00:00Z'},'Europe/Brussels','2026-10-24T22:30:00.000Z',{plannedThroughToday:'50000'}],
+  ['Z5 Europe/Brussels, 00:30 on the fall-back day',{plan:{...MONTHLY,nextDate:'2026-10-25'},created:'2026-09-20T12:00:00Z'},'Europe/Brussels','2026-10-24T22:30:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
   // Z6-Z7 Santiago skips midnight on 6 September 2026 (the day starts at 01:00).
-  ['Z6 America/Santiago, 23:59:59 just before the skipped midnight',{plan:{...MONTHLY,nextDate:'2026-09-06'},created:'2026-08-20T12:00:00Z'},'America/Santiago','2026-09-06T03:59:59.999Z',{plannedThroughToday:'0'}],
+  ['Z6 America/Santiago, 23:59:59 just before the skipped midnight',{plan:{...MONTHLY,nextDate:'2026-09-06'},created:'2026-08-20T12:00:00Z'},'America/Santiago','2026-09-06T03:59:59.999Z',{plannedThroughToday:'0',dueToday:'0'}],
   ['Z7 America/Santiago, 23:30 on the 23-hour day',{plan:{...MONTHLY,nextDate:'2026-09-06'},created:'2026-08-20T12:00:00Z'},'America/Santiago','2026-09-07T02:30:00.000Z',{nextDate:'2026-09-06'}],
   // Z8-Z12 half-hour, 45-minute and 30-minute-DST zones, five past midnight on the due day.
-  ['Z8 Asia/Kolkata (UTC+5:30)',due15,'Asia/Kolkata','2026-10-14T18:35:00.000Z',{plannedThroughToday:'50000'}],
-  ['Z9 Asia/Kathmandu (UTC+5:45)',due15,'Asia/Kathmandu','2026-10-14T18:20:00.000Z',{plannedThroughToday:'50000'}],
-  ['Z10 Pacific/Chatham (UTC+13:45 in summer)',due15,'Pacific/Chatham','2026-10-14T10:20:00.000Z',{plannedThroughToday:'50000'}],
-  ['Z11 Australia/Lord_Howe (UTC+11, 30-minute DST)',due15,'Australia/Lord_Howe','2026-10-14T13:05:00.000Z',{plannedThroughToday:'50000'}],
-  ['Z12 Australia/Adelaide (UTC+10:30 in summer)',due15,'Australia/Adelaide','2026-10-14T13:35:00.000Z',{plannedThroughToday:'50000'}],
+  ['Z8 Asia/Kolkata (UTC+5:30)',due15,'Asia/Kolkata','2026-10-14T18:35:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
+  ['Z9 Asia/Kathmandu (UTC+5:45)',due15,'Asia/Kathmandu','2026-10-14T18:20:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
+  ['Z10 Pacific/Chatham (UTC+13:45 in summer)',due15,'Pacific/Chatham','2026-10-14T10:20:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
+  ['Z11 Australia/Lord_Howe (UTC+11, 30-minute DST)',due15,'Australia/Lord_Howe','2026-10-14T13:05:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
+  ['Z12 Australia/Adelaide (UTC+10:30 in summer)',due15,'Australia/Adelaide','2026-10-14T13:35:00.000Z',{plannedThroughToday:'0',dueToday:'50000'}],
  ] as const)('%s',(_label,fixture,planZone,instant,expected)=>{
   const h=fundingHealth(zoned(planned(fixture.plan,fixture.created),planZone),'1',Date.parse(instant));
   expect(h.status).not.toBe('REVIEW');

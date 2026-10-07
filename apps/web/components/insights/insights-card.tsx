@@ -3,7 +3,7 @@ import {useMemo, useRef, useState} from 'react';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
 import {dailyData} from '../../lib/health-daily';
-import type {HabitHealthLinks} from '../../lib/habit-health-links/schema';
+import type {HabitHealthLinksV4 as HabitHealthLinks} from '../../lib/habit-health-links/schema';
 import {insightCards, type InsightCard} from '../../lib/insights/engine';
 import {hiddenInsights} from '../../lib/insights/store';
 import {formatNumber} from '../../lib/visual-format';

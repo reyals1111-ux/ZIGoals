@@ -9,7 +9,8 @@ import type {ImportRecord} from './undo-schema';
 /**
  * Nutrition CSV import (Session P, PR 3, I1; docs/product/features/I1-nutrition-import.md). Rows become ordinary
  * diary entries on the file's own days with the nutrients the file gives; blank stays unknown; a food joins the
- * library only when the file says what a serving weighs or measures. No MyFitnessPal preset (its format is UNVERIFIED).
+ * library only when the file says what a serving weighs or measures. MyFitnessPal and Cronometer files get pre-filled
+ * column matches (lib/import/nutrition-presets.ts, community-documented columns the person checks).
  */
 export type Meal = typeof HEALTH_MEALS[number];
 export type NutritionBasis = 'serving' | 'per-100g' | 'per-100ml';
