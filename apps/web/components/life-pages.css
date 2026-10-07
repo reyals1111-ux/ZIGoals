@@ -19,4 +19,4 @@
 @media(prefers-reduced-motion:reduce) { .settings-page *,.ecosystem-page * { animation:none; transition:none; scroll-behavior:auto; } }
 @media(max-width:900px) { .settings-page details:not([class])>summary { cursor:pointer;min-height:44px;padding:10px 0; } }
 /* Session W Part 24: Settings in six labelled groups (Data & privacy, Your app, Your areas, Account & devices, ZIGi, Help & diagnostics). */
-.settings-page .settings-group { margin:44px 0 0; }.settings-page .settings-group-title { margin:0 0 18px; padding-top:18px; border-top:1px solid #7fc8ff2e; color:#cfe0ff; font-size:13px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; line-height:1.4; }
+.settings-page .settings-group { margin:44px 0 0; }.settings-page .settings-group-title { margin:0 0 18px; padding-top:18px; border-top:1px solid #7fc8ff2e; color:#cfe0ff; font-size:14px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; line-height:1.4; }
