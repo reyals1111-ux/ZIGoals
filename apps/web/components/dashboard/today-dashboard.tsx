@@ -60,6 +60,8 @@ import {PhoneFold} from '../phone/phone-fold';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown,todayItemShown} from '../../lib/pages/visibility';
+import {linksOf,sortedLinks} from '../../lib/links/engine';
+import {TodayLinks} from '../links/today-links';
 import {isFoldOpen,readTodayFolds,rememberFold,type TodayFolds} from '../../lib/today-folds';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
@@ -88,6 +90,8 @@ export function TodayDashboard(){
  const showcase=useShowcase(),[welcomeDismissed,setWelcomeDismissed]=useState(false),phone=usePhoneActive();
  // Session W Part 2: Quick add and the Health shortcut follow Your pages & buttons.
  const pagesView=usePagesView(),showQuickAdd=isShown(pagesView,'quick-add'),showHealth=isShown(pagesView,'health');
+ // Session W Part 19: My links' card shows once a link exists, while its button is shown under Your pages & buttons.
+ const myLinks=settings.loaded&&!settings.error?sortedLinks(linksOf(settings.data)):[];
  // The first-run welcome (Session E) appears only for a device that is certainly brand-new: every store read without
  // error, Today not yet chosen, no Showcase, no account, no private record stored and the welcome never seen here.
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
@@ -213,7 +217,7 @@ export function TodayDashboard(){
    </section>
   </div><aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={regionItems('rail')} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside></div>
   <PhoneFold label="How it works"><JourneyBanner/></PhoneFold>
-  {platform.loaded&&habits.loaded&&health.loaded&&<LayoutRegion region="bottom" items={[{id:'today:week',label:'Your week',node:<PhoneFold label="Your week"><TodayWeek today={today} habits={habits.data} health={health.data} platform={platform.data} financial={financial}/></PhoneFold>}]}/>}
+  {platform.loaded&&habits.loaded&&health.loaded&&<LayoutRegion region="bottom" items={[{id:'today:week',label:'Your week',node:<PhoneFold label="Your week"><TodayWeek today={today} habits={habits.data} health={health.data} platform={platform.data} financial={financial}/></PhoneFold>},myLinks.length>0&&isShown(pagesView,'links')&&{id:'today:links',label:'My links',node:<PhoneFold label="My links"><TodayLinks links={myLinks}/></PhoneFold>}]}/>}
   {editor&&<WidgetEditor key={editor==='new'?'new':editor.id} initial={editor==='new'?undefined:editor} sources={sources} ready={loaded} onRemove={editor==='new'?undefined:()=>change(s=>removeWidget(s,editor.id),'Widget removed. Your underlying record was kept.')} onClose={()=>{setEditor(null);setInsertAt(null);}} onSave={(w,rev)=>change(s=>{const saved=saveWidget(s,w,rev);return editor==='new'&&insertAt?moveDashboardItem(saved,{kind:'widget',id:w.id},{region:insertAt.region,anchor:insertAt.anchor,position:'after'}):saved;},'Widget saved on this device.')}/>}
   {preset&&<Modal title="Choose your Today layout" onClose={()=>setPreset(null)}><fieldset className="dashboard-preset-choices"><legend>Choose a starting point</legend>{PRESETS.map(p=><label key={p.id}><input type="radio" name="dashboard-preset" value={p.id} checked={preset===p.id} onChange={()=>setPreset(p.id)}/><span><strong>{p.label}</strong><small>{p.description}</small></span></label>)}</fieldset><h3>Layout preview</h3>{presetPreview?<><ul>{presetPreview.widgets.filter(w=>!w.hidden).map(w=><li key={w.id}>{w.title||WIDGET_CATALOG[w.kind].label} · {widgetMetricLabel(w.metric)}</li>)}</ul><p>{presetPreview.widgets.filter(w=>w.hidden).length} existing widgets will be kept but hidden. This changes placement and visibility only; Goals, Habits, Health and assets remain saved.</p></>:<p role="alert">{presetError}</p>}<div className="dashboard-actions"><button className="secondary" onClick={()=>setPreset(null)}>Cancel</button><button className="primary" disabled={busy||!presetPreview} onClick={()=>void change(s=>applyDashboardPreset(s,preset),'Preset saved on this device.').then(()=>setPreset(null)).catch(()=>{})}>Apply layout</button></div>{error&&<p role="alert">{error}</p>}</Modal>}
  </div></LayoutPage></HealthLinkContext.Provider>;

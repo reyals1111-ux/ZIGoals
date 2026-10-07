@@ -20,7 +20,7 @@ export const BUTTON_LABEL: Readonly<Record<ButtonId, string>> = {
 };
 /** The pages and buttons this build has, in navigation order. */
 export const AVAILABLE_PAGES: readonly PageId[] = PAGE_IDS; // Session W Part 14: Chess's page exists now (hidden by default).
-export const AVAILABLE_BUTTONS: readonly ButtonId[] = BUTTON_IDS.filter(id => id !== 'music' && id !== 'links');
+export const AVAILABLE_BUTTONS: readonly ButtonId[] = BUTTON_IDS.filter(id => id !== 'music'); // Session W Part 19: My links exists now.
 /** Hidden until the person shows them (approved default): Chess and the music player. Showcase shows everything. */
 export const DEFAULT_HIDDEN: readonly VisibilityId[] = ['chess', 'music'];
 const ALL_IDS: readonly VisibilityId[] = [...PAGE_IDS, ...BUTTON_IDS];

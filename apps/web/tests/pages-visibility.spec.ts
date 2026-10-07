@@ -38,7 +38,8 @@ test('hiding a page saves a stamped settings v3 choice; the navigation, preview 
   await page.goto('/app/settings');
   const card = section(page), goals = card.getByRole('switch', {name: 'Goals', exact: true});
   await expect(goals).toBeChecked();
-  for (const name of ['Today', 'Habits', 'Health', 'Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Quick add', 'ZIGi button', 'Wealth shortcut on phones']) await expect(card.getByRole('switch', {name, exact: true})).toBeChecked();
+  // Session W Part 19: My links has its switch now (shown by default; its Today card appears once a link exists).
+  for (const name of ['Today', 'Habits', 'Health', 'Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Quick add', 'ZIGi button', 'My links', 'Wealth shortcut on phones']) await expect(card.getByRole('switch', {name, exact: true})).toBeChecked();
   // Settings and Help have no switch (W4).
   await expect(card.getByRole('switch', {name: 'Settings'})).toHaveCount(0);
   expect(await page.evaluate(k => localStorage.getItem(k), MIRROR)).toBeNull();

@@ -20,6 +20,7 @@ import {showcaseSleep} from './sleep/showcase';
 import {ACCOUNTS_KEY,CHESS_CACHE_KEY} from './w-device-keys';
 import {showcaseAccounts} from './accounts/showcase';
 import {showcaseChess} from './skills/chess/showcase';
+import {showcaseLinks} from './links/showcase';
 import {showcaseMeditation} from './meditation/showcase';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -104,5 +105,7 @@ export function buildShowcase(day:string){
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
+ // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.
+ records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]!)),'links',showcaseLinks(day),false)));
  return {day,records};
 }
