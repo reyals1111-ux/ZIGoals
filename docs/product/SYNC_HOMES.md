@@ -175,6 +175,13 @@ a module moves up only when one of these groups first gets content, and never go
   nothing on their own); Loop Habit Tracker writes habits at the module's current version. Deterministic ids mean the
   same export imported on two devices merges to one record. The import's undo note (`zigoals:import-batches:v1`) stays
   on the device.
+- Part 8: Health → Devices. A scale reading the person saves is an ordinary weight (Health's `weights` list, one a
+  day); a meditation session saved with the heart-rate box ticked keeps `heartRate` {avg, min, max} on that Health v4
+  session. A linked service's sync (built, off: docs/run11/HEALTH_LINK_ACTIVATION.md) writes ordinary records exactly as
+  an import does, with deterministic ids and the `<provider>-link` source, so two devices syncing the same account merge
+  to one record. Never synced or exported: the sealed tokens (IndexedDB `zigoals-link-tokens-v1`), the live heart rate
+  (memory only), the pending sign-in (`sessionStorage` `zigoals:link-pending:v1`) and the hourly sync note
+  (`sessionStorage` `zigoals:link-synced:v1`).
 
 **Finance stays at v4 in this release.** Finance merges as one record and holds every money page (Goals, Wealth, Staking,
 Activity); a finance v5 write followed by a rollback to #31 would make all four unreadable. So accounts and debts live in

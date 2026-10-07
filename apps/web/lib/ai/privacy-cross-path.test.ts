@@ -1,5 +1,6 @@
 import {expect, test} from 'vitest';
 import {emptyWeeklyReview} from '../weekly-review/schema';
+import {healthGroupIn} from '../vault/w-homes';
 import {bridgePrompt} from './bridge';
 import {buildPageContext, type BuilderInput} from './context/builders';
 import {consent} from './context/consent';
@@ -88,6 +89,13 @@ test('Session W Part 7: records an import added (a day\'s steps, a day\'s vitals
   expect(JSON.stringify(health)).toContain(String(SENTINEL.importSteps));
   expect(JSON.stringify(health)).toContain(String(SENTINEL.importKcal));
   for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(String(SENTINEL.importSteps)); expect(text, path).not.toContain(String(SENTINEL.importKcal)); }
+});
+test('Session W Part 8: a linked service\'s record and a meditation\'s heart-rate summary are Health like the rest, and never leave with the gate closed', () => {
+  const health = sources().health, {avg, min, max} = SENTINEL.heartRate, heart = new RegExp(`\\b(?:${avg}|${min}|${max})\\b`);
+  expect(health.activity.find(a => a.name === SENTINEL.linkedWorkout)?.id).toMatch(/^health_imp-strava-link-[0-9a-f]{16}$/);
+  expect(healthGroupIn(health, 'meditation')?.sessions.find(m => m.id === 'health_med-sentinel-0001')?.heartRate).toEqual({avg, min, max});
+  for (const {path, text} of everythingSent(false)) { expect(text, path).not.toContain(SENTINEL.linkedWorkout); expect(text, path).not.toMatch(heart); }
+  expect(everythingSent(true).some(s => s.text.includes(SENTINEL.linkedWorkout))).toBe(true);
 });
 test('the three-part gate: each missing part closes Health for every tool, the notes and the environment', () => {
   const s = sources(), base = {area: 'today' as const, pathname: '/app', layoutHasHealth: true, accountActive: false, accountHealthPermitted: null, sensitive: false};

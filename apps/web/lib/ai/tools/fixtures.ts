@@ -37,9 +37,12 @@ export const SENTINEL = {
   meditationNote: 'SENTINEL_MEDITATION_NOTE_47ac',
   // Session W Part 7: a day's steps and active energy brought in by an import (Apple Health), with distinctive values.
   importSteps: 86_531, importKcal: 4127,
+  // Session W Part 8: a workout a linked service brought (the name is the sentinel; a real one carries the sport) and
+  // the heart-rate summary a meditation session keeps from a Bluetooth monitor.
+  linkedWorkout: 'SENTINEL_LINKED_WORKOUT_2c9e', heartRate: {avg: 187, min: 173, max: 199},
 } as const;
 /** Every sentinel as text, for "contains none of these" checks. */
-export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal)];
+export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal), SENTINEL.linkedWorkout];
 export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
 
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
@@ -73,12 +76,14 @@ export function withSentinels(sources: ToolSources): ToolSources {
   const sleep = healthGroupIn(health, 'sleep') ?? emptySleep(), wake = addLocalDays(day, -4);
   health = withHealthGroup(health, 'sleep', sleepSchema.parse({...sleep, nights: [...sleep.nights, {id: 'health_sleep-sentinel-0001', kind: 'night', start: `${addLocalDays(wake, -1)}T21:30:00.000Z`, end: `${wake}T05:10:00.000Z`, timeZone: 'UTC', latencyMin: 12, awakeMin: 9, quality: 3, tags: [SENTINEL.sleepTag], note: SENTINEL.sleepNote, source: 'manual', createdAt: stamp, updatedAt: stamp}]}), false);
   const meditation = healthGroupIn(health, 'meditation') ?? emptyMeditation();
-  health = withHealthGroup(health, 'meditation', meditationSchema.parse({...meditation, sessions: [...meditation.sessions, {id: 'health_med-sentinel-0001', startedAt: `${day}T06:00:00.000Z`, seconds: 600, kind: 'timer', note: SENTINEL.meditationNote, timeZone: 'UTC', source: 'timer', createdAt: stamp, updatedAt: stamp}]}), false);
+  health = withHealthGroup(health, 'meditation', meditationSchema.parse({...meditation, sessions: [...meditation.sessions, {id: 'health_med-sentinel-0001', startedAt: `${day}T06:00:00.000Z`, seconds: 600, kind: 'timer', note: SENTINEL.meditationNote, heartRate: {...SENTINEL.heartRate}, timeZone: 'UTC', source: 'timer', createdAt: stamp, updatedAt: stamp}]}), false);
   // An import's records, through the importer's own apply step: steps on a day before the Showcase's 30 (one source a
   // day would keep them out of a day that has steps) and the vitals of two days back.
   const stepsDay = addLocalDays(day, -40), vitalsDay = addLocalDays(day, -2);
   health = previewImport(health, {...emptyItems(), activity: [{id: activityImportId('apple-health', `steps|${stepsDay}`), date: stepsDay, name: 'Steps · Apple Health', steps: SENTINEL.importSteps, minutes: 0}],
     vitals: [vitalDaySchema.parse({id: `health_vital-apple-health-${vitalsDay}`, date: vitalsDay, source: 'apple-health', activeKcal: SENTINEL.importKcal, updatedAt: stamp})]}, stamp).next;
+  // A linked service's workout on the day, through the same apply step a sync uses.
+  health = previewImport(health, {...emptyItems(), activity: [{id: activityImportId('strava-link', 'workout|9001'), date: day, name: SENTINEL.linkedWorkout, steps: 0, minutes: 33}]}, stamp).next;
   const walk = sources.habits.habits.find(h => h.title === 'Walk');
   const habits = walk ? habitDataSchema.parse({...sources.habits, schemaVersion: 3, habits: sources.habits.habits.map(h => h.id !== walk.id ? h : {...h, entries: h.entries.map(e => e.date === day ? {...e, count: SENTINEL.habitValue, source: 'health'} : e)})}) as HabitData : sources.habits;
   const notes = [{text: SENTINEL.note, category: 'health'}, {text: 'Prefers short answers in the morning', category: 'preferences'}];

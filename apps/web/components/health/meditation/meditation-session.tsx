@@ -1,6 +1,7 @@
 'use client';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {addSession, DEFAULT_BELLS, newSessionId} from '../../../lib/meditation/engine';
+import {heartSnapshot, heartSummary, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
 import {audioContext, audioReady, strike, type Strike} from '../../../lib/meditation/bells';
 import {bellTimes, clockText, elapsedMs, endedSession, isDone, isPaused, pauseRun, remainingMs, resumeRun, sessionFrom, type Run} from '../../../lib/meditation/timer';
 import {emptyMeditationRun} from '../../../lib/meditation/schema';
@@ -34,7 +35,9 @@ function useWakeLock(active: boolean): boolean {
  */
 export function MeditationSession({store, run, onDone}: {store: MeditationStore; run: Run; onDone: (text: string) => void}) {
   const bells = store.meditation.bells ?? {...DEFAULT_BELLS, updatedAt: ''}, paused = isPaused(run), done = isDone(run, store.now);
-  const [ending, setEnding] = useState(false), [moodAfter, setMoodAfter] = useState<number | undefined>(), [note, setNote] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
+  const [ending, setEnding] = useState(false), [moodAfter, setMoodAfter] = useState<number | undefined>(), [note, setNote] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [keepHeart, setKeepHeart] = useState(false);
+  // Session W Part 8: a connected heart-rate monitor (Health → Devices) shows here, and its summary may be kept.
+  const heart = useSyncExternalStore(subscribeHeart, heartSnapshot, () => SERVER_HEART);
   // Read on every render (the clock re-renders each second): the audio wakes asynchronously after the Begin tap.
   const sound = audioReady(), finished = done || ending, finishedHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { if (finished) finishedHeading.current?.focus(); }, [finished]);
@@ -64,7 +67,8 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
     if (!ended) { write(() => emptyMeditationRun()); onDone('Nothing to save: less than a second.'); return; }
     setBusy(true); setError('');
     try {
-      const session = sessionFrom(ended, {id: newSessionId(), timeZone: store.zone, moodAfter, note, now: new Date()});
+      const pulse = keepHeart ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null;
+      const session = sessionFrom(ended, {id: newSessionId(), timeZone: store.zone, moodAfter, note, now: new Date(), ...(pulse ? {heartRate: pulse} : {})});
       await store.update(m => addSession(m, session));
       write(() => emptyMeditationRun());
       onDone(`Saved: ${ended.seconds >= 60 ? minutesText(Math.round(ended.seconds / 60)) : `${ended.seconds} s`}.`);
@@ -81,6 +85,7 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
       <p>Save it to your Health journal, or let it go. How you feel is optional.</p>
       <MoodPicker legend="How do you feel now? (optional)" value={moodAfter} onChange={setMoodAfter}/>
       <label className="field">Note (optional)<textarea maxLength={500} rows={2} value={note} onChange={e => setNote(e.target.value)}/></label>
+      {(() => { const pulse = ended ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null; return pulse && <label className="checkbox"><input type="checkbox" checked={keepHeart} onChange={e => setKeepHeart(e.target.checked)}/>Keep my heart rate from this session: lowest {pulse.min}, average {pulse.avg}, highest {pulse.max} bpm (only these three numbers)</label>; })()}
       {error && <p role="alert">{error}</p>}
       <div className="actions"><button type="button" className="primary" disabled={busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="secondary" disabled={busy} onClick={letGo}>Don’t save</button></div>
     </section>;
@@ -93,6 +98,7 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
       <svg viewBox="0 0 120 120" aria-hidden="true"><circle className="meditation-ring-track" cx="60" cy="60" r="54"/><circle className="meditation-ring" cx="60" cy="60" r="54" pathLength="100" strokeDasharray={`${(progress * 100).toFixed(2)} 100`} transform="rotate(-90 60 60)"/></svg>
       <strong aria-hidden="true">{clockText(left)}</strong>
     </div>}
+    {heart.connected && heart.latest && <p className="meditation-heart"><span aria-hidden="true">♥</span> {heart.latest.bpm} bpm</p>}
     <p className="meditation-left">{clockText(left)} left of {minutesText(run.plannedSec / 60)}</p>
     {!sound && bells.sound !== 'silent' && <p className="fine">The bells are quiet until you tap “Turn on the bells” (browsers allow sound only after a tap). <button type="button" className="text-link" onClick={() => void turnSoundOn()}>Turn on the bells</button></p>}
     {keepsScreenOn && !paused && <p className="fine">The screen stays on during the session.</p>}

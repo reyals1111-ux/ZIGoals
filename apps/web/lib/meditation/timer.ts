@@ -59,7 +59,7 @@ export function clockText(ms: number): string {
   return h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
 }
 /** A saved session from what the run became, with the mood after and a note if the person added them. */
-export function sessionFrom(ended: NonNullable<ReturnType<typeof endedSession>>, {id, timeZone, moodAfter, note, now}: {id: string; timeZone: string; moodAfter?: number; note?: string; now: Date}): MeditationSession {
+export function sessionFrom(ended: NonNullable<ReturnType<typeof endedSession>>, {id, timeZone, moodAfter, note, now, heartRate}: {id: string; timeZone: string; moodAfter?: number; note?: string; now: Date; heartRate?: {avg: number; min: number; max: number}}): MeditationSession {
   const at = now.toISOString();
-  return meditationSessionSchema.parse({id, startedAt: ended.startedAt, seconds: ended.seconds, kind: ended.kind, ...(ended.pattern ? {pattern: ended.pattern} : {}), ...(ended.moodBefore !== undefined ? {moodBefore: ended.moodBefore} : {}), ...(moodAfter !== undefined ? {moodAfter} : {}), ...(note?.trim() ? {note: note.trim()} : {}), timeZone, source: ended.kind === 'breathing' ? 'breathing' : 'timer', createdAt: at, updatedAt: at});
+  return meditationSessionSchema.parse({id, startedAt: ended.startedAt, seconds: ended.seconds, kind: ended.kind, ...(ended.pattern ? {pattern: ended.pattern} : {}), ...(ended.moodBefore !== undefined ? {moodBefore: ended.moodBefore} : {}), ...(moodAfter !== undefined ? {moodAfter} : {}), ...(note?.trim() ? {note: note.trim()} : {}), ...(heartRate ? {heartRate: {avg: heartRate.avg, min: heartRate.min, max: heartRate.max}} : {}), timeZone, source: ended.kind === 'breathing' ? 'breathing' : 'timer', createdAt: at, updatedAt: at});
 }
