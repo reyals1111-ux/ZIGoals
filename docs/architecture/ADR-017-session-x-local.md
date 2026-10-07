@@ -38,6 +38,11 @@ Status: **In progress; implemented in Session X-Local on the owner's Mac (branch
 - The fixture `scripts/zigi/fixtures/studio4/` (built by `make-studio4.mjs`): 150 tiny real images in the contract's shape (solid-colour VP8L stills, two-frame animated WebPs with the contract's loop counts, two-frame APNGs; each decodes in Chrome at its documented size), a `SHA256SUMS` and a `reactions.json`. `import-studio.test.mjs` drops it into a scratch copy of the repository and proves the slots fill with no code change (the app's own reader finds the idle variants, the gaze set, the in-place greeting and the named reactions), that a dry run writes nothing, and that a tampered file, an over-budget file, a wrong size, a still in a clip's place, a non-contract file, an unlisted file and a missing receipt are each refused.
 - Dry-run on the real Studio-2 delivery: 55 identical, 0 changed; on `app-large-anim`: refused (hash, bytes, budget, pixel size).
 
+### 3. Idle that feels alive (Part 3, Tier 2 motion)
+- `components/zigi/idle.ts`, pure: the pool (the delivered clips that read as idle-appropriate after watching them: listening and thinking as glances, insight as a rare accent; the Studio-4 idle variants X010/X011 once they land), the picks (the base keeps half; variations share the rest by weight; never the same twice in a row; an accent at most once per 3 minutes and never right after another), the gap (25–60 s, random). Sleepy is never a variation.
+- The alive chunk runs it: only under Full, only while idle, motion allowed, the tab visible and nobody typing in a text field for 3 s; every condition change stops the current variation at once. The variation rides the bus (`zigiIdleVariant`): the launcher figure and the panel's head show it; Meet ZIGi and Customize (reference figures) never do.
+- Customize's notes say what Full, Calm and Off mean now. Tests: `lib/ai/zigi-idle.test.ts` (the pool, the weights to the pick, the no-repeat and accent rules, the gap bounds, the Studio-4 slots joining the pool) and `tests/zigi-alive.spec.ts` (Full rotates under a mocked clock; Calm never; typing stops it; a hidden tab stops it; reduced motion posters).
+
 ## Session decisions (taken without asking, the safest option that keeps every promise)
 
 | # | Part | Decision | Why |

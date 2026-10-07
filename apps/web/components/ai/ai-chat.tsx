@@ -190,7 +190,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const busy = session.status !== 'idle', area = context.area, lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
   const body = <>
     <header className="ai-chat-head">
-      <ZigiAvatar state={zigi} size={40} decorative/>
+      <ZigiAvatar state={zigi} size={40} decorative live/>
       <div className="ai-chat-identity">
         <h2 id={titleId} className="ai-chat-title"><NebulaFlow identity="ai-chat-title">ZIGi · your AI</NebulaFlow></h2>
         <p className="ai-chat-via"><span className="ai-chat-via-text">{hosted ? `${hosted.provider} · ${hosted.model} via ZIGoals hosted` : connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span><span className="ai-chat-premium">{entitlement(hosted ? 'hosted' : 'your-ai').label}</span></p>

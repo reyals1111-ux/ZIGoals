@@ -175,10 +175,20 @@ weighted by its opacity) lands on the circle's centre. The values are fractions 
 ## Motion
 
 - **The person's choice:** Customize → Animation offers Full, Calm (the default) and Off, stored in `zigoals:zigi:v1`.
-  The launcher shell writes it to `html[data-zigi-motion]`.
-- **The launcher's breath:** a CSS-only idle loop on the circle's figure. It moves the `img` only, never the button,
-  so the click target stays still. Calm is a slow, small breath (5.6 s); Full is livelier (3.6 s, a little sway). The
-  shell holds no animation code and no pause logic: browsers do not run animations in hidden tabs.
+  The launcher shell writes it to `html[data-zigi-motion]`. Since Session X-Local Part 3: **Calm** plays the idle clip
+  (F001) and a clip for what happens; **Full** adds the idle rotation below; **Off** shows a still frame for every state.
+- **The launcher's breath:** a CSS-only idle loop on the circle's figure, kept for the poster until the idle clip plays
+  (the clip breathes by itself). It moves the `img` only, never the button, so the click target stays still. The shell
+  holds no animation code and no pause logic: browsers do not run animations in hidden tabs.
+- **The idle rotation** (`components/zigi/idle.ts`, run by the alive chunk; owner decision D2): under Full, while ZIGi
+  rests in idle, a variation now and then: a *glance* (listening F004, weight 0.5; thinking T001, 0.3) or, rarely, an
+  *accent* (insight F003, 0.2), plus the Studio-4 idle variants (X010, X011) once their files land. The base idle keeps
+  half of every pick. A variation starts 25–60 s (random) after the last one ended and plays for its clip's length; never
+  the same variation twice in a row; an accent at most once per 3 minutes and never right after another accent; sleepy
+  (F008) is never a variation (it comes only from the 90 s inactivity rule). It runs only while the tab is visible,
+  ZIGi is idle, motion is allowed and nobody has typed in a text field for 3 s; it stops at once when any of those
+  changes. Under Calm there are no variations; under Off, reduced motion or Motion Off, posters only. The panel's head
+  shows the variation too; Meet ZIGi and Customize never do (reference figures).
 - **In the panel and on Meet ZIGi:** every state has its own small CSS move (`components/zigi/zigi.css`). The idle
   breath runs on the panel's head only. On Meet ZIGi, loops that scroll out of view pause.
 - **What always wins:** nothing moves under the device's `prefers-reduced-motion: reduce`, the app's Motion Off

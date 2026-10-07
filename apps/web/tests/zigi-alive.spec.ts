@@ -187,6 +187,54 @@ test('motion: the idle clip plays while ZIGi waits (Calm by default, the CSS bre
   await posterHolds(/^F001-idle(-2x)?\.webp$/);
 });
 
+test('idle that feels alive: under Full a variation plays now and then (never twice the same, an accent rarely), Calm keeps the base idle, typing and a hidden tab stop it', async ({page}) => {
+  // Session X-Local Part 3. A fixed random number (a test-only session key) makes the picks exact: the first variation
+  // is the accent (insight), the next a glance; the gap is the upper bound (60 s). The mocked clock is advanced in
+  // steps and the figure watched at each, since the alive chunk's own start is not in step with this test.
+  await seed(page, {[ZIGI_KEY]: {version: 1, animation: 'full'}});
+  await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.999'));
+  await page.goto('/app');
+  await expect(launcher(page)).toBeVisible();
+  const zigi = page.locator('.ai-launcher-button .zigi');
+  const variant = () => zigi.evaluate(el => el.hasAttribute('data-variant'));
+  const src = () => figure(page).evaluate(el => (el as HTMLImageElement).currentSrc.split('/').pop());
+  /** Advances the clock a second at a time until the figure shows (or stops showing) a variation; returns the clip then. */
+  const advanceUntil = async (want: boolean, maxMs: number) => { for (let t = 0; t < maxMs; t += 1000) { if ((await variant()) === want) return src(); await page.clock.runFor(1000); } return null; };
+  const never = async (ms: number) => { for (let t = 0; t < ms; t += 1000) { expect(await variant(), `at +${t} ms`).toBe(false); await page.clock.runFor(1000); } };
+  await expect.poll(() => figure(page).evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 10_000}).toBe(true);
+  expect(await variant()).toBe(false);
+  // The first variation: the accent (insight), within one gap.
+  const first = await advanceUntil(true, 65_000);
+  expect(first).toMatch(/^F003-insight/);
+  // It ends after its clip's length and the base idle is back.
+  expect(await advanceUntil(false, 5000)).toMatch(/^F001-idle/);
+  // The next is a glance, never the accent again so soon.
+  const second = await advanceUntil(true, 65_000);
+  expect(second).toMatch(/^(T001-thinking|F004-listening)/);
+  await advanceUntil(false, 6000);
+  // Typing in a text field stops it at once and keeps it away.
+  await openChat(page);
+  await advanceUntil(true, 65_000);
+  await panel(page).getByLabel('Ask ZIGi about your records').pressSequentially('hi');
+  expect(await variant()).toBe(false);
+  await never(20_000);
+  await closeChat(page);
+  // A hidden tab stops it too, and nothing plays while hidden.
+  expect(await advanceUntil(true, 70_000)).toBeTruthy();
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {get: () => 'hidden', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+  expect(await variant()).toBe(false);
+  await never(70_000);
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {get: () => 'visible', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+  expect(await advanceUntil(true, 65_000)).toBeTruthy();
+  // Calm: the base idle only, however long ZIGi waits.
+  await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, animation: 'calm'})), ZIGI_KEY);
+  await page.goto('/app');
+  await expect(launcher(page)).toBeVisible();
+  await expect.poll(() => figure(page).evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 10_000}).toBe(true);
+  await never(200_000);
+  expect(await src()).toBe('F001-idle.anim.webp');
+});
+
 test('ZIGi sits on its optical centre at every size, at 1× and 2× pixel density', async ({browser, baseURL, isMobile}) => {
   test.skip(isMobile, 'the same CSS on a phone; measured once on the desktop project at both densities');
   const offset = manifest.skins['origami-nebula'].opticalOffset;

@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {useZigiIdleVariant} from './bus';
 import {filesFor, skinOf, ZIGI_MANIFEST, type Manifest, type SizeName, type StateFiles, type ZigiState} from './manifest';
 import {motionAllowed, supportsAnimatedWebp, watchMotion} from './motion';
 import {ZigiImage} from './zigi-image';
@@ -26,8 +27,10 @@ export function frameFor(skinName: string | null | undefined, state: string, siz
 const still = () => false;
 let apngNeeded = false;
 void supportsAnimatedWebp().then(ok => { apngNeeded = !ok; });
-export function ZigiAvatar({state = 'idle', size = 56, className = '', decorative = false, skin, play = true}: {state?: ZigiState; size?: number; className?: string; decorative?: boolean; skin?: string; play?: boolean}) {
-  const motion = useSyncExternalStore(watchMotion, motionAllowed, still);
+export function ZigiAvatar({state = 'idle', size = 56, className = '', decorative = false, skin, play = true, live = false}: {state?: ZigiState; size?: number; className?: string; decorative?: boolean; skin?: string; play?: boolean;
+  /** Session X-Local Part 3: a live figure (the panel's head) shows the idle variation while one plays; a reference figure (Meet ZIGi, Customize) never does. */
+  live?: boolean}) {
+  const motion = useSyncExternalStore(watchMotion, motionAllowed, still), variant = useZigiIdleVariant();
   const box = useRef<HTMLSpanElement>(null), [onScreen, setOnScreen] = useState(true);
   // A figure scrolled out of view (Meet ZIGi's long page) keeps its poster; the clip loads when it comes back.
   useEffect(() => {
@@ -37,7 +40,8 @@ export function ZigiAvatar({state = 'idle', size = 56, className = '', decorativ
     return () => observer.disconnect();
   }, []);
   const spec = ZIGI_MANIFEST.states[state] ?? ZIGI_MANIFEST.states.idle!, frame = frameFor(skin, state, size, motion && play && onScreen, ZIGI_MANIFEST, apngNeeded);
-  return <span ref={box} className={`zigi zigi-${state}${className ? ` ${className}` : ''}`} data-state={state} data-code={spec.code} data-wears={frame.files?.wears} data-own={frame.files && !frame.files.wears ? '' : undefined} style={{width: size, height: frame.height}}>
-    <ZigiImage poster={{src: frame.src, srcSet: frame.srcSet}} animated={frame.animated} width={size} height={frame.height} alt={ZIGI_MANIFEST.alt} decorative={decorative}/>
+  const variation = live && state === 'idle' && motion && play && onScreen && variant ? variant : null;
+  return <span ref={box} className={`zigi zigi-${state}${className ? ` ${className}` : ''}`} data-state={state} data-code={spec.code} data-wears={frame.files?.wears} data-own={frame.files && !frame.files.wears ? '' : undefined} data-variant={variation ? '' : undefined} style={{width: size, height: frame.height}}>
+    <ZigiImage poster={variation ? {src: variation.poster.x1, srcSet: `${variation.poster.x1} 1x, ${variation.poster.x2} 2x`} : {src: frame.src, srcSet: frame.srcSet}} animated={variation ? variation.animated : frame.animated} width={size} height={frame.height} alt={ZIGI_MANIFEST.alt} decorative={decorative}/>
   </span>;
 }
