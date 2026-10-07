@@ -141,7 +141,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   useEffect(() => {
     if (!addIntent) return;
     const entry = document.getElementById("health-entry-action");
-    entry?.scrollIntoView({ block: "center", behavior: "instant" });
+    // The form itself is brought to the middle: the quick picks above it can make the section taller than the screen.
+    (entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"]') ?? entry)?.scrollIntoView({ block: "center", behavior: "instant" });
     const entryControl = entry?.querySelector<HTMLElement>('form[aria-label="Log a meal"] select')
       ?? entry?.querySelector<HTMLElement>("select, input, button");
     entryControl?.focus({ preventScroll: true });

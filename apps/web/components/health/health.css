@@ -225,6 +225,9 @@
 .health-quick-picks ul,.health-simple-list { list-style: none; padding: 0; margin: 16px 0; }
 .health-quick-picks li,.health-simple-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #a6c1fa20; padding: 12px 0; min-width: 0; }
 .health-quick-picks .health-pick { flex: 1 1 150px; min-width: 0; text-align: left; }
+/* Session W Part 9: with "Pin" beside the star, the name sits above its details (never broken mid-word) and the two buttons wrap together. */
+.health-quick-picks .health-pick { flex-direction: column; align-items: flex-start; gap: 2px; white-space: normal; }
+.health-pick-actions { display: inline-flex; flex: 0 0 auto; gap: 4px; }
 .health-pick strong,.health-simple-list strong { overflow-wrap: anywhere; }
 .health-pick small,.health-simple-list small { display: block; color: #b5c6db; line-height: 1.6; font-size: .875rem; }
 .health-simple-list li>span { flex: 1 1 150px; min-width: 0; overflow-wrap: anywhere; }

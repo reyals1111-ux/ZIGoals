@@ -138,7 +138,8 @@ test('revoking each provider\'s documented way (Oura, Polar\'s user deletion, St
   expect(JSON.parse(r.providers.requests[5].body)).toEqual({'member-id':'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'});
   await r.call('/v1/token',{body:{provider:'oura',code:'CODE-SECRET-LOG'}});
   await r.probe();
-  expect(r.logs).toContain(PROBE_LINE);
+  // The structured log of the probe can arrive after its response (as in zigi-relay-runtime.test.mjs), so wait for it.
+  await expect.poll(()=>r.logs.includes(PROBE_LINE)).toBe(true);
   for(const line of r.logs)for(const secret of ['FAKE-ACCESS','CODE-SECRET-LOG',...Object.values(SECRETS)])expect(line).not.toContain(secret);
  }finally{await r.dispose();}
 },60_000);
