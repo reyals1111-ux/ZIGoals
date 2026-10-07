@@ -71,8 +71,7 @@ const litres = (ml: number) => `${(ml / 1000).toLocaleString("en", {maximumFract
 
 function exploreDemo() {
   markOnboardingSeen(window.localStorage);
-  loadShowcase();
-  window.location.assign("/app");
+  void loadShowcase().then(() => window.location.assign("/app"), () => undefined);
 }
 function Choice({name, checked, onChange, label, note, disabled, type = "checkbox"}: {name: string; checked: boolean; onChange: () => void; label: string; note?: ReactNode; disabled?: boolean; type?: "checkbox" | "radio"}) {
   return <label className="onboarding-choice"><input type={type} name={name} checked={checked} disabled={disabled} onChange={onChange} /><span><strong>{label}</strong>{note && <small>{note}</small>}</span></label>;

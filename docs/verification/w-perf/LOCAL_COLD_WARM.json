@@ -1,0 +1,870 @@
+{
+ "about": "Session W Part 22, measured locally on 2026-10-07 by scripts/perf/alpha-cold-warm.mjs: LOCAL WORKERD WALL TIME IN MS, NOT CLOUDFLARE CPU. Each route: 3 fresh Workers (cold first request) and 5 warm requests each; medians and samples. Hermetic: outbound requests refused, no secrets. Same machine, run one after another.",
+ "main_1063765": {
+  "metric": "local_workerd_wall_ms_not_cloudflare_cpu",
+  "recordedAt": "2026-10-07T14:04:55.317Z",
+  "bundleSha256": "1e9b6208778a0106",
+  "bundleBytes": 16697638,
+  "rounds": 3,
+  "warmRequests": 5,
+  "routes": [
+   {
+    "route": "/",
+    "statuses": [
+     307
+    ],
+    "workerReadyMs": 1030.2,
+    "firstRequestMs": 200.3,
+    "warmRequestMs": 30.7,
+    "firstSamples": [
+     191.4,
+     200.3,
+     227
+    ],
+    "warmSamples": [
+     32.1,
+     30.2,
+     28.4,
+     32.3,
+     30.7,
+     32.7,
+     29.3,
+     30.8,
+     31.2,
+     27.2,
+     33.3,
+     30.6,
+     28.9,
+     30.9,
+     26.8
+    ]
+   },
+   {
+    "route": "/app",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 958.8,
+    "firstRequestMs": 326.6,
+    "warmRequestMs": 32.9,
+    "firstSamples": [
+     320.3,
+     350.4,
+     326.6
+    ],
+    "warmSamples": [
+     36.1,
+     34.2,
+     29.2,
+     30.3,
+     30.3,
+     36.9,
+     36.5,
+     46.1,
+     30,
+     30.3,
+     34.9,
+     34.4,
+     29.4,
+     30.9,
+     32.9
+    ]
+   },
+   {
+    "route": "/app/goals",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 941.3,
+    "firstRequestMs": 305.6,
+    "warmRequestMs": 30.6,
+    "firstSamples": [
+     305.6,
+     318.2,
+     281.6
+    ],
+    "warmSamples": [
+     30.9,
+     32.3,
+     31.8,
+     34.5,
+     26.8,
+     32,
+     30.6,
+     29.3,
+     27.8,
+     26.7,
+     30.8,
+     28.9,
+     32.4,
+     27.4,
+     25.6
+    ]
+   },
+   {
+    "route": "/app/habits",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 991.2,
+    "firstRequestMs": 284.8,
+    "warmRequestMs": 29.2,
+    "firstSamples": [
+     284.8,
+     284.7,
+     307.7
+    ],
+    "warmSamples": [
+     34.1,
+     28.5,
+     27.5,
+     29.2,
+     26.4,
+     34.1,
+     30,
+     27.8,
+     28.4,
+     26.1,
+     32.7,
+     31.1,
+     30,
+     30.8,
+     26.1
+    ]
+   },
+   {
+    "route": "/app/health",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 996.5,
+    "firstRequestMs": 286.3,
+    "warmRequestMs": 30.3,
+    "firstSamples": [
+     324.6,
+     286.3,
+     283.3
+    ],
+    "warmSamples": [
+     31.3,
+     72.2,
+     32.2,
+     27.8,
+     26.4,
+     30.3,
+     34.4,
+     36.5,
+     32.3,
+     30.2,
+     31.4,
+     28.3,
+     27.6,
+     28.6,
+     23.8
+    ]
+   },
+   {
+    "route": "/app/wealth",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 937.8,
+    "firstRequestMs": 284.7,
+    "warmRequestMs": 29.6,
+    "firstSamples": [
+     284.2,
+     284.7,
+     332.3
+    ],
+    "warmSamples": [
+     31.5,
+     29.6,
+     30.4,
+     26,
+     25.9,
+     29.7,
+     28.9,
+     31.7,
+     26.8,
+     24.6,
+     33.9,
+     30.8,
+     32.9,
+     28.5,
+     29.2
+    ]
+   },
+   {
+    "route": "/app/markets",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1002.4,
+    "firstRequestMs": 306.6,
+    "warmRequestMs": 31.7,
+    "firstSamples": [
+     306.6,
+     305.4,
+     337.1
+    ],
+    "warmSamples": [
+     38.6,
+     31.7,
+     37.2,
+     33.3,
+     30.4,
+     33.9,
+     31.4,
+     37,
+     29.5,
+     27.5,
+     32.7,
+     30.9,
+     31.7,
+     28,
+     26.4
+    ]
+   },
+   {
+    "route": "/app/settings",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 956.8,
+    "firstRequestMs": 296.9,
+    "warmRequestMs": 31.8,
+    "firstSamples": [
+     296.9,
+     323.7,
+     291.7
+    ],
+    "warmSamples": [
+     34.5,
+     33.7,
+     31.3,
+     28.3,
+     28.4,
+     38.5,
+     36.6,
+     34.5,
+     31.7,
+     30.7,
+     33.7,
+     33.7,
+     31.4,
+     28.8,
+     31.8
+    ]
+   },
+   {
+    "route": "/app/help",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 933,
+    "firstRequestMs": 284.4,
+    "warmRequestMs": 33.9,
+    "firstSamples": [
+     295.5,
+     275,
+     284.4
+    ],
+    "warmSamples": [
+     40.5,
+     42.9,
+     37.2,
+     32.2,
+     32.8,
+     34.2,
+     33.6,
+     29,
+     31.5,
+     26.6,
+     34.5,
+     45.2,
+     33.9,
+     38.1,
+     30.1
+    ]
+   }
+  ]
+ },
+ "branch_296605b_before_part22": {
+  "metric": "local_workerd_wall_ms_not_cloudflare_cpu",
+  "recordedAt": "2026-10-07T14:07:03.127Z",
+  "bundleSha256": "9c3dd2765aa446b1",
+  "bundleBytes": 18139950,
+  "rounds": 3,
+  "warmRequests": 5,
+  "routes": [
+   {
+    "route": "/",
+    "statuses": [
+     307
+    ],
+    "workerReadyMs": 1072.3,
+    "firstRequestMs": 200.6,
+    "warmRequestMs": 31.4,
+    "firstSamples": [
+     200.6,
+     184.7,
+     232.9
+    ],
+    "warmSamples": [
+     34,
+     31.4,
+     29.3,
+     33.9,
+     27.5,
+     30,
+     29.5,
+     29,
+     30.3,
+     27,
+     33.9,
+     37.5,
+     39.7,
+     36.2,
+     32.4
+    ]
+   },
+   {
+    "route": "/app",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1063,
+    "firstRequestMs": 367.4,
+    "warmRequestMs": 33.4,
+    "firstSamples": [
+     332.7,
+     367.4,
+     405.6
+    ],
+    "warmSamples": [
+     38.3,
+     34.3,
+     31.6,
+     33.4,
+     28.7,
+     38.4,
+     35.1,
+     30.8,
+     33.1,
+     32.9,
+     48.2,
+     32.8,
+     34.7,
+     34.1,
+     31.5
+    ]
+   },
+   {
+    "route": "/app/goals",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1092.5,
+    "firstRequestMs": 336.1,
+    "warmRequestMs": 31.8,
+    "firstSamples": [
+     336.1,
+     344.4,
+     325.1
+    ],
+    "warmSamples": [
+     40.1,
+     35.6,
+     34.5,
+     34.7,
+     42.8,
+     32.2,
+     30,
+     30.1,
+     27.7,
+     26.7,
+     45.5,
+     31,
+     31.8,
+     28.5,
+     27.6
+    ]
+   },
+   {
+    "route": "/app/habits",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1109.4,
+    "firstRequestMs": 352.1,
+    "warmRequestMs": 32.4,
+    "firstSamples": [
+     315.4,
+     352.1,
+     365.1
+    ],
+    "warmSamples": [
+     44.7,
+     32.4,
+     40.2,
+     29.6,
+     28.4,
+     33.1,
+     31.3,
+     32.6,
+     28.2,
+     27.8,
+     37.6,
+     33,
+     33.2,
+     30.9,
+     29.8
+    ]
+   },
+   {
+    "route": "/app/health",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1075.7,
+    "firstRequestMs": 319.2,
+    "warmRequestMs": 31.9,
+    "firstSamples": [
+     372.7,
+     319.2,
+     305.9
+    ],
+    "warmSamples": [
+     32.3,
+     29.7,
+     34,
+     31,
+     28.5,
+     39.3,
+     34.4,
+     32.2,
+     29.5,
+     28.1,
+     33.1,
+     31.9,
+     32.1,
+     29,
+     28.7
+    ]
+   },
+   {
+    "route": "/app/wealth",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1103.6,
+    "firstRequestMs": 310.7,
+    "warmRequestMs": 33.4,
+    "firstSamples": [
+     310.7,
+     309.4,
+     315
+    ],
+    "warmSamples": [
+     35.9,
+     36.7,
+     30.3,
+     30.3,
+     28.4,
+     33.4,
+     33.3,
+     34,
+     39.2,
+     34,
+     34.1,
+     34.3,
+     28.8,
+     29.6,
+     27.5
+    ]
+   },
+   {
+    "route": "/app/markets",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1102.1,
+    "firstRequestMs": 334.1,
+    "warmRequestMs": 32.6,
+    "firstSamples": [
+     326.6,
+     337.7,
+     334.1
+    ],
+    "warmSamples": [
+     35.7,
+     36.4,
+     29.4,
+     29.7,
+     27.1,
+     33.2,
+     37.9,
+     28.6,
+     29.4,
+     28.1,
+     38.2,
+     38.5,
+     30.2,
+     32.6,
+     34.9
+    ]
+   },
+   {
+    "route": "/app/settings",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1139.7,
+    "firstRequestMs": 344.3,
+    "warmRequestMs": 38.5,
+    "firstSamples": [
+     344.1,
+     376.4,
+     344.3
+    ],
+    "warmSamples": [
+     45.3,
+     36.8,
+     35.4,
+     38.5,
+     31.2,
+     43.2,
+     41.5,
+     44.5,
+     43.2,
+     36,
+     38.1,
+     50,
+     44.6,
+     35.2,
+     30.2
+    ]
+   },
+   {
+    "route": "/app/help",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1136.8,
+    "firstRequestMs": 345.1,
+    "warmRequestMs": 38.4,
+    "firstSamples": [
+     356,
+     313.1,
+     345.1
+    ],
+    "warmSamples": [
+     42,
+     33.5,
+     39.2,
+     47.9,
+     40.5,
+     44,
+     46.3,
+     32.9,
+     38,
+     29.4,
+     50.2,
+     38.4,
+     33.3,
+     36.4,
+     29.9
+    ]
+   }
+  ]
+ },
+ "branch_part22": {
+  "metric": "local_workerd_wall_ms_not_cloudflare_cpu",
+  "recordedAt": "2026-10-07T14:03:17.111Z",
+  "bundleSha256": "67e1d4752c9f20ec",
+  "bundleBytes": 18218809,
+  "rounds": 3,
+  "warmRequests": 5,
+  "routes": [
+   {
+    "route": "/",
+    "statuses": [
+     307
+    ],
+    "workerReadyMs": 1049.1,
+    "firstRequestMs": 210.9,
+    "warmRequestMs": 31.2,
+    "firstSamples": [
+     217.5,
+     204.8,
+     210.9
+    ],
+    "warmSamples": [
+     34.1,
+     34.1,
+     29.7,
+     31.4,
+     27.5,
+     33.2,
+     31.2,
+     28.4,
+     32.1,
+     26.6,
+     33.5,
+     32.3,
+     30.8,
+     31,
+     27.8
+    ]
+   },
+   {
+    "route": "/app",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1013,
+    "firstRequestMs": 366.1,
+    "warmRequestMs": 33.4,
+    "firstSamples": [
+     353.8,
+     368.7,
+     366.1
+    ],
+    "warmSamples": [
+     35.7,
+     30.9,
+     28.3,
+     35.1,
+     28.6,
+     44.9,
+     34.6,
+     35,
+     33.4,
+     30.2,
+     36.7,
+     31.2,
+     30.2,
+     33.8,
+     28.4
+    ]
+   },
+   {
+    "route": "/app/goals",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1012.7,
+    "firstRequestMs": 290.2,
+    "warmRequestMs": 30.4,
+    "firstSamples": [
+     285.7,
+     290.2,
+     308.3
+    ],
+    "warmSamples": [
+     31.4,
+     30.5,
+     30.7,
+     27.9,
+     26,
+     31,
+     29.3,
+     29.3,
+     27.7,
+     31.3,
+     31.7,
+     30.4,
+     30.5,
+     27.8,
+     26.3
+    ]
+   },
+   {
+    "route": "/app/habits",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1050.3,
+    "firstRequestMs": 331.6,
+    "warmRequestMs": 29.4,
+    "firstSamples": [
+     338.4,
+     318.7,
+     331.6
+    ],
+    "warmSamples": [
+     31.9,
+     29.3,
+     31.2,
+     28.3,
+     31.7,
+     32.6,
+     29.4,
+     29.7,
+     26.2,
+     26.8,
+     32.4,
+     28.9,
+     30.6,
+     27.1,
+     25.7
+    ]
+   },
+   {
+    "route": "/app/health",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1014.6,
+    "firstRequestMs": 337.8,
+    "warmRequestMs": 31.8,
+    "firstSamples": [
+     354.6,
+     337.8,
+     336.5
+    ],
+    "warmSamples": [
+     34.2,
+     29,
+     29.9,
+     26.6,
+     26.3,
+     32,
+     31.2,
+     32.9,
+     35.1,
+     25.6,
+     36.4,
+     34.5,
+     39.5,
+     31.8,
+     30.2
+    ]
+   },
+   {
+    "route": "/app/wealth",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1023.4,
+    "firstRequestMs": 314.9,
+    "warmRequestMs": 29.7,
+    "firstSamples": [
+     314.9,
+     288.3,
+     318.8
+    ],
+    "warmSamples": [
+     31.9,
+     30.6,
+     39.9,
+     29.2,
+     26.8,
+     31.4,
+     29.7,
+     29.2,
+     27.1,
+     30.2,
+     32.7,
+     31.9,
+     28.2,
+     27.2,
+     27.8
+    ]
+   },
+   {
+    "route": "/app/markets",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1019.4,
+    "firstRequestMs": 311.4,
+    "warmRequestMs": 31.7,
+    "firstSamples": [
+     311.4,
+     345.1,
+     298.5
+    ],
+    "warmSamples": [
+     33.4,
+     36.8,
+     36.9,
+     33,
+     28.9,
+     32.8,
+     33.5,
+     29.4,
+     30.5,
+     29.7,
+     34.4,
+     31.7,
+     26.6,
+     28.1,
+     27.4
+    ]
+   },
+   {
+    "route": "/app/settings",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 987.5,
+    "firstRequestMs": 345.8,
+    "warmRequestMs": 33.7,
+    "firstSamples": [
+     349.5,
+     345.8,
+     310.8
+    ],
+    "warmSamples": [
+     43.1,
+     39.4,
+     30.4,
+     32.1,
+     33.9,
+     36.7,
+     34.6,
+     30.5,
+     33.7,
+     30.6,
+     37.4,
+     34.5,
+     31.2,
+     32.8,
+     28.7
+    ]
+   },
+   {
+    "route": "/app/help",
+    "statuses": [
+     200
+    ],
+    "workerReadyMs": 1124.7,
+    "firstRequestMs": 312.3,
+    "warmRequestMs": 34.7,
+    "firstSamples": [
+     352.4,
+     312.3,
+     308.3
+    ],
+    "warmSamples": [
+     40.6,
+     39.7,
+     34.7,
+     36.6,
+     30.9,
+     41.3,
+     41.3,
+     33.7,
+     34.7,
+     28.8,
+     38.8,
+     34.5,
+     33.9,
+     35.5,
+     29.6
+    ]
+   }
+  ]
+ }
+}
