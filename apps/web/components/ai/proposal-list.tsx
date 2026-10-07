@@ -8,7 +8,7 @@ import type {Handle} from '../../lib/ai/context/types';
 import {ProposalCard, type ProposalStatus} from './proposal-card';
 import type {ProposalRunner} from './use-proposals';
 import {NOT_AN_ENTRY} from '../../lib/ai/actions/parse';
-import {zigiEvents} from '../zigi/bus';
+import {zigiSignals} from '../zigi/bus';
 import {streakMilestone} from '../../lib/ai/actions/milestone';
 import './ai.css';
 
@@ -21,7 +21,7 @@ import './ai.css';
 export type ProposalItem = {id: string; action: Action; result: PlanResult; status: ProposalStatus; error: string | null; after: Stores | null};
 type UndoGroup = {ids: string[]; until: number};
 const planOf = (item: ProposalItem): Plan | null => item.result.ok ? item.result.plan : null;
-/** Session V Part 12: a check-in that took a streak onto a milestone makes ZIGi proud; any other write, a celebration. */
+/** Session V Part 12 / X-Local Part 4 (D5): a check-in that took a streak onto a milestone makes ZIGi proud; any other accepted card is a small success. */
 const proud = (plan: Plan, before: Stores['habits'], after: Stores['habits']) => { try { return streakMilestone(plan, before, after) !== null; } catch { return false; } };
 /** Session V Part 7: the habits this reply creates get their ids now, so a reminder card of the same reply can name them. */
 const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a => a.kind === 'create-habit' && a.ref ? [[a.ref, {id: crypto.randomUUID(), title: a.title}] as const] : []));
@@ -42,7 +42,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     if (plan.target === 'form') { const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
-    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiEvents.emit(proud(plan, before, after.habits) ? 'streak-milestone' : 'action-applied'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
+    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
     catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be written.'}); }
   }, [announce, onNavigate, patch, runner]);
   const addAll = useCallback(async () => {
@@ -53,7 +53,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const {after, error} = await runner.applyAll(plans);
     const done = pending.slice(0, after.length), failed = pending[after.length];
     setItems(current => current.map(item => { const i = done.findIndex(d => d.id === item.id); if (i >= 0) return {...item, status: 'added', after: after[i]!}; if (failed && item.id === failed.id) return {...item, status: 'proposed', error}; if (pending.some(p => p.id === item.id)) return {...item, status: 'proposed'}; return item; }));
-    if (done.length) { setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS}); zigiEvents.emit(after.some((stores, i) => proud(plans[i]!, i ? after[i - 1]!.habits : before, stores.habits)) ? 'streak-milestone' : 'action-applied'); }
+    if (done.length) { setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(after.some((stores, i) => proud(plans[i]!, i ? after[i - 1]!.habits : before, stores.habits)) ? 'streak_milestone' : 'card_accepted'); }
     announce(done.length ? `Added ${done.length} of ${pending.length}. Undo is available for ten seconds.` : error ?? 'Nothing was added.');
   }, [announce, items, patch, runner]);
   const undo = useCallback(async () => {

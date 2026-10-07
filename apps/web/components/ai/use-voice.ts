@@ -6,7 +6,7 @@ import {readKey} from '../../lib/ai/keys';
 import {PROVIDERS} from '../../lib/ai/providers';
 import type {AiSettings} from '../../lib/ai/settings';
 import {browserSpeechDisclosure, detectBrowser, MAX_RECORDING_MS, recognitionConstructor, recognitionErrorText, recognitionText, recorderMimeType, speechLanguage, transcribe, type RecognitionLike, microphoneDeniedText} from '../../lib/ai/voice';
-import {zigiEvents} from '../zigi/bus';
+import {zigiSignals} from '../zigi/bus';
 
 /**
  * Voice input (ADR-012, Part 7). "browser": the Web Speech API with the disclosure for this browser, on-device where
@@ -38,7 +38,7 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
   }, [mode, ctor, language]);
   const clearTimers = () => { if (timer.current) { window.clearTimeout(timer.current); timer.current = null; } if (ticker.current) { window.clearInterval(ticker.current); ticker.current = null; } setSecondsLeft(null); };
   const releaseStream = () => { stream.current?.getTracks().forEach(track => track.stop()); stream.current = null; };
-  const finishIdle = useCallback(() => { clearTimers(); setState('idle'); setInterim(''); zigiEvents.emit('idle'); }, []);
+  const finishIdle = useCallback(() => { clearTimers(); setState('idle'); setInterim(''); zigiSignals.emit('idle'); }, []);
   const startBrowser = useCallback(async () => {
     if (!ctor) { setError(browserSpeechDisclosure(browser, false)); return; }
     const instance = new ctor();
@@ -49,7 +49,7 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
     instance.onerror = event => { const text = recognitionErrorText(event.error); if (text) setError(text); };
     instance.onend = () => { recognition.current = null; if (finalText) handler.current(finalText); finishIdle(); };
     recognition.current = instance;
-    setError(''); setState('listening'); zigiEvents.emit('listening');
+    setError(''); setState('listening'); zigiSignals.emit('assistant_listening');
     try { instance.start(); } catch { recognition.current = null; setError('Speech recognition could not start.'); finishIdle(); return; }
     timer.current = window.setTimeout(() => instance.stop(), MAX_RECORDING_MS);
   }, [browser, ctor, finishIdle, language, onDevice]);
@@ -74,7 +74,7 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
       catch (e) { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'The recording could not be transcribed.'); }
       finally { controller.current = null; finishIdle(); }
     };
-    setError(''); setState('recording'); zigiEvents.emit('listening');
+    setError(''); setState('recording'); zigiSignals.emit('assistant_listening');
     rec.start(250);
     const startedAt = Date.now();
     setSecondsLeft(MAX_RECORDING_MS / 1000);
@@ -102,15 +102,15 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
 export function useReadAloud(language: string) {
   const [speaking, setSpeaking] = useState(false);
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
-  const stop = useCallback(() => { if (supported) window.speechSynthesis.cancel(); setSpeaking(false); zigiEvents.emit('idle'); }, [supported]);
+  const stop = useCallback(() => { if (supported) window.speechSynthesis.cancel(); setSpeaking(false); zigiSignals.emit('idle'); }, [supported]);
   const speak = useCallback((text: string) => {
     if (!supported || !text.trim()) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text.slice(0, 5000));
     utterance.lang = language;
-    utterance.onend = () => { setSpeaking(false); zigiEvents.emit('idle'); };
-    utterance.onerror = () => { setSpeaking(false); zigiEvents.emit('idle'); };
-    setSpeaking(true); zigiEvents.emit('speaking');
+    utterance.onend = () => { setSpeaking(false); zigiSignals.emit('idle'); };
+    utterance.onerror = () => { setSpeaking(false); zigiSignals.emit('idle'); };
+    setSpeaking(true); zigiSignals.emit('assistant_speaking');
     window.speechSynthesis.speak(utterance);
   }, [language, supported]);
   useEffect(() => () => { if (supported) window.speechSynthesis.cancel(); }, [supported]);

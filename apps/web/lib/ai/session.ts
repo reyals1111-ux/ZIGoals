@@ -1,4 +1,5 @@
 import {MAX_TURN_CHARS, MAX_TURNS, titleFor, type Chat, type ChatTurn} from './chats';
+import {stripHint} from './emotion-hint';
 import type {ChatMessage} from './types';
 import type {ProviderId} from './providers';
 
@@ -47,7 +48,8 @@ export function editTarget(chat: Chat, turnId: string, now = new Date()): Chat |
  */
 export function messagesFor(turns: readonly ChatTurn[]): ChatMessage[] {
   // Answers made on this device (ZIGi's lookups, and Session V Part 15's on-device model) never go to a provider later.
-  return turns.filter(t => t.source !== 'local' && t.source !== 'on-device' && t.text.trim().length > 0).map((t): ChatMessage => t.role === 'user' ? {role: 'user', content: t.text} : {role: 'assistant', content: t.text});
+  // Session X-Local Part 4: an emotion hint marker never travels back to a model, even from an older stored turn.
+  return turns.filter(t => t.source !== 'local' && t.source !== 'on-device' && t.text.trim().length > 0).map((t): ChatMessage => t.role === 'user' ? {role: 'user', content: t.text} : {role: 'assistant', content: stripHint(t.text)}).filter(m => m.content.trim().length > 0);
 }
 /** One honest line for a reply that ended early. */
 export function stopReason(reason: string | null, aborted: boolean): string | undefined {

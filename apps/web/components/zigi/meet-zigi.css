@@ -8,6 +8,7 @@
 .meet-zigi-card header{display:grid;gap:2px}
 .meet-zigi-card h3{margin:0;font-size:17px}
 .meet-zigi-meta{margin:0;color:var(--muted,#aab2d9);font-size:14px;line-height:1.4}
+.meet-zigi-meaning{margin:2px 0 0;font-size:15px;line-height:1.4;color:var(--text,#eef1ff)}
 .meet-zigi-sizes{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;min-height:212px;padding:8px 6px;border-radius:12px;background:radial-gradient(120% 120% at 30% 20%,#1d1c4e,#0d1230 75%)}
 .meet-zigi-sizes figure{margin:0;display:grid;justify-items:center;gap:6px}
 .meet-zigi-sizes figcaption{font-size:13px;color:var(--muted,#aab2d9)}

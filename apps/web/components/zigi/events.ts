@@ -49,6 +49,9 @@ export function transition(current: ZigiState, event: ZigiEvent, context: ZigiCo
     case 'reminder-due': return 'reminder';
     case 'model-loading': return 'loading-model';
     case 'model-ready': return current === 'loading-model' ? restState(context) : null;
+    // Session X-Local Part 4: a small success (an accepted card, a logged entry); a surprise the AI hinted at.
+    case 'success': return 'success';
+    case 'surprise': return 'surprised';
     case 'listening': return 'listening';
     case 'speaking': return 'speaking';
     case 'idle': return current === 'sleepy' || current === 'listening' || current === 'speaking' ? restState(context) : null;

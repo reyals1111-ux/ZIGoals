@@ -1,4 +1,5 @@
 import type {ZigiEvent} from '../../components/zigi/bus';
+import type {SemanticEventType} from '../../components/zigi/semantic';
 import type {LocalReply} from './local-answers/engine';
 import {detectRisk} from './safety';
 
@@ -9,4 +10,9 @@ import {detectRisk} from './safety';
 export function localEvent(reply: LocalReply, question: string): ZigiEvent {
   if (detectRisk(question)) return 'careful';
   return reply.kind === 'answer' ? 'local-answer' : reply.kind === 'choices' ? 'ambiguity' : reply.kind === 'examples' ? 'not-understood' : 'reply-done';
+}
+/** The same, as the semantic signal the controller takes (Session X-Local Part 4). */
+export function localSignal(reply: LocalReply, question: string): SemanticEventType {
+  if (detectRisk(question)) return 'careful_topic';
+  return reply.kind === 'answer' ? 'local_answer' : reply.kind === 'choices' ? 'ambiguity' : reply.kind === 'examples' ? 'not_understood' : 'assistant_replied';
 }

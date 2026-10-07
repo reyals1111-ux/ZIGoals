@@ -322,6 +322,8 @@ test('ZIGi reacts to what happens: an answer on the device pleases it, a choice 
   await expect(state).toHaveAttribute('data-state', 'success');
   await expect(panel(page).locator('.ai-chat-head .zigi')).toHaveAttribute('data-state', 'success');
   await expect(state).toHaveAttribute('data-state', 'idle', {timeout: 5000});
+  // Session X-Local Part 4: reactions keep 8 s between them (the controller's rate limit); the clock is mocked.
+  await page.clock.runFor(8500);
   await panel(page).getByLabel('Ask ZIGi about your records').fill('Help me plan a calmer week');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   await expect(state).toHaveAttribute('data-state', 'confused');

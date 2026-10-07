@@ -348,3 +348,20 @@ test('Part 17: the hosted relay\'s request carries no Health unless the hosted c
   for (const text of relayBody(false)) expect(sentinelsIn(text)).toEqual([]);
   expect(relayBody(true).some(text => sentinelsIn(text).length > 0)).toBe(true);
 });
+
+test('Session X-Local Part 4: the semantic layer carries only an event name, never a value; the AI\'s hint marker is stripped from every path and can carry nothing out', async () => {
+  const {validateSemanticEvent, SEMANTIC_EVENTS} = await import('../../components/zigi/semantic');
+  const {extractHint} = await import('./emotion-hint');
+  // A signal with anything beside its type is refused without being echoed (a Health value inside it never crosses).
+  let thrown = '';
+  try { validateSemanticEvent({type: 'health_log_recorded', kcal: SENTINEL.kcal, note: SENTINEL.sleepNote}); } catch (e) { thrown = String(e); }
+  expect(thrown).toBe('TypeError: INVALID_EVENT');
+  expect(sentinelsIn(SEMANTIC_EVENTS.join(' '))).toEqual([]);
+  // A marker the AI wrote around a Health value is dropped whole: the shown text, the stored turn and the history are clean.
+  const reply = `Your night was logged. ⟦zigi: ${SENTINEL.sleepNote}⟧ ⟦zigi: encouraging⟧`;
+  const {text, hint} = extractHint(reply);
+  expect(hint).toBe('encouraging'); expect(sentinelsIn(text)).toEqual([]);
+  const turn: ChatTurn = {id: 't1', role: 'assistant', text: reply, at: new Date().toISOString(), provider: 'openai', model: 'm', usage: null};
+  const history = continuePrompt({turns: [{id: 't0', role: 'user', text: 'Log my night', at: new Date().toISOString()}, turn], context: null});
+  expect(history).not.toContain('⟦'); expect(sentinelsIn(history)).toEqual([]);
+});

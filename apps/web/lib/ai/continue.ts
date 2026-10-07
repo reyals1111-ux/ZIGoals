@@ -3,6 +3,7 @@ import type {PageContext} from './context/types';
 import {DATA_CLOSE, DATA_OPEN, escapeData} from './context/specialists';
 import {BRIDGE_CHARS_MAX} from './bridge';
 import {messagesFor} from './session';
+import {stripHint} from './emotion-hint';
 
 /**
  * "Continue in my AI" (Session V Part 10): the conversation so far and the records the page may share, as one text for
@@ -25,5 +26,5 @@ export function continuePrompt({turns, context, questionData = '', customInstruc
 }
 /** A conversation as Markdown, for "Copy as Markdown" on one answer or the whole chat (the label of each answer kept). */
 export function turnMarkdown(turn: ChatTurn, label: string): string {
-  return `${turn.text.trim()}\n\n_${label}_`;
+  return `${stripHint(turn.text).trim()}\n\n_${label}_`;
 }

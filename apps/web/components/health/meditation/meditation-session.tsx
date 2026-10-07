@@ -9,6 +9,7 @@ import {minutesText} from '../../../lib/meditation/stats';
 import {BreathingVisual} from './breathing-visual';
 import {MoodPicker} from './meditation-forms';
 import type {MeditationStore} from './use-meditation';
+import {zigiSignals} from '../../zigi/bus';
 
 type WakeLockSentinel = {release(): Promise<void>};
 /** Keeps the screen on while `active`, where the browser offers it; asks again when the page comes back into view. */
@@ -70,6 +71,7 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
       const pulse = keepHeart ? heartSummary(Date.parse(ended.startedAt), Date.parse(ended.startedAt) + ended.seconds * 1000) : null;
       const session = sessionFrom(ended, {id: newSessionId(), timeZone: store.zone, moodAfter, note, now: new Date(), ...(pulse ? {heartRate: pulse} : {})});
       await store.update(m => addSession(m, session));
+      zigiSignals.emitValidated('meditation_finished');
       write(() => emptyMeditationRun());
       onDone(`Saved: ${ended.seconds >= 60 ? minutesText(Math.round(ended.seconds / 60)) : `${ended.seconds} s`}.`);
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not save. Try again.'); }

@@ -4,7 +4,7 @@ import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {launcherApp} from '../../lib/ai/apps';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {ZigiFigure} from '../zigi/zigi-figure';
-import {useZigiState, zigiEvents, zigiState} from '../zigi/bus';
+import {useZigiState, zigiSignals, zigiState} from '../zigi/bus';
 import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
 import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
@@ -52,7 +52,7 @@ export function AiLauncher() {
   // The chunk is warmed on hover or focus and when the browser is idle after the person has interacted once; it mounts on the first open.
   const warm = useCallback(() => { if (warmed.current) return; warmed.current = true; void loadChat().catch(() => { warmed.current = false; }); }, []);
   // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
-  useEffect(() => { if (open) { setLoaded(true); zigiEvents.emit('open'); } else if (loaded) zigiEvents.emit('close'); }, [open, loaded]);
+  useEffect(() => { if (open) { setLoaded(true); zigiSignals.emit('user_opened_panel'); } else if (loaded) zigiSignals.emit('user_closed_panel'); }, [open, loaded]);
   const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => button.current?.focus({preventScroll: true})); }, []);
   // Session V Part 14: the mini window's "Back to tab".
   const reopen = useCallback(() => setOpen(true), []);

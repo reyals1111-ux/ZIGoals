@@ -4,6 +4,7 @@ import {SLEEP_TAGS, type SleepNight} from '../../../lib/sleep/schema';
 import {saveNight, setSleepGoal} from '../../../lib/sleep/engine';
 import {addDays, formatMinutes, instantAt, wallClock} from '../../../lib/zone-time';
 import type {SleepStore} from './use-sleep';
+import {zigiSignals} from '../../zigi/bus';
 
 const QUALITY = [[1, 'Poor'], [2, 'Fair'], [3, 'OK'], [4, 'Good'], [5, 'Great']] as const;
 /** A whole number of minutes, or undefined when left blank; anything else is refused with the field's name. */
@@ -41,7 +42,14 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
         awakenings: optionalMinutes(form.get('awakenings'), 'Times you woke up', 100), quality, tags: [...tags, ...custom], note: get('note')};
     } catch (err) { setError(message(err)); return; }
     setBusy(true);
-    try { await store.update(s => saveNight(s, input, new Date())); onDone(night ? 'Night updated.' : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.'); }
+    try {
+      // Session X-Local Part 4 (D5): the first night logged for its wake day is a moment ZIGi may celebrate; another
+      // night, a nap or an edit is a small success. Decided on the stored nights before the write, never on words.
+      const wakeDay = String(form.get('wakeDate') ?? ''), first = !night && input.kind === 'night' && !store.sleep.nights.some(n => n.end !== null && wallClock(Date.parse(n.end), zone).date === wakeDay);
+      await store.update(s => saveNight(s, input, new Date()));
+      if (!night) zigiSignals.emitValidated(first ? 'first_sleep_logged' : 'health_log_recorded');
+      onDone(night ? 'Night updated.' : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.');
+    }
     catch (err) { setError(message(err)); }
     finally { setBusy(false); }
   }

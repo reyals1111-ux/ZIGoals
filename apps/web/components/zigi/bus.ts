@@ -14,7 +14,9 @@ export type ZigiEvent =
   | 'open' | 'close' | 'reply-pending' | 'reply-streaming' | 'reply-done' | 'reply-with-proposals' | 'action-applied' | 'error' | 'listening' | 'speaking' | 'idle' | 'sleepy'
   // Session V Part 12: ZIGi alive.
   | 'tool-call' | 'writing-proposal' | 'local-answer' | 'ambiguity' | 'not-understood' | 'streak-milestone' | 'careful' | 'encourage'
-  | 'offline' | 'online' | 'reminder-due' | 'model-loading' | 'model-ready';
+  | 'offline' | 'online' | 'reminder-due' | 'model-loading' | 'model-ready'
+  // Session X-Local Part 4: a small success (an accepted card, a logged entry) and a surprise (an AI hint).
+  | 'success' | 'surprise';
 type Listener = (event: ZigiEvent) => void;
 const listeners = new Set<Listener>(), early: ZigiEvent[] = [];
 export const zigiEvents = {
@@ -26,6 +28,31 @@ export const zigiEvents = {
     listeners.add(listener);
     for (const event of early.splice(0)) listener(event);
     return () => { listeners.delete(listener); };
+  },
+};
+/**
+ * Session X-Local Part 4: semantic signals, the one thing the app and the chat tell ZIGi's companion controller
+ * (components/zigi/semantic.ts, in the alive chunk): `{type}` and whether the host validated the fact (the store
+ * confirmed the write). The controller applies the rules (validated-only celebrations, cooldowns, priority holds, the
+ * nudge budget, quiet hours, the typing guard, the daily celebration cap, the rate limit) and turns an allowed signal into
+ * one of the machine's events above. Signals sent before the controller listens wait here, at most a few.
+ */
+export type ZigiSignal = {type: string; validated: boolean};
+type SignalListener = (signal: ZigiSignal) => void;
+const signalListeners = new Set<SignalListener>(), earlySignals: ZigiSignal[] = [];
+export const zigiSignals = {
+  /** A plain signal: what the chat or the app observed. A celebration asked this way is refused by the controller. */
+  emit(type: string): void { zigiSignals.send({type, validated: false}); },
+  /** A host-validated fact: the store confirmed the write, the engine counted the milestone. */
+  emitValidated(type: string): void { zigiSignals.send({type, validated: true}); },
+  send(signal: ZigiSignal): void {
+    if (!signalListeners.size) { if (earlySignals.length < 8) earlySignals.push(signal); return; }
+    for (const listener of signalListeners) listener(signal);
+  },
+  on(listener: SignalListener): () => void {
+    signalListeners.add(listener);
+    for (const signal of earlySignals.splice(0)) listener(signal);
+    return () => { signalListeners.delete(listener); };
   },
 };
 function store<T>(initial: T) {

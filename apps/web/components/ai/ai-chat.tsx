@@ -17,7 +17,7 @@ import {entitlement} from '../../lib/entitlements';
 import {NebulaFlow} from '../nebula-flow';
 import './ai.css';
 import {useVisualViewportInsets} from '../phone/use-visual-viewport';
-import {useZigiState} from '../zigi/bus';
+import {useZigiState, zigiSignals} from '../zigi/bus';
 import {useZigiMachine} from '../zigi/events';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
@@ -50,6 +50,7 @@ import type {ChatImage} from '../../lib/ai/types';
 import {useRouter} from 'next/navigation';
 import {actionSchema} from '../../lib/ai/actions/schema';
 import {turnMarkdown} from '../../lib/ai/continue';
+import {stripHint} from '../../lib/ai/emotion-hint';
 import {lastQuestion} from '../../lib/ai/session';
 import {helpText, parseSlash, type SlashCommand, type SlashName} from '../../lib/ai/slash';
 import {ContinueView} from './continue-view';
@@ -186,7 +187,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
     else if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
   }, [onClose, phone, mini.win]);
-  const shownDraft = useMemo(() => { if (!session.draft) return ''; if (hasOpenFence(session.draft)) { const at = session.draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? session.draft.slice(0, at) : session.draft; } return parseReply(session.draft).text; }, [session.draft]);
+  const shownDraft = useMemo(() => { if (!session.draft) return ''; const draft = stripHint(session.draft); if (hasOpenFence(draft)) { const at = draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? draft.slice(0, at) : draft; } return parseReply(draft).text; }, [session.draft]);
   const busy = session.status !== 'idle', area = context.area, lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
   const body = <>
     <header className="ai-chat-head">
@@ -501,7 +502,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} onFocus={() => zigiSignals.emit('user_typing_started')} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;

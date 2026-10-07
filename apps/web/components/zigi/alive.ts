@@ -2,14 +2,16 @@
 import {getAppStorage} from '../../lib/showcase-storage';
 import {readZigiLook} from '../../lib/ai/zigi-look';
 import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
-import {zigiFrames, zigiIdleVariant, zigiState, type ZigiFrame, type ZigiFrames} from './bus';
+import {isSensitiveScreen} from '../ai/use-sensitive-screen';
+import {zigiEvents, zigiFrames, zigiIdleVariant, zigiSignals, zigiState, type ZigiFrame, type ZigiFrames, type ZigiSignal} from './bus';
 import {startZigiMachine} from './events';
+import {isSemanticEvent, ZigiController, type Decision} from './semantic';
 import {idlePool, nextGapMs, pickIdle, variantFrame, type IdleHistory, type IdleVariant} from './idle';
 import {filesFor, skinOf, ZIGI_STATES, type Skin} from './manifest';
 import {motionAllowed, supportsAnimatedWebp, watchMotion, zigiAnimation} from './motion';
 
 /**
- * ZIGi alive (Session X-Local Parts 1 and 3; ADR-017 S7): the small chunk the launcher loads lazily on every app page
+ * ZIGi alive (Session X-Local Parts 1, 3 and 4; ADR-017 S7): the small chunk the launcher loads lazily on every app page
  * once it is visible and the browser is idle, never as part of the shell. It runs the state machine on every page (so
  * ZIGi reacts outside the chat), publishes to the bus which files show each state (the poster from the manifest for the
  * chosen skin and, while motion is allowed, the animated clip this browser can play: animated WebP, or the APNG
@@ -21,6 +23,27 @@ import {motionAllowed, supportsAnimatedWebp, watchMotion, zigiAnimation} from '.
 let started: (() => void) | null = null;
 /** How long after the last key in a text field the person still counts as typing. */
 export const TYPING_GUARD_MS = 3000;
+/**
+ * Session X-Local Part 4: the one companion controller of this page (semantic.ts). It takes every signal (the chat's,
+ * the app's validated facts, the AI's hint), applies the rules and emits the machine event it allows; the knock asks
+ * it before it counts a nudge. The last decision is kept for tests and Meet ZIGi.
+ */
+export const zigiController = new ZigiController();
+let lastDecision: Decision | null = null;
+export const lastZigiDecision = () => lastDecision;
+function connectController(): () => void {
+  const handle = (signal: ZigiSignal) => {
+    if (!isSemanticEvent(signal.type)) return;
+    zigiController.setPreferences({motion: motionAllowed() ? 'full' : 'reduced', sensitive: isSensitiveScreen()});
+    zigiController.sync(zigiState.get());
+    const decision = signal.validated ? zigiController.dispatchValidated({type: signal.type}) : zigiController.dispatch({type: signal.type});
+    lastDecision = decision;
+    if (decision.event) zigiEvents.emit(decision.event);
+  };
+  const off = zigiSignals.on(handle);
+  const offState = zigiState.subscribe(() => zigiController.sync(zigiState.get()));
+  return () => { off(); offState(); };
+}
 const isTextField = (target: EventTarget | null) => target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable);
 function framesFor(skin: Skin, apng: boolean): ZigiFrames {
   const motion = motionAllowed(), table: ZigiFrames = {};
@@ -56,10 +79,12 @@ function startRotation(skinOf_: () => Skin, apngOf: () => boolean, random: () =>
   };
   const onKey = (event: KeyboardEvent) => {
     if (!isTextField(event.target)) return;
+    const wasTyping = Date.now() < typingUntil;
     typingUntil = Date.now() + TYPING_GUARD_MS;
+    if (!wasTyping) zigiSignals.emit('user_typing_started');
     if (zigiIdleVariant.get() || gap) clear();
     if (typingTimer) window.clearTimeout(typingTimer);
-    typingTimer = window.setTimeout(() => { typingTimer = null; schedule(); }, TYPING_GUARD_MS);
+    typingTimer = window.setTimeout(() => { typingTimer = null; zigiSignals.emit('user_typing_stopped'); schedule(); }, TYPING_GUARD_MS);
   };
   const onVisibility = () => schedule();
   const offState = zigiState.subscribe(schedule), offMotion = watchMotion(schedule);
@@ -78,7 +103,7 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   let apng = false;
   const skin = () => skinOf(readZigiLook(getAppStorage()).skin);
   const publish = () => zigiFrames.set(framesFor(skin(), apng));
-  const stopMachine = startZigiMachine();
+  const stopMachine = startZigiMachine(), stopController = connectController();
   const stopMotion = watchMotion(publish);
   const onStore = (event: Event) => { if (!(event instanceof CustomEvent) || !event.detail || event.detail === ZIGI_KEY) publish(); };
   const onStorage = (event: StorageEvent) => { if (event.key === null || event.key === ZIGI_KEY) publish(); };
@@ -86,6 +111,6 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   publish();
   void supportsAnimatedWebp().then(ok => { apng = !ok; publish(); });
   const stopRotation = startRotation(skin, () => apng, options.random);
-  started = () => { stopRotation(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); zigiFrames.set(null); started = null; };
+  started = () => { stopRotation(); stopController(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); zigiFrames.set(null); started = null; };
   return started;
 }

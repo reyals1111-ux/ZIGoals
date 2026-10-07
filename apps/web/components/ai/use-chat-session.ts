@@ -13,8 +13,9 @@ import {PROVIDERS} from '../../lib/ai/providers';
 import {currentChatStore} from '../../lib/ai/scope';
 import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings} from '../../lib/ai/settings';
-import {zigiEvents} from '../zigi/bus';
-import {localEvent} from '../../lib/ai/zigi-reactions';
+import {zigiSignals} from '../zigi/bus';
+import {localSignal} from '../../lib/ai/zigi-reactions';
+import {extractHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
 import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -130,6 +131,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? context.context?.handles ?? [], [context.context]);
   const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean} = {}) => {
     if (!text && !stopped) return;
+    // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
+    const {text: shown, hint} = extractHint(text);
+    text = shown;
     const made = {...assistantTurn({text, provider: hosted ? null : settings.provider, model: extra.model ?? (hosted ? hosted.model : settings.model), usage, stopped}), ...(hosted ? {source: 'hosted' as const} : {})};
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
     const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {})};
@@ -138,8 +142,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     let next: Chat;
     try { next = appendTurn(chatRef.current, turn); } catch { next = {...chatRef.current, turns: [...chatRef.current.turns.slice(1), turn]}; }
     setChat(next); persist(next);
-    // Session V Part 12: cards to present, else a gentle look after a careful-mode answer, else the insight.
-    zigiEvents.emit(parseReply(text).proposals.length ? 'reply-with-proposals' : extra.careful ? 'careful' : 'reply-done');
+    // Session V Part 12: cards to present, else a gentle look after a careful-mode answer, else the insight; Session
+    // X-Local Part 4: else the AI's hint, when it has one (validated; the controller may still refuse it).
+    zigiSignals.emit(parseReply(text).proposals.length ? 'assistant_replied_with_proposals' : extra.careful ? 'careful_topic' : hint ? `hint_${hint}` : 'assistant_replied');
   }, [persist, setChat, settings.model, settings.provider, hosted]);
   /** Provider metadata for one model, read once per session by the person's own message (never stored). */
   const capabilityFor = useCallback((key: string | null, model: string, signal: AbortSignal): Promise<Capability> => {
@@ -195,7 +200,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     if (hosted && !account) { setFailure({kind: 'blocked', title: 'Sign in again to use ZIGoals hosted.', steps: ['ZIGoals hosted works with your account; sign in under Settings → Account & sync.']}); return; }
     if (!hosted && key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
     const controller = new AbortController(); abort.current = controller;
-    setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiEvents.emit('reply-pending');
+    setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiSignals.emit('assistant_thinking');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
     const found: Lookup[] = [];
     const flush = () => { frame.current = null; setDraft(pendingText.current); };
@@ -213,9 +218,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     if (!env || !toolsFor(env).length) mode = 'attach';
     const onText = (delta: string) => {
       reply += delta; pendingText.current = reply;
-      if (!first) { first = true; setStatus('streaming'); zigiEvents.emit('reply-streaming'); }
+      if (!first) { first = true; setStatus('streaming'); zigiSignals.emit('assistant_speaking'); }
       // Session V Part 12: ZIGi writes while a proposal block streams in (the cards show once it is complete).
-      if (!writing && hasOpenFence(reply)) { writing = true; zigiEvents.emit('writing-proposal'); }
+      if (!writing && hasOpenFence(reply)) { writing = true; zigiSignals.emit('assistant_writing_proposal'); }
       // The chat's own window: the mini window keeps streaming while the tab is in the background (Part 14).
       if (!frame.current) frame.current = nextFrame(flush);
     };
@@ -233,7 +238,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
           if (event.type === 'text') onText(event.delta);
           else if (event.type === 'usage') usage = {input: event.input, output: event.output};
           else if (event.type === 'done') reason = event.reason;
-          else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); zigiEvents.emit('tool-call'); }
+          else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); zigiSignals.emit('assistant_reading_records'); }
           else if (event.type === 'tool-limit') limit = event.reason;
         }
         return;
@@ -263,7 +268,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
         if (reply) done(`Interrupted: ${aiError.message}`.slice(0, 200));
         const hostedPage = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
         setFailure({kind: aiError.kind, title: aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: settings.provider === 'local' ? {server: settings.localServer, baseUrl: settings.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl})});
-        zigiEvents.emit('error');
+        zigiSignals.emit('recoverable_error');
       }
     } finally {
       record();
@@ -300,7 +305,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})});
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
-    zigiEvents.emit(localEvent(reply, question));
+    zigiSignals.emit(localSignal(reply, question));
   }, [persist, rememberArea, setChat]);
   const localEnv = useCallback(() => { const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; }, [context]);
   /**
@@ -311,7 +316,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
    */
   const askOnDevice = useCallback(async (text: string, env: ReturnType<typeof toolEnv> | null, replace?: string) => {
     const controller = new AbortController(), signal = controller.signal, prompts = onDevicePrompts(text);
-    abort.current = controller; setFailure(null); setStatus('pending'); zigiEvents.emit('model-loading');
+    abort.current = controller; setFailure(null); setStatus('pending'); zigiSignals.emit('model_loading');
     let failed = ON_DEVICE_FAILED;
     try {
       // A question never starts Chrome's download (it is large): only Settings does, from its own button.
@@ -338,7 +343,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       answerLocally(text, text, examples.kind === 'examples' ? {...examples, text: `${failed} ${examples.text}`} : examples, {replace});
     } finally {
       if (abort.current === controller) abort.current = null;
-      setStatus('idle'); zigiEvents.emit('model-ready');
+      setStatus('idle'); zigiSignals.emit('model_ready');
     }
   }, [answerLocally]);
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {

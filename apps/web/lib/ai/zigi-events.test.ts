@@ -12,7 +12,7 @@ describe('ZIGi state machine (ADR-012 follow-up part E)', () => {
     expect(transition('idle', 'open', firstOpen)).toBe('greeting');
     expect(transition('idle', 'open', open)).toBe('idle');
     const events: ZigiEvent[] = ['open', 'close', 'reply-pending', 'reply-streaming', 'reply-done', 'reply-with-proposals', 'action-applied', 'error', 'listening', 'speaking', 'idle', 'sleepy',
-      'tool-call', 'writing-proposal', 'local-answer', 'ambiguity', 'not-understood', 'streak-milestone', 'careful', 'encourage', 'offline', 'online', 'reminder-due', 'model-loading', 'model-ready'];
+      'tool-call', 'writing-proposal', 'local-answer', 'ambiguity', 'not-understood', 'streak-milestone', 'careful', 'encourage', 'offline', 'online', 'reminder-due', 'model-loading', 'model-ready', 'success', 'surprise'];
     for (const event of events) for (const from of Object.keys(manifest.states) as (keyof typeof manifest.states)[]) {
       const next = transition(from, event, firstOpen); if (next) expect(Object.keys(manifest.states), `${from} + ${event}`).toContain(next);
     }
@@ -87,6 +87,12 @@ describe('ZIGi state machine (ADR-012 follow-up part E)', () => {
     expect(transition('idle', 'online', open)).toBeNull();
     expect(transition('idle', 'open', away)).toBe('offline');
     expect(transition('sleepy', 'idle', away)).toBe('offline');
+  });
+  // Session X-Local Part 4: a small success (an accepted card, a logged entry; D5) and a surprise the AI hinted at.
+  it('a small success and a surprise: one-shots from any state', () => {
+    expect(transition('idle', 'success', open)).toBe('success'); expect(transition('presenting', 'success', open)).toBe('success');
+    expect(transition('idle', 'surprise', open)).toBe('surprised');
+    expect(TRANSIENT_MS.success).toBeGreaterThan(0); expect(TRANSIENT_MS.surprised).toBeGreaterThan(0);
   });
   it('a reminder knocks; a model that loads shows it until it is ready', () => {
     expect(transition('idle', 'reminder-due', open)).toBe('reminder');
