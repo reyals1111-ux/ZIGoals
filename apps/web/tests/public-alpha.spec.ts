@@ -144,8 +144,8 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await expect(page.getByRole("heading",{name:sentinel})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
-  // Each simulation finishes (its review closes) before the next step, as goals.spec waits for its result: filling the
-  // amount behind a review that is still open would miss, and the finished action then resets the form.
+  // Each simulation finishes (its review closes) before the next step, as goals.spec waits for its result. Without this
+  // wait, Withdraw's review once never opened in CI (run 37663282444); the cause is not known (STATUS, Session W).
   await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
   if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
   await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
