@@ -36,7 +36,7 @@ test('sign out all other devices: explained, confirmed, no list needed first; ca
   expect(posts).toEqual([]);
   await group.getByRole('button', {name: 'Sign out all other devices…'}).click();
   await group.getByRole('alertdialog').getByRole('button', {name: 'Sign out all other devices', exact: true}).click();
-  await expect(panel.getByRole('status')).toHaveText('Signed out 2 other sessions. They were also signed out at the email provider. This device stays signed in.');
+  await expect(panel.getByRole('status')).toHaveText('Signed out all other devices: 2 session(s) revoked. They were also signed out at the email provider. This device stays signed in.');
   expect(posts).toEqual([{body: {action: 'session', operation: {action: 'revoke-others'}}, account: ACCOUNT}]);
 });
 

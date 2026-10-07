@@ -16,7 +16,7 @@ export function AccountDevices({account,onCurrentRevoked}:{account:string;onCurr
    if(operation){const answer=z.object({revoked:z.number().int().nonnegative(),currentRevoked:z.boolean(),providerSignedOut:z.boolean().optional()}).parse(data);setConfirm(null);setSessions([]);
     // Session U Part 5 (FIX_PLAN A3): the relay also signs the other sessions out at the email provider; an older relay says nothing about it.
     const provider=answer.providerSignedOut===true?' They were also signed out at the email provider.':answer.providerSignedOut===false?' Signing them out at the email provider was not confirmed; they can no longer read or write your vault.':'';
-    setMessage(operation.action==='revoke-others'?`Signed out ${answer.revoked} other ${answer.revoked===1?'session':'sessions'}.${provider} This device stays signed in.`:`${answer.revoked} session(s) revoked.${provider} Refresh to inspect remaining access.`);if(answer.currentRevoked){onCurrentRevoked?.();lockAccount();}else if(operation.action==='revoke-others')void revokeOtherDevicesPush(account);}
+    setMessage(operation.action==='revoke-others'?`Signed out all other devices: ${answer.revoked} session(s) revoked.${provider} This device stays signed in.`:`${answer.revoked} session(s) revoked.${provider} Refresh to inspect remaining access.`);if(answer.currentRevoked){onCurrentRevoked?.();lockAccount();}else if(operation.action==='revoke-others')void revokeOtherDevicesPush(account);}
    else{setSessions(sessionsSchema.parse(data).sessions);setMessage('Only active sessions are listed. Already downloaded data cannot be erased remotely.');}
   }catch(e){setMessage(e instanceof Error?e.message:'Session management unavailable.');}finally{setBusy(false);}
  }

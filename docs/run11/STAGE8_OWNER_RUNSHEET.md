@@ -174,8 +174,8 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 - **Record:** pass or fail, and the date.
 
 **6c. A revoke also ends the provider session (Session U, A3).**
-- **Do:** sign in with Inbox 1 in two browser profiles. In profile 1, Settings → Devices and sessions → "Revoke other sessions" and confirm. Then, in profile 2, open Settings.
-- **Pass:** profile 1 says "1 session(s) revoked. They were also signed out at the email provider."; profile 2 is signed out (it asks for an email code again).
+- **Do:** sign in with Inbox 1 in two browser profiles. In profile 1, Settings → Devices and sessions → "Sign out all other devices…", then "Sign out all other devices" to confirm (on a build without Session W: "Revoke other sessions" after "Refresh sessions", and confirm). Then, in profile 2, open Settings.
+- **Pass:** profile 1 says "1 session(s) revoked. They were also signed out at the email provider." (a Session W build puts "Signed out all other devices:" before it and "This device stays signed in." after it); profile 2 is signed out (it asks for an email code again).
 - **Record:** pass or fail per line.
 
 ## Part 3: turn on sync from the new offer (Desktop A, Inbox 1) · about 10 min
