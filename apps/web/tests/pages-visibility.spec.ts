@@ -63,6 +63,22 @@ test('hiding a page saves a stamped settings v3 choice; the navigation, preview 
   expect((await stored(page, SETTINGS)).pages.items.goals.v).toBe('shown');
 });
 
+// Session W Part 26: the review gallery showed every switch stacked above its name (the app's global label rule is a
+// column) and, on phones, a shrunken track; each sits on its name's row, before it, at its size, on every screen.
+test('every switch sits on its name\'s row, before the name, at its full size', async ({page}) => {
+  await seed(page, {[SETTINGS]: settingsWith()});
+  await page.goto('/app/settings');
+  const rows = section(page).locator('label.pages-switch');
+  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length);
+  const placed = await rows.evaluateAll(labels => labels.map(label => {
+    const input = label.querySelector('input')!.getBoundingClientRect(), name = label.querySelector('span')!.getBoundingClientRect();
+    return {name: label.textContent, beside: input.right <= name.left && Math.abs(input.top + input.height / 2 - (name.top + name.height / 2)) < 6, size: `${Math.round(input.width)}x${Math.round(input.height)}`};
+  }));
+  expect(placed.filter(row => !row.beside)).toEqual([]);
+  // The 46 x 28 track the knob slides in (phones once shrank it to 28 x 22, the knob outside).
+  expect(placed.filter(row => row.size !== '46x28')).toEqual([]);
+});
+
 test('only Habits and Health: the navigation, the phone tab bar and More rebuild, and a bare /app opens Habits', async ({page}) => {
   await seed(page, {[SETTINGS]: settingsWith(pages(['today', 'goals', 'wealth', 'markets', 'staking', 'portfolio', 'ecosystem', 'activity']))});
   await page.goto('/app');
