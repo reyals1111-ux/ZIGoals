@@ -84,7 +84,9 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real local model (owner mach
           continue;
         }
         const r = await runTurn(c, turn.ask, history, sources);
-        const s = score(turn.expect, r.observed);
+        // Attach mode has no tools to call: the expected-tool checks do not apply there (the records are in the prompt).
+        const {tools: _tools, toolsNot: _toolsNot, ...withoutTools} = turn.expect; void _tools; void _toolsNot;
+        const s = score(MODE === 'attach' ? withoutTools : turn.expect, r.observed);
         runs.push({id: c.id, repeat, kind: c.kind, area: c.area, lang: c.lang, turn: t, pass: s.pass && !r.error, checks: r.error ? [...s.checks, {name: 'error', pass: false, detail: r.error}] : s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: r.firstTokenMs, totalMs: r.totalMs, tokens: r.tokens, calls: [...r.observed.calls], reply: r.reply.slice(0, 4000), error: r.error});
         history.push({role: 'user', content: turn.ask}, {role: 'assistant', content: r.reply});
         console.info(`${s.pass && !r.error ? 'PASS' : 'FAIL'} ${c.id}${t ? `/t${t}` : ''}${REPEAT > 1 ? ` #${repeat}` : ''} ${r.totalMs} ms${r.error ? ` ERROR ${r.error.slice(0, 80)}` : ''}${s.pass ? '' : ` [${s.checks.filter(x => !x.pass).map(x => `${x.name}${x.detail ? `: ${x.detail.slice(0, 60)}` : ''}`).join('; ')}]`}`);
