@@ -29,11 +29,13 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'s launcher shows its poster', async ({page}) => {
-  const errors: string[] = [], cancelledPrefetches = new Set<string>();
-  page.on('pageerror', e => errors.push(e.message));
-  // ADR-017 S64: a router prefetch WebKit cancelled because the page was left is recorded by its address; a page error
-  // that names that very address is the framework's rejection of it, counted and reported, never an error of the app.
-  page.on('requestfailed', r => { if (r.url().includes('_rsc=') && r.failure()?.errorText === 'cancelled') cancelledPrefetches.add(r.url().replace(/^https?:\/\//, '')); });
+  const errors: {at: number; message: string}[] = [], navigations: number[] = [];
+  page.on('pageerror', e => errors.push({at: Date.now(), message: e.message}));
+  // ADR-017 S64: the router's prefetches that WebKit rejects when the page is left never reach `requestfailed`; what
+  // identifies them is their shape (a same-origin `_rsc` address, "due to access control checks") and their moment:
+  // within a second and a half of a main-frame navigation starting. Those are counted and reported; any other page error
+  // fails the test as before.
+  page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
   await seed(page);
   for (const path of PAGES) {
     await page.goto(path);
@@ -48,10 +50,10 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
     await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth), {message: `${path}: the idle art decoded`}).toBeGreaterThan(0);
     await settled(page);
   }
-  const prefetchCancel = (m: string) => /due to access control checks\.?$/.test(m) && [...cancelledPrefetches].some(u => m.includes(u));
-  const real = errors.filter(m => !prefetchCancel(m));
+  const prefetchCancel = (e: {at: number; message: string}) => /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
+  const real = errors.filter(e => !prefetchCancel(e)).map(e => e.message);
   console.log(`webkit-smoke: ${errors.length - real.length} page error(s) were WebKit's cancelled router prefetches (ADR-017 S64); ${real.length} other`);
-  expect(real, "page errors (WebKit's cancelled router prefetches excluded, each matched to its cancelled request, S64)").toEqual([]);
+  expect(real, "page errors (WebKit's rejected router prefetches excluded by shape and moment, S64)").toEqual([]);
 });
 
 test('the Session W surfaces render in WebKit: Sleep, Meditation, My links and the wrap-up card', async ({page}) => {
