@@ -58,7 +58,9 @@ test('preparing the copy builds no encrypted backup file',async()=>{
  const box=[...element.querySelectorAll<HTMLLabelElement>('section[aria-label="Copy local records to account"] label')].find(label=>label.textContent==='Today preferences')!.querySelector('input')!;
  await act(async()=>box.click());
  await act(async()=>button('Review selected local records')!.click());
- await act(async()=>{for(let i=0;i<10;i++)await new Promise(resolve=>setTimeout(resolve,5));});
+ // Session X Part 5b loads the attach planner when the review starts (lib/vault/local-attach on demand, ADR-016 X15), so
+ // the preview arrives once that import resolves: wait for it (up to 5 s) instead of a fixed 50 ms. Same checks.
+ for(const started=Date.now();!element.textContent?.includes('widgets: 4')&&Date.now()-started<5000;)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});
  expect(element.textContent).toContain('widgets: 4');
  expect(h.encryptBackup).not.toHaveBeenCalled();
  expect(labelled('Local copy backup secret')).toBeUndefined();
