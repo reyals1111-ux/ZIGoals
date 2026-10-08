@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {expect,test} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {healthV1Schema,healthV2Schema,healthV3Schema,healthV4Schema} from '../health';
 import {dashboardSettingsV1Schema,dashboardSettingsV2Schema,dashboardSettingsV3Schema} from '../dashboard-settings';
 import {platformR4Schema,platformSchema} from '../positions';

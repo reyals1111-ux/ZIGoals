@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "about": "Session W Part 22: gzip (level 6) of the scripts each page loads in a production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED), measured by scripts/check-weight-budget.mjs. main = main 1063765; budget = this release's measurement plus about 5 kB. Raise a budget only with the reason in the same change (docs/performance/SESSION_W_PERFORMANCE.md).",
+  "about": "Session W Part 22: gzip (level 6) of the scripts each page loads in a production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED), measured by scripts/check-weight-budget.mjs. main = main 1063765; budget = the latest release measurement plus about 5 kB (Session X Part 5c lowered every budget to its measurement; Session X P2.3 lowered Today, Staking and Activity after Today's diet; docs/performance/SESSION_X_PERFORMANCE.md). Raise a budget only with the reason in the same change.",
   "pages": {
-    "/app": {"main": 616920, "budget": 651000},
-    "/app/goals": {"main": 515136, "budget": 525000},
-    "/app/habits": {"main": 525604, "budget": 549000},
-    "/app/health": {"main": 550777, "budget": 573000},
-    "/app/wealth": {"main": 542531, "budget": 562000},
-    "/app/markets": {"main": 512265, "budget": 529000},
-    "/app/portfolio": {"main": 515751, "budget": 551000},
-    "/app/staking": {"main": 534717, "budget": 554000},
-    "/app/activity": {"main": 497594, "budget": 509000},
-    "/app/settings": {"main": 525876, "budget": 576000},
-    "/app/help": {"main": 493600, "budget": 505000},
-    "/app/chess": {"main": null, "budget": 514000}
+    "/app": {"main": 616920, "budget": 515000},
+    "/app/goals": {"main": 515136, "budget": 434000},
+    "/app/habits": {"main": 525604, "budget": 458000},
+    "/app/health": {"main": 550777, "budget": 482000},
+    "/app/wealth": {"main": 542531, "budget": 465000},
+    "/app/markets": {"main": 512265, "budget": 432000},
+    "/app/portfolio": {"main": 515751, "budget": 454000},
+    "/app/staking": {"main": 534717, "budget": 442000},
+    "/app/activity": {"main": 497594, "budget": 415000},
+    "/app/settings": {"main": 525876, "budget": 482000},
+    "/app/help": {"main": 493600, "budget": 409000},
+    "/app/chess": {"main": null, "budget": 417000}
   },
-  "shell": {"main": 491608, "budget": 503000}
+  "shell": {"main": 491608, "budget": 406000}
 }

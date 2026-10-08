@@ -1,5 +1,5 @@
 import 'server-only';
-import {z} from 'zod';
+import * as z from 'zod';
 import {readSessionCookie} from './session-cookie';
 /**
  * `/api/health-link` (Session W Part 8, [TIER 3] (egress serverOnly)): the app's own door to the health-link Worker, so

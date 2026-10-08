@@ -5,9 +5,10 @@ import {AMBIENT_SOUNDS, MUSIC, type AmbientSound} from '../../lib/music/schema';
 import {AMBIENT_LABELS, TIMER_CHOICES, playAmbient, setAmbientVolume, stopAmbient} from '../../lib/audio/ambient';
 import {ambientState, serverAmbientState, subscribeAmbient} from '../../lib/audio/ambient-state';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
+import {formatTime} from '../../lib/visual-format';
 import './ambient.css';
 
-const clock = (ms: number) => new Date(ms).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
+const clock = (ms: number) => formatTime(ms, {hour: 'numeric', minute: '2-digit'});
 /**
  * Ambient focus sounds (Session W Part 6): choose a sound, a volume and an optional timer, then play. The choices are
  * this device's (`zigoals:music:v1`); the sound is made here, nothing is downloaded or recorded. It keeps playing while

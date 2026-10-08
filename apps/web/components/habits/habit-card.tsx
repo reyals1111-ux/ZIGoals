@@ -18,7 +18,7 @@ import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, late
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import { habitCheckIn, type HabitCardStore } from "./use-habits";
-import { formatDate, formatDateTime, formatPlainDecimal } from "../../lib/visual-format";
+import { formatDate, formatDateTime, formatNumber } from "../../lib/visual-format";
 import { unitFor } from "../../lib/plural";
 import { checkInFailureMessage, storageMessageOr } from "../../lib/storage-error-copy";
 import { ChallengeControls, ChallengeFinished, ChallengeLine } from "./habit-challenge";
@@ -27,13 +27,18 @@ import { habitsZone } from "../../lib/habits-v2/stats";
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
-const plain = (value: number) => formatPlainDecimal(String(value));
+// Grouped as every other figure (Session X P2.1: "8000" sat beside "8,800 steps"), every decimal kept.
+const plain = (value: number) => formatNumber(value, { maximumFractionDigits: 9 });
 function longDate(date: string) { return formatDate(`${date}T12:00:00`, { month: "long", day: "numeric", year: "numeric" }); }
 function moveMonth(month: string, amount: number) { const date = new Date(`${month}-01T12:00:00`); date.setMonth(date.getMonth() + amount); return localDate(date).slice(0, 7); }
 function targetCopy(habit: Habit,today:string) {
   const rule = habitRuleOn(habit,today)??habit.rules[0]!; const unit = measurementUnit(rule); const period = habitTargetPeriod(rule);
-  if (rule.type === "quit") return `Avoid ${unit || "the behavior"}`;
+  // Session X P2.1: "Avoid times" and "3× per week · 1 per week" read wrong; a count unit says nothing on its own.
+  const counted = !unit || unit === "time" || unit === "times";
+  if (rule.type === "quit") return counted ? "Avoid completely" : `Avoid ${unit}`;
   if (rule.type === "limit") return `Limit ${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} per ${period}`;
+  // A few-times-a-week habit: its target is what each of those days asks for (once a period, it is the period's).
+  if (rule.schedule.kind === "frequency" && rule.schedule.times > 1) return rule.target === 1 && counted ? "" : `${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} each time`;
   return `${plain(rule.target)}${unit ? ` ${unitFor(rule.target, unit)}` : ""} per ${period}`;
 }
 
@@ -90,7 +95,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   if (!day.scheduled) return <span className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]}</span>;
   const smartLabel = rule.type === "quit" ? `Stayed on track for ${habit.title}` : rule.type === "limit" ? `Stayed within limit for ${habit.title}` : `${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`;
   return <div className={`habit-completion ${compact ? "habit-completion-compact" : ""}`}>
-    <div><div className="habit-count"><strong>{plain(day.count)}</strong><span> / {plain(day.target)}{unit ? ` ${unitFor(day.target, unit)}` : ""}{compact ? "" : ` per ${habitTargetPeriod(rule)}`}</span></div><small className={`habit-result habit-day-${day.status}`}>{statusLabel[day.status]}</small></div>
+    <div><div className="habit-count"><strong>{plain(day.count)}</strong><span>{rule.type === "quit" ? `${unit ? ` ${unitFor(day.count, unit)}` : ""}${compact ? "" : " today"}` : ` / ${plain(day.target)}${unit ? ` ${unitFor(day.target, unit)}` : ""}${compact ? "" : rule.schedule.kind === "frequency" && rule.schedule.times > 1 ? " today" : ` per ${habitTargetPeriod(rule)}`}`}</span></div>{/* Session X P2.1: the day's new state is announced when a check-in changes it (nothing is read on arrival). */}<small className={`habit-result habit-day-${day.status}`} aria-live="polite">{statusLabel[day.status]}</small></div>
     <div className="habit-check-actions">
       {rule.measurement.kind === "count" && <button className="quiet" aria-label={`Remove one from ${habit.title}`} disabled={!pending && busy || day.count === 0} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.adjustCount(habit.id, store.today, -1))}>−</button>}
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : `Add one to ${habit.title}`} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.addValue(habit.id, store.today, 1))}>+</button>}
@@ -155,7 +160,7 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch (error) { setError(storageMessageOr(error, "The habit was not changed. Try again.")); } finally { setBusy(false); } }
   return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
-    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{scheduleLabel(rule.schedule)} · {targetCopy(habit,store.today)}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><button className="quiet ai-ask-link" onClick={() => askZigi(`About my habit "${habit.title}": `)} aria-label={`Ask ZIGi about ${habit.title}`}>Ask ZIGi</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} today`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
+    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{[scheduleLabel(rule.schedule), targetCopy(habit,store.today)].filter(Boolean).join(" · ")}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><button className="quiet ai-ask-link" onClick={() => askZigi(`About my habit "${habit.title}": `)} aria-label={`Ask ZIGi about ${habit.title}`}>Ask ZIGi</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} check-in`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}<ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {unitFor(planned.target, measurementUnit(planned))} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
     <HabitCompletion habit={habit} store={store} />

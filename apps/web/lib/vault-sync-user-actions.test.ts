@@ -16,7 +16,8 @@ vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchron
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async()=>({}),applyData:(...args:any[])=>h.apply(...args)}));
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
 vi.mock('./vault/domain-lifecycle',()=>({prepareDomainReview:(kind:string,domain:string)=>h.prepareDomain(kind,domain),deleteCloudDomain:async()=>{},acceptDomainRestore:async()=>{}}));
-import {VaultSyncProvider,VaultSyncControls} from '../components/vault-sync-controls';
+import {VaultSyncProvider} from '../components/vault-sync-controls';
+import {VaultSyncControls} from '../components/vault-sync-panel';
 
 /**
  * Session K (account-browser b-first): the sync panel's actions and its automatic sync share one "running" flag. An

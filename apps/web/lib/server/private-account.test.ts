@@ -266,3 +266,20 @@ test('a revoked session that refreshes is signed out at the provider with the to
  expect(result.status).toBe(400);expect(result.headers.has('set-cookie')).toBe(false);expect(await result.text()).not.toMatch(/fresh-token|fresh-refresh/);
  expect(logouts(calls)).toEqual([['/auth/v1/logout?scope=local','Bearer fresh-token']]);
 });
+// FIX_PLAN A4 (Q-AUTH-09, Session X Part 10): plain http only on a loopback host; any other http origin is refused before
+// anything is fetched or any cookie is set. https and loopback keep today's behaviour (the tests above and the browser
+// harnesses on 127.0.0.1).
+test('plain http is refused unless the host is loopback, before any call or cookie',async()=>{
+ const fetcher=vi.fn(async()=>Response.json({}));
+ for(const origin of ['http://app.test','http://192.168.1.20:3100','http://alpha.zigoals.app','http://127.0.0.1.example.com']){
+  for(const request of [new Request(`${origin}/api/private-account?action=status`,{headers:{cookie:'zigoals_session=fixture-token'}}),new Request(`${origin}/api/private-account`,{method:'POST',headers:{origin,'content-type':'application/json'},body:'{"action":"send","email":"a@example.com"}'})]){
+   const result=await privateAccountRequest(request,config,fetcher);
+   expect(result.status,origin).toBe(403);expect(await result.json()).toEqual({error:'ORIGIN_DENIED'});expect(result.headers.get('set-cookie'),origin).toBeNull();
+  }
+ }
+ expect(fetcher).not.toHaveBeenCalled();
+ for(const origin of ['http://127.0.0.1:3100','http://localhost:3100','http://[::1]:3100']){
+  const result=await privateAccountRequest(new Request(`${origin}/api/private-account`,{method:'POST',headers:{origin,'content-type':'application/json'},body:'{"action":"bogus"}'}),config,fetcher);
+  expect(result.status,origin).not.toBe(403);
+ }
+});

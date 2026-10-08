@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Fasting timer (Session P, PR 3, HE6; docs/product/features/HE6-fasting.md). One device key, per account, never

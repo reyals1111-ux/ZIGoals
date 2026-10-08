@@ -24,15 +24,19 @@ const candidate = () => ({
   builds: ["a", "b"].map(job => ({ repository: "owner/repo", runId: "123", runAttempt: "1", job, runner: { imageVersion: job === "a" ? "20260920.314.1" : "20260907.300.1" }, builtAt: "2026-09-13T00:00:00.000Z", validation: { tool: "cosmwasm-check", version: "2.2.2", passed: true } })),
 });
 test("canonical preparation retains actual artifact identity and leaves every live field null", () => {
-  const m = buildPreparedManifest({ bytes, candidate: candidate(), expectedCommit });
+  const m = buildPreparedManifest({ bytes, candidate: candidate(), expectedCommit, chainVersion: "v5.1.0" });
   expect(m).toMatchObject({
-    status: "PREPARED_NOT_DEPLOYED", codeId: null, contractAddress: null,
+    status: "PREPARED_NOT_DEPLOYED", chainVersion: "v5.1.0", codeId: null, contractAddress: null,
     migrationAdmin: null, pauseAdmin: null, uploadTx: null, instantiateTx: null,
     deployerPublicAddress: null, deploymentTimestamp: null,
     explorerVerification: { status: "NOT_VERIFIED", url: null, verifiedAt: null },
     gitCommit: expectedCommit, wasmSha256: hash(bytes),
     buildEnvironment: { platform: "linux", arch: "x64", rust: "1.85.1", binaryen: "123", cosmwasmCheck: "2.2.2", sourceDirty: false },
   });
+});
+// Session X Part 1: the manifest records the version the live node reported, only when it is a reviewed one.
+test.each([undefined, "v5.2.0", "v4.3.0", "v5.1.0-rc1"])("refuses to record the unreviewed chain version %j", chainVersion => {
+  expect(() => buildPreparedManifest({ bytes, candidate: candidate(), expectedCommit, chainVersion })).toThrow(/chainVersion/);
 });
 test.each(["DEVELOPMENT_ONLY", "BUILD_VERIFIED"])("refuses %s evidence", status => {
   const report = candidate(); report.status = status; report.independentBuildCount = 1; report.builds.pop();

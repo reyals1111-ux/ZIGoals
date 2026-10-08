@@ -86,7 +86,10 @@ test('log the night through the Brussels clock change, see it in the week, edit 
   if (await isPhone(page)) {
     for (const width of [320, 390]) {
       await page.setViewportSize({width, height: 800});
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      // The charts re-measure through a ResizeObserver after the resize (components/charts/use-chart-width.ts), so the
+      // page is read once that has settled (Session X, found by X-LOCAL at its Gate A: a read in the same moment saw
+      // the 390 px charts at 324 px now and then). Overflow that stays still fails.
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     }
     for (const name of ['I’m going to bed', 'Save', '7 days', '30 days']) expect((await page.getByRole('button', {name, exact: true}).first().boundingBox())!.height).toBeGreaterThanOrEqual(44);
   }

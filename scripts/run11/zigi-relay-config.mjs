@@ -10,6 +10,9 @@ import {fileURLToPath} from 'node:url';
 
 const SECRETS=['AUTH_PUBLIC_KEY','ZIGI_UPSTREAM_KEY','ZIGI_ALLOWLIST'];
 const VARS=['AUTH_ORIGIN','APP_ORIGIN','ZIGI_UPSTREAM_URL','ZIGI_PROVIDER_NAME','ZIGI_MODEL','ZIGI_DAILY_REQUESTS','ZIGI_DAILY_TOKENS','ZIGI_GLOBAL_DAILY_TOKENS','ZIGI_KILL_SWITCH'];
+// Session X Part 9: optional; only the Anthropic upstream reads it ("off" when absent).
+const OPTIONAL_VARS=['ZIGI_THINKING'];
+const ANTHROPIC_MESSAGES='https://api.anthropic.com/v1/messages';
 /** JSONC without comments (a // or /* inside a string is kept). @param {string} text */
 export function stripComments(text){
  let out='',inString=false,i=0;
@@ -41,12 +44,14 @@ export function relayConfigProblems(config,{template=false}={}){
  for(const kind of ['kv_namespaces','r2_buckets','d1_databases','queues','services','analytics_engine_datasets'])if(config[kind]?.length)problems.push(`No ${kind}: the relay stores nothing but counts.`);
  const vars=config.vars??{};
  for(const name of SECRETS)if(Object.hasOwn(vars,name))problems.push(`${name} is a secret: set it with wrangler secret put, never in vars.`);
- for(const name of Object.keys(vars))if(!VARS.includes(name))problems.push(`Unknown var ${name}.`);
+ for(const name of Object.keys(vars))if(!VARS.includes(name)&&!OPTIONAL_VARS.includes(name))problems.push(`Unknown var ${name}.`);
+ if(Object.hasOwn(vars,'ZIGI_THINKING')&&!['off','model-default'].includes(vars.ZIGI_THINKING))problems.push('ZIGI_THINKING must be "off" or "model-default".');
  for(const name of VARS)if(!Object.hasOwn(vars,name))problems.push(`Missing var ${name}.`);
  if(!['on','off'].includes(vars.ZIGI_KILL_SWITCH))problems.push('ZIGI_KILL_SWITCH must be "on" (paused) or "off".');
  for(const name of ['ZIGI_DAILY_REQUESTS','ZIGI_DAILY_TOKENS','ZIGI_GLOBAL_DAILY_TOKENS'])if(Object.hasOwn(vars,name)&&!positive(vars[name]))problems.push(`${name} must be a positive whole number.`);
  if(positive(vars.ZIGI_DAILY_TOKENS)&&positive(vars.ZIGI_GLOBAL_DAILY_TOKENS)&&Number(vars.ZIGI_DAILY_TOKENS)>Number(vars.ZIGI_GLOBAL_DAILY_TOKENS))problems.push('One account\'s daily tokens cannot be more than the relay\'s own daily tokens.');
  if(!https(vars.ZIGI_UPSTREAM_URL))problems.push('ZIGI_UPSTREAM_URL must be an https address.');
+ else if(new URL(String(vars.ZIGI_UPSTREAM_URL)).hostname==='api.anthropic.com'&&vars.ZIGI_UPSTREAM_URL!==ANTHROPIC_MESSAGES)problems.push(`On Anthropic, ZIGI_UPSTREAM_URL must be exactly ${ANTHROPIC_MESSAGES} (the relay translates to that API only).`);
  if(!/^[A-Za-z0-9._:/-]{1,100}$/.test(String(vars.ZIGI_MODEL??'')))problems.push('ZIGI_MODEL must be a model id.');
  if(!template){
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(String(vars.AUTH_ORIGIN??''))||vars.AUTH_ORIGIN==='https://unconfigured.supabase.co')problems.push('AUTH_ORIGIN must be the real account provider origin.');

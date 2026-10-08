@@ -119,3 +119,34 @@
    right, one light sweep that ends in that state. A title or eyebrow around it never adds a gradient of its own. */
 :root :is(h1,h2,h3,p):has(> .nebula-flow) { background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:var(--text-strong)!important;-webkit-text-fill-color:currentColor!important;animation:none!important; }
 @media (forced-colors: active) { :root :is(h1,h2,h3,p):has(> .nebula-flow) { color:CanvasText!important; } }
+/* ── Session X Part 12: WCAG 2.2 target size (2.5.8) where small targets sat close together ───────────────────── */
+/* Private recovery's three stacked disclosures were 23.3 px tall and touching: each now at least 24 px. :where() keeps
+   this weaker than the phone's 44 px rule for every disclosure (phone-base.css). */
+:where(#private-vault) > details > summary { min-height:24px; }
+/* Today's staking card: "Explore ecosystem providers →" beside "View staking →" was 23 px tall (23.x with Inter). 1 px of
+   padding taken back by margin makes the target 25 px without moving anything. Phones already make it 44 px. */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root .staking-card .text-link { padding-block:1px; margin-block:-1px; }
+}
+/* Date and time fields: the browser's own calendar or clock button inside the field takes a Tab stop of its own and draws
+   no ring there, so the field keeps the app's ring while that button has focus (WCAG 2.4.7; Session X Part 12). */
+:root :is(input[type=date],input[type=time],input[type=datetime-local],input[type=month],input[type=week]):focus-within:not(:focus) { outline:3px solid #69d9e9; outline-offset:4px; }
+
+/* Session X Part 14 (J249): a part of a page whose code could not load says so in place (components/load-boundary.tsx). */
+.load-boundary { display: grid; gap: 10px; justify-items: start; margin: 12px 0; padding: 16px; border: 1px dashed #6880a0; border-radius: 16px; }
+.load-boundary p { margin: 0; font-size: 15px; }
+
+/* Session X P2.2 (design-language scan): text the design language sets at 14 px or more that sat below it, on desktop
+   and phone alike (the phone rules already lift the wizard's hints to 15 px). Sizes, and one colour noted below; layout unchanged. */
+:root .habit-patterns .habit-weekdays li :is(span, strong) { font-size: 14px; }
+:root .portfolio-ranges > button { font-size: 14px; }
+:root .portfolio-chart-axis time { font-size: 14px; }
+:root .data-table td small, :root .data-table th small { font-size: 14px; }
+:root .chess-results dt { font-size: 14px; }
+:root .accounts-bars b { font-size: 14px; }
+/* Today's widget captions can sit on the widget's corner glow (measured on the pixels behind them: 4.04:1 at the
+ * lightest spot), so they take a lighter grey there; elsewhere .fine keeps its colour. */
+:root .dashboard-widget p.fine { color: #b8c3d9; }
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root :is(.goal-ideas, .goal-type-cards, .unified-wizard .form-grid) small { font-size: 14px; }
+}

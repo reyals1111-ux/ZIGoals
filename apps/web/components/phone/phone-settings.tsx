@@ -49,6 +49,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   ] },
   { title: "Help & diagnostics", rows: [
     ["Diagnostics & support", "Connection checks for this alpha", "diagnostics"],
+    ["Send feedback", "Email us, with the details you choose", "send-feedback"],
   ] },
 ];
 

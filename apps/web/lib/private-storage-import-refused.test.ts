@@ -1,5 +1,5 @@
 import {beforeEach,expect,test,vi} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {importPrivateStore} from './private-storage';
 
 // Restoring a module backup keeps a ":recovery:" copy of the old bytes, then replaces the module.

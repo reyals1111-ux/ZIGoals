@@ -23,6 +23,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
+import { formatNumber } from "../../lib/visual-format";
 import { createHabit } from "../../lib/habits";
 import { setHealthTargets } from "../../lib/health";
 import { dailyData, saveHealthPreferences } from "../../lib/health-daily";
@@ -67,7 +68,7 @@ const TOUR: {title: string; text: string}[] = [
 ];
 type GoalDraft = {category: NonNullable<PrivateGoal["category"]> | ""; name: string; target: string; currency: "USD" | "EUR"; date: string};
 const NO_GOAL: GoalDraft = {category: "", name: "", target: "", currency: "USD", date: ""};
-const litres = (ml: number) => `${(ml / 1000).toLocaleString("en", {maximumFractionDigits: 1})} L`;
+const litres = (ml: number) => `${formatNumber(ml / 1000, {maximumFractionDigits: 1})} L`;
 
 function exploreDemo() {
   markOnboardingSeen(window.localStorage);
@@ -188,7 +189,7 @@ export function OnboardingFlow() {
 
     {ready && !storeError && <div className="onboarding-step" key={step}>
       {step === "welcome" && <>
-        <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>Hi, I’m ZIGi.</strong> Let’s make ZIGoals yours. It takes about two minutes, every step can be skipped, and nothing is saved until you finish.</p></div>
+        <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>Hi, I’m ZIGi.</strong> Let’s make ZIGoals yours. It takes about a minute, every step can be skipped, and nothing is saved until you finish.</p></div>
         <ul className="onboarding-points">
           <li><strong>Private by design.</strong> What you add stays on this device. Encrypted sync between your devices is optional and off until you set it up.</li>
           <li><strong>No ads, no trackers.</strong> ZIGoals shows no advertising and runs no app analytics.</li>

@@ -1,5 +1,5 @@
 /** VM-independent private accounting. No wallet, signer, network or execution imports. */
-import { z } from 'zod';
+import * as z from 'zod';
 import {financialEvidenceFields,financialEvidenceIssues,assertFinancialEvidenceAppendOnly} from './financial-events';
 import {marketQuoteSchema,quoteIsStale,quoteValue,quoteMatchesPosition,type MarketQuote,type ValuationEvidence} from './market-quotes';
 import {marketAssetRefSchema} from './market-assets';

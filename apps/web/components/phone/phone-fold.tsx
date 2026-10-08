@@ -3,6 +3,7 @@ import { cloneElement, isValidElement, useEffect, useId, useRef, useState, type 
 import type { LayoutAttrs } from "../layout-edit";
 import { AppIcon } from "../app-icon";
 import { usePhoneActive } from "./use-phone-layout";
+import { hashId } from "../../lib/hash-id";
 import "./phone-fold.css";
 
 /**
@@ -26,7 +27,7 @@ export function PhoneFold({ label, children, always = false, expanded = false, r
   useEffect(() => {
     if (!phone) return;
     const reveal = () => {
-      const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+      const id = hashId(location.hash), target = id ? document.getElementById(id) : null;
       if (target && body.current?.contains(target)) { setOpen(true); requestAnimationFrame(() => target.scrollIntoView({ block: "start" })); }
     };
     reveal();

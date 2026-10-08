@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {MILESTONE_DATES_KEY} from '../w-device-keys';
 import type {DeviceRecordSpec} from '../device-record';
 

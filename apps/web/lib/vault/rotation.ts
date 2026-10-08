@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {manifestSchema,openRecord,sealRecord,type VaultManifest} from './crypto';
 import {cloudSnapshot,rowSchema,type CloudTransport,type Journal,type Row} from './cloud-sync';
 export type RotationTransport={request:(operation?:unknown)=>Promise<unknown>};

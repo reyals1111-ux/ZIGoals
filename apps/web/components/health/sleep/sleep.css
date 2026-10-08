@@ -82,3 +82,6 @@
   .sleep-bar.estimated { fill: Canvas; fill-opacity: 1; stroke: CanvasText; stroke-width: 2; }
   .sleep-key-goal { border-top-color: CanvasText; } .sleep-key-window, .sleep-key-estimated { border-color: CanvasText; background: Canvas; }
 }
+/* "Open Sleep →" sits alone under a button: 3 px of padding makes its target 25 px tall without moving anything, since
+   an inline link's padding never changes the line (WCAG 2.5.8; Session X Part 12). Phones already give it 44 px. */
+.sleep-card > a.text-link { padding-block: 3px; }

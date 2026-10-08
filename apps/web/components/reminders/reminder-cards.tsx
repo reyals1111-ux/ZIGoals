@@ -23,6 +23,7 @@ import {localDate} from '../../lib/local-date';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
+import {LoadBoundary} from '../load-boundary';
 
 /**
  * Reminder cards on Today (Session I, Part 8): in-app only (no notification, no permission), from the times set on
@@ -117,7 +118,7 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
         <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissContribution(r, c.goalId, c.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not today</button>
       </div>
     </article>)}
-    {zigi && <Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense>}
+    {zigi && <LoadBoundary quiet><Suspense fallback={null}><ZigiReminderCards now={now} onError={setError}/></Suspense></LoadBoundary>}
     {error && <p role="alert" className="notice">{error}</p>}
   </section>;
 }

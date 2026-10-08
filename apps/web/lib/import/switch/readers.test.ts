@@ -70,12 +70,13 @@ describe('Apple Health', () => {
     expect(old).toMatchObject({latencyMin: 30, awakeMin: 30});
     expect(old!.stages).toBeUndefined();
     expect(asleep(old!)).toEqual({minutes: 420, estimated: false});
-    expect(plan.summarised.join(' ')).toMatch(/Heart rate: each day's lowest, average and highest \(1 days\)/);
+    expect(plan.summarised.join(' ')).toMatch(/Heart rate: each day's lowest, average and highest \(1 day\)/);
     expect(plan.summarised.join(' ')).toMatch(/Sleep stages/);
     expect(plan.summarised.join(' ')).toMatch(/never the two added together/);
     expect(plan.warnings).toEqual(expect.arrayContaining([
       '1 skipped: energy in a unit ZIGoals does not know (kWh)', '1 skipped: a night another app in this export also recorded', '1 skipped: a night that ends in the future',
-      expect.stringMatching(/^1 records of 1 other kinds are not kept \(for example BodyFatPercentage\)\.$/),
+      // Session X P2.1: singular for one record of one kind (it read "1 records of 1 other kinds").
+      expect.stringMatching(/^1 record of 1 other kind is not kept \(for example BodyFatPercentage\)\.$/),
     ]));
   });
   test('workout names read as words; a file without HealthData is refused', async () => {

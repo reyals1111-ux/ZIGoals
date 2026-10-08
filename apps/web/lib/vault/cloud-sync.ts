@@ -1,7 +1,7 @@
 import {HEALTH_V4_GROUPS,healthSchema} from '../health';
 import {SETTINGS_V3_GROUPS} from '../dashboard-settings';
 import {dailyData} from '../health-daily';
-import {z} from 'zod';
+import * as z from 'zod';
 import {manifestSchema,envelopeSchema,epochSchema,sealRecord,openRecord,type VaultManifest} from './crypto';
 import {StaleDeviceError} from './stale-device';
 export const DOMAINS=['finance','habits','health','settings'] as const;

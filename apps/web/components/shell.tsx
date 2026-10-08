@@ -3,6 +3,7 @@ import "./platform/run92-product.css";
 import "./navigation.css";
 import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
+import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { setJournalTimeZone } from "../lib/journal-zone";
@@ -33,6 +34,7 @@ import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
 import { AiLauncher } from "./ai/ai-launcher";
+import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
 import { formatPlainDecimal } from "../lib/visual-format";
@@ -153,7 +155,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
         <div className="actions">
           <button type="button" className="secondary" onClick={retryPrivateReads}>Retry</button>
-          {settingsPending?<span className="fine">Your backups are in Settings once your data opens.</span>:<Link className="text-link" href="/app/settings#privacy">Backups in Settings →</Link>}
+          {settingsPending?<span className="fine">Your backups are in Settings once your data opens.</span>:<Link className="text-link" href="/app/settings#privacy" prefetch={navPrefetch("/app/settings#privacy")}>Backups in Settings →</Link>}
         </div>
       </section>}
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded||startHold} style={{visibility:selection.ready&&preferences.loaded&&!startHold?undefined:"hidden"}}>
@@ -245,7 +247,7 @@ export function Shell({ children }: { children: ReactNode }) {
         )}
         <OfflineNotice />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><AiLauncher /><AmbientPill /><MusicLauncher />
+        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>

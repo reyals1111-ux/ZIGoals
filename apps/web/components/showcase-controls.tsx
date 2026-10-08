@@ -6,7 +6,7 @@ import {isShowcase,showcaseDay,loadShowcase,resetShowcase,exitShowcase} from '..
 import {useGoals} from './goal-provider';
 const subscribe=()=>()=>{};
 export function useShowcase(){return useSyncExternalStore(subscribe,isShowcase,()=>false);}
-export function ShowcaseBanner(){const active=useShowcase();return active?<aside className="showcase-banner" aria-label="Showcase data"><div><strong>SHOWCASE DATA</strong><span>Fictional portfolio & history · real market references are labelled separately · {showcaseDay()}</span></div><button className="quiet" onClick={()=>{exitShowcase();window.location.assign('/app/settings#showcase');}}>Exit Showcase</button></aside>:null;}
+export function ShowcaseBanner(){const active=useShowcase();return active?<aside className="showcase-banner" aria-label="Showcase data"><div><strong>SHOWCASE DATA</strong><span>Fictional portfolio & history · anything you add here stays in the demo when you exit · {showcaseDay()}</span></div><button className="quiet" onClick={()=>{exitShowcase();window.location.assign('/app');}}>Exit Showcase</button></aside>:null;}
 export function ShowcaseControls(){
  const s=useGoals(),active=useShowcase(),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  function run(reset=false){setBusy(true);(reset?resetShowcase():loadShowcase()).then(()=>window.location.assign('/app'),()=>{setError('Showcase could not be loaded. Your existing data has been preserved. Check available browser storage.');setBusy(false);});}

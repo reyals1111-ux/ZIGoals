@@ -121,10 +121,10 @@ test("HSTS and crawler headers avoid middleware duplication while covering Next 
 });
 
 
-test.each(["/icon.svg", "/apple-touch-icon.png", "/robots.txt", "/social-card.svg", "/social-card.png", "/_next/static/chunks/app.js", "/_next/image?url=%2Ficon.svg&w=64&q=75"])("known static/image route bypasses nonce middleware: %s", url => {
+test.each(["/icon.svg", "/apple-touch-icon.png", "/robots.txt", "/social-card.svg", "/social-card.png", "/manifest.webmanifest", "/_next/static/chunks/app.js", "/_next/image?url=%2Ficon.svg&w=64&q=75"])("known static/image route bypasses nonce middleware: %s", url => {
   expect(unstable_doesMiddlewareMatch({config,nextConfig:{},url})).toBe(false);
 });
-test.each(["/", "/app", "/app/settings", "/app/goals/123", "/favicon.ico", "/icon.svg/app", "/robots.txt/app", "/social-card.png/app", "/apple-touch-icon.png/app", "/apple-touch-iconXpng", "/social-cardXpng", "/iconXsvg", "/robotsXtxt", "/_next/staticity", "/_next/image/app", "/icon%2Esvg/app"])("HTML and near-miss paths retain nonce middleware: %s", url => {
+test.each(["/", "/app", "/app/settings", "/app/goals/123", "/favicon.ico", "/icon.svg/app", "/robots.txt/app", "/social-card.png/app", "/apple-touch-icon.png/app", "/apple-touch-iconXpng", "/social-cardXpng", "/iconXsvg", "/robotsXtxt", "/_next/staticity", "/_next/image/app", "/icon%2Esvg/app", "/manifest.webmanifest/app", "/manifestXwebmanifest", "/app/manifest.webmanifest"])("HTML and near-miss paths retain nonce middleware: %s", url => {
   expect(unstable_doesMiddlewareMatch({config,nextConfig:{},url})).toBe(true);
 });
 test("icon and crawler policy are actual public files, with no competing metadata handlers", () => {
@@ -132,4 +132,7 @@ test("icon and crawler policy are actual public files, with no competing metadat
   expect(readFileSync(new URL("../public/robots.txt",import.meta.url),"utf8")).toBe("User-Agent: *\nDisallow: /\n\n");
   expect(existsSync(new URL("../app/robots.ts",import.meta.url))).toBe(false);
   expect(existsSync(new URL("../app/icon.svg",import.meta.url))).toBe(false);
+  // Session X Part 5a: the web app manifest is a public file; no metadata route competes with it.
+  expect(JSON.parse(readFileSync(new URL("../public/manifest.webmanifest",import.meta.url),"utf8")).start_url).toBe("/app");
+  expect(existsSync(new URL("../app/manifest.ts",import.meta.url))).toBe(false);
 });

@@ -18,7 +18,8 @@ vi.mock('./vault/account-transport',()=>({accountTransport:()=>({read:async()=>(
 vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchronize:(...args:any[])=>h.synchronize(...args),cloudSnapshot:async()=>({data:{}}),SyncJournal:class{read=async()=>({base:{},heldDomains:h.held});write=async()=>{};}}));
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async()=>({}),applyData:async()=>{}}));
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
-import {VaultSyncProvider,VaultSyncControls} from '../components/vault-sync-controls';
+import {VaultSyncProvider} from '../components/vault-sync-controls';
+import {VaultSyncControls} from '../components/vault-sync-panel';
 
 /**
  * Session M, Part B2 (ADR-008, owner decision M1): "Remember on this device". A remembered device opens the account

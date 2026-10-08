@@ -74,3 +74,10 @@
 .dashboard-dialog .dashboard-actions .dashboard-remove{margin-right:auto;border-color:#f3a6c066;color:#ffd7e4}
 @media(prefers-reduced-motion:reduce){.dashboard-widget-preview{transition:none}}
 :root[data-app-motion=off] .dashboard-widget-preview{transition:none}
+/* Session X Part 14 (J012), Customize Today only: a hidden widget's "Hidden" pill takes a line of its own, so the title
+   keeps the width it has outside Customize (at 1024 px it was squeezed to nothing, one letter per line); and a widget
+   too narrow for its arrange controls and its Options button side by side (tablet widths) gets a lane above for the
+   controls, so Options stays reachable. Outside Customize nothing changes: the pill and the controls only exist there. */
+.dashboard-widget-heading:has(>.pill){flex-wrap:wrap}.dashboard-widget-heading:has(>.pill)::after{content:"";flex-basis:100%;order:2}.dashboard-widget-heading>.pill{order:3}
+:root[data-layout-editing] .today-page .placed-module[data-kind="widget"]{container:placed-widget/inline-size}
+@container placed-widget (max-width:280px){:root[data-layout-editing] .today-page .placed-module[data-kind="widget"]>.dashboard-widget{margin-top:62px!important}}

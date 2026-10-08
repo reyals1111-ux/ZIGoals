@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Insight cards (Session P, PR 3, M3; docs/product/features/M3-insights.md). The engine runs on the device over the

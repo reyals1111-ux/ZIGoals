@@ -66,6 +66,19 @@ test('one ZIP with everything.json and nine CSVs; nothing written on view or by 
   expect((await section.getByRole('button', {name: 'Export everything', exact: true}).boundingBox())!.height).toBeGreaterThanOrEqual(44);
 });
 
+// Session X Part 7: the consent checkbox sits beside its sentence (it sat above it, centred: ADR-015 S141's open finding).
+test('the consent checkbox sits beside its sentence, top-aligned, 22 px, with a 44 px row', async ({page}) => {
+  await page.goto('/app/settings');
+  const section = page.getByRole('region', {name: 'Everything you’ve saved, in one file.', exact: true});
+  const row = section.locator('.export-everything-agree'), box = row.locator('input[type=checkbox]'), text = row.locator('span');
+  await row.scrollIntoViewIfNeeded();
+  const [r, b, t] = await Promise.all([row.boundingBox(), box.boundingBox(), text.boundingBox()]);
+  expect(b!.x + b!.width).toBeLessThanOrEqual(t!.x);
+  expect(Math.abs(b!.y - t!.y)).toBeLessThanOrEqual(6);
+  expect(Math.round(b!.width)).toBe(22); expect(Math.round(b!.height)).toBe(22);
+  expect(r!.height).toBeGreaterThanOrEqual(44);
+  expect(t!.x + t!.width).toBeLessThanOrEqual(r!.x + r!.width + 0.5);
+});
 test('Showcase: the file name says showcase-demo', async ({page}) => {
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();

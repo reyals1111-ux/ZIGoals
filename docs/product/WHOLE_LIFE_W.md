@@ -39,11 +39,14 @@ the new views at 1440, 1024 and 390 px are on the review branch `review/session-
 
 ## What waits for you (owner actions)
 
-1. **Acceptance redeploy** of the app from `main` after the merge, through the Manual Alpha workflow
-   ([MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md)). The rows to check are in
-   [FINAL_ACCTEST_REDEPLOY.md](../run11/FINAL_ACCTEST_REDEPLOY.md) ("Session W changes").
+1. **Acceptance redeploy** of the app from `main` after the merge, done by you locally from your ops checkout
+   (`~/ops/ZIGoals`) as [FINAL_ACCTEST_REDEPLOY.md](../run11/FINAL_ACCTEST_REDEPLOY.md) describes (sections 0–8, then
+   "Session W changes"). The public Alpha is a separate deploy, through the Manual Alpha workflow
+   ([MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md)). *(Corrected by Session X, 2026-10-08: this line
+   said the acceptance redeploy went through the Manual Alpha workflow.)*
 2. **Market coordinator redeploy, before the app** (Part 15): until then the 1h/7d changes and market figures say "Not
    provided"; everything else works.
+   *Done (owner-reported): `zigoals-acctest-market-coordinator` deployed 2026-10-07 19:45:57 UTC from `72ad872`.*
 3. **Spotify (optional):** register a Spotify app, add the redirect addresses and the official logo file, set
    `SPOTIFY_CLIENT_ID` ([MUSIC_ACTIVATION.md](MUSIC_ACTIVATION.md)). Development mode allows five listed users.
 4. **Health links (optional):** register ZIGoals with Oura, Withings, Polar and Strava and deploy the health-link Worker
@@ -53,6 +56,7 @@ the new views at 1440, 1024 and 390 px are on the review branch `review/session-
    W, a one-line switch moves accounts, debts and milestone dates into finance v5 ([SYNC_HOMES.md](SYNC_HOMES.md)).
 7. **Your decisions on the performance options** in [SESSION_W_PERFORMANCE.md](../performance/SESSION_W_PERFORMANCE.md)
    (a static manifest, the logo route's own headers, fewer prefetches, wallet and sync code on use).
+   *Session X (2026-10-08) did these as its brief asked: [SESSION_X_PERFORMANCE.md](../performance/SESSION_X_PERFORMANCE.md).*
 
 ## Owner test checklist
 

@@ -1,7 +1,7 @@
 import {bodyMeasurementSchema} from "./body-measurement-schema";
 import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
-import { z } from "zod";
+import * as z from "zod";
 import { addLocalDays } from "./local-date";
 import { formatNumber } from "./visual-format";
 import { healthGoalsSchema } from "./health-goals/schema";

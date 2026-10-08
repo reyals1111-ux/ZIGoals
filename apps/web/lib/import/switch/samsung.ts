@@ -1,5 +1,5 @@
 import {emptyItems, type ImportPlan} from './apply';
-import {buildNight, buildVital, checkStop, HeartDays, LastOfDay, localDay, parseOffset, parseStamp, planOf, Skipped, stepsLine, weightLine, zoneFor, type ReadContext} from './common';
+import {buildNight, buildVital, checkStop, HeartDays, LastOfDay, localDay, parseOffset, parseStamp, planOf, Skipped, stepsLine, weightLine, zoneFor, type ReadContext, dayCount} from './common';
 import {csvRows, headerIndex} from './csv-stream';
 import {baseName, progressCounter, textStream, type ImportFile} from './source';
 
@@ -89,7 +89,7 @@ export async function readSamsung(files: readonly ImportFile[], ctx: ReadContext
   const heartDays = heart.pick();
   for (const [date, h] of heartDays) { const vital = buildVital('samsung', date, h, ctx.now); if (vital) items.vitals.push(vital); }
   const summarised: string[] = [];
-  if (heartDays.size) summarised.push(`Heart rate: each day's lowest, average and highest (${heartDays.size.toLocaleString('en')} days), not every reading.`);
+  if (heartDays.size) summarised.push(`Heart rate: each day's lowest, average and highest (${dayCount(heartDays.size)}), not every reading.`);
   if (items.sleep.some(n => n.stages)) summarised.push('Sleep stages: the minutes of each stage per night, not every change of stage.');
   if (stepsByDay.size) summarised.push('Steps: Samsung Health\'s own daily total for all your devices together, not each device\'s count.');
   if (guessed) warnings.push(`${guessed} ${guessed === 1 ? 'night was' : 'nights were'} recorded at an offset that is not a whole hour away from your time zone; ${guessed === 1 ? 'its' : 'their'} day uses your own zone.`);

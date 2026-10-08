@@ -11,7 +11,10 @@ describe("private amount fields (QA-14)", () => {
     expect(parseAmountInput(" 1000 ", 2)).toBe(100000n);
     expect(parseAmountInput("0,125", 18)).toBe(parseUnits("0.125", 18));
     expect(() => parseAmountInput("1,234", 2)).toThrow("“1,234” could mean 1234 or 1.234");
-    expect(() => parseAmountInput("1.234,5", 2)).toThrow("Enter a non-negative decimal amount.");
+    // Session X P2.1: a grouped amount is still refused, now with the reason and the text to type.
+    expect(() => parseAmountInput("1.234,5", 2)).toThrow("Type “1.234,5” without the thousands separator: 1234,5.");
+    expect(() => parseAmountInput("3,250.40", 2)).toThrow("Type “3,250.40” without the thousands separator: 3250.40.");
+    expect(() => parseAmountInput("1,234,567", 2)).toThrow("Type “1,234,567” without the thousands separator: 1234567.");
     expect(() => parseAmountInput("1,999", 2)).toThrow("could mean");
     expect(() => parseAmountInput("1,995", 0)).toThrow("could mean");
     expect(() => parseAmountInput("1,5", 0)).toThrow("Use at most 0 decimal places.");

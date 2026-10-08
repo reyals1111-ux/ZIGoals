@@ -17,7 +17,7 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   // On a phone the quick picks sit with the form in the Log a meal sheet (Session I, Part 9).
   await openMealLog(page);
   await page.getByRole("button", { name: "Favorite Fictional breakfast oats", exact: true }).click();
-  await page.getByRole("button", { name: "Favorites", exact: true }).click();
+  await page.getByRole("button", { name: "Favourites", exact: true }).click();
   await expect(page.getByRole("button", { name: /^Choose Fictional breakfast oats/ })).toBeVisible();
   await closeFormSheet(page);
   await page.getByRole("button", { name: "Add 250 mL", exact: true }).click();

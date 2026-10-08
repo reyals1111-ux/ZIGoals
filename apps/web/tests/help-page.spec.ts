@@ -7,11 +7,13 @@ const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
   ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'], ['questions', 'Good to know about the Alpha'],
   // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
-  ['whole-life', 'Sleep, mind, music, chess, links and more'], ['whats-new-alpha', 'New in this Alpha, in your own words'], ['feedback', 'Tell us what you think'],
+  ['whole-life', 'Sleep, mind, music, chess, links and more'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  // Session X Part 11 (deliberate): Known limitations, before Send feedback.
+  ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your AI', 'Questions', 'New: your whole life', 'What\'s new', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your AI', 'Questions', 'New: your whole life', 'What\'s new', 'Known limitations', 'Send feedback'];
 
-test('Help has one title and ten topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and eleven topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');

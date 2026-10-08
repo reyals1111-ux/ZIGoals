@@ -10,6 +10,7 @@ import {wealthOverview} from '../wealth';
 import {unifiedGoalSummaries, type GoalSummary} from '../goal-summary';
 import type {LocalGoal} from '../local-ledger';
 import type {GoalMetadata} from '@zigoals/shared-types';
+import {formatNumber, progressPresentation} from '../visual-format';
 import type {WeeklyReview} from './schema';
 
 /** The week a review looks back on: the most recent chosen weekday on or before today, and the six days before it. */
@@ -47,7 +48,7 @@ export function weekSummary({weekStart, weekEnd, habits, health, platform, local
   const totals = across.reduce((sum, d) => ({habitCheckIns: sum.habitCheckIns + d.habitCheckins, healthEntries: sum.healthEntries + d.healthRecords, goalContributions: sum.goalContributions + d.goalContributions}), {habitCheckIns: 0, healthEntries: 0, goalContributions: 0});
   const busiest = across.reduce<{date: string; records: number} | null>((best, d) => { const records = d.habitCheckins + d.healthRecords + d.goalContributions; return records > 0 && (!best || records > best.records) ? {date: d.date, records} : best; }, null);
   const summaries: GoalSummary[] = unifiedGoalSummaries(localGoals, metadata, platform, quotes, now);
-  const goals = summaries.filter(g => g.status === 'active').map(g => ({name: g.name, fundingHealth: g.fundingHealth, nextContributionDate: g.nextContributionDate ?? null, progress: `${g.progressPct}%`}));
+  const goals = summaries.filter(g => g.status === 'active').map(g => ({name: g.name, fundingHealth: g.fundingHealth, nextContributionDate: g.nextContributionDate ?? null, progress: ((shown) => shown ? `${shown.label}%` : 'Progress unavailable')(progressPresentation(g.progressPct))}));
   const habitLines = habits.habits.map(habit => {
     const results = days.map(date => habitDay(habit, date, weekEnd)).filter(r => r.scheduled);
     if (!results.length) return null;
@@ -58,11 +59,11 @@ export function weekSummary({weekStart, weekEnd, habits, health, platform, local
   const meals = days.filter(date => health.diary.some(e => e.date === date)).length;
   if (meals) healthLines.push(`${meals} ${meals === 1 ? 'day' : 'days'} with meals logged`);
   const active = days.filter(date => health.activity.some(a => a.date === date)).map(date => dailyHealthSummary(health, date));
-  if (active.length) healthLines.push(`${active.reduce((n, d) => n + d.steps, 0).toLocaleString('en-US')} steps · ${active.reduce((n, d) => n + d.minutes, 0).toLocaleString('en-US')} min movement`);
+  if (active.length) healthLines.push(`${formatNumber(active.reduce((n, d) => n + d.steps, 0))} steps · ${formatNumber(active.reduce((n, d) => n + d.minutes, 0))} min movement`);
   const water = days.filter(date => waterSummary(health, date).entries > 0).length;
   if (water) healthLines.push(`${water} ${water === 1 ? 'day' : 'days'} with water`);
   const weight = latestWeightObservation(health, weekEnd);
-  if (weight && weight.date >= weekStart) healthLines.push(`latest weight ${(weight.grams / 1000).toLocaleString('en-US', {maximumFractionDigits: 2})} kg on ${weight.date}`);
+  if (weight && weight.date >= weekStart) healthLines.push(`latest weight ${formatNumber(weight.grams / 1000, {maximumFractionDigits: 2})} kg on ${weight.date}`);
   let wealth: WeekSummary['wealth'] = null;
   if (financial) {
     const overview = wealthOverview(platform, now, quotes);

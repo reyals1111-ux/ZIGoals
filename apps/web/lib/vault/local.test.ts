@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import {expect,test,vi} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {VaultDatabase} from './database';
 import {enableDurableStore,readDurableStore,updateDurableStore,isDurableMarker} from './local';
 const schema=z.object({schemaVersion:z.literal(1),rows:z.array(z.object({id:z.string(),value:z.string()}))});

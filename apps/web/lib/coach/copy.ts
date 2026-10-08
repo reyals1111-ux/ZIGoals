@@ -11,7 +11,7 @@ export const STREAK_MILESTONES = [7, 14, 30, 60, 100, 365] as const;
 /** The device hour from which open habits are worth a word. */
 export const EVENING_HOUR = 18;
 export const NUDGES: readonly NudgeCopy[] = [
-  {kind: 'review-ready', priority: 1, heading: 'Your weekly review is ready when you are.', body: 'It takes about five minutes.', action: {label: 'Open the review', href: '/app#weekly-review'}, hideDays: 1},
+  {kind: 'review-ready', priority: 1, heading: 'Your weekly review is ready when you are.', body: 'It takes about five minutes.', action: {label: 'Open the review', href: '/app#for-you-weekly-review'}, hideDays: 1},
   {kind: 'habits-open', priority: 2, heading: '{n} of your habits {are} still open today: {titles}.', body: 'A small step counts.', action: {label: 'Open habits', href: '/app/habits'}, hideDays: 1},
   {kind: 'streak-notice', priority: 3, heading: '{title}: {n} days in a row today.', body: 'Worth noticing.', action: {label: 'Open habit', href: '/app/habits#habit-{habitId}'}, hideDays: 28},
   {kind: 'goal-next-date', priority: 4, heading: '{goal}: your plan’s next date is {when}.', body: 'Nothing moves by itself; this is just the date you chose.', action: {label: 'Open goal', href: '{href}'}, hideDays: 1},

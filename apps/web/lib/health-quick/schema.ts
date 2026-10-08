@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Quick logging (Session W Part 9; synced home Health v4 `quick`): the person's own water buttons (in millilitres; shown

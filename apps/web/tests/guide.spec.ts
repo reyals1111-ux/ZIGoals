@@ -57,7 +57,8 @@ test('turning it on shows one labelled note; "Not today" hides that note until t
   await expect(heading).toHaveText(/^\d+ of your habits (is|are) still open today: .+\.$/);
   await expect(card(page)).toContainText('A small step counts.');
   await expect(card(page).getByRole('link', {name: 'Open habits', exact: true})).toHaveAttribute('href', '/app/habits');
-  for (const name of ['Open habits', 'Not today', 'Turn off the Guide']) expect((await card(page).getByRole('link', {name, exact: true}).or(card(page).getByRole('button', {name, exact: true})).boundingBox())!.height, name).toBeGreaterThanOrEqual(44);
+  // Read once the card has settled: during its arrival (a translate) the box can read 43.99997 for a 44 px control.
+  for (const name of ['Open habits', 'Not today', 'Turn off the Guide']) await expect.poll(async () => (await card(page).getByRole('link', {name, exact: true}).or(card(page).getByRole('button', {name, exact: true})).boundingBox())!.height, name).toBeGreaterThanOrEqual(44);
   const before = await heading.textContent();
   await card(page).getByRole('button', {name: 'Not today', exact: true}).click();
   await expect(heading).not.toHaveText(before!);

@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Daily vitals (Session W Parts 7–8; synced home Health v4 `vitals`): values a person brings in from an export or a

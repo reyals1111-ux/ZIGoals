@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 export const measurementKinds=['weight','waist','hips','chest','arm','thigh'] as const;
 export const measurementValueSchema=z.object({kind:z.enum(measurementKinds),quantityMilli:z.number().int().positive().max(2_500_000),unit:z.enum(['kg','lb','cm','in']),observedAt:z.iso.datetime({offset:true}),timezone:z.string().max(80).refine(v=>{try{new Intl.DateTimeFormat('en',{timeZone:v});return true;}catch{return false;}}),sourceLabel:z.string().trim().min(1).max(100)}).strict().refine(v=>v.kind==='weight'?['kg','lb'].includes(v.unit):['cm','in'].includes(v.unit),'Use weight units for weight and length units for body measurements.');
 const persistedValueSchema=measurementValueSchema.safeExtend({canonical:z.number().int().positive().max(3_000_000_000),recordedAt:z.iso.datetime()});

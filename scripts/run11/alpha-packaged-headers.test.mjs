@@ -22,9 +22,10 @@ beforeAll(async()=>{
  script=await readFile(process.env.ALPHA_PACKAGE_BUNDLE??'/tmp/zigoals-alpha-dry/worker.js','utf8');
  app=hermeticWorkerOptions(unstable_getMiniflareWorkerOptions,resolve(root,'apps/web/wrangler.alpha.jsonc')).workerOptions;
 },60000);
-async function alpha(){
+// Every outbound request is refused, unless a test passes its own fixture for one (Session X Part 4: a logo image).
+async function alpha(outbound=request=>{throw Error('Outbound fixture refused '+new URL(request.url).host);}){
  const mf=new Miniflare(convertV4MiniflareOptions({workers:[
-  {name:'zigoals-alpha',modules:true,script,compatibilityDate:app.compatibilityDate,compatibilityFlags:app.compatibilityFlags,assets:app.assets,bindings:app.bindings,serviceBindings:{WORKER_SELF_REFERENCE:{name:'zigoals-alpha'}},outboundService:request=>{throw Error('Outbound fixture refused '+new URL(request.url).host);}},
+  {name:'zigoals-alpha',modules:true,script,compatibilityDate:app.compatibilityDate,compatibilityFlags:app.compatibilityFlags,assets:app.assets,bindings:app.bindings,serviceBindings:{WORKER_SELF_REFERENCE:{name:'zigoals-alpha'}},outboundService:outbound},
  ]}));
  return mf;
 }
@@ -86,5 +87,60 @@ test.runIf(enabled)('the packaged Alpha answers a missing /_next/static/ file wi
   expect(page.status).toBe(200);
   expect(page.headers.get('content-security-policy')).toContain("'strict-dynamic'");
   await page.arrayBuffer();
+ }finally{await mf.dispose();}
+},60000);
+// Session X Part 4 ([TIER 3] (security headers)): the packaged Alpha's logo route keeps its own policy and cache. A refusal
+// is never stored, a logo the provider does not have is kept a minute, a logo a day, always under `default-src 'none';
+// sandbox`; the build header and the global headers still apply; a page next to it keeps the page policy and no-store.
+test.runIf(enabled)('the packaged Alpha serves market logos with their own sandbox policy and cache lifetime',async()=>{
+ const png=new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,6,0,0,0,31,21,196,137,0,0,0,10,73,68,65,84,120,156,99,0,1,0,0,5,0,1,13,10,45,180,0,0,0,0,73,69,78,68,174,66,96,130]);
+ const requested=[];
+ const mf=await alpha(request=>{const url=new URL(request.url);requested.push(url.host);if(url.host==='coin-images.coingecko.com'&&url.pathname==='/coins/images/1/large/bitcoin.png')return new Response(png,{headers:{'content-type':'image/png'}});return new Response('not here',{status:404});});
+ const logo=path=>`https://alpha.zigoals.app/api/market-logo?url=${encodeURIComponent('https://coin-images.coingecko.com/coins/images/'+path)}`;
+ const {commit}=JSON.parse(await readFile(resolve(root,'apps/web/.open-next/alpha-build.json'),'utf8'));
+ try{
+  const found=await mf.dispatchFetch(logo('1/large/bitcoin.png'),{headers:{'cf-connecting-ip':'192.0.2.44'}});
+  expect(found.status).toBe(200);
+  expect(found.headers.get('content-type')).toBe('image/png');
+  expect(found.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox");
+  expect(found.headers.get('cache-control')).toBe('public, max-age=86400');
+  expect(found.headers.get('x-content-type-options')).toBe('nosniff');
+  expect(found.headers.get('cross-origin-resource-policy')).toBe('same-origin');
+  expect(found.headers.get('x-zigoals-build')).toBe(commit);
+  expect(new Uint8Array(await found.arrayBuffer())).toEqual(png);
+  const missing=await mf.dispatchFetch(logo('2/large/missing.png'),{headers:{'cf-connecting-ip':'192.0.2.44'}});
+  expect(missing.status).toBe(404);
+  expect(missing.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox");
+  // The route asks for a minute, but OpenNext answers every 404 with Next's own no-store: a miss is not kept at all.
+  expect(missing.headers.get('cache-control')).toBe('private, no-cache, no-store, max-age=0, must-revalidate');
+  await missing.arrayBuffer();
+  const refused=await mf.dispatchFetch('https://alpha.zigoals.app/api/market-logo?url=https%3A%2F%2Fevil.example%2Fx.png',{headers:{'cf-connecting-ip':'192.0.2.44'}});
+  expect(refused.status).toBe(400);
+  expect(refused.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox");
+  expect(refused.headers.get('cache-control')).toBe('no-store');
+  await refused.arrayBuffer();
+  expect(requested.every(host=>host==='coin-images.coingecko.com')).toBe(true);
+  const page=await mf.dispatchFetch('https://alpha.zigoals.app/app/markets',{headers:{'cf-connecting-ip':'192.0.2.44'}});
+  expect(page.headers.get('content-security-policy')).toContain("'strict-dynamic'");
+  expect(page.headers.get('cache-control')).toBe('private, no-store, max-age=0');
+  await page.arrayBuffer();
+ }finally{await mf.dispose();}
+},60000);
+// Session X Part 5a ([TIER 3] (PWA/headers)): the web app manifest is a static asset now. The asset layer answers it at
+// the same address with exactly the bytes main 72ad872's metadata route served (so saved Home Screen apps keep their id,
+// start page, scope and icons), as application/manifest+json, with the static headers and no Worker policy.
+test.runIf(enabled)('the packaged Alpha serves the web app manifest from the assets, byte for byte',async()=>{
+ const {createHash}=await import('node:crypto');
+ const mf=await alpha();
+ try{
+  const response=await mf.dispatchFetch('https://alpha.zigoals.app/manifest.webmanifest');
+  expect(response.status).toBe(200);
+  expect(response.headers.get('content-type')).toMatch(/^application\/manifest\+json/);
+  expect(response.headers.get('content-security-policy')).toBeNull();
+  expect(response.headers.get('x-zigoals-build')).toBeNull();
+  expect(response.headers.get('cache-control')??'').not.toContain('no-store');
+  expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+  expect(response.headers.get('x-frame-options')).toBe('DENY');
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92');
  }finally{await mf.dispose();}
 },60000);

@@ -33,3 +33,44 @@ The advisory names braces ≥3.0.4 as patched, but **no such release exists**: t
 
 ## Checks (local, this branch)
 Full unit suite (406 files, 3,728 tests); `next build` (`PUBLIC_ALPHA_UNDEPLOYED`); `build:alpha` (OpenNext); `check:alpha-artifact`; `wrangler deploy --config wrangler.alpha.jsonc --dry-run`; `ALPHA_PACKAGED=1` packaged prices and headers tests (8/8); `check:deploy-configs`; the Miniflare suites in the unit run (miniflare with sharp 0.35.5). CI runs the same on the PR.
+
+## Session X Part 3 re-check (2026-10-07)
+Read-only, local; nothing changed (no override, no lockfile change, so no Tier 3 commit).
+- `pnpm audit` (full, 2026-10-07 21:49 UTC): **1 high, braces 3.0.3** (GHSA-vfj7-8cjw-p6xm), the same development-only
+  path (`eslint-config-next › @next/eslint-plugin-next › fast-glob › micromatch › braces`); 848 dependencies.
+- `pnpm audit --prod`: **No known vulnerabilities found**.
+- **braces: no fix released, 2026-10-07.** The npm registry still lists only 2.3.2 and 3.0.0–3.0.3 (`latest` 3.0.3);
+  micromatch's latest still declares `^3.0.3` and fast-glob's latest `^4.0.8`, so no in-range override can reach a fixed
+  copy. Option 1 above stands: add `"micromatch>braces": ^3.0.4` once 3.0.4 is published.
+- **The earlier fixes hold** (lockfile, 2026-10-07): `proxy-addr@2.0.8` only; `source-map-js@1.2.2` only; `sharp@0.35.5`
+  only (next's and miniflare's copies share it). Wrangler stays 4.147.0 and pnpm 11.19.0.
+
+## Session X: next 16.3.6 → 16.3.8 (2026-10-08, `[TIER 3] (dependencies)`)
+**Why now.** Since 2026-10-08 about 00:40 UTC (reported by X-LOCAL in its handoff, then checked here), CI's
+`pnpm audit --prod --audit-level high` step fails on every branch: GitHub's advisory database added six Next.js
+advisories on 2026-10-07, all fixed in **16.3.8** (published 2026-09-30, npm registry read 2026-10-08):
+- **high:** GHSA-cjq9-62q9-8jv4, server-side request forgery in Image Optimization (`>=16.0.0 <16.3.8`). Per the advisory
+  an app with no `images.remotePatterns` is not affected; this app configures none (`apps/web/next.config.ts`), so the
+  Alpha was not exposed to it.
+- **moderate:** App Router metadata image routes information disclosure (`dynamicParams` bypass); cache poisoning of SSG
+  and ISR pages in self-hosted apps; SSG/ISR cross-user content substitution; a pending `use cache` fill leaking Draft
+  Mode content (and, in the release notes, a `use cache` leak across root params). **low:** the development server's MCP
+  endpoint.
+
+**What changed.** `apps/web/package.json` pins `next` 16.3.8 (was 16.3.6); nothing else. The lockfile change is only
+`next`, `@next/env`, the ten `@next/swc-*` binaries and the peer strings of `@opennextjs/aws` and `@opennextjs/cloudflare`
+that name the next version (48 lines each way). `eslint-config-next` stays 16.3.6 (no advisory; the narrowest change).
+Release notes (github.com/vercel/next.js, read 2026-10-08): v16.3.7 backports one fix ("turbo-tasks-backend: fix strongly
+consistent read hanging on a canceled task"); v16.3.8 lists the security fixes only; neither lists a breaking change.
+
+**Deviation recorded.** The brief's Part 3 said "no other upgrades"; these advisories were published after it and block
+CI for both lanes, and the brief's hard rule forbids only *new* dependencies. ADR-016 X23 records the choice; reverting
+the one commit restores 16.3.6.
+
+**The six advisories by id** (`pnpm audit --prod --json` on main's lockfile, 2026-10-08; all `>=16.0.0 <16.3.8` except the
+first moderate, `>=16.3.0`): GHSA-cjq9-62q9-8jv4 (high), GHSA-3w37-wq28-93x7, GHSA-4jqv-mc3x-m676, GHSA-f87g-xv8r-7p7x,
+GHSA-mcj8-r9mp-w47p (moderate), GHSA-39w2-rjm5-chcv (low).
+
+**After:** `pnpm audit --prod --audit-level high`: no known vulnerabilities; `pnpm audit` (full): 1 high, braces 3.0.3
+(development only, unchanged). Checks: Session X Gate A (full unit and browser suites, build, packaged Alpha tests,
+weights, freeze check) ran on 16.3.8.

@@ -1,9 +1,9 @@
 # Push reminders: owner activation (ADR-010)
 
-**Status (2026-10-04):** written with Session P's PR 4, before any activation. Nothing here has run against a Cloudflare account, a real iPhone or a real push service: the Worker, the key tool, the app route and the checker are proven by local tests only ([STAGE8_COVERAGE.md](STAGE8_COVERAGE.md), row C5). Lines marked **UNVERIFIED** were read from code or inferred, not observed.
+**Status (2026-10-08, Session X Part 8):** written with Session P's PR 4 (2026-10-04) and rewritten as one command per step, each mutation between read-only checks. Nothing here has run against a Cloudflare account, a real iPhone or a real push service: the Worker, the key tool, the app route and the checker are proven by local tests only ([STAGE8_COVERAGE.md](STAGE8_COVERAGE.md), row C5), and since Session X by an end-to-end rehearsal in Miniflare: the app's real route, private sync's session registry and the push Worker's real alarm, encrypted delivery, unsubscribe, delete-all, account deletion and retention (`scripts/run11/push-rehearsal.test.mjs`). Lines marked **UNVERIFIED** were read from code or inferred, not observed.
 
 ## What this is, and what stays off
-- A person who is signed in can turn on, for one device, a notification when a reminder time passes while ZIGoals is closed. It is always the same: title "ZIGoals", body "A reminder from ZIGoals". Nothing else is ever shown, and the in-app reminder cards keep working without it.
+- A person who is signed in can turn on, for one device, a notification when a reminder time passes while ZIGoals is closed. By default it is always the same: title "ZIGoals", body "A reminder from ZIGoals". Since Session V Part 13 a person may opt in, on that device, to "Show what a reminder is for in notifications": the device then keeps a table of its reminder names and the service worker composes "Reminder: Stretch" on the device; the server never sees a name. The in-app reminder cards keep working without any of it.
 - **Off by default.** Until you set two secrets on the app Worker (step 5), every build answers 503 `PUSH_UNAVAILABLE` at `/api/push`, Settings → "Reminders when closed" shows "Not available in this build.", and the offer line under a reminder time is hidden. The friends Alpha ships like this.
 - On an iPhone it works only in the app saved to the Home Screen (iOS 16.4 or later). A Safari tab shows "Add ZIGoals to your Home Screen first."
 - It runs in its own Worker, `workers/push-reminders/` (`worker.mjs`; the Durable Object class `PushAccount`, SQLite, one object per account; binding `PUSH_ACCOUNTS`; migration `v1`; compatibility date 2026-09-13). It is outside the six-Worker topology: `activation-check.mjs --private`, `--source` and `--admin` are untouched, and `--push` checks only this Worker.
@@ -13,7 +13,7 @@
 ## Prerequisites
 - Stage 4 is done: the six private copies exist and `node scripts/run11/activation-check.mjs --private` passes. `--push` reads the private app copy (for the name prefix) and the private sync copy (for the origins) and refuses without them.
 - The private app Worker and the private sync Worker are deployed (Stage 7) and sign-in works: push needs a signed-in account, and the app route confirms every session with private sync before it forwards anything.
-- Node 24.19.0 and pnpm 11.19.0 (`pnpm run doctor`); the pinned wrangler 4.144.0 through `pnpm --filter @zigoals/web exec wrangler`; your Cloudflare login for that shell, as in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md) "One-time setup", step 4.
+- Node 24.19.0 and pnpm 11.19.0 (`pnpm run doctor`); the pinned wrangler 4.147.0 through `pnpm --filter @zigoals/web exec wrangler`; your Cloudflare login for that shell, as in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md) "One-time setup", step 4.
 - Run every command from the checkout root. `pnpm --filter @zigoals/web exec` runs wrangler inside `apps/web`, so config paths are written as `"$PWD/…"`.
 - About 45 minutes at the desk, plus step 6 on the iPhone.
 
@@ -56,63 +56,116 @@ node scripts/run11/activation-check.mjs --push
 - Otherwise one line per problem, naming the field, for example `push: APP_ORIGIN must match private sync.` or `push: exactly one public address: a route on your zone (custom_domain or zone_name, no wildcard) with workers_dev false, or workers_dev true without routes.` Fix the copy and run it again. A file problem (`missing`, `not mode 0600`, `not ignored by git`, `outside the checkout`) is reported first.
 - Run `--private` again afterwards: it must still pass, unchanged.
 
-## 4. The push Worker: secrets, then deploy
-As at Stage 7: `wrangler secret put` uploads to Cloudflare and creates the Worker if it does not exist yet, so this is part of an approved release, not local preparation. Values are typed at the prompt (`Enter a secret value:`), never passed as arguments.
+## 4. The push Worker: secrets, then deploy (three mutations, each between read-only checks)
+As at Stage 7: `wrangler secret put` uploads to Cloudflare and creates the Worker if it does not exist yet, so this is part of an approved release, not local preparation. Values are typed at the prompt (`Enter a secret value:`), never passed as arguments. Set the config path once for this shell:
 ```sh
 PUSH_CONFIG="$PWD/workers/push-reminders/wrangler.acctest.owner.jsonc"
-pnpm --filter @zigoals/web exec wrangler deploy --config "$PUSH_CONFIG" --dry-run --outdir /tmp/zigoals-push-dry   # bundles only, uploads nothing
+```
+**4a. Before (read only).** The Worker must not exist yet, or you are about to change one you already have:
+```sh
+pnpm --filter @zigoals/web exec wrangler deployments list --config "$PUSH_CONFIG"
+```
+Expect an error that the Worker does not exist (**UNVERIFIED:** the exact wording). If it lists deployments, stop and find out why first.
+
+**4b. Bundle only (uploads nothing):**
+```sh
+pnpm --filter @zigoals/web exec wrangler deploy --config "$PUSH_CONFIG" --dry-run --outdir /tmp/zigoals-push-dry
+```
+Look at the bundle as you did for the six: one Durable Object class (`PushAccount`), no other binding, no route other than the one you chose.
+
+**4c. Mutation: `AUTH_PUBLIC_KEY`.**
+```sh
 pnpm --filter @zigoals/web exec wrangler secret put AUTH_PUBLIC_KEY --config "$PUSH_CONFIG"
+```
+The same publishable (anon) key that private sync has as `AUTH_PUBLIC_KEY`. Publishable, but named like a key, so it is supplied as a secret. Never the service-role key. **After (read only):**
+```sh
+pnpm --filter @zigoals/web exec wrangler secret list --config "$PUSH_CONFIG"
+```
+It lists names only (never values): `AUTH_PUBLIC_KEY`.
+
+**4d. Mutation: `VAPID_PRIVATE_KEY`.**
+```sh
 pnpm --filter @zigoals/web exec wrangler secret put VAPID_PRIVATE_KEY --config "$PUSH_CONFIG"
+```
+The one line of `zigoals.vapid.owner.json`, pasted whole (`{"kty":"EC","crv":"P-256","d":"…","x":"…","y":"…"}`). The Worker answers 503 `HOSTED_CONFIGURATION_REQUIRED` until this parses as a P-256 private JWK. **After (read only):** the same `secret list` shows `AUTH_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, nothing else.
+
+**4e. Mutation: deploy.**
+```sh
 pnpm --filter @zigoals/web exec wrangler deploy --config "$PUSH_CONFIG"
 ```
-- `AUTH_PUBLIC_KEY`: the same publishable (anon) key that private sync has as `AUTH_PUBLIC_KEY`. Publishable, but named like a key, so it is supplied as a secret. Never the service-role key.
-- `VAPID_PRIVATE_KEY`: the one line of `zigoals.vapid.owner.json`, pasted whole (`{"kty":"EC","crv":"P-256","d":"…","x":"…","y":"…"}`). The Worker answers 503 `HOSTED_CONFIGURATION_REQUIRED` until this parses as a P-256 private JWK.
-- The dry run writes the bundle to `/tmp/zigoals-push-dry`; look at it as you did for the six. The deploy prints the Worker's name, the `v1` migration for `PushAccount` and its address (**UNVERIFIED:** the exact wording). That address, as `https://` plus the host and nothing else, is `ZIGOALS_PUSH_ORIGIN` in step 5.
-- **Check it answers.** The key route needs the `Origin` header equal to `APP_ORIGIN` and no sign-in:
-  ```sh
-  curl -sS -H "Origin: <APP_ORIGIN>" https://<push origin>/v1/push/key
-  ```
+It prints the Worker's name, the `v1` migration for `PushAccount` and its address (**UNVERIFIED:** the exact wording). That address, as `https://` plus the host and nothing else, is `ZIGOALS_PUSH_ORIGIN` in step 5. **After (read only), both:**
+```sh
+pnpm --filter @zigoals/web exec wrangler deployments list --config "$PUSH_CONFIG"
+curl -sS -H "Origin: <APP_ORIGIN>" https://<push origin>/v1/push/key
+```
+- `deployments list`: one deployment, one version at 100 %.
+- `curl` (the key route needs the `Origin` header equal to `APP_ORIGIN` and no sign-in):
   - `{"publicKey":"<the 87 characters from step 1>"}`: good.
   - `{"error":"HOSTED_CONFIGURATION_REQUIRED"}` (503): a var or secret is missing or malformed. `AUTH_ORIGIN` must be `https://<ref>.supabase.co`; `AUTH_PUBLIC_KEY` and `APP_ORIGIN` must exist; `VAPID_PRIVATE_KEY` must parse; `VAPID_SUBJECT` must be `mailto:` or https; `PUSH_ALLOWED_HOSTS`, if set, must be hosts.
   - `{"error":"ORIGIN_DENIED"}` (403): the header is not exactly `APP_ORIGIN`.
   - `{"error":"NOT_FOUND"}` (404): the path.
 - **Record:** the date, the wrangler version and the commit. Never the Worker's address in a report: it is a private Worker host name.
 
-## 5. The app: two secrets, then compare the keys
+## 5. The app: two secrets, then compare the keys (two mutations, each between read-only checks)
 The app route `/api/push` turns on when both values exist. It is a flag read at request time, so no deploy follows ([ADR-010](../architecture/ADR-010-push-reminders.md), "Rollback"; **UNVERIFIED** on a hosted account). Set them on the private app config, the same file that holds `ZIGOALS_AUTH_PUBLIC_KEY`:
 ```sh
 APP_CONFIG="$PWD/apps/web/wrangler.run11.acctest.owner.jsonc"
+```
+The route also needs the Stage 4 var `ZIGOALS_SYNC_ORIGIN` (a `workers.dev` origin): through it the route confirms each session with private sync before it forwards anything.
+
+**5a. Before (read only), all three:**
+```sh
+curl -sSI https://<app origin>/app | grep -i '^x-zigoals-build'
+curl -sS https://<app origin>/api/push
+pnpm --filter @zigoals/web exec wrangler secret list --config "$APP_CONFIG"
+```
+- `x-zigoals-build`: the release commit you deployed (the app you are about to change is the one you think it is).
+- `/api/push`: 503 `{"error":"PUSH_UNAVAILABLE","message":"Reminders while ZIGoals is closed are not available in this build."}`.
+- `secret list`: names only; neither `ZIGOALS_PUSH_ORIGIN` nor `ZIGOALS_PUSH_PUBLIC_KEY` yet.
+
+**5b. Mutation: `ZIGOALS_PUSH_ORIGIN`.**
+```sh
 pnpm --filter @zigoals/web exec wrangler secret put ZIGOALS_PUSH_ORIGIN --config "$APP_CONFIG"
+```
+The exact https origin of the deployed push Worker (step 4e): scheme and host, no path, no trailing slash. **After (read only):** `secret list` shows `ZIGOALS_PUSH_ORIGIN`; `curl -sS https://<app origin>/api/push` still answers 503 `PUSH_UNAVAILABLE` (the key is not set yet).
+
+**5c. Mutation: `ZIGOALS_PUSH_PUBLIC_KEY`.**
+```sh
 pnpm --filter @zigoals/web exec wrangler secret put ZIGOALS_PUSH_PUBLIC_KEY --config "$APP_CONFIG"
 ```
-- `ZIGOALS_PUSH_ORIGIN`: the exact https origin of the deployed push Worker (step 4): scheme and host, no path, no trailing slash.
-- `ZIGOALS_PUSH_PUBLIC_KEY`: the 87 characters from step 1, nothing else.
-- The route also needs the Stage 4 var `ZIGOALS_SYNC_ORIGIN` (a `workers.dev` origin): through it the route confirms each session with private sync before it forwards anything.
-
-**Compare.** Both must print the same `{"publicKey":"…"}`:
+The 87 characters from step 1, nothing else. **After (read only): compare.** Both must print the same `{"publicKey":"…"}`:
 ```sh
 curl -sS https://<app origin>/api/push
 curl -sS -H "Origin: <APP_ORIGIN>" https://<push origin>/v1/push/key
 ```
 - A difference means the app hands browsers one key while the Worker signs with another: the push services then refuse every send. Set `ZIGOALS_PUSH_PUBLIC_KEY` again from step 1.
-- `{"error":"PUSH_UNAVAILABLE","message":"Reminders while ZIGoals is closed are not available in this build."}` (503) from the app: one of the three values is missing or malformed (the origin not an exact https origin, the key not 87 base64url characters, the sync origin not on `workers.dev`).
+- Still 503 `PUSH_UNAVAILABLE` from the app: one of the three values is missing or malformed (the origin not an exact https origin, the key not 87 base64url characters, the sync origin not on `workers.dev`).
 - Then open Settings in a signed-in desktop browser: "Reminders on this phone, even when ZIGoals is closed." shows "Off." and the button "Turn on on this device" instead of "Not available in this build." Under a reminder time, the line "Get this on your phone even when ZIGoals is closed → Settings" appears.
 - **Record:** that the two keys matched, and the date.
 
 ## 6. Stage 8: the iPhone
 Run step 15b of [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md) (row C5 of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md)): the Home Screen app receives one "A reminder from ZIGoals" at a set time with the app closed; tapping it opens Today; then "Turn off and delete from the server". Local tests prove the Worker, the encryption and the client. Only this step proves a real iPhone, Safari's permission prompt and Apple's push service.
 
-## 7. Turning it off again
-- **Off for everyone, without a deploy:** delete the two app secrets. Every build then answers 503 `PUSH_UNAVAILABLE`; the panel shows "Not available in this build."; a device that had it on gets the same answer at its daily refresh and keeps its setting for when it comes back.
-  ```sh
-  pnpm --filter @zigoals/web exec wrangler secret delete ZIGOALS_PUSH_ORIGIN --config "$APP_CONFIG"
-  pnpm --filter @zigoals/web exec wrangler secret delete ZIGOALS_PUSH_PUBLIC_KEY --config "$APP_CONFIG"
-  ```
-- **The server's copies go with the Worker.** Subscriptions and schedules stay in the Worker's objects until you delete it:
-  ```sh
-  pnpm --filter @zigoals/web exec wrangler delete --config "$PUSH_CONFIG"
-  ```
-  `wrangler delete` ("Delete a Worker") and `wrangler secret delete` ("Delete a secret from a Worker") exist in the pinned wrangler 4.144.0, read from its code on 2026-10-04 (**UNVERIFIED:** not yet observed). The dashboard (Workers & Pages) does the same by hand, as the recovery rehearsal's teardown does.
+## 7. Turning it off again (each mutation between read-only checks)
+**7a. Before (read only):** `secret list` on the app config shows the two push secrets; `curl -sS https://<app origin>/api/push` answers the public key.
+
+**7b. Mutation: off for everyone, without a deploy (the app secrets, origin first).**
+```sh
+pnpm --filter @zigoals/web exec wrangler secret delete ZIGOALS_PUSH_ORIGIN --config "$APP_CONFIG"
+```
+**After (read only):** `curl -sS https://<app origin>/api/push` answers 503 `PUSH_UNAVAILABLE`. Every build now says so; the panel shows "Not available in this build."; a device that had it on gets the same answer at its daily refresh and keeps its setting for when it comes back.
+```sh
+pnpm --filter @zigoals/web exec wrangler secret delete ZIGOALS_PUSH_PUBLIC_KEY --config "$APP_CONFIG"
+```
+**After (read only):** `secret list` on the app config shows neither push secret.
+
+**7c. Mutation: the server's copies go with the Worker.** Subscriptions and schedules stay in the Worker's objects until you delete it:
+```sh
+pnpm --filter @zigoals/web exec wrangler delete --config "$PUSH_CONFIG"
+```
+**After (read only):** `pnpm --filter @zigoals/web exec wrangler deployments list --config "$PUSH_CONFIG"` answers that the Worker does not exist (**UNVERIFIED:** the exact wording).
+
+- `wrangler delete` ("Delete a Worker from Cloudflare") and `wrangler secret delete` ("Delete a secret from a Worker") exist in the pinned wrangler 4.147.0 (their `--help`, read locally 2026-10-08); their effect on a real account is **UNVERIFIED:** not yet observed. The dashboard (Workers & Pages) does the same by hand, as the recovery rehearsal's teardown does.
 - Delete the app secrets first, then the Worker. The other way round, the devices' daily refresh fails quietly in between (nothing is shown; the setting stays).
 - A service worker a device registered stays until that person turns push off or clears site data. It has no `fetch` handler and no cache, so it changes nothing in the app.
 - The key file and its Bitwarden copy can stay for a later activation. A new activation after deleting them starts at step 1.
@@ -137,11 +190,11 @@ Per account, in one Durable Object (SQLite):
 - at most 20 schedules: `time` (HH:MM), `zone`, `weekdays` (a mask, Monday = 1 … Sunday = 64), `next_due`;
 - a sent mark per schedule and local day; a daily send counter; an hourly request counter.
 
-Marks and counters are pruned after two days. A subscription not refreshed for 30 days is deleted at the next alarm (the app refreshes once a day while used, and after a reminder time changes: `apps/web/components/push/push-sync.tsx`). "Turn off and delete from the server" and sign-out delete this device; "Revoke other sessions", cloud deletion and account deletion delete the whole account's push data (`delete-all`).
+Marks and counters are pruned after two days. A subscription not refreshed for 30 days is deleted at the next alarm (the app refreshes once a day while used, and after a reminder time changes: `apps/web/components/push/push-sync.tsx`). "Turn off and delete from the server" and sign-out delete this device; "Sign out all other devices…", cloud deletion and account deletion delete the whole account's push data (`delete-all`), the deletions even from a device that never turned push on (Session X Part 8).
 
-Never: a title, a count, a habit name, a kind, any content, an IP address, a user agent, whether the app is open, or logs (`observability.enabled: false`). Every message is the same encrypted `{"v":1}`; the words "ZIGoals" and "A reminder from ZIGoals" live in `apps/web/public/push-sw.js` on the device. The platform's push service (Apple, Google, Mozilla or Microsoft, by browser) sees that a message for the device arrived at these times, with an encrypted body, not what it says.
+Never: a title, a count, a habit name, a kind, any content, an IP address, a user agent, whether the app is open, or logs (`observability.enabled: false`). Every message is the same encrypted `{"v":1}`; the words "ZIGoals" and "A reminder from ZIGoals" live in `apps/web/public/push-sw.js` on the device, and the opted-in reminder names only in that device's own table (`zigoals-push-labels-v1`), read by the service worker there. The platform's push service (Apple, Google, Mozilla or Microsoft, by browser) sees that a message for the device arrived at these times, with an encrypted body, not what it says.
 
-## Not verified here (2026-10-04)
+## Not verified here (2026-10-04; still so on 2026-10-08)
 - Anything against a hosted Cloudflare account: what `deploy`, `secret put`, `secret delete` and `delete` print; that the app flag applies without a deploy.
 - A real iPhone, Safari's permission prompt and Apple's push service (step 6 is the proof).
 - The effect of replacing the key pair on devices that are already on.

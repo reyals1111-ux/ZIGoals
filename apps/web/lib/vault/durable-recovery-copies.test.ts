@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {VaultDatabase} from './database';
 import {enableDurableStore,restoreDurableStore,updateDurableStore} from './local';
 

@@ -107,6 +107,9 @@ test("mode selection stays in its own tab while local reviews stay local", async
   const other = await context.newPage();
   await other.goto("/app/goals/1");
   await prepareFunds(other, "50");
+  // An inert stand-in for the extension in this tab only (it offers nothing that can sign): since Session X P2.1,
+  // Connect without any extension keeps the Local demo, so the switch needs one to be there.
+  await page.evaluate(() => { Reflect.set(window, "keplr", {}); });
   await page.getByRole("button", { name: "Connect Keplr" }).click();
   await expect(page.locator(".mode-strip")).toContainText("KEPLR TESTNET");
   await expect(other.locator(".mode-strip")).toContainText("LOCAL SIMULATION");

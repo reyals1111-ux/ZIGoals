@@ -1,5 +1,5 @@
 import {ProviderValidationError,ProviderTransportError} from './provider-validation';
-import {z} from 'zod';
+import * as z from 'zod';
 import {marketAssetRefSchema,marketRequestSchema,nativeZigMarketRef,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
 import {exactMarketJson,decimalLexeme,JsonNumber} from './exact-market-json';
 /** Identity is chain/denom/precision, never a display ticker. Future providers add mappings here. */

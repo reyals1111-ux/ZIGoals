@@ -1,5 +1,6 @@
 import {expect,it} from 'vitest';
 import {directoryEntries,filterDirectory,directoryCategories} from './directory';
+import {DIRECTORY_NAMES} from './directory-names';
 import {ecosystemProviders} from './providers';
 import {canExecuteProvider,isSafeReferenceUrl} from './index';
 it('covers every existing record once and keeps research outside execution',()=>{
@@ -29,4 +30,7 @@ it('coverage manifest accounts for every card and every separately discovered ca
  expect(manifest.candidateCount).toBe(manifest.entries.length);expect(manifest.searchableProviderCount).toBe(directoryEntries.length);
  expect(directoryEntries.every(p=>manifest.entries.some(e=>e.id===p.id))).toBe(true);
  const {directoryResources}=await import('./directory');for(const r of directoryResources){expect(isSafeReferenceUrl(r.url)).toBe(true);expect(new URL(r.url).search).toBe('');expect(isSafeReferenceUrl(r.source)).toBe(true);}
+});
+it('the names-only list Today reads holds every entry\'s name and category, and nothing else (Session X P2.3)',()=>{
+ expect(DIRECTORY_NAMES).toEqual(Object.fromEntries(directoryEntries.map(e=>[e.id,{name:e.name,category:e.category}])));
 });

@@ -110,7 +110,8 @@ test("restart preserves scoped journal and damaged rows without replay", async (
     page.getByLabel("Saved testnet transaction history"),
   ).toContainText("No broadcast is recorded");
   await expect(
-    page.getByText("TESTNET_CHAIN · Known local receipts only · Incomplete"),
+    // Session X (first-week polish): the source reads in words, not its code TESTNET_CHAIN.
+    page.getByText("ZIGChain testnet · Known local receipts only · Incomplete"),
   ).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Connect Keplr" }).click();

@@ -1,27 +1,21 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { findSecrets } from "./secret-patterns.mjs";
+import { scanFiles } from "./lib/secret-scan.mjs";
 const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
   .split("\0")
   .filter(Boolean);
-// Pattern definitions and their own fixtures necessarily contain the shapes they detect.
-const exempt = new Set(["scripts/check-secrets.mjs", "scripts/secret-patterns.mjs", "scripts/secret-patterns.test.mjs"]);
-const hits = [];
-for (const file of files) {
-  if (/(^|\/)\.env(\.|$)/.test(file) && !file.endsWith(".env.example"))
-    hits.push(`${file} (environment file)`);
-  if (exempt.has(file)) continue;
-  const data = readFileSync(file, "utf8");
-  const found = findSecrets(data);
-  if (found.length) hits.push(`${file} (${found.join(", ")})`);
+// Session X Part 2: known test values in another lane, each pinned to its file, check and the exact value's hash.
+const { entries } = JSON.parse(readFileSync(new URL("./secret-allowlist.json", import.meta.url), "utf8"));
+const { hits, allowed, stale } = scanFiles(files, (file) => readFileSync(file, "utf8"), entries);
+// A stale entry (its value already gone) only warns, so whichever lane merges second is not broken by it.
+for (const { path, check } of stale) {
+  const line = `Allowlist entry no longer needed: ${path} (${check}). Remove it from scripts/secret-allowlist.json.`;
+  console.log(process.env.GITHUB_ACTIONS === "true" ? `::warning title=Stale secret allowlist entry::${line}` : `Warning: ${line}`);
 }
 if (hits.length) {
-  console.error(
-    "Review potential credentials in files (values suppressed):\n" +
-      [...new Set(hits)].join("\n"),
-  );
+  console.error("Review potential credentials in files (values suppressed):\n" + hits.join("\n"));
   process.exit(1);
 }
 console.log(
-  "Tracked-file credential pattern check passed. This is a limited pattern scan, not a complete secret audit.",
+  `Tracked-file credential pattern check passed (${allowed} allowlisted test value${allowed === 1 ? "" : "s"}). This is a limited pattern scan, not a complete secret audit.`,
 );

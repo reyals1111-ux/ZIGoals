@@ -67,7 +67,7 @@ For this checkout's isolated `.toolchain` installation, first use the environmen
 
 ## Testnet gate
 
-Read [current chain evidence](docs/research/ZIGCHAIN_CURRENT_STATE.md) and the [deployment runbook](docs/deployment/TESTNET.md). Live reads on 2026-09-13 confirmed `zig-test-2`, `azig`, 18 decimals, and `v5.0.0-patch-1`. The client rechecks identity and denomination, simulates fees, checks the signer around approval, and requires a verified immutable deployment before financial actions.
+Read [current chain evidence](docs/research/ZIGCHAIN_CURRENT_STATE.md) and the [deployment runbook](docs/deployment/TESTNET.md). Live reads on 2026-09-13 confirmed `zig-test-2`, `azig`, 18 decimals, and `v5.0.0-patch-1`; since 2026-09-25 the testnet runs zigchaind v5.1 (v5.1.0 and v5.1.2 nodes, read 2026-10-07), which the app accepts as reviewed versions ([ZIGCHAIN_V5_1.md](docs/research/ZIGCHAIN_V5_1.md)). The client rechecks identity and denomination, simulates fees, checks the signer around approval, and requires a verified immutable deployment before financial actions.
 
 Upload permission for the dedicated wallet is still pending (see [current status](docs/STATUS.md)); no upload, instantiation or mainnet transaction has occurred. After downloading and independently verifying a canonical REPRODUCIBLE candidate, preparation validates its actual bytes/source/environment before public network reads and emits an unsigned manifest with null deployment IDs. Use the independently trusted full source SHA and downloaded directory from the [verification guide](docs/deployment/VERIFY_RELEASE_ARTIFACT.md), replacing the two placeholders below:
 

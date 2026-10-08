@@ -1,5 +1,6 @@
 'use client';
 import Link from "next/link";
+import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import { AppIcon } from "./app-icon";
@@ -139,7 +140,7 @@ export function AppNav() {
   return (
     <nav ref={nav} className="app-nav" aria-label="Main navigation">
       {items.map(([href, label, icon]) => (
-        <Link key={href} href={href}
+        <Link key={href} href={href} prefetch={navPrefetch(href)}
           data-group-start={starts.get(href)}
           aria-current={isActive(href) ? "page" : undefined}>
           <AppIcon name={icon} luminous={isActive(href)} /><span>{label}</span>

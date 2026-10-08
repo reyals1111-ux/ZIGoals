@@ -4,6 +4,8 @@ import { useJournalZone } from "../use-journal-zone";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { hashId } from "../../lib/hash-id";
+import { holdInView } from "../settings/keep-jump";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "./use-habits";
@@ -76,6 +78,24 @@ export function HabitsWorkspace() {
     const target = focusTarget === "new-habit" ? newHabitButton.current : document.getElementById(focusTarget);
     if (target) { target.focus(); setFocusTarget(null); }
   }, [focusTarget, editor, store.data]);
+  // Session X P2.6: a link to one habit (#habit-<id>, the Guide's "Open habit") shows it even when today's filter would
+  // hide it, and scrolls to it once the habits have loaded; once per link, so the person's own filter then stays.
+  const followed = useRef<string | null>(null);
+  useEffect(() => {
+    if (!store.loaded) return;
+    const follow = () => {
+      const id = hashId(window.location.hash);
+      if (!id?.startsWith("habit-") || id === followed.current) return;
+      const habit = store.data.habits.find((h) => `habit-${h.id}` === id);
+      if (!habit) return;
+      followed.current = id;
+      setFilter(habitRuleOn(habit, store.today)?.state === "archived" ? "Archived" : "All");
+      requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.getElementById(id); if (el) { el.scrollIntoView({ block: "center" }); holdInView(el); } }));
+    };
+    follow();
+    window.addEventListener("hashchange", follow);
+    return () => window.removeEventListener("hashchange", follow);
+  }, [store.loaded, store.data.habits, store.today]);
   const router = useRouter();
   const addIntent = useSearchParams().get("add") === "habit";
   const [handledIntent, setHandledIntent] = useState(false);

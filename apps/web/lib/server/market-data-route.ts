@@ -1,5 +1,5 @@
 import 'server-only';
-import {z} from 'zod';
+import * as z from 'zod';
 import {MARKET_REQUEST_CHUNK,marketAssetRefSchema,uniqueMarketRequests,type MarketQuoteRequest} from '../market-assets';
 import {boundedQuoteText} from '../market-quotes';
 import {HISTORY_UNAVAILABLE,historyIsStale,verifiedMarketHistory,type MarketHistoryRequest} from '../market-history';

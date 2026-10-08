@@ -8,12 +8,13 @@ import {MUSIC, MUSIC_SOURCES, type AmbientSound, type MusicPrefs} from '../../li
 import {isShown} from '../../lib/pages/visibility';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {usePagesView} from '../pages/use-pages-view';
+import {formatTime} from '../../lib/visual-format';
 import {Controls, Disc} from './music-ui';
 import {SpotifySource} from './spotify-source';
 import './music-panel.css';
 
 const SOURCE_LABEL: Record<MusicPrefs['source'], string> = {ambient: 'Focus sounds', spotify: 'Spotify', apple: 'Apple Music'};
-const clock = (ms: number) => new Date(ms).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
+const clock = (ms: number) => formatTime(ms, {hour: 'numeric', minute: '2-digit'});
 const WaveGlyph = () => <svg viewBox="0 0 24 24" width="30" height="30" focusable="false" aria-hidden="true"><path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 
 /** Focus sounds in the panel: the same player as Meditation's (Part 6), with previous and next stepping through the sounds. */
@@ -31,7 +32,7 @@ function AmbientSource({prefs, save}: {prefs: MusicPrefs; save: (change: (m: Mus
     <p className="music-sub" role="status">{state.playing ? `Playing${state.endsAt ? ` · stops at ${clock(state.endsAt)}` : ' · until you stop it'}` : 'Made on this device · nothing is downloaded'}</p>
     <Controls playing={state.playing} stop playLabel={state.playing ? `Stop ${AMBIENT_LABELS[current]}` : `Play ${AMBIENT_LABELS[current]}`} onPlay={() => state.playing ? stopAmbient() : void play()}
       previousLabel={`Previous sound: ${AMBIENT_LABELS[stepSound(current, -1)]}`} nextLabel={`Next sound: ${AMBIENT_LABELS[stepSound(current, 1)]}`} onPrevious={() => step(-1)} onNext={() => step(1)}/>
-    {health && <a className="music-open" href="/app/health?view=meditation">Breathe in Meditation</a>}
+    {health && <><a className="music-open" href="/app/health?view=meditation">Breathe in Meditation</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</>}
     <details className="music-more"><summary>More controls</summary>
       <div className="music-more-body">
         <label className="field">Volume · {prefs.volume}<input type="range" min={0} max={100} step={5} value={prefs.volume} onChange={e => { const v = Number(e.target.value); if (save(m => ({...m, volume: v}))) setAmbientVolume(v); }}/></label>
@@ -63,13 +64,16 @@ function AppleSource() {
 export default function MusicPanel({open, onClose, phone}: {open: boolean; onClose: () => void; phone: boolean}) {
   const prefs = useDeviceRecord(MUSIC), [error, setError] = useState(''), panel = useRef<HTMLElement>(null);
   const save = (change: (m: MusicPrefs) => MusicPrefs) => { try { prefs.update(change); setError(''); return true; } catch (err) { setError(`Not saved on this device. ${deviceSettingFailureMessage(err)}`); return false; } };
+  // Session X (music.spec:75, 1 run in 5): the panel draws only once this device's settings are read, so focus moves
+  // in then; an effect keyed on `open` alone could run while nothing was drawn and never run again.
+  const ready = open && prefs.loaded;
   useEffect(() => {
-    if (!open) return;
+    if (!ready) return;
     const first = requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>('.music-sources [aria-pressed="true"]')?.focus({preventScroll: true}));
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); onClose(); } };
     window.addEventListener('keydown', onKey);
     return () => { cancelAnimationFrame(first); window.removeEventListener('keydown', onKey); };
-  }, [open, onClose]);
+  }, [ready, onClose]);
   if (!open || !prefs.loaded) return null;
   const source = prefs.data.source;
   return <section ref={panel} className={`music-panel${phone ? ' music-panel-phone' : ''}`} role="dialog" aria-modal="false" aria-labelledby="music-panel-label">

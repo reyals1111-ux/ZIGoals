@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * The encrypted-sync offer (Session L): which card, if any, Settings shows right after sign-in. Creating or unlocking

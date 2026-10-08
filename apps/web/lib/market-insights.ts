@@ -1,5 +1,5 @@
 import {ProviderValidationError} from './provider-validation';
-import {z} from 'zod';
+import * as z from 'zod';
 import {marketRequestSchema,marketRequestKey,uniqueMarketRequests,type MarketQuoteRequest} from './market-assets';
 import {decimalLexeme,exactMarketJson,JsonNumber} from './exact-market-json';
 export const INSIGHTS_FRESH_MS=15*60*1000;

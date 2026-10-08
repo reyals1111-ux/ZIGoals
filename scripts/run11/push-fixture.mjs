@@ -13,6 +13,8 @@ const require=createRequire(new URL('../../apps/web/node_modules/wrangler/packag
 const {build}=require('esbuild'),{Miniflare,convertV4MiniflareOptions}=require('miniflare');
 export const APP_ORIGIN='https://app.test',SUBJECT='mailto:push@zigoals.test';
 export {ACCOUNT,fixtureToken};
+/** The subject claim of a fixture token, or null. @param {Request} request */
+const subjectOf=request=>{try{const sub=JSON.parse(Buffer.from(String(request.headers.get('authorization')).slice(7).split('.')[1],'base64url').toString()).sub;return typeof sub==='string'?sub:null;}catch{return null;}};
 let bundled;
 async function bundle(){bundled??=(await build({entryPoints:[new URL('../../workers/push-reminders/worker.mjs',import.meta.url).pathname],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',external:['cloudflare:workers']})).outputFiles[0].text;return bundled;}
 /**
@@ -22,7 +24,9 @@ export async function pushRuntime({fixture=true,bindings={},omit=[]}={}){
  const vapid=await generateVapidKeys(),deliveries=[],state={status:201,/** @type {(url:URL)=>number} */statusFor:()=>state.status};
  const outbound=async request=>{
   const url=new URL(request.url);
-  if(url.hostname==='fixture.supabase.co'){const alias=fixtureAlias(request);return Response.json(alias==='invalid'?{}:{id:ACCOUNT},{status:alias==='invalid'?401:200});}
+  // The provider answers with the token's own subject (ACCOUNT for every token made without another account), so a
+  // second account can sign in too (Session X Part 8's rehearsal checks that accounts never see each other's data).
+  if(url.hostname==='fixture.supabase.co'){const alias=fixtureAlias(request);return Response.json(alias==='invalid'?{}:{id:subjectOf(request)??ACCOUNT},{status:alias==='invalid'?401:200});}
   deliveries.push({url:request.url,method:request.method,headers:Object.fromEntries(request.headers),body:new Uint8Array(await request.arrayBuffer())});
   return new Response(null,{status:state.statusFor(url)});
  };

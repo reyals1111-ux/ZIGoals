@@ -1,6 +1,6 @@
 import type { Goal } from "@zigoals/shared-types/contract";
 import { TESTNET } from "@zigoals/chain-config";
-import { z } from "zod";
+import * as z from "zod";
 export type LocalGoal = Goal;
 export interface Activity {
   action: string;

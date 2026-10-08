@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
+import {hashId} from '../lib/hash-id';
 import {directoryEntries,directoryResources,directoryCategories,directoryReviewedAt,filterDirectory} from '@zigoals/ecosystem-registry/providers';
 import {EcosystemCard} from './ecosystem-card';
 import './ecosystem-directory.css';
@@ -10,7 +11,7 @@ export function EcosystemDirectory(){
  const [open,setOpen]=useState<ReadonlySet<string>>(()=>new Set());
  function toggle(id:string){setOpen(current=>{const next=new Set(current);if(!next.delete(id))next.add(id);return next;});}
  useEffect(()=>{
-  const follow=()=>{const id=decodeURIComponent(location.hash.replace(/^#project-/,''));if(!location.hash.startsWith('#project-')||!directoryEntries.some(e=>e.id===id))return;setQuery('');setCategory('All');setOpen(current=>current.has(id)?current:new Set([...current,id]));requestAnimationFrame(()=>document.getElementById(`project-${id}`)?.scrollIntoView({block:'start'}));};
+  const follow=()=>{const id=location.hash.startsWith('#project-')?hashId('#'+location.hash.slice(9)):null;if(id===null||!directoryEntries.some(e=>e.id===id))return;setQuery('');setCategory('All');setOpen(current=>current.has(id)?current:new Set([...current,id]));requestAnimationFrame(()=>document.getElementById(`project-${id}`)?.scrollIntoView({block:'start'}));};
   follow();window.addEventListener('hashchange',follow);return()=>window.removeEventListener('hashchange',follow);
  },[]);
  function clear(){setQuery('');setCategory('All');}

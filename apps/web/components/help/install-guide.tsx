@@ -25,6 +25,6 @@ export function InstallGuide() {
       <li>From now on, open ZIGoals from its icon on your Home Screen.</li>
     </ol>
     <p>The installed app keeps its own copy of your data, separate from Safari. So install first, then use the icon.</p>
-    <p className="fine">Already started in Safari? You can bring those records over once: make an encrypted backup in Safari and restore it in the installed app, both under <Link className="text-link" href="/app/settings#private-vault">Settings → Keep a protected copy</Link>. Once accounts open, there&rsquo;s another way: in Safari, sign in, turn on encrypted sync and use &ldquo;Copy local records to account&rdquo;; then sign in and unlock in the installed app, and sync brings them over.</p>
+    <p className="fine">Already started in Safari? You can bring those records over once: make an encrypted backup in Safari and restore it in the installed app, both under <Link className="text-link" href="/app/settings#private-vault">Settings → Keep a protected copy</Link>. Once accounts open, there&rsquo;s another way: in Safari, sign in, turn on encrypted sync, then under &ldquo;Choose what joins your account&rdquo; pick your records and choose &ldquo;Copy selected records and sync&rdquo;; then sign in and unlock in the installed app, and sync brings them over.</p>
   </div>;
 }

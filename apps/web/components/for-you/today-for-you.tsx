@@ -9,7 +9,7 @@ import type {GoalMetadata} from '@zigoals/shared-types';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {dismissWhatsNew, whatsNewSeen} from '../../lib/whats-new';
 import {reviewState, reviewWindow, weekSummary} from '../../lib/weekly-review/engine';
-import {wealthMoney} from '../platform/wealth-view';
+import {wealthMoney} from '../platform/wealth-money';
 import {useFasting} from '../health/use-fasting';
 import {useWeeklyReview} from '../weekly-review/use-weekly-review';
 import {useHealthGoals} from '../health-goals/use-health-goals';
@@ -43,6 +43,7 @@ import {localClock} from '../../lib/reminders/due';
 import {addLocalDays} from '../../lib/local-date';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown} from '../../lib/pages/visibility';
+import {LoadBoundary} from '../load-boundary';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
 const JOURNAL_ZONE_PROMPT = 'journal-zone';
@@ -73,7 +74,16 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const window = useMemo(() => reviewWindow(review.data.weekday, today), [review.data.weekday, today]);
   const summary = useCallback(() => weekSummary({...window, habits, health, platform, localGoals, metadata, quotes, now, financial, review: review.data}), [window, habits, health, platform, localGoals, metadata, quotes, now, financial, review.data]);
   // The Guide (ADR-011): one nudge a day from what Today already loaded, and the review's summary paragraph, only while it is on.
-  const guideOn = guide.loaded && !guide.unreadable && guide.data.enabled, reviewOpen = review.loaded && !review.unreadable ? reviewState(review.data, window.weekStart) : 'done';
+  // Session X P2.1 (first week): a week that ended before the person began (nothing recorded in it, no habit due in it,
+  // no Goal made by its end) is not offered for review: a new person was asked what went well in the week before they
+  // started. Any later week is offered as before, and a draft always comes back.
+  const weekBegun = useMemo(() => {
+    if (!review.loaded || review.unreadable) return false;
+    const s = summary(), w = s.wentWell;
+    return w.habitCheckIns + w.healthEntries + w.goalContributions > 0 || s.habits.some(h => h.scheduled > 0) || platform.goals.some(g => g.createdAt.slice(0, 10) <= window.weekEnd);
+  }, [review.loaded, review.unreadable, summary, platform.goals, window.weekEnd]);
+  const reviewOpen = review.loaded && !review.unreadable ? ((state: ReturnType<typeof reviewState>) => state === 'due' && !weekBegun ? 'done' as const : state)(reviewState(review.data, window.weekStart)) : 'done';
+  const guideOn = guide.loaded && !guide.unreadable && guide.data.enabled;
   const nudge = useMemo(() => {
     if (!guideOn || !reminders.loaded) return null;
     const clock = new Date(now);
@@ -83,11 +93,11 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const cards: ForYouCard[] = [];
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
   if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <WhatsNewCard onDismiss={dismissNew} />});
-  if (review.loaded && !review.unreadable) { const state = reviewState(review.data, window.weekStart); if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
+  if (review.loaded && !review.unreadable) { const state = reviewOpen; if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});
-  if (zigiOn && brief) cards.push({id: 'zigi-brief', priority: 7, node: <Suspense fallback={null}><BriefCard {...brief} /></Suspense>});
+  if (zigiOn && brief) cards.push({id: 'zigi-brief', priority: 7, node: <LoadBoundary quiet><Suspense fallback={null}><BriefCard {...brief} /></Suspense></LoadBoundary>});
   // Session W Part 17 (T2-A): once Habits or Health count days in this device's zone and none is written down, offer it once.
   const zoneMatters = habits.habits.length > 0 || health.diary.length > 0 || health.weights.length > 0 || health.activity.length > 0 || dailyData(health).water.length > 0;
   if (!showcase && zoneMatters && settings.loaded && !settings.error && !settings.data.journalTimeZone && !habits.timeZone && !dailyData(health).preferences.timezone && zonePrompt.loaded && !zonePrompt.unreadable && !zonePrompt.data.dismissed[JOURNAL_ZONE_PROMPT])
@@ -96,5 +106,5 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (settings.loaded && !settings.error && clock && wrapUpDue(settings.data, today, localClock(clock)))
     cards.push({id: 'wrap-up', priority: 9, node: <WrapUpCard habits={habits} health={health} now={clock.getTime()} showHabits={isShown(pagesView, 'habits')} showHealth={isShown(pagesView, 'health')} onWrap={intention => settings.update(current => wrapUpDay(current, today, intention, new Date().toISOString())).then(() => true, () => false)} />});
   const intention = settings.loaded && !settings.error ? intentionFrom(settings.data, addLocalDays(today, -1)) : null;
-  return <>{zigiOn && <Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense>}<ForYou cards={cards} status={reviewNote} note={intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null} /></>;
+  return <>{zigiOn && <LoadBoundary quiet><Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense></LoadBoundary>}<ForYou cards={cards} status={reviewNote} note={intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null} /></>;
 }

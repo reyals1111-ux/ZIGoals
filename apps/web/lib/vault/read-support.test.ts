@@ -1,5 +1,5 @@
 import {beforeEach,describe,expect,test,vi} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {emptyPlatform,financeVersion,hasPlanZone,healthGoalSchema,platformSchema,platformV3Schema,PLATFORM_KEY} from '../positions';
 import {emptyHabitData,habitDataSchema,habitDataV2Schema,logHabitCount,needsHabitsV3,HABITS_KEY} from '../habits';
 import {healthSchema,healthV1Schema,healthR1Schema,fastingSessionSchema,HEALTH_STORAGE_KEY} from '../health';

@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Weekly review (Session P, PR 3, G1; docs/product/features/G1-weekly-review.md). One device key, per account, never

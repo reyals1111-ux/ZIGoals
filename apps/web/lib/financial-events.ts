@@ -1,5 +1,5 @@
 /** Manual statement evidence is a durable ledger, separate from live holdings and UI Activity. */
-import {z} from 'zod';
+import * as z from 'zod';
 import type {Platform} from './positions';
 const id=z.string().min(1).max(250),at=z.iso.datetime(),units=z.string().regex(/^(0|[1-9]\d*)$/).max(78),decimals=z.number().int().min(0).max(18);
 export const evidenceMoneySchema=z.object({value:units,decimals,currency:z.string().regex(/^[A-Z]{3}$/)}).strict();

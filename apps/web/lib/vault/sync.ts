@@ -1,5 +1,5 @@
 /** Encrypted record coordination. Integration must provide account-scoped durable journal storage. */
-import {z} from 'zod';
+import * as z from 'zod';
 import {envelopeSchema,manifestSchema,openRecord,sealRecord,type VaultManifest} from './crypto';
 const rowSchema=z.object({id:z.uuid(),domain:z.enum(['finance','habits','health','settings']),revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:z.literal(1),envelope:envelopeSchema,deleted:z.boolean()}).strict();
 const pageSchema=z.object({protocol:z.literal(1),revision:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),manifest:manifestSchema.nullable(),records:z.array(rowSchema).max(100),cursor:z.string().regex(/^record:[0-9a-f-]{36}$/i).nullable()}).strict();

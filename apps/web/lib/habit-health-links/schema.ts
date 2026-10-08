@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Habits that tick themselves off from Health (Session P, PR 3, H7; docs/product/features/H7-auto-checkins.md).

@@ -18,7 +18,9 @@
     --phone-glass: linear-gradient(160deg, #0a1a33f0, #070f24f2 55%, #150f33f0);
     --phone-glass-edge: #7fc8ff33;
     scroll-padding-top: calc(var(--phone-bar) + var(--safe-top) + 12px);
-    scroll-padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 16px);
+    /* Focus moved by the keyboard stops above the tab bar, the floating music and ZIGi buttons and Create a goal's sticky
+       actions (72 px), never behind them (WCAG 2.4.11; Session X Part 12). */
+    scroll-padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 88px);
     /* No text-size-adjust here: even inside this query, Chromium's full-page capture of desktop pages renders
        differently when the property is present anywhere (desktop freeze check). */
   }
@@ -139,6 +141,16 @@
      containing block is the status row, outside the clip). */
   :root[data-phone-status="closed"] .status-row > .mode-strip { position: static; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; margin-bottom: 22px; padding-bottom: 0; }
   :root[data-phone-status="closed"] .status-row > .mode-strip .wallet-balance { position: absolute; left: 6px; bottom: 6px; margin: 0; white-space: nowrap; }
+  /* Session X P2.3 (phone CLS 0.15–0.19): with scripts on, closed is the state from the first paint wherever the
+     server-rendered testnet banner (which holds the toggle) is there, so nothing collapses after the page shows; the
+     toggle opens it. Without scripts nothing is clamped, as before (the toggle could not open it). */
+  @media (scripting: enabled) {
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .app-topbar .network-banner > span { display: none; }
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip { position: static; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; margin-bottom: 22px; padding-bottom: 0; }
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip .wallet-balance { position: absolute; left: 6px; bottom: 6px; margin: 0; white-space: nowrap; }
+  }
 
   /* Session D's "taking longer than usual" panel sits under the strip with phone gutters. */
   :root .app-content > .private-read-delay { margin: 8px var(--phone-gutter) 0; padding: 18px 16px; border-radius: 18px; }
@@ -163,6 +175,10 @@
   :root .workspace > .showcase-banner { min-height: 44px; }
   :root[data-phone-status="closed"] .status-row > .mode-strip { -webkit-line-clamp: 1; line-clamp: 1; margin-bottom: 0; padding-right: 190px; }
   :root[data-phone-status="closed"] .status-row > .mode-strip .wallet-balance { left: auto; right: 58px; bottom: 50%; translate: 0 50%; }
+  @media (scripting: enabled) {
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip { -webkit-line-clamp: 1; line-clamp: 1; margin-bottom: 0; padding-right: 190px; }
+    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip .wallet-balance { left: auto; right: 58px; bottom: 50%; translate: 0 50%; }
+  }
   :root .workspace > .status-row { align-items: center; }
 }
 

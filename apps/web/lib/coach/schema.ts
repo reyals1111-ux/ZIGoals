@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * The Guide's device key (ADR-011): {version: 1, enabled, enabledOn?, dismissed: {[nudgeId]: "YYYY-MM-DD"}}, through

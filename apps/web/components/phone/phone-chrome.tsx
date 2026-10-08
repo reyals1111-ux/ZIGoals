@@ -12,6 +12,7 @@ import "./phone-lists.css";
 import "./phone-sheets.css";
 import "./phone-targets.css";
 import Link from "next/link";
+import { navPrefetch } from "../nav-prefetch";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createPortal } from "react-dom";
@@ -146,8 +147,8 @@ export function PhoneTopBar() {
       <div className="phone-actions">
         {isShown(view, "quick-add") && <QuickAdd triggerClassName="phone-quick-add" />}
         {/* Wealth and Settings are one tap away in the bar as well as in More (CI journeys open them by these names). */}
-        {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
-        <Link className="phone-settings" href="/app/settings" aria-label="Settings" aria-current={onSettings ? "page" : undefined}><AppIcon name="settings" size={22} luminous={onSettings} /></Link>
+        {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" prefetch={navPrefetch("/app/wealth")} aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
+        <Link className="phone-settings" href="/app/settings" prefetch={navPrefetch("/app/settings")} aria-label="Settings" aria-current={onSettings ? "page" : undefined}><AppIcon name="settings" size={22} luminous={onSettings} /></Link>
       </div>
     </div>
     {active && <PhoneStatusToggle />}
@@ -191,7 +192,7 @@ export function PhoneTabBar() {
       <span className="phone-tab-pill" aria-hidden="true" />
       {TABS.map(([href, label, icon]) => {
         const current = isNavActive(path, href);
-        return <Link key={href} href={href} className="phone-tab" aria-current={current ? "page" : undefined}><AppIcon name={icon} size={24} luminous={current} /><span>{label}</span></Link>;
+        return <Link key={href} href={href} prefetch={navPrefetch(href)} className="phone-tab" aria-current={current ? "page" : undefined}><AppIcon name={icon} size={24} luminous={current} /><span>{label}</span></Link>;
       })}
       <button type="button" className="phone-tab phone-more-button" aria-haspopup="dialog" aria-expanded={open} data-current={moreCurrent || undefined} onClick={() => setOpen(true)}><AppIcon name="more" size={24} luminous={moreCurrent} /><span>More</span></button>
     </div>
@@ -204,7 +205,7 @@ export function PhoneTabBar() {
             const current = isNavActive(path, href);
             // The one-line note is drawn by CSS, so the link's text and name stay exactly the destination's label.
             // The same groups as the sidebar (Session I): Wealth, then the money tools, then the rest, separated by space.
-            return <li key={href} data-group-start={moreStarts.get(href)}><Link href={href} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
+            return <li key={href} data-group-start={moreStarts.get(href)}><Link href={href} prefetch={navPrefetch(href)} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
               <span className="icon-medallion"><AppIcon name={icon} size={22} luminous /></span>
               <span className="phone-more-copy" data-note={MORE_NOTES[href]}><strong>{label}</strong></span>
               <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>

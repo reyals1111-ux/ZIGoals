@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import type {HealthData} from '../health';
 import type {DashboardSettings} from '../dashboard-settings';
 import {emptyFasting, type Fasting} from '../fasting/schema';

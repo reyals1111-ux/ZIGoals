@@ -1,10 +1,11 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
+import { SendFeedback } from "../../../components/help/send-feedback";
 import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
 import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
-import {VaultSyncControls} from "../../../components/vault-sync-controls";
+import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
 import {MotionPreference} from "../../../components/motion-preference";
 import {ShowcaseControls} from "../../../components/showcase-controls";
@@ -15,6 +16,7 @@ import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
+import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
 import { useState, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
@@ -24,6 +26,7 @@ import { loadMetadata } from "../../../lib/storage";
 import { NebulaFlow } from "../../../components/nebula-flow";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
+import { KeepSettingsJump } from "../../../components/settings/keep-jump";
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
 import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
@@ -69,10 +72,11 @@ export default function Settings() {
         </div>
       </div>
       <PhoneSettingsList/>
+      <KeepSettingsJump/>
       <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id}>{title}</a>)}</nav>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
-        <section className="privacy-intro" id="privacy"><p className="eyebrow">DATA & PRIVACY</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
+        <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
         <PrivateVaultTools/>
         <PrivateBackups/>
         <ExportEverything/>
@@ -151,7 +155,7 @@ export default function Settings() {
         <LinksSettings/>
       </SettingsGroup>
       <SettingsGroup id="settings-areas" title="Your areas">
-        <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health & targets →</Link></section></div>
+        <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>
         <ChessSettings/>
         <GuideSettings/>
         <PushRemindersPanel/>
@@ -166,7 +170,7 @@ export default function Settings() {
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-zigi" title="ZIGi">
-        <AiSettingsSection/>
+        <LoadBoundary label="ZIGi’s settings"><AiSettingsSection/></LoadBoundary>
       </SettingsGroup>
       <SettingsGroup id="settings-help" title="Help & diagnostics">
         <details className="advanced-diagnostics" id="diagnostics"><summary>Advanced Diagnostics</summary>
@@ -177,6 +181,12 @@ export default function Settings() {
           balance={s.balance}
         />
         </details>
+        {/* Session X Part 11: the same feedback email as Help, where diagnostics live. */}
+        <section className="panel" id="send-feedback" aria-labelledby="send-feedback-title">
+          <p className="eyebrow">SEND FEEDBACK</p>
+          <h2 id="send-feedback-title">Tell us what you think</h2>
+          <SendFeedback />
+        </section>
         <section className="panel">
           <h2>About this alpha</h2>
           <dl className="metrics">

@@ -38,7 +38,7 @@ export async function readFiles(files: readonly ImportFile[], ctx: ReadContext, 
   const relevant: Partial<Record<ImportFormat, (path: string) => boolean>> = {fitbit: isFitbitCsv, samsung: isSamsungFile, oura: isOuraFile, garmin: p => isGarminFile(p) && /\.json$/i.test(p), loop: p => /\.csv$/i.test(p)};
   onDetected?.(found.format, found.apple ? found.apple.size : files.filter(f => relevant[found.format]?.(f.path)).reduce((t, f) => t + f.size, 0));
   const info = formatInfo(found.format);
-  if (info.state === 'meals') return {kind: 'refused', format: found.format, meals: true, message: `This is a ${info.label} export. Its meals go into Health → Import meals, which recognises the file and pre-fills the columns for you to check.`};
+  if (info.state === 'meals') return {kind: 'refused', format: found.format, meals: true, message: `This is a ${info.label} export. Its meals go into Health → Diary → Import a nutrition CSV, which recognises the file and pre-fills the columns for you to check.`};
   if (info.state === 'off' && !(found.format === 'garmin' && GARMIN_READS)) return {kind: 'refused', format: found.format, message: info.offReason ?? 'ZIGoals does not read this export yet.'};
   switch (found.format) {
     case 'apple-health': return {kind: 'health', plan: await readApple(found.apple!, ctx)};

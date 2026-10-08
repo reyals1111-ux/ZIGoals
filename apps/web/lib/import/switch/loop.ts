@@ -1,6 +1,6 @@
 import {habitDataSchema, type Habit, type HabitData} from '../../habits';
 import type {ImportBatch} from '../batches-schema';
-import {checkStop, isoOf, localDay, type ReadContext} from './common';
+import {checkStop, isoOf, localDay, realDay, type ReadContext} from './common';
 import {csvRows, headerIndex} from './csv-stream';
 import {stableHash} from './ids';
 import {baseName, progressCounter, textStream, type ImportFile} from './source';
@@ -45,6 +45,7 @@ export async function readLoop(files: readonly ImportFile[], ctx: ReadContext): 
   const missing = ['position', 'name', 'type', 'frequencynumerator', 'frequencydenominator', 'archived?'].filter(c => !header.has(c));
   if (missing.length) throw Error('This Loop export is from a version ZIGoals does not read (Habits.csv has other columns). Update Loop and export again.');
   const today = localDay(ctx.now, ctx.zone), at = isoOf(ctx.now), habits: Habit[] = [], approximate: string[] = [];
+  let repeated = 0;
   for (const row of rows) {
     const get = (name: string) => (row[header.get(name) ?? -1] ?? '').trim();
     const position = get('position'), name = get('name').slice(0, 100) || `Habit ${position}`, numeric = get('type').toUpperCase() === 'NUMERICAL';
@@ -55,7 +56,7 @@ export async function readLoop(files: readonly ImportFile[], ctx: ReadContext): 
       if (date === undefined || value === undefined) { warnings.push(`${name}: its Checkmarks.csv has other columns and was not read.`); }
       else for (const c of checks.rows) {
         const d = (c[date] ?? '').trim(), v = Number((c[value] ?? '').trim()), note = notes === undefined ? '' : (c[notes] ?? '').slice(0, 2000);
-        if (!/^(20|21)\d{2}-\d{2}-\d{2}$/.test(d) || d > today || !Number.isFinite(v) || entries.some(e => e.date === d)) continue;
+        if (!realDay(d, '2000-01-01', '2199-12-31') || d > today || !Number.isFinite(v) || entries.some(e => e.date === d)) continue;
         if (numeric) { if (v >= 0 && v / 1000 <= 1_000_000_000) entries.push({date: d, count: Math.round(v) / 1000, disposition: 'logged', note, updatedAt: at}); }
         else if (v === 2) entries.push({date: d, count: 1, disposition: 'logged', note, updatedAt: at});
         else if (v === 3) entries.push({date: d, count: 0, disposition: 'skipped', note, updatedAt: at});
@@ -70,12 +71,16 @@ export async function readLoop(files: readonly ImportFile[], ctx: ReadContext): 
       ? {schedule: {kind: 'daily'} as Schedule, type: atMost ? 'limit' as const : 'build' as const, measurement: {kind: 'quantity' as const, unit}, target: Number.isFinite(target) && target >= 0 ? (atMost ? target : Math.max(target, 0.001)) : 1, targetPeriod: period}
       : {schedule, type: 'build' as const, measurement: {kind: 'boolean' as const}, target: 1, targetPeriod: 'day' as const};
     const description = [get('question'), get('description')].filter(Boolean).join(' · ').slice(0, 500);
-    habits.push({id: uuidFrom(`loop|${position}|${get('name')}`), title: name, category: 'Loop Habit Tracker', description, notes: '', timeOfDay: 'anytime', endCondition: {kind: 'none'}, startDate,
+    const id = uuidFrom(`loop|${position}|${get('name')}`);
+    // Session X P2.4: a habit listed twice in Habits.csv is read once (two habits with one id would refuse the whole import).
+    if (habits.some(h => h.id === id)) { repeated++; continue; }
+    habits.push({id, title: name, category: 'Loop Habit Tracker', description, notes: '', timeOfDay: 'anytime', endCondition: {kind: 'none'}, startDate,
       createdAt: at, updatedAt: at, rules: [{from: startDate, ...rule, endCondition: {kind: 'none'}, state: get('archived?').toLowerCase() === 'true' ? 'archived' : 'active'}], entries});
   }
   counter.flush();
   if (!habits.length) throw Error('Habits.csv lists no habits.');
   summarised.push('Check-ins: a done day, a skipped day, or an amount for a measurable habit. Loop\'s scores and colours are not kept.');
+  if (repeated) warnings.push(`${repeated} ${repeated === 1 ? 'habit is' : 'habits are'} listed twice in Habits.csv; ${repeated === 1 ? 'it was' : 'they were'} read once.`);
   if (approximate.length) warnings.push(`${approximate.length} ${approximate.length === 1 ? 'habit has' : 'habits have'} a schedule ZIGoals writes differently (${approximate.slice(0, 3).join(', ')}${approximate.length > 3 ? '…' : ''}); check ${approximate.length === 1 ? 'it' : 'them'} in Habits after the import.`);
   return {format: 'loop', label: LOOP_LABEL, habits, summarised, warnings};
 }

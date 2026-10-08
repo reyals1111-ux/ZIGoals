@@ -1,7 +1,7 @@
 'use client';
 import {revokeOtherDevicesPush} from '../lib/push/device';
 import {useEffect,useState} from 'react';
-import {z} from 'zod';
+import * as z from 'zod';
 import {getAccountScope,getAccountGeneration,lockAccount} from '../lib/account-session';
 import { formatDateTime } from '../lib/visual-format';
 import './account-devices.css';

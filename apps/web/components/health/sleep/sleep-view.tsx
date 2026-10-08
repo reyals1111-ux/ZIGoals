@@ -12,6 +12,7 @@ import {SleepTonight} from './sleep-tonight';
 import {useSleep} from './use-sleep';
 import {WindDownSetting} from './wind-down';
 import './sleep.css';
+import {sourceName} from '../../../lib/health-sources';
 
 const nightLine = (n: SleepNight) => {
   const s = wallClock(Date.parse(n.start), n.timeZone), e = wallClock(Date.parse(n.end!), n.timeZone), a = asleep(n)!;
@@ -77,7 +78,7 @@ export default function SleepView() {
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {nights.length ? <ul className="sleep-nights">{nights.map(n => <li key={n.id}>
         {editing === n.id ? <NightForm store={store} night={n} onDone={done} onCancel={() => setEditing(null)}/> : <>
-          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {nightDay(n)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {n.source}</span>}</div>
+          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {nightDay(n)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}</div>
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setEditing(n.id)} aria-label={`Edit the ${n.kind} ending ${nightDay(n)}`}>Edit</button>
             {confirm === n.id ? <><button type="button" className="secondary" onClick={() => void remove(n.id)}>Delete it</button><button type="button" className="quiet" onClick={() => setConfirm(null)}>Keep it</button></>

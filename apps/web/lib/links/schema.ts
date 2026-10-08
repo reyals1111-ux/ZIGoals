@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * My links (Session W Part 19; synced home settings v3 `links`): the person's own socials, apps and sites, shown as

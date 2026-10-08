@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./providers": "./src/providers.ts" },
+  "exports": { ".": "./src/index.ts", "./providers": "./src/providers.ts", "./links": "./src/links.ts", "./directory-names": "./src/directory-names.ts" },
   "dependencies": { "@cosmjs/encoding": "0.38.1", "zod": "4.6.5" }
 }

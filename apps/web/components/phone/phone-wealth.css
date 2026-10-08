@@ -24,6 +24,10 @@
   :root .wealth-product .holdings-filters button { flex: none; min-height: 44px; font-size: 15px; white-space: nowrap; }
   :root .wealth-product .wealth-section-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
   :root .wealth-product .wealth-section-heading > .secondary { min-height: 44px; }
+  /* Session X P2.1: the accounts heading's long button ("Add an account or debt") left its title a 117 px column
+     ("Account / s, debts"); it goes under the text, the title keeps the width. */
+  :root .wealth-product .accounts-section .wealth-section-heading { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  :root .wealth-product .accounts-section .wealth-section-heading > .secondary { justify-self: start; }
   :root .wealth-product .owned-assets-grid { gap: 10px; }
   :root .wealth-product .owned-asset-card { position: relative; padding: 12px 14px 2px; border-radius: 20px; }
   :root .wealth-product .owned-card-link { display: grid; gap: 6px; }
@@ -40,7 +44,8 @@
   :root .wealth-product .holding-unit-price > span, :root .wealth-product .holding-unit-price small { display: inline; font-size: 15px; }
   :root .wealth-product .owned-asset-card .market-movement { margin: 0; }
   :root .wealth-product .holding-allocation-track { margin: 2px 0 0; }
-  :root .wealth-product .holding-allocation-labels { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 0; }
+  /* In Goals and Available wrap only when they don't fit side by side (320 px reflow, WCAG 1.4.10; Session X Part 12). */
+  :root .wealth-product .holding-allocation-labels { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; margin: 0; padding: 0; }
   :root .wealth-product .holding-allocation-labels span { display: flex; align-items: baseline; gap: 6px; font-size: 15px; }
   :root .wealth-product .asset-card-source { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; margin: 0; font-size: 15px; }
   :root .wealth-product .asset-updated { font-size: 15px; }

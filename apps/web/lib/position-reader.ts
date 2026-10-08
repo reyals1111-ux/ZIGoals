@@ -1,5 +1,5 @@
 import {fromBech32} from '@cosmjs/encoding';
-import {z} from 'zod';
+import * as z from 'zod';
 import {positionSchema,type Position} from './positions';
 /**
  * Both networks use azig with 18 decimals since the v5 redenomination (testnet 2026-09-08 at height 7669200, mainnet

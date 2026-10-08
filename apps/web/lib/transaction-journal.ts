@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 export const JOURNAL_DATABASE = "zigoals:transaction-journal";
 export const JOURNAL_LIMIT = 1000;
 export const JOURNAL_SOURCE = crypto.randomUUID();

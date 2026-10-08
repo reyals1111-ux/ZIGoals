@@ -40,7 +40,7 @@ test('source-card pinning keeps Goal, Habit, asset and research bindings distinc
  await page.goto('/app/habits');
  const habit=page.locator('.habit-card').first();
  await habit.getByRole('button',{name:/Options for/}).click();
- await habit.getByRole('button',{name:/Add .* today to Today/}).click();
+ await habit.getByRole('button',{name:/Add .* check-in to Today/}).click();
  await expect(habit.getByRole('status')).toContainText('added to Today');
  await page.goto('/app/wealth');
  const asset=page.locator('.owned-asset-card').first();
