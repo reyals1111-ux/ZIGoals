@@ -39,6 +39,7 @@ import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {localDate} from '../../lib/local-date';
+import {applyDayCue} from '../../lib/ai/actions/day-cue';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -276,7 +277,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
       reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
     };
-    const done = (stopped: string | undefined) => finish(reply, usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
+    // Round 6 (ADR-017 S69): a log card that says today while the message names yesterday, the day before, or a weekday takes that day.
+    const done = (stopped: string | undefined) => finish(applyDayCue(reply, text, localDate()), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
     try {
       try { await run(mode); }
       catch (error) {

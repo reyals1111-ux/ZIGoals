@@ -5,6 +5,7 @@ import {describe, expect, test} from 'vitest';
 import {streamChat} from '../chat';
 import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
+import {applyDayCue} from '../actions/day-cue';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../intent';
 import {buildSystemPrompt} from '../context/specialists';
 import {questionContext} from '../context/question';
@@ -81,6 +82,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
       try { for await (const event of streamChat({...request, messages: again, format: structuredFormat()})) { if (event.type === 'text') second += event.delta; else if (event.type === 'usage') tokens = {input: (tokens.input ?? 0) + (event.input ?? 0), output: (tokens.output ?? 0) + (event.output ?? 0)}; } } catch { second = ''; }
       if (second.trim()) { reply = fenceStructured(second); repaired = true; }
     }
+    // Round 6 (ADR-017 S69), as the app does: the message's own day for a log card that said today.
+    reply = applyDayCue(reply, ask, DAY);
   }
   const totalMs = Date.now() - started;
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.
