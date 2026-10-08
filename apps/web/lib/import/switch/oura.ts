@@ -1,5 +1,5 @@
 import {emptyItems, type ImportPlan} from './apply';
-import {buildNight, buildVital, checkStop, parseStamp, planOf, Skipped, stepsLine, zoneFor, type ReadContext} from './common';
+import {buildNight, buildVital, checkStop, parseStamp, planOf, realDay, Skipped, stepsLine, zoneFor, type ReadContext} from './common';
 import {csvRows, headerIndex} from './csv-stream';
 import {baseName, progressCounter, textStream, type ImportFile} from './source';
 
@@ -11,7 +11,7 @@ import {baseName, progressCounter, textStream, type ImportFile} from './source';
  */
 export const OURA_LABEL = 'Oura';
 export const isOuraFile = (path: string) => /(^|\/)(sleepmodel|dailyactivity)\.csv$/i.test(path);
-const day = (text: string) => /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
+const day = (text: string) => realDay(text) ? text : null;
 
 export async function readOura(files: readonly ImportFile[], ctx: ReadContext): Promise<ImportPlan> {
   const items = emptyItems(), skipped = new Skipped(), counter = progressCounter(ctx.onProgress), warnings: string[] = [];
