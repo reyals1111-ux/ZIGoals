@@ -171,4 +171,10 @@
   /* Session U follow-up F3: a widget card's folded row (today-dashboard.tsx) wraps a long title instead of widening
      the page. */
   :root .today-page .placed-module[data-kind="widget"] .phone-fold-toggle > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  /* Session X (first-week polish): two across, a small widget's row gave its name about 70 px and broke it inside a word
+     ("destina tions"). The row keeps its chevron and drops the "Show"/"Hide" word (hidden from assistive technology
+     already; aria-expanded says it), so the name has the room and wraps only between words. */
+  :root .today-page .placed-module[data-kind="widget"][data-size="compact"] .phone-fold-toggle { gap: 8px; padding-inline: 14px; }
+  :root .today-page .placed-module[data-kind="widget"][data-size="compact"] .phone-fold-hint { gap: 0; font-size: 0; }
+  :root .today-page .placed-module[data-kind="widget"] .phone-fold-toggle > span:first-child { overflow-wrap: break-word; }
 }

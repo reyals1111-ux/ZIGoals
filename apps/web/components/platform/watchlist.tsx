@@ -14,6 +14,9 @@ import {AssetPicker} from './asset-picker';
 import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';
 import {amount} from './common';
 import {formatPrice} from '../../lib/visual-format';
+// Session X (first-week polish): the favourites bring their own styles. Portfolio shows them too (Session W Part 15)
+// without loading this sheet, so its empty card was a bare grey button with 2.3:1 text.
+import './wealth-product.css';
 export function Watchlist({compact=false,...layout}:LayoutAttrs&{compact?:boolean}){const store=usePlatform(),[adding,setAdding]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),saving=useRef(false);const market=useMarketQuotes(store.data.watchlist.map(a=>({marketRef:a.ref,currency:'USD' as const})));
  const insights=useMarketInsights(store.data.watchlist.map(a=>a.ref));
  function change(fn:Parameters<typeof store.update>[0],onSaved?:()=>void){if(saving.current)return;saving.current=true;setBusy(true);setError('');void store.update(fn).then(()=>onSaved?.()).catch(e=>setError(e instanceof Error?e.message:'Watchlist could not be changed.')).finally(()=>{saving.current=false;setBusy(false);});}
