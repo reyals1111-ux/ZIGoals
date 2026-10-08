@@ -28,8 +28,9 @@ const sourceId = (call: ToolCallRecord) => `${call.tool}:${JSON.stringify(call.a
 /** Dutch and French cue words as their English equivalents, so the English subject detection reads them; the periods are already multilingual. */
 const CUES: [RegExp, string][] = [
   // Phase 2 round 4 (ADR-017 S66): the cues the fix-round misses named, each to the English words the engine already reads.
+  // A cue that starts with an accented letter has no ASCII word boundary before it: those anchor on the start or a space.
   [/\bmindful minuten\b|\bminutes de pleine conscience\b/g, 'mindful minutes'], [/\bwat ben ik schuldig\b|\bque dois-je\b|\bmijn schulden\b|\bmes dettes\b/g, 'what do i owe'],
-  [/\bwaar moet ik (?:vandaag )?op letten\b|\bà quoi dois-je faire attention(?: aujourd'hui)?\b/g, 'what should i pay attention to today'], [/\béchéances?\b|\bvervaldat(?:um|a)\b|\bdeadlines?\b/g, 'deadlines'],
+  [/(^|\s)(?:waar moet ik (?:vandaag )?op letten|à quoi dois-je faire attention(?: aujourd'hui)?)\b/g, '$1what should i pay attention to today'], [/(^|\s)(?:échéances?|vervaldat(?:um|a)|deadlines?)\b/g, '$1deadlines'],
   [/\bbezit(?:tingen)?\b|\bavoirs?\b|\bgrootste positie\b|\bplus grosse position\b/g, 'holding'], [/\blangste\b|\bplus longue\b|\bplus long\b/g, 'longest'], [/\bkortste\b|\bplus courte\b/g, 'shortest'],
   [/\bstappen\b|\bpas\b/g, 'steps'], [/\bgewicht\b|\bwoog\b|\bweeg\b|\bpoids\b|\bpesais\b|\bpèse\b/g, 'weight'], [/\bgeslapen\b|\bslaap\w*|\bslapen\b|\bvannacht\b|\bsommeil\b|\bdormi\b|\bdors\b|\bnuit\b|\bsieste\b|\bdutje\b/g, 'sleep'],
   [/\bgemediteerd\b|\bmediteer\w*|\bmeditatie\b|\bmédit\w*|\bpleine conscience\b/g, 'meditation'], [/\bcalorieën\b|\bcalorieen\b/g, 'calories'], [/\beiwit\w*|\bprotéines?\b/g, 'protein'], [/\bgegeten\b|\beten\b|\bmaaltijd\w*|\bontbijt\b|\bmangé\b|\bmanger\b|\brepas\b|\bdéjeuner\b|\bdîner\b/g, 'food'],
@@ -83,7 +84,7 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   // what is open today, which goals or habits, a brief or a day's story, "what do you know about me", the portfolio,
   // staking, imports; sleep and meditation bring their nights and sessions beside the summary; a habit measure asked
   // without a named habit brings every timed habit's figures for the period. The question-aware chips stay removable.
-  const q = question.toLowerCase();
+  const q = question.toLowerCase(), qt = `${q} ${translateCues(q)}`;
   const OPEN_TODAY = /\b(still open|left today|open today|what(?:'s| is) open|still to do|remaining today|left to do|to do today|due today|habits (?:are )?left|nog open|nog te doen|staat er .*open|reste-t-il|encore à faire|à faire aujourd'hui|open for me)\b/;
   const LIST_GOALS = /\b(which goals?|what goals?|my goals|goals do i have|list (?:my )?goals|goal dates|goals? (?:are|is) (?:coming|due|closest|furthest|behind)|closest to done|furthest behind|welke doelen|mijn doelen|doeldatums|quels objectifs|mes objectifs|échéances)\b/;
   const LIST_HABITS = /\b(which habits?|what habits?|my habits|habits do i have|list (?:my )?habits|my streaks|how are my streaks|welke gewoontes?|mijn gewoontes?|mijn reeksen|mes habitudes|quelles habitudes|mes séries)\b/;
@@ -91,16 +92,16 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   const DID = /\b(what did i (?:do|log)|what have i logged|busiest day|what happened|wat heb ik (?:gedaan|gelogd)|qu'ai-je fait|qu'est-ce que j'ai fait)\b/;
   const ABOUT_ME = /\b(know about me|about me|over mij|sur moi)\b/;
   const PORTFOLIO = /\b(portfolios?|portefeuilles?)\b/, STAKING = /\b(stak(?:ing|ed)|validators?|staken|rewards?)\b/;
-  if (OPEN_TODAY.test(q)) { add('habits_due', {}); add('list_habits', {}); }
-  if (LIST_GOALS.test(q) || (!s.goals.length && /\b(goals?|doel(?:en)?|objectifs?)\b/.test(q) && GOAL_WORDS.test(q))) add('list_goals', {});
-  if (LIST_HABITS.test(q)) add('list_habits', {});
-  if (BRIEF.test(q)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); }
-  if (DID.test(q)) add('recent_activity', {range: phrase('today')});
-  if (ABOUT_ME.test(q)) add('about_me', {});
-  if (PORTFOLIO.test(q)) add('portfolios', {});
-  if (STAKING.test(q)) add('staking_watch', {});
+  if (OPEN_TODAY.test(qt)) { add('habits_due', {}); add('list_habits', {}); }
+  if (LIST_GOALS.test(qt) || (!s.goals.length && /\b(goals?|doel(?:en)?|objectifs?)\b/.test(qt) && GOAL_WORDS.test(qt))) add('list_goals', {});
+  if (LIST_HABITS.test(qt)) add('list_habits', {});
+  if (BRIEF.test(qt)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); }
+  if (DID.test(qt)) add('recent_activity', {range: phrase('today')});
+  if (ABOUT_ME.test(qt)) add('about_me', {});
+  if (PORTFOLIO.test(qt)) add('portfolios', {});
+  if (STAKING.test(qt)) add('staking_watch', {});
   // Phase 2 round 4 (ADR-017 S66): the families the fix-round misses named, on the translated question.
-  const tq = translateCues(q);
+  const tq = qt;
   const DEADLINES = /\b(deadlines?|coming up|due dates?|which dates?)\b/, HOLDINGS = /\b(?:biggest|largest|smallest|main) (?:holding|position|asset)s?\b|\bholdings?\b/;
   const SLEEP_WORDS = /\b(sleep|slept|sleeping|nights?|sommeil|dormi|dors|nuits?|slaap|geslapen|slapen)\b/, MED_WORDS = /\b(meditat\w*|mindful|médit\w*)\b/, SESSION_WORDS = /\b(longest|shortest|last session|sessions?)\b/;
   const DEVICES = /\b(imports?|imported|devices?|manual entries|bluetooth|linked service|apparaten|appareils?)\b/, TIME_OF_DAY = /\b(when in the day|time of day|morning or evening|op welk moment|wanneer op de dag|à quel moment)\b/, WEEKEND = /\b(weekends?|week-?ends?|weekdays?|weekdag(?:en)?|semaine ou week-end)\b/;
@@ -117,7 +118,8 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
     for (const habit of env.habits.habits.filter(hb => latestHabitRule(hb).state !== 'archived').slice(0, 4)) { const rule = latestHabitRule(habit), timed = rule.measurement.kind === 'duration' || MIN_UNITS.test(measurementUnit(rule)); add('habit_stats', {habit: clean(habit.title, 120), range: phrase('this week'), metric: timed ? 'minutes' : rule.measurement.kind === 'boolean' ? 'count' : 'quantity'}); }
   }
   const l = s.life;
-  if (l.accounts) add('net_worth', {});
+  // Round 4: a question about what is owed reads the accounts and debts themselves, as the local engine does in English; net worth stays for the rest.
+  if (l.accounts) add(/\b(owe|owed)\b/.test(tq) ? 'accounts' : 'net_worth', {});
   if (l.milestones) add('milestones', s.goals.length === 1 ? {goal: clean(s.goals[0]!.name, 120)} : {});
   if (l.challenges) add('challenges', {});
   if (l.chess) add('chess_ratings', {});
