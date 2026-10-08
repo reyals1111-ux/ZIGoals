@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {updateDeviceRecord, type DeviceRecordSpec} from '../../device-record';
 import {AI_ACTIONS_KEY} from './keys';
 

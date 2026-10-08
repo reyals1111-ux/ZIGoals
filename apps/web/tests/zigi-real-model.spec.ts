@@ -26,11 +26,11 @@ for (const c of chosen) {
     await seedReal(page, {health: c.health !== 'closed'});
     await page.goto(PAGE_PATHS[c.area]);
     await openChat(page);
-    if (c.mode === 'log') await panel(page).getByRole('button', {name: 'Log mode'}).click();
-    if (c.mode === 'plan') await panel(page).getByRole('button', {name: 'Plan mode'}).click().catch(() => undefined);
-    const run: UiRun = {id: c.id, model: MODEL, host: HOST, project: info.project.name, page: c.area, ask: c.ask, reply: '', cards: [], tools: [], ms: 0, score: null, error: null, at: new Date().toISOString()};
+    // Log and plan mode through the composer's own slash commands (/log, /plan), as the person would type them.
+    const typed = `${c.mode === 'log' ? '/log ' : c.mode === 'plan' ? '/plan ' : ''}${c.ask}`;
+    const run: UiRun = {id: c.id, model: MODEL, host: HOST, project: info.project.name, page: c.area, ask: typed, reply: '', cards: [], tools: [], ms: 0, score: null, error: null, at: new Date().toISOString()};
     try {
-      const {ms} = await askAndWait(page, c.ask, {log: c.mode === 'log'});
+      const {ms} = await askAndWait(page, typed);
       run.ms = ms;
       const stored = await lastReply(page);
       run.reply = stored.text; run.tools = stored.tools; run.cards = await cardsOf(page);

@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import type {PageArea} from '../settings';
 import type {ToolEnv} from './env';
 

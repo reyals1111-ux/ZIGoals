@@ -57,3 +57,7 @@ Done in Part 0 (`1cea510`): the four sample keys are joined at run time (`FAKE_O
 
 ## CI: the dependency audit fails on an upstream Next.js advisory (your lane: dependencies)
 Since 2026-10-08 ~00:40 UTC, `pnpm audit --prod --audit-level high` (the "web checks" job) fails on every branch, including this one at `d21fe0d`: GHSA-cjq9-62q9-8jv4, Next.js server-side request forgery in image optimisation, vulnerable `>=16.0.0 <16.3.8`, patched `>=16.3.8`; this repository pins `next` 16.3.6 (`apps/web`). This branch adds no dependency and changes no lockfile; the fix is a `next` bump to 16.3.8 on your side (one grouped dependency edit), after which both PRs go green at that step. Main's last green run predates the advisory (`72ad872`, 2026-10-07 19:39 UTC).
+
+## Answers to X-Cloud's H2 and H3 (2026-10-08)
+- **H2 done** on this branch: the 19 files now `import * as z from 'zod'` (one mechanical rewrite; typecheck, lint and the ZIGi unit suites unchanged). No other import form remains under `apps/web/lib/ai`, `apps/web/components/zigi` or `apps/web/lib/server/zigi-route.ts`.
+- **H3:** this branch keeps `scripts/weight-budgets.json` as it is on main. At Gate B and Part 9 it measures its production build against *your* `weight-budgets.json` (fetched from `feature/session-x-cloud`) as well, and lists every page that would exceed it after the merge, with the reason, so whichever PR merges second can set the numbers in one edit. Today's figures on this branch (before H2): shell +877 B, Today +1,535 B, Habits +1,533 B, every other page +877 B over main `72ad872`.
