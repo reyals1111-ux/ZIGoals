@@ -95,25 +95,26 @@ test('the "/" list: every command by keyboard; /help and /remember answer on the
   expect(JSON.stringify(bodies[1])).not.toContain('/help');
 });
 
+// Phase 2 (P2.2b): the asks are lookups, not plans — a plan asked of a model that answers without a card gets the one repair round, which this test is not about.
 test('edit the last question: ↑ or "Edit" puts it back, sending replaces it and its answer; Escape cancels', async ({page}) => {
   const bodies = await server(page, body => `MOCK: you said ${String(body.messages.at(-1)!.content)}`);
   await seed(page, {});
   await page.goto('/app');
   await openChat(page);
-  await say(page, 'Plan my week');
-  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you said Plan my week');
+  await say(page, 'Tell me about my week');
+  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you said Tell me about my week');
   await box(page).press('ArrowUp');
-  await expect(box(page)).toHaveValue('Plan my week');
+  await expect(box(page)).toHaveValue('Tell me about my week');
   await expect(panel(page).getByText('Editing your last message')).toBeVisible();
   await box(page).press('Escape');
   await expect(box(page)).toHaveValue(''); await expect(panel(page)).toBeVisible();
   await panel(page).getByRole('button', {name: 'Edit your last message'}).click();
-  await expect(box(page)).toHaveValue('Plan my week');
-  await say(page, 'Plan my weekend');
-  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you said Plan my weekend');
+  await expect(box(page)).toHaveValue('Tell me about my week');
+  await say(page, 'Tell me about my weekend');
+  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you said Tell me about my weekend');
   await expect(panel(page).locator('.ai-turn-user')).toHaveCount(1);
-  await expect(lastAsked(page)).toHaveText('Plan my weekend');
-  expect(bodies.at(-1)!.messages.filter(m => m.role !== 'system').map(m => m.content)).toEqual(['Plan my weekend']);
+  await expect(lastAsked(page)).toHaveText('Tell me about my weekend');
+  expect(bodies.at(-1)!.messages.filter(m => m.role !== 'system').map(m => m.content)).toEqual(['Tell me about my weekend']);
 });
 
 test('around an answer: its time, the person\'s own note (kept here, never sent), copy as Markdown, Continue in my AI', async ({page, context}) => {

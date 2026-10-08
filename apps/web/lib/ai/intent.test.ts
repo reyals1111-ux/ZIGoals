@@ -18,3 +18,20 @@ test('the repair round is for a log or plan intent answered without a card and w
   expect(wantsCard(detectIntent('How much water today?'), '750 ml so far.')).toBe(false);
   expect(wantsCard(detectIntent('Hi ZIGi'), 'Hello!')).toBe(false);
 });
+test('asks ZIGi must decline never get the repair round: deleting, moving money, keeping a secret, in three languages', () => {
+  for (const ask of ['Delete the Emergency fund goal', 'Remove the milestone "Flights booked" from the Japan goal', 'Erase yesterday\'s water entries', 'Archive my meditation habit', 'Buy 100 euros of bitcoin for me', 'Fund the Japan goal with 500 from savings', 'Sign the transaction to fund the goal from my wallet', 'Remember my OpenAI key sk-test-ABCDEF123456', 'My password is Hunter2!, remember it', 'Supprime l\'objectif Japon', 'Verwijder mijn leesdoel', 'Koop 100 euro bitcoin', 'Onthoud mijn wachtwoord', 'Retiens mon mot de passe']) {
+    const i = detectIntent(ask);
+    expect(i.refuse, ask).toBe(true); expect(i.log || i.plan, ask).toBe(false);
+    expect(wantsCard(i, 'Done.'), ask).toBe(false);
+  }
+  // A noun is not a verb: a milestone on the Emergency fund goal is a plain ask.
+  const fund = detectIntent('Add a milestone to the Emergency fund goal: half way, 2500');
+  expect(fund.refuse).toBe(false); expect(fund.log || fund.plan).toBe(true);
+});
+test('a reply that declines gets no repair round either', () => {
+  expect(wantsCard(detectIntent('Log a glass of water'), "I can't log that without knowing the amount.")).toBe(false);
+  expect(wantsCard(detectIntent('Noteer een glas water'), 'Dat kan ik niet zonder de hoeveelheid.')).toBe(false);
+  expect(wantsCard(detectIntent('Note un verre d\'eau'), 'Je ne peux pas sans la quantité.')).toBe(false);
+  expect(wantsCard(detectIntent('Log a glass of water'), 'Noted: a glass of water, 250 ml.')).toBe(true);
+});
+

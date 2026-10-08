@@ -95,12 +95,21 @@ describe('the studio\'s tests, on ZIGoals\' events', () => {
     const g = mk(); g.dispatch({type: 'reminder_due'}, T0); g.sync('idle');
     expect(g.nudgeAllowed(T0 + 1)).toBe('nudge_budget_spent'); g.grant(); expect(g.nudgeAllowed(T0 + 2)).toBe('allowed');
   });
-  it('priority and settle holds: a one-shot after_settle clip finishes before a lower-priority request', () => {
+  it('priority and settle holds: a one-shot that must settle (a celebration) finishes before a lower-priority request; the greeting no longer holds the conversation (Phase 2 P2.6, the machine defers listening itself)', () => {
     const c = mk();
     const g = c.dispatch({type: 'user_opened_panel'}, T0);
     expect(g.code).toBe('F002');
+    // Listening during the greeting reaches the machine now (events.ts lets the greeting play out first, ADR S52).
     const l = c.dispatch({type: 'assistant_listening'}, T0 + 500);
-    expect(l.reason).toBe('priority_hold'); expect(l.code).toBe('F002'); expect(l.event).toBeNull();
+    expect(l.reason).toBe('semantic_event'); expect(l.code).toBe('F004'); expect(l.event).toBe('listening');
+    const h = mk();
+    expect(h.dispatchValidated({type: 'all_habits_done'}, T0).code).toBe('F009');
+    const m = h.dispatch({type: 'hint_curious'}, T0 + 500);
+    expect(m.reason).toBe('priority_hold'); expect(m.code).toBe('F009'); expect(m.event).toBeNull();
+    // After the celebration: the gap between reactions (8 s) still applies to a mood, never to the flow.
+    expect(h.dispatch({type: 'assistant_thinking'}, T0 + 2600).event).toBe('reply-pending');
+    const m2 = h.dispatch({type: 'hint_curious'}, T0 + REACTION_GAP_MS + 100);
+    expect(m2.code).toBe('F014'); expect(m2.event).toBe('ambiguity');
     const l2 = c.dispatch({type: 'assistant_listening'}, T0 + 2600);
     expect(l2.code).toBe('F004'); expect(l2.event).toBe('listening');
     // Loops yield to the host: a loop never holds the next event.
@@ -152,6 +161,28 @@ describe('ZIGoals\' own rules', () => {
     expect(c.snapshot().celebrationsToday).toBe(CELEBRATIONS_PER_DAY);
     day = '2026-10-09'; c.sync('idle');
     expect(c.dispatchValidated({type: 'goal_funded'}, T0 + 10 * 60_000).code).toBe('F009');
+  });
+  it('the conversation\'s flow is never held by the greeting: thinking, speaking and the reply\'s mood inside its 2.5 s reach the machine (a fast model\'s first reply)', () => {
+    const c = new ZigiController({hourOfDay: () => 12});
+    expect(c.dispatch({type: 'user_opened_panel'}, T0).event).toBe('open');
+    expect(c.dispatch({type: 'assistant_thinking'}, T0 + 700).event).toBe('reply-pending');
+    expect(c.dispatch({type: 'assistant_speaking'}, T0 + 760).event).toBe('reply-streaming');
+    const mood = c.dispatch({type: 'hint_curious'}, T0 + 900);
+    expect(mood.reason).toBe('semantic_event'); expect(mood.event).toBe('ambiguity'); expect(mood.code).toBe('F014');
+    // The next reply's flow and mood replace a playing mood as well: nothing of a conversation waits for a clip.
+    expect(c.dispatch({type: 'assistant_thinking'}, T0 + 1500).event).toBe('reply-pending');
+    expect(c.dispatch({type: 'assistant_speaking'}, T0 + 1600).event).toBe('reply-streaming');
+  });
+  it('a playing celebration still holds the flow and a reply\'s mood until it settles (the studio\'s rule); a playing mood is replaced by the next reply', () => {
+    const c = new ZigiController({hourOfDay: () => 12});
+    expect(c.dispatchValidated({type: 'all_habits_done'}, T0).code).toBe('F009');
+    expect(c.dispatch({type: 'assistant_thinking'}, T0 + 300).reason).toBe('priority_hold');
+    expect(c.dispatch({type: 'hint_curious'}, T0 + 500).reason).toBe('priority_hold');
+    expect(c.dispatch({type: 'assistant_thinking'}, T0 + 3000).event).toBe('reply-pending');
+    expect(c.dispatch({type: 'hint_surprised'}, T0 + 3200).reason).toBe('rate_limited');
+    expect(c.dispatch({type: 'hint_curious'}, T0 + REACTION_GAP_MS + 100).event).toBe('ambiguity');
+    // A playing mood is replaced by the next reply's flow and mood (no rate limit between a mood and the flow; the gap counts from the mood).
+    expect(c.dispatch({type: 'assistant_thinking'}, T0 + REACTION_GAP_MS + 600).event).toBe('reply-pending');
   });
   it(`reactions are at least ${REACTION_GAP_MS} ms apart; the conversation's own flow never waits`, () => {
     const c = mk();

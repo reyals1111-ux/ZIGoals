@@ -53,6 +53,10 @@ const REPLY_END: ReadonlySet<string> = new Set(['assistant_replied', 'assistant_
 /** Host facts that no playing clip may hold back: the panel opened or closed, the device went offline, ZIGi rests or
  * dozes, and the person's own act succeeded (a check-in, an added card: the presenting clip yields to it at once). */
 const HOST_DRIVEN: ReadonlySet<string> = new Set(['greeting', 'wave-goodbye', 'offline', 'idle', 'sleepy', 'success']);
+/** The conversation's flow: never held by a playing state (Phase 2 P2.6). */
+const FLOW: ReadonlySet<string> = new Set(['listening', 'thinking', 'speaking', 'reading-your-data', 'writing-proposal', 'loading-model']);
+/** The one-shots that settle before anything else shows: the conversation's flow and a reply's mood wait for these alone (Phase 2 P2.6). */
+const SETTLES: ReadonlySet<string> = new Set(['celebrate', 'proud', 'attention', 'reminder', 'error']);
 export const CELEBRATIONS_PER_DAY = 3, REACTION_GAP_MS = 8000, DEFAULT_QUIET: readonly [number, number] = [22, 8];
 /** What each semantic event means for the state machine (events.ts `transition`); `null` only updates the controller. */
 export const EVENT_TO_MACHINE: Readonly<Record<SemanticEventType, ZigiEvent | null>> = {
@@ -166,9 +170,16 @@ export class ZigiController {
     const held = (reason: Decision['reason']) => this.#result(this.#current, reason, now, REPLY_END.has(event.type) && TALKING.has(this.#current) ? 'idle' : null, false);
     // Host facts (the panel opened or closed, offline, rest, a success) always reach the machine: no hold, no cooldown.
     const hostFact = HOST_DRIVEN.has(target);
-    if (this.#current === target && now < this.#until && !hostFact) return held('current_hold');
+    // Phase 2 (P2.6, found on the production build, where a MOCK reply completes inside the greeting's 2.5 s): the
+    // conversation's own flow is never held — listening, thinking, speaking, reading and writing always reach the machine,
+    // and a reply's own mood replaces whatever conversational state is playing (the greeting, speaking, a success). A
+    // playing celebration, attention, reminder or error still holds the flow and a mood until it settles, as the studio's
+    // rules say; a playing mood is replaced by the next reply's. Fast models reply within a greeting; before this, their
+    // first reply showed nothing at all.
+    const free = hostFact || ((FLOW.has(target) || REPLY_END.has(event.type)) && !SETTLES.has(this.#current));
+    if (this.#current === target && now < this.#until && !free) return held('current_hold');
     const currentRule = ruleFor(this.#current);
-    if (playing && !hostFact && (currentRule.interruptibility === 'after_settle' || currentRule.priority > rule.priority)) return held('priority_hold');
+    if (playing && !free && (currentRule.interruptibility === 'after_settle' || currentRule.priority > rule.priority)) return held('priority_hold');
     const last = this.#last.get(target) ?? -Infinity;
     if (!hostFact && now - last < rule.cooldownSeconds * 1000) return held('cooldown');
     if (!CONVERSATION.has(target) && now - this.#lastReactionAt < REACTION_GAP_MS) return held('rate_limited');
