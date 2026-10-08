@@ -1,3 +1,177 @@
+# Session X-Cloud — "The giant leap" (ADR-016) (2026-10-07/08, [PR #78](https://github.com/reyals1111-ux/ZIGoals/pull/78), not merged or deployed)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox.
+  - Toolchain: Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`.
+  - Playwright's Chromium stands in for Chrome (CLAUDE.md), so the brand-film specs fail here by design and pass in CI.
+  - Browser runs: a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`), 2 workers, CI's fonts, never two suites or builds at once.
+- **live:** read-only requests and fictional in-browser journeys on alpha.zigoals.app (deploy #32), one worker, slowed; no market data.
+- **MOCK:** every third party (AI providers, chess sites, health services) answered by fixtures; no real third party was called by a test.
+- **Miniflare:** the push Worker, private sync and the hosted relay in workerd, outbound refused.
+- **source:** official documentation and public endpoints, read 2026-10-07/08, cited with dates in the part docs (ADR-016 names them).
+- **CI:** Milestone quality and Canonical reproducibility on the PR (Actions API).
+- **owner-reported:** values the owner gave in the brief (the #32 and coordinator records).
+
+Nothing was deployed. No session logged into Cloudflare, Supabase, Resend, CoinGecko, Spotify or any AI provider, handled a real secret, signed with a wallet, or changed a key or contract. No new dependency (runtime, dev or Actions); one framework patch bump (`next` 16.3.6 → 16.3.8, six advisories), recorded as a decision beyond "no other upgrades" (ADR-016 X23). A parallel lane, X-LOCAL (`feature/session-x-local-zigi`), owns ZIGi; this PR never edited its paths, and every need went through `docs/handoff/X_CLOUD_TO_LOCAL.md` (H1–H11), with `X_LOCAL_TO_CLOUD.md` read at every gate (last at `cc9e918`).
+
+**Base:** `main` `72ad872` (Merge #77, Session W; Alpha deploy #32). `main` did not move during the session (checked again before this entry).
+**Time:** branch created 2026-10-07 21:03 UTC; this entry 2026-10-08 17:52 UTC: about 20 h 49 min of wall-clock time in one continuous session (Parts 1–13 overnight, Part 14 and Phase 2 through the day, Gate D in the afternoon).
+
+## Parts
+| Part | What | Commits | Evidence |
+|---|---|---|---|
+| 1 | `[TIER 3] (chain config)` zig-test-2 on zigchaind v5.1: the reviewed list v5.1.0–v5.1.2, the diagnostics name the version read, research note (the upload whitelist is still on) | `5db848f` | local, source |
+| 2 | Secret-scan hygiene: test values joined at run time, handoff H1; `[TIER 3] (CI)` the scan knows provider key shapes, with a hash-pinned allowlist (a stale entry only warns) | `cbf2822`, `edae17a` | local, CI |
+| 3 | Dependency audit: braces 3.0.4 still unpublished; earlier fixes hold | `b6bf954` | source |
+| 4 | `[TIER 3] (security headers)` `/api/market-logo` keeps its own sandbox policy and day-long cache | `215a1bd` | local, packaged |
+| 5 | Performance: the registry parsed once, fewer prefetches, a CPU tail sanitizer, `[TIER 3] (PWA/headers)` a byte-identical static manifest, `[TIER 3] (wallet)` and `[TIER 3] (sync)` code on use, Settings' importer and export on use, `[TIER 3] (sync, data formats)` zod as a namespace, `[TIER 3] (CI)` lower budgets. Shell 497.7 → 401.0 kB | `d3b4fee`, `e0a0aab`, `2a1337e`, `02e0573`, `f27a448`, `830f29f`, `3e85554`, `da10938`, `c813de0` | local, CI |
+| 6 | CI stability: push-reminders, route-mobile-acceptance, ui-design-pass, account-browser fixed at their cause; `[TIER 3] (CI)` market-disconnect with the browser files, the Alpha gate keeps its traces | `a66acc2`, `7365aa4`, `2165734`, `f4993e0`, `ff6b289`, `5bedbbb` | local loops, CI |
+| Gate A | `[TIER 3] (dependencies)` next 16.3.8; sleep.spec reads after the charts settle | `9715281`, `ecf8855` | local, CI |
+| 7 | Session W sweep: the consent row, Fitbit's two dates, dated notes, every W item closed or listed | `f59561f` | local |
+| 8 | Push ready for owner activation: `[TIER 3] (auth/sync)` deletion clears push data from any device; `[TIER 3] (egress policy)` the push Worker server-only; a Miniflare rehearsal and a run sheet | `2ddf11a`, `ad9e75b`, `1d8d83b` | Miniflare |
+| 9 | Hosted relay ready for owner activation: `[TIER 3] (Workers)` Anthropic's Messages API (thinking off, same cap, usage counted exactly); the owner's setup with a spend limit first | `e2695b5`, `f0fd827` | Miniflare (MOCK), source |
+| 10 | Roadmap sweep: every open item with its source; `[TIER 3] (auth/sync)` FIX_PLAN A4 (plain http refused except loopback); Q-SYNC-04/05 not done (not behaviour-preserving) | `0cb7294`, `c17834c` | local |
+| Gate B | Lint and typecheck in this session's new code (`[TIER 3] (Workers)` ×2, no behaviour change); Goals at 320 px | `96bc442`, `cbc85e1`, `52601da`, `d331812` | local |
+| 11 | Friends pack: Send feedback (a `mailto:` with optional, editable device lines), Help → Known limitations, the friends guide | `f58d333` | local |
+| 12 | WCAG 2.2 AA: every page names itself; an audit spec on every page, both projects; five findings fixed | `8a7e86b`, `ca99bf1` | local |
+| 13 | Data-safety drill: ten drills, no loss; a spec for old and current backups | `a6b0e00` | local, Miniflare |
+| Fixes | The local-attach test's wait; Goals' title at 320 px and Help's "tell us" on phones; Today's staking link | `645ffbb`, `d7810c6`, `d4a9008` | CI, local |
+| 14 | The human test: charter, 261 journeys, Pass 1 (801 cells) and Pass 2 live (204 cells), five fix loops and the first-week polish, the screens gallery (`docs/verification/x-cloud/HUMAN_TEST.md`) | `9c33a40`, `04fadfe`, `8e33b96`, `6abf661`, `01a14a9`, `cae4f30`, `d904626`, `24a55ff`, `4417b21`, `e6d62f8`, `f9f9f43`, `400b045`, `c83f01e`, `8677a2e`, `19481cb`, `d8de111`, `9cc28c2`, `81faec1`, `9aa4892`, `8fa555c` | local, live |
+| 15 | Gate D (below), THREAT_MODEL "Session X changes", the CI limit | `f90f6c2`, `c519b89`, `f3d54c0`, `0ad1beb`, `c8e1d78`, `80a429a` | local, CI |
+| 16 | This entry, the #32 and coordinator records, Release identity, PR ready | this commit | — |
+
+## Phase 2 (owner follow-up, 2026-10-08)
+| Step | What | Commits | Evidence |
+|---|---|---|---|
+| P2.1 | Fresh-eyes persona round: an independent agent, 45 sessions, eight personas; 26 issue groups, the real ones fixed with tests (`PERSONAS_X.md`, `tests/persona-x.spec.ts`); ZIGi's four to X-LOCAL (H10) | `ca49079`, `2af37db` | local |
+| P2.2 | Design and readability: text under 14 px lifted, three real contrast failures fixed (measured on real pixels), titles in the one nebula style, no phone target under 44 px | `54218bc` | local |
+| P2.3 | Today 611.6 → 509.4 kB; LCP, CLS and INP on 13 pages, desktop and a phone at 4× CPU, every target met after two fixes (phone CLS, Staking's tap); `[TIER 3] (CI)` budgets lowered | `d118810`, `028ea13`, `32618f0`, `84fe665` | local |
+| P2.4 | Hostile input: seeded fuzz of every importer, CSV and backup restore; two real bugs fixed | `45ad3db`, `f9f9f43` | local |
+| P2.5 | Locales: Today's week on the journal's day; eleven places brought under the one display rule; a seven-locale sweep; the locale spec covers all seven (`LOCALES_X.md`) | `402ec38`, `8399818`, `c764d8b` | local |
+| P2.6 | Help accuracy: two broken Guide links, 13 wordings; a link to one card or habit keeps its target in view | `e453b5e`, `c3a1560`, `a53598d` | local |
+| P2.7 | Internal security review (7 findings, none critical or high; `SECURITY_REVIEW_X.md`): the relay's stream stall (`[TIER 3] (Workers)`), a `#%` link, `[TIER 3] (CI)` more secret shapes; CI traces keep ≤ 7 days; the next 16.3.8 bump recorded | `4d5fec5`, `457c541`, `34e45dc`, `c519b89`, `21af36b`, `9d5f3bd` | Miniflare, local |
+| P2.8 | X-LOCAL's handoff read at every gate; H6 and H9 done in their lane; L1 → owner decision H8; L2 (WebKit) answered in H11 (no WebKit in this sandbox) | `d904626`, `8677a2e`, `2af37db`, `ccb6322` | — |
+| CI | CI on `c764d8b` fixed at its causes; the shards' time limit | `f6f5ba0`, `f3d54c0` | CI, local |
+
+## Tier 3, in plain words (risk → rollback)
+- **`5db848f` chain config (Part 1).** Risk: a node on a version outside v5.1.0–v5.1.2 reads "Unavailable or changed" (fail-closed, as before); the prepared manifest records v5.1.0. Rollback: revert; the diagnostics go back to `v5.0.0-patch-1` and say "changed" against today's testnet again.
+- **`edae17a`, `34e45dc` the secret scan (Part 2, P2.7).** Risk: a new shape matches a harmless test value and stops CI. Hash-pinned allowlist entries (file, check, sha256) cover the handed-off lines; a stale entry only warns. Rollback: revert either.
+- **`215a1bd` `/api/market-logo` headers (Part 4).** Risk: that one exact path keeps its own `default-src 'none'; sandbox` policy and day-long cache instead of the page policy and `no-store`; near-miss paths keep the page policy (unit-tested). Rollback: revert.
+- **`02e0573` static manifest (Part 5a).** Risk: a saved Home Screen app reads a changed manifest. The file is byte-identical to `72ad872`'s (sha256 pinned in two tests), at the same address, with `application/manifest+json`. Rollback: revert.
+- **`f27a448` wallet code on use, `830f29f` sync code on use (Part 5b).** Risk: the first hand-started wallet or vault action waits for, or cannot fetch (offline), its module; automatic sync, unlock and every format, timer and merge rule are unchanged (harnesses and frozen readers). Rollback: revert each alone.
+- **`da10938` zod as a namespace (Part 5).** Risk: a schema behaves differently; schema-snapshot digests and the frozen #29–#31 readers are unchanged. Rollback: revert.
+- **`c813de0`, `84fe665` lower weight budgets (Parts 5c, P2.3).** Risk: a later change that adds weight fails the budget step sooner. Rollback: revert.
+- **`7365aa4` CI placement and traces (Part 6).** Risk: none to the app; market-disconnect runs in the integration job (plain `pnpm test` skips it, as the other browser files); the Alpha gate's traces (fixture data only) are kept 7 days. Rollback: revert.
+- **`9715281` next 16.3.6 → 16.3.8 (Gate A).** Risk: a framework behaviour change in a patch release; every suite and the packaged Alpha passed on it. Rollback: revert `9715281` (CI's audit then reports the six advisories again).
+- **`2ddf11a` deletion clears push data (Part 8).** Risk: account and cloud deletion send one more request (`delete-all` to `/api/push`) even from a device with no push record; sign-out is unchanged. Rollback: revert (a 30-day leftover on the Worker returns).
+- **`ad9e75b` egress policy (Part 8).** Risk: none at run time; the push Worker's origin is listed as server-only. Rollback: revert.
+- **`e2695b5`, `96bc442`, `52601da`, `4d5fec5` the relay's Anthropic upstream (Part 9, Gate B, P2.7).** Not deployed; `NEXT_PUBLIC_ZIGI_HOSTED` stays off. Risk, once the owner activates it: upstream differences in streaming and errors; budgets count usage from Anthropic's own fields, a stream never stalls on events that hand nothing on, prompts stay under a 90k estimate. Rollback: revert, with `96bc442` and `52601da` together with `e2695b5`.
+- **`0cb7294` FIX_PLAN A4 (Part 10).** Risk: a preview on plain http other than a loopback host is refused before any cookie is set. Rollback: revert.
+- **`f3d54c0` the browser shards' time limit (CI).** Risk: a hung shard takes up to 15 minutes longer to stop. Rollback: revert.
+
+## Storage, sync and formats
+No new storage key, data format, merge rule or sync domain; schema-snapshot digests unchanged; the frozen #29–#31 readers pass. Deletion now always asks the push Worker to forget the account (`2ddf11a`). Feedback mail is a `mailto:` the person's own mail app sends; nothing is stored or sent by ZIGoals. The Alpha's rollback floor stays #29.
+
+## Egress, CSP, Workers
+No new browser origin; the CSP and Permissions-Policy composer's output is unchanged except `/api/market-logo`'s own headers (`215a1bd`) and the static manifest, served with `72ad872`'s bytes and its own content type (`02e0573`). Workers: the relay can use `https://api.anthropic.com/v1/messages` by that exact address (not deployed); the push Worker is unchanged and listed as server-only. THREAT_MODEL "Session X changes" covers every row (Parts 1–14, P2.4, P2.7, the CI fix).
+
+## Weight (gzip -6 of the scripts each page loads, production build of the head, Gate D)
+| Page | Main (`72ad872`) | This PR | Budget |
+|---|---|---|---|
+| Today `/app` | 616.9 kB | 509.5 kB | 515 kB |
+| Goals | 515.1 | 429.9 | 434 |
+| Habits | 525.6 | 455.0 | 458 |
+| Health | 550.8 | 478.2 | 482 |
+| Wealth | 542.5 | 461.6 | 465 |
+| Markets | 512.3 | 428.3 | 432 |
+| Portfolio | 515.8 | 449.6 | 454 |
+| Staking | 534.7 | 436.8 | 442 |
+| Activity | 497.6 | 409.1 | 415 |
+| Settings | 525.9 | 480.1 | 482 |
+| Help | 493.6 | 406.5 | 409 |
+| Chess | — | 413.3 | 417 |
+| Shell (every page) | 491.6 | 402.6 | 406 |
+
+Every page is lighter than on `main`. Field metrics (P2.3, `docs/performance/SESSION_X_PERFORMANCE.md`): LCP ≤ 880 ms, CLS ≤ 0.032 and INP ≤ 160 ms on 13 pages, desktop and a phone at 4× CPU.
+
+## Tests (counts are not summed across overlapping runs)
+- **Gate D, full unit suite (local, head `9aa4892`):** 459 files passed, 18 skipped; 4,200 tests passed, 41 skipped.
+- **Gate D, full browser suite (local, both projects):** 1,595 passed, 163 skipped, 4 failed (1.6 h, the head's production build, `guide.spec` with its Gate D fix): the four are the brand-film specs (`logo-quickadd-goals-header.spec.ts:53` and `:79`, both projects), which this Chromium cannot play and CI's Chrome passes. After the goal badge's fix (`80a429a`): the persona, goal, ZIGi, findings and WCAG specs, 140 passed, 10 skipped.
+- **The human test (local and live):** Pass 1 on all 261 journeys × D/T/P, 801 cells: 579 passed, 5 fixed, 3 failed (J026 ×2 the brand film, local Chromium only; J053 an owner decision), 214 not applicable. Pass 2 on the live Alpha, 204 cells: 163 passed, 16 failed (each something this PR adds or fixes, not yet deployed), 25 not applicable.
+- **Miniflare:** the push Worker and the relay, 9 files, 73 tests passed; CI's integration list run here (real Chrome profiles against workerd: the account in both orders, the account switch, three sync conflicts, Health consent, market and its disconnect, the Stage 8 rehearsals), 17 files, 28 passed, 2 skipped.
+- **Packaged Alpha (local):** `build:alpha`, `check:alpha`, `check:alpha-artifact` (empty compiled environment, no secret markers), `check:deploy-configs` and `check:landing` passed; the packaged price and header contracts on the dry-run bundle, 2 files, 12 tests; the generated Run11 package (`activation-check --dry-run`, no provisioning; it needs the full history, so this sandbox's shallow clone was deepened) and its packaged runtime, 2 passed, 1 skipped; the Alpha security gate on `preview:alpha` (the public-alpha and diagnostics specs), 16 passed.
+- **Gates A–C and Phase 2:** recorded in the PR description and ADR-016 (Gate A full browser suite 1,484 passed; Gate C focused suites 416 passed; Phase 2 focused suites, each on both projects).
+- **New specs:** `a11y-wcag-x`, `page-titles`, `data-safety-x`, `send-feedback`, `session-x-findings`, `persona-x`, `hostile-files-x`; unit: chain-version, feedback, hash-id, CSV and importer fuzz, market-logo headers, nav prefetch, Showcase prices, push forget, zone-time; Miniflare: push rehearsal, the relay's Anthropic path. Journeys (outside CI): `apps/web/human-x/` (261).
+## Assertions changed (none weakened)
+An independent read of every test file that existed at `72ad872` and changed here (69 files, `git diff 72ad872..HEAD`):
+25 stronger or new checks, 13 updated to a deliberate wording change and as strict, 30 mechanics only, 1 moved.
+- **Updated to the new wording, as strict (13):** amount-input (the refusal names the text to type), readers (singular
+  "1 record of 1 other kind", "(1 day)"), health-goals ("End", "ended"), health-daily ("Favourites"), run10-source-pinning
+  ("… check-in to Today"), ambient (en-US "10:1[45] PM"; the 24-hour form checked under nl-BE and en-GB), diagnostics
+  (`v5.1.0`), guide (`#for-you-weekly-review`), switch-import (the import's real path), transactions ("ZIGChain testnet ·
+  …"), help-page (11 topics, the list still exact), phone-pages (26 rows), settings-groups (Help adds `send-feedback`).
+- **Mechanics only (30):** zod as a namespace in 11 vault and storage tests; four vault tests import the panel from its
+  new module; the mock node version in three wallet tests; values joined at run time with the same bytes (pre-run11
+  email and setup, push-webpush RFC vectors, relay runtime); multitab's inert stand-in; local-attach polls instead of a
+  fixed 50 ms; push-reminders reads after display; route-mobile-acceptance in three budgets (same visits, plus a count
+  check); ui-design-pass's pointer; account-browser's warm-up and phase deadlines (90 → 150 s); the vault restore's wait
+  (5 → 20 s); sleep's width read polled (same bound).
+- **Moved (1):** `scripts/run11/market-disconnect.test.mjs` runs in CI's integration job (`RUN11_MARKET_BROWSER=1`) like
+  the other browser files, and `pnpm test` skips it; the test body is unchanged (`7365aa4`).
+
+## Freeze (local, 155 captures of desktop and tablet against `72ad872`)
+24 identical, 131 different, every difference authorised and attributed through the intermediate captures:
+- `72ad872` → `cae4f30`: Gate C's list (Settings and Help, aria-only roles) and the first-week polish (ADR-016 X41, X45).
+- `cae4f30` → `54218bc`: P2.2 (X54): Today 12 captures (a caption's grey), Wealth 6 (+1 px), Portfolio 6 (+6–7 px).
+- `54218bc` → head: 95 captures, every one with a text change from P2.1 (X55) and no pixel-only change: the Showcase banner's sentence (every Showcase capture), "Manual value" and "MANUAL" once instead of twice, "YOUR RECORDS", Export everything's sentence, Known limitations' currency item, "8,000", "42% funded", "End goal", "Favourites".
+Phones get Session X's own changes (Part 14's polish, P2.1, P2.3's first-paint status lines), each with a test.
+
+## Revert gate (local, scratch worktree at `9aa4892`)
+All 84 commits up to `9aa4892` revert cleanly newest first, with no conflict, and the tree after the last revert is identical to `72ad872`; the later commits change documents, two tests and one CSS rule, each on its own. Typecheck at each part's boundary passed except in two expected windows, where a Gate B typecheck fix is reverted before the commit it fixed: `cbc85e1` (Part 11's feedback test types) until `f58d333`, and `96bc442` (the relay's stream type) until `e2695b5`. Rollback rule: revert Part 11 with `cbc85e1`, and the relay change with `96bc442` and `52601da`.
+
+## CI
+- **Final head:** every job green on `9aa4892`, `0ad1beb` and `c8e1d78` (browser shards 23–31 min, inside the new 45-minute limit); `80a429a` (the goal badge's gap) and this entry are covered by this entry's own run on the PR.
+- **Red runs, each root-caused** (runs cancelled by a newer push are not failures and are not listed): [37693008484](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37693008484) on `215a1bd` (route-mobile-acceptance's 45 s budget: `2165734`); [37699657483](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37699657483) on `f27a448` and [37774486603](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37774486603) on `c764d8b` (the vault restore's 5 s wait, and on `c764d8b` also ZIGi's Activity words, multitab and the packaged journey: `f6f5ba0`, X58); [37704162330](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37704162330), [37708194891](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37708194891) and [37712631888](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37712631888) (`pnpm audit` on next 16.3.6's advisories, red on every branch: `9715281`; on `c813de0` also `music.spec:75`, an app bug: `ca49079`); [37721583460](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37721583460) on `645ffbb` (two phone checks: `d7810c6`, X41); [37761404809](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37761404809) on `a53598d` and [37767771822](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37767771822) on `d8de111` (the Alpha gate's nonce check after `d118810`, also inside the cancelled runs on `f9f9f43`, `19481cb`, `2af37db` and `84fe665`: `f6f5ba0`, X58; on `d8de111` also `guide.spec:46`: the Gate D commit); [37784457470](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37784457470) on `f6f5ba0` (shard 1 stopped at its 30-minute limit: `f3d54c0`, X59).
+
+## Known CI intermittents (this session)
+- **`tests/run11-route-mobile-acceptance.spec.ts:4`** timed out at 45 s on `215a1bd` (run 37693008484), as recorded under Session W: up to 30 page loads in one test. Fixed at its cause in Part 6 (`2165734`): three tests with the same visits and checks.
+- **`tests/guide.spec.ts:46`** (phone) failed once on `d8de111` (run 37767771822): "Turn off the Guide" measured 43.99997 px against 44. The control is 44 px at rest (`min-height: 44px`); the box was read while the card's arrival translate left its edges on fractional pixels. The test now reads the targets once settled, with the same bound (Gate D commit). Not seen in any other run.
+- **`tests/run10-private-vault.spec.ts:25`** (phone) ran out of its 5 s wait twice under two workers (`f27a448`, `c764d8b`): a 2 MB restore takes 2.7–3.9 s on `main` and this branch alike. The wait is 20 s, the assertion unchanged (`f6f5ba0`); 10 of 10 locally since.
+- **`tests/music.spec.ts:75`** failed once in CI (`c813de0`, desktop) and 1 run in 5 locally: an app bug, fixed (`ca49079`: focus waits until the panel is drawn).
+- The five intermittents Part 6 fixed and the two it monitors are in `docs/verification/x-cloud/part6/CI_INTERMITTENTS.md`; none of them failed on this PR after its fix.
+
+## Decisions made without the owner
+ADR-016 "Session decisions" X1–X60, each the safest option that keeps the brief's promises. The ones that go beyond the plan: the `next` 16.3.8 patch bump for six advisories (X23); the Alpha gate left strict while X-LOCAL's lazy chunk fails it (X46, owner decision H8); the browser shards' 45-minute limit (X59); J053's goal-card height left to the owner (Part 14); Q-SYNC-04 and Q-SYNC-05 not done because neither is behaviour-preserving (X38).
+
+## Owner items
+- Review the PR; merging and deploying stay yours (the Manual Alpha workflow from `main`).
+- **Decide:** the Alpha gate and ZIGi's lazy chunk (H8); the phone launcher's overlap (H7); the persona round's owner decisions (`PERSONAS_X.md`: Today's empty right column in two layouts, the phone banners' height, crypto words for people without crypto, Goal currencies beyond USD and EUR, accounts and assets as two money systems, deleting a habit, lb and fl oz history, grouping asset quantities); J053's goal-card height; Q-SYNC-04/05 and the FIX_PLAN items in `docs/ROADMAP_SWEEP_X.md` §2; the home GPU by `.local` name (X24).
+- **After the next deploy:** Connection diagnostics stop saying "Unavailable or changed" (Part 1); one look at Wealth → Portfolio in the phone Showcase for the #418 seen once on #32 (Part 14).
+- **Activation, when you choose:** push reminders (`docs/run11/PUSH_ACTIVATION.md`, acceptance stack first); the hosted relay with Anthropic (`docs/run11/ZIGI_RELAY_ACTIVATION.md`: a workspace spend limit first, your own account only).
+- **GitHub:** if a secret-scanning alert exists for the old literal in `apps/web/lib/ai/memory.test.ts`, dismiss it as a test value (X5).
+- **With X-LOCAL at merge time:** if this PR merges second, run H2's one-line `sed` on ZIGi's 19 files, then typecheck and the ZIGi suites; the second merger removes the stale secret-allowlist entry; the two load boundaries can become one (H9).
+- **Test:** the gallery [`review/session-x-screens`](https://github.com/reyals1111-ux/ZIGoals/blob/review/session-x-screens/index.md); the friends guide (`docs/friends-alpha/FRIENDS_GUIDE.md`).
+
+## Alpha deploy #32 and the market coordinator redeploy
+Recorded in their own entries below (owner-reported values; runs verified through the Actions API); Release identity now shows #32 live and #31 as the previous.
+
+# Alpha deploy #32 — 2026-10-07 evening, `72ad872` live
+Recorded by Session X-Cloud at the owner's request (2026-10-08).
+- **Source:** `72ad872a73ec14dd264260975d15a2fd3db8c699`, `main` after [PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77) (Merge #77, Session W).
+- **CI:** Milestone quality #587 ([run 37676079553](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37676079553)) on `72ad872`: success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 34 ([run 37680836969](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37680836969)), dispatched 2026-10-07 20:17 UTC from `main`, exact source `72ad872`: success. Verified: Actions API.
+- **Result:** the post-upload smoke's six reads passed; `VERIFIED` (owner-reported). Live prices `VERIFIED`; the price policy period ends 2026-10-31T16:00Z (owner-reported).
+- **Alpha Worker `zigoals-alpha`:** live version `892c7ad0-3a07-4d40-9a52-b523a877970c`; rollback `fd1ea000-c02a-4b5e-89bf-cb279253bffe` (#31). Owner-reported.
+- **Session W Part 23 (D2) on the live Alpha:** the owner's `curl` at 2026-10-07 20:32 UTC of `GET /_next/static/zigoals-missing.js` answered `404`, `text/plain; charset=utf-8`, with `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; sandbox` (owner-reported).
+- **Read-only check by this session:** `curl` of `https://alpha.zigoals.app/app` on 2026-10-07 and 2026-10-08 returned `X-ZIGoals-Build: 72ad872a73ec14dd264260975d15a2fd3db8c699` (local).
+- **What went live:** Session W ("Your whole life, one app", ADR-015).
+
+# Market coordinator redeploy — 2026-10-07, acceptance stack
+Recorded by Session X-Cloud at the owner's request (2026-10-08). Owner-reported values.
+- **Worker:** `zigoals-acctest-market-coordinator`, deployed 2026-10-07 19:45:57 UTC from `72ad872`.
+- **Versions:** new `3729a3cb-b25e-493a-bfce-02e0157da632`; rollback `72a2e886-c8c7-4171-9c75-8b2014fbc3eb`.
+- **Secrets:** names unchanged; the only one is `COINGECKO_DEMO_API_KEY` (its value was never handled by a session).
+
 # Session W — "Your whole life, one app" (ADR-015) (2026-10-06/07, [PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77), not merged or deployed)
 
 **Evidence labels:**
@@ -4931,12 +5105,15 @@ The section below still lists #39 and #42 as open; it was accurate when written.
 | Miniflare object proxies (17 run10/run11 files, the "possible intermittent" Session S noted) | Session S (local) | web checks (unit) | **Fixed in Session U** (`9cd9fd5`, test-only): a probe Worker on its own loopback socket, as Session S did for the erase test. 17 files × 20 runs clean |
 | `sync-inflight-edit-browser` / `sync-self-conflict-browser` "Sync was not confirmed" (the Monitor row above) | as above; local 4/10 and 3/21 with Session U's uncommitted logging | web integration job | **Root cause found and fixed in Session U** (`86c6106`, test harness only): the harness held the Worker's answer across an await, and undici cancels a body whose Response is collected unread; the relay then read 0 bytes. The harnesses read the answer at once; the relay is unchanged. 20/20 and 20/20 locally |
 | `brand-nav-polish.spec.ts:101` (phone) "reduced motion and the Off preference …" | CI: #74 (run 37255944690) | web browser suite | **Not an intermittent: Session U Part 3** made the Health link a full page load; the spec now waits for the load and for Motion Off (`7417cdc`, `4068a83`). 20/20 locally |
-| `account-browser` (a-first reconnect) 90 s vitest timeout (the row fixed in #46) | CI: once on #77 (`ff5042b`, run 37656929324 attempt 1); its one re-run passed | web integration job | Monitor |
-| `run11-route-mobile-acceptance.spec.ts:4` (desktop) 45 s test timeout: up to 30 routes in one test | CI: once on #77 (`06de700`, run 37647165195); 22–24 s alone on main's build and on #77's | web browser suite | Monitor |
-| `push-reminders.spec.ts:210`: no notification within 10 s after a push delivered through CDP | CI: twice on #77 (`261a2b5` phone, run 37555158234, beside React #418 errors; `8e182b0` desktop, run 37635895908); 8/8 locally | web browser suite | Monitor |
-| `market-disconnect.test.mjs` `beforeAll` 45 s hook timeout (the row above) | CI: once on #77 (`56e55cc`, run 37604132447) | web checks (unit) | Monitor |
-| `public-alpha.spec.ts:119` (phone): "Confirm simulation" never appeared after Withdraw | CI: once on #77 (`b3ec0d9`, run 37663282444, the Public Alpha Workers gate); 8/8 locally, 4/4 with the page's CPU throttled 8× | web integration job | The test waits for each simulation's review to close since `02e0df7` (#77); the cause is not established (that job keeps no trace). Monitor |
-| Canonical reproducibility: the `compare` job never created, both builds green | CI: once on #77 (`5d6a3b4`, run 37642196583) | reproducibility workflow | Monitor (infrastructure) |
+| `account-browser` (a-first reconnect) 90 s vitest timeout (the row fixed in #46) | CI: once on #77 (`ff5042b`, run 37656929324 attempt 1); its one re-run passed | web integration job | **Fixed in Session X** (`ff6b289`, test-only): cold starts paid once in `beforeAll`, five phase deadlines inside the same journey; green in every integration job of #78 since |
+| `run11-route-mobile-acceptance.spec.ts:4` (desktop) 45 s test timeout: up to 30 routes in one test | CI: once on #77 (`06de700`, run 37647165195) and once on #78 before its fix (`215a1bd`, run 37693008484); 22–24 s alone on main's build and on #77's | web browser suite | **Fixed in Session X** (`2165734`, test-only): three tests on one page, the same visits and checks plus a count |
+| `push-reminders.spec.ts:210`: no notification within 10 s after a push delivered through CDP | CI: twice on #77 (`261a2b5` phone, run 37555158234, beside React #418 errors; `8e182b0` desktop, run 37635895908); 8/8 locally | web browser suite | **Fixed in Session X** (`a66acc2`, test-only): Chrome's `getNotifications()` drops an entry it reads before display; the test reads only after `showNotification` resolved |
+| `market-disconnect.test.mjs` `beforeAll` 45 s hook timeout (the row above) | CI: once on #77 (`56e55cc`, run 37604132447) | web checks (unit) | **Fixed in Session X** (`7365aa4`, CI placement): it runs in the integration job with the other browser files, not beside ~450 files in `pnpm test` |
+| `public-alpha.spec.ts:119` (phone): "Confirm simulation" never appeared after Withdraw | CI: once on #77 (`b3ec0d9`, run 37663282444, the Public Alpha Workers gate); 8/8 locally, 4/4 with the page's CPU throttled 8× | web integration job | The test waits for each simulation's review to close since `02e0df7` (#77); the cause is not established (that job keeps no trace). Session X keeps the gate's traces (`7365aa4`); not seen again on #78. Monitor |
+| Canonical reproducibility: the `compare` job never created, both builds green | CI: once on #77 (`5d6a3b4`, run 37642196583) | reproducibility workflow | Monitor (infrastructure): GitHub-side, nothing in the workflow to change (Session X Part 6); green on every run of #78 |
+| `guide.spec.ts:46` (phone): a 44 px Guide control measured 43.99997 px | CI: once on #78 (`d8de111`, run 37767771822) | web browser suite | **Fixed in Session X** (`c8e1d78`, test-only): read while the card's arrival translate left fractional edges; the targets are read once settled, the same ≥ 44 bound |
+| `run10-private-vault.spec.ts:25` (phone): "Health restored." not within 5 s | CI: twice on #78 (`f27a448`, run 37699657483; `c764d8b`, run 37774486603) | web browser suite | **Fixed in Session X** (`f6f5ba0`, test-only): a 2 MB restore takes 2.7–3.9 s on `main` and #78 alike; the wait is 20 s, the assertion unchanged; 10/10 locally |
+| `music.spec.ts:75` (desktop): focus not in the panel | CI: once on #78 (`c813de0`, run 37708194891); 1 in 5 locally | web browser suite | **Not an intermittent: an app bug**, fixed in Session X (`ca49079`): the focus effect could run before the panel was drawn |
 
 # Alpha deploy — 2026-09-29 evening, `07f5c90` live
 
@@ -5067,7 +5244,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-07 for the [Alpha deploy #31](#alpha-deploy-31--2026-10-06-evening-1063765-live) record near the top of this file (recorded by Session W at the owner's request).
+Updated 2026-10-08 for the [Alpha deploy #32](#alpha-deploy-32--2026-10-07-evening-72ad872-live) record near the top of this file (recorded by Session X-Cloud at the owner's request).
+- Deployed source `72ad872a73ec14dd264260975d15a2fd3db8c699`, `main` after [PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77) (Merge #77, Session W). Verified: Actions API.
+- CI: Milestone quality #587 ([run 37676079553](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37676079553)) on `72ad872`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 34 ([run 37680836969](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37680836969)), exact source `72ad872`: success; the smoke's six reads passed; `VERIFIED` (owner-reported). Verified: Actions API for the run.
+- Alpha Worker `zigoals-alpha`: live version `892c7ad0-3a07-4d40-9a52-b523a877970c`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `fd1ea000-c02a-4b5e-89bf-cb279253bffe` (#31). Owner-reported.
+
+Previous release identity (#31, 2026-10-06 evening, recorded by Session W):
 - Deployed source `1063765e312eb02e736e51d95e7cddcdabef8479`, `main` after [PR #76](https://github.com/reyals1111-ux/ZIGoals/pull/76) (Merge #76, Session V). Verified: Actions API.
 - CI: Milestone quality #550 ([run 37517013114](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37517013114)) on `1063765`: success (attempt 2). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 33 ([run 37523679885](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37523679885)), exact source `1063765`: red only because its post-upload smoke ran before propagation; `VERIFIED` by the owner afterwards (owner-reported, manual). Verified: Actions API for the run.
