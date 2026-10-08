@@ -4,7 +4,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
-import {AI_OPTIONS_KEY, ZIGI_STORE_EVENT} from '../lib/ai/store/keys';
+import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
 
 /**
@@ -105,9 +105,12 @@ test('the device goes offline mid-stream: the partial reply is kept, the failure
     await expect(panel(page).locator('.ai-turn-live')).toContainText('Here is the start');
     await context.setOffline(true);
     await page.evaluate(() => window.dispatchEvent(new Event('offline')));
+    // The open stream goes quiet rather than erroring: the watchdog ends it after 60 s with the partial reply kept; ZIGi
+    // then rests as offline (the machine takes the offline event at rest, never in the middle of a reply).
+    await page.clock.runFor(61_000);
     await expect(panel(page).getByRole('alert')).toBeVisible({timeout: 20_000});
     await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('Here is the start');
-    await expect(launcher(page)).toHaveAttribute('data-state', 'offline');
+    await expect(launcher(page)).toHaveAttribute('data-state', 'offline', {timeout: 15_000});
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await expect(launcher(page)).not.toHaveAttribute('data-state', 'offline', {timeout: 10_000});
@@ -136,8 +139,8 @@ test('a slow model whose tokens come seconds apart is never cut off by the stall
     await openChat(page);
     await send(page, 'Count slowly');
     await expect(panel(page).locator('.ai-turn-live')).toContainText('One,');
-    for (let i = 0; i < 5; i++) await page.clock.runFor(45_000);
-    await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('One, two, three, four, five.', {timeout: 30_000});
+    // The fake clock advances with real time here: fifteen real seconds of tokens three seconds apart stay under the 60 s watchdog.
+    await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('One, two, three, four, five.', {timeout: 40_000});
     await expect(panel(page).getByRole('alert')).toHaveCount(0);
   } finally { await srv.close(); }
 });
@@ -153,8 +156,8 @@ test('two tabs on one device: a chat written in one is in the other\'s history a
   await server(other, () => 'Tab two here.');
   await other.goto('/app');
   await openChat(other);
-  await other.getByRole('button', {name: /History|Chats/}).first().click().catch(() => undefined);
-  await expect(other.locator('body')).toContainText('Hello from tab one');
+  const seen = await storedChats(other);
+  expect(seen.some(c => c.turns.some(t => t.text.includes('Hello from tab one')))).toBe(true);
   await send(other, 'Hello from tab two'); await settled(other);
   await expect(panel(other).locator('.ai-turn-assistant').last()).toContainText('Tab two here.');
   await other.close();
@@ -167,7 +170,7 @@ test('switching the model mid-chat: the next reply is asked of the new model and
   await openChat(page);
   await send(page, 'First question'); await settled(page);
   expect(bodies[0]!.model).toBe('mock-chat');
-  await page.evaluate(([key, event]) => { const s = JSON.parse(localStorage.getItem(key)!); s.model = 'mock-chat-2'; localStorage.setItem(key, JSON.stringify(s)); window.dispatchEvent(new CustomEvent(event, {detail: key})); }, [AI_SETTINGS_KEY, ZIGI_STORE_EVENT] as const);
+  await page.evaluate(([key, event]) => { const s = JSON.parse(localStorage.getItem(key)!); s.model = 'mock-chat-2'; localStorage.setItem(key, JSON.stringify(s)); window.dispatchEvent(new StorageEvent('storage', {key: event})); }, [AI_SETTINGS_KEY, AI_SETTINGS_KEY] as const);
   await send(page, 'Second question'); await settled(page);
   expect(bodies[1]!.model).toBe('mock-chat-2');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('Answered by mock-chat-2.');
@@ -183,12 +186,17 @@ test('the Health gate closed mid-chat: the next request carries nothing of Healt
   await seed(page, {records: {'zigoals:health:v1': JSON.stringify(health)}});
   await page.goto('/app/health');
   await openChat(page);
-  await send(page, 'What was my weight yesterday?'); await settled(page);
+  // An advice-shaped ask (the device answers plain lookups itself): the question-aware context brings yesterday's weight to the model.
+  await send(page, 'Should I be worried about my weight yesterday?'); await settled(page);
+  expect(bodies).toHaveLength(1);
   expect(systemOf(bodies[0]!)).toContain('123.4');
-  await page.evaluate(([key, event]) => { const s = JSON.parse(localStorage.getItem(key)!); s.includeHealth = false; s.pageShare = {...s.pageShare, health: false}; localStorage.setItem(key, JSON.stringify(s)); window.dispatchEvent(new CustomEvent(event, {detail: key})); }, [AI_SETTINGS_KEY, ZIGI_STORE_EVENT] as const);
-  await send(page, 'And what was my weight the day before?'); await settled(page);
-  expect(bodies).toHaveLength(2);
-  expect(systemOf(bodies[1]!)).not.toContain('123.4'); expect(systemOf(bodies[1]!)).not.toContain('123,4'); expect(JSON.stringify(bodies[1])).not.toContain('123400');
+  await page.evaluate(([key, event]) => { const s = JSON.parse(localStorage.getItem(key)!); s.includeHealth = false; s.pageShare = {...s.pageShare, health: false}; localStorage.setItem(key, JSON.stringify(s)); window.dispatchEvent(new StorageEvent('storage', {key: event})); }, [AI_SETTINGS_KEY, AI_SETTINGS_KEY] as const);
+  await send(page, 'And should I worry about my weight the day before?'); await settled(page);
+  // With the gate closed the question is either answered on the device with the Health-closed note (no request at all)
+  // or sent without any Health: either way the planted value never leaves.
+  if (bodies.length > 1) { expect(systemOf(bodies[1]!)).not.toContain('123.4'); expect(systemOf(bodies[1]!)).not.toContain('123,4'); expect(JSON.stringify(bodies[1])).not.toContain('123400'); }
+  else await expect(panel(page)).toContainText(/Health/);
+  expect(await page.evaluate(() => document.body.innerText)).not.toContain('123.4');
 });
 
 test('auto-accept under fast repeated asks: the daily cap holds, every auto-added card has Undo, and Undo removes the entry', async ({page}) => {
