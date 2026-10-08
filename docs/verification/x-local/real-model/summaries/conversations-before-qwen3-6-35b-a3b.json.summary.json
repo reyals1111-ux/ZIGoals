@@ -10,7 +10,9 @@
    "passed": 6,
    "scored": 10,
    "errors": 0,
-   "replyMedianMs": 17952
+   "replyMedianMs": 16784,
+   "first": "2026-10-08T03:53:19.983Z",
+   "last": "2026-10-08T03:55:49.377Z"
   },
   {
    "model": "qwen3.6:35b-a3b",
@@ -20,7 +22,9 @@
    "passed": 14,
    "scored": 15,
    "errors": 0,
-   "replyMedianMs": 2365
+   "replyMedianMs": 2365,
+   "first": "2026-10-08T03:52:06.717Z",
+   "last": "2026-10-08T03:53:14.477Z"
   }
  ]
 }

@@ -10,7 +10,9 @@
    "passed": 16,
    "scored": 18,
    "errors": 0,
-   "replyMedianMs": 16108
+   "replyMedianMs": 15987,
+   "first": "2026-10-08T04:21:13.601Z",
+   "last": "2026-10-08T04:25:34.606Z"
   },
   {
    "model": "qwen3.6:35b-a3b",
@@ -20,7 +22,9 @@
    "passed": 17,
    "scored": 18,
    "errors": 0,
-   "replyMedianMs": 1878
+   "replyMedianMs": 1871,
+   "first": "2026-10-08T04:19:02.090Z",
+   "last": "2026-10-08T04:19:59.311Z"
   },
   {
    "model": "qwen3.6:35b-a3b",
@@ -30,7 +34,9 @@
    "passed": 16,
    "scored": 18,
    "errors": 0,
-   "replyMedianMs": 1763
+   "replyMedianMs": 1708,
+   "first": "2026-10-08T04:20:07.145Z",
+   "last": "2026-10-08T04:21:06.257Z"
   }
  ]
 }

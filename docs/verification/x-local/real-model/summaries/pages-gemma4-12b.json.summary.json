@@ -10,7 +10,9 @@
    "passed": 162,
    "scored": 170,
    "errors": 0,
-   "replyMedianMs": 1186
+   "replyMedianMs": 1182,
+   "first": "2026-10-08T04:03:47.514Z",
+   "last": "2026-10-08T04:09:08.752Z"
   }
  ]
 }
