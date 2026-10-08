@@ -4,6 +4,9 @@
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   /* Large titles: the page's own h1, eyebrow and lede, tightened for a phone. */
   :root main .page-header { margin: 10px 0 18px; }
+  /* With no header tools above the actions, the eyebrow takes the whole row instead of the column beside "+ Create a
+     goal": at 320 px it wrapped to four lines and pushed Goals' title below the tab bar (Session X, CI on 645ffbb). */
+  :root main .page-header:not(:has(> .page-header-tools)) > .page-eyebrow { grid-column: 1 / -1; }
   :root main .page-heading h1, :root main .page-header h1 { font-size: clamp(28px, 8.4vw, 34px); line-height: 1.12; letter-spacing: -.02em; }
   :root main .page-lede { font-size: 17px; line-height: 1.5; }
 
