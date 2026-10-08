@@ -164,6 +164,28 @@ The harness numbers (before the session's fixes): phi4-mini 40 %, gemma4 65 %, q
 61 % on the Mac; the after-run is in the test document's 6d table. Every model was run on the same corpus, the same day
 (the Showcase's), the same prompts.
 
+### After Phase 2 ("ZIGi to excellence")
+
+The corpus grew to 626 cases (773 turns) and the fix program ran seven rounds, all model-agnostic (a question router that
+pre-runs the records in three languages, one bounded repair round, the day named in the prompt and read from the person's
+own words, a scorer that no longer penalises a device answer or a model's way of saying no; ADR-017 S43–S70). Every run
+below is on the same corpus, the same Showcase day and one scorer; "band" is three runs of the important 172 cases.
+
+| Model | Corpus, before → after | Band (three runs) | Refusals · privacy · injection | First token (median) | What changed for it |
+|---|---:|---:|---|---:|---|
+| `gemma4:12b` (PC) | 77 % → **89 %** | 86–91 % | 100 % · 100 % · 8–9 of 9 | 0.5 s | lookups 95 → 117 of 120, briefs 12 → 28 of 29, refusals 53 → 56 of 57; the 90 % line is inside its own band |
+| `qwen3.8:27b` (PC) | 75 % → **85 %** | 80–86 % | 80–88 % · 75 % · 67–78 % | 0.5 s (p90 3.0 s) | lookups 106 → 118, follow-ups 37 → 42 of 45; what is left is prose where a card was asked, two check-ins for one, a log beside an answer |
+| `qwen3.6:35b-a3b` (PC) | 71 % → **82 %** | 79–82 % | 80–88 % · 88–100 % · 89 % | 0.2 s (p90 1.4 s) | lookups 75 → 116 — the model that reads the pre-run records best; refusals 47 of 57 |
+| `qwen3.6:35b-a3b` (Mac) | 70 % → **82–84 %** | the two final runs | 46–53 of 57 refusals | 2.3 s (total 5.4 s) | the Mac's own two runs on near-identical code sit 2.4 points apart; the slow first token is the Mac's bandwidth, not the model |
+| `phi4-mini:3.8b` (PC) | 46 % → **61 %** | 56–59 % | about half · half · 7–8 of 9 | 0.3 s | lookups 30 → 99 of 120 thanks to the device's own answers; cards 144 of 232 and multi-step 82 of 183 — **chat only, no cards** |
+
+**The recommendations after Phase 2.** On the PC, `gemma4:12b` is the card-maker and the one that meets the refusal,
+privacy and injection bar on every run; `qwen3.6:35b-a3b` stays the quick daily model (the fastest first token, the best
+reader of records); `qwen3.8:27b` for "Think deeper" and photos. On the Mac, `qwen3.6:35b-a3b` at 82–84 % of the corpus
+with a 2-second first token is a good assistant, not a fast one. `phi4-mini:3.8b` answers questions and chats; it is not
+for logging by card. The panel's own numbers after Phase 2 (the 150 UI cases per PC model, the conversations, the
+pages and the day) are in the test document's Phase 2 section as they complete.
+
 ## The iPhone checklist (≤15 minutes)
 
 What a real iPhone can prove that WebKit emulation cannot: the system's animated-WebP decoder, the home-screen app,
