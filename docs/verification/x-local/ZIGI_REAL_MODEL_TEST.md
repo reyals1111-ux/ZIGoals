@@ -225,8 +225,24 @@ already (gemma4 53/57, 11/13, 19/20).
 
 ### After the fix program (the current code, the same 626 cases)
 
-_Filled in as each after-run ends: the table, the per-kind movement, the miss categories that remain, and the fix → re-run
-rounds until the P2.3 targets are met or proven out of reach for a model._
+_The table fills in as each run ends (raw and corrected rates, the per-kind movement, the miss categories that remain)._
+
+**The first after-run (the P2.2 fix program as pushed that morning, code `0fb7066`)** moved phi4-mini 41.7 → 54.1 % raw and
+gemma4 73.0 → 78.5 % raw (lookups 63 → 78 of 120, multi-step 132 → 158 of 183, briefs 12 → 18 of 29), and showed two things
+the fix program had introduced:
+- the repair round fired on lookups, refusals and injection cases whenever a stray block had been refused, and the second
+  ask with the schema then invented cards (phi4-mini: 156 of 773 replies repaired, 26 passing; 29 passed before and failed
+  after, 13 of them refusals, injection and lookups; ten of its eleven over-proposal dumps were repair replies) — narrowed
+  in **fix round 1** (ADR S59: only an ask that wants a card, never deletes, money or secrets, never after a decline);
+- the same 32 turns failed on every model and run on a tool expectation a device answer made moot — the oracle
+  contradiction corrected in the scorer (ADR S61; the baseline's corrected rates above).
+
+**Fix round 2 (ADR S62)** was read off gemma4's remaining misses (cards 73, tool 44, schema 28, fields 27, refusal 14 of
+166): the corpus's relative days derived from the harness's own Showcase day and the schedule expectations in the schema's
+shape (oracle), the goal-edit, recipe, edit-versus-create and cards-over-figures sentences in the specialists, no pre-run
+for widget and link asks, two intent cues (prompt and router). Rounds 1 and 2 run together as the PC re-run on
+`5bd7f2d`; the Mac after-run is on the same code.
+
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
