@@ -1,0 +1,27 @@
+/**
+ * Session X-Local Phase 2 (P2.2b): what a message asks for, read on the device before and after the model replies, in
+ * English, Dutch and French. A logging or planning intent that came back without a proposal block gets one bounded
+ * repair round (the app and the harness share this rule); a lookup intent lets the question-aware router pre-run the
+ * records. Nothing here decides a card's content: it only tells whether a card was asked for at all.
+ */
+export type Intent = {log: boolean; plan: boolean; lookup: boolean; vague: boolean};
+const LOG_VERB = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |yeah |right |and |also |oh )*(?:log|record|track|note|noteer|notez?|enregistre|ajoute|add|mark|tick|coche|vink|skip|sla|saute|put|zet|mets|log it|weight|gewicht|poids|breakfast|lunch|dinner|ontbijt|déjeuner|dîner|snack|supper)\b/i;
+const STATEMENT = /^(?:so |um+ |uh+ |ok |okay |yeah |right |today |yesterday |this morning |last night |for lunch |for breakfast |for dinner |vandaag |gisteren |hier |ce matin |aujourd'hui )?(?:i|i've|i have|i just|we|ik|ik heb|j'ai|je|j'|je viens de|on a)\s+(?:ate|eat|had|drank|drink|did|do|ran|run|walked|walk|slept|sleep|weigh|weighed|meditated|read|took|finished|completed|went|was|crashed|napped|heb|ben|woog|weeg|liep|sliep|at|dronk|las|gelezen|gewandeld|geslapen|gemediteerd|gegeten|gedronken|a|ai|suis|pèse|pesais|couché|dormi|mangé|bu|couru|marché|médité|lu|fait)\b/i;
+const QUANTITY = /\b\d+(?:[.,]\d+)?\s*(?:kg|kilos?|lbs?|pounds?|g|grams?|gram|ml|millilit\w*|l|litres?|liters?|oz|ounces?|cups?|glasses|glazen|verres?|steps|stappen|pas|minutes?|mins?|minuten|hours?|uur|uren|heures?|kcal|calories|calorieën|km|miles?|reps|push-?ups|pages|pagina's|pagina’s|x)\b/i;
+const NUMBER_WORD = /\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|hundred|half|a couple of|een|twee|drie|vier|vijf|zes|tien|twintig|dertig|honderd|un|une|deux|trois|quatre|cinq|six|dix|vingt|trente|cent)\s+(?:\w+\s+)?(?:kg|kilos?|lbs?|pounds?|grams?|ml|litres?|liters?|oz|cups?|glasses|glazen|verres?|steps|stappen|pas|minutes?|mins?|minuten|hours?|uur|uren|heures?|kcal|calories|km|miles?|reps|push-?ups|pull-?ups|squats|pages|pagina's|pagina’s|eggs|eieren|œufs)\b/i;
+const CLOCK = /\b\d{1,2}[:h.]\d{2}\b|\b\d{1,2}\s?(?:am|pm)\b|\bfrom \d{1,2}(?::\d{2})? to \d{1,2}|\bvan \d{1,2}(?::\d{2})? tot \d{1,2}|\bde \d{1,2}h/i;
+const PLAN = /\b(?:plan|planning|create|make|new habit|a habit|habit:|nieuwe gewoonte|gewoonte|habitude|goal|doel|objectif|remind|reminder|herinner|rappel|challenge|uitdaging|défi|stack|stapel|enchaîne|widget|link|lien|milestone|mijlpaal|jalon|intention|intentie|remember|onthoud|retiens|recipe|recept|recette|grocer|boodschappen|courses|meal|maaltijd|repas|fast|vasten|jeûne|mood|humeur|stemming)\b/i;
+const LOOKUP = /\b(?:how (?:many|much|far|long|often|close|did|is|are|was|were)|what(?:'s| is| was| were| did| do| have)?|which|when|total|did i|do i|have i|am i|did my|does my|do my|is my|are my|was my|were my|has my|have my|is there|average|avg|longest|best|streak|show|compare|hoeveel|hoe (?:vaak|lang|ver|is|was|heb|ben|gaat)|wat (?:is|was|heb|staat)|welke|wanneer|combien|quel(?:le)?s?|où en|quand|comment|est-ce que|ai-je|suis-je)\b/i;
+const QUESTION = /\?\s*$/;
+/** One or two words with nothing to log or plan from ("Log it", "Add a habit", "Change my goal"): a clarifying question is the right reply. */
+const VAGUE = /^(?:log it|note that|track this|skip it|mark it done|remind me|add a habit|change my goal|a goal for \d+|put that on today|the same as yesterday|log my weight|remind me to \w+|noteer het|note-le|voeg een gewoonte toe|change mon objectif|water)\s*[.!]?$/i;
+export function detectIntent(text: string): Intent {
+  const t = text.trim();
+  const vague = VAGUE.test(t);
+  const lookup = !vague && LOOKUP.test(t) && (QUESTION.test(t) || !LOG_VERB.test(t)) && !STATEMENT.test(t);
+  const log = !vague && !lookup && (LOG_VERB.test(t) || STATEMENT.test(t) || ((QUANTITY.test(t) || NUMBER_WORD.test(t)) && !PLAN.test(t)) || (CLOCK.test(t) && /\b(slept|sleep|bed|nap|geslapen|dormi|couché)\b/i.test(t)));
+  const plan = !vague && !lookup && !log && PLAN.test(t) && !QUESTION.test(t);
+  return {log, plan, lookup, vague};
+}
+/** Whether a reply with no proposal block should get the bounded repair round: a log or plan intent, and the reply did not ask a question back. */
+export const wantsCard = (intent: Intent, reply: string): boolean => (intent.log || intent.plan) && !intent.vague && !/\?/.test(reply.trim().slice(-200));

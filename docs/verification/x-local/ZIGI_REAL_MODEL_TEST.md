@@ -37,14 +37,14 @@ re-run after every app-side fix for the before/after table in 6d.
 
 | Volume asked for | Plan | Done |
 |---|---|---:|
-| The full corpus (≥600 cases: 272 golden + 338 model-scored, 361 turns) through the Node harness on every model | 5 models × 361 turns, before and after the fixes | _(running)_ |
-| The 100 most important cases, 3× per model, for variance | 5 models × 300 runs | _(pending)_ |
+| The full corpus (272 golden + 338 model-scored, 361 turns) through the Node harness on every model | 5 models × 361 turns, before and after the fixes | 3,610 runs (two passes) |
+| The 100 most important cases, 3× per model, for variance | 5 models × 330 runs (110 turns × 3) | 1,650 runs |
 | UI-driven cases through the real panel in Chrome: ≥150 per RTX 5090 model, ≥60 on the Mac model | `tests/zigi-real-model.spec.ts`, desktop | 150 × 4 PC models + 60 on the Mac = 660 |
 | ≥50 multi-turn conversations (plan → correct → accept → undo) | `tests/zigi-conversations.spec.ts`: 15 × 4 PC models + 10 on the Mac = 70 | 70 before and 70 after the protocol change (140) |
 | ≥10 human-style conversations per page, every page, desktop and phone | `tests/zigi-pages-conversations.spec.ts`: 17 areas × 10 asks, desktop + phone on `qwen3.6:35b-a3b` (PC), desktop on `gemma4:12b` | 3 runs × 170 = 510 asks |
 | Three "day in the life" scenarios end to end, ZIGi's state checked at each step | `tests/zigi-day-in-the-life.spec.ts` on `qwen3.6:35b-a3b` (PC, desktop + phone) and the Mac | 3 runs × 18 steps = 54 |
 | Meal photos through the real panel (owner addition 11): the four photos below on every model that reads images | `tests/zigi-photo.spec.ts` on `qwen3.8:27b`, `gemma4:12b`, `qwen3.6:35b-a3b` (PC) and `qwen3.6:35b-a3b` (Mac); `phi4-mini` reads no images; the weekday scenario's breakfast goes by photo too | _(pending)_ |
-| A full re-run of the matrix after the fixes | the harness, all five models | _(pending)_ |
+| A full re-run of the matrix after the fixes | the harness, all five models | done (the 6d table) |
 
 ### Hours
 _(the table is pasted here at Gate B and again at Part 10)_
@@ -68,6 +68,21 @@ points, phi4-mini +6.4, qwen3.6 +4.4 on the PC and +1.3 on the Mac, qwen3.8 +1.4
 on in the first pass (gemma4 1.4 s → 0.23 s, qwen3.8 1.7 s → 0.37 s; S35). The Mac's first token rose (1.3 s → 2.1 s):
 the second pass carried the longer protocol of the fixes through a bandwidth-bound machine, and 38 seconds of it overlapped
 two local browser specs run by mistake (noted in the hours log); the PC's qwen3.6 shows no such change (158 → 159 ms).
+
+**Variance: the important hundred (110 turns), three runs per model, after the fixes.** The spread is the gap between the
+best and the worst run; "in every run" and "in none" count the cases that are stable either way, "mixed" the ones that
+depend on the draw.
+
+- `qwen3.6:35b-a3b` (Mac M1 Max): pass rate per run 56.4 %, 65.5 %, 67.3 % (spread 10.9 points); cases passing in every run 54, in none 27, mixed 29 of 110; total-latency medians per run 4644, 2548, 2878 ms
+- `gemma4:12b` (RTX 5090): pass rate per run 70.9 %, 71.8 %, 69.1 % (spread 2.7 points); cases passing in every run 70, in none 26, mixed 14 of 110; total-latency medians per run 880, 614, 515 ms
+- `phi4-mini:3.8b` (RTX 5090): pass rate per run 54.5 %, 55.5 %, 48.2 % (spread 7.3 points); cases passing in every run 48, in none 40, mixed 22 of 110; total-latency medians per run 268, 193, 203 ms
+- `qwen3.6:35b-a3b` (RTX 5090): pass rate per run 65.5 %, 61.8 %, 60.0 % (spread 5.5 points); cases passing in every run 50, in none 25, mixed 35 of 110; total-latency medians per run 673, 437, 404 ms
+- `qwen3.8:27b` (RTX 5090): pass rate per run 65.5 %, 60.9 %, 64.5 % (spread 4.5 points); cases passing in every run 55, in none 24, mixed 31 of 110; total-latency medians per run 2083, 1398, 1333 ms
+
+gemma4 is the steadiest (2.7 points), the Mac the widest (10.9 points): its first run overlapped the first minute of a
+gemma4 harness attempt on the same Mac (aborted at 06:21, noted in the hours log), which also explains that run's slower
+median. A case that passes in some runs and not others is a model's coin flip, not an app defect: the fix program (Phase
+2) targets the "in none" cases first.
 
 
 Findings so far (the tables below are rendered from the JSON files by the session's summariser and pasted as the runs complete):
