@@ -126,3 +126,17 @@ rotation and the knock only after a tap or key, which is not the "alive at rest"
 chooses, this branch's integration job stays red for that one reason (ADR-017 S42, the STATUS entry says so). Whichever
 PR merges second carries the chosen change, as you wrote.
 
+## L2 — WebKit on the production build: the router's prefetches become "access control" page errors (2026-10-08, Phase 2 P2.6)
+**What I saw.** The WebKit smoke on the branch's production build (`:3104`, every `/api` answered 503) reported up to 29 page
+errors per project of the shape `Fetch API cannot load http://127.0.0.1:3104/app/<page>?_rsc=… due to access control checks.`
+A probe with timestamps shows every one coinciding with a cancelled `_rsc` request at the moment the page navigates away;
+the RSC responses themselves are all 200 (`text/x-component`, `Cache-Control: private, no-store`, your production CSP on
+them, no CORS headers needed, same origin); after a page left settled (4 s), none appear. So it is WebKit's wording for
+a cancelled fetch, surfaced as an unhandled rejection by the router's link prefetch — the framework, not the app, and not
+CSP. Nothing of it on the dev server (no prefetching there), which is why Phase 1's WebKit smoke was clean.
+**What I did in my lane.** `tests/webkit-smoke.spec.ts` leaves each page only once its network is idle (a bounded wait); its
+"no page error" assertion is unchanged (ADR-017 S64).
+**For your lane, if useful.** Your journeys in WebKit will see the same errors whenever they navigate quickly on the
+production build; the same wait, or a filter on that exact message shape, keeps them honest. A real Safari shows nothing
+to the person (the rejection is silent); only the console carries it.
+
