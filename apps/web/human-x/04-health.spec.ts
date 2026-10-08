@@ -3,6 +3,8 @@ import {createEmptyHealth, HEALTH_STORAGE_KEY, healthSchema, logHealthItem, save
 import {journey, noSideways, open, ready, snap, type Journey} from './kit';
 
 // Session X Part 14, journeys J091–J135: Health, Sleep, Meditation, Devices (docs/verification/x-cloud/HUMAN_TEST.md).
+/** The fasting sessions: in the Health record with sync writes on (W1), else in the device key zigoals:fasting:v1. */
+const fastingSessions = (page: Page) => page.evaluate(() => { const health = JSON.parse(localStorage.getItem('zigoals:health:v1') ?? 'null'); return (health?.fasting ?? JSON.parse(localStorage.getItem('zigoals:fasting:v1') ?? '{"sessions":[]}')).sessions ?? []; });
 const health = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:health:v1') ?? 'null'));
 async function view(page: Page, name: string) { await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click(); }
 /** On a phone, Sleep, Meditation and the Fasting timer sit in folds on the Health page (health-app.tsx); this opens one. */
@@ -117,8 +119,8 @@ journey('J104', 'fasting: start 16:8, stop early; only hours and the target are 
   await expect(fasting.getByRole('status')).toContainText('Your target was 16 h.');
   const stored = JSON.stringify(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([k]) => k.includes('fasting')))));
   expect(stored).not.toMatch(/streak|record|calorie/i);
-  // The fast is kept as its times and its target only (zigoals:fasting:v1).
-  const sessions = (await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:fasting:v1') ?? '{"sessions":[]}'))).sessions as Record<string, unknown>[];
+  // The fast is kept as its times and its target only; with sync writes on (W1) fasting lives in the Health record.
+  const sessions = await fastingSessions(page) as Record<string, unknown>[];
   expect(sessions).toHaveLength(1);
   const fast = sessions[0]!;
   expect(Object.keys(fast).every(k => ['id', 'startedAt', 'endedAt', 'targetHours', 'timeZone', 'stoppedBy'].includes(k)), JSON.stringify(fast)).toBe(true);
@@ -533,7 +535,7 @@ journey('J105', 'a fast left running is stopped automatically at 24 hours when t
   await expect(fasting.getByRole('status')).toHaveText('This fast was stopped automatically at 24 hours.');
   await expect(fasting.getByRole('button', {name: 'Start fast', exact: true})).toBeVisible();
   await expect(fasting.locator('.fasting-history li').first()).toContainText('24.0 h · target 16 h · stopped at 24 h');
-  const sessions = (await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:fasting:v1') ?? '{"sessions":[]}'))).sessions as {startedAt: string; endedAt: string; stoppedBy: string}[];
+  const sessions = await fastingSessions(page) as {startedAt: string; endedAt: string; stoppedBy: string}[];
   expect(sessions).toHaveLength(1);
   expect(sessions[0]!.stoppedBy).toBe('limit');
   expect(Date.parse(sessions[0]!.endedAt) - Date.parse(sessions[0]!.startedAt)).toBe(24 * 3_600_000);

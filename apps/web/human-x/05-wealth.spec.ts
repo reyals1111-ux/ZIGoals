@@ -157,7 +157,8 @@ journey('J180', 'an asset name with emoji and 100 characters stays inside the pa
   expect(name).toHaveLength(100);
   await open(page, '/app/wealth');
   await addAsset(page, 'Cash', [['Asset name', name], ['Cash amount', '10']]);
-  expect((await stored(page, PLATFORM_KEY)).positions.map((p: {providerId: string}) => p.providerId)).toEqual([name]);
+  // The field holds 100 characters; the app trims the space the cut leaves at the end.
+  expect((await stored(page, PLATFORM_KEY)).positions.map((p: {providerId: string}) => p.providerId)).toEqual([name.trim()]);
   const width = page.viewportSize()!.width;
   const inside = async (box: {x: number; width: number} | null, what: string) => { expect(box, what).not.toBeNull(); expect(box!.x, what).toBeGreaterThanOrEqual(-0.5); expect(box!.x + box!.width, what).toBeLessThanOrEqual(width + 0.5); };
   const card = page.locator('.owned-asset-card').filter({hasText: 'Fictional 🏦'});
@@ -854,4 +855,55 @@ journey('J164', 'Staking at 320 px: the title on the first screen, cards inside 
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
   await snap(j, 'J164', 'staking-320');
+});
+
+journey('J168', 'Ecosystem: network tools and integration readiness, every link safe', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  const outside: string[] = [];
+  page.on('request', r => { if (/zigchain\.com|zigscan\.org|range\.org/.test(new URL(r.url()).hostname)) outside.push(r.url()); });
+  await open(page, '/app/ecosystem');
+  await expect(page.locator('main')).toContainText('External investment and funding integrations are disabled.');
+  const tools = page.locator('details.ecosystem-tools');
+  await tools.locator(':scope > summary').click();
+  await expect(tools).toHaveAttribute('open', '');
+  const explorers = tools.getByRole('region', {name: 'Onchain verification tools'});
+  await expect(explorers.getByRole('link')).toHaveText(['Open Range testnet ↗', 'Open ZIGScan testnet ↗']);
+  const hub = tools.getByRole('region', {name: 'Official ZIGChain Hub links'});
+  await expect(hub.getByRole('link')).toHaveText(['Network overview ↗', 'Validator information ↗', 'Governance proposals ↗', 'Staking information ↗', 'Bridge information ↗']);
+  await expect(hub).toContainText('it may open mainnet. ZIGoals passes no wallet or transfer instructions.');
+  await expect(tools.getByRole('region', {name: 'Strategy transparency'})).toBeVisible();
+  // Every outside link: https, a new tab, no opener, no referrer, and nothing of mine in the address.
+  const links = await tools.locator('a[href^="http"]').evaluateAll(as => as.map(a => ({href: a.getAttribute('href')!, target: a.getAttribute('target'), rel: a.getAttribute('rel') ?? ''})));
+  expect(links.length).toBeGreaterThanOrEqual(7);
+  for (const link of links) {
+    const url = new URL(link.href);
+    expect(url.protocol, link.href).toBe('https:');
+    expect(url.search, link.href).toBe('');
+    expect(link.target, link.href).toBe('_blank');
+    expect(link.rel, link.href).toMatch(/noopener/);
+    expect(link.rel, link.href).toMatch(/noreferrer/);
+  }
+  // Opening the tools loads nothing from those sites by itself.
+  expect(outside).toEqual([]);
+});
+
+journey('J179', 'Markets: a search with no result says so and offers the full catalog', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  const sent: string[] = [];
+  page.on('request', r => { if (/fictionalcoin/i.test(r.url() + (r.postData() ?? ''))) sent.push(r.url()); });
+  await open(page, '/app/markets');
+  await page.getByLabel('Search this market view').fill('Fictionalcoin zzz');
+  await expect(page.getByRole('heading', {name: 'No matches in this view'})).toBeVisible();
+  await expect(page.locator('main')).toContainText('Try another name or browse the full CoinGecko catalog.');
+  await expect(page.locator('.market-pagination')).toContainText('No matching markets');
+  await expect(page.locator('.market-product-card')).toHaveCount(0);
+  // The search runs on the markets already known here; the words never leave the device.
+  expect(sent).toEqual([]);
+  await page.getByRole('button', {name: 'Find a market', exact: true}).last().click();
+  const sheet = page.getByRole('dialog', {name: 'Find a market'});
+  await expect(sheet).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+  await page.getByLabel('Search this market view').fill('');
+  await expect(page.locator('.market-product-card').first()).toBeVisible();
 });

@@ -69,7 +69,8 @@ journey('J067', 'vacation days: mark a week, then remove it', {views: 'all', dat
   await region.getByRole('button', {name: 'Clear vacation days', exact: true}).click();
   await expect(region.getByRole('status')).toHaveText('Vacation days cleared. Your own check-ins and skips were kept.');
   expect(await skipped()).toEqual([]);
-  await region.getByRole('button', {name: 'Done', exact: true}).click();
+  // The panel closes with its Cancel button (it has no separate Done).
+  await region.getByRole('button', {name: 'Cancel', exact: true}).click();
   await expect(region).toHaveCount(0);
   await expect(card(page, 'Fictional run').getByRole('button', {name: 'Complete Fictional run', exact: true})).toBeVisible();
 });
