@@ -57,7 +57,10 @@ jobs:
     # 22 min (run 37347264034) and 21m08s (run 37319517371); with Session V's
     # ZIGi specs one finished its tests and was cancelled at 22m02s (run
     # 37391078178). 30 min gives about 40% headroom again.
-    timeout-minutes: 30
+    # Session X (2026-10-08): with Session X's specs shards 2 and 3 took 28m45s and
+    # 27m40s, and shard 1 was cancelled at 30 min with 575 of its 589 tests done
+    # and still moving (run 37784457470). 45 min gives about 40% headroom again.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
