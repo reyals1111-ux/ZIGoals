@@ -41,8 +41,12 @@ export function markOnboardingSeen(storage: Write | null | undefined): boolean {
  * Session W adds its own (lib/w-device-keys.ts): its personal records here, its two display preferences below.
  */
 export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HEALTH_GOALS_KEY, WEEKLY_REVIEW_KEY, FASTING_KEY, INSIGHTS_KEY, IMPORT_UNDO_KEY, PUSH_KEY, GUIDE_KEY, AI_SETTINGS_KEY, ...ZIGI_PERSONAL_KEYS, ...W_PERSONAL_KEYS];
-/** Device keys that hold no personal records: display preferences, public caches and this flag. */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS];
+/**
+ * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
+ * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as
+ * Session L's follow-up asked: on its own it no longer keeps the welcome away from a device with nothing on it.
+ */
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are

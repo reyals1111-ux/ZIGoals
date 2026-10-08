@@ -16,7 +16,8 @@ const surface = [
   ["rollback", ["--config", "--name", "--message"]],
   ["deployments list", ["--config", "--name"]],
   ["tail", ["--version-id", "--method", "--ip", "--format"]],
-  ["dev", ["--config", "--env-file", "--ip", "--port"]],
+  // Session X Part 10 (Session N1 follow-up): LANDING.md runs `wrangler dev --persist-to`.
+  ["dev", ["--config", "--env-file", "--ip", "--port", "--persist-to"]],
   ["types", ["--config", "--include-env", "--include-runtime", "--check"]],
   ["secret put", ["--config", "--name"]],
   ["secret delete", ["--config", "--name"]],
