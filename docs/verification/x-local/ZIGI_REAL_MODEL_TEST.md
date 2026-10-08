@@ -268,6 +268,21 @@ pay attention to", the longest session, imports and devices, the time of day, we
 (category included, in any language) and challenge lines, and the mixed-ask wording. The PC re-runs on round 4 after the
 rounds 1–3 run; the Mac's final run follows on the same code.
 
+**The rounds 1–3 run, complete (PC, 10:04–11:26 UTC, code `18d06fc` + the round-3 sentences, scored with S61):**
+
+| Model | Rate | Corrected baseline → here | Lookups | Proposals | Multi-step | Refusals | Briefs | Repairs (passing) | First token (median ms) | Misses left |
+|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---|
+| `gemma4:12b` | 654 / 773 · **84.6 %** | 77.1 → 84.6 | 110 / 120 | 193 / 232 | 149 / 183 | 55 / 57 | 21 / 29 | 23 (8) | 1260 | cards 64, schema 28, fields 20, tool 12 |
+| `qwen3.8:27b` | 646 / 773 · **83.6 %** | 74.5 → 83.6 | 114 / 120 | 180 / 232 | 158 / 183 | 46 / 57 | 26 / 29 | 17 (11) | 600 | cards 83, fields 24, schema 9, never 9 |
+| `qwen3.6:35b-a3b` | 636 / 773 · **82.3 %** | 70.5 → 82.3 | 114 / 120 | 183 / 232 | 144 / 183 | 47 / 57 | 25 / 29 | 41 (21) | 281 | cards 90, schema 27, fields 27, refusal 12 |
+| `phi4-mini:3.8b` | 451 / 773 · **58.3 %** | 45.8 → 58.3 | 80 / 120 | 134 / 232 | 90 / 183 | 32 / 57 | 19 / 29 | 122 (35) | 355 | cards 178, schema 113, fields 48, refusal 29 |
+
+What is left on the three larger models is mostly a card asked for and prose returned, and in a good share of those the
+model was right against the case (two Showcase habits tie at 27 days, a target "raised" below what the goal already
+holds, a habit already done today, a reminder "on weekdays" no single card can hold): **fix round 5 (ADR S67)** corrected
+those cases and added the reminder, unit and self-correction sentences. **The rounds 1–5 run** (PC, from 11:26 UTC, code
+`76a1bc5`) is the measurement for the targets; the Mac's final run follows on the same code.
+
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
