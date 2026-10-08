@@ -344,8 +344,20 @@ Against the P2.3 panel targets (gemma4 and qwen3.8 ≥ 95 %, qwen3.6 ≥ 90 %): 
 for like, every model moved up (gemma4 83 → 84 %, qwen3.8 71 → 82 %, qwen3.6 75 → 77 %, phi4-mini 68 → 70 %), and the
 new cases are where the misses sit (gemma4 51 of 72, qwen3.8 49, qwen3.6 48, phi4-mini 30). The misses by check are the
 same classes as the corpus: a card asked for and prose returned, a field off (a day, a time, a unit), a block the schema
-refused; the panel adds the reply-time budget (one case per model timed out at 20 s). The conversations, the pages, the
-day and the photos follow below as their stages end.
+refused; the panel adds the reply-time budget (one case per model timed out at 20 s).
+
+### Conversations, pages, the day and the photos, Phase 2 (PC, 16:28–16:54 UTC; raw / corrected as above)
+
+| Stage | `gemma4:12b` | `qwen3.8:27b` | `qwen3.6:35b-a3b` | `phi4-mini:3.8b` | Target (P2.3) |
+|---|---:|---:|---:|---:|---|
+| Conversations (15 each: plan → correct → accept → undo, the accepted record checked on its page) | 14 / 15 (the laptop goal) | 14 / 15 (meditation minutes) | 11 / 15 | 7 / 15 | 15 of 15 on three PC models: not met; Phase 1 after its fixes had 14, 15, 13 and 5 |
+| Pages (17 pages × 10 asks, desktop) | **170 / 170** | — | 160 / 170 · 94.1 % raw, **166 / 170 · 97.6 %** corrected (S70's cue, S73's two water asks; the four left are cards nobody asked for) | — | ≥ 98 % desktop and phone: gemma4 meets it; qwen3.6 0.4 points under |
+| Pages (phone) | — | — | 164 / 170 · 96.5 % raw, 166 / 170 · 97.6 % corrected | — | as above |
+| The day in the life (18 steps, with the photo step) | — | — | 16 / 18 on the desktop and 16 / 18 on the phone; the two misses are one scored step each and the run's end-of-day rest check (`idle` alone; since S71 the box keeps the focus, so it rests `listening` — the check now reads idle or listening and the day re-runs after the Mac's stages) | — | 54 of 54: not met |
+| Photos (4 fictional and public-domain plates) | 3 / 4 | **4 / 4** | **4 / 4** | no vision | — |
+| Reply medians (ms): conversations / pages / day / photos | 4176 / 1604 / — / 10036 | 4613 / — / — / 6792 | 2448 / 786 (810 phone) / 2117 (1680) / 4761 | 1927 / — / — / — | |
+
+The Mac's stages (60 cases, 10 conversations, the day, the photos) follow below.
 
 
 ## Photos (owner addition 11): sources and licences
