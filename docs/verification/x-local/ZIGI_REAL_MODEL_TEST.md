@@ -198,6 +198,32 @@ Label: **WebKit**, never "Safari on an iPhone" (the iPhone checklist in ZIGI_ALI
 | The same on the production build | _(Gate B)_ | |
 
 
+## Phase 2 — "ZIGi to excellence" (P2.1–P2.3): the corpus at 626 cases, baseline and after
+
+**The corpus** grew from 338 to 626 model-scored cases (`lib/ai/evals/corpus-phase2.ts`, ADR-017 S43–S44), 172 of them marked
+important; the scorer gained field checks and tool-any. **The baseline** is the frozen code at `f7d9fe6` (the end of Phase 1)
+run through the aligned harness on the 626 cases in tools mode, so the before and after differ only in the app's code; the
+raw files are on `review/session-x-local-runs` under `real-model/phase2/`, one summary per run under `real-model/summaries/`.
+
+### The baseline (frozen `f7d9fe6`, 626 cases, 773 turns, tools mode, thought off)
+
+| Model | Host | Passed | Rate | First token (median ms) | Total (median ms) | Most-missed checks | Minutes |
+|---|---|---:|---:|---:|---:|---|---:|
+| `gemma4:12b` | RTX 5090 | 564 / 773 | 73.0 % | 609 | 1528 | tool 81, cards 81, schema 42, fields 30, never 9 | 22 |
+| `qwen3.8:27b` | RTX 5090 | 544 / 773 | 70.4 % | 535 | 2112 | cards 125, tool 59, schema 35, fields 34, never 10 | 33 |
+| `qwen3.6:35b-a3b` | RTX 5090 | 513 / 773 | 66.4 % | 190 | 642 | tool 106, cards 103, schema 45, fields 34, tool-any 16 | 12 |
+| `phi4-mini:3.8b` | RTX 5090 | 322 / 773 | 41.7 % | 215 | 426 | cards 241, schema 143, tool 120, fields 76, refusal 26 | 6 |
+| `qwen3.6:35b-a3b` | Mac M1 Max | _running_ | | | | | |
+
+By kind (passed / cases) on the baseline — the lookups are the weakest family on every model (gemma4 63/120, qwen3.8 74/120,
+qwen3.6 41/120, phi4-mini 30/120), then the briefs (12, 20, 9, 9 of 29); refusals, privacy and injection are near the ceiling
+already (gemma4 53/57, 11/13, 19/20).
+
+### After the fix program (the current code, the same 626 cases)
+
+_Filled in as each after-run ends: the table, the per-kind movement, the miss categories that remain, and the fix → re-run
+rounds until the P2.3 targets are met or proven out of reach for a model._
+
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
 photos that are public domain or CC0, downscaled copies at 1,600 px for the upload (the app downscales again to 1,024 px
