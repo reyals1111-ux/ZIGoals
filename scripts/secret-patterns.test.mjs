@@ -29,6 +29,14 @@ test("each credential shape is detected by name", () => {
     ["OpenAI API key", "sk-" + "proj-" + x(20, "o") + "T3Blbk" + "FJ" + x(20, "p")],
     ["OpenAI API key", "sk-" + "svcacct-" + x(48, "o")],
     ["Anthropic API key", "sk-" + "ant-" + "api03-" + x(93, "A")],
+    // Session X P2.7: the OAuth token families, Supabase and npm tokens, and this project's own secrets by name.
+    ["Anthropic API key", "sk-" + "ant-" + "oat01-" + x(60, "o")],
+    ["Anthropic API key", "sk-" + "ant-" + "ort01-" + x(60, "r")],
+    ["Supabase personal access token", "sb" + "p_" + x(20, "a1")],
+    ["npm token", "np" + "m_" + x(36, "N")],
+    ["Named project secret", "VAPID_" + "PRIVATE_KEY=" + x(43, "Vk")],
+    ["Named project secret", "OURA_" + "CLIENT_SECRET: '" + x(32, "c9") + "'"],
+    ["Named project secret", '"AUTH_' + 'ADMIN_KEY": "' + x(40, "Ab") + '"'],
     ["xAI API key", "xa" + "i-" + x(80, "X")],
     ["OpenRouter API key", "sk-" + "or-v1-" + x(64, "e")],
     ["Groq API key", "gs" + "k_" + x(52, "Q")],
@@ -69,6 +77,14 @@ test("near misses are not reported", () => {
     "eyJjb250cmFjdCI6InppZzEifQ",
     `{"kty":"EC","crv":"P-256","x":"${x(43, "x")}","y":"${x(43, "y")}"}`,
     `{"kty":"RSA","d":"${x(43, "d")}"}`,
+    // Session X P2.7 near misses: a binding read, fixture and placeholder values, a short value, a Supabase-like prefix.
+    "AUTH_" + "ADMIN_KEY:bindings.AUTH_ADMIN_KEY",
+    "OURA_" + "CLIENT_SECRET:'FAKE-oura-secret-1'",
+    "AUTH_" + "ADMISSION_KEY:'fixture-secret-" + x(24, "0") + "'",
+    "VAPID_" + "PRIVATE_KEY=" + x(30, "x"),
+    "ZIGI_" + "UPSTREAM_KEY=short-key",
+    "sb" + "p_" + x(20, "a"),
+    "np" + "m_" + x(10, "N"),
   ];
   for (const sample of samples) expect(findSecrets(sample), sample.slice(0, 40)).toEqual([]);
 });

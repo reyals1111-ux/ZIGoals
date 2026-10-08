@@ -31,6 +31,8 @@ export const secretChecks = [
   ["PEM private key", all(/-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY(?: BLOCK)?-----/g)],
   ["GitHub token", (t) => [...all(/\bgh[pousr]_[A-Za-z0-9]{30,}/g)(t), ...all(/\bgithub_pat_[A-Za-z0-9_]{40,}/g)(t)]],
   ["Supabase secret key", all(/\bsb_secret_[A-Za-z0-9_-]{20,}/g)],
+  ["Supabase personal access token", all(/\bsbp_[a-f0-9]{40}\b/g)],
+  ["npm token", all(/\bnpm_[A-Za-z0-9]{36}\b/g)],
   ["Supabase service_role JWT", (t) => all(JWT)(t).filter((m) => jwtPart(m, 1)?.role === "service_role")],
   ["Resend API key", all(/\bre_[A-Za-z0-9]{8,}_[A-Za-z0-9]{16,}\b/g)],
   [
@@ -45,13 +47,23 @@ export const secretChecks = [
     "OpenAI API key",
     (t) => [...all(/\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{8,}T3BlbkFJ[A-Za-z0-9_-]{8,}/g)(t), ...all(/\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{40,}/g)(t)],
   ],
-  ["Anthropic API key", all(/\bsk-ant-(?:api|admin)\d{2}-[A-Za-z0-9_-]{40,}/g)],
+  // Session X P2.7 (security review): any Anthropic key or token family (api03, admin01, the OAuth oat01 and ort01).
+  ["Anthropic API key", all(/\bsk-ant-[a-z]+\d{2}-[A-Za-z0-9_-]{40,}/g)],
   ["xAI API key", all(/\bxai-[A-Za-z0-9]{70,}/g)],
   ["OpenRouter API key", all(/\bsk-or-v1-[a-f0-9]{64}\b/g)],
   ["Groq API key", all(/\bgsk_[A-Za-z0-9]{48,}\b/g)],
   ["Stripe secret key", all(/\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{24,}\b|\bwhsec_[A-Za-z0-9+/]{32,}/g)],
   ["AWS access key id", all(/\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g)],
   ["Slack token", all(/\bxox[abposr]-[A-Za-z0-9-]{10,}|\bxapp-\d-[A-Za-z0-9-]{10,}/g)],
+  // Session X P2.7: this project's own secrets by the names its docs give `wrangler secret put`, with a value of 20 or more
+  // characters; a value that says it is a fixture or a placeholder is not a secret (the near-miss test keeps them out).
+  [
+    "Named project secret",
+    (t) =>
+      [...t.matchAll(/\b(?:AUTH_ADMIN_KEY|AUTH_ADMISSION_KEY|VAPID_PRIVATE_KEY|ZIGI_UPSTREAM_KEY|[A-Z]+_CLIENT_SECRET)\b["']?\s*[:=]\s*["']?([A-Za-z0-9_+/=-]{20,})/g)]
+        .filter((m) => !/^(?:fake|fixture|test|example|dummy|placeholder|sample|replace|changeme|your)/i.test(m[1]) && !/^(.)\1+$/.test(m[1]))
+        .map((m) => m[0]),
+  ],
   // Any signed token except Supabase's legacy anon key, which is publishable by design (the near-miss test keeps it out).
   [
     "Signed JWT",
