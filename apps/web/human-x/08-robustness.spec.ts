@@ -31,7 +31,9 @@ journey('J250', 'every page at 320, 360 and 390 px: no sideways scroll, the titl
     for (const path of EVERY) {
       await open(page, path);
       await noSideways(page);
-      const title = await page.locator('main h1:visible').first().boundingBox();
+      const heading = page.locator('main h1:visible').first();
+      await expect(heading, `${path} at ${width}: a visible title`).toBeVisible();
+      const title = await heading.boundingBox();
       expect(title!.y, `${path} at ${width}: the title starts on the first screen`).toBeLessThan(width === 320 ? 568 : 800);
     }
   }
@@ -99,7 +101,7 @@ journey('J245', 'the installed-app look (display-mode standalone): recognised as
     window.matchMedia = (query: string) => { const list = original(query); if (/display-mode:\s*(standalone|fullscreen)/.test(query)) Object.defineProperty(list, 'matches', {configurable: true, get: () => true}); return list; };
   });
   await open(page, '/app/help#install');
-  const status = page.getByRole('region', {name: 'Install ZIGoals on your iPhone', exact: true}).locator('.help-status');
+  const status = page.getByRole('region', {name: 'Install ZIGoals on your iPhone', exact: true}).locator('.help-status[data-context]');
   await expect(status).toHaveAttribute('data-context', 'installed');
   await expect(status).toHaveText('You’re using ZIGoals as an installed app. Keep opening it from its icon.');
   const height = page.viewportSize()!.height;

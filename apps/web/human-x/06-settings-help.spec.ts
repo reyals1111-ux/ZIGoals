@@ -61,7 +61,7 @@ async function protectedCopy(page: Page, {health = false} = {}) {
   const box = vault(page);
   if (health) await box.getByRole('checkbox', {name: 'Include my Health records in this encrypted download.', exact: true}).check();
   await box.getByRole('button', {name: 'Prepare encrypted backup', exact: true}).click();
-  const recovery = await box.getByLabel('Recovery secret').inputValue();
+  const recovery = await box.getByRole('textbox', {name: 'Recovery secret', exact: true}).inputValue();
   expect(recovery).toMatch(/^[A-Za-z0-9_-]{43}$/);
   await box.getByRole('checkbox', {name: 'I saved the recovery secret.', exact: true}).check();
   const waiting = page.waitForEvent('download');

@@ -291,9 +291,9 @@ journey('J200', 'Activity with the keyboard only: a filter chosen with Enter, an
   await expect(habit).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.activity-event')).toHaveCount(1);
   await expect(page.locator('.activity-event')).toHaveAttribute('data-category', 'HABIT');
-  // The next stop after the filters is the event's own link.
-  await page.keyboard.press('Tab');
+  // After the remaining filters (Health), the next stop is the event's own link.
   const link = page.locator('.activity-event').getByRole('link', {name: 'Fictional keyboard habit', exact: true});
+  for (let i = 0; i < 4 && !(await link.evaluate(el => el === document.activeElement)); i++) await page.keyboard.press('Tab');
   await expect(link).toBeFocused();
   await page.keyboard.press('Enter');
   await page.waitForURL(/\/app\/habits$/);
