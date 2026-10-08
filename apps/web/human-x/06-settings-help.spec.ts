@@ -103,11 +103,12 @@ async function wipe(page: Page) {
   await ready(page);
 }
 const everything = (page: Page) => page.evaluate(() => JSON.stringify(Object.fromEntries(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:')).sort())));
+/** Today has read every store once "Your week" shows (on a phone, its folded row). */
+const weekShown = (page: Page) => expect(page.getByRole('region', {name: 'Your week, all in one orbit.'}).or(page.locator('.phone-fold-toggle').filter({hasText: 'Your week'})).first()).toBeVisible();
 /** Today's "For you", with any folded cards shown ("Show more (N)"); null when Today has no card for me. */
 async function forYou(page: Page) {
   await open(page, '/app');
-  // Today has read every store once "Your week" shows.
-  await expect(page.getByRole('region', {name: 'Your week, all in one orbit.'})).toBeVisible();
+  await weekShown(page);
   const region = page.getByRole('region', {name: 'For you', exact: true});
   if (!await region.count()) return region;
   const more = region.getByRole('button', {name: /^Show more/});
@@ -906,7 +907,7 @@ journey('J244', 'after a wipe the welcome is offered again, and nothing personal
   await expect(welcome).toBeVisible();
   await newHabit(j, 'Fictional before the wipe');
   await open(page, '/app');
-  await expect(page.getByRole('region', {name: 'Your week, all in one orbit.'})).toBeVisible();
+  await weekShown(page);
   await expect(welcome).toHaveCount(0);
   await wipe(page);
   await open(page, '/app');

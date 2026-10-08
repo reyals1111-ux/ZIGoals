@@ -31,7 +31,7 @@ journey('J250', 'every page at 320, 360 and 390 px: no sideways scroll, the titl
     for (const path of EVERY) {
       await open(page, path);
       await noSideways(page);
-      const title = await page.locator('main h1').first().boundingBox();
+      const title = await page.locator('main h1:visible').first().boundingBox();
       expect(title!.y, `${path} at ${width}: the title starts on the first screen`).toBeLessThan(width === 320 ? 568 : 800);
     }
   }
@@ -110,7 +110,7 @@ journey('J245', 'the installed-app look (display-mode standalone): recognised as
     await expect(nav).toBeVisible();
     const bar = (await nav.boundingBox())!;
     expect(bar.y + bar.height, `${path}: the tab bar stays on the screen`).toBeLessThanOrEqual(height + 0.5);
-    expect((await page.locator('main h1').first().boundingBox())!.y, `${path}: the title on the first screen`).toBeLessThan(height);
+    expect((await page.locator('main h1:visible').first().boundingBox())!.y, `${path}: the title on the first screen`).toBeLessThan(height);
     await noSideways(page);
   }
   // The tab bar and More still reach a page.
@@ -131,7 +131,7 @@ journey('J249', 'every page, once visited, keeps working offline and says so; no
     await expect(offline, path).toContainText('This page keeps working and saves on this device; other pages open again when you’re back online.');
     // A moment offline: the page stays itself.
     await page.waitForTimeout(700);
-    await expect(page.locator('main h1').first(), path).toBeVisible();
+    await expect(page.locator('main h1:visible').first(), path).toBeVisible();
     await expect(page.getByText('This page could not be shown.'), path).toHaveCount(0);
     await expect(page.locator('main'), path).not.toContainText(/\bNaN\b|undefined/);
     expect(await zeros(), `${path}: no value turned into zero offline`).toBeLessThanOrEqual(before);

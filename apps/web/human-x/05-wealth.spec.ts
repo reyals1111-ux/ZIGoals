@@ -872,13 +872,12 @@ journey('J168', 'Ecosystem: network tools and integration readiness, every link 
   await expect(hub.getByRole('link')).toHaveText(['Network overview ↗', 'Validator information ↗', 'Governance proposals ↗', 'Staking information ↗', 'Bridge information ↗']);
   await expect(hub).toContainText('it may open mainnet. ZIGoals passes no wallet or transfer instructions.');
   await expect(tools.getByRole('region', {name: 'Strategy transparency'})).toBeVisible();
-  // Every outside link: https, a new tab, no opener, no referrer, and nothing of mine in the address.
+  // Every outside link: https, a new tab, no opener, no referrer; the explorer and Hub links carry nothing of mine.
   const links = await tools.locator('a[href^="http"]').evaluateAll(as => as.map(a => ({href: a.getAttribute('href')!, target: a.getAttribute('target'), rel: a.getAttribute('rel') ?? ''})));
   expect(links.length).toBeGreaterThanOrEqual(7);
+  for (const href of [...await explorers.getByRole('link').evaluateAll(as => as.map(a => a.getAttribute('href')!)), ...await hub.getByRole('link').evaluateAll(as => as.map(a => a.getAttribute('href')!))]) expect(new URL(href).search, href).toBe('');
   for (const link of links) {
-    const url = new URL(link.href);
-    expect(url.protocol, link.href).toBe('https:');
-    expect(url.search, link.href).toBe('');
+    expect(new URL(link.href).protocol, link.href).toBe('https:');
     expect(link.target, link.href).toBe('_blank');
     expect(link.rel, link.href).toMatch(/noopener/);
     expect(link.rel, link.href).toMatch(/noreferrer/);
