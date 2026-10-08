@@ -1,7 +1,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 
 /**
@@ -48,6 +48,7 @@ const file = `day-in-the-life-${slug(MODEL)}.json`;
 for (const s of SCENARIOS) {
   test(`${s.id}: ${s.title}`, async ({page}, info) => {
     await offlineAppApi(page);
+    await page.clock.install({time: EVENING}); // the Showcase's own day, so lookups have records
     await seedReal(page);
     const problems: string[] = [];
     for (const [i, step] of s.steps.entries()) {

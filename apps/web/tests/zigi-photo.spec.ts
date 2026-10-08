@@ -1,7 +1,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {parseReply} from '../lib/ai/actions/parse';
 
@@ -41,6 +41,7 @@ for (const p of PHOTOS) {
     const path = join(PHOTOS_DIR, p.file);
     test.skip(!existsSync(path), `${path} is not there.`);
     await offlineAppApi(page);
+    await page.clock.install({time: EVENING}); // the Showcase's own day, so lookups have records
     await seedReal(page);
     // The person's word that this model reads photos (the metadata path exists too; the word keeps the run independent of /api/show).
     await page.evaluate(([key, model]) => { const raw = localStorage.getItem(key); const options = raw ? JSON.parse(raw) as Record<string, unknown> : {version: 1}; options.visionDeclared = {[`local:${model}`]: true}; localStorage.setItem(key, JSON.stringify(options)); }, [AI_OPTIONS_KEY, MODEL] as const);

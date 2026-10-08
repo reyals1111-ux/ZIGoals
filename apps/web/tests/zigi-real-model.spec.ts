@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {CORPUS, IMPORTANT, type ModelCase} from '../lib/ai/evals/corpus';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, REAL, record, scoreUi, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, REAL, record, scoreUi, seedReal, shownReply, slug, type UiRun} from './real-model';
 
 /**
  * Session X-Local Part 6c, UI-driven cases through the real panel against a real local model (owner addition 2:
@@ -23,6 +23,7 @@ const file = `ui-${slug(MODEL)}.json`;
 for (const c of chosen) {
   test(`${c.id} [${c.area}/${c.kind}/${c.lang}]`, async ({page}, info) => {
     await offlineAppApi(page);
+    await page.clock.install({time: EVENING}); // the Showcase's own day, so lookups have records
     await seedReal(page, {health: c.health !== 'closed'});
     await page.goto(PAGE_PATHS[c.area]);
     await openChat(page);

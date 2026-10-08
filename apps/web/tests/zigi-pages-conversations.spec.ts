@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import type {CorpusArea} from '../lib/ai/evals/corpus';
 
 /**
@@ -36,6 +36,7 @@ for (const area of AREAS) {
   const asks = PAGES[area] ?? [];
   test(`${area}: ten conversations from this page`, async ({page}, info) => {
     await offlineAppApi(page);
+    await page.clock.install({time: EVENING}); // the Showcase's own day, so lookups have records
     await seedReal(page);
     await page.goto(PAGE_PATHS[area]);
     await openChat(page);
