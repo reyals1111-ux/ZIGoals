@@ -1,5 +1,10 @@
-import {expect, type Page} from '@playwright/test';
-import {journey, localKeys, noSideways, open, ready, snap, type Journey} from './kit';
+import {expect, type Locator, type Page} from '@playwright/test';
+import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
+import {createEmptyHealth, HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../lib/health';
+import {INSIGHTS_KEY} from '../lib/insights/schema';
+import {addLocalDays} from '../lib/local-date';
+import {emptyPlatform, PLATFORM_KEY, privateGoalSchema, type Platform} from '../lib/positions';
+import {go, journey, localKeys, noSideways, open, ready, snap, type Journey} from './kit';
 
 // Session X Part 14, journeys J001–J030: the welcome, first run and Today (docs/verification/x-cloud/HUMAN_TEST.md).
 const welcomeCard = (page: Page) => page.getByRole('region', {name: 'Set up your first goal and habit in about a minute.'});
@@ -384,4 +389,155 @@ journey('J017', 'the weekly review skipped with one tap; Today stays calm', {vie
   await page.reload();
   await ready(page);
   await expect(page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/})).toHaveCount(0);
+});
+
+/** A fictional tracked Goal in dollars with nothing funded yet (as tests/run9-1-fixture.ts seeds one). */
+function holidayFund(): Platform {
+  return {...emptyPlatform(), goals: [privateGoalSchema.parse({id: '91', name: 'Fictional holiday fund', type: 'VALUE', status: 'active', asset: 'USD', denom: 'USD', decimals: 2, target: '200000', notes: '', createdAt: '2026-09-01T09:00:00.000Z', milestones: []})]} as Platform;
+}
+const fundRing = (scope: Locator) => scope.getByRole('progressbar', {name: 'Fictional holiday fund progress'});
+/** "Fund your Goal" with new cash of `amount` dollars: the asset, the preview, then the confirmation. */
+async function fundWithCash(page: Page, amount: string) {
+  const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
+  await sheet.getByRole('button', {name: 'Cash', exact: true}).click();
+  await sheet.getByLabel('Cash amount', {exact: true}).fill(amount);
+  await sheet.getByRole('button', {name: 'Continue with this asset', exact: true}).click();
+  await sheet.getByRole('button', {name: 'Preview contribution', exact: true}).click();
+  await sheet.getByRole('button', {name: 'Confirm & fund Goal', exact: true}).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByRole('status').filter({hasText: 'Goal funded.'})).toBeVisible();
+}
+
+journey('J008', 'Quick add a contribution to a goal from Today; its progress follows on Today and Goals', {views: 'all', data: ['L']}, async j => {
+  const {page} = j;
+  j.info.setTimeout(90_000);
+  await page.goto('/app/settings');
+  await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [PLATFORM_KEY, JSON.stringify(holidayFund())]);
+  await open(page, '/app');
+  await expect(page.getByRole('region', {name: 'Your goals'}).locator('.goal-card').filter({hasText: 'Fictional holiday fund'}).locator('.goal-value')).toContainText('$2,000.00');
+  const dialog = await quickAdd(j);
+  await dialog.getByRole('button', {name: /^Contribution/}).click();
+  await dialog.getByRole('navigation', {name: 'Choose a Goal to contribute to'}).getByRole('link').filter({hasText: 'Fictional holiday fund'}).click();
+  await page.waitForURL(/\/app\/goals\/tracked\/91\?contribute=1/);
+  await expect(page.getByRole('dialog', {name: 'Fund your Goal'})).toBeVisible();
+  await fundWithCash(page, '500');
+  const overview = page.getByTestId('tracked-progress');
+  await expect(overview).toContainText('$500');
+  await expect(fundRing(overview)).toHaveAttribute('aria-valuenow', '25');
+  await open(page, '/app');
+  await expect(fundRing(page.getByRole('region', {name: 'Your goals'}))).toHaveAttribute('aria-valuenow', '25');
+  await open(page, '/app/goals');
+  await expect(fundRing(page.locator('main .goal-card').filter({hasText: 'Fictional holiday fund'}))).toHaveAttribute('aria-valuenow', '25');
+});
+
+journey('J013', 'Customize Today with the keyboard only: move a widget later, hide it, finish; reload keeps both', {views: ['D'], data: ['S']}, async j => {
+  const {page} = j;
+  // Each control is reached as Tab reaches it (all are in the tab order); every action is a key press.
+  const press = async (target: Locator) => { await target.focus(); await page.keyboard.press('Enter'); };
+  const order = () => page.locator('.today-page .placed-module[data-kind="widget"]').evaluateAll(els => els.map(e => e.getAttribute('data-module')));
+  const widget = (id: string) => page.locator(`.today-page .placed-module[data-module="${id}"]`);
+  await open(page, '/app');
+  await press(page.getByRole('button', {name: 'Customize Today', exact: true}));
+  const finish = page.getByRole('button', {name: 'Finish customizing', exact: true});
+  await expect(finish).toBeVisible();
+  const before = (await order()) as string[];
+  const [first, second] = before as [string, string];
+  const options = widget(first).getByRole('button', {name: /^Options for /});
+  const title = (await options.getAttribute('aria-label'))!.replace(/^Options for /, '');
+  await press(options);
+  await press(widget(first).getByRole('button', {name: `Move ${title} down`, exact: true}));
+  await expect(page.locator('.dashboard-save-status')).toHaveText(`${title} moved down. Layout saved on this device.`);
+  await expect.poll(order).toEqual([second, first, ...before.slice(2)]);
+  await expect(widget(first)).toBeFocused();
+  await press(options);
+  await press(widget(first).getByRole('button', {name: 'Hide widget', exact: true}));
+  await expect(widget(first)).toHaveAttribute('data-hidden', 'true');
+  await press(finish);
+  await expect(widget(first)).toHaveCount(0);
+  await page.reload();
+  await ready(page);
+  await expect(widget(first)).toHaveCount(0);
+  await press(page.getByRole('button', {name: 'Customize Today', exact: true}));
+  await expect.poll(order).toEqual([second, first, ...before.slice(2)]);
+  await expect(widget(first)).toHaveAttribute('data-hidden', 'true');
+});
+
+/** Walks on `days` days back from `day`: 5,000 steps on fourteen of every twenty, 3,000 on the others; water on the first seven only. */
+function walks(day: string, days: number): HealthData {
+  const AT = `${day}T07:00:00.000Z`, low = (i: number) => i % 10 >= 7;
+  const health: HealthData = {...createEmptyHealth(), activity: Array.from({length: days}, (_, i) => ({id: `health_activity-${String(i).padStart(3, '0')}`, date: addLocalDays(day, -i), name: 'Fictional walk', steps: low(i) ? 3000 : 5000, minutes: 40, createdAt: AT, updatedAt: AT}))};
+  health.daily = {version: 1, favorites: [], savedMeals: [], plans: [], waterOperations: [], copyOperations: [], groceryNotes: '', preferences: {timezone: null, waterUnit: 'ml', waterTargetMl: null, weightUnit: 'kg'}, water: Array.from({length: Math.min(days, 7)}, (_, i) => ({id: `health_water-${String(i).padStart(3, '0')}`, date: addLocalDays(day, -i), amountMilli: 250_000, unit: 'ml' as const, createdAt: AT, updatedAt: AT}))};
+  return healthSchema.parse(health);
+}
+const SENTENCE = 'On 7 of 14 days you walked at least 5,000 steps, you also logged water; on other days 0 of 6.';
+
+journey('J019', 'an insight appears only with two weeks of records; dismissed, it stays away for four weeks', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await page.clock.install({time: new Date('2026-10-01T09:00:00+02:00')});
+  const notice = page.getByRole('region', {name: 'Something you might notice', exact: true});
+  // Someone past Today's first-run choice (For you shows only then), with walks recorded for `days` days.
+  const seedWalks = async (days: number) => {
+    await page.goto('/app/settings');
+    await page.evaluate(values => { for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), [HEALTH_STORAGE_KEY]: JSON.stringify(walks('2026-10-01', days))});
+    await open(page, '/app');
+    await forYou(page);
+  };
+  // Ten days are not enough to pair anything.
+  await seedWalks(10);
+  await expect(notice).toHaveCount(0);
+  await seedWalks(20);
+  const card = notice.getByRole('article').filter({hasText: SENTENCE});
+  await expect(card).toBeVisible();
+  await card.getByText('How this is calculated', {exact: true}).click();
+  await expect(card).toContainText('Counts of your own records. Not a cause, not advice.');
+  await card.getByRole('button', {name: `Dismiss: ${SENTENCE}`}).click();
+  await expect(page.getByText(SENTENCE)).toHaveCount(0);
+  expect(JSON.parse((await page.evaluate(k => localStorage.getItem(k), INSIGHTS_KEY))!)).toEqual({version: 1, dismissed: {'steps-water': '2026-10-01'}});
+  // Still away 27 days later; back on the 29th day.
+  for (const [day, shown] of [['2026-10-28T09:00:00+01:00', 0], ['2026-10-29T09:00:00+01:00', 1]] as const) {
+    await page.clock.setSystemTime(new Date(day));
+    await page.reload();
+    await ready(page);
+    await forYou(page);
+    await expect(page.getByText(SENTENCE)).toHaveCount(shown);
+  }
+});
+
+journey('J026', 'the brand film opens only on request, plays, closes with Escape and focus returns', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  const media: string[] = [];
+  page.on('request', r => { if (/\/brand\/how-it-works\//.test(r.url())) media.push(r.url()); });
+  await open(page, '/app');
+  const trigger = page.locator('.today-hero').getByRole('button', {name: 'See how it works', exact: true});
+  await expect(trigger).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect(media, 'nothing of the film loads before it is asked for').toEqual([]);
+  await trigger.click();
+  const dialog = page.getByRole('dialog', {name: 'ZIGoals brand film', exact: true}), video = dialog.locator('video');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', {name: 'Close brand film', exact: true})).toBeFocused();
+  expect(await video.evaluate(v => (v as HTMLVideoElement).paused), 'it never starts by itself').toBe(true);
+  // The person presses play (the control sits inside the video's own controls, so the element's play()).
+  await video.evaluate(v => (v as HTMLVideoElement).play());
+  await expect.poll(() => video.evaluate(v => !(v as HTMLVideoElement).paused)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', {name: 'ZIGoals brand film'})).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect.poll(() => page.locator('dialog.intro-video-dialog video').evaluate(v => ({paused: (v as HTMLVideoElement).paused, time: (v as HTMLVideoElement).currentTime}))).toEqual({paused: true, time: 0});
+});
+
+journey('J030', 'Today\'s goal cards (on-track status and progress ring) agree with the Goals page', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  const read = (cards: Locator) => cards.evaluateAll(els => els.map(e => {
+    const ring = e.querySelector('.goal-progress [role="progressbar"], .goal-progress [role="img"]');
+    return {key: e.getAttribute('data-goal-key'), name: e.querySelector('h2')?.textContent?.trim(), status: e.querySelector('.card-top .badge')?.textContent?.trim(), ring: ring?.getAttribute('aria-valuetext') ?? ring?.getAttribute('aria-label'), value: e.querySelector('.goal-value')?.textContent?.trim()};
+  }));
+  await open(page, '/app');
+  const today = await read(page.getByRole('region', {name: 'Your goals'}).locator('.goal-card'));
+  expect(today.length).toBeGreaterThan(0);
+  await go(j, 'Goals');
+  for (const card of today) {
+    const [onGoals] = await read(page.locator(`main .goal-card[data-goal-key="${card.key}"]`));
+    expect(onGoals, `${card.name} on Goals`).toEqual(card);
+  }
 });
