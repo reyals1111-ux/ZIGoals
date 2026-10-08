@@ -40,7 +40,8 @@
   :root .wealth-product .holding-unit-price > span, :root .wealth-product .holding-unit-price small { display: inline; font-size: 15px; }
   :root .wealth-product .owned-asset-card .market-movement { margin: 0; }
   :root .wealth-product .holding-allocation-track { margin: 2px 0 0; }
-  :root .wealth-product .holding-allocation-labels { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 0; }
+  /* In Goals and Available wrap only when they don't fit side by side (320 px reflow, WCAG 1.4.10; Session X Part 12). */
+  :root .wealth-product .holding-allocation-labels { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; margin: 0; padding: 0; }
   :root .wealth-product .holding-allocation-labels span { display: flex; align-items: baseline; gap: 6px; font-size: 15px; }
   :root .wealth-product .asset-card-source { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; margin: 0; font-size: 15px; }
   :root .wealth-product .asset-updated { font-size: 15px; }

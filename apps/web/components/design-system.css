@@ -119,3 +119,13 @@
    right, one light sweep that ends in that state. A title or eyebrow around it never adds a gradient of its own. */
 :root :is(h1,h2,h3,p):has(> .nebula-flow) { background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:var(--text-strong)!important;-webkit-text-fill-color:currentColor!important;animation:none!important; }
 @media (forced-colors: active) { :root :is(h1,h2,h3,p):has(> .nebula-flow) { color:CanvasText!important; } }
+/* ── Session X Part 12: WCAG 2.2 target size (2.5.8) where small targets sat close together ───────────────────── */
+/* Private recovery's three stacked disclosures were 23.3 px tall and touching: each now at least 24 px. :where() keeps
+   this weaker than the phone's 44 px rule for every disclosure (phone-base.css). */
+:where(#private-vault) > details > summary { min-height:24px; }
+/* Today's staking card: "Explore ecosystem providers →" beside "View staking →" was 23 px tall with the fallback font
+   (24 px or more with Inter, so nothing moves there). */
+:root .staking-card .text-link { min-height:24px; }
+/* Date and time fields: the browser's own calendar or clock button inside the field takes a Tab stop of its own and draws
+   no ring there, so the field keeps the app's ring while that button has focus (WCAG 2.4.7; Session X Part 12). */
+:root :is(input[type=date],input[type=time],input[type=datetime-local],input[type=month],input[type=week]):focus-within:not(:focus) { outline:3px solid #69d9e9; outline-offset:4px; }

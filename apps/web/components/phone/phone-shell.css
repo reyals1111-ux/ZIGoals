@@ -18,7 +18,9 @@
     --phone-glass: linear-gradient(160deg, #0a1a33f0, #070f24f2 55%, #150f33f0);
     --phone-glass-edge: #7fc8ff33;
     scroll-padding-top: calc(var(--phone-bar) + var(--safe-top) + 12px);
-    scroll-padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 16px);
+    /* Focus moved by the keyboard stops above the tab bar, the floating music and ZIGi buttons and Create a goal's sticky
+       actions (72 px), never behind them (WCAG 2.4.11; Session X Part 12). */
+    scroll-padding-bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 88px);
     /* No text-size-adjust here: even inside this query, Chromium's full-page capture of desktop pages renders
        differently when the property is present anywhere (desktop freeze check). */
   }

@@ -93,3 +93,18 @@ export const metadata: Metadata = {title: 'Meet ZIGi'};
 ```
 **Why.** Without it, Meet ZIGi is the one page whose tab, history entry and screen-reader announcement do not name it.
 `tests/page-titles.spec.ts` lists every other page; add `['/app/zigi', 'Meet ZIGi']` there when you do.
+
+## H5 — WCAG 2.2 AA: what X-Cloud checked around ZIGi (Session X Part 12, 2026-10-08)
+**Nothing for you to change; for your information.** `tests/a11y-wcag-x.spec.ts` checks every page on both projects and
+leaves ZIGi's surfaces out (its `ZIGI` selector: `.ai-launcher`, `.ai-panel`, `.ai-edge-tab`, `[data-testid="ai-launcher"]`,
+`[class*="zigi"]`). Results and fixes: `docs/accessibility/WCAG_X.md`.
+- **One shell change that helps ZIGi too (F4):** a focused control could end up entirely behind the floating buttons at the
+  bottom (on phones the music and ZIGi buttons above the tab bar). The page now keeps keyboard focus above them with
+  `scroll-padding-bottom` (84 px on computers in `globals.css`, tab bar + 88 px on phones in `phone-shell.css`). Nothing
+  moves; if ZIGi's launcher ever grows taller than about 70 px, those two values are the ones to raise.
+- **A read-only smoke of your launcher and panel (MOCK, every `/api` answered 503, nothing typed or sent), both projects:**
+  the audit helper found nothing on the launcher or the open `dialog.ai-chat`; every control in the panel has a name and a
+  visible ring; Tab stays inside the panel and cycles; Escape returns focus to "Open ZIGi"; every target is at least
+  24 × 24 px (desktop toolbar buttons 36 px tall, 44 px on phones). Meet ZIGi (`/app/zigi`) was not checked (H4 names it).
+- **If you want the same checks on your surfaces:** run the spec with your pages added to its `PAGES` list and the `ZIGI`
+  exclusion narrowed; it needs no new dependency.

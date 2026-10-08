@@ -274,7 +274,9 @@ test.describe('Part 3: liquid glass',()=>{
   // Owner review: nothing follows the pointer. The overlay is the rim and shadow only, and moving within the card changes nothing.
   await expect(overlay.locator('*')).toHaveCount(1);
   const drawn=()=>overlay.evaluate(e=>e.outerHTML);const before=await drawn();
-  const r=(await card.boundingBox())!;await page.mouse.move(r.x+r.width*.2,r.y+r.height*.1,{steps:4});await page.mouse.move(r.x+r.width*.8,r.y+r.height*.12,{steps:4});await page.waitForTimeout(150);
+  // Within the part of the card on screen (Session X: the page keeps room above the floating buttons, so a centred card this
+  // tall starts above the window and 10 % of its height could be off screen, which ends the hover). Same check.
+  const r=(await card.boundingBox())!,top=Math.max(r.y,0),seen=Math.min(r.y+r.height,page.viewportSize()!.height)-top;await page.mouse.move(r.x+r.width*.2,top+seen*.1,{steps:4});await page.mouse.move(r.x+r.width*.8,top+seen*.12,{steps:4});await page.waitForTimeout(150);
   expect(await drawn()).toBe(before);
   // Neighbours never move.
   expect(await page.locator('.goal-grid .unified-goal-card').first().evaluate(e=>getComputedStyle(e).translate)).toBe('none');

@@ -10,6 +10,11 @@
   --pink: #ed79d4;
   --radius: 20px;
 }
+/* Focus moved by the keyboard stops above the floating music and ZIGi buttons at the bottom corners, never behind them
+   (WCAG 2.4.11; Session X Part 12). Phones set their own value in phone-shell.css. */
+html {
+  scroll-padding-bottom: 84px;
+}
 * {
   box-sizing: border-box;
 }
