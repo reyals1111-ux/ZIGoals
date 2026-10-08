@@ -1,0 +1,1101 @@
+[
+ {
+  "id": "stretch-15",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "Here's the corrected draft at 15 minutes.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```\n\nWant a morning reminder with it? Give me the hour and I'll add one.",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 16966,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:40:07.189Z",
+  "steps": {
+   "plan": {
+    "ms": 15843,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "That's a clean fit for a new habit. Here's the draft, plus an optional morning reminder so it sticks.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nIf you want it nudged at a set time, tell me the hour and I'll add a reminder card."
+   },
+   "correct": {
+    "ms": 1123,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here's the corrected draft at 15 minutes.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```\n\nWant a morning reminder with it? Give me the hour and I'll add one."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "read-pages",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to read 20 pages a day as a habit",
+  "reply": "Got it, updating the draft to 30 pages in the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 30 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nStill a new habit, sitting alongside your existing daily reading habit (h1, minutes, 26-day streak). If you'd rather fold this into h1 than run two, let me know and I'll offer an edit for h1 instead.\n\nHere's the draft, updated to 30 pages in the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 30 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nSame note as before: this would sit alongside your existing daily reading habit (h1, minutes, 26-day streak). If you'd rather fold it into h1 than run two reading habits, tell me and I'll offer an edit for h1 instead.",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Read 30 pages\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5477,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:40:26.429Z",
+  "steps": {
+   "plan": {
+    "ms": 3110,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read 20 pages\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A draft habit for you: read 20 pages every day, measured in pages.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 20 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nNote: you already track a daily reading habit (h1) measured in minutes with a 26-day streak. If this is meant to replace it, tell me and I'll show an edit for h1 instead of a new habit.\n\nHere is a draft for a new habit: read 20 pages every day.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 20 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nOne thing to weigh: you already have a daily reading habit (h1) measured in minutes, on a 26-day streak. If you'd rather change that one to pages instead of adding a second reading habit, say the word and I'll offer an edit for h1 (I can't apply it until you confirm)."
+   },
+   "correct": {
+    "ms": 2367,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read 30 pages\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Got it, updating the draft to 30 pages in the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 30 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nStill a new habit, sitting alongside your existing daily reading habit (h1, minutes, 26-day streak). If you'd rather fold this into h1 than run two, let me know and I'll offer an edit for h1 instead.\n\nHere's the draft, updated to 30 pages in the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 30 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nSame note as before: this would sit alongside your existing daily reading habit (h1, minutes, 26-day streak). If you'd rather fold it into h1 than run two reading habits, tell me and I'll offer an edit for h1 instead."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "walk-weekdays",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute walk on Monday, Wednesday and Friday",
+  "reply": "Here is the corrected draft for Tuesday and Thursday:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"revise\":true,\"title\":\"30 minute walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"A 30 minute walk on Tuesday and Thursday.\"}\n```\n\nThat replaces the earlier Monday/Wednesday/Friday card. Want me to add a reminder for a set time on those two days?",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"30 minute walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3517,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:40:34.104Z",
+  "steps": {
+   "plan": {
+    "ms": 2121,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"30 minute walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Nice — that can sit alongside Walk (h3) as its own three-day habit. Here is the draft for you to confirm:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 minute walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"A 30 minute walk on Monday, Wednesday and Friday.\"}\n```\n\nOnce you confirm it, I can also attach a reminder for a set time on those days if you want one."
+   },
+   "correct": {
+    "ms": 1396,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"30 minute walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the corrected draft for Tuesday and Thursday:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"revise\":true,\"title\":\"30 minute walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"A 30 minute walk on Tuesday and Thursday.\"}\n```\n\nThat replaces the earlier Monday/Wednesday/Friday card. Want me to add a reminder for a set time on those two days?"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "Understood, updating it to three glasses (750 mL).\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 7209,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:40:39.822Z",
+  "steps": {
+   "plan": {
+    "ms": 3729,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is a card to log two glasses (500 mL) of water for today.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```"
+   },
+   "correct": {
+    "ms": 3480,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Understood, updating it to three glasses (750 mL).\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "Here is the corrected weight for this morning.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1972,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:40:49.286Z",
+  "steps": {
+   "plan": {
+    "ms": 1140,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Your last reading was 73.5 kg on 2026-09-19, so this would be 1.5 kg lower.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 832,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the corrected weight for this morning.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "I can't edit or correct today's steps entry directly — I can only propose a new log, which would add on top of the 8800 already recorded, not replace it. To fix it to 6500, that edit would need to happen in the app's steps log on this device.\n\nIf you'd like, I can propose a new entry, but please know it adds rather than corrects.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```\n\nLet me know if that's what you want, or if you'd rather correct it in the app.\n\nYour records still show 8800 steps for today, at or above your 8000 target.\n\nAs I said, I can't correct an entry to a new number — I can only add. If you'd like 6500 added on top, here's the card; otherwise, to set today to exactly 6500 you'd need to edit that entry in the app's steps log.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5006,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:40:53.520Z",
+  "steps": {
+   "plan": {
+    "ms": 1544,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "You already have 8800 steps logged for today, which is at or above your 8000 target.\n\nYou have 8800 steps for today. Adding 6000 more would bring it to 14800. Here is the card to confirm.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6000}\n```"
+   },
+   "correct": {
+    "ms": 3462,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can't edit or correct today's steps entry directly — I can only propose a new log, which would add on top of the 8800 already recorded, not replace it. To fix it to 6500, that edit would need to happen in the app's steps log on this device.\n\nIf you'd like, I can propose a new entry, but please know it adds rather than corrects.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```\n\nLet me know if that's what you want, or if you'd rather correct it in the app.\n\nYour records still show 8800 steps for today, at or above your 8000 target.\n\nAs I said, I can't correct an entry to a new number — I can only add. If you'd like 6500 added on top, here's the card; otherwise, to set today to exactly 6500 you'd need to edit that entry in the app's steps log.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "Here is the corrected draft:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-goal",
+    "title": "Create the goal \"New laptop\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4777,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:00.704Z",
+  "steps": {
+   "plan": {
+    "ms": 4169,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is a draft you can adjust before adding:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```\n\nIt's a value goal with no contribution plan set, so you can set funding and a next planned date in Goals whenever you're ready. If you'd like, I can also draft a small supporting habit to build it up."
+   },
+   "correct": {
+    "ms": 608,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the corrected draft:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "Here's the corrected note for your Emergency fund goal, replacing the one still pending.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Budget reviewed on Sunday.\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2008,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:07.568Z",
+  "steps": {
+   "plan": {
+    "ms": 1054,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here's the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Reviewed the budget.\"}\n```"
+   },
+   "correct": {
+    "ms": 954,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here's the corrected note for your Emergency fund goal, replacing the one still pending.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Budget reviewed on Sunday.\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "Thanks for the correction. I'll log the 12-minute session as 20 minutes and check off the Meditate habit with that amount.\n\nI'll log the 20-minute meditation session and check off your Meditate habit (h4) with that amount.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20}\n```\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h4\",\"minutes\":20}\n```\n\nYour earlier 5-minute session at 07:19 stays as is.",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "check-in",
+    "title": "Check in: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 7061,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:11.833Z",
+  "steps": {
+   "plan": {
+    "ms": 5209,
+    "cards": [],
+    "reply": "Nice, 12 minutes logged.\n\nYou already had a 5-minute session today at 07:19. Want me to add this 12-minute one as a new session?\n\nI can log this as a new 12-minute meditation session. Since it would also satisfy your Meditate habit target (10 min), I'll add the session and a habit check-in too."
+   },
+   "correct": {
+    "ms": 1852,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     },
+     {
+      "kind": "check-in",
+      "title": "Check in: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Thanks for the correction. I'll log the 12-minute session as 20 minutes and check off the Meditate habit with that amount.\n\nI'll log the 20-minute meditation session and check off your Meditate habit (h4) with that amount.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20}\n```\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h4\",\"minutes\":20}\n```\n\nYour earlier 5-minute session at 07:19 stays as is."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "Updated to 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4253,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:21.306Z",
+  "steps": {
+   "plan": {
+    "ms": 3566,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can log that for today's wrap-up.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":3}\n```"
+   },
+   "correct": {
+    "ms": 687,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Updated to 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "```zigoals-action\n{\"kind\": \"add-link\", \"revise\": true, \"label\": \"Sunday runners\", \"url\": \"https://www.strava.com/clubs/zig\", \"icon\": \"strava\"}\n```\n\nUpdated to \"Sunday runners\" — confirm the card to add it.",
+  "cards": [
+   {
+    "kind": "add-link",
+    "title": "Add the link \"Sunday runners\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2334,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:27.904Z",
+  "steps": {
+   "plan": {
+    "ms": 1521,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```\n\nConfirm the card to pin it to Today as a Strava button."
+   },
+   "correct": {
+    "ms": 813,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"Sunday runners\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\": \"add-link\", \"revise\": true, \"label\": \"Sunday runners\", \"url\": \"https://www.strava.com/clubs/zig\", \"icon\": \"strava\"}\n```\n\nUpdated to \"Sunday runners\" — confirm the card to add it."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "Added bananas to your grocery list.\n\n```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nYou'll see it on the card to confirm or remove.",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4787,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:32.336Z",
+  "steps": {
+   "plan": {
+    "ms": 4208,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've added oat milk and spinach to your grocery list.\n\n```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```\n\nThey're ready to review, and you can confirm or remove either from the card."
+   },
+   "correct": {
+    "ms": 579,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Added bananas to your grocery list.\n\n```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nYou'll see it on the card to confirm or remove."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "Here is the milestone with the new name:\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\"}\n```\n\nConfirm it and it will be added to your **Japan adventure** goal.",
+  "cards": [
+   {
+    "kind": "add-milestone",
+    "title": "Add a milestone to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4638,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:39.234Z",
+  "steps": {
+   "plan": {
+    "ms": 3693,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is a milestone for your **Japan adventure** goal:\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\"}\n```\n\nYou can confirm it and set a target date for it in Goals."
+   },
+   "correct": {
+    "ms": 945,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the milestone with the new name:\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\"}\n```\n\nConfirm it and it will be added to your **Japan adventure** goal."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nYour 07:00 card is marked replaced — the 07:30 one takes its spot.",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5405,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:46.028Z",
+  "steps": {
+   "plan": {
+    "ms": 4060,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A daily 07:00 reminder for Meditate (h4).\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:00\"}\n```\n\nConfirm the card and it'll nudge you each morning."
+   },
+   "correct": {
+    "ms": 1345,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nYour 07:00 card is marked replaced — the 07:30 one takes its spot."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "Here's the corrected card for 21 days on your Read habit:\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```\n\nConfirm it to start the 21-day challenge.",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2970,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T04:41:53.539Z",
+  "steps": {
+   "plan": {
+    "ms": 1608,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A challenge on your Read habit (h1), running 14 days from today:\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```\n\nYou have no challenge running right now, so this would start cleanly. Confirm the card to add it."
+   },
+   "correct": {
+    "ms": 1362,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here's the corrected card for 21 days on your Read habit:\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```\n\nConfirm it to start the 21-day challenge."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ }
+]
