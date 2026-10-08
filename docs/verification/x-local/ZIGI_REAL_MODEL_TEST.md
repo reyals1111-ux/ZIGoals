@@ -22,6 +22,12 @@ Playwright `chrome` channel) · **WebKit** (Playwright's WebKit) · **local** (t
 
 Downloads: two pulls on the PC, 10.5 GB in total (limits: ≤2, ≤40 GB). The Mac kept ≥3 TB free.
 
+### LM Studio (Phase 2, P2.7)
+
+Not installed on this Mac: no `lms` CLI on the path, no `LM Studio.app` in Applications, no `~/.lmstudio` folder (checked
+2026-10-08). Nothing was installed (the run's rules); the LM Studio wire (OpenAI-compatible) stays covered by the MOCK
+suites only, and the inventory line above stands.
+
 ## 6b. Corpus
 
 - The golden set: 272 deterministic cases (the first 91 unchanged), 100 % in CI (`lib/ai/evals/golden-set.ts`).
