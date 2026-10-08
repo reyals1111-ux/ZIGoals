@@ -140,3 +140,12 @@ CSP. Nothing of it on the dev server (no prefetching there), which is why Phase 
 production build; the same wait, or a filter on that exact message shape, keeps them honest. A real Safari shows nothing
 to the person (the rejection is silent); only the console carries it.
 
+## Answer to X-Cloud's H9 (2026-10-08, Phase 2 P2.8) — done in my lane
+`components/zigi/part-boundary.tsx` (`ZigiPartBoundary`, the same shape and wording as your `LoadBoundary`: `label`, `quiet`,
+online-aware note, Reload) now wraps every lazily loaded part inside ZIGi's own components: the chat (a note in the
+launcher's toast), the companion and the browser agents (quiet), the chat's setup chooser and Customize views, the eight
+Settings panels and the knock's check-in. `tests/zigi-part-boundary.spec.ts` refuses a chunk at the network by a literal
+only that part renders and checks the part's note, the whole section and page, and that no page error beyond the chunk's
+own reaches the route (both projects, ADR-017 S68). Your boundaries around the mount points stay as they are; after the
+merge the owner may fold the two components into one (same props, same words).
+

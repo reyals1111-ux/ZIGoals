@@ -1,4 +1,5 @@
 'use client';
+import {ZigiPartBoundary} from '../zigi/part-boundary';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {createPortal} from 'react-dom';
@@ -213,8 +214,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     </header>
     {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
       : view === 'continue' ? <ContinueView settings={data} session={session} context={context} attach={attach} sensitive={sensitive} phone={phone} onBack={() => setView('chat')}/>
-      : view === 'chooser' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Which setup fits me?"><header className="ai-proactive-head"><h3>Which setup fits me?</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooser/></Suspense></section></div>
-      : view === 'customize' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Customize ZIGi"><header className="ai-proactive-head"><h3>Customize ZIGi</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ZigiCustomize onNavigate={onClose}/></Suspense></section></div>
+      : view === 'chooser' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Which setup fits me?"><header className="ai-proactive-head"><h3>Which setup fits me?</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><ZigiPartBoundary label="The setup chooser"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooser/></Suspense></ZigiPartBoundary></section></div>
+      : view === 'customize' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Customize ZIGi"><header className="ai-proactive-head"><h3>Customize ZIGi</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><ZigiPartBoundary label="Customize"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ZigiCustomize onNavigate={onClose}/></Suspense></ZigiPartBoundary></section></div>
       : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
       : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
       <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onScroll={event => { const el = event.currentTarget, far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; setAway(far && !jumping.current); }}>

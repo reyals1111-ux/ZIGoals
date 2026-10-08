@@ -1,4 +1,5 @@
 'use client';
+import {ZigiPartBoundary} from './part-boundary';
 import {usePathname, useRouter} from 'next/navigation';
 import {Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {dismissZigiReminder, goalRefs, zigiDue} from '../../lib/ai/knock/due';
@@ -148,7 +149,7 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
       {choices.map(choice => <button key={choice} type="button" className="secondary" onClick={() => snoozeFor(choice)}>{SNOOZE_LABELS[choice]}</button>)}
       <button type="button" className="quiet" onClick={() => setMode('ask')}>Back</button>
     </div>}
-    {mode === 'check-in' && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><KnockCheckIn habitId={current.id} title={current.title} onNavigate={close}/></Suspense>}
+    {mode === 'check-in' && <ZigiPartBoundary label="The check-in"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><KnockCheckIn habitId={current.id} title={current.title} onNavigate={close}/></Suspense></ZigiPartBoundary>}
     {note && <p role="alert" className="zigi-knock-note">{note}</p>}
   </section>;
 }
