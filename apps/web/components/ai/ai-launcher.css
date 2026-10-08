@@ -58,6 +58,10 @@
 .ai-chat-premium{font-size:14px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);color:var(--text,#eef1ff)}
 .ai-settings .ai-chat-premium{margin-left:8px;vertical-align:middle}
 .ai-settings-loading{color:var(--muted,#aab2d9);font-size:15px;margin:12px 0 0}
+/* Phase 2 (P2.8, H6): the body's height, reserved until it mounts (measured on a new device: 927 px at 1280 wide, 1289 px at 390 wide). */
+.ai-settings{--ai-settings-reserve:928px}
+@media (max-width:767.98px){.ai-settings{--ai-settings-reserve:1290px}}
+.ai-settings-reserve{min-height:var(--ai-settings-reserve)}
 /* "Ask ZIGi about this" on a goal or habit: a quiet text link, 44 px tall, no data leaves before Send. */
 .ai-ask-link{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;font-size:14px;color:var(--cyan,#6fd3ff);background:transparent;border:0;cursor:pointer;border-radius:10px}
 .ai-ask-link:hover,.ai-ask-link:focus-visible{text-decoration:underline;background:color-mix(in srgb,var(--violet,#8b7cff) 12%,transparent)}

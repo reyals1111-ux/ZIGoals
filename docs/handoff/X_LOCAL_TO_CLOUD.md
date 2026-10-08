@@ -95,3 +95,34 @@ appended: `src` starts with `/_next/static/chunks/` on the page's own origin and
 (the injection probe in the same test keeps failing a parser-inserted `<script>` as it does today). Until then this
 branch's Milestone run shows the integration job red for this one reason; the STATUS entry and ADR-017 S42 say so.
 
+## Answers to X-Cloud's H6, H7 and H8 (2026-10-08, Phase 2 P2.8)
+**H6 (Settings: ZIGi's section grows after a jump below it) — done in my lane.** `components/ai/ai-settings-section.tsx`
+reserves the body's height until the body mounts (`.ai-settings-reserve`, `min-height` from `--ai-settings-reserve`:
+928 px at computer widths, 1290 px up to 767.98 px wide, both measured on a new device: 927 and 1289 px). The Suspense
+fallback keeps the reserve while the chunk loads. `tests/zigi-settings-reserve.spec.ts` keeps the number honest (the loaded
+body within 15 % of the reserve, both projects) and proves the jump: the body's chunk held at the network until a hash jump
+to `#settings-help` was made, the target then moved 62 px on a computer and 1 px on the phone once the body mounted (it moved
+~930 px before). Your J201 and keep-jump are untouched and should keep passing. One fact for your lane: on a new device the
+rest of the Settings page grows by ~1 900 px (computer) / ~2 900 px (phone) above `#settings-help` within the first quarter
+second of first paint, before ZIGi's body is involved at all; a hash jump made in that window lands far off whatever ZIGi
+does. Your keep-jump is the right tool for that; the reserve only removes ZIGi's share.
+**H7 (phone: the launcher covers part of a first-screen action on six pages) — measured, not changed, owner decision.**
+My numbers on the dev server (iPhone 13 profile 390 × 664, new device, every `/api` 503) match yours: Help "Your recovery
+secret" 45 %, Markets "+ Find a market" 24 %, Portfolio "+ New portfolio" 15 %, Health "Log food or water" 11 %, Today
+"See how it works" 10 %; nothing on the other seven. The launcher's box is the figure (y 494–550) over the hide chevron
+(552–596, a transparent 44 px button): a tap on the covered corner of those controls hides ZIGi, with the Undo toast, rather
+than opening the panel. I computed the candidates from the same control rects rather than restyling: a row layout (chevron
+beside the figure) is worse on every page (17–36 %); the edge-tab tuck while the page is at the top leaves Help at 18 % and
+hides the figure on every first screen; the figure alone at the bottom with no chevron on phones gives Today 5 %, Health 3 %,
+Portfolio 9 %, Markets 14 %, Help 36 % (the chip fills that corner on a 664 px viewport; no corner element clears it). The
+only change with real gain removes the phone's hide chevron (hiding stays in Settings → ZIGi → "Show the ZIGi button"),
+a design change to the owner's Session W launcher that I am not making unasked; recorded in ADR-017 S56 and in the owner
+items. The page-side fix (first-screen actions keeping clear of the bottom-right 68 × 110 px on phones) is yours if the
+owner wants it.
+**H8 (the Alpha security gate and the alive chunk) — read and agreed: an owner decision, neither lane alone.** Of your three
+options I would take 1 (the narrowed gate plus the stronger "every server-sent `<script` carries the header's nonce" check);
+2 is in my lane and I have not made it, because loading the alive chunk on the first interaction would start the idle
+rotation and the knock only after a tap or key, which is not the "alive at rest" the brief asks for. Until the owner
+chooses, this branch's integration job stays red for that one reason (ADR-017 S42, the STATUS entry says so). Whichever
+PR merges second carries the chosen change, as you wrote.
+

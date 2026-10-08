@@ -34,6 +34,11 @@ export function AiSettingsSection() {
     <p className="eyebrow">ZIGI · YOUR AI <span className="ai-chat-premium">{entitlement('your-ai').label}</span></p>
     <h2 id="your-ai-title">Your own AI, page by page.</h2>
     <p>Connect the AI you already pay for, or one running on your computer. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them, logs nothing and runs nothing on its servers for this. ZIGi reads a page only with your permission, never writes anything by itself, and proposes changes as cards you add, edit or dismiss.</p>
-    {load && <Suspense fallback={<p className="ai-settings-loading" aria-live="polite">Loading your AI settings…</p>}><AiSettingsBody/></Suspense>}
+    {/* Phase 2 (P2.8, X-Cloud's H6): the body's height is reserved until it mounts, so a Settings jump below this section
+        lands where it will stay (the body grew the section by ~900 px above the target; the reserve is measured and kept
+        honest by tests/zigi-settings-reserve.spec.ts). */}
+    {load
+      ? <Suspense fallback={<div className="ai-settings-reserve"><p className="ai-settings-loading" aria-live="polite">Loading your AI settings…</p></div>}><AiSettingsBody/></Suspense>
+      : <div className="ai-settings-reserve" aria-hidden="true"/>}
   </section>;
 }
