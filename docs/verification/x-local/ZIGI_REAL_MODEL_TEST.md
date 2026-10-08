@@ -39,10 +39,10 @@ re-run after every app-side fix for the before/after table in 6d.
 |---|---|---:|
 | The full corpus (≥600 cases: 272 golden + 338 model-scored, 361 turns) through the Node harness on every model | 5 models × 361 turns, before and after the fixes | _(running)_ |
 | The 100 most important cases, 3× per model, for variance | 5 models × 300 runs | _(pending)_ |
-| UI-driven cases through the real panel in Chrome: ≥150 per RTX 5090 model, ≥60 on the Mac model | `tests/zigi-real-model.spec.ts`, desktop | _(pending)_ |
-| ≥50 multi-turn conversations (plan → correct → accept → undo) | `tests/zigi-conversations.spec.ts`: 15 × 4 PC models + 10 on the Mac = 70 | _(pending)_ |
-| ≥10 human-style conversations per page, every page, desktop and phone | `tests/zigi-pages-conversations.spec.ts`: 17 areas × 10 asks, desktop + phone on `qwen3.6:35b-a3b` (PC), desktop on `gemma4:12b` | _(pending)_ |
-| Three "day in the life" scenarios end to end, ZIGi's state checked at each step | `tests/zigi-day-in-the-life.spec.ts` on `qwen3.6:35b-a3b` (PC, desktop + phone) and the Mac | _(pending)_ |
+| UI-driven cases through the real panel in Chrome: ≥150 per RTX 5090 model, ≥60 on the Mac model | `tests/zigi-real-model.spec.ts`, desktop | 150 × 4 PC models + 60 on the Mac = 660 |
+| ≥50 multi-turn conversations (plan → correct → accept → undo) | `tests/zigi-conversations.spec.ts`: 15 × 4 PC models + 10 on the Mac = 70 | 70 before and 70 after the protocol change (140) |
+| ≥10 human-style conversations per page, every page, desktop and phone | `tests/zigi-pages-conversations.spec.ts`: 17 areas × 10 asks, desktop + phone on `qwen3.6:35b-a3b` (PC), desktop on `gemma4:12b` | 3 runs × 170 = 510 asks |
+| Three "day in the life" scenarios end to end, ZIGi's state checked at each step | `tests/zigi-day-in-the-life.spec.ts` on `qwen3.6:35b-a3b` (PC, desktop + phone) and the Mac | 3 runs × 18 steps = 54 |
 | Meal photos through the real panel (owner addition 11): the four photos below on every model that reads images | `tests/zigi-photo.spec.ts` on `qwen3.8:27b`, `gemma4:12b`, `qwen3.6:35b-a3b` (PC) and `qwen3.6:35b-a3b` (Mac); `phi4-mini` reads no images; the weekday scenario's breakfast goes by photo too | _(pending)_ |
 | A full re-run of the matrix after the fixes | the harness, all five models | _(pending)_ |
 
@@ -73,12 +73,51 @@ total time. Every test of every run was green except phi4-mini's two (explained 
 | Model (host) | Runs | Passed | Pass % | Reply median ms | Tool calls | Errors | Most common misses |
 |---|---:|---:|---:|---:|---:|---:|---|
 | gemma4:12b (RTX 5090) | 150 | 129 | 86.0 | 1551 | 42 | 0 | tool:list_habits 5, schema 5, cards 3, tool:goal_progress 2, tool:habit_stats 2 |
-| phi4-mini:3.8b (RTX 5090) | 149 | 104 | 69.8 | 1156 | 39 | 1 | cards 22, schema 15, refusal 7, tool:list_habits 5, tool:goal_progress 2 |
+| phi4-mini:3.8b (RTX 5090) | 150 | 103 | 68.7 | 798 | 39 | 1 | cards 22, schema 13, refusal 7, tool:list_habits 5, tool:goal_progress 2 |
 | qwen3.6:35b-a3b (RTX 5090) | 150 | 115 | 76.7 | 849 | 39 | 0 | cards 13, schema 7, tool:list_habits 5, no-numbers 3, tool:goal_progress 2 |
 | qwen3.8:27b (RTX 5090) | 150 | 112 | 74.7 | 1982 | 71 | 0 | cards 20, tool:list_habits 5, refusal 4, schema 4, no-numbers 3 |
 | qwen3.6:35b-a3b (Mac M1 Max) | 60 | 45 | 75.0 | 5257 | 16 | 0 | cards 6, schema 3, tool:list_habits 2, refusal 2, tool:goal_progress 1 |
 
-- **`phi4-mini:3.8b` on the RTX 5090, 150 cases through the panel (31 minutes): 149 recorded, 104 of 149 scored passes (69.8 %), reply median 1,156 ms, a tool called in 39 replies.** Misses: cards 22, schema 15, refusal 7, tool:list_habits 5, tool:goal_progress 2, tool:habit_stats 2. Two red tests: `x3-settings-sync` waited 15 minutes for a launcher that Settings does not have (the app's own rule; the settings-area asks now go through the panel on Help, and every helper action fails in 20 s), and `sleep-nap`, where the model wrote `zigoals-action` and the JSON without any backticks, so the panel showed them raw (2 of 361 harness replies do the same; no fence, no block, recorded as the model's). The UI rate is above the harness's 40.4 % because the panel's cases are the single-turn corpus without the sentinel and local-first cases, and the UI scorer does not score facts or hints.
+##### Multi-turn conversations (`tests/zigi-conversations.spec.ts`: plan → correct → accept → undo)
+
+| Model (host) | Conversations | Card of the kind after the correction | Correction applied exactly | Undo exact | Errors |
+|---|---:|---:|---:|---:|---:|
+| gemma4:12b (RTX 5090) — before | 15 | 10 | 10 | 10 | 1 |
+| phi4-mini:3.8b (RTX 5090) — before | 15 | 4 | 4 | 4 | 0 |
+| qwen3.6:35b-a3b (RTX 5090) — before | 15 | 14 | 14 | 14 | 0 |
+| qwen3.8:27b (RTX 5090) — before | 15 | 12 | 12 | 12 | 1 |
+| gemma4:12b (RTX 5090) | 15 | 14 | 14 | 14 | 0 |
+| phi4-mini:3.8b (RTX 5090) | 15 | 5 | 5 | 5 | 0 |
+| qwen3.6:35b-a3b (RTX 5090) | 15 | 13 | 13 | 13 | 0 |
+| qwen3.8:27b (RTX 5090) | 15 | 15 | 15 | 15 | 0 |
+| qwen3.6:35b-a3b (Mac M1 Max) — before | 10 | 6 | 6 | 6 | 0 |
+| qwen3.6:35b-a3b (Mac M1 Max) | 10 | 8 | 8 | 8 | 0 |
+
+##### Per-page conversations (`tests/zigi-pages-conversations.spec.ts`, ten asks per area)
+
+| Model (host) | Project | Areas | Asks | Passed | Pass % | Reply median ms | Most common misses |
+|---|---|---:|---:|---:|---:|---:|---|
+| gemma4:12b (RTX 5090) | desktop | 17 | 170 | 162 | 95.3 | 1182 | no card 6, refused 2 |
+| qwen3.6:35b-a3b (RTX 5090) | desktop | 17 | 170 | 161 | 94.7 | 684 | no card 5, refused 5 |
+| qwen3.6:35b-a3b (RTX 5090) | mobile | 17 | 170 | 157 | 92.4 | 706 | no card 12, refused 2 |
+
+##### Day in the life (`tests/zigi-day-in-the-life.spec.ts`, three scenarios, the launcher's state at each step)
+
+| Model (host) | Project | Steps | Steps as expected | States while waiting | States after an add | Misses |
+|---|---|---:|---:|---|---|---|
+| qwen3.6:35b-a3b (RTX 5090) | desktop | 18 | 17 | thinking 15, success 2, insight 1 | success 11 | card:log-sleep 1 |
+| qwen3.6:35b-a3b (RTX 5090) | mobile | 18 | 16 | thinking 14, success 2, writing-proposal 1, insight 1 | success 10 | card:log-sleep 1, card:log-meditation 1 |
+| qwen3.6:35b-a3b (Mac M1 Max) | desktop | 18 | 16 | thinking 15, success 2, insight 1 | success 10 | card:log-sleep 1, card:log-meditation 1 |
+
+**Findings from the UI stages (every test green except the two named; a scored miss is the model's, recorded, never a red build):**
+
+- **phi4-mini:3.8b (RTX 5090), 150 cases in 6.8 minutes: 103 of 150 scored passes (68.7 %), reply median 798 ms, a tool in 39 replies.** Misses: prose where a card was asked (22), a card the schema refused (13), refusals (7), the expected tool not called. One red test (`health-counter`): the model wrote `zigoals-action` and the JSON without any backticks, so the panel showed them raw (the harness saw the same in 2 of 361 replies; no fence, no block, the model's). A first pass of this run (31 minutes) was discarded: it waited 15 minutes for a launcher on Settings and measured fast tool replies at a 15-second floor (ADR S39).
+- **gemma4:12b: 129 of 150 (86.0 %), median 1,551 ms.** The best card-maker of the five through the panel: three prose-instead-of-card misses in 150. Misses are mostly the expected tool not called (`list_habits`, `goal_progress`, `habit_stats`: it answers from the handle list in the context).
+- **qwen3.8:27b: 112 of 150 (74.7 %), median 1,982 ms, a tool in 71 replies** (the most tool use). Misses: prose where a card was asked (20), then the same tool misses.
+- **qwen3.6:35b-a3b (PC): 115 of 150 (76.7 %), median 849 ms**, the fastest large model; **the same weights on the Mac: 45 of 60 (75.0 %), median 5,257 ms**, six times slower, the same shape of misses (cards 6, schema 3).
+- **Conversations (plan → correct → accept → undo).** Before the protocol change (ADR S40) the two smaller models corrected a just-proposed habit with an `edit-habit` by its title (refused when the title matched nothing; aimed at the Showcase's own "Walk" when it did) and qwen3.8 did it once. After one sentence in the protocol: gemma4 10 → 14 of 15, qwen3.8 12 → 15, the Mac 6 → 8 of 10, phi4-mini 4 → 5, qwen3.6 14 → 13 (noise). **Wherever a card of the right kind came back, the accept was exact and the undo restored the record byte for byte: 55 of 55.** The remaining misses are a correction answered with no card at all, or with a card of another kind (a meditation correction as a check-in).
+- **Per page (170 asks per run, every area, desktop and phone): 94 to 95 % on both models**; the misses are a card where a plain answer was wanted (a reminder on a lookup) and a refusal that came as a hedge. The question-aware context reaches the model on every page: the answers quote the page's own records (a sleep list by night, the week's dates).
+- **Day in the life (3 scenarios × 18 steps, three runs): 49 of 54 steps as expected**, the launcher thinking while waiting, presenting after a reply with cards, success at once after every add, empathetic on the careful topic, insight after a plain answer. The breakfast went by photo (three food cards from the drawn plate). The first attempt of this stage found two defects, both fixed before the recorded run: the helper looked for a Log button that only exists in log mode, and **an added card seconds after the reply left ZIGi on `presenting`: the controller's reaction gap and the presenting clip's hold were swallowing the person's own success (ADR S41, an app-side fix with a unit test).** The five misses are the model's: a sleep block without the bedtime for "midnight", a meditation log answered without a card on two runs.
 
 
 
