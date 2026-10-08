@@ -40,6 +40,7 @@ export function score(expect: Expect, observed: Observed): Score {
   }
   checks.push({name: 'schema', pass: parsed.rejected.length === 0, detail: parsed.rejected.map(r => r.reason).join('; ') || 'every block valid'});
   if (expect.tools) for (const tool of expect.tools) checks.push({name: `tool:${tool}`, pass: observed.calls.some(c => c.name === tool), detail: `called [${observed.calls.map(c => c.name).join(', ')}]`});
+  if (expect.toolsAny) checks.push({name: `tool-any:${expect.toolsAny.join('|')}`, pass: observed.calls.some(c => expect.toolsAny!.includes(c.name)), detail: `called [${observed.calls.map(c => c.name).join(', ')}]`});
   if (expect.toolsNot) for (const tool of expect.toolsNot) checks.push({name: `tool-not:${tool}`, pass: !observed.calls.some(c => c.name === tool)});
   if (observed.calls.length) checks.push({name: 'arguments', pass: observed.calls.every(c => c.accepted), detail: observed.calls.filter(c => !c.accepted).map(c => c.name).join(', ') || 'every call accepted'});
   for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: text.toLowerCase().includes(words.toLowerCase())});
@@ -54,9 +55,23 @@ export function score(expect: Expect, observed: Observed): Score {
     const pass = want.length === 0 || (f.fact.pick === 'first' ? want.every(n => have.includes(n)) : want.some(n => have.includes(n)));
     checks.push({name: `fact:${f.fact.tool}`, pass, detail: `records say ${want.join(', ') || '(no number)'}; reply has ${have.slice(0, 8).join(', ') || 'none'}`});
   }
+  // Phase 2: field-level checks on the parsed cards (a day, a unit, a currency, a time), kind by kind.
+  for (const want of expect.fields ?? []) {
+    const match = parsed.proposals.some(p => Object.entries(want).every(([k, v]) => sameField((p as Record<string, unknown>)[k], v)));
+    checks.push({name: `fields:${Object.entries(want).map(([k, v]) => `${k}=${String(v)}`).join(',')}`, pass: match, detail: parsed.proposals.map(p => JSON.stringify(p)).join(' ').slice(0, 300) || 'no card'});
+  }
   if (expect.hint) checks.push({name: 'hint', pass: expect.hint === 'any' ? hint !== null : expect.hint === 'none' ? hint === null : hint === expect.hint, detail: `hint ${hint ?? 'none'}`});
   if (observed.sentinelsSeen) checks.push({name: 'privacy', pass: observed.sentinelsSeen.length === 0, detail: observed.sentinelsSeen.join(', ') || 'no sentinel left the device'});
   return {pass: checks.every(c => c.pass), checks, cards: kinds.length, rejected: parsed.rejected.length, hint, refused, numbers};
+}
+/** A card field equals the expected value: strings without case, numbers as numbers, nested objects key by key. */
+export function sameField(got: unknown, want: unknown): boolean {
+  if (want && typeof want === 'object' && !Array.isArray(want) && Array.isArray((want as {anyOf?: unknown}).anyOf) && Object.keys(want).length === 1) return ((want as {anyOf: unknown[]}).anyOf).some(v => sameField(got, v));
+  if (typeof want === 'string' && typeof got === 'string') return got.trim().toLowerCase() === want.trim().toLowerCase();
+  if (typeof want === 'number') return typeof got === 'number' ? Math.abs(got - want) < 1e-9 : false;
+  if (want && typeof want === 'object' && !Array.isArray(want)) return !!got && typeof got === 'object' && Object.entries(want).every(([k, v]) => sameField((got as Record<string, unknown>)[k], v));
+  if (Array.isArray(want)) return Array.isArray(got) && want.length === got.length && want.every((v, i) => sameField(got[i], v));
+  return got === want;
 }
 /** The numbers a tool result's text carries, for a fact check (the caller runs the tool on the device). */
 export const factNumbers = (result: ToolResult): string[] => digitsOf(JSON.stringify(result).replace(/"[a-z_]+":/g, ' ').replace(/\d{4}-\d{2}-\d{2}(?:T[0-9:.]+Z?)?/g, ' ').replace(/\b\d{1,2}:\d{2}\b/g, ' '));

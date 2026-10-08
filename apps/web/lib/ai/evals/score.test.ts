@@ -38,3 +38,14 @@ test('Session X-Local Part 6d: French and Dutch number marks read as one number;
   expect(score({}, {text: 'Nothing here.', calls: [], facts: [fact]}).checks.find(c => c.name === 'fact:goal_progress')).toMatchObject({pass: false});
   expect(score({}, {text: 'About 45 percent.', calls: [], facts: [{...fact, fact: {tool: 'goal_progress', pick: 'first' as const}, numbers: ['41.66', '45']}]}).checks.find(c => c.name === 'fact:goal_progress')).toMatchObject({pass: false});
 });
+
+test('Phase 2: field checks read the parsed card (a day, a unit, a currency, a time), case-free for strings, exact for numbers', () => {
+  const reply = 'Done.\n\n```zigoals-action\n[{"kind":"log-weight","value":78.4,"unit":"kg","day":"yesterday"},{"kind":"create-goal","name":"Winter trip","target":2000,"currency":"USD","targetDate":"2026-12-20"}]\n```';
+  const ok = score({kinds: ['log-weight', 'create-goal'], fields: [{unit: 'kg', day: 'yesterday', value: 78.4}, {name: 'winter TRIP', currency: 'USD', targetDate: '2026-12-20'}]}, {text: reply, calls: []});
+  expect(ok.checks.filter(c => c.name.startsWith('fields:')).every(c => c.pass)).toBe(true);
+  const miss = score({fields: [{day: '2026-09-18'}]}, {text: reply, calls: []});
+  expect(miss.checks.find(c => c.name.startsWith('fields:'))?.pass).toBe(false);
+  const none = score({fields: [{day: 'today'}]}, {text: 'No card here.', calls: []});
+  expect(none.checks.find(c => c.name.startsWith('fields:'))?.detail).toBe('no card');
+});
+

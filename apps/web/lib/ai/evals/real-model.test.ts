@@ -41,10 +41,15 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
   const provider = toolEnv(sources, gates, 'provider', new Handles([])), local = toolEnv(sources, gates, 'local');
   const context = questionContext(ask, sources, gates, []);
-  const contextText = MODE === 'attach' ? context?.text ?? null : null;
+  // Session X-Local Phase 2 (P2.2a): tools mode carries the question-chosen records too, exactly as the app does
+  // (`use-chat-session` passes the page context with `tools: true`); the router's own pre-run calls count as calls, since
+  // the device made them for this question. Before this the harness measured a configuration the app never uses (tools
+  // and no records), and punished every lookup the app would have answered from its pre-run records.
+  const contextText = context?.text ?? null;
+  const prerun: Call[] = MODE === 'tools' ? (context?.sources ?? []).filter(src => src.call.tool !== 'about_me').map(src => ({name: src.call.tool, args: (src.call.args ?? null) as Record<string, unknown> | null, accepted: true})) : [];
   const system = buildSystemPrompt({area: c.page, context: contextText, customInstructions: '', providerName: 'Ollama', tools: MODE === 'tools'});
   const messages: ChatMessage[] = [...history, {role: 'user', content: ask}];
-  const calls: Call[] = [], started = Date.now(); let first: number | null = null, reply = '', tokens = {input: null as number | null, output: null as number | null}, error: string | null = null;
+  const calls: Call[] = [...prerun], started = Date.now(); let first: number | null = null, reply = '', tokens = {input: null as number | null, output: null as number | null}, error: string | null = null;
   // ZIGI_THINK=1 lets a thinking model think (the app's "Think deeper"); the default is the app's quick reply (think off).
   const request = {provider: 'local' as const, localServer: 'ollama' as const, model: MODEL, system, messages, maxOutputTokens: 1024, key: null, baseUrl: BASE, signal: AbortSignal.timeout(TIMEOUT_MS), think: THINK};
   try {
