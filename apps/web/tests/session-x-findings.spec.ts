@@ -236,6 +236,9 @@ test('a traveller: Today\'s "Your week" ends on the day of the time zone their j
 test('the Guide\'s "Open the review" lands on the weekly review card, opening "Show more" when it waits behind it', async ({page}) => {
   // Session X P2.6 (Help audit): the link pointed at an anchor that did not exist.
   await showcase(page);
+  // Today settled (the Showcase's own arrival at /app is done), as when the Guide's card on Today is followed.
+  await expect(page.getByRole('region', {name: 'For you', exact: true})).toBeVisible();
+  await page.waitForLoadState('networkidle');
   await page.goto('/app#for-you-weekly-review');
   const card = page.locator('#for-you-weekly-review');
   await expect(card).toBeVisible();
