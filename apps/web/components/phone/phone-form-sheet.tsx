@@ -13,11 +13,14 @@ export function PhoneFormSheet({ title, onClose, children }: { title: string; on
   useEffect(() => {
     const dialog = ref.current, previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialog?.showModal();
-    // Focus goes to the form: a field marked data-sheet-focus, else the first enabled field (not the Close button).
-    (dialog?.querySelector<HTMLElement>("[data-sheet-focus]") ?? dialog?.querySelector<HTMLElement>(".phone-form-sheet-body :is(input:not([type=hidden]), select, textarea):not(:disabled)"))?.focus({ preventScroll: true });
+    // Focus goes to the form: a field marked data-sheet-focus, else the first enabled field (not the Close button). It
+    // moves once the sheet has painted, so the tap paints the sheet first (Session X P2.3: the focus forced a layout
+    // inside the tap; Staking's Track Wallet took 200–256 ms to paint at 4x CPU).
+    let timer = 0;
+    const focus = requestAnimationFrame(() => { timer = window.setTimeout(() => (dialog?.querySelector<HTMLElement>("[data-sheet-focus]") ?? dialog?.querySelector<HTMLElement>(".phone-form-sheet-body :is(input:not([type=hidden]), select, textarea):not(:disabled)"))?.focus({ preventScroll: true })); });
     const backdrop = (event: MouseEvent) => { if (event.target === dialog) close.current(); };
     dialog?.addEventListener("click", backdrop);
-    return () => { dialog?.removeEventListener("click", backdrop); dialog?.close(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
+    return () => { cancelAnimationFrame(focus); window.clearTimeout(timer); dialog?.removeEventListener("click", backdrop); dialog?.close(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
   }, []);
   return <dialog ref={ref} className="phone-form-sheet" aria-label={title} onCancel={event => { event.preventDefault(); close.current(); }}>
     <header className="phone-form-sheet-head"><h2>{title}</h2><button type="button" className="secondary icon-button" aria-label={`Close ${title}`} onClick={() => close.current()}>×</button></header>

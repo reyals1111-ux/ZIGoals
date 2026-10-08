@@ -121,3 +121,72 @@ only with the reason in the same change; after handoff H2, whichever lane merges
 - **The private backup tools' crypto in Settings** (about 8 KB raw): encryption code (Tier 3) used by render-time checks
   of a decrypted preview; the Settings target is met without it.
 - **ZIGi's zod imports:** handed off (H2).
+
+## Phase 2 (P2.3): Today's diet, field metrics, lower budgets (2026-10-08)
+Evidence: local (production build `PUBLIC_ALPHA_UNDEPLOYED`, `next start`, Chromium). Weights come from
+`scripts/check-weight-budget.mjs`. LCP, CLS and INP come from the browser's own `PerformanceObserver` entries: no
+library, Showcase data, every `/api` answered by a fixture. Each figure is the median of three loads per page.
+
+### Today ≤ 540 kB without a behaviour change (`d118810`, `028ea13`)
+| Page | Before Phase 2 | After |
+|---|---|---|
+| Today `/app` | 611.6 | **509.4** |
+| Activity | 462.9 | 409.1 |
+| Staking | 452.8 | 436.8 |
+| shell (every page) | 401.0 | 402.6 |
+
+Three changes made it:
+- Recent activity loaded ZIGi's action-record module, and with it zod's whole namespace with every locale (55 kB gzip on
+  Today alone). The module now loads with the feed's first read.
+- Today's "For you" took one money helper from the Wealth page's module and so loaded the whole Wealth view. The helper
+  is now its own module.
+- Today's ecosystem names come from a names-only list, with a unit test that it equals the registry's names.
+
+The shell's +1.6 kB is Phase 2's own additions: the part-level load boundary (`c83f01e`) and the persona fixes.
+
+### LCP, CLS and INP per page
+Desktop is 1440 × 900. The phone is an iPhone 13 profile with the CPU slowed 4× (`Emulation.setCPUThrottlingRate`; the
+network is local). INP is the slowest of a few safe interactions: a click on the title, three Tab presses, and opening
+and closing the first disclosure. Targets: LCP ≤ 2.5 s, CLS ≤ 0.1, INP ≤ 200 ms.
+
+The first measurement found two misses on the phone:
+- **CLS 0.15–0.19 on every page but Today.** Phone pages shorten the status lines ("Status details" closed) only once a
+  script set `data-phone-status`, after the page was visible: the mode strip painted at 115 px and then collapsed to
+  40 px, and in the Showcase the demo banner also moved it. The closed state is now the CSS default whenever the testnet
+  banner is in the page (it is server-rendered, and the toggle lives in it), so the first paint is already the closed
+  layout. Goals went from 0.188 to 0.022 (Showcase) and from 0.047 to 0.001 (empty device). The toggle and the open
+  state are unchanged.
+- **INP on Staking 200–256 ms.** Opening the Track Wallet sheet re-rendered every position card first, and the sheet's
+  first-field focus forced a layout inside the tap. The page's main region is now memoised on what it reads, and the
+  sheet moves focus once it has painted. It now measures 176–216 ms (median 192) on its own and 160 ms in the table
+  below. Every phone form sheet gets the focus change.
+
+After both fixes:
+| Page | Desktop LCP | Desktop CLS | Desktop INP | Phone (4× CPU) LCP | Phone CLS | Phone INP |
+|---|---|---|---|---|---|---|
+| Today | 880 | 0.032 | 88 | 548 | 0.023 | 128 |
+| Goals | 304 | 0.028 | 24 | 376 | 0.022 | 56 |
+| Habits | 300 | 0.028 | 104 | 372 | 0.022 | 128 |
+| Health | 284 | 0.027 | 88 | 332 | 0.022 | 128 |
+| Wealth | 264 | 0.027 | 96 | 356 | 0.022 | 64 |
+| Markets | 264 | 0.016 | 32 | 320 | 0.022 | 64 |
+| Portfolio | 292 | 0.027 | 96 | 356 | 0.022 | 88 |
+| Staking | 588 | 0.016 | 88 | 372 | 0.022 | 160 |
+| Ecosystem | 264 | 0.016 | 80 | 424 | 0.022 | 120 |
+| Activity | 232 | 0.016 | 96 | 488 | 0.022 | 72 |
+| Settings | 352 | 0.016 | 72 | 440 | 0.022 | 120 |
+| Help | 300 | 0.016 | 88 | 380 | 0.022 | 104 |
+| Chess | 232 | 0.016 | 72 | 300 | 0.022 | 88 |
+
+LCP and INP are in ms. Every page meets every target.
+
+### Budgets lowered (`[TIER 3] (CI)`)
+`scripts/weight-budgets.json` lowers three budgets to their new measurement plus about 5 kB:
+
+| Page | Old budget | New budget |
+|---|---|---|
+| Today | 617 kB | 515 kB |
+| Staking | 458 kB | 442 kB |
+| Activity | 468 kB | 415 kB |
+
+The other budgets already sat within 5 kB of their measurement and stay. Rollback: revert the commit.
