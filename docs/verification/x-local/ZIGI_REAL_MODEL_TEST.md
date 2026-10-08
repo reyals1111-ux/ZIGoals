@@ -297,13 +297,14 @@ the scorer alone.
 | `gemma4:12b` | RTX 5090 | 77.1 % | 82.8 % | 84.6 % | 89.3 % | **89.4 %** (691 / 773) | ≥ 90 %: 0.6 points short, inside the run-to-run spread (89.3 → 89.4 on identical code except S69; 32 lost, 34 gained between those two runs) |
 | `qwen3.8:27b` | RTX 5090 | 74.5 % | 80.6 % | 83.7 % | 84.0 % | **85.1 %** (658 / 773) | ≥ 90 %: not met; what is left is the model's own judgement (a card asked for and prose returned, two check-ins for one, a log beside an answer) |
 | `qwen3.6:35b-a3b` | RTX 5090 | 70.6 % | 79.6 % | 82.4 % | 81.1 % | **82.1 %** (635 / 773) | ≥ 85 %: not met on the PC; its runs move ±1.5 points on identical code |
-| `qwen3.6:35b-a3b` | Mac M1 Max | 69.7 % | 80.3 % (S59's first cut) | — | 84.0 % (649 / 773) | _running_ | ≥ 85 %: within a point on the Mac |
+| `qwen3.6:35b-a3b` | Mac M1 Max | 69.7 % | 80.3 % (S59's first cut) | — | 84.0 % (649 / 773) | **81.6 %** (631 / 773) | ≥ 85 %: not met; the two Mac runs on near-identical code (rounds 1–5, then 1–6, which only adds the day cue) sit 2.4 points apart (refusals 53 → 46 of 57, multi-step 151 → 141), so the Mac's own spread is at least that |
 | `phi4-mini:3.8b` | RTX 5090 | 45.9 % | 58.6 % | 58.7 % | 60.2 % | **60.5 %** (468 / 773) | measured: proposals 144 of 232, multi-step 82 of 183 — "chat only, no cards" is the honest label |
 
 By kind on the final PC run: gemma4 lookups 117 / 120, proposals 204 / 232, briefs 28 / 29, refusals 56 / 57, multi-step
 156 / 183, follow-ups 41 / 45; qwen3.8 lookups 118 / 120, proposals 191 / 232, refusals 51 / 57, follow-ups 42 / 45;
 qwen3.6 (PC) lookups 116 / 120, proposals 186 / 232, refusals 47 / 57; phi4-mini lookups 99 / 120, proposals 144 / 232.
-The lookups are near the ceiling on every model but phi4-mini (the router's pre-run facts, the device's own answers, the
+On the Mac, qwen3.6's lookups 114 / 120, proposals 182 / 232, refusals 46 / 57, multi-step 141 / 183 (rounds 1–6; 106 min, first
+token median about 2.3 s). The lookups are near the ceiling on every model but phi4-mini (the router's pre-run facts, the device's own answers, the
 Dutch and French cues); the proposals and the multi-step turns carry what is left, and the variance runs (the important
 172 cases, three times per model) size how much of the gap to the targets is spread rather than skill.
 
