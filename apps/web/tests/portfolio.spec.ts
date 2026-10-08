@@ -45,6 +45,8 @@ test('create a portfolio and record transactions; without prices values stay unk
   await expect(holding).toContainText('$60,020.00');
   await expect(page.getByLabel('Fictional coins totals')).toContainText('Cost basis$30,010.00');
   await expect(page.getByLabel('Fictional coins totals')).toContainText('1 coin has no price yet and is not counted.');
+  // Unknown is never zero: with no coin held priced, the value reads Unknown, not $0.00 (Session X Part 14).
+  await expect(page.getByLabel('Fictional coins totals').locator('> div').first()).toContainText('ValueUnknown');
   await expect(page.getByText('No live price is available right now.', {exact: false})).toBeVisible();
   // A sale larger than the holding is refused, with nothing written.
   const before = await stored(page);
