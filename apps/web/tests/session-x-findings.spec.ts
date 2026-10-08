@@ -1,5 +1,9 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema, type Platform} from '../lib/positions';
+import {createEmptyHealth, HEALTH_STORAGE_KEY} from '../lib/health';
+import {createHabit, emptyHabitData, HABITS_KEY} from '../lib/habits';
+import {NUDGES} from '../lib/coach/copy';
+import {addWater, dailyData, saveHealthPreferences} from '../lib/health-daily';
 
 // Session X Part 14: what the human-style test (docs/verification/x-cloud/HUMAN_TEST.md) found in the app, kept fixed.
 // Each test names its journey. Fictional records, every /api answered by a fixture unless the test says otherwise.
@@ -212,4 +216,44 @@ test('a link with a broken fragment (#%) still opens Settings, Ecosystem and Tod
     await expect(page.getByRole('alert').filter({hasText: 'This page could not be shown.'})).toHaveCount(0);
   }
   expect(errors).toEqual([]);
+});
+
+test('a traveller: Today\'s "Your week" ends on the day of the time zone their journal follows, as Habits and Health do', async ({page, isMobile}) => {
+  test.skip(isMobile, 'The week strip counts the same on a phone; its days are folded there.');
+  // The device is in Brussels at 23:30 on 7 October; the journal follows Asia/Tokyo, where it is already 06:30 on the 8th.
+  await page.clock.install({time: new Date('2026-10-07T21:30:00Z')});
+  await page.goto('/app/settings');
+  const tokyo = saveHealthPreferences(createEmptyHealth(), {...dailyData(createEmptyHealth()).preferences, timezone: 'Asia/Tokyo'});
+  const withWater = addWater(tokyo, {id: 'health_6b3c1a64-5f43-4f53-9d1e-7a0c2b9e1f10', date: '2026-10-08', amountMilli: 250_000, unit: 'ml'}, '2026-10-07T21:30:00.000Z');
+  await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HEALTH_STORAGE_KEY, JSON.stringify(withWater)]);
+  await page.goto('/app');
+  const row = page.getByRole('group', {name: 'Health entries, last 7 days'});
+  await expect(row.locator('li').last()).toContainText('8');
+  await expect(row.locator('li').last()).toContainText('1');
+  await expect(row.locator('li').last()).not.toContainText('—');
+});
+
+test('the Guide\'s "Open the review" lands on the weekly review card, opening "Show more" when it waits behind it', async ({page}) => {
+  // Session X P2.6 (Help audit): the link pointed at an anchor that did not exist.
+  await showcase(page);
+  await page.goto('/app#for-you-weekly-review');
+  const card = page.locator('#for-you-weekly-review');
+  await expect(card).toBeVisible();
+  await expect(card).toBeInViewport();
+  expect(NUDGES.find(n => n.kind === 'review-ready')!.action!.href).toBe('/app#for-you-weekly-review');
+});
+
+test('the Guide\'s "Open habit" shows that habit even when today\'s filter would hide it, and scrolls to it', async ({page}) => {
+  // Session X P2.6 (Help audit): a habit not due today was hidden by the "Today" filter, and nothing followed the link.
+  await page.clock.install({time: new Date('2026-10-07T08:00:00Z')});
+  const at = new Date('2026-10-01T08:00:00.000Z'), swimId = '5d9a6e2c-2b0f-4c41-9d6b-3e7a1f2c8b40';
+  let habits = createHabit(emptyHabitData(), {title: 'Fictional daily walk', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, measurement: {kind: 'boolean'}, target: 1}, at);
+  habits = createHabit(habits, {title: 'Fictional Sunday swim', category: 'Health', description: '', notes: '', schedule: {kind: 'weekdays', days: [0]}, measurement: {kind: 'boolean'}, target: 1}, at, swimId);
+  await page.goto('/app/settings');
+  await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HABITS_KEY, JSON.stringify(habits)]);
+  await page.goto(`/app/habits#habit-${swimId}`);
+  const swim = page.locator(`#habit-${swimId}`);
+  await expect(swim).toBeVisible();
+  await expect(swim).toBeInViewport();
+  await expect(page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'All', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });
