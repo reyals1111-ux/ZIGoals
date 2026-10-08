@@ -1,7 +1,7 @@
 import {toBech32} from '@cosmjs/encoding';
 import {expect, type Download, type Page} from '@playwright/test';
 import {readStoredZip} from '../lib/export/zip-reader';
-import {PLATFORM_KEY} from '../lib/positions';
+import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../lib/positions';
 import {go, journey, open, ready, snap, type Journey} from './kit';
 
 // Session X Part 14, journeys J136–J180: Wealth, Portfolio, Markets, Staking, Ecosystem
@@ -267,6 +267,19 @@ async function trade(page: Page, coin: RegExp, kind: 'buy' | 'sell', quantity: s
   await expect(page.getByRole('status').filter({hasText: new RegExp(`^${kind === 'buy' ? 'Buy' : 'Sell'} of \\w+ recorded\\.$`)})).toBeVisible();
 }
 const ADDRESS = toBech32('zig', new Uint8Array(20).fill(7));
+const offline = (page: Page) => page.getByRole('alert').filter({hasText: 'You’re offline.'});
+/** The market service's dated history, answered on this device (only `/api/market-history`; other market calls stay
+ * "unavailable"): one price a day at `cents` from `from` to 7 October 2026, the journey's clock. */
+async function history(page: Page, from: string, cents: string) {
+  const now = Date.parse('2026-10-07T12:00:00.000Z');
+  await page.route('**/api/market-history', route => {
+    const {request} = route.request().postDataJSON() as {request: Record<string, unknown>};
+    const points: {at: string; value: string; decimals: number}[] = [];
+    for (let at = Date.parse(`${from}T00:00:00.000Z`); at <= now; at += 86_400_000) points.push({at: new Date(at).toISOString(), value: cents, decimals: 2});
+    return route.fulfill({json: {history: {...request, source: 'CoinGecko', fetchedAt: new Date(now).toISOString(), points}, error: null, stale: false, nextAttemptAt: 0}});
+  });
+}
+const assetCard = (page: Page, name: string) => page.locator('.owned-asset-card').filter({has: page.getByRole('heading', {level: 3, name, exact: true})});
 const holdingsRow = (page: Page, portfolioName: string, coin: string) => page.getByRole('table', {name: `${portfolioName} holdings`}).getByRole('row').filter({hasText: coin});
 
 journey('J139', 'an asset whose value is unknown is never counted as zero', {views: 'all', data: ['L']}, async j => {
@@ -562,4 +575,283 @@ journey('J178', 'from an empty Wealth to a first portfolio', {views: ['D', 'P'],
   await portfolio(page, 'Fictional first coins');
   await expect(page.getByRole('region', {name: 'Fictional first coins', exact: true})).toBeVisible();
   expect((await stored(page, PORTFOLIO)).portfolios.map((p: {name: string}) => p.name)).toEqual(['Fictional first coins']);
+});
+
+journey('J141', 'cash: added, edited, allocated to a goal, and kept out of staking', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await page.goto('/app/settings');
+  await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [PLATFORM_KEY, JSON.stringify({...emptyPlatform(), goals: [privateGoalSchema.parse({id: '91', name: 'Fictional rainy-day fund', type: 'VALUE', status: 'active', asset: 'USD', denom: 'USD', decimals: 2, target: '100000', notes: '', createdAt: '2026-09-01T09:00:00.000Z', milestones: []})]})]);
+  await open(page, '/app/wealth');
+  await addAsset(page, 'Cash', [['Cash amount', '500']]);
+  const id = (await stored(page, PLATFORM_KEY)).positions[0].id as string;
+  await open(page, `/app/wealth/asset/${encodeURIComponent(id)}`);
+  await page.getByRole('button', {name: 'Edit asset', exact: true}).click();
+  await page.getByLabel('Cash balance').fill('600');
+  await page.getByRole('button', {name: 'Save changes', exact: true}).click();
+  await expect(page.getByRole('region', {name: 'Your holding'})).toContainText('$600');
+  // Cash is never staking: Staking's tracked crypto leaves it out.
+  await open(page, '/app/staking');
+  await expect(page.getByRole('region', {name: 'Tracked crypto'})).not.toContainText('USD Cash');
+  await page.goto('/app/goals/tracked/91#allocate');
+  await ready(page);
+  await page.locator('#allocate').getByRole('button').filter({hasText: 'USD Cash'}).click();
+  await page.getByLabel('Allocation quantity', {exact: true}).fill('500');
+  await page.getByRole('button', {name: 'Save allocation', exact: true}).click();
+  await page.getByRole('button', {name: 'Confirm allocation', exact: true}).click();
+  await expect(page.getByTestId('tracked-progress')).toContainText('$500');
+  expect((await stored(page, PLATFORM_KEY)).allocations).toEqual([{goalId: '91', positionId: id, quantity: '500000000000000000000'}]);
+});
+
+journey('J143', 'Wealth\'s asset mix: the ring\'s words and the legend say the same, adding up to 100 %', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  await open(page, '/app/wealth');
+  const money = (text: string) => Number(text.replace(/[^\d.]/g, ''));
+  // The Showcase holds USD and EUR: one composition per currency, never converted.
+  const groups = page.getByRole('group', {name: /^[A-Z]{3} portfolio composition$/});
+  await expect(groups).toHaveCount(2);
+  for (const group of await groups.all()) {
+    const words = (await group.getByRole('img', {name: /composition:/}).getAttribute('aria-label'))!;
+    const ring = [...words.slice(words.indexOf(': ') + 2).matchAll(/([^,]+?) ([\d.]+)%/g)].map(m => [m[1]!.trim(), m[2]!]);
+    const legend = await group.locator('.composition-legend > div').evaluateAll(rows => rows.map(r => [r.querySelector('dt')!.textContent!.trim(), r.querySelector('dd span')!.textContent!.replace('%', '').trim()]));
+    expect(ring.length, words).toBeGreaterThan(0);
+    expect(legend, words).toEqual(ring);
+    expect(Math.abs(ring.reduce((t, [, pct]) => t + Number(pct), 0) - 100), `${words} adds up to 100 %`).toBeLessThan(0.001);
+    const values = await group.locator('.composition-legend dd strong').allTextContents();
+    const total = money((await group.locator('.composition-donut strong').textContent())!);
+    expect(values.reduce((t, v) => t + money(v), 0)).toBeCloseTo(total, 2);
+  }
+  await snap(j, 'J143', 'asset-mix');
+});
+
+journey('J144', 'Wealth with a value of 1e15 and a quantity of 0.00000001: both readable, exact, inside the page', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await open(page, '/app/wealth');
+  await addAsset(page, 'Cash', [['Asset name', 'Fictional vault cash'], ['Cash amount', '1000000000000000']]);
+  await addAsset(page, 'Custom', [['Asset name', 'Fictional dust token'], ['Quantity', '0.00000001'], ['Total holding value', '0.01']]);
+  await expect(assetCard(page, 'Fictional vault cash').locator('.owned-value strong')).toHaveText('$1,000,000,000,000,000.00');
+  await expect(assetCard(page, 'Fictional dust token').locator('.owned-value span')).toHaveText('0.00000001 UNIT');
+  await expect(assetCard(page, 'Fictional dust token').locator('.owned-value strong')).toHaveText('$0.01');
+  // The total keeps the last cent of a quadrillion.
+  await expect(page.locator('.wealth-hero-total .wealth-total-headline')).toHaveText('$1,000,000,000,000,000.01');
+  const width = page.viewportSize()!.width;
+  for (const [what, box] of [['the large value', await assetCard(page, 'Fictional vault cash').locator('.owned-value strong').boundingBox()], ['the tiny quantity', await assetCard(page, 'Fictional dust token').locator('.owned-value span').boundingBox()], ['the total', await page.locator('.wealth-hero-total .wealth-total-headline').boundingBox()]] as const) {
+    expect(box, what).not.toBeNull();
+    expect(box!.x, what).toBeGreaterThanOrEqual(-0.5);
+    expect(box!.x + box!.width, what).toBeLessThanOrEqual(width + 0.5);
+  }
+  const positions = (await stored(page, PLATFORM_KEY)).positions as {providerId: string; quantity: string; decimals: number}[];
+  expect(positions.map(p => [p.providerId, p.quantity, p.decimals])).toEqual([['Fictional vault cash', `1${'0'.repeat(33)}`, 18], ['Fictional dust token', '10000000000', 18]]);
+});
+
+journey('J145', 'Wealth offline: manual values still show; market prices are a price or "Unavailable", never zero', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  await open(page, '/app/wealth');
+  await page.context().setOffline(true);
+  await expect(offline(page)).toBeVisible();
+  const assets = page.getByRole('region', {name: 'Your assets'});
+  await assets.getByRole('button', {name: 'Cash', exact: true}).click();
+  await expect(assetCard(page, 'USD cash reserve').locator('.owned-value strong')).toHaveText('$25,000.00');
+  await expect(assetCard(page, 'EUR travel cash').locator('.owned-value strong')).toHaveText('€8,000.00');
+  await assets.getByRole('button', {name: 'All assets', exact: true}).click();
+  const all = assets.getByRole('button', {name: /^Show all \d+ assets$/});
+  if (await all.count()) await all.click();
+  const values = await assets.locator('.owned-value strong').allTextContents(), prices = await assets.locator('.holding-unit-price strong').allTextContents();
+  expect(values.length).toBeGreaterThan(2);
+  for (const value of values) { expect(value).toMatch(/^(Needs valuation|[$€][\d,]+\.\d{2})$/); expect(value).not.toMatch(/^[$€]0\.00$/); }
+  for (const price of prices) { expect(price).toMatch(/^Unavailable$|[1-9]/); expect(price).not.toMatch(/^[$€]?0([.,]0+)?$/); }
+  await page.context().setOffline(false);
+  await expect(offline(page)).toHaveCount(0);
+  await expect(page.locator('.wealth-hero-total .wealth-total-headline')).not.toHaveText(/^[$€]0\.00$/);
+});
+
+journey('J147', 'Portfolio: a buy and a sell; the holding, the cost basis and the chart follow', {views: 'all', data: ['L']}, async j => {
+  const {page} = j;
+  await page.clock.install({time: new Date('2026-10-07T12:00:00.000Z')});
+  await history(page, '2026-09-07', '6100000');
+  await open(page, '/app/portfolio');
+  await portfolio(page, 'Fictional ledger');
+  await trade(page, /Bitcoin/, 'buy', '0.5', '60000', '2026-09-01');
+  const totals = page.getByLabel('Fictional ledger totals'), btc = holdingsRow(page, 'Fictional ledger', 'Bitcoin'), quote = page.locator('.portfolio-chart-quote strong');
+  // On a phone the Holdings and Average cost columns are hidden (data-col-wide/optional); their text is still the row's.
+  await expect(btc).toContainText('0.5 BTC');
+  await expect(totals).toContainText('Cost basis$30,000.00');
+  // The chart: what I hold times the observed price ($61,000).
+  await expect(quote).toHaveText('$30,500.00');
+  await trade(page, /Bitcoin/, 'sell', '0.2', '65000', '2026-09-15');
+  await expect(btc).toContainText('0.3 BTC');
+  // Average cost: the sold part leaves at its share of the cost, so the 0.3 BTC kept still cost $60,000 each.
+  await expect(btc).toContainText('$60,000');
+  await expect(totals).toContainText('Cost basis$18,000.00');
+  await expect(quote).toHaveText('$18,300.00');
+  await expect(page.locator('.portfolio-value-chart')).toContainText('in this range, buys and sells included');
+  expect(((await stored(page, PORTFOLIO)).portfolios[0].transactions as {kind: string}[]).map(t => t.kind)).toEqual(['buy', 'sell']);
+});
+
+journey('J148', 'Portfolio: a gap in prices stays a gap, never guessed (with the market service unavailable the whole range is one)', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await page.clock.install({time: new Date('2026-10-07T12:00:00.000Z')});
+  await open(page, '/app/portfolio');
+  await portfolio(page, 'Fictional gaps');
+  await trade(page, /Bitcoin/, 'buy', '0.1', '60000', '2026-09-01');
+  const chart = page.locator('.portfolio-value-chart');
+  await expect(chart.locator('.portfolio-chart-empty')).toHaveText('No observed prices for this range yet. Earlier values are not assumed.');
+  await expect(chart).toContainText('History is unavailable for 1 coin right now.');
+  await expect(chart.locator('.portfolio-chart-line')).toHaveCount(0);
+  // Prices observed only from 20 September: the days held before that have no price, and none is made up.
+  await history(page, '2026-09-20', '6100000');
+  await chart.getByRole('group', {name: 'Chart range'}).getByRole('button', {name: '90D', exact: true}).click();
+  await expect(chart.locator('.portfolio-chart-line')).toHaveCount(2);
+  await expect(chart.locator('.portfolio-chart-quote strong')).toHaveText('$6,100.00');
+  await expect(chart).toContainText('Gaps are moments where a coin you held had no observed price.');
+  await chart.getByText('View exact values').click();
+  const rows = await chart.getByRole('region', {name: 'Exact values'}).locator('tbody tr').evaluateAll(trs => trs.map(tr => [tr.querySelector('time')!.getAttribute('datetime')!, tr.querySelectorAll('td')[1]!.textContent!] as [string, string]));
+  expect(rows.length).toBeGreaterThan(90);
+  for (const [at, value] of rows) {
+    const day = at.slice(0, 10);
+    if (day < '2026-09-01') expect(value, `${at}: nothing held yet`).toBe('$0.00');
+    else if (day >= '2026-09-02' && day < '2026-09-20') expect(value, `${at}: held, no observed price`).toBe('No observed price');
+    else if (day > '2026-09-20') expect(value, `${at}: 0.1 BTC at $61,000`).toBe('$6,100.00');
+  }
+  expect(rows.filter(([, value]) => value === 'No observed price').length).toBeGreaterThan(10);
+});
+
+journey('J150', 'Portfolio CSV: blank cells stay unknown; an unknown coin is mine to choose', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await open(page, '/app/portfolio');
+  await portfolio(page, 'Fictional blank cells');
+  await page.getByRole('button', {name: 'Import transactions from a CSV', exact: true}).click();
+  const panel = page.getByRole('region', {name: 'Import transactions', exact: true});
+  await panel.getByLabel('CSV file').setInputFiles({name: 'blank-cells.csv', mimeType: 'text/csv', buffer: Buffer.from('Date,Type,Pair,Amount,Price,Fee\n2026-09-01,Buy,BTC,0.5,60000,\n2026-09-02,Deposit,ETH,2,,\n2026-09-03,Deposit,FICTIONALSOL,10,,\n')});
+  await expect(panel.getByRole('heading', {name: /Step 2 of 4/})).toBeVisible();
+  await panel.getByRole('button', {name: 'Next', exact: true}).click();
+  await expect(panel.locator('.import-summary')).toHaveText('2 rows ready · 1 unknown coin · 0 rows refused');
+  const unknown = panel.getByRole('list', {name: 'Unrecognised coins'});
+  await expect(unknown).toContainText('“FICTIONALSOL” is not recognised; choose a coin from the list or skip the row.');
+  await expect(panel.getByRole('button', {name: 'Next', exact: true})).toBeDisabled();
+  await unknown.getByRole('button', {name: 'Choose a coin', exact: true}).click();
+  await unknown.getByRole('list', {name: 'Coins'}).getByRole('button', {name: /Solana/}).click();
+  await expect(panel.locator('.import-summary')).toHaveText('3 rows ready · 0 unknown coins · 0 rows refused');
+  await expect(panel.locator('.import-preview')).toContainText('Solana');
+  await expect(panel).toContainText('Transfers without a price: the cost of what they bring stays unknown.');
+  await panel.getByRole('button', {name: 'Next', exact: true}).click();
+  await panel.getByRole('button', {name: 'Import 3 transactions into Fictional blank cells', exact: true}).click();
+  await expect(panel.getByRole('status')).toContainText('3 transactions imported');
+  const txs = (await stored(page, PORTFOLIO)).portfolios[0].transactions as {coin: string; price?: string; fee?: string}[];
+  const of = (coin: string) => txs.find(t => t.coin === `coingecko:coin:${coin}`)!;
+  expect(of('bitcoin').fee).toBeUndefined();
+  for (const coin of ['ethereum', 'solana']) { expect(of(coin).price, coin).toBeUndefined(); expect(of(coin).fee, coin).toBeUndefined(); }
+  await panel.getByRole('button', {name: 'Done', exact: true}).click();
+  await expect(page.getByLabel('Fictional blank cells totals')).toContainText('A transfer in without a price has no known cost.');
+});
+
+journey('J151', 'Portfolio "Keep a copy": exported, then "Replace portfolios" from the file (cancelled once, then confirmed)', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await open(page, '/app/portfolio');
+  await portfolio(page, 'Fictional keeper');
+  await trade(page, /Bitcoin/, 'buy', '0.1', '60000', '2026-09-01');
+  const files = page.getByRole('region', {name: 'Portfolio file'});
+  const waiting = page.waitForEvent('download');
+  await files.getByRole('button', {name: 'Export portfolios', exact: true}).click();
+  const download = await waiting;
+  expect(download.suggestedFilename()).toMatch(/^zigoals-portfolio-\d{4}-\d{2}-\d{2}\.json$/);
+  const copy = await bytes(download);
+  expect(copy.toString('utf8')).toContain('Fictional keeper');
+  // Later, another trade; then the copy is brought back.
+  await trade(page, /Ethereum/, 'buy', '1', '2500', '2026-09-02');
+  await expect(holdingsRow(page, 'Fictional keeper', 'Ethereum')).toBeVisible();
+  const before = await page.evaluate(k => localStorage.getItem(k), PORTFOLIO);
+  const file = {name: download.suggestedFilename(), mimeType: 'application/json', buffer: copy};
+  await files.getByLabel('Import from a file').setInputFiles(file);
+  const confirm = files.getByRole('alertdialog', {name: 'Replace portfolios'});
+  await expect(confirm).toContainText('Replace all 1 portfolios on this device with the 1 in this file?');
+  await confirm.getByRole('button', {name: 'Cancel', exact: true}).click();
+  await expect(confirm).toHaveCount(0);
+  expect(await page.evaluate(k => localStorage.getItem(k), PORTFOLIO)).toBe(before);
+  await expect(holdingsRow(page, 'Fictional keeper', 'Ethereum')).toBeVisible();
+  await files.getByLabel('Import from a file').setInputFiles(file);
+  await files.getByRole('alertdialog', {name: 'Replace portfolios'}).getByRole('button', {name: 'Replace my portfolios', exact: true}).click();
+  await expect(page.getByRole('status').filter({hasText: 'Portfolios replaced from the file.'})).toBeVisible();
+  await expect(holdingsRow(page, 'Fictional keeper', 'Bitcoin')).toBeVisible();
+  await expect(holdingsRow(page, 'Fictional keeper', 'Ethereum')).toHaveCount(0);
+  expect((await stored(page, PORTFOLIO)).portfolios[0].transactions).toHaveLength(1);
+});
+
+journey('J158', 'Markets offline and with the market service unavailable: prices are known or say so, never zero', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  await open(page, '/app/markets');
+  const honest = async (when: string) => {
+    const prices = await page.locator('.market-product-card .market-card-price strong').allTextContents();
+    expect(prices.length, when).toBeGreaterThan(0);
+    for (const price of prices) { expect(price, when).toMatch(/^(Price unavailable|Price not loaded|\$[\d,]+(\.\d+)?)$/); expect(price, when).not.toMatch(/^\$0(\.0+)?$/); }
+  };
+  await honest('with the market service unavailable');
+  await page.getByRole('button', {name: /^(Load prices for this view|↻ Refresh market data)$/}).click();
+  await expect(page.getByRole('status').filter({hasText: 'Some market data could not refresh. Last verified values retain their timestamps.'})).toBeVisible();
+  await honest('after a refresh that could not reach the service');
+  await page.context().setOffline(true);
+  await expect(offline(page)).toBeVisible();
+  await page.getByRole('group', {name: 'Market views'}).getByRole('button', {name: 'Crypto', exact: true}).click();
+  await honest('offline');
+  await page.getByRole('group', {name: 'Show markets as'}).getByRole('button', {name: 'Table', exact: true}).click();
+  const cells = await page.getByRole('table', {name: 'Markets'}).locator('tbody tr td:nth-child(2)').allTextContents();
+  expect(cells.length).toBeGreaterThan(0);
+  for (const cell of cells) expect(cell).not.toMatch(/^\$0\.00/);
+  await page.context().setOffline(false);
+  await expect(offline(page)).toHaveCount(0);
+});
+
+journey('J159', 'Markets: a missing price stays "unavailable" on the card and in the table, never zero', {views: ['D', 'P'], data: ['S']}, async j => {
+  const {page} = j;
+  await open(page, '/app/markets');
+  const solana = page.locator('.market-product-card').filter({has: page.getByRole('heading', {level: 2, name: 'Solana', exact: true})});
+  await expect(solana.locator('.market-card-price strong')).toHaveText('Price unavailable');
+  await expect(solana.locator('.market-change strong')).toHaveText('24h unavailable');
+  await expect(solana).not.toContainText(/\$0\.00|[+-]?0\.00%/);
+  await page.getByRole('group', {name: 'Show markets as'}).getByRole('button', {name: 'Table', exact: true}).click();
+  const row = page.getByRole('table', {name: 'Markets'}).getByRole('row').filter({hasText: 'Solana'});
+  await expect(row.locator('td').first()).toHaveText('Price unavailable');
+  await expect(row).toContainText('Not provided');
+  await expect(row).not.toContainText(/\$0\.00|[+-]?0\.00%/);
+});
+
+journey('J163', 'Staking: the chain answers nothing → an honest message, nothing saved', {views: ['D', 'P'], data: ['E']}, async j => {
+  const {page} = j;
+  const asked: string[] = [];
+  await page.route('**/api/positions?**', route => { asked.push(route.request().url()); return route.fulfill({status: 503, json: {error: 'CHAIN_UNAVAILABLE'}}); });
+  await open(page, '/app/staking');
+  await page.locator('.positions-wallet > summary').click();
+  await page.getByLabel('Public ZIG address').fill(ADDRESS);
+  await page.getByRole('button', {name: 'Read public positions', exact: true}).click();
+  await expect(page.getByRole('alert').filter({hasText: 'Could not verify public positions'})).toHaveText('Could not verify public positions at one block height. Check the address and network availability. Previous quantities are preserved; a failed refresh needs review.');
+  expect(asked).toHaveLength(1);
+  expect(new URL(asked[0]!).searchParams.get('address')).toBe(ADDRESS);
+  // Nothing remembers the address; the totals stay unknown (a dash), never 0.
+  expect(await page.evaluate(address => [...Object.entries(localStorage), ...Object.entries(sessionStorage)].filter(([, v]) => v.includes(address)).map(([k]) => k), ADDRESS)).toEqual([]);
+  if (j.phone) await page.keyboard.press('Escape');
+  for (const total of await page.getByRole('region', {name: /observed totals$/}).locator('strong').allTextContents()) expect(total.trim()).toBe('— ZIG');
+});
+
+journey('J164', 'Staking at 320 px: the title on the first screen, cards inside the page, the wallet reader as a sheet', {views: ['P'], data: ['S']}, async j => {
+  const {page} = j;
+  await page.setViewportSize({width: 320, height: 568});
+  await open(page, '/app/staking');
+  const inside = async (box: {x: number; width: number} | null, what: string) => { expect(box, what).not.toBeNull(); expect(box!.x, what).toBeGreaterThanOrEqual(-0.5); expect(box!.x + box!.width, what).toBeLessThanOrEqual(320.5); };
+  const title = await page.getByRole('heading', {level: 1, name: 'Staking'}).boundingBox();
+  await inside(title, 'the title');
+  expect(title!.y).toBeLessThan(568);
+  for (const metric of await page.getByRole('region', {name: /observed totals$/}).locator(':scope > div').all()) await inside(await metric.boundingBox(), 'a total');
+  const cards = await page.getByRole('group', {name: 'Manual positions'}).locator(':scope > *').all();
+  expect(cards.length).toBeGreaterThan(0);
+  for (const position of cards.slice(0, 6)) await inside(await position.boundingBox(), 'a position card');
+  await page.locator('.positions-wallet > summary').click();
+  const sheet = page.getByRole('dialog', {name: 'Track Wallet'});
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByLabel('Public ZIG address')).toBeVisible();
+  await inside(await sheet.boundingBox(), 'the wallet sheet');
+  const read = sheet.getByRole('button', {name: 'Read public positions', exact: true});
+  await inside(await read.boundingBox(), 'its button');
+  expect((await read.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+  await snap(j, 'J164', 'staking-320');
 });
