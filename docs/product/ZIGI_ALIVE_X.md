@@ -123,7 +123,28 @@ copied in that case. The fixture under `scripts/zigi/fixtures/studio4/` is a tin
 suite swaps in and out, so steps 1–3 are exercised on every CI run without the real files.
 
 ## Which model fits which machine
-_(filled in with Part 6)_
+
+Measured in Session X-Local Part 6 on the fictional Showcase (`docs/verification/x-local/ZIGI_REAL_MODEL_TEST.md` has every
+run, the hours and the misses). "Panel" is the real chat in Chrome; "harness" is the 361-turn corpus on the wire. Quality is
+the share of asks that did what a careful person would expect (the right tool, a valid card, a refusal where one was due).
+
+| Model | Weights | Needs | Panel cases | Conversations (correct → accept → undo) | Photos | Reply (panel median) | Verdict |
+|---|---|---|---:|---:|---|---:|---|
+| `qwen3.6:35b-a3b` (MoE, 3 B active) | 23 GB | a 24 GB+ GPU, or a 32 GB+ Mac | 77 % (PC), 75 % (Mac) | 13 of 15 (PC), 8 of 10 (Mac) | reads every item, one whole-plate card, honest about what it cannot see | 0.85 s on the PC, 5.3 s on the Mac | **The daily model on the PC**: fastest large model, the best per-page answers (95 %), reads photos. On the Mac it works but every reply is a five-second wait. |
+| `gemma4:12b` | 8 GB | a 12 GB GPU, or a 16 GB Mac | 86 % | 14 of 15 | honest ("I could not see what is inside the black rounds"), one card per plate | 1.6 s on the PC | **The card-maker and the safe pick for smaller machines**: the fewest prose-instead-of-card misses (3 of 150), never invented an item on a plate. Misses are tools it does not call (it answers from the handle list). Not a Qwen: proof the app is model-agnostic. |
+| `qwen3.8:27b` (dense) | 17.7 GB | a 24 GB GPU | 75 % | 15 of 15 | the most complete recognition (every item of a full English), but read a bean salad as "shredded meat" once | 2.0 s on the PC | **Think deeper and photos**: the most tool calls and the strongest corrections; slower, and the one hallucination of the photo runs is its. |
+| `phi4-mini:3.8b` | 2.5 GB | anything | 69 % | 5 of 15 | no vision | 0.8 s | **The quick pair at most**: fast, but it writes the proposal without the fence or without backticks, cannot correct a draft, and reads no photos. |
+| Cloud models (OpenAI, Anthropic, Gemini, xAI, OpenRouter) | — | a key | tested with MOCK only (no key in this run) | — | — | — | The wire is covered by the MOCK suites; nothing here says how a cloud model scores. |
+
+**On the RTX 5090 (32 GB):** quick `qwen3.6:35b-a3b`, deep `qwen3.8:27b`, photos on either (qwen3.8 sees more, gemma4 invents
+nothing). **On a 16 GB GPU or a 16 GB Mac:** `gemma4:12b`. **On the Mac M1 Max (64 GB) as it is:** `qwen3.6:35b-a3b` runs the
+whole app (75 % of the panel cases, every page) at about five seconds a reply; `gemma4:12b` on the Mac is measured below
+once its run completes. Thought stays off for the quick reply on every Ollama model (ADR S35: with it on, a 12 B model spent
+200 tokens thinking and 12.7 s to say nothing); "Think deeper" turns it on.
+
+The harness numbers (before the session's fixes): phi4-mini 40 %, gemma4 65 %, qwen3.8 72 %, qwen3.6 57 % on the PC and
+61 % on the Mac; the after-run is in the test document's 6d table. Every model was run on the same corpus, the same day
+(the Showcase's), the same prompts.
 
 ## The iPhone checklist (≤15 minutes)
 
