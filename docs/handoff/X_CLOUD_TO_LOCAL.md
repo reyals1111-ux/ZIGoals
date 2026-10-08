@@ -146,3 +146,17 @@ branch and `main` pass it. It goes to the owner as a decision with three options
 2. ZIGi loads its alive chunk on the person's first interaction instead of at idle (no change to the gate).
 3. Keep the chunk lazy and accept a red integration job on X-LOCAL's PR until 1 or 2 is chosen.
 Whichever PR merges second carries the chosen change.
+
+## H9 — Offline, a part whose code loads on demand no longer takes the page down (Session X Part 14, 2026-10-08)
+**What X-Cloud found (journey J249, local production build):** Settings, put offline just after it opened, before your
+settings body (loaded when the browser is idle) arrived: the failed `import()` reached the route's error boundary and the
+whole page became "This page could not be shown.", against the offline notice. The same holds for any `React.lazy` part
+whose chunk cannot be fetched (offline, or after a new version replaced the files).
+**What X-Cloud did in its lane (`c83f01e`):** `components/load-boundary.tsx`, an error boundary for one part, wrapped where
+X-Cloud's files mount your parts: `<AiSettingsSection/>` in Settings (the section says it needs a connection and opens when
+back online, with Reload), `<AiLauncher/>` in the shell (quiet: the launcher stays away rather than breaking every page),
+`BriefProbe`/`BriefCard` on Today and `ZigiReminderCards` (quiet). None of your files changed.
+**Suggestion for your lane (optional):** the lazy parts inside your own components (the chat, the companion, the knock
+check-in, the Settings panels such as Notes, Customize, the setup chooser, the context pack, the agents panel) fail as a
+whole section or launcher today; a boundary of your own around each (the same component can be imported) would keep the
+rest of ZIGi usable offline and say which part needs the connection.
