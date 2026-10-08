@@ -256,6 +256,18 @@ shape (oracle), the goal-edit, recipe, edit-versus-create and cards-over-figures
 for widget and link asks, two intent cues (prompt and router). Rounds 1 and 2 run together as the PC re-run on
 `5bd7f2d`; the Mac after-run is on the same code.
 
+**Fix round 3 (ADR S65)** came from qwen3.8's after-run (39 unasked cards): the specialists say an answer carries no card,
+a decline sends no block of any kind, Remember only on request, a missing value is asked for. **The re-run with rounds 1–3**
+(PC, from 10:04 UTC) gave phi4-mini 58.3 % (flat) and gemma4 84.6 % (refusals back to 55 of 57, lookups 110 of 120; the
+multi-step cases dipped 158 → 149, which the "only asks" sentence caused on messages that ask *and* log). **Fix round 4
+(ADR S66)**, read off gemma4's remaining misses: the prompt now names the day (models wrote "today" for "hier",
+"eergisteren" and weekday names because nothing told them the date), the Dutch and French clock idioms ("half acht" is
+07:30), the person's own words for today and yesterday in `day`, a dozen router cues and families in three languages
+(debts, net worth beside the totals, mindful minutes, sleep questions without a period, deadlines, holdings, "what should I
+pay attention to", the longest session, imports and devices, the time of day, weekends), explicit widget, goal-edit
+(category included, in any language) and challenge lines, and the mixed-ask wording. The PC re-runs on round 4 after the
+rounds 1–3 run; the Mac's final run follows on the same code.
+
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
