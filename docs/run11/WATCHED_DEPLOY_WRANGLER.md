@@ -55,7 +55,7 @@ The Stage 4 private configs and dry runs were made from an ops checkout with wra
 ```sh
 git switch main && git pull --ff-only
 pnpm install --frozen-lockfile
-pnpm --filter @zigoals/web exec wrangler --version   # must print 4.144.0
+pnpm --filter @zigoals/web exec wrangler --version   # must print 4.147.0 (the pin since Session S; 4.144.0 when written)
 node scripts/run11/activation-check.mjs --private
 ```
 Then repeat the Stage 7 local dry runs with the new wrangler before approving anything. The private Workers **do** use Durable Objects, so 4.144.0 sends the `code_update_strategy` above with their deployments; see "DO migrations and bindings" in [WRANGLER_UPGRADE_ASSESSMENT.md](WRANGLER_UPGRADE_ASSESSMENT.md). Their first deployment creates new Workers, so no live instance exists to defer to.

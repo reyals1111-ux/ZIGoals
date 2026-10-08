@@ -4,6 +4,8 @@
 by **owner decision W1**: "implement the switch-ON exactly as docs/product/SYNC_WRITES_ON.md describes …, overriding its
 'from 2026-10-12' wait. The owner accepts that testers may lose test data during the Alpha; still never design a
 migration that loses data, keep reads tolerant, and state the new rollback floor (Alpha must never roll back past #29)."
+*Merged as `72ad872` (Merge #77) and live on the public Alpha as deploy #32 on 2026-10-07 (owner-reported); the public
+Alpha has no accounts, so writes reach a cloud only on the acceptance stack after its redeploy (Session X, 2026-10-08).*
 
 - **Rollback floor:** from the first Alpha deploy that carries the switch on, the Alpha's rollback target must be **#29 or
   later** (#29 is the first deploy that carried the v3 read support, `c97edbe`). At the time of writing the live Alpha is
