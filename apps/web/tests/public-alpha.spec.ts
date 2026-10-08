@@ -98,7 +98,22 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   const canonicalUrl = new URL("/app", socialUrl.origin).href;
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonicalUrl);
   const other=await request.get("/app"); expect(other.headers()["content-security-policy"]).not.toBe(h["content-security-policy"]);
-  expect(await page.locator("script").evaluateAll(nodes=>nodes.every(n=>((n as HTMLScriptElement).nonce?.length ?? 0)>0))).toBe(true);
+  // Session X-Local Part 9, H8 option 1 (the owner's decision; ADR-017 S79, [TIER 3] security headers/tests). Turbopack's
+  // runtime appends every chunk it loads on demand as <script src> with no nonce (there is no hook for one), and under
+  // 'strict-dynamic' a nonced script may load it; so a script without a nonce passes only when it is such a chunk: not
+  // parser-inserted (absent from the HTML the server sent) and its src on this page's own origin under
+  // /_next/static/chunks/. Stronger than before on what the server sends: every <script in its HTML carries the
+  // header's own nonce. The injection probe below still fails a parser-inserted <script>.
+  const nonce=/'nonce-([A-Za-z0-9+/]+=*)'/.exec(h["content-security-policy"]!)![1]!;
+  const html=await response!.text(), serverScripts=[...html.matchAll(/<script\b[^>]*>/gi)].map(m=>m[0]);
+  expect(serverScripts.length).toBeGreaterThan(0);
+  for (const tag of serverScripts) expect(tag,"a script the server sent carries the header's nonce").toContain(`nonce="${nonce}"`);
+  const pageUrl=new URL(response!.url()), serverSrcs=new Set(serverScripts.map(t=>/\bsrc="([^"]+)"/.exec(t)?.[1]).filter((v): v is string=>!!v).map(v=>new URL(v,pageUrl).href));
+  const unnonced=await page.locator("script").evaluateAll(nodes=>nodes.filter(n=>!((n as HTMLScriptElement).nonce?.length)).map(n=>(n as HTMLScriptElement).src));
+  for (const src of unnonced) {
+    expect(src,"a script without a nonce is a chunk of this origin the runtime appended").toMatch(new RegExp(`^${pageUrl.origin.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}/_next/static/chunks/`));
+    expect(serverSrcs.has(src),`${src} was not in the server's HTML (not parser-inserted)`).toBe(false);
+  }
   // Inject into the received HTML: DevTools evaluate-created scripts are privileged.
   await page.route("**/app?injection-probe=1", async route => {
     const response = await route.fetch();
