@@ -234,11 +234,13 @@ already (gemma4 53/57, 11/13, 19/20).
 | `qwen3.8:27b` | RTX 5090 | 591 / 773 · 76.5 % | 623 / 773 · 80.6 % | 74.5 → 80.6 % | 74 → 78 | 162 → 181 | 128 → 157 | 43 → 37 | 535 → 582 |
 | `qwen3.6:35b-a3b` | RTX 5090 | 612 / 773 · 79.2 % | 612 / 773 · 79.2 % (scored with S61 already) | 70.5 → 79.2 % | 41 → 103 | 166 → 191 | 135 → 143 | 48 → 42 | 190 → 215 |
 | `phi4-mini:3.8b` | RTX 5090 | 418 / 773 · 54.1 % | 450 / 773 · 58.2 % | 45.8 → 58.2 % | 30 → 61 | 99 → 130 | 67 → 86 | 34 → 28 | 215 → 345 |
-| `qwen3.6:35b-a3b` | Mac M1 Max | _running on `696df3c`_ | | | | | | | |
+| `qwen3.6:35b-a3b` | Mac M1 Max | 620 / 773 · 80.2 % | 620 / 773 · 80.2 % (S61 already) | 69.5 → 80.2 % | 43 → 107 | 167 → 183 | 133 → 146 | 41 → 48 | 2119 → 2265 |
 
-The refusals fell on every model in this run: that is the repair round firing after a correct decline and inventing a card
-(S59, fixed before the re-run). The lookups rose everywhere (the router's pre-run facts and S61), most on qwen3.6, which
-reads the pre-run records best.
+The refusals fell on every PC model in this run: that is the repair round firing after a correct decline and inventing a
+card (S59, fixed before the re-run). The lookups rose everywhere (the router's pre-run facts and S61), most on qwen3.6,
+which reads the pre-run records best. The Mac run (103 min, from 09:47 UTC) carried S59's first cut, which repaired
+nothing on refused blocks (0 repairs; the PC's qwen3.6 run started three minutes later on the refined cut and repaired
+32), so its 80.2 % is the router, S61 and S62 alone; its final run on the rounds 1–5 code is the Mac's measurement.
 
 **The first after-run (the P2.2 fix program as pushed that morning, code `0fb7066`)** moved phi4-mini 41.7 → 54.1 % raw and
 gemma4 73.0 → 78.5 % raw (lookups 63 → 78 of 120, multi-step 132 → 158 of 183, briefs 12 → 18 of 29), and showed two things
