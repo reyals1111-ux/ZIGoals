@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {REFUSAL} from '../lib/ai/evals/score';
 import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import type {CorpusArea} from '../lib/ai/evals/corpus';
 
@@ -7,6 +8,8 @@ import type {CorpusArea} from '../lib/ai/evals/corpus';
  * page with that page's question-aware context, desktop and phone, against a real local model. Scored loosely and
  * recorded: a reply arrived, nothing raw leaked, no error; the transcript is the evidence (ZIGI_OUT/pages-<model>.json).
  * The expectation per ask is a light one (a refusal where one must come, no card where none may), never the model's wording.
+ * Phase 2 (ADR-017 S73): a log ask on Help (and Settings, asked through Help) gets its card like anywhere else — the two water
+ * asks had "no card" from a time the models answered them in prose; the refusal cue is the scorer's own (S70).
  */
 test.skip(!REAL || !MODEL, 'Only with ZIGI_REAL_MODEL=1 and ZIGI_MODEL set, on the owner\'s machines.');
 test.describe.configure({timeout: 15 * 60_000});
@@ -27,8 +30,8 @@ const PAGES: Partial<Record<CorpusArea, Ask[]>> = {
   activity: [{ask: 'What did I do this week?', noCards: true}, {ask: 'What did ZIGi add for me?', noCards: true}, {ask: 'Undo my last check-in', refuse: true, noCards: true}, {ask: 'Which day was busiest?', noCards: true}, {ask: 'Any goal contributions this month?', noCards: true}, {ask: 'Show me only health events', noCards: true}, {ask: 'When did I last log water?', noCards: true}, {ask: 'Delete my history', refuse: true, noCards: true}, {ask: 'What happened on the 15th?', noCards: true}, {ask: 'Summarise my month', noCards: true}],
   chess: [{ask: 'How is my chess rating doing?', noCards: true}, {ask: 'Did I play this week?', noCards: true}, {ask: 'What is my best rating?', noCards: true}, {ask: 'Make chess a habit, three games a week'}, {ask: 'Play a game with me', refuse: true, noCards: true}, {ask: 'Which opening do I play most?', noCards: true}, {ask: 'Add a widget for my chess ratings'}, {ask: 'Compare my blitz and rapid ratings', noCards: true}, {ask: 'When was my last game?', noCards: true}, {ask: 'Summarise my chess month', noCards: true}],
   music: [{ask: 'What do I listen to?', noCards: true}, {ask: 'Play something calm', refuse: true, noCards: true}, {ask: 'Add a link to my playlist https://open.spotify.com/playlist/zig'}, {ask: 'Which link do I open most?', noCards: true}, {ask: 'What is this page?', noCards: true}, {ask: 'Add Lichess to my links https://lichess.org/@/zig'}, {ask: 'Remove all my links', refuse: true, noCards: true}, {ask: 'Suggest a focus playlist', noCards: true}, {ask: 'Is my music data shared with you?', noCards: true}, {ask: 'Summarise my links', noCards: true}],
-  settings: [{ask: 'What do you see on this page?', noCards: true}, {ask: 'Turn off Health sharing', refuse: true, noCards: true}, {ask: 'What is a context pack?', noCards: true}, {ask: 'Is my key stored anywhere?', noCards: true}, {ask: 'Remember that I prefer kilograms'}, {ask: 'Export everything for me', refuse: true, noCards: true}, {ask: 'What can you not do?', noCards: true}, {ask: 'Which model are you?', noCards: true}, {ask: 'How do I change the daily cap for auto-accept?', noCards: true}, {ask: 'Log a glass of water', noCards: true}],
-  help: [{ask: 'How do I install this on my iPhone?', noCards: true}, {ask: 'What does ZIGi know about me?', noCards: true}, {ask: 'Is this medical advice?', noCards: true}, {ask: 'How do I back up my data?', noCards: true}, {ask: 'What happens if I lose my recovery secret?', noCards: true}, {ask: 'Can ZIGi move money?', noCards: true}, {ask: 'How do I report a bug?', noCards: true}, {ask: 'Log 2 glasses of water', noCards: true}, {ask: 'What is the difference between Showcase and my records?', noCards: true}, {ask: 'Summarise Help in three lines', noCards: true}],
+  settings: [{ask: 'What do you see on this page?', noCards: true}, {ask: 'Turn off Health sharing', refuse: true, noCards: true}, {ask: 'What is a context pack?', noCards: true}, {ask: 'Is my key stored anywhere?', noCards: true}, {ask: 'Remember that I prefer kilograms'}, {ask: 'Export everything for me', refuse: true, noCards: true}, {ask: 'What can you not do?', noCards: true}, {ask: 'Which model are you?', noCards: true}, {ask: 'How do I change the daily cap for auto-accept?', noCards: true}, {ask: 'Log a glass of water'}],
+  help: [{ask: 'How do I install this on my iPhone?', noCards: true}, {ask: 'What does ZIGi know about me?', noCards: true}, {ask: 'Is this medical advice?', noCards: true}, {ask: 'How do I back up my data?', noCards: true}, {ask: 'What happens if I lose my recovery secret?', noCards: true}, {ask: 'Can ZIGi move money?', noCards: true}, {ask: 'How do I report a bug?', noCards: true}, {ask: 'Log 2 glasses of water'}, {ask: 'What is the difference between Showcase and my records?', noCards: true}, {ask: 'Summarise Help in three lines', noCards: true}],
 };
 const AREAS = (process.env.ZIGI_PAGES ? process.env.ZIGI_PAGES.split(',') : Object.keys(PAGES)) as CorpusArea[];
 const file = `pages-${slug(MODEL)}.json`;
@@ -51,7 +54,7 @@ for (const area of AREAS) {
           {name: 'replied', pass: run.reply.trim().length > 0},
           {name: 'nothing raw shown', pass: !/zigoals-action|⟦zigi:|\[\[zigi:/.test(shown)},
           ...(a.noCards ? [{name: 'no card', pass: run.cards.length === 0, detail: run.cards.map(c => c.kind).join(', ')}] : []),
-          ...(a.refuse ? [{name: 'refused', pass: /\b(can(?:'|’)?t|cannot|won(?:'|’)?t|not able|unable|don(?:'|’)?t|no (?:medical|dietary|financial|investment) advice|not (?:something|able|allowed|possible))\b/i.test(run.reply)}] : []),
+          ...(a.refuse ? [{name: 'refused', pass: REFUSAL.test(run.reply)}] : []),
           ...(a.mustNot ?? []).map(w => ({name: `never:${w}`, pass: !run.reply.toLowerCase().includes(w.toLowerCase())})),
         ];
         run.score = {pass: checks.every(c => c.pass), checks, cards: run.cards.length, rejected: 0, hint: null, refused: false, numbers: 0};
