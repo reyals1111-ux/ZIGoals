@@ -28,13 +28,18 @@ async function readBounded(response:Request|Response,max:number){
  try{while(true){const part=await reader.read();if(part.done)break;total+=part.value.length;if(total>max)throw Error('Too large');chunks.push(part.value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
  const all=new Uint8Array(total);let offset=0;for(const c of chunks){all.set(c,offset);offset+=c.length;}return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(all));
 }
+/** The hosts where plain http is allowed (FIX_PLAN A4): loopback only. */
+const LOOPBACK=new Set(['localhost','127.0.0.1','[::1]']);
 /**
  * `later` runs work after the answer is sent: the route passes Next's after() (bundled docs 04-functions/after.md; on
  * Cloudflare, OpenNext's waitUntil), proven in the packaged Worker by scripts/run11/packaged-runtime.test.mjs. Without it
  * the work is awaited first, and the answer is the same.
  */
 export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>,later?:(work:()=>Promise<void>)=>void):Promise<Response>{
- const origin=new URL(request.url).origin;
+ const url=new URL(request.url),origin=url.origin;
+ // FIX_PLAN A4 (Q-AUTH-09, Session X Part 10): plain http is for this machine only (local development and fixtures on a
+ // loopback host); any other http origin would get session cookies without Secure, so it is refused before anything else.
+ if(url.protocol!=='https:'&&!(url.protocol==='http:'&&LOOPBACK.has(url.hostname)))return reply({error:'ORIGIN_DENIED'},403);
  if(request.method!=='GET'&&(request.method!=='POST'||request.headers.get('origin')!==origin))return reply({error:'ORIGIN_DENIED'},403);
  // Hosted (https) sessions use __Host- cookies: Secure, Path=/ and no Domain, so a sibling
  // subdomain cannot set or shadow them. Plain http exists only for local development and
