@@ -63,6 +63,21 @@ Findings so far (the tables below are rendered from the JSON files by the sessio
 
 #### UI-driven cases, conversations, pages, days and photos (the real panel in Chrome 154 on the dev server, `TZ=UTC`, the Showcase's own day)
 
+The panel's cases are the single-turn corpus in the harness's order (the important hundred first), typed into the real composer with the real
+page open, scored by the UI scorer (cards, schema, tools, wording, refusals; facts and hints are the harness's). "Reply median" is the
+time from the Send click to the final reply in the panel, including the app's own context work, so it is not the harness's first-token or
+total time. Every test of every run was green except phi4-mini's two (explained below); a scored miss is a finding, never a red test.
+
+##### UI-driven cases (`tests/zigi-real-model.spec.ts`, desktop, the real panel in Chrome)
+
+| Model (host) | Runs | Passed | Pass % | Reply median ms | Tool calls | Errors | Most common misses |
+|---|---:|---:|---:|---:|---:|---:|---|
+| gemma4:12b (RTX 5090) | 150 | 129 | 86.0 | 1551 | 42 | 0 | tool:list_habits 5, schema 5, cards 3, tool:goal_progress 2, tool:habit_stats 2 |
+| phi4-mini:3.8b (RTX 5090) | 149 | 104 | 69.8 | 1156 | 39 | 1 | cards 22, schema 15, refusal 7, tool:list_habits 5, tool:goal_progress 2 |
+| qwen3.6:35b-a3b (RTX 5090) | 150 | 115 | 76.7 | 849 | 39 | 0 | cards 13, schema 7, tool:list_habits 5, no-numbers 3, tool:goal_progress 2 |
+| qwen3.8:27b (RTX 5090) | 150 | 112 | 74.7 | 1982 | 71 | 0 | cards 20, tool:list_habits 5, refusal 4, schema 4, no-numbers 3 |
+| qwen3.6:35b-a3b (Mac M1 Max) | 60 | 45 | 75.0 | 5257 | 16 | 0 | cards 6, schema 3, tool:list_habits 2, refusal 2, tool:goal_progress 1 |
+
 - **`phi4-mini:3.8b` on the RTX 5090, 150 cases through the panel (31 minutes): 149 recorded, 104 of 149 scored passes (69.8 %), reply median 1,156 ms, a tool called in 39 replies.** Misses: cards 22, schema 15, refusal 7, tool:list_habits 5, tool:goal_progress 2, tool:habit_stats 2. Two red tests: `x3-settings-sync` waited 15 minutes for a launcher that Settings does not have (the app's own rule; the settings-area asks now go through the panel on Help, and every helper action fails in 20 s), and `sleep-nap`, where the model wrote `zigoals-action` and the JSON without any backticks, so the panel showed them raw (2 of 361 harness replies do the same; no fence, no block, recorded as the model's). The UI rate is above the harness's 40.4 % because the panel's cases are the single-turn corpus without the sentinel and local-first cases, and the UI scorer does not score facts or hints.
 
 
