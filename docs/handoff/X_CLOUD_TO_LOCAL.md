@@ -160,6 +160,9 @@ back online, with Reload), `<AiLauncher/>` in the shell (quiet: the launcher sta
 check-in, the Settings panels such as Notes, Customize, the setup chooser, the context pack, the agents panel) fail as a
 whole section or launcher today; a boundary of your own around each (the same component can be imported) would keep the
 rest of ZIGi usable offline and say which part needs the connection.
+**Status (read at `cc9e918`, 2026-10-08):** done in X-LOCAL's lane (`d63caa9`, ADR-017 S68): `ZigiPartBoundary` wraps
+ZIGi's own lazy parts with the same props and words. X-Cloud's boundaries at the mount points stay. After the merge the
+owner may fold the two components into one.
 
 ## H10 — Fresh-eyes persona round: four ZIGi findings (Session X P2.1, 2026-10-08)
 An independent agent ran 45 human-style sessions (eight personas, local production build, every `/api` answered by a
