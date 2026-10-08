@@ -135,3 +135,18 @@
 /* Session X Part 14 (J249): a part of a page whose code could not load says so in place (components/load-boundary.tsx). */
 .load-boundary { display: grid; gap: 10px; justify-items: start; margin: 12px 0; padding: 16px; border: 1px dashed #6880a0; border-radius: 16px; }
 .load-boundary p { margin: 0; font-size: 15px; }
+
+/* Session X P2.2 (design-language scan): text the design language sets at 14 px or more that sat below it, on desktop
+   and phone alike (the phone rules already lift the wizard's hints to 15 px). Sizes, and one colour noted below; layout unchanged. */
+:root .habit-patterns .habit-weekdays li :is(span, strong) { font-size: 14px; }
+:root .portfolio-ranges > button { font-size: 14px; }
+:root .portfolio-chart-axis time { font-size: 14px; }
+:root .data-table td small, :root .data-table th small { font-size: 14px; }
+:root .chess-results dt { font-size: 14px; }
+:root .accounts-bars b { font-size: 14px; }
+/* Today's widget captions can sit on the widget's corner glow (measured on the pixels behind them: 4.04:1 at the
+ * lightest spot), so they take a lighter grey there; elsewhere .fine keeps its colour. */
+:root .dashboard-widget p.fine { color: #b8c3d9; }
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root :is(.goal-ideas, .goal-type-cards, .unified-wizard .form-grid) small { font-size: 14px; }
+}
