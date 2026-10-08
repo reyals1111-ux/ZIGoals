@@ -480,11 +480,14 @@ journey('J055', 'Goals offline: a goal created with the wizard is kept on the de
   await page.getByLabel('Target amount', {exact: true}).fill('640');
   await page.getByRole('radio', {name: /^USD · /}).check();
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
-  await expect.poll(() => page.url(), {message: 'the wizard finishes'}).not.toMatch(/\/app\/goals\/new$/);
-  // After saving, the wizard opens the Goal's own page, which needs the network: the person should not be left on
-  // the browser's offline page (a soft check, reported without stopping the journey).
-  expect.soft(page.url(), 'after creating offline, the person is still in ZIGoals').toMatch(/^https?:\/\//);
+  // Offline, the wizard stays (the Goal's own page needs the network) and says where the Goal is; the person is never
+  // left on the browser's offline page (fixed in Part 14; regression test in tests/session-x-findings.spec.ts).
+  const saved = page.getByRole('status').filter({hasText: 'Your Goal is saved on this device. It opens when you’re back online'});
+  await expect(saved).toBeVisible();
+  expect(page.url(), 'after creating offline, the person is still in ZIGoals').toMatch(/^https?:\/\//);
   await page.context().setOffline(false);
+  await saved.getByRole('link', {name: 'Open saved Goal →'}).click();
+  await expect(page.getByRole('heading', {level: 1, name})).toBeVisible();
   await open(page, '/app/goals');
   await expect(goalCard(page, name)).toBeVisible();
   expect((await storedGoals(page)).map(g => g.name)).toEqual([name]);
@@ -532,20 +535,22 @@ journey('J058', 'a goal with 200 contributions: its timeline pages through them 
   const started = Date.now();
   await open(page, '/app/goals/tracked/58');
   const timeline = page.getByRole('region', {name: 'Goal timeline'}), pager = timeline.getByRole('navigation', {name: 'Goal history pages'});
-  await expect(pager.getByRole('status')).toHaveText('Page 1 of 17 · 200 retained events');
+  await expect(pager.getByRole('status')).toHaveText('Page 1 of 17 · 201 retained events');
   expect(Date.now() - started, 'the Goal opens in good time').toBeLessThan(10_000);
   const items = timeline.locator('ol.intelligence-timeline > li');
   await expect(items).toHaveCount(12);
-  await expect(items.first().locator('time')).toHaveAttribute('datetime', new Date(first + 199 * DAY).toISOString());
+  // Opening the Goal records today's counted value (a retained snapshot, newest first), so 200 contributions + 1.
+  await expect(items.first()).toContainText('Counted Goal value snapshot');
+  await expect(items.nth(1).locator('time')).toHaveAttribute('datetime', new Date(first + 199 * DAY).toISOString());
   await expect(page.locator('.intelligence-metrics > div').filter({hasText: 'Actual contributed'}).locator('dd')).toHaveText('$2,000.00');
   const older = pager.getByRole('button', {name: 'Older events', exact: true});
   for (let n = 2; n <= 17; n++) {
     const t = Date.now();
     await older.click();
-    await expect(pager.getByRole('status')).toHaveText(`Page ${n} of 17 · 200 retained events`);
+    await expect(pager.getByRole('status')).toHaveText(`Page ${n} of 17 · 201 retained events`);
     expect(Date.now() - t, `page ${n} answers quickly`).toBeLessThan(2000);
   }
-  await expect(items).toHaveCount(8);
+  await expect(items).toHaveCount(9);
   await expect(items.last().locator('time')).toHaveAttribute('datetime', new Date(first).toISOString());
   await expect(older).toBeDisabled();
 });

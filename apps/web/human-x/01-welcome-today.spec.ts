@@ -241,7 +241,7 @@ async function habit(j: Journey, title: string) {
 async function forYou(page: Page) {
   // A device that has not chosen its Today yet shows "Make Today yours." first, and "For you" only after a choice
   // (today-dashboard.tsx): the person keeps Balanced, as offered.
-  const region = page.getByRole('region', {name: 'For you'}), keep = page.getByRole('button', {name: 'Keep Balanced and continue', exact: true});
+  const region = page.getByRole('region', {name: 'For you', exact: true}), keep = page.getByRole('button', {name: 'Keep Balanced and continue', exact: true});
   await expect(region.or(keep).first()).toBeVisible();
   if (await keep.isVisible()) { await keep.click(); await expect(keep).toHaveCount(0); }
   await expect(region).toBeVisible();
@@ -417,7 +417,8 @@ journey('J008', 'Quick add a contribution to a goal from Today; its progress fol
   await expect(page.getByRole('region', {name: 'Your goals'}).locator('.goal-card').filter({hasText: 'Fictional holiday fund'}).locator('.goal-value')).toContainText('$2,000.00');
   const dialog = await quickAdd(j);
   await dialog.getByRole('button', {name: /^Contribution/}).click();
-  await dialog.getByRole('navigation', {name: 'Choose a Goal to contribute to'}).getByRole('link').filter({hasText: 'Fictional holiday fund'}).click();
+  // The dialog takes its new step's title as its name.
+  await page.getByRole('dialog', {name: 'Choose your Goal'}).getByRole('navigation', {name: 'Choose a Goal to contribute to'}).getByRole('link').filter({hasText: 'Fictional holiday fund'}).click();
   await page.waitForURL(/\/app\/goals\/tracked\/91\?contribute=1/);
   await expect(page.getByRole('dialog', {name: 'Fund your Goal'})).toBeVisible();
   await fundWithCash(page, '500');
