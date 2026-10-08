@@ -110,13 +110,20 @@ export function AiLauncher() {
       el.style.setProperty('--zigi-rest-lift', `${lift}px`);
       void el.offsetWidth; el.style.transition = glide;
     };
-    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(place); };
+    // Keyboard and pointer users: the moment anything in the page takes focus, the launcher is back in its corner at once (no
+    // glide), where the phone's scroll padding keeps a focused control clear of it (ADR-016 X40); a lifted launcher could
+    // otherwise sit over a focused control mid-screen (CI's WCAG 2.4.11 check on Today found two). It stays there for the page.
+    let focused = false;
+    const corner = () => { const glide = el.style.transition; el.style.transition = 'none'; el.style.setProperty('--zigi-rest-lift', '0px'); void el.offsetWidth; el.style.transition = glide; };
+    const onFocus = (event: FocusEvent) => { const t = event.target; if (!(t instanceof Element) || el.contains(t) || !document.querySelector('main')?.contains(t)) return; focused = true; corner(); };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { if (focused) corner(); else place(); }); };
+    document.addEventListener('focusin', onFocus);
     schedule(); for (const ms of [300, 1200, 3000]) timers.push(window.setTimeout(schedule, ms));
     window.addEventListener('scroll', schedule, {passive: true}); window.addEventListener('resize', schedule); window.addEventListener('load', schedule);
     // The page's first screen fills in after mount (parts load on demand, images arrive): every change to `main` places again.
     const main = document.querySelector('main') ?? document.body, mutations = new MutationObserver(schedule), sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
     mutations.observe(main, {childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open']}); sizes?.observe(main);
-    return () => { cancelAnimationFrame(frame); for (const t of timers) window.clearTimeout(t); mutations.disconnect(); sizes?.disconnect(); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); window.removeEventListener('load', schedule); el.style.removeProperty('--zigi-rest-lift'); };
+    return () => { cancelAnimationFrame(frame); for (const t of timers) window.clearTimeout(t); mutations.disconnect(); sizes?.disconnect(); document.removeEventListener('focusin', onFocus); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); window.removeEventListener('load', schedule); el.style.removeProperty('--zigi-rest-lift'); };
   }, [phone, pathname, visible]);
   const edgeTab = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive;
   // Session X-Local Part 1 (ADR-017 S7): once ZIGi is on screen and the browser is idle, the small alive chunk loads: the

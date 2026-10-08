@@ -240,8 +240,10 @@ Every stage's wall clock from `hours.log` (START/END pairs written by the shell 
 | `revert gates` | ?  | 20:38 | — | aborted (typecheck in the worktree lacked the packages' own node_mod |
 | `revert gate 1` | 2026-10-08 20:38 | 20:44 | 5 | 0 |
 | `revert gate 2` | 2026-10-08 20:44 | 20:44 | 0 | 0 |
+| `ci-fix build` | 2026-10-08 21:47 | 21:47 | 0 | 0 |
+| `ci-fix specs` | 2026-10-08 21:47 | 21:49 | 1 | 0 |
 
-Total: 1596 minutes (26.6 h) of recorded stages so far.
+Total: 1597 minutes (26.6 h) of recorded stages so far.
 
 
 ## 6d. Scores per model, before and after the fixes
