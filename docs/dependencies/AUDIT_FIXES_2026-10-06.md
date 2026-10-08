@@ -44,3 +44,29 @@ Read-only, local; nothing changed (no override, no lockfile change, so no Tier 3
   copy. Option 1 above stands: add `"micromatch>braces": ^3.0.4` once 3.0.4 is published.
 - **The earlier fixes hold** (lockfile, 2026-10-07): `proxy-addr@2.0.8` only; `source-map-js@1.2.2` only; `sharp@0.35.5`
   only (next's and miniflare's copies share it). Wrangler stays 4.147.0 and pnpm 11.19.0.
+
+## Session X: next 16.3.6 → 16.3.8 (2026-10-08, `[TIER 3] (dependencies)`)
+**Why now.** Since 2026-10-08 about 00:40 UTC (reported by X-LOCAL in its handoff, then checked here), CI's
+`pnpm audit --prod --audit-level high` step fails on every branch: GitHub's advisory database added six Next.js
+advisories on 2026-10-07, all fixed in **16.3.8** (published 2026-09-30, npm registry read 2026-10-08):
+- **high:** GHSA-cjq9-62q9-8jv4, server-side request forgery in Image Optimization (`>=16.0.0 <16.3.8`). Per the advisory
+  an app with no `images.remotePatterns` is not affected; this app configures none (`apps/web/next.config.ts`), so the
+  Alpha was not exposed to it.
+- **moderate:** App Router metadata image routes information disclosure (`dynamicParams` bypass); cache poisoning of SSG
+  and ISR pages in self-hosted apps; SSG/ISR cross-user content substitution; a pending `use cache` fill leaking Draft
+  Mode content (and, in the release notes, a `use cache` leak across root params). **low:** the development server's MCP
+  endpoint.
+
+**What changed.** `apps/web/package.json` pins `next` 16.3.8 (was 16.3.6); nothing else. The lockfile change is only
+`next`, `@next/env`, the ten `@next/swc-*` binaries and the peer strings of `@opennextjs/aws` and `@opennextjs/cloudflare`
+that name the next version (48 lines each way). `eslint-config-next` stays 16.3.6 (no advisory; the narrowest change).
+Release notes (github.com/vercel/next.js, read 2026-10-08): v16.3.7 backports one fix ("turbo-tasks-backend: fix strongly
+consistent read hanging on a canceled task"); v16.3.8 lists the security fixes only; neither lists a breaking change.
+
+**Deviation recorded.** The brief's Part 3 said "no other upgrades"; these advisories were published after it and block
+CI for both lanes, and the brief's hard rule forbids only *new* dependencies. ADR-016 X23 records the choice; reverting
+the one commit restores 16.3.6.
+
+**After:** `pnpm audit --prod --audit-level high`: no known vulnerabilities; `pnpm audit` (full): 1 high, braces 3.0.3
+(development only, unchanged). Checks: Session X Gate A (full unit and browser suites, build, packaged Alpha tests,
+weights, freeze check) ran on 16.3.8.
