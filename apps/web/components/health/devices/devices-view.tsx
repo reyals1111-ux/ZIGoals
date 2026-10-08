@@ -36,7 +36,7 @@ export default function DevicesView() {
       <h2 id="devices-bluetooth-title">On this device, by Bluetooth</h2>
       {support === null ? <p>Checking this browser…</p>
         : support === 'no-api' ? <p>This browser has no Web Bluetooth. Chrome or Edge on a computer, or Chrome on Android, can connect a heart-rate monitor or a scale; Safari, Firefox and iPhone browsers cannot.</p>
-        : support === 'policy' ? <div className="devices-reload"><p>Bluetooth works on Health when it is opened as its own page.</p><a className="secondary devices-reload-link" href="/app/health?view=devices">Reload Health for Bluetooth</a></div>
+        : support === 'policy' ? <div className="devices-reload"><p>Bluetooth works on Health when it is opened as its own page.</p><a className="secondary devices-reload-link" href="/app/health?view=devices">Reload Health for Bluetooth</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</div>
         : <><HeartMonitor /><ScaleReader /></>}
     </section>
     <HealthLinks />
@@ -45,7 +45,7 @@ export default function DevicesView() {
       <ul className="devices-platforms">
         <li><strong>Apple Health (iPhone, Apple Watch)</strong><p>No web access: Apple keeps Health on your devices. Export it from the Health app and import the file.</p></li>
         <li><strong>Health Connect (Android)</strong><p>No web access: Health Connect keeps data on the phone. Import from the app that writes to it, such as Samsung Health or Google Health.</p></li>
-        <li><strong>Fitbit</strong><p>Fitbit&apos;s web access ended (turned off 30 October 2026) and Google&apos;s new Health API takes no new projects. Export with Google Takeout and import it.</p></li>
+        <li><strong>Fitbit</strong><p>Fitbit&apos;s web access is ending (support stopped 30 September 2026, turned off 30 October 2026) and Google&apos;s new Health API takes no new projects. Export with Google Takeout and import it.</p></li>
         <li><strong>Garmin</strong><p>Garmin&apos;s Health API is for approved businesses, and its export layout is unpublished, so ZIGoals does not read it yet. Garmin Connect can share your data with Apple Health or Health Connect.</p></li>
       </ul>
       <p><Link className="text-link" href="/app/settings#switch-import">Settings → Switch to ZIGoals →</Link></p>

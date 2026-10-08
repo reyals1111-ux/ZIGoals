@@ -1,7 +1,7 @@
 // Read-only preparation: no signer, key input, wallet, upload or broadcast API.
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { TESTNET, verifyNetwork } from "../packages/chain-config/src/index.ts";
+import { REVIEWED_TESTNET_VERSIONS, TESTNET, verifyNetwork } from "../packages/chain-config/src/index.ts";
 import { buildPreparedManifest } from "./lib/prepare-deployment.mjs";
 import { verifyCandidateDirectory } from "./release/verify.mjs";
 
@@ -11,13 +11,13 @@ export async function prepareDeployment({ expectedCommit, candidateDir, validato
   const { manifest: candidate, wasm: bytes } = verifyCandidateDirectory({
     expectedCommit, directory: candidateDir, validator,
   });
-  await verifyNetwork(TESTNET, fetcher, "v5.0.0-patch-1");
+  const chainVersion = await verifyNetwork(TESTNET, fetcher, REVIEWED_TESTNET_VERSIONS);
   const response = await fetcher(`${TESTNET.rpcUrl}/status`, { signal: AbortSignal.timeout(12000) });
   if (!response.ok) throw Error("Network evidence unavailable; preparation stopped.");
   const rpc = await response.json();
   if (rpc.result?.node_info?.network !== TESTNET.chainId || rpc.result?.sync_info?.catching_up !== false)
     throw Error("Testnet RPC identity or readiness changed; review before preparing.");
-  return buildPreparedManifest({ bytes, candidate, expectedCommit });
+  return buildPreparedManifest({ bytes, candidate, expectedCommit, chainVersion });
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

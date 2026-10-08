@@ -90,7 +90,9 @@ importer says why.
   (steps UTC, calories local, heart rate "local") [F5][F6][F7]; Takeout repeats the same data in JSON and CSV, never
   combined [F6]. The resting heart rate JSON is padded with zeros [F5] (zeros are skipped in the CSV too).
 - **Pitfalls handled:** the steps CSV mixes phone, band and Health Connect rows; summing roughly triples steps, so one
-  source per day [F5]. Legacy Web API support ended 2026-09-30 [F2].
+  source per day [F5]. The legacy Fitbit Web API: support ended on 2026-09-30, and the API is turned off on 2026-10-30
+  ("Support for the legacy Fitbit Web API ends on September 30, 2026 … On October 30, 2026, the Fitbit Web API will be
+  turned off and will no longer function" [F12], read 2026-10-08). Neither date affects Takeout files.
 
 ## Samsung Health
 
@@ -193,6 +195,7 @@ Fitbit / Google Health
 - [F9] https://github.com/stephenostermiller/health/blob/HEAD/jobs/health-data-etl/readme.md
 - [F10] https://support.google.com/accounts/answer/3024190?hl=en
 - [F11] https://support.myfitnesspal.com/hc/en-us/articles/45836466715405
+- [F12] https://dev.fitbit.com/build/reference/web-api/ (the page's legacy notice; Session X, read 2026-10-08)
 
 Garmin
 - [G1] https://support.garmin.com/en-US/?faq=W1TvTPW8JZ6LfJSfK512Q8 (HTTP 403) · https://www.garmin.com/account/datamanagement/ (sign-in)

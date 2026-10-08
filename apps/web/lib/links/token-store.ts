@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * Sign-in tokens of the services a person links (Session W Parts 8 and 20, [TIER 3] (tokens)): Spotify, and the health

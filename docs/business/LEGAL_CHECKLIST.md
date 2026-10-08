@@ -293,6 +293,17 @@ Facts to start from:
 29. **Accounts, debts and net worth.** Personal financial records the person enters by hand, on the device only in this release; no bank linking, no advice, payoff dates only from the person's own rate. Any consumer-credit or financial-promotion question in showing a payoff date or a net worth?
 30. **Sleep and meditation wording.** Sleep debt and bedtime consistency show their formulas and say "not medical advice; if poor sleep goes on, talk to a doctor". Is that adequate, and could any figure be read as a health claim or a medical-device function?
 
+## 10. Session X: the hosted relay with Anthropic (added 2026-10-08, [ADR-016](../architecture/ADR-016-session-x.md); questions, not answers)
+
+Facts to start from:
+- The off-by-default relay ([ZIGI_RELAY_ACTIVATION.md](../run11/ZIGI_RELAY_ACTIVATION.md)) can now forward to Anthropic's Messages API with the model Claude Haiku 5.5. It is still not deployed; the first activation is meant for the owner's own acceptance account only.
+- With anyone else on the allowlist, ZIGoals receives their messages (and Health records when they tick the box and the Health gate is open) and forwards them to Anthropic under a contract ZIGoals holds and pays for.
+- The owner may pay with API credits that come with a Max or Team plan. Those credits are governed by their own program terms ([anthropic.com/legal/credit-terms](https://www.anthropic.com/legal/credit-terms)), expire each billing cycle, and are shared by every key and workspace in the linked organization.
+
+31. **Role and agreement.** Is ZIGoals a processor or a controller for invited people's messages sent to Anthropic? Which Anthropic terms and data-processing agreement apply to API use, which transfer mechanism to the US, and what must the disclosure say (naming Anthropic, its retention for API use)?
+32. **API credits from a personal plan.** Do the credits' program terms allow using them to serve other people's requests (friends on the allowlist), or only the plan holder's own development? Does using them change who the customer of Anthropic is?
+33. **Health through the relay.** For Health records (GDPR Art. 9) sent to Anthropic with the person's explicit tick: is the existing disclosure enough, or does Anthropic need naming in that box, and does Anthropic's agreement cover special-category data?
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);

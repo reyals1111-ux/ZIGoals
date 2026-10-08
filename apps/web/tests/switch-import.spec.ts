@@ -91,7 +91,7 @@ test('Garmin is recognised and not read, with the reason; a MyFitnessPal file go
   const mfp = 'Date,Meal,Calories,Fat (g),Saturated Fat,Sodium (mg),Potassium,Carbohydrates (g),Fiber,Sugar,Protein (g),Vitamin A,Vitamin C,Calcium,Iron,Note\n2026-10-01,Breakfast,420,12,3,560,300,55,6,12,22,10,8,15,20,\n';
   const mfpFile = {name: 'Nutrition-Summary-2026-01-01-to-2026-10-01.csv', mimeType: 'text/csv', buffer: Buffer.from(mfp)};
   await choose(page).setInputFiles(mfpFile);
-  await expect(card(page).getByRole('alert')).toContainText('This is a MyFitnessPal export. Its meals go into Health → Import meals');
+  await expect(card(page).getByRole('alert')).toContainText('This is a MyFitnessPal export. Its meals go into Health → Diary → Import a nutrition CSV');
   await card(page).getByRole('link', {name: 'Open Health → Import meals'}).click();
   await page.waitForURL(/\/app\/health\?import=meals$/);
   const panel = page.getByRole('region', {name: 'Import meals'});

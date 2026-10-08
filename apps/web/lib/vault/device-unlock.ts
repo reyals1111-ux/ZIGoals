@@ -8,7 +8,7 @@
  * not remembered. The database and its stores keep version 1: a build before this one deletes a version 2 record as one
  * it cannot use, and then asks for the recovery secret once.
  */
-import {z} from 'zod';
+import * as z from 'zod';
 import {deviceCommitmentMatches,epochSchema,sealDigest,sealedRootSchema} from './crypto';
 
 export const DEVICE_DATABASE='zigoals-device-unlock-v1';

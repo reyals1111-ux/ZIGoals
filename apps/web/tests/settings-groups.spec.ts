@@ -8,7 +8,7 @@ const GROUPS: [id: string, title: string, sections: string[]][] = [
   ['settings-areas', 'Your areas', ['habits-settings', 'health-settings', 'chess', 'guide', 'reminders', 'market-data']],
   ['settings-account', 'Account & devices', ['encrypted-sync', 'account', 'network', 'contract']],
   ['settings-zigi', 'ZIGi', ['your-ai']],
-  ['settings-help', 'Help & diagnostics', ['diagnostics']],
+  ['settings-help', 'Help & diagnostics', ['diagnostics', 'send-feedback']], // Session X Part 11: Send feedback
 ];
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 

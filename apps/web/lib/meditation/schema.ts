@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {MEDITATION_RUN_KEY} from '../w-device-keys';
 import type {DeviceRecordSpec} from '../device-record';
 import {timeZoneSchema} from '../time-zone-schema';

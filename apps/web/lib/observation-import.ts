@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {measurementValueSchema,canonicalMeasurement,bodyMeasurementSchema} from './body-measurement-schema';
 import {healthSchema,type HealthData} from './health';
 export const observationFileSchema=z.object({format:z.literal('zigoals-observations'),version:z.literal(1),provider:z.string().trim().min(1).max(100),observations:z.array(measurementValueSchema.safeExtend({sourceId:z.string().trim().min(1).max(200)})).min(1).max(100)}).strict();

@@ -14,7 +14,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-w-pages', label: 'Hide pages and buttons'},
   {href: '/app/help#help-w-sleep', label: 'Sleep and sleep debt'},
   {href: '/app/help#help-w-meditation', label: 'Meditation and breathing'},
-  {href: '/app/help#help-w-music', label: 'Focus sounds and music'},
+  {href: '/app/help#help-w-sounds', label: 'Focus sounds and music'},
   {href: '/app/help#help-w-import', label: 'Bring data from other apps'},
   {href: '/app/help#help-w-devices', label: 'Heart-rate monitors, scales'},
   {href: '/app/help#help-w-habits', label: 'Habit challenges and stacks'},

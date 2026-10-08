@@ -4,19 +4,38 @@ import { fileURLToPath } from "node:url";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const numeric = value => typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 const outcomes = new Set(["ok","exception","exceededCpu","exceededMemory","canceled","unknown"]);
+// Session X Part 5a: buckets for the requests a page view makes besides its own document, so the owner's capture can tell
+// them apart (SESSION_W_PERFORMANCE.md). Each is a fixed name: the app's own API routes by name (never a query or a body),
+// the web app manifest, and Next's prefetch and client-navigation requests as one bucket each, without their page's path
+// (a path can hold a private goal or asset id). Everything else is dropped, as before.
+const PAGES = ["/app", "/app/settings", "/icon.svg"];
+export const API_ROUTES = Object.freeze(["/api/food-lookup", "/api/health-link", "/api/market-assets", "/api/market-detail", "/api/market-history", "/api/market-insights", "/api/market-logo", "/api/market-quotes", "/api/market-quotes/cancel", "/api/market-status", "/api/music-config", "/api/positions", "/api/private-account", "/api/push", "/api/zigi"]);
+const flag = (headers, name) => headers !== null && typeof headers === "object" && headers[name] === "1";
+export function routeBucket(url, method, headers) {
+  if (url.pathname === "/api" || url.pathname.startsWith("/api/"))
+    return method === "GET" || method === "POST" ? (API_ROUTES.includes(url.pathname) ? url.pathname : "/api/(other)") : null;
+  if (method !== "GET") return null;
+  if (url.pathname === "/manifest.webmanifest") return url.pathname;
+  if (url.pathname === "/app" || url.pathname.startsWith("/app/")) {
+    if (flag(headers, "next-router-prefetch") || flag(headers, "next-router-segment-prefetch")) return "(prefetch)";
+    if (url.searchParams.has("_rsc") || flag(headers, "rsc")) return "(client navigation)";
+  }
+  return PAGES.includes(url.pathname) ? url.pathname : null;
+}
 export function sanitizeEvent(input, version) {
   if (typeof version !== "string" || !uuid.test(version)) throw Error("Expected an exact Worker version UUID.");
-  if (input?.scriptName !== "zigoals-alpha" || input?.scriptVersion?.id !== version || input?.event?.request?.method !== "GET") return null;
+  if (input?.scriptName !== "zigoals-alpha" || input?.scriptVersion?.id !== version) return null;
   let url;
-  try { url = new URL(input.event.request.url); } catch { return null; }
-  if (url.origin !== "https://alpha.zigoals.app" || url.username || url.password ||
-      !["/app","/app/settings","/icon.svg"].includes(url.pathname)) return null;
+  try { url = new URL(input.event?.request?.url); } catch { return null; }
+  if (url.origin !== "https://alpha.zigoals.app" || url.username || url.password) return null;
+  const route = routeBucket(url, input.event.request.method, input.event.request.headers);
+  if (!route) return null;
   const timestamp = numeric(input.eventTimestamp);
   const hour = timestamp === null ? NaN : Math.floor(timestamp/3600000)*3600000;
   const date = new Date(hour);
   const status = input.event?.response?.status;
   // Construct a new object; no spreading or recursive copying of trace fields.
-  return {route:url.pathname,cpuMs:numeric(input.cpuTime),wallMs:numeric(input.wallTime),
+  return {route,cpuMs:numeric(input.cpuTime),wallMs:numeric(input.wallTime),
     status:Number.isInteger(status) && status>=100 && status<=599 ? status : null,
     outcome:outcomes.has(input.outcome) ? input.outcome : "unknown",workerVersion:version,
     hourUtc:Number.isNaN(date.getTime()) ? null : date.toISOString()};

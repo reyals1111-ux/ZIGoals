@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import {afterEach,beforeEach,describe,expect,test,vi} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {financeVersion,platformR4Schema,platformSchema,PLATFORM_KEY} from '../positions';
 import {createEmptyHealth,healthR3Schema,healthSchema,HEALTH_STORAGE_KEY,type HealthData} from '../health';
 import {dashboardSettingsR2Schema,dashboardSettingsSchema,presetSettings,saveWidget,DASHBOARD_SETTINGS_KEY,type DashboardSettings} from '../dashboard-settings';

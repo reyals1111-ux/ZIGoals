@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {historyRequestSchema} from '../market-history';
 import {marketRequestSchema} from '../market-assets';
 import type {BudgetDecision,BudgetState,ReservationRequest} from './market-budget-policy';

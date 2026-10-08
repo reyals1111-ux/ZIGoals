@@ -3,12 +3,12 @@
 // usage line, and the switches that keep the relay closed until the owner opens it on purpose.
 import {expect,test} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {BREAKER,admitDaily,breakerAdmit,breakerSettle,closedBreaker,dailyPolicy,dayOf,remainingFor,reserveFor} from '../../workers/zigi-relay/budget.mjs';
+import {BREAKER,admitDaily,breakerAdmit,breakerSettle,closedBreaker,dailyPolicy,dayOf,inputEstimate,remainingFor,reserveFor} from '../../workers/zigi-relay/budget.mjs';
 import {configured,invited,lastBoundary,metered,paused,upstreamBody,usageIn} from '../../workers/zigi-relay/relay.mjs';
 import {LIMITS} from '../../workers/zigi-relay/limits.mjs';
 
 const OPENAI=new URL('https://api.openai.com/v1/chat/completions'),OTHER=new URL('https://api.example.test/v1/chat/completions');
-const ENV={AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public',APP_ORIGIN:'https://app.test',ZIGI_UPSTREAM_URL:OPENAI.href,ZIGI_UPSTREAM_KEY:'sk-test-FAKE',ZIGI_PROVIDER_NAME:'OpenAI',ZIGI_MODEL:'gpt-6-luna',ZIGI_DAILY_REQUESTS:'40',ZIGI_DAILY_TOKENS:'150000',ZIGI_GLOBAL_DAILY_TOKENS:'1500000'};
+const ENV={AUTH_ORIGIN:'https://fixture.supabase.co',AUTH_PUBLIC_KEY:'public',APP_ORIGIN:'https://app.test',ZIGI_UPSTREAM_URL:OPENAI.href,ZIGI_UPSTREAM_KEY:['sk','test','FAKE'].join('-'),ZIGI_PROVIDER_NAME:'OpenAI',ZIGI_MODEL:'gpt-6-luna',ZIGI_DAILY_REQUESTS:'40',ZIGI_DAILY_TOKENS:'150000',ZIGI_GLOBAL_DAILY_TOKENS:'1500000'};
 
 test('daily budgets: per account requests and tokens, then the relay\'s own total; what is left is the smaller of the two',()=>{
  const policy=/** @type {NonNullable<ReturnType<typeof dailyPolicy>>} */(dailyPolicy(ENV));
@@ -128,4 +128,11 @@ test('the metered stream: whole events only, in any pieces; the usage settles it
  const reader=metered(source([event({choices:[{delta:{content:'a'}}]}),event({choices:[{delta:{content:'b'}}]})]),new AbortController(),(used,outcome)=>stopped.push({used,outcome})).getReader();
  await reader.read();await reader.cancel();
  expect(stopped).toEqual([{used:null,outcome:'neutral'}]);
+});
+
+test('the input estimate: ASCII at four characters a token as before; a character outside ASCII counts at least one (Session X P2.7)',()=>{
+ expect(inputEstimate('a'.repeat(31))).toBe(8);expect(inputEstimate('a'.repeat(31))).toBe(reserveFor(31,0));
+ expect(inputEstimate('日本語のテキスト')).toBe(8);// eight characters, eight tokens at least (a quarter would say 2)
+ expect(inputEstimate('Café ☕ '+'x'.repeat(40))).toBe(Math.ceil(47/4));// a few accents in English text change nothing
+ expect(inputEstimate('')).toBe(0);
 });

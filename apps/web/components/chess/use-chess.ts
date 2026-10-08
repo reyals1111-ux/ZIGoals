@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
@@ -14,10 +14,13 @@ import {isShowcase} from '../../lib/showcase-storage';
  * when the last answer is older than its age (an hour on the Chess page, six on Today); the Showcase never asks anyone.
  */
 export const AUTO_AGE_MS = {page: 3_600_000, today: 21_600_000} as const;
+// Session X Part 14 (J247–J249): read as the server renders it first (not the Showcase), then as this tab is, so the
+// first client render matches the server's HTML (the Showcase lives in this tab only; React error #418 otherwise).
+const noSubscription = () => () => {};
 export function useChess(auto: keyof typeof AUTO_AGE_MS | null = null) {
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), cache = useDeviceRecord(CHESS_CACHE);
   const [busy, setBusy] = useState(false), [errors, setErrors] = useState<Partial<Record<ChessSite, string>>>({}), started = useRef(false);
-  const chess = settings.loaded && !settings.error ? chessOf(settings.data) : undefined, showcase = isShowcase();
+  const chess = settings.loaded && !settings.error ? chessOf(settings.data) : undefined, showcase = useSyncExternalStore(noSubscription, isShowcase, () => false);
   const refresh = useCallback(async (only?: ChessSite) => {
     if (showcase || !chess || busy) return;
     setBusy(true);

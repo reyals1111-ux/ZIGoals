@@ -64,3 +64,6 @@ Architecture consequence: keep the deterministic Goal Engine VM-independent. Fut
 ## Run #8 live refresh
 
 See [bounded chain/fee findings](../verification/run8/CHAIN_FEE_FINDINGS.md). Mainnet live metadata is **uzig/6**, despite v5 docs describing azig. Testnet is **azig/18**. Official EVM registry now publishes 944/2061 as incubating, with empty RPCs. The successful owner-approved send and its 25000000000 azig/gas price are independently verified. No fee-policy or execution changes were made.
+
+## Addendum 2026-10-07 (Session X Part 1)
+Superseded for versions by [ZIGCHAIN_V5_1.md](ZIGCHAIN_V5_1.md): testnet zigchaind v5.1.0/v5.1.2 (v5.1 since 2026-09-25), mainnet v5.1.2 (v5 since about 2026-09-30), `azig`/18 on both; the upload whitelist is still `AnyOfAddresses` on both networks; the wasm params REST route now answers 200.

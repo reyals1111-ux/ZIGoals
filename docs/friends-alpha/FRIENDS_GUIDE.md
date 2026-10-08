@@ -1,8 +1,9 @@
 <!--
 For the owner: a one-page welcome to send to friends as it is, or adapt. It matches the in-app Help (/app/help) as of
-Session L (2026-10-02) and follows the owner principle: sync is switched on once, backups are optional, and the one
-thing to keep safe is the recovery secret. Accounts and encrypted sync are only available after Stage 7/8 activation;
-until then, part 2 "Before accounts open" applies.
+Session L (2026-10-02), updated with Sessions T–W and Session X (2026-10-08: parts 7–9 below), and follows the owner
+principle: sync is switched on once, backups are optional, and the one thing to keep safe is the recovery secret.
+Accounts and encrypted sync are only available after Stage 7/8 activation; until then, part 2 "Before accounts open"
+applies, and so does the first line of part 8.
 -->
 
 # Welcome to the ZIGoals Alpha
@@ -69,9 +70,32 @@ Eleven small things arrived together. All optional, all on your device, and none
 
 Each one has a Help entry under "What's new". Today shows a one-time "What's new" card once per device; dismiss it whenever you like.
 
-## 7. Tell us what you think
+## 7. New since then: your whole life, and ZIGi
 
-**Help → Send feedback** opens an email to **contact@zigoals.app** with a short template. Please leave out codes, your recovery secret, and personal money or health details.
+ZIGoals grew from goals, habits, health and wealth into one place for most of your day. All of it is optional, and you can hide any page you don't use (**Settings → Your pages & buttons**):
+
+- **Sleep and Meditation** in Health: log a night or tap "I'm going to bed" and "I woke up"; time a session or follow the breathing circle; calm focus sounds made in your browser.
+- **Bring your data with you:** **Settings → Switch to ZIGoals** reads exports from Apple Health, Fitbit / Google Health, Samsung Health, Oura and Loop Habit Tracker on your device, with a preview and one-tap undo.
+- **Devices:** a Bluetooth heart-rate monitor or scale in Chrome or Edge (not on iPhone).
+- **Goals and habits:** milestones and "On track?" for goals; challenges and stacks for habits; an optional evening wrap-up on Today.
+- **Wealth and Portfolio:** accounts, debts and net worth per currency, on your device; Portfolio with charts from your own transactions and dated prices. A price that is missing stays "unknown", never zero.
+- **Chess, Music and My links** pages, hidden until you show them.
+- **ZIGi · your AI:** a helper on every page. It answers questions about your own records on your device with no AI at all ("How many minutes did I meditate this month?"), or works with an AI you bring yourself (your own key, a model on your computer, or "Copy for my AI" for a subscription). Nothing is written until you add the card it shows you. Health is only shared with your AI if you switch it on. **Help → ZIGi · your AI** explains every part.
+
+## 8. What the Alpha can't do yet
+
+- **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
+- **Reminders when ZIGoals is closed** wait for accounts; until then, due reminders show on Today while ZIGoals is open.
+- **No real money moves**, and the test network's tokens have no value.
+- **Oura, Withings, Polar and Strava** say "Needs setup by ZIGoals" until we register with them. **Fitbit's** web access is turned off on 30 October 2026: use Google Takeout and Switch to ZIGoals.
+- **Spotify** needs Premium, and only accounts we list can connect while Spotify keeps ZIGoals in development mode.
+- **English only** for now.
+
+The full list, kept up to date, is in **Help → Known limitations**.
+
+## 9. Tell us what you think
+
+**Help → Send feedback** (also in **Settings → Help & diagnostics**) opens an email to **contact@zigoals.app** in your own mail app, with a short template and the app version. If you like, tick **Add details about this device**: you see exactly what would be added (browser, system, window size, motion settings, whether ZIGoals is installed, time zone) and can edit or delete any of it. Nothing is sent until you send the email yourself. Please leave out codes, your recovery secret, and personal money or health details.
 
 Found a security problem? Please write privately to **hello@zigoals.app**.
 

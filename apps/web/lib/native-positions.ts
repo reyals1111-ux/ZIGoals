@@ -1,6 +1,6 @@
 /** Public address observations only. Intentionally has no wallet/transaction imports. */
 import { fromBech32 } from '@cosmjs/encoding';
-import { z } from 'zod';
+import * as z from 'zod';
 import { positionSchema, units, type Position } from './positions';
 export {READ_NETWORKS,type ReadMode} from './position-reader';
 import {READ_NETWORKS,publicZigAddress,type ReadMode} from './position-reader';

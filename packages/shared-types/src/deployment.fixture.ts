@@ -7,7 +7,7 @@ export function deployedFixture() {
     status: "DEPLOYED",
     environment: "testnet",
     chainId: "zig-test-2",
-    chainVersion: "v5.0.0-patch-1",
+    chainVersion: "v5.1.0",
     denom: "azig",
     decimals: 18,
     codeId: "7",

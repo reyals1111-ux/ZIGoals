@@ -58,7 +58,7 @@ function networkResponse(url: string) {
   const data = url.includes("node_info")
     ? {
         default_node_info: { network: "zig-test-2" },
-        application_version: { version: "v5.0.0-patch-1" },
+        application_version: { version: "v5.1.0" },
       }
     : url.includes("staking")
       ? { params: { bond_denom: "azig" } }

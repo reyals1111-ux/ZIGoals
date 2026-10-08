@@ -1,5 +1,5 @@
 import {afterAll,expect,test,vi} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {powerUserRecords} from './power-user-fixture';
 
 // QA-25: zod probes `new Function` when the first object schema is built; the app's CSP blocks it, which reports a

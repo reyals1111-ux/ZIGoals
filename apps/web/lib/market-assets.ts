@@ -1,5 +1,5 @@
 import {ProviderValidationError} from './provider-validation';
-import {z} from 'zod';
+import * as z from 'zod';
 import {exactMarketJson} from './exact-market-json';
 const providerId=z.string().min(1).max(150).regex(/^[a-zA-Z0-9._-]+$/);
 const coinRef=z.object({provider:z.literal('coingecko'),kind:z.literal('coin'),id:providerId,platform:providerId.optional(),contractAddress:z.string().min(1).max(250).regex(/^[a-zA-Z0-9:._-]+$/).optional()}).strict();

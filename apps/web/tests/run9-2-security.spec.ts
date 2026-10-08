@@ -8,5 +8,9 @@ test('new public market endpoints reject private payload fields, query injection
  const query=await request.post('/api/market-insights?wallet=fictional-probe',{data:{requests:[identity]}});expect(query.status()).toBe(400);
  for(const url of ['http://127.0.0.1/private','https://example.invalid/pixel.png','https://assets.coingecko.com/coins/images/1/small/test.svg','https://assets.coingecko.com@127.0.0.1/private']){
   const response=await request.get('/api/market-logo',{params:{url}});expect(response.status()).toBe(400);expect(response.headers()['x-content-type-options']).toBe('nosniff');
+  // Session X Part 4: the route's own sandbox policy and a refusal that is never stored (middleware no longer replaces them).
+  expect(response.headers()['content-security-policy']).toBe("default-src 'none'; sandbox");expect(response.headers()['cache-control']).toBe('no-store');
  }
+ // Every other /api route keeps middleware's page policy and no-store.
+ const other=await request.get('/api/market-status');expect(other.headers()['cache-control']).toBe('private, no-store, max-age=0');expect(other.headers()['content-security-policy']).toContain("'strict-dynamic'");
 });

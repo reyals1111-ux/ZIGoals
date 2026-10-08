@@ -38,4 +38,6 @@
   :root nav.tab-row.platform-nav > a { display: flex; align-items: center; justify-content: center; }
   /* Help's step links: a short word ("Goals") still gets a 44 px wide target. */
   :root .help-steps > li > a.text-link { min-width: 44px; justify-content: center; }
+  /* And a link in one of Help's paragraphs (Known limitations' "tell us", Session X). */
+  :root .help-section > p > a.text-link { min-width: 44px; justify-content: center; }
 }

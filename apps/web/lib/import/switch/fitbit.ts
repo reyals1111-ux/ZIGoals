@@ -1,5 +1,5 @@
 import {emptyItems, type ImportPlan} from './apply';
-import {buildNight, buildVital, checkStop, DayTotals, HeartDays, LastOfDay, localDay, parseOffset, parseStamp, planOf, Skipped, stepsLine, weightLine, zoneFor, type ReadContext} from './common';
+import {buildNight, buildVital, checkStop, DayTotals, HeartDays, LastOfDay, localDay, parseOffset, parseStamp, planOf, Skipped, stepsLine, weightLine, zoneFor, type ReadContext, dayCount} from './common';
 import {csvRows, headerIndex} from './csv-stream';
 import {baseName, progressCounter, textStream, type ImportFile} from './source';
 
@@ -85,9 +85,9 @@ export async function readFitbit(files: readonly ImportFile[], ctx: ReadContext)
     if (vital) items.vitals.push(vital);
   }
   const summarised: string[] = [];
-  if (heartDays.size) summarised.push(`Heart rate: each day's lowest, average and highest (${heartDays.size.toLocaleString('en')} days), not every reading.`);
+  if (heartDays.size) summarised.push(`Heart rate: each day's lowest, average and highest (${dayCount(heartDays.size)}), not every reading.`);
   if (items.sleep.some(n => n.stages)) summarised.push('Sleep stages: the minutes of each stage per night, not every change of stage.');
-  if (stepDays.multiSource) summarised.push(`Steps: one total a day from the source that counted the most (${stepDays.multiSource.toLocaleString('en')} days had more than one, such as a phone and a tracker), never added together.`);
+  if (stepDays.multiSource) summarised.push(`Steps: one total a day from the source that counted the most (${dayCount(stepDays.multiSource)} had more than one, such as a phone and a tracker), never added together.`);
   if (guessed) warnings.push(`${guessed} ${guessed === 1 ? 'night was' : 'nights were'} recorded at an offset that is not a whole hour away from your time zone; ${guessed === 1 ? 'its' : 'their'} day uses your own zone.`);
   if (files.some(f => isFitbitLegacy(f.path))) warnings.push('The older JSON copies of the same data were not read: the CSV files hold it with clear times.');
   return planOf('fitbit', FITBIT_LABEL, items, summarised, [...skipped.lines(), ...warnings]);

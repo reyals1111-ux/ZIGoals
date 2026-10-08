@@ -3,9 +3,10 @@ import {dailyData, healthDay, waterSummary} from '../health-daily';
 import {countOn, exerciseData} from '../health-counters';
 import {addLocalDays} from '../local-date';
 import {targetNumber, type HealthGoal} from './schema';
+import {formatNumber} from '../visual-format';
 
 const LB_GRAMS = 453.59237, FL_OZ_ML = 29.5735295625;
-const number = (value: number, digits = 0) => value.toLocaleString('en-US', {maximumFractionDigits: digits});
+const number = (value: number, digits = 0) => formatNumber(value, {maximumFractionDigits: digits});
 /** The calendar days a goal counts: a "by" goal from the day it was made to its date; a rolling goal the last N weeks ending today. */
 export function windowDays(goal: Pick<HealthGoal, 'window' | 'createdAt'>, today: string, timezone: string | null): {start: string; end: string} {
   if (goal.window.kind === 'by') return {start: healthDay(timezone, new Date(goal.createdAt)), end: goal.window.date};

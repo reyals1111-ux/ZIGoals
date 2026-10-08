@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { z } from "zod";
+import * as z from "zod";
 import { readPrivateStore, updatePrivateStore, importPrivateStore } from "./private-storage";
 const schema = z.object({ schemaVersion: z.literal(1), kind: z.literal("test"), count: z.number().int().nonnegative() }).strict();
 const empty = () => ({ schemaVersion: 1 as const, kind: "test" as const, count: 0 });

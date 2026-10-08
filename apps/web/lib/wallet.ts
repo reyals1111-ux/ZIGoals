@@ -22,13 +22,10 @@ import {
   TransactionJournal,
   type JournalRecord,
 } from "./transaction-journal";
-import {
-  signedTransactionHash,
-  verifySignedOperation,
-  verifyReceipt,
-  reconcileKnownReceipt,
-  receiptDeadline,
-} from "./receipt-reconciliation";
+// Session X Part 5b ([TIER 3] (wallet)): the receipt code decodes signed bytes with cosmjs-types, so it loads with the
+// wallet actions that use it (alongside the signing client they already load on use) instead of with every page. The
+// functions, their arguments and their order are unchanged.
+const receipts = () => import("./receipt-reconciliation");
 export interface Keplr {
   enable(chain: string): Promise<void>;
   experimentalSuggestChain(
@@ -201,9 +198,14 @@ export async function executeQuote(
 ): Promise<Confirmed> {
   assertFinancialExecutionAllowed();
   requireConfiguredDeployment();
-  const [{ SigningCosmWasmClient }, { TxRaw }] = await Promise.all([
+  const [
+    { SigningCosmWasmClient },
+    { TxRaw },
+    { signedTransactionHash, verifySignedOperation, verifyReceipt, receiptDeadline },
+  ] = await Promise.all([
     import("@cosmjs/cosmwasm-stargate"),
     import("cosmjs-types/cosmos/tx/v1beta1/tx"),
+    receipts(),
   ]);
   const assertCurrent = () => {
     if (currentRevision() !== quote.revision || Date.now() > quote.expiresAt)
@@ -339,7 +341,10 @@ export async function reconcileTransactions(
     return { records: [] as JournalRecord[], warnings: [] as string[] };
   const recovered: JournalRecord[] = [];
   const warnings: string[] = [];
-  const { CosmWasmClient } = await import("@cosmjs/cosmwasm-stargate");
+  const [{ CosmWasmClient }, { reconcileKnownReceipt, receiptDeadline }] = await Promise.all([
+    import("@cosmjs/cosmwasm-stargate"),
+    receipts(),
+  ]);
   const client = await receiptDeadline(CosmWasmClient.connect(TESTNET.rpcUrl));
   try {
     for (const record of candidates) {

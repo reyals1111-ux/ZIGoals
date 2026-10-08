@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {expect, test} from '@playwright/test';
 import {securityPolicy} from '../lib/security-policy';
 
@@ -30,6 +31,20 @@ test('the manifest describes the installed ZIGoals app', async ({request}) => {
     description: 'Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.',
     start_url: '/app', scope: '/', display: 'standalone', background_color: '#020918', theme_color: '#020918', icons: ICONS,
   });
+});
+
+// Session X Part 5a: the manifest became a static file at the same address. Its bytes are exactly what main 72ad872's
+// metadata route served (sha256 below, captured from that build), so apps already saved to a Home Screen keep the same
+// id, start page, scope and icons. As a public file it bypasses middleware: no page policy, no no-store.
+test('the static manifest is byte-identical to the one 72ad872 served, at the same address', async ({request}) => {
+  const response = await request.get('/manifest.webmanifest');
+  expect(response.status()).toBe(200);
+  const body = await response.body();
+  expect(createHash('sha256').update(body).digest('hex')).toBe('0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92');
+  expect(response.headers()['content-type']).toContain('application/manifest+json');
+  expect(response.headers()['content-security-policy']).toBeUndefined();
+  expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');
+  expect(response.headers()['x-content-type-options']).toBe('nosniff');
 });
 
 test('every icon is an opaque PNG of its declared size, including the Home Screen icon', async ({request}) => {

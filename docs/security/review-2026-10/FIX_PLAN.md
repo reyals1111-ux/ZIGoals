@@ -60,6 +60,11 @@
 | C6 | A generic "unavailable" for anonymous callers once sessions exist | Q-WRK-06 | ordinary | A route test |
 | C7 | Retention sweeps: admission (expired rows on access, plus an alarm), food (`until` checked and deleted on read, plus an alarm), market keys, revoked sessions after N days | Q-PRIV-03 | `TIER 3 (auth/sync)` for sessions | Miniflare with an advancing clock: no expired row after the sweep |
 
+> **Review note (Session X Part 10, 2026-10-08), C1's acceptance line.** "1 DO request" predates Session R1's decision 1
+> (STATUS, Session R1, "Decisions"): orchestration stays in QuoteService, so a cold 64-pair insights request costs one
+> account command plus one per provider read, not literally one; a cache hit costs one command and writes nothing. That is
+> the acceptance R1's counting-storage tests check. The change itself is done (STATUS, Session R1).
+
 ## Part D · Web hardening and copy (ordinary)
 | # | Change | Finding | Acceptance |
 |---|---|---|---|

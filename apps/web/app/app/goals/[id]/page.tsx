@@ -45,7 +45,8 @@ export default function GoalDetail({
     return (
       <section className="empty-state">
         <h1>Goal unavailable.</h1>
-        <p>Connect the wallet and network that own this goal, then refresh.</p>
+        {/* Session X Part 14 (J047): in the Local Demo there is no wallet to connect, so say what happened instead. */}
+        <p>{s.mode === "local" ? "This goal isn’t here: it may have been removed, or it was made in another browser." : "Connect the wallet and network that own this goal, then refresh."}</p>
         <Link className="secondary" href="/app/goals">
           Back to goals
         </Link>

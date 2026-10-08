@@ -18,7 +18,7 @@ test('every unsafe change is named',()=>{
   [{...deployable,workers_dev:true},'workers_dev must be false.'],
   [{...deployable,tail_consumers:[{service:'x'}]},'No tail consumers: nothing may read the relay\'s requests.'],
   [{...deployable,kv_namespaces:[{binding:'X',id:'y'}]},'No kv_namespaces: the relay stores nothing but counts.'],
-  [{...deployable,vars:{...deployable.vars,ZIGI_UPSTREAM_KEY:'sk-test-FAKE'}},'ZIGI_UPSTREAM_KEY is a secret: set it with wrangler secret put, never in vars.'],
+  [{...deployable,vars:{...deployable.vars,ZIGI_UPSTREAM_KEY:['sk','test','FAKE'].join('-')}},'ZIGI_UPSTREAM_KEY is a secret: set it with wrangler secret put, never in vars.'],
   [{...deployable,vars:{...deployable.vars,ZIGI_ALLOWLIST:'x'}},'ZIGI_ALLOWLIST is a secret: set it with wrangler secret put, never in vars.'],
   [{...deployable,vars:{...deployable.vars,ZIGI_KILL_SWITCH:'false'}},'ZIGI_KILL_SWITCH must be "on" (paused) or "off".'],
   [{...deployable,vars:{...deployable.vars,ZIGI_DAILY_TOKENS:'9999999'}},'One account\'s daily tokens cannot be more than the relay\'s own daily tokens.'],
@@ -28,4 +28,18 @@ test('every unsafe change is named',()=>{
  ]);
  for(const [config,problem] of cases)expect(relayConfigProblems(config),problem).toContain(problem);
  expect(stripComments('{"a":"// kept","b":1 // gone\n/* gone */}')).toBe('{"a":"// kept","b":1 \n}');
+});
+// Session X Part 9: the Anthropic template passes as a template; its thinking choice and its exact address are checked.
+test('the Anthropic template passes as a template; ZIGI_THINKING and the Anthropic address are checked',()=>{
+ const anthropic=JSON.parse(stripComments(readFileSync(new URL('../../workers/zigi-relay/wrangler.anthropic.local.jsonc',import.meta.url),'utf8')));
+ expect(relayConfigProblems(anthropic,{template:true})).toEqual([]);
+ expect(anthropic.vars).toMatchObject({ZIGI_UPSTREAM_URL:'https://api.anthropic.com/v1/messages',ZIGI_MODEL:'claude-haiku-5-5',ZIGI_THINKING:'off',ZIGI_KILL_SWITCH:'on'});
+ const deployableAnthropic={...anthropic,name:'zigoals-zigi-relay',vars:{...anthropic.vars,AUTH_ORIGIN:'https://abcdefgh.supabase.co',APP_ORIGIN:'https://alpha.zigoals.app'}};
+ expect(relayConfigProblems(deployableAnthropic)).toEqual([]);
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_THINKING:'on'}})).toContain('ZIGI_THINKING must be "off" or "model-default".');
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_THINKING:'model-default'}})).toEqual([]);
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_UPSTREAM_URL:'https://api.anthropic.com/v1/chat/completions'}})).toContain('On Anthropic, ZIGI_UPSTREAM_URL must be exactly https://api.anthropic.com/v1/messages (the relay translates to that API only).');
+ // The OpenAI default template stays as it was: no thinking var, OpenAI's address.
+ expect(Object.hasOwn(template.vars,'ZIGI_THINKING')).toBe(false);
+ expect(template.vars.ZIGI_UPSTREAM_URL).toBe('https://api.openai.com/v1/chat/completions');
 });

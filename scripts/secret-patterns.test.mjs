@@ -2,6 +2,7 @@ import { test, expect } from "vitest";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { findSecrets } from "./secret-patterns.mjs";
+import { scanFiles, sha256 } from "./lib/secret-scan.mjs";
 // Samples are assembled at runtime so no credential-shaped literal is ever committed.
 const x = (n, c = "a") => c.repeat(n);
 const b64 = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -23,6 +24,30 @@ test("each credential shape is detected by name", () => {
     ["Assigned mnemonic or private key", "mnemonic = '" + x(24, "w") + "'"],
     ["Seed-phrase-like word list", `const phrase = "${words.slice(100, 112).join(" ")}";`],
     ["Seed-phrase-like word list", words.slice(500, 524).join(" ")],
+    // Session X Part 2: provider, payment, cloud and chat shapes (after GitHub's secret-scanning patterns).
+    ["Google API key", "AI" + "za" + x(35, "G")],
+    ["OpenAI API key", "sk-" + "proj-" + x(20, "o") + "T3Blbk" + "FJ" + x(20, "p")],
+    ["OpenAI API key", "sk-" + "svcacct-" + x(48, "o")],
+    ["Anthropic API key", "sk-" + "ant-" + "api03-" + x(93, "A")],
+    // Session X P2.7: the OAuth token families, Supabase and npm tokens, and this project's own secrets by name.
+    ["Anthropic API key", "sk-" + "ant-" + "oat01-" + x(60, "o")],
+    ["Anthropic API key", "sk-" + "ant-" + "ort01-" + x(60, "r")],
+    ["Supabase personal access token", "sb" + "p_" + x(20, "a1")],
+    ["npm token", "np" + "m_" + x(36, "N")],
+    ["Named project secret", "VAPID_" + "PRIVATE_KEY=" + x(43, "Vk")],
+    ["Named project secret", "OURA_" + "CLIENT_SECRET: '" + x(32, "c9") + "'"],
+    ["Named project secret", '"AUTH_' + 'ADMIN_KEY": "' + x(40, "Ab") + '"'],
+    ["xAI API key", "xa" + "i-" + x(80, "X")],
+    ["OpenRouter API key", "sk-" + "or-v1-" + x(64, "e")],
+    ["Groq API key", "gs" + "k_" + x(52, "Q")],
+    ["Stripe secret key", "sk" + "_live_" + x(24, "S")],
+    ["Stripe secret key", "rk" + "_test_" + x(30, "S")],
+    ["Stripe secret key", "wh" + "sec_" + x(32, "W")],
+    ["AWS access key id", "AK" + "IA" + x(16, "A")],
+    ["Slack token", "xo" + "xb-" + x(12, "1") + "-" + x(24, "s")],
+    ["Signed JWT", jwt({ sub: "fixture" })],
+    ["Elliptic-curve private JWK", `{"kty":"EC","crv":"P-256","d":"${x(43, "d")}","x":"${x(43, "x")}"}`],
+    ["Elliptic-curve private JWK", `{d:'${x(43, "d")}',crv:'P-256',kty:'EC'}`],
   ];
   for (const [name, sample] of cases) expect(findSecrets(sample), sample.slice(0, 24)).toContain(name);
 });
@@ -38,6 +63,28 @@ test("near misses are not reported", () => {
     words.slice(0, 13).join(" "),
     `test("${"private account route reads current request bindings and reaches named sync service without public fetch"}")`,
     "the quick brown fox jumps over the lazy dog again and again today",
+    // Session X Part 2 near misses: short fixture keys, publishable keys, unsigned or one-part tokens, public JWKs.
+    "AI" + "zaSyFAKE" + x(14, "0"),
+    "AI" + "za" + x(36, "G"),
+    "sk-" + "test-FAKE-relay-key",
+    "sk-" + "proj-" + x(32, "a"),
+    "sk-" + "ant-FAKE-" + x(10, "k"),
+    "xa" + "i-" + x(26, "a"),
+    "sk-" + "or-v1-" + x(10, "a"),
+    "pk" + "_live_" + x(24, "P"),
+    "AK" + "IA" + x(15, "A"),
+    `${b64({ alg: "none" })}.${b64({ sub: "x" })}.${x(20, "s")}`,
+    "eyJjb250cmFjdCI6InppZzEifQ",
+    `{"kty":"EC","crv":"P-256","x":"${x(43, "x")}","y":"${x(43, "y")}"}`,
+    `{"kty":"RSA","d":"${x(43, "d")}"}`,
+    // Session X P2.7 near misses: a binding read, fixture and placeholder values, a short value, a Supabase-like prefix.
+    "AUTH_" + "ADMIN_KEY:bindings.AUTH_ADMIN_KEY",
+    "OURA_" + "CLIENT_SECRET:'FAKE-oura-secret-1'",
+    "AUTH_" + "ADMISSION_KEY:'fixture-secret-" + x(24, "0") + "'",
+    "VAPID_" + "PRIVATE_KEY=" + x(30, "x"),
+    "ZIGI_" + "UPSTREAM_KEY=short-key",
+    "sb" + "p_" + x(20, "a"),
+    "np" + "m_" + x(10, "N"),
   ];
   for (const sample of samples) expect(findSecrets(sample), sample.slice(0, 40)).toEqual([]);
 });
@@ -45,3 +92,26 @@ test("near misses are not reported", () => {
 test("the current repository has no findings", () => {
   expect(execFileSync("node", [new URL("./check-secrets.mjs", import.meta.url).pathname], { encoding: "utf8" })).toContain("check passed");
 }, 60000);
+
+// Session X Part 2: the allowlist hides one exact value per entry; a stale entry is reported, never a failure.
+test("an allowlist entry hides exactly its value; another value in the same file is still a finding", () => {
+  const known = "AI" + "za" + x(35, "K"), other = "AI" + "za" + x(35, "L");
+  const entry = { path: "lane/a.test.ts", check: "Google API key", sha256: sha256(known) };
+  const files = { "lane/a.test.ts": `const k = '${known}';`, "lane/b.test.ts": `const k = '${known}';`, "lane/c.test.ts": `'${known}' '${other}'` };
+  const read = (file) => files[file];
+  expect(scanFiles(["lane/a.test.ts"], read, [entry])).toEqual({ hits: [], allowed: 1, stale: [] });
+  expect(scanFiles(["lane/b.test.ts"], read, [entry]).hits).toEqual(["lane/b.test.ts (Google API key)"]);
+  expect(scanFiles(["lane/c.test.ts"], read, [{ ...entry, path: "lane/c.test.ts" }]).hits).toEqual(["lane/c.test.ts (Google API key)"]);
+});
+test("a stale allowlist entry (the value already fixed) is reported as stale and the scan still passes", () => {
+  const entry = { path: "lane/a.test.ts", check: "Google API key", sha256: sha256("AI" + "za" + x(35, "K")) };
+  expect(scanFiles(["lane/a.test.ts"], () => "const k = ['AI', 'za'].join('');", [entry])).toEqual({ hits: [], allowed: 0, stale: [{ path: "lane/a.test.ts", check: "Google API key" }] });
+});
+test("the checked-in allowlist names only hashes, files and checks, never a value", () => {
+  const list = JSON.parse(readFileSync(new URL("./secret-allowlist.json", import.meta.url), "utf8"));
+  for (const entry of list.entries) {
+    expect(Object.keys(entry).sort()).toEqual(["check", "path", "reason", "sha256"]);
+    expect(entry.sha256).toMatch(/^[a-f0-9]{64}$/);
+  }
+  expect(findSecrets(JSON.stringify(list))).toEqual([]);
+});

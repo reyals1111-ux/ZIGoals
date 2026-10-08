@@ -4,6 +4,7 @@ import {HABITS_KEY, createHabit, emptyHabitData, habitDataSchema, logHabitValue,
 import {HEALTH_STORAGE_KEY, createEmptyHealth, healthSchema, type HealthData} from '../health';
 import {saveMeasurement} from '../body-measurements';
 import {applyAutoCompletion, autoCheckInMarker, autoCompletions, formatMeasureValue, measureSource, measureValue, ruleMet} from './engine';
+import {DEFAULT_DISPLAY_LOCALE, setDisplayLocale} from '../visual-format';
 import {type HabitHealthLink, type HabitHealthLinks} from './schema';
 
 // H7 (docs/product/features/H7-auto-checkins.md, "Tests"): the engine against the Showcase fixture and small journals.
@@ -137,5 +138,8 @@ describe('badge copy', () => {
     expect(formatMeasureValue('activeMinutes', 1)).toBe('1 minute');
     expect(formatMeasureValue('weight', 1)).toBe('a reading');
     expect(formatMeasureValue('exercise', 24)).toBe('24 reps');
+    // Session X P2.5: in the display locale, as every other figure (en-US above, the server's and the tests' default).
+    try { setDisplayLocale('de-DE'); expect(formatMeasureValue('steps', 8800)).toBe('8.800 steps'); expect(formatMeasureValue('water', 2250, 'fl-oz-us')).toBe('76,1 fl oz'); }
+    finally { setDisplayLocale(DEFAULT_DISPLAY_LOCALE); }
   });
 });

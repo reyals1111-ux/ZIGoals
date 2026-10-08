@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { fromBech32 } from "@cosmjs/encoding";
 const hash = z
   .string()
@@ -39,7 +39,11 @@ const common = {
   schemaVersion: z.literal(2),
   environment: z.literal("testnet"),
   chainId: z.literal("zig-test-2"),
-  chainVersion: z.literal("v5.0.0-patch-1"),
+  // The zigchaind version read when the manifest was prepared or deployed: the repository's prepared manifest was made on
+  // v5.0.0-patch-1 (2026-09-13); v5.1.0, v5.1.1 and v5.1.2 are the reviewed v5.1 versions (Session X Part 1, the same
+  // list as @zigoals/chain-config's REVIEWED_TESTNET_VERSIONS). The financial preflight still requires the live node to
+  // report exactly this manifest's version.
+  chainVersion: z.enum(["v5.0.0-patch-1", "v5.1.0", "v5.1.1", "v5.1.2"]),
   denom: z.literal("azig"),
   decimals: z.literal(18),
   wasmSha256: hash,

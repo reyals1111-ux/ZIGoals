@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {marketRequestSchema,marketRequestKey,uniqueMarketRequests,type MarketQuoteRequest} from './market-assets';
 import {verifiedMarketQuote,quoteIsStale,type MarketQuote} from './market-quotes';
 const failure=z.enum(['THROTTLED','UPSTREAM_5XX','TIMEOUT','NETWORK','AUTHENTICATION','ENTITLEMENT','MALFORMED','UNSUPPORTED','LOCAL_BUDGET','LOCAL_QUEUE','UNKNOWN']);

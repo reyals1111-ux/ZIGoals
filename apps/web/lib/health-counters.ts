@@ -8,7 +8,7 @@
  * Health data stays byte-identical. The default counters have fixed IDs, so two devices that start
  * counting independently create identical definitions.
  */
-import {z} from 'zod';
+import * as z from 'zod';
 import { hasVisibleText } from './visible-text';
 
 export const EXERCISE_ICONS = ['pushup', 'pullup', 'squat', 'run', 'jump', 'stretch', 'core', 'bike'] as const;

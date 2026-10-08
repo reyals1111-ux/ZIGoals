@@ -320,3 +320,19 @@ describe("no rates of return and no referral or tracking links", () => {
     expect(urls.filter(tracked)).toEqual([]);
   });
 });
+
+// Session X Part 5a: the provider records are parsed once (records.ts), and the links module needs no zod, so pages that
+// only link out (Ecosystem, explorer links, Connection diagnostics) never build the provider schemas.
+it("the snapshot is parsed in one place and the links module needs no schema library", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const dir = new URL("./", import.meta.url);
+  const importers = readdirSync(dir).filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts") && /from ["']\.\/providers\.json["']/.test(readFileSync(new URL(name, dir), "utf8")));
+  expect(importers).toEqual(["records.ts"]);
+  const links = readFileSync(new URL("./links.ts", dir), "utf8");
+  expect(links).not.toMatch(/from ["']zod["']|from ["']\.\/index["']|providers\.json/);
+  const linksModule = await import("./links");
+  const root = await import("./index");
+  for (const name of ["explorers", "hubLinks", "buildExplorerUrl", "explorerHome", "explorerEvidence", "isSafeReferenceUrl"] as const) expect(root[name]).toBe(linksModule[name]);
+  const { ecosystemProviders, directoryEntries } = await import("./providers");
+  expect(directoryEntries.map((entry) => entry.id)).toEqual(ecosystemProviders.map((provider) => provider.id));
+});

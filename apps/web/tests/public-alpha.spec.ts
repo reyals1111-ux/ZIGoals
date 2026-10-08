@@ -124,7 +124,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.route("https://testnet-**.zigchain.com/**",async route=>{
     const url=route.request().url();
     expect(route.request().method()).toBe("GET");
-    const json=url.endsWith("/status")?{result:{node_info:{network:"zig-test-2"},sync_info:{catching_up:false,latest_block_height:"77",latest_block_time:new Date().toISOString()}}}:url.includes("node_info")?{default_node_info:{network:"zig-test-2"},application_version:{version:"v5.0.0-patch-1"}}:url.includes("staking")?{params:{bond_denom:"azig"}}:url.includes("balances")?{balance:{denom:"azig",amount:"0"}}:{metadata:{base:"azig",display:"ZIG",denom_units:[{denom:"ZIG",exponent:18}]}};
+    const json=url.endsWith("/status")?{result:{node_info:{network:"zig-test-2"},sync_info:{catching_up:false,latest_block_height:"77",latest_block_time:new Date().toISOString()}}}:url.includes("node_info")?{default_node_info:{network:"zig-test-2"},application_version:{version:"v5.1.0"}}:url.includes("staking")?{params:{bond_denom:"azig"}}:url.includes("balances")?{balance:{denom:"azig",amount:"0"}}:{metadata:{base:"azig",display:"ZIG",denom_units:[{denom:"ZIG",exponent:18}]}};
     await route.fulfill({json});
   });
   // App injection boundary only: addInitScript bypasses CSP and is not proof of real extension compatibility.
@@ -172,7 +172,8 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
 
 
 test("public icon and robots bypass nonce work while lookalike HTML retains CSP", async ({request}) => {
-  for (const route of ["/icon.svg", "/apple-touch-icon.png", "/robots.txt", "/social-card.svg", "/social-card.png"]) {
+  // Session X Part 5a: the web app manifest is a public file too, answered by the asset layer.
+  for (const route of ["/icon.svg", "/apple-touch-icon.png", "/robots.txt", "/social-card.svg", "/social-card.png", "/manifest.webmanifest"]) {
     const response = await request.get(route);
     expect(response.status()).toBe(200);
     const h = response.headers();
@@ -187,12 +188,13 @@ test("public icon and robots bypass nonce work while lookalike HTML retains CSP"
     expect(h["referrer-policy"]).toBe("no-referrer");
     expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
     expect(h["strict-transport-security"]).toBe("max-age=31536000");
+    if (route === "/manifest.webmanifest") expect(h["content-type"]).toContain("application/manifest+json");
     if (route === "/robots.txt") {
       expect(h["content-type"]).toContain("text/plain");
       expect(await response.text()).toBe("User-Agent: *\nDisallow: /\n\n");
     }
   }
-  for (const route of ["/favicon.ico", "/icon.svg/app", "/apple-touch-icon.png/app", "/robots.txt/app", "/social-cardXpng", "/_next/image/app"]) {
+  for (const route of ["/favicon.ico", "/icon.svg/app", "/apple-touch-icon.png/app", "/robots.txt/app", "/social-cardXpng", "/_next/image/app", "/manifest.webmanifest/app"]) {
     const response = await request.get(route);
     expect(response.status()).toBe(404);
     expect(response.headers()["content-security-policy"]).toContain("'nonce-");

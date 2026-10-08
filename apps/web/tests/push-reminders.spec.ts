@@ -1,4 +1,4 @@
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type BrowserContext, type Page, type Worker} from '@playwright/test';
 import {PUSH_KEY} from '../lib/push/client';
 import {navLink} from './phone-nav';
 
@@ -207,6 +207,30 @@ const labelRows = (page: Page) => page.evaluate(() => new Promise<unknown[] | nu
 }));
 const labelsListed = (page: Page) => page.evaluate(async () => (await indexedDB.databases()).some(db => db.name === 'zigoals-push-labels-v1'));
 const notificationBodies = (page: Page) => page.evaluate(async () => (await (await navigator.serviceWorker.getRegistration('/'))!.getNotifications()).map(n => n.body));
+// Session X Part 6: Chrome's getNotifications() drops a stored notification it finds not yet displayed (it syncs its
+// database with what is on screen), so a read between showNotification's write and its display can erase the one this
+// test waits for (push-reminders:210 in CI runs 37555158234 and 37635895908). The test therefore counts, inside the
+// push worker, each showNotification that resolved (Chrome resolves it once displayed) and reads only after that.
+type PushScope = {registration: ServiceWorkerRegistration; __zigoalsShown?: number};
+async function pushWorker(page: Page, context: BrowserContext): Promise<Worker> {
+  const isPush = (worker: Worker) => new URL(worker.url()).pathname === '/push-sw.js';
+  let worker = context.serviceWorkers().find(isPush);
+  if (!worker) {
+    // A stopped worker starts for a message (it has no handler; Chrome starts it to dispatch).
+    const started = context.waitForEvent('serviceworker', isPush);
+    await page.evaluate(async () => (await navigator.serviceWorker.getRegistration('/'))!.active!.postMessage(null));
+    worker = await started;
+  }
+  await worker.evaluate(() => {
+    const scope = self as unknown as PushScope;
+    if (scope.__zigoalsShown !== undefined) return;
+    const registration = scope.registration, show = registration.showNotification.bind(registration);
+    scope.__zigoalsShown = 0;
+    registration.showNotification = (title, options) => show(title, options).then(() => { scope.__zigoalsShown! += 1; });
+  });
+  return worker;
+}
+const shownCount = (worker: Worker) => worker.evaluate(() => (self as unknown as PushScope).__zigoalsShown ?? -1);
 test('reminder names: off by default; on, a push names the habit due now, composed on this device; off deletes the table', async ({page, context}) => {
   await context.grantPermissions(['notifications']);
   await stubPushManager(page);
@@ -244,13 +268,17 @@ test('reminder names: off by default; on, a push names the habit due now, compos
   // A push arrives: the worker shows the name, made here from the table.
   const cdp = await context.newCDPSession(page);
   const registrationId = await new Promise<string>(resolve => { cdp.on('ServiceWorker.workerRegistrationUpdated', ({registrations}: {registrations: {registrationId: string; scopeURL: string; isDeleted: boolean}[]}) => { const found = registrations.find(r => !r.isDeleted && r.scopeURL.endsWith('/')); if (found) resolve(found.registrationId); }); void cdp.send('ServiceWorker.enable'); });
+  let worker = await pushWorker(page, context), shown = await shownCount(worker);
   await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: '{"v":1}'});
+  await expect.poll(() => shownCount(worker), {timeout: 10_000}).toBe(shown + 1);
   await expect.poll(() => notificationBodies(page), {timeout: 10_000}).toEqual(['Reminder: Stretch']);
   // Off again: the table goes; the next push is the generic line.
   await names.click();
   await expect(names).toHaveAttribute('aria-checked', 'false');
   await expect.poll(() => labelRows(page), {timeout: 10_000}).toBeNull();
+  worker = await pushWorker(page, context); shown = await shownCount(worker);
   await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: '{"v":1}'});
+  await expect.poll(() => shownCount(worker), {timeout: 10_000}).toBe(shown + 1);
   await expect.poll(() => notificationBodies(page), {timeout: 10_000}).toEqual(['A reminder from ZIGoals']);
   // The worker only reads: with no table it created none.
   expect(await labelsListed(page)).toBe(false);

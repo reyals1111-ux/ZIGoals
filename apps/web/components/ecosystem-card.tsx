@@ -1,7 +1,7 @@
 'use client';
 import {useId} from 'react';
 import Image from 'next/image';
-import {isSafeReferenceUrl} from '@zigoals/ecosystem-registry';
+import {isSafeReferenceUrl} from '@zigoals/ecosystem-registry/links';
 import type {DirectoryEntry} from '@zigoals/ecosystem-registry/providers';
 import {PinToToday} from './pin-to-today';
 import {AppIcon} from './app-icon';
@@ -33,7 +33,7 @@ export function EcosystemCard({entry, open, onToggle}: {entry: DirectoryEntry; o
     <header>
       {entry.logo.kind === 'raster' && entry.logo.path
         ? <span className="ecosystem-logo"><Image src={entry.logo.path} alt={`${entry.name} official site icon`} width={64} height={64} loading="lazy" unoptimized /></span>
-        : <span className="ecosystem-initials" aria-label={`${entry.name} initials; official logo unavailable`} title={entry.logo.reason}>{entry.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('')}</span>}
+        : <span className="ecosystem-initials" role="img" aria-label={`${entry.name} initials; official logo unavailable`} title={entry.logo.reason}>{entry.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('')}</span>}
       <div><p className="eyebrow">{entry.category}</p><h2 id={titleId}><button type="button" className="ecosystem-toggle" aria-expanded={open} aria-controls={detailsId} onClick={onToggle}><span>{entry.name}</span><span className="ecosystem-toggle-hint" aria-hidden="true">{open ? 'Less' : 'Details'}<AppIcon name="chevron" size={18} /></span></button></h2></div>
       <PinToToday label={entry.name} choices={[{kind: 'ecosystem', metric: 'directory', entity: entry.id, label: `${entry.name} research shortcut`}]} />
     </header>

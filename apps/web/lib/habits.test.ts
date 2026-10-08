@@ -68,6 +68,11 @@ describe("calendar completion and cadence", () => {
     expect(data.habits[0]!.entries).toHaveLength(1);
     expect(data.habits[0]!.entries[0]).toMatchObject({ count: 0, note: "Try again" });
     expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-08").status).toBe("failed");
+    // Session X P2.1: on the day itself an undone check-in leaves the day open (Due), its note kept; a weekly habit too.
+    expect(habitDay(data.habits[0]!, "2026-09-07", "2026-09-07")).toMatchObject({ status: "due", count: 0, note: "Try again" });
+    let weekly = logHabitCount(make({ schedule: { kind: "frequency", times: 3, period: "week" } }), id, "2026-09-07", 1, "", at("2026-09-07"));
+    weekly = logHabitCount(weekly, id, "2026-09-07", 0, "", at("2026-09-07"));
+    expect(habitDay(weekly.habits[0]!, "2026-09-07", "2026-09-07").status).toBe("due");
   });
   it("rejects future, pre-start, off-schedule and paused completions", () => {
     const data = setHabitState(make({ schedule: { kind: "weekdays", days: [1, 2] } }), id, "paused", at("2026-09-14"));

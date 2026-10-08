@@ -50,6 +50,7 @@ import { MeditationCard } from "./meditation/meditation-card";
 import { useDeviceRecord } from "../ai/use-device-record";
 import { MEDITATION_RUN } from "../../lib/meditation/schema";
 import { zigiSignals } from "../zigi/bus";
+import { LoadBoundary } from "../load-boundary";
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
@@ -103,9 +104,9 @@ export function HealthApp() {
   const view = params.get("view") ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
-  if (view === "sleep") return <Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense>;
-  if (view === "meditation") return <Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense>;
-  if (view === "devices") return <Suspense fallback={<section className="panel"><h1>Devices</h1><p>Opening Devices…</p></section>}><DevicesView /></Suspense>;
+  if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense></LoadBoundary>;
+  if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense></LoadBoundary>;
+  if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><p>Opening Devices…</p></section>}><DevicesView /></Suspense></LoadBoundary>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 
@@ -208,7 +209,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
-    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a></p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
+    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} />},
     ]}/>
@@ -349,7 +350,7 @@ function WeightView({ data, date, choice, perform, invalid, onDate }: { data: He
 
 function WeightChart({ data, date }: { data: HealthData; date: string }) {
   const { readings } = weightTrend(data, date);
-  return <EvidenceChart label="Recorded body weight" decimals={3} currency="kg" series={[{ label: "Manual readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: String(w.grams), dateOnly: true })) }]} />;
+  return <EvidenceChart label="Recorded body weight" decimals={3} currency="kg" series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: String(w.grams), dateOnly: true })) }]} />;
 }
 
 function ActivityView({ data, date, choice, perform, invalid }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void }) {

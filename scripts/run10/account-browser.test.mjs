@@ -1,6 +1,6 @@
 import {createPrivateMiniflare,fixtureToken} from '../run11/private-runtime.mjs';
 import {armSyncCompletion} from '../run11/sync-completion.mjs';import {createDiagnostics} from './account-browser-diagnostics.mjs';
-import {test,expect} from 'vitest';
+import {afterAll,beforeAll,test,expect} from 'vitest';
 import {createRequire} from 'node:module';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -10,12 +10,35 @@ import {privateAccountRequest} from '../../apps/web/lib/server/private-account.t
 const require=createRequire(new URL('../../apps/web/package.json',import.meta.url));
 const {chromium}=require('@playwright/test');
 // Explicit opt-in: requires an already running local Next preview and installed Chrome.
-test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two real browser profiles use encrypted account transport and persistent Worker (%s reconnect); auth delivery is a fixture',async(order)=>{
- const origin=process.env.RUN11_REVIEW_ORIGIN??'http://127.0.0.1:3110',account='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',persist=await mkdtemp(join(tmpdir(),'run10-browser-vault-'));
+// Session X Part 6: a-first once hit the 90 s budget in CI (run 37656929324; b-first right after took 63.7 s). The
+// journey is about 56 s of real work here (unlocks derive keys; nothing waits on a timer), 64-89 s on CI's runner, and
+// the first of the two cases also paid every cold start: Chrome's first launch, esbuild's and workerd's first start,
+// and the server's first render of each page it opens. Now: Chrome starts once and those cold starts are paid here,
+// before either case; and the journey runs in five phases, each with its own deadline at about twice its local time,
+// so a slow phase can no longer eat the next one's time and a stalled one fails early, naming its phase and step.
+// The steps and checks are unchanged; on any failure the diagnostics print and the browser contexts and the Worker
+// close, so nothing keeps running into the next case.
+const ENABLED=process.env.RUN10_BROWSER==='1',ORIGIN=process.env.RUN11_REVIEW_ORIGIN??'http://127.0.0.1:3110';
+let browser;
+beforeAll(async()=>{
+ if(!ENABLED)return;
+ browser=await chromium.launch({channel:'chrome',headless:true,timeout:40000});
+ const persist=await mkdtemp(join(tmpdir(),'run10-browser-warm-')),warm=await createPrivateMiniflare({persist,origin:ORIGIN,outboundService:async()=>Response.json({})});
+ await warm.ready;await warm.dispose();
+ const context=await browser.newContext();await context.route('**/api/**',route=>route.fulfill({status:503,json:{error:'WARM_UP_ONLY'}}));
+ const page=await context.newPage();for(const path of ['/app','/app/habits','/app/health','/app/goals','/app/settings'])await page.goto(ORIGIN+path);
+ await context.close();
+},120000);
+afterAll(async()=>{await browser?.close();});
+
+test.skipIf(!ENABLED).each(['a-first','b-first'])('two real browser profiles use encrypted account transport and persistent Worker (%s reconnect); auth delivery is a fixture',async(order)=>{
+ const origin=ORIGIN,account='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',persist=await mkdtemp(join(tmpdir(),'run10-browser-vault-'));
  const mf=await createPrivateMiniflare({persist,origin,outboundService:async()=>Response.json({id:account})});
  const sentOperations=[],diag=createDiagnostics(account);
- const browser=await chromium.launch({channel:'chrome',headless:true});
- async function context(mobile=false){const token=fixtureToken('fixture-'+crypto.randomUUID(),account);const c=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile}),label=mobile?'B':'A';await diag.watchContext(c);let offline=false;const toggleOffline=c.setOffline.bind(c);c.setOffline=async value=>{offline=value;await toggleOffline(value);};
+ const contexts=[];let recovery;
+ // A phase's deadline: the journey cannot continue past it; the catch below prints the diagnostics.
+ async function phase(name,ms,body){let timer;const run=body();try{await Promise.race([run,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(`phase "${name}" did not finish within ${ms} ms`)),ms);})]);}finally{clearTimeout(timer);run.catch(()=>{});}}
+ async function context(mobile=false){const token=fixtureToken('fixture-'+crypto.randomUUID(),account);const c=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile}),label=mobile?'B':'A';contexts.push(c);await diag.watchContext(c);let offline=false;const toggleOffline=c.setOffline.bind(c);c.setOffline=async value=>{offline=value;await toggleOffline(value);};
   await c.route('**/api/private-account*',async route=>{if(offline){diag.request(label,route.request().method(),route.request().url(),route.request().postData())('aborted: offline');await route.abort('internetdisconnected');return;}const r=route.request(),headers=await r.allHeaders();const done=diag.request(label,r.method(),r.url(),r.postData()),req=new Request(r.url(),{method:r.method(),headers,...(r.postData()?{body:r.postData()}: {})});
    const result=await privateAccountRequest(req,{authOrigin:'https://fixture.supabase.co',publicKey:'public-fixture',syncOrigin:'https://fixture.workers.dev'},async(url,init)=>{
     const path=new URL(url).pathname;if(new URL(url).hostname==='fixture.workers.dev'){if(path==='/v1/vault'&&init?.body){const operation=JSON.parse(init.body).operation;sentOperations.push(operation);diag.operation(label,operation);}return mf.dispatchFetch(url,init);}
@@ -32,10 +55,11 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
  async function synced(page,mark){try{await page.waitForFunction(m=>window.__zigoalsSyncCompletions>m&&[...document.querySelectorAll('button')].some(b=>b.textContent==='Sync now'&&!b.disabled),mark,{timeout:10000});}catch(e){console.log(`[account-browser] synced(): within 10 s no sync completed after mark ${mark}, or Sync now stayed disabled`);throw e;}const panel=page.getByRole('region',{name:'Encrypted account sync',exact:true});try{await panel.getByText(/Account records synced and acknowledged/).waitFor({timeout:8000});}catch(e){console.log('Sync diagnostic',await panel.getByRole('status').allTextContents(),await panel.getByRole('alert').allTextContents());throw e;}}
  try{
   const a=await context(),b=await context(true),pa=await a.newPage(),pb=await b.newPage();diag.watchPage(pa,'A');diag.watchPage(pb,'B');
+ await phase('1 A: local records, sign-in, vault and first syncs',20000,async()=>{
   // Existing local records stay separate through sign-in and only copy after explicit protected review.
   diag.step('L36 A: local habit before sign-in');await pa.goto(origin+'/app/habits');await pa.getByRole('button',{name:'+ New habit',exact:true}).click();await pa.getByLabel('Start from template').selectOption('read');await pa.getByLabel('Habit title',{exact:true}).fill('Fictional local before sign-in');await pa.getByRole('button',{name:'Create habit',exact:true}).click();
   await pa.getByRole('article',{name:'Fictional local before sign-in',exact:true}).waitFor();
-  diag.step('L38 A: sign in, create vault, first sync');await login(pa);await pa.getByLabel('Sync my Health records with this account.',{exact:false}).check();await pa.getByRole('button',{name:'Create encrypted account vault',exact:true}).click();const recovery=await pa.getByLabel('New vault recovery secret',{exact:true}).inputValue();await pa.getByLabel('I saved this vault recovery secret separately.').check();const fresh1=await arm(pa);await pa.getByRole('button',{name:'Confirm and create vault',exact:true}).click();await synced(pa,fresh1);
+  diag.step('L38 A: sign in, create vault, first sync');await login(pa);await pa.getByLabel('Sync my Health records with this account.',{exact:false}).check();await pa.getByRole('button',{name:'Create encrypted account vault',exact:true}).click();recovery=await pa.getByLabel('New vault recovery secret',{exact:true}).inputValue();await pa.getByLabel('I saved this vault recovery secret separately.').check();const fresh1=await arm(pa);await pa.getByRole('button',{name:'Confirm and create vault',exact:true}).click();await synced(pa,fresh1);
   const attach=pa.getByRole('region',{name:'Copy local records to account',exact:true});
   diag.step('L40 A: review local copy');await attach.getByRole('checkbox',{name:'Habits',exact:true}).check();await attach.getByRole('button',{name:'Review selected local records',exact:true}).click();await attach.getByText(/habits: 1/).waitFor();
   expect(await attach.getByRole('button',{name:'Copy selected records and sync'}).isDisabled()).toBe(true);
@@ -57,6 +81,8 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
   diag.step('L57 A: project goal');await pa.getByRole('link',{name:'Today',exact:true}).first().click();await pa.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await pa.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();await pa.getByLabel('Goal name',{exact:true}).fill('Fictional encrypted project');await pa.getByRole('radio',{name:'Project',exact:true}).check();await pa.getByLabel('Milestones, one per line').fill('Read evidence\nReview');for(let i=0;i<3;i++)await pa.getByRole('button',{name:'Continue →'}).click();await pa.getByRole('button',{name:'Create goal',exact:true}).click();await pa.getByTestId('tracked-progress').waitFor();
   diag.step('L58 A: Today widget');await pa.getByRole('link',{name:'Today',exact:true}).first().click();await pa.getByRole('button',{name:'Customize Today',exact:true}).click();await pa.getByRole('button',{name:'Add widget',exact:true}).click();const editor=pa.getByRole('dialog',{name:'Add a widget'});await editor.getByRole('group',{name:'Choose a metric'}).getByRole('button',{name:'Water today',exact:true}).click();await editor.getByText('Title and display size').click();await editor.getByLabel('Card title (optional)').fill('Fictional synced nutrition');await editor.getByRole('button',{name:'Save widget'}).click();try{await pa.getByRole('article',{name:'Fictional synced nutrition',exact:true}).waitFor({timeout:7000});}catch(e){console.log('Widget save diagnostics',await pa.locator('[role=alert]').allTextContents(),await pa.locator('[role=status]').allTextContents());throw e;}
   diag.step('L59 A: Sync now');await pa.getByRole('link',{name:'Settings',exact:true}).first().click();const fresh5=await arm(pa);await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa,fresh5);
+ });
+ await phase('2 B: sign-in, unlock and what A synced',15000,async()=>{
   diag.step('L60 B: sign in, unlock, sync');await login(pb);await pb.getByLabel('Sync my Health records with this account.',{exact:false}).check();await pb.getByLabel('Vault recovery secret',{exact:true}).fill(recovery);const fresh6=await arm(pb);await pb.getByRole('button',{name:'Unlock account vault',exact:true}).click();await synced(pb,fresh6);
   diag.step('L61 B: sees widget');await pb.getByRole('link',{name:'Today',exact:true}).first().click();/* Session U follow-up F3: on this phone the card is a row named by it; open it. */await pb.getByRole('button',{name:'Fictional synced nutrition',exact:true}).click();await pb.getByRole('article',{name:'Fictional synced nutrition',exact:true}).waitFor();
   diag.step('L62 B: sees meal');await pb.getByRole('link',{name:'Health',exact:true}).first().click();await pb.getByRole('region',{name:'Breakfast diary'}).getByText('Fictional encrypted oats',{exact:true}).waitFor();
@@ -68,6 +94,8 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
   diag.step('L68 A: Sync now, sees completion');const fresh8=await arm(pa);await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa,fresh8);await pa.getByRole('link',{name:'Habits',exact:true}).first().click();await pa.getByRole('article',{name:'Fictional synchronized reading',exact:true}).getByRole('button',{name:'Undo completion for Fictional synchronized reading',exact:true}).waitFor();
   // Cold reload requires the separate vault secret; accepted account data survives.
   diag.step('L70 B: reload and unlock');await pb.reload();await pb.getByLabel('Vault recovery secret',{exact:true}).fill(recovery);await pb.getByLabel('Sync my Health records with this account.',{exact:false}).check();const fresh9=await arm(pb);await pb.getByRole('button',{name:'Unlock account vault',exact:true}).click();await synced(pb,fresh9);
+ });
+ await phase('3 A/B: second tabs, offline edits, reconnect and a conflict',60000,async()=>{
   // Open and unlock each domain before going offline; no offline shell/navigation claim.
   diag.step('L72 A2/B2: second tabs unlock');const ha=await a.newPage(),hb=await b.newPage();diag.watchPage(ha,'A2');diag.watchPage(hb,'B2');for(const page of [ha,hb]){await page.goto(origin+'/app/settings');await page.getByLabel('Sync my Health records with this account.',{exact:false}).check();await page.getByLabel('Vault recovery secret',{exact:true}).fill(recovery);const fresh10=await arm(page);await page.getByRole('button',{name:'Unlock account vault',exact:true}).click();await synced(page,fresh10);await page.getByRole('link',{name:'Habits',exact:true}).first().click();await page.getByRole('button',{name:'+ New habit',exact:true}).waitFor();}
   // Activating a second tab intentionally locks peers; reload and explicitly unlock them again.
@@ -91,6 +119,8 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
   diag.step('L91 A: sees resolved 78 cm');await pa.getByRole('link',{name:'Health',exact:true}).first().click();await pa.getByRole('button',{name:'Measurements',exact:true}).click();await pa.getByLabel('Measurement history type',{exact:true}).selectOption('waist');await pa.getByRole('region',{name:'Measurement records'}).getByText('78 cm',{exact:true}).waitFor();await pa.getByRole('region',{name:'Measurement records'}).getByText('Record history',{exact:true}).click();await pa.getByText(/Previous: 77 cm/).waitFor();
   // Exercise the installed UI's forward-recovery path against a persisted older-policy journal.
   diag.step('L93 A: Sync now');await pa.getByRole('link',{name:'Settings',exact:true}).first().click();const fresh17=await arm(pa);await pa.getByRole('button',{name:'Sync now',exact:true}).click();await synced(pa,fresh17);
+ });
+ await phase('4 A/B: an older queued operation, forward recovery and key rotation',15000,async()=>{
   diag.step('L94 A: plant older-policy journal');const obsolete=await pa.evaluate(async account=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('zigoals-account-sync-v1',2);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});try{return await new Promise((resolve,reject)=>{const tx=db.transaction('state','readwrite'),store=tx.objectStore('state'),r=store.get(account);r.onsuccess=()=>{const value=r.result,operation=crypto.randomUUID();value.pending={protocol:1,vault:'00000000-0000-4000-8000-000000000099',operation,base:value.revision,changes:[]};value.pendingPolicy=1;store.put(value,account);tx.oncomplete=()=>resolve(operation);};tx.onerror=()=>reject(tx.error);});}finally{db.close();}},account);
   // Bind the fictional older operation to this actual vault, without reading secret material.
   diag.step('L96 read vault before recovery');const tokenBeforeRecovery=(await a.cookies(origin+'/api/private-account')).find(c=>c.name==='zigoals_session').value;const vaultBeforeRecovery=await (await mf.dispatchFetch('https://fixture.workers.dev/v1/vault',{headers:{origin,authorization:'Bearer '+tokenBeforeRecovery,'x-zigoals-account':account}})).json();
@@ -107,6 +137,8 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
   diag.step('L107 B: reload, old secret fails');await pb.reload();await pb.getByLabel('Vault recovery secret',{exact:true}).fill(recovery);await pb.getByRole('button',{name:'Unlock account vault',exact:true}).click();await pb.getByRole('alert').filter({hasText:'Unlock or integrity check failed'}).waitFor();
   diag.step('L108 B: unlock with new secret');await pb.getByLabel('Vault recovery secret',{exact:true}).fill(nextRecovery);await pb.getByLabel('Sync my Health records with this account.',{exact:false}).check();const fresh20=await arm(pb);await pb.getByRole('button',{name:'Unlock account vault',exact:true}).click();await synced(pb,fresh20);
   diag.step('L109 B: water 750 mL after rotation');await pb.getByRole('link',{name:'Health',exact:true}).first().click();await pb.getByRole('region',{name:'Water journal'}).getByText('750 mL recorded',{exact:false}).waitFor();await pb.getByRole('link',{name:'Settings',exact:true}).first().click();
+ });
+ await phase('5 A/B: section deletion and restore, sign-out of others, cloud deletion',15000,async()=>{
   // Selected-domain deletion is a backed-up UI choice; a stale client cannot restore it implicitly.
   diag.step('L111 A: review section deletion');await pa.getByText('Cloud copies by section',{exact:true}).click();await pa.getByRole('button',{name:'Review section deletion',exact:true}).click();
   diag.step('L112 A: section recovery secret');const sectionSecret=await pa.getByLabel('Section recovery secret',{exact:true}).inputValue();await pa.getByLabel('I saved this section recovery secret separately.').check();
@@ -128,6 +160,7 @@ test.skipIf(process.env.RUN10_BROWSER!=='1').each(['a-first','b-first'])('two re
   diag.step('L128 vault gone (410)');expect((await mf.dispatchFetch('https://fixture.workers.dev/v1/vault',{headers:{origin,authorization:'Bearer '+tokenA,'x-zigoals-account':account}})).status).toBe(410);
   diag.step('L129 A: habits page');await pa.goto(origin+'/app/habits');expect(await pa.getByRole('article',{name:'Fictional synchronized reading',exact:true}).count()).toBe(0);
   diag.step('L130 A: sign out');await pa.goto(origin+'/app/settings');await pa.getByRole('button',{name:'Sign out',exact:true}).click();await pa.getByRole('link',{name:'Habits',exact:true}).first().click();await pa.getByRole('article',{name:'Fictional local before sign-in',exact:true}).waitFor();expect(await pa.getByRole('article',{name:'Fictional synchronized reading',exact:true}).count()).toBe(0);
+ });
   await a.close();await b.close();
- }catch(error){await diag.print(order,error).catch(e=>console.log('[account-browser] diagnostics failed:',e?.message));throw error;}finally{await browser.close();await mf.dispose();}
-},90000);
+ }catch(error){await diag.print(order,error).catch(e=>console.log('[account-browser] diagnostics failed:',e?.message));throw error;}finally{await Promise.allSettled(contexts.map(c=>c.close()));await mf.dispose();}
+},150000);

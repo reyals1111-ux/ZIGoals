@@ -8,6 +8,7 @@ import {healthGroupIn} from '../vault/w-homes';
 import {asleep, bedClock, nightDay} from '../sleep/engine';
 import {minutesOn as meditationMinutesOn} from '../meditation/stats';
 import type {SleepNight} from '../sleep/schema';
+import {formatNumber} from '../visual-format';
 
 /** The ended nights (not naps) of a Health day: the nights that ended on it, by their own zone (Session W Part 4). */
 const nightsEnding = (health: HealthData, healthDate: string): SleepNight[] => (healthGroupIn(health, 'sleep')?.nights ?? []).filter(n => n.kind === 'night' && n.end !== null && nightDay(n) === healthDate);
@@ -78,7 +79,7 @@ export function measureSource(link: Pick<HabitHealthLinkV4, 'measure' | 'exercis
     case 'meditationMinutes': return 'your meditation log';
   }
 }
-const number = (value: number, digits = 0) => value.toLocaleString('en-US', {maximumFractionDigits: digits});
+const number = (value: number, digits = 0) => formatNumber(value, {maximumFractionDigits: digits});
 /** A measured value as the badge says it: "2,250 mL" (or fl oz per the Health water unit), "8,800 steps", "42 minutes", "a reading", "24 reps". */
 export function formatMeasureValue(measure: HealthMeasureV4, value: number, waterUnit: 'ml' | 'fl-oz-us' = 'ml'): string {
   switch (measure) {

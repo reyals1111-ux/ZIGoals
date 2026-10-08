@@ -4,7 +4,8 @@ import {boundedJSON,response} from '../push-reminders/verify.mjs';
  * provider is called and settled after it. One SQLite Durable Object holds every count for the whole relay, so they are
  * serialized in one place:
  * - per account and UTC day: requests and tokens; for the whole relay and UTC day: tokens;
- * - tokens are reserved up front (the input estimate, four characters a token, plus the output cap) and reconciled from
+ * - tokens are reserved up front (the input estimate, four characters a token or one per non-ASCII character, plus the
+ *   output cap) and reconciled from
  *   the usage the provider's stream reports; a reply that ends without usage keeps its reservation;
  * - a circuit breaker over provider failures (network, time-outs, 5xx, 429): open after `threshold` failures within
  *   `windowMs`, one probe after the cool-down, the cool-down doubling up to `maxCooldownMs` while probes fail.
@@ -20,6 +21,10 @@ export const BREAKER=/** @type {BreakerPolicy} */({threshold:5,windowMs:60_000,c
 export const dayOf=now=>new Date(now).toISOString().slice(0,10);
 /** Tokens to reserve: the input at four characters a token (rounded up) plus the output cap. @param {number} inputChars @param {number} maxOutput */
 export const reserveFor=(inputChars,maxOutput)=>Math.ceil(inputChars/4)+maxOutput;
+/** Input tokens estimated from the text sent: four characters a token, but at least one for every character outside ASCII
+ *  (Chinese, Japanese or Korean text runs about a token a character or more, so a quarter would count it four times too
+ *  low; Session X P2.7). ASCII text is estimated exactly as `reserveFor` does. @param {string} text */
+export function inputEstimate(text){let wide=0;for(let i=0;i<text.length;i++)if(text.charCodeAt(i)>127)wide++;return Math.max(Math.ceil(text.length/4),wide);}
 /** A positive whole number from a variable, or null. @param {string|undefined} value */
 export function positive(value){const n=Number(value);return /^\d{1,12}$/.test(value??'')&&Number.isSafeInteger(n)&&n>0?n:null;}
 /** @param {BudgetEnv} env @returns {DailyPolicy|null} */

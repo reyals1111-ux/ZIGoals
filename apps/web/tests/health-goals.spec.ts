@@ -66,9 +66,9 @@ test('Local Demo: create, count from a water entry, close and reopen a health go
   await expect(page.getByRole('region', {name: 'Water journal'})).toContainText('250 mL recorded');
   await page.goto('/app/goals');
   await expect(list).toContainText('1 of 5 days');
-  await section.getByRole('button', {name: 'Close Water days', exact: true}).click();
-  await expect(section.getByRole('status')).toContainText('Water days closed.');
-  await section.getByRole('button', {name: 'Show done and closed (1)', exact: true}).click();
+  await section.getByRole('button', {name: 'End Water days', exact: true}).click();
+  await expect(section.getByRole('status')).toContainText('Water days ended.');
+  await section.getByRole('button', {name: 'Show done and ended (1)', exact: true}).click();
   await section.getByRole('button', {name: 'Reopen Water days', exact: true}).click();
   await expect(section.getByRole('status')).toContainText('Water days reopened.');
   await expect(list).toContainText('1 of 5 days');

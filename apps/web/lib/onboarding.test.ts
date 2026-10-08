@@ -1,5 +1,6 @@
 import {expect,test} from 'vitest';
 import {NON_PERSONAL_KEYS,ONBOARDING_KEY,markOnboardingSeen,noExistingData,onboardingSeen} from './onboarding';
+import {SYNC_OFFER_KEY} from './sync-offer/offer';
 
 function memory(entries:Record<string,string>={}){
  const map=new Map(Object.entries(entries));
@@ -33,4 +34,10 @@ test('a device is new only when every ZIGoals key it holds is non-personal',()=>
  expect(noExistingData(memory({'other-site':'x'}))).toBe(true);
  for(const key of ['zigoals:platform:v1','zigoals:habits:v1','zigoals:health:v1','zigoals:local-ledger:v1','zigoals:metadata:v1:zigchain-local:owner','zigoals:account:v1:abc:zigoals:platform:v1','zigoals:unknown-future-key'])
   expect(noExistingData(memory({[key]:'{}'})),key).toBe(false);
+});
+// Session X Part 10 (Session L follow-up): the sync offer's "Not now" flag names no record, so alone it leaves a device new.
+test('the sync offer\'s "Not now" alone does not count as existing data',()=>{
+ expect(NON_PERSONAL_KEYS).toContain(SYNC_OFFER_KEY);
+ const only={length:1,key:(i:number)=>i===0?SYNC_OFFER_KEY:null};
+ expect(noExistingData(only)).toBe(true);
 });

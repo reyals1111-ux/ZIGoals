@@ -1,10 +1,11 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {useEffect, useState, type FormEvent} from 'react';
 import Link from 'next/link';
+import {NebulaFlow} from '../nebula-flow';
 import {CHESS_CONTROLS, CHESS_SITES, type ChessControl, type ChessGoal, type ChessSite} from '../../lib/skills/chess/schema';
 import {CONTROL_NAME, SITE_NAME, currentRatings, goalProgress, ratingLine, removeChessGoal, results, saveChessGoal, setChessHabit, type Record3} from '../../lib/skills/chess/engine';
 import {sitePausedFor} from '../../lib/skills/chess/api';
-import {formatNumber} from '../../lib/visual-format';
+import {formatDateTime, formatNumber} from '../../lib/visual-format';
 import {useHabits} from '../habits/use-habits';
 import {useChess} from './use-chess';
 import {ChessUsernames} from './chess-usernames';
@@ -18,7 +19,7 @@ import './chess.css';
  * the person's usernames, results by colour and time control, rating goals, the habit chess ticks off, and the sites'
  * own daily puzzle and TV, opened only on a tap. Numbers are the sites' own; nothing is estimated.
  */
-const time = (iso: string) => new Date(iso).toLocaleString(undefined, {dateStyle: 'medium', timeStyle: 'short'});
+const time = (iso: string) => formatDateTime(iso, {dateStyle: 'medium', timeStyle: 'short'});
 const record = (r: Record3) => `${r.win} won · ${r.draw} drawn · ${r.loss} lost`;
 export function ChessView() {
   const state = useChess('page'), {cache, chess, busy, errors, refresh, showcase, settings} = state, habits = useHabits();
@@ -26,11 +27,13 @@ export function ChessView() {
   const hasUser = !!chess?.chesscom || !!chess?.lichess, data = cache.loaded && !cache.unreadable ? cache.data : null;
   const ratings = data ? currentRatings(data) : [], games = data?.games ?? [], tally = results(games.slice(0, 100));
   const lines = data ? CHESS_SITES.flatMap(site => CHESS_CONTROLS.map(control => ({site, control, points: ratingLine(data, site, control)}))).filter(l => l.points.length >= 2) : [];
-  const paused = CHESS_SITES.map(site => sitePausedFor(site)).some(ms => ms > 0);
+  const paused = CHESS_SITES.map(site => sitePausedFor(site)).some(ms => ms > 0), [wakes, wake] = useState(0);
+  // Session X Part 14 (J187): draw again when a site's pause runs out, so Refresh comes back by itself.
+  useEffect(() => { if (!paused) return; const timer = window.setTimeout(() => wake(n => n + 1), Math.max(...CHESS_SITES.map(sitePausedFor)) + 50); return () => window.clearTimeout(timer); }, [paused, wakes]);
   return <div className="chess-page">
     <div className="page-heading"><div>
-      <p className="eyebrow page-eyebrow">YOUR GAME</p>
-      <h1>Chess.</h1>
+      <p className="eyebrow page-eyebrow"><NebulaFlow identity="chess-eyebrow">YOUR GAME</NebulaFlow></p>
+      <h1><NebulaFlow identity="chess-title">Chess.</NebulaFlow></h1>
       <p className="page-lede">Your ratings and games from chess.com and Lichess, read with your username only. {showcase ? 'SHOWCASE DATA · fictional ratings and games.' : ''}</p>
     </div></div>
     {!hasUser && !showcase && <section className="panel chess-setup" aria-labelledby="chess-setup-title"><h2 id="chess-setup-title">Follow your chess</h2><p>Add the username you play under. ZIGoals reads your public ratings and recent games from that site, one request at a time, only from this page, Today&apos;s chess card or Refresh.</p><ChessUsernames state={state} onSaved={() => void refresh()} /></section>}

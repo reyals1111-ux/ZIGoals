@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {MARKET_REQUEST_CHUNK,marketRequestKey,uniqueMarketRequests,type MarketQuoteRequest} from './market-assets';
 import {boundedQuoteText} from './market-quotes';
 import {marketInsightSchema,verifiedMarketInsight,INSIGHTS_UNAVAILABLE,type MarketInsightsLoadResult} from './market-insights';

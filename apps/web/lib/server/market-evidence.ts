@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {CATALOG_FRESH_MS,marketAssetRefSchema,type MarketCatalogAsset} from '../market-assets';
 import {verifiedMarketHistory,historyIsStale} from '../market-history';
 import {verifiedMarketInsight,insightIsStale} from '../market-insights';

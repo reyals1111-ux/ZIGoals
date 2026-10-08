@@ -1,6 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { latestHabitRule, type HabitData } from "../../lib/habits";
+import { habitTargetPeriod, latestHabitRule, type HabitData } from "../../lib/habits";
 import { addLocalDays } from "../../lib/local-date";
 import { storageMessageOr } from "../../lib/storage-error-copy";
 
@@ -17,7 +17,10 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
   const max = addLocalDays(today, 366), ids = active.map((habit) => habit.id).filter((id) => chosen.has(id));
   async function mark(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage(""); setError("");
-    try { await onMark({ from, to, habitIds: ids }); setMarked({ from, to, habitIds: ids }); setMessage(`Vacation marked for ${ids.length} ${ids.length === 1 ? "habit" : "habits"}, ${dayCount(from, to)} ${dayCount(from, to) === 1 ? "day" : "days"}.`); }
+    // Session X P2.1: a habit counted per week or month gets no skip days (its count spans the period), so the message
+    // names only the habits that got them, and says what happened to the others.
+    const periodic = ids.filter((id) => { const habit = active.find((h) => h.id === id); return !!habit && habitTargetPeriod(latestHabitRule(habit)) !== "day"; }).length, daily = ids.length - periodic, days = dayCount(from, to);
+    try { await onMark({ from, to, habitIds: ids }); setMarked({ from, to, habitIds: ids }); setMessage(`${daily ? `Vacation marked for ${daily} ${daily === 1 ? "habit" : "habits"}, ${days} ${days === 1 ? "day" : "days"}.` : "No days were marked."}${periodic ? ` ${periodic} ${periodic === 1 ? "habit counts" : "habits count"} per week or month and ${periodic === 1 ? "keeps its" : "keep their"} own count; skip days don't apply to ${periodic === 1 ? "it" : "them"}.` : ""}`); }
     catch (e) { setError(storageMessageOr(e, "The vacation days were not saved. Choose days from today up to a year ahead.")); } finally { setBusy(false); }
   }
   async function clear() {

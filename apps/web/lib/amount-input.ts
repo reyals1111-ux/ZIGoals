@@ -8,13 +8,25 @@ import { normalizeDecimalInput } from "./decimal-input";
  * precision, limits and messages are unchanged. Chain transaction amounts keep calling `parseUnits` directly.
  */
 export function parseAmountInput(raw: string, decimals: number): bigint {
-  return parseUnits(normalizeDecimalInput(raw), decimals);
+  return parseUnits(normalizeDecimalInput(refuseGrouping(raw)), decimals);
+}
+
+/**
+ * Session X P2.1: a grouped amount ("3,250.40", "3.250,40", "1,234,567") was refused with the generic "Enter a
+ * non-negative decimal amount."; it is still refused (never guessed), now with the reason and the text to type.
+ */
+function refuseGrouping(raw: string): string {
+  const value = raw.trim();
+  // "1,234" alone stays the ambiguous case normalizeDecimalInput explains (it may be a decimal comma).
+  const comma = /^\d{1,3}(?:,\d{3}){2,}$|^\d{1,3}(?:,\d{3})+\.\d+$/.test(value), dot = /^\d{1,3}(?:\.\d{3}){2,}$|^\d{1,3}(?:\.\d{3})+,\d+$/.test(value);
+  if (comma || dot) throw new Error(`Type “${value}” without the thousands separator: ${value.replaceAll(comma ? "," : ".", "")}.`);
+  return raw;
 }
 
 /** The canonical text of a typed amount ("1200,50" → "1200.50"), or the reason it would be refused on save. */
 export function amountInputPreview(raw: string, decimals: number): { text: string } | { error: string } {
   try {
-    const text = normalizeDecimalInput(raw);
+    const text = normalizeDecimalInput(refuseGrouping(raw));
     parseUnits(text, decimals);
     return { text };
   } catch (error) {

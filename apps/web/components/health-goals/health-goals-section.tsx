@@ -30,7 +30,7 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
     setMessage(editing ? 'Health goal saved.' : 'Health goal created.'); setEditor(null);
   }
   async function status(goal: HealthGoal, next: HealthGoal['status']) {
-    setError(''); try { await goals.update(current => setHealthGoalStatus(current, goal.id, next)); setMessage(next === 'done' ? `${goal.name} marked done.` : next === 'closed' ? `${goal.name} closed.` : `${goal.name} reopened.`); } catch (e) { setError(`The health goal was not changed. ${deviceSettingFailureMessage(e)}`); }
+    setError(''); try { await goals.update(current => setHealthGoalStatus(current, goal.id, next)); setMessage(next === 'done' ? `${goal.name} marked done.` : next === 'closed' ? `${goal.name} ended.` : `${goal.name} reopened.`); } catch (e) { setError(`The health goal was not changed. ${deviceSettingFailureMessage(e)}`); }
   }
   const row = (goal: HealthGoal) => {
     const progress = healthLoaded ? healthGoalProgress(goal, health, today) : {kind: 'no-data' as const};
@@ -40,12 +40,12 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
         {progress.kind === 'value' && progress.percent !== null && <GlassBar identity={`health-goal:${goal.id}`} className="health-goal-track" aria-hidden="true" value={progress.percent / 100} />}
         {progress.kind === 'value' && <small>{progress.ended ? `Ended ${progress.ended} · ` : ''}{progress.detail}</small>}
         {progress.kind === 'no-data' && progress.detail && <small>{progress.detail}</small>}
-        {goal.status === 'closed' && <small>Closed {goal.updatedAt.slice(0, 10)}</small>}
+        {goal.status === 'closed' && <small>Ended {goal.updatedAt.slice(0, 10)}</small>}
       </div>
       <div className="health-goal-row-actions">
         {goal.status === 'active' && <button type="button" className="quiet" aria-label={`Edit ${goal.name}`} onClick={() => { setEditor(goal); setMessage(''); }}>Edit</button>}
         {goal.status === 'active' && progress.kind === 'value' && progress.done && <button type="button" className="secondary" aria-label={`Mark ${goal.name} done`} onClick={() => void status(goal, 'done')}>Mark done</button>}
-        {goal.status === 'active' && <button type="button" className="quiet" aria-label={`Close ${goal.name}`} onClick={() => void status(goal, 'closed')}>Close</button>}
+        {goal.status === 'active' && <button type="button" className="quiet" aria-label={`End ${goal.name}`} onClick={() => void status(goal, 'closed')}>End goal</button>}
         {goal.status !== 'active' && <button type="button" className="quiet" aria-label={`Reopen ${goal.name}`} onClick={() => void status(goal, 'active')}>Reopen</button>}
       </div>
     </li>;
@@ -58,7 +58,7 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
       {confirming ? <div className="actions"><p className="fine">Start over keeps the old bytes as a recovery copy and continues with no health goals.</p><button type="button" className="secondary" onClick={() => { setConfirming(false); goals.startOver().then(() => setMessage('Your health goals on this device start over.'), e => setError(deviceSettingFailureMessage(e))); }}>Start over</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div> : <button type="button" className="quiet" onClick={() => setConfirming(true)}>Start over…</button>}</div> : <>
       {goals.loaded && !goals.data.goals.length && !editor && <p className="health-goals-empty">No health goals yet. Choose a measure you already record in Health, and a target you’ve chosen yourself.</p>}
       {active.length > 0 && <ul className="health-goal-list" aria-label="Active health goals">{active.map(row)}</ul>}
-      {rest.length > 0 && <div className="health-goals-fold"><button type="button" className="quiet" aria-expanded={showDone} onClick={() => setShowDone(open => !open)}>{showDone ? 'Hide done and closed' : `Show done and closed (${rest.length})`}</button>{showDone && <ul className="health-goal-list" aria-label="Done and closed health goals">{rest.map(row)}</ul>}</div>}
+      {rest.length > 0 && <div className="health-goals-fold"><button type="button" className="quiet" aria-expanded={showDone} onClick={() => setShowDone(open => !open)}>{showDone ? 'Hide done and ended' : `Show done and ended (${rest.length})`}</button>{showDone && <ul className="health-goal-list" aria-label="Done and closed health goals">{rest.map(row)}</ul>}</div>}
     </>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     {creator && (phone ? <PhoneFormSheet title={editor === 'new' ? 'New health goal' : 'Edit health goal'} onClose={() => setEditor(null)}>{creator}</PhoneFormSheet> : creator)}

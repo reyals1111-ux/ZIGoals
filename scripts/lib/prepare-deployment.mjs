@@ -2,7 +2,7 @@ import { verifyCandidate } from "../release/manifest.mjs";
 import { deploymentSchema } from "../../packages/shared-types/src/deployment.ts";
 // Pure formatting boundary: canonical byte/schema/source-commit checks are repeated
 // here; the CLI additionally verifies trusted git objects and runs the validator.
-export function buildPreparedManifest({ bytes, candidate, expectedCommit, now = new Date().toISOString() }) {
+export function buildPreparedManifest({ bytes, candidate, expectedCommit, chainVersion, now = new Date().toISOString() }) {
   verifyCandidate({ expectedCommit, manifest: candidate, wasm: bytes });
   const e = candidate.environment;
   const sha256 = candidate.artifact.sha256;
@@ -11,7 +11,8 @@ export function buildPreparedManifest({ bytes, candidate, expectedCommit, now = 
     status: "PREPARED_NOT_DEPLOYED",
     environment: "testnet",
     chainId: "zig-test-2",
-    chainVersion: "v5.0.0-patch-1",
+    // The version the live node reported during preparation (Session X Part 1); the schema accepts reviewed ones only.
+    chainVersion,
     denom: "azig",
     decimals: 18,
     codeId: null,

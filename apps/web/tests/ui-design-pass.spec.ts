@@ -274,7 +274,9 @@ test.describe('Part 3: liquid glass',()=>{
   // Owner review: nothing follows the pointer. The overlay is the rim and shadow only, and moving within the card changes nothing.
   await expect(overlay.locator('*')).toHaveCount(1);
   const drawn=()=>overlay.evaluate(e=>e.outerHTML);const before=await drawn();
-  const r=(await card.boundingBox())!;await page.mouse.move(r.x+r.width*.2,r.y+r.height*.1,{steps:4});await page.mouse.move(r.x+r.width*.8,r.y+r.height*.12,{steps:4});await page.waitForTimeout(150);
+  // Within the part of the card on screen (Session X: the page keeps room above the floating buttons, so a centred card this
+  // tall starts above the window and 10 % of its height could be off screen, which ends the hover). Same check.
+  const r=(await card.boundingBox())!,top=Math.max(r.y,0),seen=Math.min(r.y+r.height,page.viewportSize()!.height)-top;await page.mouse.move(r.x+r.width*.2,top+seen*.1,{steps:4});await page.mouse.move(r.x+r.width*.8,top+seen*.12,{steps:4});await page.waitForTimeout(150);
   expect(await drawn()).toBe(before);
   // Neighbours never move.
   expect(await page.locator('.goal-grid .unified-goal-card').first().evaluate(e=>getComputedStyle(e).translate)).toBe('none');
@@ -335,6 +337,14 @@ test.describe('Part 3: liquid glass',()=>{
  test('hover intent: a pointer that presses straight away never lifts the tile; resting lifts it',async({page,isMobile})=>{
   test.skip(isMobile,'Hover needs a fine pointer');
   await showcase(page);await page.goto('/app/habits');const tile=page.locator('.habit-month-grid>span').nth(5);
+  // The events below are dispatched straight to the tile, so the real cursor must not disagree with them (Session X
+  // Part 6; this failed now and then, also in CI). It still rested where the Showcase button was clicked, and while
+  // the page settles the content under it is replaced, so Chrome sends trusted pointerout/pointerover there; one inside
+  // the 70 ms hover intent after the move below re-targeted the hover and the tile never lifted (5 of 12 local runs
+  // once LiquidGlass was known to be listening). The cursor leaves the page first, and LiquidGlass must be listening:
+  // its listeners are attached in the same effect that adds its .glass-light layer.
+  await expect(page.locator('.glass-light')).toHaveCount(1);
+  await page.mouse.move(-1,-1);
   await tile.evaluate(e=>e.scrollIntoView({block:'center'}));const t=(await tile.boundingBox())!;
   // Arrive and press in the same moment (one task), so the check does not depend on how fast the runner is.
   const x=t.x+t.width/2,y=t.y+t.height/2;

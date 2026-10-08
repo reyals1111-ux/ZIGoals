@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {metadataKey,parseBackup} from '@zigoals/shared-types';
 import {LOCAL_CHAIN,LOCAL_OWNER,parseLocalLedger} from '../local-ledger';
 import {withStorageLock} from '../storage';

@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {createVault,unlockVault,sealRecord,openRecord,manifestSchema,envelopeSchema,type RecordContext} from './crypto';
 // Format 2 adds one optional section, `simulation` (legacy Local simulation Goals). Files without it stay
 // format 1, byte-compatible with older apps; older apps refuse a format 2 file before restoring anything.

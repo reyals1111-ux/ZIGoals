@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { act, createElement, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { z } from "zod";
+import * as z from "zod";
 
 // Session G, Part 2: a store instance that saves no longer parses its own write again when the change event (or the
 // BroadcastChannel message) for it comes back, and instances on one page share one parse of the same bytes. Bytes

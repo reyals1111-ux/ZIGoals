@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {readDeviceRecord, updateDeviceRecord, type DeviceRecordSpec} from './device-record';
 
 /**

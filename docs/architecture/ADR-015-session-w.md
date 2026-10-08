@@ -1,6 +1,6 @@
 # ADR-015: Session W, "Your whole life, one app": session decisions
 
-Status: **Complete** on `feature/session-w-whole-life` ([PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77), ready for the owner's review), from `main` `1063765` (Merge #76, Alpha deploy #31). Not merged or deployed; the final evidence is the Session W entry in [STATUS.md](../STATUS.md). This record holds every decision Session W took without asking the owner (the brief asks for the safest option that keeps every promise), and the owner's own decisions verbatim.
+Status: **Complete** on `feature/session-w-whole-life` ([PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77), ready for the owner's review), from `main` `1063765` (Merge #76, Alpha deploy #31). *Merged as `72ad872` and live as Alpha deploy #32 (2026-10-07, owner-reported; recorded by Session X).* Not merged or deployed when written; the final evidence is the Session W entry in [STATUS.md](../STATUS.md). This record holds every decision Session W took without asking the owner (the brief asks for the safest option that keeps every promise), and the owner's own decisions verbatim.
 
 ## Owner decisions (2026-10-06)
 - **W1.** Sync writes ON now (implement SYNC_WRITES_ON.md; overrides its "from 2026-10-12" wait). Testers may lose test data; never design a data-losing migration; keep reads tolerant. Rollback floor: the Alpha must never roll back past #29. New synced records follow SYNC_HOMES. FINAL_ACCTEST_REDEPLOY and the Stage 8 run-sheet carry "Session V changes" and "Session W changes".

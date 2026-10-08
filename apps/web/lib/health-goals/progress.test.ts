@@ -4,6 +4,7 @@ import {HEALTH_STORAGE_KEY, createEmptyHealth, healthSchema, type HealthData} fr
 import {healthDay} from '../health-daily';
 import {healthGoalLine, healthGoalProgress, windowDays} from './progress';
 import {type HealthGoal} from './schema';
+import {DEFAULT_DISPLAY_LOCALE, setDisplayLocale} from '../visual-format';
 
 // G3 (docs/product/features/G3-health-goals.md, "Tests"): progress from the Health records only.
 const DAY = '2026-10-01', AT = '2026-09-01T07:00:00.000Z';
@@ -19,6 +20,11 @@ describe('healthGoalProgress', () => {
     const progress = healthGoalProgress(goal({}), health, DAY);
     expect(progress).toEqual({kind: 'value', current: 7475, target: 8000, unit: 'steps', percent: 93.4375, days: 28, done: false, detail: '28 days with activity recorded · 209,300 steps in total', ended: undefined});
     expect(healthGoalLine(goal({}), progress)).toBe('7,475 of 8,000 steps');
+  });
+  test('the line follows the display locale, as every other figure does (Session X P2.5)', () => {
+    const progress = healthGoalProgress(goal({}), healthSchema.parse(JSON.parse(buildShowcase(DAY).records[HEALTH_STORAGE_KEY]!)), DAY);
+    try { setDisplayLocale('nl-BE'); expect(healthGoalLine(goal({}), progress)).toBe('7.475 of 8.000 steps'); }
+    finally { setDisplayLocale(DEFAULT_DISPLAY_LOCALE); }
   });
   test('steps: no activity is no data; the average counts recorded days only', () => {
     expect(healthGoalProgress(goal({}), createEmptyHealth(), DAY)).toEqual({kind: 'no-data', ended: undefined});

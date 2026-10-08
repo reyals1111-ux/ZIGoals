@@ -2,7 +2,7 @@
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {act,createElement,useEffect} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
-import {z} from 'zod';
+import * as z from 'zod';
 
 // Durable reads are held open per key so the test controls when each one resolves.
 const reads=vi.hoisted(()=>new Map<string,(value:{name:string})=>void>());

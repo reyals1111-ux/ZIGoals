@@ -84,11 +84,27 @@ export function safeMaximum(balance: string, fee: string): string {
   const v = BigInt(balance) - BigInt(fee);
   return (v > 0n ? v : 0n).toString();
 }
+/**
+ * zigchaind versions reviewed for zig-test-2 (Session X Part 1, docs/research/ZIGCHAIN_V5_1.md), all v5.1 patch releases
+ * of the v5 state machine (azig, 18 decimals) published in ZIGChain's networks repository: the public REST endpoint
+ * answers from two nodes, one on v5.1.0 and one on v5.1.2 (12 reads of node_info on 2026-10-07; the owner's evidence the
+ * same day saw v5.1.0); v5.1.1 is the binary `zig-test-2/version.txt` names (read 2026-10-07). Any other version, older
+ * or newer, still fails closed.
+ */
+export const REVIEWED_TESTNET_VERSIONS: readonly string[] = Object.freeze([
+  "v5.1.0",
+  "v5.1.1",
+  "v5.1.2",
+]);
+/**
+ * Live identity check before anything trusts the testnet: network, bond and bank denomination, decimals, and, when
+ * given, the node's application version (one exact version, or one of a reviewed list). Returns the version read.
+ */
 export async function verifyNetwork(
   config: NetworkConfig = TESTNET,
   fetcher: typeof fetch = fetch,
-  expectedVersion?: string,
-): Promise<void> {
+  expectedVersion?: string | readonly string[],
+): Promise<string | undefined> {
   assertTestnet(config);
   const read = async (path: string) => {
     const response = await fetcher(config.restUrl + path, {
@@ -106,10 +122,17 @@ export async function verifyNetwork(
     ),
   ]);
   const metadata = bank.metadata;
+  const version: unknown = node.application_version?.version;
+  const versions =
+    expectedVersion === undefined
+      ? undefined
+      : typeof expectedVersion === "string"
+        ? [expectedVersion]
+        : expectedVersion;
   if (
     node.default_node_info?.network !== config.chainId ||
-    (expectedVersion !== undefined &&
-      node.application_version?.version !== expectedVersion) ||
+    (versions !== undefined &&
+      (typeof version !== "string" || !versions.includes(version))) ||
     staking.params?.bond_denom !== config.nativeAsset.baseDenom ||
     metadata?.base !== config.nativeAsset.baseDenom ||
     !metadata.denom_units?.some(
@@ -121,6 +144,7 @@ export async function verifyNetwork(
     throw new Error(
       "Network or denomination changed. Signing is disabled until configuration is verified.",
     );
+  return typeof version === "string" ? version : undefined;
 }
 export function keplrChainInfo(config: NetworkConfig = TESTNET) {
   assertTestnet(config);

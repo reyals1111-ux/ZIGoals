@@ -86,7 +86,7 @@ pnpm --filter @zigoals/web exec wrangler whoami    # read only: the right accoun
 ```
 
 ## 4. Services first, one at a time
-For each Worker marked **yes**, in this order: lifecycle, private sync (only if its row says yes), food lookup, auth admission, market coordinator.
+For each Worker marked **yes**, in this order: lifecycle, private sync (only if its row says yes), food lookup, auth admission, market coordinator. Push reminders and the hosted relay are not part of this list: they are optional activations with their own sections below ("Push activation", "ZIGoals hosted relay").
 
 1. **Read only, before:**
    ```sh
@@ -222,6 +222,8 @@ docs/product/YOUR_AI_OWNER_TEST.md Part V, covers it).
 
 ## Session W changes (Session W PR, 2026-10-06/…)
 Filled in part by part as Session W lands. Re-run step 2 at your release SHA; this is what to expect.
+*Session W merged as `72ad872` (Merge #77) and is live on the public Alpha as deploy #32 (2026-10-07, owner-reported);
+the acceptance redeploy below is still yours (Session X, 2026-10-08).*
 
 | Worker | What changed | Must redeploy |
 |---|---|---|
@@ -260,6 +262,43 @@ weekly review (settings v2). Session W adds the pages choice (settings v3), slee
 - The Alpha's rollback floor is **#29** (the first build that reads Health v3): never roll back past it.
 - A person who used Your pages & buttons has settings v3: on #29–#31 their Today layout and preferences read as unreadable (bytes and recovery copies kept, every page shown) until the roll-forward reads them again.
 - A person who logged sleep or meditation (or linked a habit to either, pinned a food, changed the water buttons or saved a night from Quick add) has Health v4: on #29–#31 their whole Health page reads as unreadable (bytes and recovery copies kept) until the roll-forward reads it again. A Today Sleep or Meditation widget raises settings v3, as above.
+
+## Session X changes (Session X-Cloud PR, 2026-10-07/08)
+Re-run step 2 at your release SHA; this is what to expect.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| app (`run11-app` acceptance; public Alpha via the Manual Alpha workflow) | `next` 16.3.8 (six advisories fixed); the web app manifest as a static file; `/api/market-logo` keeps its own cache and sandbox policy; lighter pages (code on use, zod's locales out); fewer link prefetches; account deletion also asks `/api/push` to delete the account's push data | **yes** |
+| market coordinator | nothing | no |
+| private sync, lifecycle, food lookup, auth admission | nothing | no |
+| push reminders (only if activated) | nothing in the Worker; its run sheet rewritten | only if you activate push (below) |
+| ZIGoals hosted relay (only if activated) | an Anthropic upstream option (native Messages API, translated in the relay); a second template | only if you activate it (below) |
+
+## Push activation (optional; Session X Part 8, 2026-10-08)
+Push reminders (ADR-010) can be switched on during this redeploy, on the acceptance stack only. **The public Alpha stays
+off:** it has no accounts (no `PRIVATE_SYNC` binding), so `/api/push` answers 503 `PUSH_UNAVAILABLE` there whatever you do.
+Do it after step 5 (the app) and before step 8 (log out), when sign-in works on the acceptance app, and only if you want it now:
+1. [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) steps 1–3 (offline): the VAPID key pair, the private push copy, `activation-check.mjs --push`.
+2. Its step 4 (the push Worker: two secrets, then deploy, each between read-only checks) and step 5 (two app secrets,
+   then the key comparison). The app needs no redeploy for these: the route reads them per request (**UNVERIFIED** on a
+   hosted account).
+3. Its step 6: the iPhone row 15b of [STAGE8_OWNER_RUNSHEET.md](STAGE8_OWNER_RUNSHEET.md).
+4. Rollback: its step 7 (delete the two app secrets first, then the Worker). Nothing else in this run sheet depends on it.
+
+What Session X checked before you do it (local, Miniflare, `scripts/run11/push-rehearsal.test.mjs`): the app's real
+`/api/push` route with private sync's session registry and the push Worker together; the Worker's real alarm delivering
+one encrypted reminder readable only with the device's keys; a schedule change; a revoked session refused; unsubscribe;
+"Sign out all other devices" and account deletion (`delete-all`, now also from a device without its own record);
+two accounts kept apart; retention. **Private config:** `workers/push-reminders/wrangler.acctest.owner.jsonc` (ignored,
+0600), made by hand per PUSH_ACTIVATION step 2.
+
+## ZIGoals hosted relay (optional; Session X Part 9, 2026-10-08)
+The hosted relay (ADR-014) can be activated during this redeploy for **your own acceptance account only**. Follow
+[ZIGI_RELAY_ACTIVATION.md](ZIGI_RELAY_ACTIVATION.md): its "Anthropic" section if you power it with your Claude plan's API
+credits (Claude Haiku 5.5, thinking off), otherwise the OpenAI default. Order: after step 5 and after push (if you do
+push), before step 8 (log out), one mutation at a time, the kill switch on until the last step. The build flag `NEXT_PUBLIC_ZIGI_HOSTED` stays
+off for the public Alpha; the acceptance build is the only one you would make with it. **Private config:**
+`workers/zigi-relay/wrangler.acctest.owner.jsonc` (ignored, 0600).
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.

@@ -11,7 +11,7 @@ import type {MarketQuote} from './market-quotes';
 import {formatExactNumber,formatNumber} from './visual-format';
 import {plural,unitFor} from './plural';
 import {WIDGET_CATALOG,type DashboardWidget} from './dashboard-settings';
-import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
+import {DIRECTORY_NAMES} from '@zigoals/ecosystem-registry/directory-names';
 import {nutritionDashboard,habitConsistency} from './life-intelligence';
 import {countOn,exerciseData} from './health-counters';
 import {splitWealthTotals} from './wealth-total';
@@ -158,7 +158,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const value=widget.metric==='value'?row.value===undefined?'Value unavailable':formatGoalAmount(formatUnits(row.value.toString(),2),row.currency!):`${formatExactNumber(formatUnits(widget.metric==='available'?row.balance.unallocated:position.quantity,position.decimals))} ${position.asset}`;
   return {...defaults,title:widget.title||position.providerId,value,detail:`${widgetMetricLabel(widget.metric)} · ${position.verification==='MANUAL'?'manual':'read-only observation'} · ${position.asset}`,href:`/app/wealth/asset/${encodeURIComponent(position.id)}`,warning:row.balance.deficit!=='0'?'Allocation exceeds the current balance. Review before allocating.':row.stale?'Saved observation needs refresh':widget.metric==='value'&&row.value===undefined?'A price or manual valuation is required.':undefined};
  }
- if(widget.entity){const entry=directoryEntries.find(item=>item.id===widget.entity);if(!entry)return unavailable('/app/ecosystem','This ecosystem research record is unavailable. Choose another official directory entry.');return {...defaults,title:widget.title||entry.name,value:entry.category,detail:'Dated source research · no financial execution',href:`/app/ecosystem#project-${encodeURIComponent(entry.id)}`};}
+ if(widget.entity){const entry=Object.hasOwn(DIRECTORY_NAMES,widget.entity)?{id:widget.entity,...DIRECTORY_NAMES[widget.entity]!}:undefined;if(!entry)return unavailable('/app/ecosystem','This ecosystem research record is unavailable. Choose another official directory entry.');return {...defaults,title:widget.title||entry.name,value:entry.category,detail:'Dated source research · no financial execution',href:`/app/ecosystem#project-${encodeURIComponent(entry.id)}`};}
  return {...defaults,title:widget.title||'Explore the ecosystem',value:'Discover projects',detail:'Research and official links · no financial execution',href:'/app/ecosystem'};
 }
 

@@ -135,14 +135,20 @@ export async function syncPushSchedules({account, force = false, now = new Date(
   return {state: resubscribed ? 'resubscribed' : 'synced', ...(note ? {message: note} : {})};
 }
 /**
- * Before sign-out, "Revoke other sessions" and account or cloud deletion: the account's push data leaves the server
- * (delete-all), then this browser forgets its subscription and record. Without a record on this device nothing is
- * sent, so devices that never turned push on make no request here. Never throws.
+ * Before sign-out and account or cloud deletion: on sign-out this device's subscription leaves the server (unsubscribe);
+ * on deletion the account's whole push data does (delete-all). Then this browser forgets its subscription and record.
+ * Sign-out sends nothing from a device without a record. Deletion always asks the server to delete the account's push
+ * data while the account is known (Session X Part 8): the device that deletes the account may never have turned push
+ * on while another device did, and that device's subscription and schedules must not wait 30 days for the prune.
+ * Where push is not set up, /api/push answers 503 and nothing changes. Never throws.
  */
 export async function forgetPushOnThisDevice({deleteAll}: {deleteAll: boolean}): Promise<void> {
   try {
     const account = getAccountScope(), storage = getAppStorage(), record = readPushRecord(storage).data;
-    if (!record) return;
+    if (!record) {
+      if (deleteAll && account) { try { await postPush({action: 'delete-all'}, account); } catch { /* best effort */ } }
+      return;
+    }
     if (account) { try { await postPush(deleteAll ? {action: 'delete-all'} : {action: 'unsubscribe', subscriptionId: record.subscriptionId}, account); } catch { /* best effort */ } }
     await forgetInBrowser();
     clearPushRecord(storage);

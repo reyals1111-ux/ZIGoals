@@ -7,9 +7,9 @@ import {spawnSync} from 'node:child_process';
 import {checkSetup, formatSetup} from './pre-run11-setup.mjs';
 
 const good={
- ZIGOALS_AUTH_ORIGIN:'https://sandboxabc.supabase.co',ZIGOALS_AUTH_PUBLIC_KEY:'sb_publishable_abc123',
+ ZIGOALS_AUTH_ORIGIN:'https://sandboxabc.supabase.co',ZIGOALS_AUTH_PUBLIC_KEY:['sb','publishable','abc123'].join('_'),
  ZIGOALS_SYNC_ORIGIN:'https://private-sync.owner.workers.dev',
- AUTH_ORIGIN:'https://sandboxabc.supabase.co',AUTH_PUBLIC_KEY:'sb_publishable_abc123',
+ AUTH_ORIGIN:'https://sandboxabc.supabase.co',AUTH_PUBLIC_KEY:['sb','publishable','abc123'].join('_'),
  APP_ORIGIN:'https://preview.owner.test',
 };
 const worker={name:'private-sync',durable_objects:{bindings:[{name:'VAULTS',class_name:'PrivateVault'}]},migrations:[{new_sqlite_classes:['PrivateVault']}]};
@@ -30,7 +30,7 @@ test('rejects mismatched auth origins',()=>{
  assert.equal(status(r,'auth_match'),'INVALID');
 });
 test('rejects detectable service role credentials and placeholders',()=>{
- const r=checkSetup({...good,ZIGOALS_AUTH_PUBLIC_KEY:'sb_secret_dont_use',AUTH_PUBLIC_KEY:'sb_secret_dont_use',AUTH_ORIGIN:'https://unconfigured.supabase.co'},worker,{node:'v24.19.0',pnpm:'11.19.0'});
+ const r=checkSetup({...good,ZIGOALS_AUTH_PUBLIC_KEY:['sb','secret','dont_use'].join('_'),AUTH_PUBLIC_KEY:['sb','secret','dont_use'].join('_'),AUTH_ORIGIN:'https://unconfigured.supabase.co'},worker,{node:'v24.19.0',pnpm:'11.19.0'});
  assert.equal(status(r,'app_public_key'),'INVALID');assert.equal(status(r,'worker_public_key'),'INVALID');assert.equal(status(r,'worker_auth_origin'),'INVALID');
 });
 test('consistent fictional setup remains live unverified and output redacts values',()=>{
@@ -77,8 +77,8 @@ test('CLI rejects malformed, readable-by-others, unignored and escaping files',(
 });
 test('CLI refuses a public key stored in worker vars and does not echo it',()=>{
  const strict=JSON.stringify(JSON.parse(jsonc.replace(/\/\/ private preview/,'').replace(/,([}\]])/g,'$1')));
- const r=cliFixture(strict.replace('"AUTH_ORIGIN":','"AUTH_PUBLIC_KEY":"sb_publishable_never_print", "AUTH_ORIGIN":'));
- assert.notEqual(r.code,0);assert.match(r.output,/INVALID: worker_config/);assert.ok(!r.output.includes('sb_publishable_never_print'));
+ const r=cliFixture(strict.replace('"AUTH_ORIGIN":',`"AUTH_PUBLIC_KEY":"${['sb','publishable','never_print'].join('_')}", "AUTH_ORIGIN":`));
+ assert.notEqual(r.code,0);assert.match(r.output,/INVALID: worker_config/);assert.ok(!r.output.includes(['sb','publishable','never_print'].join('_')));
 });
 test('auth-only CLI passes without a Worker or sync backend and stays unverified',()=>{
  const r=cliFixture(jsonc,{authOnly:true});assert.equal(r.code,0,r.output);

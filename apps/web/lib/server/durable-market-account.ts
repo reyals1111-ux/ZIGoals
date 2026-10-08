@@ -1,7 +1,7 @@
 import {marketTelemetryPolicy,readMarketTelemetry,recordMarketTelemetry} from './market-telemetry';
 import {liveFollowers,followerCommand,registerFollowers,pollFollowers,forgetFollowers} from './market-followers';
 import {pairBlocked,pairScope,breakerKey} from './market-pair-breaker';
-import {z} from 'zod';
+import * as z from 'zod';
 import {admitMarketBreakers,settleMarketBreakers} from './market-breaker-storage';
 import {maintainMarketAccount,rememberAttempt,releaseCancelledWork,type RetainedAttempt} from './market-retention';
 import {publicMarketWorkSchema,publicMarketWorkKey,createProviderAttempt,publishAttemptWork,type ProviderAttempt,type PublicMarketWork} from './market-coordinator';

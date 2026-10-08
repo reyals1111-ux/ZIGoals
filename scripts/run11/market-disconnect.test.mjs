@@ -13,12 +13,19 @@ const step=(label,promise,ms=10000)=>{let timer;return Promise.race([promise,new
 const within=deadline=>(label,promise)=>step(label,promise,Math.max(1,deadline-Date.now()));
 // Built and started once for both cases, outside each case's 30 s budget. Named, Chrome's cold start on a busy
 // CI runner was the step that stalled (#53): it took more than 10 s, and inside the case it had surfaced only as
-// "Test timed out in 30000ms". Playwright's own 30 s launch timeout still applies and reports the browser log.
+// "Test timed out in 30000ms".
+// Session X Part 6: it still stalled now and then (runs 37604132447 and earlier), because this was the one file that
+// starts Chrome inside `pnpm test`, beside some 450 other files in three forks. It now runs, like every other
+// browser file, only when RUN11_MARKET_BROWSER=1: in CI's integration job, one file at a time. Playwright's default
+// launch timeout is 180 s (playwright-core 1.63's DEFAULT_PLAYWRIGHT_LAUNCH_TIMEOUT; its type comment, and this
+// comment before, said 30 s), longer than the hook's 45 s, so a slow launch ended as a bare hook timeout; the launch
+// now gives up at 40 s itself and reports Chrome's own log.
+const enabled=process.env.RUN11_MARKET_BROWSER==='1';
 let bundles,browser;
-beforeAll(async()=>{bundles=await marketRuntimeBundles();},60000);
-beforeAll(async()=>{browser=await chromium.launch({channel:'chrome',headless:true});},45000);
+beforeAll(async()=>{if(enabled)bundles=await marketRuntimeBundles();},60000);
+beforeAll(async()=>{if(enabled)browser=await chromium.launch({channel:'chrome',headless:true,timeout:40000});},45000);
 afterAll(async()=>{await browser?.close();});
-test.each(['abort','navigation'])('%s of an actual app request forgets its follower without cancelling the shared provider owner',async mode=>{
+test.runIf(enabled).each(['abort','navigation'])('%s of an actual app request forgets its follower without cancelling the shared provider owner',async mode=>{
  const code={...bundles},now=Date.now();let release,entered,calls=0;const traces=[];
  // Use the shipped client cancellation path: this local ingress does not emit
  // Request.signal abort. Retain the strict 500ms durable cleanup and owner checks.

@@ -10,7 +10,7 @@
  *   units are not documented (the fields are still named uzig_amount and stzig_amount after the 18-decimal migration).
  * - Amounts stay decimal strings; any arithmetic is BigInt.
  */
-import { z } from 'zod';
+import * as z from 'zod';
 import { READ_NETWORKS, publicZigAddress } from '../../position-reader';
 import { units } from '../../positions';
 

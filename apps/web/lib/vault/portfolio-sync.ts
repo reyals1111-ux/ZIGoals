@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {openRecord,sealRecord,type EncryptedEnvelope,type VaultManifest} from './crypto';
 import {RevisionConflict} from './cloud-sync';
 import {PORTFOLIO_KEY,emptyPortfolioData,portfolioDataSchema,type PortfolioData} from '../portfolio/schema';

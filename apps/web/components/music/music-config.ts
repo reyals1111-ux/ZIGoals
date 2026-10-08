@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useState} from 'react';
-import {z} from 'zod';
+import * as z from 'zod';
 import {validClientId} from '../../lib/music/spotify/oauth';
 import {isShowcase} from '../../lib/showcase-storage';
 
