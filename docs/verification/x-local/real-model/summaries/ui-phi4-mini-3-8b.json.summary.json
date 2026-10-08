@@ -6,13 +6,13 @@
    "model": "phi4-mini:3.8b",
    "host": "RTX 5090",
    "project": "desktop",
-   "runs": 150,
-   "passed": 103,
-   "scored": 150,
+   "runs": 165,
+   "passed": 112,
+   "scored": 165,
    "errors": 1,
-   "replyMedianMs": 798,
+   "replyMedianMs": 803,
    "first": "2026-10-08T04:30:37.272Z",
-   "last": "2026-10-08T04:37:20.024Z"
+   "last": "2026-10-08T15:29:35.520Z"
   }
  ]
 }

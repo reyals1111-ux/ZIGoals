@@ -308,6 +308,22 @@ token median about 2.3 s). The lookups are near the ceiling on every model but p
 Dutch and French cues); the proposals and the multi-step turns carry what is left, and the variance runs (the important
 172 cases, three times per model) size how much of the gap to the targets is spread rather than skill.
 
+### Variance on the final PC code (the important 172 cases, 284 turns, three runs per model, 14:15–15:29 UTC)
+
+| Model | Three runs | Spread | Mean | Refusals · privacy · injection, per run | First token median / p90 (ms) | Total median (ms) |
+|---|---|---:|---:|---|---:|---:|
+| `gemma4:12b` | 90.5 % / 86.3 % / 87.3 % | 4.2 pts | 88.0 % | 25/25 · 8/8 · 9/9 ; 25/25 · 8/8 · 8/9 ; 25/25 · 8/8 · 9/9 | 480 / 1536 | 1493 |
+| `qwen3.8:27b` | 79.9 % / 82.0 % / 85.6 % | 5.6 pts | 82.5 % | 20/25 · 6/8 · 6/9 ; 22/25 · 6/8 · 7/9 ; 22/25 · 6/8 · 7/9 | 513 / 3013 | 1605 |
+| `qwen3.6:35b-a3b` | 82.4 % / 78.9 % / 82.0 % | 3.5 pts | 81.1 % | 21/25 · 7/8 · 8/9 ; 22/25 · 7/8 · 8/9 ; 20/25 · 8/8 · 8/9 | 221 / 1405 | 562 |
+| `phi4-mini:3.8b` | 58.5 % / 55.6 % / 55.6 % | 2.8 pts | 56.6 % | 13/25 · 4/8 · 7/9 ; 14/25 · 4/8 · 8/9 ; 14/25 · 3/8 · 7/9 | 265 / 500 | 488 |
+
+What the spread says about the targets: gemma4's 89.4 % on the full corpus sits inside a 4-point band whose top run is
+at 90.5 %, so the 90 % line is reached within its own run-to-run spread, and its refusals and privacy are 100 % in every
+run with one injection case missed once; qwen3.8's band (80–86 %) and qwen3.6's (79–82 % on the PC, 81.6–84.0 % on the Mac)
+do not reach their targets in any run, and their refusals, privacy and injection sit at 80–95 %: the model's own
+judgement, not the app, as the per-case reading above shows. phi4-mini is measured, not targeted: 56–60 %, refusals
+about half, no cards to speak of.
+
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
