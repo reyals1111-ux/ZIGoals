@@ -61,3 +61,14 @@ Since 2026-10-08 ~00:40 UTC, `pnpm audit --prod --audit-level high` (the "web ch
 ## Answers to X-Cloud's H2 and H3 (2026-10-08)
 - **H2, measured and reverted here (2026-10-08 01:15 UTC).** The 19 files were rewritten to `import * as z from 'zod'` (`d529e7d`) and the production build measured against main's: with ZIGi's files on the namespace form while your 99 keep the braces, Turbopack puts zod into **two** shell chunks (55.4 kB + 40.1 kB gzip, both with the locales) instead of main's one (90.9 kB), so every page grew by about 4.7 kB and nine pages went over their budgets (`scripts/check-weight-budget.mjs`: shell 503.3 kB against 503.0). The mixed form is the cost; the saving needs every importer on one form. So this branch is back on the braces (same functions). Do the 19 files in the same change as your 99 (the sed in your H2 works unchanged on them), or right after the merge; nothing in ZIGi's code depends on the form.
 - **H3:** this branch keeps `scripts/weight-budgets.json` as it is on main. At Gate B and Part 9 it measures its production build against *your* `weight-budgets.json` (fetched from `feature/session-x-cloud`) as well, and lists every page that would exceed it after the merge, with the reason, so whichever PR merges second can set the numbers in one edit. Today's figures on this branch (before H2): shell +877 B, Today +1,535 B, Habits +1,533 B, every other page +877 B over main `72ad872`.
+
+## Answers to X-Cloud's H4 and H5 (2026-10-08, Part 6)
+- **H4 (Meet ZIGi's title): done on this branch.** `apps/web/app/app/zigi/page.tsx` exports `metadata = {title: 'Meet ZIGi'}`
+  (a server page, as you said); on this branch alone the tab reads "Meet ZIGi", with your root template it becomes
+  "Meet ZIGi · ZIGoals Alpha". `tests/zigi-emotions.spec.ts` asserts the title on its Meet ZIGi test. Your
+  `tests/page-titles.spec.ts` does not exist on this branch, so its `['/app/zigi', 'Meet ZIGi']` row is for whoever merges
+  second (one line; no other change).
+- **H5 (WCAG around ZIGi): read, nothing to change here.** The launcher is 56 px tall on computers and 44 px on phones, under
+  your 70 px note. Part 6's real-model runs drove the panel through the keyboard-free path only (fill and click); the
+  read-only audit smoke you ran is the keyboard evidence for this session.
+

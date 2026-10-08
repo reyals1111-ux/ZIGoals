@@ -147,6 +147,7 @@ test('the AI\'s hint moves ZIGi only inside the fixed list, never shows in the t
 test('Meet ZIGi shows the studio\'s art for every state with what it means in plain words', async ({page}) => {
   await seed(page);
   await page.goto('/app/zigi');
+  await expect(page).toHaveTitle(/Meet ZIGi/); // X-Cloud's H4: the page names itself in the tab (WCAG 2.4.2)
   const cards = page.locator('.meet-zigi-card');
   await expect(cards).toHaveCount(Object.keys(manifest.states).length);
   for (const [state, spec] of Object.entries(manifest.states)) {
