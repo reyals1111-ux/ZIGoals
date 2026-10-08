@@ -455,7 +455,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
   const textarea = () => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, refocus = useRef(false);
-  useEffect(() => { if (busy || !refocus.current) return; refocus.current = false; nextFrame(() => { const a = document.activeElement; if (!a || a === document.body) textarea()?.focus({preventScroll: true}); }); }, [busy]);
+  useEffect(() => { if (busy || !refocus.current) return; refocus.current = false; nextFrame(() => { const a = document.activeElement; if (!a || a === document.body) (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus({preventScroll: true}); }); }, [busy, ref]);
   // Session V Part 7: one meal photo per message (only with a model that reads photos and Health shared), and log mode.
   const [attached, setAttached] = useState<Photo | null>(null), [photoNote, setPhotoNote] = useState(''), [logMode, setLogMode] = useState(false), file = useRef<HTMLInputElement>(null);
   const previewUrl = useMemo(() => attached ? URL.createObjectURL(attached.preview) : null, [attached]);
