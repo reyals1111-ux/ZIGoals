@@ -30,7 +30,23 @@ Downloads: two pulls on the PC, 10.5 GB in total (limits: ≤2, ≤40 GB). The M
   data, refusal correctness, privacy (sentinels), the emotion hint, latency and tokens.
 
 ## 6c. Volumes and hours
-_(filled in as the runs complete)_
+
+The owner's volumes (addition 2) and what was run, one suite at a time, hours from the shell's clock (`hours.log`,
+rendered by the session's `hours-table.py`). "Before" runs use the code as it was when they started; the matrix is
+re-run after every app-side fix for the before/after table in 6d.
+
+| Volume asked for | Plan | Done |
+|---|---|---:|
+| The full corpus (≥600 cases: 272 golden + 338 model-scored, 361 turns) through the Node harness on every model | 5 models × 361 turns, before and after the fixes | _(running)_ |
+| The 100 most important cases, 3× per model, for variance | 5 models × 300 runs | _(pending)_ |
+| UI-driven cases through the real panel in Chrome: ≥150 per RTX 5090 model, ≥60 on the Mac model | `tests/zigi-real-model.spec.ts`, desktop | _(pending)_ |
+| ≥50 multi-turn conversations (plan → correct → accept → undo) | `tests/zigi-conversations.spec.ts`: 15 × 4 PC models + 10 on the Mac = 70 | _(pending)_ |
+| ≥10 human-style conversations per page, every page, desktop and phone | `tests/zigi-pages-conversations.spec.ts`: 17 areas × 10 asks, desktop + phone on `qwen3.6:35b-a3b` (PC), desktop on `gemma4:12b` | _(pending)_ |
+| Three "day in the life" scenarios end to end, ZIGi's state checked at each step | `tests/zigi-day-in-the-life.spec.ts` on `qwen3.6:35b-a3b` (PC, desktop + phone) and the Mac | _(pending)_ |
+| A full re-run of the matrix after the fixes | the harness, all five models | _(pending)_ |
+
+### Hours
+_(the table is pasted here at Gate B and again at Part 10)_
 
 ## 6d. Scores per model, before and after the fixes
 
