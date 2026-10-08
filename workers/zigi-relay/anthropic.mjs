@@ -75,7 +75,7 @@ export function anthropicBody(messages,tools,env,cap){
  }
  // The Messages API starts with the person's turn: a greeting the app keeps before the first question is left out.
  while(turns[0]?.role==='assistant'&&turns[0].content.every(b=>b.type==='text'))turns.shift();
- if(!turns.length||turns[0].role!=='user')return null;
+ if(turns[0]?.role!=='user')return null;
  /** @type {Record<string,unknown>} */const out={model:env.ZIGI_MODEL,max_tokens:cap,stream:true,messages:turns};
  if(system.length)out.system=system.join('\n');
  if(tools?.length)out.tools=tools.map(t=>({name:t.function.name,...(t.function.description!==undefined?{description:t.function.description}:{}),input_schema:t.function.parameters??{type:'object',properties:{}}}));
