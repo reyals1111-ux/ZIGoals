@@ -48,7 +48,8 @@ const W = {
   rate: /\b(completion rate|success rate|rate|percent(?:age)?|consistency|consistent)\b|%/,
   minutes: /\b(minutes?|mins?|hours?|hrs?|how long|time spent|time did i spend)\b/,
   count: /\b(how many times|how often|times|check-?ins?|checked in|sessions?)\b/,
-  lookup: /\b(how (?:many|much|far|long|often|close|did)|what(?:'s| is| was| were)?|which day|when|total|did i|do i|have i|am i|average|avg|longest|best|streak|show|compare|compared)\b/,
+  // Session X-Local Part 6d: "which" is a lookup word too ("Which milestones are done?"); "summarise" stays the AI's (T's rule).
+  lookup: /\b(how (?:many|much|far|long|often|close|did)|what(?:'s| is| was| were)?|which|when|total|did i|do i|have i|am i|average|avg|longest|best|streak|show|compare|compared)\b/,
 };
 const HEALTH = {
   water: /\b(water|hydrat\w*)\b/,
@@ -61,7 +62,9 @@ const HEALTH = {
   counter: /\b(push-?ups?|pull-?ups?|squats?|reps|repetitions|counters?)\b/,
 };
 const NUTRIENT_WORDS: [RegExp, NutrientName][] = [[/\b(calories|calorie|kcal|energy)\b/, 'kcal'], [/\bprotein\b/, 'protein'], [/\b(carbs?|carbohydrates?)\b/, 'carbs'], [/\bsaturated fats?\b/, 'saturated_fat'], [/\bfats?\b/, 'fat'], [/\bfib(?:er|re)s?\b/, 'fiber'], [/\bsugars?\b/, 'sugar'], [/\b(sodium|salt)\b/, 'sodium'], [/\bpotassium\b/, 'potassium'], [/\bcalcium\b/, 'calcium'], [/\biron\b/, 'iron']];
-const WEALTH_TOTAL = /\b(net worth|my wealth|total wealth|wealth total|everything i (?:own|hold)|all my holdings|how much (?:is|am) i worth)\b/;
+const WEALTH_TOTAL = /\b(net worth|my wealth|total wealth|wealth total|everything i (?:own|hold)|all my holdings|how much (?:is|am) i worth|(?:tracked )?totals? (?:per|by) currency|(?:per|by) currency)\b/;
+/** Session X-Local Part 6d: "What is my portfolio worth?" is answered from the portfolios tool, each in its own currency. */
+const PORTFOLIO_WORTH = /\bportfolios?\b[^?]*\b(worth|value|valued|total|hold|holds|holding)\b|\b(worth|value) of my portfolios?\b|\bwhat(?:'s| is) in my portfolios?\b/;
 // Session W Part 21 (W7): the areas Session W added.
 // Session X-Local Part 6b: "how much debt", "list my accounts" and "show my debts" ask the same (never "sleep debt").
 const OWE = /\b(what do i owe|how much do i owe|how much debt|my debts?|my loans?|my mortgage|my credit cards?|my accounts|accounts and debts|(?:list|show)(?: me)?(?: my| the)? (?:accounts|debts|loans))\b/;
@@ -161,6 +164,7 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Wealth first: a coin or asset the person holds, or the wealth total.
   const asset = mentionedAsset(env, q);
   if (WEALTH_TOTAL.test(q)) return wealthTotal(env);
+  if (PORTFOLIO_WORTH.test(q) && env.portfolio) return portfolioAnswer(env);
   if (asset && HOLD.test(q) && !CONTRIBUTION.test(q)) return holding(env, asset);
   // Session W Part 21: accounts and debts, chess, My links, challenges and milestones (each behind its own area's switch),
   // and mindful minutes (Health). A habit the question names keeps its answer: "how often did I play chess" with a habit
@@ -193,6 +197,8 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const habitWords = W.streak.test(q) || W.rate.test(q) || W.count.test(q) || W.minutes.test(q) || W.last.test(q) || /\bhabits?\b/.test(q);
   if (hits.length === 1 && habitWords) return habitAnswer(env, hits[0]!.habit, q, ranges(env.habitDay));
   if (hits.length > 1 && habitWords) return choicesFor(hits.map(h => h.habit));
+  // Session X-Local Part 6d: "What is my longest streak ever?" names no habit: the best streak across all of them.
+  if (W.streakBest.test(q) && !hits.length) return bestStreakAnswer(env);
   return NONE;
 }
 /** What ZIGi says, with no AI connected, to a question that is not a lookup: what it can answer, as examples to tap. */
@@ -551,6 +557,30 @@ function challengesAnswer(env: ToolEnv): LocalReply {
   const d = dataOf(r.result), rows = d.challenges as {habit: string; today: string; doneSoFar: string; ends: string}[];
   if (!rows.length) return {kind: 'answer', text: d.note, calls: [r.record]};
   return {kind: 'answer', text: lines(`${capital(plural(rows.length, 'challenge'))} running:`, rows.map(x => `${x.habit}: ${x.today}${x.doneSoFar.startsWith('0 of 0 ') ? '' : `, ${x.doneSoFar} done so far`} (until ${dayText(x.ends, env.habitDay.slice(0, 4))})`)), calls: [r.record]};
+}
+/** Every portfolio with its value in its own currency; nothing is added across currencies (the tool's own rule). */
+function portfolioAnswer(env: ToolEnv): LocalReply {
+  const r = call(env, 'portfolios', {}), refused = refusalOf([r]); if (refused) return refused;
+  const rows = dataOf(r.result).portfolios as {portfolio: string; kind: string; currency: string; value?: string; note?: string}[];
+  if (!rows.length) return {kind: 'answer', text: 'No portfolio yet; Wealth → Portfolio makes one.', calls: [r.record]};
+  const worth = (p: (typeof rows)[number]) => p.note ? p.note : !p.value || p.value === '0' ? 'holds nothing' : p.value.startsWith('unknown') ? 'has no prices, so no value' : `is worth ${money(p.value.replace(/\s*\(.*\)$/, ''))}${/\(/.test(p.value) ? ` (${p.value.replace(/^[^(]*\(/, '').replace(/\)$/, '')})` : ''}`;
+  return {kind: 'answer', text: lines('Your portfolios, each in its own currency and never added together:', rows.map(p => `${p.portfolio} (${p.kind}) ${worth(p)}`)), calls: [r.record]};
+}
+/** The longest streak across every active habit, from the habit engine's own figures (at most twelve lookups). */
+function bestStreakAnswer(env: ToolEnv): LocalReply {
+  const habits = env.habits.habits.filter(h => latestHabitRule(h).state === 'active').slice(0, 12);
+  if (!habits.length) return NONE;
+  const calls: ToolCallRecord[] = [], found: {title: string; best: number; current: number; unit: string}[] = [];
+  for (const h of habits) {
+    const s = call(env, 'habit_stats', {habit: clean(h.title, 60), metric: 'streak'}); calls.push(s.record);
+    if (!s.result.ok) continue;
+    const st = dataOf(s.result).streak as {current: number; best: number; unit: string};
+    found.push({title: clean(h.title, 60), best: st.best, current: st.current, unit: st.unit.replace(/s$/, '')});
+  }
+  if (!found.length) return {kind: 'answer', text: 'No streak yet: the first check-in starts one.', calls};
+  found.sort((a, b) => b.best - a.best);
+  const top = found[0]!, rest = found.slice(1, 3).filter(f => f.best > 0);
+  return {kind: 'answer', text: lines(`Your longest streak ever is ${plural(top.best, top.unit)}: ${top.title} (current ${plural(top.current, top.unit)}).`, rest.map(f => `${f.title}: longest ${plural(f.best, f.unit)}, current ${plural(f.current, f.unit)}`)), calls};
 }
 function milestonesAnswer(env: ToolEnv, q: string): LocalReply {
   const named = mentionedGoals(env, q), r = call(env, 'milestones', named.length === 1 ? {goal: clean(named[0]!.name, 120)} : {}), refused = refusalOf([r]); if (refused) return refused;

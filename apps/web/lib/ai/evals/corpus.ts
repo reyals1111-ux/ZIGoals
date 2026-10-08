@@ -194,7 +194,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
 {
   const w = (kind: CorpusKind, area: CorpusArea) => make(kind, {area, page: 'wealth'});
   add(
-    w('lookup', 'wealth')('wealth-totals', 'Summarise my tracked totals per currency', {localFirst: true, tools: ['totals_per_currency'], mustNot: ['converted']}, {important: true}),
+    w('lookup', 'wealth')('wealth-totals', 'Summarise my tracked totals per currency', {tools: ['totals_per_currency'], mustNot: ['converted']}, {important: true}),
     w('lookup', 'wealth')('wealth-btc', 'Total BTC I hold?', {localFirst: true}),
     w('lookup', 'wealth')('wealth-net-worth', 'What is my net worth?', {localFirst: true, tools: ['net_worth']}, {important: true}),
     w('lookup', 'wealth')('wealth-owe', 'What do I owe?', {localFirst: true, tools: ['accounts']}),
