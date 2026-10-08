@@ -1,0 +1,134 @@
+{
+ "about": "Session X Part 5: gzip (level 6) of the scripts each page loads, local production builds (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED, next start), measured by scripts/check-weight-budget.mjs --json on 2026-10-07. Bytes.",
+ "builds": {
+  "1063765 (pre-W main)": {
+   "pages": {
+    "/app": 616920,
+    "/app/goals": 515136,
+    "/app/habits": 525604,
+    "/app/health": 550777,
+    "/app/wealth": 542531,
+    "/app/markets": 512265,
+    "/app/portfolio": 515751,
+    "/app/staking": 534717,
+    "/app/activity": 497594,
+    "/app/settings": 525876,
+    "/app/help": 493600,
+    "/app/chess": null
+   },
+   "shell": 491608
+  },
+  "72ad872 (main, Alpha #32)": {
+   "pages": {
+    "/app": 646074,
+    "/app/goals": 519617,
+    "/app/habits": 543407,
+    "/app/health": 567671,
+    "/app/wealth": 556107,
+    "/app/markets": 523180,
+    "/app/portfolio": 545694,
+    "/app/staking": 548384,
+    "/app/activity": 503585,
+    "/app/settings": 570598,
+    "/app/help": 499700,
+    "/app/chess": 508147
+   },
+   "shell": 497708
+  },
+  "02e0573 (after 5a)": {
+   "pages": {
+    "/app": 646079,
+    "/app/goals": 519022,
+    "/app/habits": 542812,
+    "/app/health": 567076,
+    "/app/wealth": 555512,
+    "/app/markets": 522585,
+    "/app/portfolio": 545099,
+    "/app/staking": 548389,
+    "/app/activity": 502990,
+    "/app/settings": 569953,
+    "/app/help": 499105,
+    "/app/chess": 507552
+   },
+   "shell": 497113
+  },
+  "f27a448 (after 5b wallet)": {
+   "pages": {
+    "/app": 623217,
+    "/app/goals": 496160,
+    "/app/habits": 519950,
+    "/app/health": 544214,
+    "/app/wealth": 532650,
+    "/app/markets": 499723,
+    "/app/portfolio": 522237,
+    "/app/staking": 525527,
+    "/app/activity": 480128,
+    "/app/settings": 547099,
+    "/app/help": 476243,
+    "/app/chess": 484690
+   },
+   "shell": 474251
+  },
+  "830f29f (after 5b sync)": {
+   "pages": {
+    "/app": 606237,
+    "/app/goals": 478764,
+    "/app/habits": 502520,
+    "/app/health": 527453,
+    "/app/wealth": 510034,
+    "/app/markets": 477097,
+    "/app/portfolio": 499571,
+    "/app/staking": 502907,
+    "/app/activity": 457539,
+    "/app/settings": 544974,
+    "/app/help": 453824,
+    "/app/chess": 462023
+   },
+   "shell": 451584
+  },
+  "3e85554 (after Settings on use)": {
+   "pages": {
+    "/app": 605858,
+    "/app/goals": 478385,
+    "/app/habits": 502436,
+    "/app/health": 527086,
+    "/app/wealth": 509655,
+    "/app/markets": 476718,
+    "/app/portfolio": 499192,
+    "/app/staking": 502528,
+    "/app/activity": 457160,
+    "/app/settings": 526552,
+    "/app/help": 453445,
+    "/app/chess": 461644
+   },
+   "shell": 451205
+  },
+  "da10938 (after zod namespace imports)": {
+   "pages": {
+    "/app": 611107,
+    "/app/goals": 428168,
+    "/app/habits": 452223,
+    "/app/health": 476883,
+    "/app/wealth": 459429,
+    "/app/markets": 426498,
+    "/app/portfolio": 448969,
+    "/app/staking": 452291,
+    "/app/activity": 462373,
+    "/app/settings": 476347,
+    "/app/help": 403214,
+    "/app/chess": 411413
+   },
+   "shell": 400974
+  },
+  "experiment: da10938 plus ZIGi files (handoff H2), not committed": {
+   "pages": {
+    "/app": 550600,
+    "/app/activity": 401900,
+    "/app/goals": 423200,
+    "/app/settings": 471300
+   },
+   "shell": 396000,
+   "note": "rounded from the kB printout"
+  }
+ }
+}

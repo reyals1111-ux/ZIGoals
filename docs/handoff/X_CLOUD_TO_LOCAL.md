@@ -38,3 +38,29 @@ owner.
 `apps/web/lib/ai/openrouter-auth.test.ts:34,35`, `apps/web/lib/ai/fixtures/mock-streams.ts:6` (`FAKE_KEY`),
 `apps/web/tests/your-ai-captures.spec.ts:20`, `apps/web/tests/zigi-memory.spec.ts:69` (`password: …`). The repository's
 convention is the fragment join used in `scripts/secret-patterns.test.mjs` (`"sk-" + "ant-" + …`).
+
+## H2 — Import zod as a namespace in ZIGi's 19 files (Session X Part 5, 2026-10-08)
+**What.** `import {z} from 'zod'` makes Turbopack keep zod's whole namespace object, so every page carried all of zod's
+locales (167.7 KB minified) and its JSON-Schema converters (67 KB). zod v4's own form, `import * as z from 'zod'`, lets
+Turbopack keep only what is used. X-Cloud changed its 99 files (`[TIER 3]` commit on `feature/session-x-cloud`; same
+functions, so no behaviour change). ZIGi's lane still has the old form in 19 files, which keeps the locales on Today
+(`/app`) and Activity:
+`apps/web/lib/ai/{settings,chats,keys,hosted}.ts`, `apps/web/lib/ai/actions/schema.ts`,
+`apps/web/lib/ai/store/{actions,records}.ts`, `apps/web/lib/ai/tools/{goals,health,life-w,habits,memory,activity,health-w,wealth,types}.ts`
+`apps/web/lib/server/zigi-route.ts` (behind `/api/zigi`; server code, so no page weight, changed for consistency) and the
+two test files under `apps/web/lib/ai` that `grep -rlE "import \{ ?z ?\} from ['\"]zod['\"]" apps/web/lib/ai` lists.
+
+**Evidence (local production builds, gzip, 2026-10-08).** All 118 files changed: `/app` 550.6 kB, Activity 401.9 kB,
+shell 396.0 kB. X-Cloud's 99 only: `/app` 611.1 kB, Activity 462.4 kB, shell 401.0 kB. So ZIGi's files are worth about
+60 kB on Today and Activity and 5 kB on every page.
+
+**Suggested fix (one command, then typecheck and the ZIGi suites):**
+```sh
+grep -rlE "import \{ ?z ?\} from ['\"]zod['\"]" apps/web/lib/ai apps/web/components/zigi apps/web/lib/server/zigi-route.ts | xargs sed -i -E "s/import \{ ?z ?\} from (['\"])zod(['\"]);/import * as z from \1zod\2;/"
+```
+
+## H3 — Lowered page-weight budgets (Session X Part 5c, 2026-10-08)
+`scripts/weight-budgets.json` now holds X-Cloud's measurement plus about 5 kB per page (CI's integration job checks
+them). If ZIGi's merge makes a page heavier than its budget, raise that budget in the same change with the reason
+(the file's rule). After H2, Today and Activity are about 60 kB lighter, so whichever lane merges second can lower
+those two budgets to the new measurement plus about 5 kB.
