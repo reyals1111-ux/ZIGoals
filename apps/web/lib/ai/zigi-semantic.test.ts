@@ -163,6 +163,15 @@ describe('ZIGoals\' own rules', () => {
     c.sync('idle');
     expect(c.dispatch({type: 'hint_curious'}, T0 + REACTION_GAP_MS + 1).code).toBe('F014');
   });
+  it('Session X-Local Part 6c: an added card seconds after the reply that presented it shows success; the gap holds reactions, never the answer to the person\'s own act', () => {
+    const c = mk();
+    expect(c.dispatch({type: 'assistant_replied_with_proposals'}, T0).code).toBe('F006');
+    const accepted = c.dispatchValidated({type: 'card_accepted'}, T0 + 2000);
+    expect(accepted.state).toBe('success'); expect(accepted.code).toBe('F012'); expect(accepted.reason).toBe('validated_event'); expect(accepted.event).not.toBeNull();
+    c.sync('idle');
+    // A reaction in that same window still waits for the gap.
+    expect(c.dispatch({type: 'hint_curious'}, T0 + 2500).reason).toBe('rate_limited');
+  });
   it('sensitive screens: celebrations, knocks and peeks are refused there; the conversation goes on', () => {
     const c = mk();
     c.setPreferences({sensitive: true});

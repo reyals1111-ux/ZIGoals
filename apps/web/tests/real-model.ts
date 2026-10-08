@@ -49,9 +49,10 @@ export async function openChat(page: Page) { await page.getByRole('button', {nam
 export async function askAndWait(page: Page, text: string, {log = false}: {log?: boolean} = {}): Promise<{ms: number}> {
   const turns = panel(page).locator('.ai-turn-assistant'), failed = panel(page).locator('.ai-failure');
   const before = await turns.count();
-  await page.getByLabel('Message to your AI').fill(text, {timeout: 20_000});
+  // Log mode through the composer's own slash command (/log), as the person would type it; the submit stays "Send".
+  await page.getByLabel('Message to your AI').fill(log ? `/log ${text}` : text, {timeout: 20_000});
   const started = Date.now();
-  await page.getByRole('button', {name: log ? 'Log' : 'Send', exact: true}).click({timeout: 20_000});
+  await page.getByRole('button', {name: 'Send', exact: true}).click({timeout: 20_000});
   await expect.poll(async () => (await turns.count()) > before || (await failed.count()) > 0, {timeout: REPLY_TIMEOUT_MS, intervals: [50, 100, 250]}).toBe(true);
   await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0, {timeout: REPLY_TIMEOUT_MS});
   await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: 10_000});

@@ -42,10 +42,13 @@ export const VALIDATED_ONLY: ReadonlySet<SemanticEventType> = new Set(['goal_mil
 export const CELEBRATIONS: ReadonlySet<SemanticEventType> = new Set(['all_habits_done', 'streak_milestone', 'goal_milestone_reached', 'goal_funded', 'challenge_milestone', 'meditation_finished', 'first_sleep_logged']);
 /** Proactive nudges: the knock. One per session, none after a dismissal, none in quiet hours, none while typing. */
 export const NUDGES: ReadonlySet<SemanticEventType> = new Set(['reminder_due']);
-/** The conversation's own flow is never rate-limited; everything else is a reaction. */
-const CONVERSATION: ReadonlySet<string> = new Set(['idle', 'listening', 'thinking', 'speaking', 'reading-your-data', 'writing-proposal', 'loading-model', 'offline', 'sleepy', 'greeting', 'wave-goodbye', 'peek']);
-/** Host facts that no playing clip may hold back: the panel opened or closed, the device went offline, ZIGi rests or dozes. */
-const HOST_DRIVEN: ReadonlySet<string> = new Set(['greeting', 'wave-goodbye', 'offline', 'idle', 'sleepy']);
+/** The conversation's own flow is never rate-limited; everything else is a reaction. Success belongs to the flow too
+ * (Session X-Local Part 6c, found live): it answers the person's own act (a check-in, an added card, a local answer),
+ * and an added card comes seconds after the reply that presented it, so a gap counted from that reply would swallow it. */
+const CONVERSATION: ReadonlySet<string> = new Set(['idle', 'listening', 'thinking', 'speaking', 'reading-your-data', 'writing-proposal', 'loading-model', 'offline', 'sleepy', 'greeting', 'wave-goodbye', 'peek', 'success']);
+/** Host facts that no playing clip may hold back: the panel opened or closed, the device went offline, ZIGi rests or
+ * dozes, and the person's own act succeeded (a check-in, an added card: the presenting clip yields to it at once). */
+const HOST_DRIVEN: ReadonlySet<string> = new Set(['greeting', 'wave-goodbye', 'offline', 'idle', 'sleepy', 'success']);
 export const CELEBRATIONS_PER_DAY = 3, REACTION_GAP_MS = 8000, DEFAULT_QUIET: readonly [number, number] = [22, 8];
 /** What each semantic event means for the state machine (events.ts `transition`); `null` only updates the controller. */
 export const EVENT_TO_MACHINE: Readonly<Record<SemanticEventType, ZigiEvent | null>> = {
