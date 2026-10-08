@@ -59,7 +59,8 @@ test('the AI asks for records: ZIGi runs the tools here and sends the results ba
   await page.goto('/app/health');
   await openChat(page);
   await expect(panel(page).locator('.ai-data-mode')).toHaveText(/^Your AI asks ZIGi for the records it needs \(tools\); each lookup is shown under the answer\. The tool list adds about [\d,]+00 tokens to each request\.$/);
-  await ask(page, 'Help me plan my week');
+  // Phase 2 (P2.2b): a lookup, not a plan — a plan answered without a card gets the one repair round, a request these counts are not about.
+  await ask(page, 'Tell me about my week');
   const reply = panel(page).locator('.ai-turn-assistant').last();
   await expect(reply).toContainText('MOCK: ten minutes after lunch would fit your week.');
   expect(bodies).toHaveLength(2);
@@ -89,7 +90,7 @@ test('the AI asks for records: ZIGi runs the tools here and sends the results ba
   await page.reload();
   await openChat(page);
   await panel(page).getByRole('button', {name: 'Chat history'}).click();
-  await panel(page).getByRole('button', {name: /Help me plan my week/}).click();
+  await panel(page).getByRole('button', {name: /Tell me about my week/}).click();
   const kept = panel(page).locator('.ai-turn-assistant').last().getByRole('group', {name: 'ZIGi looked at'});
   await expect(kept).toContainText('Meditate · this month');
   await kept.getByText('What ZIGi sent to your AI').click();
@@ -102,7 +103,7 @@ test('a model that refuses tools: the same message again with the records attach
   await seed(page);
   await page.goto('/app/habits');
   await openChat(page);
-  await ask(page, 'Help me plan my week');
+  await ask(page, 'Tell me about my week');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: here is a plan.');
   expect(bodies.map(b => !!b.tools)).toEqual([true, false]);
   await expect(panel(page).locator('.ai-data-mode')).toHaveText('Your model did not take ZIGi\'s tools, so the records chosen from your question are attached instead.');
@@ -123,12 +124,12 @@ test('Attach mode, Think deeper with the deep model, and "ask me first" once the
   await page.goto('/app/habits');
   await openChat(page);
   await expect(panel(page).locator('.ai-data-mode')).toHaveText('The records chosen from your question are attached to your message.');
-  await ask(page, 'Help me plan my week');
+  await ask(page, 'Tell me about my week');
   const check = panel(page).getByRole('group', {name: 'Your monthly cap is reached'});
   await expect(check).toContainText('You have reached your monthly cap: 1.00 USD of your 0.50 USD monthly cap, estimated from your prices.');
   await check.getByRole('button', {name: 'Not now'}).click();
   await expect(check).toHaveCount(0); expect(bodies).toHaveLength(0);
-  await ask(page, 'Help me plan my week');
+  await ask(page, 'Tell me about my week');
   await panel(page).getByRole('group', {name: 'Your monthly cap is reached'}).getByRole('button', {name: 'Send anyway'}).click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK from mock-chat');
   expect(bodies).toHaveLength(1); expect(bodies[0]!.tools).toBeUndefined();
@@ -138,7 +139,7 @@ test('Attach mode, Think deeper with the deep model, and "ask me first" once the
   await panel(page).getByRole('group', {name: 'Your monthly cap is reached'}).getByRole('button', {name: 'Send anyway'}).click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK from mock-deep');
   expect(bodies).toHaveLength(2); expect(bodies[1]!.model).toBe('mock-deep');
-  expect(bodies[1]!.messages.filter(m => m.role === 'user').map(m => m.content)).toEqual(['Help me plan my week']);
+  expect(bodies[1]!.messages.filter(m => m.role === 'user').map(m => m.content)).toEqual(['Tell me about my week']);
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('Thought deeper with mock-deep');
   await expect(panel(page).getByRole('button', {name: 'Think deeper'})).toHaveCount(0);
 });

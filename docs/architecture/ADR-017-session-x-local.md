@@ -171,6 +171,7 @@ Status: **In progress; implemented in Session X-Local on the owner's Mac (branch
 - `lib/ai/zigi-semantic.test.ts` "priority and settle holds": listening during the greeting's play was asserted `priority_hold`; it now reaches the machine (`listening`), which defers it itself (S52); the settle hold is asserted on a celebration instead (S60).
 - `tests/zigi-chat-polish.spec.ts` "edit the last question": the asks "Plan my week" / "Plan my weekend" became "Tell me about my week" / "…weekend" — a plan answered by MOCK without a card gets the one repair round (P2.2b), which that test is not about (its MOCK echo assertions are unchanged).
 - `tests/zigi-safety.spec.ts` "with an AI: a risky message…": the first, harmless ask "Help me plan a calm week, please." became "Tell me about a calm week, please." for the same reason; the request count and the careful-mode assertions are unchanged.
+- `tests/zigi-tools.spec.ts` (the three tests counting requests, six uses): "Help me plan my week" became "Tell me about my week" for the same reason; the request counts, tool fields, fallback and history assertions are unchanged.
 
 ## Rejected options
 - **Renaming the studio's files to lowercase** to keep the brand test's character class: Studio-4 ships the same names and a swap must stay a copy; the test's reason (percent-encoding) does not apply to letters.
