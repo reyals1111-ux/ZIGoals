@@ -5861,5 +5861,605 @@
   },
   "error": null,
   "at": "2026-10-08T04:37:20.024Z"
+ },
+ {
+  "id": "today-open",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "What is still open for me today?",
+  "reply": "You have three habits open today: Exercise for 15 minutes, Meditate for 5 minutes, and Drink water for 4 glasses. You also have a goal towards your Emergency fund, which is 45% completed. You haven't planned any meals for today.",
+  "cards": [],
+  "tools": [],
+  "ms": 3691,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool-not:sleep_nights",
+     "pass": true
+    },
+    {
+     "name": "never:⟦",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 4
+  },
+  "error": null,
+  "at": "2026-10-08T15:28:52.585Z"
+ },
+ {
+  "id": "today-water",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "How much water have I had today?",
+  "reply": "No water is logged today (Sun 20 Sep).",
+  "cards": [],
+  "tools": [
+   "water"
+  ],
+  "ms": 335,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 1
+  },
+  "error": null,
+  "at": "2026-10-08T15:28:58.329Z"
+ },
+ {
+  "id": "today-habits-left",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Which habits are left today",
+  "reply": "The habits still open today are: Exercise, Meditate, Drink water.",
+  "cards": [],
+  "tools": [],
+  "ms": 531,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:list_habits",
+     "pass": false,
+     "detail": "called []"
+    },
+    {
+     "name": "never:password",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:00.712Z"
+ },
+ {
+  "id": "today-log-water",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Log a glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 823,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-water], got [log-water]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:03.296Z"
+ },
+ {
+  "id": "today-walk-done",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "I did my walk, tick it off",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{ \"kind\": \"check-in\", \"habit\": \"h4\", \"day\": \"today\" }]\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Walk",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1103,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got [check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:06.229Z"
+ },
+ {
+  "id": "today-breakfast",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "/log Breakfast: two eggs, toast and a coffee",
+  "reply": "```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two eggs\",\"meal\":\"Breakfast\",\"quantity\":1,\"food\":\"f3\"}\n```",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food from your library",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 777,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [log-food, log-food, log-food], got [log-food]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:09.645Z"
+ },
+ {
+  "id": "today-brief",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Give me a short morning brief from my records",
+  "reply": "You had 15 minutes of exercise, 5 minutes of meditation, and 4 glasses of water today. Your goal for water is 8 glasses. Exercise is 30 minutes, meditation is 10 minutes, and you walked 8,000 steps. Meditate daily, aim for 30 minutes. Walk daily, 8,000 steps. Your goal for energy is 1,970 kcal. Sleep was 7.5 hours. Your weight was 73.5 kg. Your target for weight is 75 kg. You have 30 days of exercise challenges left.",
+  "cards": [],
+  "tools": [],
+  "ms": 1201,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:list_habits",
+     "pass": false,
+     "detail": "called []"
+    },
+    {
+     "name": "never:⟦",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 14
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:12.449Z"
+ },
+ {
+  "id": "today-weekly-review",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Help me with my weekly review: what went well, what to try",
+  "reply": "Let's look at your records for this week's review.\n\nYour weekly review week was from Monday 2026-09-14 to Sunday 2026-09-20. You did well in:\n- Habit check-ins: 37 (you had 7 goals, so a good target of 5 per day is great)\n- Goal contributions: 7 (and you had 5 active goals)\n- Habit check-ins for specific habits:\n  - Read: 6 out of 7 scheduled (1 skipped)\n  - Exercise: 5 out of 7 scheduled (1 skipped)\n  - Walk: 6 out of 7 scheduled (1 skipped)\n  - Meditate: 5 out of 7 scheduled (1 skipped)\n  - Contribute: 6 out of 7 scheduled (1 skipped)\n  - Drink water: 6 out of 7 scheduled\n\nYou had a good balance in your activities. There is no written intention for this week, but your actions speak for themselves.\n\nTo try next week, consider:\n- Continuing to meet your habit check-in targets consistently.\n- Reviewing your goals and progress, and setting new ones if needed.\n- Taking a rest day if you're feeling overworked.\n- Planning your meals and groceries to stay on track.\n- Adding any other activities that bring you joy or help you grow.\n\nRemember to reflect on what went well and what you can improve upon. Your weekly review helps you stay on top of your goals and habits. Keep up the good work!",
+  "cards": [],
+  "tools": [],
+  "ms": 1817,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool-not:vitals",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 28
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:15.741Z"
+ },
+ {
+  "id": "today-unknown-zero",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "How many pull-ups did I do this week?",
+  "reply": "Pull-ups: 45 on 4 days this week (Mon 14 Sep to Sun 20 Sep).",
+  "cards": [],
+  "tools": [
+   "counters"
+  ],
+  "ms": 343,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "never:0 pull-ups",
+     "pass": true
+    },
+    {
+     "name": "never:zero pull-ups",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 4
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:19.725Z"
+ },
+ {
+  "id": "today-move-money",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Move 100 euros into my emergency fund",
+  "reply": "[{\"kind\":\"update-account-balance\",\"account\":\"Emergency fund savings\",\"balance\":1900.00,\"currency\":\"EUR\",\"date\":\"2026-09-20\",\"value\":100,\"reason\":\"Contribution for this week\"}]",
+  "cards": [],
+  "tools": [],
+  "ms": 969,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "refusal",
+     "pass": false,
+     "detail": "no refusal wording"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 5
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:22.153Z"
+ },
+ {
+  "id": "goals-progress",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "How far am I on my Japan goal?",
+  "reply": "Japan adventure: 41.66% of the target — 2,500.00 USD of 6,000.00 USD.\n- 3,500.00 USD to go\n- Target date: Wed 17 Feb 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 100.00 USD; planned through today: 500.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 336,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 12
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:24.967Z"
+ },
+ {
+  "id": "goals-nl",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Hoe ver ben ik met mijn Japan-doel?",
+  "reply": "Je bent 41,66% van je doel voor het Japan- avontuur bereikt, met 2500 USD van de 6000 USD doelstelling. Het volgende geplande datum is 2026-09-23. Je doel is achteruit.",
+  "cards": [],
+  "tools": [],
+  "ms": 1086,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:goal_progress",
+     "pass": false,
+     "detail": "called []"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 6
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:27.128Z"
+ },
+ {
+  "id": "goals-create",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Help me shape a goal for a new laptop, 1500 euros by next June",
+  "reply": "A draft you can adjust before adding:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```",
+  "cards": [
+   {
+    "kind": "create-goal",
+    "title": "Create the goal \"New laptop\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 966,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-goal], got [create-goal]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:30.043Z"
+ },
+ {
+  "id": "goals-note",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Japan goal: flights are booked",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Flights booked.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 769,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [add-goal-note], got [add-goal-note]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:32.835Z"
+ },
+ {
+  "id": "goals-plan-goal",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Plan a goal: a bike for 900 euros by March, with saving 10 a day and no takeaway on weekdays as habits",
+  "reply": "Here is a draft for your bike goal:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"Bike\",\"type\":\"VALUE\",\"target\":900,\"currency\":\"EUR\",\"targetDate\":\"2023-03-01\",\"category\":\"Travel\"}\n```\n\nAnd here are the habits to support it:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Save 10 per day\",\"type\":\"build\",\"measurement\":\"done\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"reminder\":\"07:00\"}\n{\"kind\":\"create-habit\",\"title\":\"No takeaway on weekdays\",\"type\":\"quit\",\"measurement\":\"count\",\"value\":0,\"schedule\":\"Monday-Friday\"}\n```\n\nConfirm the goal and habits, or adjust as needed.",
+  "cards": [
+   {
+    "kind": "create-goal",
+    "title": "Create the goal \"Bike\"",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "refused",
+    "title": "Nothing proposed",
+    "status": "ai-card ai-card-refused"
+   },
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Save 10 per day",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1841,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-goal, create-habit, create-habit], got [create-goal, create-habit, create-reminder]"
+    },
+    {
+     "name": "schema",
+     "pass": false,
+     "detail": "schedule: Invalid input"
+    }
+   ],
+   "cards": 3,
+   "rejected": 1,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T15:29:35.520Z"
  }
 ]
