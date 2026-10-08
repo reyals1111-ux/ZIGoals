@@ -12,7 +12,7 @@ import {ZIGI_KEY} from '../lib/ai/store/keys';
  * played). Run through `playwright.webkit.config.ts`, by hand, on the owner's machines; labelled "WebKit".
  */
 const DAY = '2026-09-20';
-const PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/health?view=sleep', '/app/health?view=meditation', '/app/health?view=devices', '/app/wealth', '/app/portfolio', '/app/markets', '/app/staking', '/app/ecosystem', '/app/activity', '/app/chess', '/app/music', '/app/settings', '/app/help'];
+const PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/health?view=sleep', '/app/health?view=meditation', '/app/health?view=devices', '/app/wealth', '/app/portfolio', '/app/markets', '/app/staking', '/app/ecosystem', '/app/activity', '/app/chess', '/app/settings', '/app/help', '/app/zigi'];
 async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.goto('/app/settings');
   const ai = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'};
@@ -27,10 +27,12 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
   for (const path of PAGES) {
     await page.goto(path);
     await expect(page.locator('main'), path).toBeVisible();
+    // Settings is a sensitive screen (account, sync, recovery): the launcher stays away there by the app's own rule.
+    if (path === '/app/settings') { await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toHaveCount(0); continue; }
     await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toBeVisible();
     const img = page.locator('.ai-launcher-button img').first();
     await expect(img, path).toHaveAttribute('src', /\/brand\/figures\/zigi\/origami-nebula\/F001-idle(-2x)?\.webp$/);
-    await expect(img, path).toHaveJSProperty('naturalWidth', expect.any(Number));
+    await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth), {message: `${path}: the poster decoded`}).toBeGreaterThan(0);
   }
   expect(errors, 'page errors').toEqual([]);
 });

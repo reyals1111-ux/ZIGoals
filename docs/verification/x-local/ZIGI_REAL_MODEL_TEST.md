@@ -64,7 +64,16 @@ code. Real-model rows are filled in from the UI runs (6c).
 | Memory ("What ZIGi knows about me"), safety (careful mode), local answers | `zigi-memory.spec.ts`, `zigi-safety.spec.ts`, `zigi-local-answers.spec.ts` | Gate A, local |
 
 ## 6f. Safari engine (WebKit)
-_(filled in)_
+
+Playwright's WebKit 26.6 (`playwright install webkit`, the one owner-approved download, 78 MB), run by hand through
+`apps/web/playwright.webkit.config.ts` (projects `webkit-desktop`, `webkit-iphone15`; CI's workflow untouched).
+Label: **WebKit**, never "Safari on an iPhone" (the iPhone checklist in ZIGI_ALIVE_X.md covers the device).
+
+| Run | Result | Build |
+|---|---|---|
+| `tests/webkit-smoke.spec.ts` (every app page with the Showcase and no page error, the launcher's poster decoded on each, no launcher on Settings by the app's rule; Sleep, Meditation and Today's surfaces; reduced motion keeps the still) | 6 passed, both projects | dev server (`next dev`, `LOCAL_DEMO`) |
+| The ZIGi specs in WebKit (`zigi-*.spec.ts` minus the Chrome-only mini window, on-device model and browser agents, and the real-model runs) | _(this section's table is completed at Gate B on the production build)_ | |
+
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food

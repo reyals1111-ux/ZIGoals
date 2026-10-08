@@ -23,7 +23,7 @@ export const OUT = process.env.ZIGI_OUT ?? 'docs/verification/x-local/real-model
 /** How long one reply may take on a local model (first token on a cold model can be a minute). */
 export const REPLY_TIMEOUT_MS = Number(process.env.ZIGI_REPLY_TIMEOUT_MS ?? '240000');
 export const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
-export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app/music', links: '/app', settings: '/app/settings', help: '/app/help', activity: '/app/activity'};
+export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app', links: '/app', settings: '/app/settings', help: '/app/help', activity: '/app/activity'};
 export const slug = (s: string) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
 /** The Showcase plus a real local connection; Health shared (fictional records). `health: false` closes the gate. */
 export async function seedReal(page: Page, {health = true, log = false}: {health?: boolean; log?: boolean} = {}) {
