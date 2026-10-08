@@ -76,3 +76,18 @@ test('Session X-Local Part 5c: almost-JSON is repaired and then held to the same
   // A number inside a text field stays text: only numeric fields are coerced.
   expect(one(`{"kind":"remember","text":"42","category":"other"}`).proposals).toEqual([{kind: 'remember', text: '42', category: 'other'}]);
 });
+test('Session X-Local Part 6d: shapes seen on a small model are rewritten, never widened: "type" for "kind", "date", bare measurement and schedule words, "night", a loose category, a habit with a reminder', () => {
+  const one = (body: string) => parseReply(`\`\`\`zigoals-action\n${body}\n\`\`\``);
+  expect(one('{"type":"grocery-item","items":["Oat milk"]}').proposals).toEqual([{kind: 'grocery-item', items: ['Oat milk']}]);
+  expect(one('{"kind":"habit_checkin","habit":"h6","value":1,"date":"yesterday"}').proposals).toEqual([{kind: 'check-in', habit: 'h6', value: 1, day: 'yesterday'}]);
+  expect(one('{"kind":"create-habit","title":"Swim","measurement":"times","target":2,"schedule":"weekly","timeOfDay":"night"}').proposals).toMatchObject([{kind: 'create-habit', title: 'Swim', measurement: 'count', target: 2, schedule: {timesPerWeek: 1}, timeOfDay: 'evening'}]);
+  expect(one('{"kind":"create-habit","title":"Read","measurement":"pages","target":20,"schedule":"weekdays"}').proposals).toMatchObject([{measurement: {unit: 'pages'}, schedule: {weekdays: [1, 2, 3, 4, 5]}}]);
+  expect(one('{"kind":"create-habit","title":"Stretch","measurement":"minutes","target":10,"reminder":"07:30"}').proposals.map(p => p.kind)).toEqual(['create-habit', 'create-reminder']);
+  expect(one('{"kind":"create-goal","name":"Bike","target":800,"currency":"EUR","category":"Sports"}').proposals).toMatchObject([{kind: 'create-goal', name: 'Bike'}]);
+  expect(one('{"kind":"create-goal","name":"Bike","target":800,"currency":"EUR","category":"travel"}').proposals).toMatchObject([{category: 'Travel'}]);
+  expect(one('{"kind":"create-goal","name":"Trip","target":4000,"currency":"EUR","habits":[{"title":"Save daily"}]}').proposals.map(p => p.kind)).toEqual(['create-goal', 'create-habit']);
+  expect(one('{"kind":"create-challenge","habit":"h2","days":21}').proposals).toEqual([{kind: 'start-challenge', habit: 'h2', days: 21}]);
+  // A tool's name as a kind stays refused: a lookup is never a card.
+  expect(one('{"kind":"habits_due","habit":"h4"}')).toMatchObject({proposals: [], rejected: [{reason: expect.stringMatching(/kind/)}]});
+  expect(one('{"type":"function","function":{"name":"steps"}}')).toMatchObject({proposals: [], rejected: [{}]});
+});

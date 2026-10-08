@@ -1,5 +1,9 @@
 import {ACTION_FENCE} from '../context/specialists';
-import {COMPOSITE_KINDS, KIND_ALIASES, MAX_PROPOSALS, actionSchema, compositeSchema, expandComposite, type Action} from './schema';
+import {ACTION_KINDS, COMPOSITE_KINDS, GOAL_CATEGORIES, KIND_ALIASES, MAX_PROPOSALS, actionSchema, compositeSchema, expandComposite, type Action} from './schema';
+const KIND_SET: Record<string, true> = Object.fromEntries([...ACTION_KINDS, ...COMPOSITE_KINDS].map(k => [k, true]));
+const GOAL_CATEGORY_SET = new Set<string>(GOAL_CATEGORIES);
+/** A habit's measurement as a bare word, mapped to the schema's words or a unit of its own. */
+const MEASUREMENT_WORDS: Record<string, 'done' | 'count' | 'minutes' | 'hours'> = {times: 'count', time: 'count', count: 'count', counts: 'count', reps: 'count', repetitions: 'count', done: 'done', boolean: 'done', 'yes/no': 'done', check: 'done', checkbox: 'done', min: 'minutes', mins: 'minutes', minute: 'minutes', minutes: 'minutes', duration: 'minutes', h: 'hours', hr: 'hours', hrs: 'hours', hour: 'hours', hours: 'hours'};
 
 /**
  * Reads the proposals out of a finished reply (ADR-012, Part 5). Runs only after the stream ends: a half-received block
@@ -80,7 +84,19 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   const record = {...(value as Record<string, unknown>)};
   // Session X-Local Part 5a: "revise": true marks a correction of the previous reply; it is never a field of a card.
   if ('revise' in record) { if (record.revise === true) flags.revise = true; delete record.revise; }
+  // Session X-Local Part 6d (seen on phi4-mini): "type" for "kind", "date" for "day", a habit's measurement and schedule
+  // as bare words, "night" for the evening, an unknown goal category. Each is a rewrite of a shape, never a new ability.
+  if (record.kind === undefined && typeof record.type === 'string' && (KIND_ALIASES[record.type.trim().toLowerCase()] ?? record.type.trim().toLowerCase()) in KIND_SET) { record.kind = record.type; delete record.type; }
   if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase().replace(/\s+/g, '-'); record.kind = KIND_ALIASES[kind] ?? kind; }
+  if (record.day === undefined && typeof record.date === 'string') { record.day = record.date; delete record.date; }
+  if (record.kind === 'create-habit' || record.kind === 'build-habit' || record.kind === 'edit-habit') {
+    if (typeof record.measurement === 'string') { const m = record.measurement.trim().toLowerCase(); record.measurement = MEASUREMENT_WORDS[m] ?? (['done', 'count', 'minutes', 'hours'].includes(m) ? m : {unit: record.measurement.trim()}); }
+    if (typeof record.schedule === 'string') { const sch = record.schedule.trim().toLowerCase(); record.schedule = sch === 'daily' || sch === 'every day' || sch === 'everyday' ? 'daily' : sch === 'weekly' || sch === 'once a week' ? {timesPerWeek: 1} : sch === 'weekdays' || sch === 'workdays' ? {weekdays: [1, 2, 3, 4, 5]} : sch === 'weekends' ? {weekdays: [0, 6]} : sch === 'every other day' || sch === 'alternate days' ? {everyDays: 2} : record.schedule; }
+    if (typeof record.timeOfDay === 'string') { const t = record.timeOfDay.trim().toLowerCase(); record.timeOfDay = t === 'night' || t === 'evenings' ? 'evening' : t === 'mornings' || t === 'am' ? 'morning' : t === 'afternoons' || t === 'noon' ? 'afternoon' : t === 'any' || t === 'anytime' || t === 'any time' ? 'anytime' : record.timeOfDay; }
+    if (record.kind === 'create-habit' && record.reminder !== undefined) record.kind = 'build-habit';
+  }
+  if ((record.kind === 'create-goal' || record.kind === 'plan-goal' || record.kind === 'edit-goal') && typeof record.category === 'string' && !GOAL_CATEGORY_SET.has(record.category.trim())) { const match = [...GOAL_CATEGORY_SET].find(c => c.toLowerCase() === (record.category as string).trim().toLowerCase()); if (match) record.category = match; else delete record.category; }
+  if (record.kind === 'create-goal' && Array.isArray(record.habits)) record.kind = 'plan-goal';
   // Session X-Local Part 5c: a day written as "Today", "2026/10/08" or "2026-10-8" means the same day.
   if (typeof record.day === 'string') { const day = record.day.trim().toLowerCase().replace(/\//g, '-').replace(/^(\d{4})-(\d{1,2})-(\d{1,2})$/, (_, y: string, m: string, d: string) => `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`); record.day = day; }
   if (record.kind === 'log-measurement' && record.kind_of === undefined && typeof record.measurement === 'string') { record.kind_of = record.measurement; delete record.measurement; }

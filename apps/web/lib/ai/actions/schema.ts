@@ -154,6 +154,10 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   // Session X-Local Part 5a
   stack: 'stack-habit', 'stack_habit': 'stack-habit', 'add-to-stack': 'stack-habit', 'add_to_stack': 'stack-habit', 'create-stack': 'stack-habit', 'create_stack': 'stack-habit',
   'edit_habit': 'edit-habit', 'update-habit': 'edit-habit', 'update_habit': 'edit-habit', 'change-habit': 'edit-habit', 'rename-habit': 'edit-habit',
+  // Session X-Local Part 6d (seen on phi4-mini): a check-in, a challenge and a goal note under other names.
+  'habit_checkin': 'check-in', 'habit-checkin': 'check-in', 'habit-check-in': 'check-in', 'log-habit': 'check-in', 'log_habit': 'check-in', 'complete-habit': 'check-in', 'habit-done': 'check-in',
+  'create-challenge': 'start-challenge', 'create_challenge': 'start-challenge', 'new-challenge': 'start-challenge', 'update-goal-note': 'add-goal-note', 'goal-note': 'add-goal-note', 'add-note': 'add-goal-note',
+  'log-mood-entry': 'log-mood', 'mood-entry': 'log-mood', 'log-sleep-entry': 'log-sleep', 'log-night': 'log-sleep', 'add-sleep': 'log-sleep', 'add-meditation': 'log-meditation', 'log-mindful-minutes': 'log-meditation',
   'edit_goal': 'edit-goal', 'update-goal': 'edit-goal', 'update_goal': 'edit-goal', 'change-goal': 'edit-goal', 'rename-goal': 'edit-goal',
   mood: 'log-mood', 'log_mood': 'log-mood', 'add-mood': 'log-mood',
   link: 'add-link', 'add_link': 'add-link', 'create-link': 'add-link', 'my-link': 'add-link',

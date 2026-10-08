@@ -54,3 +54,6 @@ Done in Part 0 (`1cea510`): the four sample keys are joined at run time (`FAKE_O
 
 ## Shared file: What's new (release id bump)
 `apps/web/lib/whats-new.ts` `WHATS_NEW_RELEASE` is `2026-10-session-x` on this branch (was `2026-10-session-w`), so the one-time card shows once more with ZIGi's three links (Help anchors `help-your-ai-alive`, `help-your-ai-act`, `help-your-ai-auto`); Session W's links moved under "Earlier updates" in `components/for-you/whats-new-card.tsx`. If X-Cloud adds its own What's new links, add them to `WHATS_NEW_LINKS` in the same array (one grouped edit); the release id needs no second bump.
+
+## CI: the dependency audit fails on an upstream Next.js advisory (your lane: dependencies)
+Since 2026-10-08 ~00:40 UTC, `pnpm audit --prod --audit-level high` (the "web checks" job) fails on every branch, including this one at `d21fe0d`: GHSA-cjq9-62q9-8jv4, Next.js server-side request forgery in image optimisation, vulnerable `>=16.0.0 <16.3.8`, patched `>=16.3.8`; this repository pins `next` 16.3.6 (`apps/web`). This branch adds no dependency and changes no lockfile; the fix is a `next` bump to 16.3.8 on your side (one grouped dependency edit), after which both PRs go green at that step. Main's last green run predates the advisory (`72ad872`, 2026-10-07 19:39 UTC).
