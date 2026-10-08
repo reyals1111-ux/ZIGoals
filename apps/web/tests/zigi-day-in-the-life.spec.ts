@@ -83,8 +83,9 @@ for (const s of SCENARIOS) {
       record(info, file, run);
       if (run.error) throw new Error(run.error);
     }
-    // At rest the launcher returns to idle (the controller's cooldowns are seconds, never minutes).
-    await expect(launcher(page)).toHaveAttribute('data-state', 'idle', {timeout: 20_000});
+    // At rest the launcher returns to idle (the controller's cooldowns are seconds, never minutes) — or listening, since the
+    // message box keeps the focus after a Send (Phase 2, ADR-017 S71) and a focused box is "listening" by the guide's own rule.
+    await expect(launcher(page)).toHaveAttribute('data-state', /^(idle|listening)$/, {timeout: 20_000});
     info.annotations.push({type: 'scenario', description: problems.length ? problems.join(' | ') : 'every step as expected'});
   });
 }

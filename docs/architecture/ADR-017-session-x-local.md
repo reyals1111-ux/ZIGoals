@@ -187,6 +187,7 @@ Status: **In progress; implemented in Session X-Local on the owner's Mac (branch
 - `tests/zigi-tools.spec.ts` (the three tests counting requests, six uses): "Help me plan my week" became "Tell me about my week" for the same reason; the request counts, tool fields, fallback and history assertions are unchanged.
 - `tests/webkit-smoke.spec.ts` "every app page opens in WebKit…": `errors` → `[]` became `errors minus WebKit's rejected router prefetches` → `[]`, each excluded error identified by its exact shape and its moment (within 1.5 s of a navigation starting) and their count printed (S64); on the dev server nothing prefetches, so there the two are the same.
 - `tests/zigi-pages-conversations.spec.ts`: the two water asks on Help and Settings no longer expect "no card" (a log ask gets its card there too), and the "refused" check uses the scorer's refusal cue (S73).
+- `tests/zigi-day-in-the-life.spec.ts`: at the day's end the launcher is `idle` or `listening` (it was `idle` alone): since S71 the message box keeps the focus after a Send, and a focused box is "listening" by the guide's own rule; the real-model day run showed it.
 
 ## Rejected options
 - **Renaming the studio's files to lowercase** to keep the brand test's character class: Studio-4 ships the same names and a swap must stay a copy; the test's reason (percent-encoding) does not apply to letters.
