@@ -29,8 +29,11 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'s launcher shows its poster', async ({page}) => {
-  const errors: string[] = [];
+  const errors: string[] = [], cancelledPrefetches = new Set<string>();
   page.on('pageerror', e => errors.push(e.message));
+  // ADR-017 S64: a router prefetch WebKit cancelled because the page was left is recorded by its address; a page error
+  // that names that very address is the framework's rejection of it, counted and reported, never an error of the app.
+  page.on('requestfailed', r => { if (r.url().includes('_rsc=') && r.failure()?.errorText === 'cancelled') cancelledPrefetches.add(r.url().replace(/^https?:\/\//, '')); });
   await seed(page);
   for (const path of PAGES) {
     await page.goto(path);
@@ -45,7 +48,10 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
     await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth), {message: `${path}: the idle art decoded`}).toBeGreaterThan(0);
     await settled(page);
   }
-  expect(errors, 'page errors').toEqual([]);
+  const prefetchCancel = (m: string) => /due to access control checks\.?$/.test(m) && [...cancelledPrefetches].some(u => m.includes(u));
+  const real = errors.filter(m => !prefetchCancel(m));
+  console.log(`webkit-smoke: ${errors.length - real.length} page error(s) were WebKit's cancelled router prefetches (ADR-017 S64); ${real.length} other`);
+  expect(real, "page errors (WebKit's cancelled router prefetches excluded, each matched to its cancelled request, S64)").toEqual([]);
 });
 
 test('the Session W surfaces render in WebKit: Sleep, Meditation, My links and the wrap-up card', async ({page}) => {
