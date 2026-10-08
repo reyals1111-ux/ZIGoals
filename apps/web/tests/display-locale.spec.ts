@@ -43,3 +43,21 @@ for (const c of cases) test.describe(c.locale, () => {
     expect(errors).toEqual([]);
   });
 });
+
+// Session X P2.5: the other locales of the seven-locale sweep (docs/verification/x-cloud/LOCALES_X.md): the
+// Wealth total is written exactly as this browser's own Intl writes it for the locale (French Belgian grouping, the
+// British "US$", Arabic's right-to-left mark), Habits' weekday names stay English, and no hydration error appears.
+for (const locale of ["fr-BE", "en-GB", "ar"]) test.describe(locale, () => {
+  test.use({ locale });
+  test(`${locale}: Wealth's total in the browser's own format, English weekday names, no hydration error`, async ({ page }) => {
+    const errors = watchErrors(page);
+    await showcase(page);
+    await page.goto("/app/wealth");
+    const expected = await page.evaluate(() => new Intl.NumberFormat(navigator.language, { style: "currency", currency: "USD" }).format(501800));
+    await expect(page.locator(".wealth-hero, main").first()).toContainText(expected);
+    await page.goto("/app/habits");
+    for (const day of ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]) await expect(page.getByRole("main")).toContainText(day);
+    await page.waitForTimeout(500);
+    expect(errors).toEqual([]);
+  });
+});
