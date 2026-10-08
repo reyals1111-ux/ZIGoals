@@ -109,7 +109,7 @@ export const TOOLS_NOTE = 'You may also call the read-only tools ZIGoals provide
 /** The date line (Phase 2 round 4, ADR-017 S66): without it a model wrote "today" for "hier", "eergisteren" or a weekday name. */
 export function todayLine(today: string): string {
   const weekday = new Date(`${today}T12:00:00Z`).toLocaleDateString('en-GB', {weekday: 'long', timeZone: 'UTC'});
-  return `Today is ${weekday} ${today} for the person. A day other than today or yesterday is written as YYYY-MM-DD, counted from today: "the day before yesterday", "last Monday", "eergisteren", "avant-hier", "gisteren" and "hier" (yesterday), a weekday name. Clock idioms: Dutch "half acht" is 07:30 (half an hour before eight) and "kwart over acht" 08:15; French "sept heures et demie" is 07:30.`;
+  return `Today is ${weekday} ${today} for the person. A day other than today or yesterday is written as YYYY-MM-DD, counted from today: "the day before yesterday", "last Monday", "eergisteren", "avant-hier", "gisteren" and "hier" (yesterday), a weekday name. Clock idioms: "midnight" ("middernacht", "minuit") is "00:00" and "noon" ("middag", "midi") is "12:00"; Dutch "half acht" is 07:30 (half an hour before eight) and "kwart over acht" 08:15; French "sept heures et demie" is 07:30.`;
 }
 export function buildSystemPrompt({area, context, customInstructions, providerName, tools = false, today}: {area: PageArea; context: string | null; customInstructions: string; providerName: string; tools?: boolean; today?: string}): string {
   const examples = EXAMPLES[area].map((e, i) => `Example ${i + 1}. Person: ${e.ask}\nYou: ${e.reply}`).join('\n\n');

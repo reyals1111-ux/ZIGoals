@@ -37,7 +37,8 @@ type Food = {name: string; estimate?: {kcal?: number; protein_g?: number; carbs_
 /** The model's own hedge: an estimate named as one, or what it could not see or judge, in its words (read off the live replies). */
 /** One card for the whole plate ("Full English breakfast", "fry-up") is a legitimate entry; it is on the plate by definition. */
 const COMBINED = /breakfast|brunch|lunch|dinner|supper|plate|meal|fry.?up|platter|spread|mixed/i;
-const HEDGE = /estimat|guess|roughly|about|approximately|around|could not|couldn.t|cannot|can.t (?:see|tell|judge)|not sure|unsure|unclear|not (?:certain|clear)|hard to (?:tell|see|judge)|unknown|leav(?:e|ing) (?:it |that |them |any |every )?(?:value |amount )?out|left (?:it |that |them |any )?out/i;
+// Round 9 (ADR-017 S75): "I don't know how much oil was used, so I've kept servings and some nutrients out" hedges too.
+const HEDGE = /estimat|guess|roughly|about|approximately|around|could not|couldn.t|cannot|can.t (?:see|tell|judge)|not sure|unsure|unclear|not (?:certain|clear)|hard to (?:tell|see|judge)|unknown|(?:don.t|do not|didn.t|did not) know|leav(?:e|ing) (?:it |that |them |any |every )?(?:value |amount )?out|(?:left|kept) (?:it |that |them |any |some |servings |values |amounts |and )*(?:\S+ ){0,3}?out\b/i;
 const file = `photos-${slug(MODEL)}.json`;
 for (const p of PHOTOS) {
   test(`${p.file} (${p.source})`, async ({page}, info) => {

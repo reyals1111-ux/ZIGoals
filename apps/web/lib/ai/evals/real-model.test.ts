@@ -7,6 +7,7 @@ import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
 import {applyDayCue} from '../actions/day-cue';
 import {reviseEdits} from '../actions/revise';
+import {stripDeclinedBlocks} from '../actions/decline';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../intent';
 import {buildSystemPrompt} from '../context/specialists';
 import {questionContext} from '../context/question';
@@ -87,6 +88,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
     reply = applyDayCue(reply, ask, DAY);
     // Round 8 (ADR-017 S74), as the app does: a correction of a card that was only proposed becomes that card again, corrected.
     reply = reviseEdits(reply, [...history].reverse().find(m => m.role === 'assistant')?.content ?? null, [...(context?.handles ?? []), ...toolHandles.list]);
+    // Round 9 (ADR-017 S75), as the app does: a money ask the reply declines in words carries no card.
+    reply = stripDeclinedBlocks(reply, ask);
   }
   const totalMs = Date.now() - started;
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.

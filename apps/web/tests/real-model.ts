@@ -3,6 +3,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {expect, type Page, type TestInfo} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
+import {HEALTH_STORAGE_KEY} from '../lib/health';
+import {nightDay} from '../lib/sleep/engine';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
@@ -30,6 +32,22 @@ export const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
 export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app', links: '/app', settings: '/app/help', help: '/app/help', activity: '/app/activity'};
 export const slug = (s: string) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
 /** The Showcase plus a real local connection; Health shared (fictional records). `health: false` closes the gate. */
+/**
+ * Phase 2 round 9 (ADR-017 S75): the Showcase logs a night for every one of its 30 days but three, so a scenario that
+ * logs "last night" on the Showcase day asks for a night the app rightly refuses (it overlaps the one that ended that
+ * morning: 0 of 6 runs on every host). The scenario removes that night first, so the lie-in is the first night of the day.
+ */
+export async function removeShowcaseNightEndingOn(page: Page, day: string) {
+  const health = JSON.parse(buildShowcase(day).records[HEALTH_STORAGE_KEY]!) as {sleep?: {nights: {id: string; end: string | null; timeZone: string}[]}};
+  const gone = (health.sleep?.nights ?? []).filter(n => nightDay(n) === day).map(n => n.id);
+  expect(gone.length, 'the Showcase night that ends on its day').toBe(1);
+  await page.evaluate(([key, ids]) => {
+    const raw = localStorage.getItem(key); if (!raw) return;
+    const data = JSON.parse(raw) as {sleep?: {nights: {id: string}[]}};
+    if (data.sleep) data.sleep.nights = data.sleep.nights.filter(n => !ids.includes(n.id));
+    localStorage.setItem(key, JSON.stringify(data));
+  }, [HEALTH_STORAGE_KEY, gone] as const);
+}
 export async function seedReal(page: Page, {health = true, log = false}: {health?: boolean; log?: boolean} = {}) {
   await page.goto('/app/settings');
   const base = defaultAiSettings();
