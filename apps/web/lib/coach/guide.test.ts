@@ -28,7 +28,7 @@ const base = (patch: Partial<GuideContext> = {}): GuideContext => ({guide: on(),
 
 describe('each condition, true and false', () => {
   test('review-ready: the chosen weekday with an open review; not when done, skipped or on another day', () => {
-    expect(guideNudge(base({review: {isReviewDay: true, state: 'due'}}))).toMatchObject({id: 'review-ready', heading: 'Your weekly review is ready when you are.', body: 'It takes about five minutes.', action: {label: 'Open the review', href: '/app#weekly-review'}});
+    expect(guideNudge(base({review: {isReviewDay: true, state: 'due'}}))).toMatchObject({id: 'review-ready', heading: 'Your weekly review is ready when you are.', body: 'It takes about five minutes.', action: {label: 'Open the review', href: '/app#for-you-weekly-review'}});
     expect(guideNudge(base({review: {isReviewDay: true, state: 'draft'}}))?.id).toBe('review-ready');
     expect(guideNudge(base({review: {isReviewDay: true, state: 'done'}}))).toBeNull();
     expect(guideNudge(base({review: {isReviewDay: false, state: 'due'}}))).toBeNull();

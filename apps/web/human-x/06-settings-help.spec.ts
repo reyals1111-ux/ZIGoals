@@ -669,7 +669,7 @@ journey('J207', 'the Habits and Health sections: the weekly review day kept, eac
   await page.waitForURL(/\/app\/settings/);
   await ready(page);
   await expect(page.locator('#health-settings')).toContainText('You choose every value.');
-  await page.locator('#health-settings').getByRole('link', {name: 'Open Health & targets →', exact: true}).click();
+  await page.locator('#health-settings').getByRole('link', {name: 'Open Health →', exact: true}).click();
   await page.waitForURL(/\/app\/health$/);
   await ready(page);
   await expect(page.getByRole('heading', {level: 1, name: 'A little care, every day.'})).toBeVisible();

@@ -112,7 +112,7 @@ export function SwitchImport() {
     {health.error && <p className="notice">{health.error}</p>}
     <RecentImports batches={batches.data.batches} unreadable={batches.unreadable} health={health} habits={habits} onChange={change => batches.update(change)} />
     <details className="switch-formats"><summary>Which apps, and how to export from each</summary>
-      <ul>{FORMATS.map(f => <li key={f.id}><strong>{f.label}</strong>{f.state === 'off' ? <span className="switch-off"> · not read yet</span> : f.state === 'meals' ? <span> · in Health → Import meals</span> : null}
+      <ul>{FORMATS.map(f => <li key={f.id}><strong>{f.label}</strong>{f.state === 'off' ? <span className="switch-off"> · not read yet</span> : f.state === 'meals' ? <span> · in Health → Diary → Import a nutrition CSV</span> : null}
         <p>{f.steps}</p><p className="fine">{f.state === 'off' ? f.offReason : `Reads: ${f.reads}`} {f.basis}</p></li>)}</ul>
       <p className="fine">ZIGoals reads only what each app documents about its export (sources in docs/product/IMPORT_FORMATS.md). Fitbit&apos;s older JSON files, Garmin and Streaks are not read.</p>
     </details>
