@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import type {ParsedReply} from './parse';
 import {actionSchema} from './schema';
 
