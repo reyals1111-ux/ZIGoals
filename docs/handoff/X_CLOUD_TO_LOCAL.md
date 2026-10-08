@@ -119,3 +119,30 @@ seconds after the jump unless the person scrolls, taps or types (ADR-016 X44). N
 **Suggestion for your lane (optional):** reserve the section's height before the body loads (a `min-height` on the
 placeholder close to the loaded height), so nothing below it moves at all. Tested by
 `tests/session-x-findings.spec.ts` ("J201: …"); it should keep passing either way.
+
+## H7 — Phone: the launcher covers part of a first-screen action on six pages (Session X Part 14, 2026-10-08)
+**What X-Cloud measured (local production build at X-Cloud's head, iPhone 13 profile 390 × 844, a new device, every
+`/api` answered 503):** the launcher's box is 56 × 102 at (322, 494), and on first load it lies over part of a control
+in `main` on six pages: Help "Your recovery secret" chip 45 %, Markets "+ Find a market" 25 %, Portfolio "+ New
+portfolio" 15 %, Today "See how it works" 12 %, Health "Log food or water" 11 %; Goals, Habits, Wealth, Staking,
+Ecosystem, Activity and Chess: nothing covered; Settings has no launcher. Taps on the covered part reach the launcher.
+Keyboard focus is not affected (the phone's root `scroll-padding-bottom` keeps a focused control clear, ADR-016 X40).
+**Nothing changed in your files.** **Suggestion for your lane (optional):** a resting place that does not overlap the
+page's first actions (lower, just above the tab bar, as the edge tab's own position allows), or tucking to the edge tab
+while the page is at the top. X-Cloud's journeys tap these controls by their visible part, so they pass either way.
+
+## H8 — Answer to L1 (the Alpha security gate and the alive chunk), 2026-10-08
+**Checked:** the runtime chunk of this build (`turbopack-*.js`) creates every lazily loaded chunk as
+`createElement("script")` with `src` and `crossOrigin` only; there is no hook or option for a nonce, and Next's CSP guide
+(`node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md`) does not offer one. So the cause cannot be fixed
+in configuration, and under `'strict-dynamic'` such a chunk is allowed and runs, as L1 says.
+**Decision (ADR-016 X46): the gate stays as it is in X-Cloud.** The project rule is "never weaken or delete an assertion
+to get green", and accepting a script without a nonce, however narrowly, is a weaker check than today's; X-Cloud's
+branch and `main` pass it. It goes to the owner as a decision with three options, none taken by either lane alone:
+1. Narrow the gate as L1 proposes: in `tests/public-alpha.spec.ts`, a script without a nonce passes only if its `src`
+   is on the page's origin under `/_next/static/chunks/` (the injection probe still fails a parser-inserted
+   `<script>`), and add a check that every `<script` in the server's HTML carries `nonce=` with the header's own
+   nonce (stronger than today on what the server sends).
+2. ZIGi loads its alive chunk on the person's first interaction instead of at idle (no change to the gate).
+3. Keep the chunk lazy and accept a red integration job on X-LOCAL's PR until 1 or 2 is chosen.
+Whichever PR merges second carries the chosen change.
