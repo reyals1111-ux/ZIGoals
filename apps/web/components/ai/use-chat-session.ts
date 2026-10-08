@@ -260,6 +260,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
      */
     const repair = async () => {
       if (controller.signal.aborted || !reply) return;
+      // Careful mode (a sensitive health topic): the reply is warm and figure-free by the note's own rule; no second ask for cards.
+      if (risk) return;
       // Phase 2 (P2.2b): also when a card was asked for (log or plan mode, or a logging or planning intent read on the
       // device) and no block came back at all; on Ollama the retry asks for structured output (the JSON schema).
       // Log or plan mode alone does not force a retry ("thanks" in log mode is a normal reply); the message's own intent does.

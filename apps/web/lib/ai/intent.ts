@@ -25,13 +25,15 @@ const VAGUE = /^(?:log it|note that|track this|skip it|mark it done|remind me|ad
 const REFUSE = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |alors |dan |nu )*(?:delete|remove|erase|wipe|drop|archive|discard|buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|stake|unstake|claim|sign|verwijder|wis|archiveer|koop|verkoop|stort|verstuur|verplaats|teken|supprime[rz]?|efface[rz]?|retire[rz]?|archive[rz]?|ach[eè]te[rz]?|vends?|vendre|finance[rz]?|transf[eè]re[rz]?|signe[rz]?|retire[rz]?)\b|\b(?:remember|save|store|keep|onthoud|bewaar|retiens|garde|enregistre)\b.{0,40}\b(?:key|password|passphrase|secret|seed|sleutel|wachtwoord|cl[eé]|mot de passe)\b|\bmy (?:password|api key|seed phrase|private key) is\b|\bmijn wachtwoord is\b|\bmon mot de passe est\b|\bsk-[A-Za-z0-9]/i;
 /** A reply that reads as a decline, in the three languages: no repair round after it (the model said no; a card would be invented). */
 const REFUSAL_REPLY = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|unable to|not able to|not something I|no (?:medical|financial|investment|dietary) advice|ik kan (?:dat |het |dit )?niet|kan ik niet|je ne peux pas|impossible)\b/i;
+/** A message that asks (a question word first, a question mark last) asks; it logs or plans nothing, whatever quantities it names ("How can I lose 10 kg in 2 weeks?"). */
+const QUESTION_START = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |zigi,? |hé |hoi |salut |dis-moi,? )*(?:how|what|which|when|where|why|who|can|could|should|would|will|is|are|do|does|did|have|has|am|hoe|wat|welke?|wanneer|waar|waarom|kan|kun|kunnen|moet|zou|is|zijn|heb|hebben|comment|quoi|que|quel(?:le)?s?|quand|où|pourquoi|est-ce|puis-je|peux-tu|dois-je|y a-t-il)\b/i;
 export function detectIntent(text: string): Intent {
   const t = text.trim();
-  const vague = VAGUE.test(t), refuse = REFUSE.test(t);
+  const vague = VAGUE.test(t), refuse = REFUSE.test(t), asks = QUESTION.test(t) && QUESTION_START.test(t);
   const lookup = !vague && LOOKUP.test(t) && (QUESTION.test(t) || !LOG_VERB.test(t)) && !STATEMENT.test(t);
   const log = !vague && !lookup && (LOG_VERB.test(t) || STATEMENT.test(t) || ((QUANTITY.test(t) || NUMBER_WORD.test(t)) && !PLAN.test(t)) || (CLOCK.test(t) && /\b(slept|sleep|bed|nap|geslapen|dormi|couché)\b/i.test(t)));
   const plan = !vague && !lookup && !log && PLAN.test(t) && !QUESTION.test(t);
-  return {log: log && !refuse, plan: plan && !refuse, lookup, vague, refuse};
+  return {log: log && !refuse && !asks, plan: plan && !refuse && !asks, lookup, vague, refuse};
 }
 /** Whether a reply with no proposal block should get the bounded repair round: a log or plan intent, nothing to refuse, and the reply neither asked a question back nor declined. */
 export const wantsCard = (intent: Intent, reply: string): boolean => (intent.log || intent.plan) && !intent.vague && !intent.refuse && !/\?/.test(reply.trim().slice(-200)) && !REFUSAL_REPLY.test(reply.slice(0, 400));

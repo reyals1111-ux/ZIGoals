@@ -34,4 +34,12 @@ test('a reply that declines gets no repair round either', () => {
   expect(wantsCard(detectIntent('Note un verre d\'eau'), 'Je ne peux pas sans la quantité.')).toBe(false);
   expect(wantsCard(detectIntent('Log a glass of water'), 'Noted: a glass of water, 250 ml.')).toBe(true);
 });
+test('a question asks: whatever quantity it names, it logs or plans nothing (the careful-mode reply got a repair round)', () => {
+  for (const ask of ['How can I lose 10 kg in 2 weeks?', 'Should I run 5 km every day?', 'Is 2000 ml of water a day enough?', 'Hoe kan ik 10 kg afvallen in 2 weken?', "Comment perdre 10 kg en 2 semaines ?", 'What would a 16 hour fast do?']) {
+    const i = detectIntent(ask); expect(i.log || i.plan, ask).toBe(false); expect(wantsCard(i, 'A careful reply.'), ask).toBe(false);
+  }
+  // A log ask with a question mark still logs; a quantity in a statement still logs.
+  expect(detectIntent('Log a glass of water?').log).toBe(true);
+  expect(detectIntent('I ran 5 km in 28 minutes').log).toBe(true);
+});
 
