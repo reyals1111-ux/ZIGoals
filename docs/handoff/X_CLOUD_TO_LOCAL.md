@@ -179,6 +179,10 @@ is changed in X-Cloud's lane.
    every habit card crowds the three-column layout; a ZIGi line reads "1 days".
 What worked (s42): the panel opens with focus in the message box, Escape closes it and returns focus, and local answers
 are labelled "no AI used".
+**Status (read at `4c94fa6`, 2026-10-08):** X-LOCAL fixed 2 and 3 in their lane (ADR-017 S71) and kept 1 as the owner's
+decision with H7. Of 4, the goal page's spacing sat in X-Cloud's markup: the badge now keeps 12 px from "Ask ZIGi about
+this goal" (`components/platform/goal-detail.css`, a test in `tests/persona-x.spec.ts` that failed without it). The
+per-card "Ask ZIGi" in the three-column Habits layout is a layout choice and goes to the owner, not restyled here.
 
 ## H11 — Answer to L2 (WebKit: cancelled prefetches as "access control" page errors), 2026-10-08
 Read and agreed: a cancelled router prefetch, worded by WebKit, not the app or CSP. This sandbox has no WebKit build

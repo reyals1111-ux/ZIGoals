@@ -55,8 +55,10 @@ with a regression test in `tests/persona-x.spec.ts` or a unit test, unless the r
 | 25 | P | Wording | **Fixed:** "1 records of 1 other kinds", "(1 days)", "Etc/GMT+4" (now "UTC−04:00"), "From fitbit" and other source codes (now "Fitbit", "Oura (linked)"…), a repository path shown in the importer, "Favorites" (now "Favourites", as elsewhere), "Manual value · Manual value" on Wealth, "MANUAL · MANUAL" on Staking, "DATA & PRIVACY" twice in Settings, "Add Meditate today to Today" (now "… check-in to Today"), "Close" for ending a health goal (now "End goal"), imported weights under "Manual readings" (now "Your readings"). **Kept:** the goal card's art label beside its eyebrow (the card's accepted design), a Contribution entry's category chip beside its title, "liters" (the habit's own unit), and "PUBLIC_ALPHA_UNDEPLOYED", which only a local build shows. |
 | 26 | P | Phone layering: the music button over "+ New habit" in the Showcase; the translucent sticky header (s04, s08) | **Owner decision** with H7 (floating buttons in a first screen's corners); the header is the protected phone shell. |
 
-The ZIGi findings (the launcher's overlap, a suggestion chip that loops, focus after Send with the mouse, spacing) are
-handed to X-LOCAL as handoff H10.
+The ZIGi findings (the launcher's overlap, a suggestion chip that loops, focus after Send with the mouse, spacing) were
+handed to X-LOCAL as handoff H10. X-LOCAL fixed the chip and the focus (ADR-017 S71); the launcher's overlap stays an
+owner decision with H7. The goal page's spacing was in this lane's markup and is fixed here (the badge keeps 12 px from
+"Ask ZIGi about this goal", tested); the per-card "Ask ZIGi" in the three-column Habits layout is an owner decision.
 
 ## Also found while fixing
 - `tests/music.spec.ts:75` failed 1 run in 5 on its own. The music panel moved focus in an effect keyed on `open`

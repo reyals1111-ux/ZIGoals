@@ -134,3 +134,16 @@ test('the Showcase says that what is added there stays in the demo, and Exit ret
   await page.waitForURL(url => url.pathname === '/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toHaveCount(0);
 });
+
+test('a goal\'s "Ask ZIGi about this goal" keeps clear of its status badge (handed back by X-LOCAL, H10)', async ({page}) => {
+  const goal = privateGoalSchema.parse({id: '8', name: 'Fictional bike', type: 'VALUE', status: 'active', asset: 'USD', denom: 'USD', decimals: 2, target: '50000', targetDate: '2027-06-30', notes: '', createdAt: '2026-06-01T09:00:00.000Z', milestones: []});
+  await seed(page, {[PLATFORM_KEY]: {...emptyPlatform(), goals: [goal]}});
+  await page.goto('/app/goals/tracked/8');
+  const ask = page.getByRole('button', {name: 'Ask ZIGi about this goal', exact: true}), badge = page.locator('.goal-detail-heading .badge');
+  await expect(ask).toBeVisible();
+  await expect(badge).toHaveText('Active');
+  const [a, b] = await Promise.all([ask.boundingBox(), badge.boundingBox()]);
+  // On one line the badge starts at least 8 px after the link; on a narrow screen it may wrap below it instead.
+  if (b!.y < a!.y + a!.height && a!.y < b!.y + b!.height) expect(b!.x - (a!.x + a!.width)).toBeGreaterThanOrEqual(8);
+  else expect(b!.y).toBeGreaterThanOrEqual(a!.y + a!.height - 1);
+});
