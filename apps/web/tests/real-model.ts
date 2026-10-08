@@ -85,9 +85,10 @@ export async function cardsOf(page: Page): Promise<UiCard[]> {
 }
 export type UiRun = {id: string; model: string; host: string; project: string; page: string; ask: string; reply: string; cards: UiCard[]; tools: string[]; ms: number; score: Score | null; error: string | null; at: string};
 /** Scores a reply from the UI: cards, schema, tools, wording and refusals; facts and hints are the Node harness's. */
-export function scoreUi(expect_: Expect, reply: string, tools: string[]): Score {
+export function scoreUi(expect_: Expect, reply: string, tools: string[], source?: string): Score {
   const {hint, facts, localFirst, ...rest} = expect_; void hint; void facts; void localFirst;
-  const observed: Observed = {text: reply, calls: tools.map(name => ({name, args: null, accepted: true}))};
+  // Phase 2 (ADR-017 S61): a reply the device made (`source: 'local'`) carries no model tool call; the scorer knows.
+  const observed: Observed = {text: reply, calls: tools.map(name => ({name, args: null, accepted: true})), local: {answered: source === 'local'}};
   return score(rest, observed);
 }
 /** Appends one run to the model's UI results file (one JSON array per model and spec), and attaches it to the test. */
@@ -99,4 +100,4 @@ export function record(info: TestInfo, file: string, run: UiRun) {
   writeFileSync(path, JSON.stringify(list, null, 1));
   info.annotations.push({type: 'real-model', description: `${run.model} on ${run.host}: ${run.score ? (run.score.pass ? 'pass' : 'fail') : 'unscored'} in ${run.ms} ms`});
 }
-export const lastReply = async (page: Page) => { const turns = await storedTurns(page); const last = [...turns].reverse().find(t => t.role === 'assistant'); return {text: last?.text ?? '', tools: (last?.tools ?? []).map(t => t.tool), stopped: last?.stopped ?? null}; };
+export const lastReply = async (page: Page) => { const turns = await storedTurns(page); const last = [...turns].reverse().find(t => t.role === 'assistant'); return {text: last?.text ?? '', tools: (last?.tools ?? []).map(t => t.tool), stopped: last?.stopped ?? null, source: last?.source ?? null}; };
