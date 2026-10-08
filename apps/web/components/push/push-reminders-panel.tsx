@@ -5,6 +5,7 @@ import {localDate} from '../../lib/local-date';
 import {TIME, type QuietHours} from '../../lib/push/schedule';
 import {usePush} from './use-push';
 import './push.css';
+import {LoadBoundary} from '../load-boundary';
 
 /** The one line that says where this device stands, and whether Turn on is offered. */
 export function pushStateLine(p: Pick<ReturnType<typeof usePush>, 'support' | 'availability' | 'record' | 'permission' | 'account' | 'showcase'>): {text: string; canTurnOn: boolean; install?: boolean} {
@@ -46,7 +47,7 @@ export function PushRemindersPanel() {
       <button type="submit" className="secondary" disabled={push.busy || !draft || !validQuiet || (draft.from === push.record.data.quiet.from && draft.to === push.record.data.quiet.to)}>Save quiet hours</button>
     </form>}
     {push.record.data && <p className="fine">Nothing is sent between {push.record.data.quiet.from} and {push.record.data.quiet.to}, in this device&rsquo;s time zone.</p>}
-    {push.record.data && <Suspense fallback={null}><ReminderNames/></Suspense>}
+    {push.record.data && <LoadBoundary label="The reminder names"><Suspense fallback={null}><ReminderNames/></Suspense></LoadBoundary>}
     <div className="actions">
       {state.canTurnOn && <button type="button" className="primary" disabled={push.busy} onClick={() => void push.turnOn()}>{push.busy ? 'Setting up…' : 'Turn on on this device'}</button>}
       {push.record.data && <button type="button" className="secondary" disabled={push.busy} onClick={() => void push.turnOff()}>{push.busy ? 'Turning off…' : 'Turn off and delete from the server'}</button>}

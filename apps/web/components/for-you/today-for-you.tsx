@@ -43,6 +43,7 @@ import {localClock} from '../../lib/reminders/due';
 import {addLocalDays} from '../../lib/local-date';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown} from '../../lib/pages/visibility';
+import {LoadBoundary} from '../load-boundary';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
 const JOURNAL_ZONE_PROMPT = 'journal-zone';
@@ -87,7 +88,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});
-  if (zigiOn && brief) cards.push({id: 'zigi-brief', priority: 7, node: <Suspense fallback={null}><BriefCard {...brief} /></Suspense>});
+  if (zigiOn && brief) cards.push({id: 'zigi-brief', priority: 7, node: <LoadBoundary quiet><Suspense fallback={null}><BriefCard {...brief} /></Suspense></LoadBoundary>});
   // Session W Part 17 (T2-A): once Habits or Health count days in this device's zone and none is written down, offer it once.
   const zoneMatters = habits.habits.length > 0 || health.diary.length > 0 || health.weights.length > 0 || health.activity.length > 0 || dailyData(health).water.length > 0;
   if (!showcase && zoneMatters && settings.loaded && !settings.error && !settings.data.journalTimeZone && !habits.timeZone && !dailyData(health).preferences.timezone && zonePrompt.loaded && !zonePrompt.unreadable && !zonePrompt.data.dismissed[JOURNAL_ZONE_PROMPT])
@@ -96,5 +97,5 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (settings.loaded && !settings.error && clock && wrapUpDue(settings.data, today, localClock(clock)))
     cards.push({id: 'wrap-up', priority: 9, node: <WrapUpCard habits={habits} health={health} now={clock.getTime()} showHabits={isShown(pagesView, 'habits')} showHealth={isShown(pagesView, 'health')} onWrap={intention => settings.update(current => wrapUpDay(current, today, intention, new Date().toISOString())).then(() => true, () => false)} />});
   const intention = settings.loaded && !settings.error ? intentionFrom(settings.data, addLocalDays(today, -1)) : null;
-  return <>{zigiOn && <Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense>}<ForYou cards={cards} status={reviewNote} note={intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null} /></>;
+  return <>{zigiOn && <LoadBoundary quiet><Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense></LoadBoundary>}<ForYou cards={cards} status={reviewNote} note={intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null} /></>;
 }

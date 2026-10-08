@@ -257,3 +257,22 @@ test('the Guide\'s "Open habit" shows that habit even when today\'s filter would
   await expect(swim).toBeInViewport();
   await expect(page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'All', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('J249: Settings going offline right after it opens keeps working; a part that cannot load says so, never the error page', async ({page}) => {
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  await showcase(page);
+  await page.goto('/app/settings');
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  // Offline before the parts that load on demand have arrived (ZIGi's settings load when the browser is idle).
+  await page.context().setOffline(true);
+  await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
+  await page.waitForTimeout(1500);
+  await expect(page.getByText('This page could not be shown.')).toHaveCount(0);
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(page.locator('#private-vault')).toBeVisible();
+  const note = page.locator('.load-boundary');
+  if (await note.count()) { await expect(note.first()).toContainText('needs a connection to open'); await expect(note.first().getByRole('button', {name: 'Reload'})).toBeDisabled(); }
+  await page.context().setOffline(false);
+  if (await note.count()) await expect(note.first().getByRole('button', {name: 'Reload'})).toBeEnabled();
+  expect(errors.filter(e => !/ChunkLoadError|Failed to load chunk|Loading chunk/.test(e))).toEqual([]);
+});

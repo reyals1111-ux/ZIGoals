@@ -34,6 +34,7 @@ import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
 import { AiLauncher } from "./ai/ai-launcher";
+import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
 import { formatPlainDecimal } from "../lib/visual-format";
@@ -246,7 +247,7 @@ export function Shell({ children }: { children: ReactNode }) {
         )}
         <OfflineNotice />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><AiLauncher /><AmbientPill /><MusicLauncher />
+        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
         <footer>
           <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
           <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>

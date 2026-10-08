@@ -49,6 +49,7 @@ import { healthGroupIn } from "../../lib/vault/w-homes";
 import { MeditationCard } from "./meditation/meditation-card";
 import { useDeviceRecord } from "../ai/use-device-record";
 import { MEDITATION_RUN } from "../../lib/meditation/schema";
+import { LoadBoundary } from "../load-boundary";
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
@@ -102,9 +103,9 @@ export function HealthApp() {
   const view = params.get("view") ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
-  if (view === "sleep") return <Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense>;
-  if (view === "meditation") return <Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense>;
-  if (view === "devices") return <Suspense fallback={<section className="panel"><h1>Devices</h1><p>Opening Devices…</p></section>}><DevicesView /></Suspense>;
+  if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense></LoadBoundary>;
+  if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense></LoadBoundary>;
+  if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><p>Opening Devices…</p></section>}><DevicesView /></Suspense></LoadBoundary>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 

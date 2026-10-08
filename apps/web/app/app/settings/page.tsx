@@ -16,6 +16,7 @@ import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
+import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
 import { useState, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
@@ -169,7 +170,7 @@ export default function Settings() {
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-zigi" title="ZIGi">
-        <AiSettingsSection/>
+        <LoadBoundary label="ZIGi’s settings"><AiSettingsSection/></LoadBoundary>
       </SettingsGroup>
       <SettingsGroup id="settings-help" title="Help & diagnostics">
         <details className="advanced-diagnostics" id="diagnostics"><summary>Advanced Diagnostics</summary>

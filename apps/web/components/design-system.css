@@ -131,3 +131,7 @@
 /* Date and time fields: the browser's own calendar or clock button inside the field takes a Tab stop of its own and draws
    no ring there, so the field keeps the app's ring while that button has focus (WCAG 2.4.7; Session X Part 12). */
 :root :is(input[type=date],input[type=time],input[type=datetime-local],input[type=month],input[type=week]):focus-within:not(:focus) { outline:3px solid #69d9e9; outline-offset:4px; }
+
+/* Session X Part 14 (J249): a part of a page whose code could not load says so in place (components/load-boundary.tsx). */
+.load-boundary { display: grid; gap: 10px; justify-items: start; margin: 12px 0; padding: 16px; border: 1px dashed #6880a0; border-radius: 16px; }
+.load-boundary p { margin: 0; font-size: 15px; }
