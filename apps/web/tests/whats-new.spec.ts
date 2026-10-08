@@ -47,14 +47,21 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
   await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
   await expect(card).not.toContainText('stays on this device');
-  await card.getByRole('link', {name: 'Sleep and sleep debt'}).click();
-  await expect(page).toHaveURL(/\/app\/help#help-w-sleep$/);
-  await expect(page.locator('#help-w-sleep')).toHaveAttribute('open', '');
+  // Session X-Local Part 8: this release's links are the card's own; Session W's wait under "Earlier updates" with Session V's.
+  await card.getByRole('link', {name: 'ZIGi comes alive: the real art, idle, emotions'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-your-ai-alive$/);
+  await expect(page.locator('#help-your-ai-alive')).toHaveAttribute('open', '');
   await page.goto('/app');
+  await expect(card.getByRole('link', {name: 'Sleep and sleep debt'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'Habits that tick themselves off from Health'})).toHaveCount(0);
   await card.getByText('Earlier updates', {exact: true}).click();
   const earlier = card.locator('.whats-new-earlier').getByRole('link');
   await expect(earlier).toHaveCount(EARLIER_LINKS.length);
+  await card.getByRole('link', {name: 'Sleep and sleep debt'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-w-sleep$/);
+  await expect(page.locator('#help-w-sleep')).toHaveAttribute('open', '');
+  await page.goto('/app');
+  await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Habits that tick themselves off from Health'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-auto-checkins$/);
   await expect(page.locator('#help-auto-checkins')).toHaveAttribute('open', '');

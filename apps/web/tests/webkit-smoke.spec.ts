@@ -30,9 +30,11 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
     // Settings is a sensitive screen (account, sync, recovery): the launcher stays away there by the app's own rule.
     if (path === '/app/settings') { await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toHaveCount(0); continue; }
     await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toBeVisible();
+    // The idle art: the poster first, and where the browser plays animated WebP and motion is allowed (Chrome), the
+    // animated idle file swapped in once decoded. Either is F001; the reduced-motion test below pins the poster.
     const img = page.locator('.ai-launcher-button img').first();
-    await expect(img, path).toHaveAttribute('src', /\/brand\/figures\/zigi\/origami-nebula\/F001-idle(-2x)?\.webp$/);
-    await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth), {message: `${path}: the poster decoded`}).toBeGreaterThan(0);
+    await expect(img, path).toHaveAttribute('src', /\/brand\/figures\/zigi\/origami-nebula\/F001-idle(-2x)?(\.anim)?\.webp$/);
+    await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth), {message: `${path}: the idle art decoded`}).toBeGreaterThan(0);
   }
   expect(errors, 'page errors').toEqual([]);
 });
