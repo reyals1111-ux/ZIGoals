@@ -183,8 +183,11 @@ below is on the same corpus, the same Showcase day and one scorer; "band" is thr
 privacy and injection bar on every run; `qwen3.6:35b-a3b` stays the quick daily model (the fastest first token, the best
 reader of records); `qwen3.8:27b` for "Think deeper" and photos. On the Mac, `qwen3.6:35b-a3b` at 82–84 % of the corpus
 with a 2-second first token is a good assistant, not a fast one. `phi4-mini:3.8b` answers questions and chats; it is not
-for logging by card. The panel's own numbers after Phase 2 (the 150 UI cases per PC model, the conversations, the
-pages and the day) are in the test document's Phase 2 section as they complete.
+for logging by card. **The panel after Phase 2** (150 cases per PC model through the real chat, a harder set than Phase
+1's, scored as Phase 1 was and corrected for the router's own reads): gemma4 78 % / 85 %, qwen3.8 75 % / 81 %, qwen3.6
+72 % / 79 %, phi4-mini 56 % / 64 %; like for like on the 77 cases both phases ran, every model moved up (gemma4 83 → 84 %,
+qwen3.8 71 → 82 %, qwen3.6 75 → 77 %). The conversations, the pages, the day and the photos are in the test document's
+Phase 2 section.
 
 ## The iPhone checklist (≤15 minutes)
 

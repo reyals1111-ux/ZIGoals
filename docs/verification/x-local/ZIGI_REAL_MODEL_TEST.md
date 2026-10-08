@@ -325,6 +325,28 @@ the full corpus) do not reach their targets in any run, and their refusals, priv
 judgement, not the app, as the per-case reading above shows. phi4-mini is measured, not targeted: 56–60 %, refusals
 about half, no cards to speak of.
 
+### The panel, Phase 2 (150 cases per PC model through the real chat in Chrome, 15:28–16:28 UTC, dev server)
+
+The panel spec takes the important cases first, and Phase 2 marked 72 more as important, so 73 of the 150 are new
+`p2-*` cases (long multi-step asks, mixed intents, dates and times, units, Dutch and French) and only 77 are cases Phase
+1 ran: the Phase 2 column is a harder set than Phase 1's, and the like-for-like column compares the 77 both ran, raw
+against raw. "Corrected" counts the question router's own reads for the ask (ADR S72, the panel's S61) and the S70
+refusal cue; Phase 1's panel numbers were never scored that way, so the comparison stays on the raw column.
+
+| Model | Host | Phase 2 set (raw, as Phase 1 scored) | Corrected (S72: the router's reads, S70) | Like for like, raw (cases both phases ran): Phase 1 → Phase 2 | New cases only (raw) | Reply median (ms) | Errors | Checks missed (raw) |
+|---|---|---:|---:|---|---:|---:|---:|---|
+| `gemma4:12b` | RTX 5090 (desktop) | 116 / 149 · 77.9 % | 126/149 84.6% | 64 → 65 of 77 (83.1 % → 84.4 %) | 51 / 72 · 70.8 % | 2147 | 1 | tool 10, cards 10, schema 9, fields 9, never 3 |
+| `phi4-mini:3.8b` | RTX 5090 (desktop) | 84 / 149 · 56.4 % | 95/149 63.8% | 52 → 54 of 77 (67.5 % → 70.1 %) | 30 / 72 · 41.7 % | 987 | 1 | cards 32, fields 18, schema 12, tool 11, refusal 11 |
+| `qwen3.6:35b-a3b` | RTX 5090 (desktop) | 107 / 149 · 71.8 % | 118/149 79.2% | 58 → 59 of 77 (75.3 % → 76.6 %) | 48 / 72 · 66.7 % | 1599 | 1 | cards 21, tool 11, fields 11, schema 5, tool-any 4 |
+| `qwen3.8:27b` | RTX 5090 (desktop) | 112 / 149 · 75.2 % | 120/149 80.5% | 55 → 63 of 77 (71.4 % → 81.8 %) | 49 / 72 · 68.1 % | 3600 | 1 | cards 21, fields 12, tool 9, never 3, schema 3 |
+
+Against the P2.3 panel targets (gemma4 and qwen3.8 ≥ 95 %, qwen3.6 ≥ 90 %): not met on this set in either scoring. Like
+for like, every model moved up (gemma4 83 → 84 %, qwen3.8 71 → 82 %, qwen3.6 75 → 77 %, phi4-mini 68 → 70 %), and the
+new cases are where the misses sit (gemma4 51 of 72, qwen3.8 49, qwen3.6 48, phi4-mini 30). The misses by check are the
+same classes as the corpus: a card asked for and prose returned, a field off (a day, a time, a unit), a block the schema
+refused; the panel adds the reply-time budget (one case per model timed out at 20 s). The conversations, the pages, the
+day and the photos follow below as their stages end.
+
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
