@@ -171,3 +171,12 @@ assertion stands without attribution. Nothing in this lane changed in the shell.
 navigation, an `AbortError`-tolerant catch on those three fetches (or an `AbortController` tied to the page's unmount)
 would do it; the reproduction is the spec without its `networkidle` line, in WebKit, against a production build.
 
+## L4 — Goals at 320 px overflows by 5 px on macOS fonts, on `main` too (Part 9, 2026-10-08)
+Not this lane; a finding from the full browser suite on the owner's Mac (real Chrome 154). With the Showcase loaded at
+320 × 568, `/app/goals` scrolls sideways by 5 px on this branch's build and on `main` `72ad872`'s build alike: the page
+header is a two-column grid (the title 157 px, the "+ Create a goal" action 140.7 px) inside `main`'s 288 px, so
+`.page-header`, the lede, the toolbar and the goal grid all end at x = 326. Four specs read it (`phone-pages:10`,
+`coherence:25`, `owner-polish:31`, `run9-2-product:41`); they pass in CI, where Linux Chrome's fonts render the action
+narrower. Reproduction: load the Showcase, set 320 px, `document.documentElement.scrollWidth` on `/app/goals`. A
+`minmax(0, 1fr)` first column or a wrap below ~340 px would do it; the owner decides whether the Mac's rendering counts.
+
