@@ -1,3 +1,4 @@
+import {plural} from './tools/format';
 import type {ToolResult} from './tools/types';
 
 /**
