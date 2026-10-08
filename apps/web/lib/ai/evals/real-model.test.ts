@@ -5,7 +5,7 @@ import {describe, expect, test} from 'vitest';
 import {streamChat} from '../chat';
 import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
-import {detectIntent, wantsCard} from '../intent';
+import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../intent';
 import {buildSystemPrompt} from '../context/specialists';
 import {questionContext} from '../context/question';
 import {Handles} from '../handles';
@@ -74,8 +74,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   // does: a card asked for and none given (or every block refused) gets one more ask, with Ollama's structured output.
   let repaired = false;
   if (!error && reply.trim()) {
-    const first = parseReply(reply), asked = wantsCard(detectIntent(ask), reply);
-    if (needsRepair(first, {askedForCard: asked})) {
+    const first = parseReply(reply), intent = detectIntent(ask);
+    if (needsRepair(first, {askedForCard: wantsCard(intent, reply), refusedMayRepair: refusedBlocksMayRepair(intent, reply)})) {
       const again: ChatMessage[] = [...messages, {role: 'assistant', content: reply}, {role: 'user', content: repairPrompt(first)}];
       let second = '';
       try { for await (const event of streamChat({...request, messages: again, format: structuredFormat()})) { if (event.type === 'text') second += event.delta; else if (event.type === 'usage') tokens = {input: (tokens.input ?? 0) + (event.input ?? 0), output: (tokens.output ?? 0) + (event.output ?? 0)}; } } catch { second = ''; }

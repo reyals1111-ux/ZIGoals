@@ -15,7 +15,7 @@ import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTa
 import type {AiSettings} from '../../lib/ai/settings';
 import {zigiSignals} from '../zigi/bus';
 import {fenceStructured, needsRepair, REPAIR_NOTE, repairPrompt, structuredFormat} from '../../lib/ai/actions/repair';
-import {detectIntent, wantsCard} from '../../lib/ai/intent';
+import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../../lib/ai/intent';
 import {localSignal} from '../../lib/ai/zigi-reactions';
 import {extractHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
@@ -265,8 +265,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       // Phase 2 (P2.2b): also when a card was asked for (log or plan mode, or a logging or planning intent read on the
       // device) and no block came back at all; on Ollama the retry asks for structured output (the JSON schema).
       // Log or plan mode alone does not force a retry ("thanks" in log mode is a normal reply); the message's own intent does.
-      const check = parseReply(reply), asked = wantsCard(detectIntent(text), reply);
-      if (!needsRepair(check, {askedForCard: asked})) return;
+      const check = parseReply(reply), intent = detectIntent(text);
+      if (!needsRepair(check, {askedForCard: wantsCard(intent, reply), refusedMayRepair: refusedBlocksMayRepair(intent, reply)})) return;
       const firstTry = reply, firstUsage = usage;
       const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: repairPrompt(check)}];
       reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');

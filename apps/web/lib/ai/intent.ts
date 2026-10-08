@@ -4,7 +4,7 @@
  * repair round (the app and the harness share this rule); a lookup intent lets the question-aware router pre-run the
  * records. Nothing here decides a card's content: it only tells whether a card was asked for at all.
  */
-export type Intent = {log: boolean; plan: boolean; lookup: boolean; vague: boolean; refuse: boolean};
+export type Intent = {log: boolean; plan: boolean; lookup: boolean; vague: boolean; refuse: boolean; asks: boolean};
 const LOG_VERB = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |yeah |right |and |also |oh )*(?:log|record|track|note|noteer|notez?|enregistre|ajoute|add|voeg|mark|tick|coche|vink|skip|sla|saute|put|zet|mets|log it|weight|gewicht|poids|breakfast|lunch|dinner|ontbijt|déjeuner|dîner|snack|supper)\b/i;
 const STATEMENT = /^(?:so |um+ |uh+ |ok |okay |yeah |right |today |yesterday |this morning |last night |for lunch |for breakfast |for dinner |vandaag |gisteren |hier |ce matin |aujourd'hui )?(?:i|i've|i have|i just|we|ik|ik heb|j'ai|je|j'|je viens de|on a)\s+(?:ate|eat|had|drank|drink|did|do|ran|run|walked|walk|slept|sleep|weigh|weighed|meditated|read|took|finished|completed|went|was|crashed|napped|heb|ben|woog|weeg|liep|sliep|at|dronk|las|gelezen|gewandeld|geslapen|gemediteerd|gegeten|gedronken|a|ai|suis|pèse|pesais|couché|dormi|mangé|bu|couru|marché|médité|lu|fait)\b/i;
 const QUANTITY = /\b\d+(?:[.,]\d+)?\s*(?:kg|kilos?|lbs?|pounds?|g|grams?|gram|ml|millilit\w*|l|litres?|liters?|oz|ounces?|cups?|glasses|glazen|verres?|steps|stappen|pas|minutes?|mins?|minuten|hours?|uur|uren|heures?|kcal|calories|calorieën|km|miles?|reps|push-?ups|pages|pagina's|pagina’s|x)\b/i;
@@ -33,7 +33,14 @@ export function detectIntent(text: string): Intent {
   const lookup = !vague && LOOKUP.test(t) && (QUESTION.test(t) || !LOG_VERB.test(t)) && !STATEMENT.test(t);
   const log = !vague && !lookup && (LOG_VERB.test(t) || STATEMENT.test(t) || ((QUANTITY.test(t) || NUMBER_WORD.test(t)) && !PLAN.test(t)) || (CLOCK.test(t) && /\b(slept|sleep|bed|nap|geslapen|dormi|couché)\b/i.test(t)));
   const plan = !vague && !lookup && !log && PLAN.test(t) && !QUESTION.test(t);
-  return {log: log && !refuse && !asks, plan: plan && !refuse && !asks, lookup, vague, refuse};
+  return {log: log && !refuse && !asks, plan: plan && !refuse && !asks, lookup, vague, refuse, asks};
 }
 /** Whether a reply with no proposal block should get the bounded repair round: a log or plan intent, nothing to refuse, and the reply neither asked a question back nor declined. */
 export const wantsCard = (intent: Intent, reply: string): boolean => (intent.log || intent.plan) && !intent.vague && !intent.refuse && !/\?/.test(reply.trim().slice(-200)) && !REFUSAL_REPLY.test(reply.slice(0, 400));
+/**
+ * Whether refused blocks alone may trigger the repair round: the model tried to log or plan and got the shape wrong, which
+ * is the retry's purpose ("a lot of water" in log mode, no amount) — unless the ask was a lookup, a question, something
+ * ZIGi declines, or the reply itself declined (there a stray block is dropped and the words stand, ADR-017 S59).
+ */
+export const refusedBlocksMayRepair = (intent: Intent, reply: string): boolean => !intent.lookup && !intent.asks && !intent.refuse && !REFUSAL_REPLY.test(reply.slice(0, 400));
+

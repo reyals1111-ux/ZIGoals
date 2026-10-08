@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {detectIntent, wantsCard} from './intent';
+import {detectIntent, refusedBlocksMayRepair, wantsCard} from './intent';
 
 test('a logging ask is read as one in three languages, with fillers and self-corrections', () => {
   for (const ask of ['Log a glass of water', 'I had my usual oatmeal and two glasses of water', 'Weight this morning 78.4 kg', 'uh log two glasses no wait three glasses of water', 'so I ran for like thirty minutes', 'Noteer twee glazen water', 'Ik heb vandaag 2 liter water gedronken', "J'ai bu un verre d'eau, note-le", 'Slept 23:00 to 06:45', 'Twenty push-ups', 'Breakfast: two eggs, toast and a coffee']) {
@@ -41,5 +41,13 @@ test('a question asks: whatever quantity it names, it logs or plans nothing (the
   // A log ask with a question mark still logs; a quantity in a statement still logs.
   expect(detectIntent('Log a glass of water?').log).toBe(true);
   expect(detectIntent('I ran 5 km in 28 minutes').log).toBe(true);
+});
+test('refused blocks may be repaired on a plain logging attempt, never on a lookup, a question, a decline or a declined reply', () => {
+  expect(refusedBlocksMayRepair(detectIntent('a lot of water'), 'Here you go.')).toBe(true);
+  expect(refusedBlocksMayRepair(detectIntent('Breakfast: two eggs and toast'), 'Logged.')).toBe(true);
+  expect(refusedBlocksMayRepair(detectIntent('How is my fasting going?'), 'Twelve hours in.')).toBe(false);
+  expect(refusedBlocksMayRepair(detectIntent('How can I lose 10 kg in 2 weeks?'), 'A careful reply.')).toBe(false);
+  expect(refusedBlocksMayRepair(detectIntent('Delete the Emergency fund goal'), 'Done.')).toBe(false);
+  expect(refusedBlocksMayRepair(detectIntent('Log a glass of water'), "I can't log that without the amount.")).toBe(false);
 });
 
