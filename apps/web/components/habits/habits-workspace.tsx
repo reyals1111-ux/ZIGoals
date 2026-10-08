@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hashId } from "../../lib/hash-id";
+import { holdInView } from "../settings/keep-jump";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "./use-habits";
@@ -89,7 +90,7 @@ export function HabitsWorkspace() {
       if (!habit) return;
       followed.current = id;
       setFilter(habitRuleOn(habit, store.today)?.state === "archived" ? "Archived" : "All");
-      requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: "center" })));
+      requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.getElementById(id); if (el) { el.scrollIntoView({ block: "center" }); holdInView(el); } }));
     };
     follow();
     window.addEventListener("hashchange", follow);

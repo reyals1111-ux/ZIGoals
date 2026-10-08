@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useId, useRef, useState, type ReactNode} from 'react';
 import {hashId} from '../../lib/hash-id';
+import {holdInView} from '../settings/keep-jump';
 import {AppIcon} from '../app-icon';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import './for-you.css';
@@ -28,7 +29,7 @@ export function ForYou({cards, status = '', note = null}: {cards: ForYouCard[]; 
       if (foldedIds.split(' ').includes(card)) setOpen(true);
       else if (!document.getElementById(target)) return;
       followed.current = target;
-      requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({block: 'start'})));
+      requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.getElementById(target); if (el) { el.scrollIntoView({block: 'start'}); holdInView(el); } }));
     };
     follow();
     window.addEventListener('hashchange', follow);
