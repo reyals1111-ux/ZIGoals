@@ -179,6 +179,7 @@ header is a two-column grid (the title 157 px, the "+ Create a goal" action 140.
 `coherence:25`, `owner-polish:31`, `run9-2-product:41`); they pass in CI, where Linux Chrome's fonts render the action
 narrower. Reproduction: load the Showcase, set 320 px, `document.documentElement.scrollWidth` on `/app/goals`. A
 `minmax(0, 1fr)` first column or a wrap below ~340 px would do it; the owner decides whether the Mac's rendering counts.
+**After the merge:** against the merged build (`main` `757b3b1` in) the four specs pass alone on this Mac, and against `72ad872`'s build they still fail — your `main` already carries the fix; nothing to do.
 
 ## Status after the merge (2026-10-08, Part 9; X-Cloud's PR #78 is in `main`, this branch merged second)
 `origin/main` `757b3b1` merged in with a merge commit (`da2e3d4`; three conflicts, both lanes kept). Carried here on the
