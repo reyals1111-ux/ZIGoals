@@ -57,6 +57,24 @@ Celebrations are capped at **3 a day**; past the cap a celebration is a small su
 them (the conversation's own flow, listening → thinking → speaking, never waits). Celebrate, proud, attention, reminder
 and peek never show on a private screen. Every rule is tested (`lib/ai/zigi-semantic.test.ts`, `tests/zigi-emotions.spec.ts`).
 
+## The timings, as tuned (Phase 2 P2.5)
+
+Every state was watched on both forms (the close-up clips on `review/session-x-local-screens`, `clips/states/desktop-closeup/`
+and `phone-viewport/`) and is held by a spec; none of the values below changed in Phase 2, each was kept for the reason given.
+
+| Timing | Value | Where | Kept because |
+|---|---|---|---|
+| The greeting, then listening | 2.5 s one-shot, listening follows it | `components/zigi/events.ts` (`listenAfter`) | The composer takes focus the moment the panel opens; before Phase 2 the greeting was never seen on a click-open (ADR S52). On the clip the wave completes, then the lean. |
+| Typing guard | 3 s after the last writing key | `components/zigi/alive.ts` (`TYPING_GUARD_MS`) | Only characters, Backspace, Delete and Enter count; Escape, Tab and the arrows no longer hold "listening" or suppress a knock (ADR S54). |
+| Sleepy | 90 s of quiet with the panel open | `components/zigi/events.ts` (`SLEEPY_AFTER_MS`) | Long enough that reading a reply never looks like neglect; the next event wakes ZIGi. |
+| Reactions apart | ≥ 8 s between non-conversational reactions | `components/zigi/semantic.ts` (`REACTION_GAP_MS`) | The conversation's own flow (listening → thinking → speaking) is exempt, so a reply never waits. |
+| Cooldowns per state | greeting 30 s, celebrate and proud 30 s, attention and reminder 45 s, sleepy 90 s, encouraging 20 s, surprised 10 s, error 8 s, success and confused 5 s, the rest 0 | `components/zigi/actions.json` | Ported from the studio's foundation for the eleven delivered states; host facts (open, close, offline, rest, success) are never held by them (ADR S51). |
+| Celebrations a day | 3, then a small success | `components/zigi/semantic.ts` (`CELEBRATIONS_PER_DAY`) | Calm celebrations (owner addition 6). |
+| Idle variation | one every 25–60 s under Full, an accent at most every 3 min | `components/zigi/idle.ts` | Rare enough to be noticed, never two attention-grabbing clips in a row (74 s clip `idle-full`). |
+| The knock's ripple and rest | the ripple 2.4 s; after a close, 10 min before the next due reminder may knock; the due check every 30 s | `components/zigi/knock.tsx` | One knock per session (the nudge budget), none after a dismissal, none 22:00–08:00, none while typing; a knock counts its nudge the moment it is allowed (ADR S54). The simulated day holds all of it. |
+| Hide ZIGi, Undo | 10 s | `components/ai/ai-launcher.tsx` (`HIDE_UNDO_MS`) | The same ten seconds as every Undo in the app. |
+| A stalled reply | 60 s without a byte | `lib/ai/sse.ts` (`STALL_MS`) | Long enough for a cold local model's first token (measured up to 24 s on the Mac), short enough to notice a dead wire. |
+
 ## The idle rotation
 
 Under **Full**: ZIGi rests in its idle clip; every 25–60 s (random) a variation plays once: a *glance* (the listening
