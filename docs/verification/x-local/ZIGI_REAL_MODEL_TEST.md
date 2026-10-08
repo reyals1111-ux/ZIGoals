@@ -51,6 +51,25 @@ _(the table is pasted here at Gate B and again at Part 10)_
 
 ## 6d. Scores per model, before and after the fixes
 
+**The full corpus (361 turns) on every model, before the session's app-side fixes and after all of them** (the same corpus, the same
+Showcase day, the same scorer; "first token" is the harness's own clock on the wire, thought off on both passes):
+
+| Model | Host | Before (runs, rate) | After (runs, rate) | First token before → after (median ms) |
+|---|---|---|---|---|
+| `gemma4:12b` | RTX 5090 | 361, 64.5 % | 361, 70.6 % | 1427 → 227 |
+| `phi4-mini:3.8b` | RTX 5090 | 361, 40.4 % | 361, 46.8 % | 65 → 134 |
+| `qwen3.6:35b-a3b` | RTX 5090 | 361, 56.8 % | 361, 61.2 % | 158 → 159 |
+| `qwen3.8:27b` | RTX 5090 | 361, 72.0 % | 361, 73.4 % | 1735 → 371 |
+| `qwen3.6:35b-a3b` | Mac M1 Max | 361, 60.7 % | 361, 62.0 % | 1323 → 2088 |
+
+Every model gains from the fixes between the passes (ADR S34–S36, S40: shape repairs, titles for habits and goals, a drink's
+serving, a nap that just ended, ISO weekdays, schedule phrases, a reminder's record, the correction sentence): gemma4 +6.1
+points, phi4-mini +6.4, qwen3.6 +4.4 on the PC and +1.3 on the Mac, qwen3.8 +1.4. The first token falls where thought was
+on in the first pass (gemma4 1.4 s → 0.23 s, qwen3.8 1.7 s → 0.37 s; S35). The Mac's first token rose (1.3 s → 2.1 s):
+the second pass carried the longer protocol of the fixes through a bandwidth-bound machine, and 38 seconds of it overlapped
+two local browser specs run by mistake (noted in the hours log); the PC's qwen3.6 shows no such change (158 → 159 ms).
+
+
 Findings so far (the tables below are rendered from the JSON files by the session's summariser and pasted as the runs complete):
 
 - **`phi4-mini:3.8b` (RTX 5090, before the fixes): 361 runs, 146 passed (40.4 %), first token median 65 ms, total median 249 ms.** It made **no tool call in any of the 361 runs**. Checked on the wire, not assumed: a direct `/api/chat` request to the PC with one tool definition and "Use the tool" returned prose and `tool_calls: null`, while the same request to `gemma4:12b` returned `tool_calls: [{name: "water", arguments: {range: "today"}}]`. So the 113 missed tool checks are the model's (its Ollama template does not produce tool calls in this form), not the app's; its lookups answer from the prompt's own examples instead, which the fact checks catch. Its proposal blocks fail the schema in 74 runs for shapes the parser now repairs (`"type"` for `"kind"`, bare measurement words, a loose category) and for tool names sent as kinds (`habits_due`, `water`, `list_goals`), which stay refused.
