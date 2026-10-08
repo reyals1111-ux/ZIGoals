@@ -14,9 +14,13 @@ export default defineConfig({
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3102',
     trace: 'retain-on-failure',
     locale: 'en-US',
+    // CI's runner is UTC and the Chrome runs set TZ=UTC; WebKit follows the system clock unless told.
+    timezoneId: 'UTC',
   },
+  // The project names match the main config's ("desktop", "mobile"), which the specs branch on; this file's name is
+  // the evidence label (WebKit), never the project's.
   projects: [
-    {name: 'webkit-desktop', use: {...devices['Desktop Safari']}},
-    {name: 'webkit-iphone15', use: {...devices['iPhone 15']}},
+    {name: 'desktop', use: {...devices['Desktop Safari']}},
+    {name: 'mobile', use: {...devices['iPhone 15']}},
   ],
 });

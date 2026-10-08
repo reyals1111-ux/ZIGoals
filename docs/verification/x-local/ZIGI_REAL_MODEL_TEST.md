@@ -73,7 +73,8 @@ Label: **WebKit**, never "Safari on an iPhone" (the iPhone checklist in ZIGI_ALI
 | Run | Result | Build |
 |---|---|---|
 | `tests/webkit-smoke.spec.ts` (every app page with the Showcase and no page error, the launcher's poster decoded on each, no launcher on Settings by the app's rule; Sleep, Meditation and Today's surfaces; reduced motion keeps the still) | 6 passed, both projects | dev server (`next dev`, `LOCAL_DEMO`) |
-| The ZIGi specs in WebKit (`zigi-*.spec.ts` minus the Chrome-only mini window, on-device model and browser agents, and the real-model runs) | _(this section's table is completed at Gate B on the production build)_ | |
+| The ZIGi specs in WebKit (`zigi-*.spec.ts` minus the Chrome-only mini window, on-device model and browser agents, and the real-model runs), both projects | 289 passed, 40 skipped (their own gates), 7 failed, of which 5 were the run's own setup and are fixed: WebKit follows the system clock unless the config pins `timezoneId: 'UTC'` (`zigi-local-answers:28`), the specs branch on the project names `desktop`/`mobile` (`zigi-question-context:35`), and the release-id pin in `zigi-help-settings:58` was Session W's (now `2026-10-session-x`, an assertion change listed in ADR-017). The remaining 2: `zigi-chat-polish:119` on both projects, because Playwright's WebKit has no `clipboard-write` permission to grant for the copy read-back; the Copy button and the note render. Re-run of the four touched specs: 32 passed, those 2. | dev server |
+| The same on the production build | _(Gate B)_ | |
 
 
 ## Photos (owner addition 11): sources and licences
