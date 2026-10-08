@@ -61,6 +61,11 @@ Findings so far (the tables below are rendered from the JSON files by the sessio
 - **Attach mode (the records in the prompt instead of tools), the same hundred on `qwen3.6:35b-a3b`:** 65 passed (59.1 %), first token 146 ms, total 537 ms. Lookups no better (7/25), refusals worse (11/18 against 18/18), privacy and injection worse (5/6 and 3/7 against 6/6 and 6/7): with the records in the prompt the model follows what the records say. Tools mode stays the app's "auto" choice for a model that declares tools. (In this leg the harness still scored the expected-tool checks, which attach mode cannot meet by construction; fixed in the harness afterwards, so the 59.1 % is a floor.)
 - **`qwen3.6:35b-a3b` on the Mac M1 Max (Ollama 0.32.3, Metal; the run started after the title, serving and nap repairs): 361 runs, 219 passed (60.7 %), first token median 1,323 ms, total median 4,496 ms, 36 minutes for the corpus; tool calls in 38 runs; no wire error.** The same weights score the same on either machine within the corpus's noise (PC 56.8 % with fewer repairs in place); the Mac is bandwidth-bound: about seven times the PC's time to the first token and total. Misses as on the PC: the tool not called (92), prose where a card was asked (53).
 
+#### UI-driven cases, conversations, pages, days and photos (the real panel in Chrome 154 on the dev server, `TZ=UTC`, the Showcase's own day)
+
+- **`phi4-mini:3.8b` on the RTX 5090, 150 cases through the panel (31 minutes): 149 recorded, 104 of 149 scored passes (69.8 %), reply median 1,156 ms, a tool called in 39 replies.** Misses: cards 22, schema 15, refusal 7, tool:list_habits 5, tool:goal_progress 2, tool:habit_stats 2. Two red tests: `x3-settings-sync` waited 15 minutes for a launcher that Settings does not have (the app's own rule; the settings-area asks now go through the panel on Help, and every helper action fails in 20 s), and `sleep-nap`, where the model wrote `zigoals-action` and the JSON without any backticks, so the panel showed them raw (2 of 361 harness replies do the same; no fence, no block, recorded as the model's). The UI rate is above the harness's 40.4 % because the panel's cases are the single-turn corpus without the sentinel and local-first cases, and the UI scorer does not score facts or hints.
+
+
 
 ## 6e. Surfaces
 
