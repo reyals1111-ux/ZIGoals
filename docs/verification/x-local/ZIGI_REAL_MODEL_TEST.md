@@ -225,7 +225,20 @@ already (gemma4 53/57, 11/13, 19/20).
 
 ### After the fix program (the current code, the same 626 cases)
 
-_The table fills in as each run ends (raw and corrected rates, the per-kind movement, the miss categories that remain)._
+**The first after-run** (the code as pushed that morning: `0fb7066` for phi4-mini, gemma4 and qwen3.8; qwen3.6 ran on
+`696df3c`, already with S59, S61 and S62): raw and corrected (S61) rates, the per-kind movement against the baseline.
+
+| Model | Host | After (raw) | After (corrected) | Baseline → after, corrected | Lookups | Proposals | Multi-step | Refusals | First token (median ms) |
+|---|---|---:|---:|---|---:|---:|---:|---:|---:|
+| `gemma4:12b` | RTX 5090 | 607 / 773 · 78.5 % | 639 / 773 · 82.7 % | 77.1 → 82.7 % | 63 → 78 of 120 | 174 → 185 of 232 | 132 → 158 of 183 | 53 → 45 of 57 | 609 → 1126 |
+| `qwen3.8:27b` | RTX 5090 | 591 / 773 · 76.5 % | 623 / 773 · 80.6 % | 74.5 → 80.6 % | 74 → 78 | 162 → 181 | 128 → 157 | 43 → 37 | 535 → 582 |
+| `qwen3.6:35b-a3b` | RTX 5090 | 612 / 773 · 79.2 % | 612 / 773 · 79.2 % (scored with S61 already) | 70.5 → 79.2 % | 41 → 103 | 166 → 191 | 135 → 143 | 48 → 42 | 190 → 215 |
+| `phi4-mini:3.8b` | RTX 5090 | 418 / 773 · 54.1 % | 450 / 773 · 58.2 % | 45.8 → 58.2 % | 30 → 61 | 99 → 130 | 67 → 86 | 34 → 28 | 215 → 345 |
+| `qwen3.6:35b-a3b` | Mac M1 Max | _running on `696df3c`_ | | | | | | | |
+
+The refusals fell on every model in this run: that is the repair round firing after a correct decline and inventing a card
+(S59, fixed before the re-run). The lookups rose everywhere (the router's pre-run facts and S61), most on qwen3.6, which
+reads the pre-run records best.
 
 **The first after-run (the P2.2 fix program as pushed that morning, code `0fb7066`)** moved phi4-mini 41.7 → 54.1 % raw and
 gemma4 73.0 → 78.5 % raw (lookups 63 → 78 of 120, multi-step 132 → 158 of 183, briefs 12 → 18 of 29), and showed two things
