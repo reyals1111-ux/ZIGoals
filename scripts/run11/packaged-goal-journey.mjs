@@ -24,7 +24,7 @@ async function pinGoalAndHabit(page,name,path,habit){
  expect(await card.getByRole('link',{name,exact:true}).getAttribute('href')).toBe(path);
  await card.getByRole('button',{name:`Options for ${name}`,exact:true}).click();await card.getByRole('button',{name:`Add ${name} progress to Today`,exact:true}).click();await card.getByText(`${name} progress added to Today.`,{exact:true}).waitFor();
  await navigate(page,'Habits');await page.getByRole('button',{name:'All',exact:true}).click();const habitCard=page.locator('.habit-card').filter({has:page.getByRole('heading',{name:habit,exact:true})});
- await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('button',{name:`Add ${habit} today to Today`,exact:true}).click();
+ await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('button',{name:`Add ${habit} check-in to Today`,exact:true}).click();
  await navigate(page,'Today');await (await todayCard(page,name)).waitFor();await (await todayCard(page,habit)).waitFor();
 }
 async function create(page,type){

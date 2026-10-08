@@ -151,9 +151,9 @@ export function editWater(data: HealthData, id: string, patch: Pick<WaterEntry, 
   return changeDaily(data, { ...state, water: state.water.map(w => w.id === id ? { ...w, ...patch, updatedAt: at } : w) });
 }
 export function removeWater(data: HealthData, id: string): HealthData { return changeDaily(data, { ...dailyData(data), water: dailyData(data).water.filter(w => w.id !== id) }); }
-/** Water entries for Activity (Session X P2.1: the Health filter left water out), as the journal shows them. */
+/** Water entries for Activity (Session X P2.1: the Health filter left water out), worded as ZIGi's water card records them ("Water: 500 mL"), so an entry confirmed from ZIGi reads the same. */
 export function getWaterActivities(data: HealthData): { id: string; category: "HEALTH"; title: string; detail: string; at: string; href: string }[] {
-  return dailyData(data).water.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Water logged", detail: `${formatNumber(w.amountMilli / 1000, { maximumFractionDigits: 2 })} ${w.unit === "ml" ? "mL" : "fl oz"} · ${w.date}`, at: w.updatedAt, href: "/app/health#water" }));
+  return dailyData(data).water.map(w => ({ id: w.id, category: "HEALTH" as const, title: `Water: ${formatNumber(w.amountMilli / 1000, { maximumFractionDigits: w.unit === "ml" ? 0 : 2 })} ${w.unit === "ml" ? "mL" : "fl oz"}`, detail: w.date, at: w.updatedAt, href: "/app/health#water" }));
 }
 export function waterSummary(data: HealthData, date: string) {
   healthDateSchema.parse(date);

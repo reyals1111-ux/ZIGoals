@@ -86,7 +86,7 @@ test('Activity: water logged shows under Health', async ({page}) => {
   await seed(page, {[HEALTH_STORAGE_KEY]: addWater(createEmptyHealth(), {id: 'health_water-p21', date: today, amountMilli: 250_000, unit: 'ml'}, at)});
   await page.goto('/app/activity');
   await page.getByRole('navigation', {name: 'Activity categories'}).getByRole('button', {name: 'Health', exact: true}).click();
-  await expect(page.locator('main .activity-event').filter({hasText: 'Water logged'})).toContainText('250 mL');
+  await expect(page.locator('main .activity-event').filter({hasText: 'Water: 250 mL'})).toHaveCount(1);
 });
 
 test('a new person is not asked to review a week with nothing in it; a week with a check-in is offered', async ({page}) => {

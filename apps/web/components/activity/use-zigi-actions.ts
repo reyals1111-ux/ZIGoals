@@ -21,9 +21,17 @@ const loadActions = () => (actionsModule ??= import('../../lib/ai/store/actions'
  */
 export function useZigiActions(): {actions: readonly ZigiAction[]; ids: ReadonlySet<string>} {
   const [actions, setActions] = useState<readonly ZigiAction[]>([]);
-  const refresh = useCallback(() => loadActions().then(({AI_ACTIONS, actionPlace}) => {
-    try { setActions((readDeviceRecord(getAppStorage(), AI_ACTIONS).data.actions ?? []).map(a => ({...a, ...actionPlace(a.kind)}))); } catch { setActions([]); }
-  }, () => setActions([])), []);
+  const refresh = useCallback(() => {
+    // No record on this device (a new device, and anyone who never confirmed a card): nothing to read, as an empty record
+    // reads, and no code loads at rest. A chunk loaded on demand carries no nonce (Turbopack's runtime sets none), and
+    // the Alpha gate checks that every script on a new device's Today has one (tests/public-alpha.spec.ts).
+    let present = false;
+    try { present = getAppStorage().getItem(AI_ACTIONS_KEY) !== null; } catch { present = false; }
+    if (!present) { setActions([]); return Promise.resolve(); }
+    return loadActions().then(({AI_ACTIONS, actionPlace}) => {
+      try { setActions((readDeviceRecord(getAppStorage(), AI_ACTIONS).data.actions ?? []).map(a => ({...a, ...actionPlace(a.kind)}))); } catch { setActions([]); }
+    }, () => setActions([]));
+  }, []);
   useEffect(() => {
     let active = true;
     const read = () => { if (active) void refresh(); };
