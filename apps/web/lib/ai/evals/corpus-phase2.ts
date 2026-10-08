@@ -147,7 +147,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     t.chat('p2-dst-question', 'When do the clocks change this autumn in Belgium?', {kinds: [], mustNot: ['2026-09']}),
     hb.propose('p2-date-tomorrow', 'Remind me tomorrow at 9 to call the dentist', {kinds: ['create-reminder', 'remember'], minCards: 1, maxCards: 1}),
     h.propose('p2-date-iso', 'Log 500 ml of water on 2026-09-17', {kinds: ['log-water'], fields: [{millilitres: 500, day: '2026-09-17'}]}, {important: true}),
-    h.propose('p2-date-weekday-name', 'On Wednesday I had 10,200 steps', {kinds: ['log-steps'], fields: [{steps: 10200, day: '2026-09-16'}]}),
+    h.propose('p2-date-weekday-name', 'On Wednesday I had 10,200 steps', {kinds: ['log-steps'], fields: [{steps: 10200, day: lastWeekday(3)}]}),
     s.propose('p2-date-sleep-fr', 'Cette nuit, couché à 23h15, levé à 6h50', {kinds: ['log-sleep'], fields: [{bedtime: '23:15', wake: '06:50'}]}, {lang: 'fr', important: true}),
     s.propose('p2-date-sleep-nl', 'Vannacht van 23:45 tot 7:05 geslapen', {kinds: ['log-sleep'], fields: [{bedtime: '23:45', wake: '07:05'}]}, {lang: 'nl'}),
     t.unknown('p2-date-future', 'What did I do next Tuesday?', {kinds: [], mustNot: ['you did']}),
