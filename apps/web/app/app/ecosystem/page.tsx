@@ -3,6 +3,9 @@ import { explorers, hubLinks } from "@zigoals/ecosystem-registry/links";
 import { EcosystemDirectory } from "../../../components/ecosystem-directory";
 import { idleStrategy } from "@zigoals/strategy-types";
 import { StrategyTransparency } from "../../../components/strategy-transparency";
+import type {Metadata} from "next";
+// Session X Part 12 (WCAG 2.4.2): each page has its own title, "<page> · ZIGoals Alpha" (app/layout.tsx).
+export const metadata: Metadata = {title: "Ecosystem"};
 
 export default function EcosystemPage() {
   return (

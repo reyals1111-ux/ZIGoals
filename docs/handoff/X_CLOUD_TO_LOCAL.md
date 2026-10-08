@@ -82,3 +82,14 @@ those two budgets to the new measurement plus about 5 kB.
 - **What's new:** X-Cloud adds no What's new link and does not touch `lib/whats-new.ts` (your release id stands). Its
   person-visible additions (Help → Known limitations, Send feedback with optional device details) are listed in Help and
   in the friends guide only.
+
+## H4 — Name Meet ZIGi in the browser tab (Session X Part 12, 2026-10-08)
+**What.** Every page now has its own document title, `"<page> · ZIGoals Alpha"` (WCAG 2.4.2; ADR-016 X39): the root
+layout's title is a template, and each page exports `metadata.title`. `/app/zigi` is in your lane, so it keeps the default
+title ("ZIGoals Alpha — Your goals. Onchain.") until you add, in `apps/web/app/app/zigi/page.tsx` (a server page):
+```ts
+import type {Metadata} from 'next';
+export const metadata: Metadata = {title: 'Meet ZIGi'};
+```
+**Why.** Without it, Meet ZIGi is the one page whose tab, history entry and screen-reader announcement do not name it.
+`tests/page-titles.spec.ts` lists every other page; add `['/app/zigi', 'Meet ZIGi']` there when you do.

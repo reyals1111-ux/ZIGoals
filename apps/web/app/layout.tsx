@@ -43,7 +43,9 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Local simulation and connection-only testnet preview. No financial actions.",
       ...(origin ? { images: [{ url: "/social-card.png", width: 1200, height: 630 }] } : {}),
     },
-    title: "ZIGoals Alpha — Your goals. Onchain.",
+    // Session X Part 12 (WCAG 2.4.2): every page names itself ("Goals · ZIGoals Alpha"); a page without its own title
+    // keeps this default.
+    title: { default: "ZIGoals Alpha — Your goals. Onchain.", template: "%s · ZIGoals Alpha" },
     description:
       "Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.",
   };
