@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {healthGroupIn} from '../../vault/w-homes';
 import type {HealthData} from '../../health';
 import {asleep, bedClock, clockFromMidnight, clockFromNoon, consistency, dailySeries, inBedMinutes, nightDay, runningNights, sleepDebt, summary as sleepSummaryOf, wakeClock, type Summary} from '../../sleep/engine';

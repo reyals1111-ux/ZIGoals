@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {streamOpenAiCompatible} from './adapters/openai-compatible';
 import {AiError} from './errors';
 import type {AiOptions} from './store/records';

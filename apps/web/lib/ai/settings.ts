@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {PROVIDER_IDS, SUBSCRIPTION_APPS, normalizeLocalBaseUrl} from './providers';
 
 /**

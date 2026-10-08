@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {PROVIDER_IDS} from './providers';
 import {AI_CHATS_SESSION_KEY, PAGE_AREAS, type PageArea} from './settings';
 

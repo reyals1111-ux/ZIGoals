@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {readDeviceRecord, updateDeviceRecord, type DeviceRecordSpec} from '../../device-record';
 import {PROVIDER_IDS} from '../providers';
 import {AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from './keys';

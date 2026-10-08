@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {formatUnits, TESTNET} from '@zigoals/chain-config';
 import {habitRuleOn, type HabitRule} from '../../habits';
 import {goalTimeline} from '../../goal-intelligence';

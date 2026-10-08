@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {measurementGroups, measurementHistory} from '../../body-measurements';
 import type {BodyMeasurement} from '../../body-measurement-schema';
 import {elapsedMs, fastingHistory, formatFast, runningSession} from '../../fasting/engine';

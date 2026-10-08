@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {formatUnits} from '@zigoals/chain-config';
 import {balanceOn, moneyText, netWorth} from '../../accounts/net-worth';
 import {emptyAccounts, isDebtKind, type AccountKind} from '../../accounts/schema';

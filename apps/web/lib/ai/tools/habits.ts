@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitRule} from '../../habits';
 import type {ToolEnv} from './env';
 import {capRows, num, ok, plural, provenance, refuse, text} from './format';

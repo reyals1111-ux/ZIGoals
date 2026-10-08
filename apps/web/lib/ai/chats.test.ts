@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import {afterEach, expect, test} from 'vitest';
-import * as z from 'zod';
+import {z} from 'zod';
 import {AI_CHATS_DATABASE, MAX_CHATS, chatSchema, chatV2Schema, forgetChats, indexedDbChatStore, needsVersion2, newChat, sessionChatStore, titleFor, type Chat} from './chats';
 import {PROVIDER_IDS} from './providers';
 import {AI_CHATS_SESSION_KEY} from './settings';

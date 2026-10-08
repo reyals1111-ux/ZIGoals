@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import {z} from 'zod';
 import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
 import {MAX_NOTE_CHARS, MEMORY_CATEGORIES} from '../store/records';
 import {LINK_ICONS} from '../../links/schema';
