@@ -454,8 +454,12 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
-  const textarea = () => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, refocus = useRef(false);
-  useEffect(() => { if (busy || !refocus.current) return; refocus.current = false; nextFrame(() => { const a = document.activeElement; if (!a || a === document.body) (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus({preventScroll: true}); }); }, [busy, ref]);
+  const textarea = useCallback(() => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, [ref]), refocus = useRef(false), silent = useRef(false);
+  // Phase 2 round 10 (ADR-017 S76): the refocus after a send is the app's act, not the person's. The box's focus handler
+  // reads a focus as listening, which displaced thinking before the first byte, the reply's end state and the AI's hint
+  // (Gate B: six specs, both projects). focus() fires the focus event synchronously, so a flag around the call keeps it quiet.
+  const focusSilently = useCallback(() => { const el = textarea(); if (!el) return; silent.current = true; try { el.focus({preventScroll: true}); } finally { silent.current = false; } }, [textarea]);
+  useEffect(() => { if (busy || !refocus.current) return; refocus.current = false; nextFrame(() => { const a = document.activeElement; if (!a || a === document.body) focusSilently(); }); }, [busy, focusSilently]);
   // Session V Part 7: one meal photo per message (only with a model that reads photos and Health shared), and log mode.
   const [attached, setAttached] = useState<Photo | null>(null), [photoNote, setPhotoNote] = useState(''), [logMode, setLogMode] = useState(false), file = useRef<HTMLInputElement>(null);
   const previewUrl = useMemo(() => attached ? URL.createObjectURL(attached.preview) : null, [attached]);
@@ -485,7 +489,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     setText(''); setAttached(null); setPhotoNote(''); onEditing(null);
     if (onSend) onSend(value, extra); else void session.ask(value, {withContext: attach, ...extra});
     // X-Cloud's H10 (ADR-017 S71): a mouse click on Send focused the button, which gives way to Stop, and the focus fell to the page (Escape no longer closed the panel); the message box keeps it, now and once the reply has ended.
-    refocus.current = true; nextFrame(() => textarea()?.focus({preventScroll: true}));
+    refocus.current = true; nextFrame(focusSilently);
   };
   const mic = voice.mode !== 'off' && !local;
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
@@ -515,7 +519,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} onFocus={() => zigiSignals.emit('user_typing_started')} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;
