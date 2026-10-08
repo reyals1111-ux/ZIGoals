@@ -23,7 +23,9 @@ export const OUT = process.env.ZIGI_OUT ?? 'docs/verification/x-local/real-model
 /** How long one reply may take on a local model (first token on a cold model can be a minute). */
 export const REPLY_TIMEOUT_MS = Number(process.env.ZIGI_REPLY_TIMEOUT_MS ?? '240000');
 export const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
-export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app', links: '/app', settings: '/app/settings', help: '/app/help', activity: '/app/activity'};
+/** Where each corpus area's asks are typed. Settings has no launcher by the app's own rule (ZIGi stays out of the page
+ * that configures it), so the settings-area asks go through the panel on Help, the nearest page about the app itself. */
+export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app', links: '/app', settings: '/app/help', help: '/app/help', activity: '/app/activity'};
 export const slug = (s: string) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
 /** The Showcase plus a real local connection; Health shared (fictional records). `health: false` closes the gate. */
 export async function seedReal(page: Page, {health = true, log = false}: {health?: boolean; log?: boolean} = {}) {
@@ -39,12 +41,13 @@ export async function offlineAppApi(page: Page) {
   const model = new URL(BASE).origin;
   await page.route(url => url.pathname.startsWith('/api/') && url.origin !== model, route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
 }
-export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+/** Opens the panel; a page without the launcher fails in 20 s, never at the test's timeout. */
+export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click({timeout: 20_000}); await expect(panel(page)).toBeVisible(); }
 /** Sends a message and waits until the reply is final (the Stop button gone, no live turn), within the reply timeout. */
 export async function askAndWait(page: Page, text: string, {log = false}: {log?: boolean} = {}): Promise<{ms: number}> {
   const started = Date.now();
-  await page.getByLabel('Message to your AI').fill(text);
-  await page.getByRole('button', {name: log ? 'Log' : 'Send', exact: true}).click();
+  await page.getByLabel('Message to your AI').fill(text, {timeout: 20_000});
+  await page.getByRole('button', {name: log ? 'Log' : 'Send', exact: true}).click({timeout: 20_000});
   await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toBeVisible({timeout: 15_000}).catch(() => undefined);
   await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: REPLY_TIMEOUT_MS});
   await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0, {timeout: 10_000});
