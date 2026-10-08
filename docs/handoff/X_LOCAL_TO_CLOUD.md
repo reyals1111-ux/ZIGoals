@@ -72,3 +72,26 @@ Since 2026-10-08 ~00:40 UTC, `pnpm audit --prod --audit-level high` (the "web ch
   your 70 px note. Part 6's real-model runs drove the panel through the keyboard-free path only (fill and click); the
   read-only audit smoke you ran is the keyboard evidence for this session.
 
+## L1 — The Alpha security gate and a chunk that loads at page load (2026-10-08, Part 6; your lane: CSP and the gate)
+**What fails.** `tests/public-alpha.spec.ts:79` ("strict production headers, fresh nonce…"), both projects, at line 101:
+`document.scripts` must all carry a nonce. On this branch one script does not: the ZIGi "alive" chunk
+(`components/zigi/alive.ts`, the state machine and the frames on every app page), which the launcher loads with a dynamic
+`import()` once ZIGi is on screen and the browser is idle (ADR-017 S7: never in the shell). Red on every completed run of
+this branch since `e164538`; green on `main` and on your branch.
+**Why.** Turbopack's browser runtime appends lazily loaded chunks as `<script src="/_next/static/chunks/…">` **without a
+nonce**: the runtime chunk (`turbopack-*.js` of main's own build) contains no nonce handling, and Next's CSP guide lists
+framework scripts, page bundles, inline scripts and `<Script nonce>` as what it stamps, not runtime-appended chunks. The CSP
+is `script-src 'self' 'nonce-…' 'strict-dynamic'`, so a chunk appended by the nonced runtime is **allowed and runs**; every
+lazy chunk the app already has (the chat panel, the knock check-in, browser agents, the setup chooser, your wallet) is
+appended the same way — the gate never met one because they all load on an interaction, and this one loads at rest.
+Checked live on the dev server: after six seconds `document.scripts` without a nonce = the alive chunk (plus the dev HMR
+client); production: the same chunk under its hashed name.
+**What I did not do.** Stamp the nonce onto runtime-appended scripts from a MutationObserver (it would make the gate blind to
+exactly the shape it watches for), delay the load until the gate has looked (a dodge), or fold the chunk into the launcher's
+bundle (every app page would carry it: the ADR-017 S7 decision and your lowered budgets both say no; its production gzip
+size is recorded in `docs/verification/x-local/ZIGI_REAL_MODEL_TEST.md` at Gate B so the owner can weigh it).
+**Suggested change, yours to make.** Let the check accept a script without a nonce only when it is a chunk the runtime
+appended: `src` starts with `/_next/static/chunks/` on the page's own origin and the element is not parser-inserted
+(the injection probe in the same test keeps failing a parser-inserted `<script>` as it does today). Until then this
+branch's Milestone run shows the integration job red for this one reason; the STATUS entry and ADR-017 S42 say so.
+
