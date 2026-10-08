@@ -1,4 +1,5 @@
 import {mkdirSync, writeFileSync, readFileSync, existsSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {expect, type Page, type TestInfo} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
@@ -19,7 +20,8 @@ import type {Expect} from '../lib/ai/evals/corpus';
  */
 export const REAL = process.env.ZIGI_REAL_MODEL === '1';
 export const MODEL = process.env.ZIGI_MODEL ?? '', HOST = process.env.ZIGI_HOST ?? 'unknown host', BASE = process.env.ZIGI_MODEL_BASE ?? 'http://127.0.0.1:11435';
-export const OUT = process.env.ZIGI_OUT ?? 'docs/verification/x-local/real-model';
+/** Where the raw run files go: the owner keeps them on the orphan branch `review/session-x-local-runs` (its worktree's `real-model/`), never on the feature branch; without ZIGI_OUT they land in the system's temporary folder. */
+export const OUT = process.env.ZIGI_OUT ?? join(tmpdir(), 'zigoals-real-model');
 /** How long one reply may take on a local model (first token on a cold model can be a minute). */
 export const REPLY_TIMEOUT_MS = Number(process.env.ZIGI_REPLY_TIMEOUT_MS ?? '240000');
 export const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';

@@ -90,7 +90,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('create-food'), name: text(100), brand: z.string().trim().max(80).optional(), serving_g: positive.max(100_000).optional(), serving_ml: positive.max(100_000).optional(), estimate: nutrients.optional()})
     .refine(a => a.serving_g === undefined || a.serving_ml === undefined, 'Give the serving in grams or in millilitres, not both.'),
   z.strictObject({kind: z.literal('create-recipe'), name: text(100), servings: positive.max(100).default(1),
-    ingredients: z.array(z.strictObject({name: text(100), food: handleOf('f', 'f3').optional(), grams: positive.max(100_000).optional(), servings: positive.max(1000).optional(), estimate_per_100g: nutrients.optional()})
+    ingredients: z.array(z.strictObject({name: text(100), food: handleOf('f', 'f3').optional(), grams: positive.max(100_000).optional(), millilitres: positive.max(100_000).optional(), quantity: positive.max(1000).optional(), unit: text(24).optional(), servings: positive.max(1000).optional(), estimate_per_100g: nutrients.optional()})
       .refine(i => i.grams === undefined || i.servings === undefined, 'Give an ingredient in grams or in servings, not both.')).min(1).max(30)}),
   z.strictObject({kind: z.literal('plan-meal'), recipe: handleOf('r', 'r1').optional(), saved_meal: handleOf('m', 'm1').optional(), servings: positive.max(100).default(1), meal: z.enum(MEALS), day: daySchema})
     .refine(a => (a.recipe === undefined) !== (a.saved_meal === undefined), 'Plan one recipe (r1) or one saved meal (m1).'),
@@ -161,6 +161,8 @@ export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PR
 export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
   'create_food': 'create-food', 'create_recipe': 'create-recipe', recipe: 'create-recipe', 'plan_meal': 'plan-meal', 'meal-plan': 'plan-meal', 'grocery': 'grocery-item', 'grocery_item': 'grocery-item', groceries: 'grocery-item', 'counter-increment': 'counter', 'create_reminder': 'create-reminder', reminder: 'create-reminder', 'review_intention': 'review-intention', intention: 'review-intention', 'plan_goal': 'plan-goal', 'build_habit': 'build-habit',
   'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember',
+  // Session X-Local Phase 2: names seen on the wire (phi4-mini, qwen3.6) for kinds that exist.
+  'create-goal-note': 'add-goal-note', 'note-goal': 'add-goal-note', 'log-nap': 'log-sleep', nap: 'log-sleep', 'mood-log': 'log-mood', 'set-reminder': 'create-reminder', 'add-reminder': 'create-reminder', 'add-grocery': 'grocery-item', 'log-measure': 'log-measurement',
   // Session W Part 21
   sleep: 'log-sleep', 'log_sleep': 'log-sleep', night: 'log-sleep', meditation: 'log-meditation', 'log_meditation': 'log-meditation', 'mindful-minutes': 'log-meditation', 'mindful_minutes': 'log-meditation',
   milestone: 'add-milestone', 'add_milestone': 'add-milestone', 'account-balance': 'update-account-balance', 'update_account_balance': 'update-account-balance', balance: 'update-account-balance',

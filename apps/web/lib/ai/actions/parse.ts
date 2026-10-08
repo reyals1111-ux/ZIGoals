@@ -51,13 +51,18 @@ export function repairJson(body: string): unknown {
       const word = /^[A-Za-z_][A-Za-z0-9_-]*/.exec(text.slice(i))![0], after = text.slice(i + word.length);
       i += word.length - 1;
       if (/^\s*:/.test(after) && (lastSignificant() === '{' || lastSignificant() === ',' || out.trim() === '')) { out += `"${word}"`; continue; }
-      out += word === 'True' ? 'true' : word === 'False' ? 'false' : word === 'None' || word === 'undefined' || word === 'NaN' ? 'null' : word; continue;
+      // Phase 2 (seen on phi4-mini): a bare `unknown`, `none` or `nil` where a value should be is simply unknown.
+      out += word === 'True' ? 'true' : word === 'False' ? 'false' : word === 'None' || word === 'undefined' || word === 'NaN' || /^(?:unknown|none|nil|null)$/i.test(word) ? 'null' : word; continue;
     }
     out += ch;
   }
   const fixed = attempt(out); if (fixed !== undefined) return fixed;
+  // Phase 2 (seen on phi4-mini): objects listed one after another with no comma between them. Outside strings only.
+  let joined = '', inner = false;
+  for (let i = 0; i < out.length; i++) { const ch = out[i]!; if (inner) { joined += ch; if (ch === '\\') { joined += out[i + 1] ?? ''; i++; } else if (ch === '"') inner = false; continue; } if (ch === '"') { inner = true; joined += ch; continue; } if (ch === '{' && /[}\]]\s*$/.test(joined)) joined = `${joined.replace(/\s+$/, '')},{`; else joined += ch; }
+  const commas = attempt(joined); if (commas !== undefined) return commas;
   // Objects listed without the outer brackets, or an object missing its closing brace.
-  const wrapped = attempt(`[${out}]`); if (wrapped !== undefined) return wrapped;
+  const wrapped = attempt(`[${joined}]`); if (wrapped !== undefined) return wrapped;
   const closed = attempt(`${out}}`); if (closed !== undefined) return closed;
   return null;
 }
@@ -106,6 +111,18 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   if (record.kind === 'create-goal' && Array.isArray(record.habits)) record.kind = 'plan-goal';
   // A reminder "for" a named thing: a habit named means for:"habit", a goal named means for:"goal" (seen on qwen3.6).
   if (record.kind === 'create-reminder' && typeof record.for === 'string' && !['habit', 'water', 'goal', 'wealth', 'pack'].includes(record.for.trim().toLowerCase())) { const f = record.for.trim().toLowerCase(); record.for = typeof record.habit === 'string' ? 'habit' : typeof record.goal === 'string' ? 'goal' : /water|drink|hydrat/.test(f) ? 'water' : /wealth|money|finance/.test(f) ? 'wealth' : /pack|context/.test(f) ? 'pack' : record.for; }
+  // Phase 2: a recipe ingredient's amount in millilitres (ml, milliliters), or a quantity with a unit; an estimate given
+  // per 100 ml, or simply as "estimate", is the per-100 g one (liquids are counted 1 ml = 1 g).
+  if (record.kind === 'create-recipe' && Array.isArray(record.ingredients)) {
+    record.ingredients = record.ingredients.map(item => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      const ing = {...(item as Record<string, unknown>)};
+      for (const key of ['ml', 'milliliters', 'milliliter', 'mL', 'millilitre']) if (ing[key] !== undefined) { if (ing.millilitres === undefined) ing.millilitres = ing[key]; delete ing[key]; }
+      for (const key of ['estimate_per_100ml', 'estimate']) if (ing[key] !== undefined) { if (ing.estimate_per_100g === undefined) ing.estimate_per_100g = ing[key]; delete ing[key]; }
+      if (ing.unit !== undefined && typeof ing.unit === 'string') { const u = ing.unit.trim().toLowerCase(); if ((u === 'g' || u === 'gram' || u === 'grams' || u === 'gr') && typeof ing.quantity === 'number' && ing.grams === undefined) { ing.grams = ing.quantity; delete ing.quantity; delete ing.unit; } else if ((u === 'ml' || u === 'milliliters' || u === 'millilitres') && typeof ing.quantity === 'number' && ing.millilitres === undefined) { ing.millilitres = ing.quantity; delete ing.quantity; delete ing.unit; } }
+      return ing;
+    });
+  }
   // Session X-Local Part 5c: a day written as "Today", "2026/10/08" or "2026-10-8" means the same day.
   if (typeof record.day === 'string') { const day = record.day.trim().toLowerCase().replace(/\//g, '-').replace(/^(\d{4})-(\d{1,2})-(\d{1,2})$/, (_, y: string, m: string, d: string) => `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`); record.day = day; }
   if (record.kind === 'log-measurement' && record.kind_of === undefined && typeof record.measurement === 'string') { record.kind_of = record.measurement; delete record.measurement; }

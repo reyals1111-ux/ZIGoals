@@ -1,7 +1,11 @@
 import {mkdirSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
 import {streamChat} from '../chat';
+import {parseReply} from '../actions/parse';
+import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
+import {detectIntent, wantsCard} from '../intent';
 import {buildSystemPrompt} from '../context/specialists';
 import {questionContext} from '../context/question';
 import {Handles} from '../handles';
@@ -23,21 +27,21 @@ import {factNumbers, score, type Call, type Observed, type Score} from './score'
  * written as JSON (and the Markdown summary is built from them) under ZIGI_OUT.
  *
  *   ZIGI_REAL_MODEL=1 ZIGI_MODEL_BASE=http://127.0.0.1:11435 ZIGI_MODEL=gemma4:12b ZIGI_HOST="RTX 5090" \
- *   ZIGI_CASES=all|important|<id regex> ZIGI_REPEAT=1 ZIGI_DATA_MODE=tools|attach ZIGI_OUT=docs/verification/x-local/real-model \
+ *   ZIGI_CASES=all|important|<id regex> ZIGI_REPEAT=1 ZIGI_DATA_MODE=tools|attach ZIGI_OUT=<the runs worktree's real-model folder> \
  *   pnpm exec vitest run apps/web/lib/ai/evals/real-model.test.ts
  */
 const env = process.env, enabled = env.ZIGI_REAL_MODEL === '1';
 const BASE = env.ZIGI_MODEL_BASE ?? 'http://127.0.0.1:11435', MODEL = env.ZIGI_MODEL ?? '', HOST = env.ZIGI_HOST ?? 'unknown host', REPEAT = Math.max(1, Number(env.ZIGI_REPEAT ?? '1'));
-const MODE = env.ZIGI_DATA_MODE === 'attach' ? 'attach' : 'tools', OUT = env.ZIGI_OUT ?? 'docs/verification/x-local/real-model', FILTER = env.ZIGI_CASES ?? 'important';
+const MODE = env.ZIGI_DATA_MODE === 'attach' ? 'attach' : 'tools', OUT = env.ZIGI_OUT ?? join(tmpdir(), 'zigoals-real-model'), FILTER = env.ZIGI_CASES ?? 'important';
 const TIMEOUT_MS = Number(env.ZIGI_CASE_TIMEOUT_MS ?? '180000'), THINK = env.ZIGI_THINK === '1';
 const selected = (): ModelCase[] => FILTER === 'all' ? [...CORPUS] : FILTER === 'important' ? [...IMPORTANT] : CORPUS.filter(c => new RegExp(FILTER).test(c.id));
-export type CaseRun = {id: string; repeat: number; kind: string; area: string; lang: string; turn: number; pass: boolean; checks: Score['checks']; cards: number; rejected: number; hint: string | null; refused: boolean; firstTokenMs: number | null; totalMs: number; tokens: {input: number | null; output: number | null}; calls: Call[]; reply: string; error: string | null};
+export type CaseRun = {id: string; repeat: number; kind: string; area: string; lang: string; turn: number; pass: boolean; checks: Score['checks']; cards: number; rejected: number; hint: string | null; refused: boolean; firstTokenMs: number | null; totalMs: number; tokens: {input: number | null; output: number | null}; calls: Call[]; repaired?: boolean; reply: string; error: string | null};
 function sourcesFor(c: ModelCase): ToolSources {
   let s = withPortfolios(withHandHealth(showcaseSources()));
   if (c.sentinels) s = withSentinels(s);
   return goldenSources(s);
 }
-async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources): Promise<{observed: Observed; reply: string; firstTokenMs: number | null; totalMs: number; tokens: {input: number | null; output: number | null}; error: string | null}> {
+async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources): Promise<{observed: Observed; reply: string; repaired: boolean; firstTokenMs: number | null; totalMs: number; tokens: {input: number | null; output: number | null}; error: string | null}> {
   const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
   const provider = toolEnv(sources, gates, 'provider', new Handles([])), local = toolEnv(sources, gates, 'local');
   const context = questionContext(ask, sources, gates, []);
@@ -66,11 +70,23 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
       }
     }
   } catch (e) { error = e instanceof Error ? e.message : String(e); }
+  // Session X-Local Phase 2 (P2.2b): the app's one bounded repair round, here too, so the harness measures what the app
+  // does: a card asked for and none given (or every block refused) gets one more ask, with Ollama's structured output.
+  let repaired = false;
+  if (!error && reply.trim()) {
+    const first = parseReply(reply), asked = wantsCard(detectIntent(ask), reply);
+    if (needsRepair(first, {askedForCard: asked})) {
+      const again: ChatMessage[] = [...messages, {role: 'assistant', content: reply}, {role: 'user', content: repairPrompt(first)}];
+      let second = '';
+      try { for await (const event of streamChat({...request, messages: again, format: structuredFormat()})) { if (event.type === 'text') second += event.delta; else if (event.type === 'usage') tokens = {input: (tokens.input ?? 0) + (event.input ?? 0), output: (tokens.output ?? 0) + (event.output ?? 0)}; } } catch { second = ''; }
+      if (second.trim()) { reply = fenceStructured(second); repaired = true; }
+    }
+  }
   const totalMs = Date.now() - started;
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.
   const facts = (c.expect.facts ?? []).map(fact => { const result = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(result).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(result)}; });
   const localReply = localAnswer(ask, local), sentinelsSeen = c.sentinels ? sentinelsIn(system + JSON.stringify(messages) + reply + JSON.stringify(calls)) : undefined;
-  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen}, reply, firstTokenMs: first, totalMs, tokens, error};
+  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen}, reply, repaired, firstTokenMs: first, totalMs, tokens, error};
 }
 describe.skipIf(!enabled || !MODEL)('ZIGi against a real local model (owner machines only)', () => {
   const cases = selected();
@@ -92,7 +108,7 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real local model (owner mach
         // Attach mode has no tools to call: the expected-tool checks do not apply there (the records are in the prompt).
         const {tools: _tools, toolsNot: _toolsNot, ...withoutTools} = turn.expect; void _tools; void _toolsNot;
         const s = score(MODE === 'attach' ? withoutTools : turn.expect, r.observed);
-        runs.push({id: c.id, repeat, kind: c.kind, area: c.area, lang: c.lang, turn: t, pass: s.pass && !r.error, checks: r.error ? [...s.checks, {name: 'error', pass: false, detail: r.error}] : s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: r.firstTokenMs, totalMs: r.totalMs, tokens: r.tokens, calls: [...r.observed.calls], reply: r.reply.slice(0, 4000), error: r.error});
+        runs.push({id: c.id, repeat, kind: c.kind, area: c.area, lang: c.lang, turn: t, pass: s.pass && !r.error, checks: r.error ? [...s.checks, {name: 'error', pass: false, detail: r.error}] : s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: r.firstTokenMs, totalMs: r.totalMs, tokens: r.tokens, calls: [...r.observed.calls], reply: r.reply.slice(0, 4000), repaired: r.repaired, error: r.error});
         history.push({role: 'user', content: turn.ask}, {role: 'assistant', content: r.reply});
         console.info(`${s.pass && !r.error ? 'PASS' : 'FAIL'} ${c.id}${t ? `/t${t}` : ''}${REPEAT > 1 ? ` #${repeat}` : ''} ${r.totalMs} ms${r.error ? ` ERROR ${r.error.slice(0, 80)}` : ''}${s.pass ? '' : ` [${s.checks.filter(x => !x.pass).map(x => `${x.name}${x.detail ? `: ${x.detail.slice(0, 60)}` : ''}`).join('; ')}]`}`);
       }

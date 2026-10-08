@@ -48,6 +48,8 @@ export type ChatRequest = {
    * sets it. Other wires have no field for it today.
    */
   think?: boolean;
+  /** Session X-Local Phase 2 (P2.2b): structured output for one reply, as a JSON schema the wire enforces (Ollama's `format`); only the repair round sets it. Other wires ignore it. */
+  format?: Record<string, unknown>;
   /** The person's key or token; null for a local server without authentication. */
   key: string | null;
   /** Local provider only: the server's base URL (http://localhost:11434, http://127.0.0.1:1234, …). */

@@ -24,12 +24,27 @@ export type QuestionContext = {sources: QuestionSource[]; withheld: string[]; te
 export const QUESTION_HEADING = '## For this question (records chosen by ZIGi, on this device)';
 const MIN_UNITS = /^(minutes?|mins?|min|hours?|h|hrs?)$/i;
 const sourceId = (call: ToolCallRecord) => `${call.tool}:${JSON.stringify(call.args)}`;
+/** Dutch and French cue words as their English equivalents, so the English subject detection reads them; the periods are already multilingual. */
+const CUES: [RegExp, string][] = [
+  [/\bstappen\b|\bpas\b/g, 'steps'], [/\bgewicht\b|\bwoog\b|\bweeg\b|\bpoids\b|\bpesais\b|\bpèse\b/g, 'weight'], [/\bgeslapen\b|\bslaap\w*|\bslapen\b|\bvannacht\b|\bsommeil\b|\bdormi\b|\bdors\b|\bnuit\b|\bsieste\b|\bdutje\b/g, 'sleep'],
+  [/\bgemediteerd\b|\bmediteer\w*|\bmeditatie\b|\bmédit\w*|\bpleine conscience\b|\bmindful minuten\b/g, 'meditation'], [/\bcalorieën\b|\bcalorieen\b/g, 'calories'], [/\beiwit\w*|\bprotéines?\b/g, 'protein'], [/\bgegeten\b|\beten\b|\bmaaltijd\w*|\bontbijt\b|\bmangé\b|\bmanger\b|\brepas\b|\bdéjeuner\b|\bdîner\b/g, 'food'],
+  [/\bwater\b|\beau\b|\bgedronken\b|\bbu\b/g, 'water'], [/\bnettovermogen\b|\bnetto vermogen\b|\bvaleur nette\b|\bpatrimoine\b/g, 'net worth'], [/\bper valuta\b|\bpar devise\b|\btotalen\b|\btotaux\b/g, 'per currency'], [/\bschuldig\b|\bschulden\b|\bdettes?\b|\bque dois-je\b/g, 'my debts'],
+  [/\bportefeuille\b/g, 'portfolio'], [/\bschaak\w*|\béchecs\b/g, 'chess'], [/\bliens?\b/g, 'links'], [/\bmijlpa(?:a)?l(?:en)?\b|\bjalons?\b/g, 'milestones'], [/\buitdaging(?:en)?\b|\bdéfis?\b/g, 'challenges'], [/\breeks(?:en)?\b|\bséries?\b/g, 'streak'], [/\bminuten\b|\bminutes\b/g, 'minutes'], [/\buur\b|\buren\b|\bheures?\b/g, 'hours'],
+  [/\bgelezen\b|\blezen\b|\blu\b|\blire\b|\bpagina'?s?\b|\bpages\b/g, 'read'], [/\bgewandeld\b|\bwandel\w*|\bmarche\b|\bmarché\b/g, 'walk'], [/\bgesport\b|\bsporten\b|\bexercice\b/g, 'exercise'], [/\bdoel(?:en)?\b|\bobjectifs?\b/g, 'goal'], [/\bgewoonte(?:s|n)?\b|\bhabitudes?\b/g, 'habit'],
+  [/\bnoodfonds\b|\bfonds d'urgence\b/g, 'emergency fund'], [/\bhoeveel\b|\bcombien\b/g, 'how much'], [/\bwelke\b|\bquel(?:le)?s?\b/g, 'which'], [/\bhoe ver\b|\boù en\b/g, 'how far'], [/\bwat is\b|\bwat was\b|\bqu'est-ce que\b/g, 'what is'], [/\bwanneer\b|\bquand\b/g, 'when'], [/\bapparaten\b|\bappareils?\b|\bgeïmporteerd\b|\bimporté\b/g, 'devices'], [/\bhartslag\b|\bfréquence cardiaque\b/g, 'heart rate'],
+];
+export function translateCues(question: string): string { let q = question.toLowerCase(); for (const [re, word] of CUES) q = q.replace(re, word); return q; }
+/** A habit measure asked for without a habit's name (minutes read, a streak, pages): every timed habit's figures are pre-run. */
+const HABIT_MEASURE = /\b(minutes?|minuten|streaks?|reeks|série|pages?|pagina|consistent|consistency|rate|check-?ins?|how often|hoe vaak|combien de fois)\b/;
+const GOAL_WORDS = /\b(how far|progress|left|remaining|how close|which|list|dates?|coming up|hoe ver|ontbreekt|welke|où en|manque|quels|échéances)\b/;
 /** The tool calls a question asks for: the lookup's own, or the figures of each record it names. */
 export function questionCalls(question: string, sources: ToolSources, gates: Gates): ToolCallRecord[] {
   const env = toolEnv(sources, gates, 'provider');
   const reply = localAnswer(question, env);
   if ((reply.kind === 'answer' || reply.kind === 'refusal') && reply.calls.length) return reply.calls;
-  const s = detectSubjects(question, env), calls: ToolCallRecord[] = [];
+  // Phase 2 (P2.2a): the subject detection reads English; a Dutch or French question is translated cue by cue first,
+  // for this router only (the local engine keeps its English-only answers, by the golden set's rule).
+  const s = detectSubjects(translateCues(question), env), calls: ToolCallRecord[] = [];
   const phrase = (fallback: string) => s.ranges[0]?.phrase ?? fallback;
   const add = (tool: string, args: Record<string, unknown>) => calls.push({tool, args, label: tool});
   for (const habit of s.habits) {
@@ -54,6 +69,31 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (h.meditation) add('meditation_summary', {});
   if (h.vitals) add('vitals', {range: phrase('the last 7 days')});
   if (h.devices) add('devices', {});
+  // Session X-Local Phase 2 (P2.2a): families of asks the subject detection alone did not cover, in three languages:
+  // what is open today, which goals or habits, a brief or a day's story, "what do you know about me", the portfolio,
+  // staking, imports; sleep and meditation bring their nights and sessions beside the summary; a habit measure asked
+  // without a named habit brings every timed habit's figures for the period. The question-aware chips stay removable.
+  const q = question.toLowerCase();
+  const OPEN_TODAY = /\b(still open|left today|open today|what(?:'s| is) open|still to do|remaining today|left to do|to do today|due today|habits (?:are )?left|nog open|nog te doen|staat er .*open|reste-t-il|encore à faire|à faire aujourd'hui|open for me)\b/;
+  const LIST_GOALS = /\b(which goals?|what goals?|my goals|goals do i have|list (?:my )?goals|goal dates|goals? (?:are|is) (?:coming|due|closest|furthest|behind)|closest to done|furthest behind|welke doelen|mijn doelen|doeldatums|quels objectifs|mes objectifs|échéances)\b/;
+  const LIST_HABITS = /\b(which habits?|what habits?|my habits|habits do i have|list (?:my )?habits|my streaks|how are my streaks|welke gewoontes?|mijn gewoontes?|mijn reeksen|mes habitudes|quelles habitudes|mes séries)\b/;
+  const BRIEF = /\b(brief|briefing|focus on today|pay attention|what should i|how is my (?:week|day|month)|my (?:week|month|day) (?:going|so far)|story of my|summar|wrap-?up|weekly review|weekend|weekdays|résumé|samenvat|overzicht|waar moet ik op letten|à quoi dois-je|ma semaine|mijn week|hoe gaat mijn)\b/;
+  const DID = /\b(what did i (?:do|log)|what have i logged|busiest day|what happened|wat heb ik (?:gedaan|gelogd)|qu'ai-je fait|qu'est-ce que j'ai fait)\b/;
+  const ABOUT_ME = /\b(know about me|about me|over mij|sur moi)\b/;
+  const PORTFOLIO = /\b(portfolios?|portefeuilles?)\b/, STAKING = /\b(stak(?:ing|ed)|validators?|staken|rewards?)\b/;
+  if (OPEN_TODAY.test(q)) { add('habits_due', {}); add('list_habits', {}); }
+  if (LIST_GOALS.test(q) || (!s.goals.length && /\b(goals?|doel(?:en)?|objectifs?)\b/.test(q) && GOAL_WORDS.test(q))) add('list_goals', {});
+  if (LIST_HABITS.test(q)) add('list_habits', {});
+  if (BRIEF.test(q)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); }
+  if (DID.test(q)) add('recent_activity', {range: phrase('today')});
+  if (ABOUT_ME.test(q)) add('about_me', {});
+  if (PORTFOLIO.test(q)) add('portfolios', {});
+  if (STAKING.test(q)) add('staking_watch', {});
+  const healthSubject = h.nutrient !== null || h.water || h.steps || h.active || h.weight || h.measurement || h.fasting || h.diary || h.counter !== null || h.sleep || h.meditation || h.vitals || h.devices;
+  if (!s.habits.length && !s.goals.length && !healthSubject && HABIT_MEASURE.test(translateCues(q))) {
+    add('list_habits', {});
+    for (const habit of env.habits.habits.filter(hb => latestHabitRule(hb).state !== 'archived').slice(0, 4)) { const rule = latestHabitRule(habit), timed = rule.measurement.kind === 'duration' || MIN_UNITS.test(measurementUnit(rule)); add('habit_stats', {habit: clean(habit.title, 120), range: phrase('this week'), metric: timed ? 'minutes' : rule.measurement.kind === 'boolean' ? 'count' : 'quantity'}); }
+  }
   const l = s.life;
   if (l.accounts) add('net_worth', {});
   if (l.milestones) add('milestones', s.goals.length === 1 ? {goal: clean(s.goals[0]!.name, 120)} : {});
@@ -61,7 +101,7 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (l.chess) add('chess_ratings', {});
   if (l.links) add('links_count', {});
   const seen = new Set<string>();
-  return calls.filter(c => { const id = sourceId(c); if (seen.has(id)) return false; seen.add(id); return true; }).slice(0, 8);
+  return calls.filter(c => { const id = sourceId(c); if (seen.has(id)) return false; seen.add(id); return true; }).slice(0, 10);
 }
 /** The person's notes for ZIGi (Part 8), with every message while "Use my notes" is on; a removable chip like the others. */
 export const NOTES_CALL: ToolCallRecord = {tool: 'about_me', args: {}, label: 'About me'};

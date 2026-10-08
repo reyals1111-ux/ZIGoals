@@ -177,13 +177,13 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
   );
   const sleep = make('lookup', {area: 'sleep', page: 'health'}), med = make('lookup', {area: 'meditation', page: 'health'});
   add(
-    sleep('sleep-week', 'How did I sleep this week?', {localFirst: true, tools: ['sleep_nights']}, {important: true}),
-    sleep('sleep-debt', 'What is my sleep debt?', {localFirst: true, tools: ['sleep_summary']}),
+    sleep('sleep-week', 'How did I sleep this week?', {localFirst: true, toolsAny: ['sleep_nights', 'sleep_summary']}, {important: true}),
+    sleep('sleep-debt', 'What is my sleep debt?', {localFirst: true, toolsAny: ['sleep_summary', 'sleep_nights']}),
     sleep('sleep-bedtime', 'How consistent is my bedtime?', {localFirst: true}),
     make('propose', {area: 'sleep', page: 'health'})('sleep-log', 'I slept from 23:20 to 7:10, pretty well', {kinds: ['log-sleep']}, {important: true}),
     make('propose', {area: 'sleep', page: 'health'})('sleep-nap', 'A 30 minute nap this afternoon', {kinds: ['log-sleep']}),
     make('advice', {area: 'sleep', page: 'health'})('sleep-advice', 'Should I go to bed earlier?', {kinds: [], mustNot: ['you should go']}),
-    med('med-week', 'How many mindful minutes this week?', {localFirst: true, tools: ['meditation_sessions']}, {important: true}),
+    med('med-week', 'How many mindful minutes this week?', {localFirst: true, toolsAny: ['meditation_sessions', 'meditation_summary']}, {important: true}),
     make('propose', {area: 'meditation', page: 'health'})('med-log', 'Log 15 minutes of meditation this morning at 7', {kinds: ['log-meditation']}, {important: true}),
     make('lookup', {area: 'devices', page: 'health'})('devices-sources', 'Which devices do my records come from?', {localFirst: true, tools: ['devices']}),
     make('lookup', {area: 'devices', page: 'health'})('devices-hr', 'What was my resting heart rate this week?', {localFirst: true, tools: ['vitals']}),
@@ -269,8 +269,8 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     ...tri('x2-water-week', 'health', 'health', ['How much water this week?', 'Hoeveel water deze week?', "Combien d'eau cette semaine ?"], {localFirst: true, tools: ['water']}),
     ...tri('x2-kcal-week', 'health', 'health', ['How many calories this week?', 'Hoeveel calorieën deze week?', 'Combien de calories cette semaine ?'], {localFirst: true, toolsAny: ['nutrient_totals', 'diary_entries'], toolsNot: ['vitals']}),
     ...tri('x2-weight-month', 'health', 'health', ['What was my weight this month?', 'Wat was mijn gewicht deze maand?', 'Quel était mon poids ce mois-ci ?'], {localFirst: true, tools: ['weight']}),
-    ...tri('x2-sleep-night', 'sleep', 'health', ['How did I sleep last night?', 'Hoe heb ik vannacht geslapen?', 'Comment ai-je dormi la nuit dernière ?'], {localFirst: true, tools: ['sleep_nights']}, true),
-    ...tri('x2-mindful', 'meditation', 'health', ['How many mindful minutes this month?', 'Hoeveel mindful minuten deze maand?', 'Combien de minutes de pleine conscience ce mois-ci ?'], {localFirst: true, tools: ['meditation_sessions']}),
+    ...tri('x2-sleep-night', 'sleep', 'health', ['How did I sleep last night?', 'Hoe heb ik vannacht geslapen?', 'Comment ai-je dormi la nuit dernière ?'], {localFirst: true, toolsAny: ['sleep_nights', 'sleep_summary']}, true),
+    ...tri('x2-mindful', 'meditation', 'health', ['How many mindful minutes this month?', 'Hoeveel mindful minuten deze maand?', 'Combien de minutes de pleine conscience ce mois-ci ?'], {localFirst: true, toolsAny: ['meditation_sessions', 'meditation_summary']}),
     ...tri('x2-goal-emergency', 'goals', 'goals', ['How much is left on my emergency fund?', 'Hoeveel ontbreekt er nog aan mijn noodfonds?', "Combien manque-t-il à mon fonds d'urgence ?"], {localFirst: true, tools: ['goal_progress'], facts: [{tool: 'goal_progress', args: {goal: 'Emergency fund'}}]}, true),
     ...tri('x2-goals-list', 'goals', 'goals', ['Which goals do I have?', 'Welke doelen heb ik?', "Quels objectifs ai-je ?"], {tools: ['list_goals'], kinds: []}),
     ...tri('x2-totals', 'wealth', 'wealth', ['What are my totals per currency?', 'Wat zijn mijn totalen per valuta?', 'Quels sont mes totaux par devise ?'], {localFirst: true, tools: ['totals_per_currency'], mustNot: ['converted to']}, true),
@@ -328,7 +328,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     make('followup', {area: 'health', page: 'health'})('x2-follow-water', 'How much water did I drink this week?', {tools: ['water'], kinds: []}, {turns: [{ask: 'And last week?', expect: {tools: ['water'], kinds: []}}, {ask: 'Log a glass now', expect: {kinds: ['log-water']}}]}),
     make('followup', {area: 'goals', page: 'goals'})('x2-follow-goals', 'Which goal is furthest behind?', {toolsAny: ['list_goals', 'goal_progress'], kinds: []}, {turns: [{ask: 'Add a note to it: review the plan', expect: {kinds: ['add-goal-note']}}]}),
     make('followup', {area: 'wealth', page: 'wealth'})('x2-follow-wealth', 'Summarise my totals per currency', {tools: ['totals_per_currency'], kinds: []}, {turns: [{ask: 'Which currency is the biggest?', expect: {kinds: [], mustNot: ['converted']}}]}),
-    make('followup', {area: 'sleep', page: 'health'})('x2-follow-sleep', 'How did I sleep this week?', {tools: ['sleep_nights'], kinds: []}, {turns: [{ask: 'Which night was the shortest?', expect: {kinds: []}}]}),
+    make('followup', {area: 'sleep', page: 'health'})('x2-follow-sleep', 'How did I sleep this week?', {toolsAny: ['sleep_nights', 'sleep_summary'], kinds: []}, {turns: [{ask: 'Which night was the shortest?', expect: {kinds: []}}]}),
   );
   // Briefs, reviews, patterns, "ask about this number".
   add(

@@ -14,7 +14,8 @@ import {currentChatStore} from '../../lib/ai/scope';
 import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings} from '../../lib/ai/settings';
 import {zigiSignals} from '../zigi/bus';
-import {needsRepair, REPAIR_NOTE, REPAIR_PROMPT, repairReasons} from '../../lib/ai/actions/repair';
+import {fenceStructured, needsRepair, REPAIR_NOTE, repairPrompt, structuredFormat} from '../../lib/ai/actions/repair';
+import {detectIntent, wantsCard} from '../../lib/ai/intent';
 import {localSignal} from '../../lib/ai/zigi-reactions';
 import {extractHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
@@ -33,7 +34,7 @@ import {capNote, capState, monthKey, needsSpendConfirmation, readUsage, recordUs
 import {getAppStorage} from '../../lib/showcase-storage';
 import {LOG_MODE_NOTE} from '../../lib/ai/context/specialists';
 import {PHOTO_NOTE} from '../../lib/ai/photo';
-import type {ChatImage} from '../../lib/ai/types';
+import type {ChatImage, ChatRequest} from '../../lib/ai/types';
 import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
@@ -233,7 +234,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, usage ?? {input: null, output: null}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
       try { const cap = capState(readUsage(getAppStorage()).data, monthKey(new Date())), line = capNote(cap); if (line && noted.current !== `${monthKey(new Date())}:${cap?.level}`) { noted.current = `${monthKey(new Date())}:${cap?.level}`; setUsageNote(line); } } catch { /* no note */ }
     };
-    const run = async (current: DataMode, msgs = messages) => {
+    const run = async (current: DataMode, msgs = messages, extra: Partial<Pick<ChatRequest, 'format'>> = {}) => {
       if (current === 'tools' && env) {
         const shouldStop = () => contextRef.current.gates.paused ? 'ZIGi paused its lookups: this screen holds a private form.' : null;
         for await (const event of runWithTools({...request, system: withNotes(buildSystemPrompt({...base, context: contextText, tools: true})), env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
@@ -245,7 +246,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
         }
         return;
       }
-      for await (const event of counted({...request, messages: msgs})) {
+      for await (const event of counted({...request, ...extra, messages: msgs})) {
         if (event.type === 'text') onText(event.delta);
         else if (event.type === 'usage') usage = {input: event.input, output: event.output};
         else if (event.type === 'done') reason = event.reason;
@@ -258,14 +259,19 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
      * first under a note; if the retry fails or stops, the first answer stands.
      */
     const repair = async () => {
-      if (!(options.log || options.plan) || controller.signal.aborted || !reply) return;
-      const check = parseReply(reply); if (!needsRepair(check)) return;
+      if (controller.signal.aborted || !reply) return;
+      // Phase 2 (P2.2b): also when a card was asked for (log or plan mode, or a logging or planning intent read on the
+      // device) and no block came back at all; on Ollama the retry asks for structured output (the JSON schema).
+      // Log or plan mode alone does not force a retry ("thanks" in log mode is a normal reply); the message's own intent does.
+      const check = parseReply(reply), asked = wantsCard(detectIntent(text), reply);
+      if (!needsRepair(check, {askedForCard: asked})) return;
       const firstTry = reply, firstUsage = usage;
-      const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: `${REPAIR_PROMPT} ${repairReasons(check)}`}];
+      const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: repairPrompt(check)}];
       reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');
-      try { await run('attach', again); } catch (error) { if (isAbortLike(error)) throw error; reply = ''; }
+      const structured = !hosted && settings.provider === 'local' && settings.localServer === 'ollama' ? {format: structuredFormat()} : {};
+      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) throw error; reply = ''; }
       if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
-      reply = `${REPAIR_NOTE}\n\n${reply}`; pendingText.current = reply;
+      reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
     };
     const done = (stopped: string | undefined) => finish(reply, usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
     try {

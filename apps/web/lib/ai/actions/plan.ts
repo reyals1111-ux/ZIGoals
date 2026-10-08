@@ -75,7 +75,14 @@ function handleFor(env: Env, kind: Handle['kind'], named: string): Handle | unde
   const byHandle = env.handles.find(h => h.kind === kind && h.handle === key);
   if (byHandle) return byHandle;
   const byTitle = env.handles.filter(h => h.kind === kind && h.label.trim().toLowerCase() === key);
-  return byTitle.length === 1 ? byTitle[0] : undefined;
+  if (byTitle.length === 1) return byTitle[0];
+  if (byTitle.length > 1 || key.length < 4) return undefined;
+  // Phase 2: "meditation" names Meditate, "reading" names Read, "wandeling" names Wandelen: one record whose title and
+  // the name share a stem of four letters or more, counted from the start; two such records are a refusal, never a guess.
+  const stemOf = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/)[0] ?? '';
+  const k = stemOf(key);
+  const byStem = env.handles.filter(h => { const t = stemOf(h.label); return h.kind === kind && t.length >= 4 && k.length >= 4 && (t.startsWith(k) || k.startsWith(t)); });
+  return byStem.length === 1 ? byStem[0] : undefined;
 }
 function habitOf(env: Env, named: string): {ok: true; habit: Habit} | {ok: false; message: string} {
   const found = handleFor(env, 'habit', named);
@@ -291,7 +298,14 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'create-recipe': {
       const recipeId = healthId(), created: HealthFood[] = [], items: {foodId: string; quantityMilli: number}[] = [], lines: string[] = [];
-      for (const ingredient of action.ingredients) {
+      for (const raw of action.ingredients) {
+        // Phase 2: millilitres count 1 ml = 1 g; a quantity with a kitchen unit becomes grams or millilitres; a bare quantity is servings.
+        const UNIT_ML: Record<string, number> = {ml: 1, millilitre: 1, millilitres: 1, milliliter: 1, milliliters: 1, cl: 10, dl: 100, l: 1000, litre: 1000, litres: 1000, liter: 1000, liters: 1000, cup: 240, cups: 240, tbsp: 15, tablespoon: 15, tablespoons: 15, tsp: 5, teaspoon: 5, teaspoons: 5};
+        const UNIT_G: Record<string, number> = {g: 1, gram: 1, grams: 1, gr: 1, kg: 1000, kilo: 1000, kilos: 1000, kilogram: 1000, oz: 28.35, ounce: 28.35, ounces: 28.35, lb: 453.6, lbs: 453.6};
+        const unit = raw.unit?.trim().toLowerCase() ?? '';
+        const grams = raw.grams ?? (raw.millilitres !== undefined ? raw.millilitres : raw.quantity !== undefined && unit && UNIT_G[unit] !== undefined ? raw.quantity * UNIT_G[unit]! : raw.quantity !== undefined && unit && UNIT_ML[unit] !== undefined ? raw.quantity * UNIT_ML[unit]! : undefined);
+        const servings = raw.servings ?? (grams === undefined && raw.quantity !== undefined ? raw.quantity : undefined);
+        const ingredient = {...raw, grams: grams !== undefined ? Math.round(grams * 100) / 100 : undefined, servings};
         let food: HealthFood | undefined, source: string;
         if (ingredient.food) {
           const handle = env.handles.find(h => h.handle === ingredient.food && h.kind === 'food');
