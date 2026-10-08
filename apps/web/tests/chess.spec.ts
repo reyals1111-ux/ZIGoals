@@ -114,6 +114,22 @@ test('a 429 pauses that site for a minute with nothing retried; the other site\'
   await expect(page.getByRole('article', {name: 'chess.com Rapid rating'})).toContainText('1,512');
 });
 
+// Session X Part 14 (J187): the page draws again when the pause runs out, so Refresh comes back by itself.
+test('after the minute, Refresh comes back by itself, and nothing was retried meanwhile', async ({page}) => {
+  const seen: Seen[] = [];
+  await mockSites(page, seen, {lichessBusy: true});
+  await seed(page, {[SETTINGS]: settings({chess: chess()})});
+  await page.goto('/app/chess');
+  const refresh = page.getByRole('button', {name: 'Refresh', exact: true});
+  await expect(refresh).toBeDisabled();
+  await page.clock.fastForward(30_000);
+  await expect(refresh).toBeDisabled();
+  expect(seen.filter(s => s.url.startsWith('https://lichess.org')).length).toBe(1);
+  await page.clock.fastForward(31_000);
+  await expect(refresh).toBeEnabled();
+  expect(seen.filter(s => s.url.startsWith('https://lichess.org')).length).toBe(1);
+});
+
 test('puzzles and TV load only on a tap, sandboxed with no referrer; the CSP names exactly these frames; Play opens a window of its own', async ({page}) => {
   const seen: Seen[] = [], opened: string[] = [];
   await mockSites(page, seen);

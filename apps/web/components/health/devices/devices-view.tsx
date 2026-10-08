@@ -36,7 +36,7 @@ export default function DevicesView() {
       <h2 id="devices-bluetooth-title">On this device, by Bluetooth</h2>
       {support === null ? <p>Checking this browser…</p>
         : support === 'no-api' ? <p>This browser has no Web Bluetooth. Chrome or Edge on a computer, or Chrome on Android, can connect a heart-rate monitor or a scale; Safari, Firefox and iPhone browsers cannot.</p>
-        : support === 'policy' ? <div className="devices-reload"><p>Bluetooth works on Health when it is opened as its own page.</p><a className="secondary devices-reload-link" href="/app/health?view=devices">Reload Health for Bluetooth</a></div>
+        : support === 'policy' ? <div className="devices-reload"><p>Bluetooth works on Health when it is opened as its own page.</p><a className="secondary devices-reload-link" href="/app/health?view=devices">Reload Health for Bluetooth</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</div>
         : <><HeartMonitor /><ScaleReader /></>}
     </section>
     <HealthLinks />

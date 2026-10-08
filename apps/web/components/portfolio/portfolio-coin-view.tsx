@@ -54,7 +54,8 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
   };
   // The Showcase's fixture line, drawn to the moment the page opened (labelled; nothing is asked).
   const [opened] = useState(() => Date.now()), showcaseUsd = store.showcase && currency === 'USD';
-  const fixturePoints = useMemo(() => showcaseUsd && key ? showcasePrices(key, opened - 365 * DAY, opened, 6 * 3600000).map(p => ({at: new Date(p.at).toISOString(), value: p.price.replace('.', '').replace(/^0+(?=\d)/, ''), decimals: 2})) : undefined, [showcaseUsd, key, opened]);
+  // A coin the Showcase does not hold has no fixture line: the chart says so instead of drawing one.
+  const fixturePoints = useMemo(() => { const points = showcaseUsd && key ? showcasePrices(key, opened - 365 * DAY, opened, 6 * 3600000) : []; return points.length ? points.map(p => ({at: new Date(p.at).toISOString(), value: p.price.replace('.', '').replace(/^0+(?=\d)/, ''), decimals: 2})) : undefined; }, [showcaseUsd, key, opened]);
   if (lookup.state === 'invalid') return <div className="dashboard portfolio-page"><BackLink /><h1>Coin not found</h1><p>This address does not name a coin.</p></div>;
   if (!store.loaded || lookup.state === 'loading') return <div className="dashboard portfolio-page"><BackLink /><p role="status">Loading the coin…</p></div>;
   if (lookup.state === 'unknown' || !coin) return <div className="dashboard portfolio-page"><BackLink /><h1>Coin not found</h1><p>This coin is not in the coin list, or the list is unavailable right now. ZIGoals does not guess from a name.</p></div>;

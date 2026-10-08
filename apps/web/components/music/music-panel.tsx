@@ -31,7 +31,7 @@ function AmbientSource({prefs, save}: {prefs: MusicPrefs; save: (change: (m: Mus
     <p className="music-sub" role="status">{state.playing ? `Playing${state.endsAt ? ` · stops at ${clock(state.endsAt)}` : ' · until you stop it'}` : 'Made on this device · nothing is downloaded'}</p>
     <Controls playing={state.playing} stop playLabel={state.playing ? `Stop ${AMBIENT_LABELS[current]}` : `Play ${AMBIENT_LABELS[current]}`} onPlay={() => state.playing ? stopAmbient() : void play()}
       previousLabel={`Previous sound: ${AMBIENT_LABELS[stepSound(current, -1)]}`} nextLabel={`Next sound: ${AMBIENT_LABELS[stepSound(current, 1)]}`} onPrevious={() => step(-1)} onNext={() => step(1)}/>
-    {health && <a className="music-open" href="/app/health?view=meditation">Breathe in Meditation</a>}
+    {health && <><a className="music-open" href="/app/health?view=meditation">Breathe in Meditation</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</>}
     <details className="music-more"><summary>More controls</summary>
       <div className="music-more-body">
         <label className="field">Volume · {prefs.volume}<input type="range" min={0} max={100} step={5} value={prefs.volume} onChange={e => { const v = Number(e.target.value); if (save(m => ({...m, volume: v}))) setAmbientVolume(v); }}/></label>

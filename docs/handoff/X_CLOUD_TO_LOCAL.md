@@ -108,3 +108,14 @@ leaves ZIGi's surfaces out (its `ZIGI` selector: `.ai-launcher`, `.ai-panel`, `.
   24 × 24 px (desktop toolbar buttons 36 px tall, 44 px on phones). Meet ZIGi (`/app/zigi`) was not checked (H4 names it).
 - **If you want the same checks on your surfaces:** run the spec with your pages added to its `PAGES` list and the `ZIGI`
   exclusion narrowed; it needs no new dependency.
+
+## H6 — Settings: ZIGi's section grows after a jump below it (Session X Part 14, 2026-10-08)
+**What X-Cloud saw (journey J201, local production build):** on a computer, the Settings section link "Help & diagnostics"
+(`#settings-help`), tapped before ZIGi's settings body has loaded, landed with its title about 930 px below the top of the
+window: `components/ai/ai-settings-section.tsx` loads the body when the section comes within 800 px or the browser is
+idle, the section then grows by about 900 px above the target, and the browser's scroll anchoring did not absorb it.
+**What X-Cloud did in its lane:** `components/settings/keep-jump.tsx` holds a Settings jump target in place for two
+seconds after the jump unless the person scrolls, taps or types (ADR-016 X44). Nothing in your files changed.
+**Suggestion for your lane (optional):** reserve the section's height before the body loads (a `min-height` on the
+placeholder close to the loaded height), so nothing below it moves at all. Tested by
+`tests/session-x-findings.spec.ts` ("J201: …"); it should keep passing either way.

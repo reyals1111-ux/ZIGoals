@@ -56,3 +56,83 @@ test('J247–J249: Chess in the Showcase hydrates without React\'s mismatch erro
   // Still the Showcase's Chess: nothing can be added there.
   await expect(page.getByRole('form', {name: 'Add a rating goal'})).toHaveCount(0);
 });
+
+async function showcase(page: Page) {
+  await page.goto('/app/settings');
+  await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+  await page.waitForURL('**/app');
+}
+
+test('J154: in the Showcase, a coin it does not hold opens with the honest states, not a blank page', async ({page}) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await showcase(page);
+  await page.goto('/app/portfolio/coin/usd-coin');
+  await expect(page.getByRole('heading', {level: 1, name: 'USD Coin'})).toBeVisible();
+  await expect(page.locator('main')).toContainText('Showcase: fixture prices and figures. These are not market data.');
+  await page.waitForTimeout(500);
+  expect(errors).toEqual([]);
+});
+
+test('J254: an address under /app with no page: a 404 inside the app, named in the tab, with the way back', async ({page}) => {
+  const response = await page.goto('/app/no-such-page');
+  expect(response!.status()).toBe(404);
+  await expect(page.getByRole('heading', {level: 1, name: 'Page not found.'})).toBeVisible();
+  await expect(page).toHaveTitle('Page not found · ZIGoals Alpha');
+  await expect(page.getByRole('link', {name: 'Go to Today', exact: true})).toHaveAttribute('href', '/app');
+  await expect(page.getByRole('link', {name: 'Open Help', exact: true})).toHaveAttribute('href', '/app/help');
+  await expect(page.getByRole('navigation', {name: 'Main navigation'})).toBeAttached();
+});
+
+test('a page that fails while drawing shows the app\'s error page in the app, never a blank page', async ({page}) => {
+  // The coin page is made to throw by replacing one of its strings in the served script (the test fails loudly if that
+  // string ever moves). Before Session X, Next's own fallback wrote raw HTML, which Trusted Types refuses: a blank page.
+  let patched = 0;
+  await page.route('**/_next/static/chunks/*.js', async route => {
+    const response = await route.fetch(), marker = '"Showcase: fixture prices and figures. These are not market data."';
+    let body = await response.text();
+    if (body.includes(marker)) { body = body.replace(marker, '(()=>{throw Error("a drawing failure for this test")})()'); patched++; }
+    await route.fulfill({response, body});
+  });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await showcase(page);
+  await page.goto('/app/portfolio/coin/bitcoin');
+  await expect(page.getByRole('heading', {level: 1, name: 'This page could not be shown.'})).toBeVisible();
+  expect(patched).toBe(1);
+  await expect(page.getByRole('alert', {name: 'This page could not be shown.'})).toContainText('Nothing was changed or lost');
+  await expect(page.getByRole('button', {name: 'Try again', exact: true})).toBeVisible();
+  await expect(page.getByRole('link', {name: 'Go to Today', exact: true})).toHaveAttribute('href', '/app');
+  expect(errors.filter(message => /TrustedHTML/.test(message))).toEqual([]);
+});
+
+test('J201: a Settings section link lands on its section and stays there while a section above loads', async ({page, isMobile}) => {
+  test.skip(isMobile, 'The section links are the computer layout; phones use the grouped list (phone-pages).');
+  await page.goto('/app/settings');
+  await expect(page.locator('main h1').first()).toBeVisible();
+  // At once, before ZIGi's settings (above Help & diagnostics) have loaded their body and grown.
+  await page.getByRole('navigation', {name: 'Settings sections'}).getByRole('link', {name: 'Help & diagnostics', exact: true}).click();
+  await expect(page).toHaveURL(/#settings-help$/);
+  await expect(page.locator('#your-ai')).toContainText('Which setup fits me?');
+  await page.waitForTimeout(1000);
+  await expect(page.locator('#settings-help-title')).toBeInViewport();
+});
+
+test('J012: Customize Today at 1024 px: a hidden widget keeps a readable title and an Options button nothing covers', async ({page, isMobile}) => {
+  test.skip(isMobile, 'A tablet-width computer layout.');
+  await page.setViewportSize({width: 1024, height: 768});
+  await showcase(page);
+  await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
+  const widget = page.locator('.today-page .placed-module[data-kind="widget"]').first();
+  await widget.getByRole('button', {name: /^Options for/}).click();
+  await widget.getByRole('button', {name: 'Hide widget'}).click();
+  await expect(widget).toHaveAttribute('data-hidden', 'true');
+  const options = widget.getByRole('button', {name: /^Options for/});
+  await options.evaluate(button => button.scrollIntoView({block: 'center'}));
+  // What is under the middle of the Options button is the button itself, not the arrange controls.
+  expect(await options.evaluate(button => { const r = button.getBoundingClientRect(); return button.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)); })).toBe(true);
+  expect((await widget.locator('.dashboard-widget-heading h3').boundingBox())!.width).toBeGreaterThan(60);
+  await options.click();
+  await widget.getByRole('button', {name: 'Show widget'}).click();
+  await expect(widget).not.toHaveAttribute('data-hidden', 'true');
+});

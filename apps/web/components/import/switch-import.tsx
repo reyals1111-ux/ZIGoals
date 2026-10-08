@@ -83,7 +83,7 @@ export function SwitchImport() {
     </div>}
     {stage.step === 'refused' && <div className="switch-refused">
       <p role="alert">{stage.message}</p>
-      {stage.meals && <p><a className="text-link" href="/app/health?import=meals">Open Health → Import meals</a></p>}
+      {stage.meals && <p><a className="text-link" href="/app/health?import=meals">Open Health → Import meals</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p>}
       <div className="actions"><button type="button" className="secondary" onClick={() => setStage({step: 'choose'})}>Choose another export</button></div>
     </div>}
     {stage.step === 'health' && review && <review.HealthPreview plan={stage.plan} health={health.data} limit={health.importLimit} zone={zone} onCancel={() => setStage({step: 'choose'})}

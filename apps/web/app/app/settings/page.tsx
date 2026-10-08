@@ -25,6 +25,7 @@ import { loadMetadata } from "../../../lib/storage";
 import { NebulaFlow } from "../../../components/nebula-flow";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
+import { KeepSettingsJump } from "../../../components/settings/keep-jump";
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
 import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
@@ -70,6 +71,7 @@ export default function Settings() {
         </div>
       </div>
       <PhoneSettingsList/>
+      <KeepSettingsJump/>
       <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id}>{title}</a>)}</nav>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">

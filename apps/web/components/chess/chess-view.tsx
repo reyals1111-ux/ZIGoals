@@ -1,5 +1,5 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {useEffect, useState, type FormEvent} from 'react';
 import Link from 'next/link';
 import {CHESS_CONTROLS, CHESS_SITES, type ChessControl, type ChessGoal, type ChessSite} from '../../lib/skills/chess/schema';
 import {CONTROL_NAME, SITE_NAME, currentRatings, goalProgress, ratingLine, removeChessGoal, results, saveChessGoal, setChessHabit, type Record3} from '../../lib/skills/chess/engine';
@@ -26,7 +26,9 @@ export function ChessView() {
   const hasUser = !!chess?.chesscom || !!chess?.lichess, data = cache.loaded && !cache.unreadable ? cache.data : null;
   const ratings = data ? currentRatings(data) : [], games = data?.games ?? [], tally = results(games.slice(0, 100));
   const lines = data ? CHESS_SITES.flatMap(site => CHESS_CONTROLS.map(control => ({site, control, points: ratingLine(data, site, control)}))).filter(l => l.points.length >= 2) : [];
-  const paused = CHESS_SITES.map(site => sitePausedFor(site)).some(ms => ms > 0);
+  const paused = CHESS_SITES.map(site => sitePausedFor(site)).some(ms => ms > 0), [wakes, wake] = useState(0);
+  // Session X Part 14 (J187): draw again when a site's pause runs out, so Refresh comes back by itself.
+  useEffect(() => { if (!paused) return; const timer = window.setTimeout(() => wake(n => n + 1), Math.max(...CHESS_SITES.map(sitePausedFor)) + 50); return () => window.clearTimeout(timer); }, [paused, wakes]);
   return <div className="chess-page">
     <div className="page-heading"><div>
       <p className="eyebrow page-eyebrow">YOUR GAME</p>

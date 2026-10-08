@@ -42,6 +42,8 @@ export function showcasePriceAt(coin: string, at: number, now: number): string |
 }
 /** Fixture observations every `stepMs` from `start` to `now`. */
 export function showcasePrices(coin: string, start: number, now: number, stepMs: number): {at: number; price: string}[] {
+  // None for a coin the Showcase does not hold (Session X Part 14, J154: its coin page threw on the missing price).
+  if (showcasePriceAt(coin, now, now) === undefined) return [];
   const points: {at: number; price: string}[] = [];
   for (let at = start; at < now; at += stepMs) points.push({at, price: showcasePriceAt(coin, at, now)!});
   points.push({at: now, price: showcasePriceAt(coin, now, now)!});
