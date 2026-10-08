@@ -43,6 +43,7 @@ re-run after every app-side fix for the before/after table in 6d.
 | ≥50 multi-turn conversations (plan → correct → accept → undo) | `tests/zigi-conversations.spec.ts`: 15 × 4 PC models + 10 on the Mac = 70 | _(pending)_ |
 | ≥10 human-style conversations per page, every page, desktop and phone | `tests/zigi-pages-conversations.spec.ts`: 17 areas × 10 asks, desktop + phone on `qwen3.6:35b-a3b` (PC), desktop on `gemma4:12b` | _(pending)_ |
 | Three "day in the life" scenarios end to end, ZIGi's state checked at each step | `tests/zigi-day-in-the-life.spec.ts` on `qwen3.6:35b-a3b` (PC, desktop + phone) and the Mac | _(pending)_ |
+| Meal photos through the real panel (owner addition 11): the four photos below on every model that reads images | `tests/zigi-photo.spec.ts` on `qwen3.8:27b`, `gemma4:12b`, `qwen3.6:35b-a3b` (PC) and `qwen3.6:35b-a3b` (Mac); `phi4-mini` reads no images; the weekday scenario's breakfast goes by photo too | _(pending)_ |
 | A full re-run of the matrix after the fixes | the harness, all five models | _(pending)_ |
 
 ### Hours
@@ -100,8 +101,14 @@ Label: **WebKit**, never "Safari on an iPhone" (the iPhone checklist in ZIGI_ALI
 
 ## Photos (owner addition 11): sources and licences
 Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
-photos that are public domain or CC0, downscaled copies at 1,600 px for the upload. The vision models are scored on
-what they recognised against what is in the photo; nutrients they could not know must stay unknown, never invented.
+photos that are public domain or CC0, downscaled copies at 1,600 px for the upload (the app downscales again to 1,024 px
+in the browser before sending). `tests/zigi-photo.spec.ts` sends each through the real panel on `/app/health` with
+Health shared and the person's word that the model reads photos, asks "What is on this plate? Log it as <meal>.", and
+scores: items recognised (a list per photo, read by eye before the run: toast, a fried egg, cherry tomatoes, leaves and
+a coffee on the drawn plate; two pancakes and syrup; the full English with eggs, bacon, a sausage, black pudding, a hash
+brown, beans, a tomato and toast; bread, broccoli, a pear, corn, a bean salad, carrots, strawberries, rice and cereal on
+the spread), items invented (a card for something plainly not there), nutrients only on items that are on the plate,
+the estimate badge on the card, and the model's own hedge ("my estimate", "I could not see…"). Results in 6d.
 
 | File | Source | Licence | Credit |
 |---|---|---|---|
