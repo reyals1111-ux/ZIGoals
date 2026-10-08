@@ -29,7 +29,7 @@ import {factNumbers, score, type Call, type Observed, type Score} from './score'
 const env = process.env, enabled = env.ZIGI_REAL_MODEL === '1';
 const BASE = env.ZIGI_MODEL_BASE ?? 'http://127.0.0.1:11435', MODEL = env.ZIGI_MODEL ?? '', HOST = env.ZIGI_HOST ?? 'unknown host', REPEAT = Math.max(1, Number(env.ZIGI_REPEAT ?? '1'));
 const MODE = env.ZIGI_DATA_MODE === 'attach' ? 'attach' : 'tools', OUT = env.ZIGI_OUT ?? 'docs/verification/x-local/real-model', FILTER = env.ZIGI_CASES ?? 'important';
-const TIMEOUT_MS = Number(env.ZIGI_CASE_TIMEOUT_MS ?? '180000');
+const TIMEOUT_MS = Number(env.ZIGI_CASE_TIMEOUT_MS ?? '180000'), THINK = env.ZIGI_THINK === '1';
 const selected = (): ModelCase[] => FILTER === 'all' ? [...CORPUS] : FILTER === 'important' ? [...IMPORTANT] : CORPUS.filter(c => new RegExp(FILTER).test(c.id));
 export type CaseRun = {id: string; repeat: number; kind: string; area: string; lang: string; turn: number; pass: boolean; checks: Score['checks']; cards: number; rejected: number; hint: string | null; refused: boolean; firstTokenMs: number | null; totalMs: number; tokens: {input: number | null; output: number | null}; calls: Call[]; reply: string; error: string | null};
 function sourcesFor(c: ModelCase): ToolSources {
@@ -45,7 +45,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   const system = buildSystemPrompt({area: c.page, context: contextText, customInstructions: '', providerName: 'Ollama', tools: MODE === 'tools'});
   const messages: ChatMessage[] = [...history, {role: 'user', content: ask}];
   const calls: Call[] = [], started = Date.now(); let first: number | null = null, reply = '', tokens = {input: null as number | null, output: null as number | null}, error: string | null = null;
-  const request = {provider: 'local' as const, localServer: 'ollama' as const, model: MODEL, system, messages, maxOutputTokens: 1024, key: null, baseUrl: BASE, signal: AbortSignal.timeout(TIMEOUT_MS)};
+  // ZIGI_THINK=1 lets a thinking model think (the app's "Think deeper"); the default is the app's quick reply (think off).
+  const request = {provider: 'local' as const, localServer: 'ollama' as const, model: MODEL, system, messages, maxOutputTokens: 1024, key: null, baseUrl: BASE, signal: AbortSignal.timeout(TIMEOUT_MS), think: THINK};
   try {
     if (MODE === 'tools') {
       for await (const event of runWithTools({...request, env: provider, stream: streamChat})) {
@@ -92,10 +93,10 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real local model (owner mach
     const passed = runs.filter(r => r.pass).length, byKind: Record<string, {passed: number; total: number}> = {};
     for (const r of runs) { byKind[r.kind] ??= {passed: 0, total: 0}; byKind[r.kind]!.total++; if (r.pass) byKind[r.kind]!.passed++; }
     const timed = runs.filter(r => r.totalMs > 0), median = (xs: number[]) => xs.length ? [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]! : null;
-    const summary = {model: MODEL, host: HOST, mode: MODE, base: 'redacted', startedAt, finishedAt: new Date().toISOString(), cases: cases.length, repeat: REPEAT, runs: runs.length, passed, rate: runs.length ? passed / runs.length : 0, byKind,
+    const summary = {model: MODEL, host: HOST, mode: MODE, think: THINK, base: 'redacted', startedAt, finishedAt: new Date().toISOString(), cases: cases.length, repeat: REPEAT, runs: runs.length, passed, rate: runs.length ? passed / runs.length : 0, byKind,
       latency: {firstTokenMedianMs: median(timed.map(r => r.firstTokenMs ?? 0)), totalMedianMs: median(timed.map(r => r.totalMs))}, tokens: {input: timed.reduce((s, r) => s + (r.tokens.input ?? 0), 0), output: timed.reduce((s, r) => s + (r.tokens.output ?? 0), 0)}};
     mkdirSync(OUT, {recursive: true});
-    const stamp = startedAt.replace(/[:.]/g, '-'), file = join(OUT, `${HOST.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${MODEL.replace(/[^a-z0-9.]+/gi, '-')}-${MODE}-${FILTER === 'all' ? 'all' : FILTER === 'important' ? 'important' : 'subset'}-${stamp}.json`);
+    const stamp = startedAt.replace(/[:.]/g, '-'), file = join(OUT, `${HOST.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${MODEL.replace(/[^a-z0-9.]+/gi, '-')}-${MODE}${THINK ? '-think' : ''}-${FILTER === 'all' ? 'all' : FILTER === 'important' ? 'important' : 'subset'}-${stamp}.json`);
     writeFileSync(file, JSON.stringify({summary, runs}, null, 1));
     console.info(`ZIGi real model: ${passed}/${runs.length} (${(summary.rate * 100).toFixed(1)}%) on ${MODEL} @ ${HOST}; first token median ${summary.latency.firstTokenMedianMs} ms, total median ${summary.latency.totalMedianMs} ms; written to ${file}`);
     expect(runs.length).toBeGreaterThan(0);

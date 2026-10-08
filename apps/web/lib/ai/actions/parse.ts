@@ -104,6 +104,8 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   }
   if ((record.kind === 'create-goal' || record.kind === 'plan-goal' || record.kind === 'edit-goal') && typeof record.category === 'string' && !GOAL_CATEGORY_SET.has(record.category.trim())) { const match = [...GOAL_CATEGORY_SET].find(c => c.toLowerCase() === (record.category as string).trim().toLowerCase()); if (match) record.category = match; else delete record.category; }
   if (record.kind === 'create-goal' && Array.isArray(record.habits)) record.kind = 'plan-goal';
+  // A reminder "for" a named thing: a habit named means for:"habit", a goal named means for:"goal" (seen on qwen3.6).
+  if (record.kind === 'create-reminder' && typeof record.for === 'string' && !['habit', 'water', 'goal', 'wealth', 'pack'].includes(record.for.trim().toLowerCase())) { const f = record.for.trim().toLowerCase(); record.for = typeof record.habit === 'string' ? 'habit' : typeof record.goal === 'string' ? 'goal' : /water|drink|hydrat/.test(f) ? 'water' : /wealth|money|finance/.test(f) ? 'wealth' : /pack|context/.test(f) ? 'pack' : record.for; }
   // Session X-Local Part 5c: a day written as "Today", "2026/10/08" or "2026-10-8" means the same day.
   if (typeof record.day === 'string') { const day = record.day.trim().toLowerCase().replace(/\//g, '-').replace(/^(\d{4})-(\d{1,2})-(\d{1,2})$/, (_, y: string, m: string, d: string) => `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`); record.day = day; }
   if (record.kind === 'log-measurement' && record.kind_of === undefined && typeof record.measurement === 'string') { record.kind_of = record.measurement; delete record.measurement; }

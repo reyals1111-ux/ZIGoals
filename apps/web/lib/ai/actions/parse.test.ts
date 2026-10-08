@@ -90,6 +90,9 @@ test('Session X-Local Part 6d: shapes seen on a small model are rewritten, never
   expect(one('{"kind":"create-goal","name":"Bike","target":800,"currency":"EUR","category":"travel"}').proposals).toMatchObject([{category: 'Travel'}]);
   expect(one('{"kind":"create-goal","name":"Trip","target":4000,"currency":"EUR","habits":[{"title":"Save daily"}]}').proposals.map(p => p.kind)).toEqual(['create-goal', 'create-habit']);
   expect(one('{"kind":"create-challenge","habit":"h2","days":21}').proposals).toEqual([{kind: 'start-challenge', habit: 'h2', days: 21}]);
+  expect(one('{"kind":"create-reminder","for":"meditation","habit":"h2","time":"07:30"}').proposals).toEqual([{kind: 'create-reminder', for: 'habit', habit: 'h2', time: '07:30'}]);
+  expect(one('{"kind":"create-reminder","for":"drinking","time":"10:00"}').proposals).toEqual([{kind: 'create-reminder', for: 'water', time: '10:00'}]);
+  expect(one('{"kind":"create-reminder","for":"taxes","time":"10:00"}').proposals).toEqual([]);
   // A tool's name as a kind stays refused: a lookup is never a card.
   expect(one('{"kind":"habits_due","habit":"h4"}')).toMatchObject({proposals: [], rejected: [{reason: expect.stringMatching(/kind/)}]});
   expect(one('{"type":"function","function":{"name":"steps"}}')).toMatchObject({proposals: [], rejected: [{}]});
