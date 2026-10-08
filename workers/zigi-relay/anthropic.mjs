@@ -121,7 +121,7 @@ export function anthropicStream(model){
      if(d?.type==='input_json_delta'&&typeof d.partial_json==='string'&&d.partial_json&&tools.has(e.index))return chunk({tool_calls:[{index:tools.get(e.index),function:{arguments:d.partial_json}}]});
      return '';
     }
-    case 'message_delta':if(typeof e.delta?.stop_reason==='string')stop=e.delta.stop_reason;if(e.usage&&typeof e.usage==='object'){apply(e.usage);final=true;}return '';
+    case 'message_delta':if(typeof e.delta?.stop_reason==='string')stop=e.delta.stop_reason;if(e.usage&&typeof e.usage==='object'){apply(e.usage);if(count(e.usage.output_tokens)!==null)final=true;}return '';// Session X P2.7: final only with an output count (a usage object without one would settle with message_start's)
     case 'message_stop':return chunk({},FINISH[stop??'']??'stop')+(final?line({id,object:'chat.completion.chunk',created,model,choices:[],usage:{prompt_tokens:prompt(),completion_tokens:usage.output,total_tokens:prompt()+usage.output}}):'')+'data: [DONE]\n\n';
     case 'error':{
      failed=e.error?.type==='overloaded_error'||e.error?.type==='rate_limit_error'?'busy':'failed';

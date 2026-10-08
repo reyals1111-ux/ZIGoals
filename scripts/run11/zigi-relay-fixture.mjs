@@ -29,6 +29,12 @@ export const usage=(input,output)=>({id:'mock',object:'chat.completion.chunk',ch
 export const ANTHROPIC='https://api.anthropic.com/v1/messages';
 /** An Anthropic stream: each item one named event (`event:` and `data:` lines); a string goes as it is. No [DONE] on this wire. @param {unknown[]} items */
 export const anthropicSse=(...items)=>new Response(items.map(item=>typeof item==='string'?item:`event: ${/** @type {any} */(item).type}\ndata: ${JSON.stringify(item)}\n\n`).join(''),{status:200,headers:{'content-type':'text/event-stream'}});
+/** The same stream as anthropicSse, one event per network read with a pause between (as a real provider sends them;
+ *  Session X P2.7: a read that holds only events the app does not need must not stall the reply). @param {unknown[]} items */
+export const anthropicSseByRead=(...items)=>{
+ const encoder=new TextEncoder(),events=items.map(item=>typeof item==='string'?item:`event: ${/** @type {any} */(item).type}\ndata: ${JSON.stringify(item)}\n\n`);
+ return new Response(new ReadableStream({async pull(out){const next=events.shift();if(next===undefined){out.close();return;}await new Promise(resolve=>setTimeout(resolve,15));out.enqueue(encoder.encode(next));}}),{status:200,headers:{'content-type':'text/event-stream'}});
+};
 /** @param {number} input @param {{cacheWrite?:number,cacheRead?:number}} [cache] */
 export const messageStart=(input,{cacheWrite=0,cacheRead=0}={})=>({type:'message_start',message:{id:'msg_mock',type:'message',role:'assistant',content:[],model:'claude-haiku-5-5',stop_reason:null,stop_sequence:null,usage:{input_tokens:input,cache_creation_input_tokens:cacheWrite,cache_read_input_tokens:cacheRead,output_tokens:1}}});
 /** @param {number} index @param {string} text */

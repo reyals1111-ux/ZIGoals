@@ -1,5 +1,5 @@
 import {boundedJSON,response,verifySession} from '../push-reminders/verify.mjs';
-import {RelayBudget,reserveFor} from './budget.mjs';
+import {RelayBudget,inputEstimate} from './budget.mjs';
 import {LIMITS} from './limits.mjs';
 import {configured,invited,metered,paused,upstreamBody,upstreamUrl} from './relay.mjs';
 import {anthropicHeaders,anthropicStream,isAnthropic} from './anthropic.mjs';
@@ -34,7 +34,10 @@ async function chat(request,env,ctx,account){
  let parsed;try{parsed=await boundedJSON(request,LIMITS.requestBytes);}catch(error){return error instanceof Error&&error.message==='size'?response({error:'REQUEST_TOO_LARGE'},413):response({error:'INVALID_CHAT_REQUEST'},400);}
  const url=/** @type {URL} */(upstreamUrl(env)),body=upstreamBody(parsed,env,url);if(!body)return response({error:'INVALID_CHAT_REQUEST'},400);
  const id=crypto.randomUUID(),budget=budgetOf(env),cap=Number(body.max_completion_tokens??body.max_tokens);
- const admitted=await budget.fetch(internal('/reserve',{account,id,tokens:reserveFor(JSON.stringify(body.messages).length+JSON.stringify(body.tools??[]).length+(typeof body.system==='string'?body.system.length:0),cap)}));
+ const input=inputEstimate(JSON.stringify(body.messages)+JSON.stringify(body.tools??[])+(typeof body.system==='string'?body.system:''));
+ // Session X P2.7: an Anthropic prompt stays below the provider's long-context price (LIMITS.anthropicInputTokens).
+ if(isAnthropic(url)&&input>LIMITS.anthropicInputTokens)return response({error:'REQUEST_TOO_LARGE'},413);
+ const admitted=await budget.fetch(internal('/reserve',{account,id,tokens:input+cap}));
  if(!admitted.ok)return admitted;
  await admitted.body?.cancel().catch(()=>{});
  const settle=(/** @type {number|null} */used,/** @type {Outcome} */outcome)=>{ctx.waitUntil(budget.fetch(internal('/settle',{id,used,outcome})).then(r=>r.body?.cancel()).catch(()=>{}));};

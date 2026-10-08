@@ -90,17 +90,19 @@ export function metered(body,controller,settle,translator){
  const tooLong=(/** @type {ReadableStreamDefaultController<Uint8Array>} */out)=>{reader.cancel().catch(()=>{});finish('neutral');out.enqueue(sseError(413,'The reply was longer than ZIGoals hosted allows.'));out.close();};
  return new ReadableStream({
   // A pull must hand on something or end: one that enqueues nothing is not called again, so it reads until a whole
-  // event is ready (an event can arrive in several pieces).
+  // event is ready (an event can arrive in several pieces) and has been handed on. Session X P2.7: on Anthropic's wire a
+  // whole event can hand on nothing (a ping, a block's start or stop, the usage delta), so the pull returns only once
+  // bytes went out; returning after such a read stalled the reply for good.
   async pull(out){
    while(true){
     let part;
     try{part=await reader.read();}catch{finish('failure');out.enqueue(sseError(502,'The provider\'s reply broke off.'));out.close();return;}
     if(part.done){pending+=decoder.decode();if(!forward(pending,out)){tooLong(out);return;}finish('ok');out.close();return;}
     pending+=decoder.decode(part.value,{stream:true});
-    const end=lastBoundary(pending);
+    const end=lastBoundary(pending),before=bytes;
     if(end>=0){const ready=pending.slice(0,end);pending=pending.slice(end);if(!forward(ready,out)){tooLong(out);return;}}
     if(pending.length>LIMITS.eventBytes){tooLong(out);return;}
-    if(end>=0)return;
+    if(bytes>before)return;
    }
   },
   cancel(){finish('neutral');reader.cancel().catch(()=>{});},

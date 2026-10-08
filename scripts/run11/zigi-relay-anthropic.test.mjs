@@ -6,7 +6,7 @@
 // Fictional accounts and a fake key only; nothing leaves the machine.
 import {expect,test} from 'vitest';
 import {ANTHROPIC_MESSAGES,anthropicBody,anthropicStream} from '../../workers/zigi-relay/anthropic.mjs';
-import {ANTHROPIC,APP_ORIGIN,INVITED,PROBE_LINE,RELAY_KEY,anthropicSse,messageEnd,messageStart,relayRuntime,textBlock,toolBlock} from './zigi-relay-fixture.mjs';
+import {ANTHROPIC,APP_ORIGIN,INVITED,PROBE_LINE,RELAY_KEY,anthropicSse,anthropicSseByRead,messageEnd,messageStart,relayRuntime,textBlock,toolBlock} from './zigi-relay-fixture.mjs';
 
 const env=/** @type {any} */({ZIGI_MODEL:'claude-haiku-5-5'});
 const PHOTO='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg==';
@@ -122,6 +122,29 @@ test('Miniflare: the budgets settle from Anthropic\'s usage exactly: input with 
   await (await r.call('/v1/chat',{body:ask()})).text();
   const left=async()=>(await (await r.call('/v1/entitlement')).json()).remaining;
   await expect.poll(left).toEqual({requests:4,tokens:20000-(1000+200+300+120)});
+ }finally{await r.dispose();}
+},60_000);
+
+test('Miniflare: one event per read, with a lone ping and the usage delta apart from message_stop: the reply arrives whole and settles',async()=>{
+ // Session X P2.7 (security review, finding 1): events the app does not need (ping, a block's start and stop, the usage
+ // delta) hand nothing on, so a read holding only those must not end the pull, or the reply stalls for good.
+ const r=await relayRuntime({bindings:ANTHROPIC_VARS});try{
+  r.upstream.reply=()=>anthropicSseByRead(messageStart(500),{type:'ping'},...textBlock(0,'Two short walks.'),{type:'ping'},...messageEnd('end_turn',30));
+  const res=await r.call('/v1/chat',{body:ask()});
+  const text=await Promise.race([res.text(),new Promise((_,reject)=>setTimeout(()=>reject(Error('the reply stalled')),10_000))]);
+  expect(text).toContain('"content":"Two short walks."');expect(text).toContain('"usage":{"prompt_tokens":500,"completion_tokens":30,"total_tokens":530}');
+  expect(/** @type {string} */(text).trimEnd().endsWith('data: [DONE]')).toBe(true);
+  await expect.poll(async()=>(await (await r.call('/v1/entitlement')).json()).remaining).toEqual({requests:4,tokens:20000-530});
+ }finally{await r.dispose();}
+},60_000);
+
+test('Miniflare: an Anthropic prompt estimated above 90,000 tokens is refused before the provider and reserves nothing (Session X P2.7)',async()=>{
+ // Anthropic prices prompts above 100,000 input tokens higher; Japanese text counts a token a character at least.
+ const r=await relayRuntime({bindings:ANTHROPIC_VARS});try{
+  const res=await r.call('/v1/chat',{body:ask('こ'.repeat(95_000))});
+  expect(res.status).toBe(413);expect(await res.json()).toEqual({error:'REQUEST_TOO_LARGE'});
+  expect(r.upstream.requests).toHaveLength(0);
+  expect((await (await r.call('/v1/entitlement')).json()).remaining).toEqual({requests:5,tokens:20000});
  }finally{await r.dispose();}
 },60_000);
 

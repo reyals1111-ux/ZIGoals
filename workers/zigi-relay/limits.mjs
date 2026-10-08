@@ -9,6 +9,10 @@ export const LIMITS={
  responseBytes:2_097_152,
  /** The relay's own output ceiling per reply, whatever the app asks for. */
  maxOutputTokens:4096,
+ /** Session X P2.7: the input estimate above which an Anthropic request is refused. Anthropic prices prompts above
+  *  100,000 input tokens at a higher rate (platform.claude.com pricing, read 2026-10-08); the activation guide's daily
+  *  cost assumes every prompt stays below that. */
+ anthropicInputTokens:90_000,
  messages:200,
  tools:64,
  /** The provider must start answering within this, and finish within the stream limit. */
