@@ -27,8 +27,12 @@ const MIN_UNITS = /^(minutes?|mins?|min|hours?|h|hrs?)$/i;
 const sourceId = (call: ToolCallRecord) => `${call.tool}:${JSON.stringify(call.args)}`;
 /** Dutch and French cue words as their English equivalents, so the English subject detection reads them; the periods are already multilingual. */
 const CUES: [RegExp, string][] = [
+  // Phase 2 round 4 (ADR-017 S66): the cues the fix-round misses named, each to the English words the engine already reads.
+  [/\bmindful minuten\b|\bminutes de pleine conscience\b/g, 'mindful minutes'], [/\bwat ben ik schuldig\b|\bque dois-je\b|\bmijn schulden\b|\bmes dettes\b/g, 'what do i owe'],
+  [/\bwaar moet ik (?:vandaag )?op letten\b|\bà quoi dois-je faire attention(?: aujourd'hui)?\b/g, 'what should i pay attention to today'], [/\béchéances?\b|\bvervaldat(?:um|a)\b|\bdeadlines?\b/g, 'deadlines'],
+  [/\bbezit(?:tingen)?\b|\bavoirs?\b|\bgrootste positie\b|\bplus grosse position\b/g, 'holding'], [/\blangste\b|\bplus longue\b|\bplus long\b/g, 'longest'], [/\bkortste\b|\bplus courte\b/g, 'shortest'],
   [/\bstappen\b|\bpas\b/g, 'steps'], [/\bgewicht\b|\bwoog\b|\bweeg\b|\bpoids\b|\bpesais\b|\bpèse\b/g, 'weight'], [/\bgeslapen\b|\bslaap\w*|\bslapen\b|\bvannacht\b|\bsommeil\b|\bdormi\b|\bdors\b|\bnuit\b|\bsieste\b|\bdutje\b/g, 'sleep'],
-  [/\bgemediteerd\b|\bmediteer\w*|\bmeditatie\b|\bmédit\w*|\bpleine conscience\b|\bmindful minuten\b/g, 'meditation'], [/\bcalorieën\b|\bcalorieen\b/g, 'calories'], [/\beiwit\w*|\bprotéines?\b/g, 'protein'], [/\bgegeten\b|\beten\b|\bmaaltijd\w*|\bontbijt\b|\bmangé\b|\bmanger\b|\brepas\b|\bdéjeuner\b|\bdîner\b/g, 'food'],
+  [/\bgemediteerd\b|\bmediteer\w*|\bmeditatie\b|\bmédit\w*|\bpleine conscience\b/g, 'meditation'], [/\bcalorieën\b|\bcalorieen\b/g, 'calories'], [/\beiwit\w*|\bprotéines?\b/g, 'protein'], [/\bgegeten\b|\beten\b|\bmaaltijd\w*|\bontbijt\b|\bmangé\b|\bmanger\b|\brepas\b|\bdéjeuner\b|\bdîner\b/g, 'food'],
   [/\bwater\b|\beau\b|\bgedronken\b|\bbu\b/g, 'water'], [/\bnettovermogen\b|\bnetto vermogen\b|\bvaleur nette\b|\bpatrimoine\b/g, 'net worth'], [/\bper valuta\b|\bpar devise\b|\btotalen\b|\btotaux\b/g, 'per currency'], [/\bschuldig\b|\bschulden\b|\bdettes?\b|\bque dois-je\b/g, 'my debts'],
   [/\bportefeuille\b/g, 'portfolio'], [/\bschaak\w*|\béchecs\b/g, 'chess'], [/\bliens?\b/g, 'links'], [/\bmijlpa(?:a)?l(?:en)?\b|\bjalons?\b/g, 'milestones'], [/\buitdaging(?:en)?\b|\bdéfis?\b/g, 'challenges'], [/\breeks(?:en)?\b|\bséries?\b/g, 'streak'], [/\bminuten\b|\bminutes\b/g, 'minutes'], [/\buur\b|\buren\b|\bheures?\b/g, 'hours'],
   [/\bgelezen\b|\blezen\b|\blu\b|\blire\b|\bpagina'?s?\b|\bpages\b/g, 'read'], [/\bgewandeld\b|\bwandel\w*|\bmarche\b|\bmarché\b/g, 'walk'], [/\bgesport\b|\bsporten\b|\bexercice\b/g, 'exercise'], [/\bdoel(?:en)?\b|\bobjectifs?\b/g, 'goal'], [/\bgewoonte(?:s|n)?\b|\bhabitudes?\b/g, 'habit'],
@@ -59,7 +63,8 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   for (const goal of s.goals) add('goal_progress', {goal: clean(goal.name, 120)});
   if (s.contributions) add('goal_contributions', {...(s.goals.length === 1 ? {goal: clean(s.goals[0]!.name, 120)} : {}), range: phrase('this month')});
   if (s.asset) add('holdings', {asset: s.asset});
-  if (s.wealthTotal) add('totals_per_currency', {});
+  // Round 4: as the local engine does in English, net worth joins the totals when accounts or debts exist on the device.
+  if (s.wealthTotal) { add('totals_per_currency', {}); if ((env.accounts?.items ?? []).some(a => !a.archivedAt)) add('net_worth', {}); }
   const h = s.health;
   if (h.nutrient) add('nutrient_totals', {range: phrase('the last 7 days'), nutrient: h.nutrient});
   else if (h.diary) add('diary_entries', {range: phrase('today')});
@@ -94,8 +99,20 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (ABOUT_ME.test(q)) add('about_me', {});
   if (PORTFOLIO.test(q)) add('portfolios', {});
   if (STAKING.test(q)) add('staking_watch', {});
+  // Phase 2 round 4 (ADR-017 S66): the families the fix-round misses named, on the translated question.
+  const tq = translateCues(q);
+  const DEADLINES = /\b(deadlines?|coming up|due dates?|which dates?)\b/, HOLDINGS = /\b(?:biggest|largest|smallest|main) (?:holding|position|asset)s?\b|\bholdings?\b/;
+  const SLEEP_WORDS = /\b(sleep|slept|sleeping|nights?|sommeil|dormi|dors|nuits?|slaap|geslapen|slapen)\b/, MED_WORDS = /\b(meditat\w*|mindful|médit\w*)\b/, SESSION_WORDS = /\b(longest|shortest|last session|sessions?)\b/;
+  const DEVICES = /\b(imports?|imported|devices?|manual entries|bluetooth|linked service|apparaten|appareils?)\b/, TIME_OF_DAY = /\b(when in the day|time of day|morning or evening|op welk moment|wanneer op de dag|à quel moment)\b/, WEEKEND = /\b(weekends?|week-?ends?|weekdays?|weekdag(?:en)?|semaine ou week-end)\b/;
+  if (DEADLINES.test(tq)) add('list_goals', {});
+  if (HOLDINGS.test(tq) && !s.asset) add('holdings', {});
+  if (!h.sleep && SLEEP_WORDS.test(tq)) { add('sleep_summary', {}); add('sleep_nights', {range: phrase('the last 14 days')}); }
+  if (MED_WORDS.test(tq) && SESSION_WORDS.test(tq)) add('meditation_sessions', {range: phrase('this month')});
+  if (DEVICES.test(tq)) { add('devices', {}); add('steps', {range: phrase('this week')}); }
+  if (TIME_OF_DAY.test(tq)) { add('list_habits', {}); for (const habit of env.habits.habits.filter(hb => latestHabitRule(hb).state !== 'archived').slice(0, 3)) add('habit_checkins', {habit: clean(habit.title, 120), range: phrase('the last 14 days')}); }
+  if (WEEKEND.test(tq)) add('steps', {range: phrase('the last 14 days')});
   const healthSubject = h.nutrient !== null || h.water || h.steps || h.active || h.weight || h.measurement || h.fasting || h.diary || h.counter !== null || h.sleep || h.meditation || h.vitals || h.devices;
-  if (!s.habits.length && !s.goals.length && !healthSubject && HABIT_MEASURE.test(translateCues(q))) {
+  if (!s.habits.length && !s.goals.length && !healthSubject && (HABIT_MEASURE.test(translateCues(q)) || WEEKEND.test(tq))) {
     add('list_habits', {});
     for (const habit of env.habits.habits.filter(hb => latestHabitRule(hb).state !== 'archived').slice(0, 4)) { const rule = latestHabitRule(habit), timed = rule.measurement.kind === 'duration' || MIN_UNITS.test(measurementUnit(rule)); add('habit_stats', {habit: clean(habit.title, 120), range: phrase('this week'), metric: timed ? 'minutes' : rule.measurement.kind === 'boolean' ? 'count' : 'quantity'}); }
   }

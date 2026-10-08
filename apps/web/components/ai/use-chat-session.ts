@@ -38,6 +38,7 @@ import type {ChatImage, ChatRequest} from '../../lib/ai/types';
 import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+import {localDate} from '../../lib/local-date';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -179,7 +180,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const provider = PROVIDERS[providerId], contextText = [pageText, options.extra?.text].filter(Boolean).join('\n\n') || null;
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
-    const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
+    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate()};
     // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
     const risk = detectRisk(text);
     const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);

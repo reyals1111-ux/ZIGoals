@@ -109,3 +109,9 @@ test('Session X-Local Part 6d: ISO weekdays and schedule phrases are rewritten t
   expect(one('{"kind":"log-sleep","nap":true,"minutes":30}').proposals).toMatchObject([{kind: 'log-sleep', nap: true, minutes: 30}]);
   expect(one('{"kind":"log-sleep","hours":7.5}').proposals).toEqual([]);
 });
+test("Phase 2 round 4: the person's own words for today and yesterday in \"day\" read as the schema's values", () => {
+  const r = parseReply('```zigoals-action\n{"kind":"log-water","glasses":2,"day":"gisteren"}\n```\n```zigoals-action\n{"kind":"log-steps","steps":7000,"day":"Hier"}\n```\n```zigoals-action\n{"kind":"log-water","glasses":1,"day":"aujourd\'hui"}\n```');
+  expect(r.rejected).toEqual([]);
+  expect(r.proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday', 'today']);
+});
+

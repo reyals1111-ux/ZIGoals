@@ -134,6 +134,15 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
 const OPEN_FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]*\n/gi;
 /** The calm note the cards area shows for anything that could not become an entry. */
 export const NOT_AN_ENTRY = 'I couldn\u2019t turn that into an entry.';
+/** Phase 2 round 4: the person's own words for today and yesterday, as a model may copy them into "day". */
+const DAY_ALIASES: Record<string, string> = {today: 'today', vandaag: 'today', "aujourd'hui": 'today', yesterday: 'yesterday', gisteren: 'yesterday', hier: 'yesterday'};
+function withDayAlias(part: unknown): unknown {
+  if (!part || typeof part !== 'object' || Array.isArray(part)) return part;
+  const day = (part as {day?: unknown}).day;
+  if (typeof day !== 'string') return part;
+  const alias = DAY_ALIASES[day.trim().toLowerCase()];
+  return alias && alias !== day ? {...(part as object), day: alias} : part;
+}
 export function parseReply(reply: string): ParsedReply {
   const proposals: Action[] = [], rejected: Rejected[] = [], seen = new Set<string>(), flags = {revise: false};
   // New habits a reply names itself (new1, new2) keep their numbers; an expanded "build-habit" takes the next free one.
@@ -165,7 +174,7 @@ export function parseReply(reply: string): ParsedReply {
         parts = expandComposite(composite.data, nextRef);
       }
       for (const part of parts) {
-        const result = actionSchema.safeParse(part);
+        const result = actionSchema.safeParse(withDayAlias(part));
         if (!result.success) { rejected.push({raw: JSON.stringify(part).slice(0, 200), reason: firstIssue(result.error)}); continue; }
         const key = JSON.stringify(result.data);
         if (seen.has(key)) continue;

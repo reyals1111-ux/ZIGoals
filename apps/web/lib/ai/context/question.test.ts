@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {bridgePrompt} from '../bridge';
-import {gatesFor, SENTINEL, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withSentinels} from '../tools/fixtures';
+import {SENTINEL, gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
 import {buildPageContext} from './builders';
 import {consent} from './consent';
@@ -98,5 +98,20 @@ test('Phase 2: an ask to add a widget or a link is a card, not a lookup — noth
   for (const ask of ['Add a water widget to Today', 'Voeg een waterwidget toe aan Vandaag', "Ajoute un widget eau sur Aujourd'hui", 'Add a link to my running club https://example.org/club']) expect(questionCalls(ask, showcaseSources(), gates), ask).toEqual([]);
   expect(questionCalls('How much water today?', showcaseSources(), gates).map(c => c.tool)).toContain('water');
   expect(questionCalls('How many links do I have on Today?', showcaseSources(), gates).map(c => c.tool)).toContain('links_count');
+});
+test('Phase 2 round 4: the cues and families the fix-round misses named, in three languages', () => {
+  const s = withPortfolios(withHandHealth(showcaseSources())), gates = gatesFor(true, 'today', '/app');
+  const tools = (ask: string) => questionCalls(ask, s, gates).map(c => c.tool);
+  expect(tools('Hoeveel mindful minuten deze maand?').some(t => t === 'meditation_sessions' || t === 'meditation_summary')).toBe(true);
+  for (const ask of ['Wat ben ik schuldig?', 'Que dois-je ?']) expect(tools(ask), ask).toContain('accounts');
+  expect(tools('Wat is mijn nettovermogen?')).toEqual(expect.arrayContaining(['totals_per_currency', 'net_worth']));
+  for (const ask of ['Do I sleep better on days I walk?', 'Slaap ik beter op dagen dat ik wandel?', 'Est-ce que je dors mieux les jours où je marche ?']) expect(tools(ask), ask).toEqual(expect.arrayContaining(['sleep_summary', 'sleep_nights']));
+  for (const ask of ['Which deadlines are coming up?', 'Quelles échéances approchent ?']) expect(tools(ask), ask).toContain('list_goals');
+  for (const ask of ['What is my biggest holding?', 'Wat is mijn grootste bezit?']) expect(tools(ask), ask).toContain('holdings');
+  expect(tools('Goedemorgen. Waar moet ik vandaag op letten?')).toEqual(expect.arrayContaining(['today_summary', 'list_habits']));
+  for (const ask of ['What was my longest meditation?', 'Wat was mijn langste meditatie?', 'Quelle a été ma plus longue méditation ?']) expect(tools(ask), ask).toContain('meditation_sessions');
+  expect(tools('Do my device imports and my manual entries agree this week?')).toEqual(expect.arrayContaining(['devices', 'steps']));
+  expect(tools('When in the day do I keep habits best?')).toContain('habit_checkins');
+  expect(tools('How do my weekends compare with my weekdays?')).toEqual(expect.arrayContaining(['habit_stats', 'steps']));
 });
 

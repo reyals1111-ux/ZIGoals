@@ -12,7 +12,7 @@ import {Handles} from '../handles';
 import {localAnswer} from '../local-answers/engine';
 import {runWithTools} from '../tool-loop';
 import {toolEnv, type ToolSources} from '../tools/env';
-import {gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {DAY, gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {runTool} from '../tools/registry';
 import type {ChatMessage} from '../types';
 import {CORPUS, IMPORTANT, type ModelCase} from './corpus';
@@ -51,7 +51,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   // and no records), and punished every lookup the app would have answered from its pre-run records.
   const contextText = context?.text ?? null;
   const prerun: Call[] = MODE === 'tools' ? (context?.sources ?? []).filter(src => src.call.tool !== 'about_me').map(src => ({name: src.call.tool, args: (src.call.args ?? null) as Record<string, unknown> | null, accepted: true})) : [];
-  const system = buildSystemPrompt({area: c.page, context: contextText, customInstructions: '', providerName: 'Ollama', tools: MODE === 'tools'});
+  const system = buildSystemPrompt({area: c.page, context: contextText, customInstructions: '', providerName: 'Ollama', tools: MODE === 'tools', today: DAY});
   const messages: ChatMessage[] = [...history, {role: 'user', content: ask}];
   const calls: Call[] = [...prerun], started = Date.now(); let first: number | null = null, reply = '', tokens = {input: null as number | null, output: null as number | null}, error: string | null = null;
   // ZIGI_THINK=1 lets a thinking model think (the app's "Think deeper"); the default is the app's quick reply (think off).
