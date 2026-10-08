@@ -33,7 +33,11 @@ Downloads: two pulls on the PC, 10.5 GB in total (limits: ≤2, ≤40 GB). The M
 _(filled in as the runs complete)_
 
 ## 6d. Scores per model, before and after the fixes
-_(filled in as the runs complete)_
+
+Findings so far (the tables below are rendered from the JSON files by the session's summariser and pasted as the runs complete):
+
+- **`phi4-mini:3.8b` (RTX 5090, before the fixes): 361 runs, 146 passed (40.4 %), first token median 65 ms, total median 249 ms.** It made **no tool call in any of the 361 runs**. Checked on the wire, not assumed: a direct `/api/chat` request to the PC with one tool definition and "Use the tool" returned prose and `tool_calls: null`, while the same request to `gemma4:12b` returned `tool_calls: [{name: "water", arguments: {range: "today"}}]`. So the 113 missed tool checks are the model's (its Ollama template does not produce tool calls in this form), not the app's; its lookups answer from the prompt's own examples instead, which the fact checks catch. Its proposal blocks fail the schema in 74 runs for shapes the parser now repairs (`"type"` for `"kind"`, bare measurement words, a loose category) and for tool names sent as kinds (`habits_due`, `water`, `list_goals`), which stay refused.
+
 
 ## 6e. Surfaces
 
