@@ -189,13 +189,75 @@ journey('J044', 'close a goal (allocations released), then reopen it', {views: [
 
 journey('J050', 'delete a goal after confirming; it leaves Goals and Today', {views: 'all', data: ['L']}, async j => {
   const {page} = j;
-  await seedTracked(page);
-  await open(page, '/app/goals/tracked/7');
+  // Delete is offered for a Goal without financial history; one with contributions or plan revisions is closed instead
+  // ("Close this Goal to preserve its financial history"), so the Goal deleted here is a new one.
+  const name = 'Fictional reserve to delete';
+  await quickGoal(page, name, {target: '900'});
   await page.getByLabel('Goal actions').click();
+  const remove = page.getByRole('button', {name: 'Delete Goal', exact: true});
+  await expect(remove).toBeEnabled();
+  await remove.click();
+  const confirm = page.getByRole('alertdialog', {name: 'Confirm Goal action'});
+  await expect(confirm.getByRole('heading', {name: 'Delete this private Goal?'})).toBeVisible();
+  await confirm.getByRole('button', {name: 'Cancel', exact: true}).click();
+  await expect(confirm).toHaveCount(0);
+  expect((await storedGoals(page)).map(g => g.name)).toContain(name);
   await page.getByRole('button', {name: 'Delete Goal', exact: true}).click();
-  await page.getByRole('button', {name: 'Confirm delete'}).click();
+  await page.getByRole('alertdialog', {name: 'Confirm Goal action'}).getByRole('button', {name: 'Confirm delete', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/goals$/);
-  await expect(page.getByRole('heading', {name: 'Fictional reserve', exact: true})).toHaveCount(0);
+  await ready(page);
+  await expect(goalCard(page, name)).toHaveCount(0);
+  await expect(page.getByRole('heading', {name, exact: true})).toHaveCount(0);
+  expect((await storedGoals(page)).map(g => g.name)).not.toContain(name);
   await open(page, '/app');
-  await expect(page.locator('main')).not.toContainText('Fictional reserve');
+  await expect(page.locator('main')).not.toContainText(name);
+});
+
+/** The short flow: name, kind and target on the first step, then "Create goal" (a tracked Goal). */
+type Quick = {type?: 'Quantity' | 'Value' | 'Project'; target?: string; currency?: 'USD' | 'EUR'; asset?: string; category?: string; date?: string; milestones?: string};
+async function quickGoal(page: Page, name: string, {type = 'Value', target = '', currency, asset = '', category = '', date = '', milestones = ''}: Quick = {}) {
+  await open(page, '/app/goals/new');
+  if (category) { await page.getByText('Personalize artwork and notes (optional)').click(); await page.getByRole('radio', {name: category, exact: true}).check(); }
+  await page.getByLabel('Goal name', {exact: true}).fill(name);
+  if (type !== 'Quantity') await page.getByRole('radio', {name: type, exact: true}).check();
+  if (milestones) await page.getByLabel('Milestones, one per line').fill(milestones);
+  if (target) await page.getByLabel('Target amount', {exact: true}).fill(target);
+  if (currency) await page.getByRole('radio', {name: new RegExp(`^${currency} · `)}).check();
+  if (asset) await page.getByLabel('Goal asset', {exact: true}).fill(asset);
+  if (date) await page.getByLabel('Target date (optional)').fill(date);
+  await page.getByRole('button', {name: 'Create goal', exact: true}).click();
+  await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
+  await expect(page.getByRole('heading', {name, exact: true})).toBeVisible();
+}
+const goalCard = (page: Page, name: string) => page.locator('.goal-card').filter({has: page.getByRole('heading', {name, exact: true})});
+const storedGoals = (page: Page) => page.evaluate(k => (JSON.parse(localStorage.getItem(k) ?? '{"goals":[]}') as {goals: {name: string; target: string; targetDate?: string}[]}).goals, PLATFORM_KEY);
+
+journey('J034', 'browser Back from the wizard\'s second step asks first; the wizard\'s own Back keeps what I typed; nothing saved', {views: ['D', 'P'], data: ['E']}, async j => {
+  const {page} = j;
+  await open(page, '/app/goals');
+  // The wizard opened from Goals' own link, as a person does: Back is then a step inside the app, which asks first. (A
+  // typed address makes Back leave the document, where the browser's own leave-page prompt answers instead.)
+  await page.getByRole('link', {name: '+ Create a goal', exact: true}).click();
+  await page.waitForURL(/\/app\/goals\/new$/);
+  await ready(page);
+  const before = await goalsStore(page);
+  await page.getByLabel('Goal name', {exact: true}).fill('Fictional sailing course');
+  await page.getByLabel('Target amount', {exact: true}).fill('800');
+  await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+  await expect(page.getByText('Step 2 of 4', {exact: true})).toBeVisible();
+  const asked: string[] = [];
+  page.once('dialog', async dialog => { asked.push(dialog.message()); await dialog.dismiss(); });
+  await page.evaluate(() => history.back());
+  await expect.poll(() => asked).toEqual(['Discard your unsaved Goal changes?']);
+  await expect(page.getByText('Step 2 of 4', {exact: true})).toBeVisible();
+  await page.locator('.wizard-actions').getByRole('button', {name: 'Back', exact: true}).click();
+  await expect(page.getByText('Step 1 of 4', {exact: true})).toBeVisible();
+  await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('Fictional sailing course');
+  await expect(page.getByLabel('Target amount', {exact: true})).toHaveValue('800');
+  page.once('dialog', dialog => dialog.accept());
+  await page.evaluate(() => history.back());
+  await page.waitForURL(/\/app\/goals$/);
+  await ready(page);
+  await expect(goalCard(page, 'Fictional sailing course')).toHaveCount(0);
+  expect(await goalsStore(page)).toBe(before);
 });

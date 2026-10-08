@@ -78,7 +78,7 @@ journey('J005', 'Today with no data: every empty state says what to do next; no 
   await snap(j, 'J005', 'empty-today');
 });
 
-journey('J006', 'Showcase loads and resets without touching my own Local Demo records', {views: 'all', data: ['L']}, async j => {
+journey('J006', 'Showcase loads and resets without touching my own Local Demo records', {views: 'all', data: ['E', 'L']}, async j => {
   const {page} = j;
   await open(page, '/app/habits');
   await page.getByRole('button', {name: 'Create a habit'}).first().click();
@@ -148,7 +148,7 @@ journey('J012', 'Customize Today: hide and show a widget; reload keeps the choic
   await open(page, '/app');
   await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
   const widget = page.locator('.today-page .placed-module[data-kind="widget"]').first();
-  const name = (await widget.getAttribute('aria-label')) ?? '';
+  const name = (await widget.getAttribute('data-module')) ?? '';
   await widget.getByRole('button', {name: /^Options for/}).click();
   await widget.getByRole('button', {name: 'Hide widget'}).click();
   await expect(widget).toHaveAttribute('data-hidden', 'true');
@@ -156,7 +156,7 @@ journey('J012', 'Customize Today: hide and show a widget; reload keeps the choic
   await page.reload();
   await ready(page);
   await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
-  const again = page.locator(`.today-page .placed-module[data-kind="widget"][aria-label="${name}"]`);
+  const again = page.locator(`.today-page .placed-module[data-kind="widget"][data-module="${name}"]`);
   await expect(again).toHaveAttribute('data-hidden', 'true');
   await again.getByRole('button', {name: /^Options for/}).click();
   await again.getByRole('button', {name: 'Show widget'}).click();
@@ -164,10 +164,11 @@ journey('J012', 'Customize Today: hide and show a widget; reload keeps the choic
   await noSideways(page);
 });
 
-journey('J015', 'What\'s new: dismissed once, it never returns on this device', {views: 'all', data: ['E']}, async j => {
+journey('J015', 'What\'s new: dismissed once, it never returns on this device', {views: 'all', data: ['E', 'S']}, async j => {
   const {page} = j;
   await open(page, '/app');
-  await welcomeCard(page).getByRole('button', {name: 'Not now', exact: true}).click();
+  const notNow = welcomeCard(page).getByRole('button', {name: 'Not now', exact: true});
+  if (await notNow.count()) await notNow.click();
   const card = page.locator('.whats-new-card');
   if (await card.count() === 0) return; // shown once per release; nothing to dismiss on this device
   await card.getByRole('button', {name: 'Got it', exact: true}).click();
@@ -233,17 +234,26 @@ async function habit(j: Journey, title: string) {
   await expect(page.getByRole('article', {name: title, exact: true})).toBeVisible();
 }
 async function forYou(page: Page) {
-  const more = page.getByRole('region', {name: 'For you'}).getByRole('button', {name: /^Show more/});
+  // A device that has not chosen its Today yet shows "Make Today yours." first, and "For you" only after a choice
+  // (today-dashboard.tsx): the person keeps Balanced, as offered.
+  const region = page.getByRole('region', {name: 'For you'}), keep = page.getByRole('button', {name: 'Keep Balanced and continue', exact: true});
+  await expect(region.or(keep).first()).toBeVisible();
+  if (await keep.isVisible()) { await keep.click(); await expect(keep).toHaveCount(0); }
+  await expect(region).toBeVisible();
+  const more = region.getByRole('button', {name: /^Show more/});
   if (await more.count()) await more.click();
 }
+/** Settings → Weekly review day (a phone also has a "Weekly review day" row that jumps to it, hence the role). */
+const reviewDay = (page: Page) => page.getByRole('combobox', {name: /^Weekly review day/});
 
 journey('J016', 'the weekly review on its day: steps with my own numbers, an intention, finished', {views: 'all', data: ['L']}, async j => {
   const {page} = j;
+  j.info.setTimeout(90_000);
   await page.clock.install({time: new Date('2026-10-13T10:00:00+02:00')}); // a Tuesday
   await habit(j, 'Fictional stretch');
   await page.getByRole('article', {name: 'Fictional stretch', exact: true}).getByRole('button', {name: 'Complete Fictional stretch', exact: true}).click();
   await open(page, '/app/settings');
-  await page.getByLabel(/^Weekly review day/).selectOption({label: 'Tuesday'});
+  await reviewDay(page).selectOption({label: 'Tuesday'});
   await open(page, '/app');
   await forYou(page);
   const card = page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
@@ -365,7 +375,7 @@ journey('J017', 'the weekly review skipped with one tap; Today stays calm', {vie
   await page.clock.install({time: new Date('2026-10-13T10:00:00+02:00')});
   await habit(j, 'Fictional skip check');
   await open(page, '/app/settings');
-  await page.getByLabel(/^Weekly review day/).selectOption({label: 'Tuesday'});
+  await reviewDay(page).selectOption({label: 'Tuesday'});
   await open(page, '/app');
   await forYou(page);
   const card = page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});

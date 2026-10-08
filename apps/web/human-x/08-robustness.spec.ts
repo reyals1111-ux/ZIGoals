@@ -25,6 +25,7 @@ journey('J248', 'every page with Motion Off: nothing keeps moving', {views: ['D'
 
 journey('J250', 'every page at 320, 360 and 390 px: no sideways scroll, the title on the first screen', {views: ['P'], data: ['S'], live: true}, async j => {
   const {page} = j;
+  j.info.setTimeout(180_000); // 3 widths × 18 pages
   for (const width of [320, 360, 390]) {
     await page.setViewportSize({width, height: width === 320 ? 568 : 800});
     for (const path of EVERY) {
@@ -36,7 +37,7 @@ journey('J250', 'every page at 320, 360 and 390 px: no sideways scroll, the titl
   }
 });
 
-journey('J253', 'a deep link to every page in a fresh tab', {views: 'all', data: ['E'], live: true}, async j => {
+journey('J253', 'a deep link to every page in a fresh tab', {views: 'all', data: ['E', 'S'], live: true}, async j => {
   const {page} = j;
   for (const path of EVERY) {
     const tab = await page.context().newPage();
@@ -49,6 +50,7 @@ journey('J253', 'a deep link to every page in a fresh tab', {views: 'all', data:
 
 journey('J255', 'a slow network: pages say they are loading and never claim done early', {views: ['D', 'P'], data: ['S']}, async j => {
   const {page} = j;
+  j.info.setTimeout(240_000); // each page takes 15–25 s at 50 KB/s
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Network.enable');
   await cdp.send('Network.emulateNetworkConditions', {offline: false, latency: 400, downloadThroughput: 50 * 1024, uploadThroughput: 20 * 1024});

@@ -14,6 +14,10 @@ async function addLink(page: Page, name: string, address: string) {
   await form.getByRole('button', {name: 'Add link'}).click();
   return {links, form};
 }
+/** Settings → Appearance → Motion (its label wraps the select, so the name also carries the chosen option). */
+const motion = (page: Page) => page.getByRole('region', {name: 'Appearance', exact: true}).getByRole('combobox', {name: /^Motion/});
+/** The note a hidden page shows when opened from a link; it sits just above <main> (shell.tsx). */
+const hiddenNote = (page: Page) => page.getByRole('region', {name: 'Hidden page', exact: true});
 async function navNames(j: Journey) {
   const nav = j.page.getByRole('navigation', {name: 'Main navigation'});
   if (!j.phone) return nav.getByRole('link').allTextContents();
@@ -39,9 +43,14 @@ journey('J195', 'My links refuses http:// and javascript: addresses', {views: ['
   for (const bad of ['http://www.example.com', 'javascript:alert(1)']) {
     const {form} = await addLink(page, 'Fictional bad', bad);
     await expect(form.getByRole('alert')).toHaveText('Only https:// addresses can be added.');
-    if (j.phone) await page.keyboard.press('Escape');
+    // The refused form stays open with the reason; Cancel closes it, so "Add a link" is offered again.
+    await form.getByRole('button', {name: 'Cancel', exact: true}).click();
+    await expect(form).toHaveCount(0);
   }
-  expect(JSON.stringify(await page.evaluate(() => localStorage.getItem('zigoals:settings:v1')))).not.toContain('javascript:');
+  await expect(linksCard(page).getByRole('list', {name: 'Your links'})).toHaveCount(0);
+  const saved = JSON.stringify(await page.evaluate(() => localStorage.getItem('zigoals:settings:v1')));
+  expect(saved).not.toContain('javascript:');
+  expect(saved).not.toContain('http://www.example.com');
 });
 
 journey('J201', 'Settings: six groups; computers jump by chips, phones by the grouped list', {views: 'all', data: ['E'], live: true}, async j => {
@@ -65,24 +74,36 @@ journey('J202', 'hide Habits: it leaves the navigation; by link it opens with a 
   await expect(pagesCard(page).getByRole('switch', {name: 'Habits', exact: true})).not.toBeChecked();
   expect(await navNames(j)).not.toContain('Habits');
   await open(page, '/app/habits');
-  await expect(page.locator('main')).toContainText(/hidden|show it again/i);
+  await expect(hiddenNote(page)).toContainText('This page is hidden — show it again');
+  await hiddenNote(page).getByRole('button', {name: 'Show it again: Habits', exact: true}).click();
+  await expect(hiddenNote(page)).toHaveCount(0);
+  await expect.poll(() => navNames(j)).toContain('Habits');
 });
 
 journey('J203', '"Show everything again" brings every page back', {views: 'all', data: ['L']}, async j => {
   const {page} = j;
   await open(page, '/app/settings');
-  for (const name of ['Markets', 'Staking']) await pagesCard(page).getByRole('switch', {name, exact: true}).click();
+  for (const name of ['Markets', 'Staking']) {
+    const choice = pagesCard(page).getByRole('switch', {name, exact: true});
+    await choice.click();
+    await expect(choice).not.toBeChecked();
+  }
+  expect(await navNames(j)).not.toContain('Markets');
   await pagesCard(page).getByRole('button', {name: 'Show everything again', exact: true}).click();
+  // It asks first ("Show every page and button again? …"); "Show everything" confirms.
+  await pagesCard(page).getByRole('group', {name: /^Show every page and button again\?/}).getByRole('button', {name: 'Show everything', exact: true}).click();
+  await expect(pagesCard(page).getByRole('status')).toHaveText('Every page and button shows again.');
   for (const name of ['Markets', 'Staking', 'Habits']) await expect(pagesCard(page).getByRole('switch', {name, exact: true})).toBeChecked();
+  for (const name of ['Markets', 'Staking', 'Habits']) await expect.poll(() => navNames(j)).toContain(name);
 });
 
 journey('J205', 'Motion Off from Settings; the choice survives a reload', {views: 'all', data: ['E'], live: true}, async j => {
   const {page} = j;
   await open(page, '/app/settings');
-  await page.getByLabel('Motion').selectOption('off');
+  await motion(page).selectOption('off');
   await page.reload();
   await ready(page);
-  await expect(page.getByLabel('Motion')).toHaveValue('off');
+  await expect(motion(page)).toHaveValue('off');
   await expect(page.locator('html')).toHaveAttribute('data-app-motion', 'off');
 });
 
@@ -116,8 +137,10 @@ journey('J226', 'Send feedback: without details, then with my edited details; no
   const {page} = j;
   await open(page, '/app/help#feedback');
   const section = page.getByRole('region', {name: 'Tell us what you think', exact: true});
+  // "Sent somewhere": a request to another site, or anything but a read from this one (Next.js prefetches pages with
+  // same-origin GETs, ?_rsc=, which send nothing of mine).
   const requests: string[] = [];
-  page.on('request', r => requests.push(r.url()));
+  page.on('request', r => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && (u.origin !== new URL(page.url()).origin || r.method() !== 'GET')) requests.push(`${r.method()} ${r.url()}`); });
   const before = await localKeys(page);
   await section.getByRole('checkbox', {name: 'Add details about this device to the email', exact: true}).check();
   const box = section.getByRole('textbox');
@@ -133,17 +156,21 @@ journey('J226', 'Send feedback: without details, then with my edited details; no
 journey('J227', 'Help: every question opens and closes; a hash link opens its answer', {views: 'all', data: ['E'], live: true}, async j => {
   const {page} = j;
   await open(page, '/app/help');
+  j.info.setTimeout(180_000);
   const questions = page.locator('details.help-question');
   const count = await questions.count();
   expect(count).toBeGreaterThan(50);
-  for (let i = 0; i < count; i += 7) {
+  for (let i = 0; i < count; i++) {
     const q = questions.nth(i);
     await q.locator('summary').click();
     await expect(q).toHaveAttribute('open', '');
     await q.locator('summary').click();
+    await expect(q).not.toHaveAttribute('open');
   }
-  await open(page, '/app/help#w-sleep');
-  await expect(page.locator('#w-sleep')).toHaveAttribute('open', '');
+  // An answer's address is #help-<id> (help-question.tsx), as the "What's new" links use it.
+  await open(page, '/app/help#help-w-sleep');
+  await expect(page.locator('#help-w-sleep')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-w-sleep > summary')).toBeFocused();
 });
 
 journey('J228', 'Help → Known limitations: its links work', {views: 'all', data: ['E'], live: true}, async j => {
@@ -178,9 +205,16 @@ journey('J246', 'every page names itself in the browser tab', {views: 'all', dat
 journey('J251', 'the navigation reaches every page and marks the current one', {views: 'all', data: ['S'], live: true}, async j => {
   const {page} = j;
   await open(page, '/app');
+  const nav = page.getByRole('navigation', {name: 'Main navigation'}), more = page.getByRole('dialog', {name: 'More'});
   for (const name of ['Goals', 'Habits', 'Health', 'Wealth', 'Settings']) {
     await go(j, name);
-    expect(page.url()).toContain(`/app/${name.toLowerCase()}`);
+    await expect(page).toHaveURL(new RegExp(`/app/${name.toLowerCase()}$`));
+    // The current page is marked: its own link (on a phone, inside More when it is not a tab) and no other.
+    const current = nav.getByRole('link', {name, exact: true});
+    if (j.phone && !await current.isVisible()) await nav.getByRole('button', {name: 'More', exact: true}).click();
+    await expect(current).toHaveAttribute('aria-current', 'page');
+    await expect(nav.locator('a[aria-current="page"]')).toHaveCount(1);
+    if (await more.isVisible()) { await page.keyboard.press('Escape'); await expect(more).toBeHidden(); }
   }
 });
 
@@ -209,7 +243,10 @@ journey('J260', 'the skip link on every page moves focus to the content', {views
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', {name: 'Skip to content', exact: true})).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect.poll(() => page.evaluate(() => !!document.getElementById('main')?.contains(document.activeElement) || document.activeElement?.id === 'main')).toBe(true);
+    // The skip link moves the browser's focus starting point to the content (as tests/a11y-wcag-x.spec.ts checks it):
+    // the next Tab lands inside <main>.
+    await page.keyboard.press('Tab');
+    await expect.poll(() => page.evaluate(() => !!document.getElementById('main')?.contains(document.activeElement) || document.activeElement?.id === 'main'), {message: `${path}: after the skip link, Tab lands in the content`}).toBe(true);
   }
 });
 
@@ -297,4 +334,76 @@ journey('J233', 'Settings at 200 % zoom (640 px wide): nothing lost or sideways'
   await page.setViewportSize({width: 640, height: 450});
   await open(page, '/app/settings');
   for (const id of ['privacy', 'export-everything', 'your-pages', 'encrypted-sync', 'diagnostics', 'send-feedback']) await expect(page.locator(`#${id}`)).toBeAttached();
+});
+
+journey('J234', 'Settings\' ZIGi group: there, reachable, asking nothing of any other site (smoke only, X-LOCAL\'s lane)', {views: ['D', 'P'], data: ['E']}, async j => {
+  const {page} = j;
+  // Every request is kept and compared with the app's own origin at the end (page.url() is about:blank while the very
+  // first request leaves, which counted the app itself as "another site").
+  const asked: string[] = [];
+  page.on('request', r => asked.push(r.url()));
+  await open(page, '/app/settings');
+  const group = page.getByRole('group', {name: 'ZIGi', exact: true});
+  await group.scrollIntoViewIfNeeded();
+  await expect(group).toBeVisible();
+  await expect(group.locator('#your-ai')).toHaveCount(1);
+  const app = new URL(page.url()).origin;
+  expect([...new Set(asked.filter(u => /^https?:/.test(u)).map(u => new URL(u).origin).filter(o => o !== app))]).toEqual([]);
+});
+
+journey('J236', 'the network section: Local Demo and the Testnet; the testnet\'s version read live, read-only', {views: ['D', 'P'], data: ['E']}, async j => {
+  const {page} = j;
+  const writes: string[] = [];
+  page.on('request', r => { if (/zigchain\.com/.test(r.url()) && r.method() !== 'GET') writes.push(r.url()); });
+  await open(page, '/app/settings');
+  await expect(page.locator('#account')).toContainText('Local Demo · no account needed');
+  const network = page.locator('#network');
+  await expect(network.getByRole('heading', {name: 'ZIGChain Testnet.'})).toBeVisible();
+  await expect(network).toContainText('zig-test-2 · ZIG (18 decimals)');
+  await expect(network).toContainText('Testnet Alpha');
+  await page.getByText('Advanced Diagnostics', {exact: true}).click();
+  const panel = page.getByRole('region', {name: 'Connection diagnostics'});
+  await panel.getByRole('button', {name: 'Check connection'}).click();
+  await expect(panel).toContainText(/Verified zig-test-2|Unavailable|could not/i, {timeout: 30_000});
+  expect(writes).toEqual([]);
+});
+
+journey('J238', 'the wallet account: Local Demo identity; Keplr absent says so and Local demo stays', {views: ['D', 'P'], data: ['E']}, async j => {
+  const {page} = j;
+  await open(page, '/app/settings');
+  await expect(page.locator('#account')).toContainText('Local Demo · no account needed');
+  await open(page, '/app');
+  await page.getByRole('button', {name: 'Connect Keplr', exact: true}).click();
+  await expect(page.getByRole('alert').filter({hasText: 'Install the Keplr'})).toBeVisible();
+  await page.getByRole('button', {name: 'Local demo', exact: true}).click();
+  await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+});
+
+journey('J239', 'every link in Settings lands on its page', {views: ['D'], data: ['E']}, async j => {
+  const {page} = j;
+  await open(page, '/app/settings');
+  const hrefs = await page.locator('main a[href^="/app/"]').evaluateAll(links => [...new Set(links.map(a => a.getAttribute('href')!.split('#')[0]!))].filter(h => h !== '/app/settings'));
+  expect(hrefs.length).toBeGreaterThan(3);
+  for (const href of hrefs) {
+    const response = await page.goto(href);
+    expect(response!.status(), href).toBeLessThan(400);
+    await ready(page);
+  }
+});
+
+journey('J240', 'Settings in two tabs: a preference changed in one shows in the other after a reload', {views: ['D'], data: ['L']}, async j => {
+  const {page} = j;
+  await open(page, '/app/settings');
+  const other = await page.context().newPage();
+  await open(other, '/app/settings');
+  await motion(page).selectOption('off');
+  await other.reload();
+  await ready(other);
+  await expect(motion(other)).toHaveValue('off');
+  await other.getByRole('switch', {name: 'Guide on this device', exact: true}).click();
+  await expect(other.getByRole('switch', {name: 'Guide on this device', exact: true})).toHaveAttribute('aria-checked', 'true');
+  await page.reload();
+  await ready(page);
+  await expect(page.getByRole('switch', {name: 'Guide on this device', exact: true})).toHaveAttribute('aria-checked', 'true');
+  await other.close();
 });

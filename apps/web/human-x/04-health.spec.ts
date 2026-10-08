@@ -4,6 +4,12 @@ import {journey, open, ready, snap, type Journey} from './kit';
 // Session X Part 14, journeys J091–J135: Health, Sleep, Meditation, Devices (docs/verification/x-cloud/HUMAN_TEST.md).
 const health = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:health:v1') ?? 'null'));
 async function view(page: Page, name: string) { await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click(); }
+/** On a phone, Sleep, Meditation and the Fasting timer sit in folds on the Health page (health-app.tsx); this opens one. */
+async function fold(j: Journey, label: string) {
+  if (!j.phone) return;
+  const toggle = j.page.locator('.phone-fold-toggle').filter({hasText: new RegExp(`^${label}\\s*(Show|Hide)$`)});
+  await expect(async () => { if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click(); await expect(toggle).toHaveAttribute('aria-expanded', 'true', {timeout: 1500}); }).toPass({timeout: 15_000});
+}
 async function newFood(j: Journey, name: string, kcal = '150') {
   const {page} = j;
   await view(page, 'Foods & recipes');
@@ -71,14 +77,25 @@ journey('J104', 'fasting: start 16:8, stop early; only hours and the target are 
   const {page} = j;
   await page.clock.install({time: new Date('2026-10-14T20:00:00+02:00')});
   await open(page, '/app/health');
-  const fasting = page.getByRole('region', {name: 'Fasting', exact: true});
+  await fold(j, 'Fasting timer');
+  const fasting = page.getByRole('region', {name: 'Fasting timer', exact: true});
   await fasting.scrollIntoViewIfNeeded();
   await fasting.getByRole('button', {name: '16:8', exact: true}).click();
   await fasting.getByRole('button', {name: 'Start fast', exact: true}).click();
   await page.clock.fastForward(3 * 3_600_000);
   await fasting.getByRole('button', {name: 'Stop fast', exact: true}).click();
+  await expect(fasting.getByRole('status')).toContainText('Your target was 16 h.');
   const stored = JSON.stringify(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([k]) => k.includes('fasting')))));
   expect(stored).not.toMatch(/streak|record|calorie/i);
+  // The fast is kept as its times and its target only (zigoals:fasting:v1).
+  const sessions = (await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:fasting:v1') ?? '{"sessions":[]}'))).sessions as Record<string, unknown>[];
+  expect(sessions).toHaveLength(1);
+  const fast = sessions[0]!;
+  expect(Object.keys(fast).every(k => ['id', 'startedAt', 'endedAt', 'targetHours', 'timeZone', 'stoppedBy'].includes(k)), JSON.stringify(fast)).toBe(true);
+  expect(fast.targetHours).toBe(16);
+  const hours = (Date.parse(fast.endedAt as string) - Date.parse(fast.startedAt as string)) / 3_600_000;
+  expect(hours).toBeGreaterThanOrEqual(3);
+  expect(hours).toBeLessThan(3.1);
 });
 
 journey('J109', 'Sleep: "I\'m going to bed", then "I woke up"; time asleep marked estimated', {views: 'all', data: ['L'], live: true}, async j => {
@@ -103,10 +120,20 @@ journey('J115', 'Meditation: a one-minute session timed to the end', {views: 'al
   await open(page, '/app/health?view=meditation');
   const begin = page.getByRole('form', {name: 'Begin a session'});
   await begin.getByRole('radio', {name: '1 min', exact: true}).check();
+  await begin.getByRole('group', {name: 'How do you feel before? (optional)'}).getByRole('button', {name: '3 · OK', exact: true}).click();
   await begin.getByRole('button', {name: 'Begin', exact: true}).click();
   await expect(page.getByRole('region', {name: 'Meditation in progress'})).toBeVisible();
   await page.clock.fastForward(61_000);
+  // Timed to the end, the session is offered to be saved or let go: it reaches the journal only with "Save".
+  const done = page.getByRole('region', {name: '1 min of stillness', exact: true});
+  await expect(done).toBeVisible({timeout: 15_000});
+  await done.getByRole('group', {name: 'How do you feel now? (optional)'}).getByRole('button', {name: '4 · Calm', exact: true}).click();
+  await done.getByRole('button', {name: 'Save', exact: true}).click();
+  await expect(page.getByRole('status').filter({hasText: 'Saved: 1 min.'}).first()).toBeAttached();
   await expect(page.getByRole('region', {name: 'Recent sessions'})).toContainText('1 min', {timeout: 15_000});
+  const sessions = ((await health(page))?.meditation?.sessions ?? []) as Record<string, unknown>[];
+  expect(sessions).toHaveLength(1);
+  expect(sessions[0]).toMatchObject({kind: 'timer', seconds: 60, moodBefore: 3, moodAfter: 4});
 });
 
 journey('J119', 'Devices: the honest list; without Web Bluetooth it says so', {views: 'all', data: ['E'], live: true}, async j => {
@@ -140,13 +167,25 @@ journey('J131', 'Health\'s empty state says what to do first', {views: 'all', da
 
 journey('J132', 'Health → Sleep → back → Meditation → back: each title shown', {views: ['D', 'P'], data: ['L']}, async j => {
   const {page} = j;
-  await open(page, '/app/health?view=sleep');
-  await expect(page.getByRole('heading', {level: 1, name: 'Your sleep, your rhythm.'})).toBeVisible();
+  const title = (name: string) => page.getByRole('heading', {level: 1, name});
+  // From the Health page by its own links (Sleep's "Open Sleep →", Meditation's "Begin a session"), then the browser's Back.
+  await open(page, '/app/health');
+  await expect(title('A little care, every day.')).toBeVisible();
+  await fold(j, 'Sleep');
+  await page.getByRole('link', {name: 'Open Sleep →', exact: true}).click();
+  await page.waitForURL(/\/app\/health\?view=sleep$/);
+  await expect(title('Your sleep, your rhythm.')).toBeVisible();
   await page.goBack();
-  await open(page, '/app/health?view=meditation');
+  await page.waitForURL(/\/app\/health$/);
+  await expect(title('A little care, every day.')).toBeVisible();
+  await fold(j, 'Meditation');
+  await page.getByRole('link', {name: 'Begin a session', exact: true}).click();
+  await page.waitForURL(/\/app\/health\?view=meditation$/);
+  await expect(title('Breathe. Be here.')).toBeVisible();
   await page.goBack();
+  await page.waitForURL(/\/app\/health$/);
+  await expect(title('A little care, every day.')).toBeVisible();
   await ready(page);
-  expect(await health(page)).toBeDefined();
 });
 
 journey('J101', 'activity by hand: a walk with steps and minutes, saved and kept after a reload', {views: 'all', data: ['L']}, async j => {
@@ -221,4 +260,30 @@ journey('J111', 'a night across the Brussels clock change counts nine hours in b
   await form.getByLabel('Woke up (time)').fill('07:00');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(page.getByRole('region', {name: 'Recent nights and naps'})).toContainText('in bed 9 h 00 min');
+});
+
+journey('J100', 'measurements: waist and chest saved; the waist corrected, its earlier value kept in its history', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await open(page, '/app/health');
+  await view(page, 'Measurements');
+  const kind = page.getByLabel('Measurement history type', {exact: true}), form = page.getByRole('form', {name: 'Body measurement entry'}), records = page.getByRole('region', {name: 'Measurement records'});
+  for (const [k, value] of [['waist', '82'], ['chest', '98']] as const) {
+    await kind.selectOption(k);
+    await form.getByLabel('Measurement value', {exact: true}).fill(value);
+    // "Measured at" is required and starts empty (a timed measurement): the person sets it.
+    await form.getByLabel('Measured at (device time)', {exact: true}).fill('2026-10-01T08:00');
+    await form.getByRole('button', {name: 'Save measurement', exact: true}).click();
+    await expect(records).toContainText(`${value} cm`);
+  }
+  await kind.selectOption('waist');
+  // A reading has no remove: it is corrected and its history kept (closest real behaviour to "remove").
+  await page.getByRole('button', {name: 'Correct measurement', exact: true}).click();
+  await form.getByLabel('Measurement value', {exact: true}).fill('81');
+  await form.getByRole('button', {name: 'Save measurement', exact: true}).click();
+  await expect(records).toContainText('81 cm');
+  await records.getByText('Record history', {exact: true}).click();
+  await expect(records).toContainText('Previous: 82 cm');
+  await expect(records.locator('tbody tr')).toHaveCount(1);
+  await kind.selectOption('chest');
+  await expect(records).toContainText('98 cm');
 });

@@ -56,10 +56,15 @@ export const localKeys = (page: Page) => page.evaluate(() => Object.keys(localSt
 export async function go(j: Journey, name: string) {
   const {page, phone} = j;
   const nav = page.getByRole('navigation', {name: 'Main navigation'});
-  if (!phone) { await nav.getByRole('link', {name, exact: true}).click(); await ready(page); return; }
-  const direct = nav.getByRole('link', {name, exact: true}), top = page.locator('.phone-topbar').getByRole('link', {name, exact: true});
-  if (await direct.count()) await direct.click();
-  else if (await top.count()) await top.click();
-  else { await nav.getByRole('button', {name: 'More', exact: true}).click(); await page.getByRole('dialog', {name: 'More'}).getByRole('link', {name, exact: true}).click(); }
+  let link = nav.getByRole('link', {name, exact: true});
+  if (phone && !await link.count()) {
+    const top = page.locator('.phone-topbar').getByRole('link', {name, exact: true});
+    if (await top.count()) link = top;
+    else { await nav.getByRole('button', {name: 'More', exact: true}).click(); link = page.getByRole('dialog', {name: 'More'}).getByRole('link', {name, exact: true}); }
+  }
+  // A navigation link changes the page on the client: wait for its address, or the old page's title passes for the new one.
+  const href = (await link.getAttribute('href'))?.split(/[?#]/)[0];
+  await link.click();
+  if (href) await page.waitForURL(url => url.pathname === href);
   await ready(page);
 }

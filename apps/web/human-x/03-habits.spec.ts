@@ -1,4 +1,5 @@
 import {expect, type Page} from '@playwright/test';
+import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezone, type HabitData, type HabitInput} from '../lib/habits';
 import {journey, open, ready, snap, type Journey} from './kit';
 
 // Session X Part 14, journeys J061–J090: Habits (docs/verification/x-cloud/HUMAN_TEST.md). Created through the UI, as a
@@ -47,7 +48,7 @@ journey('J065', 'undo a check-in', {views: 'all', data: ['L'], live: true}, asyn
   const c = card(j.page, 'Fictional floss');
   await c.getByRole('button', {name: 'Complete Fictional floss', exact: true}).click();
   await c.getByRole('button', {name: 'Undo completion for Fictional floss'}).click();
-  await expect(c.locator('.habit-count')).toHaveText('0 / 1 times per day');
+  await expect(c.locator('.habit-count')).toHaveText('0 / 1 time per day');
 });
 
 journey('J067', 'vacation days: mark a week, then remove it', {views: 'all', data: ['L']}, async j => {
@@ -57,11 +58,20 @@ journey('J067', 'vacation days: mark a week, then remove it', {views: 'all', dat
   await addHabit(j, 'Fictional run');
   await page.getByRole('button', {name: 'Vacation', exact: true}).click();
   const region = page.getByRole('region', {name: 'Vacation days', exact: true});
-  await expect(region).toBeVisible();
-  await region.getByRole('textbox', {name: 'Days', exact: true}).fill('7').catch(() => undefined);
+  // The panel offers a week (today to six days on, From/To dates, not a number of days) for every active habit.
+  await expect(region.getByLabel('From', {exact: true})).toHaveValue('2026-10-14');
+  await expect(region.getByLabel('To', {exact: true})).toHaveValue('2026-10-20');
+  await expect(region.getByRole('checkbox', {name: 'Fictional run', exact: true})).toBeChecked();
   await region.getByRole('button', {name: 'Mark vacation', exact: true}).click();
-  await expect(page.getByRole('status').filter({hasText: /vacation|skipped/i}).first()).toBeVisible();
-  await closeSheet(j);
+  await expect(region.getByRole('status')).toHaveText('Vacation marked for 1 habit, 7 days.');
+  const skipped = async () => ((await habits(page)).habits[0].entries as {date: string; disposition: string}[]).filter(e => e.disposition === 'skipped').map(e => e.date).sort();
+  expect(await skipped()).toEqual(['2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19', '2026-10-20']);
+  await region.getByRole('button', {name: 'Clear vacation days', exact: true}).click();
+  await expect(region.getByRole('status')).toHaveText('Vacation days cleared. Your own check-ins and skips were kept.');
+  expect(await skipped()).toEqual([]);
+  await region.getByRole('button', {name: 'Done', exact: true}).click();
+  await expect(region).toHaveCount(0);
+  await expect(card(page, 'Fictional run').getByRole('button', {name: 'Complete Fictional run', exact: true})).toBeVisible();
 });
 
 journey('J073', 'a habit title with emoji and 80 characters stays whole or ellipsed, never overflowing', {views: 'all', data: ['L'], live: true}, async j => {
@@ -74,10 +84,23 @@ journey('J073', 'a habit title with emoji and 80 characters stays whole or ellip
 
 journey('J076', 'delete (archive) a habit: it leaves the list and Today', {views: 'all', data: ['L']}, async j => {
   const {page} = j;
+  await page.clock.install({time: new Date('2026-10-14T09:00:00+02:00')});
   await open(page, '/app/habits');
   await addHabit(j, 'Fictional temporary');
-  await card(page, 'Fictional temporary').getByRole('button', {name: 'Archive habit'}).click();
+  const c = card(page, 'Fictional temporary');
+  // Habits has no hard delete: "Archive habit" (no confirmation) begins tomorrow, and today keeps its record.
+  await expect(c).toContainText('Pause, resume and archive changes begin 2026-10-15.');
+  await c.getByRole('button', {name: 'Archive habit', exact: true}).click();
+  await expect(c).toContainText('Scheduled change from 2026-10-15: archived');
+  await expect(c).toBeVisible();
+  await page.clock.setSystemTime(new Date('2026-10-15T09:00:00+02:00'));
+  await page.reload();
+  await ready(page);
   await expect(card(page, 'Fictional temporary')).toHaveCount(0);
+  await allHabits(page).click();
+  await expect(card(page, 'Fictional temporary')).toHaveCount(0);
+  await page.getByLabel('Filter habits').getByRole('button', {name: 'Archived', exact: true}).click();
+  await expect(card(page, 'Fictional temporary').getByRole('button', {name: 'Restore habit', exact: true})).toBeVisible();
   await open(page, '/app');
   await expect(page.locator('main')).not.toContainText('Fictional temporary');
 });
@@ -91,7 +114,7 @@ journey('J079', 'a check-in just before and just after midnight lands on two day
   await page.clock.runFor(4 * 60_000);
   await page.reload();
   await ready(page);
-  await expect(card(page, 'Fictional night note').locator('.habit-count')).toHaveText('0 / 1 times per day');
+  await expect(card(page, 'Fictional night note').locator('.habit-count')).toHaveText('0 / 1 time per day');
   await card(page, 'Fictional night note').getByRole('button', {name: 'Complete Fictional night note', exact: true}).click();
   const data = await habits(page);
   const days = JSON.stringify(data);
@@ -152,4 +175,63 @@ journey('J089', 'Today\'s habit progress matches Habits', {views: 'all', data: [
   await card(page, 'Fictional one').getByRole('button', {name: 'Complete Fictional one', exact: true}).click();
   await open(page, '/app');
   await expect(page.locator('main')).toContainText(/1 of 2|1\/2|1 \/ 2/);
+});
+
+/** A fictional habit saved with its check-ins, as an earlier week on this device would have left it. */
+const at = (day: string, clock = '06:00') => new Date(`${day}T${clock}:00.000Z`);
+function logged(title: string, created: string, days: string[], schedule: HabitInput['schedule'] = {kind: 'daily'}): HabitData {
+  const id = '93000000-0000-4000-8000-000000000001';
+  let d = createHabit(saveHabitTimezone(emptyHabitData(), 'Europe/Brussels'), {title, category: 'Health', description: '', notes: '', schedule, target: 1}, at(created), id);
+  for (const day of days) d = logHabitValue(d, id, day, 1, {mode: 'set'}, at(day, '06:30'));
+  return d;
+}
+async function seedHabits(page: Page, data: HabitData) { await page.goto('/app/settings'); await page.evaluate(([k, v]) => localStorage.setItem(k!, v!), [HABITS_KEY, JSON.stringify(data)]); }
+async function streak(page: Page, title: string) {
+  const c = card(page, title), metric = c.locator('.habit-metrics > div').filter({hasText: 'Current streak'}).locator('strong');
+  if (!await metric.isVisible()) await c.getByText('Consistency & trends', {exact: true}).click();
+  return metric;
+}
+const allHabits = (page: Page) => page.getByLabel('Filter habits').getByRole('button', {name: 'All', exact: true});
+
+journey('J062', 'a weekdays-only habit: the weekend is a rest day and never breaks the streak', {views: 'all', data: ['L']}, async j => {
+  const {page} = j;
+  await page.clock.install({time: new Date('2026-10-16T09:00:00+02:00')}); // a Friday
+  await seedHabits(page, logged('Fictional desk stretch', '2026-10-12', ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'], {kind: 'weekdays', days: [1, 2, 3, 4, 5]}));
+  await open(page, '/app/habits');
+  await card(page, 'Fictional desk stretch').getByRole('button', {name: 'Complete Fictional desk stretch', exact: true}).click();
+  await expect(await streak(page, 'Fictional desk stretch')).toHaveText('5 days');
+  await page.clock.setSystemTime(new Date('2026-10-17T10:00:00+02:00')); // Saturday
+  await page.reload();
+  await ready(page);
+  // The list opens on "Today": a rest day lists nothing and says so; the habit itself is under "View all habits".
+  await expect(page.getByRole('heading', {level: 2, name: 'A little breathing room.'})).toBeVisible();
+  await expect(page.getByText('Nothing is scheduled today.', {exact: false})).toBeVisible();
+  await expect(card(page, 'Fictional desk stretch')).toHaveCount(0);
+  await page.getByRole('button', {name: 'View all habits', exact: true}).click();
+  await expect(card(page, 'Fictional desk stretch').getByText('Not scheduled', {exact: true}).first()).toBeVisible();
+  await expect(await streak(page, 'Fictional desk stretch')).toHaveText('5 days');
+  await page.clock.setSystemTime(new Date('2026-10-19T09:00:00+02:00')); // Monday
+  await page.reload();
+  await ready(page);
+  await card(page, 'Fictional desk stretch').getByRole('button', {name: 'Complete Fictional desk stretch', exact: true}).click();
+  await expect(await streak(page, 'Fictional desk stretch')).toHaveText('6 days');
+});
+
+journey('J064', 'a minutes habit: reading 20 minutes, reached in two sittings', {views: ['D', 'P'], data: ['L']}, async j => {
+  const {page} = j;
+  await open(page, '/app/habits');
+  await page.getByRole('button', {name: '+ New habit', exact: true}).click();
+  await page.getByLabel('Habit title', {exact: true}).fill('Fictional reading time');
+  // Each label wraps its select, so the field's name also carries the chosen option ("Measurement Count").
+  await page.getByRole('combobox', {name: /^Measurement/}).selectOption('duration');
+  await page.getByRole('combobox', {name: /^Unit/}).selectOption('minutes');
+  await page.getByLabel('Target value').fill('20');
+  await page.getByRole('button', {name: 'Create habit', exact: true}).click();
+  await closeSheet(j);
+  const c = card(page, 'Fictional reading time');
+  await expect(c.locator('.habit-count')).toHaveText(/^0 \/ 20 minutes/);
+  await c.locator('summary', {hasText: 'Set or add a value'}).click();
+  for (const minutes of ['15', '5']) { await c.getByLabel('Value for Fictional reading time').fill(minutes); await c.getByRole('button', {name: 'Add value', exact: true}).click(); }
+  await expect(c.locator('.habit-count')).toHaveText(/^20 \/ 20 minutes/);
+  expect((await habits(page)).habits[0].entries.map((e: {count: number}) => e.count)).toEqual([20]);
 });

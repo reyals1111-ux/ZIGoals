@@ -52,7 +52,7 @@ journey('J190', 'the music player is hidden until shown; Settings → Music show
   await expect(page.getByRole('button', {name: 'Open the music player'})).toBeVisible();
 });
 
-journey('J191', 'focus sounds play and stop; nothing is downloaded', {views: ['D', 'P'], data: ['E']}, async j => {
+journey('J191', 'focus sounds play and stop; nothing is downloaded', {views: ['D', 'P'], data: ['L']}, async j => {
   const {page} = j;
   await open(page, '/app/settings');
   await page.getByRole('region', {name: 'Your soundtrack.'}).getByRole('button', {name: 'Show the music player'}).click();
@@ -96,5 +96,10 @@ journey('J199', 'a hidden page still opens from a link, with a note to show it a
   await open(page, '/app/settings');
   await pagesCard(page).getByRole('switch', {name: 'Markets', exact: true}).click();
   await open(page, '/app/markets');
-  await expect(page.locator('main')).toContainText(/hidden|show it again/i);
+  // The note sits just above <main> (shell.tsx), as the "Hidden page" region, with its one-tap way back.
+  const note = page.getByRole('region', {name: 'Hidden page', exact: true});
+  await expect(note).toContainText('This page is hidden — show it again');
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await note.getByRole('button', {name: 'Show it again: Markets', exact: true}).click();
+  await expect(note).toHaveCount(0);
 });
