@@ -53,7 +53,196 @@ re-run after every app-side fix for the before/after table in 6d.
 | A full re-run of the matrix after the fixes | the harness, all five models | done (the 6d table) |
 
 ### Hours
-_(the table is pasted here at Gate B and again at Part 10)_
+Every stage's wall clock from `hours.log` (START/END pairs written by the shell that ran it; a chain's own inner lines sit inside this session's outer label for the same span and count once). Aborted stages are listed with their reason and not counted.
+
+| Stage | Started (UTC) | Ended (UTC) | Minutes | Exit |
+|---|---|---|---:|---:|
+| `phi4-mini_3.8b-RTX-5090-all-x1` | 2026-10-08 00:40 | 00:43 | 2 | 0 |
+| `gemma4_12b-RTX-5090-all-x1` | 2026-10-08 00:43 | 00:59 | 16 | 0 |
+| `qwen3.8_27b-RTX-5090-all-x1` | 2026-10-08 00:59 | 01:18 | 19 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-all-x1` | 2026-10-08 01:18 | 01:23 | 5 | 0 |
+| `ab-think0` | ?  | 01:27 | ? | 0 |
+| `ab-think1` | ?  | 01:34 | ? | 0 |
+| `ab-attach` | ?  | 01:36 | ? | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-all-x1` | 2026-10-08 01:23 | 01:59 | 36 | 0 |
+| `phi4-mini cases: first case hung 12 min with zero model requests; chain stopped for diagnosis` | ?  | 02:12 | — | aborted  |
+| `phi4-mini cases` | ?  | 02:33 | — | aborted (59/150): restarted so every model runs on the Showcase's pi |
+| `phi4-mini_3.8b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 02:34 | 03:05 | 31 | 1 |
+| `gemma4 cases` | ?  | 03:08 | — | aborted (restart from gemma4: settings-area asks now via Help, helpe |
+| `gemma4 cases` | ?  | 03:11 | — | aborted (restart: the reply wait now ends on the new turn, not a 15  |
+| `gemma4_12b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 03:11 | 03:20 | 8 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 03:20 | 03:30 | 10 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 03:30 | 03:38 | 7 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-real-model-desktop` | 2026-10-08 03:38 | 03:47 | 8 | 0 |
+| `phi4-mini_3.8b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 03:47 | 03:48 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 03:48 | 03:50 | 1 | 1 |
+| `qwen3.8_27b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 03:50 | 03:52 | 1 | 1 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 03:52 | 03:53 | 1 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-conversations-desktop` | 2026-10-08 03:53 | 03:56 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-pages-conversations-desktop` | 2026-10-08 03:57 | 04:00 | 3 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-pages-conversations-mobile` | 2026-10-08 04:00 | 04:03 | 3 | 0 |
+| `gemma4_12b-RTX-5090-zigi-pages-conversations-desktop` | 2026-10-08 04:03 | 04:09 | 5 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-desktop` | 2026-10-08 04:09 | 04:11 | 1 | 1 |
+| `day stage` | ?  | 04:18 | — | aborted (first attempt: the helper looked for a Log button that only |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-desktop` | 2026-10-08 04:18 | 04:20 | 1 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-mobile` | 2026-10-08 04:20 | 04:21 | 1 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-day-in-the-life-desktop` | 2026-10-08 04:21 | 04:25 | 4 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-photo-desktop` | 2026-10-08 04:25 | 04:26 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-photo-desktop` | 2026-10-08 04:26 | 04:28 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-photo-desktop` | 2026-10-08 04:28 | 04:29 | 0 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-photo-desktop` | 2026-10-08 04:29 | 04:30 | 1 | 0 |
+| `phi4-mini_3.8b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 04:30 | 04:37 | 6 | 1 |
+| `phi4-mini_3.8b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 04:37 | 04:38 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 04:38 | 04:40 | 1 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 04:40 | 04:41 | 1 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 04:41 | 04:43 | 1 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-conversations-desktop` | 2026-10-08 04:43 | 04:45 | 2 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-photo-desktop` | 2026-10-08 04:46 | 04:47 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-photo-desktop` | 2026-10-08 04:47 | 04:49 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-photo-desktop` | 2026-10-08 04:49 | 04:50 | 1 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-photo-desktop` | 2026-10-08 04:50 | 04:52 | 1 | 0 |
+| `phi4-mini_3.8b-RTX-5090-all-x1` | 2026-10-08 04:52 | 04:54 | 2 | 0 |
+| `gemma4_12b-RTX-5090-all-x1` | 2026-10-08 04:54 | 05:02 | 7 | 0 |
+| `mac-pull gemma4:12b` | 2026-10-08 04:48 | 05:07 | 18 | 0 |
+| `qwen3.8_27b-RTX-5090-all-x1` | 2026-10-08 05:02 | 05:15 | 13 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-all-x1` | 2026-10-08 05:15 | 05:20 | 4 | 0 |
+| `gemma4_12b-Mac-M1-Max-important-x1` | 2026-10-08 05:07 | 05:20 | — | aborted (overlapped the matrix's Mac stage; re-run after the follow- |
+| `qwen3.6_35b-a3b-Mac-M1-Max-all-x1` | 2026-10-08 05:20 | 05:59 | 38 | 0 |
+| `phi4-mini_3.8b-RTX-5090-important-x3` | 2026-10-08 05:59 | 06:00 | 1 | 0 |
+| `gemma4_12b-RTX-5090-important-x3` | 2026-10-08 06:00 | 06:06 | 6 | 0 |
+| `qwen3.8_27b-RTX-5090-important-x3` | 2026-10-08 06:06 | 06:16 | 9 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-important-x3` | 2026-10-08 06:16 | 06:19 | 3 | 0 |
+| `gemma4_12b-Mac-M1-Max-important-x1` | 2026-10-08 05:59 | 06:20 | — | aborted (second attempt; it outlived the PC's variance stage and ove |
+| `qwen3.6_35b-a3b-Mac-M1-Max-important-x3` | 2026-10-08 06:19 | 06:43 | 23 | 0 |
+| `gemma4_12b-Mac-M1-Max-zigi-real-model-desktop` | 2026-10-08 06:43 | 07:20 | 36 | 1 |
+| `qwen3.8_27b-RTX-5090-zigi-photo-desktop` | 2026-10-08 07:20 | 07:20 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-photo-desktop` | 2026-10-08 07:20 | 07:22 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-photo-desktop` | 2026-10-08 07:22 | 07:23 | 0 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-photo-desktop` | 2026-10-08 07:23 | 07:24 | 1 | 0 |
+| `p2base-phi4-mini_3.8b-RTX-5090-all` | 2026-10-08 07:25 | 07:31 | 6 | 0 |
+| `p2base-gemma4_12b-RTX-5090-all` | 2026-10-08 07:31 | 07:53 | 22 | 0 |
+| `clips` | 2026-10-08 08:09 | 08:15 | 5 | 0 |
+| `p2base-qwen3.8_27b-RTX-5090-all` | 2026-10-08 07:53 | 08:27 | 33 | 0 |
+| `p2base-qwen3.6_35b-a3b-RTX-5090-all` | 2026-10-08 08:27 | 08:39 | 12 | 0 |
+| `phi4-mini_3.8b-RTX-5090-all-x1` | 2026-10-08 08:42 | 08:51 | 8 | 0 |
+| `clips-closeup` | ?  | 08:58 | ? | ? |
+| `p2base-qwen3.6_35b-a3b-Mac-M1-Max-all` | 2026-10-08 07:25 | 09:04 | 99 | 0 |
+| `gate-b build` | 2026-10-08 09:05 | 09:05 | 0 | 0 |
+| `gemma4_12b-RTX-5090-all-x1` | 2026-10-08 08:51 | 09:16 | 24 | 0 |
+| `gate-b zigi` | 2026-10-08 09:07 | 09:17 | 9 | 1 |
+| `gate-b webkit` | 2026-10-08 09:17 | 09:27 | 10 | 1 |
+| `gate-b build` | 2026-10-08 09:31 | 09:31 | 0 | 0 |
+| `gate-b chrome re-run` | 2026-10-08 09:32 | 09:36 | 3 | 1 |
+| `gate-b webkit` | 2026-10-08 09:36 | 09:47 | 10 | 1 |
+| `gate-b build` | 2026-10-08 09:47 | 09:47 | 0 | 0 |
+| `gate-b safety re-run` | 2026-10-08 09:47 | 09:48 | 0 | 0 |
+| `gate-b build` | 2026-10-08 09:49 | 09:49 | 0 | 0 |
+| `qwen3.8_27b-RTX-5090-all-x1` | 2026-10-08 09:16 | 09:50 | 34 | 0 |
+| `gate-b robustness re-run` | 2026-10-08 09:50 | 09:50 | 0 | 0 |
+| `gate-b webkit smoke re-run` | 2026-10-08 09:54 | 09:54 | 0 | 1 |
+| `gate-b webkit smoke re-run` | 2026-10-08 09:56 | 09:57 | 0 | 1 |
+| `gate-b webkit smoke re-run` | 2026-10-08 09:59 | 09:59 | 0 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-all-x1` | 2026-10-08 09:50 | 10:03 | 12 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-important-x3` | 2026-10-08 10:03 | 10:03 | 0 | 143 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-important-x3` | 2026-10-08 10:03 | 10:03 | — | aborted (a stray stage: the matrix script was edited while its 'pc'  |
+| `phi4-mini_3.8b-RTX-5090-all-x1` | 2026-10-08 10:04 | 10:12 | 8 | 0 |
+| `gemma4_12b-RTX-5090-all-x1` | 2026-10-08 10:12 | 10:35 | 23 | 0 |
+| `qwen3.8_27b-RTX-5090-all-x1` | 2026-10-08 10:35 | 11:11 | 35 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-all-x1` | 2026-10-08 11:11 | 11:26 | 14 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-all-x1` | 2026-10-08 09:47 | 11:30 | 103 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-important-x3` | 2026-10-08 11:30 | 11:30 | 0 | 143 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-important-x3` | 2026-10-08 11:30 | 11:30 | — | aborted (the same stray stage as at 10:03: the Mac 'mac' run's shell |
+| `phi4-mini_3.8b-RTX-5090-all-x1` | 2026-10-08 11:26 | 11:34 | 8 | 0 |
+| `gemma4_12b-RTX-5090-all-x1` | 2026-10-08 11:34 | 12:00 | 25 | 0 |
+| `qwen3.8_27b-RTX-5090-all-x1` | 2026-10-08 12:00 | 12:35 | 35 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-all-x1` | 2026-10-08 12:35 | 12:50 | 14 | 0 |
+| `phi4-mini_3.8b-RTX-5090-all-x1` | 2026-10-08 12:50 | 12:58 | 7 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-all-x1` | 2026-10-08 11:31 | 13:19 | 108 | 0 |
+| `gemma4_12b-RTX-5090-all-x1` | 2026-10-08 12:58 | 13:25 | 27 | 0 |
+| `qwen3.8_27b-RTX-5090-all-x1` | 2026-10-08 13:25 | 14:01 | 36 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-all-x1` | 2026-10-08 14:01 | 14:15 | 13 | 0 |
+| `phi4-mini_3.8b-RTX-5090-important-x3` | 2026-10-08 14:15 | 14:23 | 8 | 0 |
+| `gemma4_12b-RTX-5090-important-x3` | 2026-10-08 14:23 | 14:47 | 24 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-all-x1` | 2026-10-08 13:19 | 15:05 | 106 | 0 |
+| `qwen3.8_27b-RTX-5090-important-x3` | 2026-10-08 14:47 | 15:16 | 29 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-important-x3` | 2026-10-08 15:16 | 15:28 | 11 | 0 |
+| `phi4-mini_3.8b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 15:28 | 15:40 | 11 | 1 |
+| `gemma4_12b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 15:40 | 15:56 | 15 | 1 |
+| `qwen3.8_27b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 15:56 | 16:14 | 18 | 1 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-important-x3` | 2026-10-08 15:05 | 16:26 | 80 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-real-model-desktop` | 2026-10-08 16:14 | 16:27 | 13 | 1 |
+| `phi4-mini_3.8b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 16:27 | 16:28 | 1 | 0 |
+| `gemma4_12b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 16:28 | 16:30 | 1 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 16:30 | 16:32 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 16:32 | 16:34 | 1 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-pages-conversations-desktop` | 2026-10-08 16:34 | 16:37 | 3 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-pages-conversations-mobile` | 2026-10-08 16:37 | 16:41 | 3 | 0 |
+| `gemma4_12b-RTX-5090-zigi-pages-conversations-desktop` | 2026-10-08 16:41 | 16:47 | 6 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-desktop` | 2026-10-08 16:47 | 16:49 | 1 | 1 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-mobile` | 2026-10-08 16:49 | 16:50 | 1 | 1 |
+| `qwen3.8_27b-RTX-5090-zigi-photo-desktop` | 2026-10-08 16:50 | 16:51 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-photo-desktop` | 2026-10-08 16:51 | 16:53 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-photo-desktop` | 2026-10-08 16:53 | 16:54 | 0 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-real-model-desktop` | 2026-10-08 16:54 | 17:03 | 8 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-conversations-desktop` | 2026-10-08 17:03 | 17:05 | 2 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-day-in-the-life-desktop` | 2026-10-08 17:05 | 17:10 | 4 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-photo-desktop` | 2026-10-08 17:10 | 17:11 | 1 | 0 |
+| `phi4-mini_3.8b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:16 | 17:17 | 1 | 0 |
+| `gemma4_12b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:17 | 17:19 | 1 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:19 | 17:21 | 1 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:21 | 17:22 | 1 | 0 |
+| `phi4-mini_3.8b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:26 | 17:27 | 1 | 0 |
+| `gemma4_12b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:27 | 17:29 | 1 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:29 | 17:31 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-conversations-desktop` | 2026-10-08 17:31 | 17:33 | 1 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-conversations-desktop` | 2026-10-08 17:33 | 17:36 | 3 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-desktop` | 2026-10-08 17:36 | 17:37 | 1 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-day-in-the-life-mobile` | 2026-10-08 17:37 | 17:38 | 1 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-day-in-the-life-desktop` | 2026-10-08 17:38 | 17:43 | 4 | 0 |
+| `qwen3.8_27b-RTX-5090-zigi-photo-desktop` | 2026-10-08 17:43 | 17:44 | 0 | 0 |
+| `gemma4_12b-RTX-5090-zigi-photo-desktop` | 2026-10-08 17:44 | 17:46 | 2 | 0 |
+| `qwen3.6_35b-a3b-RTX-5090-zigi-photo-desktop` | 2026-10-08 17:46 | 17:46 | 0 | 0 |
+| `qwen3.6_35b-a3b-Mac-M1-Max-zigi-photo-desktop` | 2026-10-08 17:46 | 17:47 | 0 | 0 |
+| `gate-b build` | 2026-10-08 17:47 | 17:47 | 0 | 0 |
+| `gate-b zigi` | 2026-10-08 17:47 | 17:57 | 9 | 1 |
+| `gate-b chain on 4c94fa6` | ?  | 17:58 | — | aborted (six ZIGi-suite failures: the programmatic refocus after a s |
+| `gate-b build` | 2026-10-08 18:01 | 18:01 | 0 | 0 |
+| `gate-b zigi` | 2026-10-08 18:01 | 18:11 | 9 | 0 |
+| `gate-b webkit` | 2026-10-08 18:11 | 18:21 | 10 | 1 |
+| `gate-b freeze` | 2026-10-08 18:21 | 18:31 | 9 | 1 |
+| `gate-b weights` | 2026-10-08 18:31 | 18:31 | 0 | 0 |
+| `part9 browser suite` | 2026-10-08 18:31 | 19:08 | 37 | 1 |
+| `part9 unit suite` | 2026-10-08 19:08 | 19:09 | 1 | 0 |
+| `part9 alpha checks build:alpha` | ?  | 19:09 | ? | 0 |
+| `gate-b build` | 2026-10-08 19:23 | 19:24 | 0 | 0 |
+| `h2 weights A` | ?  | 19:24 | ? | 0 |
+| `h2 typecheck` | ?  | 19:24 | ? | 0 |
+| `gate-b build` | 2026-10-08 19:24 | 19:24 | 0 | 0 |
+| `h2 weights B` | ?  | 19:24 | ? | 0 |
+| `post-merge zigi suites` | 2026-10-08 19:26 | 19:37 | 10 | 0 |
+| `post-merge webkit suites` | 2026-10-08 19:37 | 19:49 | 11 | 0 |
+| `post-merge isolated re-runs` | 2026-10-08 19:49 | 19:53 | 4 | 0 |
+| `post-merge unit suite` | 2026-10-08 19:53 | 19:54 | 1 | 0 |
+| `main build` | 2026-10-08 19:54 | 19:55 | 0 | 0 |
+| `post-merge freeze` | 2026-10-08 19:55 | 19:56 | — | aborted (:3103 still served main 72ad872 — the old server survived t |
+| `freeze: :3103 serves 72ad872a73ec14dd264260975d15a2fd3db8c699, not 757b3b1` | ?  | 19:56 | — | aborted  |
+| `post-merge freeze` | 2026-10-08 19:57 | 20:06 | 9 | 0 |
+| `gate-b build` | 2026-10-08 20:07 | 20:07 | 0 | 0 |
+| `final zigi suites` | 2026-10-08 20:07 | 20:17 | 10 | 0 |
+| `final webkit suites` | 2026-10-08 20:17 | 20:29 | 11 | 0 |
+| `final alpha gate` | ?  | 20:29 | ? | 0 |
+| `final memory spec WebKit run 1` | ?  | 20:29 | ? | 0 |
+| `final memory spec WebKit run 2` | ?  | 20:29 | ? | 0 |
+| `revert gate 1` | 2026-10-08 20:30 | 20:30 | 0 | 1 |
+| `revert gate 2` | 2026-10-08 20:30 | 20:30 | 0 | 1 |
+| `revert gate 1` | 2026-10-08 20:31 | 20:32 | 0 | 0 |
+| `revert gate 2` | 2026-10-08 20:32 | 20:32 | 0 | 0 |
+| `revert gates` | ?  | 20:38 | — | aborted (typecheck in the worktree lacked the packages' own node_mod |
+| `revert gate 1` | 2026-10-08 20:38 | 20:44 | 5 | 0 |
+| `revert gate 2` | 2026-10-08 20:44 | 20:44 | 0 | 0 |
+
+Total: 1596 minutes (26.6 h) of recorded stages so far.
+
 
 ## 6d. Scores per model, before and after the fixes
 
@@ -366,6 +555,15 @@ The Mac's first pass (16:54–17:11 UTC, the same code): 60 cases as in the pane
 cannot see a real photo", a pre-fill card beside a money refusal, a card on the morning brief); photos **3 / 4** (the full
 English: "I don't know how much oil was used, so I've kept servings and some nutrients out", which the hedge cue did not
 read). Reply medians 19.5 s (conversations), 17.6 s (the day), 12.4 s (photos).
+
+### Gate B and Part 9 on the production build (after the UI stages)
+
+Gate B's ZIGi suites in Chrome found one more cause (S76: the message box's refocus after a send read as `listening`
+and displaced thinking, success and the hints; six tests) and WebKit two test corrections (S77); after the owner's merge of
+X-Cloud's PR #78 the suites found the auto-accept wording lost on X-Cloud's feed (S83) and one WebKit timeout that did
+not recur. On the final production build: Chrome **366 passed, 0 failed** (422 real-model specs skip themselves), WebKit
+**344 passed, 0 failed**, the Alpha gate green on both projects, the memory spec alone twice green. The full story with
+every count is in STATUS.
 
 ### Fix rounds 8 and 9, read off the UI stages (ADR S74, S75), and their re-runs
 
