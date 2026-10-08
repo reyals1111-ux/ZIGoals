@@ -67,6 +67,10 @@ consistent read hanging on a canceled task"); v16.3.8 lists the security fixes o
 CI for both lanes, and the brief's hard rule forbids only *new* dependencies. ADR-016 X23 records the choice; reverting
 the one commit restores 16.3.6.
 
+**The six advisories by id** (`pnpm audit --prod --json` on main's lockfile, 2026-10-08; all `>=16.0.0 <16.3.8` except the
+first moderate, `>=16.3.0`): GHSA-cjq9-62q9-8jv4 (high), GHSA-3w37-wq28-93x7, GHSA-4jqv-mc3x-m676, GHSA-f87g-xv8r-7p7x,
+GHSA-mcj8-r9mp-w47p (moderate), GHSA-39w2-rjm5-chcv (low).
+
 **After:** `pnpm audit --prod --audit-level high`: no known vulnerabilities; `pnpm audit` (full): 1 high, braces 3.0.3
 (development only, unchanged). Checks: Session X Gate A (full unit and browser suites, build, packaged Alpha tests,
 weights, freeze check) ran on 16.3.8.
