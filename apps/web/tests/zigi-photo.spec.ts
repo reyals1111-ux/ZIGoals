@@ -34,7 +34,8 @@ const PHOTOS: PhotoCase[] = [
     absent: [{name: 'egg', match: /\begg/i}, {name: 'meat or fish', match: /bacon|sausage|chicken|beef|pork|meat|fish|salmon|tuna/i}, {name: 'pancakes', match: /pancake/i}, {name: 'coffee', match: /coffee/i}]},
 ];
 type Food = {name: string; estimate?: {kcal?: number; protein_g?: number; carbs_g?: number; fat_g?: number; serving_g?: number; serving_ml?: number}};
-const HEDGE = /estimat|roughly|about|approximately|around|could not|couldn.t|cannot|can.t (?:see|tell|judge)|not sure|unsure|unclear|hard to (?:tell|see|judge)|unknown/i;
+/** The model's own hedge: an estimate named as one, or what it could not see or judge, in its words (read off the live replies). */
+const HEDGE = /estimat|guess|roughly|about|approximately|around|could not|couldn.t|cannot|can.t (?:see|tell|judge)|not sure|unsure|unclear|not (?:certain|clear)|hard to (?:tell|see|judge)|unknown|leav(?:e|ing) (?:it |that |them |any |every )?(?:value |amount )?out|left (?:it |that |them |any )?out/i;
 const file = `photos-${slug(MODEL)}.json`;
 for (const p of PHOTOS) {
   test(`${p.file} (${p.source})`, async ({page}, info) => {
