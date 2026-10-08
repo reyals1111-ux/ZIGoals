@@ -117,7 +117,8 @@ test('edit the last question: ↑ or "Edit" puts it back, sending replaces it an
   expect(bodies.at(-1)!.messages.filter(m => m.role !== 'system').map(m => m.content)).toEqual(['Tell me about my weekend']);
 });
 
-test('around an answer: its time, the person\'s own note (kept here, never sent), copy as Markdown, Continue in my AI', async ({page, context}) => {
+test('around an answer: its time, the person\'s own note (kept here, never sent), copy as Markdown, Continue in my AI', async ({page, context, browserName}) => {
+  test.skip(browserName === 'webkit', 'Playwright grants no clipboard permission in WebKit: the copy checks run in Chrome and in a real Safari by hand');
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const bodies = await server(page, () => 'MOCK: **two** things to try.');
   await seed(page, {});

@@ -2,6 +2,7 @@ import {latestHabitRule, measurementUnit} from '../../habits';
 import type {Gates} from '../gates';
 import {Handles, type Handle} from '../handles';
 import {detectSubjects, localAnswer, type ToolCallRecord} from '../local-answers/engine';
+import {detectIntent} from '../intent';
 import {toolEnv, type ToolSources} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {runTool, toolText} from '../tools/registry';
@@ -42,6 +43,10 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   const env = toolEnv(sources, gates, 'provider');
   const reply = localAnswer(question, env);
   if ((reply.kind === 'answer' || reply.kind === 'refusal') && reply.calls.length) return reply.calls;
+  // Phase 2 P2.3: an ask to add a widget or a link is a card, not a lookup; the figures it names ("a water widget") are not
+  // pre-run, or the model answers with them and never sends the card (seen on every model).
+  const intent = detectIntent(question);
+  if ((intent.log || intent.plan) && /widget|\blinks?\b|\bliens?\b|koppeling/i.test(question)) return [];
   // Phase 2 (P2.2a): the subject detection reads English; a Dutch or French question is translated cue by cue first,
   // for this router only (the local engine keeps its English-only answers, by the golden set's rule).
   const s = detectSubjects(translateCues(question), env), calls: ToolCallRecord[] = [];

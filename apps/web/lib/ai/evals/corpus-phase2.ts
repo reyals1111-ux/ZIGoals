@@ -1,5 +1,6 @@
 import type {CorpusArea, CorpusKind, Expect, Lang, ModelCase} from './corpus';
 import type {PageArea} from '../settings';
+import {DAY} from '../tools/fixtures';
 
 /**
  * Session X-Local Phase 2 (owner follow-up, P2.1): the model-scored corpus grows to 600+ with harder, realistic asks:
@@ -14,7 +15,12 @@ const make = (kind: CorpusKind, base: Base) => (id: string, ask: string, expect:
 const on = (area: CorpusArea, page: PageArea) => ({lookup: make('lookup', {area, page}), propose: make('propose', {area, page}), multi: make('multi', {area, page}), refuse: make('refuse', {area, page}), chat: make('chat', {area, page}), unknown: make('unknown', {area, page}), followup: make('followup', {area, page}), brief: make('brief', {area, page}), privacy: make('privacy', {area, page}), injection: make('injection', {area, page}), advice: make('advice', {area, page})});
 const REFUSE: Expect = {refuse: true, kinds: []};
 /** A day said either way: the word or the date (the parser keeps what the model wrote; the planner resolves both). */
-const YESTERDAY = {anyOf: ['yesterday', '2026-09-19']}, TWO_DAYS_AGO = '2026-09-18', LAST_MONDAY = '2026-09-14', LAST_FRIDAY = '2026-09-18';
+// Phase 2 P2.3 (ADR-017 S62): the relative days derive from the harness's own Showcase day (`DAY` in tools/fixtures); they were
+// written against 2026-09-20 while every run speaks from 2026-10-05, so the models' right answers scored as misses.
+const dayAt = (offset: number) => { const d = new Date(`${DAY}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + offset); return d.toISOString().slice(0, 10); };
+/** The most recent such weekday strictly before the Showcase day (0 = Sunday … 6 = Saturday). */
+const lastWeekday = (weekday: number) => { const d = new Date(`${DAY}T12:00:00Z`); let back = (d.getUTCDay() - weekday + 7) % 7; if (back === 0) back = 7; return dayAt(-back); };
+const YESTERDAY = {anyOf: ['yesterday', dayAt(-1)]}, TWO_DAYS_AGO = dayAt(-2), LAST_MONDAY = lastWeekday(1), LAST_FRIDAY = lastWeekday(5);
 export const PHASE2: ModelCase[] = [];
 function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
 
@@ -83,13 +89,13 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
   const hb = on('habits', 'habits'), g = on('goals', 'goals'), t = on('today', 'today'), h = on('health', 'health');
   add(
     hb.propose('p2-edit-target', 'Change my reading target to 30 pages a day', {kinds: ['edit-habit'], fields: [{target: 30}]}, {important: true}),
-    hb.propose('p2-edit-schedule', 'Make my walk a weekdays-only habit', {kinds: ['edit-habit'], fields: [{schedule: 'weekdays'}]}, {important: true}),
+    hb.propose('p2-edit-schedule', 'Make my walk a weekdays-only habit', {kinds: ['edit-habit'], fields: [{schedule: {weekdays: [1, 2, 3, 4, 5]}}]}, {important: true}),
     hb.propose('p2-edit-time', 'Move meditation to the evening', {kinds: ['edit-habit'], fields: [{timeOfDay: 'evening'}]}),
     hb.propose('p2-edit-rename', 'Rename "Exercise" to "Gym session"', {kinds: ['edit-habit'], fields: [{title: 'Gym session'}]}, {important: true}),
     hb.propose('p2-edit-measure', 'Track Exercise in minutes, 45 a day', {kinds: ['edit-habit'], fields: [{measurement: 'minutes', target: 45}]}),
     hb.propose('p2-edit-three-week', 'Reading only three times a week from now on', {kinds: ['edit-habit']}),
     hb.propose('p2-edit-limit', 'Turn my coffee habit into a limit of 2 a day', {kinds: ['edit-habit', 'create-habit'], minCards: 1, maxCards: 1}),
-    hb.propose('p2-edit-weekend', 'The walk is for weekends only now', {kinds: ['edit-habit'], fields: [{schedule: 'weekends'}]}),
+    hb.propose('p2-edit-weekend', 'The walk is for weekends only now', {kinds: ['edit-habit'], fields: [{schedule: {anyOf: [{weekdays: [6, 0]}, {weekdays: [0, 6]}]}}]}),
     g.propose('p2-edit-goal-target', 'Raise the emergency fund target to 7500', {kinds: ['edit-goal'], fields: [{target: 7500}]}, {important: true}),
     g.propose('p2-edit-goal-date', 'Push the Japan adventure to 2027-09-01', {kinds: ['edit-goal'], fields: [{targetDate: '2027-09-01'}]}, {important: true}),
     g.propose('p2-edit-goal-name', 'Call the first home deposit "Our flat"', {kinds: ['edit-goal'], fields: [{name: 'Our flat'}]}),

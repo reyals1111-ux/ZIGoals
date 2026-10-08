@@ -41,7 +41,8 @@ test('a jump to Help & diagnostics before the body loaded stays put once it has'
   // The rest of the page settles first (other sections grow within the first quarter second of a new device's first
   // paint, X-Cloud's lane); the jump then isolates this section.
   await expect(page.locator('section#your-ai')).toBeVisible();
-  await page.waitForTimeout(600);
+  // Settled means the target has not moved for half a second (WebKit lays the page out more slowly than Chrome).
+  await expect.poll(async () => { const a = await page.evaluate(() => document.getElementById('settings-help')!.getBoundingClientRect().top); await page.waitForTimeout(500); const b = await page.evaluate(() => document.getElementById('settings-help')!.getBoundingClientRect().top); return Math.abs(a - b) < 1; }, {timeout: 15_000}).toBe(true);
   await expect(page.locator('section#your-ai .ai-settings-reserve')).toHaveCount(1);
   // The jump as a link to the section's address makes it (the sections nav on a computer, the phone's own row): the hash.
   await page.evaluate(() => { location.hash = '#settings-help'; });

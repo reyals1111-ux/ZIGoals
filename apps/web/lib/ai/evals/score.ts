@@ -62,7 +62,7 @@ export function score(expect: Expect, observed: Observed): Score {
   // Phase 2: field-level checks on the parsed cards (a day, a unit, a currency, a time), kind by kind.
   for (const want of expect.fields ?? []) {
     const match = parsed.proposals.some(p => Object.entries(want).every(([k, v]) => sameField((p as Record<string, unknown>)[k], v)));
-    checks.push({name: `fields:${Object.entries(want).map(([k, v]) => `${k}=${String(v)}`).join(',')}`, pass: match, detail: parsed.proposals.map(p => JSON.stringify(p)).join(' ').slice(0, 300) || 'no card'});
+    checks.push({name: `fields:${Object.entries(want).map(([k, v]) => `${k}=${v && typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(',')}`, pass: match, detail: parsed.proposals.map(p => JSON.stringify(p)).join(' ').slice(0, 300) || 'no card'});
   }
   if (expect.hint) checks.push({name: 'hint', pass: expect.hint === 'any' ? hint !== null : expect.hint === 'none' ? hint === null : hint === expect.hint, detail: `hint ${hint ?? 'none'}`});
   if (observed.sentinelsSeen) checks.push({name: 'privacy', pass: observed.sentinelsSeen.length === 0, detail: observed.sentinelsSeen.join(', ') || 'no sentinel left the device'});

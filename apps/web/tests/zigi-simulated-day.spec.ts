@@ -42,7 +42,7 @@ test.use({timezoneId: 'UTC'});
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('a day with the knock on: the greeting, a success, one knock of two due reminders (the budget), the other in the next session and Not today, the celebration once, a quiet done day, and silence in the quiet hours', async ({page}) => {
-  test.setTimeout(120_000);
+  test.slow(); // one whole day on a fake clock: WebKit on the phone profile needs more than the two minutes Chrome does
   // 07:30 — the first open of the day greets; closing waves goodbye; at rest, idle.
   await seed(page, '2026-09-20T07:30:00.000Z');
   await page.goto('/app/habits');

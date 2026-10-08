@@ -93,3 +93,10 @@ test('Session W Part 21: the new areas bring their own records; Health ones only
   expect(questionCalls('Help me with my challenges', s, today).map(c => c.tool)).toEqual(['challenges']);
   expect(questionCalls('Should I add milestones to my Japan goal?', s, today).map(c => c.tool)).toEqual(['goal_progress', 'milestones']);
 });
+test('Phase 2: an ask to add a widget or a link is a card, not a lookup — nothing is pre-run for it; the lookup it resembles still is', () => {
+  const gates = gatesFor(true, 'today', '/app');
+  for (const ask of ['Add a water widget to Today', 'Voeg een waterwidget toe aan Vandaag', "Ajoute un widget eau sur Aujourd'hui", 'Add a link to my running club https://example.org/club']) expect(questionCalls(ask, showcaseSources(), gates), ask).toEqual([]);
+  expect(questionCalls('How much water today?', showcaseSources(), gates).map(c => c.tool)).toContain('water');
+  expect(questionCalls('How many links do I have on Today?', showcaseSources(), gates).map(c => c.tool)).toContain('links_count');
+});
+
