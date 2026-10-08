@@ -182,3 +182,22 @@ test('first week: Portfolio\'s favourites card on a new device is the styled car
   const style = await card.evaluate(el => { const s = getComputedStyle(el); return {border: s.borderTopStyle, image: s.backgroundImage, radius: s.borderTopLeftRadius}; });
   expect(style).toEqual({border: 'dashed', image: expect.stringContaining('linear-gradient'), radius: '22px'});
 });
+
+test('J055: a Goal created offline is saved, and the wizard says so instead of leaving for the browser\'s offline page', async ({page}) => {
+  await page.goto('/app/goals/new');
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await page.context().setOffline(true);
+  await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
+  await page.getByLabel('Goal name', {exact: true}).fill('Fictional offline plan');
+  await page.getByRole('radio', {name: 'Value', exact: true}).check();
+  await page.getByLabel('Target amount', {exact: true}).fill('640');
+  await page.getByRole('radio', {name: /^USD · /}).check();
+  await page.getByRole('button', {name: 'Create goal', exact: true}).click();
+  const saved = page.getByRole('status').filter({hasText: 'Your Goal is saved on this device. It opens when you’re back online'});
+  await expect(saved).toBeVisible();
+  expect(page.url()).toMatch(/\/app\/goals\/new$/);
+  expect(await page.evaluate(k => (JSON.parse(localStorage.getItem(k)!) as Platform).goals.map(g => g.name), PLATFORM_KEY)).toEqual(['Fictional offline plan']);
+  await page.context().setOffline(false);
+  await saved.getByRole('link', {name: 'Open saved Goal →'}).click();
+  await expect(page.getByRole('heading', {level: 1, name: 'Fictional offline plan'})).toBeVisible();
+});
