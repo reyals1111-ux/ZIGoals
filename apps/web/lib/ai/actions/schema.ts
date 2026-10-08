@@ -23,6 +23,17 @@ export const handleSchema = z.string().trim().toLowerCase().regex(/^[hgfr]\d{1,3
 const handleOf = (prefix: string, example: string) => z.string().trim().toLowerCase().regex(new RegExp(`^${prefix}\\d{1,3}$`), `Use one of the handles from the context (${example}).`);
 /** Session V Part 7: a habit made by another card of the same reply ("new1"), so its reminder can point at it. */
 export const refSchema = z.string().trim().toLowerCase().regex(/^new\d{1,2}$/, 'A new habit of this reply is named new1, new2, …');
+/**
+ * Session X-Local Part 6d: a habit or goal may be named by its handle (h2, g1) or by its exact title as the context
+ * lists it; the planner resolves either on the device and refuses anything that matches no record or more than one.
+ */
+/** A short token of letters and digits with no space ("habit-42", "h7x") is a handle attempt, never a title. */
+const HANDLE_LIKE = /^(?:[hgfr]\d{1,3}|new\d{1,2})$/i, HANDLE_JUNK = /^(?=.*\d)[a-z0-9_-]{1,8}$/i;
+const named = (example: string) => z.string().trim().min(1).max(100)
+  // A handle-shaped string that is not a handle ("habit-42", "H01x") stays refused here, as before; a title passes to the planner.
+  .refine(v => HANDLE_LIKE.test(v) || !HANDLE_JUNK.test(v), `Use one of the handles from the context (${example}), or the exact title.`)
+  .transform(v => HANDLE_LIKE.test(v) ? v.toLowerCase() : v);
+const habitName = named('h1, h2'), goalName = named('g1');
 const text = (max: number) => z.string().trim().min(1).max(max);
 const positive = z.number().finite().positive();
 const grams = z.number().finite().min(0).max(100_000);
@@ -61,18 +72,19 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
   z.strictObject({kind: z.literal('log-steps'), steps: z.number().int().min(1).max(1_000_000), minutes: z.number().int().min(0).max(1440).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('log-food'), name: text(100), meal: z.enum(MEALS), quantity: positive.max(100).default(1), food: handleSchema.optional(),
-    estimate: z.strictObject({kcal: z.number().finite().min(0).max(100_000).optional(), protein_g: grams.optional(), carbs_g: grams.optional(), fat_g: grams.optional(), serving_g: positive.max(100_000).optional()}).optional(), day: daySchema}),
+    estimate: z.strictObject({kcal: z.number().finite().min(0).max(100_000).optional(), protein_g: grams.optional(), carbs_g: grams.optional(), fat_g: grams.optional(), serving_g: positive.max(100_000).optional(), serving_ml: positive.max(100_000).optional()})
+      .refine(e => e.serving_g === undefined || e.serving_ml === undefined, 'Give the serving in grams or in millilitres, not both.').optional(), day: daySchema}),
   z.strictObject({kind: z.literal('log-measurement'), kind_of: z.enum(MEASUREMENT_KINDS), value: positive.max(500), unit: z.enum(['cm', 'in']), day: daySchema}),
-  z.strictObject({kind: z.literal('check-in'), habit: handleSchema, value: z.number().finite().min(0).max(1_000_000_000).optional(),
+  z.strictObject({kind: z.literal('check-in'), habit: habitName, value: z.number().finite().min(0).max(1_000_000_000).optional(),
     /** Session V Part 7: the amount in minutes or in a unit; converted to the habit's own measure, or refused. */
     minutes: z.number().finite().positive().max(10_080).optional(), quantity: z.number().finite().min(0).max(1_000_000_000).optional(), unit: z.string().trim().min(1).max(24).optional(),
     note: z.string().trim().max(500).optional(), day: daySchema}).refine(a => [a.value, a.minutes, a.quantity].filter(v => v !== undefined).length <= 1, 'Give one amount: a value, minutes or a quantity.'),
-  z.strictObject({kind: z.literal('skip'), habit: handleSchema, reason: z.string().trim().max(500).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('skip'), habit: habitName, reason: z.string().trim().max(500).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('create-habit'), ...habitFields, ref: refSchema.optional()}),
   z.strictObject({kind: z.literal('start-fast'), targetHours: z.number().int().min(1).max(MAX_CUSTOM_HOURS)}),
   z.strictObject({kind: z.literal('stop-fast')}),
   z.strictObject({kind: z.literal('create-goal'), ...goalFields, milestones: z.array(text(100)).max(10).optional()}).superRefine(goalRules),
-  z.strictObject({kind: z.literal('add-goal-note'), goal: handleSchema, note: text(2000)}),
+  z.strictObject({kind: z.literal('add-goal-note'), goal: goalName, note: text(2000)}),
   z.strictObject({kind: z.literal('prefill-holding'), category: z.enum(HOLDING_CATEGORIES), name: text(100), quantity: z.union([positive.max(1e15), z.string().trim().regex(/^\d+(\.\d+)?$/)]), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default('USD'), value: positive.max(1e15).optional(), symbol: z.string().trim().max(30).optional(), notes: z.string().trim().max(2000).optional()}),
   // ---- Session V Part 7 ----
   z.strictObject({kind: z.literal('create-food'), name: text(100), brand: z.string().trim().max(80).optional(), serving_g: positive.max(100_000).optional(), serving_ml: positive.max(100_000).optional(), estimate: nutrients.optional()})
@@ -84,7 +96,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
     .refine(a => (a.recipe === undefined) !== (a.saved_meal === undefined), 'Plan one recipe (r1) or one saved meal (m1).'),
   z.strictObject({kind: z.literal('grocery-item'), items: z.array(text(100)).min(1).max(30)}),
   z.strictObject({kind: z.literal('counter'), counter: z.string().trim().min(1).max(40), count: z.number().int().min(-1000).max(1000).refine(n => n !== 0, 'A count other than zero.'), day: daySchema}),
-  z.strictObject({kind: z.literal('create-reminder'), for: z.enum(REMINDER_FOR), habit: z.union([handleSchema, refSchema]).optional(), goal: handleOf('g', 'g1').optional(), time: clock, weekday: z.number().int().min(0).max(6).optional()})
+  z.strictObject({kind: z.literal('create-reminder'), for: z.enum(REMINDER_FOR), habit: habitName.optional(), goal: goalName.optional(), time: clock, weekday: z.number().int().min(0).max(6).optional()})
     .superRefine((a, ctx) => {
       if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or new1 for a habit made in this reply).'});
       if (a.for === 'goal' && !a.goal) ctx.addIssue({code: 'custom', path: ['goal'], message: 'Name the goal (g1).'});
@@ -94,23 +106,25 @@ export const actionSchema = z.discriminatedUnion('kind', [
   // ---- Session V Part 8: "Remember this?", a note for What ZIGi knows about me (the planner refuses Health notes) ----
   z.strictObject({kind: z.literal('remember'), text: text(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES).default('other')}),
   // ---- Session W Part 21 (W7): a night, mindful minutes, a milestone, an account's balance (pre-fill only), a challenge ----
-  z.strictObject({kind: z.literal('log-sleep'), wake: clock, bedtime: clock.optional(), hours: z.number().finite().positive().max(24).optional(), minutes: z.number().int().min(1).max(1440).optional(),
+  z.strictObject({kind: z.literal('log-sleep'), wake: clock.optional(), bedtime: clock.optional(), hours: z.number().finite().positive().max(24).optional(), minutes: z.number().int().min(1).max(1440).optional(),
     quality: z.number().int().min(1).max(5).optional(), nap: z.boolean().optional(), day: daySchema})
-    .refine(a => (a.bedtime !== undefined) !== (a.hours !== undefined || a.minutes !== undefined), 'Give the bedtime or how long the night was (hours or minutes), one of the two.'),
+    .refine(a => (a.bedtime !== undefined) !== (a.hours !== undefined || a.minutes !== undefined), 'Give the bedtime or how long the night was (hours or minutes), one of the two.')
+    // Session X-Local Part 6d: a nap that just ended needs no wake time ("I napped for 30 minutes"); a night always does.
+    .refine(a => a.wake !== undefined || (a.nap === true && a.bedtime === undefined), 'Say when it ended (wake, HH:MM).'),
   z.strictObject({kind: z.literal('log-meditation'), minutes: z.number().int().min(1).max(1440), time: clock.optional(), note: z.string().trim().max(500).optional(), day: daySchema}),
-  z.strictObject({kind: z.literal('add-milestone'), goal: handleOf('g', 'g1'), title: text(100), value: positive.max(1e15).optional()}),
+  z.strictObject({kind: z.literal('add-milestone'), goal: goalName, title: text(100), value: positive.max(1e15).optional()}),
   z.strictObject({kind: z.literal('update-account-balance'), account: text(80), balance: z.union([z.number().finite().min(0).max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]),
     currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), day: daySchema}),
-  z.strictObject({kind: z.literal('start-challenge'), habit: handleSchema, days: z.number().int().min(7).max(365).default(30)}),
+  z.strictObject({kind: z.literal('start-challenge'), habit: habitName, days: z.number().int().min(7).max(365).default(30)}),
   // ---- Session X-Local Part 5a: stacks, edits of plain fields, the wrap-up's mood, a link and a widget for Today ----
-  z.strictObject({kind: z.literal('stack-habit'), habit: z.union([handleOf('h', 'h2'), refSchema]), after: z.union([handleOf('h', 'h1'), refSchema])}).refine(a => a.habit !== a.after, 'A habit cannot follow itself.'),
-  z.strictObject({kind: z.literal('edit-habit'), habit: handleOf('h', 'h2'), title: text(100).optional(), type: habitType.optional(), measurement: habitMeasurement.optional(), target: habitTarget.optional(), schedule: habitSchedule.optional(),
+  z.strictObject({kind: z.literal('stack-habit'), habit: habitName, after: habitName}).refine(a => a.habit.toLowerCase() !== a.after.toLowerCase(), 'A habit cannot follow itself.'),
+  z.strictObject({kind: z.literal('edit-habit'), habit: habitName, title: text(100).optional(), type: habitType.optional(), measurement: habitMeasurement.optional(), target: habitTarget.optional(), schedule: habitSchedule.optional(),
     timeOfDay: habitTimeOfDay.optional(), description: z.string().trim().max(500).optional(), category: text(50).optional()}).refine(a => Object.keys(a).some(k => k !== 'kind' && k !== 'habit'), 'Say what to change about the habit.'),
-  z.strictObject({kind: z.literal('edit-goal'), goal: handleOf('g', 'g1'), name: text(100).optional(), target: positive.max(1e15).optional(), targetDate: isoDay.nullable().optional(), notes: z.string().trim().max(2000).optional(), category: z.enum(GOAL_CATEGORIES).optional()})
+  z.strictObject({kind: z.literal('edit-goal'), goal: goalName, name: text(100).optional(), target: positive.max(1e15).optional(), targetDate: isoDay.nullable().optional(), notes: z.string().trim().max(2000).optional(), category: z.enum(GOAL_CATEGORIES).optional()})
     .refine(a => Object.keys(a).some(k => k !== 'kind' && k !== 'goal'), 'Say what to change about the goal.'),
   z.strictObject({kind: z.literal('log-mood'), mood: z.number().int().min(1).max(5), note: z.string().trim().max(280).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('add-link'), label: text(40), url: z.string().trim().min(1).max(500).regex(/^https:\/\//i, 'Only a full https:// address can be added.'), icon: z.enum(LINK_ICONS).optional()}),
-  z.strictObject({kind: z.literal('add-widget'), widget: z.enum(WIDGET_KINDS), metric: z.string().trim().min(1).max(40).optional(), habit: handleOf('h', 'h2').optional(), goal: handleOf('g', 'g1').optional(), size: z.enum(['compact', 'wide']).default('compact'), title: z.string().trim().max(80).optional()}),
+  z.strictObject({kind: z.literal('add-widget'), widget: z.enum(WIDGET_KINDS), metric: z.string().trim().min(1).max(40).optional(), habit: habitName.optional(), goal: goalName.optional(), size: z.enum(['compact', 'wide']).default('compact'), title: z.string().trim().max(80).optional()}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];

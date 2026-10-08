@@ -69,11 +69,23 @@ function resolveDay(day: string, base: string, today: string, allowFuture = fals
   return {ok: true, day: resolved};
 }
 const dayLabel = (day: string, today: string) => day === today ? `today (${day})` : day === addLocalDays(today, -1) ? `yesterday (${day})` : day;
-function habitOf(env: Env, handle: string): {ok: true; habit: Habit} | {ok: false; message: string} {
-  const found = env.handles.find(h => h.handle === handle.toLowerCase() && h.kind === 'habit');
+/** A record of the context by its handle (h2) or its exact title, case-insensitively; two titles alike are a question, never a guess. */
+function handleFor(env: Env, kind: Handle['kind'], named: string): Handle | undefined {
+  const key = named.trim().toLowerCase();
+  const byHandle = env.handles.find(h => h.kind === kind && h.handle === key);
+  if (byHandle) return byHandle;
+  const byTitle = env.handles.filter(h => h.kind === kind && h.label.trim().toLowerCase() === key);
+  return byTitle.length === 1 ? byTitle[0] : undefined;
+}
+function habitOf(env: Env, named: string): {ok: true; habit: Habit} | {ok: false; message: string} {
+  const found = handleFor(env, 'habit', named);
   const habit = found ? env.stores.habits.habits.find(h => h.id === found.id) : undefined;
   if (!found || !habit) return {ok: false, message: 'ZIGi named a habit that is not in this page\'s context, so nothing was proposed. Ask again from Habits, or name the habit.'};
   return {ok: true, habit};
+}
+function goalOf(env: Env, named: string): {ok: true; found: Handle} | {ok: false; message: string} {
+  const found = handleFor(env, 'goal', named);
+  return found ? {ok: true, found} : {ok: false, message: 'ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.'};
 }
 /** One habit's entries for a day put back the way they were (or removed when there was none): the inverse of a check-in or a skip. */
 function restoreEntry(data: HabitData, habitId: string, date: string, previous: Habit['entries'][number] | undefined, now: Date): HabitData {
@@ -169,11 +181,12 @@ export function planAction(action: Action, env: Env): PlanResult {
           write: s => ({health: logHealthItem(s.health, {id: entryId, sourceId: found.id, sourceKind, date: day.day, meal: action.meal, quantityMilli}, at)}),
           undo: {label: 'Remove this diary entry', write: s => ({health: removeHealthItem(s.health, 'diary', entryId)}), unchanged: (after, current) => same(after.health.diary.find(e => e.id === entryId), current.health.diary.find(e => e.id === entryId))}, activity: {id: entryId, title: `${action.meal}: ${source.name}`}}};
       }
-      const estimate = action.estimate ?? {}, foodId = healthId(), serving = estimate.serving_g ?? 100;
+      const estimate = action.estimate ?? {}, foodId = healthId(), serving = estimate.serving_g ?? 100, byVolume = estimate.serving_ml !== undefined;
       const mg = (g: number | undefined) => g === undefined ? null : Math.round(g * 1000);
-      const food = foodSchema.parse({id: foodId, name: action.name, brand: 'AI estimate', servingGrams: serving, nutrients: {kcal: estimate.kcal === undefined ? null : Math.round(estimate.kcal), proteinMg: mg(estimate.protein_g), carbsMg: mg(estimate.carbs_g), fatMg: mg(estimate.fat_g)}, createdAt: at, updatedAt: at});
+      // Session X-Local Part 6d: a serving given in millilitres (a drink) makes a food measured by volume, as create-food does.
+      const food = foodSchema.parse({id: foodId, name: action.name, brand: 'AI estimate', ...(byVolume ? {servingGrams: null, servingMl: estimate.serving_ml} : {servingGrams: serving}), nutrients: {kcal: estimate.kcal === undefined ? null : Math.round(estimate.kcal), proteinMg: mg(estimate.protein_g), carbsMg: mg(estimate.carbs_g), fatMg: mg(estimate.fat_g)}, createdAt: at, updatedAt: at});
       const nutrientLines = [`kcal ${estimate.kcal === undefined ? 'unknown' : Math.round(estimate.kcal)}`, `protein ${estimate.protein_g === undefined ? 'unknown' : `${num(estimate.protein_g)} g`}`, `carbs ${estimate.carbs_g === undefined ? 'unknown' : `${num(estimate.carbs_g)} g`}`, `fat ${estimate.fat_g === undefined ? 'unknown' : `${num(estimate.fat_g)} g`}`];
-      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Log a food with an AI estimate', lines: [`${action.meal}: ${action.name} × ${num(action.quantity, 2)} serving${action.quantity === 1 ? '' : 's'}`, `AI estimate per serving: ${nutrientLines.join(', ')}; unknown stays unknown, never 0`, estimate.serving_g === undefined ? `Serving weight not given: recorded as ${serving} g per serving (an AI estimate you can edit in Foods & recipes)` : `Serving ${serving} g`, 'Added to Foods & recipes as "AI estimate" so you can correct it later'], where: 'Health · Diary and Foods & recipes', day: dayLabel(day.day, env.healthDay), estimate: true},
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Log a food with an AI estimate', lines: [`${action.meal}: ${action.name} × ${num(action.quantity, 2)} serving${action.quantity === 1 ? '' : 's'}`, `AI estimate per serving: ${nutrientLines.join(', ')}; unknown stays unknown, never 0`, byVolume ? `Serving ${num(estimate.serving_ml!)} mL` : estimate.serving_g === undefined ? `Serving weight not given: recorded as ${serving} g per serving (an AI estimate you can edit in Foods & recipes)` : `Serving ${serving} g`, 'Added to Foods & recipes as "AI estimate" so you can correct it later'], where: 'Health · Diary and Foods & recipes', day: dayLabel(day.day, env.healthDay), estimate: true},
         write: s => ({health: logHealthItem(saveFood(s.health, food), {id: entryId, sourceId: foodId, sourceKind: 'food', date: day.day, meal: action.meal, quantityMilli}, at)}),
         undo: {label: 'Remove this entry and the estimated food', write: s => ({health: removeHealthItem(removeHealthItem(s.health, 'diary', entryId), 'foods', foodId)}), unchanged: (after, current) => same(after.health.diary.find(e => e.id === entryId), current.health.diary.find(e => e.id === entryId)) && same(after.health.foods.find(f => f.id === foodId), current.health.foods.find(f => f.id === foodId))}, activity: {id: entryId, title: `${action.meal}: ${action.name}`}}};
     }
@@ -250,9 +263,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         undo: {label: 'Remove this goal draft', write: s => ({platform: deletePrivateGoal(s.platform, id)}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === id), current.platform.goals.find(g => g.id === id))}, activity: {id: `created:${id}`, title: `Goal created: ${action.name}`}}};
     }
     case 'add-goal-note': {
-      const found = env.handles.find(h => h.handle === action.goal && h.kind === 'goal');
-      if (!found) return refuse('ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.');
-      const goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+      const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+      const found = named.found, goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
       if (!goal) return refuse('Notes on a simulation goal are edited from its own page.');
       if (goal.locked) return refuse('This goal is locked. Unlock it in Goals before adding a note.');
       const previous = goal.notes, next = `${previous ? `${previous}\n` : ''}${action.note}`.slice(0, 2000);
@@ -368,8 +380,8 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.for === 'habit' || action.for === 'water') {
         let habitId: string | null = null, title = 'Water';
         if (action.for === 'habit') {
-          const ref = /^new\d/.test(action.habit!) ? env.refs?.get(action.habit!) : undefined;
-          if (/^new\d/.test(action.habit!) && !ref) return refuse('This reminder belongs to a habit that is not proposed in this reply, so nothing was proposed.');
+          const ref = /^new\d{1,2}$/i.test(action.habit!.trim()) ? env.refs?.get(action.habit!.trim().toLowerCase()) : undefined;
+          if (/^new\d{1,2}$/i.test(action.habit!.trim()) && !ref) return refuse('This reminder belongs to a habit that is not proposed in this reply, so nothing was proposed.');
           if (ref) { habitId = ref.id; title = ref.title; }
           else { const found = habitOf(env, action.habit!); if (!found.ok) return refuse(found.message); habitId = found.habit.id; title = found.habit.title; }
         }
@@ -383,9 +395,8 @@ export function planAction(action: Action, env: Env): PlanResult {
       }
       const weekday = action.weekday ?? new Date(`${env.healthDay}T12:00:00Z`).getUTCDay(), when = {weekday, time}, dayName = WEEKDAYS[weekday]!;
       if (action.for === 'goal') {
-        const found = env.handles.find(h => h.handle === action.goal && h.kind === 'goal');
-        if (!found) return refuse('ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.');
-        const key = found.id, previous = stores.zigiReminders.goalCheckIns?.[key];
+        const named = goalOf(env, action.goal!); if (!named.ok) return refuse(named.message);
+        const found = named.found, key = found.id, previous = stores.zigiReminders.goalCheckIns?.[key];
         return {ok: true, plan: {target: 'zigiReminders', card: {kind: action.kind, title: `Weekly check-in: ${found.label}`, lines: [`Every ${dayName} at ${time}, kept on this device for ZIGi's reminders`, ...(previous ? [`Replaces ${WEEKDAYS[previous.weekday]} at ${previous.time}`] : [])], where: 'ZIGi · Reminders', day: null, estimate: false},
           write: s => ({zigiReminders: {...s.zigiReminders, goalCheckIns: {...(s.zigiReminders.goalCheckIns ?? {}), [key]: when}}}),
           undo: {label: previous ? 'Put the previous time back' : 'Remove this reminder', write: s => { const {goalCheckIns: current, ...rest} = s.zigiReminders, goalCheckIns = {...(current ?? {})}; if (previous) goalCheckIns[key] = previous; else delete goalCheckIns[key]; return {zigiReminders: Object.keys(goalCheckIns).length ? {...rest, goalCheckIns} : rest}; }, unchanged: (after, current) => same(after.zigiReminders.goalCheckIns?.[key], current.zigiReminders.goalCheckIns?.[key])},
@@ -422,7 +433,9 @@ export function planAction(action: Action, env: Env): PlanResult {
       const zone = dailyData(stores.health).preferences.timezone ?? env.timeZone, kind = action.nap ? 'nap' : 'night';
       let input: NightInput;
       try {
-        const end = instantAt(day.day, action.wake, zone);
+        // A nap with no wake time ends now (today only); the schema allows that for naps alone.
+        if (action.wake === undefined && day.day !== env.healthDay) return refuse('Say when the nap ended (HH:MM) for a day other than today.');
+        const end = action.wake === undefined ? env.now.getTime() : instantAt(day.day, action.wake, zone);
         let start = action.bedtime ? instantAt(day.day, action.bedtime, zone) : end - Math.round((action.hours ?? 0) * 60 + (action.minutes ?? 0)) * 60_000;
         if (action.bedtime && start >= end) start = instantAt(addLocalDays(day.day, -1), action.bedtime, zone);
         input = {kind, start, end, timeZone: zone, ...(action.quality ? {quality: action.quality} : {})};
@@ -438,7 +451,7 @@ export function planAction(action: Action, env: Env): PlanResult {
           return {health: withHealthGroup(s.health, 'sleep', next, false)};
         },
         undo: {label: kind === 'nap' ? 'Remove this nap' : 'Remove this night', write: s => created ? {health: withHealthGroup(s.health, 'sleep', deleteNight(healthGroupIn(s.health, 'sleep') ?? emptySleep(), created), false)} : {}, unchanged: (after, current) => same(nightOf(after), nightOf(current))},
-        activity: {id: `sleep:${day.day}:${action.wake}`, title: `${kind === 'nap' ? 'Nap' : 'Night'}: ${formatMinutes(length)} in bed`}}};
+        activity: {id: `sleep:${day.day}:${action.wake ?? clock(input.end)}`, title: `${kind === 'nap' ? 'Nap' : 'Night'}: ${formatMinutes(length)} in bed`}}};
     }
     case 'log-meditation': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
@@ -464,9 +477,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         activity: {id: `meditation:${day.day}:${time}`, title: `Mindful minutes: ${action.minutes} min`}}};
     }
     case 'add-milestone': {
-      const found = env.handles.find(h => h.handle === action.goal && h.kind === 'goal');
-      if (!found) return refuse('ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.');
-      const goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+      const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+      const found = named.found, goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
       if (!goal) return refuse('Milestones belong to your own goals; a simulation goal keeps its steps on its own page.');
       if (goal.status === 'closed') return refuse('This goal is closed. Reopen it in Goals before adding a milestone.');
       if (goal.locked) return refuse('This goal is locked. Unlock it in Goals before adding a milestone.');
@@ -506,7 +518,7 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'stack-habit': {
       // Either habit may be one this reply creates ("new1"); the stack is then written after that card, like a reminder.
       const pick = (named: string, role: string): {ok: true; id: string; title: string; pending: boolean} | {ok: false; message: string} => {
-        if (/^new\d/.test(named)) { const ref = env.refs?.get(named); return ref ? {ok: true, id: ref.id, title: ref.title, pending: !stores.habits.habits.some(h => h.id === ref.id)} : {ok: false, message: `The ${role} habit is not proposed in this reply, so nothing was proposed.`}; }
+        if (/^new\d{1,2}$/i.test(named.trim())) { const ref = env.refs?.get(named.trim().toLowerCase()); return ref ? {ok: true, id: ref.id, title: ref.title, pending: !stores.habits.habits.some(h => h.id === ref.id)} : {ok: false, message: `The ${role} habit is not proposed in this reply, so nothing was proposed.`}; }
         const found = habitOf(env, named); return found.ok ? {ok: true, id: found.habit.id, title: found.habit.title, pending: false} : found;
       };
       const habit = pick(action.habit, 'stacked'), after = pick(action.after, 'leading');
@@ -547,9 +559,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         activity: {id: `habit-edit:${habit.id}:${at}`, title: `Habit changed: ${action.title ?? habit.title}`}}};
     }
     case 'edit-goal': {
-      const found = env.handles.find(h => h.handle === action.goal && h.kind === 'goal');
-      if (!found) return refuse('ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.');
-      const goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+      const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+      const found = named.found, goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
       if (!goal) return refuse('A simulation goal is edited on its own page.');
       if (goal.locked) return refuse('This goal is locked. Unlock it in Goals before changing it.');
       if (goal.status === 'closed') return refuse('This goal is closed. Reopen it in Goals before changing it.');
@@ -607,7 +618,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (!(catalogue.metrics as readonly string[]).includes(metric)) return refuse(`The ${catalogue.label} widget shows ${catalogue.metrics.join(', ')}, not "${action.metric}".`);
       let entity: string | undefined, named = '';
       if (kind === 'habit') { if (!action.habit) return refuse('Say which habit (h1) the widget is for.'); const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message); entity = found.habit.id; named = found.habit.title; }
-      else if (kind === 'goal') { if (!action.goal) return refuse('Say which goal (g1) the widget is for.'); const found = env.handles.find(h => h.handle === action.goal && h.kind === 'goal'); if (!found) return refuse('ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.'); entity = found.id; named = found.label; }
+      else if (kind === 'goal') { if (!action.goal) return refuse('Say which goal (g1) the widget is for.'); const g = goalOf(env, action.goal); if (!g.ok) return refuse(g.message); entity = g.found.id; named = g.found.label; }
       else if (['asset', 'staking', 'allocation', 'food-entry', 'meal'].includes(kind)) return refuse(`A ${catalogue.label} widget needs a record chosen on Today itself (Add a widget).`);
       const id = (env.newHabitId ?? (() => crypto.randomUUID()))();
       const widget: DashboardWidget = {id, kind, metric, ...(entity ? {entity} : {}), title: action.title ?? '', size: action.size, hidden: false, revision: 1};

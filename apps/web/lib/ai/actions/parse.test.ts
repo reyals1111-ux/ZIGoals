@@ -44,7 +44,10 @@ test('the protocol the AI reads names every kind the schema accepts, and the sch
   expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 24}).success).toBe(false); expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 16}).success).toBe(true);
   expect(actionSchema.safeParse({kind: 'log-water', day: 'today'}).success).toBe(false);
   expect(actionSchema.safeParse({kind: 'create-goal', name: 'Trip', target: 1200, currency: 'eur'}).success).toBe(true);
-  expect(actionSchema.safeParse({kind: 'check-in', habit: 'not-a-handle'}).success).toBe(false);
+  // Session X-Local Part 6d: a habit may be named by its exact title as the context lists it (resolved on the device, refused when it matches none or two); a handle-shaped invention stays refused here.
+  expect(actionSchema.safeParse({kind: 'check-in', habit: 'habit-42'}).success).toBe(false);
+  expect(actionSchema.safeParse({kind: 'check-in', habit: 'h7x'}).success).toBe(false);
+  expect(actionSchema.safeParse({kind: 'check-in', habit: 'Morning walk'}).success).toBe(true);
 });
 test('hasOpenFence tells a streaming reply with an unfinished block from a finished one', () => {
   expect(hasOpenFence('Sure.\n```zigoals-action\n{"kind":')).toBe(true);
@@ -90,4 +93,16 @@ test('Session X-Local Part 6d: shapes seen on a small model are rewritten, never
   // A tool's name as a kind stays refused: a lookup is never a card.
   expect(one('{"kind":"habits_due","habit":"h4"}')).toMatchObject({proposals: [], rejected: [{reason: expect.stringMatching(/kind/)}]});
   expect(one('{"type":"function","function":{"name":"steps"}}')).toMatchObject({proposals: [], rejected: [{}]});
+});
+test('Session X-Local Part 6d: ISO weekdays and schedule phrases are rewritten to the schema\'s shapes', () => {
+  const one = (body: string) => parseReply(`\`\`\`zigoals-action\n${body}\n\`\`\``);
+  expect(one('{"kind":"create-habit","title":"Swim","schedule":{"weekdays":[1,3,7]}}').proposals).toMatchObject([{schedule: {weekdays: [1, 3, 0]}}]);
+  expect(one('{"kind":"create-habit","title":"Swim","schedule":{"weekdays":[0,6]}}').proposals).toMatchObject([{schedule: {weekdays: [0, 6]}}]);
+  expect(one('{"kind":"create-habit","title":"Swim","schedule":"3 times a week"}').proposals).toMatchObject([{schedule: {timesPerWeek: 3}}]);
+  expect(one('{"kind":"create-habit","title":"Swim","schedule":"twice per week"}').proposals).toMatchObject([{schedule: {timesPerWeek: 2}}]);
+  expect(one('{"kind":"create-habit","title":"Swim","schedule":"every 3 days"}').proposals).toMatchObject([{schedule: {everyDays: 3}}]);
+  expect(one('{"kind":"create-habit","title":"Swim","schedule":"whenever"}').proposals).toEqual([]);
+  expect(one('{"kind":"log-food","name":"Shake","meal":"Snacks","estimate":{"serving_ml":300,"kcal":200}}').proposals).toMatchObject([{estimate: {serving_ml: 300, kcal: 200}}]);
+  expect(one('{"kind":"log-sleep","nap":true,"minutes":30}').proposals).toMatchObject([{kind: 'log-sleep', nap: true, minutes: 30}]);
+  expect(one('{"kind":"log-sleep","hours":7.5}').proposals).toEqual([]);
 });

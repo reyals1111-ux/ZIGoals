@@ -455,3 +455,27 @@ test('add-widget: a habit widget and a health widget land at the end of Today, u
   const goal = plan({kind: 'add-widget', widget: 'goal', goal: 'g1', metric: 'progress'});
   expect(applyPlan(goal, stores).settings.widgets.at(-1)!.entity).toBe(`private:${stores.platform.goals[0]!.id}`);
 });
+
+// ---- Session X-Local Part 6d: shapes the model runs sent ----
+test('a habit or goal named by its exact title resolves like its handle; an unknown or ambiguous title is refused in words', () => {
+  const read = stores.habits.habits.find(h => h.title === 'Read')!;
+  expect(plan({kind: 'check-in', habit: 'Read', value: 1}).card.title).toBe(plan({kind: 'check-in', habit: `h${stores.habits.habits.indexOf(read) + 1}`, value: 1}).card.title);
+  expect(plan({kind: 'skip', habit: 'read'}).card.where).toBe('Habits · Read');
+  expect(refusal({kind: 'check-in', habit: 'Juggling'})).toMatch(/not in this page/);
+  expect(plan({kind: 'add-goal-note', goal: 'Emergency fund', note: 'Reviewed.'}).card.title).toBe('Add a note to "Emergency fund"');
+  expect(refusal({kind: 'add-milestone', goal: 'Mars trip', title: 'x'})).toMatch(/not in this page/);
+  // Two habits with the same title: a question, never a guess.
+  const twin = {...stores, habits: habitDataSchema.parse({...stores.habits, habits: [...stores.habits.habits, {...read, id: '92000000-0000-4000-8000-0000000000ee'}]})};
+  const twinHandles = [...handles, {handle: 'h50', kind: 'habit' as const, id: '92000000-0000-4000-8000-0000000000ee', label: 'Read'}];
+  expect(refusal({kind: 'check-in', habit: 'Read'}, env({stores: twin, handles: twinHandles}))).toMatch(/not in this page/);
+});
+test('a drink\'s serving in millilitres makes a food measured by volume; a nap with no wake time ends now', () => {
+  const shake = plan({kind: 'log-food', name: 'Protein shake', meal: 'Snacks', estimate: {kcal: 200, protein_g: 30, serving_ml: 300}});
+  expect(shake.card.lines).toContain('Serving 300 mL');
+  const after = applyPlan(shake, stores), food = after.health.foods.at(-1)!;
+  expect(food).toMatchObject({name: 'Protein shake', servingGrams: null, servingMl: 300});
+  const nap = plan({kind: 'log-sleep', minutes: 30, nap: true});
+  expect(nap.card.title).toBe('Add a nap'); expect(nap.card.lines[0]).toMatch(/^18:30 to 19:00 · 30 min in bed$/);
+  expect(refusal({kind: 'log-sleep', minutes: 30, nap: true, day: 'yesterday'})).toMatch(/Say when the nap ended/);
+  expect(() => actionSchema.parse({kind: 'log-sleep', hours: 7.5})).toThrow(/wake/);
+});

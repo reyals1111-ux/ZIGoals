@@ -91,7 +91,14 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   if (record.day === undefined && typeof record.date === 'string') { record.day = record.date; delete record.date; }
   if (record.kind === 'create-habit' || record.kind === 'build-habit' || record.kind === 'edit-habit') {
     if (typeof record.measurement === 'string') { const m = record.measurement.trim().toLowerCase(); record.measurement = MEASUREMENT_WORDS[m] ?? (['done', 'count', 'minutes', 'hours'].includes(m) ? m : {unit: record.measurement.trim()}); }
-    if (typeof record.schedule === 'string') { const sch = record.schedule.trim().toLowerCase(); record.schedule = sch === 'daily' || sch === 'every day' || sch === 'everyday' ? 'daily' : sch === 'weekly' || sch === 'once a week' ? {timesPerWeek: 1} : sch === 'weekdays' || sch === 'workdays' ? {weekdays: [1, 2, 3, 4, 5]} : sch === 'weekends' ? {weekdays: [0, 6]} : sch === 'every other day' || sch === 'alternate days' ? {everyDays: 2} : record.schedule; }
+    if (typeof record.schedule === 'string') {
+      const sch = record.schedule.trim().toLowerCase(), times = /^(\d{1,2}|once|twice|three times|four times|five times|six times)(?: times?)?(?: a| per| each)? ?week$/.exec(sch), every = /^every (\d{1,3}) days?$/.exec(sch);
+      const COUNT: Record<string, number> = {once: 1, twice: 2, 'three times': 3, 'four times': 4, 'five times': 5, 'six times': 6};
+      record.schedule = sch === 'daily' || sch === 'every day' || sch === 'everyday' ? 'daily' : sch === 'weekly' || sch === 'once a week' ? {timesPerWeek: 1} : sch === 'weekdays' || sch === 'workdays' ? {weekdays: [1, 2, 3, 4, 5]} : sch === 'weekends' ? {weekdays: [0, 6]} : sch === 'every other day' || sch === 'alternate days' ? {everyDays: 2}
+        : times ? {timesPerWeek: COUNT[times[1]!] ?? Number(times[1])} : every ? {everyDays: Number(every[1])} : record.schedule;
+    }
+    // ISO weekday numbers (Monday 1 … Sunday 7) become the schema's (Sunday 0 … Saturday 6) when a 7 is present.
+    if (record.schedule && typeof record.schedule === 'object' && Array.isArray((record.schedule as {weekdays?: unknown}).weekdays)) { const days = (record.schedule as {weekdays: unknown[]}).weekdays; if (days.includes(7) && !days.includes(0)) (record.schedule as {weekdays: unknown[]}).weekdays = days.map(d => d === 7 ? 0 : d); }
     if (typeof record.timeOfDay === 'string') { const t = record.timeOfDay.trim().toLowerCase(); record.timeOfDay = t === 'night' || t === 'evenings' ? 'evening' : t === 'mornings' || t === 'am' ? 'morning' : t === 'afternoons' || t === 'noon' ? 'afternoon' : t === 'any' || t === 'anytime' || t === 'any time' ? 'anytime' : record.timeOfDay; }
     if (record.kind === 'create-habit' && record.reminder !== undefined) record.kind = 'build-habit';
   }
