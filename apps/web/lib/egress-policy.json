@@ -19,7 +19,8 @@
   "serverOnly": {
     "note": "Origins only the app's own server code reaches, never the browser: none of them enters connect-src (ADR-014 S2). Each is a secret on the app Worker, unset in every committed config.",
     "zigiRelay": "ZIGOALS_ZIGI_RELAY_ORIGIN: ZIGoals hosted's relay (workers/zigi-relay), reached only by /api/zigi (lib/server/zigi-route.ts); off by default",
-    "healthLink": "ZIGOALS_HEALTH_LINK_ORIGIN: the health-link Worker (workers/health-link), reached only by /api/health-link (lib/server/health-link-route.ts); off by default"
+    "healthLink": "ZIGOALS_HEALTH_LINK_ORIGIN: the health-link Worker (workers/health-link), reached only by /api/health-link (lib/server/health-link-route.ts); off by default",
+    "pushReminders": "ZIGOALS_PUSH_ORIGIN: the push-reminders Worker (workers/push-reminders), reached only by /api/push (lib/server/push-route.ts); off until the owner activates push (docs/run11/PUSH_ACTIVATION.md). Listed by Session X Part 8: it has been server-only since ADR-010"
   },
   "csp": {
     "note": "Session W Part 14: /app documents reach chess.com's and Lichess's public APIs (connect) and frame exactly their daily puzzle, puzzle, TV and game pages (frame), docs/product/CHESS.md. Session W Part 20: /app documents reach Spotify's accounts service (the PKCE token exchange and refresh) and Web API (the player), and show artwork from Spotify's image host, only once the person connects Spotify, docs/product/MUSIC_ACTIVATION.md. Session W Part 1e: extra connect-src, img-src and frame-src sources per document class ('app' is /app and everything under it, 'site' every other document), in the order they are sent. lib/csp-compose.mjs builds the one policy the app and every check use. Empty lists keep the policy every build since Session V sends: connect-src is 'self' plus the origins above, img-src 'self' data: blob:, frame-src 'none'.",
