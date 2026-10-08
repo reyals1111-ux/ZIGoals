@@ -1,7 +1,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, panel, REAL, record, seedReal, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 
 /**
@@ -12,7 +12,7 @@ import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
  * events (thinking while waiting, success after an added card, idle at rest), and nothing raw leaks.
  */
 test.skip(!REAL || !MODEL, 'Only with ZIGI_REAL_MODEL=1 and ZIGI_MODEL set, on the owner\'s machines.');
-test.describe.configure({mode: 'serial', timeout: 30 * 60_000});
+test.describe.configure({timeout: 30 * 60_000});
 const launcher = (page: Page) => page.locator('.ai-launcher-button');
 type Step = {page?: string; ask: string; log?: boolean; photo?: string; addKinds?: string[]; stateAfterAdd?: 'success' | 'celebrate' | 'proud'; expectNoCards?: boolean};
 /** Breakfast goes by photo when ZIGI_PHOTOS names the folder with the fictional plate (owner addition 11), by words otherwise. */
@@ -47,7 +47,7 @@ const SCENARIOS: Scenario[] = [
 const file = `day-in-the-life-${slug(MODEL)}.json`;
 for (const s of SCENARIOS) {
   test(`${s.id}: ${s.title}`, async ({page}, info) => {
-    await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+    await offlineAppApi(page);
     await seedReal(page);
     const problems: string[] = [];
     for (const [i, step] of s.steps.entries()) {
@@ -62,7 +62,7 @@ for (const s of SCENARIOS) {
         const {ms} = await sending; run.ms = ms;
         const stored = await lastReply(page); run.reply = stored.text; run.tools = stored.tools; run.cards = await cardsOf(page);
         run.state.afterReply = await launcher(page).getAttribute('data-state');
-        const shown = await panel(page).locator('.ai-turn-assistant').last().innerText();
+        const shown = await shownReply(page);
         const checks: {name: string; pass: boolean; detail?: string}[] = [{name: 'replied', pass: run.reply.trim().length > 0}, {name: 'nothing raw shown', pass: !/zigoals-action|⟦zigi:|\[\[zigi:/.test(shown)}];
         if (step.expectNoCards) checks.push({name: 'no card', pass: run.cards.length === 0});
         if (step.addKinds) {

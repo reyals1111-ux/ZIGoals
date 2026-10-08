@@ -34,6 +34,11 @@ export async function seedReal(page: Page, {health = true, log = false}: {health
   void log;
 }
 export const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
+/** The app's own /api/* routes answer offline (fixtures only); the model's base URL is never touched by this (a bare `**\/api/**` would block the model too). */
+export async function offlineAppApi(page: Page) {
+  const model = new URL(BASE).origin;
+  await page.route(url => url.pathname.startsWith('/api/') && url.origin !== model, route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+}
 export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
 /** Sends a message and waits until the reply is final (the Stop button gone, no live turn), within the reply timeout. */
 export async function askAndWait(page: Page, text: string, {log = false}: {log?: boolean} = {}): Promise<{ms: number}> {
@@ -43,7 +48,15 @@ export async function askAndWait(page: Page, text: string, {log = false}: {log?:
   await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toBeVisible({timeout: 15_000}).catch(() => undefined);
   await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: REPLY_TIMEOUT_MS});
   await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0, {timeout: 10_000});
+  // A failure block instead of a reply (network, CORS, a stall, the model missing) is the run's error, never a hang.
+  const failure = panel(page).locator('.ai-failure');
+  if (await failure.count() > 0) throw new Error(`The chat shows a failure: ${(await failure.innerText()).replace(/\s+/g, ' ').trim().slice(0, 400)}`);
   return {ms: Date.now() - started};
+}
+/** What the panel shows for the last reply (empty when there is no assistant turn); never waits on a missing element. */
+export async function shownReply(page: Page): Promise<string> {
+  const turn = panel(page).locator('.ai-turn-assistant').last();
+  return await turn.count() > 0 ? turn.innerText() : '';
 }
 export type StoredTurn = {id: string; role: 'user' | 'assistant'; text: string; stopped?: string; tools?: {tool: string; label: string}[]; source?: string};
 /** The chat as the device stored it (the raw reply with its blocks; the hint already stripped by the app). */

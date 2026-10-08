@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {CORPUS, IMPORTANT, type ModelCase} from '../lib/ai/evals/corpus';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, PAGE_PATHS, panel, REAL, record, scoreUi, seedReal, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, REAL, record, scoreUi, seedReal, shownReply, slug, type UiRun} from './real-model';
 
 /**
  * Session X-Local Part 6c, UI-driven cases through the real panel against a real local model (owner addition 2:
@@ -12,7 +12,7 @@ import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, PAGE_PATHS, panel
  *   PLAYWRIGHT_BASE_URL=http://127.0.0.1:3102 pnpm exec playwright test tests/zigi-real-model.spec.ts --project=desktop --workers=1
  */
 test.skip(!REAL || !MODEL, 'Only with ZIGI_REAL_MODEL=1 and ZIGI_MODEL set, on the owner\'s machines.');
-test.describe.configure({mode: 'serial', timeout: 15 * 60_000});
+test.describe.configure({timeout: 15 * 60_000});
 const WANT = Number(process.env.ZIGI_UI_CASES ?? '150'), OFFSET = Number(process.env.ZIGI_UI_OFFSET ?? '0');
 /** The important cases first, then the rest of the corpus in order; multi-turn cases are the conversation spec's. */
 const single = (c: ModelCase) => !c.turns?.length && !c.sentinels && c.kind !== 'local-first';
@@ -22,7 +22,7 @@ const file = `ui-${slug(MODEL)}.json`;
 
 for (const c of chosen) {
   test(`${c.id} [${c.area}/${c.kind}/${c.lang}]`, async ({page}, info) => {
-    await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+    await offlineAppApi(page);
     await seedReal(page, {health: c.health !== 'closed'});
     await page.goto(PAGE_PATHS[c.area]);
     await openChat(page);
@@ -36,7 +36,7 @@ for (const c of chosen) {
       run.reply = stored.text; run.tools = stored.tools; run.cards = await cardsOf(page);
       run.score = scoreUi(c.expect, stored.text, stored.tools);
       // The interface never shows a raw block or a marker, whatever the model sent.
-      const shown = await panel(page).locator('.ai-turn-assistant').last().innerText();
+      const shown = await shownReply(page);
       expect(shown).not.toContain('zigoals-action'); expect(shown).not.toContain('⟦zigi:'); expect(shown).not.toContain('[[zigi:');
     } catch (error) { run.error = error instanceof Error ? error.message.slice(0, 500) : String(error); }
     record(info, file, run);

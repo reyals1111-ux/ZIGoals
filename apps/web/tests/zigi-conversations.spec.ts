@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, PAGE_PATHS, panel, REAL, record, seedReal, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, slug, type UiRun} from './real-model';
 
 /**
  * Session X-Local Part 6c, multi-turn conversations with a real local model (owner addition 2: ≥50 across the matrix):
@@ -9,7 +9,7 @@ import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, PAGE_PATHS, panel
  * right field, and that the record and its undo are exact. Runs are appended to ZIGI_OUT/conversations-<model>.json.
  */
 test.skip(!REAL || !MODEL, 'Only with ZIGI_REAL_MODEL=1 and ZIGI_MODEL set, on the owner\'s machines.');
-test.describe.configure({mode: 'serial', timeout: 20 * 60_000});
+test.describe.configure({timeout: 20 * 60_000});
 type Conversation = {id: string; area: keyof typeof PAGE_PATHS; plan: string; correct: string; kind: string; key: string; store: string; find: (snap: any, before: any) => any; expectField: (record: any) => void}; // eslint-disable-line @typescript-eslint/no-explicit-any
 const HABITS = 'zigoals:habits:v1', HEALTH = 'zigoals:health:v1', PLATFORM = 'zigoals:platform:v1';
 const newest = (list: any[], before: any[]) => list.find((x: any) => !before.some((b: any) => b.id === x.id)); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -36,7 +36,7 @@ const stored = (page: import('@playwright/test').Page, key: string) => page.eval
 
 for (const c of CONVERSATIONS.slice(0, WANT)) {
   test(`${c.id}: plan → correct → accept → undo (${c.kind})`, async ({page}, info) => {
-    await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+    await offlineAppApi(page);
     await page.clock.setFixedTime(new Date('2026-09-20T19:00:00.000Z')); await page.clock.install({time: '2026-09-20T19:00:00.000Z'});
     await seedReal(page);
     await page.goto(PAGE_PATHS[c.area]);

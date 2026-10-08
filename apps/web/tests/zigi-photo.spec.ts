@@ -1,7 +1,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, panel, REAL, record, seedReal, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {parseReply} from '../lib/ai/actions/parse';
 
@@ -14,7 +14,7 @@ import {parseReply} from '../lib/ai/actions/parse';
  */
 const PHOTOS_DIR = process.env.ZIGI_PHOTOS ?? '';
 test.skip(!REAL || !MODEL || !PHOTOS_DIR, 'Only with ZIGI_REAL_MODEL=1, ZIGI_MODEL and ZIGI_PHOTOS set, on the owner\'s machines.');
-test.describe.configure({mode: 'serial', timeout: 20 * 60_000});
+test.describe.configure({timeout: 20 * 60_000});
 const launcher = (page: Page) => page.locator('.ai-launcher-button');
 type Item = {name: string; match: RegExp};
 type PhotoCase = {file: string; source: string; meal: string; present: Item[]; absent: Item[]};
@@ -40,7 +40,7 @@ for (const p of PHOTOS) {
   test(`${p.file} (${p.source})`, async ({page}, info) => {
     const path = join(PHOTOS_DIR, p.file);
     test.skip(!existsSync(path), `${path} is not there.`);
-    await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+    await offlineAppApi(page);
     await seedReal(page);
     // The person's word that this model reads photos (the metadata path exists too; the word keeps the run independent of /api/show).
     await page.evaluate(([key, model]) => { const raw = localStorage.getItem(key); const options = raw ? JSON.parse(raw) as Record<string, unknown> : {version: 1}; options.visionDeclared = {[`local:${model}`]: true}; localStorage.setItem(key, JSON.stringify(options)); }, [AI_OPTIONS_KEY, MODEL] as const);
@@ -64,7 +64,7 @@ for (const p of PHOTOS) {
       const unseen = foods.filter(f => !p.present.some(i => i.match.test(f.name)));
       const nutrientsOnUnseen = unseen.filter(f => f.estimate && ['kcal', 'protein_g', 'carbs_g', 'fat_g'].some(k => (f.estimate as Record<string, unknown>)[k] !== undefined));
       run.hedged = HEDGE.test(parsed.text);
-      const shown = await panel(page).locator('.ai-turn-assistant').last().innerText();
+      const shown = await shownReply(page);
       const checks: {name: string; pass: boolean; detail?: string}[] = [
         {name: 'replied', pass: run.reply.trim().length > 0},
         {name: 'nothing raw shown', pass: !/zigoals-action|⟦zigi:|\[\[zigi:/.test(shown)},

@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, openChat, PAGE_PATHS, panel, REAL, record, seedReal, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
 import type {CorpusArea} from '../lib/ai/evals/corpus';
 
 /**
@@ -9,7 +9,7 @@ import type {CorpusArea} from '../lib/ai/evals/corpus';
  * The expectation per ask is a light one (a refusal where one must come, no card where none may), never the model's wording.
  */
 test.skip(!REAL || !MODEL, 'Only with ZIGI_REAL_MODEL=1 and ZIGI_MODEL set, on the owner\'s machines.');
-test.describe.configure({mode: 'serial', timeout: 15 * 60_000});
+test.describe.configure({timeout: 15 * 60_000});
 type Ask = {ask: string; noCards?: boolean; refuse?: boolean; mustNot?: string[]};
 const PAGES: Partial<Record<CorpusArea, Ask[]>> = {
   today: [{ask: 'Good morning, what should I focus on today?', noCards: true}, {ask: 'How is my week going so far?', noCards: true}, {ask: 'Anything I keep forgetting lately?'}, {ask: 'What did I do yesterday?', noCards: true}, {ask: 'Set my intention for the week: fewer late evenings'}, {ask: 'Today felt good, a four'}, {ask: 'Remind me to drink water at 10'}, {ask: 'What do you know about me?', noCards: true}, {ask: 'Can you move 200 euros into my emergency fund?', refuse: true}, {ask: 'Say that in two sentences', noCards: true}],
@@ -35,7 +35,7 @@ const file = `pages-${slug(MODEL)}.json`;
 for (const area of AREAS) {
   const asks = PAGES[area] ?? [];
   test(`${area}: ten conversations from this page`, async ({page}, info) => {
-    await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+    await offlineAppApi(page);
     await seedReal(page);
     await page.goto(PAGE_PATHS[area]);
     await openChat(page);
@@ -45,7 +45,7 @@ for (const area of AREAS) {
       try {
         const {ms} = await askAndWait(page, a.ask); run.ms = ms;
         const stored = await lastReply(page); run.reply = stored.text; run.tools = stored.tools; run.cards = await cardsOf(page);
-        const shown = await panel(page).locator('.ai-turn-assistant').last().innerText();
+        const shown = await shownReply(page);
         const checks = [
           {name: 'replied', pass: run.reply.trim().length > 0},
           {name: 'nothing raw shown', pass: !/zigoals-action|⟦zigi:|\[\[zigi:/.test(shown)},
