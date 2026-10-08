@@ -50,20 +50,43 @@ const snapshot = (page: Page): Promise<Snap> => page.evaluate(keys => Object.fro
 /**
  * What the app's own save paths leave behind that is not a record: `updatedAt` stamps, the water operation ledger (an
  * accepted operation stays listed after its entry is removed, as after a manual removal), an empty Session W group
- * (`sleep`, `meditation`, `moods`, `links`) left by the group's own remove, and the module version that the first group
- * raised. Everything else must be byte-identical after Undo.
+ * (`sleep`, `meditation`, `moods`, `links`, `weeklyReview`, the notes) left by the group's own remove, the module version that the first group
+ * raised, the "Actions by ZIGi" ledger and the reminder records left present and empty, and the platform's own audit
+ * ledgers (`goalHistory`, a goal's `lifecycle` and `planRevisions`), which record the edit and its undo, and an automatic check-in the
+ * habit-health link applied from a logged activity (kept, with its marker, after the activity is undone: the link's own
+ * rule). Everything else must be byte-identical after Undo.
  */
 function normalise(snap: Snap): Snap {
   const out = JSON.parse(JSON.stringify(snap, (key, value: unknown) => key === 'updatedAt' || key === 'waterOperations' ? undefined : value)) as Snap;
   const health = out[HEALTH_KEY], settings = out[DASHBOARD_SETTINGS_KEY];
   if (health) { for (const [group, list] of [['sleep', 'nights'], ['meditation', 'sessions']] as const) if (health[group] && !health[group][list].length && !health[group].goal) delete health[group]; if (health.moods && !Object.keys(health.moods.days).length) delete health.moods; delete health.schemaVersion; }
-  if (settings) { if (settings.links && !settings.links.items.length) delete settings.links; delete settings.schemaVersion; }
+  if (settings) { if (settings.links && !settings.links.items.length) delete settings.links; if (settings.weeklyReview && !settings.weeklyReview.reviews?.length) delete settings.weeklyReview; delete settings.schemaVersion; }
+  if (out[AI_MEMORY_KEY] && !(out[AI_MEMORY_KEY].notes ?? []).length) out[AI_MEMORY_KEY] = null;
+  // "Actions by ZIGi", the reminders and ZIGi's reminders: an Undo leaves the record present and empty where there was none.
+  if (out[AI_ACTIONS_KEY] && !(out[AI_ACTIONS_KEY].actions ?? []).length) out[AI_ACTIONS_KEY] = null;
+  const reminders = out[REMINDERS_KEY];
+  if (reminders && !Object.keys(reminders.habits ?? {}).length && !reminders.water && !Object.keys(reminders.dismissed ?? {}).length) out[REMINDERS_KEY] = null;
+  const zigi = out[ZIGI_REMINDERS_KEY];
+  if (zigi && Object.keys(zigi).every(k => k === 'version' || (zigi[k] && typeof zigi[k] === 'object' && !Object.keys(zigi[k]).length))) out[ZIGI_REMINDERS_KEY] = null;
+  // The platform's own ledgers: a goal edit or a milestone appends to `goalHistory` and the goal's `lifecycle` on the
+  // way in and again on the way back (the Goals page's own forms do the same); the records themselves must match.
+  const platform = out[PLATFORM_KEY];
+  if (platform) { delete platform.goalHistory; for (const g of platform.goals ?? []) { delete g.lifecycle; delete g.planRevisions; } }
+  // The habit-health link applies an automatic check-in once from a logged activity (Session W) and keeps it when the
+  // activity goes, with its marker; the card's own record (the activity) is what must be gone. Both are dropped here.
+  const applied: {habitId: string; date: string; value: number; appliedAt: string}[] = (health?.habitLinks?.applied ?? []).filter((m: any) => m.appliedAt >= EVENING);
+  if (applied.length) {
+    health.habitLinks.applied = health.habitLinks.applied.filter((m: any) => m.appliedAt < EVENING);
+    for (const h of out[HABITS_KEY]?.habits ?? []) h.entries = h.entries.filter((e: any) => !applied.some(m => m.habitId === h.id && m.date === e.date && m.value === e.count && e.note === ''));
+  }
   return out;
 }
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /** The handle the page context gave a record (h1, g2, f3, r1), read from the request as the AI would. */
-const handle = (body: Body, prefix: string, title: string) => new RegExp(`(${prefix}\\d+): ${esc(title)}`).exec(systemOf(body))?.[1] ?? `${prefix}0`;
+const handle = (body: Body, prefix: string, title: string) => new RegExp(`(${prefix}\\d+): (?:own food |own recipe |recipe |saved meal |counter )?${esc(title)}`).exec(systemOf(body))?.[1] ?? `${prefix}0`;
+/** Fasting lives in Health's own group once homed there (Session W), else in its device record. */
+const fastingOf = (snap: Snap) => snap[HEALTH_KEY]?.fasting ?? snap[FASTING_KEY];
 /** The calendar day of the test's moment in a zone, and the day before it. */
 const dayIn = (zone: string, shift = 0) => { const d = new Date(Date.parse(EVENING) + shift * 86_400_000); return new Intl.DateTimeFormat('en-CA', {timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit'}).format(d); };
 const clockIn = (iso: string, zone: string) => new Intl.DateTimeFormat('en-GB', {timeZone: zone, hour: '2-digit', minute: '2-digit', hour12: false}).format(new Date(iso));
@@ -95,16 +118,22 @@ const CASES: readonly Case[] = [
     check: (after, _before, {today}) => { const entry = habitOf(after, 'Meditate').entries.find((e: any) => e.date === today); expect(entry).toMatchObject({date: today, count: 20}); }},
   {kind: 'skip', page: '/app/habits', ask: 'Skip reading today, rest day', reply: body => block({kind: 'skip', habit: handle(body, 'h', 'Read'), reason: 'rest day'}), daySensitive: true,
     check: (after, _before, {today}) => { const entry = habitOf(after, 'Read').entries.find((e: any) => e.date === today); expect(entry).toMatchObject({date: today, disposition: 'skipped', note: 'rest day'}); }},
-  {kind: 'create-habit', page: '/app/habits', ask: 'New habit: evening walk, 20 minutes, Mon Wed Fri', reply: () => block({kind: 'create-habit', title: 'Evening walk', measurement: 'minutes', target: 20, schedule: {weekdays: [1, 3, 5]}, timeOfDay: 'evening', description: 'Around the block'}), daySensitive: true, visible: {page: '/app/habits', text: 'Evening walk'},
+  {kind: 'create-habit (daily)', page: '/app/habits', ask: 'New habit: evening walk, 20 minutes every day', reply: () => block({kind: 'create-habit', title: 'Evening walk', measurement: 'minutes', target: 20, timeOfDay: 'evening', description: 'Around the block'}), daySensitive: true, visible: {page: '/app/habits', text: 'Evening walk'},
     check: (after, before, {today}) => {
       const habits = after[HABITS_KEY].habits; expect(habits.length).toBe(before[HABITS_KEY].habits.length + 1);
       const h = habits.at(-1); expect(h).toMatchObject({title: 'Evening walk', description: 'Around the block', category: 'Personal', timeOfDay: 'evening', startDate: today, entries: []});
-      expect(rule(h)).toMatchObject({from: today, type: 'build', measurement: {kind: 'duration', unit: 'minutes'}, target: 20, targetPeriod: 'day', schedule: {kind: 'weekdays', days: [1, 3, 5]}, state: 'active'});
+      expect(rule(h)).toMatchObject({from: today, type: 'build', measurement: {kind: 'duration', unit: 'minutes'}, target: 20, targetPeriod: 'day', schedule: {kind: 'daily'}, state: 'active'});
+    }},
+  {kind: 'create-habit (weekdays, a limit)', page: '/app/habits', ask: 'New habit: at most 2 coffees on Mon Wed Fri', reply: () => block({kind: 'create-habit', title: 'Coffee cap', type: 'limit', measurement: 'count', target: 2, schedule: {weekdays: [1, 3, 5]}, category: 'Health'}), daySensitive: true,
+    check: (after, before, {today}) => {
+      const h = after[HABITS_KEY].habits.at(-1); expect(after[HABITS_KEY].habits.length).toBe(before[HABITS_KEY].habits.length + 1);
+      expect(h).toMatchObject({title: 'Coffee cap', category: 'Health', timeOfDay: 'anytime', startDate: today});
+      expect(rule(h)).toMatchObject({from: today, type: 'limit', measurement: {kind: 'count', unit: 'times'}, target: 2, schedule: {kind: 'weekdays', days: [1, 3, 5]}});
     }},
   {kind: 'start-fast', page: '/app/health', ask: 'Start a 16 hour fast', reply: () => block({kind: 'start-fast', targetHours: 16}),
-    check: (after, before, {zone}) => { const sessions = after[FASTING_KEY].sessions; expect(sessions.length).toBe(before[FASTING_KEY].sessions.length + 1); const f = sessions.at(-1); expect(f).toMatchObject({targetHours: 16, endedAt: null, timeZone: zone}); near(f.startedAt); }},
+    check: (after, before, {zone}) => { const sessions = fastingOf(after).sessions; expect(sessions.length).toBe(fastingOf(before).sessions.length + 1); const f = sessions.at(-1); expect(f).toMatchObject({targetHours: 16, endedAt: null, timeZone: zone}); near(f.startedAt); }},
   {kind: 'stop-fast', page: '/app/health', ask: 'Stop my fast', reply: () => block({kind: 'stop-fast'}), setup: [{ask: 'Start a 16 hour fast', reply: () => block({kind: 'start-fast', targetHours: 16})}],
-    check: (after, before) => { const f = after[FASTING_KEY].sessions.at(-1); expect(before[FASTING_KEY].sessions.at(-1).endedAt).toBeNull(); expect(f).toMatchObject({targetHours: 16, stoppedBy: 'person'}); near(f.endedAt); }},
+    check: (after, before) => { const f = fastingOf(after).sessions.at(-1); expect(fastingOf(before).sessions.at(-1).endedAt).toBeNull(); expect(f).toMatchObject({targetHours: 16, stoppedBy: 'person'}); near(f.endedAt); }},
   {kind: 'create-goal (VALUE)', page: '/app/goals', ask: 'A goal: new laptop, 1500 euros by June 2027', reply: () => block({kind: 'create-goal', name: 'New laptop', type: 'VALUE', target: 1500, currency: 'EUR', targetDate: '2027-06-01', category: 'Custom'}), visible: {page: '/app/goals', text: 'New laptop'},
     check: (after, before) => { const goals = after[PLATFORM_KEY].goals; expect(goals.length).toBe(before[PLATFORM_KEY].goals.length + 1); const g = goals.at(-1); expect(g).toMatchObject({name: 'New laptop', type: 'VALUE', status: 'active', asset: 'EUR', denom: 'EUR', decimals: 2, target: '150000', targetDate: '2027-06-01', category: 'Custom', notes: '', milestones: []}); near(g.createdAt); }},
   {kind: 'create-goal (PROJECT)', page: '/app/goals', ask: 'A project: renovate the kitchen, plans then quotes, by March 2027', reply: () => block({kind: 'create-goal', name: 'Renovate the kitchen', type: 'PROJECT', milestones: ['Plans drawn', 'Quotes in'], targetDate: '2027-03-01'}),
@@ -118,7 +147,7 @@ const CASES: readonly Case[] = [
       const {recipes, foods} = after[HEALTH_KEY]; expect(recipes.length).toBe(before[HEALTH_KEY].recipes.length + 1); expect(foods.length).toBe(before[HEALTH_KEY].foods.length + 1);
       const food = foods.at(-1), recipe = recipes.at(-1);
       expect(food).toMatchObject({name: 'Red lentils', brand: 'AI estimate', servingGrams: 100, nutrients: {kcal: 116, proteinMg: null, carbsMg: null, fatMg: null}});
-      expect(recipe).toMatchObject({name: 'Lentil soup', portionsMilli: 4000, items: [{foodId: food.id, quantityMilli: 2500}]});
+      expect(recipe).toMatchObject({name: 'Lentil soup', portionsMilli: 4000, ingredients: [{foodId: food.id, quantityMilli: 2500}]});
     }},
   {kind: 'plan-meal', page: '/app/health', ask: 'Plan the lentil soup for dinner', reply: body => block({kind: 'plan-meal', recipe: handle(body, 'r', 'Lentil soup'), servings: 1, meal: 'Dinner'}), daySensitive: true,
     setup: [{ask: 'A recipe: lentil soup, 4 servings, 250 g red lentils', reply: () => block({kind: 'create-recipe', name: 'Lentil soup', servings: 4, ingredients: [{name: 'Red lentils', grams: 250}]})}],
@@ -140,15 +169,16 @@ const CASES: readonly Case[] = [
   {kind: 'create-reminder (goal)', page: '/app/goals', ask: 'A weekly check-in on my emergency fund, Sundays at 18:00', reply: body => block({kind: 'create-reminder', for: 'goal', goal: handle(body, 'g', 'Emergency fund'), time: '18:00', weekday: 0}),
     check: after => { expect(after[ZIGI_REMINDERS_KEY].goalCheckIns[`private:${goalOf(after, 'Emergency fund').id}`]).toEqual({weekday: 0, time: '18:00'}); }},
   {kind: 'review-intention', page: '/app', ask: 'My intention this week: walk after lunch on three days', reply: () => block({kind: 'review-intention', intention: 'Walk after lunch on three days'}),
-    check: (after, before) => { const mine = (snap: Snap) => (snap[WEEKLY_REVIEW_KEY]?.reviews ?? []).filter((r: any) => r.notes?.intention === 'Walk after lunch on three days'); expect(mine(before)).toHaveLength(0); expect(mine(after)).toHaveLength(1); }},
+    check: (after, before) => { const mine = (snap: Snap) => ((snap[DASHBOARD_SETTINGS_KEY]?.weeklyReview ?? snap[WEEKLY_REVIEW_KEY])?.reviews ?? []).filter((r: any) => r.notes?.intention === 'Walk after lunch on three days'); expect(mine(before)).toHaveLength(0); expect(mine(after)).toHaveLength(1); }},
   {kind: 'remember', page: '/app', ask: 'Remember that I am training for a half marathon in April', reply: () => block({kind: 'remember', text: 'Training for a half marathon in April', category: 'goals'}),
     check: (after, before) => { const notes = after[AI_MEMORY_KEY]?.notes ?? []; expect(notes.length).toBe((before[AI_MEMORY_KEY]?.notes ?? []).length + 1); expect(notes.at(-1)).toMatchObject({text: 'Training for a half marathon in April', category: 'goals', source: 'zigi'}); }},
-  {kind: 'log-sleep', page: '/app/health', ask: 'Last night I slept from 22:30 to 06:30, a 4', reply: () => block({kind: 'log-sleep', wake: '06:30', bedtime: '22:30', quality: 4, day: 'yesterday'}), daySensitive: true,
+  // A nap in the afternoon, clear of the Showcase's own nights (a night that overlaps one is refused, rightly).
+  {kind: 'log-sleep (nap)', page: '/app/health', ask: 'Yesterday I napped from 15:00 to 15:30, a 4', reply: () => block({kind: 'log-sleep', wake: '15:30', bedtime: '15:00', quality: 4, nap: true, day: 'yesterday'}), daySensitive: true,
     check: (after, before, {zone, yesterday}) => {
       const nights = after[HEALTH_KEY].sleep?.nights ?? []; expect(nights.length).toBe((before[HEALTH_KEY].sleep?.nights ?? []).length + 1);
-      const n = nights.at(-1); expect(n).toMatchObject({kind: 'night', quality: 4, timeZone: zone});
-      expect(dayIn(zone, 0) >= yesterday).toBe(true); expect(clockIn(n.end, zone)).toBe('06:30'); expect(new Intl.DateTimeFormat('en-CA', {timeZone: zone}).format(new Date(n.end))).toBe(yesterday);
-      expect(clockIn(n.start, zone)).toBe('22:30'); expect(Date.parse(n.end) - Date.parse(n.start)).toBe(8 * 3_600_000);
+      const n = nights.at(-1); expect(n).toMatchObject({kind: 'nap', quality: 4, timeZone: zone});
+      expect(clockIn(n.end, zone)).toBe('15:30'); expect(new Intl.DateTimeFormat('en-CA', {timeZone: zone}).format(new Date(n.end))).toBe(yesterday);
+      expect(clockIn(n.start, zone)).toBe('15:00'); expect(Date.parse(n.end) - Date.parse(n.start)).toBe(30 * 60_000);
     }},
   {kind: 'log-meditation', page: '/app/health', ask: 'Yesterday I meditated 15 minutes at 7:30', reply: () => block({kind: 'log-meditation', minutes: 15, time: '07:30', day: 'yesterday', note: 'after the run'}), daySensitive: true,
     check: (after, before, {zone, yesterday}) => {
@@ -165,12 +195,14 @@ const CASES: readonly Case[] = [
   {kind: 'edit-habit', page: '/app/habits', ask: 'Rename meditate to evening meditation, 15 minutes, in the evening', reply: body => block({kind: 'edit-habit', habit: handle(body, 'h', 'Meditate'), title: 'Evening meditation', target: 15, timeOfDay: 'evening'}), daySensitive: true, visible: {page: '/app/habits', text: 'Evening meditation'},
     check: (after, before, {today}) => { const h = habitOf(after, 'Evening meditation'); expect(h.id).toBe(habitOf(before, 'Meditate').id); expect(h.timeOfDay).toBe('evening'); expect(rule(h)).toMatchObject({from: today, target: 15, measurement: rule(habitOf(before, 'Meditate')).measurement}); expect(h.entries).toEqual(habitOf(before, 'Meditate').entries); }},
   {kind: 'edit-goal', page: '/app/goals', ask: 'Rename my emergency fund to Emergency fund 2027, by May 2027', reply: body => block({kind: 'edit-goal', goal: handle(body, 'g', 'Emergency fund'), name: 'Emergency fund 2027', targetDate: '2027-05-01', notes: 'Three months of costs'}), visible: {page: '/app/goals', text: 'Emergency fund 2027'},
-    check: (after, before) => { const was = goalOf(before, 'Emergency fund'), g = goalOf(after, 'Emergency fund 2027'); expect(g).toEqual({...was, name: 'Emergency fund 2027', targetDate: '2027-05-01', notes: 'Three months of costs'}); }},
+    // The platform's own ledgers (`lifecycle`, `planRevisions`) record the change; the plain fields are compared.
+    check: (after, before) => { const was = goalOf(before, 'Emergency fund'), g = goalOf(after, 'Emergency fund 2027'); const {lifecycle: l1, planRevisions: p1, ...plain} = g; const {lifecycle: l2, planRevisions: p2, ...wasPlain} = was; void l1; void l2; void p1; void p2; expect(plain).toEqual({...wasPlain, name: 'Emergency fund 2027', targetDate: '2027-05-01', notes: 'Three months of costs'}); }},
   {kind: 'log-mood', page: '/app', ask: 'Today felt good, a calm evening', reply: () => block({kind: 'log-mood', mood: 4, note: 'Calm evening'}), daySensitive: true,
     check: (after, _before, {today}) => { const mood = after[HEALTH_KEY].moods.days[today]; expect(mood).toMatchObject({mood: 4, note: 'Calm evening'}); near(mood.at); }},
   {kind: 'add-link', page: '/app', ask: 'Add my running club link https://www.strava.com/clubs/zig', reply: () => block({kind: 'add-link', label: 'Running club', url: 'https://www.strava.com/clubs/zig'}), visible: {page: '/app', text: 'Running club'},
     check: (after, before) => { const items = after[DASHBOARD_SETTINGS_KEY].links.items; expect(items.length).toBe((before[DASHBOARD_SETTINGS_KEY].links?.items ?? []).length + 1); expect(items.at(-1)).toMatchObject({label: 'Running club', url: 'https://www.strava.com/clubs/zig', icon: 'strava', order: items.length - 1}); near(items.at(-1).createdAt); }},
-  {kind: 'add-widget', page: '/app/habits', ask: 'Put my meditation streak on Today', reply: body => block({kind: 'add-widget', widget: 'habit', habit: handle(body, 'h', 'Meditate'), metric: 'streak', title: 'Meditation streak'}), visible: {page: '/app', text: 'Meditation streak'},
+  // "streak" in the ask would be answered on the device by the lookup engine (local first), so the ask avoids the word.
+  {kind: 'add-widget', page: '/app/habits', ask: 'Add a Today widget for my Meditate habit', reply: body => block({kind: 'add-widget', widget: 'habit', habit: handle(body, 'h', 'Meditate'), metric: 'streak', title: 'Meditation streak'}), visible: {page: '/app', text: 'Meditation streak'},
     check: (after, before) => { const widgets = after[DASHBOARD_SETTINGS_KEY].widgets; expect(widgets.length).toBe(before[DASHBOARD_SETTINGS_KEY].widgets.length + 1); expect(widgets.at(-1)).toMatchObject({kind: 'habit', metric: 'streak', entity: habitOf(after, 'Meditate').id, title: 'Meditation streak', size: 'compact', hidden: false, revision: 1}); }},
 ];
 const FIRST_FOOD = JSON.parse(buildShowcase(DAY).records['zigoals:health:v1']!).foods[0].name as string;
@@ -188,17 +220,17 @@ for (const zone of ZONES) {
         await seed(page);
         await page.goto(c.page);
         await openChat(page);
-        for (const step of c.setup ?? []) { await send(page, step.ask); await panel(page).locator('.ai-card').last().getByRole('button', {name: 'Add', exact: true}).click(); await expect(panel(page).locator('.ai-card').last()).toHaveClass(/ai-card-added/); }
+        for (const step of c.setup ?? []) { await send(page, step.ask); const setupCard = panel(page).locator('.ai-card').last(); await setupCard.getByRole('button', {name: 'Add', exact: true}).click(); await expect(setupCard).toHaveClass(/ai-card-added/); }
         const before = await snapshot(page);
         await send(page, c.ask);
         const card = panel(page).locator('.ai-card').last();
-        await expect(card.locator('.ai-card-refused')).toHaveCount(0);
-        await card.getByRole('button', {name: 'Add', exact: true}).click();
+        await expect(card, await card.textContent() ?? '').not.toHaveClass(/ai-card-refused/);
+        await card.getByRole('button', {name: /^(Add|Remember)$/}).click();
         await expect(card).toHaveClass(/ai-card-added/);
         const after = await snapshot(page);
         c.check(after, before, ctx);
         const actions = after[AI_ACTIONS_KEY].actions; expect(actions.length).toBe((before[AI_ACTIONS_KEY]?.actions ?? []).length + 1);
-        await panel(page).getByRole('button', {name: /^Undo/}).click();
+        await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: /^Undo/}).click();
         await expect(card).toHaveClass(/ai-card-undone/);
         const undone = await snapshot(page);
         expect(normalise(undone), 'every store exactly as before the card').toEqual(normalise(before));

@@ -7,7 +7,7 @@ import {foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, 
 import {addWater, dailyData, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveMealFromRecipe, saveMealPlan} from '../../health-daily';
 import {changeCount, countOn, exerciseData} from '../../health-counters';
 import {addLocalDays} from '../../local-date';
-import {deletePrivateGoal, platformSchema, privateGoalSchema, type Platform} from '../../positions';
+import {deletePrivateGoal, platformSchema, privateGoalSchema, type Platform, type PrivateGoal} from '../../positions';
 import {weeklyReviewSchema} from '../../weekly-review/schema';
 import {setHabitReminder, setWaterReminder} from '../../reminders/store';
 import type {Reminders} from '../../reminders/schema';
@@ -565,9 +565,13 @@ export function planAction(action: Action, env: Env): PlanResult {
       const next = privateGoalSchema.safeParse({...goal, ...(action.name !== undefined ? {name: action.name} : {}), target, ...(action.targetDate !== undefined ? {targetDate: action.targetDate ?? undefined} : {}), ...(action.category !== undefined ? {category: action.category} : {}), ...(action.notes !== undefined ? {notes: action.notes} : {})});
       if (!next.success) return refuse(`This change cannot be made as proposed: ${next.error.issues[0]?.message ?? 'check its fields'}.`);
       const previous = goal, mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id);
+      // The platform keeps its own ledgers on a goal (`planRevisions`, `lifecycle`) and appends to them on the way in and
+      // on the way back, as it does for the Goals page's form; the card's record is the plain fields, compared without them.
+      const plain = (g: PrivateGoal | undefined) => { if (!g) return undefined; const {planRevisions, lifecycle, ...rest} = g; void planRevisions; void lifecycle; return rest; };
+      const restored = (g: PrivateGoal) => { const back = {...g, name: previous.name, target: previous.target, notes: previous.notes, targetDate: previous.targetDate, category: previous.category}; if (previous.targetDate === undefined) delete back.targetDate; if (previous.category === undefined) delete back.category; return privateGoalSchema.parse(back); };
       return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Change the goal "${goal.name}"`, lines: [...changes, 'Only these details; its plan, funding and milestones stay as they are'], where: 'Goals', day: null, estimate: false},
-        write: s => { const current = mine(s); if (!current) throw Error('This goal is no longer here.'); if (current.locked) throw Error('This goal is locked now. Unlock it in Goals first.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? next.data : g)})}; },
-        undo: {label: 'Put the goal back as it was', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? previous : g)})}), unchanged: (afterApply, now) => same(mine(afterApply), mine(now))},
+        write: s => { const current = mine(s); if (!current) throw Error('This goal is no longer here.'); if (current.locked) throw Error('This goal is locked now. Unlock it in Goals first.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, ...plain(next.data)} : g)})}; },
+        undo: {label: 'Put the goal back as it was', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? restored(g) : g)})}), unchanged: (afterApply, now) => same(plain(mine(afterApply)), plain(mine(now)))},
         activity: {id: `goal-edit:${goal.id}:${at}`, title: `Goal changed: ${action.name ?? goal.name}`}}};
     }
     case 'log-mood': {
