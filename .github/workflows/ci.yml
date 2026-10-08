@@ -164,7 +164,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-lost-ack-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs scripts/run11/packaged-runtime.test.mjs scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs scripts/run11/stage8-rehearsal/lock-switch-browser.test.mjs scripts/run11/stage8-rehearsal/health-consent-cloud-browser.test.mjs scripts/run11/stage8-rehearsal/replay-browser.test.mjs scripts/run11/stage8-rehearsal/camera-browser.test.mjs scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs --no-file-parallelism --reporter=verbose
+          pnpm exec vitest run scripts/run10/account-browser.test.mjs scripts/run11/account-switch-browser.test.mjs scripts/run11/sync-self-conflict-browser.test.mjs scripts/run11/sync-lost-ack-browser.test.mjs scripts/run11/sync-inflight-edit-browser.test.mjs scripts/run11/health-consent-verification-browser.test.mjs scripts/run11/health-consent-a11y-browser.test.mjs scripts/run11/market-browser.test.mjs scripts/run11/market-disconnect.test.mjs scripts/run11/packaged-runtime.test.mjs scripts/run11/stage8-rehearsal/sign-in-codes-browser.test.mjs scripts/run11/stage8-rehearsal/lock-switch-browser.test.mjs scripts/run11/stage8-rehearsal/health-consent-cloud-browser.test.mjs scripts/run11/stage8-rehearsal/replay-browser.test.mjs scripts/run11/stage8-rehearsal/camera-browser.test.mjs scripts/run11/stage8-rehearsal/sync-offer-browser.test.mjs scripts/run11/stage8-rehearsal/remember-device-browser.test.mjs --no-file-parallelism --reporter=verbose
       # Session W Part 22: page weight (gzip of the scripts each page loads) for every app page and the shell they
       # share, against scripts/weight-budgets.json, on the production build served above. A few seconds, loopback only.
       - name: Page weight budgets
@@ -196,6 +196,16 @@ jobs:
           done
           curl -fsS http://127.0.0.1:8788/app >/dev/null
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test public-alpha.spec.ts diagnostics.spec.ts --workers=2 --output=/tmp/zigoals-alpha-results
+      # Session X Part 6: the gate's traces were written and discarded, so public-alpha:119's one timeout (run 37663282444)
+      # could not be root-caused. Kept like the browser shards' (fixture data only, no secrets), on failure too.
+      - name: Retain the Alpha gate's traces
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web-alpha-gate-${{ github.sha }}
+          path: /tmp/zigoals-alpha-results/
+          if-no-files-found: ignore
+          retention-days: 7
   web:
     # Keeps the "web" check name. Passes only if every web job passed.
     needs: [web-checks, web-browser, web-integration]
