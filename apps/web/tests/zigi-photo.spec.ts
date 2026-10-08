@@ -35,6 +35,8 @@ const PHOTOS: PhotoCase[] = [
 ];
 type Food = {name: string; estimate?: {kcal?: number; protein_g?: number; carbs_g?: number; fat_g?: number; serving_g?: number; serving_ml?: number}};
 /** The model's own hedge: an estimate named as one, or what it could not see or judge, in its words (read off the live replies). */
+/** One card for the whole plate ("Full English breakfast", "fry-up") is a legitimate entry; it is on the plate by definition. */
+const COMBINED = /breakfast|brunch|lunch|dinner|supper|plate|meal|fry.?up|platter|spread|mixed/i;
 const HEDGE = /estimat|guess|roughly|about|approximately|around|could not|couldn.t|cannot|can.t (?:see|tell|judge)|not sure|unsure|unclear|not (?:certain|clear)|hard to (?:tell|see|judge)|unknown|leav(?:e|ing) (?:it |that |them |any |every )?(?:value |amount )?out|left (?:it |that |them |any )?out/i;
 const file = `photos-${slug(MODEL)}.json`;
 for (const p of PHOTOS) {
@@ -63,7 +65,7 @@ for (const p of PHOTOS) {
       run.recognised = p.present.filter(i => i.match.test(words)).map(i => i.name);
       run.missed = p.present.filter(i => !i.match.test(words)).map(i => i.name);
       run.invented = p.absent.filter(i => foods.some(f => i.match.test(f.name))).map(i => i.name);
-      const unseen = foods.filter(f => !p.present.some(i => i.match.test(f.name)));
+      const unseen = foods.filter(f => !p.present.some(i => i.match.test(f.name)) && !COMBINED.test(f.name));
       const nutrientsOnUnseen = unseen.filter(f => f.estimate && ['kcal', 'protein_g', 'carbs_g', 'fat_g'].some(k => (f.estimate as Record<string, unknown>)[k] !== undefined));
       run.hedged = HEDGE.test(parsed.text);
       const shown = await shownReply(page);
